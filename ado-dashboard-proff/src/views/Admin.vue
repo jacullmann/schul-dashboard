@@ -176,6 +176,16 @@ async function deleteRating(id: string) {
   await api.delete(`/api/admin/ratings/${id}`);
   if (selPerson.value) await selectPerson(selPerson.value);
 }
+async function deleteMessage(id: string) {
+  try {
+    await api.delete(`/api/admin/messages/${id}`);
+    if (selPerson.value) {
+      await selectPerson(selPerson.value);
+    }
+  } catch (e) {
+    console.error('Fehler beim Löschen der Nachricht', e);
+  }
+}
 async function editRating(r: any) {
   const next: any = {};
   for (const k of categories) {
