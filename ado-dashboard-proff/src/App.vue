@@ -4,7 +4,9 @@
       <h1 style="margin:0; font-size:22px;">Bewertungen</h1>
       <nav class="row" style="gap:8px;">
         <router-link to="/" class="badge">Übersicht</router-link>
+        <router-link to="/hausaufgaben" class="badge">Hausaufgaben</router-link>
         <router-link to="/admin" class="badge">Admin</router-link>
+
       </nav>
     </header>
     <main class="container">
@@ -23,5 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import Hausaufgaben from "./views/Hausaufgaben.vue";
+
 const year = new Date().getFullYear();
 </script>
