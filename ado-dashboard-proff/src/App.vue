@@ -13,7 +13,7 @@
     <footer class="container" style="margin-top:40px;">
       <hr />
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <div>© {{ year }} — Schlicht & modern</div>
+        <div>© {{ year }} — Bei Fragen kontaktieren sie uns über support@gmail.com</div>
         <div style="opacity:0.5;">
           <router-link to="/admin">Login</router-link>
         </div>
