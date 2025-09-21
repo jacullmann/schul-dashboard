@@ -1,5 +1,5 @@
 <template>
-  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;">
+  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
     <div class="card" style="width:100%; max-width:420px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
@@ -19,7 +19,13 @@
       </div>
 
       <div class="row" style="margin-top:12px; align-items:center;">
-        <button class="btn" @click="submit" :disabled="submitting">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</button>
+        <button class="btn" @click="submit" :disabled="submitting">
+          <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
+        </button>
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
       </div>
     </div>
@@ -28,11 +34,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import hw from '../../hwApi';
+import hw, { setHwToken } from '../../hwApi';
 
-const emit = defineEmits<{ (e:'close'): void; (e:'logged-in', token:string): void }>();
+const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
 
-const mode = ref<'login'|'register'>('login');
+const mode = ref<'login' | 'register'>('login');
 const email = ref('');
 const password = ref('');
 const submitting = ref(false);
@@ -42,6 +48,7 @@ const isError = ref(false);
 async function submit() {
   submitting.value = true;
   message.value = '';
+  isError.value = false;
   try {
     if (mode.value === 'register') {
       await hw.post('/api/auth/register', { email: email.value, password: password.value });
@@ -51,8 +58,8 @@ async function submit() {
       const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
       emit('logged-in', data.token);
     }
-  } catch (e:any) {
-    message.value = e?.response?.data?.error || 'Fehler';
+  } catch (e: any) {
+    message.value = e.response?.data?.error || 'Unbekannter Fehler';
     isError.value = true;
   } finally {
     submitting.value = false;

@@ -4,7 +4,7 @@
       <ButtonBack v-if="shouldShowBackButton" class="back-button-in-header">
         Zurück
       </ButtonBack>
-      <router-link to="/" class="logo" @click="closeNav">Bewertungen</router-link>
+      <router-link to="/" class="logo" @click="closeNav">Dashboard</router-link>
 
       <button @click="toggleNav" class="hamburger-menu">
         <div class="bar"></div>

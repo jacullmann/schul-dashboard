@@ -87,12 +87,13 @@ const AnnouncementSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
 
+// Updated ItemSchema to track who added an image
 const ItemSchema = new mongoose.Schema({
-    type: { type: String, enum: ['HAUSAUFGABE','DALTON','PRUEFUNG'], index: true },
+    type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
     title: { type: String, required: true },
     subject: { type: String, required: true }, // frei oder aus Liste
     description: { type: String },
-    images: [{ url: String, publicId: String }],
+    images: [{ url: String, publicId: String, createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' } }],
     dueDate: { type: Date, index: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
 }, { timestamps: true });
@@ -212,7 +213,7 @@ app.post('/api/auth/login',
 
 app.get('/api/auth/me', requireAuth, async (req, res) => {
     const user = await User.findById(req.user.sub).lean();
-    res.json({ id: user._id, email: user.email, isAdmin: !!user.isAdmin, emailVerified: !!user.emailVerified });
+    res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
 });
 
 // Admin: list users & activity, delete user, set admin
@@ -253,7 +254,9 @@ app.get('/api/announcements', async (req, res) => {
     const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
     res.json(list);
 });
-app.post('/api/announcements', requireAuth, body('title').isString().isLength({ min: 2 }), body('content').isString().isLength({ min: 2 }), body('color').optional().isIn(['info','warn','danger']), validate, async (req, res) => {
+app.post('/api/announcements', requireAuth, body('title').isString().isLength({ min: 2 }), body('content').isString().isLength({ min: 2 }), body('color').optional().isIn(['info', 'warn', 'danger']), validate, async (req, res) => {
+    const user = await User.findById(req.user.sub);
+    if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
     const doc = await Announcement.create({
         title: req.body.title,
         content: req.body.content,
@@ -286,9 +289,65 @@ app.post('/api/uploads/sign', requireAuth, async (req, res) => {
     });
 });
 
+// NEW: Add image to an item
+app.post('/api/items/:id/images',
+    requireAuth,
+    param('id').isMongoId(),
+    body('image').isObject(),
+    body('image.url').isString(),
+    body('image.publicId').isString(),
+    validate,
+    async (req, res) => {
+        const item = await Item.findById(req.params.id);
+        if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+        const newImage = {
+            url: req.body.image.url,
+            publicId: req.body.image.publicId,
+            createdBy: req.user.sub
+        };
+        item.images.push(newImage);
+        await item.save();
+        await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
+        res.status(201).json({ ok: true, image: newImage });
+    }
+);
+
+// NEW: Delete an image from an item
+app.delete('/api/items/:itemId/images/:publicId',
+    requireAuth,
+    param('itemId').isMongoId(),
+    param('publicId').isString(),
+    validate,
+    async (req, res) => {
+        const item = await Item.findById(req.params.itemId);
+        if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+        const imageIndex = item.images.findIndex(img => img.publicId === req.params.publicId);
+        if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
+
+        const image = item.images[imageIndex];
+        const user = await User.findById(req.user.sub);
+
+        if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
+            return sendJSONError(res, 403, 'Forbidden');
+        }
+
+        // Delete from Cloudinary
+        await cloudinary.uploader.destroy(image.publicId);
+
+        // Remove from DB
+        item.images.splice(imageIndex, 1);
+        await item.save();
+
+        await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
+        res.json({ ok: true });
+    }
+);
+
 // Items list (not showing expired)
 app.get('/api/items',
-    query('type').isIn(['HAUSAUFGABE','DALTON','PRUEFUNG']),
+    query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     validate,
     async (req, res) => {
         const now = new Date();
@@ -313,7 +372,7 @@ app.get('/api/items',
 // Create item
 app.post('/api/items',
     requireAuth,
-    body('type').isIn(['HAUSAUFGABE','DALTON','PRUEFUNG']),
+    body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     body('title').isString().isLength({ min: 2, max: 200 }),
     body('subject').isString().isLength({ min: 2, max: 50 }),
     body('description').optional().isString().isLength({ max: 5000 }),
@@ -328,7 +387,7 @@ app.post('/api/items',
             title: req.body.title,
             subject: req.body.subject,
             description: req.body.description || '',
-            images: (req.body.images || []).map(img => ({ url: img.url, publicId: img.publicId })),
+            images: (req.body.images || []).map(img => ({ url: img.url, publicId: img.publicId, createdBy: req.user.sub })),
             dueDate: req.body.dueDate,
             createdBy: req.user.sub
         });
@@ -355,7 +414,7 @@ app.patch('/api/items/:id',
         if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
 
         const update = {};
-        for (const k of ['title','subject','description','images','dueDate']) {
+        for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
             if (req.body[k] !== undefined) update[k] = req.body[k];
         }
         await Item.findByIdAndUpdate(item._id, { $set: update });
@@ -370,6 +429,12 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
     if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
     const user = await User.findById(req.user.sub);
     if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+
+    // Delete all associated images from Cloudinary first
+    if (item.images && item.images.length > 0) {
+        const publicIds = item.images.map(img => img.publicId);
+        await cloudinary.api.delete_resources(publicIds);
+    }
     await item.deleteOne();
     await logActivity(req.user.sub, 'item:delete', { id: item._id });
     res.json({ ok: true });

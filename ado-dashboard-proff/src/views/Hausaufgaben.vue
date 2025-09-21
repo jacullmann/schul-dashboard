@@ -7,122 +7,147 @@
       </div>
       <div class="row" style="gap:8px;">
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
-        <button class="btn" v-else @click="showAuth=true">Anmelden/Registrieren</button>
+        <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>
 
-    <div v-if="announcements.length" class="card" :style="{ background:'#1f2937', borderColor:'#f59e0b' }">
-      <h3 style="margin-top:0;">Wichtige Ankündigungen</h3>
-      <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }">
+    <div v-if="announcements.length" class="card" style="background:#1f2937; border-color:#f59e0b; margin-top:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">Wichtige Ankündigungen</h3>
+        <button v-if="user?.isAdmin" class="btn ghost" style="padding:4px 8px; font-size:14px;" @click="showAnnouncementForm = true">Ankündigung hinzufügen</button>
+      </div>
+      <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
         <div style="font-weight:600;">{{ a.title }}</div>
         <div style="white-space: pre-wrap; margin-top:6px;">{{ a.content }}</div>
         <div class="small" style="margin-top:6px;">{{ new Date(a.createdAt).toLocaleString() }}</div>
         <div v-if="canManage(a.createdBy)" class="row" style="margin-top:8px;">
-          <button class="btn danger" @click="delAnnouncement(a._id)">Löschen</button>
+          <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="deleteAnnouncement(a._id)">Löschen</button>
         </div>
       </div>
-      <div v-if="user" class="row" style="margin-top:8px;">
-        <button class="btn" @click="openAnnForm=true">Neue Ankündigung</button>
-      </div>
     </div>
 
-    <div class="row" style="margin-top:12px;">
-      <div class="badge" :style="tabStyle('HAUSAUFGABE')" @click="switchTab('HAUSAUFGABE')">Hausaufgaben</div>
-      <div class="badge" :style="tabStyle('DALTON')" @click="switchTab('DALTON')">DALTON-Aufträge</div>
-      <div class="badge" :style="tabStyle('PRUEFUNG')" @click="switchTab('PRUEFUNG')">Klassenarbeiten/Prüfungen</div>
-    </div>
-    <!--<div class="row" style="margin-top:12px;">
-      <div class="badge"  @click="switchTab('HAUSAUFGABE')">Hausaufgaben</div>
-      <div class="badge"  @click="switchTab('DALTON')">DALTON-Aufträge</div>
-      <div class="badge"  @click="switchTab('PRUEFUNG')">Klassenarbeiten/Prüfungen</div>
-    </div>-->
+    <hr v-else />
 
-    <div class="row" style="margin-top:12px; align-items:center;">
-      <div class="col">
-        <select class="input" v-model="subjectFilter">
+    <div style="display:flex; gap:8px; margin-bottom:16px; margin-top:16px; flex-wrap:wrap;">
+      <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
+      <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">DALTON</button>
+      <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+      <div class="row" style="gap:8px; flex-wrap:wrap;">
+        <select class="input" style="width:auto;" v-model="subjectFilter">
           <option value="">Alle Fächer</option>
           <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-          <option value="__OTHER__">Anderes Fach...</option>
         </select>
+        <button v-if="user" class="btn" @click="showItemForm=true">Eintrag anlegen</button>
+        <div v-if="loading" class="row small" style="align-items:center; gap:8px; color:var(--muted)">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Lade...
+        </div>
       </div>
-      <div class="col" v-if="subjectFilter==='__OTHER__'">
-        <input class="input" v-model="customSubject" placeholder="Eigenes Fach eintragen" />
-      </div>
-      <div>
-        <button class="btn" v-if="user" @click="openForm=true">Hinzufügen</button>
-      </div>
+      <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
     </div>
 
-    <div v-if="loading" class="small">Lade...</div>
-    <div v-else class="row" style="margin-top:12px;">
-      <div v-for="it in filteredItems" :key="it.id" class="col">
-        <div class="card" :style="{ borderColor: colorForTime(it.timeColor) }">
-          <div style="display:flex; justify-content:space-between;">
-            <div style="font-weight:600;">{{ it.title }}</div>
-            <div class="badge">{{ it.subject }}</div>
+    <div style="margin-top:20px;">
+      <div v-for="item in filteredItems" :key="item.id" class="card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h3 style="margin:0;">{{ item.title }}</h3>
+            <div class="row small" style="margin-top:4px; gap:8px; color:var(--muted)">
+              <div class="badge" style="background:#4b5563; color:white;">{{ item.subject }}</div>
+              <div class="badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
+                Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
+              </div>
+            </div>
           </div>
-          <div class="small" style="margin-top:6px;">Abgabe: {{ formatDate(it.dueDate) }}</div>
-          <div v-if="it.description" style="margin-top:6px; white-space: pre-wrap;">{{ it.description }}</div>
-          <div class="row" style="margin-top:8px; flex-wrap:wrap;" v-if="it.images?.length">
-            <img v-for="img in it.images" :key="img.url" :src="img.url" style="width:100px; height:70px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" />
+          <div class="row" style="gap:8px; align-self:flex-end;">
+            <button class="btn ghost" v-if="user" @click="showImageForm(item)">Bilder verwalten</button>
+            <button class="btn ghost" v-if="canManage(item.createdBy)" @click="editItem(item)">Bearbeiten</button>
+            <button class="btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
           </div>
-          <div class="row" style="margin-top:8px;" v-if="canManage(it.createdBy)">
-            <button class="btn" @click="editItem(it)">Bearbeiten</button>
-            <button class="btn danger" @click="deleteItem(it.id)">Löschen</button>
+        </div>
+        <div style="white-space: pre-wrap; margin-top:12px;">{{ item.description }}</div>
+        <div v-if="item.images && item.images.length" style="margin-top:12px;">
+          <div style="font-weight:600;">Bilder</div>
+          <div class="row" style="gap:8px; margin-top:8px;">
+            <div v-for="img in item.images" :key="img.publicId" style="max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+              <a :href="img.url" target="_blank">
+                <img :src="img.url" style="width:100%; height:auto;" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
+      <div v-if="!loading && !filteredItems.length" class="card">
+        Keine Einträge gefunden.
+      </div>
     </div>
-
-    <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn"/>
-    <ItemForm v-if="openForm" :type="tab" :subjects="subjects" @close="openForm=false" @saved="reload"/>
-    <ItemForm v-if="editItemData" :type="tab" :subjects="subjects" :initial="editItemData" @close="editItemData=null" @saved="reload"/>
-    <AnnouncementForm v-if="openAnnForm" @close="openAnnForm=false" @saved="loadAnnouncements"/>
   </div>
+
+  <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
+  <ItemForm v-if="showItemForm" :type="tab" :subjects="subjects" :initial="itemToEdit" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" />
+  <AnnouncementForm v-if="showAnnouncementForm" @close="showAnnouncementForm=false" @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')" />
+  <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import hw, { setHwToken } from '../hwApi';
+import { ref, onMounted, watch, computed } from 'vue';
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
+import ImageForm from '../components/hw/ImageForm.vue'; // new component
+import hw, { setHwToken } from '../hwApi';
 
-type ItemType = 'HAUSAUFGABE'|'DALTON'|'PRUEFUNG';
-
-const tab = ref<ItemType>('HAUSAUFGABE');
-const items = ref<any[]>([]);
-const subjects = ref<string[]>([]);
-const announcements = ref<any[]>([]);
-const subjectFilter = ref('');
-const customSubject = ref('');
-const loading = ref(false);
-
-const user = ref<{ id:string; email:string; isAdmin:boolean } | null>(null);
+export interface HwItem {
+  id: string;
+  type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+  title: string;
+  subject: string;
+  description: string;
+  images: Array<{ url: string; publicId: string; createdBy: string }>;
+  dueDate: string;
+  createdBy: string;
+  timeColor: string;
+}
 
 const showAuth = ref(false);
-const openForm = ref(false);
-const editItemData = ref<any|null>(null);
-const openAnnForm = ref(false);
+const showItemForm = ref(false);
+const showAnnouncementForm = ref(false);
+const showImageFormFor = ref<any>(null);
 
-function formatDate(d:any) { return new Date(d).toLocaleString(); }
-function colorFor(c:string) { return c==='danger' ? '#ef4444' : c==='warn' ? '#f59e0b' : '#22c55e'; }
-function colorForTime(c:string) { return c==='danger' ? '#ef4444' : c==='warn' ? '#f59e0b' : '#22c55e'; }
+const user = ref<any>(null);
+const tab = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
+const subjects = ref<string[]>([]);
+const announcements = ref<any[]>([]);
+const items = ref<HwItem[]>([]);
+const loading = ref(true);
+const subjectFilter = ref('');
+const itemToEdit = ref<HwItem | null>(null);
 
-function tabStyle(t:ItemType) {
-  const active = tab.value === t;
-  return { cursor:'pointer', color: active ? 'white' : '#b0b0b0', borderColor: active ? '#22c55e' : 'var(--border)' };
-}
-function switchTab(t:ItemType) {
-  tab.value = t; reload();
-}
+const message = ref('');
+const isError = ref(false);
+
+const colorFor = (color: string) => {
+  const map = {
+    'ok': 'var(--primary)',
+    'warn': 'var(--warn)',
+    'danger': 'var(--danger)',
+    'expired': '#4b5563',
+    'info': '#3b82f6',
+  };
+  return map[color] || 'var(--muted)';
+};
 
 const filteredItems = computed(() => {
-  const sel = subjectFilter.value === '__OTHER__' ? customSubject.value.trim() : subjectFilter.value;
-  return items.value.filter(i => !sel || i.subject.toLowerCase() === sel.toLowerCase());
+  if (!subjectFilter.value) return items.value;
+  return items.value.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
 });
 
-function canManage(createdBy:string) {
+function canManage(createdBy: string) {
   if (!user.value) return false;
   return user.value.isAdmin || user.value.id === createdBy;
 }
@@ -144,33 +169,80 @@ async function loadAnnouncements() {
 }
 async function reload() {
   loading.value = true;
-  const { data } = await hw.get('/api/items', { params: { type: tab.value } });
-  items.value = data;
-  loading.value = false;
+  try {
+    const { data } = await hw.get('/api/items', { params: { type: tab.value } });
+    items.value = data;
+  } catch (e) {
+    console.error('Failed to load items:', e);
+  } finally {
+    loading.value = false;
+  }
 }
-function onLoggedIn(token:string) {
+
+function handleSuccess(msg: string) {
+  message.value = msg;
+  isError.value = false;
+  setTimeout(() => message.value = '', 5000);
+  showItemForm.value = false;
+  showAnnouncementForm.value = false;
+  showImageFormFor.value = null;
+  reload();
+}
+
+function onLoggedIn(token: string) {
   setHwToken(token);
   showAuth.value = false;
   loadMe();
   reload();
 }
+
 function logout() {
   setHwToken(null);
   user.value = null;
 }
 
-function editItem(it:any) { editItemData.value = it; }
-async function deleteItem(id:string) {
-  await hw.delete(`/api/items/${id}`);
-  reload();
-}
-async function delAnnouncement(id:string) {
-  await hw.delete(`/api/announcements/${id}`);
-  loadAnnouncements();
+function editItem(item: HwItem) {
+  itemToEdit.value = item;
+  showItemForm.value = true;
 }
 
-onMounted(async () => {
-  await Promise.all([loadMe(), loadSubjects(), loadAnnouncements()]);
+async function deleteItem(id: string) {
+  if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
+    loading.value = true;
+    try {
+      await hw.delete(`/api/items/${id}`);
+      handleSuccess('Eintrag erfolgreich gelöscht.');
+    } catch (e: any) {
+      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+      isError.value = true;
+    } finally {
+      loading.value = false;
+    }
+  }
+}
+
+async function deleteAnnouncement(id: string) {
+  if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
+    try {
+      await hw.delete(`/api/announcements/${id}`);
+      handleSuccess('Ankündigung erfolgreich gelöscht.');
+    } catch (e: any) {
+      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+      isError.value = true;
+    }
+  }
+}
+
+function showImageForm(item: HwItem) {
+  showImageFormFor.value = item;
+}
+
+onMounted(() => {
+  loadMe();
+  loadSubjects();
+  loadAnnouncements();
   reload();
 });
+
+watch(tab, reload);
 </script>
