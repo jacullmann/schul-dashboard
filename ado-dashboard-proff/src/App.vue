@@ -3,9 +3,7 @@
     <Header />
     <main class="full-c">
       <canvas id="animated-background"></canvas>
-      <!-- Der Übergang (transition) umgibt jetzt beide Zustände (loading und content) -->
       <transition name="fade" mode="out-in">
-        <!-- Ladeanimation soll den gesamten Bereich zwischen Header und Footer abdecken -->
         <div v-if="loading" class="loading-overlay" key="loading">
           <div class="elegant-spinner">
             <div class="dot-1"></div>
@@ -13,29 +11,35 @@
             <div class="dot-3"></div>
           </div>
         </div>
-
-        <!-- Der container-Stil wird nur auf den Inhalt angewendet und nur angezeigt, wenn loading false ist -->
         <div v-else class="container" key="content">
-          <!-- Vue Router View ohne eigenen Übergang, da er im Eltern-Div behandelt wird -->
           <router-view v-slot="{ Component }">
             <component :is="Component" />
           </router-view>
         </div>
       </transition>
     </main>
+    <ButtonBack v-if="shouldShowBackButton">
+      Zurück
+    </ButtonBack>
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router'; // <-- useRoute importieren
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import AnimatedBackground from './utils/animated-background.ts';
+import ButtonBack from './components/ButtonBack.vue';
+
+
 
 const loading = ref(false);
 const router = useRouter();
+const route = useRoute(); // <-- useRoute initialisieren
+
+
 
 // Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
 const MIN_LOAD_TIME = 150;
@@ -44,6 +48,12 @@ let loadStartTime = 0;
 onMounted(() => {
   new AnimatedBackground('animated-background');
 });
+// Er ist sichtbar, wenn der Pfad mit '/person/' beginnt, aber nicht, wenn er nur '/' ist.
+const shouldShowBackButton = computed(() => {
+  return route.path.startsWith('/person/');
+});
+
+
 
 router.beforeEach(() => {
   loading.value = true;

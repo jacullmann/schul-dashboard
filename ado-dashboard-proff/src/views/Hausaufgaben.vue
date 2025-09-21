@@ -26,11 +26,16 @@
       </div>
     </div>
 
-    <div class="row" style="margin-top:12px;">
+    <<div class="row" style="margin-top:12px;">
       <div class="badge" :style="tabStyle('HAUSAUFGABE')" @click="switchTab('HAUSAUFGABE')">Hausaufgaben</div>
       <div class="badge" :style="tabStyle('DALTON')" @click="switchTab('DALTON')">DALTON-Aufträge</div>
       <div class="badge" :style="tabStyle('PRUEFUNG')" @click="switchTab('PRUEFUNG')">Klassenarbeiten/Prüfungen</div>
     </div>
+    <!--<div class="row" style="margin-top:12px;">
+      <div class="badge"  @click="switchTab('HAUSAUFGABE')">Hausaufgaben</div>
+      <div class="badge"  @click="switchTab('DALTON')">DALTON-Aufträge</div>
+      <div class="badge"  @click="switchTab('PRUEFUNG')">Klassenarbeiten/Prüfungen</div>
+    </div>-->
 
     <div class="row" style="margin-top:12px; align-items:center;">
       <div class="col">
@@ -106,7 +111,7 @@ function colorForTime(c:string) { return c==='danger' ? '#ef4444' : c==='warn' ?
 
 function tabStyle(t:ItemType) {
   const active = tab.value === t;
-  return { cursor:'pointer', background: active ? '#0b1220' : '#0b122000', borderColor: active ? '#22c55e' : 'var(--border)' };
+  return { cursor:'pointer', color: active ? 'white' : '#b0b0b0', borderColor: active ? '#22c55e' : 'var(--border)' };
 }
 function switchTab(t:ItemType) {
   tab.value = t; reload();
