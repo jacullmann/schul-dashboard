@@ -2,13 +2,13 @@
 
 :root {
     --bg: #111827;
-    --card: #111827;
+    --card: #1a1a1a;
     --muted: #94a3b8;
-    --text: #e5e7eb;
+    --text: #b0b0b0;
     --primary: #22c55e;
     --danger: #ef4444;
     --warn: #f59e0b;
-    --border: #1f2937;
+    --border: grey;
 }
 
 * { box-sizing: border-box; }
@@ -23,26 +23,27 @@ body {
 a { color: var(--primary); text-decoration: none; }
 .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .card {
-    background: linear-gradient(180deg, #0b1220, #0b1220), var(--card);
-    border: 1px solid var(--border); border-radius: 6px; padding: 16px;
+    background: linear-gradient(180deg, #1a1a1a, #1a1a1a), var(--card);
+    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;
 }
 .input, select, textarea {
     width: 100%; padding: 10px 12px; border-radius: 5px;
-    background: #0b1220; color: var(--text); border: 1px solid var(--border);
+    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
 }
 .btn {
     display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: var(--primary); color: #00140a; border: none; border-radius: 5px; cursor: pointer;
+    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
 }
 .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn.danger { background: var(--danger); color: white; }
 .btn.warn { background: var(--warn); color: #1f1300; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; }
 .col { flex: 1; min-width: 240px; }
-.badge { padding: 4px 8px; border-radius: 999px; background: #0b1220; border: 1px solid var(--border); color: var(--muted); }
+.badge { padding: 4px 8px; border-radius: 5px; background: #0b1220; /*border: 1px solid var(--border);*/ color: var(--muted); }
 hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 footer { color: var(--muted); font-size: 14px; }
 .small { font-size: 12px; color: var(--muted); }
+.badge:hover { color: #fff}
 
 /* Flexbox "Sticky Footer" Layout */
 .full {
