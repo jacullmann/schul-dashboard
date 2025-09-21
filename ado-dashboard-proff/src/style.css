@@ -1,4 +1,4 @@
-@import url("./assets/animated-background.css");
+
 
 :root {
     --bg: #111827;
@@ -62,4 +62,13 @@ footer {
     position: initial;
     width: initial;
     height: initial;
+}
+#animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+
 }

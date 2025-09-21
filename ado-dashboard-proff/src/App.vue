@@ -2,6 +2,7 @@
   <div class="full">
     <Header />
     <main class="full-c">
+      <canvas id="animated-background"></canvas>
       <!-- Der Übergang (transition) umgibt jetzt beide Zustände (loading und content) -->
       <transition name="fade" mode="out-in">
         <!-- Ladeanimation soll den gesamten Bereich zwischen Header und Footer abdecken -->
@@ -27,10 +28,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
+import AnimatedBackground from './utils/animated-background.ts';
 
 const loading = ref(false);
 const router = useRouter();
@@ -38,6 +40,10 @@ const router = useRouter();
 // Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
 const MIN_LOAD_TIME = 150;
 let loadStartTime = 0;
+
+onMounted(() => {
+  new AnimatedBackground('animated-background');
+});
 
 router.beforeEach(() => {
   loading.value = true;
@@ -72,7 +78,8 @@ router.afterEach(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(18, 18, 18, 0.8);
+  /* Fix: Verwende die globale Hintergrundfarbe */
+  background-color: var(--bg);
   z-index: 999;
 }
 
@@ -134,5 +141,12 @@ router.afterEach(() => {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+/* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
+.full-c {
+  flex: 1;
+  position: relative;
+
 }
 </style>
