@@ -25,12 +25,12 @@
       </div>
     </div>
 
-    <div class="col">
+    <!--<div class="col">
       <div class="card">
         <h2 style="margin-top:0;">Chat</h2>
         <ChatBox v-if="person" :personId="id" />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
