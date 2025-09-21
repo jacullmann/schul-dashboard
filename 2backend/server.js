@@ -16,11 +16,10 @@ import { v2 as cloudinary } from 'cloudinary';
 
 // Config
 const app = express();
-app.set("trust proxy", true);
+app.set("trust proxy", 1); // <--- GEÄNDERT: Korrekte Einstellung für Render
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
-
 
 // Security & utils
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -59,10 +58,10 @@ const UserSchema = new mongoose.Schema({
     emailVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     lastLoginAt: { type: Date },
-    activity: [{
-        at: Date,
-        type: String,
-        meta: mongoose.Schema.Types.Mixed
+    activity: [{ // <--- GEÄNDERT: Explizite Typen für die Array-Elemente
+        at: { type: Date, default: Date.now },
+        type: { type: String },
+        meta: { type: mongoose.Schema.Types.Mixed }
     }]
 }, { timestamps: true });
 const User = mongoose.model('HwUser', UserSchema);
@@ -87,7 +86,6 @@ const AnnouncementSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
 
-// Updated ItemSchema to track who added an image
 const ItemSchema = new mongoose.Schema({
     type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
     title: { type: String, required: true },
