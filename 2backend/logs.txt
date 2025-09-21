@@ -1,0 +1,175 @@
+Hausaufgaben backend on :8090
+==> Running 'npm start'
+> hausaufgaben-backend@1.0.0 start
+> node server.js
+Hausaufgaben backend on :8090
+ValidationError: The Express 'trust proxy' setting is true, which allows anyone to trivially bypass IP-based rate limiting. See https://express-rate-limit.github.io/ERR_ERL_PERMISSIVE_TRUST_PROXY/ for more information.
+    at Object.trustProxy (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:139:13)
+    at wrappedValidations.<computed> [as trustProxy] (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:369:22)
+    at Object.keyGenerator (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:629:20)
+    at file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:682:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:663:5 {
+  code: 'ERR_ERL_PERMISSIVE_TRUST_PROXY',
+  help: 'https://express-rate-limit.github.io/ERR_ERL_PERMISSIVE_TRUST_PROXY/'
+}
+::1 - - [21/Sep/2025:11:07:47 +0000] "HEAD / HTTP/1.1" 404 140 "-" "Go-http-client/1.1"
+88.134.101.181 - - [21/Sep/2025:11:08:48 +0000] "POST /api/auth/register HTTP/1.1" 201 58 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
+     ==> Detected service running on port 8090
+     ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+94.139.31.223 - - [21/Sep/2025:11:19:12 +0000] "GET /api/subjects HTTP/1.1" 200 193 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:12 +0000] "GET /api/announcements HTTP/1.1" 200 30 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:12 +0000] "GET /api/auth/me HTTP/1.1" 200 116 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:12 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 200 22 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:13 +0000] "GET /api/items?type=DALTON HTTP/1.1" 200 22 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:14 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:31 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:19:32 +0000] "GET /api/items?type=PRUEFUNG HTTP/1.1" 200 22 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:07 +0000] "GET /api/announcements HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:07 +0000] "GET /api/auth/me HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:07 +0000] "GET /api/subjects HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:07 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:09 +0000] "GET /api/items?type=PRUEFUNG HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:10 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:11 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:11 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:12 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:12 +0000] "GET /api/items?type=PRUEFUNG HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:13 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:13 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:14 +0000] "GET /api/items?type=PRUEFUNG HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:14 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:15 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:15 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:20:16 +0000] "GET /api/items?type=PRUEFUNG HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+88.134.101.181 - - [21/Sep/2025:11:20:30 +0000] "GET /api/announcements HTTP/1.1" 200 30 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
+file:///opt/render/project/src/2backend/server.js:280
+    res.json({ ok: true, id: user._id, email: user.email, isAdmin: !!user.isAdmin, emailVerified: !!user.emailVerified });
+                                  ^
+TypeError: Cannot read properties of null (reading '_id')
+    at file:///opt/render/project/src/2backend/server.js:280:35
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js v22.16.0
+==> Running 'npm start'
+> hausaufgaben-backend@1.0.0 start
+> node server.js
+Hausaufgaben backend on :8090
+ValidationError: The Express 'trust proxy' setting is true, which allows anyone to trivially bypass IP-based rate limiting. See https://express-rate-limit.github.io/ERR_ERL_PERMISSIVE_TRUST_PROXY/ for more information.
+    at Object.trustProxy (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:139:13)
+    at wrappedValidations.<computed> [as trustProxy] (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:369:22)
+    at Object.keyGenerator (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:629:20)
+    at file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:682:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:663:5 {
+  code: 'ERR_ERL_PERMISSIVE_TRUST_PROXY',
+  help: 'https://express-rate-limit.github.io/ERR_ERL_PERMISSIVE_TRUST_PROXY/'
+}
+88.134.101.181 - - [21/Sep/2025:11:21:10 +0000] "GET /api/items?type=DALTON HTTP/1.1" 200 22 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
+88.134.101.181 - - [21/Sep/2025:11:21:11 +0000] "GET /api/items?type=PRUEFUNG HTTP/1.1" 200 22 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
+88.134.101.181 - - [21/Sep/2025:11:21:14 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 200 22 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0"
+94.139.31.223 - - [21/Sep/2025:11:21:33 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:21:34 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:21:34 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:22:18 +0000] "GET /api/announcements HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:22:18 +0000] "GET /api/subjects HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:22:18 +0000] "GET /api/auth/me HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:22:18 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:22:19 +0000] "GET /api/items?type=DALTON HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:22:44 +0000] "POST /api/uploads/sign HTTP/1.1" 200 164 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+/opt/render/project/src/2backend/node_modules/mongoose/lib/schema/array.js:414
+        throw new CastError('[' + e.kind + ']', util.inspect(value), this.path + '.' + i, e, this);
+              ^
+CastError: Cast to [string] failed for value "[\n' +
+  '  {\n' +
+  '    at: 2025-09-21T11:22:47.213Z,\n' +
+  "    type: 'item:create',\n" +
+  "    meta: { id: new ObjectId('68cfe00751637b3a76064497'), type: 'DALTON' }\n" +
+  '  }\n' +
+  ']" (type string) at path "activity.0" because of "CastError"
+    at SchemaArray.cast (/opt/render/project/src/2backend/node_modules/mongoose/lib/schema/array.js:414:15)
+    at SchemaType.applySetters (/opt/render/project/src/2backend/node_modules/mongoose/lib/schemaType.js:1258:12)
+    at castUpdateVal (/opt/render/project/src/2backend/node_modules/mongoose/lib/helpers/query/castUpdate.js:577:22)
+    at walkUpdatePath (/opt/render/project/src/2backend/node_modules/mongoose/lib/helpers/query/castUpdate.js:317:26)
+    at castUpdate (/opt/render/project/src/2backend/node_modules/mongoose/lib/helpers/query/castUpdate.js:144:7)
+    at model.Query._castUpdate (/opt/render/project/src/2backend/node_modules/mongoose/lib/query.js:4874:10)
+    at model.Query._findOneAndUpdate (/opt/render/project/src/2backend/node_modules/mongoose/lib/query.js:3497:23)
+    at model.Query.exec (/opt/render/project/src/2backend/node_modules/mongoose/lib/query.js:4627:80)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async logActivity (file:///opt/render/project/src/2backend/server.js:212:5) {
+  stringValue: `"[\\n' +\n` +
+    "  '  {\\n' +\n" +
+    "  '    at: 2025-09-21T11:22:47.213Z,\\n' +\n" +
+    `  "    type: 'item:create',\\n" +\n` +
+    `  "    meta: { id: new ObjectId('68cfe00751637b3a76064497'), type: 'DALTON' }\\n" +\n` +
+    "  '  }\\n' +\n" +
+    `  ']"`,
+  messageFormat: undefined,
+  kind: '[string]',
+  value: '[\n' +
+    '  {\n' +
+    '    at: 2025-09-21T11:22:47.213Z,\n' +
+    "    type: 'item:create',\n" +
+    "    meta: { id: new ObjectId('68cfe00751637b3a76064497'), type: 'DALTON' }\n" +
+    '  }\n' +
+    ']',
+  path: 'activity.0',
+  reason: CastError: Cast to string failed for value "{
+    at: 2025-09-21T11:22:47.213Z,
+    type: 'item:create',
+    meta: { id: new ObjectId('68cfe00751637b3a76064497'), type: 'DALTON' }
+  }" (type Object) at path "activity"
+      at SchemaString.cast (/opt/render/project/src/2backend/node_modules/mongoose/lib/schema/string.js:607:11)
+      at SchemaType.applySetters (/opt/render/project/src/2backend/node_modules/mongoose/lib/schemaType.js:1258:12)
+      at SchemaArray.cast (/opt/render/project/src/2backend/node_modules/mongoose/lib/schema/array.js:410:32)
+      at SchemaType.applySetters (/opt/render/project/src/2backend/node_modules/mongoose/lib/schemaType.js:1258:12)
+      at castUpdateVal (/opt/render/project/src/2backend/node_modules/mongoose/lib/helpers/query/castUpdate.js:577:22)
+      at walkUpdatePath (/opt/render/project/src/2backend/node_modules/mongoose/lib/helpers/query/castUpdate.js:317:26)
+      at castUpdate (/opt/render/project/src/2backend/node_modules/mongoose/lib/helpers/query/castUpdate.js:144:7)
+      at model.Query._castUpdate (/opt/render/project/src/2backend/node_modules/mongoose/lib/query.js:4874:10)
+      at model.Query._findOneAndUpdate (/opt/render/project/src/2backend/node_modules/mongoose/lib/query.js:3497:23)
+      at model.Query.exec (/opt/render/project/src/2backend/node_modules/mongoose/lib/query.js:4627:80) {
+    stringValue: '"{\n' +
+      '  at: 2025-09-21T11:22:47.213Z,\n' +
+      "  type: 'item:create',\n" +
+      "  meta: { id: new ObjectId('68cfe00751637b3a76064497'), type: 'DALTON' }\n" +
+      '}"',
+    messageFormat: undefined,
+    kind: 'string',
+    value: {
+      at: 2025-09-21T11:22:47.213Z,
+      type: 'item:create',
+      meta: {
+        id: ObjectId {
+          buffer: Buffer(12) [Uint8Array] [
+            104, 207, 224,   7, 81,
+             99, 123,  58, 118,  6,
+             68, 151
+          ]
+        },
+        type: 'DALTON'
+      }
+    },
+    path: 'activity',
+    reason: null,
+    valueType: 'Object'
+  },
+  valueType: 'string'
+}
+Node.js v22.16.0
+==> Running 'npm start'
+> hausaufgaben-backend@1.0.0 start
+> node server.js
+Hausaufgaben backend on :8090
+ValidationError: The Express 'trust proxy' setting is true, which allows anyone to trivially bypass IP-based rate limiting. See https://express-rate-limit.github.io/ERR_ERL_PERMISSIVE_TRUST_PROXY/ for more information.
+    at Object.trustProxy (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:139:13)
+    at wrappedValidations.<computed> [as trustProxy] (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:369:22)
+    at Object.keyGenerator (file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:629:20)
+    at file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:682:32
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///opt/render/project/src/2backend/node_modules/express-rate-limit/dist/index.mjs:663:5 {
+  code: 'ERR_ERL_PERMISSIVE_TRUST_PROXY',
+  help: 'https://express-rate-limit.github.io/ERR_ERL_PERMISSIVE_TRUST_PROXY/'
+}
+94.139.31.223 - - [21/Sep/2025:11:23:25 +0000] "POST /api/auth/login HTTP/1.1" 200 242 "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:23:25 +0000] "GET /api/auth/me HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
+94.139.31.223 - - [21/Sep/2025:11:23:25 +0000] "GET /api/items?type=HAUSAUFGABE HTTP/1.1" 304 - "https://two34u88.onrender.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"
