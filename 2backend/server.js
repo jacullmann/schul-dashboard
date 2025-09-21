@@ -16,9 +16,11 @@ import { v2 as cloudinary } from 'cloudinary';
 
 // Config
 const app = express();
+app.set("trust proxy", true);
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
+
 
 // Security & utils
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
