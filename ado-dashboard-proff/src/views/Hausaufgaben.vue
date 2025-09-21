@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <<div class="row" style="margin-top:12px;">
+    <div class="row" style="margin-top:12px;">
       <div class="badge" :style="tabStyle('HAUSAUFGABE')" @click="switchTab('HAUSAUFGABE')">Hausaufgaben</div>
       <div class="badge" :style="tabStyle('DALTON')" @click="switchTab('DALTON')">DALTON-Aufträge</div>
       <div class="badge" :style="tabStyle('PRUEFUNG')" @click="switchTab('PRUEFUNG')">Klassenarbeiten/Prüfungen</div>
