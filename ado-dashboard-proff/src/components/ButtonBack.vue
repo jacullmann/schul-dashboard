@@ -1,36 +1,64 @@
 <template>
-  <button class="btn button-back" @click="goBack">
+  <button
+      class="button-back"
+      @click="goBack"
+      @mouseenter="createRipple"
+  >
+    <div class="ripple-container">
+      <span
+          v-for="ripple in ripples"
+          :key="ripple.id"
+          class="ripple-effect"
+          :style="{
+          left: `${ripple.x}px`,
+          top: `${ripple.y}px`,
+          width: `${ripple.size}px`,
+          height: `${ripple.size}px`,
+          backgroundColor: ripple.color,
+        }"
+      ></span>
+    </div>
     <slot></slot>
   </button>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useRipple } from '../composables/useRipple';
 
 const router = useRouter();
+const { ripples, createRipple } = useRipple();
 
 function goBack() {
   router.back();
 }
 </script>
 
-<style scoped>
-.button-back {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  z-index: 999;
-  padding: 12px 20px;
-  background-color: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, background-color 0.3s ease;
+<style>
+/* Container für die Ripple-Effekte */
+.ripple-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-.button-back:hover {
-  transform: translateY(-2px);
-  background-color: #2a2a2a;
+/* Das Ripple-Element */
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 1;
+  animation: ripple-animation 0.6s linear;
+}
+
+/* Die magische Animation */
+@keyframes ripple-animation {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 </style>

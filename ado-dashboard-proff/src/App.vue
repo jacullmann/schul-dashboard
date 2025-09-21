@@ -3,20 +3,18 @@
     <Header />
     <main class="full-c">
       <canvas id="animated-background"></canvas>
-      <transition name="fade" mode="out-in">
-        <div v-if="loading" class="loading-overlay" key="loading">
-          <div class="elegant-spinner">
-            <div class="dot-1"></div>
-            <div class="dot-2"></div>
-            <div class="dot-3"></div>
-          </div>
+      <div v-if="loading" class="loading-overlay" key="loading">
+        <div class="elegant-spinner">
+          <div class="dot-1"></div>
+          <div class="dot-2"></div>
+          <div class="dot-3"></div>
         </div>
-        <div v-else class="container" key="content">
-          <router-view v-slot="{ Component }">
-            <component :is="Component" />
-          </router-view>
-        </div>
-      </transition>
+      </div>
+      <div v-else class="container" key="content">
+        <router-view v-slot="{ Component }">
+          <component :is="Component" />
+        </router-view>
+      </div>
     </main>
     <ButtonBack v-if="shouldShowBackButton">
       Zurück
@@ -26,18 +24,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router'; // <-- useRoute importieren
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import AnimatedBackground from './utils/animated-background.ts';
-import ButtonBack from './components/ButtonBack.vue';
 
 
 
 const loading = ref(false);
 const router = useRouter();
-const route = useRoute(); // <-- useRoute initialisieren
 
 
 
@@ -48,10 +44,7 @@ let loadStartTime = 0;
 onMounted(() => {
   new AnimatedBackground('animated-background');
 });
-// Er ist sichtbar, wenn der Pfad mit '/person/' beginnt, aber nicht, wenn er nur '/' ist.
-const shouldShowBackButton = computed(() => {
-  return route.path.startsWith('/person/');
-});
+
 
 
 
@@ -76,7 +69,7 @@ router.afterEach(() => {
 
 <style scoped>
 /*
-  Stile für die Ladeanimation und den Übergang.
+  Stile für die Ladeanimation.
   Diese sind "scoped", damit sie nur für diese Komponente gelten.
 */
 .loading-overlay {
@@ -88,12 +81,10 @@ router.afterEach(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  /* Fix: Verwende die globale Hintergrundfarbe */
   background-color: var(--bg);
   z-index: 999;
 }
 
-/* Neuer, professioneller Spinner mit drei Punkten, die sich unabhängig bewegen */
 .elegant-spinner {
   position: relative;
   width: 60px;
@@ -145,18 +136,9 @@ router.afterEach(() => {
   100% { transform: translateX(20px) scale(0.1); opacity: 0; }
 }
 
-/* Übergang für das Ein- und Ausblenden der Komponenten */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-
 /* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
 .full-c {
   flex: 1;
   position: relative;
-
 }
 </style>

@@ -1,6 +1,9 @@
 <template>
   <header class="header">
     <div class="header-container container">
+      <ButtonBack v-if="shouldShowBackButton" class="back-button-in-header">
+        Zurück
+      </ButtonBack>
       <router-link to="/" class="logo" @click="closeNav">Bewertungen</router-link>
 
       <button @click="toggleNav" class="hamburger-menu">
@@ -19,15 +22,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
+import ButtonBack from './ButtonBack.vue';
 
 const navOpen = ref(false);
+const route = useRoute();
+
+const shouldShowBackButton = computed(() => {
+  return route.path.startsWith('/person/');
+});
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;
 };
 
-// Neue Methode zum Schließen der Navigation
 const closeNav = () => {
   navOpen.value = false;
 };
@@ -49,6 +58,27 @@ const closeNav = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1.5rem;
+}
+
+/* Stile für den Zurück-Button */
+.back-button-in-header {
+  background-color: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  cursor: pointer;
+  z-index: 10;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.back-button-in-header:hover {
+  transform: translateY(-2px);
+  background-color: #2a2a2a;
 }
 
 .logo {
@@ -58,10 +88,12 @@ const closeNav = () => {
   color: #f0f0f0;
   letter-spacing: 1px;
   transition: color 0.3s ease;
+  flex: 1;
+  text-align: center;
 }
 
 .logo:hover {
-  color: #41d1ff; /* Eine helle Akzentfarbe */
+  color: #41d1ff;
 }
 
 .hamburger-menu {
