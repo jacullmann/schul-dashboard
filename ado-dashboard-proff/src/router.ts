@@ -23,7 +23,13 @@ const router = createRouter({
         { path: '/verify', component: VerifyEmail },
         { path: '/impressum-&-datenschutz', component: Impressum },
         { path: '/stundenplan', component: Stundenplan },
-        { path: '/kuerzel', component: Kuerzel}
+        { path: '/kuerzel', component: Kuerzel},
+        {
+            path: '/:pathMatch(.*)*',
+            name: 'NotFound',
+            component: () => import('./views/NotFound.vue')
+        }
+
 
     ]
 });

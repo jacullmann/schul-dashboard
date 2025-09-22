@@ -65,7 +65,7 @@ const persons = [
   { name: 'Schmidt', title: 'Frau', short: 'SCH'},
   { name: 'Blanke', title: 'Frau', short: 'BA' },
   { name: 'Schlüter', title: 'Herr', short: 'SÜ' },
-  { name: 'Glier', title: 'Frau', short: 'GL', info: 'Paris' },
+  { name: 'Glier', title: 'Frau', short: 'GL', },
 ]
 
 // Eingaben
