@@ -17,194 +17,195 @@
         <button v-if="user?.isAdmin" class="btn ghost" style="padding:4px 8px; font-size:14px;" @click="showAnnouncementForm = true">Ankündigung hinzufügen</button>
       </div>
       <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-          <h4 style="margin:0; flex-grow:1;">{{ a.title }}</h4>
-          <button v-if="user?.isAdmin" class="btn danger" style="padding:4px 8px; font-size:12px;" @click="confirmDelete('announcement', a._id)">X</button>
-        </div>
-        <p style="margin-top:8px;">{{ a.content }}</p>
+        <div style="font-weight:600; font-size:14px;">{{ a.title }}</div>
+        <div class="small" style="margin-top:4px;">{{ a.content }}</div>
+        <div class="small" style="margin-top:8px; font-style:italic;">— Veröffentlicht von {{ a.createdBy.displayName }} am {{ formatDate(a.createdAt) }}</div>
+        <button v-if="user?.isAdmin" class="btn danger" style="position:absolute; top:8px; right:8px; padding:4px 8px; font-size:12px;" @click="confirmDeleteAnnouncement(a._id)">X</button>
       </div>
     </div>
 
-    <div class="card" style="margin-top:20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">Alle Einträge</h3>
-        <button class="btn" v-if="user" @click="showItemForm = true">Neuer Eintrag</button>
-      </div>
-      <div v-if="loading" class="row" style="margin-top:20px;">
-        <div class="dot-spinner">
-          <div v-for="i in 9" :key="i" class="dot"></div>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:20px;">
+      <h3 style="margin:0; flex-grow:1;">Alle Einträge</h3>
+      <select class="input" v-model="filterSubject" style="width:120px;">
+        <option value="">Alle Fächer</option>
+        <option v-for="s in availableSubjects" :key="s" :value="s">{{ s }}</option>
+      </select>
+      <select class="input" v-model="filterType" style="width:120px;">
+        <option value="">Alle Typen</option>
+        <option value="hausaufgabe">Hausaufgabe</option>
+        <option value="dalton">DALTON</option>
+        <option value="klassenarbeit">Klassenarbeit</option>
+      </select>
+    </div>
+
+    <div class="row" style="gap:12px; margin-top:12px; flex-wrap:wrap;">
+      <div v-for="item in filteredItems" :key="item._id" class="card" :style="{ borderColor: colorForItem(item) }" style="width:100%; max-width:420px;">
+        <div style="font-weight:600;">{{ item.title }}</div>
+        <div class="small" style="margin-top:4px;">
+          <div :style="{ color: colorForItem(item) }">Fällig: {{ formatDate(item.dueDate) }}</div>
+          <div>Typ: **{{ labelFor(item.type) }}**</div>
+          <div>Fach: **{{ item.subject }}**</div>
+          <div>Von: **{{ item.createdBy.displayName }}**</div>
         </div>
-      </div>
-      <div v-else-if="items.length" class="grid" style="margin-top:20px;">
-        <div v-for="item in items" :key="item._id" class="item-card">
-          <div style="position:relative;">
-            <div class="item-card-inner">
-              <div style="position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; justify-content:space-between; padding:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                  <span class="badge" :style="{ background: colorFor(item.type) }">{{ item.type }}</span>
-                  <div class="row" v-if="user && (user.isAdmin || user._id === item.createdBy)">
-                    <button class="btn ghost" style="padding:4px; margin-right:4px;" @click="editItem(item)"><svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-                    <button class="btn ghost danger" style="padding:4px;" @click="confirmDelete('item', item._id)"><svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></button>
-                  </div>
-                </div>
-                <div>
-                  <h4 style="color:#fff; text-shadow:1px 1px 2px #000; margin-bottom:4px;">{{ item.title }}</h4>
-                  <div class="small" style="color:#fff; text-shadow:1px 1px 2px #000;">{{ item.subject }} - bis {{ new Date(item.dueDate).toLocaleDateString() }}</div>
-                </div>
-              </div>
-              <div class="absolute inset-0 z-0">
-                <img v-if="item.images && item.images.length > 0" :src="item.images[0].url" style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5); border-radius:12px;" />
-              </div>
-            </div>
-            <div class="overlay-row">
-              <button class="btn primary" @click="showImageFormFor = item">Bilder verwalten</button>
-            </div>
-          </div>
+        <div style="margin-top:8px; font-style:italic; font-size:14px;">{{ item.description }}</div>
+        <div v-if="item.images && item.images.length" style="margin-top:12px;">
+          <img :src="item.images[0].url" style="width:100%; height:auto; border-radius:8px;" />
         </div>
-      </div>
-      <div v-else class="card" style="margin-top:20px; text-align:center;">
-        <div class="small">Keine Einträge gefunden.</div>
+        <div class="row" style="margin-top:12px; gap:8px;">
+          <button class="btn small" @click="editItem(item)">Bearbeiten</button>
+          <button class="btn small" @click="showImageFormFor = item">Bilder</button>
+          <button v-if="user?.isAdmin || item.createdBy._id === user?._id" class="btn small danger" @click="confirmDeleteItem(item._id)">Löschen</button>
+        </div>
       </div>
     </div>
 
-    <teleport to="body">
-      <AuthModal v-if="showAuth" @close="showAuth = false" @logged-in="onLoggedIn" />
-      <ItemForm v-if="showItemForm" @close="showItemForm = false" @success="handleSuccess" :initial="itemToEdit" :type="selectedType" />
-      <AnnouncementForm v-if="showAnnouncementForm" @close="showAnnouncementForm = false" @success="handleSuccess" />
-      <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor = null" @success="handleSuccess" />
-      <div v-if="showConfirmDelete" class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:200;">
-        <div class="card" style="width:100%; max-width:400px; text-align:center;">
-          <h4 style="margin:0;">Sicher?</h4>
-          <p style="margin-top:12px;">Möchtest du diesen Eintrag wirklich löschen?</p>
-          <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-            <button class="btn danger" @click="proceedDelete()">Ja, löschen</button>
-            <button class="btn ghost" @click="cancelDelete()">Abbrechen</button>
-          </div>
-        </div>
-      </div>
-    </teleport>
-
-    <div v-if="message" class="toast-message" :class="{ 'toast-error': isError }">
-      {{ message }}
+    <div class="row" style="justify-content:center; margin-top:20px; flex-wrap:wrap; gap:12px;">
+      <button class="btn" @click="newItem('hausaufgabe')">Neue Hausaufgabe</button>
+      <button class="btn" @click="newItem('dalton')">Neuer DALTON-Auftrag</button>
+      <button class="btn" @click="newItem('klassenarbeit')">Neue Klassenarbeit</button>
     </div>
 
+    <div v-if="message" :style="{ color: isError ? 'var(--danger)' : 'var(--primary)' }" style="text-align:center; margin-top:16px;">{{ message }}</div>
+
+    <ItemForm v-if="showItemForm" :initial="itemToEdit" :type="newItemType" @close="showItemForm=false" @success="handleSuccess" />
+    <AnnouncementForm v-if="showAnnouncementForm" @close="showAnnouncementForm=false" @success="handleSuccess" />
+    <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess" />
+    <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
+
+    <div v-if="showConfirmModal" class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:101;">
+      <div class="card" style="width:100%; max-width:420px; text-align:center;">
+        <p>{{ confirmMessage }}</p>
+        <div class="row" style="margin-top:12px; gap:8px;">
+          <button class="btn danger" @click="handleConfirmation(true)">Ja, löschen</button>
+          <button class="btn ghost" @click="handleConfirmation(false)">Abbrechen</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import AuthModal from './AuthModal.vue';
-import ItemForm from './ItemForm.vue';
-import AnnouncementForm from './AnnouncementForm.vue';
-import ImageForm from './ImageForm.vue';
-import hw, { setHwToken } from '../hwApi';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import dayjs from 'dayjs';
+import 'dayjs/locale/de';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
-const router = useRouter();
+dayjs.locale('de');
+dayjs.extend(relativeTime);
+dayjs.extend(customParseFormat);
+
+import hw, { setHwToken, parseJwt } from '../hwApi';
+import ItemForm from './ItemForm.vue';
+import ImageForm from './ImageForm.vue';
+import AnnouncementForm from './AnnouncementForm.vue';
+import AuthModal from './AuthModal.vue';
 
 interface HwItem {
   _id: string;
-  type: string;
+  type: 'hausaufgabe' | 'dalton' | 'klassenarbeit';
   title: string;
   subject: string;
   description: string;
-  images: Array<{ url: string; publicId: string }>;
   dueDate: string;
-  createdBy: string;
-}
-
-interface User {
-  _id: string;
-  email: string;
-  isAdmin: boolean;
+  createdBy: { _id: string; email: string; displayName: string; isAdmin: boolean };
+  images: { url: string; publicId: string }[];
 }
 
 interface Announcement {
   _id: string;
   title: string;
   content: string;
-  color: string;
+  color: 'info' | 'warn' | 'danger';
+  createdAt: string;
+  createdBy: { _id: string; email: string; displayName: string; isAdmin: boolean };
 }
 
-const loading = ref(true);
+interface User {
+  _id: string;
+  email: string;
+  displayName: string;
+  isAdmin: boolean;
+}
+
 const user = ref<User | null>(null);
-const items = ref<HwItem[]>([]);
 const announcements = ref<Announcement[]>([]);
-const showAuth = ref(false);
-const showItemForm = ref(false);
-const itemToEdit = ref<HwItem | null>(null);
-const showAnnouncementForm = ref(false);
-const showImageFormFor = ref<HwItem | null>(null);
+const items = ref<HwItem[]>([]);
+const loading = ref(true);
 const message = ref('');
 const isError = ref(false);
-const selectedType = ref('');
+const showAuth = ref(false);
+const showItemForm = ref(false);
+const showAnnouncementForm = ref(false);
+const showImageFormFor = ref<HwItem | null>(null);
+const newItemType = ref<'hausaufgabe' | 'dalton' | 'klassenarbeit'>('hausaufgabe');
+const itemToEdit = ref<HwItem | null>(null);
 
-// Custom Confirmation Modal State
-const showConfirmDelete = ref(false);
-const deleteAction = ref<{ type: 'item' | 'announcement', id: string } | null>(null);
+const filterSubject = ref('');
+const filterType = ref('');
 
-function confirmDelete(type: 'item' | 'announcement', id: string) {
-  deleteAction.value = { type, id };
-  showConfirmDelete.value = true;
-}
+const showConfirmModal = ref(false);
+const confirmMessage = ref('');
+const confirmAction = ref<(() => Promise<void>) | null>(null);
 
-async function proceedDelete() {
-  if (deleteAction.value) {
-    if (deleteAction.value.type === 'item') {
-      await deleteItem(deleteAction.value.id);
-    } else {
-      await deleteAnnouncement(deleteAction.value.id);
-    }
+const availableSubjects = computed(() => {
+  const subjects = new Set<string>();
+  items.value.forEach(item => subjects.add(item.subject));
+  return Array.from(subjects).sort();
+});
+
+const filteredItems = computed(() => {
+  return items.value
+      .filter(item => {
+        const bySubject = !filterSubject.value || item.subject === filterSubject.value;
+        const byType = !filterType.value || item.type === filterType.value;
+        return bySubject && byType;
+      })
+      .sort((a, b) => dayjs(a.dueDate).unix() - dayjs(b.dueDate).unix());
+});
+
+function colorFor(type: string): string {
+  switch (type) {
+    case 'info': return '#3b82f6';
+    case 'warn': return '#f59e0b';
+    case 'danger': return '#ef4444';
+    default: return '#9ca3af';
   }
-  showConfirmDelete.value = false;
-  deleteAction.value = null;
-}
-
-function cancelDelete() {
-  showConfirmDelete.value = false;
-  deleteAction.value = null;
 }
 
 function labelFor(type: string): string {
   switch (type) {
-    case 'Hausaufgaben': return 'Hausaufgaben';
-    case 'Klassenarbeiten': return 'Klassenarbeit';
-    case 'Dalton-Auftrag': return 'DALTON-Auftrag';
-    default: return type;
+    case 'hausaufgabe': return 'Hausaufgabe';
+    case 'dalton': return 'DALTON-Auftrag';
+    case 'klassenarbeit': return 'Klassenarbeit';
+    default: return '';
   }
 }
 
-function colorFor(type: string): string {
-  switch (type) {
-    case 'Hausaufgaben': return '#10b981';
-    case 'Klassenarbeiten': return '#ef4444';
-    case 'Dalton-Auftrag': return '#3b82f6';
-    case 'info': return '#3b82f6';
-    case 'warn': return '#f59e0b';
-    case 'danger': return '#ef4444';
-    default: return '#6b7280';
+function colorForItem(item: HwItem): string {
+  if (dayjs(item.dueDate).isBefore(dayjs())) {
+    return '#ef4444';
   }
+  return '#1f2937';
+}
+
+function formatDate(date: string): string {
+  const d = dayjs(date);
+  return d.format('DD.MM.YYYY, HH:mm') + ' (' + d.fromNow() + ')';
 }
 
 async function loadMe() {
   try {
     const { data } = await hw.get('/api/auth/me');
-    user.value = data.user;
+    user.value = data;
   } catch (e: any) {
-    if (e.response?.status === 401) {
-      user.value = null;
-      setHwToken(null);
-    } else {
-      message.value = e.response?.data?.error || 'Fehler beim Laden des Benutzers.';
-      isError.value = true;
-    }
+    console.error('Failed to load user info', e.response?.data?.error);
+    user.value = null;
   }
 }
 
 async function reload() {
   loading.value = true;
-  message.value = '';
-  isError.value = false;
   try {
     const [itemsRes, announcementsRes] = await Promise.all([
       hw.get('/api/items'),
@@ -221,7 +222,7 @@ async function reload() {
 }
 
 function handleSuccess(msg: string) {
-  message.value = msg || 'Aktion erfolgreich.';
+  message.value = msg;
   isError.value = false;
   setTimeout(() => message.value = '', 5000);
   showItemForm.value = false;
@@ -247,211 +248,60 @@ function editItem(item: HwItem) {
   showItemForm.value = true;
 }
 
-async function deleteItem(id: string) {
-  loading.value = true;
-  try {
-    await hw.delete(`/api/items/${id}`);
-    handleSuccess('Eintrag erfolgreich gelöscht.');
-  } catch (e: any) {
-    message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-    isError.value = true;
-  } finally {
-    loading.value = false;
-  }
+function newItem(type: 'hausaufgabe' | 'dalton' | 'klassenarbeit') {
+  itemToEdit.value = null;
+  newItemType.value = type;
+  showItemForm.value = true;
 }
 
-async function deleteAnnouncement(id: string) {
-  try {
-    await hw.delete(`/api/announcements/${id}`);
-    handleSuccess('Ankündigung erfolgreich gelöscht.');
-  } catch (e: any) {
-    message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-    isError.value = true;
+function confirmDeleteItem(id: string) {
+  confirmMessage.value = 'Soll dieser Eintrag wirklich gelöscht werden?';
+  confirmAction.value = async () => {
+    loading.value = true;
+    try {
+      await hw.delete(`/api/items/${id}`);
+      handleSuccess('Eintrag erfolgreich gelöscht.');
+    } catch (e: any) {
+      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+      isError.value = true;
+    } finally {
+      loading.value = false;
+    }
+  };
+  showConfirmModal.value = true;
+}
+
+function confirmDeleteAnnouncement(id: string) {
+  confirmMessage.value = 'Soll diese Ankündigung wirklich gelöscht werden?';
+  confirmAction.value = async () => {
+    loading.value = true;
+    try {
+      await hw.delete(`/api/announcements/${id}`);
+      handleSuccess('Ankündigung erfolgreich gelöscht.');
+    } catch (e: any) {
+      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+      isError.value = true;
+    } finally {
+      loading.value = false;
+    }
+  };
+  showConfirmModal.value = true;
+}
+
+function handleConfirmation(confirmed: boolean) {
+  showConfirmModal.value = false;
+  if (confirmed && confirmAction.value) {
+    confirmAction.value();
   }
+  confirmAction.value = null;
 }
 
 onMounted(() => {
-  loadMe();
+  const token = localStorage.getItem('hwToken');
+  if (token) {
+    setHwToken(token);
+    loadMe();
+  }
   reload();
 });
-
 </script>
-
-<style scoped>
-.item-card {
-  width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: var(--card-bg);
-  border: 1px solid var(--border);
-}
-
-.item-card-inner {
-  height: 250px;
-  width: 100%;
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.grid {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-.badge {
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-}
-
-.overlay-row {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 12px;
-  display: flex;
-  justify-content: center;
-  z-index: 10;
-}
-.toast-message {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: var(--primary);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  animation: fade-in-up 0.5s ease-out;
-}
-.toast-error {
-  background-color: var(--danger);
-}
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dot-spinner {
-  --uib-size: 2.8rem;
-  --uib-speed: 1s;
-  --uib-color: var(--primary);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  height: var(--uib-size);
-  width: var(--uib-size);
-}
-
-.dot-spinner__dot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  height: 100%;
-  width: 100%;
-}
-
-.dot-spinner__dot::before {
-  content: '';
-  height: 20%;
-  width: 20%;
-  border-radius: 50%;
-  background-color: var(--uib-color);
-  transform: scale(0);
-  opacity: 0.5;
-  animation: pulse0112 calc(var(--uib-speed) * 1.11) ease-in-out infinite;
-  box-shadow: 0 0 20px rgba(18, 31, 53, 0.3);
-}
-
-.dot-spinner__dot:nth-child(2) {
-  transform: rotate(45deg);
-}
-
-.dot-spinner__dot:nth-child(2)::before {
-  animation-delay: calc(var(--uib-speed) * -0.89);
-}
-
-.dot-spinner__dot:nth-child(3) {
-  transform: rotate(90deg);
-}
-
-.dot-spinner__dot:nth-child(3)::before {
-  animation-delay: calc(var(--uib-speed) * -0.78);
-}
-
-.dot-spinner__dot:nth-child(4) {
-  transform: rotate(135deg);
-}
-
-.dot-spinner__dot:nth-child(4)::before {
-  animation-delay: calc(var(--uib-speed) * -0.67);
-}
-
-.dot-spinner__dot:nth-child(5) {
-  transform: rotate(180deg);
-}
-
-.dot-spinner__dot:nth-child(5)::before {
-  animation-delay: calc(var(--uib-speed) * -0.56);
-}
-
-.dot-spinner__dot:nth-child(6) {
-  transform: rotate(225deg);
-}
-
-.dot-spinner__dot:nth-child(6)::before {
-  animation-delay: calc(var(--uib-speed) * -0.45);
-}
-
-.dot-spinner__dot:nth-child(7) {
-  transform: rotate(270deg);
-}
-
-.dot-spinner__dot:nth-child(7)::before {
-  animation-delay: calc(var(--uib-speed) * -0.34);
-}
-
-.dot-spinner__dot:nth-child(8) {
-  transform: rotate(315deg);
-}
-
-.dot-spinner__dot:nth-child(8)::before {
-  animation-delay: calc(var(--uib-speed) * -0.23);
-}
-
-@keyframes pulse0112 {
-  0%,
-  100% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-
-  50% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-</style>
