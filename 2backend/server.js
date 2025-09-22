@@ -16,7 +16,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 // Config
 const app = express();
-app.set("trust proxy", 1); // <--- GEÄNDERT: Korrekte Einstellung für Render
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
@@ -31,6 +31,7 @@ app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHea
 
 // Mongo
 await mongoose.connect(process.env.MONGODB_URI);
+console.log('MongoDB connected');
 
 // Cloudinary
 cloudinary.config({
@@ -39,372 +40,224 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Nodemailer (GMX)
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'mail.gmx.net',
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER, // deine GMX E-Mail
-        pass: process.env.SMTP_PASS  // App-Passwort empfohlen
-    }
-});
-
 // Models
-const UserSchema = new mongoose.Schema({
-    email: { type: String, unique: true, required: true, lowercase: true, trim: true },
-    passwordHash: { type: String, required: true },
+const userSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    isVerified: { type: Boolean, default: false },
     isAdmin: { type: Boolean, default: false },
-    emailVerified: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
-    lastLoginAt: { type: Date },
-    activity: [{ // <--- GEÄNDERT: Explizite Typen für die Array-Elemente
-        at: { type: Date, default: Date.now },
-        type: { type: String },
-        meta: { type: mongoose.Schema.Types.Mixed }
-    }]
-}, { timestamps: true });
-const User = mongoose.model('HwUser', UserSchema);
+    verificationToken: String,
+    verificationTokenExpires: Date
+});
+const User = mongoose.model('User', userSchema);
 
-const VerificationSchema = new mongoose.Schema({
-    email: { type: String, index: true },
-    token: { type: String, unique: true },
-    expiresAt: { type: Date }
-}, { timestamps: true });
-const Verification = mongoose.model('HwVerification', VerificationSchema);
-
-const SubjectSchema = new mongoose.Schema({
-    name: { type: String, unique: true, required: true }
-}, { timestamps: true });
-const Subject = mongoose.model('HwSubject', SubjectSchema);
-
-const AnnouncementSchema = new mongoose.Schema({
-    title: String,
-    content: String,
-    color: { type: String, default: 'warn' }, // info | warn | danger
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-}, { timestamps: true });
-const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
-
-const ItemSchema = new mongoose.Schema({
-    type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
+const itemSchema = new mongoose.Schema({
+    type: { type: String, enum: ['Hausaufgaben', 'Klassenarbeiten', 'Dalton-Auftrag'], required: true },
     title: { type: String, required: true },
-    subject: { type: String, required: true }, // frei oder aus Liste
-    description: { type: String },
-    images: [{ url: String, publicId: String, createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' } }],
-    dueDate: { type: Date, index: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
-}, { timestamps: true });
-const Item = mongoose.model('HwItem', ItemSchema);
+    subject: { type: String, required: true },
+    description: String,
+    images: [{
+        url: String,
+        publicId: String
+    }],
+    dueDate: Date,
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+});
+const Item = mongoose.model('Item', itemSchema);
 
-// Default Subjects seed
-const DEFAULT_SUBJECTS = [
-    'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
-    'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
-    'Enrichment', 'WPU', 'Theater', 'Latein'
-];
-async function ensureSubjects() {
-    for (const s of DEFAULT_SUBJECTS) {
-        await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
+const announcementSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    color: { type: String, enum: ['info', 'warn', 'danger'], default: 'info' },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+});
+const Announcement = mongoose.model('Announcement', announcementSchema);
+
+const logSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    action: String,
+    details: Object,
+    timestamp: { type: Date, default: Date.now }
+});
+const Log = mongoose.model('Log', logSchema);
+
+async function logActivity(userId, action, details) {
+    if (process.env.NODE_ENV === 'production') {
+        const log = new Log({ user: userId, action, details });
+        await log.save();
     }
 }
-await ensureSubjects();
 
-// Helpers
-function sendJSONError(res, status, msg, errors) {
-    return res.status(status).json({ error: msg, errors });
+// Middleware
+function sendJSONError(res, status, message) {
+    res.status(status).json({ error: message });
 }
+
 function requireAuth(req, res, next) {
-    const hdr = req.headers.authorization || '';
-    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+    const token = req.cookies.token;
     if (!token) return sendJSONError(res, 401, 'Unauthorized');
     try {
         const payload = jwt.verify(token, JWT_SECRET);
         req.user = payload;
         next();
-    } catch {
-        return sendJSONError(res, 401, 'Unauthorized');
+    } catch (e) {
+        res.clearCookie('token');
+        sendJSONError(res, 401, 'Unauthorized');
     }
 }
-async function requireAdmin(req, res, next) {
-    requireAuth(req, res, async () => {
-        const user = await User.findById(req.user.sub);
-        if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-        next();
-    });
-}
-function validate(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
-    next();
-}
-function timeLeftColor(dueDate) {
-    const now = dayjs();
-    const due = dayjs(dueDate);
-    const diffDays = due.diff(now, 'day', true);
-    if (diffDays < 0) return 'expired';
-    if (diffDays < 3) return 'danger';
-    if (diffDays < 7) return 'warn';
-    return 'ok';
-}
-async function logActivity(userId, type, meta = {}) {
-    await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
-}
 
-// Auth routes
+// Routes
+// Authentication
 app.post('/api/auth/register',
-    body('email').isEmail(),
-    body('password').isString().isLength({ min: 8 }),
-    validate,
+    body('email').isEmail().normalizeEmail().withMessage('Ungültige E-Mail'),
+    body('password').isLength({ min: 8 }).withMessage('Passwort muss mindestens 8 Zeichen lang sein'),
     async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
         const { email, password } = req.body;
-        const exists = await User.findOne({ email: email.toLowerCase() });
-        if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
-        const passwordHash = await bcrypt.hash(password, 12);
-        const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
-        // create verification
-        const token = crypto.randomBytes(32).toString('hex');
-        const expiresAt = dayjs().add(2, 'day').toDate();
-        await Verification.create({ email: user.email, token, expiresAt });
-        // Send email
-        const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
-        await transporter.sendMail({
-            from: process.env.SMTP_FROM || process.env.SMTP_USER,
-            to: user.email,
-            subject: 'Bitte E-Mail bestätigen',
-            html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-        });
-        res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationTokenExpires = dayjs().add(1, 'day').toDate();
+        try {
+            const user = new User({ email, password: hashedPassword, verificationToken, verificationTokenExpires });
+            await user.save();
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: process.env.SMTP_PORT,
+                secure: process.env.SMTP_SECURE === 'true',
+                auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            });
+            const verifyLink = `${req.protocol}://${req.get('host')}/verify?token=${verificationToken}`;
+            await transporter.sendMail({
+                from: '"Hausaufgaben App" <no-reply@hausaufgaben.de>',
+                to: email,
+                subject: 'E-Mail-Bestätigung',
+                html: `<p>Bitte klicke auf diesen Link, um deine E-Mail-Adresse zu bestätigen: <a href="${verifyLink}">${verifyLink}</a></p>`
+            });
+            await logActivity(user._id, 'user:register', {});
+            res.json({ ok: true, message: 'Benutzer registriert. Bitte E-Mail bestätigen.' });
+        } catch (e) {
+            sendJSONError(res, 400, e.code === 11000 ? 'E-Mail bereits registriert' : 'Registrierung fehlgeschlagen');
+        }
     }
 );
 
-app.get('/api/auth/verify',
-    query('token').isString().isLength({ min: 10 }),
-    validate,
-    async (req, res) => {
-        const ver = await Verification.findOne({ token: req.query.token });
-        if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
-        if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
-        const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
-        if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
-        await Verification.deleteOne({ _id: ver._id });
-        res.json({ ok: true });
-    }
-);
+app.get('/api/auth/verify', query('token').isHexadecimal().isLength({ min: 64, max: 64 }), async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendJSONError(res, 400, 'Ungültiger Token');
+    const { token } = req.query;
+    const user = await User.findOne({ verificationToken: token, verificationTokenExpires: { $gt: Date.now() } });
+    if (!user) return sendJSONError(res, 400, 'Token ungültig oder abgelaufen');
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
+    await user.save();
+    await logActivity(user._id, 'user:verify', {});
+    res.json({ ok: true });
+});
 
 app.post('/api/auth/login',
-    body('email').isEmail(),
-    body('password').isString().isLength({ min: 8 }),
-    validate,
+    body('email').isEmail().normalizeEmail().withMessage('Ungültige E-Mail'),
+    body('password').isString(),
     async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
         const { email, password } = req.body;
-        const user = await User.findOne({ email: email.toLowerCase() });
-        if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-        if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
-        const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-        await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-        res.json({ token });
+        const user = await User.findOne({ email });
+        if (!user) return sendJSONError(res, 400, 'E-Mail oder Passwort falsch');
+        if (!user.isVerified) return sendJSONError(res, 400, 'Bitte E-Mail-Adresse bestätigen');
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return sendJSONError(res, 400, 'E-Mail oder Passwort falsch');
+        const token = jwt.sign({ sub: user._id, isAdmin: user.isAdmin, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
+        await logActivity(user._id, 'user:login', {});
+        res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 86400000 }).json({ token, user: { email: user.email, isAdmin: user.isAdmin, _id: user._id } });
     }
 );
 
 app.get('/api/auth/me', requireAuth, async (req, res) => {
-    const user = await User.findById(req.user.sub).lean();
-    res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
+    const user = await User.findById(req.user.sub, 'email isAdmin').lean();
+    if (!user) return res.json({ user: null });
+    res.json({ user });
 });
 
-// Admin: list users & activity, delete user, set admin
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
-    const users = await User.find({}).sort({ createdAt: -1 }).lean();
-    res.json(users.map(u => ({
-        id: u._id, email: u.email, isAdmin: u.isAdmin,
-        createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
-        activity: u.activity?.slice(-20) || []
-    })));
-});
-app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-    await User.deleteOne({ _id: req.params.id });
-    await Item.deleteMany({ createdBy: req.params.id });
-    res.json({ ok: true });
-});
-app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
-    await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
-    res.json({ ok: true });
+app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('token').json({ ok: true });
 });
 
-// Subjects
-app.get('/api/subjects', async (req, res) => {
-    const list = await Subject.find({}).sort({ name: 1 }).lean();
-    res.json(list.map(s => s.name));
-});
-app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
-    await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
-    res.status(201).json({ ok: true });
-});
-app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
-    await Subject.deleteOne({ name: req.params.name });
-    res.json({ ok: true });
+// Items
+app.post('/api/items', requireAuth, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
+    const item = new Item({ ...req.body, createdBy: req.user.sub, createdAt: new Date() });
+    await item.save();
+    await logActivity(req.user.sub, 'item:create', { id: item._id });
+    res.status(201).json(item);
 });
 
-// Announcements
-app.get('/api/announcements', async (req, res) => {
-    const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
-    res.json(list);
-});
-app.post('/api/announcements', requireAuth, body('title').isString().isLength({ min: 2 }), body('content').isString().isLength({ min: 2 }), body('color').optional().isIn(['info', 'warn', 'danger']), validate, async (req, res) => {
-    const user = await User.findById(req.user.sub);
-    if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-    const doc = await Announcement.create({
-        title: req.body.title,
-        content: req.body.content,
-        color: req.body.color || 'warn',
-        createdBy: req.user.sub
-    });
-    await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
-    res.status(201).json(doc);
-});
-app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
-    const ann = await Announcement.findById(req.params.id);
-    if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-    const user = await User.findById(req.user.sub);
-    if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-    await ann.deleteOne();
-    await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
-    res.json({ ok: true });
-});
-
-// Cloudinary signed upload
-app.post('/api/uploads/sign', requireAuth, async (req, res) => {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const signature = cloudinary.utils.api_sign_request({ timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' }, process.env.CLOUDINARY_API_SECRET);
-    res.json({
-        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-        apiKey: process.env.CLOUDINARY_API_KEY,
-        timestamp,
-        signature,
-        folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
-    });
-});
-
-// NEW: Add image to an item
-app.post('/api/items/:id/images',
-    requireAuth,
-    param('id').isMongoId(),
-    body('image').isObject(),
-    body('image.url').isString(),
-    body('image.publicId').isString(),
-    validate,
-    async (req, res) => {
-        const item = await Item.findById(req.params.id);
-        if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-        const newImage = {
-            url: req.body.image.url,
-            publicId: req.body.image.publicId,
-            createdBy: req.user.sub
-        };
-        item.images.push(newImage);
-        await item.save();
-        await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
-        res.status(201).json({ ok: true, image: newImage });
-    }
-);
-
-// NEW: Delete an image from an item
-app.delete('/api/items/:itemId/images/:publicId',
-    requireAuth,
-    param('itemId').isMongoId(),
-    param('publicId').isString(),
-    validate,
-    async (req, res) => {
-        const item = await Item.findById(req.params.itemId);
-        if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-        const imageIndex = item.images.findIndex(img => img.publicId === req.params.publicId);
-        if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-
-        const image = item.images[imageIndex];
-        const user = await User.findById(req.user.sub);
-
-        if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
-            return sendJSONError(res, 403, 'Forbidden');
-        }
-
-        // Delete from Cloudinary
-        await cloudinary.uploader.destroy(image.publicId);
-
-        // Remove from DB
-        item.images.splice(imageIndex, 1);
-        await item.save();
-
-        await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
-        res.json({ ok: true });
-    }
-);
-
-// Items list (not showing expired)
-app.get('/api/items',
-    query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-    validate,
-    async (req, res) => {
-        const now = new Date();
-        const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-            .sort({ dueDate: 1 })
-            .limit(500)
-            .lean();
-        res.json(list.map(i => ({
-            id: i._id,
-            type: i.type,
-            title: i.title,
-            subject: i.subject,
-            description: i.description,
-            images: i.images,
-            dueDate: i.dueDate,
-            createdBy: i.createdBy,
-            timeColor: timeLeftColor(i.dueDate)
-        })));
-    }
-);
-
-// Create item
-app.post('/api/items',
-    requireAuth,
-    body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-    body('title').isString().isLength({ min: 2, max: 200 }),
-    body('subject').isString().isLength({ min: 2, max: 50 }),
-    body('description').optional().isString().isLength({ max: 5000 }),
-    body('images').optional().isArray({ max: 10 }),
-    body('dueDate').isISO8601().toDate(),
-    validate,
-    async (req, res) => {
-        const now = dayjs();
-        if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-        const doc = await Item.create({
-            type: req.body.type,
-            title: req.body.title,
-            subject: req.body.subject,
-            description: req.body.description || '',
-            images: (req.body.images || []).map(img => ({ url: img.url, publicId: img.publicId, createdBy: req.user.sub })),
-            dueDate: req.body.dueDate,
-            createdBy: req.user.sub
+// NEUE Optimierung: Nutze Cloudinary, um Vorschaubilder zu senden
+app.get('/api/items', async (req, res) => {
+    const items = await Item.find({}).sort({ dueDate: -1 }).lean();
+    const optimizedItems = items.map(item => {
+        const optimizedImages = item.images.map(img => {
+            const optimizedUrl = cloudinary.url(img.publicId, {
+                width: 400,
+                height: 300,
+                crop: "fill",
+                gravity: "auto",
+                quality: "auto:low"
+            });
+            return {
+                ...img,
+                url: optimizedUrl
+            };
         });
-        await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
-        res.status(201).json({ ok: true, id: doc._id });
-    }
-);
+        return {
+            ...item,
+            images: optimizedImages
+        };
+    });
+    res.json(optimizedItems);
+});
 
-// Update item (own or admin)
-app.patch('/api/items/:id',
-    requireAuth,
-    param('id').isMongoId(),
-    body('title').optional().isString().isLength({ min: 2, max: 200 }),
-    body('subject').optional().isString().isLength({ min: 2, max: 50 }),
-    body('description').optional().isString().isLength({ max: 5000 }),
-    body('images').optional().isArray({ max: 10 }),
-    body('dueDate').optional().isISO8601().toDate(),
-    validate,
+app.get('/api/items/:id', param('id').isMongoId(), async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
+    const item = await Item.findById(req.params.id);
+    if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+    res.json(item);
+});
+
+app.post('/api/items/:id/images', param('id').isMongoId(), requireAuth, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
+    const item = await Item.findById(req.params.id);
+    if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+    if (item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+    const { image } = req.body;
+    item.images.push(image);
+    await item.save();
+    res.status(201).json({ image });
+});
+
+app.delete('/api/items/:id/images/:publicId', param('id').isMongoId(), param('publicId').isString(), requireAuth, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
+    const item = await Item.findById(req.params.id);
+    if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+    if (item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+    await cloudinary.uploader.destroy(req.params.publicId);
+    item.images = item.images.filter(img => img.publicId !== req.params.publicId);
+    await item.save();
+    res.json({ ok: true });
+});
+
+app.patch('/api/items/:id', param('id').isMongoId(), requireAuth,
+    body('dueDate').isISO8601().toDate().optional().withMessage('Ungültiges Datum'),
     async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
         const item = await Item.findById(req.params.id);
         if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
         const user = await User.findById(req.user.sub);
@@ -433,12 +286,59 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
         const publicIds = item.images.map(img => img.publicId);
         await cloudinary.api.delete_resources(publicIds);
     }
-    await item.deleteOne();
-    await logActivity(req.user.sub, 'item:delete', { id: item._id });
+    await Item.findByIdAndDelete(req.params.id);
+    await logActivity(req.user.sub, 'item:delete', { id: req.params.id });
     res.json({ ok: true });
 });
 
-// Health
-app.get('/health', (req, res) => res.json({ ok: true }));
+// Announcements
+app.post('/api/announcements', requireAuth,
+    body('title').isString().notEmpty(),
+    body('content').isString().notEmpty(),
+    body('color').isIn(['info', 'warn', 'danger']),
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return sendJSONError(res, 400, errors.array()[0].msg);
+        const user = await User.findById(req.user.sub);
+        if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+        const announcement = new Announcement({ ...req.body, createdBy: req.user.sub });
+        await announcement.save();
+        await logActivity(req.user.sub, 'announcement:create', { id: announcement._id });
+        res.status(201).json(announcement);
+    }
+);
 
-app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
+app.get('/api/announcements', async (req, res) => {
+    const announcements = await Announcement.find({}).sort({ createdAt: -1 });
+    res.json(announcements);
+});
+
+app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
+    const announcement = await Announcement.findById(req.params.id);
+    if (!announcement) return sendJSONError(res, 404, 'Nicht gefunden');
+    const user = await User.findById(req.user.sub);
+    if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+    await Announcement.findByIdAndDelete(req.params.id);
+    await logActivity(req.user.sub, 'announcement:delete', { id: req.params.id });
+    res.json({ ok: true });
+});
+
+// Cloudinary
+app.get('/api/cloudinary/sign', requireAuth, async (req, res) => {
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const signature = cloudinary.utils.api_sign_request({
+        timestamp: timestamp,
+        folder: 'hausaufgaben'
+    }, process.env.CLOUDINARY_API_SECRET);
+    res.json({
+        signature,
+        timestamp,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        folder: 'hausaufgaben'
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server läuft auf Port ${PORT}`);
+});
