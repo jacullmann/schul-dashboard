@@ -14,7 +14,7 @@
 
       <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
         <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
-        <router-link to="/bewerten" class="nav-item" @click="closeNav">Bewerten</router-link>
+        <router-link to="/bewerten" class="nav-item" @click="closeNav">Benoten</router-link>
 
       </nav>
     </div>
@@ -34,7 +34,7 @@ const shouldShowBackButton = computed(() => {
   return (
       route.path.startsWith('/person/') ||
       route.path.startsWith('/admin') ||
-      route.path.startsWith('/hausaufgaben')
+      route.path.startsWith('/impressum-&-datenschutz')
 )
 });
 
