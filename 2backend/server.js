@@ -311,7 +311,7 @@ app.post('/api/items/:id/images',
     }
 );
 
-// NEW: Delete an image from an item
+
 app.delete('/api/items/:itemId/images/:publicId',
     requireAuth,
     param('itemId').isMongoId(),

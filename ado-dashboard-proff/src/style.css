@@ -45,7 +45,7 @@ footer { color: var(--muted); font-size: 14px; }
 .small { font-size: 12px; color: var(--muted); }
 .badge:hover { color: white}
 
-/* Flexbox "Sticky Footer" Layout */
+
 .full {
     display: flex;
     flex-direction: column;
@@ -57,7 +57,7 @@ footer { color: var(--muted); font-size: 14px; }
     position: relative;
 }
 
-/* Setzt die Footer-Positionierung zurück, damit sie mit Flexbox funktioniert */
+
 footer {
     bottom: initial;
     position: initial;
