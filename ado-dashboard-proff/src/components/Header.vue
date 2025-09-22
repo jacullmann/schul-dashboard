@@ -15,6 +15,8 @@
       <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
         <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
         <router-link to="/bewerten" class="nav-item" @click="closeNav">Benoten</router-link>
+        <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
+        <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzel-Finder</router-link>
 
       </nav>
     </div>

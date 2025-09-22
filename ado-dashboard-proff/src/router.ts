@@ -9,7 +9,9 @@ const PersonDetail = () => import('./views/PersonDetail.vue');
 const Admin = () => import('./views/Admin.vue');
 const Home = () => import('./views/Home.vue');
 const VerifyEmail = () => import('./views/VerifyEmail.vue');
-const Impressum = () => import('./views/Impressum.vue')
+const Impressum = () => import('./views/Impressum.vue');
+const Stundenplan = () => import('./views/Stundenplan.vue')
+const Kuerzel = () => import('./views/Kuerzel.vue')
 
 const router = createRouter({
     history: createWebHistory(),
@@ -19,7 +21,10 @@ const router = createRouter({
         { path: '/person/:id', component: PersonDetail, props: true },
         { path: '/admin', component: Admin },
         { path: '/verify', component: VerifyEmail },
-        { path: '/impressum-&-datenschutz', component: Impressum }
+        { path: '/impressum-&-datenschutz', component: Impressum },
+        { path: '/stundenplan', component: Stundenplan },
+        { path: '/kuerzel', component: Kuerzel}
+
     ]
 });
 
