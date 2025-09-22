@@ -13,13 +13,14 @@
       </button>
 
       <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
-        <router-link to="/" class="nav-item" @click="closeNav">Übersicht</router-link>
-        <router-link to="/hausaufgaben" class="nav-item" @click="closeNav">Hausaufgaben</router-link>
-        <router-link to="/admin" class="nav-item" @click="closeNav">Admin</router-link>
+        <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
+        <router-link to="/bewerten" class="nav-item" @click="closeNav">Bewerten</router-link>
+
       </nav>
     </div>
   </header>
 </template>
+<!--<router-link to="/admin" class="nav-item" @click="closeNav">Admin</router-link>-->
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
