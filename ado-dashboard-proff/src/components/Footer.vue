@@ -40,7 +40,6 @@ const year = new Date().getFullYear();
   color: #b0b0b0;
   padding-top: 2rem;
   border-top: 1px solid #333;
-  z-index: 999;
 }
 
 .footer-container {
