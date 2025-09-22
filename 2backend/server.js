@@ -58,7 +58,7 @@ const UserSchema = new mongoose.Schema({
     emailVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     lastLoginAt: { type: Date },
-    activity: [{ // <--- GEÄNDERT: Explizite Typen für die Array-Elemente
+    activity: [{
         at: { type: Date, default: Date.now },
         type: { type: String },
         meta: { type: mongoose.Schema.Types.Mixed }

@@ -31,7 +31,11 @@ const navOpen = ref(false);
 const route = useRoute();
 
 const shouldShowBackButton = computed(() => {
-  return route.path.startsWith('/person/');
+  return (
+      route.path.startsWith('/person/') ||
+      route.path.startsWith('/admin') ||
+      route.path.startsWith('/hausaufgaben')
+)
 });
 
 const toggleNav = () => {
