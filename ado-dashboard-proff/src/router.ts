@@ -20,10 +20,12 @@ const router = createRouter({
         { path: '/bewerten', component: Home },
         { path: '/person/:id', component: PersonDetail, props: true },
         { path: '/admin', component: Admin },
+        { path: '/hausaufgaben/verify', redirect: '/verify' },
         { path: '/verify', component: VerifyEmail },
         { path: '/impressum-&-datenschutz', component: Impressum },
         { path: '/stundenplan', component: Stundenplan },
         { path: '/kuerzel', component: Kuerzel},
+
         {
             path: '/:pathMatch(.*)*',
             name: 'NotFound',
