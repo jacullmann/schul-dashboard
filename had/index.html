@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Für juan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root{
+            --bg: #f7f7f8;
+            --card: #ffffff;
+            --text: #222;
+            --muted: #666;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #c62828;
+            --danger-hover: #a61f1f;
+            --warn: #ef6c00;
+            --shadow: 0 8px 24px rgba(0,0,0,0.08);
+            --radius: 14px;
+            --radius-sm: 10px;
+        }
+        @media (prefers-color-scheme: dark){
+            :root{
+                --bg: #0f1115;
+                --card: #151a22;
+                --text: #e5e7eb;
+                --muted: #9aa3af;
+                --border: #273043;
+                --shadow: 0 10px 28px rgba(0,0,0,0.35);
+            }
+        }
+
+        /* Base */
+        *{ box-sizing: border-box; }
+        html, body{ height: 100%; }
+        body{
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+            background: white;
+            color: var(--text);
+            line-height: 1.45;
+        }
+        .container{
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px clamp(16px, 3vw, 28px);
+        }
+        h1{
+            margin: 0 0 16px;
+            font-size: clamp(22px, 2.2vw, 28px);
+            letter-spacing: 0.2px;
+            color: black;
+        }
+        .grid{
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+        @media (min-width: 800px){
+            .grid{ grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Card */
+        .section{
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: clamp(14px, 2.2vw, 18px);
+            box-shadow: var(--shadow);
+        }
+        .section h3{
+            margin: 0 0 10px;
+            font-size: clamp(18px, 1.6vw, 20px);
+        }
+
+        /* Form */
+        .form{
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        @media (max-width: 640px){
+            .form{
+                grid-template-columns: 1fr;
+            }
+        }
+        select, input{
+            width: 100%;
+            padding: 12px 12px;
+            font-size: clamp(14px, 1.6vw, 16px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: black;
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        input#short{ text-transform: uppercase; }
+        select:focus, input:focus{
+            color:white;
+        }
+        button{
+            padding: 12px 16px;
+            font-size: clamp(14px, 1.6vw, 16px);
+            cursor: pointer;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--primary);
+            color: #fff;
+            transition: transform .06s ease, background .2s ease, box-shadow .2s ease;
+        }
+        button:hover{ background: var(--primary-hover); }
+        button:active{ transform: translateY(1px); }
+        .btn-muted{
+            background: #6b7280;
+            box-shadow: 0 4px 10px rgba(107,114,128,0.25);
+        }
+        .btn-muted:hover{ background: #575d69; }
+
+        /* Messages */
+        .message{
+            margin: 10px 0 0;
+            font-weight: 600;
+            font-size: clamp(13px, 1.4vw, 14px);
+            min-height: 1.2em;
+        }
+        .message.error{ color: var(--danger); }
+        .message.warn{ color: var(--warn); }
+
+        /* List */
+        .entry{
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 10px;
+            background: color-mix(in oklab, var(--card) 92%, var(--bg));
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            margin: 6px 0;
+        }
+        .entry .meta{ color: var(--muted); }
+        .entry .actions button{
+            background: var(--danger);
+            box-shadow: 0 4px 10px rgba(198,40,40,0.25);
+        }
+        .entry .actions button:hover{ background: var(--danger-hover); }
+
+        /* Code block */
+        pre{
+            background: #0f131a;
+            color: #e5edf7;
+            padding: 14px;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            margin: 0;
+            border: 1px solid #0c1016;
+        }
+        .editor{
+            margin-top: 12px;
+        }
+        .editor-controls{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+        textarea{
+            width: 100%;
+            min-height: 220px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: clamp(13px, 1.5vw, 14px);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 12px;
+            color: var(--text);
+            background: transparent;
+        }
+
+        /* Responsive touch targets */
+        @media (max-width: 640px){
+            button, select, input{ padding: 14px; }
+            .entry{ grid-template-columns: 1fr; }
+            .entry .actions{ justify-self: start; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Für juan</h1>
+
+    <div class="grid">
+        <!-- Left: Form and List -->
+        <div class="section">
+            <h3>Person hinzufügen</h3>
+            <div class="form" role="form">
+                <select id="title" aria-label="Titel">
+                    <option value="Herr">Herr</option>
+                    <option value="Frau">Frau</option>
+                </select>
+                <input id="name" type="text" placeholder="Name" aria-label="Name">
+                <input id="short" type="text" placeholder="Kürzel (z. B. MU)" maxlength="8" aria-label="Kürzel">
+                <button id="addBtn">Hinzufügen</button>
+            </div>
+            <div id="message" class="message" aria-live="polite"></div>
+
+            <h3 style="margin-top:16px;">Aktuelle Liste</h3>
+            <div id="list"></div>
+        </div>
+
+        <!-- Right: Code and Editor -->
+        <div class="section">
+            <h3>Code-Block</h3>
+            <pre id="code">const persons = [
+
+]</pre>
+
+            <div class="editor">
+                <div class="editor-controls">
+                    <button id="editToggle">Bearbeiten</button>
+                    <div id="warnMsg" class="message warn" aria-live="polite"></div>
+                </div>
+                <div id="editArea" style="display:none;">
+                    <textarea id="codeEditor"></textarea>
+                    <div class="editor-controls">
+                        <button id="saveEdit">Speichern</button>
+                        <button id="cancelEdit" class="btn-muted">Abbrechen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let persons = [];
+
+    const titleEl = document.getElementById('title');
+    const nameEl = document.getElementById('name');
+    const shortEl = document.getElementById('short');
+    const addBtn = document.getElementById('addBtn');
+    const messageEl = document.getElementById('message');
+    const listEl = document.getElementById('list');
+    const codeEl = document.getElementById('code');
+    const editToggle = document.getElementById('editToggle');
+    const editArea = document.getElementById('editArea');
+    const codeEditor = document.getElementById('codeEditor');
+    const saveEdit = document.getElementById('saveEdit');
+    const cancelEdit = document.getElementById('cancelEdit');
+    const warnMsg = document.getElementById('warnMsg');
+
+    function showMessage(msg, type='') {
+        messageEl.textContent = msg;
+        messageEl.className = 'message ' + type;
+    }
+    function clearMessage() {
+        showMessage('', '');
+    }
+
+    function render() {
+        // Liste rendern
+        listEl.innerHTML = '';
+        persons.forEach((p, i) => {
+            const div = document.createElement('div');
+            div.className = 'entry';
+            div.innerHTML = `
+          <span class="meta">${p.title} ${p.name} (${p.short})</span>
+          <span class="actions"><button aria-label="Eintrag löschen">Löschen</button></span>
+        `;
+            div.querySelector('button').onclick = () => {
+                persons.splice(i, 1);
+                render();
+                clearMessage();
+            };
+            listEl.appendChild(div);
+        });
+
+        // Code-Block aktualisieren
+        const codeStr =
+            `const persons = [
+${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.short}' }`).join(",\n")}
+]`;
+        codeEl.textContent = codeStr;
+    }
+
+    function addPerson() {
+        const title = titleEl.value;
+        const name = nameEl.value.trim();
+        const short = shortEl.value.trim().toUpperCase();
+
+        if (!name || !short) {
+            showMessage("Bitte Name und Kürzel eingeben.", "error");
+            return;
+        }
+
+        // Duplikate prüfen (blockierend)
+        const existingName = persons.find(p => p.name.toLowerCase() === name.toLowerCase());
+        const existingShort = persons.find(p => p.short === short);
+
+        if (existingName) {
+            showMessage(`Name '${name}' existiert bereits (${existingName.title} ${existingName.name}).`, "error");
+            return;
+        }
+        if (existingShort) {
+            showMessage(`Kürzel '${short}' existiert bereits (${existingShort.title} ${existingShort.name}).`, "error");
+            return;
+        }
+
+        persons.push({ name, title, short });
+        nameEl.value = '';
+        shortEl.value = '';
+        showMessage("Hinzugefügt!");
+        render();
+    }
+
+    // Enter zum Hinzufügen
+    [nameEl, shortEl].forEach(el => {
+        el.addEventListener('keydown', e => {
+            if (e.key === 'Enter') addPerson();
+        });
+    });
+    // Kürzel live in Großbuchstaben
+    shortEl.addEventListener('input', () => {
+        shortEl.value = shortEl.value.toUpperCase();
+    });
+    addBtn.addEventListener('click', addPerson);
+
+    // Editor Toggle
+    editToggle.addEventListener('click', () => {
+        warnMsg.textContent = '';
+        if (editArea.style.display === 'none') {
+            editArea.style.display = 'block';
+            codeEditor.value = codeEl.textContent;
+        } else {
+            editArea.style.display = 'none';
+        }
+    });
+    cancelEdit.addEventListener('click', () => {
+        editArea.style.display = 'none';
+        warnMsg.textContent = '';
+    });
+
+    // Robuste Extraktion des Array-Literals (ohne Regex)
+    function extractPersonsArrayLiteral(code) {
+        const anchor = code.indexOf('const persons');
+        if (anchor === -1) throw new Error("Kein 'const persons' gefunden.");
+        const startBracket = code.indexOf('[', anchor);
+        if (startBracket === -1) throw new Error("Kein öffnender '[' nach 'const persons' gefunden.");
+
+        let i = startBracket;
+        let depth = 0;
+        let inSingle = false, inDouble = false, inTemplate = false, escaped = false;
+
+        for (; i < code.length; i++) {
+            const ch = code[i];
+
+            if (escaped) { escaped = false; continue; }
+            if (ch === '\\') { escaped = true; continue; }
+
+            if (!inDouble && !inTemplate && ch === "'") { inSingle = !inSingle; continue; }
+            if (!inSingle && !inTemplate && ch === '"') { inDouble = !inDouble; continue; }
+            if (!inSingle && !inDouble && ch === '`') { inTemplate = !inTemplate; continue; }
+
+            if (!inSingle && !inDouble && !inTemplate) {
+                if (ch === '[') depth++;
+                else if (ch === ']') {
+                    depth--;
+                    if (depth === 0) {
+                        const endIndex = i;
+                        return code.slice(startBracket, endIndex + 1);
+                    }
+                }
+            }
+        }
+        throw new Error("Passende schließende ']' nicht gefunden.");
+    }
+
+    // Speichern aus Editor
+    saveEdit.addEventListener('click', () => {
+        warnMsg.textContent = '';
+        try {
+            const code = codeEditor.value;
+            const arrLiteral = extractPersonsArrayLiteral(code);
+            const arr = eval(arrLiteral);
+
+            if (!Array.isArray(arr)) throw new Error("Der extrahierte Block ist kein Array.");
+            arr.forEach((p, idx) => {
+                if (typeof p !== 'object' || p === null) throw new Error(`Eintrag ${idx} ist kein Objekt.`);
+                if (!('name' in p) || !('title' in p) || !('short' in p)) {
+                    throw new Error(`Eintrag ${idx} benötigt die Felder name, title, short.`);
+                }
+            });
+
+            persons = arr;
+
+            // Duplikate nur warnen (erlaubt)
+            const seenNames = new Set();
+            const seenShorts = new Set();
+            const warnings = [];
+            persons.forEach(p => {
+                const n = String(p.name || '').toLowerCase();
+                const s = String(p.short || '');
+                if (seenNames.has(n)) warnings.push(`Doppelter Name: ${p.name}`);
+                if (seenShorts.has(s)) warnings.push(`Doppeltes Kürzel: ${p.short}`);
+                seenNames.add(n);
+                seenShorts.add(s);
+            });
+            warnMsg.textContent = warnings.length ? warnings.join(" | ") : '';
+
+            render();
+            editArea.style.display = 'none';
+            clearMessage();
+        } catch (e) {
+            alert("Fehler beim Verarbeiten des Editors: " + e.message);
+        }
+    });
+
+    // Initial render
+    render();
+</script>
+</body>
+</html>
