@@ -16,7 +16,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 // Config
 const app = express();
-app.set("trust proxy", 1); // <--- GEÄNDERT: Korrekte Einstellung für Render
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
@@ -45,8 +45,8 @@ const transporter = nodemailer.createTransport({
     port: Number(process.env.SMTP_PORT || 587),
     secure: false,
     auth: {
-        user: process.env.SMTP_USER, // deine GMX E-Mail
-        pass: process.env.SMTP_PASS  // App-Passwort empfohlen
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
     }
 });
 
@@ -89,9 +89,14 @@ const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
 const ItemSchema = new mongoose.Schema({
     type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
     title: { type: String, required: true },
-    subject: { type: String, required: true }, // frei oder aus Liste
+    subject: { type: String, required: true },
     description: { type: String },
-    images: [{ url: String, publicId: String, createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' } }],
+    images: [{
+        url: String,
+        thumbUrl: String,
+        publicId: String,
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
+    }],
     dueDate: { type: Date, index: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
 }, { timestamps: true });
@@ -147,6 +152,30 @@ function timeLeftColor(dueDate) {
     if (diffDays < 7) return 'warn';
     return 'ok';
 }
+// Build a super-fast preview URL by injecting Cloudinary transformations
+function buildThumbUrl(secureUrl) {
+    try {
+        const u = new URL(secureUrl);
+        const parts = u.pathname.split('/');
+        const uploadIdx = parts.findIndex(p => p === 'upload');
+        if (uploadIdx !== -1) {
+            // f_auto = best format, q_auto:low = low quality, w_240 = small width for quick list previews
+            parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+            u.pathname = parts.join('/');
+        }
+        return u.toString();
+    } catch {
+        return secureUrl;
+    }
+}
+function withThumb(img) {
+    return {
+        url: img.url,
+        thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
+        publicId: img.publicId,
+        createdBy: img.createdBy
+    };
+}
 async function logActivity(userId, type, meta = {}) {
     await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
 }
@@ -162,11 +191,9 @@ app.post('/api/auth/register',
         if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
         const passwordHash = await bcrypt.hash(password, 12);
         const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
-        // create verification
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = dayjs().add(2, 'day').toDate();
         await Verification.create({ email: user.email, token, expiresAt });
-        // Send email
         const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
         await transporter.sendMail({
             from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -214,7 +241,7 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
     res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
 });
 
-// Admin: list users & activity, delete user, set admin
+// Admin routes
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
     const users = await User.find({}).sort({ createdAt: -1 }).lean();
     res.json(users.map(u => ({
@@ -252,18 +279,24 @@ app.get('/api/announcements', async (req, res) => {
     const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
     res.json(list);
 });
-app.post('/api/announcements', requireAuth, body('title').isString().isLength({ min: 2 }), body('content').isString().isLength({ min: 2 }), body('color').optional().isIn(['info', 'warn', 'danger']), validate, async (req, res) => {
-    const user = await User.findById(req.user.sub);
-    if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-    const doc = await Announcement.create({
-        title: req.body.title,
-        content: req.body.content,
-        color: req.body.color || 'warn',
-        createdBy: req.user.sub
-    });
-    await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
-    res.status(201).json(doc);
-});
+app.post('/api/announcements', requireAuth,
+    body('title').isString().isLength({ min: 2 }),
+    body('content').isString().isLength({ min: 2 }),
+    body('color').optional().isIn(['info', 'warn', 'danger']),
+    validate,
+    async (req, res) => {
+        const user = await User.findById(req.user.sub);
+        if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+        const doc = await Announcement.create({
+            title: req.body.title,
+            content: req.body.content,
+            color: req.body.color || 'warn',
+            createdBy: req.user.sub
+        });
+        await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
+        res.status(201).json(doc);
+    }
+);
 app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
     const ann = await Announcement.findById(req.params.id);
     if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
@@ -277,7 +310,10 @@ app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
 // Cloudinary signed upload
 app.post('/api/uploads/sign', requireAuth, async (req, res) => {
     const timestamp = Math.floor(Date.now() / 1000);
-    const signature = cloudinary.utils.api_sign_request({ timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' }, process.env.CLOUDINARY_API_SECRET);
+    const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
+        process.env.CLOUDINARY_API_SECRET
+    );
     res.json({
         cloudName: process.env.CLOUDINARY_CLOUD_NAME,
         apiKey: process.env.CLOUDINARY_API_KEY,
@@ -287,7 +323,7 @@ app.post('/api/uploads/sign', requireAuth, async (req, res) => {
     });
 });
 
-// NEW: Add image to an item
+// Add image to an item
 app.post('/api/items/:id/images',
     requireAuth,
     param('id').isMongoId(),
@@ -301,17 +337,18 @@ app.post('/api/items/:id/images',
 
         const newImage = {
             url: req.body.image.url,
+            thumbUrl: buildThumbUrl(req.body.image.url),
             publicId: req.body.image.publicId,
             createdBy: req.user.sub
         };
         item.images.push(newImage);
         await item.save();
         await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
-        res.status(201).json({ ok: true, image: newImage });
+        res.status(201).json({ ok: true, image: withThumb(newImage) });
     }
 );
 
-
+// Delete an image from an item
 app.delete('/api/items/:itemId/images/:publicId',
     requireAuth,
     param('itemId').isMongoId(),
@@ -353,17 +390,24 @@ app.get('/api/items',
             .sort({ dueDate: 1 })
             .limit(500)
             .lean();
-        res.json(list.map(i => ({
-            id: i._id,
-            type: i.type,
-            title: i.title,
-            subject: i.subject,
-            description: i.description,
-            images: i.images,
-            dueDate: i.dueDate,
-            createdBy: i.createdBy,
-            timeColor: timeLeftColor(i.dueDate)
-        })));
+
+        // Ensure all images have thumbUrl
+        const normalized = list.map(i => {
+            const imgs = (i.images || []).map(img => withThumb(img));
+            return {
+                id: i._id,
+                type: i.type,
+                title: i.title,
+                subject: i.subject,
+                description: i.description,
+                images: imgs,
+                dueDate: i.dueDate,
+                createdBy: i.createdBy,
+                timeColor: timeLeftColor(i.dueDate)
+            };
+        });
+
+        res.json(normalized);
     }
 );
 
@@ -380,12 +424,18 @@ app.post('/api/items',
     async (req, res) => {
         const now = dayjs();
         if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+        const images = (req.body.images || []).map(img => ({
+            url: img.url,
+            thumbUrl: buildThumbUrl(img.url),
+            publicId: img.publicId,
+            createdBy: req.user.sub
+        }));
         const doc = await Item.create({
             type: req.body.type,
             title: req.body.title,
             subject: req.body.subject,
             description: req.body.description || '',
-            images: (req.body.images || []).map(img => ({ url: img.url, publicId: img.publicId, createdBy: req.user.sub })),
+            images,
             dueDate: req.body.dueDate,
             createdBy: req.user.sub
         });
@@ -415,6 +465,16 @@ app.patch('/api/items/:id',
         for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
             if (req.body[k] !== undefined) update[k] = req.body[k];
         }
+
+        if (update.images) {
+            update.images = update.images.map(img => ({
+                url: img.url,
+                thumbUrl: buildThumbUrl(img.url),
+                publicId: img.publicId,
+                createdBy: img.createdBy || item.createdBy
+            }));
+        }
+
         await Item.findByIdAndUpdate(item._id, { $set: update });
         await logActivity(req.user.sub, 'item:update', { id: item._id });
         res.json({ ok: true });

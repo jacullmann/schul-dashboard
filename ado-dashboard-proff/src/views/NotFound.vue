@@ -40,7 +40,7 @@ function goBack() {
 
 .subtitle {
   font-size: clamp(25px, 4vw, 32px);
-  color: var(--muted);
+  color: white;
   margin: 12px 0 32px 0;
 }
 
@@ -66,8 +66,7 @@ function goBack() {
 }
 .btn.ghost {
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
+  color: white;
 }
 .btn.ghost:hover {
   background: rgba(255,255,255,0.05);

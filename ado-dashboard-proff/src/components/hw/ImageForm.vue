@@ -8,9 +8,21 @@
 
       <div style="margin-top:16px;">
         <div style="font-weight:600;">Bilder</div>
-        <div class="row" style="gap:8px; margin-top:8px;">
-          <div v-for="img in currentImages" :key="img.publicId" style="position:relative; max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-            <img :src="img.url" style="width:100%; height:auto;" />
+        <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
+          <div
+              v-for="img in currentImages"
+              :key="img.publicId"
+              style="position:relative; width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+          >
+            <a :href="img.url" target="_blank" rel="noopener">
+              <img
+                  :src="img.thumbUrl || makeThumb(img.url)"
+                  style="display:block; width:120px; height:auto;"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Vorschau"
+              />
+            </a>
             <div style="position:absolute; top:4px; right:4px;">
               <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="confirmRemoval(img.publicId)">X</button>
             </div>
@@ -48,7 +60,14 @@ import { ref, watchEffect } from 'vue';
 import hw from '../../hwApi';
 
 const props = defineProps({
-  item: { type: Object as () => { id: string, title: string, images: Array<{ url: string, publicId: string }> }, required: true },
+  item: {
+    type: Object as () => {
+      id: string,
+      title: string,
+      images: Array<{ url: string, thumbUrl?: string, publicId: string }>
+    },
+    required: true
+  },
 });
 const emit = defineEmits(['close', 'success']);
 
@@ -73,6 +92,21 @@ function cancelRemoval() {
   publicIdToRemove.value = '';
 }
 
+function makeThumb(url: string) {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split('/');
+    const uploadIdx = parts.findIndex(p => p === 'upload');
+    if (uploadIdx !== -1) {
+      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+      u.pathname = parts.join('/');
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 async function uploadImg() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -86,21 +120,25 @@ async function uploadImg() {
     isError.value = false;
 
     try {
-      const { data: sign } = await hw.get('/api/cloudinary/sign');
+      // FIX: use correct endpoint and method
+      const { data: sign } = await hw.post('/api/uploads/sign');
       const form = new FormData();
       form.append('file', file);
       form.append('api_key', sign.apiKey);
-      form.append('timestamp', sign.timestamp);
+      form.append('timestamp', String(sign.timestamp));
       form.append('signature', sign.signature);
       form.set('folder', sign.folder);
+
       const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
       const json = await res.json();
+
       if (json.secure_url && json.public_id) {
-        // Now post the new image to the item
+        // Add to item in backend (backend returns image including thumbUrl)
         const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
           image: { url: json.secure_url, publicId: json.public_id }
         });
-        currentImages.value.push(data.image);
+        // Update local state without waiting for a reload
+        currentImages.value = [...currentImages.value, data.image];
         message.value = 'Bild erfolgreich hochgeladen.';
         isError.value = false;
         emit('success');

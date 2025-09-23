@@ -70,18 +70,31 @@
             <button class="btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
           </div>
         </div>
+
         <div style="white-space: pre-wrap; margin-top:12px;">{{ item.description }}</div>
+
         <div v-if="item.images && item.images.length" style="margin-top:12px;">
           <div style="font-weight:600;">Bilder</div>
-          <div class="row" style="gap:8px; margin-top:8px;">
-            <div v-for="img in item.images" :key="img.publicId" style="max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-              <a :href="img.url" target="_blank">
-                <img :src="img.url" style="width:100%; height:auto;" />
+          <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
+            <div
+                v-for="img in item.images"
+                :key="img.publicId"
+                style="width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+            >
+              <a :href="img.url" target="_blank" rel="noopener">
+                <img
+                    :src="img.thumbUrl || makeThumb(img.url)"
+                    style="display:block; width:120px; height:auto;"
+                    loading="lazy"
+                    decoding="async"
+                    :alt="item.title"
+                />
               </a>
             </div>
           </div>
         </div>
       </div>
+
       <div v-if="!loading && !filteredItems.length" class="card">
         Keine Einträge gefunden.
       </div>
@@ -89,9 +102,25 @@
   </div>
 
   <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
-  <ItemForm v-if="showItemForm" :type="tab" :subjects="subjects" :initial="itemToEdit" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" />
-  <AnnouncementForm v-if="showAnnouncementForm" @close="showAnnouncementForm=false" @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')" />
-  <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')" />
+  <ItemForm
+      v-if="showItemForm"
+      :type="tab"
+      :subjects="subjects"
+      :initial="itemToEdit"
+      @close="showItemForm=false"
+      @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
+  />
+  <AnnouncementForm
+      v-if="showAnnouncementForm"
+      @close="showAnnouncementForm=false"
+      @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')"
+  />
+  <ImageForm
+      v-if="showImageFormFor"
+      :item="showImageFormFor"
+      @close="showImageFormFor=null"
+      @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
+  />
 </template>
 
 <script setup lang="ts">
@@ -99,7 +128,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
-import ImageForm from '../components/hw/ImageForm.vue'; // new component
+import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
 
 export interface HwItem {
@@ -108,7 +137,7 @@ export interface HwItem {
   title: string;
   subject: string;
   description: string;
-  images: Array<{ url: string; publicId: string; createdBy: string }>;
+  images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
   dueDate: string;
   createdBy: string;
   timeColor: string;
@@ -235,6 +264,21 @@ async function deleteAnnouncement(id: string) {
 
 function showImageForm(item: HwItem) {
   showImageFormFor.value = item;
+}
+
+function makeThumb(url: string) {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split('/');
+    const uploadIdx = parts.findIndex(p => p === 'upload');
+    if (uploadIdx !== -1) {
+      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+      u.pathname = parts.join('/');
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
 }
 
 onMounted(() => {

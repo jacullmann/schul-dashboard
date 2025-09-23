@@ -38,9 +38,21 @@
 
       <div style="margin-top:16px;">
         <div style="font-weight:600;">Bilder</div>
-        <div class="row" style="gap:8px; margin-top:8px;">
-          <div v-for="img in images" :key="img.publicId" style="position:relative; max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-            <img :src="img.url" style="width:100%; height:auto;" />
+        <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
+          <div
+              v-for="img in images"
+              :key="img.publicId"
+              style="position:relative; width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+          >
+            <a :href="img.url" target="_blank" rel="noopener">
+              <img
+                  :src="img.thumbUrl || makeThumb(img.url)"
+                  style="display:block; width:120px; height:auto;"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Vorschau"
+              />
+            </a>
             <div style="position:absolute; top:4px; right:4px;">
               <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="removeImg(img)">X</button>
             </div>
@@ -102,6 +114,21 @@ const isError = ref(false);
 const uploading = ref(false);
 const uploadError = ref('');
 
+function makeThumb(url: string) {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split('/');
+    const uploadIdx = parts.findIndex(p => p === 'upload');
+    if (uploadIdx !== -1) {
+      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+      u.pathname = parts.join('/');
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 async function uploadImage() {
   uploading.value = true;
   uploadError.value = '';
@@ -123,7 +150,12 @@ async function uploadImage() {
       const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
       const json = await res.json();
       if (json.secure_url && json.public_id) {
-        images.value.push({ url: json.secure_url, publicId: json.public_id, createdBy: '' }); // createdBy is set by the backend
+        images.value.push({
+          url: json.secure_url,
+          thumbUrl: makeThumb(json.secure_url),
+          publicId: json.public_id,
+          createdBy: '' // backend sets createdBy on create
+        });
         uploadError.value = '';
       } else {
         uploadError.value = 'Upload fehlgeschlagen';
@@ -172,3 +204,27 @@ async function submit() {
   }
 }
 </script>
+
+<style scoped>
+.row {
+  display: flex;
+  align-items: center;
+}
+.card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  padding: 24px;
+}
+.col {
+  flex: 1;
+  min-width: 200px;
+}
+.input {
+  width: 100%;
+}
+.badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+</style>

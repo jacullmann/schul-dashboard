@@ -1,426 +1,1018 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>Für juan</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        :root{
-            --bg: #f7f7f8;
-            --card: #ffffff;
-            --text: #222;
-            --muted: #666;
-            --border: #e5e7eb;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --danger: #c62828;
-            --danger-hover: #a61f1f;
-            --warn: #ef6c00;
-            --shadow: 0 8px 24px rgba(0,0,0,0.08);
-            --radius: 14px;
-            --radius-sm: 10px;
-        }
-        @media (prefers-color-scheme: dark){
-            :root{
-                --bg: #0f1115;
-                --card: #151a22;
-                --text: #e5e7eb;
-                --muted: #9aa3af;
-                --border: #273043;
-                --shadow: 0 10px 28px rgba(0,0,0,0.35);
-            }
-        }
+server.js: import 'dotenv/config';
+           import express from 'express';
+           import mongoose from 'mongoose';
+           import helmet from 'helmet';
+           import cors from 'cors';
+           import cookieParser from 'cookie-parser';
+           import morgan from 'morgan';
+           import rateLimit from 'express-rate-limit';
+           import { body, param, query, validationResult } from 'express-validator';
+           import jwt from 'jsonwebtoken';
+           import bcrypt from 'bcryptjs';
+           import nodemailer from 'nodemailer';
+           import crypto from 'crypto';
+           import dayjs from 'dayjs';
+           import { v2 as cloudinary } from 'cloudinary';
 
-        /* Base */
-        *{ box-sizing: border-box; }
-        html, body{ height: 100%; }
-        body{
-            margin: 0;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
-            background: white;
-            color: var(--text);
-            line-height: 1.45;
-        }
-        .container{
-            max-width: 980px;
-            margin: 0 auto;
-            padding: 24px clamp(16px, 3vw, 28px);
-        }
-        h1{
-            margin: 0 0 16px;
-            font-size: clamp(22px, 2.2vw, 28px);
-            letter-spacing: 0.2px;
-            color: black;
-        }
-        .grid{
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-        }
-        @media (min-width: 800px){
-            .grid{ grid-template-columns: 1fr 1fr; }
-        }
+           // Config
+           const app = express();
+           app.set("trust proxy", 1); // <--- GEÄNDERT: Korrekte Einstellung für Render
+           const PORT = process.env.PORT || 8090;
+           const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
+           const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 
-        /* Card */
-        .section{
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: clamp(14px, 2.2vw, 18px);
-            box-shadow: var(--shadow);
-        }
-        .section h3{
-            margin: 0 0 10px;
-            font-size: clamp(18px, 1.6vw, 20px);
-        }
+           // Security & utils
+           app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+           app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+           app.use(morgan('combined'));
+           app.use(express.json({ limit: '2mb' }));
+           app.use(cookieParser());
+           app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
-        /* Form */
-        .form{
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 10px;
-            align-items: center;
-        }
-        @media (max-width: 640px){
-            .form{
-                grid-template-columns: 1fr;
-            }
-        }
-        select, input{
-            width: 100%;
-            padding: 12px 12px;
-            font-size: clamp(14px, 1.6vw, 16px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: black;
-            color: var(--text);
-            outline: none;
-            transition: border-color .2s, box-shadow .2s;
-        }
-        input#short{ text-transform: uppercase; }
-        select:focus, input:focus{
-            color:white;
-        }
-        button{
-            padding: 12px 16px;
-            font-size: clamp(14px, 1.6vw, 16px);
-            cursor: pointer;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: #fff;
-            transition: transform .06s ease, background .2s ease, box-shadow .2s ease;
-        }
-        button:hover{ background: var(--primary-hover); }
-        button:active{ transform: translateY(1px); }
-        .btn-muted{
-            background: #6b7280;
-            box-shadow: 0 4px 10px rgba(107,114,128,0.25);
-        }
-        .btn-muted:hover{ background: #575d69; }
+           // Mongo
+           await mongoose.connect(process.env.MONGODB_URI);
 
-        /* Messages */
-        .message{
-            margin: 10px 0 0;
-            font-weight: 600;
-            font-size: clamp(13px, 1.4vw, 14px);
-            min-height: 1.2em;
-        }
-        .message.error{ color: var(--danger); }
-        .message.warn{ color: var(--warn); }
+           // Cloudinary
+           cloudinary.config({
+               cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+               api_key: process.env.CLOUDINARY_API_KEY,
+               api_secret: process.env.CLOUDINARY_API_SECRET
+           });
 
-        /* List */
-        .entry{
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            gap: 10px;
-            background: color-mix(in oklab, var(--card) 92%, var(--bg));
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 10px 12px;
-            margin: 6px 0;
-        }
-        .entry .meta{ color: var(--muted); }
-        .entry .actions button{
-            background: var(--danger);
-            box-shadow: 0 4px 10px rgba(198,40,40,0.25);
-        }
-        .entry .actions button:hover{ background: var(--danger-hover); }
+           // Nodemailer (GMX)
+           const transporter = nodemailer.createTransport({
+               host: process.env.SMTP_HOST || 'mail.gmx.net',
+               port: Number(process.env.SMTP_PORT || 587),
+               secure: false,
+               auth: {
+                   user: process.env.SMTP_USER, // deine GMX E-Mail
+                   pass: process.env.SMTP_PASS  // App-Passwort empfohlen
+               }
+           });
 
-        /* Code block */
-        pre{
-            background: #0f131a;
-            color: #e5edf7;
-            padding: 14px;
-            border-radius: var(--radius);
-            overflow-x: auto;
-            margin: 0;
-            border: 1px solid #0c1016;
-        }
-        .editor{
-            margin-top: 12px;
-        }
-        .editor-controls{
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin: 8px 0;
-        }
-        textarea{
-            width: 100%;
-            min-height: 220px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            font-size: clamp(13px, 1.5vw, 14px);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 12px;
-            color: var(--text);
-            background: transparent;
-        }
+           // Models
+           const UserSchema = new mongoose.Schema({
+               email: { type: String, unique: true, required: true, lowercase: true, trim: true },
+               passwordHash: { type: String, required: true },
+               isAdmin: { type: Boolean, default: false },
+               emailVerified: { type: Boolean, default: false },
+               createdAt: { type: Date, default: Date.now },
+               lastLoginAt: { type: Date },
+               activity: [{
+                   at: { type: Date, default: Date.now },
+                   type: { type: String },
+                   meta: { type: mongoose.Schema.Types.Mixed }
+               }]
+           }, { timestamps: true });
+           const User = mongoose.model('HwUser', UserSchema);
 
-        /* Responsive touch targets */
-        @media (max-width: 640px){
-            button, select, input{ padding: 14px; }
-            .entry{ grid-template-columns: 1fr; }
-            .entry .actions{ justify-self: start; }
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>Für juan</h1>
+           const VerificationSchema = new mongoose.Schema({
+               email: { type: String, index: true },
+               token: { type: String, unique: true },
+               expiresAt: { type: Date }
+           }, { timestamps: true });
+           const Verification = mongoose.model('HwVerification', VerificationSchema);
 
-    <div class="grid">
-        <!-- Left: Form and List -->
-        <div class="section">
-            <h3>Person hinzufügen</h3>
-            <div class="form" role="form">
-                <select id="title" aria-label="Titel">
-                    <option value="Herr">Herr</option>
-                    <option value="Frau">Frau</option>
-                </select>
-                <input id="name" type="text" placeholder="Name" aria-label="Name">
-                <input id="short" type="text" placeholder="Kürzel (z. B. MU)" maxlength="8" aria-label="Kürzel">
-                <button id="addBtn">Hinzufügen</button>
-            </div>
-            <div id="message" class="message" aria-live="polite"></div>
+           const SubjectSchema = new mongoose.Schema({
+               name: { type: String, unique: true, required: true }
+           }, { timestamps: true });
+           const Subject = mongoose.model('HwSubject', SubjectSchema);
 
-            <h3 style="margin-top:16px;">Aktuelle Liste</h3>
-            <div id="list"></div>
-        </div>
+           const AnnouncementSchema = new mongoose.Schema({
+               title: String,
+               content: String,
+               color: { type: String, default: 'warn' }, // info | warn | danger
+               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
+           }, { timestamps: true });
+           const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
 
-        <!-- Right: Code and Editor -->
-        <div class="section">
-            <h3>Code-Block</h3>
-            <pre id="code">const persons = [
+           const ItemSchema = new mongoose.Schema({
+               type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
+               title: { type: String, required: true },
+               subject: { type: String, required: true }, // frei oder aus Liste
+               description: { type: String },
+               images: [{ url: String, publicId: String, createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' } }],
+               dueDate: { type: Date, index: true },
+               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
+           }, { timestamps: true });
+           const Item = mongoose.model('HwItem', ItemSchema);
 
-]</pre>
+           // Default Subjects seed
+           const DEFAULT_SUBJECTS = [
+               'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
+               'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
+               'Enrichment', 'WPU', 'Theater', 'Latein'
+           ];
+           async function ensureSubjects() {
+               for (const s of DEFAULT_SUBJECTS) {
+                   await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
+               }
+           }
+           await ensureSubjects();
 
-            <div class="editor">
-                <div class="editor-controls">
-                    <button id="editToggle">Bearbeiten</button>
-                    <div id="warnMsg" class="message warn" aria-live="polite"></div>
+           // Helpers
+           function sendJSONError(res, status, msg, errors) {
+               return res.status(status).json({ error: msg, errors });
+           }
+           function requireAuth(req, res, next) {
+               const hdr = req.headers.authorization || '';
+               const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+               if (!token) return sendJSONError(res, 401, 'Unauthorized');
+               try {
+                   const payload = jwt.verify(token, JWT_SECRET);
+                   req.user = payload;
+                   next();
+               } catch {
+                   return sendJSONError(res, 401, 'Unauthorized');
+               }
+           }
+           async function requireAdmin(req, res, next) {
+               requireAuth(req, res, async () => {
+                   const user = await User.findById(req.user.sub);
+                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+                   next();
+               });
+           }
+           function validate(req, res, next) {
+               const errors = validationResult(req);
+               if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
+               next();
+           }
+           function timeLeftColor(dueDate) {
+               const now = dayjs();
+               const due = dayjs(dueDate);
+               const diffDays = due.diff(now, 'day', true);
+               if (diffDays < 0) return 'expired';
+               if (diffDays < 3) return 'danger';
+               if (diffDays < 7) return 'warn';
+               return 'ok';
+           }
+           async function logActivity(userId, type, meta = {}) {
+               await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
+           }
+
+           // Auth routes
+           app.post('/api/auth/register',
+               body('email').isEmail(),
+               body('password').isString().isLength({ min: 8 }),
+               validate,
+               async (req, res) => {
+                   const { email, password } = req.body;
+                   const exists = await User.findOne({ email: email.toLowerCase() });
+                   if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
+                   const passwordHash = await bcrypt.hash(password, 12);
+                   const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
+                   // create verification
+                   const token = crypto.randomBytes(32).toString('hex');
+                   const expiresAt = dayjs().add(2, 'day').toDate();
+                   await Verification.create({ email: user.email, token, expiresAt });
+                   // Send email
+                   const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
+                   await transporter.sendMail({
+                       from: process.env.SMTP_FROM || process.env.SMTP_USER,
+                       to: user.email,
+                       subject: 'Bitte E-Mail bestätigen',
+                       html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+                   });
+                   res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+               }
+           );
+
+           app.get('/api/auth/verify',
+               query('token').isString().isLength({ min: 10 }),
+               validate,
+               async (req, res) => {
+                   const ver = await Verification.findOne({ token: req.query.token });
+                   if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
+                   if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
+                   const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
+                   if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
+                   await Verification.deleteOne({ _id: ver._id });
+                   res.json({ ok: true });
+               }
+           );
+
+           app.post('/api/auth/login',
+               body('email').isEmail(),
+               body('password').isString().isLength({ min: 8 }),
+               validate,
+               async (req, res) => {
+                   const { email, password } = req.body;
+                   const user = await User.findOne({ email: email.toLowerCase() });
+                   if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                   const ok = await bcrypt.compare(password, user.passwordHash);
+                   if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                   if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
+                   const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+                   await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
+                   res.json({ token });
+               }
+           );
+
+           app.get('/api/auth/me', requireAuth, async (req, res) => {
+               const user = await User.findById(req.user.sub).lean();
+               res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
+           });
+
+           // Admin: list users & activity, delete user, set admin
+           app.get('/api/admin/users', requireAdmin, async (req, res) => {
+               const users = await User.find({}).sort({ createdAt: -1 }).lean();
+               res.json(users.map(u => ({
+                   id: u._id, email: u.email, isAdmin: u.isAdmin,
+                   createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
+                   activity: u.activity?.slice(-20) || []
+               })));
+           });
+           app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+               await User.deleteOne({ _id: req.params.id });
+               await Item.deleteMany({ createdBy: req.params.id });
+               res.json({ ok: true });
+           });
+           app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
+               await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
+               res.json({ ok: true });
+           });
+
+           // Subjects
+           app.get('/api/subjects', async (req, res) => {
+               const list = await Subject.find({}).sort({ name: 1 }).lean();
+               res.json(list.map(s => s.name));
+           });
+           app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
+               await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
+               res.status(201).json({ ok: true });
+           });
+           app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
+               await Subject.deleteOne({ name: req.params.name });
+               res.json({ ok: true });
+           });
+
+           // Announcements
+           app.get('/api/announcements', async (req, res) => {
+               const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
+               res.json(list);
+           });
+           app.post('/api/announcements', requireAuth, body('title').isString().isLength({ min: 2 }), body('content').isString().isLength({ min: 2 }), body('color').optional().isIn(['info', 'warn', 'danger']), validate, async (req, res) => {
+               const user = await User.findById(req.user.sub);
+               if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+               const doc = await Announcement.create({
+                   title: req.body.title,
+                   content: req.body.content,
+                   color: req.body.color || 'warn',
+                   createdBy: req.user.sub
+               });
+               await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
+               res.status(201).json(doc);
+           });
+           app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
+               const ann = await Announcement.findById(req.params.id);
+               if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
+               const user = await User.findById(req.user.sub);
+               if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+               await ann.deleteOne();
+               await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
+               res.json({ ok: true });
+           });
+
+           // Cloudinary signed upload
+           app.post('/api/uploads/sign', requireAuth, async (req, res) => {
+               const timestamp = Math.floor(Date.now() / 1000);
+               const signature = cloudinary.utils.api_sign_request({ timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' }, process.env.CLOUDINARY_API_SECRET);
+               res.json({
+                   cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+                   apiKey: process.env.CLOUDINARY_API_KEY,
+                   timestamp,
+                   signature,
+                   folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
+               });
+           });
+
+           // NEW: Add image to an item
+           app.post('/api/items/:id/images',
+               requireAuth,
+               param('id').isMongoId(),
+               body('image').isObject(),
+               body('image.url').isString(),
+               body('image.publicId').isString(),
+               validate,
+               async (req, res) => {
+                   const item = await Item.findById(req.params.id);
+                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                   const newImage = {
+                       url: req.body.image.url,
+                       publicId: req.body.image.publicId,
+                       createdBy: req.user.sub
+                   };
+                   item.images.push(newImage);
+                   await item.save();
+                   await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
+                   res.status(201).json({ ok: true, image: newImage });
+               }
+           );
+
+
+           app.delete('/api/items/:itemId/images/:publicId',
+               requireAuth,
+               param('itemId').isMongoId(),
+               param('publicId').isString(),
+               validate,
+               async (req, res) => {
+                   const item = await Item.findById(req.params.itemId);
+                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                   const imageIndex = item.images.findIndex(img => img.publicId === req.params.publicId);
+                   if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
+
+                   const image = item.images[imageIndex];
+                   const user = await User.findById(req.user.sub);
+
+                   if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
+                       return sendJSONError(res, 403, 'Forbidden');
+                   }
+
+                   // Delete from Cloudinary
+                   await cloudinary.uploader.destroy(image.publicId);
+
+                   // Remove from DB
+                   item.images.splice(imageIndex, 1);
+                   await item.save();
+
+                   await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
+                   res.json({ ok: true });
+               }
+           );
+
+           // Items list (not showing expired)
+           app.get('/api/items',
+               query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+               validate,
+               async (req, res) => {
+                   const now = new Date();
+                   const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
+                       .sort({ dueDate: 1 })
+                       .limit(500)
+                       .lean();
+                   res.json(list.map(i => ({
+                       id: i._id,
+                       type: i.type,
+                       title: i.title,
+                       subject: i.subject,
+                       description: i.description,
+                       images: i.images,
+                       dueDate: i.dueDate,
+                       createdBy: i.createdBy,
+                       timeColor: timeLeftColor(i.dueDate)
+                   })));
+               }
+           );
+
+           // Create item
+           app.post('/api/items',
+               requireAuth,
+               body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+               body('title').isString().isLength({ min: 2, max: 200 }),
+               body('subject').isString().isLength({ min: 2, max: 50 }),
+               body('description').optional().isString().isLength({ max: 5000 }),
+               body('images').optional().isArray({ max: 10 }),
+               body('dueDate').isISO8601().toDate(),
+               validate,
+               async (req, res) => {
+                   const now = dayjs();
+                   if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+                   const doc = await Item.create({
+                       type: req.body.type,
+                       title: req.body.title,
+                       subject: req.body.subject,
+                       description: req.body.description || '',
+                       images: (req.body.images || []).map(img => ({ url: img.url, publicId: img.publicId, createdBy: req.user.sub })),
+                       dueDate: req.body.dueDate,
+                       createdBy: req.user.sub
+                   });
+                   await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
+                   res.status(201).json({ ok: true, id: doc._id });
+               }
+           );
+
+           // Update item (own or admin)
+           app.patch('/api/items/:id',
+               requireAuth,
+               param('id').isMongoId(),
+               body('title').optional().isString().isLength({ min: 2, max: 200 }),
+               body('subject').optional().isString().isLength({ min: 2, max: 50 }),
+               body('description').optional().isString().isLength({ max: 5000 }),
+               body('images').optional().isArray({ max: 10 }),
+               body('dueDate').optional().isISO8601().toDate(),
+               validate,
+               async (req, res) => {
+                   const item = await Item.findById(req.params.id);
+                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+                   const user = await User.findById(req.user.sub);
+                   if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+                   if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+
+                   const update = {};
+                   for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
+                       if (req.body[k] !== undefined) update[k] = req.body[k];
+                   }
+                   await Item.findByIdAndUpdate(item._id, { $set: update });
+                   await logActivity(req.user.sub, 'item:update', { id: item._id });
+                   res.json({ ok: true });
+               }
+           );
+
+           // Delete item (own or admin)
+           app.delete('/api/items/:id', requireAuth, async (req, res) => {
+               const item = await Item.findById(req.params.id);
+               if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+               const user = await User.findById(req.user.sub);
+               if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+
+               // Delete all associated images from Cloudinary first
+               if (item.images && item.images.length > 0) {
+                   const publicIds = item.images.map(img => img.publicId);
+                   await cloudinary.api.delete_resources(publicIds);
+               }
+               await item.deleteOne();
+               await logActivity(req.user.sub, 'item:delete', { id: item._id });
+               res.json({ ok: true });
+           });
+
+           // Health
+           app.get('/health', (req, res) => res.json({ ok: true }));
+
+           app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
+
+
+imageform: <template>
+             <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+               <div class="card" style="width:100%; max-width:640px;">
+                 <div style="display:flex; justify-content:space-between; align-items:center;">
+                   <h3 style="margin:0;">Bilder verwalten für: {{ item.title }}</h3>
+                   <button class="btn ghost" @click="$emit('close')">Schließen</button>
+                 </div>
+
+                 <div style="margin-top:16px;">
+                   <div style="font-weight:600;">Bilder</div>
+                   <div class="row" style="gap:8px; margin-top:8px;">
+                     <div v-for="img in currentImages" :key="img.publicId" style="position:relative; max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+                       <img :src="img.url" style="width:100%; height:auto;" />
+                       <div style="position:absolute; top:4px; right:4px;">
+                         <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="confirmRemoval(img.publicId)">X</button>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div class="row" style="margin-top:16px; align-items:center;">
+                   <button class="btn" @click="uploadImg" :disabled="uploading">
+                     <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                     </svg>
+                     Bild hochladen
+                   </button>
+                   <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }" style="margin-left:12px;">{{ message }}</div>
+                 </div>
+               </div>
+
+               <div v-if="showConfirmRemovalModal" class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:200;">
+                 <div class="card" style="width:100%; max-width:400px; text-align:center;">
+                   <h4 style="margin:0;">Bild löschen?</h4>
+                   <p style="margin-top:12px;">Möchtest du dieses Bild wirklich löschen?</p>
+                   <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
+                     <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
+                     <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </template>
+
+           <script setup lang="ts">
+           import { ref, watchEffect } from 'vue';
+           import hw from '../../hwApi';
+
+           const props = defineProps({
+             item: { type: Object as () => { id: string, title: string, images: Array<{ url: string, publicId: string }> }, required: true },
+           });
+           const emit = defineEmits(['close', 'success']);
+
+           const uploading = ref(false);
+           const message = ref('');
+           const isError = ref(false);
+           const currentImages = ref(props.item.images);
+           const showConfirmRemovalModal = ref(false);
+           const publicIdToRemove = ref('');
+
+           watchEffect(() => {
+             currentImages.value = props.item.images;
+           });
+
+           function confirmRemoval(publicId: string) {
+             publicIdToRemove.value = publicId;
+             showConfirmRemovalModal.value = true;
+           }
+
+           function cancelRemoval() {
+             showConfirmRemovalModal.value = false;
+             publicIdToRemove.value = '';
+           }
+
+           async function uploadImg() {
+             const input = document.createElement('input');
+             input.type = 'file';
+             input.accept = 'image/*';
+             input.onchange = async () => {
+               const file = input.files?.[0];
+               if (!file) return;
+
+               uploading.value = true;
+               message.value = '';
+               isError.value = false;
+
+               try {
+                 const { data: sign } = await hw.get('/api/cloudinary/sign');
+                 const form = new FormData();
+                 form.append('file', file);
+                 form.append('api_key', sign.apiKey);
+                 form.append('timestamp', sign.timestamp);
+                 form.append('signature', sign.signature);
+                 form.set('folder', sign.folder);
+                 const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+                 const json = await res.json();
+                 if (json.secure_url && json.public_id) {
+                   // Now post the new image to the item
+                   const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
+                     image: { url: json.secure_url, publicId: json.public_id }
+                   });
+                   currentImages.value.push(data.image);
+                   message.value = 'Bild erfolgreich hochgeladen.';
+                   isError.value = false;
+                   emit('success');
+                 } else {
+                   message.value = 'Bild-Upload fehlgeschlagen.';
+                   isError.value = true;
+                 }
+               } catch (e: any) {
+                 message.value = e.response?.data?.error || 'Fehler beim Hochladen.';
+                 isError.value = true;
+               } finally {
+                 uploading.value = false;
+               }
+             };
+             input.click();
+           }
+
+           async function removeImg(publicId: string) {
+             showConfirmRemovalModal.value = false;
+             message.value = '';
+             isError.value = false;
+             try {
+               await hw.delete(`/api/items/${props.item.id}/images/${publicId}`);
+               currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
+               message.value = 'Bild erfolgreich gelöscht.';
+               emit('success');
+             } catch (e: any) {
+               message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+               isError.value = true;
+             }
+           }
+           </script>
+
+           <style scoped>
+           .row {
+             display: flex;
+             align-items: center;
+           }
+           .card {
+             border: 1px solid var(--border);
+             border-radius: 12px;
+             background: var(--card-bg);
+             padding: 24px;
+           }
+           </style>
+itemform: <template>
+            <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+              <div class="card" style="width:100%; max-width:640px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <h3 style="margin:0;">{{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}</h3>
+                  <button class="btn ghost" @click="$emit('close')">Schließen</button>
                 </div>
-                <div id="editArea" style="display:none;">
-                    <textarea id="codeEditor"></textarea>
-                    <div class="editor-controls">
-                        <button id="saveEdit">Speichern</button>
-                        <button id="cancelEdit" class="btn-muted">Abbrechen</button>
+
+                <div class="row" style="margin-top:12px;">
+                  <div class="col">
+                    <label>Titel</label>
+                    <input class="input" v-model="title" />
+                  </div>
+                  <div class="col">
+                    <label>Fach</label>
+                    <select class="input" v-model="subjectSel">
+                      <option disabled value="">Bitte wählen</option>
+                      <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+                      <option value="__OTHER__">Anderes...</option>
+                    </select>
+                  </div>
+                </div>
+                <div v-if="subjectSel==='__OTHER__'" style="margin-top:8px;">
+                  <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
+                </div>
+
+                <div style="margin-top:8px;">
+                  <label>Beschreibung (optional)</label>
+                  <textarea class="input" rows="4" v-model="description"></textarea>
+                </div>
+
+                <div class="row" style="margin-top:8px;">
+                  <div class="col">
+                    <label>Abgabedatum</label>
+                    <input class="input" type="datetime-local" v-model="dueLocal" />
+                  </div>
+                </div>
+
+                <div style="margin-top:16px;">
+                  <div style="font-weight:600;">Bilder</div>
+                  <div class="row" style="gap:8px; margin-top:8px;">
+                    <div v-for="img in images" :key="img.publicId" style="position:relative; max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+                      <img :src="img.url" style="width:100%; height:auto;" />
+                      <div style="position:absolute; top:4px; right:4px;">
+                        <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="removeImg(img)">X</button>
+                      </div>
                     </div>
+                    <button class="btn ghost" @click="uploadImage" :disabled="uploading">
+                      <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Bild hochladen
+                    </button>
+                  </div>
+                  <div v-if="uploading" class="small">Lade Bild hoch...</div>
+                  <div v-if="uploadError" class="small" style="color:var(--danger)">{{ uploadError }}</div>
                 </div>
+
+                <div class="row" style="margin-top:16px; align-items:center;">
+                  <button class="btn" @click="submit" :disabled="submitting">
+                    <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {{ initial ? 'Speichern' : 'Anlegen' }}
+                  </button>
+                  <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+                </div>
+
+              </div>
             </div>
-        </div>
-    </div>
+          </template>
 
-</div>
+          <script setup lang="ts">
+          import { ref } from 'vue';
+          import hw from '../../hwApi';
+          import type { HwItem } from './Hausaufgaben.vue';
 
-<script>
-    let persons = [];
+          const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
+          const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
 
-    const titleEl = document.getElementById('title');
-    const nameEl = document.getElementById('name');
-    const shortEl = document.getElementById('short');
-    const addBtn = document.getElementById('addBtn');
-    const messageEl = document.getElementById('message');
-    const listEl = document.getElementById('list');
-    const codeEl = document.getElementById('code');
-    const editToggle = document.getElementById('editToggle');
-    const editArea = document.getElementById('editArea');
-    const codeEditor = document.getElementById('codeEditor');
-    const saveEdit = document.getElementById('saveEdit');
-    const cancelEdit = document.getElementById('cancelEdit');
-    const warnMsg = document.getElementById('warnMsg');
-
-    function showMessage(msg, type='') {
-        messageEl.textContent = msg;
-        messageEl.className = 'message ' + type;
-    }
-    function clearMessage() {
-        showMessage('', '');
-    }
-
-    function render() {
-        // Liste rendern
-        listEl.innerHTML = '';
-        persons.forEach((p, i) => {
-            const div = document.createElement('div');
-            div.className = 'entry';
-            div.innerHTML = `
-          <span class="meta">${p.title} ${p.name} (${p.short})</span>
-          <span class="actions"><button aria-label="Eintrag löschen">Löschen</button></span>
-        `;
-            div.querySelector('button').onclick = () => {
-                persons.splice(i, 1);
-                render();
-                clearMessage();
+          const labelFor = (type: string) => {
+            const map = {
+              'HAUSAUFGABE': 'Hausaufgabe',
+              'DALTON': 'Dalton-Auftrag',
+              'PRUEFUNG': 'Klassenarbeit',
             };
-            listEl.appendChild(div);
-        });
+            return map[type];
+          };
 
-        // Code-Block aktualisieren
-        const codeStr =
-            `const persons = [
-${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.short}' }`).join(",\n")}
-]`;
-        codeEl.textContent = codeStr;
-    }
+          const title = ref(props.initial?.title || '');
+          const subjectSel = ref(props.initial?.subject || '');
+          const subjectOther = ref('');
+          const description = ref(props.initial?.description || '');
+          const images = ref(props.initial?.images || []);
+          const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
 
-    function addPerson() {
-        const title = titleEl.value;
-        const name = nameEl.value.trim();
-        const short = shortEl.value.trim().toUpperCase();
+          const submitting = ref(false);
+          const message = ref('');
+          const isError = ref(false);
+          const uploading = ref(false);
+          const uploadError = ref('');
 
-        if (!name || !short) {
-            showMessage("Bitte Name und Kürzel eingeben.", "error");
-            return;
-        }
+          async function uploadImage() {
+            uploading.value = true;
+            uploadError.value = '';
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async () => {
+              const file = input.files?.[0];
+              if (!file) return;
 
-        // Duplikate prüfen (blockierend)
-        const existingName = persons.find(p => p.name.toLowerCase() === name.toLowerCase());
-        const existingShort = persons.find(p => p.short === short);
-
-        if (existingName) {
-            showMessage(`Name '${name}' existiert bereits (${existingName.title} ${existingName.name}).`, "error");
-            return;
-        }
-        if (existingShort) {
-            showMessage(`Kürzel '${short}' existiert bereits (${existingShort.title} ${existingShort.name}).`, "error");
-            return;
-        }
-
-        persons.push({ name, title, short });
-        nameEl.value = '';
-        shortEl.value = '';
-        showMessage("Hinzugefügt!");
-        render();
-    }
-
-    // Enter zum Hinzufügen
-    [nameEl, shortEl].forEach(el => {
-        el.addEventListener('keydown', e => {
-            if (e.key === 'Enter') addPerson();
-        });
-    });
-    // Kürzel live in Großbuchstaben
-    shortEl.addEventListener('input', () => {
-        shortEl.value = shortEl.value.toUpperCase();
-    });
-    addBtn.addEventListener('click', addPerson);
-
-    // Editor Toggle
-    editToggle.addEventListener('click', () => {
-        warnMsg.textContent = '';
-        if (editArea.style.display === 'none') {
-            editArea.style.display = 'block';
-            codeEditor.value = codeEl.textContent;
-        } else {
-            editArea.style.display = 'none';
-        }
-    });
-    cancelEdit.addEventListener('click', () => {
-        editArea.style.display = 'none';
-        warnMsg.textContent = '';
-    });
-
-    // Robuste Extraktion des Array-Literals (ohne Regex)
-    function extractPersonsArrayLiteral(code) {
-        const anchor = code.indexOf('const persons');
-        if (anchor === -1) throw new Error("Kein 'const persons' gefunden.");
-        const startBracket = code.indexOf('[', anchor);
-        if (startBracket === -1) throw new Error("Kein öffnender '[' nach 'const persons' gefunden.");
-
-        let i = startBracket;
-        let depth = 0;
-        let inSingle = false, inDouble = false, inTemplate = false, escaped = false;
-
-        for (; i < code.length; i++) {
-            const ch = code[i];
-
-            if (escaped) { escaped = false; continue; }
-            if (ch === '\\') { escaped = true; continue; }
-
-            if (!inDouble && !inTemplate && ch === "'") { inSingle = !inSingle; continue; }
-            if (!inSingle && !inTemplate && ch === '"') { inDouble = !inDouble; continue; }
-            if (!inSingle && !inDouble && ch === '`') { inTemplate = !inTemplate; continue; }
-
-            if (!inSingle && !inDouble && !inTemplate) {
-                if (ch === '[') depth++;
-                else if (ch === ']') {
-                    depth--;
-                    if (depth === 0) {
-                        const endIndex = i;
-                        return code.slice(startBracket, endIndex + 1);
-                    }
+              try {
+                const { data: sign } = await hw.post('/api/uploads/sign');
+                const form = new FormData();
+                form.set('file', file);
+                form.set('api_key', sign.apiKey);
+                form.set('timestamp', String(sign.timestamp));
+                form.set('signature', sign.signature);
+                form.set('folder', sign.folder);
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+                const json = await res.json();
+                if (json.secure_url && json.public_id) {
+                  images.value.push({ url: json.secure_url, publicId: json.public_id, createdBy: '' }); // createdBy is set by the backend
+                  uploadError.value = '';
+                } else {
+                  uploadError.value = 'Upload fehlgeschlagen';
                 }
+              } catch (e: any) {
+                uploadError.value = 'Upload fehlgeschlagen';
+              } finally {
+                uploading.value = false;
+              }
+            };
+            input.click();
+          }
+
+          function removeImg(img: { url: string; publicId: string }) {
+            images.value = images.value.filter(i => i.publicId !== img.publicId);
+          }
+
+          async function submit() {
+            submitting.value = true;
+            message.value = '';
+            isError.value = false;
+            try {
+              const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
+              const payload: any = {
+                type: props.type,
+                title: title.value.trim(),
+                subject,
+                description: description.value.trim(),
+                images: images.value,
+                dueDate: new Date(dueLocal.value).toISOString()
+              };
+              if (props.initial) {
+                await hw.patch(`/api/items/${props.initial.id}`, payload);
+                message.value = 'Eintrag erfolgreich aktualisiert.';
+              } else {
+                await hw.post('/api/items', payload);
+                message.value = 'Eintrag erfolgreich angelegt.';
+              }
+              isError.value = false;
+              emit('success');
+            } catch (e: any) {
+              message.value = e.response?.data?.error || 'Unbekannter Fehler';
+              isError.value = true;
+            } finally {
+              submitting.value = false;
             }
-        }
-        throw new Error("Passende schließende ']' nicht gefunden.");
-    }
+          }
+          </script>
 
-    // Speichern aus Editor
-    saveEdit.addEventListener('click', () => {
-        warnMsg.textContent = '';
-        try {
-            const code = codeEditor.value;
-            const arrLiteral = extractPersonsArrayLiteral(code);
-            const arr = eval(arrLiteral);
 
-            if (!Array.isArray(arr)) throw new Error("Der extrahierte Block ist kein Array.");
-            arr.forEach((p, idx) => {
-                if (typeof p !== 'object' || p === null) throw new Error(`Eintrag ${idx} ist kein Objekt.`);
-                if (!('name' in p) || !('title' in p) || !('short' in p)) {
-                    throw new Error(`Eintrag ${idx} benötigt die Felder name, title, short.`);
-                }
-            });
+hausaufgaben.vue: <template>
+                    <div class="card">
+                      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                        <div>
+                          <h2 style="margin:0;">Schultermine & Aufgaben</h2>
+                          <div class="small">Hausaufgaben, DALTON-Aufträge, Klassenarbeiten</div>
+                        </div>
+                        <div class="row" style="gap:8px;">
+                          <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
+                          <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+                        </div>
+                      </div>
 
-            persons = arr;
+                      <div v-if="announcements.length" class="card" style="background:#1f2937; border-color:#f59e0b; margin-top:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                          <h3 style="margin:0;">Wichtige Ankündigungen</h3>
+                          <button v-if="user?.isAdmin" class="btn ghost" style="padding:4px 8px; font-size:14px;" @click="showAnnouncementForm = true">Ankündigung hinzufügen</button>
+                        </div>
+                        <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
+                          <div style="font-weight:600;">{{ a.title }}</div>
+                          <div style="white-space: pre-wrap; margin-top:6px;">{{ a.content }}</div>
+                          <div class="small" style="margin-top:6px;">{{ new Date(a.createdAt).toLocaleString() }}</div>
+                          <div v-if="canManage(a.createdBy)" class="row" style="margin-top:8px;">
+                            <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="deleteAnnouncement(a._id)">Löschen</button>
+                          </div>
+                        </div>
+                      </div>
 
-            // Duplikate nur warnen (erlaubt)
-            const seenNames = new Set();
-            const seenShorts = new Set();
-            const warnings = [];
-            persons.forEach(p => {
-                const n = String(p.name || '').toLowerCase();
-                const s = String(p.short || '');
-                if (seenNames.has(n)) warnings.push(`Doppelter Name: ${p.name}`);
-                if (seenShorts.has(s)) warnings.push(`Doppeltes Kürzel: ${p.short}`);
-                seenNames.add(n);
-                seenShorts.add(s);
-            });
-            warnMsg.textContent = warnings.length ? warnings.join(" | ") : '';
+                      <hr v-else />
 
-            render();
-            editArea.style.display = 'none';
-            clearMessage();
-        } catch (e) {
-            alert("Fehler beim Verarbeiten des Editors: " + e.message);
-        }
-    });
+                      <div style="display:flex; gap:8px; margin-bottom:16px; margin-top:16px; flex-wrap:wrap;">
+                        <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
+                        <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">DALTON</button>
+                        <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
+                      </div>
 
-    // Initial render
-    render();
-</script>
-</body>
-</html>
+                      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div class="row" style="gap:8px; flex-wrap:wrap;">
+                          <select class="input" style="width:auto;" v-model="subjectFilter">
+                            <option value="">Alle Fächer</option>
+                            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+                          </select>
+                          <button v-if="user" class="btn" @click="showItemForm=true">Eintrag anlegen</button>
+                          <div v-if="loading" class="row small" style="align-items:center; gap:8px; color:var(--muted)">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Lade...
+                          </div>
+                        </div>
+                        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+                      </div>
+
+                      <div style="margin-top:20px;">
+                        <div v-for="item in filteredItems" :key="item.id" class="card" style="margin-bottom:12px;">
+                          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                            <div>
+                              <h3 style="margin:0;">{{ item.title }}</h3>
+                              <div class="row small" style="margin-top:4px; gap:8px; color:var(--muted)">
+                                <div class="badge" style="background:#4b5563; color:white;">{{ item.subject }}</div>
+                                <div class="badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
+                                  Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row" style="gap:8px; align-self:flex-end;">
+                              <button class="btn ghost" v-if="user" @click="showImageForm(item)">Bilder verwalten</button>
+                              <button class="btn ghost" v-if="canManage(item.createdBy)" @click="editItem(item)">Bearbeiten</button>
+                              <button class="btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
+                            </div>
+                          </div>
+                          <div style="white-space: pre-wrap; margin-top:12px;">{{ item.description }}</div>
+                          <div v-if="item.images && item.images.length" style="margin-top:12px;">
+                            <div style="font-weight:600;">Bilder</div>
+                            <div class="row" style="gap:8px; margin-top:8px;">
+                              <div v-for="img in item.images" :key="img.publicId" style="max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+                                <a :href="img.url" target="_blank">
+                                  <img :src="img.url" style="width:100%; height:auto;" />
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div v-if="!loading && !filteredItems.length" class="card">
+                          Keine Einträge gefunden.
+                        </div>
+                      </div>
+                    </div>
+
+                    <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
+                    <ItemForm v-if="showItemForm" :type="tab" :subjects="subjects" :initial="itemToEdit" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" />
+                    <AnnouncementForm v-if="showAnnouncementForm" @close="showAnnouncementForm=false" @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')" />
+                    <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')" />
+                  </template>
+
+                  <script setup lang="ts">
+                  import { ref, onMounted, watch, computed } from 'vue';
+                  import AuthModal from '../components/hw/AuthModal.vue';
+                  import ItemForm from '../components/hw/ItemForm.vue';
+                  import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
+                  import ImageForm from '../components/hw/ImageForm.vue'; // new component
+                  import hw, { setHwToken } from '../hwApi';
+
+                  export interface HwItem {
+                    id: string;
+                    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+                    title: string;
+                    subject: string;
+                    description: string;
+                    images: Array<{ url: string; publicId: string; createdBy: string }>;
+                    dueDate: string;
+                    createdBy: string;
+                    timeColor: string;
+                  }
+
+                  const showAuth = ref(false);
+                  const showItemForm = ref(false);
+                  const showAnnouncementForm = ref(false);
+                  const showImageFormFor = ref<any>(null);
+
+                  const user = ref<any>(null);
+                  const tab = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
+                  const subjects = ref<string[]>([]);
+                  const announcements = ref<any[]>([]);
+                  const items = ref<HwItem[]>([]);
+                  const loading = ref(true);
+                  const subjectFilter = ref('');
+                  const itemToEdit = ref<HwItem | null>(null);
+
+                  const message = ref('');
+                  const isError = ref(false);
+
+                  const colorFor = (color: string) => {
+                    const map = {
+                      'ok': 'var(--primary)',
+                      'warn': 'var(--warn)',
+                      'danger': 'var(--danger)',
+                      'expired': '#4b5563',
+                      'info': '#3b82f6',
+                    };
+                    return map[color] || 'var(--muted)';
+                  };
+
+                  const filteredItems = computed(() => {
+                    if (!subjectFilter.value) return items.value;
+                    return items.value.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
+                  });
+
+                  function canManage(createdBy: string) {
+                    if (!user.value) return false;
+                    return user.value.isAdmin || user.value.id === createdBy;
+                  }
+                  async function loadMe() {
+                    try {
+                      const { data } = await hw.get('/api/auth/me');
+                      user.value = data;
+                    } catch {
+                      user.value = null;
+                    }
+                  }
+                  async function loadSubjects() {
+                    const { data } = await hw.get('/api/subjects');
+                    subjects.value = data;
+                  }
+                  async function loadAnnouncements() {
+                    const { data } = await hw.get('/api/announcements');
+                    announcements.value = data;
+                  }
+                  async function reload() {
+                    loading.value = true;
+                    try {
+                      const { data } = await hw.get('/api/items', { params: { type: tab.value } });
+                      items.value = data;
+                    } catch (e) {
+                      console.error('Failed to load items:', e);
+                    } finally {
+                      loading.value = false;
+                    }
+                  }
+
+                  function handleSuccess(msg: string) {
+                    message.value = msg;
+                    isError.value = false;
+                    setTimeout(() => message.value = '', 5000);
+                    showItemForm.value = false;
+                    showAnnouncementForm.value = false;
+                    showImageFormFor.value = null;
+                    reload();
+                  }
+
+                  function onLoggedIn(token: string) {
+                    setHwToken(token);
+                    showAuth.value = false;
+                    loadMe();
+                    reload();
+                  }
+
+                  function logout() {
+                    setHwToken(null);
+                    user.value = null;
+                  }
+
+                  function editItem(item: HwItem) {
+                    itemToEdit.value = item;
+                    showItemForm.value = true;
+                  }
+
+                  async function deleteItem(id: string) {
+                    if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
+                      loading.value = true;
+                      try {
+                        await hw.delete(`/api/items/${id}`);
+                        handleSuccess('Eintrag erfolgreich gelöscht.');
+                      } catch (e: any) {
+                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                        isError.value = true;
+                      } finally {
+                        loading.value = false;
+                      }
+                    }
+                  }
+
+                  async function deleteAnnouncement(id: string) {
+                    if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
+                      try {
+                        await hw.delete(`/api/announcements/${id}`);
+                        handleSuccess('Ankündigung erfolgreich gelöscht.');
+                      } catch (e: any) {
+                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                        isError.value = true;
+                      }
+                    }
+                  }
+
+                  function showImageForm(item: HwItem) {
+                    showImageFormFor.value = item;
+                  }
+
+                  onMounted(() => {
+                    loadMe();
+                    loadSubjects();
+                    loadAnnouncements();
+                    reload();
+                  });
+
+                  watch(tab, reload);
+                  </script>
