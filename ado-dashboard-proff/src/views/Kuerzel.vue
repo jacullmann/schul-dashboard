@@ -1,78 +1,114 @@
 <template>
   <div class="card">
     <h2 style="margin-top:0;">Namenskürzel Finder</h2>
-    <p class="small">
-      Suche entweder nach Kürzel oder nach Namen. Die Eingabe ist fehlertolerant und sortiert nach Wahrscheinlichkeit.
-    </p>
+    <p class="small">Gib links ein Kürzel oder einen Namen ein. Rechts erscheint automatisch das Ergebnis.</p>
 
     <div class="row">
-      <!-- Kürzel-Eingabe -->
+      <!-- Input -->
       <div class="col">
-        <h3>Kürzel → Name</h3>
-        <input v-model="shortQuery" class="input" placeholder="z. B. mü, dmü, gl..." />
-        <transition-group name="fade-slide" tag="div">
-          <div
-              v-for="(res, idx) in shortResults"
-              :key="'short-' + res.person.name + idx"
-              class="result-card"
-          >
-            <div class="title-line">
-              <span class="pill">{{ res.person.title }}</span>
-              <h3 class="name">{{ res.person.name }}</h3>
-            </div>
-            <p><strong>Kürzel:</strong> <span class="highlight">{{ res.person.short }}</span></p>
-            <p v-if="res.person.info"><em>{{ res.person.info }}</em></p>
-          </div>
-        </transition-group>
-        <div v-if="shortResults.length === 0 && shortQuery" class="no-result">
-          Keine passenden Personen gefunden.
+        <input
+            v-model="inputValue"
+            class="input"
+            :placeholder="mode==='shortToName' ? 'z. B. mü, gl...' : 'z. B. Frau Glier, Herr Müller...'"
+        />
+        <div v-if="mode==='nameToShort' && suggestion && !outputValue" class="suggestion">
+          Meintest du vielleicht <span @click="applySuggestion" class="suggestion-link">{{ suggestion }}</span>?
         </div>
       </div>
 
-      <!-- Name-Eingabe -->
-      <div class="col">
-        <h3>Name → Kürzel</h3>
-        <input v-model="nameQuery" class="input" placeholder="z. B. Müller, Herr Müller..." />
-        <transition-group name="fade-slide" tag="div">
-          <div
-              v-for="(res, idx) in nameResults"
-              :key="'name-' + res.person.name + idx"
-              class="result-card"
-          >
-            <div class="title-line">
-              <span class="pill">{{ res.person.title }}</span>
-              <h3 class="name">{{ res.person.name }}</h3>
-            </div>
-            <p><strong>Kürzel:</strong> <span class="highlight">{{ res.person.short }}</span></p>
-            <p v-if="res.person.info"><em>{{ res.person.info }}</em></p>
-          </div>
-        </transition-group>
-        <div v-if="nameResults.length === 0 && nameQuery" class="no-result">
-          Keine passenden Personen gefunden.
+      <!-- Switch Button -->
+      <div class="switch-col">
+        <button
+            class="switch-btn"
+            :class="{ rotating: isRotating }"
+            @click="toggleMode"
+            title="Richtung wechseln"
+        >
+          <canvas ref="canvasRef" width="24" height="24"></canvas>
+        </button>
+        <div class="mode-label">
+          {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
         </div>
+      </div>
+
+      <!-- Output -->
+      <div class="col">
+        <input
+            class="input"
+            :value="outputValue"
+            readonly
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
-// Beispiel-Daten
 const persons = [
-  { name: 'Müller', title: 'Herr', short: 'MÜ', },
-  { name: 'Meister', title: 'Herr', short: 'ME', },
-  { name: 'Schmidt', title: 'Frau', short: 'SCH'},
-  { name: 'Blanke', title: 'Frau', short: 'BA' },
-  { name: 'Schlüter', title: 'Herr', short: 'SÜ' },
-  { name: 'Glier', title: 'Frau', short: 'GL', },
-]
+  { name: 'Müller',      title: 'Herr', short: 'MÜ'  },
+  { name: 'Meister',     title: 'Herr', short: 'ME'  },
+  { name: 'Schmidt',     title: 'Frau', short: 'SCH' },
+  { name: 'Schlüter',    title: 'Herr', short: 'SÜ'  },
+  { name: 'Glier',       title: 'Frau', short: 'GL'  },
+  { name: 'Blanke',      title: 'Frau', short: 'BA'  },
+  { name: 'Sonnemann',   title: 'Frau', short: 'SO'  },
+  { name: 'Haupt',       title: 'Frau', short: 'HA'  },
 
-// Eingaben
-const shortQuery = ref('')
-const nameQuery = ref('')
+  { name: 'Becker',      title: 'Herr', short: 'BE'  },
+  { name: 'Fischer',     title: 'Frau', short: 'FI'  },
+  { name: 'Weber',       title: 'Herr', short: 'WE'  },
+  { name: 'Meyer',       title: 'Herr', short: 'MY'  },
+  { name: 'Wagner',      title: 'Frau', short: 'WA'  },
+  { name: 'Schulz',      title: 'Herr', short: 'SH'  },
+  { name: 'Hoffmann',    title: 'Frau', short: 'HO'  },
+  { name: 'Schneider',   title: 'Herr', short: 'SN'  },
+  { name: 'Koch',        title: 'Frau', short: 'KO'  },
+  { name: 'Bauer',       title: 'Herr', short: 'BU'  },
+  { name: 'Richter',     title: 'Frau', short: 'RI'  },
 
-// Normalisierung
+  { name: 'Klein',       title: 'Herr', short: 'KL'  },
+  { name: 'Wolf',        title: 'Frau', short: 'WO'  },
+  { name: 'Schröder',    title: 'Herr', short: 'SR'  },
+  { name: 'Neumann',     title: 'Frau', short: 'NE'  },
+  { name: 'Schwarz',     title: 'Herr', short: 'SS'  },
+  { name: 'Zimmermann',  title: 'Frau', short: 'ZI'  },
+  { name: 'Hartmann',    title: 'Herr', short: 'HH'  },
+  { name: 'Lange',       title: 'Frau', short: 'LA'  },
+  { name: 'Schmitt',     title: 'Herr', short: 'SM'  },
+  { name: 'Werner',      title: 'Frau', short: 'WR'  },
+
+  { name: 'Krause',      title: 'Herr', short: 'KR'  },
+  { name: 'Peters',      title: 'Frau', short: 'PE'  },
+  { name: 'Fuchs',       title: 'Herr', short: 'FU'  },
+  { name: 'Böhm',        title: 'Frau', short: 'BH'  },
+  { name: 'Vogt',        title: 'Herr', short: 'VO'  },
+  { name: 'Bergmann',    title: 'Frau', short: 'BG'  },
+  { name: 'Lorenz',      title: 'Herr', short: 'LO'  },
+  { name: 'Frank',       title: 'Frau', short: 'FR'  },
+  { name: 'Böhler',      title: 'Herr', short: 'BL'  },
+  { name: 'Graf',        title: 'Frau', short: 'GF'  },
+
+  { name: 'Reuter',      title: 'Herr', short: 'RE'  },
+  { name: 'Engel',       title: 'Frau', short: 'EN'  },
+  { name: 'Martin',      title: 'Herr', short: 'MA'  },
+  { name: 'Voigt',       title: 'Frau', short: 'VG'  },
+  { name: 'Schuster',    title: 'Herr', short: 'SU'  },
+  { name: 'Jensen',      title: 'Frau', short: 'JE'  },
+  { name: 'Simon',       title: 'Herr', short: 'SI'  },
+  { name: 'Brandt',      title: 'Frau', short: 'BR'  },
+  { name: 'Horn',        title: 'Herr', short: 'HN'  },
+  { name: 'Seidel',      title: 'Frau', short: 'SD'  }
+];
+
+
+const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
+const inputValue = ref('')
+const suggestion = ref('')
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+const isRotating = ref(false)
+
 function normalize(str: string) {
   return str
       .toLowerCase()
@@ -83,7 +119,6 @@ function normalize(str: string) {
       .replace(/ß/g, 'ss')
 }
 
-// Levenshtein-Distanz
 function editDistance(a: string, b: string) {
   const matrix: number[][] = []
   let i, j
@@ -105,7 +140,6 @@ function editDistance(a: string, b: string) {
   return matrix[b.length][a.length]
 }
 
-// Ähnlichkeit 0–1
 function similarity(a: string, b: string) {
   const longer = a.length > b.length ? a : b
   const shorter = a.length > b.length ? b : a
@@ -114,32 +148,87 @@ function similarity(a: string, b: string) {
   return (longerLength - editDistance(longer, shorter)) / longerLength
 }
 
-// Ergebnisse für Kürzel-Suche
-const shortResults = computed(() => {
-  const q = normalize(shortQuery.value)
-  if (!q) return []
-  const res = persons.map(p => {
-    const score = similarity(q, normalize(p.short))
-    return { person: p, score }
-  }).filter(r => r.score > 0.3)
-      .sort((a, b) => b.score - a.score)
-  // Wenn ein Treffer sehr sicher ist (>0.85), nur diesen zeigen
-  if (res.length && res[0].score > 0.85) return [res[0]]
-  return res
+const outputValue = computed(() => {
+  const q = normalize(inputValue.value)
+  suggestion.value = ''
+
+  if (!q) return ''
+
+  if (mode.value === 'shortToName') {
+    const match = persons.find(p => normalize(p.short) === q)
+    return match ? `${match.title} ${match.name}` : ''
+  } else {
+    const match = persons.find(p => normalize(p.title + p.name) === q)
+    if (match) return match.short
+
+    let best: { person: any; score: number } | null = null
+    persons.forEach(p => {
+      const score = similarity(q, normalize(p.title + p.name))
+      if (!best || score > best.score) {
+        best = { person: p, score }
+      }
+    })
+    if (best && best.score > 0.5) {
+      suggestion.value = `${best.person.title} ${best.person.name}`
+    }
+    return ''
+  }
 })
 
-// Ergebnisse für Namens-Suche
-const nameResults = computed(() => {
-  const q = normalize(nameQuery.value)
-  if (!q) return []
-  const res = persons.map(p => {
-    const combined = normalize(p.title + p.name)
-    const score = similarity(q, combined)
-    return { person: p, score }
-  }).filter(r => r.score > 0.3)
-      .sort((a, b) => b.score - a.score)
-  if (res.length && res[0].score > 0.85) return [res[0]]
-  return res
+function applySuggestion() {
+  if (suggestion.value) {
+    inputValue.value = suggestion.value
+    suggestion.value = ''
+  }
+}
+
+function toggleMode() {
+  isRotating.value = true
+  setTimeout(() => (isRotating.value = false), 500)
+
+  mode.value = mode.value === 'shortToName' ? 'nameToShort' : 'shortToName'
+  inputValue.value = ''
+  drawIcon()
+}
+
+function drawIcon() {
+  const canvas = canvasRef.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.strokeStyle = '#fff'
+  ctx.lineWidth = 2
+  ctx.lineCap = 'round'
+
+  // Halbkreis oben mit Pfeil
+  ctx.beginPath()
+  ctx.arc(12, 12, 9, Math.PI * 1.2, Math.PI * 0.1, false)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(20, 8)
+  ctx.lineTo(23, 6)
+  ctx.lineTo(22, 10)
+  ctx.stroke()
+
+  // Halbkreis unten mit Pfeil
+  ctx.beginPath()
+  ctx.arc(12, 12, 9, Math.PI * 1.2, Math.PI * 2.1, true)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(4, 16)
+  ctx.lineTo(1, 18)
+  ctx.lineTo(3, 14)
+  ctx.stroke()
+}
+
+onMounted(() => {
+  drawIcon()
+})
+
+watch(mode, () => {
+  drawIcon()
 })
 </script>
 
@@ -148,61 +237,65 @@ const nameResults = computed(() => {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+  align-items: center; /* sorgt für vertikale Zentrierung */
 }
 .col {
   flex: 1;
   min-width: 280px;
 }
-
-.result-card {
-  background: #1f1f1f;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 12px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-.result-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--primary);
-}
-
-.title-line {
+.switch-col {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
 }
-.pill {
+.switch-btn {
   background: var(--primary);
   color: #fff;
-  padding: 2px 6px;
-  border-radius: 4px;
+  border: none;
+  border-radius: 50%;
+  width: 44px;   /* kleiner gemacht */
+  height: 44px;  /* kleiner gemacht */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.3s;
+}
+.switch-btn:hover {
+  background: #ff6a00;
+}
+.switch-btn.rotating {
+  animation: spin 0.5s linear;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.mode-label {
+  margin-top: 6px;
   font-size: 12px;
+  color: #aaa;
+  text-align: center;
 }
-.name {
-  margin: 0;
+.input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #1f1f1f;
+  color: #fff;
 }
-.highlight {
-  color: var(--primary);
-  font-weight: bold;
-}
-.no-result {
-  margin-top: 12px;
+.suggestion {
+  margin-top: 8px;
   color: var(--danger);
   font-style: italic;
 }
-
-/* Transition Animation */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: all 0.4s ease;
-}
-.fade-slide-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+.suggestion-link {
+  cursor: pointer;
+  color: var(--primary);
+  font-weight: bold;
+  margin-left: 4px;
 }
 </style>
