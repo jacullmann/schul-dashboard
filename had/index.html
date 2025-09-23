@@ -32,61 +32,61 @@
         }
 
         /* Base */
-        *{ box-sizing: border-box; }
-        html, body{ height: 100%; }
-        body{
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
             margin: 0;
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
             background: white;
             color: var(--text);
             line-height: 1.45;
         }
-        .container{
+        .container {
             max-width: 980px;
             margin: 0 auto;
             padding: 24px clamp(16px, 3vw, 28px);
         }
-        h1{
+        h1 {
             margin: 0 0 16px;
             font-size: clamp(22px, 2.2vw, 28px);
             letter-spacing: 0.2px;
             color: black;
         }
-        .grid{
+        .grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 18px;
         }
         @media (min-width: 800px){
-            .grid{ grid-template-columns: 1fr 1fr; }
+            .grid { grid-template-columns: 1fr 1fr; }
         }
 
         /* Card */
-        .section{
+        .section {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: clamp(14px, 2.2vw, 18px);
             box-shadow: var(--shadow);
         }
-        .section h3{
+        .section h3 {
             margin: 0 0 10px;
             font-size: clamp(18px, 1.6vw, 20px);
         }
 
         /* Form */
-        .form{
+        .form {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr auto;
             gap: 10px;
             align-items: center;
         }
         @media (max-width: 640px){
-            .form{
+            .form {
                 grid-template-columns: 1fr;
             }
         }
-        select, input{
+        select, input {
             width: 100%;
             padding: 12px 12px;
             font-size: clamp(14px, 1.6vw, 16px);
@@ -97,11 +97,11 @@
             outline: none;
             transition: border-color .2s, box-shadow .2s;
         }
-        input#short{ text-transform: uppercase; }
-        select:focus, input:focus{
+        /* input#short { text-transform: uppercase; }  entfernt */
+        select:focus, input:focus {
             color:white;
         }
-        button{
+        button {
             padding: 12px 16px;
             font-size: clamp(14px, 1.6vw, 16px);
             cursor: pointer;
@@ -111,26 +111,26 @@
             color: #fff;
             transition: transform .06s ease, background .2s ease, box-shadow .2s ease;
         }
-        button:hover{ background: var(--primary-hover); }
-        button:active{ transform: translateY(1px); }
-        .btn-muted{
+        button:hover { background: var(--primary-hover); }
+        button:active { transform: translateY(1px); }
+        .btn-muted {
             background: #6b7280;
             box-shadow: 0 4px 10px rgba(107,114,128,0.25);
         }
-        .btn-muted:hover{ background: #575d69; }
+        .btn-muted:hover { background: #575d69; }
 
         /* Messages */
-        .message{
+        .message {
             margin: 10px 0 0;
             font-weight: 600;
             font-size: clamp(13px, 1.4vw, 14px);
             min-height: 1.2em;
         }
-        .message.error{ color: var(--danger); }
-        .message.warn{ color: var(--warn); }
+        .message.error { color: var(--danger); }
+        .message.warn { color: var(--warn); }
 
         /* List */
-        .entry{
+        .entry {
             display: grid;
             grid-template-columns: 1fr auto;
             align-items: center;
@@ -141,15 +141,15 @@
             padding: 10px 12px;
             margin: 6px 0;
         }
-        .entry .meta{ color: var(--muted); }
-        .entry .actions button{
+        .entry .meta { color: var(--muted); }
+        .entry .actions button {
             background: var(--danger);
             box-shadow: 0 4px 10px rgba(198,40,40,0.25);
         }
-        .entry .actions button:hover{ background: var(--danger-hover); }
+        .entry .actions button:hover { background: var(--danger-hover); }
 
         /* Code block */
-        pre{
+        pre {
             background: #0f131a;
             color: #e5edf7;
             padding: 14px;
@@ -158,17 +158,17 @@
             margin: 0;
             border: 1px solid #0c1016;
         }
-        .editor{
+        .editor {
             margin-top: 12px;
         }
-        .editor-controls{
+        .editor-controls {
             display: flex;
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
             margin: 8px 0;
         }
-        textarea{
+        textarea {
             width: 100%;
             min-height: 220px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -182,9 +182,9 @@
 
         /* Responsive touch targets */
         @media (max-width: 640px){
-            button, select, input{ padding: 14px; }
-            .entry{ grid-template-columns: 1fr; }
-            .entry .actions{ justify-self: start; }
+            button, select, input { padding: 14px; }
+            .entry { grid-template-columns: 1fr; }
+            .entry .actions { justify-self: start; }
         }
     </style>
 </head>
@@ -202,7 +202,7 @@
                     <option value="Frau">Frau</option>
                 </select>
                 <input id="name" type="text" placeholder="Name" aria-label="Name">
-                <input id="short" type="text" placeholder="Kürzel (z. B. MU)" maxlength="8" aria-label="Kürzel">
+                <input id="short" type="text" placeholder="Kürzel (z. B. Mu)" maxlength="8" aria-label="Kürzel">
                 <button id="addBtn">Hinzufügen</button>
             </div>
             <div id="message" class="message" aria-live="polite"></div>
@@ -239,19 +239,19 @@
 <script>
     let persons = [];
 
-    const titleEl = document.getElementById('title');
-    const nameEl = document.getElementById('name');
-    const shortEl = document.getElementById('short');
-    const addBtn = document.getElementById('addBtn');
+    const titleEl   = document.getElementById('title');
+    const nameEl    = document.getElementById('name');
+    const shortEl   = document.getElementById('short');
+    const addBtn    = document.getElementById('addBtn');
     const messageEl = document.getElementById('message');
-    const listEl = document.getElementById('list');
-    const codeEl = document.getElementById('code');
-    const editToggle = document.getElementById('editToggle');
-    const editArea = document.getElementById('editArea');
-    const codeEditor = document.getElementById('codeEditor');
-    const saveEdit = document.getElementById('saveEdit');
-    const cancelEdit = document.getElementById('cancelEdit');
-    const warnMsg = document.getElementById('warnMsg');
+    const listEl    = document.getElementById('list');
+    const codeEl    = document.getElementById('code');
+    const editToggle= document.getElementById('editToggle');
+    const editArea  = document.getElementById('editArea');
+    const codeEditor= document.getElementById('codeEditor');
+    const saveEdit  = document.getElementById('saveEdit');
+    const cancelEdit= document.getElementById('cancelEdit');
+    const warnMsg   = document.getElementById('warnMsg');
 
     function showMessage(msg, type='') {
         messageEl.textContent = msg;
@@ -268,9 +268,9 @@
             const div = document.createElement('div');
             div.className = 'entry';
             div.innerHTML = `
-          <span class="meta">${p.title} ${p.name} (${p.short})</span>
-          <span class="actions"><button aria-label="Eintrag löschen">Löschen</button></span>
-        `;
+                <span class="meta">${p.title} ${p.name} (${p.short})</span>
+                <span class="actions"><button aria-label="Eintrag löschen">Löschen</button></span>
+            `;
             div.querySelector('button').onclick = () => {
                 persons.splice(i, 1);
                 render();
@@ -289,8 +289,8 @@ ${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.shor
 
     function addPerson() {
         const title = titleEl.value;
-        const name = nameEl.value.trim();
-        const short = shortEl.value.trim().toUpperCase();
+        const name  = nameEl.value.trim();
+        const short = shortEl.value.trim();  // keine .toUpperCase() mehr
 
         if (!name || !short) {
             showMessage("Bitte Name und Kürzel eingeben.", "error");
@@ -298,7 +298,7 @@ ${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.shor
         }
 
         // Duplikate prüfen (blockierend)
-        const existingName = persons.find(p => p.name.toLowerCase() === name.toLowerCase());
+        const existingName  = persons.find(p => p.name.toLowerCase() === name.toLowerCase());
         const existingShort = persons.find(p => p.short === short);
 
         if (existingName) {
@@ -311,7 +311,7 @@ ${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.shor
         }
 
         persons.push({ name, title, short });
-        nameEl.value = '';
+        nameEl.value  = '';
         shortEl.value = '';
         showMessage("Hinzugefügt!");
         render();
@@ -323,10 +323,12 @@ ${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.shor
             if (e.key === 'Enter') addPerson();
         });
     });
-    // Kürzel live in Großbuchstaben
-    shortEl.addEventListener('input', () => {
-        shortEl.value = shortEl.value.toUpperCase();
-    });
+
+    // Entfernt: live-Uppercase-Listener
+    // shortEl.addEventListener('input', () => {
+    //     shortEl.value = shortEl.value.toUpperCase();
+    // });
+
     addBtn.addEventListener('click', addPerson);
 
     // Editor Toggle
@@ -344,34 +346,31 @@ ${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.shor
         warnMsg.textContent = '';
     });
 
-    // Robuste Extraktion des Array-Literals (ohne Regex)
+    // Robuste Extraktion des Array-Literals
     function extractPersonsArrayLiteral(code) {
         const anchor = code.indexOf('const persons');
         if (anchor === -1) throw new Error("Kein 'const persons' gefunden.");
         const startBracket = code.indexOf('[', anchor);
         if (startBracket === -1) throw new Error("Kein öffnender '[' nach 'const persons' gefunden.");
 
-        let i = startBracket;
-        let depth = 0;
-        let inSingle = false, inDouble = false, inTemplate = false, escaped = false;
+        let i = startBracket,
+            depth = 0,
+            inSingle = false, inDouble = false, inTemplate = false, escaped = false;
 
         for (; i < code.length; i++) {
             const ch = code[i];
-
             if (escaped) { escaped = false; continue; }
             if (ch === '\\') { escaped = true; continue; }
-
-            if (!inDouble && !inTemplate && ch === "'") { inSingle = !inSingle; continue; }
-            if (!inSingle && !inTemplate && ch === '"') { inDouble = !inDouble; continue; }
-            if (!inSingle && !inDouble && ch === '`') { inTemplate = !inTemplate; continue; }
+            if (!inDouble && !inTemplate && ch === "'")   { inSingle = !inSingle; continue; }
+            if (!inSingle && !inTemplate && ch === '"')   { inDouble = !inDouble; continue; }
+            if (!inSingle && !inDouble && ch === '`')     { inTemplate = !inTemplate; continue; }
 
             if (!inSingle && !inDouble && !inTemplate) {
                 if (ch === '[') depth++;
                 else if (ch === ']') {
                     depth--;
                     if (depth === 0) {
-                        const endIndex = i;
-                        return code.slice(startBracket, endIndex + 1);
+                        return code.slice(startBracket, i + 1);
                     }
                 }
             }
@@ -398,13 +397,13 @@ ${persons.map(p => `  { name: '${p.name}', title: '${p.title}', short: '${p.shor
             persons = arr;
 
             // Duplikate nur warnen (erlaubt)
-            const seenNames = new Set();
+            const seenNames  = new Set();
             const seenShorts = new Set();
-            const warnings = [];
+            const warnings   = [];
             persons.forEach(p => {
                 const n = String(p.name || '').toLowerCase();
                 const s = String(p.short || '');
-                if (seenNames.has(n)) warnings.push(`Doppelter Name: ${p.name}`);
+                if (seenNames.has(n))  warnings.push(`Doppelter Name: ${p.name}`);
                 if (seenShorts.has(s)) warnings.push(`Doppeltes Kürzel: ${p.short}`);
                 seenNames.add(n);
                 seenShorts.add(s);

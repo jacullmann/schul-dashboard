@@ -47,59 +47,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 
 const persons = [
-  { name: 'Müller',      title: 'Herr', short: 'MÜ'  },
-  { name: 'Meister',     title: 'Herr', short: 'ME'  },
-  { name: 'Schmidt',     title: 'Frau', short: 'SCH' },
-  { name: 'Schlüter',    title: 'Herr', short: 'SÜ'  },
-  { name: 'Glier',       title: 'Frau', short: 'GL'  },
-  { name: 'Blanke',      title: 'Frau', short: 'BA'  },
-  { name: 'Sonnemann',   title: 'Frau', short: 'SO'  },
-  { name: 'Haupt',       title: 'Frau', short: 'HA'  },
 
-  { name: 'Becker',      title: 'Herr', short: 'BE'  },
-  { name: 'Fischer',     title: 'Frau', short: 'FI'  },
-  { name: 'Weber',       title: 'Herr', short: 'WE'  },
-  { name: 'Meyer',       title: 'Herr', short: 'MY'  },
-  { name: 'Wagner',      title: 'Frau', short: 'WA'  },
-  { name: 'Schulz',      title: 'Herr', short: 'SH'  },
-  { name: 'Hoffmann',    title: 'Frau', short: 'HO'  },
-  { name: 'Schneider',   title: 'Herr', short: 'SN'  },
-  { name: 'Koch',        title: 'Frau', short: 'KO'  },
-  { name: 'Bauer',       title: 'Herr', short: 'BU'  },
-  { name: 'Richter',     title: 'Frau', short: 'RI'  },
-
-  { name: 'Klein',       title: 'Herr', short: 'KL'  },
-  { name: 'Wolf',        title: 'Frau', short: 'WO'  },
-  { name: 'Schröder',    title: 'Herr', short: 'SR'  },
-  { name: 'Neumann',     title: 'Frau', short: 'NE'  },
-  { name: 'Schwarz',     title: 'Herr', short: 'SS'  },
-  { name: 'Zimmermann',  title: 'Frau', short: 'ZI'  },
-  { name: 'Hartmann',    title: 'Herr', short: 'HH'  },
-  { name: 'Lange',       title: 'Frau', short: 'LA'  },
-  { name: 'Schmitt',     title: 'Herr', short: 'SM'  },
-  { name: 'Werner',      title: 'Frau', short: 'WR'  },
-
-  { name: 'Krause',      title: 'Herr', short: 'KR'  },
-  { name: 'Peters',      title: 'Frau', short: 'PE'  },
-  { name: 'Fuchs',       title: 'Herr', short: 'FU'  },
-  { name: 'Böhm',        title: 'Frau', short: 'BH'  },
-  { name: 'Vogt',        title: 'Herr', short: 'VO'  },
-  { name: 'Bergmann',    title: 'Frau', short: 'BG'  },
-  { name: 'Lorenz',      title: 'Herr', short: 'LO'  },
-  { name: 'Frank',       title: 'Frau', short: 'FR'  },
-  { name: 'Böhler',      title: 'Herr', short: 'BL'  },
-  { name: 'Graf',        title: 'Frau', short: 'GF'  },
-
-  { name: 'Reuter',      title: 'Herr', short: 'RE'  },
-  { name: 'Engel',       title: 'Frau', short: 'EN'  },
-  { name: 'Martin',      title: 'Herr', short: 'MA'  },
-  { name: 'Voigt',       title: 'Frau', short: 'VG'  },
-  { name: 'Schuster',    title: 'Herr', short: 'SU'  },
-  { name: 'Jensen',      title: 'Frau', short: 'JE'  },
-  { name: 'Simon',       title: 'Herr', short: 'SI'  },
-  { name: 'Brandt',      title: 'Frau', short: 'BR'  },
-  { name: 'Horn',        title: 'Herr', short: 'HN'  },
-  { name: 'Seidel',      title: 'Frau', short: 'SD'  }
 ];
 
 
