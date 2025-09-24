@@ -1,0 +1,1069 @@
+<template>
+  <div class="suround">
+    <!-- Login Screen -->
+    <div v-if="!isAuthenticated" class="login-wrapper">
+      <div class="card p-6 login-card">
+        <h2 class="text-2xl font-bold mb-4">Passwort erforderlich</h2>
+        <input
+            type="password"
+            v-model="loginPassword"
+            @keyup.enter="login"
+            placeholder="Passwort eingeben"
+            class="w-full p-3 border rounded mb-4"
+        />
+        <button @click="login" class="btn primary w-full">Weiter</button>
+        <p v-if="loginError" class="error-text">{{ loginError }}</p>
+      </div>
+    </div>
+
+    <!-- Protected Content -->
+    <div
+        v-else
+        class="kanye-page full"
+        :style="{ '--bg-image': `url(${heroImageUrl})` }"
+    >
+      <nav class="kanye-nav-fixed card">
+        <div class="container row items-center justify-between">
+          <h2 class="text-xl font-bold">Kanye West</h2>
+          <button
+              class="mobile-menu-toggle"
+              @click="mobileMenuOpen = !mobileMenuOpen"
+              aria-label="Menü umschalten"
+          >
+            <span class="bar" :class="{ open: mobileMenuOpen }"></span>
+            <span class="bar" :class="{ open: mobileMenuOpen }"></span>
+            <span class="bar" :class="{ open: mobileMenuOpen }"></span>
+          </button>
+          <div :class="['nav-links row gap-4', { open: mobileMenuOpen }]">
+            <button
+                @click="() => { scrollTo('biography'); mobileMenuOpen = false }"
+                class="btn ghost"
+            >
+              Biografie
+            </button>
+            <button
+                @click="() => { scrollTo('discography'); mobileMenuOpen = false }"
+                class="btn ghost"
+            >
+              Diskografie
+            </button>
+            <button
+                @click="() => { scrollTo('controversies'); mobileMenuOpen = false }"
+                class="btn ghost"
+            >
+              Kontroversen
+            </button>
+            <button
+                @click="() => { scrollTo('gallery'); mobileMenuOpen = false }"
+                class="btn ghost"
+            >
+              Galerie
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <header class="kanye-hero full-c flex items-center justify-center text-center">
+        <div class="kanye-hero-content">
+          <h1 class="text-5xl md:text-7xl font-extrabold mb-4 animate-fade-in-up">
+            KANYE WEST
+          </h1>
+          <p class="text-xl md:text-2xl text-muted animate-fade-in-up delay-200">
+            Visionär. Musiker. Einflussnehmer.
+          </p>
+          <button
+              @click="scrollTo('biography')"
+              class="btn primary mt-8 animate-fade-in-up delay-400"
+          >
+            Mehr erfahren
+          </button>
+        </div>
+      </header>
+
+      <main class="full-c bg-bg">
+        <div class="container py-12">
+          <!-- Biografie -->
+          <section id="biography" class="row gap-8 mb-12">
+            <div class="col-main">
+              <h2 class="text-4xl font-bold mb-6 animate-fade-in" v-animate-on-scroll>
+                Biografie
+              </h2>
+              <div class="card p-6 mb-6 animate-fade-in" v-animate-on-scroll>
+                <p class="mb-4 text-lg">
+                  Kanye Omari West (* 8. Juni 1977 in Atlanta, Georgia) ist ein
+                  US-amerikanischer Rapper, Sänger, Songwriter, Musikproduzent,
+                  Modedesigner und Unternehmer. Er zählt zu den einflussreichsten
+                  und umstrittensten Künstlern seiner Generation. Bekannt für seine
+                  musikalische Innovation, seinen grenzüberschreitenden Stil und seine
+                  oft provokanten Äußerungen, hat West die Popkultur nachhaltig geprägt.
+                  Seine Karriere begann als Produzent für Roc-A-Fella Records, bevor er
+                  mit seinem Debütalbum "The College Dropout" 2004 als Rapper
+                  durchstartete.
+                </p>
+                <p class="text-lg">
+                  Über die Jahre entwickelte er sich zu einer Ikone, die nicht nur
+                  musikalische Grenzen sprengte, sondern auch in der Modebranche mit
+                  Yeezy und in zahlreichen Projekten Maßstäbe setzte. Seine Diskografie
+                  ist gespickt mit Alben, die soziale Statements, Experimentierfreude
+                  und autobiografische Tiefe vereinen. Kontroversen hielten ihn permanent
+                  im Fokus.
+                </p>
+              </div>
+              <div class="card p-6 animate-fade-in" v-animate-on-scroll>
+                <h3 class="text-2xl font-bold mb-4">Frühes Leben und Anfänge</h3>
+                <p class="mb-4">
+                  Aufgewachsen in Chicago, geprägt von der alleinerziehenden Mutter
+                  Dr. Donda West, zeigte Kanye bereits in der Schule Interesse an Kunst
+                  und Musik. Beat-Produktionen und Raptexte entstanden früh, das College
+                  brach er ab – Inspiration für den Albumtitel "The College Dropout".
+                </p>
+                <p>
+                  Erste Erfolge als Produzent für Jay-Z, Alicia Keys und Ludacris öffneten
+                  ihm die Türen, doch sein Traum war immer die eigene Rapkarriere.
+                </p>
+              </div>
+            </div>
+
+            <div class="col-sidebar">
+              <div class="kanye-infobox card animate-fade-in" v-animate-on-scroll>
+                <h3 class="text-2xl font-bold mb-4">Steckbrief</h3>
+                <ul class="info-list">
+                  <li><strong>Voller Name:</strong> Kanye Omari West</li>
+                  <li><strong>Geburtstag:</strong> 8. Juni 1977</li>
+                  <li><strong>Geburtsort:</strong> Atlanta, Georgia, USA</li>
+                  <li><strong>Nationalität:</strong> US-amerikanisch</li>
+                  <li>
+                    <strong>Berufe:</strong> Rapper, Sänger, Produzent, Songwriter,
+                    Modedesigner, Unternehmer
+                  </li>
+                  <li>
+                    <strong>Genre:</strong> Hip-Hop, Soul, R&B, Gospel, Electronic
+                  </li>
+                  <li><strong>Aktive Jahre:</strong> 1996–heute</li>
+                  <li>
+                    <strong>Auszeichnungen:</strong> 24 Grammy Awards (Stand 2024)
+                  </li>
+                  <li>
+                    <strong>Ehemalige Ehepartnerin:</strong> Kim Kardashian
+                    (2014–2022)
+                  </li>
+                  <li><strong>Kinder:</strong> North, Saint, Chicago, Psalm</li>
+                </ul>
+                <img
+                    :src="profileImageUrl"
+                    alt="Kanye West Profilbild"
+                    class="mt-4 rounded-lg shadow-lg"
+                    loading="lazy"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Diskografie -->
+          <section id="discography" class="mb-12">
+            <h2 class="text-4xl font-bold mb-6 animate-fade-in" v-animate-on-scroll>
+              Diskografie
+            </h2>
+            <div class="card p-6 animate-fade-in" v-animate-on-scroll>
+              <div class="tabs mb-4">
+                <button
+                    v-for="year in albumYears"
+                    :key="year"
+                    @click="activeAlbumYear = year"
+                    :class="['btn ghost mr-2', { active: activeAlbumYear === year }]"
+                >
+                  {{ year }}
+                </button>
+              </div>
+              <div
+                  v-for="albumYear in albumYears"
+                  :key="albumYear"
+                  v-if="activeAlbumYear === albumYear"
+                  class="album-year-content animate-fade-in-up"
+              >
+                <div
+                    v-for="album in albumsByYear[albumYear]"
+                    :key="album.title"
+                    class="album-item card mb-4 p-4 row gap-4 items-center"
+                >
+                  <img
+                      :src="album.cover"
+                      :alt="album.title + ' Cover'"
+                      class="album-cover rounded-lg shadow-md"
+                      loading="lazy"
+                  />
+                  <div class="col">
+                    <h3 class="text-xl font-bold mb-1">
+                      {{ album.title }} ({{ album.year }})
+                    </h3>
+                    <p class="text-muted mb-2">{{ album.description }}</p>
+                    <a :href="album.link" target="_blank" class="small"
+                    >Mehr erfahren »</a
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Kontroversen -->
+          <section id="controversies" class="mb-12">
+            <h2 class="text-4xl font-bold mb-6 animate-fade-in" v-animate-on-scroll>
+              Kontroversen
+            </h2>
+            <div class="card p-6 animate-fade-in" v-animate-on-scroll>
+              <h3 class="text-2xl font-bold mb-4">
+                Eine Geschichte der Kontroversen
+              </h3>
+              <p class="mb-4 text-lg">
+                Seine provokanten Äußerungen – von spontanen Bühnenunterbrechungen bis
+                zu politischen Statements – machen Kanye zur polarisierendsten Figur im Pop.
+              </p>
+              <ul class="list-disc pl-6 text-lg">
+                <li class="mb-2">
+                  <strong>MTV VMAs 2009:</strong> Unterbrach Taylor Swifts Rede.
+                </li>
+                <li class="mb-2">
+                  <strong>George W. Bush (2005):</strong>
+                  "George Bush cares nothing about black people."
+                </li>
+                <li class="mb-2">
+                  <strong>Präsidentschaft 2020:</strong> Kurzlebige Kampagne, Diskussionen
+                  über Eignung und psychische Gesundheit.
+                </li>
+                <li class="mb-2">
+                  <strong>Sklaverei & Politik:</strong> Heftige Debatten um kontroverse Kommentare.
+                </li>
+                <li class="mb-2">
+                  <strong>Antisemitische Äußerungen 2022:</strong> Partnerschafts- und
+                  Image-Verlust.
+                </li>
+              </ul>
+              <p class="mt-4 text-lg">
+                Kaum ein Künstler seiner Generation zieht so viel Aufmerksamkeit mit Worten
+                auf sich wie mit Musik.
+              </p>
+            </div>
+          </section>
+
+          <!-- Galerie -->
+          <section id="gallery" class="mb-12">
+            <h2 class="text-4xl font-bold mb-6 animate-fade-in" v-animate-on-scroll>
+              Bildergalerie
+            </h2>
+            <div class="image-grid">
+              <div
+                  v-for="(image, index) in galleryImages"
+                  :key="index"
+                  class="image-item animate-fade-in-up"
+                  v-animate-on-scroll
+                  @click="openLightbox(index)"
+              >
+                <img :src="image.thumbnail" :alt="image.alt" loading="lazy" />
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Lightbox -->
+      <Transition name="fade">
+        <div v-if="lightboxOpen" class="lightbox" @click="closeLightbox">
+          <button class="lightbox-close btn ghost" @click.stop="closeLightbox">
+            ✕
+          </button>
+          <button
+              class="lightbox-nav prev btn ghost"
+              @click.stop="navigateLightbox(-1)"
+          >
+            ‹
+          </button>
+          <img
+              :src="galleryImages[currentImageIndex].full"
+              :alt="galleryImages[currentImageIndex].alt"
+              class="lightbox-image"
+          />
+          <button
+              class="lightbox-nav next btn ghost"
+              @click.stop="navigateLightbox(1)"
+          >
+            ›
+          </button>
+          <div class="lightbox-caption text-muted small mt-2">
+            {{ galleryImages[currentImageIndex].alt }}
+          </div>
+        </div>
+      </Transition>
+
+      <footer class="kanye-footer text-center py-8">
+        <div class="container">
+          <p class="small">© Peru</p>
+        </div>
+      </footer>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
+
+interface Album {
+  title: string;
+  year: number;
+  cover: string;
+  description: string;
+  link: string;
+}
+
+interface GalleryImage {
+  thumbnail: string;
+  full: string;
+  alt: string;
+}
+
+export default defineComponent({
+  name: "KanyeInfoProtected",
+  directives: {
+    "animate-on-scroll": {
+      mounted(el: HTMLElement) {
+        const obs = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  e.target.classList.add("is-visible");
+                  obs.unobserve(e.target);
+                }
+              });
+            },
+            { threshold: 0.1 }
+        );
+        obs.observe(el);
+      },
+    },
+  },
+  setup() {
+    // Auth
+    const correctPassword = "hash891219!";
+    const loginPassword = ref("");
+    const loginError = ref("");
+    const isAuthenticated = ref(false);
+    function login() {
+      if (loginPassword.value === correctPassword) {
+        isAuthenticated.value = true;
+        loginPassword.value = "";
+        loginError.value = "";
+      } else {
+        loginError.value = "Falsches Passwort";
+      }
+    }
+    // Mobile menu
+    const mobileMenuOpen = ref(false);
+
+    // Hero & Profile
+    const heroImageUrl =
+        "https://preview.redd.it/kanye-west-graduation-3840x2160-v0-kjektcn4myv91.png?width=640&crop=smart&auto=webp&s=fa4b58c81acb3ec38c640cca6ef11d66d01c3cf3";
+    const profileImageUrl =
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg/250px-Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg";
+
+    // Discography
+    const albums: Album[] = [
+      {
+        title: "The College Dropout",
+        year: 2004,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=TCD",
+        description:
+            "Sein wegweisendes Debüt, das ihn als Rapper und Produzent etablierte.",
+        link: "https://de.wikipedia.org/wiki/The_College_Dropout",
+      },
+      {
+        title: "Late Registration",
+        year: 2005,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=LR",
+        description:
+            "Baute auf dem Erfolg des Debüts auf, mit orchestralen Elementen.",
+        link: "https://de.wikipedia.org/wiki/Late_Registration",
+      },
+      {
+        title: "Graduation",
+        year: 2007,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=Graduation",
+        description:
+            "Ein stilistischer Wandel hin zu Arena-Hip-Hop und elektronischen Klängen.",
+        link: "https://de.wikipedia.org/wiki/Graduation_(Album)",
+      },
+      {
+        title: "808s & Heartbreak",
+        year: 2008,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=808s",
+        description:
+            "Ein experimentelles Album mit Auto-Tune und melancholischen Themen.",
+        link: "https://de.wikipedia.org/wiki/808s_%26_Heartbreak",
+      },
+      {
+        title: "My Beautiful Dark Twisted Fantasy",
+        year: 2010,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=MBDTF",
+        description:
+            "Oft als sein Meisterwerk bezeichnet, opulent und vielschichtig.",
+        link:
+            "https://de.wikipedia.org/wiki/My_Beautiful_Dark_Twisted_Fantasy",
+      },
+      {
+        title: "Yeezus",
+        year: 2013,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=Yeezus",
+        description:
+            "Ein aggressives, minimalistisches und industriell klingendes Album.",
+        link: "https://de.wikipedia.org/wiki/Yeezus",
+      },
+      {
+        title: "The Life of Pablo",
+        year: 2016,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=TLOP",
+        description:
+            'Ein lebendiges, sich ständig weiterentwickelndes "Living Album".',
+        link: "https://de.wikipedia.org/wiki/The_Life_of_Pablo",
+      },
+      {
+        title: "Ye",
+        year: 2018,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=Ye",
+        description:
+            "Ein kurzes, introspektives Album, das persönliche Kämpfe thematisiert.",
+        link: "https://de.wikipedia.org/wiki/Ye_(Album)",
+      },
+      {
+        title: "Kids See Ghosts",
+        year: 2018,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=KSG",
+        description:
+            "Kollaborationsalbum mit Kid Cudi unter Kids See Ghosts.",
+        link: "https://de.wikipedia.org/wiki/Kids_See_Ghosts",
+      },
+      {
+        title: "Jesus Is King",
+        year: 2019,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=JIK",
+        description:
+            "Sein erstes Gospel-Album, neue musikalische Richtung.",
+        link: "https://de.wikipedia.org/wiki/Jesus_Is_King",
+      },
+      {
+        title: "Donda",
+        year: 2021,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=Donda",
+        description:
+            "Ein umfangreiches Album, seiner verstorbenen Mutter gewidmet.",
+        link: "https://de.wikipedia.org/wiki/Donda_(Album)",
+      },
+      {
+        title: "Vultures 1",
+        year: 2024,
+        cover:
+            "https://via.placeholder.com/150/1a1a1a/b0b0b0?text=Vultures",
+        description:
+            "Kollaboration mit Ty Dolla Sign unter ¥$.",
+        link: "https://de.wikipedia.org/wiki/Vultures_1",
+      },
+    ];
+
+    const albumYears = computed<number[]>(() =>
+        Array.from(new Set(albums.map((a) => a.year))).sort((a, b) => b - a)
+    );
+    const activeAlbumYear = ref<number | null>(null);
+    const albumsByYear = computed<Record<number, Album[]>>(() => {
+      return albums.reduce((acc, a) => {
+        if (!acc[a.year]) acc[a.year] = [];
+        acc[a.year].push(a);
+        return acc;
+      }, {} as Record<number, Album[]>);
+    });
+
+    // Gallery
+    const galleryImages: GalleryImage[] = [
+      {
+        thumbnail:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhySvY0ku51SBdWFf4CkglcdWLWc8bQMHORNw4rAQ52c35CHcX2v_EaVUYpFWHdKGLbxs&usqp=CAU",
+        full:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhySvY0ku51SBdWFf4CkglcdWLWc8bQMHORNw4rAQ52c35CHcX2v_EaVUYpFWHdKGLbxs&usqp=CAU",
+        alt: "Kanye West auf der Bühne",
+      },
+      {
+        thumbnail:
+            "https://thepolitic.org/wp-content/uploads/2022/10/161118111655-kanye-west.jpg",
+        full:
+            "https://thepolitic.org/wp-content/uploads/2022/10/161118111655-kanye-west.jpg",
+        alt: "Kanye West im Studio",
+      },
+      {
+        thumbnail:
+            "https://www.rollingstone.com/wp-content/uploads/2018/06/rs-188588-109561363.jpg?w=1581&h=1054&crop=1",
+        full:
+            "https://www.rollingstone.com/wp-content/uploads/2018/06/rs-188588-109561363.jpg?w=1581&h=1054&crop=1",
+        alt: "Kanye West mit Fans",
+      },
+      {
+        thumbnail:
+            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
+        full:
+            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
+        alt: "Kanye West bei einer Fashion Show",
+      },
+      {
+        thumbnail:
+            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
+        full:
+            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
+        alt: "Kanye West in einem Musikvideo",
+      },
+      {
+        thumbnail:
+            "https://img.zeit.de/kultur/musik/2016-02/kanye-west/wide__1000x562",
+        full:
+            "https://img.zeit.de/kultur/musik/2016-02/kanye-west/wide__1000x562",
+        alt: "Kanye West während einer Rede",
+      },
+    ];
+
+    // Lightbox
+    const lightboxOpen = ref(false);
+    const currentImageIndex = ref(0);
+    function openLightbox(i: number) {
+      currentImageIndex.value = i;
+      lightboxOpen.value = true;
+      document.body.style.overflow = "hidden";
+    }
+    function closeLightbox() {
+      lightboxOpen.value = false;
+      document.body.style.overflow = "";
+    }
+    function navigateLightbox(dir: -1 | 1) {
+      let idx = currentImageIndex.value + dir;
+      if (idx < 0) idx = galleryImages.length - 1;
+      if (idx >= galleryImages.length) idx = 0;
+      currentImageIndex.value = idx;
+    }
+    function handleKeydown(e: KeyboardEvent) {
+      if (!lightboxOpen.value) return;
+      if (e.key === "ArrowLeft") navigateLightbox(-1);
+      if (e.key === "ArrowRight") navigateLightbox(1);
+      if (e.key === "Escape") closeLightbox();
+    }
+
+    // Scroll
+    function scrollTo(id: string) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+
+    onMounted(() => {
+      window.addEventListener("keydown", handleKeydown);
+      if (albumYears.value.length) {
+        activeAlbumYear.value = albumYears.value[0];
+      }
+    });
+    onUnmounted(() => {
+      window.removeEventListener("keydown", handleKeydown);
+    });
+
+    return {
+      loginPassword,
+      loginError,
+      isAuthenticated,
+      login,
+      mobileMenuOpen,
+      heroImageUrl,
+      profileImageUrl,
+      albumYears,
+      activeAlbumYear,
+      albumsByYear,
+      galleryImages,
+      lightboxOpen,
+      currentImageIndex,
+      openLightbox,
+      closeLightbox,
+      navigateLightbox,
+      scrollTo,
+    };
+  },
+});
+</script>
+
+<style scoped>
+.suround {
+  padding: 2.5rem;
+  gap: 2.5rem;
+}
+/* Login */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--bg);
+}
+.login-card {
+  max-width: 360px;
+  width: 100%;
+}
+.error-text {
+  color: #e02424;
+  margin-top: 0.5rem;
+}
+
+/* Page & Hero */
+.kanye-page {
+  background-color: var(--bg);
+  min-height: 100vh;
+  position: relative;
+}
+.kanye-hero {
+  position: relative;
+  height: 60vh;
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  color: white;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: -60px;
+}
+.kanye-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(17,24,39,0.5), rgba(17,24,39,0.7));
+  z-index: -1;
+}
+.kanye-hero-content {
+  max-width: 900px;
+  padding: 0 16px;
+}
+
+/* Navigation */
+.kanye-nav-fixed {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: var(--card);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  padding: 12px 0;
+}
+.kanye-nav-fixed .container {
+  max-width: 1100px;
+  position: relative;
+}
+.kanye-nav-fixed .btn.ghost {
+  color: var(--text);
+  border-color: transparent;
+  padding: 8px 12px;
+}
+.kanye-nav-fixed .btn.ghost:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+.mobile-menu-toggle .bar {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background: var(--text);
+  margin: 4px 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.mobile-menu-toggle .bar.open:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.mobile-menu-toggle .bar.open:nth-child(2) {
+  opacity: 0;
+}
+.mobile-menu-toggle .bar.open:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+.nav-links {
+  display: flex;
+}
+.nav-links.open {
+  display: flex;
+}
+
+/* Main Layout */
+.col-main {
+  flex: 3;
+  min-width: 300px;
+}
+.col-sidebar {
+  flex: 1;
+  min-width: 280px;
+}
+
+/* Infobox */
+.kanye-infobox {
+  padding: 20px;
+}
+.kanye-infobox img {
+  width: 100%;
+  object-fit: cover;
+  margin-top: 15px;
+  border: 1px solid var(--border);
+}
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 15px;
+}
+.info-list li {
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 8px;
+}
+.info-list li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.info-list strong {
+  color: var(--primary);
+  margin-right: 5px;
+}
+
+/* Diskografie */
+.tabs .btn.ghost.active {
+  background-color: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+.album-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.album-cover {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+/* Galerie */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.image-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border);
+}
+.image-item:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+.image-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(8px);
+}
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 2rem;
+  color: white;
+  background: transparent;
+  border: none;
+}
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  color: white;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 2001;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  height: 60px;
+  width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+.lightbox-nav:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+.lightbox-nav.prev {
+  left: 20px;
+}
+.lightbox-nav.next {
+  right: 20px;
+}
+.lightbox-image {
+  max-width: 90%;
+  max-height: 80%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  animation: lightbox-fade-in 0.3s ease-out;
+}
+.lightbox-caption {
+  margin-top: 15px;
+  color: white;
+  font-size: 1.1rem;
+}
+
+/* Footer */
+.kanye-footer {
+  background-color: var(--card);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes lightbox-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fade-in {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+.animate-fade-in.is-visible {
+  opacity: 1;
+}
+.animate-fade-in-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.animate-fade-in-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.animate-fade-in-up.delay-200 {
+  transition-delay: 0.2s;
+}
+.animate-fade-in-up.delay-400 {
+  transition-delay: 0.4s;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Utility */
+.text-2xl {
+  font-size: 1.5rem;
+}
+.text-xl {
+  font-size: 1.25rem;
+}
+.text-lg {
+  font-size: 1.125rem;
+}
+.text-5xl {
+  font-size: 3rem;
+}
+.text-7xl {
+  font-size: 4.5rem;
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-extrabold {
+  font-weight: 800;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+.mb-12 {
+  margin-bottom: 3rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-8 {
+  margin-top: 2rem;
+}
+.mr-2 {
+  margin-right: 0.5rem;
+}
+.p-6 {
+  padding: 1.5rem;
+}
+.p-4 {
+  padding: 1rem;
+}
+.py-12 {
+  padding: 3rem 0;
+}
+.py-8 {
+  padding: 2rem 0;
+}
+.w-full {
+  width: 100%;
+}
+.text-center {
+  text-align: center;
+}
+.row {
+  display: flex;
+  gap: 12px;
+}
+.col {
+  flex: 1;
+  min-width: 240px;
+}
+.gap-4 {
+  gap: 1rem;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+  0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.bg-bg {
+  background-color: var(--bg);
+}
+.text-muted {
+  color: var(--muted);
+}
+.btn.primary {
+  background-color: var(--primary);
+  color: var(--bg);
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn.ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .kanye-hero h1 {
+    font-size: 4rem;
+  }
+  .kanye-hero p {
+    font-size: 1.25rem;
+  }
+  /* Stack nav on small screens */
+  .mobile-menu-toggle {
+    display: block;
+  }
+  .nav-links {
+    display: none;
+  }
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 8px 0;
+  }
+  .nav-links.open .btn {
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+  }
+  .col-main,
+  .col-sidebar {
+    flex: 1 1 100%;
+    min-width: unset;
+  }
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  .lightbox-nav {
+    font-size: 2rem;
+    height: 40px;
+    width: 40px;
+  }
+}
+</style>

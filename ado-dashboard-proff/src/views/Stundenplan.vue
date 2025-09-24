@@ -1,10 +1,10 @@
-<script setup lang="ts">
+<template>
+  <div>Stundenplan</div>
+</template>
+
+<script lang="ts">
 
 </script>
-
-<template>
-<div>Noch in Bearbeitung</div>
-</template>
 
 <style scoped>
 

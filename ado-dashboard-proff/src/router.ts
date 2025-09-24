@@ -12,6 +12,8 @@ const VerifyEmail = () => import('./views/VerifyEmail.vue');
 const Impressum = () => import('./views/Impressum.vue');
 const Stundenplan = () => import('./views/Stundenplan.vue')
 const Kuerzel = () => import('./views/Kuerzel.vue')
+const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue')
+const Ye = () => import('./views/Ye.vue')
 
 const router = createRouter({
     history: createWebHistory(),
@@ -24,7 +26,9 @@ const router = createRouter({
         { path: '/verify', component: VerifyEmail },
         { path: '/impressum-&-datenschutz', component: Impressum },
         { path: '/stundenplan', component: Stundenplan },
-        { path: '/kuerzel', component: Kuerzel},
+        { path: '/kuerzel', component: Kuerzel },
+        { path: '/lokale-to-do-liste', component: LokaleToDoListe },
+        { path: '/kanye', component: Ye },
 
         {
             path: '/:pathMatch(.*)*',

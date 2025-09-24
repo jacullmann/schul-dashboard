@@ -1,1018 +1,950 @@
-server.js: import 'dotenv/config';
-           import express from 'express';
-           import mongoose from 'mongoose';
-           import helmet from 'helmet';
-           import cors from 'cors';
-           import cookieParser from 'cookie-parser';
-           import morgan from 'morgan';
-           import rateLimit from 'express-rate-limit';
-           import { body, param, query, validationResult } from 'express-validator';
-           import jwt from 'jsonwebtoken';
-           import bcrypt from 'bcryptjs';
-           import nodemailer from 'nodemailer';
-           import crypto from 'crypto';
-           import dayjs from 'dayjs';
-           import { v2 as cloudinary } from 'cloudinary';
-
-           // Config
-           const app = express();
-           app.set("trust proxy", 1); // <--- GEÄNDERT: Korrekte Einstellung für Render
-           const PORT = process.env.PORT || 8090;
-           const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
-           const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
-
-           // Security & utils
-           app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-           app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
-           app.use(morgan('combined'));
-           app.use(express.json({ limit: '2mb' }));
-           app.use(cookieParser());
-           app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
-
-           // Mongo
-           await mongoose.connect(process.env.MONGODB_URI);
-
-           // Cloudinary
-           cloudinary.config({
-               cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-               api_key: process.env.CLOUDINARY_API_KEY,
-               api_secret: process.env.CLOUDINARY_API_SECRET
-           });
-
-           // Nodemailer (GMX)
-           const transporter = nodemailer.createTransport({
-               host: process.env.SMTP_HOST || 'mail.gmx.net',
-               port: Number(process.env.SMTP_PORT || 587),
-               secure: false,
-               auth: {
-                   user: process.env.SMTP_USER, // deine GMX E-Mail
-                   pass: process.env.SMTP_PASS  // App-Passwort empfohlen
-               }
-           });
-
-           // Models
-           const UserSchema = new mongoose.Schema({
-               email: { type: String, unique: true, required: true, lowercase: true, trim: true },
-               passwordHash: { type: String, required: true },
-               isAdmin: { type: Boolean, default: false },
-               emailVerified: { type: Boolean, default: false },
-               createdAt: { type: Date, default: Date.now },
-               lastLoginAt: { type: Date },
-               activity: [{
-                   at: { type: Date, default: Date.now },
-                   type: { type: String },
-                   meta: { type: mongoose.Schema.Types.Mixed }
-               }]
-           }, { timestamps: true });
-           const User = mongoose.model('HwUser', UserSchema);
-
-           const VerificationSchema = new mongoose.Schema({
-               email: { type: String, index: true },
-               token: { type: String, unique: true },
-               expiresAt: { type: Date }
-           }, { timestamps: true });
-           const Verification = mongoose.model('HwVerification', VerificationSchema);
-
-           const SubjectSchema = new mongoose.Schema({
-               name: { type: String, unique: true, required: true }
-           }, { timestamps: true });
-           const Subject = mongoose.model('HwSubject', SubjectSchema);
-
-           const AnnouncementSchema = new mongoose.Schema({
-               title: String,
-               content: String,
-               color: { type: String, default: 'warn' }, // info | warn | danger
-               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-           }, { timestamps: true });
-           const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
-
-           const ItemSchema = new mongoose.Schema({
-               type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
-               title: { type: String, required: true },
-               subject: { type: String, required: true }, // frei oder aus Liste
-               description: { type: String },
-               images: [{ url: String, publicId: String, createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' } }],
-               dueDate: { type: Date, index: true },
-               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
-           }, { timestamps: true });
-           const Item = mongoose.model('HwItem', ItemSchema);
-
-           // Default Subjects seed
-           const DEFAULT_SUBJECTS = [
-               'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
-               'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
-               'Enrichment', 'WPU', 'Theater', 'Latein'
-           ];
-           async function ensureSubjects() {
-               for (const s of DEFAULT_SUBJECTS) {
-                   await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
-               }
-           }
-           await ensureSubjects();
-
-           // Helpers
-           function sendJSONError(res, status, msg, errors) {
-               return res.status(status).json({ error: msg, errors });
-           }
-           function requireAuth(req, res, next) {
-               const hdr = req.headers.authorization || '';
-               const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-               if (!token) return sendJSONError(res, 401, 'Unauthorized');
-               try {
-                   const payload = jwt.verify(token, JWT_SECRET);
-                   req.user = payload;
-                   next();
-               } catch {
-                   return sendJSONError(res, 401, 'Unauthorized');
-               }
-           }
-           async function requireAdmin(req, res, next) {
-               requireAuth(req, res, async () => {
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                   next();
-               });
-           }
-           function validate(req, res, next) {
-               const errors = validationResult(req);
-               if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
-               next();
-           }
-           function timeLeftColor(dueDate) {
-               const now = dayjs();
-               const due = dayjs(dueDate);
-               const diffDays = due.diff(now, 'day', true);
-               if (diffDays < 0) return 'expired';
-               if (diffDays < 3) return 'danger';
-               if (diffDays < 7) return 'warn';
-               return 'ok';
-           }
-           async function logActivity(userId, type, meta = {}) {
-               await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
-           }
-
-           // Auth routes
-           app.post('/api/auth/register',
-               body('email').isEmail(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   const { email, password } = req.body;
-                   const exists = await User.findOne({ email: email.toLowerCase() });
-                   if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
-                   const passwordHash = await bcrypt.hash(password, 12);
-                   const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
-                   // create verification
-                   const token = crypto.randomBytes(32).toString('hex');
-                   const expiresAt = dayjs().add(2, 'day').toDate();
-                   await Verification.create({ email: user.email, token, expiresAt });
-                   // Send email
-                   const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
-                   await transporter.sendMail({
-                       from: process.env.SMTP_FROM || process.env.SMTP_USER,
-                       to: user.email,
-                       subject: 'Bitte E-Mail bestätigen',
-                       html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-                   });
-                   res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
-               }
-           );
-
-           app.get('/api/auth/verify',
-               query('token').isString().isLength({ min: 10 }),
-               validate,
-               async (req, res) => {
-                   const ver = await Verification.findOne({ token: req.query.token });
-                   if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
-                   if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
-                   const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
-                   if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
-                   await Verification.deleteOne({ _id: ver._id });
-                   res.json({ ok: true });
-               }
-           );
-
-           app.post('/api/auth/login',
-               body('email').isEmail(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   const { email, password } = req.body;
-                   const user = await User.findOne({ email: email.toLowerCase() });
-                   if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                   const ok = await bcrypt.compare(password, user.passwordHash);
-                   if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                   if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
-                   const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-                   await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-                   res.json({ token });
-               }
-           );
-
-           app.get('/api/auth/me', requireAuth, async (req, res) => {
-               const user = await User.findById(req.user.sub).lean();
-               res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
-           });
-
-           // Admin: list users & activity, delete user, set admin
-           app.get('/api/admin/users', requireAdmin, async (req, res) => {
-               const users = await User.find({}).sort({ createdAt: -1 }).lean();
-               res.json(users.map(u => ({
-                   id: u._id, email: u.email, isAdmin: u.isAdmin,
-                   createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
-                   activity: u.activity?.slice(-20) || []
-               })));
-           });
-           app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-               await User.deleteOne({ _id: req.params.id });
-               await Item.deleteMany({ createdBy: req.params.id });
-               res.json({ ok: true });
-           });
-           app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
-               await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
-               res.json({ ok: true });
-           });
-
-           // Subjects
-           app.get('/api/subjects', async (req, res) => {
-               const list = await Subject.find({}).sort({ name: 1 }).lean();
-               res.json(list.map(s => s.name));
-           });
-           app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
-               await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
-               res.status(201).json({ ok: true });
-           });
-           app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
-               await Subject.deleteOne({ name: req.params.name });
-               res.json({ ok: true });
-           });
-
-           // Announcements
-           app.get('/api/announcements', async (req, res) => {
-               const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
-               res.json(list);
-           });
-           app.post('/api/announcements', requireAuth, body('title').isString().isLength({ min: 2 }), body('content').isString().isLength({ min: 2 }), body('color').optional().isIn(['info', 'warn', 'danger']), validate, async (req, res) => {
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-               const doc = await Announcement.create({
-                   title: req.body.title,
-                   content: req.body.content,
-                   color: req.body.color || 'warn',
-                   createdBy: req.user.sub
-               });
-               await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
-               res.status(201).json(doc);
-           });
-           app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
-               const ann = await Announcement.findById(req.params.id);
-               if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-               await ann.deleteOne();
-               await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
-               res.json({ ok: true });
-           });
-
-           // Cloudinary signed upload
-           app.post('/api/uploads/sign', requireAuth, async (req, res) => {
-               const timestamp = Math.floor(Date.now() / 1000);
-               const signature = cloudinary.utils.api_sign_request({ timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' }, process.env.CLOUDINARY_API_SECRET);
-               res.json({
-                   cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-                   apiKey: process.env.CLOUDINARY_API_KEY,
-                   timestamp,
-                   signature,
-                   folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
-               });
-           });
-
-           // NEW: Add image to an item
-           app.post('/api/items/:id/images',
-               requireAuth,
-               param('id').isMongoId(),
-               body('image').isObject(),
-               body('image.url').isString(),
-               body('image.publicId').isString(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.id);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                   const newImage = {
-                       url: req.body.image.url,
-                       publicId: req.body.image.publicId,
-                       createdBy: req.user.sub
-                   };
-                   item.images.push(newImage);
-                   await item.save();
-                   await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
-                   res.status(201).json({ ok: true, image: newImage });
-               }
-           );
-
-
-           app.delete('/api/items/:itemId/images/:publicId',
-               requireAuth,
-               param('itemId').isMongoId(),
-               param('publicId').isString(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.itemId);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                   const imageIndex = item.images.findIndex(img => img.publicId === req.params.publicId);
-                   if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-
-                   const image = item.images[imageIndex];
-                   const user = await User.findById(req.user.sub);
-
-                   if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
-                       return sendJSONError(res, 403, 'Forbidden');
-                   }
-
-                   // Delete from Cloudinary
-                   await cloudinary.uploader.destroy(image.publicId);
-
-                   // Remove from DB
-                   item.images.splice(imageIndex, 1);
-                   await item.save();
-
-                   await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
-                   res.json({ ok: true });
-               }
-           );
-
-           // Items list (not showing expired)
-           app.get('/api/items',
-               query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               validate,
-               async (req, res) => {
-                   const now = new Date();
-                   const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-                       .sort({ dueDate: 1 })
-                       .limit(500)
-                       .lean();
-                   res.json(list.map(i => ({
-                       id: i._id,
-                       type: i.type,
-                       title: i.title,
-                       subject: i.subject,
-                       description: i.description,
-                       images: i.images,
-                       dueDate: i.dueDate,
-                       createdBy: i.createdBy,
-                       timeColor: timeLeftColor(i.dueDate)
-                   })));
-               }
-           );
-
-           // Create item
-           app.post('/api/items',
-               requireAuth,
-               body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               body('title').isString().isLength({ min: 2, max: 200 }),
-               body('subject').isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
-               body('dueDate').isISO8601().toDate(),
-               validate,
-               async (req, res) => {
-                   const now = dayjs();
-                   if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-                   const doc = await Item.create({
-                       type: req.body.type,
-                       title: req.body.title,
-                       subject: req.body.subject,
-                       description: req.body.description || '',
-                       images: (req.body.images || []).map(img => ({ url: img.url, publicId: img.publicId, createdBy: req.user.sub })),
-                       dueDate: req.body.dueDate,
-                       createdBy: req.user.sub
-                   });
-                   await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
-                   res.status(201).json({ ok: true, id: doc._id });
-               }
-           );
-
-           // Update item (own or admin)
-           app.patch('/api/items/:id',
-               requireAuth,
-               param('id').isMongoId(),
-               body('title').optional().isString().isLength({ min: 2, max: 200 }),
-               body('subject').optional().isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
-               body('dueDate').optional().isISO8601().toDate(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.id);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-                   if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-
-                   const update = {};
-                   for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
-                       if (req.body[k] !== undefined) update[k] = req.body[k];
-                   }
-                   await Item.findByIdAndUpdate(item._id, { $set: update });
-                   await logActivity(req.user.sub, 'item:update', { id: item._id });
-                   res.json({ ok: true });
-               }
-           );
-
-           // Delete item (own or admin)
-           app.delete('/api/items/:id', requireAuth, async (req, res) => {
-               const item = await Item.findById(req.params.id);
-               if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-
-               // Delete all associated images from Cloudinary first
-               if (item.images && item.images.length > 0) {
-                   const publicIds = item.images.map(img => img.publicId);
-                   await cloudinary.api.delete_resources(publicIds);
-               }
-               await item.deleteOne();
-               await logActivity(req.user.sub, 'item:delete', { id: item._id });
-               res.json({ ok: true });
-           });
-
-           // Health
-           app.get('/health', (req, res) => res.json({ ok: true }));
-
-           app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
-
-
-imageform: <template>
-             <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-               <div class="card" style="width:100%; max-width:640px;">
-                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                   <h3 style="margin:0;">Bilder verwalten für: {{ item.title }}</h3>
-                   <button class="btn ghost" @click="$emit('close')">Schließen</button>
-                 </div>
-
-                 <div style="margin-top:16px;">
-                   <div style="font-weight:600;">Bilder</div>
-                   <div class="row" style="gap:8px; margin-top:8px;">
-                     <div v-for="img in currentImages" :key="img.publicId" style="position:relative; max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-                       <img :src="img.url" style="width:100%; height:auto;" />
-                       <div style="position:absolute; top:4px; right:4px;">
-                         <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="confirmRemoval(img.publicId)">X</button>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-
-                 <div class="row" style="margin-top:16px; align-items:center;">
-                   <button class="btn" @click="uploadImg" :disabled="uploading">
-                     <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                     </svg>
-                     Bild hochladen
-                   </button>
-                   <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }" style="margin-left:12px;">{{ message }}</div>
-                 </div>
-               </div>
-
-               <div v-if="showConfirmRemovalModal" class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:200;">
-                 <div class="card" style="width:100%; max-width:400px; text-align:center;">
-                   <h4 style="margin:0;">Bild löschen?</h4>
-                   <p style="margin-top:12px;">Möchtest du dieses Bild wirklich löschen?</p>
-                   <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-                     <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
-                     <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
-                   </div>
-                 </div>
-               </div>
-             </div>
-           </template>
-
-           <script setup lang="ts">
-           import { ref, watchEffect } from 'vue';
-           import hw from '../../hwApi';
-
-           const props = defineProps({
-             item: { type: Object as () => { id: string, title: string, images: Array<{ url: string, publicId: string }> }, required: true },
-           });
-           const emit = defineEmits(['close', 'success']);
-
-           const uploading = ref(false);
-           const message = ref('');
-           const isError = ref(false);
-           const currentImages = ref(props.item.images);
-           const showConfirmRemovalModal = ref(false);
-           const publicIdToRemove = ref('');
-
-           watchEffect(() => {
-             currentImages.value = props.item.images;
-           });
-
-           function confirmRemoval(publicId: string) {
-             publicIdToRemove.value = publicId;
-             showConfirmRemovalModal.value = true;
-           }
-
-           function cancelRemoval() {
-             showConfirmRemovalModal.value = false;
-             publicIdToRemove.value = '';
-           }
-
-           async function uploadImg() {
-             const input = document.createElement('input');
-             input.type = 'file';
-             input.accept = 'image/*';
-             input.onchange = async () => {
-               const file = input.files?.[0];
-               if (!file) return;
-
-               uploading.value = true;
-               message.value = '';
-               isError.value = false;
-
-               try {
-                 const { data: sign } = await hw.get('/api/cloudinary/sign');
-                 const form = new FormData();
-                 form.append('file', file);
-                 form.append('api_key', sign.apiKey);
-                 form.append('timestamp', sign.timestamp);
-                 form.append('signature', sign.signature);
-                 form.set('folder', sign.folder);
-                 const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                 const json = await res.json();
-                 if (json.secure_url && json.public_id) {
-                   // Now post the new image to the item
-                   const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
-                     image: { url: json.secure_url, publicId: json.public_id }
-                   });
-                   currentImages.value.push(data.image);
-                   message.value = 'Bild erfolgreich hochgeladen.';
-                   isError.value = false;
-                   emit('success');
-                 } else {
-                   message.value = 'Bild-Upload fehlgeschlagen.';
-                   isError.value = true;
-                 }
-               } catch (e: any) {
-                 message.value = e.response?.data?.error || 'Fehler beim Hochladen.';
-                 isError.value = true;
-               } finally {
-                 uploading.value = false;
-               }
-             };
-             input.click();
-           }
-
-           async function removeImg(publicId: string) {
-             showConfirmRemovalModal.value = false;
-             message.value = '';
-             isError.value = false;
-             try {
-               await hw.delete(`/api/items/${props.item.id}/images/${publicId}`);
-               currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
-               message.value = 'Bild erfolgreich gelöscht.';
-               emit('success');
-             } catch (e: any) {
-               message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-               isError.value = true;
-             }
-           }
-           </script>
-
-           <style scoped>
-           .row {
-             display: flex;
-             align-items: center;
-           }
-           .card {
-             border: 1px solid var(--border);
-             border-radius: 12px;
-             background: var(--card-bg);
-             padding: 24px;
-           }
-           </style>
-itemform: <template>
-            <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-              <div class="card" style="width:100%; max-width:640px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <h3 style="margin:0;">{{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}</h3>
-                  <button class="btn ghost" @click="$emit('close')">Schließen</button>
-                </div>
-
-                <div class="row" style="margin-top:12px;">
-                  <div class="col">
-                    <label>Titel</label>
-                    <input class="input" v-model="title" />
-                  </div>
-                  <div class="col">
-                    <label>Fach</label>
-                    <select class="input" v-model="subjectSel">
-                      <option disabled value="">Bitte wählen</option>
-                      <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                      <option value="__OTHER__">Anderes...</option>
-                    </select>
-                  </div>
-                </div>
-                <div v-if="subjectSel==='__OTHER__'" style="margin-top:8px;">
-                  <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
-                </div>
-
-                <div style="margin-top:8px;">
-                  <label>Beschreibung (optional)</label>
-                  <textarea class="input" rows="4" v-model="description"></textarea>
-                </div>
-
-                <div class="row" style="margin-top:8px;">
-                  <div class="col">
-                    <label>Abgabedatum</label>
-                    <input class="input" type="datetime-local" v-model="dueLocal" />
-                  </div>
-                </div>
-
-                <div style="margin-top:16px;">
-                  <div style="font-weight:600;">Bilder</div>
-                  <div class="row" style="gap:8px; margin-top:8px;">
-                    <div v-for="img in images" :key="img.publicId" style="position:relative; max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-                      <img :src="img.url" style="width:100%; height:auto;" />
-                      <div style="position:absolute; top:4px; right:4px;">
-                        <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="removeImg(img)">X</button>
-                      </div>
-                    </div>
-                    <button class="btn ghost" @click="uploadImage" :disabled="uploading">
-                      <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Bild hochladen
-                    </button>
-                  </div>
-                  <div v-if="uploading" class="small">Lade Bild hoch...</div>
-                  <div v-if="uploadError" class="small" style="color:var(--danger)">{{ uploadError }}</div>
-                </div>
-
-                <div class="row" style="margin-top:16px; align-items:center;">
-                  <button class="btn" @click="submit" :disabled="submitting">
-                    <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {{ initial ? 'Speichern' : 'Anlegen' }}
-                  </button>
-                  <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                </div>
-
-              </div>
-            </div>
-          </template>
-
-          <script setup lang="ts">
-          import { ref } from 'vue';
-          import hw from '../../hwApi';
-          import type { HwItem } from './Hausaufgaben.vue';
-
-          const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
-          const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
-
-          const labelFor = (type: string) => {
-            const map = {
-              'HAUSAUFGABE': 'Hausaufgabe',
-              'DALTON': 'Dalton-Auftrag',
-              'PRUEFUNG': 'Klassenarbeit',
-            };
-            return map[type];
-          };
-
-          const title = ref(props.initial?.title || '');
-          const subjectSel = ref(props.initial?.subject || '');
-          const subjectOther = ref('');
-          const description = ref(props.initial?.description || '');
-          const images = ref(props.initial?.images || []);
-          const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
-
-          const submitting = ref(false);
-          const message = ref('');
-          const isError = ref(false);
-          const uploading = ref(false);
-          const uploadError = ref('');
-
-          async function uploadImage() {
-            uploading.value = true;
-            uploadError.value = '';
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = async () => {
-              const file = input.files?.[0];
-              if (!file) return;
-
-              try {
-                const { data: sign } = await hw.post('/api/uploads/sign');
-                const form = new FormData();
-                form.set('file', file);
-                form.set('api_key', sign.apiKey);
-                form.set('timestamp', String(sign.timestamp));
-                form.set('signature', sign.signature);
-                form.set('folder', sign.folder);
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                const json = await res.json();
-                if (json.secure_url && json.public_id) {
-                  images.value.push({ url: json.secure_url, publicId: json.public_id, createdBy: '' }); // createdBy is set by the backend
-                  uploadError.value = '';
-                } else {
-                  uploadError.value = 'Upload fehlgeschlagen';
-                }
-              } catch (e: any) {
-                uploadError.value = 'Upload fehlgeschlagen';
-              } finally {
-                uploading.value = false;
-              }
-            };
-            input.click();
-          }
-
-          function removeImg(img: { url: string; publicId: string }) {
-            images.value = images.value.filter(i => i.publicId !== img.publicId);
-          }
-
-          async function submit() {
-            submitting.value = true;
-            message.value = '';
-            isError.value = false;
-            try {
-              const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
-              const payload: any = {
-                type: props.type,
-                title: title.value.trim(),
-                subject,
-                description: description.value.trim(),
-                images: images.value,
-                dueDate: new Date(dueLocal.value).toISOString()
-              };
-              if (props.initial) {
-                await hw.patch(`/api/items/${props.initial.id}`, payload);
-                message.value = 'Eintrag erfolgreich aktualisiert.';
-              } else {
-                await hw.post('/api/items', payload);
-                message.value = 'Eintrag erfolgreich angelegt.';
-              }
-              isError.value = false;
-              emit('success');
-            } catch (e: any) {
-              message.value = e.response?.data?.error || 'Unbekannter Fehler';
-              isError.value = true;
-            } finally {
-              submitting.value = false;
-            }
-          }
-          </script>
-
-
-hausaufgaben.vue: <template>
-                    <div class="card">
-                      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                        <div>
-                          <h2 style="margin:0;">Schultermine & Aufgaben</h2>
-                          <div class="small">Hausaufgaben, DALTON-Aufträge, Klassenarbeiten</div>
-                        </div>
-                        <div class="row" style="gap:8px;">
-                          <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
-                          <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
-                        </div>
-                      </div>
-
-                      <div v-if="announcements.length" class="card" style="background:#1f2937; border-color:#f59e0b; margin-top:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                          <h3 style="margin:0;">Wichtige Ankündigungen</h3>
-                          <button v-if="user?.isAdmin" class="btn ghost" style="padding:4px 8px; font-size:14px;" @click="showAnnouncementForm = true">Ankündigung hinzufügen</button>
-                        </div>
-                        <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
-                          <div style="font-weight:600;">{{ a.title }}</div>
-                          <div style="white-space: pre-wrap; margin-top:6px;">{{ a.content }}</div>
-                          <div class="small" style="margin-top:6px;">{{ new Date(a.createdAt).toLocaleString() }}</div>
-                          <div v-if="canManage(a.createdBy)" class="row" style="margin-top:8px;">
-                            <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="deleteAnnouncement(a._id)">Löschen</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <hr v-else />
-
-                      <div style="display:flex; gap:8px; margin-bottom:16px; margin-top:16px; flex-wrap:wrap;">
-                        <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
-                        <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">DALTON</button>
-                        <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
-                      </div>
-
-                      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                        <div class="row" style="gap:8px; flex-wrap:wrap;">
-                          <select class="input" style="width:auto;" v-model="subjectFilter">
-                            <option value="">Alle Fächer</option>
-                            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                          </select>
-                          <button v-if="user" class="btn" @click="showItemForm=true">Eintrag anlegen</button>
-                          <div v-if="loading" class="row small" style="align-items:center; gap:8px; color:var(--muted)">
-                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Lade...
-                          </div>
-                        </div>
-                        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                      </div>
-
-                      <div style="margin-top:20px;">
-                        <div v-for="item in filteredItems" :key="item.id" class="card" style="margin-bottom:12px;">
-                          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
-                            <div>
-                              <h3 style="margin:0;">{{ item.title }}</h3>
-                              <div class="row small" style="margin-top:4px; gap:8px; color:var(--muted)">
-                                <div class="badge" style="background:#4b5563; color:white;">{{ item.subject }}</div>
-                                <div class="badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
-                                  Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
+hier die schedule.json:  {
+  "meta": {
+    "title": "Stundenplan 10A",
+    "subtitle": "Albrecht-Dürer-Schule",
+    "classLabel": "10A",
+    "locale": "de-DE",
+
+    "highlightToday": true,
+    "showEmptySlots": true,
+    "showTimeColumn": true,
+    "timeColumnLabel": "Zeit",
+
+    "mode": "expanded",
+    "responsive": {
+      "mobileBreakpoint": 768,
+      "stickyHeader": true,
+      "stickyTimeColumn": true
+    }
+  },
+
+  "ui": {
+    "dayLabels": { "Mo": "Mo", "Di": "Di", "Mi": "Mi", "Do": "Do", "Fr": "Fr" },
+    "accentBorderWidth": 4,
+    "accentBorderStyle": "solid",
+    "cardRadius": 10,
+    "gridGap": 8,
+    "groupColumnsDesktop": 2,
+    "groupColumnsMobile": 1,
+    "hover": {
+      "scale": 1.03,
+      "shadow": "0 6px 16px rgba(0,0,0,0.35)"
+    }
+  },
+
+  "layout": {
+    "days": [
+      { "key": "Mo" },
+      { "key": "Di" },
+      { "key": "Mi" },
+      { "key": "Do" },
+      { "key": "Fr" }
+    ],
+    "timeSlots": [
+      { "id": 0,  "label": "0 07:00 - 07:45", "start": "07:00", "end": "07:45" },
+      { "id": 1,  "label": "1 08:00 - 08:45", "start": "08:00", "end": "08:45" },
+      { "id": 2,  "label": "2 08:45 - 09:30", "start": "08:45", "end": "09:30" },
+      { "id": 3,  "label": "3 09:55 - 10:40", "start": "09:55", "end": "10:40" },
+      { "id": 4,  "label": "4 10:45 - 11:30", "start": "10:45", "end": "11:30" },
+      { "id": 5,  "label": "5 11:30 - 12:15", "start": "11:30", "end": "12:15" },
+      { "id": 6,  "label": "6 12:55 - 13:40", "start": "12:55", "end": "13:40" },
+      { "id": 7,  "label": "7 13:40 - 14:25", "start": "13:40", "end": "14:25" },
+      { "id": 8,  "label": "8 14:35 - 15:20", "start": "14:35", "end": "15:20" },
+      { "id": 9,  "label": "9 15:40 - 16:25", "start": "15:40", "end": "16:25" },
+      { "id": 10, "label": "10 16:25 - 17:10", "start": "16:25", "end": "17:10" },
+      { "id": 11, "label": "11 17:15 - 18:00", "start": "17:15", "end": "18:00" }
+    ]
+  },
+
+  "dictionary": {
+    "subjects": {
+      "MA":  { "name": "Mathematik",                      "className": "sub-math",   "color": "#38bdf8" },
+      "DE":  { "name": "Deutsch",                          "className": "sub-de",     "color": "#f87171" },
+      "EN":  { "name": "Englisch",                         "className": "sub-en",     "color": "#22c55e" },
+      "PH":  { "name": "Physik",                           "className": "sub-ph",     "color": "#c084fc" },
+      "BI":  { "name": "Biologie",                         "className": "sub-bi",     "color": "#10b981" },
+      "INF": { "name": "Informatik",                       "className": "sub-inf",    "color": "#fde047" },
+      "MU":  { "name": "Musik",                            "className": "sub-mu",     "color": "#fb7185" },
+      "ETH": { "name": "Ethik",                            "className": "sub-eth",    "color": "#f59e0b" },
+      "SP":  { "name": "Sport",                            "className": "sub-sp",     "color": "#60a5fa" },
+      "EK":  { "name": "Erdkunde",                         "className": "sub-ek",     "color": "#a3e635" },
+      "GeWi":{ "name": "Gesellschaftswissenschaften",      "className": "sub-gewi",   "color": "#93c5fd" },
+      "Theater": { "name": "Theater",                      "className": "sub-theater","color": "#f472b6" },
+      "3.FS-La": { "name": "3. Fremdsprache Latein",       "className": "sub-3fs",    "color": "#f97316" }
+    },
+    "tags": {
+      "AG":   { "label": "AG",            "className": "tag-ag" },
+      "Rel":  { "label": "Rel",           "className": "tag-rel" },
+      "KStd": { "label": "Klassenstunde", "className": "tag-kstd" },
+      "Test": { "label": "Test",          "className": "tag-test" }
+    }
+  },
+
+  "schedule": {
+    "Mo": [
+      {
+        "startSlot": 1,
+        "endSlot": 1,
+        "items": [
+          { "subject": "*ENREL", "room": "A005", "type": "Rel", "info": "Teilung nach Religionszugehörigkeit" },
+          { "subject": "*ENR GL", "room": "A310", "type": "Rel" },
+          { "subject": "*ENR ME", "room": "A311", "type": "Rel" },
+          { "subject": "*ENR WE", "room": "A106", "type": "Rel" }
+        ],
+        "className": "block-multi",
+        "blockInfo": "Religionsunterricht parallel in mehreren Räumen"
+      },
+      {
+        "startSlot": 2,
+        "endSlot": 2,
+        "items": [
+          { "subject": "MA", "teacher": "PY", "room": "A106" }
+        ]
+      },
+      {
+        "startSlot": 4,
+        "endSlot": 5,
+        "items": [
+          { "subject": "BI", "teacher": "LU", "room": "A203" }
+        ]
+      },
+      {
+        "startSlot": 6,
+        "endSlot": 6,
+        "items": [
+          { "subject": "DE", "teacher": "GL", "room": "A307" }
+        ],
+        "blockInfo": "Arbeitsblätter werden verteilt"
+      },
+      {
+        "startSlot": 7,
+        "endSlot": 7,
+        "items": [
+          { "subject": "EN", "teacher": "AU", "room": "A307", "type": "Test", "info": "Vokabeltest - 10 Minuten" }
+        ]
+      }
+    ],
+
+    "Di": [
+      {
+        "startSlot": 1,
+        "endSlot": 2,
+        "groups": [
+          { "label": "Gruppe A", "items": [ { "subject": "DE", "teacher": "PR", "room": "A104" } ] },
+          { "label": "Gruppe B", "items": [ { "subject": "INF", "teacher": "SÜ", "room": "A-115", "info": "Projektarbeit an Vite-Apps" } ] },
+          { "label": "Gruppe C", "items": [ { "subject": "GeWi", "teacher": "PT", "room": "A311" } ] },
+          { "label": "Gruppe D", "items": [ { "subject": "3.FS-La", "teacher": "SO", "room": "A309" } ] }
+        ],
+        "className": "block-groups",
+        "blockInfo": "Aufteilung nach Kurswahl"
+      },
+      {
+        "startSlot": 3,
+        "endSlot": 3,
+        "items": [
+          { "subject": "INF", "teacher": "SÜ", "room": "A-115" }
+        ]
+      },
+      {
+        "startSlot": 6,
+        "endSlot": 7,
+        "items": [
+          { "subject": "SP", "teacher": "HA", "room": "TH2" }
+        ]
+      },
+      {
+        "startSlot": 8,
+        "endSlot": 9,
+        "items": [
+          { "subject": "Theater", "teacher": "MG", "room": "A102", "type": "AG", "info": "Bühnenprobe" }
+        ]
+      }
+    ],
+
+    "Mi": [
+      {
+        "startSlot": 1,
+        "endSlot": 2,
+        "items": [
+          { "subject": "PH", "teacher": "PY", "room": "A104" }
+        ]
+      },
+      {
+        "startSlot": 4,
+        "endSlot": 5,
+        "items": [
+          { "subject": "MU", "teacher": "RH", "room": "A301" }
+        ]
+      }
+    ],
+
+    "Do": [
+      {
+        "startSlot": 1,
+        "endSlot": 2,
+        "items": [
+          { "subject": "EN", "teacher": "CN", "room": "A206" },
+          { "subject": "BI", "teacher": "ECS", "room": "A207" },
+          { "subject": "MA", "teacher": "HR", "room": "A005" },
+          { "subject": "GeWi", "teacher": "MO", "room": "A104" },
+          { "subject": "MU", "teacher": "KE", "room": "A301" }
+        ],
+        "className": "block-multi",
+        "blockInfo": "Parallelkurse in verschiedenen Räumen"
+      },
+      {
+        "startSlot": 4,
+        "endSlot": 5,
+        "items": [
+          { "subject": "DE", "teacher": "GL", "room": "A307" }
+        ]
+      },
+      {
+        "startSlot": 6,
+        "endSlot": 6,
+        "items": [
+          { "subject": "KStd", "teacher": "GL", "room": "A307", "type": "KStd", "info": "Klassenrat & Orga" }
+        ]
+      },
+      {
+        "startSlot": 9,
+        "endSlot": 9,
+        "items": [
+          { "subject": "3.FS-La", "teacher": "SO", "room": "A309" }
+        ]
+      }
+    ],
+
+    "Fr": [
+      {
+        "startSlot": 1,
+        "endSlot": 2,
+        "items": [
+          { "subject": "MA", "teacher": "PY", "room": "A110" }
+        ]
+      },
+      {
+        "startSlot": 6,
+        "endSlot": 7,
+        "items": [
+          { "subject": "ETH", "teacher": "KR", "room": "A307" }
+        ]
+      },
+      {
+        "startSlot": 6,
+        "endSlot": 7,
+        "items": [
+          { "subject": "*ENREL", "room": "A313", "type": "Rel" },
+          { "subject": "*ENR GL", "room": "A310", "type": "Rel" },
+          { "subject": "*ENR ME", "room": "A008", "type": "Rel" },
+          { "subject": "*ENR WE", "room": "A104", "type": "Rel" }
+        ],
+        "className": "block-multi"
+      },
+      {
+        "startSlot": 8,
+        "endSlot": 8,
+        "items": [
+          { "subject": "BI", "teacher": "LU", "room": "A203" }
+        ]
+      }
+    ]
+  },
+
+  "breaks": [
+    { "slotId": 0, "label": "Frühaufsicht", "showInTimeColumn": true },
+    { "slotId": 3, "label": "Pause", "showInTimeColumn": false }
+  ]
+}
+
+
+hier die Stundenplan.vue: <script setup lang="ts">
+                          import { computed, onMounted, onBeforeUnmount, ref } from "vue";
+                          import data from "../schedule.json";
+
+                          type DayKey = string;
+
+                          interface TimeSlot {
+                            id: number;
+                            label: string;
+                            start?: string;
+                            end?: string;
+                          }
+                          interface Item {
+                            subject: string;
+                            teacher?: string;
+                            room?: string;
+                            type?: string;
+                            className?: string;
+                            color?: string;
+                            info?: string;
+                          }
+                          interface Group {
+                            label?: string;
+                            items: Item[];
+                            className?: string;
+                          }
+                          interface Block {
+                            startSlot: number;
+                            endSlot: number;
+                            items?: Item[];
+                            groups?: Group[];
+                            className?: string;
+                            blockInfo?: string;
+                          }
+                          interface Dictionary {
+                            subjects?: Record<string, { name?: string; className?: string; color?: string }>;
+                            tags?: Record<string, { label?: string; className?: string }>;
+                          }
+                          interface ScheduleJson {
+                            meta: {
+                              title: string;
+                              subtitle?: string;
+                              classLabel?: string;
+                              locale?: string;
+                              highlightToday?: boolean;
+                              showEmptySlots?: boolean;
+                              showTimeColumn?: boolean;
+                              timeColumnLabel?: string;
+                              mode?: "compact" | "expanded";
+                              responsive?: {
+                                mobileBreakpoint?: number;
+                                stickyHeader?: boolean;
+                                stickyTimeColumn?: boolean;
+                              };
+                            };
+                            ui: {
+                              dayLabels?: Record<DayKey, string>;
+                              accentBorderWidth?: number;
+                              accentBorderStyle?: string;
+                              cardRadius?: number;
+                              gridGap?: number;
+                              groupColumnsDesktop?: number;
+                              groupColumnsMobile?: number;
+                              hover?: { scale?: number; shadow?: string };
+                            };
+                            layout: {
+                              days: { key: DayKey }[];
+                              timeSlots: TimeSlot[];
+                            };
+                            dictionary?: Dictionary;
+                            schedule: Record<DayKey, Block[]>;
+                            breaks?: { slotId: number; label?: string; showInTimeColumn?: boolean }[];
+                          }
+
+                          const schedule = data as ScheduleJson;
+
+                          // Responsive
+                          const width = ref<number>(typeof window !== "undefined" ? window.innerWidth : 1024);
+                          const mobileBreakpoint = schedule.meta.responsive?.mobileBreakpoint ?? 768;
+                          const isMobile = computed(() => width.value < mobileBreakpoint);
+                          function onResize() { width.value = window.innerWidth; }
+                          onMounted(() => window.addEventListener("resize", onResize));
+                          onBeforeUnmount(() => window.removeEventListener("resize", onResize));
+
+                          // Sichtbarkeit (alle Tage/Slots, keine A/B/Datum-Checks)
+                          const visibleDays = computed(() => schedule.layout.days.map(d => d.key));
+                          const visibleSlots = computed(() => schedule.layout.timeSlots);
+
+                          // Heute-Highlight
+                          const todayKey = computed(() => {
+                            const d = new Date();
+                            const idx = d.getDay(); // 0 So ... 6 Sa
+                            const map = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+                            const key = map[idx];
+                            return visibleDays.value.includes(key) ? key : null;
+                          });
+
+                          // Rowspan Maps
+                          const startBlockMap = computed(() => {
+                            const map: Record<DayKey, Record<number, Block>> = {};
+                            for (const day of visibleDays.value) {
+                              map[day] = {};
+                              const blocks = schedule.schedule[day] || [];
+                              for (const b of blocks) {
+                                map[day][b.startSlot] = b;
+                              }
+                            }
+                            return map;
+                          });
+                          const coveredMap = computed(() => {
+                            const map: Record<DayKey, Record<number, boolean>> = {};
+                            for (const day of visibleDays.value) {
+                              map[day] = {};
+                              const blocks = schedule.schedule[day] || [];
+                              for (const b of blocks) {
+                                for (let s = b.startSlot + 1; s <= b.endSlot; s++) {
+                                  map[day][s] = true;
+                                }
+                              }
+                            }
+                            return map;
+                          });
+
+                          // Break-Lookup
+                          const breakBySlot = computed(() => {
+                            const byId: Record<number, { slotId: number; label?: string; showInTimeColumn?: boolean }> = {};
+                            (schedule.breaks || []).forEach(b => (byId[b.slotId] = b));
+                            return byId;
+                          });
+
+                          // Dictionary helpers
+                          function subjectName(code: string) {
+                            const dict = schedule.dictionary?.subjects;
+                            const clean = code.replace(/^\*/, "");
+                            return dict?.[clean]?.name || clean;
+                          }
+                          function subjectClass(code: string) {
+                            const dict = schedule.dictionary?.subjects;
+                            const clean = code.replace(/^\*/, "");
+                            return dict?.[clean]?.className || null;
+                          }
+                          function subjectColor(code: string, override?: string) {
+                            if (override) return override;
+                            const dict = schedule.dictionary?.subjects;
+                            const clean = code.replace(/^\*/, "");
+                            return dict?.[clean]?.color || null;
+                          }
+                          function tagInfo(type?: string) {
+                            if (!type) return null;
+                            return schedule.dictionary?.tags?.[type] || null;
+                          }
+
+                          // Helpers
+                          function getBlock(dayKey: DayKey, slotId: number): Block | null {
+                            return startBlockMap.value[dayKey]?.[slotId] || null;
+                          }
+                          </script>
+
+                          <template>
+                            <div class="card timetable-wrapper">
+                              <div class="header">
+                                <div class="title">
+                                  <h2>{{ schedule.meta.title }}</h2>
+                                  <div class="small">
+                                    {{ schedule.meta.subtitle }} · {{ schedule.meta.classLabel }}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Desktop/Table View -->
+                              <div class="table-scroll" v-show="!isMobile">
+                                <table class="timetable" :class="[schedule.meta.mode === 'compact' ? 'compact' : 'expanded']">
+                                  <thead :class="{ sticky: schedule.meta.responsive?.stickyHeader }">
+                                  <tr>
+                                    <th v-if="schedule.meta.showTimeColumn" class="timehead" :class="{ sticky: schedule.meta.responsive?.stickyTimeColumn }">
+                                      {{ schedule.meta.timeColumnLabel }}
+                                    </th>
+                                    <th v-for="day in visibleDays" :key="day"
+                                        :class="['day-header', { today: schedule.meta.highlightToday && todayKey === day }]">
+                                      {{ schedule.ui.dayLabels?.[day] ?? day }}
+                                    </th>
+                                  </tr>
+                                  </thead>
+
+                                  <tbody>
+                                  <tr v-for="slot in visibleSlots" :key="slot.id">
+                                    <td v-if="schedule.meta.showTimeColumn" class="time" :class="{ sticky: schedule.meta.responsive?.stickyTimeColumn }">
+                                      <div class="time-label">
+                                        {{ slot.label }}
+                                        <span v-if="breakBySlot[slot.id]?.showInTimeColumn" class="break-badge">{{ breakBySlot[slot.id]?.label }}</span>
+                                      </div>
+                                    </td>
+
+                                    <template v-for="day in visibleDays" :key="day">
+                                      <td v-if="!coveredMap[day]?.[slot.id]"
+                                          :rowspan="startBlockMap[day]?.[slot.id]?.endSlot
+                                                      ? startBlockMap[day][slot.id].endSlot - startBlockMap[day][slot.id].startSlot + 1
+                                                      : 1"
+                                          class="cell"
+                                          :class="[
+                                              startBlockMap[day]?.[slot.id]?.className,
+                                              { today: schedule.meta.highlightToday && todayKey === day },
+                                              { break: !!breakBySlot[slot.id] }
+                                            ]"
+                                      >
+                                        <!-- Pause-Zelle -->
+                                        <div v-if="breakBySlot[slot.id]" class="pause">
+                                          {{ breakBySlot[slot.id].label || 'Pause' }}
+                                        </div>
+
+                                        <!-- Block-Inhalte -->
+                                        <div v-else-if="startBlockMap[day]?.[slot.id]" class="block"
+                                             :style="{ borderRadius: (schedule.ui.cardRadius || 10) + 'px' }"
+                                        >
+                                          <div v-if="startBlockMap[day][slot.id].blockInfo" class="info-pin" aria-label="Block-Info">
+                                            ⓘ
+                                            <div class="info-bubble">{{ startBlockMap[day][slot.id].blockInfo }}</div>
+                                          </div>
+
+                                          <!-- Gruppen-Grid -->
+                                          <div v-if="startBlockMap[day][slot.id].groups"
+                                               class="groups"
+                                               :style="{
+                                                   gridTemplateColumns: 'repeat(' + (schedule.ui.groupColumnsDesktop || 2) + ', 1fr)',
+                                                   gap: (schedule.ui.gridGap || 8) + 'px'
+                                                 }"
+                                          >
+                                            <div v-for="(group, gi) in startBlockMap[day][slot.id].groups" :key="gi" class="group">
+                                              <div v-if="group.label" class="group-label small">{{ group.label }}</div>
+                                              <div v-for="(item, ii) in group.items" :key="ii"
+                                                   class="lesson"
+                                                   :class="[ item.className, subjectClass(item.subject) ]"
+                                                   :style="{
+                                                       borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
+                                                       borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
+                                                       borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
+                                                     }"
+                                              >
+                                                <div class="lesson-top">
+                                                  <strong class="subject">{{ subjectName(item.subject) }}</strong>
+                                                  <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
+                                                      {{ tagInfo(item.type)?.label }}
+                                                    </span>
+                                                </div>
+                                                <div class="lesson-meta small">
+                                                  <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
+                                                  <span v-if="item.teacher && item.room"> · </span>
+                                                  <span v-if="item.room" class="room">{{ item.room }}</span>
+                                                </div>
+                                                <div v-if="item.info" class="info-pin" aria-label="Info">
+                                                  ⓘ
+                                                  <div class="info-bubble">{{ item.info }}</div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          <!-- Einzel-Items -->
+                                          <div v-else class="items" :style="{ gap: (schedule.ui.gridGap || 8) + 'px' }">
+                                            <div v-for="(item, ii) in startBlockMap[day][slot.id].items" :key="ii"
+                                                 class="lesson"
+                                                 :class="[ item.className, subjectClass(item.subject) ]"
+                                                 :style="{
+                                                     borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
+                                                     borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
+                                                     borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
+                                                   }"
+                                            >
+                                              <div class="lesson-top">
+                                                <strong class="subject">{{ subjectName(item.subject) }}</strong>
+                                                <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
+                                                    {{ tagInfo(item.type)?.label }}
+                                                  </span>
+                                              </div>
+                                              <div class="lesson-meta small">
+                                                <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
+                                                <span v-if="item.teacher && item.room"> · </span>
+                                                <span v-if="item.room" class="room">{{ item.room }}</span>
+                                              </div>
+                                              <div v-if="item.info" class="info-pin" aria-label="Info">
+                                                ⓘ
+                                                <div class="info-bubble">{{ item.info }}</div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <!-- Leere Slots -->
+                                        <div v-else-if="schedule.meta.showEmptySlots" class="empty small">—</div>
+                                      </td>
+                                    </template>
+                                  </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              <!-- Mobile/Card View -->
+                              <div class="mobile-list" v-show="isMobile">
+                                <div v-for="day in visibleDays" :key="day" class="mobile-day">
+                                  <div class="mobile-day-header" :class="{ today: schedule.meta.highlightToday && todayKey === day }">
+                                    {{ schedule.ui.dayLabels?.[day] ?? day }}
+                                  </div>
+
+                                  <div class="mobile-slots">
+                                    <div v-for="slot in visibleSlots" :key="slot.id" class="mobile-slot">
+                                      <div class="mobile-time small">
+                                        {{ slot.label }}
+                                        <span v-if="breakBySlot[slot.id]?.showInTimeColumn" class="break-badge">{{ breakBySlot[slot.id]?.label }}</span>
+                                      </div>
+
+                                      <div v-if="breakBySlot[slot.id]" class="pause-card">
+                                        {{ breakBySlot[slot.id].label || 'Pause' }}
+                                      </div>
+
+                                      <div v-else-if="getBlock(day, slot.id)" class="mobile-block">
+                                        <div v-if="getBlock(day, slot.id)?.blockInfo" class="info-pin" aria-label="Block-Info">
+                                          ⓘ
+                                          <div class="info-bubble">{{ getBlock(day, slot.id)?.blockInfo }}</div>
+                                        </div>
+
+                                        <div v-if="getBlock(day, slot.id)?.groups" class="mobile-groups"
+                                             :style="{
+                                               gridTemplateColumns: 'repeat(' + (schedule.ui.groupColumnsMobile || 1) + ', 1fr)',
+                                               gap: (schedule.ui.gridGap || 8) + 'px'
+                                             }"
+                                        >
+                                          <div v-for="(group, gi) in getBlock(day, slot.id)?.groups" :key="gi" class="mobile-group">
+                                            <div v-if="group.label" class="group-label small">{{ group.label }}</div>
+                                            <div v-for="(item, ii) in group.items" :key="ii"
+                                                 class="lesson"
+                                                 :class="[ item.className, subjectClass(item.subject) ]"
+                                                 :style="{
+                                                   borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
+                                                   borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
+                                                   borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
+                                                 }"
+                                            >
+                                              <div class="lesson-top">
+                                                <strong class="subject">{{ subjectName(item.subject) }}</strong>
+                                                <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
+                                                  {{ tagInfo(item.type)?.label }}
+                                                </span>
+                                              </div>
+                                              <div class="lesson-meta small">
+                                                <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
+                                                <span v-if="item.teacher && item.room"> · </span>
+                                                <span v-if="item.room" class="room">{{ item.room }}</span>
+                                              </div>
+                                              <div v-if="item.info" class="info-pin" aria-label="Info">
+                                                ⓘ
+                                                <div class="info-bubble">{{ item.info }}</div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div v-else class="items" :style="{ gap: (schedule.ui.gridGap || 8) + 'px' }">
+                                          <div v-for="(item, ii) in getBlock(day, slot.id)?.items" :key="ii"
+                                               class="lesson"
+                                               :class="[ item.className, subjectClass(item.subject) ]"
+                                               :style="{
+                                                 borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
+                                                 borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
+                                                 borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
+                                               }"
+                                          >
+                                            <div class="lesson-top">
+                                              <strong class="subject">{{ subjectName(item.subject) }}</strong>
+                                              <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
+                                                {{ tagInfo(item.type)?.label }}
+                                              </span>
+                                            </div>
+                                            <div class="lesson-meta small">
+                                              <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
+                                              <span v-if="item.teacher && item.room"> · </span>
+                                              <span v-if="item.room" class="room">{{ item.room }}</span>
+                                            </div>
+                                            <div v-if="item.info" class="info-pin" aria-label="Info">
+                                              ⓘ
+                                              <div class="info-bubble">{{ item.info }}</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <div v-else-if="schedule.meta.showEmptySlots" class="empty small">—</div>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                            <div class="row" style="gap:8px; align-self:flex-end;">
-                              <button class="btn ghost" v-if="user" @click="showImageForm(item)">Bilder verwalten</button>
-                              <button class="btn ghost" v-if="canManage(item.createdBy)" @click="editItem(item)">Bearbeiten</button>
-                              <button class="btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
-                            </div>
-                          </div>
-                          <div style="white-space: pre-wrap; margin-top:12px;">{{ item.description }}</div>
-                          <div v-if="item.images && item.images.length" style="margin-top:12px;">
-                            <div style="font-weight:600;">Bilder</div>
-                            <div class="row" style="gap:8px; margin-top:8px;">
-                              <div v-for="img in item.images" :key="img.publicId" style="max-width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;">
-                                <a :href="img.url" target="_blank">
-                                  <img :src="img.url" style="width:100%; height:auto;" />
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div v-if="!loading && !filteredItems.length" class="card">
-                          Keine Einträge gefunden.
-                        </div>
-                      </div>
-                    </div>
+                          </template>
 
-                    <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
-                    <ItemForm v-if="showItemForm" :type="tab" :subjects="subjects" :initial="itemToEdit" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" />
-                    <AnnouncementForm v-if="showAnnouncementForm" @close="showAnnouncementForm=false" @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')" />
-                    <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')" />
-                  </template>
+                          <style scoped>
+                          /* Scroll für Desktop */
+                          .table-scroll {
+                            width: 100%;
+                            overflow-x: auto;
+                            -webkit-overflow-scrolling: touch;
+                            scrollbar-width: thin;
+                          }
+                          .table-scroll::-webkit-scrollbar { height: 8px; }
+                          .table-scroll::-webkit-scrollbar-thumb {
+                            background: #2a2a2a;
+                            border-radius: 8px;
+                          }
 
-                  <script setup lang="ts">
-                  import { ref, onMounted, watch, computed } from 'vue';
-                  import AuthModal from '../components/hw/AuthModal.vue';
-                  import ItemForm from '../components/hw/ItemForm.vue';
-                  import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
-                  import ImageForm from '../components/hw/ImageForm.vue'; // new component
-                  import hw, { setHwToken } from '../hwApi';
+                          /* Tabelle */
+                          .timetable {
+                            width: 100%;
+                            border-collapse: collapse;
+                            min-width: 820px; /* genug Platz; bei schmalen Screens horizontal scrollen */
+                          }
+                          thead th, tbody td {
+                            border: 1px solid var(--border);
+                            padding: 8px;
+                            vertical-align: top;
+                          }
 
-                  export interface HwItem {
-                    id: string;
-                    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-                    title: string;
-                    subject: string;
-                    description: string;
-                    images: Array<{ url: string; publicId: string; createdBy: string }>;
-                    dueDate: string;
-                    createdBy: string;
-                    timeColor: string;
-                  }
+                          /* Header */
+                          .day-header {
+                            text-align: center;
+                            background: #151515;
+                          }
+                          thead.sticky .day-header {
+                            position: sticky;
+                            top: 0;
+                            z-index: 2;
+                          }
+                          .day-header.today {
+                            background: var(--primary);
+                            color: #111827;
+                          }
 
-                  const showAuth = ref(false);
-                  const showItemForm = ref(false);
-                  const showAnnouncementForm = ref(false);
-                  const showImageFormFor = ref<any>(null);
+                          .timehead {
+                            width: 180px;
+                            background: #0f0f0f;
+                          }
+                          .time {
+                            color: var(--muted);
+                            width: 180px;
+                            white-space: nowrap;
+                            background: #0f0f0f;
+                          }
+                          .sticky {
+                            position: sticky;
+                            left: 0;
+                            z-index: 3;
+                          }
+                          .time-label {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                          }
+                          .break-badge {
+                            background: var(--warn);
+                            color: #1f1300;
+                            border-radius: 6px;
+                            padding: 2px 6px;
+                            font-size: 11px;
+                          }
 
-                  const user = ref<any>(null);
-                  const tab = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
-                  const subjects = ref<string[]>([]);
-                  const announcements = ref<any[]>([]);
-                  const items = ref<HwItem[]>([]);
-                  const loading = ref(true);
-                  const subjectFilter = ref('');
-                  const itemToEdit = ref<HwItem | null>(null);
+                          /* Zellen */
+                          .cell { position: relative; background: #141414; }
+                          .cell.today { outline: 1px dashed var(--primary); outline-offset: -1px; }
+                          .cell.break { background: #1c1c1c; }
 
-                  const message = ref('');
-                  const isError = ref(false);
+                          .pause {
+                            text-align: center;
+                            font-weight: 600;
+                            color: var(--warn);
+                            padding: 8px 0;
+                          }
 
-                  const colorFor = (color: string) => {
-                    const map = {
-                      'ok': 'var(--primary)',
-                      'warn': 'var(--warn)',
-                      'danger': 'var(--danger)',
-                      'expired': '#4b5563',
-                      'info': '#3b82f6',
-                    };
-                    return map[color] || 'var(--muted)';
-                  };
+                          /* Block */
+                          .block {
+                            position: relative;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 8px;
+                            padding: 4px;
+                          }
+                          .items { display: grid; }
+                          .groups { display: grid; }
 
-                  const filteredItems = computed(() => {
-                    if (!subjectFilter.value) return items.value;
-                    return items.value.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
-                  });
+                          .group {
+                            background: #171717;
+                            border-radius: 10px;
+                            padding: 8px;
+                            box-shadow: 0 0 0 1px rgba(128,128,128,0.2) inset;
+                          }
+                          .group-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 
-                  function canManage(createdBy: string) {
-                    if (!user.value) return false;
-                    return user.value.isAdmin || user.value.id === createdBy;
-                  }
-                  async function loadMe() {
-                    try {
-                      const { data } = await hw.get('/api/auth/me');
-                      user.value = data;
-                    } catch {
-                      user.value = null;
-                    }
-                  }
-                  async function loadSubjects() {
-                    const { data } = await hw.get('/api/subjects');
-                    subjects.value = data;
-                  }
-                  async function loadAnnouncements() {
-                    const { data } = await hw.get('/api/announcements');
-                    announcements.value = data;
-                  }
-                  async function reload() {
-                    loading.value = true;
-                    try {
-                      const { data } = await hw.get('/api/items', { params: { type: tab.value } });
-                      items.value = data;
-                    } catch (e) {
-                      console.error('Failed to load items:', e);
-                    } finally {
-                      loading.value = false;
-                    }
-                  }
+                          /* Lesson card */
+                          .lesson {
+                            background: #181818;
+                            border-radius: 10px;
+                            padding: 8px;
+                            transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+                            box-shadow: 0 0 0 1px rgba(128,128,128,0.2) inset;
+                          }
+                          .lesson:hover {
+                            transform: scale(1.03);
+                            background: var(--primary);
+                            color: #111827;
+                            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+                          }
+                          .lesson-top { display: flex; align-items: center; justify-content: space-between; }
+                          .subject { font-weight: 600; }
+                          .lesson-meta { display: flex; gap: 8px; margin-top: 4px; }
 
-                  function handleSuccess(msg: string) {
-                    message.value = msg;
-                    isError.value = false;
-                    setTimeout(() => message.value = '', 5000);
-                    showItemForm.value = false;
-                    showAnnouncementForm.value = false;
-                    showImageFormFor.value = null;
-                    reload();
-                  }
+                          /* Info tooltip */
+                          .info-pin {
+                            position: relative;
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                            width: 18px; height: 18px;
+                            border-radius: 50%;
+                            margin-top: 6px;
+                            background: #222;
+                            color: var(--muted);
+                            cursor: help;
+                          }
+                          .info-pin:hover { color: #fff; background: #2a2a2a; }
+                          .info-pin .info-bubble {
+                            position: absolute;
+                            left: 22px; top: 50%;
+                            transform: translateY(-50%);
+                            white-space: nowrap;
+                            background: #0f0f0f;
+                            color: var(--text);
+                            border: 1px solid var(--border);
+                            border-radius: 8px;
+                            padding: 6px 8px;
+                            font-size: 12px;
+                            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+                            opacity: 0;
+                            pointer-events: none;
+                            transition: opacity 120ms ease;
+                            z-index: 5;
+                          }
+                          .info-pin:hover .info-bubble { opacity: 1; }
 
-                  function onLoggedIn(token: string) {
-                    setHwToken(token);
-                    showAuth.value = false;
-                    loadMe();
-                    reload();
-                  }
+                          /* Tags */
+                          .tag { padding: 2px 6px; border-radius: 6px; font-size: 11px; color: #111827; background: var(--warn); }
+                          .tag-ag { background: #a78bfa; color: #0b1020; }
+                          .tag-rel { background: #fca5a5; color: #0b1020; }
+                          .tag-kstd { background: #93c5fd; color: #0b1020; }
+                          .tag-test { background: #34d399; color: #0b1020; }
 
-                  function logout() {
-                    setHwToken(null);
-                    user.value = null;
-                  }
+                          /* Multi-Block */
+                          .block-multi .lesson { background: #1d1d1d; }
 
-                  function editItem(item: HwItem) {
-                    itemToEdit.value = item;
-                    showItemForm.value = true;
-                  }
+                          /* Compact/Expanded modes */
+                          .timetable.compact .lesson { padding: 6px; font-size: 13px; }
+                          .timetable.compact .group { padding: 6px; }
+                          .timetable.compact .time { width: 150px; }
+                          .timetable.expanded .lesson { padding: 10px; }
+                          .timetable.expanded .group { padding: 10px; }
 
-                  async function deleteItem(id: string) {
-                    if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
-                      loading.value = true;
-                      try {
-                        await hw.delete(`/api/items/${id}`);
-                        handleSuccess('Eintrag erfolgreich gelöscht.');
-                      } catch (e: any) {
-                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                        isError.value = true;
-                      } finally {
-                        loading.value = false;
-                      }
-                    }
-                  }
+                          /* Mobile/Card View */
+                          .mobile-list { display: none; }
+                          @media (max-width: 768px) {
+                            .mobile-list { display: block; }
+                            .mobile-day { margin-bottom: 16px; }
+                            .mobile-day-header {
+                              position: sticky;
+                              top: 0;
+                              background: #151515;
+                              padding: 8px 12px;
+                              border: 1px solid var(--border);
+                              border-radius: 10px;
+                              z-index: 1;
+                            }
+                            .mobile-day-header.today { background: var(--primary); color: #111827; }
+                            .mobile-slots { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+                            .mobile-slot {
+                              background: #141414;
+                              border: 1px solid var(--border);
+                              border-radius: 10px;
+                              padding: 10px;
+                            }
+                            .mobile-time { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--muted); }
+                            .pause-card {
+                              text-align: center;
+                              font-weight: 600;
+                              color: var(--warn);
+                              background: #1c1c1c;
+                              border-radius: 8px;
+                              padding: 8px;
+                            }
+                            .mobile-block .items,
+                            .mobile-block .mobile-groups { display: grid; gap: 8px; }
+                          }
 
-                  async function deleteAnnouncement(id: string) {
-                    if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
-                      try {
-                        await hw.delete(`/api/announcements/${id}`);
-                        handleSuccess('Ankündigung erfolgreich gelöscht.');
-                      } catch (e: any) {
-                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                        isError.value = true;
-                      }
-                    }
-                  }
+                          /* Subject class hooks (frei belegbar) */
+                          .sub-math {}
+                          .sub-de {}
+                          .sub-en {}
+                          .sub-ph {}
+                          .sub-bi {}
+                          .sub-inf {}
+                          .sub-mu {}
+                          .sub-eth {}
+                          .sub-sp {}
+                          .sub-ek {}
+                          .sub-gewi {}
+                          .sub-theater {}
+                          .sub-3fs {}
+                          </style>
 
-                  function showImageForm(item: HwItem) {
-                    showImageFormFor.value = item;
-                  }
 
-                  onMounted(() => {
-                    loadMe();
-                    loadSubjects();
-                    loadAnnouncements();
-                    reload();
-                  });
+udn hie rla sinfo die allgemeine globale style.css, du solst sie nicht ändenr, nur als hinweis:
 
-                  watch(tab, reload);
-                  </script>
+:root {
+    --bg: #111827;
+    --card: #1a1a1a;
+    --muted: #94a3b8;
+    --text: #b0b0b0;
+    --primary: #22c55e;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --border: grey;
+}
+
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; }
+body {
+    margin: 0;
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+    position: relative;
+}
+
+a { color: var(--primary); text-decoration: none; }
+.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.card {
+    background: linear-gradient(180deg, #1a1a1a, #1a1a1a), var(--card);
+    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;
+}
+.input, select, textarea {
+    width: 100%; padding: 10px 12px; border-radius: 5px;
+    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
+}
+.btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
+}
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn.danger { background: var(--danger); color: white; }
+.btn.warn { background: var(--warn); color: #1f1300; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 240px; }
+.badge { padding: 4px 8px; border-radius: 5px; /*background: #0b1220; /*border: 1px solid var(--border);*/ color: var(--muted); }
+hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+footer { color: var(--muted); font-size: 14px; }
+.small { font-size: 12px; color: var(--muted); }
+.badge:hover { color: white}
+
+
+.full {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.full-c {
+    flex: 1;
+    position: relative;
+}
+
+
+footer {
+    bottom: initial;
+    position: initial;
+    width: initial;
+    height: initial;
+}
+#animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+
+}
+
