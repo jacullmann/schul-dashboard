@@ -53,7 +53,7 @@ const closeNav = () => {
 .header {
   background-color: #1a1a1a;
   color: #f0f0f0;
-  padding: 0.9rem 0;
+  padding: 0.1rem 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
