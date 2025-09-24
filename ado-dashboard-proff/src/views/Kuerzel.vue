@@ -94,7 +94,7 @@ const persons = [
   { name: 'Jung',         title: 'Herr', short: 'Ju' },
   { name: 'Frank',        title: 'Frau', short: 'Fr' },
   { name: 'Kranz',        title: 'Herr', short: 'Kr' },
-  { name: 'Albrecht',     title: 'Frau', short: 'Al' },
+  { name: 'Älbrecht',     title: 'Frau', short: 'Al' },
   { name: 'Voß',          title: 'Herr', short: 'Vo' },
   { name: 'Seidel',       title: 'Frau', short: 'Se' },
   { name: 'Winkler',      title: 'Herr', short: 'Wi' },

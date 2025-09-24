@@ -25,13 +25,50 @@
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p>© {{ year }} — Mexiko</p>
+
+        <!-- 🥚 Geheimer Button -->
+        <button @click="handleClick" class="secret-btn">© Hidden</button>
       </div>
     </div>
+
+    <!-- Overlay -->
+    <EasterEggOverlay v-if="showOverlay" :videoId="videoId" />
   </footer>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+import EasterEggOverlay from "./EasterEggOverlay.vue";
+
 const year = new Date().getFullYear();
+
+const clickCount = ref(0);
+const showOverlay = ref(false);
+
+// 👉 YouTube Video-ID hier eintragen (z.B. "dQw4w9WgXcQ")
+const videoId = "HAfFfqiYLp0";
+
+let timer: number | null = null;
+
+function handleClick() {
+  clickCount.value++;
+
+  if (!timer) {
+    timer = window.setTimeout(() => {
+      clickCount.value = 0;
+      timer = null;
+    }, 2000);
+  }
+
+  if (clickCount.value >= 5) {
+    showOverlay.value = true;
+    clickCount.value = 0;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -93,27 +130,28 @@ const year = new Date().getFullYear();
   align-items: center;
 }
 
-.admin-login-link {
-  color: #b0b0b0;
-  text-decoration: none;
+.secret-btn {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 0.8rem;
   transition: color 0.3s ease;
 }
-
-.admin-login-link:hover {
-  color: #bd34fe;
+.secret-btn:hover {
+  color: #fff;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .footer-columns {
     flex-direction: column;
     gap: 1.5rem;
-    text-align: left; /* Wichtig: Text bleibt linksbündig */
+    text-align: left;
   }
 
   .footer-bottom-content {
     flex-direction: column;
-    align-items: flex-start; /* Wichtig: Inhalt bleibt linksbündig */
+    align-items: flex-start;
     gap: 0.5rem;
   }
 }
