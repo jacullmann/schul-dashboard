@@ -27,7 +27,7 @@
         <p>© {{ year }} — Mexiko</p>
 
         <!-- 🥚 Geheimer Button -->
-        <button @click="handleClick" class="secret-btn">© Hidden</button>
+        <button @click="handleClick" class="secret-btn">Hilfe</button>
       </div>
     </div>
 
@@ -135,12 +135,10 @@ function handleClick() {
   border: none;
   color: #555;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.5rem;
   transition: color 0.3s ease;
 }
-.secret-btn:hover {
-  color: #fff;
-}
+
 
 @media (max-width: 768px) {
   .footer-columns {
