@@ -1,950 +1,855 @@
-hier die schedule.json:  {
-  "meta": {
-    "title": "Stundenplan 10A",
-    "subtitle": "Albrecht-Dürer-Schule",
-    "classLabel": "10A",
-    "locale": "de-DE",
+server.js: import 'dotenv/config';
+           import express from 'express';
+           import mongoose from 'mongoose';
+           import helmet from 'helmet';
+           import cors from 'cors';
+           import morgan from 'morgan';
+           import cookieParser from 'cookie-parser';
+           import rateLimit from 'express-rate-limit';
+           import jwt from 'jsonwebtoken';
+           import bcrypt from 'bcryptjs';
+           import { body, param, query, validationResult } from 'express-validator';
+           import http from 'http';
+           import { Server as SocketIOServer } from 'socket.io';
+           import useragent from 'useragent';
 
-    "highlightToday": true,
-    "showEmptySlots": true,
-    "showTimeColumn": true,
-    "timeColumnLabel": "Zeit",
+           const app = express();
+           const server = http.createServer(app);
+           const io = new SocketIOServer(server, {
+               cors: { origin: process.env.CORS_ORIGIN || '*', credentials: true }
+           });
 
-    "mode": "expanded",
-    "responsive": {
-      "mobileBreakpoint": 768,
-      "stickyHeader": true,
-      "stickyTimeColumn": true
-    }
-  },
+           // Config
+           const PORT = process.env.PORT || 8080;
+           const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
+           const LOG_IP_RAW = String(process.env.LOG_IP_RAW || 'false') === 'true';
 
-  "ui": {
-    "dayLabels": { "Mo": "Mo", "Di": "Di", "Mi": "Mi", "Do": "Do", "Fr": "Fr" },
-    "accentBorderWidth": 4,
-    "accentBorderStyle": "solid",
-    "cardRadius": 10,
-    "gridGap": 8,
-    "groupColumnsDesktop": 2,
-    "groupColumnsMobile": 1,
-    "hover": {
-      "scale": 1.03,
-      "shadow": "0 6px 16px rgba(0,0,0,0.35)"
-    }
-  },
+           // Middleware
+           app.use(helmet({
+               crossOriginResourcePolicy: { policy: "cross-origin" }
+           }));
+           app.use(cors({
+               origin: process.env.CORS_ORIGIN || '*',
+               credentials: true
+           }));
+           app.use(morgan('combined'));
+           app.use(express.json({ limit: '1mb' }));
+           app.use(cookieParser());
 
-  "layout": {
-    "days": [
-      { "key": "Mo" },
-      { "key": "Di" },
-      { "key": "Mi" },
-      { "key": "Do" },
-      { "key": "Fr" }
-    ],
-    "timeSlots": [
-      { "id": 0,  "label": "0 07:00 - 07:45", "start": "07:00", "end": "07:45" },
-      { "id": 1,  "label": "1 08:00 - 08:45", "start": "08:00", "end": "08:45" },
-      { "id": 2,  "label": "2 08:45 - 09:30", "start": "08:45", "end": "09:30" },
-      { "id": 3,  "label": "3 09:55 - 10:40", "start": "09:55", "end": "10:40" },
-      { "id": 4,  "label": "4 10:45 - 11:30", "start": "10:45", "end": "11:30" },
-      { "id": 5,  "label": "5 11:30 - 12:15", "start": "11:30", "end": "12:15" },
-      { "id": 6,  "label": "6 12:55 - 13:40", "start": "12:55", "end": "13:40" },
-      { "id": 7,  "label": "7 13:40 - 14:25", "start": "13:40", "end": "14:25" },
-      { "id": 8,  "label": "8 14:35 - 15:20", "start": "14:35", "end": "15:20" },
-      { "id": 9,  "label": "9 15:40 - 16:25", "start": "15:40", "end": "16:25" },
-      { "id": 10, "label": "10 16:25 - 17:10", "start": "16:25", "end": "17:10" },
-      { "id": 11, "label": "11 17:15 - 18:00", "start": "17:15", "end": "18:00" }
-    ]
-  },
+           // Rate limit
+           const createLimiter = rateLimit({
+               windowMs: 60_000,
+               max: 120,
+               standardHeaders: true,
+               legacyHeaders: false
+           });
+           app.use('/api/', createLimiter);
 
-  "dictionary": {
-    "subjects": {
-      "MA":  { "name": "Mathematik",                      "className": "sub-math",   "color": "#38bdf8" },
-      "DE":  { "name": "Deutsch",                          "className": "sub-de",     "color": "#f87171" },
-      "EN":  { "name": "Englisch",                         "className": "sub-en",     "color": "#22c55e" },
-      "PH":  { "name": "Physik",                           "className": "sub-ph",     "color": "#c084fc" },
-      "BI":  { "name": "Biologie",                         "className": "sub-bi",     "color": "#10b981" },
-      "INF": { "name": "Informatik",                       "className": "sub-inf",    "color": "#fde047" },
-      "MU":  { "name": "Musik",                            "className": "sub-mu",     "color": "#fb7185" },
-      "ETH": { "name": "Ethik",                            "className": "sub-eth",    "color": "#f59e0b" },
-      "SP":  { "name": "Sport",                            "className": "sub-sp",     "color": "#60a5fa" },
-      "EK":  { "name": "Erdkunde",                         "className": "sub-ek",     "color": "#a3e635" },
-      "GeWi":{ "name": "Gesellschaftswissenschaften",      "className": "sub-gewi",   "color": "#93c5fd" },
-      "Theater": { "name": "Theater",                      "className": "sub-theater","color": "#f472b6" },
-      "3.FS-La": { "name": "3. Fremdsprache Latein",       "className": "sub-3fs",    "color": "#f97316" }
-    },
-    "tags": {
-      "AG":   { "label": "AG",            "className": "tag-ag" },
-      "Rel":  { "label": "Rel",           "className": "tag-rel" },
-      "KStd": { "label": "Klassenstunde", "className": "tag-kstd" },
-      "Test": { "label": "Test",          "className": "tag-test" }
-    }
-  },
+           // Mongo
+           await mongoose.connect(process.env.MONGODB_URI, { autoIndex: true });
 
-  "schedule": {
-    "Mo": [
-      {
-        "startSlot": 1,
-        "endSlot": 1,
-        "items": [
-          { "subject": "*ENREL", "room": "A005", "type": "Rel", "info": "Teilung nach Religionszugehörigkeit" },
-          { "subject": "*ENR GL", "room": "A310", "type": "Rel" },
-          { "subject": "*ENR ME", "room": "A311", "type": "Rel" },
-          { "subject": "*ENR WE", "room": "A106", "type": "Rel" }
-        ],
-        "className": "block-multi",
-        "blockInfo": "Religionsunterricht parallel in mehreren Räumen"
-      },
-      {
-        "startSlot": 2,
-        "endSlot": 2,
-        "items": [
-          { "subject": "MA", "teacher": "PY", "room": "A106" }
-        ]
-      },
-      {
-        "startSlot": 4,
-        "endSlot": 5,
-        "items": [
-          { "subject": "BI", "teacher": "LU", "room": "A203" }
-        ]
-      },
-      {
-        "startSlot": 6,
-        "endSlot": 6,
-        "items": [
-          { "subject": "DE", "teacher": "GL", "room": "A307" }
-        ],
-        "blockInfo": "Arbeitsblätter werden verteilt"
-      },
-      {
-        "startSlot": 7,
-        "endSlot": 7,
-        "items": [
-          { "subject": "EN", "teacher": "AU", "room": "A307", "type": "Test", "info": "Vokabeltest - 10 Minuten" }
-        ]
-      }
-    ],
+           // Utilities
+           const TITLES = ['Herr', 'Frau'];
+           const CATEGORIES = ['Freundlichkeit', 'Kompetenz', 'Puenktlichkeit', 'Fairness', 'Erklaeren', 'Organisation'];
 
-    "Di": [
-      {
-        "startSlot": 1,
-        "endSlot": 2,
-        "groups": [
-          { "label": "Gruppe A", "items": [ { "subject": "DE", "teacher": "PR", "room": "A104" } ] },
-          { "label": "Gruppe B", "items": [ { "subject": "INF", "teacher": "SÜ", "room": "A-115", "info": "Projektarbeit an Vite-Apps" } ] },
-          { "label": "Gruppe C", "items": [ { "subject": "GeWi", "teacher": "PT", "room": "A311" } ] },
-          { "label": "Gruppe D", "items": [ { "subject": "3.FS-La", "teacher": "SO", "room": "A309" } ] }
-        ],
-        "className": "block-groups",
-        "blockInfo": "Aufteilung nach Kurswahl"
-      },
-      {
-        "startSlot": 3,
-        "endSlot": 3,
-        "items": [
-          { "subject": "INF", "teacher": "SÜ", "room": "A-115" }
-        ]
-      },
-      {
-        "startSlot": 6,
-        "endSlot": 7,
-        "items": [
-          { "subject": "SP", "teacher": "HA", "room": "TH2" }
-        ]
-      },
-      {
-        "startSlot": 8,
-        "endSlot": 9,
-        "items": [
-          { "subject": "Theater", "teacher": "MG", "room": "A102", "type": "AG", "info": "Bühnenprobe" }
-        ]
-      }
-    ],
+           function getClientIP(req) {
+               const fwd = req.headers['x-forwarded-for'];
+               if (fwd) return String(fwd).split(',')[0].trim();
+               return req.ip || req.connection?.remoteAddress || '';
+           }
 
-    "Mi": [
-      {
-        "startSlot": 1,
-        "endSlot": 2,
-        "items": [
-          { "subject": "PH", "teacher": "PY", "room": "A104" }
-        ]
-      },
-      {
-        "startSlot": 4,
-        "endSlot": 5,
-        "items": [
-          { "subject": "MU", "teacher": "RH", "room": "A301" }
-        ]
-      }
-    ],
+           function normalizeNameUpper(name) {
+               return (name || '').trim().replace(/\s+/g, ' ').toUpperCase();
+           }
 
-    "Do": [
-      {
-        "startSlot": 1,
-        "endSlot": 2,
-        "items": [
-          { "subject": "EN", "teacher": "CN", "room": "A206" },
-          { "subject": "BI", "teacher": "ECS", "room": "A207" },
-          { "subject": "MA", "teacher": "HR", "room": "A005" },
-          { "subject": "GeWi", "teacher": "MO", "room": "A104" },
-          { "subject": "MU", "teacher": "KE", "room": "A301" }
-        ],
-        "className": "block-multi",
-        "blockInfo": "Parallelkurse in verschiedenen Räumen"
-      },
-      {
-        "startSlot": 4,
-        "endSlot": 5,
-        "items": [
-          { "subject": "DE", "teacher": "GL", "room": "A307" }
-        ]
-      },
-      {
-        "startSlot": 6,
-        "endSlot": 6,
-        "items": [
-          { "subject": "KStd", "teacher": "GL", "room": "A307", "type": "KStd", "info": "Klassenrat & Orga" }
-        ]
-      },
-      {
-        "startSlot": 9,
-        "endSlot": 9,
-        "items": [
-          { "subject": "3.FS-La", "teacher": "SO", "room": "A309" }
-        ]
-      }
-    ],
+           function hasBannedWord(text, bannedWords) {
+               if (!text) return false;
+               const str = String(text).toLowerCase();
+               for (const w of bannedWords) {
+                   const word = String(w.word || w).toLowerCase().trim();
+                   if (!word) continue;
+                   // Whole word or substring? For moderation we use word-boundaries and also substring for obvious slurs
+                   const re = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i');
+                   if (re.test(str) || str.includes(word)) return true;
+               }
+               return false;
+           }
 
-    "Fr": [
-      {
-        "startSlot": 1,
-        "endSlot": 2,
-        "items": [
-          { "subject": "MA", "teacher": "PY", "room": "A110" }
-        ]
-      },
-      {
-        "startSlot": 6,
-        "endSlot": 7,
-        "items": [
-          { "subject": "ETH", "teacher": "KR", "room": "A307" }
-        ]
-      },
-      {
-        "startSlot": 6,
-        "endSlot": 7,
-        "items": [
-          { "subject": "*ENREL", "room": "A313", "type": "Rel" },
-          { "subject": "*ENR GL", "room": "A310", "type": "Rel" },
-          { "subject": "*ENR ME", "room": "A008", "type": "Rel" },
-          { "subject": "*ENR WE", "room": "A104", "type": "Rel" }
-        ],
-        "className": "block-multi"
-      },
-      {
-        "startSlot": 8,
-        "endSlot": 8,
-        "items": [
-          { "subject": "BI", "teacher": "LU", "room": "A203" }
-        ]
-      }
-    ]
-  },
+           function escapeRegex(s) {
+               return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+           }
 
-  "breaks": [
-    { "slotId": 0, "label": "Frühaufsicht", "showInTimeColumn": true },
-    { "slotId": 3, "label": "Pause", "showInTimeColumn": false }
-  ]
-}
+           function computeOverall(categories) {
+               // average of provided category values
+               const vals = CATEGORIES.map(k => Number(categories[k])).filter(v => Number.isFinite(v));
+               if (!vals.length) return 0;
+               const sum = vals.reduce((a, b) => a + b, 0);
+               return Number((sum / vals.length).toFixed(2));
+           }
 
+           function parseUA(ua) {
+               try {
+                   const a = useragent.parse(ua || '');
+                   return `${a.family} ${a.major || ''} on ${a.os?.family || ''}`;
+               } catch {
+                   return ua || '';
+               }
+           }
 
-hier die Stundenplan.vue: <script setup lang="ts">
-                          import { computed, onMounted, onBeforeUnmount, ref } from "vue";
-                          import data from "../schedule.json";
+           // Schemas
+           const PersonSchema = new mongoose.Schema({
+               title: { type: String, enum: TITLES, required: true },
+               nameUpper: { type: String, required: true, index: true },
+               createdAt: { type: Date, default: Date.now },
+               stats: {
+                   ratingsCount: { type: Number, default: 0 },
+                   avgOverall: { type: Number, default: 0 },
+                   categoryAverages: {
+                       Freundlichkeit: { type: Number, default: 0 },
+                       Kompetenz: { type: Number, default: 0 },
+                       Puenktlichkeit: { type: Number, default: 0 },
+                       Fairness: { type: Number, default: 0 },
+                       Erklaeren: { type: Number, default: 0 },
+                       Organisation: { type: Number, default: 0 }
+                   }
+               }
+           }, { timestamps: true });
+           PersonSchema.index({ title: 1, nameUpper: 1 }, { unique: true });
 
-                          type DayKey = string;
+           const RatingSchema = new mongoose.Schema({
+               person: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', index: true, required: true },
+               categories: {
+                   Freundlichkeit: { type: Number, min: 1, max: 6, required: true },
+                   Kompetenz: { type: Number, min: 1, max: 6, required: true },
+                   Puenktlichkeit: { type: Number, min: 1, max: 6, required: true },
+                   Fairness: { type: Number, min: 1, max: 6, required: true },
+                   Erklaeren: { type: Number, min: 1, max: 6, required: true },
+                   Organisation: { type: Number, min: 1, max: 6, required: true }
+               },
+               overall: { type: Number, min: 1, max: 6, required: true },
+               anonUserId: { type: String, required: true },
+               ip: { type: String },
+               userAgent: { type: String },
+               createdAt: { type: Date, default: Date.now }
+           }, { timestamps: true });
 
-                          interface TimeSlot {
-                            id: number;
-                            label: string;
-                            start?: string;
-                            end?: string;
-                          }
-                          interface Item {
-                            subject: string;
-                            teacher?: string;
-                            room?: string;
-                            type?: string;
-                            className?: string;
-                            color?: string;
-                            info?: string;
-                          }
-                          interface Group {
-                            label?: string;
-                            items: Item[];
-                            className?: string;
-                          }
-                          interface Block {
-                            startSlot: number;
-                            endSlot: number;
-                            items?: Item[];
-                            groups?: Group[];
-                            className?: string;
-                            blockInfo?: string;
-                          }
-                          interface Dictionary {
-                            subjects?: Record<string, { name?: string; className?: string; color?: string }>;
-                            tags?: Record<string, { label?: string; className?: string }>;
-                          }
-                          interface ScheduleJson {
-                            meta: {
-                              title: string;
-                              subtitle?: string;
-                              classLabel?: string;
-                              locale?: string;
-                              highlightToday?: boolean;
-                              showEmptySlots?: boolean;
-                              showTimeColumn?: boolean;
-                              timeColumnLabel?: string;
-                              mode?: "compact" | "expanded";
-                              responsive?: {
-                                mobileBreakpoint?: number;
-                                stickyHeader?: boolean;
-                                stickyTimeColumn?: boolean;
-                              };
-                            };
-                            ui: {
-                              dayLabels?: Record<DayKey, string>;
-                              accentBorderWidth?: number;
-                              accentBorderStyle?: string;
-                              cardRadius?: number;
-                              gridGap?: number;
-                              groupColumnsDesktop?: number;
-                              groupColumnsMobile?: number;
-                              hover?: { scale?: number; shadow?: string };
-                            };
-                            layout: {
-                              days: { key: DayKey }[];
-                              timeSlots: TimeSlot[];
-                            };
-                            dictionary?: Dictionary;
-                            schedule: Record<DayKey, Block[]>;
-                            breaks?: { slotId: number; label?: string; showInTimeColumn?: boolean }[];
-                          }
+           const MessageSchema = new mongoose.Schema({
+               person: { type: mongoose.Schema.Types.ObjectId, ref: 'Person', index: true, required: true },
+               content: { type: String, required: true, maxlength: 2000 },
+               anonUserId: { type: String, required: true },
+               isAdmin: { type: Boolean, default: false },
+               pinned: { type: Boolean, default: false },
+               ip: { type: String },
+               userAgent: { type: String },
+               createdAt: { type: Date, default: Date.now }
+           }, { timestamps: true });
 
-                          const schedule = data as ScheduleJson;
+           const BannedWordSchema = new mongoose.Schema({
+               word: { type: String, required: true, unique: true, trim: true }
+           }, { timestamps: true });
 
-                          // Responsive
-                          const width = ref<number>(typeof window !== "undefined" ? window.innerWidth : 1024);
-                          const mobileBreakpoint = schedule.meta.responsive?.mobileBreakpoint ?? 768;
-                          const isMobile = computed(() => width.value < mobileBreakpoint);
-                          function onResize() { width.value = window.innerWidth; }
-                          onMounted(() => window.addEventListener("resize", onResize));
-                          onBeforeUnmount(() => window.removeEventListener("resize", onResize));
+           const AdminSchema = new mongoose.Schema({
+               email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+               passwordHash: { type: String, required: true }
+           }, { timestamps: true });
 
-                          // Sichtbarkeit (alle Tage/Slots, keine A/B/Datum-Checks)
-                          const visibleDays = computed(() => schedule.layout.days.map(d => d.key));
-                          const visibleSlots = computed(() => schedule.layout.timeSlots);
+           const Person = mongoose.model('Person', PersonSchema);
+           const Rating = mongoose.model('Rating', RatingSchema);
+           const Message = mongoose.model('Message', MessageSchema);
+           const BannedWord = mongoose.model('BannedWord', BannedWordSchema);
+           const Admin = mongoose.model('Admin', AdminSchema);
 
-                          // Heute-Highlight
-                          const todayKey = computed(() => {
-                            const d = new Date();
-                            const idx = d.getDay(); // 0 So ... 6 Sa
-                            const map = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
-                            const key = map[idx];
-                            return visibleDays.value.includes(key) ? key : null;
-                          });
+           // Seed admin on startup
+           async function ensureAdmin() {
+               const email = process.env.ADMIN_EMAIL;
+               const pw = process.env.ADMIN_PASSWORD;
+               const pwh = process.env.ADMIN_PASSWORD_HASH;
+               if (!email || (!pw && !pwh)) return;
+               let admin = await Admin.findOne({ email });
+               if (!admin) {
+                   const hash = pwh || await bcrypt.hash(pw, 12);
+                   admin = await Admin.create({ email, passwordHash: hash });
+               }
+           }
+           await ensureAdmin();
 
-                          // Rowspan Maps
-                          const startBlockMap = computed(() => {
-                            const map: Record<DayKey, Record<number, Block>> = {};
-                            for (const day of visibleDays.value) {
-                              map[day] = {};
-                              const blocks = schedule.schedule[day] || [];
-                              for (const b of blocks) {
-                                map[day][b.startSlot] = b;
-                              }
-                            }
-                            return map;
-                          });
-                          const coveredMap = computed(() => {
-                            const map: Record<DayKey, Record<number, boolean>> = {};
-                            for (const day of visibleDays.value) {
-                              map[day] = {};
-                              const blocks = schedule.schedule[day] || [];
-                              for (const b of blocks) {
-                                for (let s = b.startSlot + 1; s <= b.endSlot; s++) {
-                                  map[day][s] = true;
-                                }
-                              }
-                            }
-                            return map;
-                          });
+           // Auth middleware
+           function requireAdmin(req, res, next) {
+               const hdr = req.headers.authorization || '';
+               const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+               if (!token) return res.status(401).json({ error: 'Unauthorized' });
+               try {
+                   const payload = jwt.verify(token, JWT_SECRET);
+                   req.admin = payload;
+                   next();
+               } catch {
+                   return res.status(401).json({ error: 'Unauthorized' });
+               }
+           }
 
-                          // Break-Lookup
-                          const breakBySlot = computed(() => {
-                            const byId: Record<number, { slotId: number; label?: string; showInTimeColumn?: boolean }> = {};
-                            (schedule.breaks || []).forEach(b => (byId[b.slotId] = b));
-                            return byId;
-                          });
+           // Validation helpers
+           const validateCategories = [
+               ...CATEGORIES.map(k => body(`categories.${k}`).isInt({ min: 1, max: 6 }).withMessage(`${k} 1-6`))
+           ];
 
-                          // Dictionary helpers
-                          function subjectName(code: string) {
-                            const dict = schedule.dictionary?.subjects;
-                            const clean = code.replace(/^\*/, "");
-                            return dict?.[clean]?.name || clean;
-                          }
-                          function subjectClass(code: string) {
-                            const dict = schedule.dictionary?.subjects;
-                            const clean = code.replace(/^\*/, "");
-                            return dict?.[clean]?.className || null;
-                          }
-                          function subjectColor(code: string, override?: string) {
-                            if (override) return override;
-                            const dict = schedule.dictionary?.subjects;
-                            const clean = code.replace(/^\*/, "");
-                            return dict?.[clean]?.color || null;
-                          }
-                          function tagInfo(type?: string) {
-                            if (!type) return null;
-                            return schedule.dictionary?.tags?.[type] || null;
-                          }
+           // Aggregation
+           async function recomputePersonStats(personId) {
+               const ratings = await Rating.find({ person: personId }).lean();
+               const count = ratings.length;
+               const catSums = Object.fromEntries(CATEGORIES.map(k => [k, 0]));
+               for (const r of ratings) {
+                   for (const k of CATEGORIES) catSums[k] += Number(r.categories[k] || 0);
+               }
+               const catAvgs = Object.fromEntries(CATEGORIES.map(k => [k, count ? Number((catSums[k] / count).toFixed(2)) : 0]));
+               const overall = count ? Number((
+                   CATEGORIES.map(k => catAvgs[k]).reduce((a, b) => a + b, 0) / CATEGORIES.length
+               ).toFixed(2)) : 0;
+               await Person.findByIdAndUpdate(personId, {
+                   $set: {
+                       'stats.ratingsCount': count,
+                       'stats.categoryAverages': catAvgs,
+                       'stats.avgOverall': overall
+                   }
+               });
+           }
 
-                          // Helpers
-                          function getBlock(dayKey: DayKey, slotId: number): Block | null {
-                            return startBlockMap.value[dayKey]?.[slotId] || null;
-                          }
-                          </script>
+           // Routes
 
-                          <template>
-                            <div class="card timetable-wrapper">
-                              <div class="header">
-                                <div class="title">
-                                  <h2>{{ schedule.meta.title }}</h2>
-                                  <div class="small">
-                                    {{ schedule.meta.subtitle }} · {{ schedule.meta.classLabel }}
-                                  </div>
-                                </div>
-                              </div>
+           // Admin login
+           app.post('/api/admin/login',
+               body('email').isEmail(),
+               body('password').isString().isLength({ min: 6 }),
+               async (req, res) => {
+                   const errors = validationResult(req);
+                   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+                   const { email, password } = req.body;
+                   const admin = await Admin.findOne({ email });
+                   if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+                   const ok = await bcrypt.compare(password, admin.passwordHash);
+                   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+                   const token = jwt.sign({ sub: admin._id, email }, JWT_SECRET, { expiresIn: '12h' });
+                   res.json({ token });
+               }
+           );
 
-                              <!-- Desktop/Table View -->
-                              <div class="table-scroll" v-show="!isMobile">
-                                <table class="timetable" :class="[schedule.meta.mode === 'compact' ? 'compact' : 'expanded']">
-                                  <thead :class="{ sticky: schedule.meta.responsive?.stickyHeader }">
-                                  <tr>
-                                    <th v-if="schedule.meta.showTimeColumn" class="timehead" :class="{ sticky: schedule.meta.responsive?.stickyTimeColumn }">
-                                      {{ schedule.meta.timeColumnLabel }}
-                                    </th>
-                                    <th v-for="day in visibleDays" :key="day"
-                                        :class="['day-header', { today: schedule.meta.highlightToday && todayKey === day }]">
-                                      {{ schedule.ui.dayLabels?.[day] ?? day }}
-                                    </th>
-                                  </tr>
-                                  </thead>
+           // Create rating (auto-create/find person)
+           app.post('/api/ratings',
+               body('title').isIn(TITLES),
+               body('name').isString().isLength({ min: 2, max: 100 }),
+               body('anonUserId').isString().isLength({ min: 6, max: 64 }),
+               ...validateCategories,
+               async (req, res) => {
+                   const errors = validationResult(req);
+                   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-                                  <tbody>
-                                  <tr v-for="slot in visibleSlots" :key="slot.id">
-                                    <td v-if="schedule.meta.showTimeColumn" class="time" :class="{ sticky: schedule.meta.responsive?.stickyTimeColumn }">
-                                      <div class="time-label">
-                                        {{ slot.label }}
-                                        <span v-if="breakBySlot[slot.id]?.showInTimeColumn" class="break-badge">{{ breakBySlot[slot.id]?.label }}</span>
-                                      </div>
-                                    </td>
+                   const banned = await BannedWord.find({}).lean();
+                   const { title } = req.body;
+                   const nameUpper = normalizeNameUpper(req.body.name);
+                   if (hasBannedWord(nameUpper, banned)) {
+                       return res.status(400).json({ error: 'Unangemessener Name' });
+                   }
+                   const categories = {};
+                   for (const k of CATEGORIES) categories[k] = Number(req.body.categories[k]);
 
-                                    <template v-for="day in visibleDays" :key="day">
-                                      <td v-if="!coveredMap[day]?.[slot.id]"
-                                          :rowspan="startBlockMap[day]?.[slot.id]?.endSlot
-                                                      ? startBlockMap[day][slot.id].endSlot - startBlockMap[day][slot.id].startSlot + 1
-                                                      : 1"
-                                          class="cell"
-                                          :class="[
-                                              startBlockMap[day]?.[slot.id]?.className,
-                                              { today: schedule.meta.highlightToday && todayKey === day },
-                                              { break: !!breakBySlot[slot.id] }
-                                            ]"
-                                      >
-                                        <!-- Pause-Zelle -->
-                                        <div v-if="breakBySlot[slot.id]" class="pause">
-                                          {{ breakBySlot[slot.id].label || 'Pause' }}
-                                        </div>
+                   const overall = computeOverall(categories);
 
-                                        <!-- Block-Inhalte -->
-                                        <div v-else-if="startBlockMap[day]?.[slot.id]" class="block"
-                                             :style="{ borderRadius: (schedule.ui.cardRadius || 10) + 'px' }"
-                                        >
-                                          <div v-if="startBlockMap[day][slot.id].blockInfo" class="info-pin" aria-label="Block-Info">
-                                            ⓘ
-                                            <div class="info-bubble">{{ startBlockMap[day][slot.id].blockInfo }}</div>
-                                          </div>
+                   let person = await Person.findOne({ title, nameUpper });
+                   if (!person) {
+                       person = await Person.create({ title, nameUpper });
+                   }
 
-                                          <!-- Gruppen-Grid -->
-                                          <div v-if="startBlockMap[day][slot.id].groups"
-                                               class="groups"
-                                               :style="{
-                                                   gridTemplateColumns: 'repeat(' + (schedule.ui.groupColumnsDesktop || 2) + ', 1fr)',
-                                                   gap: (schedule.ui.gridGap || 8) + 'px'
-                                                 }"
-                                          >
-                                            <div v-for="(group, gi) in startBlockMap[day][slot.id].groups" :key="gi" class="group">
-                                              <div v-if="group.label" class="group-label small">{{ group.label }}</div>
-                                              <div v-for="(item, ii) in group.items" :key="ii"
-                                                   class="lesson"
-                                                   :class="[ item.className, subjectClass(item.subject) ]"
-                                                   :style="{
-                                                       borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
-                                                       borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
-                                                       borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
-                                                     }"
-                                              >
-                                                <div class="lesson-top">
-                                                  <strong class="subject">{{ subjectName(item.subject) }}</strong>
-                                                  <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
-                                                      {{ tagInfo(item.type)?.label }}
-                                                    </span>
-                                                </div>
-                                                <div class="lesson-meta small">
-                                                  <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
-                                                  <span v-if="item.teacher && item.room"> · </span>
-                                                  <span v-if="item.room" class="room">{{ item.room }}</span>
-                                                </div>
-                                                <div v-if="item.info" class="info-pin" aria-label="Info">
-                                                  ⓘ
-                                                  <div class="info-bubble">{{ item.info }}</div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          </div>
+                   const ipRaw = getClientIP(req);
+                   const ip = LOG_IP_RAW ? ipRaw : ''; // DSGVO: optional
+                   const agent = parseUA(req.headers['user-agent']);
 
-                                          <!-- Einzel-Items -->
-                                          <div v-else class="items" :style="{ gap: (schedule.ui.gridGap || 8) + 'px' }">
-                                            <div v-for="(item, ii) in startBlockMap[day][slot.id].items" :key="ii"
-                                                 class="lesson"
-                                                 :class="[ item.className, subjectClass(item.subject) ]"
-                                                 :style="{
-                                                     borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
-                                                     borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
-                                                     borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
-                                                   }"
-                                            >
-                                              <div class="lesson-top">
-                                                <strong class="subject">{{ subjectName(item.subject) }}</strong>
-                                                <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
-                                                    {{ tagInfo(item.type)?.label }}
-                                                  </span>
-                                              </div>
-                                              <div class="lesson-meta small">
-                                                <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
-                                                <span v-if="item.teacher && item.room"> · </span>
-                                                <span v-if="item.room" class="room">{{ item.room }}</span>
-                                              </div>
-                                              <div v-if="item.info" class="info-pin" aria-label="Info">
-                                                ⓘ
-                                                <div class="info-bubble">{{ item.info }}</div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
+                   const rating = await Rating.create({
+                       person: person._id,
+                       categories,
+                       overall,
+                       anonUserId: req.body.anonUserId,
+                       ip,
+                       userAgent: agent
+                   });
 
-                                        <!-- Leere Slots -->
-                                        <div v-else-if="schedule.meta.showEmptySlots" class="empty small">—</div>
-                                      </td>
-                                    </template>
-                                  </tr>
-                                  </tbody>
-                                </table>
-                              </div>
+                   await recomputePersonStats(person._id);
 
-                              <!-- Mobile/Card View -->
-                              <div class="mobile-list" v-show="isMobile">
-                                <div v-for="day in visibleDays" :key="day" class="mobile-day">
-                                  <div class="mobile-day-header" :class="{ today: schedule.meta.highlightToday && todayKey === day }">
-                                    {{ schedule.ui.dayLabels?.[day] ?? day }}
-                                  </div>
+                   res.status(201).json({ ok: true, ratingId: rating._id });
+               }
+           );
 
-                                  <div class="mobile-slots">
-                                    <div v-for="slot in visibleSlots" :key="slot.id" class="mobile-slot">
-                                      <div class="mobile-time small">
-                                        {{ slot.label }}
-                                        <span v-if="breakBySlot[slot.id]?.showInTimeColumn" class="break-badge">{{ breakBySlot[slot.id]?.label }}</span>
-                                      </div>
+           // List persons with search/filter/sort
+           app.get('/api/persons',
+               query('q').optional().isString(),
+               query('title').optional().isIn(TITLES),
+               query('sort').optional().isIn(['name', 'avg', 'count']),
+               async (req, res) => {
+                   const { q, title, sort = 'name' } = req.query;
+                   const filter = {};
+                   if (title) filter.title = title;
+                   if (q) filter.nameUpper = { $regex: escapeRegex(String(q).toUpperCase()), $options: 'i' };
+                   let sortObj = { nameUpper: 1 };
+                   if (sort === 'avg') sortObj = { 'stats.avgOverall': 1, nameUpper: 1 };
+                   if (sort === 'count') sortObj = { 'stats.ratingsCount': -1, nameUpper: 1 };
+                   const persons = await Person.find(filter).sort(sortObj).limit(200).lean();
+                   res.json(persons.map(p => ({
+                       id: p._id,
+                       title: p.title,
+                       nameUpper: p.nameUpper,
+                       ratingsCount: p.stats?.ratingsCount || 0,
+                       avgOverall: p.stats?.avgOverall || 0
+                   })));
+               }
+           );
 
-                                      <div v-if="breakBySlot[slot.id]" class="pause-card">
-                                        {{ breakBySlot[slot.id].label || 'Pause' }}
-                                      </div>
+           // Person detail with category averages
+           app.get('/api/persons/:id',
+               param('id').isMongoId(),
+               async (req, res) => {
+                   const p = await Person.findById(req.params.id).lean();
+                   if (!p) return res.status(404).json({ error: 'Not found' });
+                   res.json({
+                       id: p._id,
+                       title: p.title,
+                       nameUpper: p.nameUpper,
+                       ratingsCount: p.stats?.ratingsCount || 0,
+                       avgOverall: p.stats?.avgOverall || 0,
+                       categoryAverages: p.stats?.categoryAverages || {}
+                   });
+               }
+           );
 
-                                      <div v-else-if="getBlock(day, slot.id)" class="mobile-block">
-                                        <div v-if="getBlock(day, slot.id)?.blockInfo" class="info-pin" aria-label="Block-Info">
-                                          ⓘ
-                                          <div class="info-bubble">{{ getBlock(day, slot.id)?.blockInfo }}</div>
-                                        </div>
+           // Messages
+           app.get('/api/persons/:id/messages',
+               param('id').isMongoId(),
+               async (req, res) => {
+                   const msgs = await Message.find({ person: req.params.id })
+                       .sort({ pinned: -1, createdAt: -1 })
+                       .limit(200)
+                       .lean();
+                   res.json(msgs.map(m => ({
+                       id: m._id,
+                       content: m.content,
+                       anonUserId: m.anonUserId,
+                       isAdmin: m.isAdmin,
+                       pinned: m.pinned,
+                       createdAt: m.createdAt
+                   })));
+               }
+           );
 
-                                        <div v-if="getBlock(day, slot.id)?.groups" class="mobile-groups"
-                                             :style="{
-                                               gridTemplateColumns: 'repeat(' + (schedule.ui.groupColumnsMobile || 1) + ', 1fr)',
-                                               gap: (schedule.ui.gridGap || 8) + 'px'
-                                             }"
-                                        >
-                                          <div v-for="(group, gi) in getBlock(day, slot.id)?.groups" :key="gi" class="mobile-group">
-                                            <div v-if="group.label" class="group-label small">{{ group.label }}</div>
-                                            <div v-for="(item, ii) in group.items" :key="ii"
-                                                 class="lesson"
-                                                 :class="[ item.className, subjectClass(item.subject) ]"
-                                                 :style="{
-                                                   borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
-                                                   borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
-                                                   borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
-                                                 }"
-                                            >
-                                              <div class="lesson-top">
-                                                <strong class="subject">{{ subjectName(item.subject) }}</strong>
-                                                <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
-                                                  {{ tagInfo(item.type)?.label }}
-                                                </span>
-                                              </div>
-                                              <div class="lesson-meta small">
-                                                <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
-                                                <span v-if="item.teacher && item.room"> · </span>
-                                                <span v-if="item.room" class="room">{{ item.room }}</span>
-                                              </div>
-                                              <div v-if="item.info" class="info-pin" aria-label="Info">
-                                                ⓘ
-                                                <div class="info-bubble">{{ item.info }}</div>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
+           app.post('/api/persons/:id/messages',
+               param('id').isMongoId(),
+               body('content').isString().isLength({ min: 1, max: 2000 }),
+               body('anonUserId').isString().isLength({ min: 6, max: 64 }),
+               async (req, res) => {
+                   const errors = validationResult(req);
+                   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+                   const person = await Person.findById(req.params.id);
+                   if (!person) return res.status(404).json({ error: 'Not found' });
 
-                                        <div v-else class="items" :style="{ gap: (schedule.ui.gridGap || 8) + 'px' }">
-                                          <div v-for="(item, ii) in getBlock(day, slot.id)?.items" :key="ii"
-                                               class="lesson"
-                                               :class="[ item.className, subjectClass(item.subject) ]"
-                                               :style="{
-                                                 borderLeftColor: subjectColor(item.subject, item.color) || 'transparent',
-                                                 borderLeftWidth: (schedule.ui.accentBorderWidth || 4) + 'px',
-                                                 borderLeftStyle: schedule.ui.accentBorderStyle || 'solid'
-                                               }"
-                                          >
-                                            <div class="lesson-top">
-                                              <strong class="subject">{{ subjectName(item.subject) }}</strong>
-                                              <span v-if="tagInfo(item.type)" class="tag" :class="tagInfo(item.type)?.className">
-                                                {{ tagInfo(item.type)?.label }}
-                                              </span>
-                                            </div>
-                                            <div class="lesson-meta small">
-                                              <span v-if="item.teacher" class="teacher">{{ item.teacher }}</span>
-                                              <span v-if="item.teacher && item.room"> · </span>
-                                              <span v-if="item.room" class="room">{{ item.room }}</span>
-                                            </div>
-                                            <div v-if="item.info" class="info-pin" aria-label="Info">
-                                              ⓘ
-                                              <div class="info-bubble">{{ item.info }}</div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
+                   const banned = await BannedWord.find({}).lean();
+                   if (hasBannedWord(req.body.content, banned)) {
+                       return res.status(400).json({ error: 'Unangemessener Inhalt' });
+                   }
 
-                                      <div v-else-if="schedule.meta.showEmptySlots" class="empty small">—</div>
-                                    </div>
-                                  </div>
-                                </div>
+                   const ipRaw = getClientIP(req);
+                   const ip = LOG_IP_RAW ? ipRaw : '';
+                   const agent = parseUA(req.headers['user-agent']);
+
+                   const msg = await Message.create({
+                       person: person._id,
+                       content: req.body.content,
+                       anonUserId: req.body.anonUserId,
+                       isAdmin: false,
+                       pinned: false,
+                       ip,
+                       userAgent: agent
+                   });
+
+                   const payload = {
+                       id: msg._id.toString(),
+                       personId: person._id.toString(),
+                       content: msg.content,
+                       anonUserId: msg.anonUserId,
+                       isAdmin: msg.isAdmin,
+                       pinned: msg.pinned,
+                       createdAt: msg.createdAt
+                   };
+                   io.to(person._id.toString()).emit('message:new', payload);
+
+                   res.status(201).json({ ok: true, id: msg._id });
+               }
+           );
+
+           // Admin: view ratings/messages with metadata
+           app.get('/api/admin/persons/:id/ratings', requireAdmin, async (req, res) => {
+               const list = await Rating.find({ person: req.params.id }).sort({ createdAt: -1 }).lean();
+               res.json(list.map(r => ({
+                   id: r._id,
+                   categories: r.categories,
+                   overall: r.overall,
+                   anonUserId: r.anonUserId,
+                   ip: r.ip,
+                   userAgent: r.userAgent,
+                   createdAt: r.createdAt
+               })));
+           });
+
+           app.get('/api/admin/persons/:id/messages', requireAdmin, async (req, res) => {
+               const list = await Message.find({ person: req.params.id }).sort({ pinned: -1, createdAt: -1 }).lean();
+               res.json(list.map(m => ({
+                   id: m._id,
+                   content: m.content,
+                   anonUserId: m.anonUserId,
+                   isAdmin: m.isAdmin,
+                   pinned: m.pinned,
+                   ip: m.ip,
+                   userAgent: m.userAgent,
+                   createdAt: m.createdAt
+               })));
+           });
+
+           // Admin: post as admin
+           app.post('/api/admin/persons/:id/messages', requireAdmin,
+               param('id').isMongoId(),
+               body('content').isString().isLength({ min: 1, max: 2000 }),
+               async (req, res) => {
+                   const person = await Person.findById(req.params.id);
+                   if (!person) return res.status(404).json({ error: 'Not found' });
+                   const banned = await BannedWord.find({}).lean();
+                   if (hasBannedWord(req.body.content, banned)) {
+                       return res.status(400).json({ error: 'Unangemessener Inhalt' });
+                   }
+                   const msg = await Message.create({
+                       person: person._id,
+                       content: req.body.content,
+                       anonUserId: 'ADMIN',
+                       isAdmin: true,
+                       pinned: false
+                   });
+                   const payload = {
+                       id: msg._id.toString(),
+                       personId: person._id.toString(),
+                       content: msg.content,
+                       anonUserId: msg.anonUserId,
+                       isAdmin: msg.isAdmin,
+                       pinned: msg.pinned,
+                       createdAt: msg.createdAt
+                   };
+                   io.to(person._id.toString()).emit('message:new', payload);
+                   res.status(201).json({ ok: true, id: msg._id });
+               }
+           );
+
+           // Admin: edit/pin/delete messages
+           app.patch('/api/admin/messages/:id', requireAdmin,
+               body('content').optional().isString().isLength({ min: 1, max: 2000 }),
+               body('pinned').optional().isBoolean(),
+               async (req, res) => {
+                   const update = {};
+                   if (req.body.content !== undefined) {
+                       const banned = await BannedWord.find({}).lean();
+                       if (hasBannedWord(req.body.content, banned)) {
+                           return res.status(400).json({ error: 'Unangemessener Inhalt' });
+                       }
+                       update.content = req.body.content;
+                   }
+                   if (req.body.pinned !== undefined) update.pinned = !!req.body.pinned;
+                   const msg = await Message.findByIdAndUpdate(req.params.id, { $set: update }, { new: true });
+                   if (!msg) return res.status(404).json({ error: 'Not found' });
+                   io.to(msg.person.toString()).emit('message:update', {
+                       id: msg._id.toString(),
+                       content: msg.content,
+                       pinned: msg.pinned
+                   });
+                   res.json({ ok: true });
+               }
+           );
+
+           app.delete('/api/admin/messages/:id', requireAdmin, async (req, res) => {
+               const msg = await Message.findByIdAndDelete(req.params.id);
+               if (!msg) return res.status(404).json({ error: 'Not found' });
+               io.to(msg.person.toString()).emit('message:delete', { id: msg._id.toString() });
+               res.json({ ok: true });
+           });
+
+           // Admin: edit/delete rating
+           app.patch('/api/admin/ratings/:id', requireAdmin,
+               ...CATEGORIES.map(k => body(`categories.${k}`).optional().isInt({ min: 1, max: 6 })),
+               async (req, res) => {
+                   const rating = await Rating.findById(req.params.id);
+                   if (!rating) return res.status(404).json({ error: 'Not found' });
+                   const cats = { ...rating.categories, ...(req.body.categories || {}) };
+                   for (const k of CATEGORIES) {
+                       const v = Number(cats[k]);
+                       if (!(v >= 1 && v <= 6)) return res.status(400).json({ error: `Invalid ${k}` });
+                   }
+                   rating.categories = cats;
+                   rating.overall = computeOverall(cats);
+                   await rating.save();
+                   await recomputePersonStats(rating.person);
+                   res.json({ ok: true });
+               }
+           );
+
+           app.delete('/api/admin/ratings/:id', requireAdmin, async (req, res) => {
+               const rating = await Rating.findByIdAndDelete(req.params.id);
+               if (!rating) return res.status(404).json({ error: 'Not found' });
+               await recomputePersonStats(rating.person);
+               res.json({ ok: true });
+           });
+
+           // Admin: banlist
+           app.get('/api/admin/banlist', requireAdmin, async (req, res) => {
+               const items = await BannedWord.find({}).sort({ word: 1 }).lean();
+               res.json(items);
+           });
+
+           app.post('/api/admin/banlist', requireAdmin,
+               body('word').isString().isLength({ min: 1, max: 100 }),
+               async (req, res) => {
+                   const word = req.body.word.trim();
+                   await BannedWord.updateOne({ word }, { $set: { word } }, { upsert: true });
+                   res.status(201).json({ ok: true });
+               }
+           );
+
+           app.delete('/api/admin/banlist/:word', requireAdmin, async (req, res) => {
+               await BannedWord.deleteOne({ word: req.params.word });
+               res.json({ ok: true });
+           });
+
+           // Socket.io
+           io.on('connection', (socket) => {
+               socket.on('room:join', (personId) => {
+                   if (personId) socket.join(personId);
+               });
+           });
+
+           // Health
+           app.get('/health', (req, res) => res.json({ ok: true }));
+
+           server.listen(PORT, () => {
+               console.log(`Server on :${PORT}`);
+           });
+
+persondetail.vue: <template>
+                    <div class="row">
+                      <div class="col">
+                        <div class="card" v-if="person">
+                          <h2 style="margin-top:0;">{{ person.title }} {{ person.nameUpper }}</h2>
+                          <div class="row">
+                            <div class="col"><div class="badge">Bewertungen: {{ person.ratingsCount }}</div></div>
+                            <div class="col"><div class="badge">Durchschnitt gesamt: {{ person.avgOverall?.toFixed(2) }}</div></div>
+                          </div>
+                          <hr />
+                          <div class="row">
+                            <div v-for="k in categories" :key="k" class="col">
+                              <div class="card">
+                                <div style="font-weight:600;">{{ pretty(k) }}</div>
+                                <div style="font-size:22px; margin-top:6px;">{{ person.categoryAverages?.[k]?.toFixed(2) ?? '—' }}</div>
                               </div>
                             </div>
-                          </template>
+                          </div>
+                        </div>
+                        <div v-else class="card">Lade...</div>
 
-                          <style scoped>
-                          /* Scroll für Desktop */
-                          .table-scroll {
-                            width: 100%;
-                            overflow-x: auto;
-                            -webkit-overflow-scrolling: touch;
-                            scrollbar-width: thin;
-                          }
-                          .table-scroll::-webkit-scrollbar { height: 8px; }
-                          .table-scroll::-webkit-scrollbar-thumb {
-                            background: #2a2a2a;
-                            border-radius: 8px;
-                          }
+                        <div class="card" style="margin-top:16px;">
+                          <h3 style="margin-top:0;">Neue Bewertung</h3>
+                          <RatingForm :prefillTitle="person?.title" :prefillName="person?.nameUpper" @saved="reload" />
+                        </div>
+                      </div>
 
-                          /* Tabelle */
-                          .timetable {
-                            width: 100%;
-                            border-collapse: collapse;
-                            min-width: 820px; /* genug Platz; bei schmalen Screens horizontal scrollen */
-                          }
-                          thead th, tbody td {
-                            border: 1px solid var(--border);
-                            padding: 8px;
-                            vertical-align: top;
-                          }
+                      <!--<div class="col">
+                        <div class="card">
+                          <h2 style="margin-top:0;">Chat</h2>
+                          <ChatBox v-if="person" :personId="id" />
+                        </div>
+                      </div> -->
+                    </div>
+                  </template>
 
-                          /* Header */
-                          .day-header {
-                            text-align: center;
-                            background: #151515;
-                          }
-                          thead.sticky .day-header {
-                            position: sticky;
-                            top: 0;
-                            z-index: 2;
-                          }
-                          .day-header.today {
-                            background: var(--primary);
-                            color: #111827;
-                          }
+                  <script setup lang="ts">
+                  import { onMounted, ref, watch } from 'vue';
+                  import api from '../api';
+                  import ChatBox from '../components/ChatBox.vue';
+                  import RatingForm from '../components/RatingForm.vue';
 
-                          .timehead {
-                            width: 180px;
-                            background: #0f0f0f;
-                          }
-                          .time {
-                            color: var(--muted);
-                            width: 180px;
-                            white-space: nowrap;
-                            background: #0f0f0f;
-                          }
-                          .sticky {
-                            position: sticky;
-                            left: 0;
-                            z-index: 3;
-                          }
-                          .time-label {
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                          }
-                          .break-badge {
-                            background: var(--warn);
-                            color: #1f1300;
-                            border-radius: 6px;
-                            padding: 2px 6px;
-                            font-size: 11px;
-                          }
+                  const props = defineProps<{ id: string }>();
+                  const person = ref<any>(null);
+                  const categories = ['Freundlichkeit','Kompetenz','Puenktlichkeit','Fairness','Erklaeren','Organisation'];
 
-                          /* Zellen */
-                          .cell { position: relative; background: #141414; }
-                          .cell.today { outline: 1px dashed var(--primary); outline-offset: -1px; }
-                          .cell.break { background: #1c1c1c; }
+                  async function load() {
+                    const { data } = await api.get(`/api/persons/${props.id}`);
+                    person.value = data;
+                  }
+                  function reload() { load(); }
+                  function pretty(k: string) {
+                    return k === 'Puenktlichkeit' ? 'Pünktlichkeit' : k === 'Erklaeren' ? 'Erklären' : k;
+                  }
+                  onMounted(load);
+                  watch(() => props.id, load);
+                  </script>
 
-                          .pause {
-                            text-align: center;
-                            font-weight: 600;
-                            color: var(--warn);
-                            padding: 8px 0;
-                          }
+home.vue:<template>
+           <div class="row">
+             <div class="col">
+               <div class="card">
+                 <h2 style="margin-top:0;">Personen</h2>
+                 <div class="row">
+                   <div class="col"><input class="input" v-model="q" placeholder="Suche nach NAME"/></div>
+                   <div class="col">
+                     <select v-model="title" class="input">
+                       <option value="">Alle Anreden</option>
+                       <option>Herr</option>
+                       <option>Frau</option>
+                     </select>
+                   </div>
+                   <div class="col">
+                     <select v-model="sort" class="input">
+                       <option value="name">Sortierung: Name</option>
+                       <option value="avg">Sortierung: Durchschnitt</option>
+                       <option value="count">Sortierung: Anzahl</option>
+                     </select>
+                   </div>
+                   <div><button class="btn" @click="load">Aktualisieren</button></div>
+                 </div>
+                 <hr />
+                 <div v-if="loading">Lade...</div>
+                 <div v-else class="row">
+                   <div v-for="p in persons" :key="p.id" class="col">
+                     <div class="card">
+                       <div style="display:flex; justify-content:space-between; align-items:center;">
+                         <div style="font-weight:600;">{{ p.title }} {{ p.nameUpper }}</div>
+                         <div class="badge">{{ p.ratingsCount }} Bewertungen</div>
+                       </div>
+                       <div style="margin-top:6px;">Durchschnitt: <strong>{{ p.avgOverall.toFixed(2) }}</strong></div>
+                       <div style="margin-top:12px;">
+                         <router-link class="btn ghost" :to="`/person/${p.id}`">Details</router-link>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
 
-                          /* Block */
-                          .block {
-                            position: relative;
-                            display: flex;
-                            flex-direction: column;
-                            gap: 8px;
-                            padding: 4px;
-                          }
-                          .items { display: grid; }
-                          .groups { display: grid; }
+             <div class="col">
+               <div class="card">
+                 <h2 style="margin-top:0;">Neue Bewertung</h2>
+                 <RatingForm @saved="onSaved" />
+               </div>
+             </div>
+           </div>
+         </template>
 
-                          .group {
-                            background: #171717;
-                            border-radius: 10px;
-                            padding: 8px;
-                            box-shadow: 0 0 0 1px rgba(128,128,128,0.2) inset;
-                          }
-                          .group-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+         <script setup lang="ts">
+         import { ref, onMounted } from 'vue';
+         import api from '../api';
+         import RatingForm from '../components/RatingForm.vue';
 
-                          /* Lesson card */
-                          .lesson {
-                            background: #181818;
-                            border-radius: 10px;
-                            padding: 8px;
-                            transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
-                            box-shadow: 0 0 0 1px rgba(128,128,128,0.2) inset;
-                          }
-                          .lesson:hover {
-                            transform: scale(1.03);
-                            background: var(--primary);
-                            color: #111827;
-                            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-                          }
-                          .lesson-top { display: flex; align-items: center; justify-content: space-between; }
-                          .subject { font-weight: 600; }
-                          .lesson-meta { display: flex; gap: 8px; margin-top: 4px; }
+         const q = ref('');
+         const title = ref('');
+         const sort = ref('name');
+         const persons = ref<any[]>([]);
+         const loading = ref(false);
 
-                          /* Info tooltip */
-                          .info-pin {
-                            position: relative;
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 12px;
-                            width: 18px; height: 18px;
-                            border-radius: 50%;
-                            margin-top: 6px;
-                            background: #222;
-                            color: var(--muted);
-                            cursor: help;
-                          }
-                          .info-pin:hover { color: #fff; background: #2a2a2a; }
-                          .info-pin .info-bubble {
-                            position: absolute;
-                            left: 22px; top: 50%;
-                            transform: translateY(-50%);
-                            white-space: nowrap;
-                            background: #0f0f0f;
-                            color: var(--text);
-                            border: 1px solid var(--border);
-                            border-radius: 8px;
-                            padding: 6px 8px;
-                            font-size: 12px;
-                            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-                            opacity: 0;
-                            pointer-events: none;
-                            transition: opacity 120ms ease;
-                            z-index: 5;
-                          }
-                          .info-pin:hover .info-bubble { opacity: 1; }
-
-                          /* Tags */
-                          .tag { padding: 2px 6px; border-radius: 6px; font-size: 11px; color: #111827; background: var(--warn); }
-                          .tag-ag { background: #a78bfa; color: #0b1020; }
-                          .tag-rel { background: #fca5a5; color: #0b1020; }
-                          .tag-kstd { background: #93c5fd; color: #0b1020; }
-                          .tag-test { background: #34d399; color: #0b1020; }
-
-                          /* Multi-Block */
-                          .block-multi .lesson { background: #1d1d1d; }
-
-                          /* Compact/Expanded modes */
-                          .timetable.compact .lesson { padding: 6px; font-size: 13px; }
-                          .timetable.compact .group { padding: 6px; }
-                          .timetable.compact .time { width: 150px; }
-                          .timetable.expanded .lesson { padding: 10px; }
-                          .timetable.expanded .group { padding: 10px; }
-
-                          /* Mobile/Card View */
-                          .mobile-list { display: none; }
-                          @media (max-width: 768px) {
-                            .mobile-list { display: block; }
-                            .mobile-day { margin-bottom: 16px; }
-                            .mobile-day-header {
-                              position: sticky;
-                              top: 0;
-                              background: #151515;
-                              padding: 8px 12px;
-                              border: 1px solid var(--border);
-                              border-radius: 10px;
-                              z-index: 1;
-                            }
-                            .mobile-day-header.today { background: var(--primary); color: #111827; }
-                            .mobile-slots { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-                            .mobile-slot {
-                              background: #141414;
-                              border: 1px solid var(--border);
-                              border-radius: 10px;
-                              padding: 10px;
-                            }
-                            .mobile-time { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--muted); }
-                            .pause-card {
-                              text-align: center;
-                              font-weight: 600;
-                              color: var(--warn);
-                              background: #1c1c1c;
-                              border-radius: 8px;
-                              padding: 8px;
-                            }
-                            .mobile-block .items,
-                            .mobile-block .mobile-groups { display: grid; gap: 8px; }
-                          }
-
-                          /* Subject class hooks (frei belegbar) */
-                          .sub-math {}
-                          .sub-de {}
-                          .sub-en {}
-                          .sub-ph {}
-                          .sub-bi {}
-                          .sub-inf {}
-                          .sub-mu {}
-                          .sub-eth {}
-                          .sub-sp {}
-                          .sub-ek {}
-                          .sub-gewi {}
-                          .sub-theater {}
-                          .sub-3fs {}
-                          </style>
+         async function load() {
+           loading.value = true;
+           const { data } = await api.get('/api/persons', { params: { q: q.value, title: title.value || undefined, sort: sort.value } });
+           persons.value = data;
+           loading.value = false;
+         }
+         function onSaved() {
+           load();
+         }
+         onMounted(load);
+         </script>
 
 
-udn hie rla sinfo die allgemeine globale style.css, du solst sie nicht ändenr, nur als hinweis:
+ratingform.vue: <template>
+                  <form @submit.prevent="submit">
+                    <div class="row">
+                      <div class="col">
+                        <label>Anrede</label>
+                        <select v-model="title" class="input" required>
+                          <option disabled value="">Bitte wählen</option>
+                          <option>Herr</option>
+                          <option>Frau</option>
+                        </select>
+                      </div>
+                      <div class="col">
+                        <label>NAME (GROSSBUCHSTABEN)</label>
+                        <input class="input" v-model="name" placeholder="Z. B. MEIER" required />
+                      </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                      <div class="col" v-for="k in categories" :key="k">
+                        <label style="display:block; font-weight:600;">{{ pretty(k) }}: {{ values[k] }}</label>
+                        <input type="range" min="1" max="6" v-model.number="values[k]" />
+                      </div>
+                    </div>
+                    <div style="margin-top:12px;">Durchschnitt: <strong>{{ overall.toFixed(2) }}</strong></div>
+                    <div class="row" style="margin-top:12px; align-items:center;">
+                      <button class="btn" type="submit" :disabled="submitting">Absenden</button>
+                      <div v-if="error" class="small" style="color:var(--danger)">{{ error }}</div>
+                      <div v-if="ok" class="small" style="color:var(--primary)">Gespeichert</div>
+                    </div>
+                  </form>
+                </template>
 
-:root {
-    --bg: #111827;
-    --card: #1a1a1a;
-    --muted: #94a3b8;
-    --text: #b0b0b0;
-    --primary: #22c55e;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --border: grey;
-}
+                <script setup lang="ts">
+                import { computed, reactive, ref, watchEffect } from 'vue';
+                import api from '../api';
+                import { useAnon } from '../store/useAnon';
 
-* { box-sizing: border-box; }
-html, body, #app { height: 100%; }
-body {
-    margin: 0;
-    color: var(--text);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
-    position: relative;
-}
+                const props = defineProps<{ prefillTitle?: string; prefillName?: string }>();
+                const emit = defineEmits<{ (e:'saved'): void }>();
 
-a { color: var(--primary); text-decoration: none; }
-.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-.card {
-    background: linear-gradient(180deg, #1a1a1a, #1a1a1a), var(--card);
-    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;
-}
-.input, select, textarea {
-    width: 100%; padding: 10px 12px; border-radius: 5px;
-    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
-}
-.btn {
-    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
-}
-.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-.btn.danger { background: var(--danger); color: white; }
-.btn.warn { background: var(--warn); color: #1f1300; }
-.row { display: flex; gap: 12px; flex-wrap: wrap; }
-.col { flex: 1; min-width: 240px; }
-.badge { padding: 4px 8px; border-radius: 5px; /*background: #0b1220; /*border: 1px solid var(--border);*/ color: var(--muted); }
-hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-footer { color: var(--muted); font-size: 14px; }
-.small { font-size: 12px; color: var(--muted); }
-.badge:hover { color: white}
+                const categories = ['Freundlichkeit','Kompetenz','Puenktlichkeit','Fairness','Erklaeren','Organisation'];
+                const title = ref(props.prefillTitle || '');
+                const name = ref(props.prefillName || '');
+                const values = reactive<Record<string, number>>({
+                  Freundlichkeit: 3, Kompetenz: 3, Puenktlichkeit: 3, Fairness: 3, Erklaeren: 3, Organisation: 3
+                });
+                const overall = computed(() => {
+                  const arr = categories.map(k => values[k]);
+                  return arr.reduce((a,b)=>a+b,0)/arr.length;
+                });
+                const submitting = ref(false);
+                const error = ref('');
+                const ok = ref(false);
 
+                watchEffect(() => {
+                  if (props.prefillTitle) title.value = props.prefillTitle;
+                  if (props.prefillName) name.value = props.prefillName;
+                });
 
-.full {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+                function toUpperTrim(s: string) {
+                  return s.trim().replace(/\s+/g, ' ').toUpperCase();
+                }
+                function pretty(k: string) {
+                  return k === 'Puenktlichkeit' ? 'Pünktlichkeit' : k === 'Erklaeren' ? 'Erklären' : k;
+                }
 
-.full-c {
-    flex: 1;
-    position: relative;
-}
+                async function submit() {
+                  error.value = '';
+                  ok.value = false;
+                  submitting.value = true;
+                  try {
+                    const anon = useAnon(); anon.ensure();
+                    const payload = {
+                      title: title.value,
+                      name: toUpperTrim(name.value),
+                      categories: {
+                        Freundlichkeit: values.Freundlichkeit,
+                        Kompetenz: values.Kompetenz,
+                        Puenktlichkeit: values.Puenktlichkeit,
+                        Fairness: values.Fairness,
+                        Erklaeren: values.Erklaeren,
+                        Organisation: values.Organisation
+                      },
+                      anonUserId: anon.id
+                    };
+                    await api.post('/api/ratings', payload);
+                    ok.value = true;
+                    emit('saved');
+                  } catch (e: any) {
+                    error.value = e?.response?.data?.error || 'Fehler beim Speichern';
+                  } finally {
+                    submitting.value = false;
+                    setTimeout(() => ok.value = false, 2000);
+                  }
+                }
+                </script>
 
+chatbox.vue: <template>
+               <div>
+                 <div style="height: 300px; overflow: auto; border:1px solid var(--border); border-radius: 10px; padding: 8px;" ref="box">
+                   <div v-for="m in messages" :key="m.id" class="card" :style="{ margin:'8px 0', borderColor: m.pinned ? 'var(--warn)' : 'var(--border)'}">
+                     <div class="small">
+                       <span v-if="m.isAdmin" class="badge">ADMIN</span>
+                       {{ new Date(m.createdAt).toLocaleString() }} — {{ m.anonUserId }}
+                       <span v-if="m.pinned" class="badge">PINNED</span>
+                     </div>
+                     <div style="margin-top:6px; white-space: pre-wrap;">{{ m.content }}</div>
+                   </div>
+                 </div>
+                 <div class="row" style="margin-top:8px;">
+                   <div class="col"><input class="input" v-model="text" placeholder="Nachricht schreiben..." @keyup.enter="send"/></div>
+                   <div><button class="btn" @click="send">Senden</button></div>
+                 </div>
+                 <div v-if="error" class="small" style="color:var(--danger); margin-top:6px;">{{ error }}</div>
+               </div>
+             </template>
 
-footer {
-    bottom: initial;
-    position: initial;
-    width: initial;
-    height: initial;
-}
-#animated-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1;
+             <script setup lang="ts">
+             import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+             import api from '../api';
+             import { useAnon } from '../store/useAnon';
+             import { socket } from '../socket';
 
-}
+             const props = defineProps<{ personId: string }>();
 
+             const messages = ref<any[]>([]);
+             const text = ref('');
+             const error = ref('');
+             const box = ref<HTMLDivElement | null>(null);
+
+             function autoScroll() {
+               nextTick(() => {
+                 if (box.value) box.value.scrollTop = box.value.scrollHeight;
+               });
+             }
+
+             async function load() {
+               const { data } = await api.get(`/api/persons/${props.personId}/messages`);
+               messages.value = data.sort((a:any,b:any) => {
+                 if (a.pinned && !b.pinned) return -1;
+                 if (!a.pinned && b.pinned) return 1;
+                 return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+               });
+               autoScroll();
+             }
+
+             async function send() {
+               error.value = '';
+               const t = text.value.trim();
+               if (!t) return;
+               try {
+                 const anon = useAnon(); anon.ensure();
+                 await api.post(`/api/persons/${props.personId}/messages`, { content: t, anonUserId: anon.id });
+                 text.value = '';
+               } catch (e: any) {
+                 error.value = e?.response?.data?.error || 'Senden fehlgeschlagen';
+               }
+             }
+
+             function onNew(msg:any) {
+               if (msg.personId !== props.personId) return;
+               messages.value.push(msg);
+               autoScroll();
+             }
+             function onUpdate(msg:any) {
+               const i = messages.value.findIndex(m => m.id === msg.id);
+               if (i >= 0) {
+                 messages.value[i] = { ...messages.value[i], ...msg };
+               }
+             }
+             function onDelete(msg:any) {
+               messages.value = messages.value.filter(m => m.id !== msg.id);
+             }
+
+             onMounted(() => {
+               load();
+               socket.emit('room:join', props.personId);
+               socket.on('message:new', onNew);
+               socket.on('message:update', onUpdate);
+               socket.on('message:delete', onDelete);
+             });
+             onUnmounted(() => {
+               socket.off('message:new', onNew);
+               socket.off('message:update', onUpdate);
+               socket.off('message:delete', onDelete);
+             });
+             </script>

@@ -64,9 +64,29 @@ function pretty(k: string) {
   return k === 'Puenktlichkeit' ? 'Pünktlichkeit' : k === 'Erklaeren' ? 'Erklären' : k;
 }
 
+// Hilfsfunktion: Prüfen ob schon bewertet
+function hasRecentRating(personKey: string): boolean {
+  const item = localStorage.getItem('rated_' + personKey);
+  if (!item) return false;
+  const lastTime = parseInt(item, 10);
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+  return now - lastTime < oneDay;
+}
+function saveRatingTimestamp(personKey: string) {
+  localStorage.setItem('rated_' + personKey, String(Date.now()));
+}
+
 async function submit() {
   error.value = '';
   ok.value = false;
+
+  const personKey = toUpperTrim(title.value + '_' + name.value);
+  if (hasRecentRating(personKey)) {
+    error.value = 'Diese Person hast du schon bewertet. Bitte warte 1 Tag.';
+    return;
+  }
+
   submitting.value = true;
   try {
     const anon = useAnon(); anon.ensure();
@@ -84,6 +104,7 @@ async function submit() {
       anonUserId: anon.id
     };
     await api.post('/api/ratings', payload);
+    saveRatingTimestamp(personKey);
     ok.value = true;
     emit('saved');
   } catch (e: any) {

@@ -25,9 +25,12 @@
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p>© {{ year }} — Mexiko</p>
+        <button class="btn ghost" @click="openCookieBanner">Cookie-Einstellungen</button>
+
 
         <!-- 🥚 Geheimer Button -->
         <button @click="handleClick" class="secret-btn">Hilfe</button>
+
       </div>
     </div>
 
@@ -49,6 +52,10 @@ const showOverlay = ref(false);
 const videoId = "HAfFfqiYLp0";
 
 let timer: number | null = null;
+
+function openCookieBanner() {
+  window.dispatchEvent(new CustomEvent('open-cookie-banner'))
+}
 
 function handleClick() {
   clickCount.value++;
