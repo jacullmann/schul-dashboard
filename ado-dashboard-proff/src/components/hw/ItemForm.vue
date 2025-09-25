@@ -264,7 +264,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text);
 }
 
 /* Layout */
@@ -286,12 +286,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .label {
   display: block;
   font-size: 13px;
-  color: #555;
+  color: var(--muted);
   margin-bottom: 6px;
 }
 .label.bold {
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--text);
 }
 
 .input {
