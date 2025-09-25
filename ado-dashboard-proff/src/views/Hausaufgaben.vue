@@ -11,22 +11,33 @@
       </div>
     </div>
 
-    <div v-if="announcements.length" class="card" style="background:#1f2937; border-color:#f59e0b; margin-top:20px;">
+    <div style="margin-top:20px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Wichtige Ankündigungen</h3>
-        <button v-if="user?.isAdmin" class="btn ghost" style="padding:4px 8px; font-size:14px;" @click="showAnnouncementForm = true">Ankündigung hinzufügen</button>
+        <button
+            v-if="user?.isAdmin"
+            class="btn ghost"
+            style="padding:4px 8px; font-size:14px;"
+            @click="showAnnouncementForm = true"
+        >
+          Ankündigung hinzufügen
+        </button>
       </div>
-      <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
-        <div style="font-weight:600;">{{ a.title }}</div>
-        <div style="white-space: pre-wrap; margin-top:6px;">{{ a.content }}</div>
-        <div class="small" style="margin-top:6px;">{{ new Date(a.createdAt).toLocaleString() }}</div>
-        <div v-if="canManage(a.createdBy)" class="row" style="margin-top:8px;">
-          <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="deleteAnnouncement(a._id)">Löschen</button>
+
+      <div v-if="announcements.length" class="card" style="background:#1f2937; border-color:#f59e0b; margin-top:12px;">
+        <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
+          <div style="font-weight:600;">{{ a.title }}</div>
+          <div style="white-space: pre-wrap; margin-top:6px;">{{ a.content }}</div>
+          <div class="small" style="margin-top:6px;">{{ new Date(a.createdAt).toLocaleString() }}</div>
+          <div v-if="canManage(a.createdBy)" class="row" style="margin-top:8px;">
+            <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="deleteAnnouncement(a._id)">Löschen</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <hr v-else />
+      <hr v-else-if="!announcements.length" style="margin-top:12px;"/>
+
+    </div>
 
     <div style="display:flex; gap:8px; margin-bottom:16px; margin-top:16px; flex-wrap:wrap;">
       <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
