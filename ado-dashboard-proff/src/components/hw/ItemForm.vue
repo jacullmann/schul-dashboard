@@ -237,9 +237,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   max-width: 720px;
   border-radius: 16px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(14px) saturate(180%) brightness(115%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(115%);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   box-shadow:
       0 20px 40px rgba(0, 0, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.6);
