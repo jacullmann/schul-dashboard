@@ -235,8 +235,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .glass-modal {
   width: 100%;
   max-width: 720px;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
