@@ -30,6 +30,7 @@
   </form>
 </template>
 
+
 <script setup lang="ts">
 import { computed, reactive, ref, watchEffect } from 'vue';
 import api from '../api';
@@ -115,3 +116,5 @@ async function submit() {
   }
 }
 </script>
+
+

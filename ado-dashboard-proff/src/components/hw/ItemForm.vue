@@ -1,18 +1,20 @@
 <template>
-  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-    <div class="card" style="width:100%; max-width:640px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">{{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}</h3>
+  <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
+    <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
+        </h3>
         <button class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
-      <div class="row" style="margin-top:12px;">
+      <div class="row">
         <div class="col">
-          <label>Titel</label>
+          <label class="label">Titel</label>
           <input class="input" v-model="title" />
         </div>
         <div class="col">
-          <label>Fach</label>
+          <label class="label">Fach</label>
           <select class="input" v-model="subjectSel">
             <option disabled value="">Bitte wählen</option>
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
@@ -20,45 +22,47 @@
           </select>
         </div>
       </div>
-      <div v-if="subjectSel==='__OTHER__'" style="margin-top:8px;">
+
+      <div v-if="subjectSel==='__OTHER__'" class="section">
         <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
       </div>
 
-      <div style="margin-top:8px;">
-        <label>Beschreibung (optional)</label>
+      <div class="section">
+        <label class="label">Beschreibung (optional)</label>
         <textarea class="input" rows="4" v-model="description"></textarea>
       </div>
 
-      <div class="row" style="margin-top:8px;">
+      <div class="row section">
         <div class="col">
-          <label>Abgabedatum</label>
+          <label class="label">Abgabedatum</label>
           <input class="input" type="datetime-local" v-model="dueLocal" />
         </div>
       </div>
 
-      <div style="margin-top:16px;">
-        <div style="font-weight:600;">Bilder</div>
-        <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
+      <div class="section">
+        <div class="label bold">Bilder</div>
+        <div class="row images">
           <div
               v-for="img in images"
               :key="img.publicId"
-              style="position:relative; width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+              class="image-item"
           >
             <a :href="img.url" target="_blank" rel="noopener">
               <img
                   :src="img.thumbUrl || makeThumb(img.url)"
-                  style="display:block; width:120px; height:auto;"
+                  class="thumb"
                   loading="lazy"
                   decoding="async"
                   alt="Vorschau"
               />
             </a>
-            <div style="position:absolute; top:4px; right:4px;">
-              <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="removeImg(img)">X</button>
+            <div class="image-actions">
+              <button class="btn danger image-remove" @click="removeImg(img)">X</button>
             </div>
           </div>
+
           <button class="btn ghost" @click="uploadImage" :disabled="uploading">
-            <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -66,26 +70,25 @@
           </button>
         </div>
         <div v-if="uploading" class="small">Lade Bild hoch...</div>
-        <div v-if="uploadError" class="small" style="color:var(--danger)">{{ uploadError }}</div>
+        <div v-if="uploadError" class="small error">{{ uploadError }}</div>
       </div>
 
-      <div class="row" style="margin-top:16px; align-items:center;">
+      <div class="row actions">
         <button class="btn" @click="submit" :disabled="submitting">
-          <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           {{ initial ? 'Speichern' : 'Anlegen' }}
         </button>
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+        <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import hw from '../../hwApi';
 import type { HwItem } from './Hausaufgaben.vue';
 
@@ -97,7 +100,7 @@ const labelFor = (type: string) => {
     'HAUSAUFGABE': 'Hausaufgabe',
     'DALTON': 'Dalton-Auftrag',
     'PRUEFUNG': 'Klassenarbeit',
-  };
+  } as const;
   return map[type];
 };
 
@@ -137,7 +140,10 @@ async function uploadImage() {
   input.accept = 'image/*';
   input.onchange = async () => {
     const file = input.files?.[0];
-    if (!file) return;
+    if (!file) {
+      uploading.value = false;
+      return;
+    }
 
     try {
       const { data: sign } = await hw.post('/api/uploads/sign');
@@ -154,7 +160,7 @@ async function uploadImage() {
           url: json.secure_url,
           thumbUrl: makeThumb(json.secure_url),
           publicId: json.public_id,
-          createdBy: '' // backend sets createdBy on create
+          createdBy: '' // backend setzt createdBy beim Anlegen
         });
         uploadError.value = '';
       } else {
@@ -203,28 +209,176 @@ async function submit() {
     submitting.value = false;
   }
 }
+
+// Esc zum Schließen
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') emit('close');
+}
+onMounted(() => window.addEventListener('keydown', onKeyDown));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <style scoped>
-.row {
+/* Overlay: dimmt die Seite, aber NICHT verschwommen */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
-}
-.card {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card-bg);
+  justify-content: center;
+  z-index: 100;
   padding: 24px;
+}
+
+/* Glass-Effekt nur innerhalb der Box: alles direkt darunter ist sichtbar, unscharf und abgedunkelt */
+.glass-modal {
+  width: 100%;
+  max-width: 720px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(26, 26, 26, 0.35); /* halbtransparent, damit das Darunter sichtbar ist */
+  backdrop-filter: blur(14px) saturate(120%) brightness(85%); /* Unschärfe + leicht abdunkeln */
+  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(85%);
+  box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 22px;
+}
+
+/* Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Layout */
+.row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .col {
   flex: 1;
-  min-width: 200px;
+  min-width: 240px;
 }
+.section {
+  margin-top: 10px;
+}
+
+/* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
+.label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.label.bold {
+  font-weight: 600;
+  color: var(--text);
+}
+
 .input {
   width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  background: rgba(26, 26, 26, 0.6);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.badge {
-  padding: 2px 8px;
-  border-radius: 8px;
+.input:focus {
+  border-color: rgba(34, 197, 94, 0.7);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  background: rgba(26, 26, 26, 0.7);
+}
+
+/* Bilderbereich */
+.images {
+  gap: 8px;
+  margin-top: 6px;
+}
+.image-item {
+  position: relative;
+  width: 120px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(26, 26, 26, 0.5);
+  backdrop-filter: blur(8px) brightness(95%);
+  -webkit-backdrop-filter: blur(8px) brightness(95%);
+}
+.thumb {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+.image-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+.image-remove {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn.ghost {
+  backdrop-filter: none;
+}
+
+/* Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+  height: 20px;
+  width: 20px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Aktionen unten */
+.actions {
+  margin-top: 16px;
+  align-items: center;
+}
+
+/* Meldungen */
+.small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.error {
+  color: var(--danger);
+}
+.msg-ok {
+  color: var(--primary);
+}
+.msg-error {
+  color: var(--danger);
+}
+
+/* Fallback, falls backdrop-filter nicht unterstützt wird */
+@supports not ((backdrop-filter: blur(10px))) {
+  .glass-modal {
+    background: rgba(26, 26, 26, 0.95);
+  }
 }
 </style>
