@@ -240,7 +240,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   /* Helle Randfarbe */
   border: 1px solid rgba(0, 0, 0, 0.08);
   /* Hellerer, halbtransparenter Hintergrund */
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
   /* Unschärfe + leicht aufhellen/entsättigen */
   backdrop-filter: blur(14px) saturate(180%) brightness(115%);
   -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(115%);
