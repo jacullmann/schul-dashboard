@@ -231,20 +231,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   padding: 24px;
 }
 
-/* Glass-Effekt nur innerhalb der Box: alles direkt darunter ist sichtbar, unscharf und abgedunkelt */
-/* Glass-Effekt nur innerhalb der Box: alles direkt darunter ist sichtbar, unscharf und aufgehellt */
+
 .glass-modal {
   width: 100%;
   max-width: 720px;
   border-radius: 16px;
-  /* Helle Randfarbe */
   border: 1px solid rgba(0, 0, 0, 0.08);
-  /* Hellerer, halbtransparenter Hintergrund */
-  background: rgba(255, 255, 255, 0.2);
-  /* Unschärfe + leicht aufhellen/entsättigen */
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(14px) saturate(180%) brightness(115%);
   -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(115%);
-  /* Hellerer Schatten */
   box-shadow:
       0 20px 40px rgba(0, 0, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -252,7 +247,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   color: #1a1a1a;
 }
 
-/* Header */
+
 .modal-header {
   display: flex;
   justify-content: space-between;
