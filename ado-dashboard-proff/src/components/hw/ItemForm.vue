@@ -378,7 +378,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 /* Fallback, falls backdrop-filter nicht unterstützt wird */
 @supports not ((backdrop-filter: blur(10px))) {
   .glass-modal {
-    background: rgba(26, 26, 26, 0.95);
+    background: rgba(26, 26, 26, 0.75);
   }
 }
 </style>
