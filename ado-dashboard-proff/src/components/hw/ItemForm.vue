@@ -249,6 +249,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       0 20px 40px rgba(0, 0, 0, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.6);
   padding: 22px;
+  color: #1a1a1a;
 }
 
 /* Header */
@@ -304,8 +305,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .input:focus {
-  border-color: rgba(34, 197, 94, 0.7);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
   background: rgba(26, 26, 26, 0.7);
 }
 
