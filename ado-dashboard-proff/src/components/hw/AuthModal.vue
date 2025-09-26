@@ -2,13 +2,13 @@
   <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
     <div class="card styl" style="width:100%; max-width:420px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-        <button class="btn ghost" @click="$emit('close')">Schließen</button>
+        <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
+        <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="row" style="margin-top:12px;">
         <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
-        <button class="btn" :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
+        <button class="btn" style="color:white;" :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
       </div>
 
       <div style="margin-top:12px;">
