@@ -90,12 +90,12 @@
             <div
                 v-for="img in item.images"
                 :key="img.publicId"
-                style="width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+                style="width:120px; height:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
             >
               <a :href="img.url" target="_blank" rel="noopener">
                 <img
                     :src="img.thumbUrl || makeThumb(img.url)"
-                    style="display:block; width:120px; height:auto;"
+                    style="display:block; width:100%; height:100%; object-fit:cover;"
                     loading="lazy"
                     decoding="async"
                     :alt="item.title"

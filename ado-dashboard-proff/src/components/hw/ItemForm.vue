@@ -309,6 +309,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .image-item {
   position: relative;
   width: 120px;
+  height: 120px;
   border: 1px solid rgba(128, 128, 128, 0.35);
   border-radius: 10px;
   overflow: hidden;
@@ -318,8 +319,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 }
 .thumb {
   display: block;
-  width: 120px;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .image-actions {
   position: absolute;
