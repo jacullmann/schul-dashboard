@@ -1,5 +1,27 @@
 <template>
-  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+  <div class="card" style="border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  background: rgba(255, 255, 255, 0.15);
+
+  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+
+   position:fixed;
+
+   inset:0;
+
+   display:flex;
+
+   align-items:center;
+
+   justify-content:center;
+
+    z-index:100;">
     <div class="card" style="width:100%; max-width:420px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
@@ -66,3 +88,11 @@ async function submit() {
   }
 }
 </script>
+
+<style scoped>
+
+
+
+
+
+</style>
