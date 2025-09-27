@@ -1,385 +1,524 @@
-<template>
-  <section class="container">
-    <div class="card timetable-card" role="table" aria-label="Stundenplan 10A">
-      <header class="tt-header row">
-        <div>
-          <h2 class="title">Albrecht-Dürer-Schule — Stundenplan 2025/2026</h2>
-          <div class="small muted">Klasse <strong>10A</strong> — gültig ab 08.09.2026 — 1. Halbjahr</div>
-        </div>
-        <div class="meta">
-          <div class="badge">Berlin, Emser Str. 133-137</div>
-          <div class="small">Version: Untis 2025</div>
-        </div>
-      </header>
+server js: import 'dotenv/config';
+           import express from 'express';
+           import mongoose from 'mongoose';
+           import helmet from 'helmet';
+           import cors from 'cors';
+           import cookieParser from 'cookie-parser';
+           import morgan from 'morgan';
+           import rateLimit from 'express-rate-limit';
+           import { body, param, query, validationResult } from 'express-validator';
+           import jwt from 'jsonwebtoken';
+           import bcrypt from 'bcryptjs';
+           import nodemailer from 'nodemailer';
+           import crypto from 'crypto';
+           import dayjs from 'dayjs';
+           import { v2 as cloudinary } from 'cloudinary';
 
-      <div class="grid-wrapper">
-        <div class="grid-head" role="row">
-          <div class="cell time-cell head-cell"></div>
-          <div class="cell day-cell head-cell" v-for="d in days" :key="d">{{ d }}</div>
-        </div>
+           // Config
+           const app = express();
+           app.set('trust proxy', 1);
+           const PORT = process.env.PORT || 8090;
+           const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
+           const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 
-        <div
-            class="grid-row"
-            v-for="row in rows"
-            :key="row.id"
-            role="row"
-        >
-          <div class="cell time-cell" role="cell">
-            <div class="period">{{ row.label }}</div>
-            <div class="time small muted">{{ row.time }}</div>
-          </div>
+           // Security & utils
+           app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+           app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+           app.use(morgan('combined'));
+           app.use(express.json({ limit: '2mb' }));
+           app.use(cookieParser());
+           app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
-          <div
-              class="cell day-cell"
-              v-for="d in days"
-              :key="d + '-' + row.id"
-              role="cell"
-              :class="{ empty: !hasEntry(d, row.id) }"
-          >
-            <template v-if="hasEntry(d, row.id)">
-              <div
-                  v-for="(entry, i) in getEntries(d, row.id)"
-                  :key="d + '-' + row.id + '-' + i"
-                  class="entry"
-                  :style="{ borderLeftColor: entry.color || 'transparent' }"
-              >
-                <div class="entry-subject" v-html="entry.subjectHtml"></div>
-                <div class="entry-meta small">
-                  <span v-if="entry.room">{{ entry.room }}</span>
-                  <span v-if="entry.teacher"> · {{ entry.teacher }}</span>
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="empty-placeholder small muted">—</div>
-            </template>
-          </div>
-        </div>
-      </div>
+           // Mongo
+           await mongoose.connect(process.env.MONGODB_URI);
 
-      <footer class="row" style="margin-top:16px;justify-content:space-between;align-items:center;">
-        <div class="small muted">Immer schön artig sein.</div>
-        <div class="small muted">Keine Haftung</div>
-      </footer>
-    </div>
-  </section>
-</template>
+           // Cloudinary
+           cloudinary.config({
+               cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+               api_key: process.env.CLOUDINARY_API_KEY,
+               api_secret: process.env.CLOUDINARY_API_SECRET
+           });
 
-<script lang="ts">
-import { defineComponent } from "vue";
+           // Nodemailer (GMX)
+           const transporter = nodemailer.createTransport({
+               host: process.env.SMTP_HOST || 'mail.gmx.net',
+               port: Number(process.env.SMTP_PORT || 587),
+               secure: false,
+               auth: {
+                   user: process.env.SMTP_USER,
+                   pass: process.env.SMTP_PASS
+               }
+           });
+
+           // Models
+           const UserSchema = new mongoose.Schema({
+               email: { type: String, unique: true, required: true, lowercase: true, trim: true },
+               passwordHash: { type: String, required: true },
+               isAdmin: { type: Boolean, default: false },
+               emailVerified: { type: Boolean, default: false },
+               createdAt: { type: Date, default: Date.now },
+               lastLoginAt: { type: Date },
+               activity: [{
+                   at: { type: Date, default: Date.now },
+                   type: { type: String },
+                   meta: { type: mongoose.Schema.Types.Mixed }
+               }]
+           }, { timestamps: true });
+           const User = mongoose.model('HwUser', UserSchema);
+
+           const VerificationSchema = new mongoose.Schema({
+               email: { type: String, index: true },
+               token: { type: String, unique: true },
+               expiresAt: { type: Date }
+           }, { timestamps: true });
+           const Verification = mongoose.model('HwVerification', VerificationSchema);
+
+           const SubjectSchema = new mongoose.Schema({
+               name: { type: String, unique: true, required: true }
+           }, { timestamps: true });
+           const Subject = mongoose.model('HwSubject', SubjectSchema);
+
+           const AnnouncementSchema = new mongoose.Schema({
+               title: String,
+               content: String,
+               color: { type: String, default: 'warn' }, // info | warn | danger
+               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
+           }, { timestamps: true });
+           const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
+
+           const ItemSchema = new mongoose.Schema({
+               type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
+               title: { type: String, required: true },
+               subject: { type: String, required: true },
+               description: { type: String },
+               images: [{
+                   url: String,
+                   thumbUrl: String,
+                   publicId: String,
+                   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
+               }],
+               dueDate: { type: Date, index: true },
+               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
+           }, { timestamps: true });
+           const Item = mongoose.model('HwItem', ItemSchema);
+
+           // Default Subjects seed
+           const DEFAULT_SUBJECTS = [
+               'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
+               'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
+               'Enrichment', 'WPU', 'Theater', 'Latein'
+           ];
+           async function ensureSubjects() {
+               for (const s of DEFAULT_SUBJECTS) {
+                   await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
+               }
+           }
+           await ensureSubjects();
+
+           // Helpers
+           function sendJSONError(res, status, msg, errors) {
+               return res.status(status).json({ error: msg, errors });
+           }
+           function requireAuth(req, res, next) {
+               const hdr = req.headers.authorization || '';
+               const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+               if (!token) return sendJSONError(res, 401, 'Unauthorized');
+               try {
+                   const payload = jwt.verify(token, JWT_SECRET);
+                   req.user = payload;
+                   next();
+               } catch {
+                   return sendJSONError(res, 401, 'Unauthorized');
+               }
+           }
+           async function requireAdmin(req, res, next) {
+               requireAuth(req, res, async () => {
+                   const user = await User.findById(req.user.sub);
+                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+                   next();
+               });
+           }
+           function validate(req, res, next) {
+               const errors = validationResult(req);
+               if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
+               next();
+           }
+           function timeLeftColor(dueDate) {
+               const now = dayjs();
+               const due = dayjs(dueDate);
+               const diffDays = due.diff(now, 'day', true);
+               if (diffDays < 0) return 'expired';
+               if (diffDays < 3) return 'danger';
+               if (diffDays < 7) return 'warn';
+               return 'ok';
+           }
+           // Build a super-fast preview URL by injecting Cloudinary transformations
+           function buildThumbUrl(secureUrl) {
+               try {
+                   const u = new URL(secureUrl);
+                   const parts = u.pathname.split('/');
+                   const uploadIdx = parts.findIndex(p => p === 'upload');
+                   if (uploadIdx !== -1) {
+                       // f_auto = best format, q_auto:low = low quality, w_240 = small width for quick list previews
+                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+                       u.pathname = parts.join('/');
+                   }
+                   return u.toString();
+               } catch {
+                   return secureUrl;
+               }
+           }
+           function withThumb(img) {
+               return {
+                   url: img.url,
+                   thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
+                   publicId: img.publicId,
+                   createdBy: img.createdBy
+               };
+           }
+           async function logActivity(userId, type, meta = {}) {
+               await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
+           }
+
+           // Auth routes
+           app.post('/api/auth/register',
+               body('email').isEmail(),
+               body('password').isString().isLength({ min: 8 }),
+               validate,
+               async (req, res) => {
+                   const { email, password } = req.body;
+                   const exists = await User.findOne({ email: email.toLowerCase() });
+                   if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
+                   const passwordHash = await bcrypt.hash(password, 12);
+                   const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
+                   const token = crypto.randomBytes(32).toString('hex');
+                   const expiresAt = dayjs().add(2, 'day').toDate();
+                   await Verification.create({ email: user.email, token, expiresAt });
+                   const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
+                   await transporter.sendMail({
+                       from: process.env.SMTP_FROM || process.env.SMTP_USER,
+                       to: user.email,
+                       subject: 'Bitte E-Mail bestätigen',
+                       html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+                   });
+                   res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+               }
+           );
+
+           app.get('/api/auth/verify',
+               query('token').isString().isLength({ min: 10 }),
+               validate,
+               async (req, res) => {
+                   const ver = await Verification.findOne({ token: req.query.token });
+                   if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
+                   if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
+                   const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
+                   if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
+                   await Verification.deleteOne({ _id: ver._id });
+                   res.json({ ok: true });
+               }
+           );
+
+           app.post('/api/auth/login',
+               body('email').isEmail(),
+               body('password').isString().isLength({ min: 8 }),
+               validate,
+               async (req, res) => {
+                   const { email, password } = req.body;
+                   const user = await User.findOne({ email: email.toLowerCase() });
+                   if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                   const ok = await bcrypt.compare(password, user.passwordHash);
+                   if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                   if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
+                   const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+                   await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
+                   res.json({ token });
+               }
+           );
+
+           app.get('/api/auth/me', requireAuth, async (req, res) => {
+               const user = await User.findById(req.user.sub).lean();
+               res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
+           });
+
+           // Admin routes
+           app.get('/api/admin/users', requireAdmin, async (req, res) => {
+               const users = await User.find({}).sort({ createdAt: -1 }).lean();
+               res.json(users.map(u => ({
+                   id: u._id, email: u.email, isAdmin: u.isAdmin,
+                   createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
+                   activity: u.activity?.slice(-20) || []
+               })));
+           });
+           app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+               await User.deleteOne({ _id: req.params.id });
+               await Item.deleteMany({ createdBy: req.params.id });
+               res.json({ ok: true });
+           });
+           app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
+               await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
+               res.json({ ok: true });
+           });
+
+           // Subjects
+           app.get('/api/subjects', async (req, res) => {
+               const list = await Subject.find({}).sort({ name: 1 }).lean();
+               res.json(list.map(s => s.name));
+           });
+           app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
+               await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
+               res.status(201).json({ ok: true });
+           });
+           app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
+               await Subject.deleteOne({ name: req.params.name });
+               res.json({ ok: true });
+           });
+
+           // Announcements
+           app.get('/api/announcements', async (req, res) => {
+               const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
+               res.json(list);
+           });
+           app.post('/api/announcements', requireAuth,
+               body('title').isString().isLength({ min: 2 }),
+               body('content').isString().isLength({ min: 2 }),
+               body('color').optional().isIn(['info', 'warn', 'danger']),
+               validate,
+               async (req, res) => {
+                   const user = await User.findById(req.user.sub);
+                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+                   const doc = await Announcement.create({
+                       title: req.body.title,
+                       content: req.body.content,
+                       color: req.body.color || 'warn',
+                       createdBy: req.user.sub
+                   });
+                   await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
+                   res.status(201).json(doc);
+               }
+           );
+           app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
+               const ann = await Announcement.findById(req.params.id);
+               if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
+               const user = await User.findById(req.user.sub);
+               if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+               await ann.deleteOne();
+               await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
+               res.json({ ok: true });
+           });
+
+           // Cloudinary signed upload
+           app.post('/api/uploads/sign', requireAuth, async (req, res) => {
+               const timestamp = Math.floor(Date.now() / 1000);
+               const signature = cloudinary.utils.api_sign_request(
+                   { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
+                   process.env.CLOUDINARY_API_SECRET
+               );
+               res.json({
+                   cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+                   apiKey: process.env.CLOUDINARY_API_KEY,
+                   timestamp,
+                   signature,
+                   folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
+               });
+           });
+
+           // Add image to an item
+           app.post('/api/items/:id/images',
+               requireAuth,
+               param('id').isMongoId(),
+               body('image').isObject(),
+               body('image.url').isString(),
+               body('image.publicId').isString(),
+               validate,
+               async (req, res) => {
+                   const item = await Item.findById(req.params.id);
+                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                   const newImage = {
+                       url: req.body.image.url,
+                       thumbUrl: buildThumbUrl(req.body.image.url),
+                       publicId: req.body.image.publicId,
+                       createdBy: req.user.sub
+                   };
+                   item.images.push(newImage);
+                   await item.save();
+                   await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
+                   res.status(201).json({ ok: true, image: withThumb(newImage) });
+               }
+           );
+
+           // Delete an image from an item
+           app.delete('/api/items/:itemId/images/:publicId',
+               requireAuth,
+               param('itemId').isMongoId(),
+               param('publicId').isString(),
+               validate,
+               async (req, res) => {
+                   const item = await Item.findById(req.params.itemId);
+                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                   const imageIndex = item.images.findIndex(img => img.publicId === req.params.publicId);
+                   if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
+
+                   const image = item.images[imageIndex];
+                   const user = await User.findById(req.user.sub);
+
+                   if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
+                       return sendJSONError(res, 403, 'Forbidden');
+                   }
+
+                   // Delete from Cloudinary
+                   await cloudinary.uploader.destroy(image.publicId);
+
+                   // Remove from DB
+                   item.images.splice(imageIndex, 1);
+                   await item.save();
+
+                   await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
+                   res.json({ ok: true });
+               }
+           );
+
+           // Items list (not showing expired)
+           app.get('/api/items',
+               query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+               validate,
+               async (req, res) => {
+                   const now = new Date();
+                   const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
+                       .sort({ dueDate: 1 })
+                       .limit(500)
+                       .lean();
+
+                   // Ensure all images have thumbUrl
+                   const normalized = list.map(i => {
+                       const imgs = (i.images || []).map(img => withThumb(img));
+                       return {
+                           id: i._id,
+                           type: i.type,
+                           title: i.title,
+                           subject: i.subject,
+                           description: i.description,
+                           images: imgs,
+                           dueDate: i.dueDate,
+                           createdBy: i.createdBy,
+                           timeColor: timeLeftColor(i.dueDate)
+                       };
+                   });
+
+                   res.json(normalized);
+               }
+           );
+
+           // Create item
+           app.post('/api/items',
+               requireAuth,
+               body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+               body('title').isString().isLength({ min: 2, max: 200 }),
+               body('subject').isString().isLength({ min: 2, max: 50 }),
+               body('description').optional().isString().isLength({ max: 5000 }),
+               body('images').optional().isArray({ max: 10 }),
+               body('dueDate').isISO8601().toDate(),
+               validate,
+               async (req, res) => {
+                   const now = dayjs();
+                   if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+                   const images = (req.body.images || []).map(img => ({
+                       url: img.url,
+                       thumbUrl: buildThumbUrl(img.url),
+                       publicId: img.publicId,
+                       createdBy: req.user.sub
+                   }));
+                   const doc = await Item.create({
+                       type: req.body.type,
+                       title: req.body.title,
+                       subject: req.body.subject,
+                       description: req.body.description || '',
+                       images,
+                       dueDate: req.body.dueDate,
+                       createdBy: req.user.sub
+                   });
+                   await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
+                   res.status(201).json({ ok: true, id: doc._id });
+               }
+           );
+
+           // Update item (own or admin)
+           app.patch('/api/items/:id',
+               requireAuth,
+               param('id').isMongoId(),
+               body('title').optional().isString().isLength({ min: 2, max: 200 }),
+               body('subject').optional().isString().isLength({ min: 2, max: 50 }),
+               body('description').optional().isString().isLength({ max: 5000 }),
+               body('images').optional().isArray({ max: 10 }),
+               body('dueDate').optional().isISO8601().toDate(),
+               validate,
+               async (req, res) => {
+                   const item = await Item.findById(req.params.id);
+                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+                   const user = await User.findById(req.user.sub);
+                   if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+                   if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+
+                   const update = {};
+                   for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
+                       if (req.body[k] !== undefined) update[k] = req.body[k];
+                   }
+
+                   if (update.images) {
+                       update.images = update.images.map(img => ({
+                           url: img.url,
+                           thumbUrl: buildThumbUrl(img.url),
+                           publicId: img.publicId,
+                           createdBy: img.createdBy || item.createdBy
+                       }));
+                   }
+
+                   await Item.findByIdAndUpdate(item._id, { $set: update });
+                   await logActivity(req.user.sub, 'item:update', { id: item._id });
+                   res.json({ ok: true });
+               }
+           );
+
+           // Delete item (own or admin)
+           app.delete('/api/items/:id', requireAuth, async (req, res) => {
+               const item = await Item.findById(req.params.id);
+               if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+               const user = await User.findById(req.user.sub);
+               if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+
+               // Delete all associated images from Cloudinary first
+               if (item.images && item.images.length > 0) {
+                   const publicIds = item.images.map(img => img.publicId);
+                   await cloudinary.api.delete_resources(publicIds);
+               }
+               await item.deleteOne();
+               await logActivity(req.user.sub, 'item:delete', { id: item._id });
+               res.json({ ok: true });
+           });
+
+           // Health
+           app.get('/health', (req, res) => res.json({ ok: true }));
+
+           app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
+
+backend env: CLIENT_VERIFY_URL=https://two34u88.onrender.com/hausaufgaben/verify
+             CLOUDINARY_API_KEY=511331798256166
+             CLOUDINARY_API_SECRET=alObIhb6CS7sjv8AhZ-jeDcUfZM
+             CLOUDINARY_CLOUD_NAME=dwysdpvcm
+             CLOUDINARY_FOLDER=hausaufgaben
+             CORS_ORIGIN=https://two34u88.onrender.com
+             JWT_SECRET=2un98xu981nxz43187zrxniqz
+             MONGODB_URI="mongodb+srv://jannesarda_db_user:rsHQ64vL2EgMKG81@cluster023480923840.ssskjyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster023480923840"
+             PORT=8090
+             SMTP_FROM="Dashboard <dashboardverifizierung@gmail.com>"
+             SMTP_HOST=smtp.gmail.com
+             SMTP_PASS=hkenivoetbufhyit
+             SMTP_PORT=587
+             SMTP_USER=dashboardverifizierung@gmail.com
 
 
-type EntryRaw = {
-  subjectRaw: string;
-  subjectHtml?: string;
-  teacher?: string | null;
-  room?: string | null;
-  color?: string | null;
-};
 
-export default defineComponent({
-  name: "TimetableViewStatic",
-  setup() {
-    const days = ["Mo", "Di", "Mi", "Do", "Fr"];
-
-    // Rows (Perioden) mit Anzeige-Label und Uhrzeiten
-    const rows = [
-      { id: "0", label: "0", time: "07:00 - 07:45" },
-      { id: "1", label: "1", time: "08:00 - 08:45" },
-      { id: "2", label: "2", time: "08:45 - 09:30" },
-      { id: "3", label: "3", time: "09:55 - 10:40" },
-      { id: "4", label: "4", time: "10:45 - 11:30" },
-      { id: "5", label: "5", time: "11:30 - 12:15" },
-      { id: "6", label: "6", time: "12:55 - 13:40" },
-      { id: "7", label: "7", time: "13:40 - 14:25" },
-      { id: "8", label: "8", time: "14:35 - 15:20" },
-      { id: "9", label: "9", time: "15:40 - 16:25" },
-      { id: "10", label: "10", time: "16:25 - 17:10" },
-      { id: "11", label: "11", time: "17:15 - 18:00" },
-    ];
-
-    /**
-     * Rohdatenstruktur: mapping day -> periodId -> array of EntryRaw
-     * subjectRaw: unverändertes Feld aus dem PDF; subjectHtml: für bessere Lesbarkeit (Zeilenumbrüche)
-     *
-     * Achtung: mehrere Fächer pro Zelle werden als eigene Entry-Objekte dargestellt (genau übernommen)
-     */
-
-    const data: Record<string, Record<string, EntryRaw[]>> = {
-      Mo: {
-        "0": [],
-        "1": [
-          {
-            subjectRaw: "*ENREL A005 *ENR GL A310 *ENR ME A311 *ENR WE A106",
-            subjectHtml:
-                "*ENREL A005<br>*ENR GL A310<br>*ENR ME A311<br>*ENR WE A106",
-          },
-        ],
-        "2": [{ subjectRaw: "MA PY A106" }],
-        "3": [{ subjectRaw: "DALTON"}],
-        "4": [{ subjectRaw: "BI LU A203" }],
-        "5": [{ subjectRaw: "BI LU A203" }], // rowspan in original -> shown on both 4 and 5 (kept same)
-        "6": [{ subjectRaw: "DE GL A307" }],
-        "7": [{ subjectRaw: "E AU A307" }],
-        "8": [],
-        "9": [],
-        "10": [],
-        "11": [],
-      },
-
-      Di: {
-        "0": [],
-        "1": [
-          {
-            subjectRaw:
-                "*E BA *DE PR *BI ECS A104 *GeWi PT A311 *INF SÜ A-115 *3.FS-L SO A309",
-            subjectHtml:
-                "*E BA<br>*DE PR<br>*BI ECS A104<br>*GeWi PT A311<br>*INF SÜ A-115<br>*3.FS-L SO A309",
-          },
-        ],
-        "2": [], // rowspan: that big cell spans 1+2 in PDF for Di; we keep only at "1" to avoid duplicate
-        "3": [{ subjectRaw: "*INF SÜ A-115" }],
-        "4": [{ subjectRaw: "*EK ZM A303" }],
-        "5": [{ subjectRaw: "*EK ZM A303" }], // rowspan
-        "6": [{ subjectRaw: "SP HA TH2" }],
-        "7": [{ subjectRaw: "SP HA TH2" }], // rowspan continues
-        "8": [{ subjectRaw: "Theater MG A102" }],
-        "9": [{ subjectRaw: "Theater MG A102" }],
-        "10": [],
-        "11": [],
-      },
-
-      Mi: {
-        "0": [],
-        "1": [{ subjectRaw: "PH PY A104" }],
-        "2": [{ subjectRaw: "PH PY A104" }], // rowspan in original
-        "3": [{ subjectRaw: "DALTON"}],
-        "4": [{ subjectRaw: "MU RH A301" }],
-        "5": [{ subjectRaw: "MU RH A301" }],
-        "6": [{ subjectRaw: "*KStd GL A307" }],
-        "7": [{ subjectRaw: "F GL A307" }],
-        "8": [],
-        "9": [{ subjectRaw: "3.FS-La SO A309" }],
-        "10": [],
-        "11": [],
-      },
-
-      Do: {
-        "0": [],
-        "1": [
-          {
-            subjectRaw:
-                "*E CN A206 *BI ECS A207 *MA HR A005 *GeWi MO A104 *MU KE A301",
-            subjectHtml:
-                "*E CN A206<br>*BI ECS A207<br>*MA HR A005<br>*GeWi MO A104<br>*MU KE A301",
-          },
-        ],
-        "2": [], // rowspan
-        "3": [{ subjectRaw: "DALTON"}],
-        "4": [{ subjectRaw: "DE GL A307" }],
-        "5": [{ subjectRaw: "DE GL A307" }], // rowspan
-        "6": [{ subjectRaw: "ETH KR A307" }],
-        "7": [{ subjectRaw: "F GL A307" }],
-        "8": [],
-        "9": [],
-        "10": [],
-        "11": [],
-      },
-
-      Fr: {
-        "0": [],
-        "1": [{ subjectRaw: "MA PY A110" }],
-        "2": [{ subjectRaw: "MA PY A110" }],
-        "3": [{ subjectRaw: "DALTON"}],
-        "4": [{ subjectRaw: "E AU A307" }],
-        "5": [{ subjectRaw: "F GL A307" }],
-        "6": [
-          {
-            subjectRaw:
-                "*ENREL A313 *ENR GL A310 *ENR ME A008 *ENR WE A104",
-            subjectHtml:
-                "*ENREL A313<br>*ENR GL A310<br>*ENR ME A008<br>*ENR WE A104",
-          },
-        ],
-        "7": [{ subjectRaw: "*ENREL A313 *ENR GL A310 *ENR ME A008 *ENR WE A104", subjectHtml:"*ENREL A313<br>*ENR GL A310<br>*ENR ME A008<br>*ENR WE A104" }],
-        "8": [{ subjectRaw: "BILU A203" }],
-        "9": [],
-        "10": [],
-        "11": [],
-      },
-    };
-
-    // Helper functions to access data and convert raw subject into readable HTML
-    function getEntries(day: string, periodId: string) {
-      const arr = data[day] && data[day][periodId] ? data[day][periodId] : [];
-      return arr.map((e) => {
-        // if subjectHtml is not supplied, try to add line breaks intelligently
-        if (!e.subjectHtml) {
-          // replace multiple spaces with single, split by ' *' or '  ' or ' / ' heuristics
-          const parts = e.subjectRaw.split(/ \*| \s{2,} | \s\| /).filter(Boolean);
-          // if there are slashes or multiple groups, preserve original as single line
-          const html = parts.length > 1 ? parts.join("<br>") : e.subjectRaw;
-          e.subjectHtml = html;
-        }
-        return e;
-      });
-    }
-
-    function hasEntry(day: string, periodId: string) {
-      const arr = data[day] && data[day][periodId] ? data[day][periodId] : [];
-      return arr.length > 0;
-    }
-
-    return {
-      days,
-      rows,
-      getEntries,
-      hasEntry,
-    };
-  },
-});
-</script>
-
-<style scoped>
-.timetable-card {
-  padding: 18px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(26,26,26,1), rgba(20,20,20,1));
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-}
-
-/* Header */
-.tt-header {
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.title {
-  margin: 0 0 6px 0;
-  color: var(--text);
-  font-size: 1.05rem;
-}
-.meta { text-align: right; }
-
-/* Grid wrapper: horizontal scroll on small screens for perfect layout */
-.grid-wrapper {
-  overflow: auto;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-/* Grid layout */
-.grid-head,
-.grid-row {
-  display: grid;
-  grid-template-columns: 160px repeat(5, minmax(160px, 1fr));
-  align-items: stretch;
-}
-
-.head-cell {
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  padding: 12px;
-  font-weight: 600;
-  color: var(--text);
-  text-align: center;
-}
-
-/* Cells */
-.cell {
-  min-height: 72px;
-  padding: 10px;
-  border-left: 1px solid rgba(255,255,255,0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: transparent;
-}
-
-.time-cell {
-  background: linear-gradient(90deg, rgba(255,255,255,0.01), transparent);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 12px;
-}
-
-.time-cell .period {
-  font-weight: 700;
-  color: var(--primary);
-  font-size: 0.95rem;
-}
-.time-cell .time {
-  margin-top: 4px;
-}
-
-/* Entries */
-.entry {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-left: 4px solid transparent;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-  word-break: break-word;
-  line-height: 1.1;
-}
-.entry-subject {
-  font-weight: 700;
-  color: var(--text);
-  font-size: 0.95rem;
-}
-.entry-meta {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/* Empty placeholder */
-.empty-placeholder {
-  opacity: 0.55;
-  text-align: center;
-  padding: 18px 6px;
-}
-
-/* Small screens: stack days vertically for narrow devices for better readability */
-@media (max-width: 720px) {
-  .grid-head,
-  .grid-row {
-    grid-template-columns: 110px 1fr;
-  }
-
-  .grid-head .day-cell.head-cell {
-    display: none;
-  }
-
-  /* show day label inside each day-cell on mobile */
-  .day-cell::before {
-    content: attr(data-day);
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 6px;
-    display: block;
-  }
-
-  .cell { min-height: 56px; padding: 8px; }
-  .entry { padding: 8px; }
-}
-
-/* make sure long text doesn't overflow */
-.cell, .entry-subject {
-  overflow-wrap: anywhere;
-}
-
-/* subtle hover for desktop */
-@media (hover: hover) and (pointer: fine) {
-  .entry:hover {
-    transform: translateY(-3px);
-    transition: transform 160ms ease;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.6);
-  }
-}
-</style>
+             hier frontend env: VITE_API_BASE=https://two34u88768.onrender.com
+                                VITE_HW_API_BASE=https://two34u882345253.onrender.com

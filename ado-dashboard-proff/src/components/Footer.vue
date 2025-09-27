@@ -12,6 +12,7 @@
           <router-link to="/" class="footer-link">Dashboard</router-link>
           <router-link to="/bewerten" class="footer-link">Benoten</router-link>
           <router-link to="/impressum-&-datenschutz" class="footer-link">Datenschutz & Impressum</router-link>
+          <router-link to="/beschwerdenfresser" class="footer-link">Fresser</router-link>
         </div>
 
         <div class="footer-section">

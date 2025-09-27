@@ -17,6 +17,8 @@
         <router-link to="/bewerten" class="nav-item" @click="closeNav">Benoten</router-link>
         <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
         <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzel-Finder</router-link>
+        <router-link to="/beschwerdenfresser" class="nav-item" @click="closeNav">Fresser</router-link>
+
 
       </nav>
     </div>

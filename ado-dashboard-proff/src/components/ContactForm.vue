@@ -407,7 +407,7 @@ try {
 
 <style scoped>
 .contact-wrap { margin-top: 24px; }
-.contact-card { border: 1px solid var(--border); }
+.contact-card { border: none; }
 
 .title { margin: 0 0 6px 0; }
 .header-row { align-items: center; }
