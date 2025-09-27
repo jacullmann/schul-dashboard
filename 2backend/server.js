@@ -40,15 +40,33 @@ cloudinary.config({
 });
 
 // Nodemailer (GMX)
+// Nodemailer (robuster Transporter mit Timeouts + verify)
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'mail.gmx.net',
     port: Number(process.env.SMTP_PORT || 587),
-    secure: false,
+    secure: Number(process.env.SMTP_PORT || 587) === 465,
+    requireTLS: true,
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
+    },
+    logger: true,
+    debug: true,
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
+    tls: {
+        rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false'
     }
 });
+
+// Prüfe beim Start die SMTP-Verbindung und logge das Ergebnis
+transporter.verify().then(() => {
+    console.log('SMTP transporter verified and ready');
+}).catch(err => {
+    console.error('SMTP transporter verify failed (emails may not be sent):', err);
+});
+
 
 // Models
 const UserSchema = new mongoose.Schema({
@@ -193,13 +211,22 @@ app.post('/api/auth/register',
         const expiresAt = dayjs().add(2, 'day').toDate();
         await Verification.create({ email: user.email, token, expiresAt });
         const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
-        await transporter.sendMail({
-            from: process.env.SMTP_FROM || process.env.SMTP_USER,
-            to: user.email,
-            subject: 'Bitte E-Mail bestätigen',
-            html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-        });
-        res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+        try {
+            await transporter.sendMail({
+                from: process.env.SMTP_FROM || process.env.SMTP_USER,
+                to: user.email,
+                subject: 'Bitte E-Mail bestätigen',
+                html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+            });
+            res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+        } catch (mailErr) {
+            console.error('Failed to send verification email:', mailErr);
+            res.status(201).json({
+                ok: true,
+                message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
+            });
+        }
+
     }
 );
 
