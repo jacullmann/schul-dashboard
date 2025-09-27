@@ -13,8 +13,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h2 class="title">Fresser</h2>
-                  <p class="small">Fett frisst dich fett.</p>
+                  <h2 class="title">Platz für Beschwerden</h2>
+                  <p class="small">Alle Sachen, die du abgibst, sidn vollkommen anonym.</p>
                 </div>
               </div>
             </transition>
@@ -39,7 +39,7 @@
                       type="submit"
                       :disabled="submitting || !message.trim()"
                   >
-                    <span v-if="!submitting">Absenden</span>
+                    <span v-if="!submitting">Anonym absenden</span>
                     <span v-else class="loader"></span>
                   </button>
                   <button
@@ -60,11 +60,6 @@
 
             <hr />
 
-            <div class="small tips">
-              <span class="badge">Fett</span>
-              <span class="badge">Frech</span>
-              <span class="badge">Ferückt</span>
-            </div>
           </div>
         </transition>
       </div>
