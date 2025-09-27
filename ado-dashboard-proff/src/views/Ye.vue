@@ -1,6 +1,5 @@
 <template>
   <div class="suround">
-    <!-- Login Screen -->
     <div v-if="!isAuthenticated" class="login-wrapper">
       <div class="card p-6 login-card glass">
         <div class="login-header">
@@ -31,13 +30,11 @@
       </div>
     </div>
 
-    <!-- Protected Content -->
     <div
         v-else
         class="kanye-page full"
         :style="{ '--bg-image': `url(${heroImageUrl})` }"
     >
-      <!-- Navigation -->
       <nav class="kanye-nav-fixed card nav-elevate">
         <div class="container row items-center justify-between nav-content">
           <div class="brand row items-center gap-4">
@@ -88,7 +85,6 @@
         </div>
       </nav>
 
-      <!-- Hero -->
       <header class="kanye-hero full-c flex items-center justify-center text-center">
         <div class="kanye-hero-content">
           <h1 class="title-xl font-extrabold mb-4 animate-fade-in-up">
@@ -115,10 +111,10 @@
         <div class="hero-overlay"></div>
       </header>
 
-      <!-- Content -->
+
       <main class="full-c bg-bg">
         <div class="container py-12">
-          <!-- Biografie -->
+
           <section id="biography" class="row gap-8 mb-12 section-block">
             <div class="col-main">
               <div class="section-header">
@@ -215,7 +211,7 @@
                 </button>
               </div>
 
-              <!-- Albums Grid -->
+
               <div class="albums-grid">
                 <template v-if="activeAlbumYear === null">
                   <div
@@ -268,7 +264,7 @@
             </div>
           </section>
 
-          <!-- Kontroversen -->
+
           <section id="controversies" class="mb-12 section-block">
             <div class="section-header">
               <h2 class="section-title animate-fade-in" v-animate-on-scroll>Kontroversen</h2>
@@ -304,7 +300,7 @@
             </div>
           </section>
 
-          <!-- Galerie -->
+
           <section id="gallery" class="mb-12 section-block">
             <div class="section-header">
               <h2 class="section-title animate-fade-in" v-animate-on-scroll>Bildergalerie</h2>
@@ -329,7 +325,7 @@
         </div>
       </main>
 
-      <!-- Lightbox -->
+
       <Transition name="fade">
         <div v-if="lightboxOpen" class="lightbox" @click="closeLightbox">
           <button class="lightbox-close btn ghost" @click.stop="closeLightbox">✕</button>
@@ -393,7 +389,7 @@ export default defineComponent({
     },
   },
   setup() {
-    // Auth
+
     const correctPassword = "hash891219!";
     const loginPassword = ref("");
     const loginError = ref("");
@@ -408,16 +404,16 @@ export default defineComponent({
       }
     }
 
-    // Mobile menu
+
     const mobileMenuOpen = ref(false);
 
-    // Hero & Profile
+
     const heroImageUrl =
         "https://preview.redd.it/kanye-west-graduation-3840x2160-v0-kjektcn4myv91.png?width=640&crop=smart&auto=webp&s=fa4b58c81acb3ec38c640cca6ef11d66d01c3cf3";
     const profileImageUrl =
         "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg/250px-Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg";
 
-    // Discography
+
     const albums: Album[] = [
       { title: "The College Dropout", year: 2004, cover: "https://media.pitchfork.com/photos/5929aa8c5e6ef959693215e8/16:9/w_1280,c_limit/7b1099ec.jpg?mbid=social_retweet", description: "Sein wegweisendes Debüt, das ihn als Rapper und Produzent etablierte.", link: "https://de.wikipedia.org/wiki/The_College_Dropout" },
       { title: "Late Registration", year: 2005, cover: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Late_registration_cd_cover.jpg/250px-Late_registration_cd_cover.jpg", description: "Baute auf dem Erfolg des Debüts auf, mit orchestralen Elementen.", link: "https://de.wikipedia.org/wiki/Late_Registration" },
@@ -437,7 +433,7 @@ export default defineComponent({
         Array.from(new Set(albums.map((a) => a.year))).sort((a, b) => b - a)
     );
 
-    // Set default active year immediately to avoid empty render
+
     const activeAlbumYear = ref<number | null>(albumYears.value[0] ?? null);
 
     const albumsByYear = computed<Record<number, Album[]>>(() => {
@@ -448,7 +444,7 @@ export default defineComponent({
       }, {} as Record<number, Album[]>);
     });
 
-    // Gallery
+
     const galleryImages: GalleryImage[] = [
       {
         thumbnail:
@@ -490,7 +486,7 @@ export default defineComponent({
       },
     ];
 
-    // Lightbox
+
     const lightboxOpen = ref(false);
     const currentImageIndex = ref(0);
     function openLightbox(i: number) {
@@ -515,7 +511,7 @@ export default defineComponent({
       if (e.key === "Escape") closeLightbox();
     }
 
-    // Scroll with offset for sticky nav
+
     function scrollTo(id: string) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -531,30 +527,30 @@ export default defineComponent({
     });
 
     return {
-      // auth
+
       loginPassword,
       loginError,
       isAuthenticated,
       login,
-      // nav
+
       mobileMenuOpen,
-      // hero/profile
+
       heroImageUrl,
       profileImageUrl,
-      // discography
+
       albums,
       albumYears,
       activeAlbumYear,
       albumsByYear,
-      // gallery
+
       galleryImages,
-      // lightbox
+
       lightboxOpen,
       currentImageIndex,
       openLightbox,
       closeLightbox,
       navigateLightbox,
-      // scroll
+
       scrollTo,
     };
   },
@@ -562,7 +558,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Layout wrapper */
+
 .suround {
   padding: 2.5rem;
   gap: 2.5rem;
@@ -571,13 +567,13 @@ export default defineComponent({
   border-radius: 5px;
 }
 
-/* Utilities missing in global CSS */
+
 .items-center { align-items: center; }
 .justify-between { justify-content: space-between; }
 .gap-4 { gap: 1rem; }
 .flex { display: flex; }
 
-/* Login */
+
 .login-wrapper {
   display: flex;
   align-items: center;
@@ -641,7 +637,7 @@ export default defineComponent({
   justify-content: space-between;
 }
 
-/* Page & Hero */
+
 .kanye-page {
   background-color: var(--bg);
   min-height: 100vh;
@@ -686,7 +682,7 @@ export default defineComponent({
   margin-top: 16px;
 }
 
-/* Navigation */
+
 .kanye-nav-fixed {
   position: sticky;
   top: 0;
@@ -744,9 +740,9 @@ export default defineComponent({
 .nav-links { display: flex; }
 .nav-links.open { display: flex; }
 
-/* Sections */
+
 .section-block {
-  scroll-margin-top: 84px; /* for sticky nav offset */
+  scroll-margin-top: 84px;
 }
 .section-header {
   display: flex;
@@ -769,11 +765,11 @@ export default defineComponent({
   background: linear-gradient(90deg, rgba(245,158,11,0.35), transparent);
 }
 
-/* Main Layout */
+
 .col-main { flex: 3; min-width: 300px; }
 .col-sidebar { flex: 1; min-width: 280px; }
 
-/* Infobox */
+
 .kanye-infobox {
   padding: 20px;
   border: 1px solid var(--border);
@@ -808,7 +804,7 @@ export default defineComponent({
   margin-right: 5px;
 }
 
-/* Diskografie */
+
 .albums-filter {
   align-items: center;
 }
@@ -879,13 +875,13 @@ export default defineComponent({
   min-height: 48px;
 }
 
-/* Kontroversen */
+
 .controversies-list {
   border-left: 2px solid rgba(245,158,11,0.35);
   padding-left: 12px;
 }
 
-/* Galerie */
+
 .image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -920,7 +916,7 @@ export default defineComponent({
   color: #e5e7eb;
 }
 
-/* Lightbox */
+
 .lightbox {
   position: fixed;
   inset: 0;
@@ -976,7 +972,7 @@ export default defineComponent({
   font-size: 1.1rem;
 }
 
-/* Footer */
+
 .kanye-footer {
   background-color: var(--card);
   border-top: 1px solid var(--border);
@@ -984,7 +980,7 @@ export default defineComponent({
   font-size: 0.9rem;
 }
 
-/* Animations */
+
 @keyframes fadeIn {
   from { opacity: 0; } to { opacity: 1; }
 }
@@ -1011,7 +1007,7 @@ export default defineComponent({
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .mobile-menu-toggle { display: block; }
   .nav-links {

@@ -482,21 +482,50 @@ app.patch('/api/items/:id',
 );
 
 // Delete item (own or admin)
-app.delete('/api/items/:id', requireAuth, async (req, res) => {
-    const item = await Item.findById(req.params.id);
-    if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-    const user = await User.findById(req.user.sub);
-    if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+// Delete an image from an item (Die korrigierte und konsolidierte Route)
+app.delete('/api/items/:itemId/images/:publicId',
+    requireAuth,
+    param('itemId').isMongoId(),
+    param('publicId').isString(),
+    validate,
+    async (req, res) => {
+        const { itemId, publicId } = req.params; // Parameter für Konsistenz destrukturieren
 
-    // Delete all associated images from Cloudinary first
-    if (item.images && item.images.length > 0) {
-        const publicIds = item.images.map(img => img.publicId);
-        await cloudinary.api.delete_resources(publicIds);
+        try {
+            const item = await Item.findById(itemId);
+            if (!item) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
+
+            // Findet das Bild, um Berechtigung zu prüfen
+            const image = item.images.find(img => img.publicId === publicId);
+            if (!image) return sendJSONError(res, 404, 'Bild nicht gefunden');
+
+            const user = await User.findById(req.user.sub);
+
+            // Berechtigungsprüfung: Nur Admin ODER der Ersteller des BILDES darf löschen
+            if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
+                return sendJSONError(res, 403, 'Zugriff verweigert.');
+            }
+
+            // 1. Bei Cloudinary löschen
+            await cloudinary.uploader.destroy(publicId);
+
+            // 2. Aus der Datenbank entfernen (mit filter ist es sauberer als splice)
+            item.images = item.images.filter(img => img.publicId !== publicId);
+            await item.save();
+
+            // 3. Aktivität protokollieren
+            await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId });
+
+            // 4. Erfolgreiche Antwort senden
+            res.json({ ok: true });
+
+        } catch (e) {
+            console.error('Fehler beim Löschen des Bildes:', e);
+            sendJSONError(res, 500, 'Interner Serverfehler beim Löschen des Bildes.');
+        }
     }
-    await item.deleteOne();
-    await logActivity(req.user.sub, 'item:delete', { id: item._id });
-    res.json({ ok: true });
-});
+);
+
 
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));
