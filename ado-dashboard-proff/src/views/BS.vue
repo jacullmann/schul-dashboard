@@ -14,7 +14,7 @@
                 </div>
                 <div>
                   <h2 class="title">Platz für Beschwerden</h2>
-                  <p class="small">Alle Sachen, die du abgibst, sidn vollkommen anonym.</p>
+                  <p class="small">Alle Sachen, die du abgibst, sind vollkommen anonym.</p>
                 </div>
               </div>
             </transition>
