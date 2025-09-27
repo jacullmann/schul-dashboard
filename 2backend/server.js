@@ -81,7 +81,7 @@ const Subject = mongoose.model('HwSubject', SubjectSchema);
 const AnnouncementSchema = new mongoose.Schema({
     title: String,
     content: String,
-    color: { type: String, default: 'warn' }, // info | warn | danger
+    color: { type: String, default: 'warn' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
 }, { timestamps: true });
 const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
@@ -152,14 +152,12 @@ function timeLeftColor(dueDate) {
     if (diffDays < 7) return 'warn';
     return 'ok';
 }
-// Build a super-fast preview URL by injecting Cloudinary transformations
 function buildThumbUrl(secureUrl) {
     try {
         const u = new URL(secureUrl);
         const parts = u.pathname.split('/');
         const uploadIdx = parts.findIndex(p => p === 'upload');
         if (uploadIdx !== -1) {
-            // f_auto = best format, q_auto:low = low quality, w_240 = small width for quick list previews
             parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
             u.pathname = parts.join('/');
         }
@@ -349,6 +347,8 @@ app.post('/api/items/:id/images',
 );
 
 // Delete an image from an item
+// NOTE: publicId may contain slashes, clients should encodeURIComponent before calling.
+// We decode here for robust matching.
 app.delete('/api/items/:itemId/images/:publicId',
     requireAuth,
     param('itemId').isMongoId(),
@@ -358,7 +358,15 @@ app.delete('/api/items/:itemId/images/:publicId',
         const item = await Item.findById(req.params.itemId);
         if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
-        const imageIndex = item.images.findIndex(img => img.publicId === req.params.publicId);
+        // decode the publicId (client should have encoded it)
+        let publicId;
+        try {
+            publicId = decodeURIComponent(req.params.publicId);
+        } catch {
+            publicId = req.params.publicId;
+        }
+
+        const imageIndex = item.images.findIndex(img => img.publicId === publicId);
         if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
 
         const image = item.images[imageIndex];
@@ -369,7 +377,12 @@ app.delete('/api/items/:itemId/images/:publicId',
         }
 
         // Delete from Cloudinary
-        await cloudinary.uploader.destroy(image.publicId);
+        try {
+            await cloudinary.uploader.destroy(image.publicId);
+        } catch (err) {
+            // Log but continue to remove from DB to keep state consistent
+            console.error('Cloudinary destroy error', err);
+        }
 
         // Remove from DB
         item.images.splice(imageIndex, 1);
@@ -391,7 +404,6 @@ app.get('/api/items',
             .limit(500)
             .lean();
 
-        // Ensure all images have thumbUrl
         const normalized = list.map(i => {
             const imgs = (i.images || []).map(img => withThumb(img));
             return {
@@ -488,16 +500,18 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
     const user = await User.findById(req.user.sub);
     if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
 
-    // Delete all associated images from Cloudinary first
     if (item.images && item.images.length > 0) {
         const publicIds = item.images.map(img => img.publicId);
-        await cloudinary.api.delete_resources(publicIds);
+        try {
+            await cloudinary.api.delete_resources(publicIds);
+        } catch (err) {
+            console.error('Cloudinary bulk delete error', err);
+        }
     }
     await item.deleteOne();
     await logActivity(req.user.sub, 'item:delete', { id: item._id });
     res.json({ ok: true });
 });
-
 
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));

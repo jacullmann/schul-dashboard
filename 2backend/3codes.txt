@@ -1,4 +1,4 @@
-server js: import 'dotenv/config';
+server.js: import 'dotenv/config';
            import express from 'express';
            import mongoose from 'mongoose';
            import helmet from 'helmet';
@@ -498,27 +498,1252 @@ server js: import 'dotenv/config';
                res.json({ ok: true });
            });
 
+
            // Health
            app.get('/health', (req, res) => res.json({ ok: true }));
 
            app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
 
-backend env: CLIENT_VERIFY_URL=https://two34u88.onrender.com/hausaufgaben/verify
-             CLOUDINARY_API_KEY=511331798256166
-             CLOUDINARY_API_SECRET=alObIhb6CS7sjv8AhZ-jeDcUfZM
-             CLOUDINARY_CLOUD_NAME=dwysdpvcm
-             CLOUDINARY_FOLDER=hausaufgaben
-             CORS_ORIGIN=https://two34u88.onrender.com
-             JWT_SECRET=2un98xu981nxz43187zrxniqz
-             MONGODB_URI="mongodb+srv://jannesarda_db_user:rsHQ64vL2EgMKG81@cluster023480923840.ssskjyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster023480923840"
-             PORT=8090
-             SMTP_FROM="Dashboard <dashboardverifizierung@gmail.com>"
-             SMTP_HOST=smtp.gmail.com
-             SMTP_PASS=hkenivoetbufhyit
-             SMTP_PORT=587
-             SMTP_USER=dashboardverifizierung@gmail.com
+announcementform.vue: <template>
+                        <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+                          <div class="card" style="width:100%; max-width:520px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                              <h3 style="margin:0;">Neue Ankündigung</h3>
+                              <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+                            </div>
+                            <div style="margin-top:8px;">
+                              <input class="input" v-model="title" placeholder="Titel" />
+                            </div>
+                            <div style="margin-top:8px;">
+                              <textarea class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
+                            </div>
+                            <div style="margin-top:8px;">
+                              <select class="input" v-model="color">
+                                <option value="info">Info</option>
+                                <option value="warn">Wichtig</option>
+                                <option value="danger">Dringend</option>
+                              </select>
+                            </div>
+                            <div class="row" style="margin-top:12px; align-items:center;">
+                              <button class="btn" @click="submit" :disabled="submitting">
+                                <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Anlegen
+                              </button>
+                              <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+
+                      <script setup lang="ts">
+                      import { ref } from 'vue';
+                      import hw from '../../hwApi';
+
+                      const emit = defineEmits(['close', 'success']);
+
+                      const title = ref('');
+                      const content = ref('');
+                      const color = ref('warn');
+                      const submitting = ref(false);
+                      const message = ref('');
+                      const isError = ref(false);
+
+                      async function submit() {
+                        submitting.value = true;
+                        message.value = '';
+                        isError.value = false;
+                        try {
+                          await hw.post('/api/announcements', {
+                            title: title.value,
+                            content: content.value,
+                            color: color.value,
+                          });
+                          message.value = 'Ankündigung erfolgreich angelegt.';
+                          isError.value = false;
+                          emit('success');
+                        } catch (e: any) {
+                          message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
+                          isError.value = true;
+                        } finally {
+                          submitting.value = false;
+                        }
+                      }
+                      </script>
+
+authmodal.vue: <template>
+                 <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+                   <div class="card styl" style="width:100%; max-width:420px;">
+                     <div style="display:flex; justify-content:space-between; align-items:center;">
+                       <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
+                       <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
+                     </div>
+
+                     <div class="row" style="margin-top:12px;">
+                       <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
+                       <button class="btn" style="color:white;" :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
+                     </div>
+
+                     <div style="margin-top:12px;">
+                       <input class="input" v-model="email" placeholder="E-Mail" />
+                     </div>
+                     <div style="margin-top:8px;">
+                       <input class="input" type="password" v-model="password" placeholder="Passwort (min. 8 Zeichen)" />
+                     </div>
+
+                     <div class="row" style="margin-top:12px; align-items:center;">
+                       <button class="btn" @click="submit" :disabled="submitting">
+                         <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                         </svg>
+                         {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
+                       </button>
+                       <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+                     </div>
+                   </div>
+                 </div>
+               </template>
+
+               <script setup lang="ts">
+               import { ref } from 'vue';
+               import hw, { setHwToken } from '../../hwApi';
+
+               const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
+
+               const mode = ref<'login' | 'register'>('login');
+               const email = ref('');
+               const password = ref('');
+               const submitting = ref(false);
+               const message = ref('');
+               const isError = ref(false);
+
+               async function submit() {
+                 submitting.value = true;
+                 message.value = '';
+                 isError.value = false;
+                 try {
+                   if (mode.value === 'register') {
+                     await hw.post('/api/auth/register', { email: email.value, password: password.value });
+                     message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
+                     isError.value = false;
+                   } else {
+                     const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
+                     emit('logged-in', data.token);
+                   }
+                 } catch (e: any) {
+                   message.value = e.response?.data?.error || 'Unbekannter Fehler';
+                   isError.value = true;
+                 } finally {
+                   submitting.value = false;
+                 }
+               }
+               </script>
+
+               <style scoped>
+               .styl {
+                 border-radius: 14px;
+                 border: 1px solid rgba(255, 255, 255, 0.2);
+                 background: rgba(255, 255, 255, 0.15);
+                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+               }
 
 
 
-             hier frontend env: VITE_API_BASE=https://two34u88768.onrender.com
-                                VITE_HW_API_BASE=https://two34u882345253.onrender.com
+
+               </style>
+imageform.vue: <template>
+                 <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+                   <div class="card" style="width:100%; max-width:640px;">
+                     <div style="display:flex; justify-content:space-between; align-items:center;">
+                       <h3 style="margin:0;">Bilder verwalten für: {{ item.title }}</h3>
+                       <button class="btn ghost" @click="$emit('close')">Schließen</button>
+                     </div>
+
+                     <div style="margin-top:16px;">
+                       <div style="font-weight:600;">Bilder</div>
+                       <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
+                         <div
+                             v-for="img in currentImages"
+                             :key="img.publicId"
+                             style="position:relative; width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+                         >
+                           <a :href="img.url" target="_blank" rel="noopener">
+                             <img
+                                 :src="img.thumbUrl || makeThumb(img.url)"
+                                 style="display:block; width:120px; height:auto;"
+                                 loading="lazy"
+                                 decoding="async"
+                                 alt="Vorschau"
+                             />
+                           </a>
+                           <div style="position:absolute; top:4px; right:4px;">
+                             <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="confirmRemoval(img.publicId)">X</button>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+
+                     <div class="row" style="margin-top:16px; align-items:center;">
+                       <button class="btn" @click="uploadImg" :disabled="uploading">
+                         <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                         </svg>
+                         Bild hochladen
+                       </button>
+                       <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }" style="margin-left:12px;">{{ message }}</div>
+                     </div>
+                   </div>
+
+                   <div v-if="showConfirmRemovalModal" class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:200;">
+                     <div class="card" style="width:100%; max-width:400px; text-align:center;">
+                       <h4 style="margin:0;">Bild löschen?</h4>
+                       <p style="margin-top:12px;">Möchtest du dieses Bild wirklich löschen?</p>
+                       <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
+                         <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
+                         <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </template>
+
+               <script setup lang="ts">
+               import { ref, watchEffect } from 'vue';
+               import hw from '../../hwApi';
+
+               const props = defineProps({
+                 item: {
+                   type: Object as () => {
+                     id: string,
+                     title: string,
+                     images: Array<{ url: string, thumbUrl?: string, publicId: string }>
+                   },
+                   required: true
+                 },
+               });
+               const emit = defineEmits(['close', 'success']);
+
+               const uploading = ref(false);
+               const message = ref('');
+               const isError = ref(false);
+               const currentImages = ref(props.item.images);
+               const showConfirmRemovalModal = ref(false);
+               const publicIdToRemove = ref('');
+
+               watchEffect(() => {
+                 currentImages.value = props.item.images;
+               });
+
+               function confirmRemoval(publicId: string) {
+                 publicIdToRemove.value = publicId;
+                 showConfirmRemovalModal.value = true;
+               }
+
+               function cancelRemoval() {
+                 showConfirmRemovalModal.value = false;
+                 publicIdToRemove.value = '';
+               }
+
+               function makeThumb(url: string) {
+                 try {
+                   const u = new URL(url);
+                   const parts = u.pathname.split('/');
+                   const uploadIdx = parts.findIndex(p => p === 'upload');
+                   if (uploadIdx !== -1) {
+                     parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+                     u.pathname = parts.join('/');
+                   }
+                   return u.toString();
+                 } catch {
+                   return url;
+                 }
+               }
+
+               async function uploadImg() {
+                 const input = document.createElement('input');
+                 input.type = 'file';
+                 input.accept = 'image/*';
+                 input.onchange = async () => {
+                   const file = input.files?.[0];
+                   if (!file) return;
+
+                   uploading.value = true;
+                   message.value = '';
+                   isError.value = false;
+
+                   try {
+                     // FIX: use correct endpoint and method
+                     const { data: sign } = await hw.post('/api/uploads/sign');
+                     const form = new FormData();
+                     form.append('file', file);
+                     form.append('api_key', sign.apiKey);
+                     form.append('timestamp', String(sign.timestamp));
+                     form.append('signature', sign.signature);
+                     form.set('folder', sign.folder);
+
+                     const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+                     const json = await res.json();
+
+                     if (json.secure_url && json.public_id) {
+                       // Add to item in backend (backend returns image including thumbUrl)
+                       const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
+                         image: { url: json.secure_url, publicId: json.public_id }
+                       });
+                       // Update local state without waiting for a reload
+                       currentImages.value = [...currentImages.value, data.image];
+                       message.value = 'Bild erfolgreich hochgeladen.';
+                       isError.value = false;
+                       emit('success');
+                     } else {
+                       message.value = 'Bild-Upload fehlgeschlagen.';
+                       isError.value = true;
+                     }
+                   } catch (e: any) {
+                     message.value = e.response?.data?.error || 'Fehler beim Hochladen.';
+                     isError.value = true;
+                   } finally {
+                     uploading.value = false;
+                   }
+                 };
+                 input.click();
+               }
+
+               async function removeImg(publicId: string) {
+                 showConfirmRemovalModal.value = false;
+                 message.value = '';
+                 isError.value = false;
+                 try {
+                   await hw.delete(`/api/items/${props.item.id}/images/${publicId}`);
+                   currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
+                   message.value = 'Bild erfolgreich gelöscht.';
+                   emit('success');
+                 } catch (e: any) {
+                   message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                   isError.value = true;
+                 }
+               }
+               </script>
+
+               <style scoped>
+               .row {
+                 display: flex;
+                 align-items: center;
+               }
+               .card {
+                 border: 1px solid var(--border);
+                 border-radius: 12px;
+                 background: var(--card-bg);
+                 padding: 24px;
+               }
+               </style>
+itemform.vue: <template>
+                <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
+                  <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
+                    <div class="modal-header">
+                      <h3 class="modal-title">
+                        {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
+                      </h3>
+                      <button class="btn ghost" @click="$emit('close')">Schließen</button>
+                    </div>
+
+                    <div class="row">
+                      <div class="col">
+                        <label class="label">Titel</label>
+                        <input class="input" v-model="title" />
+                      </div>
+                      <div class="col">
+                        <label class="label">Fach</label>
+                        <select class="input" v-model="subjectSel">
+                          <option disabled value="">Bitte wählen</option>
+                          <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+                          <option value="__OTHER__">Anderes...</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div v-if="subjectSel==='__OTHER__'" class="section">
+                      <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
+                    </div>
+
+                    <div class="section">
+                      <label class="label">Beschreibung (optional)</label>
+                      <textarea class="input" rows="4" v-model="description"></textarea>
+                    </div>
+
+                    <div class="row section">
+                      <div class="col">
+                        <label class="label">Abgabedatum</label>
+                        <input class="input" type="datetime-local" v-model="dueLocal" />
+                      </div>
+                    </div>
+
+                    <div class="section">
+                      <div class="label bold">Bilder</div>
+                      <div class="row images">
+                        <div
+                            v-for="img in images"
+                            :key="img.publicId"
+                            class="image-item"
+                        >
+                          <a :href="img.url" target="_blank" rel="noopener">
+                            <img
+                                :src="img.thumbUrl || makeThumb(img.url)"
+                                class="thumb"
+                                loading="lazy"
+                                decoding="async"
+                                alt="Vorschau"
+                            />
+                          </a>
+                          <div class="image-actions">
+                            <button class="btn danger image-remove" @click="removeImg(img)">X</button>
+                          </div>
+                        </div>
+
+                        <button class="btn ghost" @click="uploadImage" :disabled="uploading">
+                          <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Bild hochladen
+                        </button>
+                      </div>
+                      <div v-if="uploading" class="small">Lade Bild hoch...</div>
+                      <div v-if="uploadError" class="small error">{{ uploadError }}</div>
+                    </div>
+
+                    <div class="row actions">
+                      <button class="btn" @click="submit" :disabled="submitting">
+                        <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ initial ? 'Speichern' : 'Anlegen' }}
+                      </button>
+                      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <script setup lang="ts">
+              import { onMounted, onBeforeUnmount, ref } from 'vue';
+              import hw from '../../hwApi';
+              import type { HwItem } from './Hausaufgaben.vue';
+
+              const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
+              const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
+
+              const labelFor = (type: string) => {
+                const map = {
+                  'HAUSAUFGABE': 'Hausaufgabe',
+                  'DALTON': 'Dalton-Auftrag',
+                  'PRUEFUNG': 'Klassenarbeit',
+                } as const;
+                return map[type];
+              };
+
+              const title = ref(props.initial?.title || '');
+              const subjectSel = ref(props.initial?.subject || '');
+              const subjectOther = ref('');
+              const description = ref(props.initial?.description || '');
+              const images = ref(props.initial?.images || []);
+              const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+
+              const submitting = ref(false);
+              const message = ref('');
+              const isError = ref(false);
+              const uploading = ref(false);
+              const uploadError = ref('');
+
+              function makeThumb(url: string) {
+                try {
+                  const u = new URL(url);
+                  const parts = u.pathname.split('/');
+                  const uploadIdx = parts.findIndex(p => p === 'upload');
+                  if (uploadIdx !== -1) {
+                    parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+                    u.pathname = parts.join('/');
+                  }
+                  return u.toString();
+                } catch {
+                  return url;
+                }
+              }
+
+              async function uploadImage() {
+                uploading.value = true;
+                uploadError.value = '';
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = async () => {
+                  const file = input.files?.[0];
+                  if (!file) {
+                    uploading.value = false;
+                    return;
+                  }
+
+                  try {
+                    const { data: sign } = await hw.post('/api/uploads/sign');
+                    const form = new FormData();
+                    form.set('file', file);
+                    form.set('api_key', sign.apiKey);
+                    form.set('timestamp', String(sign.timestamp));
+                    form.set('signature', sign.signature);
+                    form.set('folder', sign.folder);
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+                    const json = await res.json();
+                    if (json.secure_url && json.public_id) {
+                      images.value.push({
+                        url: json.secure_url,
+                        thumbUrl: makeThumb(json.secure_url),
+                        publicId: json.public_id,
+                        createdBy: '' // backend setzt createdBy beim Anlegen
+                      });
+                      uploadError.value = '';
+                    } else {
+                      uploadError.value = 'Upload fehlgeschlagen';
+                    }
+                  } catch (e: any) {
+                    uploadError.value = 'Upload fehlgeschlagen';
+                  } finally {
+                    uploading.value = false;
+                  }
+                };
+                input.click();
+              }
+
+              async function removeImg(img: { url: string; publicId: string }) {
+                // 1. Prüfen, ob der Eintrag bereits existiert (bearbeitet wird)
+                if (props.initial?.id) {
+                  try {
+                    // 2. API-Aufruf an das Backend senden, um das Bild zu löschen.
+                    // Das Backend muss Item-ID und Public-ID des Bildes kennen.
+                    await hw.delete(`/api/items/${props.initial.id}/images/${img.publicId}`);
+
+                    // 3. Nach erfolgreichem Löschen aus dem Backend: Bild lokal entfernen.
+                    images.value = images.value.filter(i => i.publicId !== img.publicId);
+
+                    // Optional: Eine Erfolgsmeldung anzeigen
+                    // Du kannst 'uploadError' oder eine andere geeignete Variable nutzen
+                    console.log('Bild erfolgreich gelöscht:', img.publicId);
+                    uploadError.value = 'Bild erfolgreich gelöscht.';
+                    setTimeout(() => uploadError.value = '', 3000);
+
+                  } catch (e) {
+                    // Fehlerbehandlung
+                    console.error('Fehler beim Löschen des Bildes:', e);
+                    uploadError.value = 'Fehler beim Löschen des Bildes.';
+                  }
+                } else {
+                  // 4. Wenn es ein NEUER Eintrag ist: Nur lokal entfernen.
+                  // Das Bild ist noch nicht permanent mit einem Item in der Datenbank verbunden.
+                  images.value = images.value.filter(i => i.publicId !== img.publicId);
+                }
+              }
+
+              async function submit() {
+                submitting.value = true;
+                message.value = '';
+                isError.value = false;
+                try {
+                  const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
+                  const payload: any = {
+                    type: props.type,
+                    title: title.value.trim(),
+                    subject,
+                    description: description.value.trim(),
+                    images: images.value,
+                    dueDate: new Date(dueLocal.value).toISOString()
+                  };
+                  if (props.initial) {
+                    await hw.patch(`/api/items/${props.initial.id}`, payload);
+                    message.value = 'Eintrag erfolgreich aktualisiert.';
+                  } else {
+                    await hw.post('/api/items', payload);
+                    message.value = 'Eintrag erfolgreich angelegt.';
+                  }
+                  isError.value = false;
+                  emit('success');
+                } catch (e: any) {
+                  message.value = e.response?.data?.error || 'Unbekannter Fehler';
+                  isError.value = true;
+                } finally {
+                  submitting.value = false;
+                }
+              }
+
+              // Esc zum Schließen
+              function onKeyDown(e: KeyboardEvent) {
+                if (e.key === 'Escape') emit('close');
+              }
+              onMounted(() => window.addEventListener('keydown', onKeyDown));
+              onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
+              </script>
+
+              <style scoped>
+              /* Overlay: dimmt die Seite, aber NICHT verschwommen */
+              .modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 100;
+                padding: 24px;
+              }
+
+
+              .glass-modal {
+                width: 100%;
+                max-width: 720px;
+                border-radius: 14px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+                padding: 22px;
+                color: #1a1a1a;
+              }
+
+
+              .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+              }
+              .modal-title {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: rgba(244, 244, 244);
+              }
+
+              /* Layout */
+              .row {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                align-items: center;
+              }
+              .col {
+                flex: 1;
+                min-width: 240px;
+              }
+              .section {
+                margin-top: 10px;
+              }
+
+              /* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
+              .label {
+                display: block;
+                font-size: 13px;
+                color: rgba(244, 244, 244);
+                margin-bottom: 6px;
+              }
+              .label.bold {
+                font-weight: 600;
+                color: rgba(234, 234, 234);
+              }
+
+              .input {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 10px;
+                border: 1px solid rgba(128, 128, 128, 0.35);
+                background: rgba(26, 26, 26, 0.6);
+                color: var(--text);
+                outline: none;
+                transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+              }
+              .input:focus {
+                background: rgba(26, 26, 26, 0.7);
+              }
+
+              /* Bilderbereich */
+              .images {
+                gap: 8px;
+                margin-top: 6px;
+              }
+              .image-item {
+                position: relative;
+                width: 120px;
+                height: 120px;
+                border: 1px solid rgba(128, 128, 128, 0.35);
+                border-radius: 10px;
+                overflow: hidden;
+                background: rgba(26, 26, 26, 0.5);
+                backdrop-filter: blur(8px) brightness(95%);
+                -webkit-backdrop-filter: blur(8px) brightness(95%);
+              }
+              .thumb {
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+              .image-actions {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+              }
+              .image-remove {
+                padding: 4px 8px;
+                font-size: 12px;
+              }
+
+              /* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
+              .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              }
+              .btn.ghost {
+                backdrop-filter: none;
+              }
+
+              /* Spinner */
+              .spinner {
+                animation: spin 1s linear infinite;
+                height: 20px;
+                width: 20px;
+              }
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+
+              /* Aktionen unten */
+              .actions {
+                margin-top: 16px;
+                align-items: center;
+              }
+
+              /* Meldungen */
+              .small {
+                font-size: 12px;
+                color: var(--muted);
+              }
+              .error {
+                color: var(--danger);
+              }
+              .msg-ok {
+                color: var(--primary);
+              }
+              .msg-error {
+                color: var(--danger);
+              }
+
+              /* Fallback, falls backdrop-filter nicht unterstützt wird */
+              @supports not ((backdrop-filter: blur(10px))) {
+                .glass-modal {
+                  background: rgba(26, 26, 26, 0.75);
+                }
+              }
+              </style>
+hausaufgaben.vue: <template>
+                    <div class="card">
+                      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                        <div>
+                          <h2 style="margin:0;">Schultermine & Aufgaben</h2>
+                          <div class="small">Hausaufgaben, DALTON-Aufträge, Klassenarbeiten</div>
+                        </div>
+                        <div class="row" style="gap:8px;">
+                          <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
+                          <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+                        </div>
+                      </div>
+
+                      <div style="margin-top:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                          <h3 style="margin:0;">Wichtige Ankündigungen</h3>
+                          <button
+                              v-if="user?.isAdmin"
+                              class="btn ghost"
+                              style="padding:4px 8px; font-size:14px;"
+                              @click="showAnnouncementForm = true"
+                          >
+                            Ankündigung hinzufügen
+                          </button>
+                        </div>
+
+                        <div v-if="announcements.length" class="card" style="background:#1f2937; border-color:#f59e0b; margin-top:12px;">
+                          <div v-for="a in announcements" :key="a._id" class="card" :style="{ borderColor: colorFor(a.color) }" style="margin-top:12px; position:relative;">
+                            <div style="font-weight:600;">{{ a.title }}</div>
+                            <div style="white-space: pre-wrap; margin-top:6px;">{{ a.content }}</div>
+                            <div class="small" style="margin-top:6px;">{{ new Date(a.createdAt).toLocaleString() }}</div>
+                            <div v-if="canManage(a.createdBy)" class="row" style="margin-top:8px;">
+                              <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="deleteAnnouncement(a._id)">Löschen</button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <hr v-else-if="!announcements.length" style="margin-top:12px;"/>
+
+                      </div>
+
+                      <div style="display:flex; gap:8px; margin-bottom:16px; margin-top:16px; flex-wrap:wrap;">
+                        <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
+                        <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">DALTON</button>
+                        <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
+                      </div>
+
+                      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div class="row" style="gap:8px; flex-wrap:wrap;">
+                          <select class="input" style="width:auto;" v-model="subjectFilter">
+                            <option value="">Alle Fächer</option>
+                            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+                          </select>
+                          <button v-if="user" class="btn" @click="showItemForm=true">Eintrag anlegen</button>
+                          <div v-if="loading" class="row small" style="align-items:center; gap:8px; color:var(--muted)">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Lade...
+                          </div>
+                        </div>
+                        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+                      </div>
+
+                      <div style="margin-top:20px;">
+                        <div v-for="item in filteredItems" :key="item.id" class="card" style="margin-bottom:12px;">
+                          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                            <div>
+                              <h3 style="margin:0;">{{ item.title }}</h3>
+                              <div class="row small" style="margin-top:4px; gap:8px; color:var(--muted)">
+                                <div class="badge" style="background:#4b5563; color:white;">{{ item.subject }}</div>
+                                <div class="badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
+                                  Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row" style="gap:8px; align-self:flex-end;">
+                              <button class="btn ghost" v-if="user" @click="showImageForm(item)">Bilder verwalten</button>
+                              <button class="btn ghost" v-if="canManage(item.createdBy)" @click="editItem(item)">Bearbeiten</button>
+                              <button class="btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
+                            </div>
+                          </div>
+
+                          <div style="white-space: pre-wrap; margin-top:12px;">{{ item.description }}</div>
+
+                          <div v-if="item.images && item.images.length" style="margin-top:12px;">
+                            <div style="font-weight:600;">Bilder</div>
+                            <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
+                              <div
+                                  v-for="img in item.images"
+                                  :key="img.publicId"
+                                  style="width:120px; height:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
+                              >
+                                <a :href="img.url" target="_blank" rel="noopener">
+                                  <img
+                                      :src="img.thumbUrl || makeThumb(img.url)"
+                                      style="display:block; width:100%; height:100%; object-fit:cover;"
+                                      loading="lazy"
+                                      decoding="async"
+                                      :alt="item.title"
+                                  />
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div v-if="!loading && !filteredItems.length" class="card">
+                          Keine Einträge gefunden.
+                        </div>
+                      </div>
+                    </div>
+
+                    <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
+                    <ItemForm
+                        v-if="showItemForm"
+                        :type="tab"
+                        :subjects="subjects"
+                        :initial="itemToEdit"
+                        @close="showItemForm=false"
+                        @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
+                    />
+                    <AnnouncementForm
+                        v-if="showAnnouncementForm"
+                        @close="showAnnouncementForm=false"
+                        @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')"
+                    />
+                    <ImageForm
+                        v-if="showImageFormFor"
+                        :item="showImageFormFor"
+                        @close="showImageFormFor=null"
+                        @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
+                    />
+                  </template>
+
+                  <script setup lang="ts">
+                  import { ref, onMounted, watch, computed } from 'vue';
+                  import AuthModal from '../components/hw/AuthModal.vue';
+                  import ItemForm from '../components/hw/ItemForm.vue';
+                  import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
+                  import ImageForm from '../components/hw/ImageForm.vue';
+                  import hw, { setHwToken } from '../hwApi';
+
+                  export interface HwItem {
+                    id: string;
+                    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+                    title: string;
+                    subject: string;
+                    description: string;
+                    images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
+                    dueDate: string;
+                    createdBy: string;
+                    timeColor: string;
+                  }
+
+                  const showAuth = ref(false);
+                  const showItemForm = ref(false);
+                  const showAnnouncementForm = ref(false);
+                  const showImageFormFor = ref<any>(null);
+
+                  const user = ref<any>(null);
+                  const tab = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
+                  const subjects = ref<string[]>([]);
+                  const announcements = ref<any[]>([]);
+                  const items = ref<HwItem[]>([]);
+                  const loading = ref(true);
+                  const subjectFilter = ref('');
+                  const itemToEdit = ref<HwItem | null>(null);
+
+                  const message = ref('');
+                  const isError = ref(false);
+
+                  const colorFor = (color: string) => {
+                    const map = {
+                      'ok': 'var(--primary)',
+                      'warn': 'var(--warn)',
+                      'danger': 'var(--danger)',
+                      'expired': '#4b5563',
+                      'info': '#3b82f6',
+                    };
+                    return map[color] || 'var(--muted)';
+                  };
+
+                  const filteredItems = computed(() => {
+                    if (!subjectFilter.value) return items.value;
+                    return items.value.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
+                  });
+
+                  function canManage(createdBy: string) {
+                    if (!user.value) return false;
+                    return user.value.isAdmin || user.value.id === createdBy;
+                  }
+                  async function loadMe() {
+                    try {
+                      const { data } = await hw.get('/api/auth/me');
+                      user.value = data;
+                    } catch {
+                      user.value = null;
+                    }
+                  }
+                  async function loadSubjects() {
+                    const { data } = await hw.get('/api/subjects');
+                    subjects.value = data;
+                  }
+                  async function loadAnnouncements() {
+                    const { data } = await hw.get('/api/announcements');
+                    announcements.value = data;
+                  }
+                  async function reload() {
+                    loading.value = true;
+                    try {
+                      const { data } = await hw.get('/api/items', { params: { type: tab.value } });
+                      items.value = data;
+                    } catch (e) {
+                      console.error('Failed to load items:', e);
+                    } finally {
+                      loading.value = false;
+                    }
+                  }
+
+                  function handleSuccess(msg: string) {
+                    message.value = msg;
+                    isError.value = false;
+                    setTimeout(() => message.value = '', 5000);
+                    showItemForm.value = false;
+                    showAnnouncementForm.value = false;
+                    showImageFormFor.value = null;
+                    reload();
+                  }
+
+                  function onLoggedIn(token: string) {
+                    setHwToken(token);
+                    showAuth.value = false;
+                    loadMe();
+                    reload();
+                  }
+
+                  function logout() {
+                    setHwToken(null);
+                    user.value = null;
+                  }
+
+                  function editItem(item: HwItem) {
+                    itemToEdit.value = item;
+                    showItemForm.value = true;
+                  }
+
+                  async function deleteItem(id: string) {
+                    if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
+                      loading.value = true;
+                      try {
+                        await hw.delete(`/api/items/${id}`);
+                        handleSuccess('Eintrag erfolgreich gelöscht.');
+                      } catch (e: any) {
+                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                        isError.value = true;
+                      } finally {
+                        loading.value = false;
+                      }
+                    }
+                  }
+
+                  async function deleteAnnouncement(id: string) {
+                    if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
+                      try {
+                        await hw.delete(`/api/announcements/${id}`);
+                        handleSuccess('Ankündigung erfolgreich gelöscht.');
+                      } catch (e: any) {
+                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                        isError.value = true;
+                      }
+                    }
+                  }
+
+                  function showImageForm(item: HwItem) {
+                    showImageFormFor.value = item;
+                  }
+
+                  function makeThumb(url: string) {
+                    try {
+                      const u = new URL(url);
+                      const parts = u.pathname.split('/');
+                      const uploadIdx = parts.findIndex(p => p === 'upload');
+                      if (uploadIdx !== -1) {
+                        parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+                        u.pathname = parts.join('/');
+                      }
+                      return u.toString();
+                    } catch {
+                      return url;
+                    }
+                  }
+
+                  onMounted(() => {
+                    loadMe();
+                    loadSubjects();
+                    loadAnnouncements();
+                    reload();
+                  });
+
+                  watch(tab, reload);
+                  </script>
+app.vue: <template>
+           <div class="full">
+             <Header />
+             <main class="full-c">
+               <canvas id="animated-background"></canvas>
+               <div v-if="loading" class="loading-overlay" key="loading">
+                 <div class="elegant-spinner">
+                   <div class="dot-1"></div>
+                   <div class="dot-2"></div>
+                   <div class="dot-3"></div>
+                 </div>
+               </div>
+               <div v-else class="container" key="content">
+                 <router-view v-slot="{ Component }">
+                   <component :is="Component" />
+                 </router-view>
+                 <ContactForm />
+               </div>
+             </main>
+             <ButtonBack v-if="shouldShowBackButton">
+               Zurück
+             </ButtonBack>
+             <Footer />
+
+           </div>
+         </template>
+
+         <script setup lang="ts">
+         import { ref, onMounted } from 'vue';
+         import { useRouter } from 'vue-router';
+         import Header from './components/Header.vue';
+         import Footer from './components/Footer.vue';
+         import AnimatedBackground from './utils/animated-background.ts';
+         import CookieBanner from './components/CookieBanner.vue'
+         import ContactForm from "./components/ContactForm.vue";
+
+
+
+         const loading = ref(false);
+         const router = useRouter();
+
+
+
+         // Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
+         const MIN_LOAD_TIME = 150;
+         let loadStartTime = 0;
+
+         onMounted(() => {
+           new AnimatedBackground('animated-background');
+         });
+
+
+
+
+         router.beforeEach(() => {
+           loading.value = true;
+           loadStartTime = Date.now();
+         });
+
+         router.afterEach(() => {
+           const elapsedTime = Date.now() - loadStartTime;
+           const remainingTime = MIN_LOAD_TIME - elapsedTime;
+
+           if (remainingTime > 0) {
+             setTimeout(() => {
+               loading.value = false;
+             }, remainingTime);
+           } else {
+             loading.value = false;
+           }
+         });
+         </script>
+
+         <style scoped>
+         /*
+           Stile für die Ladeanimation.
+           Diese sind "scoped", damit sie nur für diese Komponente gelten.
+         */
+         .loading-overlay {
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           position: absolute;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           background-color: var(--bg);
+           z-index: 999;
+         }
+
+         .elegant-spinner {
+           position: relative;
+           width: 60px;
+           height: 60px;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+         }
+
+         .elegant-spinner div {
+           position: absolute;
+           width: 15px;
+           height: 15px;
+           border-radius: 50%;
+           background: #bd34fe;
+           opacity: 0;
+         }
+
+         .elegant-spinner .dot-1 {
+           animation: pulse-1 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+         .elegant-spinner .dot-2 {
+           animation: pulse-2 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+         .elegant-spinner .dot-3 {
+           animation: pulse-3 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+
+
+         @keyframes pulse-1 {
+           0% { transform: scale(0.1); opacity: 0; }
+           25% { transform: scale(1); opacity: 1; }
+           50% { transform: translateX(20px) scale(0.8); opacity: 0; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         @keyframes pulse-2 {
+           0% { transform: scale(0.1); opacity: 0; }
+           25% { transform: translateX(-20px) scale(0.8); opacity: 0; }
+           50% { transform: scale(1); opacity: 1; }
+           75% { transform: translateX(20px) scale(0.8); opacity: 0; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         @keyframes pulse-3 {
+           0% { transform: scale(0.1); opacity: 0; }
+           50% { transform: translateX(-20px) scale(0.8); opacity: 0; }
+           75% { transform: scale(1); opacity: 1; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         /* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
+         .full-c {
+           flex: 1;
+           position: relative;
+         }
+         </style>
+
+         router.ts: // src/router/index.ts
+
+                    import { createRouter, createWebHistory } from 'vue-router';
+
+
+                    import Hausaufgaben from './views/Hausaufgaben.vue';
+
+                    const PersonDetail = () => import('./views/PersonDetail.vue');
+                    const Admin = () => import('./views/Admin.vue');
+                    const Home = () => import('./views/Home.vue');
+                    const VerifyEmail = () => import('./views/VerifyEmail.vue');
+                    const Impressum = () => import('./views/Impressum.vue');
+                    const Stundenplan = () => import('./views/Stundenplan.vue')
+                    const Kuerzel = () => import('./views/Kuerzel.vue')
+                    const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue')
+                    const Ye = () => import('./views/Ye.vue')
+                    const BS = () => import('./views/BS.vue')
+
+                    const router = createRouter({
+                        history: createWebHistory(),
+                        routes: [
+                            { path: '/', component: Hausaufgaben },
+                            { path: '/bewerten', component: Home },
+                            { path: '/person/:id', component: PersonDetail, props: true },
+                            { path: '/admin', component: Admin },
+                            { path: '/hausaufgaben/verify', redirect: '/verify' },
+                            { path: '/verify', component: VerifyEmail },
+                            { path: '/impressum-&-datenschutz', component: Impressum },
+                            { path: '/stundenplan', component: Stundenplan },
+                            { path: '/kuerzel', component: Kuerzel },
+                            { path: '/lokale-to-do-liste', component: LokaleToDoListe },
+                            { path: '/kanye', component: Ye },
+                            { path: '/fresser', component: BS },
+
+                            {
+                                path: '/:pathMatch(.*)*',
+                                name: 'NotFound',
+                                component: () => import('./views/NotFound.vue')
+                            }
+
+
+                        ]
+                    });
+
+                    export default router;

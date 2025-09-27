@@ -160,7 +160,7 @@ async function uploadImage() {
           url: json.secure_url,
           thumbUrl: makeThumb(json.secure_url),
           publicId: json.public_id,
-          createdBy: '' // backend setzt createdBy beim Anlegen
+          createdBy: ''
         });
         uploadError.value = '';
       } else {
@@ -176,30 +176,23 @@ async function uploadImage() {
 }
 
 async function removeImg(img: { url: string; publicId: string }) {
-  // 1. Prüfen, ob der Eintrag bereits existiert (bearbeitet wird)
   if (props.initial?.id) {
     try {
-      // 2. API-Aufruf an das Backend senden, um das Bild zu löschen.
-      // Das Backend muss Item-ID und Public-ID des Bildes kennen.
-      await hw.delete(`/api/items/${props.initial.id}/images/${img.publicId}`);
+      // encode publicId so slashes are safe in the URL
+      await hw.delete(`/api/items/${props.initial.id}/images/${encodeURIComponent(img.publicId)}`);
 
-      // 3. Nach erfolgreichem Löschen aus dem Backend: Bild lokal entfernen.
+      // remove locally
       images.value = images.value.filter(i => i.publicId !== img.publicId);
 
-      // Optional: Eine Erfolgsmeldung anzeigen
-      // Du kannst 'uploadError' oder eine andere geeignete Variable nutzen
       console.log('Bild erfolgreich gelöscht:', img.publicId);
       uploadError.value = 'Bild erfolgreich gelöscht.';
       setTimeout(() => uploadError.value = '', 3000);
 
-    } catch (e) {
-      // Fehlerbehandlung
+    } catch (e: any) {
       console.error('Fehler beim Löschen des Bildes:', e);
       uploadError.value = 'Fehler beim Löschen des Bildes.';
     }
   } else {
-    // 4. Wenn es ein NEUER Eintrag ist: Nur lokal entfernen.
-    // Das Bild ist noch nicht permanent mit einem Item in der Datenbank verbunden.
     images.value = images.value.filter(i => i.publicId !== img.publicId);
   }
 }
@@ -235,7 +228,6 @@ async function submit() {
   }
 }
 
-// Esc zum Schließen
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('close');
 }
@@ -244,6 +236,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <style scoped>
+
 /* Overlay: dimmt die Seite, aber NICHT verschwommen */
 .modal-overlay {
   position: fixed;
