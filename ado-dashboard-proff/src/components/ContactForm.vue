@@ -196,7 +196,7 @@ import { reactive, ref, watch } from 'vue'
 
 type StatusType = 'success' | 'danger' | 'warn' | ''
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mnnvjzva'
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva'
 const MESSAGE_MAX = 2000
 const SUBMIT_COOLDOWN_MS = 4000
 
@@ -443,7 +443,7 @@ try {
   position: relative;
   transition: box-shadow 180ms ease, transform 120ms ease;
 }
-.control.valid .input { border-color: var(--primary); }
+.control.valid .input { border-color: grey; }
 .control.invalid .input { border-color: var(--danger); }
 .control:focus-within { box-shadow: 0 0 0 3px rgba(34,197,94,0.15); transform: translateZ(0); }
 
