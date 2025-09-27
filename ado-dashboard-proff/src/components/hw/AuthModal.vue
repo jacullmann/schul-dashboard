@@ -99,6 +99,36 @@ async function submit() {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
+/* --- Button Styles --- */
+.btn {
+  background: transparent;
+  color: white;
+  border: 1px solid white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Aktiver Button (ohne .ghost) */
+.btn:not(.ghost) {
+  background: white;
+  color: #333;
+}
+
+/* Hover-Effekt für inaktive Buttons */
+.btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Hover-Effekt für aktive Buttons */
+.btn:not(.ghost):hover {
+  background: #f0f0f0; /* leichtes Grau */
+  color: #111;
+}
+
+/* --- Checkbox Styles --- */
 .checkbox-row {
   margin-top: 12px;
   display: flex;
@@ -146,5 +176,5 @@ async function submit() {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-
 </style>
+
