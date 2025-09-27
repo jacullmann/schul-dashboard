@@ -14,12 +14,6 @@
           <router-link to="/impressum-&-datenschutz" class="footer-link">Datenschutz & Impressum</router-link>
           <router-link to="/fresser" class="footer-link">Fresser</router-link>
         </div>
-
-        <div class="footer-section">
-          <h3>Kontakt</h3>
-          <p>support@gmail.com</p>
-          <p>Modersohhhhnstrasse</p>
-        </div>
       </div>
     </div>
 
