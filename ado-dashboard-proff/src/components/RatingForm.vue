@@ -84,7 +84,7 @@ async function submit() {
 
   const personKey = toUpperTrim(title.value + '_' + name.value);
   if (hasRecentRating(personKey)) {
-    error.value = 'Diese Person hast du schon bewertet. Bitte warte 1 Tag.';
+    error.value = 'Diese Person hast du schon bewertet.';
     return;
   }
 

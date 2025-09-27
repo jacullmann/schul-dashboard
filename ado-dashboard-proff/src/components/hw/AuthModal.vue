@@ -11,7 +11,7 @@
       <!-- Tabs -->
       <div class="row" style="margin-top:12px;">
         <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
-        <button class="btn" style="color:white;" :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
+        <button class="btn"  :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
       </div>
 
       <!-- Inputs -->
@@ -146,8 +146,5 @@ async function submit() {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-.btn:not(.ghost)[style*="color:white;"]:hover {
-  color:  #4b5563;
 
-}
 </style>
