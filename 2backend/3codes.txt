@@ -1,304 +1,385 @@
-hei rmeine komponente, ihamc übrigend mti vue vite typescript: <template>
-  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-    <div class="card" style="width:100%; max-width:640px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">{{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}</h3>
-        <button class="btn ghost" @click="$emit('close')">Schließen</button>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <div class="col">
-          <label>Titel</label>
-          <input class="input" v-model="title" />
+<template>
+  <section class="container">
+    <div class="card timetable-card" role="table" aria-label="Stundenplan 10A">
+      <header class="tt-header row">
+        <div>
+          <h2 class="title">Albrecht-Dürer-Schule — Stundenplan 2025/2026</h2>
+          <div class="small muted">Klasse <strong>10A</strong> — gültig ab 08.09.2026 — 1. Halbjahr</div>
         </div>
-        <div class="col">
-          <label>Fach</label>
-          <select class="input" v-model="subjectSel">
-            <option disabled value="">Bitte wählen</option>
-            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-            <option value="__OTHER__">Anderes...</option>
-          </select>
+        <div class="meta">
+          <div class="badge">Berlin, Emser Str. 133-137</div>
+          <div class="small">Version: Untis 2025</div>
         </div>
-      </div>
-      <div v-if="subjectSel==='__OTHER__'" style="margin-top:8px;">
-        <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
-      </div>
+      </header>
 
-      <div style="margin-top:8px;">
-        <label>Beschreibung (optional)</label>
-        <textarea class="input" rows="4" v-model="description"></textarea>
-      </div>
-
-      <div class="row" style="margin-top:8px;">
-        <div class="col">
-          <label>Abgabedatum</label>
-          <input class="input" type="datetime-local" v-model="dueLocal" />
+      <div class="grid-wrapper">
+        <div class="grid-head" role="row">
+          <div class="cell time-cell head-cell"></div>
+          <div class="cell day-cell head-cell" v-for="d in days" :key="d">{{ d }}</div>
         </div>
-      </div>
 
-      <div style="margin-top:16px;">
-        <div style="font-weight:600;">Bilder</div>
-        <div class="row" style="gap:8px; margin-top:8px; flex-wrap:wrap;">
-          <div
-              v-for="img in images"
-              :key="img.publicId"
-              style="position:relative; width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"
-          >
-            <a :href="img.url" target="_blank" rel="noopener">
-              <img
-                  :src="img.thumbUrl || makeThumb(img.url)"
-                  style="display:block; width:120px; height:auto;"
-                  loading="lazy"
-                  decoding="async"
-                  alt="Vorschau"
-              />
-            </a>
-            <div style="position:absolute; top:4px; right:4px;">
-              <button class="btn danger" style="padding:4px 8px; font-size:12px;" @click="removeImg(img)">X</button>
-            </div>
+        <div
+            class="grid-row"
+            v-for="row in rows"
+            :key="row.id"
+            role="row"
+        >
+          <div class="cell time-cell" role="cell">
+            <div class="period">{{ row.label }}</div>
+            <div class="time small muted">{{ row.time }}</div>
           </div>
-          <button class="btn ghost" @click="uploadImage" :disabled="uploading">
-            <svg v-if="uploading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Bild hochladen
-          </button>
+
+          <div
+              class="cell day-cell"
+              v-for="d in days"
+              :key="d + '-' + row.id"
+              role="cell"
+              :class="{ empty: !hasEntry(d, row.id) }"
+          >
+            <template v-if="hasEntry(d, row.id)">
+              <div
+                  v-for="(entry, i) in getEntries(d, row.id)"
+                  :key="d + '-' + row.id + '-' + i"
+                  class="entry"
+                  :style="{ borderLeftColor: entry.color || 'transparent' }"
+              >
+                <div class="entry-subject" v-html="entry.subjectHtml"></div>
+                <div class="entry-meta small">
+                  <span v-if="entry.room">{{ entry.room }}</span>
+                  <span v-if="entry.teacher"> · {{ entry.teacher }}</span>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="empty-placeholder small muted">—</div>
+            </template>
+          </div>
         </div>
-        <div v-if="uploading" class="small">Lade Bild hoch...</div>
-        <div v-if="uploadError" class="small" style="color:var(--danger)">{{ uploadError }}</div>
       </div>
 
-      <div class="row" style="margin-top:16px; align-items:center;">
-        <button class="btn" @click="submit" :disabled="submitting">
-          <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          {{ initial ? 'Speichern' : 'Anlegen' }}
-        </button>
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-      </div>
-
+      <footer class="row" style="margin-top:16px;justify-content:space-between;align-items:center;">
+        <div class="small muted">Immer schön artig sein.</div>
+        <div class="small muted">Keine Haftung</div>
+      </footer>
     </div>
-  </div>
+  </section>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue';
-import hw from '../../hwApi';
-import type { HwItem } from './Hausaufgaben.vue';
+<script lang="ts">
+import { defineComponent } from "vue";
 
-const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
-const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
 
-const labelFor = (type: string) => {
-  const map = {
-    'HAUSAUFGABE': 'Hausaufgabe',
-    'DALTON': 'Dalton-Auftrag',
-    'PRUEFUNG': 'Klassenarbeit',
-  };
-  return map[type];
+type EntryRaw = {
+  subjectRaw: string;
+  subjectHtml?: string;
+  teacher?: string | null;
+  room?: string | null;
+  color?: string | null;
 };
 
-const title = ref(props.initial?.title || '');
-const subjectSel = ref(props.initial?.subject || '');
-const subjectOther = ref('');
-const description = ref(props.initial?.description || '');
-const images = ref(props.initial?.images || []);
-const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+export default defineComponent({
+  name: "TimetableViewStatic",
+  setup() {
+    const days = ["Mo", "Di", "Mi", "Do", "Fr"];
 
-const submitting = ref(false);
-const message = ref('');
-const isError = ref(false);
-const uploading = ref(false);
-const uploadError = ref('');
+    // Rows (Perioden) mit Anzeige-Label und Uhrzeiten
+    const rows = [
+      { id: "0", label: "0", time: "07:00 - 07:45" },
+      { id: "1", label: "1", time: "08:00 - 08:45" },
+      { id: "2", label: "2", time: "08:45 - 09:30" },
+      { id: "3", label: "3", time: "09:55 - 10:40" },
+      { id: "4", label: "4", time: "10:45 - 11:30" },
+      { id: "5", label: "5", time: "11:30 - 12:15" },
+      { id: "6", label: "6", time: "12:55 - 13:40" },
+      { id: "7", label: "7", time: "13:40 - 14:25" },
+      { id: "8", label: "8", time: "14:35 - 15:20" },
+      { id: "9", label: "9", time: "15:40 - 16:25" },
+      { id: "10", label: "10", time: "16:25 - 17:10" },
+      { id: "11", label: "11", time: "17:15 - 18:00" },
+    ];
 
-function makeThumb(url: string) {
-  try {
-    const u = new URL(url);
-    const parts = u.pathname.split('/');
-    const uploadIdx = parts.findIndex(p => p === 'upload');
-    if (uploadIdx !== -1) {
-      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-      u.pathname = parts.join('/');
-    }
-    return u.toString();
-  } catch {
-    return url;
-  }
-}
+    /**
+     * Rohdatenstruktur: mapping day -> periodId -> array of EntryRaw
+     * subjectRaw: unverändertes Feld aus dem PDF; subjectHtml: für bessere Lesbarkeit (Zeilenumbrüche)
+     *
+     * Achtung: mehrere Fächer pro Zelle werden als eigene Entry-Objekte dargestellt (genau übernommen)
+     */
 
-async function uploadImage() {
-  uploading.value = true;
-  uploadError.value = '';
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = async () => {
-    const file = input.files?.[0];
-    if (!file) return;
+    const data: Record<string, Record<string, EntryRaw[]>> = {
+      Mo: {
+        "0": [],
+        "1": [
+          {
+            subjectRaw: "*ENREL A005 *ENR GL A310 *ENR ME A311 *ENR WE A106",
+            subjectHtml:
+                "*ENREL A005<br>*ENR GL A310<br>*ENR ME A311<br>*ENR WE A106",
+          },
+        ],
+        "2": [{ subjectRaw: "MA PY A106" }],
+        "3": [{ subjectRaw: "DALTON"}],
+        "4": [{ subjectRaw: "BI LU A203" }],
+        "5": [{ subjectRaw: "BI LU A203" }], // rowspan in original -> shown on both 4 and 5 (kept same)
+        "6": [{ subjectRaw: "DE GL A307" }],
+        "7": [{ subjectRaw: "E AU A307" }],
+        "8": [],
+        "9": [],
+        "10": [],
+        "11": [],
+      },
 
-    try {
-      const { data: sign } = await hw.post('/api/uploads/sign');
-      const form = new FormData();
-      form.set('file', file);
-      form.set('api_key', sign.apiKey);
-      form.set('timestamp', String(sign.timestamp));
-      form.set('signature', sign.signature);
-      form.set('folder', sign.folder);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-      const json = await res.json();
-      if (json.secure_url && json.public_id) {
-        images.value.push({
-          url: json.secure_url,
-          thumbUrl: makeThumb(json.secure_url),
-          publicId: json.public_id,
-          createdBy: '' // backend sets createdBy on create
-        });
-        uploadError.value = '';
-      } else {
-        uploadError.value = 'Upload fehlgeschlagen';
-      }
-    } catch (e: any) {
-      uploadError.value = 'Upload fehlgeschlagen';
-    } finally {
-      uploading.value = false;
-    }
-  };
-  input.click();
-}
+      Di: {
+        "0": [],
+        "1": [
+          {
+            subjectRaw:
+                "*E BA *DE PR *BI ECS A104 *GeWi PT A311 *INF SÜ A-115 *3.FS-L SO A309",
+            subjectHtml:
+                "*E BA<br>*DE PR<br>*BI ECS A104<br>*GeWi PT A311<br>*INF SÜ A-115<br>*3.FS-L SO A309",
+          },
+        ],
+        "2": [], // rowspan: that big cell spans 1+2 in PDF for Di; we keep only at "1" to avoid duplicate
+        "3": [{ subjectRaw: "*INF SÜ A-115" }],
+        "4": [{ subjectRaw: "*EK ZM A303" }],
+        "5": [{ subjectRaw: "*EK ZM A303" }], // rowspan
+        "6": [{ subjectRaw: "SP HA TH2" }],
+        "7": [{ subjectRaw: "SP HA TH2" }], // rowspan continues
+        "8": [{ subjectRaw: "Theater MG A102" }],
+        "9": [{ subjectRaw: "Theater MG A102" }],
+        "10": [],
+        "11": [],
+      },
 
-function removeImg(img: { url: string; publicId: string }) {
-  images.value = images.value.filter(i => i.publicId !== img.publicId);
-}
+      Mi: {
+        "0": [],
+        "1": [{ subjectRaw: "PH PY A104" }],
+        "2": [{ subjectRaw: "PH PY A104" }], // rowspan in original
+        "3": [{ subjectRaw: "DALTON"}],
+        "4": [{ subjectRaw: "MU RH A301" }],
+        "5": [{ subjectRaw: "MU RH A301" }],
+        "6": [{ subjectRaw: "*KStd GL A307" }],
+        "7": [{ subjectRaw: "F GL A307" }],
+        "8": [],
+        "9": [{ subjectRaw: "3.FS-La SO A309" }],
+        "10": [],
+        "11": [],
+      },
 
-async function submit() {
-  submitting.value = true;
-  message.value = '';
-  isError.value = false;
-  try {
-    const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
-    const payload: any = {
-      type: props.type,
-      title: title.value.trim(),
-      subject,
-      description: description.value.trim(),
-      images: images.value,
-      dueDate: new Date(dueLocal.value).toISOString()
+      Do: {
+        "0": [],
+        "1": [
+          {
+            subjectRaw:
+                "*E CN A206 *BI ECS A207 *MA HR A005 *GeWi MO A104 *MU KE A301",
+            subjectHtml:
+                "*E CN A206<br>*BI ECS A207<br>*MA HR A005<br>*GeWi MO A104<br>*MU KE A301",
+          },
+        ],
+        "2": [], // rowspan
+        "3": [{ subjectRaw: "DALTON"}],
+        "4": [{ subjectRaw: "DE GL A307" }],
+        "5": [{ subjectRaw: "DE GL A307" }], // rowspan
+        "6": [{ subjectRaw: "ETH KR A307" }],
+        "7": [{ subjectRaw: "F GL A307" }],
+        "8": [],
+        "9": [],
+        "10": [],
+        "11": [],
+      },
+
+      Fr: {
+        "0": [],
+        "1": [{ subjectRaw: "MA PY A110" }],
+        "2": [{ subjectRaw: "MA PY A110" }],
+        "3": [{ subjectRaw: "DALTON"}],
+        "4": [{ subjectRaw: "E AU A307" }],
+        "5": [{ subjectRaw: "F GL A307" }],
+        "6": [
+          {
+            subjectRaw:
+                "*ENREL A313 *ENR GL A310 *ENR ME A008 *ENR WE A104",
+            subjectHtml:
+                "*ENREL A313<br>*ENR GL A310<br>*ENR ME A008<br>*ENR WE A104",
+          },
+        ],
+        "7": [{ subjectRaw: "*ENREL A313 *ENR GL A310 *ENR ME A008 *ENR WE A104", subjectHtml:"*ENREL A313<br>*ENR GL A310<br>*ENR ME A008<br>*ENR WE A104" }],
+        "8": [{ subjectRaw: "BILU A203" }],
+        "9": [],
+        "10": [],
+        "11": [],
+      },
     };
-    if (props.initial) {
-      await hw.patch(`/api/items/${props.initial.id}`, payload);
-      message.value = 'Eintrag erfolgreich aktualisiert.';
-    } else {
-      await hw.post('/api/items', payload);
-      message.value = 'Eintrag erfolgreich angelegt.';
+
+    // Helper functions to access data and convert raw subject into readable HTML
+    function getEntries(day: string, periodId: string) {
+      const arr = data[day] && data[day][periodId] ? data[day][periodId] : [];
+      return arr.map((e) => {
+        // if subjectHtml is not supplied, try to add line breaks intelligently
+        if (!e.subjectHtml) {
+          // replace multiple spaces with single, split by ' *' or '  ' or ' / ' heuristics
+          const parts = e.subjectRaw.split(/ \*| \s{2,} | \s\| /).filter(Boolean);
+          // if there are slashes or multiple groups, preserve original as single line
+          const html = parts.length > 1 ? parts.join("<br>") : e.subjectRaw;
+          e.subjectHtml = html;
+        }
+        return e;
+      });
     }
-    isError.value = false;
-    emit('success');
-  } catch (e: any) {
-    message.value = e.response?.data?.error || 'Unbekannter Fehler';
-    isError.value = true;
-  } finally {
-    submitting.value = false;
-  }
-}
+
+    function hasEntry(day: string, periodId: string) {
+      const arr = data[day] && data[day][periodId] ? data[day][periodId] : [];
+      return arr.length > 0;
+    }
+
+    return {
+      days,
+      rows,
+      getEntries,
+      hasEntry,
+    };
+  },
+});
 </script>
 
 <style scoped>
-.row {
-  display: flex;
-  align-items: center;
-}
-.card {
-  border: 1px solid var(--border);
+.timetable-card {
+  padding: 18px;
   border-radius: 12px;
-  background: var(--card-bg);
-  padding: 24px;
+  background: linear-gradient(180deg, rgba(26,26,26,1), rgba(20,20,20,1));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
-.col {
-  flex: 1;
-  min-width: 200px;
+
+/* Header */
+.tt-header {
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
 }
-.input {
-  width: 100%;
+.title {
+  margin: 0 0 6px 0;
+  color: var(--text);
+  font-size: 1.05rem;
 }
-.badge {
-  padding: 2px 8px;
+.meta { text-align: right; }
+
+/* Grid wrapper: horizontal scroll on small screens for perfect layout */
+.grid-wrapper {
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+/* Grid layout */
+.grid-head,
+.grid-row {
+  display: grid;
+  grid-template-columns: 160px repeat(5, minmax(160px, 1fr));
+  align-items: stretch;
+}
+
+.head-cell {
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  padding: 12px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+}
+
+/* Cells */
+.cell {
+  min-height: 72px;
+  padding: 10px;
+  border-left: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: transparent;
+}
+
+.time-cell {
+  background: linear-gradient(90deg, rgba(255,255,255,0.01), transparent);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px;
+}
+
+.time-cell .period {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.95rem;
+}
+.time-cell .time {
+  margin-top: 4px;
+}
+
+/* Entries */
+.entry {
+  padding: 8px 10px;
   border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 4px solid transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  word-break: break-word;
+  line-height: 1.1;
 }
-</style> udn hie rdi egöobale tsyle.css, die aber nicht geädnert werdne osll, sondenr dnru direkt die komponente; 
-
-:root {
-    --bg: #111827;
-    --card: #1a1a1a;
-    --muted: #94a3b8;
-    --text: #b0b0b0;
-    --primary: #22c55e;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --border: grey;
+.entry-subject {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.95rem;
 }
-
-* { box-sizing: border-box; }
-html, body, #app { height: 100%; }
-body {
-    margin: 0;
-    color: var(--text);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
-    position: relative;
+.entry-meta {
+  color: var(--muted);
+  font-size: 12px;
 }
 
-a { color: var(--primary); text-decoration: none; }
-.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-.card {
-    background: linear-gradient(180deg, #1a1a1a, #1a1a1a), var(--card);
-    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;
-}
-.input, select, textarea {
-    width: 100%; padding: 10px 12px; border-radius: 5px;
-    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
-}
-.btn {
-    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
-}
-.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
-.btn.danger { background: var(--danger); color: white; }
-.btn.warn { background: var(--warn); color: #1f1300; }
-.row { display: flex; gap: 12px; flex-wrap: wrap; }
-.col { flex: 1; min-width: 240px; }
-.badge { padding: 4px 8px; border-radius: 5px; /*background: #0b1220; /*border: 1px solid var(--border);*/ color: var(--muted); }
-hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-footer { color: var(--muted); font-size: 14px; }
-.small { font-size: 12px; color: var(--muted); }
-.badge:hover { color: white}
-
-
-.full {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+/* Empty placeholder */
+.empty-placeholder {
+  opacity: 0.55;
+  text-align: center;
+  padding: 18px 6px;
 }
 
-.full-c {
-    flex: 1;
-    position: relative;
+/* Small screens: stack days vertically for narrow devices for better readability */
+@media (max-width: 720px) {
+  .grid-head,
+  .grid-row {
+    grid-template-columns: 110px 1fr;
+  }
+
+  .grid-head .day-cell.head-cell {
+    display: none;
+  }
+
+  /* show day label inside each day-cell on mobile */
+  .day-cell::before {
+    content: attr(data-day);
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .cell { min-height: 56px; padding: 8px; }
+  .entry { padding: 8px; }
 }
 
-
-footer {
-    bottom: initial;
-    position: initial;
-    width: initial;
-    height: initial;
+/* make sure long text doesn't overflow */
+.cell, .entry-subject {
+  overflow-wrap: anywhere;
 }
-#animated-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1;
 
+/* subtle hover for desktop */
+@media (hover: hover) and (pointer: fine) {
+  .entry:hover {
+    transform: translateY(-3px);
+    transition: transform 160ms ease;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.6);
+  }
 }
+</style>
