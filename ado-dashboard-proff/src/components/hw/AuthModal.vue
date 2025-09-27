@@ -147,8 +147,7 @@ async function submit() {
   transform: rotate(45deg);
 }
 .btn:not(.ghost)[style*="color:white;"]:hover {
-  background-color:  #4b5563; /* Dunkelgrau */
-  /* Sie können auch die Textfarbe anpassen, falls nötig */
-  /* color: white !important; */
+  color:  #4b5563;
+
 }
 </style>
