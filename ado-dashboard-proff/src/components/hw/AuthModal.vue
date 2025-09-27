@@ -28,7 +28,7 @@
           <input type="checkbox" v-model="acceptedPrivacy" />
           <span class="checkmark"></span>
           <span style="color:white; font-size:14px;">
-            Ich stimme der <a href="/impressum-&-datenschutz" target="_blank" style="color:#0088d7; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
+            Ich stimme der <a href="/impressum-&-datenschutz" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
           </span>
         </label>
       </div>
@@ -126,8 +126,8 @@ async function submit() {
 }
 
 .checkbox-container input:checked ~ .checkmark {
-  background-color: #0088d7;
-  border-color: #0088d7);
+  background-color: #3f93f8;
+  border-color: #3f93f8;
 }
 
 .checkmark::after {
@@ -145,5 +145,10 @@ async function submit() {
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+.btn:not(.ghost)[style*="color:white;"]:hover {
+  background-color:  #4b5563; /* Dunkelgrau */
+  /* Sie können auch die Textfarbe anpassen, falls nötig */
+  /* color: white !important; */
 }
 </style>
