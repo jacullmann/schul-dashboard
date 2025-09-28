@@ -1,22 +1,12 @@
-
 export default class AnimatedBackground {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
     private grainCanvas: HTMLCanvasElement;
     private grainCtx: CanvasRenderingContext2D;
-    private shift: number = 0;
     private offsetX: number = 0;
     private offsetY: number = 0;
-    private directionX: number = 0.3;
-    private directionY: number = 0.2;
-
-
-    private palette: string[] = [
-        "#FF7A00",
-        "#FF2D95",
-        "#A020F0",
-        "#3A0CA3"
-    ];
+    private directionX: number = 0.15;
+    private directionY: number = 0.1;
 
     constructor(canvasId: string) {
         this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -50,7 +40,7 @@ export default class AnimatedBackground {
             imageData.data[i] = val;
             imageData.data[i + 1] = val;
             imageData.data[i + 2] = val;
-            imageData.data[i + 3] = 50;
+            imageData.data[i + 3] = 65; // noch stärkerer Grain
         }
         this.grainCtx.putImageData(imageData, 0, 0);
     }
@@ -58,30 +48,48 @@ export default class AnimatedBackground {
     private animate = () => {
         const { width, height } = this.canvas;
 
-
         this.offsetX += this.directionX;
         this.offsetY += this.directionY;
 
+        if (this.offsetX > width * 0.05 || this.offsetX < -width * 0.05) this.directionX *= -1;
+        if (this.offsetY > height * 0.05 || this.offsetY < -height * 0.05) this.directionY *= -1;
 
-        if (this.offsetX > width * 0.2 || this.offsetX < -width * 0.2) this.directionX *= -1;
-        if (this.offsetY > height * 0.2 || this.offsetY < -height * 0.2) this.directionY *= -1;
+        // Hintergrund tiefschwarz
+        this.ctx.fillStyle = "#000000";
+        this.ctx.fillRect(0, 0, width, height);
 
-
-        const gradient = this.ctx.createLinearGradient(
-            this.offsetX, this.offsetY,
-            width + this.offsetX, height + this.offsetY
+        // Radialer Lichtschein oben rechts
+        const gradient = this.ctx.createRadialGradient(
+            width - width * 0.1 + this.offsetX, // leicht beweglich
+            height * 0.1 + this.offsetY,
+            width * 0.02, // sehr kleiner Kern
+            width - width * 0.1,
+            height * 0.1,
+            width * 0.4 // schnell ins Schwarze auslaufend
         );
 
-        gradient.addColorStop(0, this.palette[0]); // Orange
-        gradient.addColorStop(0.33, this.palette[1]); // Pink
-        gradient.addColorStop(0.66, this.palette[2]); // Lila
-        gradient.addColorStop(1, this.palette[3]); // Blau
+        gradient.addColorStop(0, "rgba(200, 220, 255, 1)");   // fast weiß-blau
+        gradient.addColorStop(0.15, "rgba(120, 160, 255, 0.6)");
+        gradient.addColorStop(0.35, "rgba(40, 60, 120, 0.25)");
+        gradient.addColorStop(1, "rgba(0, 0, 0, 0)");         // komplett schwarz
 
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, width, height);
 
-
+        // Grain drüberlegen
+        this.ctx.globalAlpha = 0.35; // kräftiger sichtbar
         this.ctx.drawImage(this.grainCanvas, 0, 0, width, height);
+        this.ctx.globalAlpha = 1.0;
+
+        // leichte Vignette für noch mehr Tiefe
+        const vignette = this.ctx.createRadialGradient(
+            width / 2, height / 2, width * 0.4,
+            width / 2, height / 2, width * 0.9
+        );
+        vignette.addColorStop(0, "rgba(0,0,0,0)");
+        vignette.addColorStop(1, "rgba(0,0,0,0.85)");
+        this.ctx.fillStyle = vignette;
+        this.ctx.fillRect(0, 0, width, height);
 
         requestAnimationFrame(this.animate);
     };

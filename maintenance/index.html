@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Wartungsmodus | Space Tunnel</title>
+    <style>
+        :root {
+            --fg: #e7eef9;
+            --muted: #a5b3c7;
+            --accent: #6beafe;
+            --accent2: #a78bfa;
+            --danger: #ff6b88;
+            --glass-bg: rgba(255,255,255,0.08);
+            --glass-border: rgba(255,255,255,0.18);
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body {
+            height:100vh; overflow:hidden;
+            background: radial-gradient(circle at center, #05070d 0%, #020308 100%);
+            color:var(--fg); font-family:sans-serif;
+            perspective:1200px;
+        }
+
+        /* Tunnel */
+        .tunnel {
+            position:absolute; inset:0;
+            display:flex; justify-content:center; align-items:center;
+            transform-style:preserve-3d;
+        }
+        .ring {
+            position:absolute;
+            width:200vmax; height:200vmax;
+            border:2px solid rgba(167,139,250,0.15);
+            border-radius:50%;
+            animation: fly 6s linear infinite;
+        }
+        .ring:nth-child(2){animation-delay:-2s; border-color:rgba(107,234,254,0.15);}
+        .ring:nth-child(3){animation-delay:-4s; border-color:rgba(255,255,255,0.08);}
+        @keyframes fly {
+            from { transform: translateZ(-2000px) scale(0.2); opacity:1; }
+            to   { transform: translateZ(600px) scale(2.5); opacity:0; }
+        }
+
+        /* Sterne */
+        .stars, .stars::after {
+            content:""; position:absolute; inset:0;
+            background:transparent;
+            box-shadow:
+                    100px 200px #fff, 300px 600px #fff, 800px 400px #fff,
+                    1200px 900px #fff, 1600px 300px #fff, 200px 1200px #fff;
+            animation: starfly 20s linear infinite;
+        }
+        .stars::after { transform:translateY(-100%); }
+        @keyframes starfly {
+            from { transform:translateY(0); }
+            to   { transform:translateY(100%); }
+        }
+
+        /* Glass UI */
+        .wrap {
+            position:relative; z-index:10;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            height:100vh; text-align:center;
+            padding:2rem;
+        }
+        .glass {
+            background:var(--glass-bg);
+            border:1px solid var(--glass-border);
+            backdrop-filter:blur(14px) saturate(1.2);
+            -webkit-backdrop-filter:blur(14px) saturate(1.2);
+            border-radius:20px;
+            padding:2rem;
+            max-width:600px;
+            box-shadow:0 20px 60px rgba(0,0,0,0.5);
+        }
+        .title {
+            font-size:2.5rem; font-weight:800;
+            margin-bottom:1rem;
+            text-shadow:0 0 20px rgba(107,234,254,0.4);
+        }
+        .subtitle {
+            color:var(--muted);
+            margin-bottom:1.5rem;
+        }
+        .pill {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:6px 12px; border-radius:999px;
+            background:rgba(255,255,255,0.1);
+            border:1px solid rgba(255,255,255,0.2);
+            font-size:0.8rem;
+        }
+        .dot {
+            width:10px; height:10px; border-radius:50%;
+            background:var(--danger);
+            box-shadow:0 0 10px var(--danger);
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {0%,100%{opacity:.4}50%{opacity:1}}
+    </style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="tunnel">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+</div>
+<div class="wrap">
+    <div class="glass">
+        <div class="pill"><span class="dot"></span>Wartung läuft – kosmische Reise ✨</div>
+        <h1 class="title">Wir sind gleich wieder da</h1>
+        <p class="subtitle">Eine filmische Kamerafahrt durch einen Weltraum‑Tunnel. Glasige UI, Parallax‑Glanz und hochperformante CSS‑Animationen.</p>
+    </div>
+</div>
+</body>
+</html>
