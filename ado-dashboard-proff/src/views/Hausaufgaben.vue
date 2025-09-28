@@ -85,7 +85,7 @@
               <button class="menu-btn" v-if="user" @click="showImageForm(item)">Bilder verwalten</button>
               <button class="menu-btn" v-if="canManage(item.createdBy)" @click="editItem(item)">Bearbeiten</button>
               <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
-              <button class="menu-btn warn" title="Melden">Melden</button>
+              <button class="menu-btn warn" title="Melden" @click="reportItem(item)">Melden</button>
             </div>
           </div>
         </div>
@@ -274,6 +274,59 @@ async function deleteAnnouncement(id: string) {
     }
   }
 }
+
+// Formspree: setze hier deine Form ID (z.B. "f/abcd1234")
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORMSPREE_ID';
+
+async function reportItem(item: HwItem) {
+  // Sofort Rückmeldung an User vorbereiten
+  message.value = 'Eintrag wird gemeldet...';
+  isError.value = false;
+
+  // Nutzdaten, die an dich gesendet werden sollen
+  const payload = {
+    itemId: item.id,
+    itemTitle: item.title,
+    reportedAt: new Date().toISOString(),
+    // optional: wer meldet (falls verfügbar)
+    reporterEmail: user.value?.email || ''
+  };
+
+  try {
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        // Formspree liest Felder wie 'message' oder beliebige Feldnamen
+        message: `Item gemeldet\nID: ${payload.itemId}\nTitel: ${payload.itemTitle}\nGemeldet am: ${payload.reportedAt}\nMeldet von: ${payload.reporterEmail}`
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      // Erfolg für Nutzer
+      message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
+      isError.value = false;
+    } else {
+      // Formspree liefert oft ein errors‑Array
+      const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.');
+      message.value = 'Fehler beim Melden: ' + errMsg;
+      isError.value = true;
+    }
+  } catch (e:any) {
+    message.value = 'Fehler beim Melden. Bitte versuche es später erneut.';
+    isError.value = true;
+    console.error('reportItem error', e);
+  } finally {
+    // Nachricht nach einigen Sekunden entfernen
+    setTimeout(() => { message.value = ''; isError.value = false; }, 7000);
+  }
+}
+
 
 function showImageForm(item: HwItem) {
   showImageFormFor.value = item;
