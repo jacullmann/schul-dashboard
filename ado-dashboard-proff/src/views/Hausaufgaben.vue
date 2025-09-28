@@ -310,7 +310,6 @@ watch(tab, reload);
   border: 1px solid rgba(255,255,255,0.03);
   padding: 18px;
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
   transition: box-shadow 180ms ease;
 }
 
