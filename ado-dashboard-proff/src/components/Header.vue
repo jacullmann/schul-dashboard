@@ -177,11 +177,17 @@ const closeNav = () => {
     align-items: flex-start;
     padding: 2rem;
     transform: translateX(100%);
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    z-index: 9;
+    /* sanfte Ease-Out Kurve, kein Overshoot; Dauer 420ms fühlt sich natürlich an */
+    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease;
+    will-change: transform;
+    z-index: 999;
     box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
+    /* verhindert, dass kleine Subpixel-Überschüsse sichtbar werden */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
+  /* offen: genau an der Kante enden */
   .nav-links-open {
     transform: translateX(0);
   }
@@ -190,5 +196,12 @@ const closeNav = () => {
     margin: 1rem 0;
     font-size: 1.2rem;
   }
+
+  /* kleine Optimierung: verhindert sichtbare Lücke rechts beim Öffnen auf manchen Browsern */
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
 }
+
 </style>
