@@ -67,6 +67,7 @@
         <div class="item-main">
           <div class="item-meta">
             <h3 class="item-title">{{ item.title }}</h3>
+            <div style="width:14px;height:14px;border:1px solid var(--border);border-radius:4px;background:transparent;margin-right:10px;display:inline-block;vertical-align:middle;"></div>
 
             <div class="row item-badges">
               <div class="badge subject-badge">{{ item.subject }}</div>
