@@ -4,310 +4,384 @@ export default class AnimatedBackground {
     private grainCanvas: HTMLCanvasElement;
     private grainCtx: CanvasRenderingContext2D;
     private dpr: number;
-    private width: number;
-    private height: number;
-    private time = 0;
-    private rafId: number | null = null;
+    private w: number;
+    private h: number;
+    private t = 0;
+    private raf: number | null = null;
     private motionAllowed: boolean;
-    private config = {
-        baseColorA: "#0f172a",        // dunkel
-        baseColorB: "#07103a",        // tiefer blauton
-        accentA: "#6EE7B7",           // neon-soft
-        accentB: "#7C4DFF",
-        grainAlpha: 0.06,
-        particleCount: 28,
-        particleMaxSize: 90,
-        meshIntensity: 0.9
+    private quality = { particleStep: 1, grainAlpha: 0.04, blur: 18 };
+    private config: {
+        palette: string[];
+        accentStrength: number;
+        particleCount: number;
+        maxBlobSize: number;
+        chromatic: number;
     };
 
-    constructor(canvasId: string, opts?: Partial<typeof AnimatedBackground.prototype["config"]>) {
-        this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-        if (!this.canvas) throw new Error("Canvas not found: " + canvasId);
+    constructor(canvasId: string, opts?: Partial<{
+        palette: string[]; accentStrength: number; particleCount: number; maxBlobSize: number; chromatic: number;
+    }>) {
+        const el = document.getElementById(canvasId);
+        if (!el || !(el instanceof HTMLCanvasElement)) throw new Error("Canvas not found: " + canvasId);
+        this.canvas = el;
         const ctx = this.canvas.getContext("2d");
-        if (!ctx) throw new Error("2D context not supported");
+        if (!ctx) throw new Error("2D context not available");
         this.ctx = ctx;
 
-        // Offscreen grain canvas for performance; fallback to normal canvas if Offscreen not available
-        this.grainCanvas = (typeof OffscreenCanvas !== "undefined")
-            ? (new OffscreenCanvas(1, 1) as unknown as HTMLCanvasElement)
-            : document.createElement("canvas");
-        const grainCtx = (this.grainCanvas as any).getContext("2d");
-        if (!grainCtx) throw new Error("Grain context not available");
-        this.grainCtx = grainCtx;
-
-        // Device pixel ratio for crispness
-        this.dpr = Math.max(1, window.devicePixelRatio || 1);
-
-        // Respect reduced motion preference
+        this.dpr = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
         this.motionAllowed = !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        // Merge config overrides
-        if (opts) Object.assign(this.config, opts);
+        // sensible modern 2025 palette: deep-space base, neon spectral accents
+        this.config = {
+            palette: ["#071028", "#0a1b3a", "#14213d", "#4dd8c9", "#8b5cf6"],
+            accentStrength: 0.9,
+            particleCount: 30,
+            maxBlobSize: 320,
+            chromatic: 0.8,
+            ...(opts || {})
+        };
+
+        // grain canvas (Offscreen when available)
+        if (typeof OffscreenCanvas !== "undefined") {
+            const oc = new OffscreenCanvas(1, 1) as unknown as HTMLCanvasElement;
+            this.grainCanvas = oc;
+        } else {
+            this.grainCanvas = document.createElement("canvas");
+        }
+        const gctx = (this.grainCanvas as any).getContext("2d");
+        if (!gctx) throw new Error("Grain context not available");
+        this.grainCtx = gctx;
 
         this.resize();
         this.generateGrain();
-        this.initParticles();
-
-        window.addEventListener("resize", () => { this.resize(); this.generateGrain(); });
-        if ((this.grainCanvas as any).transferToImageBitmap) {
-            // nothing extra needed but keep as comment for intent
-        }
-
+        this.initBlobs();
+        this.handleResize = this.handleResize.bind(this);
+        window.addEventListener("resize", this.handleResize);
         this.start();
     }
 
     // -------------------------
-    // Particles for organic movement
+    // Responsiveness and DPR
     // -------------------------
-    private particles: {
-        x: number;
-        y: number;
-        vx: number;
-        vy: number;
-        size: number;
-        hueOffset: number;
-        alpha: number;
-    }[] = [];
+    private handleResize() {
+        this.resize();
+        this.generateGrain();
+        this.resetBlobs();
+    }
 
-    private initParticles() {
-        this.particles.length = 0;
-        const count = Math.max(6, Math.floor(this.config.particleCount));
+    private resize() {
+        const rawW = Math.max(320, window.innerWidth);
+        const rawH = Math.max(200, window.innerHeight);
+        this.w = rawW;
+        this.h = rawH;
+        this.canvas.style.width = rawW + "px";
+        this.canvas.style.height = rawH + "px";
+        this.canvas.width = Math.round(rawW * this.dpr);
+        this.canvas.height = Math.round(rawH * this.dpr);
+        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+        this.grainCanvas.width = Math.round(rawW * this.dpr);
+        this.grainCanvas.height = Math.round(rawH * this.dpr);
+    }
+
+    // -------------------------
+    // Grain
+    // -------------------------
+    private generateGrain() {
+        const g = this.grainCtx;
+        const pw = Math.min(512, this.grainCanvas.width);
+        const ph = Math.min(512, this.grainCanvas.height);
+        // small pattern then repeated
+        const img = g.createImageData(pw, ph);
+        for (let i = 0; i < img.data.length; i += 4) {
+            const v = Math.floor(Math.random() * 255);
+            img.data[i] = v;
+            img.data[i + 1] = v;
+            img.data[i + 2] = v;
+            img.data[i + 3] = Math.floor(255 * this.quality.grainAlpha);
+        }
+        g.clearRect(0, 0, this.grainCanvas.width, this.grainCanvas.height);
+        const temp = document.createElement("canvas");
+        temp.width = pw;
+        temp.height = ph;
+        const tctx = temp.getContext("2d")!;
+        tctx.putImageData(img, 0, 0);
+        const pattern = g.createPattern(temp, "repeat")!;
+        g.fillStyle = pattern;
+        g.fillRect(0, 0, this.grainCanvas.width, this.grainCanvas.height);
+    }
+
+    // -------------------------
+    // Blob layer (organic moving shapes)
+    // -------------------------
+    private blobs: { x: number; y: number; r: number; speed: number; phase: number; colorIdx: number }[] = [];
+
+    private initBlobs() {
+        this.blobs = [];
+        const count = Math.max(3, Math.floor(this.config.particleCount / 6));
         for (let i = 0; i < count; i++) {
-            const size = 8 + Math.random() * (this.config.particleMaxSize - 8);
-            this.particles.push({
-                x: Math.random() * this.width,
-                y: Math.random() * this.height,
-                vx: (Math.random() - 0.5) * 0.15,
-                vy: (Math.random() - 0.5) * 0.08,
-                size,
-                hueOffset: Math.random(),
-                alpha: 0.05 + Math.random() * 0.25
+            this.blobs.push({
+                x: Math.random() * this.w,
+                y: Math.random() * this.h,
+                r: 140 + Math.random() * (this.config.maxBlobSize - 140),
+                speed: 0.01 + Math.random() * 0.035,
+                phase: Math.random() * Math.PI * 2,
+                colorIdx: i % this.config.palette.length
             });
         }
     }
 
-    // -------------------------
-    // Resize and DPR handling
-    // -------------------------
-    private resize() {
-        const w = Math.max(320, window.innerWidth);
-        const h = Math.max(200, window.innerHeight);
-        this.width = w;
-        this.height = h;
-        this.canvas.style.width = w + "px";
-        this.canvas.style.height = h + "px";
-        this.canvas.width = Math.round(w * this.dpr);
-        this.canvas.height = Math.round(h * this.dpr);
-        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-
-        // grain canvas
-        this.grainCanvas.width = Math.round(w * this.dpr);
-        this.grainCanvas.height = Math.round(h * this.dpr);
-
-        // reinit particles to new bounds
-        this.initParticles();
+    private resetBlobs() {
+        this.initBlobs();
     }
 
     // -------------------------
-    // Grain generation (fast, cached)
+    // Particles (delicate lines & glows)
     // -------------------------
-    private generateGrain() {
-        const gc = this.grainCtx;
-        const w = this.grainCanvas.width;
-        const h = this.grainCanvas.height;
-        // small pattern then scale for perf
-        const patternSize = 256 * this.dpr;
-        gc.clearRect(0, 0, w, h);
-        const imgData = gc.createImageData(patternSize, patternSize);
-        const data = imgData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            const v = Math.floor(Math.random() * 255);
-            data[i] = v;
-            data[i + 1] = v;
-            data[i + 2] = v;
-            data[i + 3] = Math.floor(255 * this.config.grainAlpha);
+    private particles: { x: number; y: number; vx: number; vy: number; size: number; hue: number }[] = [];
+
+    private initParticles() {
+        this.particles = [];
+        const count = this.config.particleCount;
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: Math.random() * this.w,
+                y: Math.random() * this.h,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.25,
+                size: 6 + Math.random() * 28,
+                hue: Math.random()
+            });
         }
-        gc.putImageData(imgData, 0, 0);
-        // tile the pattern across the grain canvas
-        const patternCanvas = document.createElement("canvas");
-        patternCanvas.width = patternSize;
-        patternCanvas.height = patternSize;
-        const pctx = patternCanvas.getContext("2d")!;
-        pctx.putImageData(imgData, 0, 0);
-        const pat = gc.createPattern(patternCanvas, "repeat")!;
-        gc.fillStyle = pat;
-        gc.fillRect(0, 0, w, h);
     }
 
     // -------------------------
     // Start / Stop
     // -------------------------
     public start() {
-        if (this.rafId != null) return;
-        this.rafId = requestAnimationFrame(this.loop);
+        if (this.raf) return;
+        if (this.particles.length === 0) this.initParticles();
+        this.raf = requestAnimationFrame(this.loop);
     }
 
     public stop() {
-        if (this.rafId != null) {
-            cancelAnimationFrame(this.rafId);
-            this.rafId = null;
-        }
+        if (this.raf) cancelAnimationFrame(this.raf);
+        this.raf = null;
     }
 
     // -------------------------
-    // Main loop
+    // Main loop with adaptive detail
     // -------------------------
-    private loop = (t: number) => {
-        this.time = t * 0.001; // seconds
-        this.render();
-        this.rafId = requestAnimationFrame(this.motionAllowed ? this.loop : this.idleLoop);
+    private loop = (now: number) => {
+        this.t = now * 0.001;
+        if (!this.motionAllowed) {
+            // when reduced motion, render very slowly (every 1s)
+            if (Math.floor(this.t) % 1 === 0) this.draw();
+            this.raf = requestAnimationFrame(this.loop);
+        } else {
+            this.draw();
+            this.raf = requestAnimationFrame(this.loop);
+        }
     };
 
-    private idleLoop = (t: number) => {
-        // very low-frequency updates when reduced-motion is enabled
-        this.time = t * 0.001;
-        if (Math.floor(this.time) % 4 === 0) this.render();
-        this.rafId = requestAnimationFrame(this.idleLoop);
-    };
-
     // -------------------------
-    // Render passes
+    // Draw pipeline
     // -------------------------
-    private render() {
+    private draw() {
         const ctx = this.ctx;
-        const w = this.width;
-        const h = this.height;
-        ctx.clearRect(0, 0, w, h);
+        ctx.clearRect(0, 0, this.w, this.h);
 
-        // Background base gradient (multi-stop mesh-like radial)
-        this.drawMeshGradient();
+        // 1) Base spectral mesh (layered soft radial + linear gradients)
+        this.drawSpectralMesh();
 
-        // Moving glow spot
-        this.drawGlowSpot();
+        // 2) Dynamic organic blobs with spectral blending and subtle chromatic aberration
+        this.drawBlobs();
 
-        // Organic particles / blobs
-        this.drawParticles();
+        // 3) Particle lines and glows (fine, slow motion)
+        this.drawParticlesLayer();
 
-        // Subtle vignette and radial depth
-        this.drawVignette();
+        // 4) Center soft radial light to create focal depth
+        this.drawCenterGlow();
 
-        // Grain overlay with low alpha and 'soft-light' composite for texture
+        // 5) Chromatic slight offset pass for modern filmic edge
+        this.drawChromaticEdge();
+
+        // 6) Grain overlay and final vignette
         ctx.save();
         ctx.globalCompositeOperation = "overlay";
-        ctx.globalAlpha = 0.6 * this.config.grainAlpha;
-        // scale drawImage if OffscreenCanvas used with different orientation
-        ctx.drawImage(this.grainCanvas as any, 0, 0, w * this.dpr, h * this.dpr, 0, 0, w, h);
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(this.grainCanvas as any, 0, 0, this.w * this.dpr, this.h * this.dpr, 0, 0, this.w, this.h);
+        ctx.restore();
+
+        this.drawVignette();
+    }
+
+    // -------------------------
+    // Layer implementations
+    // -------------------------
+    private drawSpectralMesh() {
+        const ctx = this.ctx;
+        // diagonal linear base
+        const lg = ctx.createLinearGradient(0, 0, this.w, this.h);
+        lg.addColorStop(0, this.fade(this.config.palette[0], 1));
+        lg.addColorStop(0.5, this.fade(this.config.palette[2], 1));
+        lg.addColorStop(1, this.fade(this.config.palette[1], 1));
+        ctx.fillStyle = lg;
+        ctx.fillRect(0, 0, this.w, this.h);
+
+        // subtle moving radial accents for "mesh" depth
+        const accent = [
+            { x: this.w * 0.2 + Math.sin(this.t * 0.18) * this.w * 0.04, y: this.h * 0.22, r: this.w * 0.6, color: this.config.palette[3], alpha: 0.12 },
+            { x: this.w * 0.8 + Math.cos(this.t * 0.12) * this.w * 0.03, y: this.h * 0.15 + Math.sin(this.t * 0.3) * this.h * 0.03, r: this.w * 0.4, color: this.config.palette[4], alpha: 0.1 }
+        ];
+        ctx.globalCompositeOperation = "screen";
+        for (const a of accent) {
+            const g = ctx.createRadialGradient(a.x, a.y, Math.max(8, a.r * 0.02), a.x, a.y, a.r);
+            g.addColorStop(0, this.fade(a.color, a.alpha));
+            g.addColorStop(0.5, this.fade(a.color, a.alpha * 0.35));
+            g.addColorStop(1, this.fade("#000000", 0));
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, this.w, this.h);
+        }
+        ctx.globalCompositeOperation = "source-over";
+    }
+
+    private drawBlobs() {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.filter = `blur(${this.quality.blur}px)`;
+        for (let i = 0; i < this.blobs.length; i++) {
+            const b = this.blobs[i];
+            // update simple orbital motion
+            b.phase += b.speed * 0.8;
+            b.x += Math.sin(this.t * b.speed * 0.6 + b.phase) * 0.6;
+            b.y += Math.cos(this.t * b.speed * 0.5 + b.phase * 0.7) * 0.4;
+            const cx = b.x % this.w;
+            const cy = b.y % this.h;
+            const r = b.r * (0.9 + 0.08 * Math.sin(this.t * 0.6 + i));
+            const grad = ctx.createRadialGradient(cx, cy, Math.max(4, r * 0.02), cx, cy, r);
+            const color = this.config.palette[b.colorIdx % this.config.palette.length];
+            grad.addColorStop(0, this.fade(color, 0.95 * this.config.accentStrength));
+            grad.addColorStop(0.35, this.fade(color, 0.28 * this.config.accentStrength));
+            grad.addColorStop(1, this.fade("#000000", 0));
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.filter = "none";
         ctx.restore();
     }
 
-    // Mesh-like gradient using layered radial gradients for dimensional color
-    private drawMeshGradient() {
+    private drawParticlesLayer() {
         const ctx = this.ctx;
-        const w = this.width;
-        const h = this.height;
-
-        // dark base
-        const base = ctx.createLinearGradient(0, 0, w, h);
-        base.addColorStop(0, this.config.baseColorA);
-        base.addColorStop(1, this.config.baseColorB);
-        ctx.fillStyle = base;
-        ctx.fillRect(0, 0, w, h);
-
-        // layered radial accents (mesh feel)
-        const offsets = [
-            { x: w * 0.15 + Math.sin(this.time * 0.3) * w * 0.03, y: h * 0.25, r: w * 0.45, color: this.config.accentA, alpha: 0.14 },
-            { x: w * 0.85 + Math.cos(this.time * 0.2) * w * 0.02, y: h * 0.15 + Math.sin(this.time * 0.4) * h * 0.02, r: w * 0.35, color: this.config.accentB, alpha: 0.12 },
-        ];
-
-        for (const o of offsets) {
-            const g = ctx.createRadialGradient(o.x, o.y, Math.max(10, o.r * 0.04), o.x, o.y, o.r);
-            g.addColorStop(0, this.rgbaHex(o.color, 0.95 * o.alpha));
-            g.addColorStop(0.35, this.rgbaHex(o.color, 0.35 * o.alpha));
-            g.addColorStop(1, this.rgbaHex("#000000", 0));
-            ctx.globalCompositeOperation = "screen";
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, w, h);
-        }
-
-        ctx.globalCompositeOperation = "source-over";
-    }
-
-    // Single slowly moving glow to create focal depth
-    private drawGlowSpot() {
-        const ctx = this.ctx;
-        const w = this.width;
-        const h = this.height;
-
-        const cx = w * (0.5 + Math.sin(this.time * 0.12) * 0.18);
-        const cy = h * (0.35 + Math.cos(this.time * 0.08) * 0.12);
-        const r = Math.max(w, h) * 0.4;
-
-        const g = ctx.createRadialGradient(cx, cy, r * 0.02, cx, cy, r);
-        g.addColorStop(0, this.rgbaHex(this.config.accentA, 0.95));
-        g.addColorStop(0.25, this.rgbaHex(this.config.accentA, 0.28));
-        g.addColorStop(0.6, this.rgbaHex(this.config.accentB, 0.08));
-        g.addColorStop(1, this.rgbaHex("#000000", 0));
+        ctx.save();
         ctx.globalCompositeOperation = "lighter";
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, w, h);
-        ctx.globalCompositeOperation = "source-over";
-    }
-
-    // Particles drawn as soft blurred circles with slow organic motion
-    private drawParticles() {
-        const ctx = this.ctx;
-        const w = this.width;
-        const h = this.height;
-        for (let i = 0; i < this.particles.length; i++) {
+        for (let i = 0; i < this.particles.length; i += this.quality.particleStep) {
             const p = this.particles[i];
-            // update motion with gentle Perlin-like feel using sines
-            p.x += p.vx + Math.sin(this.time * 0.2 + i) * 0.12;
-            p.y += p.vy + Math.cos(this.time * 0.12 + i * 0.7) * 0.06;
+            // motion
+            p.x += p.vx + Math.sin(this.t * 0.25 + i) * 0.08;
+            p.y += p.vy + Math.cos(this.t * 0.15 + i * 0.6) * 0.04;
+            // wrap
+            if (p.x < -50) p.x = this.w + 50;
+            if (p.x > this.w + 50) p.x = -50;
+            if (p.y < -50) p.y = this.h + 50;
+            if (p.y > this.h + 50) p.y = -50;
 
-            // wrap around bounds
-            if (p.x < -p.size) p.x = w + p.size;
-            if (p.x > w + p.size) p.x = -p.size;
-            if (p.y < -p.size) p.y = h + p.size;
-            if (p.y > h + p.size) p.y = -p.size;
-
-            const radius = p.size * (0.6 + 0.4 * Math.sin(this.time * 0.6 + i));
-            const hueA = this.config.accentA;
-            ctx.save();
-            ctx.globalAlpha = p.alpha * 0.9;
-            ctx.filter = "blur(24px)";
-            const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
-            grd.addColorStop(0, this.rgbaHex(hueA, 0.85));
-            grd.addColorStop(0.5, this.rgbaHex(hueA, 0.25));
-            grd.addColorStop(1, this.rgbaHex("#000000", 0));
+            // soft glow
+            const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+            const col = this.lerpColor(this.config.palette[3], this.config.palette[4], p.hue);
+            grd.addColorStop(0, this.fade(col, 0.9));
+            grd.addColorStop(0.4, this.fade(col, 0.22));
+            grd.addColorStop(1, this.fade("#000000", 0));
+            ctx.globalAlpha = 0.75;
+            ctx.filter = "blur(8px)";
             ctx.fillStyle = grd;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
             ctx.fill();
-            ctx.restore();
+            ctx.filter = "none";
         }
+        ctx.globalAlpha = 1;
+        ctx.restore();
     }
 
-    // Subtle vignette and center depth
+    private drawCenterGlow() {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        const cx = this.w * (0.5 + Math.sin(this.t * 0.07) * 0.06);
+        const cy = this.h * (0.45 + Math.cos(this.t * 0.05) * 0.04);
+        const r = Math.max(this.w, this.h) * 0.5;
+        const g = ctx.createRadialGradient(cx, cy, r * 0.01, cx, cy, r);
+        g.addColorStop(0, this.fade(this.config.palette[3], 0.95));
+        g.addColorStop(0.25, this.fade(this.config.palette[3], 0.22));
+        g.addColorStop(0.7, this.fade(this.config.palette[4], 0.06));
+        g.addColorStop(1, this.fade("#000000", 0));
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, this.w, this.h);
+        ctx.restore();
+    }
+
+    // subtle chromatic edges by drawing offsets with low alpha
+    private drawChromaticEdge() {
+        if (this.config.chromatic <= 0) return;
+        const ctx = this.ctx;
+        const offset = 8 * this.config.chromatic * (this.dpr / 2);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = 0.035 * this.config.chromatic;
+
+        // red-pass
+        ctx.translate(-offset, 0);
+        ctx.fillStyle = this.fade("#ff6b6b", 1);
+        ctx.fillRect(0, 0, this.w, this.h);
+
+        // green-pass
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 0.03 * this.config.chromatic;
+        ctx.translate(offset * 0.6, 0);
+        ctx.fillStyle = this.fade("#7ef9c7", 1);
+        ctx.fillRect(0, 0, this.w, this.h);
+
+        ctx.restore();
+    }
+
     private drawVignette() {
         const ctx = this.ctx;
-        const w = this.width;
-        const h = this.height;
-        const vg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.2, w / 2, h / 2, Math.max(w, h) * 0.8);
-        vg.addColorStop(0, this.rgbaHex("#000000", 0));
-        vg.addColorStop(1, this.rgbaHex("#000000", 0.45));
+        const vg = ctx.createRadialGradient(this.w / 2, this.h / 2, Math.min(this.w, this.h) * 0.25, this.w / 2, this.h / 2, Math.max(this.w, this.h) * 0.95);
+        vg.addColorStop(0, this.fade("#000000", 0));
+        vg.addColorStop(1, this.fade("#000000", 0.5));
+        ctx.save();
+        ctx.globalCompositeOperation = "multiply";
         ctx.fillStyle = vg;
-        ctx.fillRect(0, 0, w, h);
+        ctx.fillRect(0, 0, this.w, this.h);
+        ctx.restore();
     }
 
     // -------------------------
-    // Utilities
+    // Utility color helpers
     // -------------------------
-    private rgbaHex(hex: string, alpha: number) {
-        // simple hex -> rgba (supports #RRGGBB)
+    private fade(hex: string, a: number) {
+        const rgb = this.hexToRgb(hex);
+        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
+    }
+
+    private hexToRgb(hex: string) {
         const h = hex.replace("#", "");
         const r = parseInt(h.substring(0, 2), 16);
         const g = parseInt(h.substring(2, 4), 16);
         const b = parseInt(h.substring(4, 6), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        return { r, g, b };
+    }
+
+    private lerpColor(a: string, b: string, t: number) {
+        const A = this.hexToRgb(a);
+        const B = this.hexToRgb(b);
+        const r = Math.round(A.r + (B.r - A.r) * t);
+        const g = Math.round(A.g + (B.g - A.g) * t);
+        const bl = Math.round(A.b + (B.b - A.b) * t);
+        return `rgb(${r},${g},${bl})`;
     }
 }
