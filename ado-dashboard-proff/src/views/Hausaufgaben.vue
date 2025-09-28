@@ -1,5 +1,5 @@
 <template>
-  <div class="hw-card card">
+  <div class="card">
     <div class="hw-header">
       <div>
         <h2>Schultermine &amp; Aufgaben</h2>
@@ -306,12 +306,6 @@ watch(tab, reload);
 
 <style scoped>
 /* Card tweaks */
-.hw-card {
-  border: 1px solid rgba(255,255,255,0.03);
-  padding: 18px;
-  border-radius: 14px;
-  transition: box-shadow 180ms ease;
-}
 
 /* Header */
 .hw-header {
