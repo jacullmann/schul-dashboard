@@ -276,7 +276,7 @@ async function deleteAnnouncement(id: string) {
 }
 
 // Formspree: setze hier deine Form ID (z.B. "f/abcd1234")
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORMSPREE_ID';
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 async function reportItem(item: HwItem) {
   // Sofort Rückmeldung an User vorbereiten
