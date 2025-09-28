@@ -479,7 +479,7 @@ watch(tab, reload);
   pointer-events: none;
 
   /* WICHTIG: beim Verstecken Verzögerung 300ms — beim Anzeigen wird delay auf 0 gesetzt */
-  transition: opacity 160ms ease 300ms, transform 160ms ease 300ms;
+  transition: opacity 160ms ease 500ms, transform 160ms ease 500ms;
   z-index: 6;
 }
 

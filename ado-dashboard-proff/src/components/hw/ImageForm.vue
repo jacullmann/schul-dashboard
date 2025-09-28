@@ -3,11 +3,11 @@
     <div class="modal card">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-        <button class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="section">
-        <div class="section-title">Bilder</div>
+        <div style="color: white;" class="section-title">Bilder</div>
 
         <div class="images-row row">
           <div
