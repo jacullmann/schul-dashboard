@@ -157,19 +157,31 @@ async function uploadImg() {
 }
 
 async function removeImg(publicId: string) {
+  // schließe modal sofort
   showConfirmRemovalModal.value = false;
   message.value = '';
   isError.value = false;
+
   try {
-    await hw.delete(`/api/items/${props.item.id}/images/${publicId}`);
+    // publicId URL-sicher machen (wichtig: Cloudinary publicIds können "/" enthalten)
+    const encoded = encodeURIComponent(publicId);
+
+    // DELETE an Backend (hw-Client sollte automatisch Authorization Header senden)
+    await hw.delete(`/api/items/${props.item.id}/images/${encoded}`);
+
+    // lokal aktualisieren
     currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
+
     message.value = 'Bild erfolgreich gelöscht.';
     emit('success');
   } catch (e: any) {
-    message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+    console.error('removeImg error', e);
+    // falls Axios-ähnliche Antwort existiert, nutze serverseitige Fehlermeldung
+    message.value = e?.response?.data?.error || e?.message || 'Fehler beim Löschen.';
     isError.value = true;
   }
 }
+
 </script>
 
 <style scoped>
