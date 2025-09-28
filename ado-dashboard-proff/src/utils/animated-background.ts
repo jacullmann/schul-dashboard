@@ -62,7 +62,7 @@ export default class AnimatedBackground {
         const gradient = this.ctx.createRadialGradient(
             width - width * 0.1 + this.offsetX, // leicht beweglich
             height * 0.1 + this.offsetY,
-            width * 0.02, // sehr kleiner Kern
+            width * 0.05, // sehr kleiner Kern
             width - width * 0.1,
             height * 0.1,
             width * 0.4 // schnell ins Schwarze auslaufend
