@@ -2,7 +2,7 @@
   <div class="overlay">
     <div class="modal card">
       <div class="modal-head">
-        <h3>Bilder verwalten für: {{ item.title }}</h3>
+        <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
         <button class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
@@ -201,6 +201,7 @@ async function removeImg(publicId: string) {
   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  color: white;
 }
 
 /* Confirm modal variant */

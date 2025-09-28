@@ -66,8 +66,10 @@
       <div v-for="item in filteredItems" :key="item.id" class="item-card">
         <div class="item-main">
           <div class="item-meta">
-            <h3 class="item-title">{{ item.title }}</h3>
-            <div style="width:14px;height:14px;border:1px solid var(--border);border-radius:4px;background:transparent;margin-right:10px;display:inline-block;vertical-align:middle;"></div>
+            <div style="display:inline-flex; align-items:center; gap:8px;">
+              <div style="width:14px; height:14px; border:1px solid var(--border); border-radius:4px; background:transparent; display:inline-block; vertical-align:middle;"></div>
+              <h3 class="item-title" style="display:inline-block; margin:0;">{{ item.title }}</h3>
+            </div>
 
             <div class="row item-badges">
               <div class="badge subject-badge">{{ item.subject }}</div>
@@ -434,19 +436,23 @@ watch(tab, reload);
 .time-badge { padding:4px 8px; border-radius:6px; }
 
 /* Menu (hover reveal) */
+/* Verbessertes Hover-Dropdown: sofort öffnen, verzögert schließen (0.3s) */
+/* Wrapper bleibt wie bisher */
 .item-menu-wrap {
   position: relative;
   width: 46px;
   height: 34px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* Trigger-Style (keine Änderung nötig, bleibt konsistent) */
 .item-menu-trigger {
   cursor: pointer;
   color: var(--muted);
-  padding:6px 8px;
-  border-radius:6px;
+  padding: 6px 8px;
+  border-radius: 6px;
   transition: background 120ms ease, color 120ms ease;
 }
 .item-menu-wrap:hover .item-menu-trigger {
@@ -454,30 +460,38 @@ watch(tab, reload);
   color: var(--text);
 }
 
-/* Hidden by default; appear on hover with animation */
+/* Menü: initial versteckt; hide hat 300ms Verzögerung */
 .item-menu {
   position: absolute;
   top: 38px;
   right: 0;
-  min-width:160px;
+  min-width: 160px;
   background: rgba(26,26,26,0.95);
   border: 1px solid var(--border);
-  border-radius:10px;
-  padding:8px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  opacity:0;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  opacity: 0;
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
-  transition: opacity 160ms ease, transform 160ms ease;
+
+  /* WICHTIG: beim Verstecken Verzögerung 300ms — beim Anzeigen wird delay auf 0 gesetzt */
+  transition: opacity 160ms ease 300ms, transform 160ms ease 300ms;
   z-index: 6;
 }
-.item-menu-wrap:hover .item-menu {
-  opacity:1;
+
+/* Wenn Wrapper oder Menü selbst gehovt wird, sofort anzeigen und keine Verzögerung benutzen */
+.item-menu-wrap:hover .item-menu,
+.item-menu:hover {
+  opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
+  transition-delay: 0s; /* entfernt die 300ms hide-delay beim Show */
 }
+
 
 /* Menu buttons */
 .menu-btn {
