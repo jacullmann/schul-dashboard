@@ -9,31 +9,55 @@
 
       <button
           @click="toggleNav"
-          :class="['hamburger-menu', { open: navOpen }]"
-          :aria-expanded="navOpen"
-          aria-label="Navigation öffnen schließen"
+          :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
+          aria-label="Menü öffnen oder schließen"
       >
-        <span class="bar top"></span>
-        <span class="bar middle"></span>
-        <span class="bar bottom"></span>
+        <div class="bar bar--1"></div>
+        <div class="bar bar--2"></div>
+        <div class="bar bar--3"></div>
       </button>
 
-      <!-- Backdrop: schließt das Menü beim Tippen außerhalb -->
-      <div v-if="navOpen" class="nav-backdrop" @click="closeNav" aria-hidden="true"></div>
+      <!-- Overlay für Klick außerhalb -->
+      <div
+          v-if="navOpen"
+          class="nav-overlay"
+          @click="closeNav"
+      ></div>
 
-      <nav :class="['nav-links', { 'nav-links-open': navOpen }]" role="navigation" aria-hidden="false">
-        <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
-        <router-link to="/bewerten" class="nav-item" @click="closeNav">Benoten</router-link>
-        <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
-        <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzel-Finder</router-link>
-        <router-link to="/fresser" class="nav-item" @click="closeNav">Fresser</router-link>
+      <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
+        <!-- Schließen-Button im mobilen Menü -->
+        <button
+            @click="closeNav"
+            class="nav-close-button"
+            aria-label="Menü schließen"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <router-link to="/" class="nav-item" @click="closeNav">
+          Dashboard
+        </router-link>
+        <router-link to="/bewerten" class="nav-item" @click="closeNav">
+          Benoten
+        </router-link>
+        <router-link to="/stundenplan" class="nav-item" @click="closeNav">
+          Stundenplan
+        </router-link>
+        <router-link to="/kuerzel" class="nav-item" @click="closeNav">
+          Kürzel-Finder
+        </router-link>
+        <router-link to="/fresser" class="nav-item" @click="closeNav">
+          Fresser
+        </router-link>
       </nav>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonBack from './ButtonBack.vue';
 
@@ -50,11 +74,36 @@ const shouldShowBackButton = computed(() => {
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;
+
+  // Body Scroll sperren/entsperren
+  if (navOpen.value) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
 };
 
 const closeNav = () => {
   navOpen.value = false;
+  document.body.style.overflow = '';
 };
+
+// ESC-Taste zum Schließen
+const handleEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && navOpen.value) {
+    closeNav();
+  }
+};
+
+// Event Listener hinzufügen/entfernen
+onMounted(() => {
+  document.addEventListener('keydown', handleEscape);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscape);
+  document.body.style.overflow = ''; // Sicherstellen dass Scrollen wieder aktiviert wird
+});
 </script>
 
 <style scoped>
@@ -74,9 +123,10 @@ const closeNav = () => {
   justify-content: space-between;
   align-items: center;
   gap: 1.5rem;
+  position: relative;
 }
 
-/* Zurück-Button */
+/* Stile für den Zurück-Button */
 .back-button-in-header {
   background-color: var(--card);
   color: var(--text);
@@ -90,6 +140,7 @@ const closeNav = () => {
   position: relative;
   transition: transform 0.3s ease;
 }
+
 .back-button-in-header:hover {
   transform: translateY(-2px);
   background-color: #2a2a2a;
@@ -105,54 +156,65 @@ const closeNav = () => {
   flex: 1;
   text-align: center;
 }
+
 .logo:hover {
   color: #41d1ff;
 }
 
-/* Default hamburger (hidden on desktop) */
+/* Hamburger Menu - Verbesserte Animation */
 .hamburger-menu {
   display: none;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 40px;
-  height: 36px;
+  justify-content: space-between;
+  width: 30px;
+  height: 21px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 6px;
-  z-index: 1001;
-  transition: transform 220ms ease;
+  z-index: 1010;
+  position: relative;
 }
 
-/* Bars as positioned spans for smoother morph */
-.hamburger-menu .bar {
-  display: block;
-  width: 22px;
-  height: 2.5px;
+.bar {
+  width: 100%;
+  height: 3px;
   background-color: #f0f0f0;
-  border-radius: 2px;
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease, width 240ms ease;
+  transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
   transform-origin: center;
-  margin: 4px 0;
 }
-.hamburger-menu .bar.top { transform-origin: 3px 50%; }
-.hamburger-menu .bar.bottom { transform-origin: 3px 50%; }
 
-/* Open state: morph to X */
-.hamburger-menu.open { transform: none; }
-.hamburger-menu.open .bar.top {
-  transform: translateY(6.5px) rotate(45deg) scaleX(1.05);
+/* Hamburger zu X Animation */
+.hamburger-menu--open .bar--1 {
+  transform: rotate(45deg) translate(6px, 6px);
 }
-.hamburger-menu.open .bar.middle {
+
+.hamburger-menu--open .bar--2 {
   opacity: 0;
-  transform: scaleX(0.2);
-}
-.hamburger-menu.open .bar.bottom {
-  transform: translateY(-6.5px) rotate(-45deg) scaleX(1.05);
+  transform: scaleX(0);
 }
 
-/* Nav items / desktop */
+.hamburger-menu--open .bar--3 {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Overlay für Klick außerhalb */
+.nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Navigation Links */
 .nav-links {
   display: flex;
   gap: 1.5rem;
@@ -167,10 +229,12 @@ const closeNav = () => {
   position: relative;
   transition: color 0.3s ease, transform 0.3s ease;
 }
+
 .nav-item:hover {
   color: #fff;
   transform: translateY(-2px);
 }
+
 .nav-item::after {
   content: '';
   position: absolute;
@@ -182,66 +246,87 @@ const closeNav = () => {
   transform: scaleX(0);
   transition: transform 0.3s ease-in-out;
 }
+
 .nav-item:hover::after {
   transform: scaleX(1);
 }
 
-/* Mobile responsive behavior */
-@media (max-width: 768px) {
-  .hamburger-menu { display: flex; }
+/* Schließen-Button im mobilen Menü */
+.nav-close-button {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #f0f0f0;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  z-index: 1002;
+}
 
-  /* nav as slide-in panel */
+.nav-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hamburger-menu {
+    display: flex;
+  }
+
+  .nav-close-button {
+    display: block;
+  }
+
   .nav-links {
     position: fixed;
     top: 0;
     right: 0;
-    width: 250px;
+    width: 280px;
     height: 100%;
     background-color: #242424;
     flex-direction: column;
     align-items: flex-start;
-    padding: 2rem;
+    padding: 4rem 2rem 2rem;
     transform: translateX(100%);
-    /* sanfte Ease-Out Kurve, kein Overshoot; Dauer 420ms fühlt sich natürlich an */
-    transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease;
-    will-change: transform;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
-    box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
   }
 
-  /* open: exact edge */
-  .nav-links-open { transform: translateX(0); }
+  .nav-links-open {
+    transform: translateX(0);
+  }
 
   .nav-item {
     margin: 1rem 0;
     font-size: 1.2rem;
+    width: 100%;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* Backdrop that sits behind the nav and closes on click */
-  .nav-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    z-index: 998;
-    opacity: 1;
-    transition: opacity 200ms ease;
+  .nav-item:last-child {
+    border-bottom: none;
   }
 
-  /* Prevent mobile overscroll causing a small gap on some browsers */
-  html, body {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
+  .nav-item::after {
+    display: none;
+  }
+
+  .nav-item:hover {
+    transform: translateX(5px);
   }
 }
 
-/* small accessibility and visual tweaks */
-@media (prefers-reduced-motion: reduce) {
-  .hamburger-menu .bar,
+/* No-Bounce Animation für iOS Geräte */
+@media (max-width: 768px) and (max-height: 800px) {
   .nav-links {
-    transition: none !important;
-    animation: none !important;
+    padding-top: 3rem;
   }
 }
 </style>
