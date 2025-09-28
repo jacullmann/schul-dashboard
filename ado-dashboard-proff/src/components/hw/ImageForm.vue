@@ -195,10 +195,12 @@ async function removeImg(publicId: string) {
   width: 100%;
   max-width: 640px;
   padding: 20px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
 /* Confirm modal variant */
