@@ -4,27 +4,33 @@
       <ButtonBack v-if="shouldShowBackButton" class="back-button-in-header">
         Zurück
       </ButtonBack>
+
       <router-link to="/" class="logo" @click="closeNav">Dashboard</router-link>
 
-      <button @click="toggleNav" class="hamburger-menu">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
+      <button
+          @click="toggleNav"
+          :class="['hamburger-menu', { open: navOpen }]"
+          :aria-expanded="navOpen"
+          aria-label="Navigation öffnen schließen"
+      >
+        <span class="bar top"></span>
+        <span class="bar middle"></span>
+        <span class="bar bottom"></span>
       </button>
 
-      <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
+      <!-- Backdrop: schließt das Menü beim Tippen außerhalb -->
+      <div v-if="navOpen" class="nav-backdrop" @click="closeNav" aria-hidden="true"></div>
+
+      <nav :class="['nav-links', { 'nav-links-open': navOpen }]" role="navigation" aria-hidden="false">
         <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
         <router-link to="/bewerten" class="nav-item" @click="closeNav">Benoten</router-link>
         <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
         <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzel-Finder</router-link>
         <router-link to="/fresser" class="nav-item" @click="closeNav">Fresser</router-link>
-
-
       </nav>
     </div>
   </header>
 </template>
-<!--<router-link to="/admin" class="nav-item" @click="closeNav">Admin</router-link>-->
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
@@ -39,7 +45,7 @@ const shouldShowBackButton = computed(() => {
       route.path.startsWith('/person/') ||
       route.path.startsWith('/admin') ||
       route.path.startsWith('/impressum-&-datenschutz')
-)
+  );
 });
 
 const toggleNav = () => {
@@ -70,7 +76,7 @@ const closeNav = () => {
   gap: 1.5rem;
 }
 
-/* Stile für den Zurück-Button */
+/* Zurück-Button */
 .back-button-in-header {
   background-color: var(--card);
   color: var(--text);
@@ -84,7 +90,6 @@ const closeNav = () => {
   position: relative;
   transition: transform 0.3s ease;
 }
-
 .back-button-in-header:hover {
   transform: translateY(-2px);
   background-color: #2a2a2a;
@@ -100,30 +105,54 @@ const closeNav = () => {
   flex: 1;
   text-align: center;
 }
-
 .logo:hover {
   color: #41d1ff;
 }
 
+/* Default hamburger (hidden on desktop) */
 .hamburger-menu {
   display: none;
   flex-direction: column;
-  justify-content: space-between;
-  width: 30px;
-  height: 21px;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 36px;
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 10;
+  padding: 6px;
+  z-index: 1001;
+  transition: transform 220ms ease;
 }
 
-.bar {
-  width: 100%;
-  height: 3px;
+/* Bars as positioned spans for smoother morph */
+.hamburger-menu .bar {
+  display: block;
+  width: 22px;
+  height: 2.5px;
   background-color: #f0f0f0;
-  transition: all 0.3s ease-in-out;
+  border-radius: 2px;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease, width 240ms ease;
+  transform-origin: center;
+  margin: 4px 0;
+}
+.hamburger-menu .bar.top { transform-origin: 3px 50%; }
+.hamburger-menu .bar.bottom { transform-origin: 3px 50%; }
+
+/* Open state: morph to X */
+.hamburger-menu.open { transform: none; }
+.hamburger-menu.open .bar.top {
+  transform: translateY(6.5px) rotate(45deg) scaleX(1.05);
+}
+.hamburger-menu.open .bar.middle {
+  opacity: 0;
+  transform: scaleX(0.2);
+}
+.hamburger-menu.open .bar.bottom {
+  transform: translateY(-6.5px) rotate(-45deg) scaleX(1.05);
 }
 
+/* Nav items / desktop */
 .nav-links {
   display: flex;
   gap: 1.5rem;
@@ -138,12 +167,10 @@ const closeNav = () => {
   position: relative;
   transition: color 0.3s ease, transform 0.3s ease;
 }
-
 .nav-item:hover {
   color: #fff;
   transform: translateY(-2px);
 }
-
 .nav-item::after {
   content: '';
   position: absolute;
@@ -155,17 +182,15 @@ const closeNav = () => {
   transform: scaleX(0);
   transition: transform 0.3s ease-in-out;
 }
-
 .nav-item:hover::after {
   transform: scaleX(1);
 }
 
-/* Responsive Design */
+/* Mobile responsive behavior */
 @media (max-width: 768px) {
-  .hamburger-menu {
-    display: flex;
-  }
+  .hamburger-menu { display: flex; }
 
+  /* nav as slide-in panel */
   .nav-links {
     position: fixed;
     top: 0;
@@ -182,26 +207,41 @@ const closeNav = () => {
     will-change: transform;
     z-index: 999;
     box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
-    /* verhindert, dass kleine Subpixel-Überschüsse sichtbar werden */
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
 
-  /* offen: genau an der Kante enden */
-  .nav-links-open {
-    transform: translateX(0);
-  }
+  /* open: exact edge */
+  .nav-links-open { transform: translateX(0); }
 
   .nav-item {
     margin: 1rem 0;
     font-size: 1.2rem;
   }
 
-  /* kleine Optimierung: verhindert sichtbare Lücke rechts beim Öffnen auf manchen Browsern */
+  /* Backdrop that sits behind the nav and closes on click */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 998;
+    opacity: 1;
+    transition: opacity 200ms ease;
+  }
+
+  /* Prevent mobile overscroll causing a small gap on some browsers */
   html, body {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
   }
 }
 
+/* small accessibility and visual tweaks */
+@media (prefers-reduced-motion: reduce) {
+  .hamburger-menu .bar,
+  .nav-links {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 </style>
