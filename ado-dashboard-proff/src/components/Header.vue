@@ -11,6 +11,7 @@
           @click="toggleNav"
           :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
           aria-label="Menü öffnen oder schließen"
+          v-if="!navOpen"
       >
         <div class="bar bar--1"></div>
         <div class="bar bar--2"></div>
@@ -179,7 +180,7 @@ onUnmounted(() => {
   width: 100%;
   height: 3px;
   background-color: #f0f0f0;
-  transition: all 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  transition: all 0.3s cubic-bezier(0.68, -0.6, 0.32, 1.6);
   transform-origin: center;
 }
 
@@ -218,7 +219,7 @@ onUnmounted(() => {
 .nav-links {
   display: flex;
   gap: 1.5rem;
-  transition: all 0.5s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .nav-item {
@@ -292,7 +293,7 @@ onUnmounted(() => {
     align-items: flex-start;
     padding: 4rem 2rem 2rem;
     transform: translateX(100%);
-    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
     overflow-y: auto;
