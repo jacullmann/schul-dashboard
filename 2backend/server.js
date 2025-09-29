@@ -1,3 +1,4 @@
+// server.js
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -9,10 +10,10 @@ import rateLimit from 'express-rate-limit';
 import { body, param, query, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import dayjs from 'dayjs';
 import { v2 as cloudinary } from 'cloudinary';
+import sgClient from '@sendgrid/mail';
 
 // Config
 const app = express();
@@ -20,6 +21,25 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
+
+// SendGrid config
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
+const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
+
+if (!SENDGRID_API_KEY) {
+    console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
+} else {
+    sgClient.setApiKey(SENDGRID_API_KEY);
+    (async () => {
+        try {
+            // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
+            await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
+            console.log('SendGrid API erreichbar und konfiguriert.');
+        } catch (err) {
+            console.error('SendGrid API Test fehlgeschlagen:', err?.response?.body || err?.message || err);
+        }
+    })();
+}
 
 // Security & utils
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -38,35 +58,6 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
-
-// Nodemailer (GMX)
-// Nodemailer (robuster Transporter mit Timeouts + verify)
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'mail.gmx.net',
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: Number(process.env.SMTP_PORT || 587) === 465,
-    requireTLS: true,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    },
-    logger: true,
-    debug: true,
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
-    tls: {
-        rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false'
-    }
-});
-
-// Prüfe beim Start die SMTP-Verbindung und logge das Ergebnis
-transporter.verify().then(() => {
-    console.log('SMTP transporter verified and ready');
-}).catch(err => {
-    console.error('SMTP transporter verify failed (emails may not be sent):', err);
-});
-
 
 // Models
 const UserSchema = new mongoose.Schema({
@@ -196,6 +187,18 @@ async function logActivity(userId, type, meta = {}) {
     await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
 }
 
+// SendGrid helper
+async function sendVerificationEmail(to, verifyUrl) {
+    if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
+    const msg = {
+        to,
+        from: SENDGRID_FROM,
+        subject: 'Bitte E-Mail bestätigen',
+        html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+    };
+    return sgClient.send(msg);
+}
+
 // Auth routes
 app.post('/api/auth/register',
     body('email').isEmail(),
@@ -212,21 +215,15 @@ app.post('/api/auth/register',
         await Verification.create({ email: user.email, token, expiresAt });
         const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
         try {
-            await transporter.sendMail({
-                from: process.env.SMTP_FROM || process.env.SMTP_USER,
-                to: user.email,
-                subject: 'Bitte E-Mail bestätigen',
-                html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-            });
+            await sendVerificationEmail(user.email, verifyUrl);
             res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
         } catch (mailErr) {
-            console.error('Failed to send verification email:', mailErr);
+            console.error('Failed to send verification email (SendGrid):', mailErr);
             res.status(201).json({
                 ok: true,
                 message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
             });
         }
-
     }
 );
 
@@ -374,8 +371,6 @@ app.post('/api/items/:id/images',
 );
 
 // Delete an image from an item
-// NOTE: publicId may contain slashes, clients should encodeURIComponent before calling.
-// We decode here for robust matching.
 app.delete('/api/items/:itemId/images/:publicId',
     requireAuth,
     param('itemId').isMongoId(),
@@ -385,7 +380,6 @@ app.delete('/api/items/:itemId/images/:publicId',
         const item = await Item.findById(req.params.itemId);
         if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
-        // decode the publicId (client should have encoded it)
         let publicId;
         try {
             publicId = decodeURIComponent(req.params.publicId);
@@ -403,15 +397,12 @@ app.delete('/api/items/:itemId/images/:publicId',
             return sendJSONError(res, 403, 'Forbidden');
         }
 
-        // Delete from Cloudinary
         try {
             await cloudinary.uploader.destroy(image.publicId);
         } catch (err) {
-            // Log but continue to remove from DB to keep state consistent
             console.error('Cloudinary destroy error', err);
         }
 
-        // Remove from DB
         item.images.splice(imageIndex, 1);
         await item.save();
 
