@@ -549,7 +549,7 @@ watch(tab, reload);
   pointer-events: none;
 
   transition: opacity 160ms ease 500ms, transform 160ms ease 500ms;
-  z-index: 6;
+  z-index: 1000;
 }
 .item-menu-wrap:hover .item-menu,
 .item-menu:hover {
