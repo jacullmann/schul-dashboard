@@ -91,6 +91,7 @@
               @keydown.enter.prevent="toggleMenu(item.id)"
               @keydown.space.prevent="toggleMenu(item.id)"
               aria-expanded="openMenuId === item.id ? 'true' : 'false'"
+              style="cursor: pointer"
           >
             •••
           </div>
@@ -596,6 +597,7 @@ watch(tab, reload);
   border-radius:8px;
   cursor:pointer;
 }
+
 .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
 .menu-btn.danger { background: var(--danger); color: white; }
 .menu-btn.warn { background: var(--warn); color: #1f1300; }
