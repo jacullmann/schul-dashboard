@@ -15,7 +15,7 @@
     "socket.io-client": "^4.7.5",
     "three": "^0.180.0",
     "vue": "^3.4.29",
-    "vue-gtag": "^3.6.1",
+    "vue-gtag-next": "^1.14.0",
     "vue-router": "^4.3.3",
     "vue3-virtual-scroller": "^0.2.3"
   },

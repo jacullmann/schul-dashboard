@@ -3,13 +3,14 @@ import { createPinia } from 'pinia';
 import router from './router';
 import App from './App.vue';
 import './style.css';
-import { createGtag } from 'vue-gtag'
+import VueGtag from 'vue-gtag-next'
+
 
 const app = createApp(App);
 
-app.use(createGtag, {
+app.use(VueGtag, {
     property: {
-        id: 'G-KR6Q5TQTTN' // <-- deine GA4 Measurement ID
+        id: 'G-KR6Q5TQTTN' // <-- hier deine GA4 Measurement ID eintragen
     }
 }, router)
 
