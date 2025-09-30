@@ -10,7 +10,7 @@ const app = createApp(App);
 
 app.use(VueGtag, {
     property: {
-        id: 'G-KR6Q5TQTTN' // <-- hier deine GA4 Measurement ID eintragen
+        id: 'G-KR6Q5TQTTN'
     }
 }, router)
 
