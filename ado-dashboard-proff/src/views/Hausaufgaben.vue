@@ -2,8 +2,8 @@
   <div class="card">
     <div class="hw-header">
       <div>
-        <h2>Schultermine &amp; Aufgaben</h2>
-        <div class="small">Hausaufgaben, DALTON-Aufträge, Klassenarbeiten</div>
+        <h2>Dashboard</h2>
+        <div class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
       </div>
 
       <div class="row header-actions">
@@ -14,7 +14,7 @@
 
     <div class="announcements">
       <div class="announcements-head">
-        <h3>Wichtige Ankündigungen</h3>
+        <h3 v-if="announcements.length" >Wichtige Ankündigungen</h3>
         <button
             v-if="user?.isAdmin"
             class="btn ghost small-btn"
@@ -40,7 +40,7 @@
 
     <div class="tabs-row">
       <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
-      <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">DALTON</button>
+      <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">Dalton</button>
       <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
     </div>
 

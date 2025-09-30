@@ -407,7 +407,7 @@ app.delete('/api/items/:itemId/images/:publicId',
         const user = await User.findById(req.user.sub);
 
         if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
-            return sendJSONError(res, 403, 'Forbidden');
+            return sendJSONError(res, 403, 'Du kanst keine fremden Bilder löschen.');
         }
 
         try {
