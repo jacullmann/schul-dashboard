@@ -1,894 +1,1130 @@
-server.js:import 'dotenv/config';
-          import express from 'express';
-          import mongoose from 'mongoose';
-          import helmet from 'helmet';
-          import cors from 'cors';
-          import cookieParser from 'cookie-parser';
-          import morgan from 'morgan';
-          import rateLimit from 'express-rate-limit';
-          import { body, param, query, validationResult } from 'express-validator';
-          import jwt from 'jsonwebtoken';
-          import bcrypt from 'bcryptjs';
-          import nodemailer from 'nodemailer';
-          import crypto from 'crypto';
-          import dayjs from 'dayjs';
-          import { v2 as cloudinary } from 'cloudinary';
+backend: server.js: // server.js
+                    import 'dotenv/config';
+                    import express from 'express';
+                    import mongoose from 'mongoose';
+                    import helmet from 'helmet';
+                    import cors from 'cors';
+                    import cookieParser from 'cookie-parser';
+                    import morgan from 'morgan';
+                    import rateLimit from 'express-rate-limit';
+                    import { body, param, query, validationResult } from 'express-validator';
+                    import jwt from 'jsonwebtoken';
+                    import bcrypt from 'bcryptjs';
+                    import crypto from 'crypto';
+                    import dayjs from 'dayjs';
+                    import { v2 as cloudinary } from 'cloudinary';
+                    import sgClient from '@sendgrid/mail';
 
-          // Config
-          const app = express();
-          app.set('trust proxy', 1);
-          const PORT = process.env.PORT || 8090;
-          const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
-          const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
+                    // Config
+                    const app = express();
+                    app.set('trust proxy', 1);
+                    const PORT = process.env.PORT || 8090;
+                    const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
+                    const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 
-          // Security & utils
-          app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-          app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
-          app.use(morgan('combined'));
-          app.use(express.json({ limit: '2mb' }));
-          app.use(cookieParser());
-          app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
+                    // SendGrid config
+                    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
+                    const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
 
-          // Mongo
-          await mongoose.connect(process.env.MONGODB_URI);
+                    if (!SENDGRID_API_KEY) {
+                        console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
+                    } else {
+                        sgClient.setApiKey(SENDGRID_API_KEY);
+                        (async () => {
+                            try {
+                                // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
+                                await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
+                                console.log('SendGrid API erreichbar und konfiguriert.');
+                            } catch (err) {
+                                console.error('SendGrid API Test fehlgeschlagen:', err?.response?.body || err?.message || err);
+                            }
+                        })();
+                    }
 
-          // Cloudinary
-          cloudinary.config({
-              cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-              api_key: process.env.CLOUDINARY_API_KEY,
-              api_secret: process.env.CLOUDINARY_API_SECRET
-          });
+                    // Security & utils
+                    app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+                    app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+                    app.use(morgan('combined'));
+                    app.use(express.json({ limit: '2mb' }));
+                    app.use(cookieParser());
+                    app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
-          // Nodemailer (GMX)
-          // Nodemailer (robuster Transporter mit Timeouts + verify)
-          const transporter = nodemailer.createTransport({
-              host: process.env.SMTP_HOST || 'mail.gmx.net',
-              port: Number(process.env.SMTP_PORT || 587),
-              secure: Number(process.env.SMTP_PORT || 587) === 465,
-              requireTLS: true,
-              auth: {
-                  user: process.env.SMTP_USER,
-                  pass: process.env.SMTP_PASS
-              },
-              logger: true,
-              debug: true,
-              connectionTimeout: 30000,
-              greetingTimeout: 30000,
-              socketTimeout: 30000,
-              tls: {
-                  rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false'
-              }
-          });
+                    // Mongo
+                    await mongoose.connect(process.env.MONGODB_URI);
 
-          // Prüfe beim Start die SMTP-Verbindung und logge das Ergebnis
-          transporter.verify().then(() => {
-              console.log('SMTP transporter verified and ready');
-          }).catch(err => {
-              console.error('SMTP transporter verify failed (emails may not be sent):', err);
-          });
+                    // Cloudinary
+                    cloudinary.config({
+                        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                        api_key: process.env.CLOUDINARY_API_KEY,
+                        api_secret: process.env.CLOUDINARY_API_SECRET
+                    });
+
+                    // Models
+                    const UserSchema = new mongoose.Schema({
+                        email: { type: String, unique: true, required: true, lowercase: true, trim: true },
+                        passwordHash: { type: String, required: true },
+                        isAdmin: { type: Boolean, default: false },
+                        emailVerified: { type: Boolean, default: false },
+                        createdAt: { type: Date, default: Date.now },
+                        lastLoginAt: { type: Date },
+                        activity: [{
+                            at: { type: Date, default: Date.now },
+                            type: { type: String },
+                            meta: { type: mongoose.Schema.Types.Mixed }
+                        }]
+                    }, { timestamps: true });
+                    const User = mongoose.model('HwUser', UserSchema);
+
+                    const VerificationSchema = new mongoose.Schema({
+                        email: { type: String, index: true },
+                        token: { type: String, unique: true },
+                        expiresAt: { type: Date }
+                    }, { timestamps: true });
+                    const Verification = mongoose.model('HwVerification', VerificationSchema);
+
+                    const SubjectSchema = new mongoose.Schema({
+                        name: { type: String, unique: true, required: true }
+                    }, { timestamps: true });
+                    const Subject = mongoose.model('HwSubject', SubjectSchema);
+
+                    const AnnouncementSchema = new mongoose.Schema({
+                        title: String,
+                        content: String,
+                        color: { type: String, default: 'warn' },
+                        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
+                    }, { timestamps: true });
+                    const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
+
+                    const ItemSchema = new mongoose.Schema({
+                        type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
+                        title: { type: String, required: true },
+                        subject: { type: String, required: true },
+                        description: { type: String },
+                        images: [{
+                            url: String,
+                            thumbUrl: String,
+                            publicId: String,
+                            createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
+                        }],
+                        dueDate: { type: Date, index: true },
+                        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
+                    }, { timestamps: true });
+                    const Item = mongoose.model('HwItem', ItemSchema);
+
+                    // Default Subjects seed
+                    const DEFAULT_SUBJECTS = [
+                        'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
+                        'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
+                        'Enrichment', 'WPU', 'Theater', 'Latein'
+                    ];
+                    async function ensureSubjects() {
+                        for (const s of DEFAULT_SUBJECTS) {
+                            await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
+                        }
+                    }
+                    await ensureSubjects();
+
+                    // Helpers
+                    function sendJSONError(res, status, msg, errors) {
+                        return res.status(status).json({ error: msg, errors });
+                    }
+                    function requireAuth(req, res, next) {
+                        const hdr = req.headers.authorization || '';
+                        const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+                        if (!token) return sendJSONError(res, 401, 'Unauthorized');
+                        try {
+                            const payload = jwt.verify(token, JWT_SECRET);
+                            req.user = payload;
+                            next();
+                        } catch {
+                            return sendJSONError(res, 401, 'Unauthorized');
+                        }
+                    }
+                    async function requireAdmin(req, res, next) {
+                        requireAuth(req, res, async () => {
+                            const user = await User.findById(req.user.sub);
+                            if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+                            next();
+                        });
+                    }
+                    function validate(req, res, next) {
+                        const errors = validationResult(req);
+                        if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
+                        next();
+                    }
+                    function timeLeftColor(dueDate) {
+                        const now = dayjs();
+                        const due = dayjs(dueDate);
+                        const diffDays = due.diff(now, 'day', true);
+                        if (diffDays < 0) return 'expired';
+                        if (diffDays < 3) return 'danger';
+                        if (diffDays < 7) return 'warn';
+                        return 'ok';
+                    }
+                    function buildThumbUrl(secureUrl) {
+                        try {
+                            const u = new URL(secureUrl);
+                            const parts = u.pathname.split('/');
+                            const uploadIdx = parts.findIndex(p => p === 'upload');
+                            if (uploadIdx !== -1) {
+                                parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+                                u.pathname = parts.join('/');
+                            }
+                            return u.toString();
+                        } catch {
+                            return secureUrl;
+                        }
+                    }
+                    function withThumb(img) {
+                        return {
+                            url: img.url,
+                            thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
+                            publicId: img.publicId,
+                            createdBy: img.createdBy
+                        };
+                    }
+                    async function logActivity(userId, type, meta = {}) {
+                        await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
+                    }
+
+                    // SendGrid helper
+                    async function sendVerificationEmail(to, verifyUrl) {
+                        if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
+                        const msg = {
+                            to,
+                            from: SENDGRID_FROM,
+                            subject: 'Bitte E-Mail bestätigen',
+                            html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+                        };
+                        return sgClient.send(msg);
+                    }
+
+                    // Auth routes
+                    app.post('/api/auth/register',
+                        body('email').isEmail(),
+                        body('password').isString().isLength({ min: 8 }),
+                        validate,
+                        async (req, res) => {
+                            const { email, password } = req.body;
+                            const exists = await User.findOne({ email: email.toLowerCase() });
+                            if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
+                            const passwordHash = await bcrypt.hash(password, 12);
+                            const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
+                            const token = crypto.randomBytes(32).toString('hex');
+                            const expiresAt = dayjs().add(2, 'day').toDate();
+                            await Verification.create({ email: user.email, token, expiresAt });
+                            const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
+                            try {
+                                await sendVerificationEmail(user.email, verifyUrl);
+                                res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+                            } catch (mailErr) {
+                                console.error('Failed to send verification email (SendGrid):', mailErr);
+                                res.status(201).json({
+                                    ok: true,
+                                    message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
+                                });
+                            }
+                        }
+                    );
+
+                    app.get('/api/auth/verify',
+                        query('token').isString().isLength({ min: 10 }),
+                        validate,
+                        async (req, res) => {
+                            const ver = await Verification.findOne({ token: req.query.token });
+                            if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
+                            if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
+                            const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
+                            if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
+                            await Verification.deleteOne({ _id: ver._id });
+                            res.json({ ok: true });
+                        }
+                    );
+
+                    app.post('/api/auth/login',
+                        body('email').isEmail(),
+                        body('password').isString().isLength({ min: 8 }),
+                        validate,
+                        async (req, res) => {
+                            const { email, password } = req.body;
+                            const user = await User.findOne({ email: email.toLowerCase() });
+                            if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                            const ok = await bcrypt.compare(password, user.passwordHash);
+                            if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                            if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
+                            const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+                            await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
+                            res.json({ token });
+                        }
+                    );
+
+                    app.get('/api/auth/me', requireAuth, async (req, res) => {
+                        const user = await User.findById(req.user.sub).lean();
+                        res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
+                    });
+
+                    // Admin routes
+                    app.get('/api/admin/users', requireAdmin, async (req, res) => {
+                        const users = await User.find({}).sort({ createdAt: -1 }).lean();
+                        res.json(users.map(u => ({
+                            id: u._id, email: u.email, isAdmin: u.isAdmin,
+                            createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
+                            activity: u.activity?.slice(-20) || []
+                        })));
+                    });
+                    app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+                        await User.deleteOne({ _id: req.params.id });
+                        await Item.deleteMany({ createdBy: req.params.id });
+                        res.json({ ok: true });
+                    });
+                    app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
+                        await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
+                        res.json({ ok: true });
+                    });
+
+                    // Subjects
+                    app.get('/api/subjects', async (req, res) => {
+                        const list = await Subject.find({}).sort({ name: 1 }).lean();
+                        res.json(list.map(s => s.name));
+                    });
+                    app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
+                        await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
+                        res.status(201).json({ ok: true });
+                    });
+                    app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
+                        await Subject.deleteOne({ name: req.params.name });
+                        res.json({ ok: true });
+                    });
+
+                    // Announcements
+                    app.get('/api/announcements', async (req, res) => {
+                        const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
+                        res.json(list);
+                    });
+                    app.post('/api/announcements', requireAuth,
+                        body('title').isString().isLength({ min: 2 }),
+                        body('content').isString().isLength({ min: 2 }),
+                        body('color').optional().isIn(['info', 'warn', 'danger']),
+                        validate,
+                        async (req, res) => {
+                            const user = await User.findById(req.user.sub);
+                            if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+                            const doc = await Announcement.create({
+                                title: req.body.title,
+                                content: req.body.content,
+                                color: req.body.color || 'warn',
+                                createdBy: req.user.sub
+                            });
+                            await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
+                            res.status(201).json(doc);
+                        }
+                    );
+                    app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
+                        const ann = await Announcement.findById(req.params.id);
+                        if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
+                        const user = await User.findById(req.user.sub);
+                        if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+                        await ann.deleteOne();
+                        await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
+                        res.json({ ok: true });
+                    });
+
+                    // Cloudinary signed upload
+                    app.post('/api/uploads/sign', requireAuth, async (req, res) => {
+                        const timestamp = Math.floor(Date.now() / 1000);
+                        const signature = cloudinary.utils.api_sign_request(
+                            { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
+                            process.env.CLOUDINARY_API_SECRET
+                        );
+                        res.json({
+                            cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+                            apiKey: process.env.CLOUDINARY_API_KEY,
+                            timestamp,
+                            signature,
+                            folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
+                        });
+                    });
+
+                    // Add image to an item
+                    app.post('/api/items/:id/images',
+                        requireAuth,
+                        param('id').isMongoId(),
+                        body('image').isObject(),
+                        body('image.url').isString(),
+                        body('image.publicId').isString(),
+                        validate,
+                        async (req, res) => {
+                            const item = await Item.findById(req.params.id);
+                            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                            const newImage = {
+                                url: req.body.image.url,
+                                thumbUrl: buildThumbUrl(req.body.image.url),
+                                publicId: req.body.image.publicId,
+                                createdBy: req.user.sub
+                            };
+                            item.images.push(newImage);
+                            await item.save();
+                            await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
+                            res.status(201).json({ ok: true, image: withThumb(newImage) });
+                        }
+                    );
+
+                    // Delete an image from an item
+                    app.delete('/api/items/:itemId/images/:publicId',
+                        requireAuth,
+                        param('itemId').isMongoId(),
+                        param('publicId').isString(),
+                        validate,
+                        async (req, res) => {
+                            const item = await Item.findById(req.params.itemId);
+                            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                            let publicId;
+                            try {
+                                publicId = decodeURIComponent(req.params.publicId);
+                            } catch {
+                                publicId = req.params.publicId;
+                            }
+
+                            const imageIndex = item.images.findIndex(img => img.publicId === publicId);
+                            if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
+
+                            const image = item.images[imageIndex];
+                            const user = await User.findById(req.user.sub);
+
+                            if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
+                                return sendJSONError(res, 403, 'Forbidden');
+                            }
+
+                            try {
+                                await cloudinary.uploader.destroy(image.publicId);
+                            } catch (err) {
+                                console.error('Cloudinary destroy error', err);
+                            }
+
+                            item.images.splice(imageIndex, 1);
+                            await item.save();
+
+                            await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
+                            res.json({ ok: true });
+                        }
+                    );
+
+                    // Items list (not showing expired)
+                    app.get('/api/items',
+                        query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+                        validate,
+                        async (req, res) => {
+                            const now = new Date();
+                            const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
+                                .sort({ dueDate: 1 })
+                                .limit(500)
+                                .lean();
+
+                            const normalized = list.map(i => {
+                                const imgs = (i.images || []).map(img => withThumb(img));
+                                return {
+                                    id: i._id,
+                                    type: i.type,
+                                    title: i.title,
+                                    subject: i.subject,
+                                    description: i.description,
+                                    images: imgs,
+                                    dueDate: i.dueDate,
+                                    createdBy: i.createdBy,
+                                    timeColor: timeLeftColor(i.dueDate)
+                                };
+                            });
+
+                            res.json(normalized);
+                        }
+                    );
+
+                    // Create item
+                    app.post('/api/items',
+                        requireAuth,
+                        body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+                        body('title').isString().isLength({ min: 2, max: 200 }),
+                        body('subject').isString().isLength({ min: 2, max: 50 }),
+                        body('description').optional().isString().isLength({ max: 5000 }),
+                        body('images').optional().isArray({ max: 10 }),
+                        body('dueDate').isISO8601().toDate(),
+                        validate,
+                        async (req, res) => {
+                            const now = dayjs();
+                            if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+                            const images = (req.body.images || []).map(img => ({
+                                url: img.url,
+                                thumbUrl: buildThumbUrl(img.url),
+                                publicId: img.publicId,
+                                createdBy: req.user.sub
+                            }));
+                            const doc = await Item.create({
+                                type: req.body.type,
+                                title: req.body.title,
+                                subject: req.body.subject,
+                                description: req.body.description || '',
+                                images,
+                                dueDate: req.body.dueDate,
+                                createdBy: req.user.sub
+                            });
+                            await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
+                            res.status(201).json({ ok: true, id: doc._id });
+                        }
+                    );
+
+                    // Update item (own or admin)
+                    app.patch('/api/items/:id',
+                        requireAuth,
+                        param('id').isMongoId(),
+                        body('title').optional().isString().isLength({ min: 2, max: 200 }),
+                        body('subject').optional().isString().isLength({ min: 2, max: 50 }),
+                        body('description').optional().isString().isLength({ max: 5000 }),
+                        body('images').optional().isArray({ max: 10 }),
+                        body('dueDate').optional().isISO8601().toDate(),
+                        validate,
+                        async (req, res) => {
+                            const item = await Item.findById(req.params.id);
+                            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+                            const user = await User.findById(req.user.sub);
+                            if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+                            if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+
+                            const update = {};
+                            for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
+                                if (req.body[k] !== undefined) update[k] = req.body[k];
+                            }
+
+                            if (update.images) {
+                                update.images = update.images.map(img => ({
+                                    url: img.url,
+                                    thumbUrl: buildThumbUrl(img.url),
+                                    publicId: img.publicId,
+                                    createdBy: img.createdBy || item.createdBy
+                                }));
+                            }
+
+                            await Item.findByIdAndUpdate(item._id, { $set: update });
+                            await logActivity(req.user.sub, 'item:update', { id: item._id });
+                            res.json({ ok: true });
+                        }
+                    );
+
+                    // Delete item (own or admin)
+                    app.delete('/api/items/:id', requireAuth, async (req, res) => {
+                        const item = await Item.findById(req.params.id);
+                        if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+                        const user = await User.findById(req.user.sub);
+                        if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+
+                        if (item.images && item.images.length > 0) {
+                            const publicIds = item.images.map(img => img.publicId);
+                            try {
+                                await cloudinary.api.delete_resources(publicIds);
+                            } catch (err) {
+                                console.error('Cloudinary bulk delete error', err);
+                            }
+                        }
+                        await item.deleteOne();
+                        await logActivity(req.user.sub, 'item:delete', { id: item._id });
+                        res.json({ ok: true });
+                    });
+
+                    // Health
+                    app.get('/health', (req, res) => res.json({ ok: true }));
+
+                    app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
 
 
-          // Models
-          const UserSchema = new mongoose.Schema({
-              email: { type: String, unique: true, required: true, lowercase: true, trim: true },
-              passwordHash: { type: String, required: true },
-              isAdmin: { type: Boolean, default: false },
-              emailVerified: { type: Boolean, default: false },
-              createdAt: { type: Date, default: Date.now },
-              lastLoginAt: { type: Date },
-              activity: [{
-                  at: { type: Date, default: Date.now },
-                  type: { type: String },
-                  meta: { type: mongoose.Schema.Types.Mixed }
-              }]
-          }, { timestamps: true });
-          const User = mongoose.model('HwUser', UserSchema);
+imageform.vue: <template>
+                 <div class="overlay">
+                   <div class="modal card">
+                     <div class="modal-head">
+                       <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
+                       <button style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
+                     </div>
 
-          const VerificationSchema = new mongoose.Schema({
-              email: { type: String, index: true },
-              token: { type: String, unique: true },
-              expiresAt: { type: Date }
-          }, { timestamps: true });
-          const Verification = mongoose.model('HwVerification', VerificationSchema);
+                     <div class="section">
+                       <div style="color: white;" class="section-title">Bilder</div>
 
-          const SubjectSchema = new mongoose.Schema({
-              name: { type: String, unique: true, required: true }
-          }, { timestamps: true });
-          const Subject = mongoose.model('HwSubject', SubjectSchema);
+                       <div class="images-row row">
+                         <div
+                             v-for="img in currentImages"
+                             :key="img.publicId"
+                             class="img-thumb"
+                         >
+                           <a :href="img.url" target="_blank" rel="noopener" class="img-link">
+                             <img
+                                 :src="img.thumbUrl || makeThumb(img.url)"
+                                 alt="Vorschau"
+                                 class="img"
+                                 loading="lazy"
+                                 decoding="async"
+                             />
+                           </a>
 
-          const AnnouncementSchema = new mongoose.Schema({
-              title: String,
-              content: String,
-              color: { type: String, default: 'warn' },
-              createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-          }, { timestamps: true });
-          const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
-
-          const ItemSchema = new mongoose.Schema({
-              type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
-              title: { type: String, required: true },
-              subject: { type: String, required: true },
-              description: { type: String },
-              images: [{
-                  url: String,
-                  thumbUrl: String,
-                  publicId: String,
-                  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-              }],
-              dueDate: { type: Date, index: true },
-              createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
-          }, { timestamps: true });
-          const Item = mongoose.model('HwItem', ItemSchema);
-
-          // Default Subjects seed
-          const DEFAULT_SUBJECTS = [
-              'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
-              'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
-              'Enrichment', 'WPU', 'Theater', 'Latein'
-          ];
-          async function ensureSubjects() {
-              for (const s of DEFAULT_SUBJECTS) {
-                  await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
-              }
-          }
-          await ensureSubjects();
-
-          // Helpers
-          function sendJSONError(res, status, msg, errors) {
-              return res.status(status).json({ error: msg, errors });
-          }
-          function requireAuth(req, res, next) {
-              const hdr = req.headers.authorization || '';
-              const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-              if (!token) return sendJSONError(res, 401, 'Unauthorized');
-              try {
-                  const payload = jwt.verify(token, JWT_SECRET);
-                  req.user = payload;
-                  next();
-              } catch {
-                  return sendJSONError(res, 401, 'Unauthorized');
-              }
-          }
-          async function requireAdmin(req, res, next) {
-              requireAuth(req, res, async () => {
-                  const user = await User.findById(req.user.sub);
-                  if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                  next();
-              });
-          }
-          function validate(req, res, next) {
-              const errors = validationResult(req);
-              if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
-              next();
-          }
-          function timeLeftColor(dueDate) {
-              const now = dayjs();
-              const due = dayjs(dueDate);
-              const diffDays = due.diff(now, 'day', true);
-              if (diffDays < 0) return 'expired';
-              if (diffDays < 3) return 'danger';
-              if (diffDays < 7) return 'warn';
-              return 'ok';
-          }
-          function buildThumbUrl(secureUrl) {
-              try {
-                  const u = new URL(secureUrl);
-                  const parts = u.pathname.split('/');
-                  const uploadIdx = parts.findIndex(p => p === 'upload');
-                  if (uploadIdx !== -1) {
-                      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                      u.pathname = parts.join('/');
-                  }
-                  return u.toString();
-              } catch {
-                  return secureUrl;
-              }
-          }
-          function withThumb(img) {
-              return {
-                  url: img.url,
-                  thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
-                  publicId: img.publicId,
-                  createdBy: img.createdBy
-              };
-          }
-          async function logActivity(userId, type, meta = {}) {
-              await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
-          }
-
-          // Auth routes
-          app.post('/api/auth/register',
-              body('email').isEmail(),
-              body('password').isString().isLength({ min: 8 }),
-              validate,
-              async (req, res) => {
-                  const { email, password } = req.body;
-                  const exists = await User.findOne({ email: email.toLowerCase() });
-                  if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
-                  const passwordHash = await bcrypt.hash(password, 12);
-                  const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
-                  const token = crypto.randomBytes(32).toString('hex');
-                  const expiresAt = dayjs().add(2, 'day').toDate();
-                  await Verification.create({ email: user.email, token, expiresAt });
-                  const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
-                  try {
-                      await transporter.sendMail({
-                          from: process.env.SMTP_FROM || process.env.SMTP_USER,
-                          to: user.email,
-                          subject: 'Bitte E-Mail bestätigen',
-                          html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-                      });
-                      res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
-                  } catch (mailErr) {
-                      console.error('Failed to send verification email:', mailErr);
-                      res.status(201).json({
-                          ok: true,
-                          message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
-                      });
-                  }
-
-              }
-          );
-
-          app.get('/api/auth/verify',
-              query('token').isString().isLength({ min: 10 }),
-              validate,
-              async (req, res) => {
-                  const ver = await Verification.findOne({ token: req.query.token });
-                  if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
-                  if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
-                  const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
-                  if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
-                  await Verification.deleteOne({ _id: ver._id });
-                  res.json({ ok: true });
-              }
-          );
-
-          app.post('/api/auth/login',
-              body('email').isEmail(),
-              body('password').isString().isLength({ min: 8 }),
-              validate,
-              async (req, res) => {
-                  const { email, password } = req.body;
-                  const user = await User.findOne({ email: email.toLowerCase() });
-                  if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                  const ok = await bcrypt.compare(password, user.passwordHash);
-                  if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                  if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
-                  const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-                  await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-                  res.json({ token });
-              }
-          );
-
-          app.get('/api/auth/me', requireAuth, async (req, res) => {
-              const user = await User.findById(req.user.sub).lean();
-              res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
-          });
-
-          // Admin routes
-          app.get('/api/admin/users', requireAdmin, async (req, res) => {
-              const users = await User.find({}).sort({ createdAt: -1 }).lean();
-              res.json(users.map(u => ({
-                  id: u._id, email: u.email, isAdmin: u.isAdmin,
-                  createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
-                  activity: u.activity?.slice(-20) || []
-              })));
-          });
-          app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-              await User.deleteOne({ _id: req.params.id });
-              await Item.deleteMany({ createdBy: req.params.id });
-              res.json({ ok: true });
-          });
-          app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
-              await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
-              res.json({ ok: true });
-          });
-
-          // Subjects
-          app.get('/api/subjects', async (req, res) => {
-              const list = await Subject.find({}).sort({ name: 1 }).lean();
-              res.json(list.map(s => s.name));
-          });
-          app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
-              await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
-              res.status(201).json({ ok: true });
-          });
-          app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
-              await Subject.deleteOne({ name: req.params.name });
-              res.json({ ok: true });
-          });
-
-          // Announcements
-          app.get('/api/announcements', async (req, res) => {
-              const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
-              res.json(list);
-          });
-          app.post('/api/announcements', requireAuth,
-              body('title').isString().isLength({ min: 2 }),
-              body('content').isString().isLength({ min: 2 }),
-              body('color').optional().isIn(['info', 'warn', 'danger']),
-              validate,
-              async (req, res) => {
-                  const user = await User.findById(req.user.sub);
-                  if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                  const doc = await Announcement.create({
-                      title: req.body.title,
-                      content: req.body.content,
-                      color: req.body.color || 'warn',
-                      createdBy: req.user.sub
-                  });
-                  await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
-                  res.status(201).json(doc);
-              }
-          );
-          app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
-              const ann = await Announcement.findById(req.params.id);
-              if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-              const user = await User.findById(req.user.sub);
-              if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-              await ann.deleteOne();
-              await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
-              res.json({ ok: true });
-          });
-
-          // Cloudinary signed upload
-          app.post('/api/uploads/sign', requireAuth, async (req, res) => {
-              const timestamp = Math.floor(Date.now() / 1000);
-              const signature = cloudinary.utils.api_sign_request(
-                  { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
-                  process.env.CLOUDINARY_API_SECRET
-              );
-              res.json({
-                  cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-                  apiKey: process.env.CLOUDINARY_API_KEY,
-                  timestamp,
-                  signature,
-                  folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
-              });
-          });
-
-          // Add image to an item
-          app.post('/api/items/:id/images',
-              requireAuth,
-              param('id').isMongoId(),
-              body('image').isObject(),
-              body('image.url').isString(),
-              body('image.publicId').isString(),
-              validate,
-              async (req, res) => {
-                  const item = await Item.findById(req.params.id);
-                  if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                  const newImage = {
-                      url: req.body.image.url,
-                      thumbUrl: buildThumbUrl(req.body.image.url),
-                      publicId: req.body.image.publicId,
-                      createdBy: req.user.sub
-                  };
-                  item.images.push(newImage);
-                  await item.save();
-                  await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
-                  res.status(201).json({ ok: true, image: withThumb(newImage) });
-              }
-          );
-
-          // Delete an image from an item
-          // NOTE: publicId may contain slashes, clients should encodeURIComponent before calling.
-          // We decode here for robust matching.
-          app.delete('/api/items/:itemId/images/:publicId',
-              requireAuth,
-              param('itemId').isMongoId(),
-              param('publicId').isString(),
-              validate,
-              async (req, res) => {
-                  const item = await Item.findById(req.params.itemId);
-                  if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                  // decode the publicId (client should have encoded it)
-                  let publicId;
-                  try {
-                      publicId = decodeURIComponent(req.params.publicId);
-                  } catch {
-                      publicId = req.params.publicId;
-                  }
-
-                  const imageIndex = item.images.findIndex(img => img.publicId === publicId);
-                  if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-
-                  const image = item.images[imageIndex];
-                  const user = await User.findById(req.user.sub);
-
-                  if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
-                      return sendJSONError(res, 403, 'Forbidden');
-                  }
-
-                  // Delete from Cloudinary
-                  try {
-                      await cloudinary.uploader.destroy(image.publicId);
-                  } catch (err) {
-                      // Log but continue to remove from DB to keep state consistent
-                      console.error('Cloudinary destroy error', err);
-                  }
-
-                  // Remove from DB
-                  item.images.splice(imageIndex, 1);
-                  await item.save();
-
-                  await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
-                  res.json({ ok: true });
-              }
-          );
-
-          // Items list (not showing expired)
-          app.get('/api/items',
-              query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-              validate,
-              async (req, res) => {
-                  const now = new Date();
-                  const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-                      .sort({ dueDate: 1 })
-                      .limit(500)
-                      .lean();
-
-                  const normalized = list.map(i => {
-                      const imgs = (i.images || []).map(img => withThumb(img));
-                      return {
-                          id: i._id,
-                          type: i.type,
-                          title: i.title,
-                          subject: i.subject,
-                          description: i.description,
-                          images: imgs,
-                          dueDate: i.dueDate,
-                          createdBy: i.createdBy,
-                          timeColor: timeLeftColor(i.dueDate)
-                      };
-                  });
-
-                  res.json(normalized);
-              }
-          );
-
-          // Create item
-          app.post('/api/items',
-              requireAuth,
-              body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-              body('title').isString().isLength({ min: 2, max: 200 }),
-              body('subject').isString().isLength({ min: 2, max: 50 }),
-              body('description').optional().isString().isLength({ max: 5000 }),
-              body('images').optional().isArray({ max: 10 }),
-              body('dueDate').isISO8601().toDate(),
-              validate,
-              async (req, res) => {
-                  const now = dayjs();
-                  if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-                  const images = (req.body.images || []).map(img => ({
-                      url: img.url,
-                      thumbUrl: buildThumbUrl(img.url),
-                      publicId: img.publicId,
-                      createdBy: req.user.sub
-                  }));
-                  const doc = await Item.create({
-                      type: req.body.type,
-                      title: req.body.title,
-                      subject: req.body.subject,
-                      description: req.body.description || '',
-                      images,
-                      dueDate: req.body.dueDate,
-                      createdBy: req.user.sub
-                  });
-                  await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
-                  res.status(201).json({ ok: true, id: doc._id });
-              }
-          );
-
-          // Update item (own or admin)
-          app.patch('/api/items/:id',
-              requireAuth,
-              param('id').isMongoId(),
-              body('title').optional().isString().isLength({ min: 2, max: 200 }),
-              body('subject').optional().isString().isLength({ min: 2, max: 50 }),
-              body('description').optional().isString().isLength({ max: 5000 }),
-              body('images').optional().isArray({ max: 10 }),
-              body('dueDate').optional().isISO8601().toDate(),
-              validate,
-              async (req, res) => {
-                  const item = await Item.findById(req.params.id);
-                  if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                  const user = await User.findById(req.user.sub);
-                  if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-                  if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-
-                  const update = {};
-                  for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
-                      if (req.body[k] !== undefined) update[k] = req.body[k];
-                  }
-
-                  if (update.images) {
-                      update.images = update.images.map(img => ({
-                          url: img.url,
-                          thumbUrl: buildThumbUrl(img.url),
-                          publicId: img.publicId,
-                          createdBy: img.createdBy || item.createdBy
-                      }));
-                  }
-
-                  await Item.findByIdAndUpdate(item._id, { $set: update });
-                  await logActivity(req.user.sub, 'item:update', { id: item._id });
-                  res.json({ ok: true });
-              }
-          );
-
-          // Delete item (own or admin)
-          app.delete('/api/items/:id', requireAuth, async (req, res) => {
-              const item = await Item.findById(req.params.id);
-              if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-              const user = await User.findById(req.user.sub);
-              if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-
-              if (item.images && item.images.length > 0) {
-                  const publicIds = item.images.map(img => img.publicId);
-                  try {
-                      await cloudinary.api.delete_resources(publicIds);
-                  } catch (err) {
-                      console.error('Cloudinary bulk delete error', err);
-                  }
-              }
-              await item.deleteOne();
-              await logActivity(req.user.sub, 'item:delete', { id: item._id });
-              res.json({ ok: true });
-          });
-
-          // Health
-          app.get('/health', (req, res) => res.json({ ok: true }));
-
-          app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
-
-hw/AnnouncementForm.vue: <template>
-                           <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                             <div class="card" style="width:100%; max-width:520px;">
-                               <div style="display:flex; justify-content:space-between; align-items:center;">
-                                 <h3 style="margin:0;">Neue Ankündigung</h3>
-                                 <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
-                               </div>
-                               <div style="margin-top:8px;">
-                                 <input class="input" v-model="title" placeholder="Titel" />
-                               </div>
-                               <div style="margin-top:8px;">
-                                 <textarea class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
-                               </div>
-                               <div style="margin-top:8px;">
-                                 <select class="input" v-model="color">
-                                   <option value="info">Info</option>
-                                   <option value="warn">Wichtig</option>
-                                   <option value="danger">Dringend</option>
-                                 </select>
-                               </div>
-                               <div class="row" style="margin-top:12px; align-items:center;">
-                                 <button class="btn" @click="submit" :disabled="submitting">
-                                   <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                   </svg>
-                                   Anlegen
-                                 </button>
-                                 <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                               </div>
-                             </div>
+                           <div class="thumb-actions">
+                             <button class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
                            </div>
-                         </template>
+                         </div>
+                       </div>
+                     </div>
 
-                         <script setup lang="ts">
-                         import { ref } from 'vue';
-                         import hw from '../../hwApi';
+                     <div class="controls row" style="margin-top:16px; align-items:center;">
+                       <button class="btn" @click="uploadImg" :disabled="uploading">
+                         <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                         </svg>
+                         Bild hochladen
+                       </button>
+                       <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'" style="margin-left:12px;">{{ message }}</div>
+                     </div>
+                   </div>
 
-                         const emit = defineEmits(['close', 'success']);
+                   <div v-if="showConfirmRemovalModal" class="overlay confirm">
+                     <div class="modal card confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
+                       <h4>Bild löschen?</h4>
+                       <p>Möchtest du dieses Bild wirklich löschen?</p>
+                       <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
+                         <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
+                         <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </template>
 
-                         const title = ref('');
-                         const content = ref('');
-                         const color = ref('warn');
-                         const submitting = ref(false);
-                         const message = ref('');
-                         const isError = ref(false);
+               <script setup lang="ts">
+               import { ref, watchEffect } from 'vue';
+               import hw from '../../hwApi';
 
-                         async function submit() {
-                           submitting.value = true;
-                           message.value = '';
-                           isError.value = false;
-                           try {
-                             await hw.post('/api/announcements', {
-                               title: title.value,
-                               content: content.value,
-                               color: color.value,
-                             });
-                             message.value = 'Ankündigung erfolgreich angelegt.';
-                             isError.value = false;
-                             emit('success');
-                           } catch (e: any) {
-                             message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
-                             isError.value = true;
-                           } finally {
-                             submitting.value = false;
-                           }
-                         }
-                         </script>
+               const props = defineProps({
+                 item: {
+                   type: Object as () => {
+                     id: string,
+                     title: string,
+                     images: Array<{ url: string, thumbUrl?: string, publicId: string }>
+                   },
+                   required: true
+                 },
+               });
+               const emit = defineEmits(['close', 'success']);
 
-hw/AuthModal.vue: <template>
-                    <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                      <div class="card styl" style="width:100%; max-width:420px;">
+               const uploading = ref(false);
+               const message = ref('');
+               const isError = ref(false);
+               const currentImages = ref(props.item.images || []);
+               const showConfirmRemovalModal = ref(false);
+               const publicIdToRemove = ref('');
 
-                        <!-- Header -->
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                          <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-                          <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
-                        </div>
+               watchEffect(() => {
+                 currentImages.value = props.item.images || [];
+               });
 
-                        <!-- Tabs -->
-                        <div class="row" style="margin-top:12px;">
-                          <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
-                          <button class="btn"  :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
-                        </div>
+               function confirmRemoval(publicId: string) {
+                 publicIdToRemove.value = publicId;
+                 showConfirmRemovalModal.value = true;
+               }
 
-                        <!-- Inputs -->
-                        <div style="margin-top:12px;">
-                          <input class="input" v-model="email" placeholder="E-Mail" />
-                        </div>
-                        <div style="margin-top:8px;">
-                          <input class="input" type="password" v-model="password" placeholder="Passwort (min. 8 Zeichen)" />
-                        </div>
+               function cancelRemoval() {
+                 showConfirmRemovalModal.value = false;
+                 publicIdToRemove.value = '';
+               }
 
-                        <!-- Datenschutzerklärung Checkbox -->
-                        <div v-if="mode==='register'" class="checkbox-row">
-                          <label class="checkbox-container">
-                            <input type="checkbox" v-model="acceptedPrivacy" />
-                            <span class="checkmark"></span>
-                            <span style="color:white; font-size:14px;">
-                              Ich stimme der <a href="/impressum-&-datenschutz" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
-                            </span>
-                          </label>
-                        </div>
+               function makeThumb(url: string) {
+                 try {
+                   const u = new URL(url);
+                   const parts = u.pathname.split('/');
+                   const uploadIdx = parts.findIndex(p => p === 'upload');
+                   if (uploadIdx !== -1) {
+                     parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+                     u.pathname = parts.join('/');
+                   }
+                   return u.toString();
+                 } catch {
+                   return url;
+                 }
+               }
 
-                        <!-- Submit -->
-                        <div class="row" style="margin-top:12px; align-items:center;">
-                          <button class="btn" @click="submit" :disabled="submitting || (mode==='register' && !acceptedPrivacy)">
-                            <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
-                          </button>
-                          <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                        </div>
+               async function uploadImg() {
+                 const input = document.createElement('input');
+                 input.type = 'file';
+                 input.accept = 'image/*';
+                 input.onchange = async () => {
+                   const file = input.files?.[0];
+                   if (!file) return;
+
+                   uploading.value = true;
+                   message.value = '';
+                   isError.value = false;
+
+                   try {
+                     const { data: sign } = await hw.post('/api/uploads/sign');
+                     const form = new FormData();
+                     form.append('file', file);
+                     form.append('api_key', sign.apiKey);
+                     form.append('timestamp', String(sign.timestamp));
+                     form.append('signature', sign.signature);
+                     form.set('folder', sign.folder);
+
+                     const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+                     const json = await res.json();
+
+                     if (json.secure_url && json.public_id) {
+                       const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
+                         image: { url: json.secure_url, publicId: json.public_id }
+                       });
+                       currentImages.value = [...currentImages.value, data.image];
+                       message.value = 'Bild erfolgreich hochgeladen.';
+                       isError.value = false;
+                       emit('success');
+                     } else {
+                       message.value = 'Bild-Upload fehlgeschlagen.';
+                       isError.value = true;
+                     }
+                   } catch (e: any) {
+                     message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
+                     isError.value = true;
+                     console.error('uploadImg error', e);
+                   } finally {
+                     uploading.value = false;
+                   }
+                 };
+                 input.click();
+               }
+
+               async function removeImg(publicId: string) {
+                 showConfirmRemovalModal.value = false;
+                 message.value = '';
+                 isError.value = false;
+
+                 try {
+                   const encoded = encodeURIComponent(publicId);
+                   await hw.delete(`/api/items/${props.item.id}/images/${encoded}`);
+                   currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
+                   message.value = 'Bild erfolgreich gelöscht.';
+                   emit('success');
+                 } catch (e: any) {
+                   console.error('removeImg error', e);
+                   message.value = e?.response?.data?.error || e?.message || 'Fehler beim Löschen.';
+                   isError.value = true;
+                 }
+               }
+               </script>
+
+               <style scoped>
+               /* Overlay & modal positioning (keeps original layout) */
+               .overlay {
+                 position: fixed;
+                 inset: 0;
+                 display: flex;
+                 align-items: center;
+                 justify-content: center;
+                 z-index: 100;
+                 background: rgba(0,0,0,0.5);
+               }
+
+               /* nested overlay for confirmation keeps higher z-index */
+               .overlay.confirm { z-index: 200; }
+
+               /* Modal card styling (keeps visual style local) */
+               .modal {
+                 width: 100%;
+                 max-width: 640px;
+                 padding: 20px;
+                 border-radius: 14px;
+                 border: 1px solid rgba(255, 255, 255, 0.2);
+                 background: rgba(255, 255, 255, 0.15);
+                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+                 color: white;
+               }
+
+               /* Confirm modal variant */
+               .confirm-card {
+                 max-width: 420px;
+                 text-align: center;
+               }
+
+               /* Header */
+               .modal-head {
+                 display: flex;
+                 justify-content: space-between;
+                 align-items: center;
+                 gap: 12px;
+               }
+               .modal-head h3 { margin: 0; font-size: 1.05rem; }
+
+               /* Section */
+               .section { margin-top: 16px; }
+               .section-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
+
+               /* Images grid row */
+               .images-row {
+                 gap: 8px;
+                 display: flex;
+                 flex-wrap: wrap;
+                 align-items: flex-start;
+               }
+
+               /* Thumbnail wrapper: fixed square using aspect-ratio */
+               .img-thumb {
+                 width: 120px;
+                 aspect-ratio: 1 / 1;
+                 border-radius: 8px;
+                 overflow: hidden;
+                 position: relative;
+                 border: 1px solid var(--border);
+                 background: rgba(0,0,0,0.06);
+                 display: inline-flex;
+                 align-items: center;
+                 justify-content: center;
+                 flex: 0 0 120px;
+               }
+
+               /* link fills wrapper */
+               .img-link { display: block; width: 100%; height: 100%; }
+
+               /* image fills and is cropped */
+               .img {
+                 width: 100%;
+                 height: 100%;
+                 object-fit: cover;
+                 object-position: center;
+                 display: block;
+               }
+
+               /* action button in corner */
+               .thumb-actions {
+                 position: absolute;
+                 top: 6px;
+                 right: 6px;
+                 z-index: 4;
+               }
+
+               /* small button variant */
+               .btn.small { padding: 4px 8px; font-size: 12px; }
+
+               /* controls and message */
+               .controls { display: flex; align-items: center; gap: 12px; }
+
+               /* spinner */
+               .spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
+               @keyframes spin { to { transform: rotate(360deg); } }
+
+               /* message states */
+               .small { font-size: 12px; color: var(--muted); }
+               .msg-ok { color: var(--primary); font-weight: 600; }
+               .msg-error { color: var(--danger); font-weight: 600; }
+
+               /* responsive */
+               @media (max-width: 480px) {
+                 .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
+                 .modal { padding: 16px; }
+               }
+               </style>
+ authmodal.vue: <template>
+                  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+                    <div class="card styl" style="width:100%; max-width:420px;">
+
+                      <!-- Header -->
+                      <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
+                        <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
+                      </div>
+
+                      <!-- Tabs -->
+                      <div class="row" style="margin-top:12px;">
+                        <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
+                        <button class="btn"  :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
+                      </div>
+
+                      <!-- Inputs -->
+                      <div style="margin-top:12px;">
+                        <input class="input" v-model="email" placeholder="E-Mail" />
+                      </div>
+                      <div style="margin-top:8px;">
+                        <input class="input" type="password" v-model="password" placeholder="Passwort (min. 8 Zeichen)" />
+                      </div>
+
+                      <!-- Datenschutzerklärung Checkbox -->
+                      <div v-if="mode==='register'" class="checkbox-row">
+                        <label class="checkbox-container">
+                          <input type="checkbox" v-model="acceptedPrivacy" />
+                          <span class="checkmark"></span>
+                          <span style="color:white; font-size:14px;">
+                            Ich stimme der <a href="/impressum-&-datenschutz" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
+                          </span>
+                        </label>
+                      </div>
+
+                      <!-- Submit -->
+                      <div class="row" style="margin-top:12px; align-items:center;">
+                        <button class="btn" @click="submit" :disabled="submitting || (mode==='register' && !acceptedPrivacy)">
+                          <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
+                        </button>
+                        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
                       </div>
                     </div>
-                  </template>
+                  </div>
+                </template>
 
-                  <script setup lang="ts">
-                  import { ref } from 'vue';
-                  import hw from '../../hwApi';
+                <script setup lang="ts">
+                import { ref } from 'vue';
+                import hw from '../../hwApi';
 
-                  const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
+                const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
 
-                  const mode = ref<'login' | 'register'>('login');
-                  const email = ref('');
-                  const password = ref('');
-                  const submitting = ref(false);
-                  const message = ref('');
-                  const isError = ref(false);
-                  const acceptedPrivacy = ref(false);
+                const mode = ref<'login' | 'register'>('login');
+                const email = ref('');
+                const password = ref('');
+                const submitting = ref(false);
+                const message = ref('');
+                const isError = ref(false);
+                const acceptedPrivacy = ref(false);
 
-                  async function submit() {
-                    submitting.value = true;
-                    message.value = '';
-                    isError.value = false;
-                    try {
-                      if (mode.value === 'register') {
-                        if (!acceptedPrivacy.value) {
-                          message.value = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
-                          isError.value = true;
-                          return;
-                        }
-                        await hw.post('/api/auth/register', { email: email.value, password: password.value });
-                        message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
-                        isError.value = false;
-                      } else {
-                        const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
-                        emit('logged-in', data.token);
+                async function submit() {
+                  submitting.value = true;
+                  message.value = '';
+                  isError.value = false;
+                  try {
+                    if (mode.value === 'register') {
+                      if (!acceptedPrivacy.value) {
+                        message.value = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
+                        isError.value = true;
+                        return;
                       }
-                    } catch (e: any) {
-                      message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                      isError.value = true;
-                    } finally {
-                      submitting.value = false;
+                      await hw.post('/api/auth/register', { email: email.value, password: password.value });
+                      message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
+                      isError.value = false;
+                    } else {
+                      const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
+                      emit('logged-in', data.token);
                     }
+                  } catch (e: any) {
+                    message.value = e.response?.data?.error || 'Unbekannter Fehler';
+                    isError.value = true;
+                  } finally {
+                    submitting.value = false;
                   }
-                  </script>
+                }
+                </script>
 
-                  <style scoped>
-                  .styl {
-                    border-radius: 14px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    background: rgba(255, 255, 255, 0.15);
-                    backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                    -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                  }
+                <style scoped>
+                .styl {
+                  border-radius: 14px;
+                  border: 1px solid rgba(255, 255, 255, 0.2);
+                  background: rgba(255, 255, 255, 0.15);
+                  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+                }
 
-                  /* --- Button Styles --- */
-                  .btn {
-                    background: transparent;
-                    color: white;
-                    border: 1px solid white;
-                    padding: 6px 12px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                  }
+                /* --- Button Styles --- */
+                .btn {
+                  background: transparent;
+                  color: white;
+                  border: 1px solid white;
+                  padding: 6px 12px;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                }
 
-                  /* Aktiver Button (ohne .ghost) */
-                  .btn:not(.ghost) {
-                    background: white;
-                    color: #333;
-                  }
+                /* Aktiver Button (ohne .ghost) */
+                .btn:not(.ghost) {
+                  background: white;
+                  color: #333;
+                }
 
-                  /* Hover-Effekt für inaktive Buttons */
-                  .btn.ghost:hover {
-                    background: rgba(255, 255, 255, 0.2);
-                    color: white;
-                  }
+                /* Hover-Effekt für inaktive Buttons */
+                .btn.ghost:hover {
+                  background: rgba(255, 255, 255, 0.2);
+                  color: white;
+                }
 
-                  /* Hover-Effekt für aktive Buttons */
-                  .btn:not(.ghost):hover {
-                    background: #f0f0f0; /* leichtes Grau */
-                    color: #111;
-                  }
+                /* Hover-Effekt für aktive Buttons */
+                .btn:not(.ghost):hover {
+                  background: #f0f0f0; /* leichtes Grau */
+                  color: #111;
+                }
 
-                  /* --- Checkbox Styles --- */
-                  .checkbox-row {
-                    margin-top: 12px;
-                    display: flex;
-                    align-items: center;
-                  }
+                /* --- Checkbox Styles --- */
+                .checkbox-row {
+                  margin-top: 12px;
+                  display: flex;
+                  align-items: center;
+                }
 
-                  .checkbox-container {
-                    display: flex;
-                    align-items: center;
-                    cursor: pointer;
-                    user-select: none;
-                  }
+                .checkbox-container {
+                  display: flex;
+                  align-items: center;
+                  cursor: pointer;
+                  user-select: none;
+                }
 
-                  .checkbox-container input {
-                    display: none;
-                  }
+                .checkbox-container input {
+                  display: none;
+                }
 
-                  .checkmark {
-                    height: 18px;
-                    width: 18px;
-                    border: 2px solid white;
-                    border-radius: 4px;
-                    margin-right: 8px;
-                    position: relative;
-                  }
+                .checkmark {
+                  height: 18px;
+                  width: 18px;
+                  border: 2px solid white;
+                  border-radius: 4px;
+                  margin-right: 8px;
+                  position: relative;
+                }
 
-                  .checkbox-container input:checked ~ .checkmark {
-                    background-color: #3f93f8;
-                    border-color: #3f93f8;
-                  }
+                .checkbox-container input:checked ~ .checkmark {
+                  background-color: #3f93f8;
+                  border-color: #3f93f8;
+                }
 
-                  .checkmark::after {
-                    content: "";
-                    position: absolute;
-                    display: none;
-                  }
+                .checkmark::after {
+                  content: "";
+                  position: absolute;
+                  display: none;
+                }
 
-                  .checkbox-container input:checked ~ .checkmark::after {
-                    display: block;
-                    left: 4px;
-                    top: 0px;
-                    width: 5px;
-                    height: 10px;
-                    border: solid white;
-                    border-width: 0 2px 2px 0;
-                    transform: rotate(45deg);
-                  }
-                  </style>
+                .checkbox-container input:checked ~ .checkmark::after {
+                  display: block;
+                  left: 4px;
+                  top: 0px;
+                  width: 5px;
+                  height: 10px;
+                  border: solid white;
+                  border-width: 0 2px 2px 0;
+                  transform: rotate(45deg);
+                }
+                </style>
 
-hw/ImageForm: <template>
-                <div class="overlay">
-                  <div class="modal card">
-                    <div class="modal-head">
-                      <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-                      <button style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
+
+itemform.vue: <template>
+                <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
+                  <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
+                    <div class="modal-header">
+                      <h3 class="modal-title">
+                        {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
+                      </h3>
+                      <button class="btn ghost" @click="$emit('close')">Schließen</button>
+                    </div>
+
+                    <div class="row">
+                      <div class="col">
+                        <label class="label">Titel</label>
+                        <input class="input" v-model="title" />
+                      </div>
+                      <div class="col">
+                        <label class="label">Fach</label>
+                        <select class="input" v-model="subjectSel">
+                          <option disabled value="">Bitte wählen</option>
+                          <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+                          <option value="__OTHER__">Anderes...</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div v-if="subjectSel==='__OTHER__'" class="section">
+                      <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
                     </div>
 
                     <div class="section">
-                      <div style="color: white;" class="section-title">Bilder</div>
+                      <label class="label">Beschreibung (optional)</label>
+                      <textarea class="input" rows="4" v-model="description"></textarea>
+                    </div>
 
-                      <div class="images-row row">
-                        <div
-                            v-for="img in currentImages"
-                            :key="img.publicId"
-                            class="img-thumb"
-                        >
-                          <a :href="img.url" target="_blank" rel="noopener" class="img-link">
-                            <img
-                                :src="img.thumbUrl || makeThumb(img.url)"
-                                alt="Vorschau"
-                                class="img"
-                                loading="lazy"
-                                decoding="async"
-                            />
-                          </a>
-
-                          <div class="thumb-actions">
-                            <button class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
-                          </div>
-                        </div>
+                    <div class="row section">
+                      <div class="col">
+                        <label class="label">Abgabedatum</label>
+                        <input class="input" type="datetime-local" v-model="dueLocal" />
                       </div>
                     </div>
 
-                    <div class="controls row" style="margin-top:16px; align-items:center;">
-                      <button class="btn" @click="uploadImg" :disabled="uploading">
-                        <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                    <div class="section">
+                      <div class="label bold">Bilder</div>
+                      <div class="row images">
+                        <div
+                            v-for="img in images"
+                            :key="img.publicId"
+                            class="image-item"
+                        >
+                          <a :href="img.url" target="_blank" rel="noopener">
+                            <img
+                                :src="img.thumbUrl || makeThumb(img.url)"
+                                class="thumb"
+                                loading="lazy"
+                                decoding="async"
+                                alt="Vorschau"
+                            />
+                          </a>
+                          <div class="image-actions">
+                            <button class="btn danger image-remove" @click="removeImg(img)">X</button>
+                          </div>
+                        </div>
+
+                        <button class="btn ghost" @click="uploadImage" :disabled="uploading">
+                          <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Bild hochladen
+                        </button>
+                      </div>
+                      <div v-if="uploading" class="small">Lade Bild hoch...</div>
+                      <div v-if="uploadError" class="small error">{{ uploadError }}</div>
+                    </div>
+
+                    <div class="row actions">
+                      <button class="btn" @click="submit" :disabled="submitting">
+                        <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Bild hochladen
+                        {{ initial ? 'Speichern' : 'Anlegen' }}
                       </button>
-                      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'" style="margin-left:12px;">{{ message }}</div>
-                    </div>
-                  </div>
-
-                  <div v-if="showConfirmRemovalModal" class="overlay confirm">
-                    <div class="modal card confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
-                      <h4>Bild löschen?</h4>
-                      <p>Möchtest du dieses Bild wirklich löschen?</p>
-                      <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-                        <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
-                        <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
-                      </div>
+                      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
                     </div>
                   </div>
                 </div>
               </template>
 
               <script setup lang="ts">
-              import { ref, watchEffect } from 'vue';
+              import { onMounted, onBeforeUnmount, ref } from 'vue';
               import hw from '../../hwApi';
+              import type { HwItem } from './Hausaufgaben.vue';
 
-              const props = defineProps({
-                item: {
-                  type: Object as () => {
-                    id: string,
-                    title: string,
-                    images: Array<{ url: string, thumbUrl?: string, publicId: string }>
-                  },
-                  required: true
-                },
-              });
-              const emit = defineEmits(['close', 'success']);
+              const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
+              const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
 
-              const uploading = ref(false);
+              const labelFor = (type: string) => {
+                const map = {
+                  'HAUSAUFGABE': 'Hausaufgabe',
+                  'DALTON': 'Dalton-Auftrag',
+                  'PRUEFUNG': 'Klassenarbeit',
+                } as const;
+                return map[type];
+              };
+
+              const title = ref(props.initial?.title || '');
+              const subjectSel = ref(props.initial?.subject || '');
+              const subjectOther = ref('');
+              const description = ref(props.initial?.description || '');
+              const images = ref(props.initial?.images || []);
+              const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+
+              const submitting = ref(false);
               const message = ref('');
               const isError = ref(false);
-              const currentImages = ref(props.item.images || []);
-              const showConfirmRemovalModal = ref(false);
-              const publicIdToRemove = ref('');
-
-              watchEffect(() => {
-                currentImages.value = props.item.images || [];
-              });
-
-              function confirmRemoval(publicId: string) {
-                publicIdToRemove.value = publicId;
-                showConfirmRemovalModal.value = true;
-              }
-
-              function cancelRemoval() {
-                showConfirmRemovalModal.value = false;
-                publicIdToRemove.value = '';
-              }
+              const uploading = ref(false);
+              const uploadError = ref('');
 
               function makeThumb(url: string) {
                 try {
@@ -905,46 +1141,42 @@ hw/ImageForm: <template>
                 }
               }
 
-              async function uploadImg() {
+              async function uploadImage() {
+                uploading.value = true;
+                uploadError.value = '';
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = 'image/*';
                 input.onchange = async () => {
                   const file = input.files?.[0];
-                  if (!file) return;
-
-                  uploading.value = true;
-                  message.value = '';
-                  isError.value = false;
+                  if (!file) {
+                    uploading.value = false;
+                    return;
+                  }
 
                   try {
                     const { data: sign } = await hw.post('/api/uploads/sign');
                     const form = new FormData();
-                    form.append('file', file);
-                    form.append('api_key', sign.apiKey);
-                    form.append('timestamp', String(sign.timestamp));
-                    form.append('signature', sign.signature);
+                    form.set('file', file);
+                    form.set('api_key', sign.apiKey);
+                    form.set('timestamp', String(sign.timestamp));
+                    form.set('signature', sign.signature);
                     form.set('folder', sign.folder);
-
                     const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
                     const json = await res.json();
-
                     if (json.secure_url && json.public_id) {
-                      const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
-                        image: { url: json.secure_url, publicId: json.public_id }
+                      images.value.push({
+                        url: json.secure_url,
+                        thumbUrl: makeThumb(json.secure_url),
+                        publicId: json.public_id,
+                        createdBy: ''
                       });
-                      currentImages.value = [...currentImages.value, data.image];
-                      message.value = 'Bild erfolgreich hochgeladen.';
-                      isError.value = false;
-                      emit('success');
+                      uploadError.value = '';
                     } else {
-                      message.value = 'Bild-Upload fehlgeschlagen.';
-                      isError.value = true;
+                      uploadError.value = 'Upload fehlgeschlagen';
                     }
                   } catch (e: any) {
-                    message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
-                    isError.value = true;
-                    console.error('uploadImg error', e);
+                    uploadError.value = 'Upload fehlgeschlagen';
                   } finally {
                     uploading.value = false;
                   }
@@ -952,539 +1184,299 @@ hw/ImageForm: <template>
                 input.click();
               }
 
-              async function removeImg(publicId: string) {
-                showConfirmRemovalModal.value = false;
-                message.value = '';
-                isError.value = false;
+              async function removeImg(img: { url: string; publicId: string }) {
+                if (props.initial?.id) {
+                  try {
+                    // encode publicId so slashes are safe in the URL
+                    await hw.delete(`/api/items/${props.initial.id}/images/${encodeURIComponent(img.publicId)}`);
 
-                try {
-                  const encoded = encodeURIComponent(publicId);
-                  await hw.delete(`/api/items/${props.item.id}/images/${encoded}`);
-                  currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
-                  message.value = 'Bild erfolgreich gelöscht.';
-                  emit('success');
-                } catch (e: any) {
-                  console.error('removeImg error', e);
-                  message.value = e?.response?.data?.error || e?.message || 'Fehler beim Löschen.';
-                  isError.value = true;
+                    // remove locally
+                    images.value = images.value.filter(i => i.publicId !== img.publicId);
+
+                    console.log('Bild erfolgreich gelöscht:', img.publicId);
+                    uploadError.value = 'Bild erfolgreich gelöscht.';
+                    setTimeout(() => uploadError.value = '', 3000);
+
+                  } catch (e: any) {
+                    console.error('Fehler beim Löschen des Bildes:', e);
+                    uploadError.value = 'Fehler beim Löschen des Bildes.';
+                  }
+                } else {
+                  images.value = images.value.filter(i => i.publicId !== img.publicId);
                 }
               }
+
+              async function submit() {
+                submitting.value = true;
+                message.value = '';
+                isError.value = false;
+                try {
+                  const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
+                  const payload: any = {
+                    type: props.type,
+                    title: title.value.trim(),
+                    subject,
+                    description: description.value.trim(),
+                    images: images.value,
+                    dueDate: new Date(dueLocal.value).toISOString()
+                  };
+                  if (props.initial) {
+                    await hw.patch(`/api/items/${props.initial.id}`, payload);
+                    message.value = 'Eintrag erfolgreich aktualisiert.';
+                  } else {
+                    await hw.post('/api/items', payload);
+                    message.value = 'Eintrag erfolgreich angelegt.';
+                  }
+                  isError.value = false;
+                  emit('success');
+                } catch (e: any) {
+                  message.value = e.response?.data?.error || 'Unbekannter Fehler';
+                  isError.value = true;
+                } finally {
+                  submitting.value = false;
+                }
+              }
+
+              function onKeyDown(e: KeyboardEvent) {
+                if (e.key === 'Escape') emit('close');
+              }
+              onMounted(() => window.addEventListener('keydown', onKeyDown));
+              onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
               </script>
 
               <style scoped>
-              /* Overlay & modal positioning (keeps original layout) */
-              .overlay {
+
+              /* Overlay: dimmt die Seite, aber NICHT verschwommen */
+              .modal-overlay {
                 position: fixed;
                 inset: 0;
+                background: rgba(0, 0, 0, 0.4);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 100;
-                background: rgba(0,0,0,0.5);
+                padding: 24px;
               }
 
-              /* nested overlay for confirmation keeps higher z-index */
-              .overlay.confirm { z-index: 200; }
 
-              /* Modal card styling (keeps visual style local) */
-              .modal {
+              .glass-modal {
                 width: 100%;
-                max-width: 640px;
-                padding: 20px;
+                max-width: 720px;
                 border-radius: 14px;
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 background: rgba(255, 255, 255, 0.15);
                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                color: white;
+                padding: 22px;
+                color: #1a1a1a;
               }
 
-              /* Confirm modal variant */
-              .confirm-card {
-                max-width: 420px;
-                text-align: center;
-              }
 
-              /* Header */
-              .modal-head {
+              .modal-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 gap: 12px;
+                margin-bottom: 12px;
               }
-              .modal-head h3 { margin: 0; font-size: 1.05rem; }
+              .modal-title {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: rgba(244, 244, 244);
+              }
 
-              /* Section */
-              .section { margin-top: 16px; }
-              .section-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
-
-              /* Images grid row */
-              .images-row {
-                gap: 8px;
+              /* Layout */
+              .row {
                 display: flex;
+                gap: 12px;
                 flex-wrap: wrap;
-                align-items: flex-start;
-              }
-
-              /* Thumbnail wrapper: fixed square using aspect-ratio */
-              .img-thumb {
-                width: 120px;
-                aspect-ratio: 1 / 1;
-                border-radius: 8px;
-                overflow: hidden;
-                position: relative;
-                border: 1px solid var(--border);
-                background: rgba(0,0,0,0.06);
-                display: inline-flex;
                 align-items: center;
-                justify-content: center;
-                flex: 0 0 120px;
+              }
+              .col {
+                flex: 1;
+                min-width: 240px;
+              }
+              .section {
+                margin-top: 10px;
               }
 
-              /* link fills wrapper */
-              .img-link { display: block; width: 100%; height: 100%; }
+              /* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
+              .label {
+                display: block;
+                font-size: 13px;
+                color: rgba(244, 244, 244);
+                margin-bottom: 6px;
+              }
+              .label.bold {
+                font-weight: 600;
+                color: rgba(234, 234, 234);
+              }
 
-              /* image fills and is cropped */
-              .img {
+              .input {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: 10px;
+                border: 1px solid rgba(128, 128, 128, 0.35);
+                background: rgba(26, 26, 26, 0.6);
+                color: var(--text);
+                outline: none;
+                transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+              }
+              .input:focus {
+                background: rgba(26, 26, 26, 0.7);
+              }
+
+              /* Bilderbereich */
+              .images {
+                gap: 8px;
+                margin-top: 6px;
+              }
+              .image-item {
+                position: relative;
+                width: 120px;
+                height: 120px;
+                border: 1px solid rgba(128, 128, 128, 0.35);
+                border-radius: 10px;
+                overflow: hidden;
+                background: rgba(26, 26, 26, 0.5);
+                backdrop-filter: blur(8px) brightness(95%);
+                -webkit-backdrop-filter: blur(8px) brightness(95%);
+              }
+              .thumb {
+                display: block;
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                object-position: center;
-                display: block;
               }
-
-              /* action button in corner */
-              .thumb-actions {
+              .image-actions {
                 position: absolute;
-                top: 6px;
-                right: 6px;
-                z-index: 4;
+                top: 4px;
+                right: 4px;
+              }
+              .image-remove {
+                padding: 4px 8px;
+                font-size: 12px;
               }
 
-              /* small button variant */
-              .btn.small { padding: 4px 8px; font-size: 12px; }
+              /* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
+              .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              }
+              .btn.ghost {
+                backdrop-filter: none;
+              }
 
-              /* controls and message */
-              .controls { display: flex; align-items: center; gap: 12px; }
+              /* Spinner */
+              .spinner {
+                animation: spin 1s linear infinite;
+                height: 20px;
+                width: 20px;
+              }
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
 
-              /* spinner */
-              .spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
-              @keyframes spin { to { transform: rotate(360deg); } }
+              /* Aktionen unten */
+              .actions {
+                margin-top: 16px;
+                align-items: center;
+              }
 
-              /* message states */
-              .small { font-size: 12px; color: var(--muted); }
-              .msg-ok { color: var(--primary); font-weight: 600; }
-              .msg-error { color: var(--danger); font-weight: 600; }
+              /* Meldungen */
+              .small {
+                font-size: 12px;
+                color: var(--muted);
+              }
+              .error {
+                color: var(--danger);
+              }
+              .msg-ok {
+                color: var(--primary);
+              }
+              .msg-error {
+                color: var(--danger);
+              }
 
-              /* responsive */
-              @media (max-width: 480px) {
-                .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
-                .modal { padding: 16px; }
+              /* Fallback, falls backdrop-filter nicht unterstützt wird */
+              @supports not ((backdrop-filter: blur(10px))) {
+                .glass-modal {
+                  background: rgba(26, 26, 26, 0.75);
+                }
               }
               </style>
 
-hw/ItemForm.vue: <template>
-                   <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
-                     <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
-                       <div class="modal-header">
-                         <h3 class="modal-title">
-                           {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
-                         </h3>
-                         <button class="btn ghost" @click="$emit('close')">Schließen</button>
-                       </div>
-
-                       <div class="row">
-                         <div class="col">
-                           <label class="label">Titel</label>
-                           <input class="input" v-model="title" />
-                         </div>
-                         <div class="col">
-                           <label class="label">Fach</label>
-                           <select class="input" v-model="subjectSel">
-                             <option disabled value="">Bitte wählen</option>
-                             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                             <option value="__OTHER__">Anderes...</option>
-                           </select>
-                         </div>
-                       </div>
-
-                       <div v-if="subjectSel==='__OTHER__'" class="section">
-                         <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
-                       </div>
-
-                       <div class="section">
-                         <label class="label">Beschreibung (optional)</label>
-                         <textarea class="input" rows="4" v-model="description"></textarea>
-                       </div>
-
-                       <div class="row section">
-                         <div class="col">
-                           <label class="label">Abgabedatum</label>
-                           <input class="input" type="datetime-local" v-model="dueLocal" />
-                         </div>
-                       </div>
-
-                       <div class="section">
-                         <div class="label bold">Bilder</div>
-                         <div class="row images">
-                           <div
-                               v-for="img in images"
-                               :key="img.publicId"
-                               class="image-item"
-                           >
-                             <a :href="img.url" target="_blank" rel="noopener">
-                               <img
-                                   :src="img.thumbUrl || makeThumb(img.url)"
-                                   class="thumb"
-                                   loading="lazy"
-                                   decoding="async"
-                                   alt="Vorschau"
-                               />
-                             </a>
-                             <div class="image-actions">
-                               <button class="btn danger image-remove" @click="removeImg(img)">X</button>
+announcementsform.vue: <template>
+                         <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+                           <div class="card" style="width:100%; max-width:520px;">
+                             <div style="display:flex; justify-content:space-between; align-items:center;">
+                               <h3 style="margin:0;">Neue Ankündigung</h3>
+                               <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+                             </div>
+                             <div style="margin-top:8px;">
+                               <input class="input" v-model="title" placeholder="Titel" />
+                             </div>
+                             <div style="margin-top:8px;">
+                               <textarea class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
+                             </div>
+                             <div style="margin-top:8px;">
+                               <select class="input" v-model="color">
+                                 <option value="info">Info</option>
+                                 <option value="warn">Wichtig</option>
+                                 <option value="danger">Dringend</option>
+                               </select>
+                             </div>
+                             <div class="row" style="margin-top:12px; align-items:center;">
+                               <button class="btn" @click="submit" :disabled="submitting">
+                                 <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                 </svg>
+                                 Anlegen
+                               </button>
+                               <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
                              </div>
                            </div>
-
-                           <button class="btn ghost" @click="uploadImage" :disabled="uploading">
-                             <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                             </svg>
-                             Bild hochladen
-                           </button>
                          </div>
-                         <div v-if="uploading" class="small">Lade Bild hoch...</div>
-                         <div v-if="uploadError" class="small error">{{ uploadError }}</div>
-                       </div>
+                       </template>
 
-                       <div class="row actions">
-                         <button class="btn" @click="submit" :disabled="submitting">
-                           <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                           </svg>
-                           {{ initial ? 'Speichern' : 'Anlegen' }}
-                         </button>
-                         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
-                       </div>
-                     </div>
-                   </div>
-                 </template>
+                       <script setup lang="ts">
+                       import { ref } from 'vue';
+                       import hw from '../../hwApi';
 
-                 <script setup lang="ts">
-                 import { onMounted, onBeforeUnmount, ref } from 'vue';
-                 import hw from '../../hwApi';
-                 import type { HwItem } from './Hausaufgaben.vue';
+                       const emit = defineEmits(['close', 'success']);
 
-                 const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
-                 const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
+                       const title = ref('');
+                       const content = ref('');
+                       const color = ref('warn');
+                       const submitting = ref(false);
+                       const message = ref('');
+                       const isError = ref(false);
 
-                 const labelFor = (type: string) => {
-                   const map = {
-                     'HAUSAUFGABE': 'Hausaufgabe',
-                     'DALTON': 'Dalton-Auftrag',
-                     'PRUEFUNG': 'Klassenarbeit',
-                   } as const;
-                   return map[type];
-                 };
-
-                 const title = ref(props.initial?.title || '');
-                 const subjectSel = ref(props.initial?.subject || '');
-                 const subjectOther = ref('');
-                 const description = ref(props.initial?.description || '');
-                 const images = ref(props.initial?.images || []);
-                 const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
-
-                 const submitting = ref(false);
-                 const message = ref('');
-                 const isError = ref(false);
-                 const uploading = ref(false);
-                 const uploadError = ref('');
-
-                 function makeThumb(url: string) {
-                   try {
-                     const u = new URL(url);
-                     const parts = u.pathname.split('/');
-                     const uploadIdx = parts.findIndex(p => p === 'upload');
-                     if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                       u.pathname = parts.join('/');
-                     }
-                     return u.toString();
-                   } catch {
-                     return url;
-                   }
-                 }
-
-                 async function uploadImage() {
-                   uploading.value = true;
-                   uploadError.value = '';
-                   const input = document.createElement('input');
-                   input.type = 'file';
-                   input.accept = 'image/*';
-                   input.onchange = async () => {
-                     const file = input.files?.[0];
-                     if (!file) {
-                       uploading.value = false;
-                       return;
-                     }
-
-                     try {
-                       const { data: sign } = await hw.post('/api/uploads/sign');
-                       const form = new FormData();
-                       form.set('file', file);
-                       form.set('api_key', sign.apiKey);
-                       form.set('timestamp', String(sign.timestamp));
-                       form.set('signature', sign.signature);
-                       form.set('folder', sign.folder);
-                       const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                       const json = await res.json();
-                       if (json.secure_url && json.public_id) {
-                         images.value.push({
-                           url: json.secure_url,
-                           thumbUrl: makeThumb(json.secure_url),
-                           publicId: json.public_id,
-                           createdBy: ''
-                         });
-                         uploadError.value = '';
-                       } else {
-                         uploadError.value = 'Upload fehlgeschlagen';
+                       async function submit() {
+                         submitting.value = true;
+                         message.value = '';
+                         isError.value = false;
+                         try {
+                           await hw.post('/api/announcements', {
+                             title: title.value,
+                             content: content.value,
+                             color: color.value,
+                           });
+                           message.value = 'Ankündigung erfolgreich angelegt.';
+                           isError.value = false;
+                           emit('success');
+                         } catch (e: any) {
+                           message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
+                           isError.value = true;
+                         } finally {
+                           submitting.value = false;
+                         }
                        }
-                     } catch (e: any) {
-                       uploadError.value = 'Upload fehlgeschlagen';
-                     } finally {
-                       uploading.value = false;
-                     }
-                   };
-                   input.click();
-                 }
-
-                 async function removeImg(img: { url: string; publicId: string }) {
-                   if (props.initial?.id) {
-                     try {
-                       // encode publicId so slashes are safe in the URL
-                       await hw.delete(`/api/items/${props.initial.id}/images/${encodeURIComponent(img.publicId)}`);
-
-                       // remove locally
-                       images.value = images.value.filter(i => i.publicId !== img.publicId);
-
-                       console.log('Bild erfolgreich gelöscht:', img.publicId);
-                       uploadError.value = 'Bild erfolgreich gelöscht.';
-                       setTimeout(() => uploadError.value = '', 3000);
-
-                     } catch (e: any) {
-                       console.error('Fehler beim Löschen des Bildes:', e);
-                       uploadError.value = 'Fehler beim Löschen des Bildes.';
-                     }
-                   } else {
-                     images.value = images.value.filter(i => i.publicId !== img.publicId);
-                   }
-                 }
-
-                 async function submit() {
-                   submitting.value = true;
-                   message.value = '';
-                   isError.value = false;
-                   try {
-                     const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
-                     const payload: any = {
-                       type: props.type,
-                       title: title.value.trim(),
-                       subject,
-                       description: description.value.trim(),
-                       images: images.value,
-                       dueDate: new Date(dueLocal.value).toISOString()
-                     };
-                     if (props.initial) {
-                       await hw.patch(`/api/items/${props.initial.id}`, payload);
-                       message.value = 'Eintrag erfolgreich aktualisiert.';
-                     } else {
-                       await hw.post('/api/items', payload);
-                       message.value = 'Eintrag erfolgreich angelegt.';
-                     }
-                     isError.value = false;
-                     emit('success');
-                   } catch (e: any) {
-                     message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                     isError.value = true;
-                   } finally {
-                     submitting.value = false;
-                   }
-                 }
-
-                 function onKeyDown(e: KeyboardEvent) {
-                   if (e.key === 'Escape') emit('close');
-                 }
-                 onMounted(() => window.addEventListener('keydown', onKeyDown));
-                 onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
-                 </script>
-
-                 <style scoped>
-
-                 /* Overlay: dimmt die Seite, aber NICHT verschwommen */
-                 .modal-overlay {
-                   position: fixed;
-                   inset: 0;
-                   background: rgba(0, 0, 0, 0.4);
-                   display: flex;
-                   align-items: center;
-                   justify-content: center;
-                   z-index: 100;
-                   padding: 24px;
-                 }
-
-
-                 .glass-modal {
-                   width: 100%;
-                   max-width: 720px;
-                   border-radius: 14px;
-                   border: 1px solid rgba(255, 255, 255, 0.2);
-                   background: rgba(255, 255, 255, 0.15);
-                   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                   padding: 22px;
-                   color: #1a1a1a;
-                 }
-
-
-                 .modal-header {
-                   display: flex;
-                   justify-content: space-between;
-                   align-items: center;
-                   gap: 12px;
-                   margin-bottom: 12px;
-                 }
-                 .modal-title {
-                   margin: 0;
-                   font-size: 18px;
-                   font-weight: 600;
-                   color: rgba(244, 244, 244);
-                 }
-
-                 /* Layout */
-                 .row {
-                   display: flex;
-                   gap: 12px;
-                   flex-wrap: wrap;
-                   align-items: center;
-                 }
-                 .col {
-                   flex: 1;
-                   min-width: 240px;
-                 }
-                 .section {
-                   margin-top: 10px;
-                 }
-
-                 /* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
-                 .label {
-                   display: block;
-                   font-size: 13px;
-                   color: rgba(244, 244, 244);
-                   margin-bottom: 6px;
-                 }
-                 .label.bold {
-                   font-weight: 600;
-                   color: rgba(234, 234, 234);
-                 }
-
-                 .input {
-                   width: 100%;
-                   padding: 10px 12px;
-                   border-radius: 10px;
-                   border: 1px solid rgba(128, 128, 128, 0.35);
-                   background: rgba(26, 26, 26, 0.6);
-                   color: var(--text);
-                   outline: none;
-                   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-                 }
-                 .input:focus {
-                   background: rgba(26, 26, 26, 0.7);
-                 }
-
-                 /* Bilderbereich */
-                 .images {
-                   gap: 8px;
-                   margin-top: 6px;
-                 }
-                 .image-item {
-                   position: relative;
-                   width: 120px;
-                   height: 120px;
-                   border: 1px solid rgba(128, 128, 128, 0.35);
-                   border-radius: 10px;
-                   overflow: hidden;
-                   background: rgba(26, 26, 26, 0.5);
-                   backdrop-filter: blur(8px) brightness(95%);
-                   -webkit-backdrop-filter: blur(8px) brightness(95%);
-                 }
-                 .thumb {
-                   display: block;
-                   width: 100%;
-                   height: 100%;
-                   object-fit: cover;
-                 }
-                 .image-actions {
-                   position: absolute;
-                   top: 4px;
-                   right: 4px;
-                 }
-                 .image-remove {
-                   padding: 4px 8px;
-                   font-size: 12px;
-                 }
-
-                 /* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
-                 .btn {
-                   display: inline-flex;
-                   align-items: center;
-                   gap: 8px;
-                 }
-                 .btn.ghost {
-                   backdrop-filter: none;
-                 }
-
-                 /* Spinner */
-                 .spinner {
-                   animation: spin 1s linear infinite;
-                   height: 20px;
-                   width: 20px;
-                 }
-                 @keyframes spin {
-                   to { transform: rotate(360deg); }
-                 }
-
-                 /* Aktionen unten */
-                 .actions {
-                   margin-top: 16px;
-                   align-items: center;
-                 }
-
-                 /* Meldungen */
-                 .small {
-                   font-size: 12px;
-                   color: var(--muted);
-                 }
-                 .error {
-                   color: var(--danger);
-                 }
-                 .msg-ok {
-                   color: var(--primary);
-                 }
-                 .msg-error {
-                   color: var(--danger);
-                 }
-
-                 /* Fallback, falls backdrop-filter nicht unterstützt wird */
-                 @supports not ((backdrop-filter: blur(10px))) {
-                   .glass-modal {
-                     background: rgba(26, 26, 26, 0.75);
-                   }
-                 }
-                 </style>
+                       </script>
 
 Hausaufgaben.vue: <template>
                     <div class="card">
@@ -2020,178 +2012,103 @@ Hausaufgaben.vue: <template>
                   /* Tiny utility */
                   .tiny { padding:4px 8px; font-size:12px; }
                   </style>
-App.vue: <template>
-           <div class="full">
-             <Header />
-             <main class="full-c">
-               <canvas id="animated-background"></canvas>
-               <div v-if="loading" class="loading-overlay" key="loading">
-                 <div class="elegant-spinner">
-                   <div class="dot-1"></div>
-                   <div class="dot-2"></div>
-                   <div class="dot-3"></div>
-                 </div>
-               </div>
-               <div v-else class="container" key="content">
-                 <router-view v-slot="{ Component }">
-                   <component :is="Component" />
-                 </router-view>
-                 <ContactForm />
-               </div>
-             </main>
-             <ButtonBack v-if="shouldShowBackButton">
-               Zurück
-             </ButtonBack>
-             <Footer />
+globale style.css (soll nciht geändert werden, aber als hilfe):
 
-           </div>
-         </template>
+:root {
+    --bg: #111827;
+    --card: #1a1a1a;
+    --muted: #94a3b8;
+    --text: #b0b0b0;
+    --primary: #22c55e;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --border: grey;
+}
 
-         <script setup lang="ts">
-         import { ref, onMounted } from 'vue';
-         import { useRouter } from 'vue-router';
-         import Header from './components/Header.vue';
-         import Footer from './components/Footer.vue';
-         import AnimatedBackground from './utils/animated-background.ts';
-         import CookieBanner from './components/CookieBanner.vue'
-         import ContactForm from "./components/ContactForm.vue";
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; }
+body {
+    margin: 0;
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+    position: relative;
+}
 
-
-
-         const loading = ref(false);
-         const router = useRouter();
-
-
-
-         // Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
-         const MIN_LOAD_TIME = 150;
-         let loadStartTime = 0;
-
-         onMounted(() => {
-           new AnimatedBackground('animated-background');
-         });
+a { color: var(--primary); text-decoration: none; }
+.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.card {
+    background: linear-gradient(180deg, #1a1a1a, #1a1a1a), var(--card);
+    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;
+}
+.input, select, textarea {
+    width: 100%; padding: 10px 12px; border-radius: 5px;
+    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
+}
+.btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
+    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
+}
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn.danger { background: var(--danger); color: white; }
+.btn.warn { background: var(--warn); color: #1f1300; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 240px; }
+.badge { padding: 4px 8px; border-radius: 5px; /*background: #0b1220; /*border: 1px solid var(--border);*/ color: var(--muted); }
+hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+footer { color: var(--muted); font-size: 14px; }
+.small { font-size: 12px; color: var(--muted); }
+.badge:hover { color: white}
 
 
+.full {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.full-c {
+    flex: 1;
+    position: relative;
+}
 
 
-         router.beforeEach(() => {
-           loading.value = true;
-           loadStartTime = Date.now();
-         });
+footer {
+    bottom: initial;
+    position: initial;
+    width: initial;
+    height: initial;
+}
+#animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
 
-         router.afterEach(() => {
-           const elapsedTime = Date.now() - loadStartTime;
-           const remainingTime = MIN_LOAD_TIME - elapsedTime;
+}
 
-           if (remainingTime > 0) {
-             setTimeout(() => {
-               loading.value = false;
-             }, remainingTime);
+hwApi: import axios from 'axios';
+
+       const hw = axios.create({
+           baseURL: import.meta.env.VITE_HW_API_BASE,
+           withCredentials: false
+       });
+
+       export function setHwToken(token: string | null) {
+           if (token) {
+               hw.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+               localStorage.setItem('hw_token', token);
            } else {
-             loading.value = false;
+               delete hw.defaults.headers.common['Authorization'];
+               localStorage.removeItem('hw_token');
            }
-         });
-         </script>
+       }
+       const stored = localStorage.getItem('hw_token');
+       if (stored) setHwToken(stored);
 
-         <style scoped>
-         /*
-           Stile für die Ladeanimation.
-           Diese sind "scoped", damit sie nur für diese Komponente gelten.
-         */
-         .loading-overlay {
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           position: absolute;
-           top: 0;
-           left: 0;
-           width: 100%;
-           height: 100%;
-           background-color: rgba(255, 255, 255, 0);
-           z-index: 999;
-         }
-
-         .elegant-spinner {
-           position: relative;
-           width: 60px;
-           height: 60px;
-           display: flex;
-           justify-content: center;
-           align-items: center;
-         }
-
-         .elegant-spinner div {
-           position: absolute;
-           width: 15px;
-           height: 15px;
-           border-radius: 50%;
-           background: #bd34fe;
-           opacity: 0;
-         }
-
-         .elegant-spinner .dot-1 {
-           animation: pulse-1 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-         }
-         .elegant-spinner .dot-2 {
-           animation: pulse-2 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-         }
-         .elegant-spinner .dot-3 {
-           animation: pulse-3 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-         }
-
-
-         @keyframes pulse-1 {
-           0% { transform: scale(0.1); opacity: 0; }
-           25% { transform: scale(1); opacity: 1; }
-           50% { transform: translateX(20px) scale(0.8); opacity: 0; }
-           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-         }
-
-         @keyframes pulse-2 {
-           0% { transform: scale(0.1); opacity: 0; }
-           25% { transform: translateX(-20px) scale(0.8); opacity: 0; }
-           50% { transform: scale(1); opacity: 1; }
-           75% { transform: translateX(20px) scale(0.8); opacity: 0; }
-           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-         }
-
-         @keyframes pulse-3 {
-           0% { transform: scale(0.1); opacity: 0; }
-           50% { transform: translateX(-20px) scale(0.8); opacity: 0; }
-           75% { transform: scale(1); opacity: 1; }
-           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-         }
-
-         /* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
-         .full-c {
-           flex: 1;
-           position: relative;
-         }
-         </style>
-
-
-
-         hwApi.ts: import axios from 'axios';
-
-                   const hw = axios.create({
-                       baseURL: import.meta.env.VITE_HW_API_BASE,
-                       withCredentials: false
-                   });
-
-                   export function setHwToken(token: string | null) {
-                       if (token) {
-                           hw.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                           localStorage.setItem('hw_token', token);
-                       } else {
-                           delete hw.defaults.headers.common['Authorization'];
-                           localStorage.removeItem('hw_token');
-                       }
-                   }
-                   const stored = localStorage.getItem('hw_token');
-                   if (stored) setHwToken(stored);
-
-                   export default hw;
-router.vue: // src/router/index.ts
+       export default hw;
+ router.ts: // src/router/index.ts
 
             import { createRouter, createWebHistory } from 'vue-router';
 
@@ -2236,43 +2153,3 @@ router.vue: // src/router/index.ts
             });
 
             export default router;
-
-
-
-            frontend Umgebungsvariablen: VITE_API_BASE=https://two34u88768.onrender.com
-                                         VITE_HW_API_BASE=https://two34u882345253.onrender.com
-
-
-
-
-                                         backend Umgebungsvariablen: CLIENT_VERIFY_URL=https://two34u88.onrender.com/hausaufgaben/verify
-                                                                     CLOUDINARY_API_KEY=511331798256166
-                                                                     CLOUDINARY_API_SECRET=alObIhb6CS7sjv8AhZ-jeDcUfZM
-                                                                     CLOUDINARY_CLOUD_NAME=dwysdpvcm
-                                                                     CLOUDINARY_FOLDER=hausaufgaben
-                                                                     CORS_ORIGIN=https://two34u88.onrender.com
-                                                                     JWT_SECRET=2un98xu981nxz43187zrxniqz
-                                                                     MONGODB_URI="mongodb+srv://jannesarda_db_user:rsHQ64vL2EgMKG81@cluster023480923840.ssskjyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster023480923840"
-                                                                     PORT=8090
-                                                                     SMTP_FROM="Dashboard <dashboardverifizierung@gmail.com>"
-                                                                     SMTP_HOST=smtp.gmail.com
-                                                                     SMTP_PASS=hkenivoetbufhyit
-                                                                     SMTP_PORT=587
-                                                                     SMTP_USER=dashboardverifizierung@gmail.com
-
-
-
-
-
-                                                                     udn e skomtm beim backen dab un dzu der fehler: 10.201.166.129 - - [29/Sep/2025:14:18:50 +0000] "GET / HTTP/1.1" 404 139 "-" "Go-http-client/2.0"
-                                                                                                                     [2025-09-29 14:19:07] ERROR [Cn4CHL26dfs] Connection timeout
-                                                                                                                     [2025-09-29 14:19:07] DEBUG [Cn4CHL26dfs] Closing connection to the server using "destroy"
-                                                                                                                     SMTP transporter verify failed (emails may not be sent): Error: Connection timeout
-                                                                                                                         at SMTPConnection._formatError (/opt/render/project/src/2backend/node_modules/nodemailer/lib/smtp-connection/index.js:809:19)
-                                                                                                                         at SMTPConnection._onError (/opt/render/project/src/2backend/node_modules/nodemailer/lib/smtp-connection/index.js:795:20)
-                                                                                                                         at Timeout.<anonymous> (/opt/render/project/src/2backend/node_modules/nodemailer/lib/smtp-connection/index.js:237:22)
-                                                                                                                         at listOnTimeout (node:internal/timers:588:17)
-                                                                                                                         at process.processTimers (node:internal/timers:523:7) {
-                                                                                                                       code: 'ETIMEDOUT',
-                                                                                                                       command: 'CONN'
-                                                                                                                     }

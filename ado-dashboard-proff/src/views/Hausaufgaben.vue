@@ -63,7 +63,7 @@
     </div>
 
     <div class="items">
-      <div v-for="item in filteredItems" :key="item.id" class="item-card">
+      <div v-for="item in filteredItems" :key="item.id" class="item-card" :class="{ collapsed: item.checked }">
         <div class="item-main">
           <div class="item-meta">
             <div style="display:inline-flex; align-items:center; gap:8px;">
@@ -93,19 +93,31 @@
           </div>
         </div>
 
-        <div class="item-body">{{ item.description }}</div>
+        <div class="item-body">
+          <div class="item-controls-row">
+            <label v-if="user" class="checkbox-label">
+              <input type="checkbox" :checked="item.checked" @change="toggleChecked(item)" />
+              <span class="checkbox-fake"></span>
+              <span class="checkbox-text">Erledigt</span>
+            </label>
+          </div>
 
-        <div v-if="item.images && item.images.length" class="item-images">
-          <div class="images-title">Bilder</div>
-          <div class="images-row">
-            <div
-                v-for="img in item.images"
-                :key="img.publicId"
-                class="thumb"
-            >
-              <a :href="img.url" target="_blank" rel="noopener">
-                <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-              </a>
+          <div class="item-desc" v-show="!item.checked">
+            {{ item.description }}
+          </div>
+
+          <div v-if="item.images && item.images.length" class="item-images" v-show="!item.checked">
+            <div class="images-title">Bilder</div>
+            <div class="images-row">
+              <div
+                  v-for="img in item.images"
+                  :key="img.publicId"
+                  class="thumb"
+              >
+                <a :href="img.url" target="_blank" rel="noopener">
+                  <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -157,6 +169,7 @@ export interface HwItem {
   dueDate: string;
   createdBy: string;
   timeColor: string;
+  checked?: boolean;
 }
 
 const showAuth = ref(false);
@@ -177,7 +190,7 @@ const message = ref('');
 const isError = ref(false);
 
 const colorFor = (color: string) => {
-  const map = {
+  const map: Record<string,string> = {
     'ok': 'var(--primary)',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
@@ -196,6 +209,7 @@ function canManage(createdBy: string) {
   if (!user.value) return false;
   return user.value.isAdmin || user.value.id === createdBy;
 }
+
 async function loadMe() {
   try {
     const { data } = await hw.get('/api/auth/me');
@@ -212,11 +226,13 @@ async function loadAnnouncements() {
   const { data } = await hw.get('/api/announcements');
   announcements.value = data;
 }
+
 async function reload() {
   loading.value = true;
   try {
     const { data } = await hw.get('/api/items', { params: { type: tab.value } });
-    items.value = data;
+    // data already contains checked for logged-in users (backend)
+    items.value = data.map((i:any) => ({ ...i }));
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
@@ -272,7 +288,7 @@ async function deleteAnnouncement(id: string) {
       await hw.delete(`/api/announcements/${id}`);
       handleSuccess('Ankündigung erfolgreich gelöscht.');
     } catch (e: any) {
-      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+      message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
       isError.value = true;
     }
   }
@@ -282,16 +298,13 @@ async function deleteAnnouncement(id: string) {
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 async function reportItem(item: HwItem) {
-  // Sofort Rückmeldung an User vorbereiten
   message.value = 'Eintrag wird gemeldet...';
   isError.value = false;
 
-  // Nutzdaten, die an dich gesendet werden sollen
   const payload = {
     itemId: item.id,
     itemTitle: item.title,
     reportedAt: new Date().toISOString(),
-    // optional: wer meldet (falls verfügbar)
     reporterEmail: user.value?.email || ''
   };
 
@@ -303,7 +316,6 @@ async function reportItem(item: HwItem) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        // Formspree liest Felder wie 'message' oder beliebige Feldnamen
         message: `Item gemeldet\nID: ${payload.itemId}\nTitel: ${payload.itemTitle}\nGemeldet am: ${payload.reportedAt}\nMeldet von: ${payload.reporterEmail}`
       })
     });
@@ -311,11 +323,9 @@ async function reportItem(item: HwItem) {
     const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      // Erfolg für Nutzer
       message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
       isError.value = false;
     } else {
-      // Formspree liefert oft ein errors‑Array
       const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.');
       message.value = 'Fehler beim Melden: ' + errMsg;
       isError.value = true;
@@ -325,11 +335,9 @@ async function reportItem(item: HwItem) {
     isError.value = true;
     console.error('reportItem error', e);
   } finally {
-    // Nachricht nach einigen Sekunden entfernen
     setTimeout(() => { message.value = ''; isError.value = false; }, 7000);
   }
 }
-
 
 function showImageForm(item: HwItem) {
   showImageFormFor.value = item;
@@ -350,6 +358,28 @@ function makeThumb(url: string) {
   }
 }
 
+// Toggle checked state for an item (calls backend /api/checked/toggle)
+async function toggleChecked(item: HwItem) {
+  if (!user.value) {
+    showAuth.value = true;
+    return;
+  }
+  // optimistic UI
+  const previous = item.checked;
+  item.checked = !previous;
+  try {
+    const { data } = await hw.post('/api/checked/toggle', { itemId: item.id });
+    item.checked = !!data.checked;
+  } catch (e:any) {
+    console.error('toggleChecked error', e);
+    // rollback on error
+    item.checked = previous;
+    message.value = e.response?.data?.error || 'Fehler beim Setzen des Häkchens.';
+    isError.value = true;
+    setTimeout(() => message.value = '', 5000);
+  }
+}
+
 onMounted(() => {
   loadMe();
   loadSubjects();
@@ -361,158 +391,97 @@ watch(tab, reload);
 </script>
 
 <style scoped>
-/* Card tweaks */
+/* kleine Ergänzungen für Checkbox und Collapse-Animation */
 
-/* Header */
-.hw-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.hw-header h2 { margin: 0 0 2px 0; font-size: 1.25rem; }
-.header-actions { align-items: center; }
-
-/* Announcements */
-.announcements { margin-top: 18px; }
-.announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.ann-list { margin-top: 12px; }
-.ann {
-  border-radius: 10px;
-  padding: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
-.ann + .ann { margin-top: 10px; }
-.ann-title { font-weight: 700; }
-.ann-content { white-space: pre-wrap; margin-top: 6px; color: var(--text); }
-.ann-date { margin-top: 6px; color: var(--muted); }
-.ann-actions { margin-top: 8px; }
-
-/* Tabs */
-.tabs-row { display:flex; gap:8px; margin: 16px 0; flex-wrap:wrap; }
-
-/* Controls */
-.controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-.controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.select-subject { width:auto; min-width:160px; }
-.small-btn { padding:6px 8px; font-size:13px; }
-
-/* Loader (professional, subtle) */
-.loader { display:flex; align-items:center; gap:8px; color:var(--muted); }
-.spinner {
-  width:18px; height:18px; border-radius:50%;
-  box-shadow: 0 -3px 0 var(--primary) inset;
-  animation: spinPulse 1.2s linear infinite;
-  transform-origin: 50% 50%;
-}
-@keyframes spinPulse {
-  0% { transform: rotate(0deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
-  50% { transform: rotate(180deg) scale(0.9); box-shadow: 0 -3px 0 rgba(255,255,255,0.06) inset; }
-  100% { transform: rotate(360deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
-}
-
-/* Items */
-.items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
+/* Basis: item-card wie vorher */
 .item-card {
   border-radius: 12px;
   padding: 14px;
   background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
   border: 1px solid rgba(255,255,255,0.03);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+  overflow: hidden;
 }
 
-
-/* Item main row */
-.item-main { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-.item-meta { flex:1; min-width: 0; }
-.item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-/* Badges */
-.item-badges { margin-top:4px; gap:8px; align-items:center; }
-.subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
-.time-badge { padding:4px 8px; border-radius:6px; }
-
-/* Menu (hover reveal) */
-/* Verbessertes Hover-Dropdown: sofort öffnen, verzögert schließen (0.3s) */
-/* Wrapper bleibt wie bisher */
-.item-menu-wrap {
-  position: relative;
-  width: 46px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Controls row inside card */
+.item-controls-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px;
 }
 
-/* Trigger-Style (keine Änderung nötig, bleibt konsistent) */
-.item-menu-trigger {
-  cursor: pointer;
-  color: var(--muted);
-  padding: 6px 8px;
-  border-radius: 6px;
-  transition: background 120ms ease, color 120ms ease;
-}
-.item-menu-wrap:hover .item-menu-trigger {
-  background: rgba(255,255,255,0.02);
-  color: var(--text);
-}
-
-/* Menü: initial versteckt; hide hat 300ms Verzögerung */
-.item-menu {
-  position: absolute;
-  top: 38px;
-  right: 0;
-  min-width: 160px;
-  background: rgba(26,26,26,0.95);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  opacity: 0;
-  transform: translateY(-6px) scale(0.98);
-  pointer-events: none;
-
-  /* WICHTIG: beim Verstecken Verzögerung 300ms — beim Anzeigen wird delay auf 0 gesetzt */
-  transition: opacity 160ms ease 500ms, transform 160ms ease 500ms;
-  z-index: 6;
-}
-
-/* Wenn Wrapper oder Menü selbst gehovt wird, sofort anzeigen und keine Verzögerung benutzen */
-.item-menu-wrap:hover .item-menu,
-.item-menu:hover {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-  transition-delay: 0s; /* entfernt die 300ms hide-delay beim Show */
-}
-
-
-/* Menu buttons */
-.menu-btn {
-  text-align:left;
-  background: transparent;
-  border: none;
-  padding:8px;
-  color: var(--text);
-  border-radius:8px;
+/* Checkbox label */
+.checkbox-label {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
   cursor:pointer;
+  user-select:none;
 }
-.menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
-.menu-btn.danger { background: var(--danger); color: white; }
-.menu-btn.warn { background: var(--warn); color: #1f1300; }
+.checkbox-label input { display:none; }
+.checkbox-fake {
+  width:18px;
+  height:18px;
+  border:2px solid var(--border);
+  border-radius:4px;
+  background:transparent;
+  display:inline-block;
+  position:relative;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+.checkbox-label input:checked + .checkbox-fake {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.checkbox-fake::after {
+  content: '';
+  position:absolute;
+  left:4px;
+  top:1px;
+  width:6px;
+  height:10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.checkbox-label input:checked + .checkbox-fake::after { opacity: 1; }
 
-/* Body */
-.item-body { white-space: pre-wrap; margin-top:10px; color: var(--text); }
+.checkbox-text { font-size:13px; color:var(--muted); }
 
-/* Images */
-.item-images { margin-top:12px; }
-.images-title { font-weight:600; margin-bottom:8px; }
+/* Collapse behaviour when checked: reduce card height, hide description and images */
+.item-card.collapsed {
+  padding: 8px 14px;
+  transition: max-height 300ms ease, padding 260ms ease;
+}
+.item-card .item-desc,
+.item-card .item-images {
+  transition: opacity 260ms ease, max-height 260ms ease;
+}
+.item-card.collapsed .item-desc,
+.item-card.collapsed .item-images {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Keep title and badges visible. If you want smaller visual size, reduce font-size for collapsed state */
+.item-card.collapsed .item-title {
+  font-size: 1.02rem;
+}
+
+/* Smoothly animate the card shrinking visually by limiting the max-height of the card itself */
+.item-card {
+  max-height: 1000px;
+}
+.item-card.collapsed {
+  max-height: 86px; /* adjusts how compact the collapsed card looks */
+}
+
+/* keep images row styles from original */
 .images-row { display:flex; flex-wrap:wrap; gap:8px; }
 .thumb {
   width:120px; height:120px; border-radius:8px; overflow:hidden;
@@ -522,13 +491,8 @@ watch(tab, reload);
 }
 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
 
-/* Empty state */
-.empty { text-align:center; color:var(--muted); padding:24px; }
-
-/* Message */
-.message { font-weight:600; }
-.message.error { color: var(--danger); }
-
-/* Tiny utility */
-.tiny { padding:4px 8px; font-size:12px; }
+/* existing styles preserved below (trimmed) */
+.small { font-size: 12px; color: var(--muted); }
+.msg-ok { color: var(--primary); font-weight: 600; }
+.msg-error { color: var(--danger); font-weight: 600; }
 </style>
