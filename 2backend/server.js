@@ -111,6 +111,19 @@ const ItemSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Item = mongoose.model('HwItem', ItemSchema);
 
+// New model: KeepChecked
+// Purpose: record which users have "checked" (collapsed/marked) which items
+// Each document represents a single check action (itemId + userId + timestamp).
+// This avoids modifying the original Item documents and keeps a separate, append-only-like list.
+const KeepCheckedSchema = new mongoose.Schema({
+    itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
+    checkedAt: { type: Date, default: Date.now }
+}, { timestamps: false });
+
+KeepCheckedSchema.index({ itemId: 1, userId: 1 }, { unique: true });
+const KeepChecked = mongoose.model('HwKeepChecked', KeepCheckedSchema);
+
 // Default Subjects seed
 const DEFAULT_SUBJECTS = [
     'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
@@ -530,6 +543,61 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
     await logActivity(req.user.sub, 'item:delete', { id: item._id });
     res.json({ ok: true });
 });
+
+// New endpoints for "checked" state handling
+
+// Get checked items for current user (returns array of itemId strings)
+app.get('/api/checks/me', requireAuth, async (req, res) => {
+    try {
+        const docs = await KeepChecked.find({ userId: req.user.sub }).select('itemId -_id').lean();
+        const itemIds = docs.map(d => d.itemId.toString());
+        res.json({ itemIds });
+    } catch (err) {
+        console.error('checks/me error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+// Check (mark) an item for current user
+app.post('/api/items/:id/check',
+    requireAuth,
+    param('id').isMongoId(),
+    validate,
+    async (req, res) => {
+        try {
+            const item = await Item.findById(req.params.id);
+            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+            // upsert single document (unique compound index prevents duplicates)
+            await KeepChecked.updateOne(
+                { itemId: item._id, userId: req.user.sub },
+                { $setOnInsert: { checkedAt: new Date() } },
+                { upsert: true }
+            );
+            await logActivity(req.user.sub, 'item:check', { itemId: item._id });
+            res.json({ ok: true });
+        } catch (err) {
+            console.error('check post error', err);
+            sendJSONError(res, 500, 'Server error');
+        }
+    }
+);
+
+// Uncheck (remove) an item for current user
+app.delete('/api/items/:id/check',
+    requireAuth,
+    param('id').isMongoId(),
+    validate,
+    async (req, res) => {
+        try {
+            await KeepChecked.deleteOne({ itemId: req.params.id, userId: req.user.sub });
+            await logActivity(req.user.sub, 'item:uncheck', { itemId: req.params.id });
+            res.json({ ok: true });
+        } catch (err) {
+            console.error('check delete error', err);
+            sendJSONError(res, 500, 'Server error');
+        }
+    }
+);
 
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));

@@ -63,15 +63,19 @@
     </div>
 
     <div class="items">
-      <div v-for="item in filteredItems" :key="item.id" class="item-card">
+      <div v-for="item in filteredItems" :key="item.id" class="item-card" :class="{ collapsed: isChecked(item.id) }">
         <div class="item-main">
           <div class="item-meta">
-            <div style="display:inline-flex; align-items:center; gap:8px;">
-              <div style="width:14px; height:14px; border:1px solid var(--border); border-radius:4px; background:transparent; display:inline-block; vertical-align:middle;"></div>
-              <h3 class="item-title" style="display:inline-block; margin:0;">{{ item.title }}</h3>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label class="collapse-checkbox" v-if="user">
+                <input type="checkbox" :checked="isChecked(item.id)" @change="toggleCheck(item)" />
+                <span class="vis-label"></span>
+              </label>
+
+              <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
             </div>
 
-            <div class="row item-badges">
+            <div class="row item-badges" v-show="!isChecked(item.id)">
               <div class="badge subject-badge">{{ item.subject }}</div>
               <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
                 Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
@@ -93,22 +97,26 @@
           </div>
         </div>
 
-        <div class="item-body">{{ item.description }}</div>
+        <transition name="collapse">
+          <div v-show="!isChecked(item.id)" class="item-body">{{ item.description }}</div>
+        </transition>
 
-        <div v-if="item.images && item.images.length" class="item-images">
-          <div class="images-title">Bilder</div>
-          <div class="images-row">
-            <div
-                v-for="img in item.images"
-                :key="img.publicId"
-                class="thumb"
-            >
-              <a :href="img.url" target="_blank" rel="noopener">
-                <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-              </a>
+        <transition name="collapse">
+          <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
+            <div class="images-title">Bilder</div>
+            <div class="images-row">
+              <div
+                  v-for="img in item.images"
+                  :key="img.publicId"
+                  class="thumb"
+              >
+                <a :href="img.url" target="_blank" rel="noopener">
+                  <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
+                </a>
+              </div>
             </div>
           </div>
-        </div>
+        </transition>
       </div>
 
       <div v-if="!loading && !filteredItems.length" class="card empty">
@@ -176,6 +184,9 @@ const itemToEdit = ref<HwItem | null>(null);
 const message = ref('');
 const isError = ref(false);
 
+// checkedItems holds item IDs that current user has checked
+const checkedItems = ref(new Set<string>());
+
 const colorFor = (color: string) => {
   const map = {
     'ok': 'var(--primary)',
@@ -188,22 +199,41 @@ const colorFor = (color: string) => {
 };
 
 const filteredItems = computed(() => {
-  if (!subjectFilter.value) return items.value;
-  return items.value.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
+  let list = items.value;
+  if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
+  return list;
 });
 
 function canManage(createdBy: string) {
   if (!user.value) return false;
   return user.value.isAdmin || user.value.id === createdBy;
 }
+
 async function loadMe() {
   try {
     const { data } = await hw.get('/api/auth/me');
     user.value = data;
+    await loadCheckedForMe();
   } catch {
     user.value = null;
+    checkedItems.value = new Set();
   }
 }
+
+async function loadCheckedForMe() {
+  if (!user.value) {
+    checkedItems.value = new Set();
+    return;
+  }
+  try {
+    const { data } = await hw.get('/api/checks/me');
+    checkedItems.value = new Set(data.itemIds || []);
+  } catch (e) {
+    console.error('loadCheckedForMe error', e);
+    checkedItems.value = new Set();
+  }
+}
+
 async function loadSubjects() {
   const { data } = await hw.get('/api/subjects');
   subjects.value = data;
@@ -217,6 +247,8 @@ async function reload() {
   try {
     const { data } = await hw.get('/api/items', { params: { type: tab.value } });
     items.value = data;
+    // preserve checked state for items that still exist
+    // (we keep checkedItems as-is; UI queries will only check existing items)
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
@@ -244,6 +276,7 @@ function onLoggedIn(token: string) {
 function logout() {
   setHwToken(null);
   user.value = null;
+  checkedItems.value = new Set();
 }
 
 function editItem(item: HwItem) {
@@ -278,23 +311,18 @@ async function deleteAnnouncement(id: string) {
   }
 }
 
-// Formspree: setze hier deine Form ID (z.B. "f/abcd1234")
+// Formspree endpoint (unchanged)
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 async function reportItem(item: HwItem) {
-  // Sofort Rückmeldung an User vorbereiten
   message.value = 'Eintrag wird gemeldet...';
   isError.value = false;
-
-  // Nutzdaten, die an dich gesendet werden sollen
   const payload = {
     itemId: item.id,
     itemTitle: item.title,
     reportedAt: new Date().toISOString(),
-    // optional: wer meldet (falls verfügbar)
     reporterEmail: user.value?.email || ''
   };
-
   try {
     const res = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
@@ -303,7 +331,6 @@ async function reportItem(item: HwItem) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        // Formspree liest Felder wie 'message' oder beliebige Feldnamen
         message: `Item gemeldet\nID: ${payload.itemId}\nTitel: ${payload.itemTitle}\nGemeldet am: ${payload.reportedAt}\nMeldet von: ${payload.reporterEmail}`
       })
     });
@@ -311,11 +338,9 @@ async function reportItem(item: HwItem) {
     const data = await res.json().catch(() => ({}));
 
     if (res.ok) {
-      // Erfolg für Nutzer
       message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
       isError.value = false;
     } else {
-      // Formspree liefert oft ein errors‑Array
       const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.');
       message.value = 'Fehler beim Melden: ' + errMsg;
       isError.value = true;
@@ -325,11 +350,9 @@ async function reportItem(item: HwItem) {
     isError.value = true;
     console.error('reportItem error', e);
   } finally {
-    // Nachricht nach einigen Sekunden entfernen
     setTimeout(() => { message.value = ''; isError.value = false; }, 7000);
   }
 }
-
 
 function showImageForm(item: HwItem) {
   showImageFormFor.value = item;
@@ -350,6 +373,32 @@ function makeThumb(url: string) {
   }
 }
 
+// checked helpers
+function isChecked(itemId: string) {
+  return checkedItems.value.has(itemId);
+}
+
+async function toggleCheck(item: HwItem) {
+  if (!user.value) return;
+  const id = item.id;
+  try {
+    if (isChecked(id)) {
+      // uncheck
+      await hw.delete(`/api/items/${id}/check`);
+      checkedItems.value.delete(id);
+    } else {
+      // check
+      await hw.post(`/api/items/${id}/check`);
+      checkedItems.value.add(id);
+    }
+  } catch (e: any) {
+    console.error('toggleCheck error', e);
+    message.value = e.response?.data?.error || 'Fehler beim Setzen des Status.';
+    isError.value = true;
+    setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+  }
+}
+
 onMounted(() => {
   loadMe();
   loadSubjects();
@@ -361,7 +410,7 @@ watch(tab, reload);
 </script>
 
 <style scoped>
-/* Card tweaks */
+/* Card tweaks (kept from original) */
 
 /* Header */
 .hw-header {
@@ -400,7 +449,7 @@ watch(tab, reload);
 .select-subject { width:auto; min-width:160px; }
 .small-btn { padding:6px 8px; font-size:13px; }
 
-/* Loader (professional, subtle) */
+/* Loader */
 .loader { display:flex; align-items:center; gap:8px; color:var(--muted); }
 .spinner {
   width:18px; height:18px; border-radius:50%;
@@ -422,13 +471,40 @@ watch(tab, reload);
   background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
   border: 1px solid rgba(255,255,255,0.03);
   transition: transform 160ms ease, box-shadow 160ms ease;
+  overflow: hidden;
 }
 
+/* Collapsed state */
+.item-card.collapsed {
+  padding: 8px 12px;
+  transition: padding 320ms ease, max-height 320ms ease;
+}
 
 /* Item main row */
 .item-main { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
 .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Checkbox visual */
+.collapse-checkbox {
+  display:inline-flex;
+  align-items:center;
+  margin-right:6px;
+  cursor:pointer;
+}
+.collapse-checkbox input { display:none; }
+.collapse-checkbox .vis-label {
+  width:18px; height:18px; border-radius:4px; border:1px solid var(--border);
+  display:inline-block; background:transparent; position:relative;
+}
+.collapse-checkbox input:checked + .vis-label {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.collapse-checkbox .vis-label::after {
+  content: ''; position:absolute; left:4px; top:1px; width:6px; height:10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity:0;
+}
+.collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 
 /* Badges */
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
@@ -436,8 +512,6 @@ watch(tab, reload);
 .time-badge { padding:4px 8px; border-radius:6px; }
 
 /* Menu (hover reveal) */
-/* Verbessertes Hover-Dropdown: sofort öffnen, verzögert schließen (0.3s) */
-/* Wrapper bleibt wie bisher */
 .item-menu-wrap {
   position: relative;
   width: 46px;
@@ -446,8 +520,6 @@ watch(tab, reload);
   align-items: center;
   justify-content: center;
 }
-
-/* Trigger-Style (keine Änderung nötig, bleibt konsistent) */
 .item-menu-trigger {
   cursor: pointer;
   color: var(--muted);
@@ -459,8 +531,6 @@ watch(tab, reload);
   background: rgba(255,255,255,0.02);
   color: var(--text);
 }
-
-/* Menü: initial versteckt; hide hat 300ms Verzögerung */
 .item-menu {
   position: absolute;
   top: 38px;
@@ -478,22 +548,17 @@ watch(tab, reload);
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
 
-  /* WICHTIG: beim Verstecken Verzögerung 300ms — beim Anzeigen wird delay auf 0 gesetzt */
   transition: opacity 160ms ease 500ms, transform 160ms ease 500ms;
   z-index: 6;
 }
-
-/* Wenn Wrapper oder Menü selbst gehovt wird, sofort anzeigen und keine Verzögerung benutzen */
 .item-menu-wrap:hover .item-menu,
 .item-menu:hover {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
-  transition-delay: 0s; /* entfernt die 300ms hide-delay beim Show */
+  transition-delay: 0s;
 }
 
-
-/* Menu buttons */
 .menu-btn {
   text-align:left;
   background: transparent;
@@ -507,10 +572,8 @@ watch(tab, reload);
 .menu-btn.danger { background: var(--danger); color: white; }
 .menu-btn.warn { background: var(--warn); color: #1f1300; }
 
-/* Body */
+/* Body and images */
 .item-body { white-space: pre-wrap; margin-top:10px; color: var(--text); }
-
-/* Images */
 .item-images { margin-top:12px; }
 .images-title { font-weight:600; margin-bottom:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; }
@@ -524,6 +587,21 @@ watch(tab, reload);
 
 /* Empty state */
 .empty { text-align:center; color:var(--muted); padding:24px; }
+
+/* Collapse transition (height + opacity) */
+.collapse-enter-active, .collapse-leave-active {
+  transition: max-height 320ms ease, opacity 320ms ease, padding 320ms ease;
+}
+.collapse-enter-from, .collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.collapse-enter-to, .collapse-leave-from {
+  max-height: 800px;
+  opacity: 1;
+}
 
 /* Message */
 .message { font-weight:600; }
