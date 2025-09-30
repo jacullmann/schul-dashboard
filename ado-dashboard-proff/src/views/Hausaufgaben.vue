@@ -7,11 +7,12 @@
       </div>
 
       <div class="row header-actions">
-        <AccountDelete :user="user" @deleted="logout" />
+
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
         <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>
+    <!--<AccountDelete :user="user" @deleted="logout" />-->
 
     <div class="announcements">
       <div class="announcements-head">
