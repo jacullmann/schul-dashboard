@@ -14,6 +14,8 @@ const Kuerzel = () => import('./views/Kuerzel.vue')
 const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue')
 const Ye = () => import('./views/Ye.vue')
 const BS = () => import('./views/BS.vue')
+const Kontakt = () => import('./components/ContactForm.vue')
+
 
 const router = createRouter({
     history: createWebHistory(),
@@ -29,6 +31,8 @@ const router = createRouter({
         { path: '/lokale-to-do-liste', component: LokaleToDoListe },
         { path: '/kanye', component: Ye },
         { path: '/fresser', component: BS },
+        { path: '/kontakt', component: Kontakt },
+
 
         {
             path: '/impressum-&-datenschutz',

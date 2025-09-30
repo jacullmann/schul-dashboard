@@ -19,6 +19,7 @@
           <h3>Kontakt</h3>
           <p>support@gmail.com</p>
           <p>Modersohhhhnstrasse</p>
+          <router-link to="/kontakt" class="footer-link">Kontaktformular</router-link>
         </div>
       </div>
     </div>

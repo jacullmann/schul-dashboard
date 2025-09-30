@@ -14,7 +14,6 @@
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
-        <ContactForm />
       </div>
     </main>
     <ButtonBack v-if="shouldShowBackButton">
@@ -32,7 +31,6 @@ import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import AnimatedBackground from './utils/animated-background.ts';
-import ContactForm from "./components/ContactForm.vue";
 import CookieBanner from "./components/CookieBanner.vue"
 
 

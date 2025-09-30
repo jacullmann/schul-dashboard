@@ -83,17 +83,23 @@
             </div>
           </div>
 
-          <div class="item-menu-wrap">
-            <div class="item-menu-trigger" aria-hidden>
-              •••
-            </div>
+          <div
+              class="item-menu-trigger"
+              role="button"
+              tabindex="0"
+              @click.stop="toggleMenu(item.id)"
+              @keydown.enter.prevent="toggleMenu(item.id)"
+              @keydown.space.prevent="toggleMenu(item.id)"
+              aria-expanded="openMenuId === item.id ? 'true' : 'false'"
+          >
+            •••
+          </div>
 
-            <div class="item-menu">
-              <button class="menu-btn" v-if="user" @click="showImageForm(item)">Bilder verwalten</button>
-              <button class="menu-btn" v-if="canManage(item.createdBy)" @click="editItem(item)">Bearbeiten</button>
-              <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="deleteItem(item.id)">Löschen</button>
-              <button class="menu-btn warn" title="Melden" @click="reportItem(item)">Melden</button>
-            </div>
+          <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
+            <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
+            <button class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
+            <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
+            <button class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
           </div>
         </div>
 
@@ -203,6 +209,44 @@ const filteredItems = computed(() => {
   if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
   return list;
 });
+// neues reactive state für offenes Menü
+const openMenuId = ref<string | null>(null);
+
+// Toggle-Funktion
+function toggleMenu(id: string) {
+  openMenuId.value = openMenuId.value === id ? null : id;
+}
+
+// gemeinsame Handler für Menüaktionen (schließt das Menü nach Aktion)
+function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
+  openMenuId.value = null;
+  if (action === 'images') return showImageForm(item);
+  if (action === 'edit') return editItem(item);
+  if (action === 'delete') return deleteItem(item.id);
+  if (action === 'report') return reportItem(item);
+}
+
+// Klick ausserhalb schließt das Menü
+function onDocumentClick(e: MouseEvent) {
+  // Wenn kein Menü offen, nichts tun
+  if (!openMenuId.value) return;
+  // Wenn ein Menü offen, schließen (Template stoppt Event wenn Klick innerhalb)
+  openMenuId.value = null;
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick);
+  // bereits vorhandene onMounted-Aufrufe beibehalten
+  loadMe();
+  loadSubjects();
+  loadAnnouncements();
+  reload();
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick);
+});
+
 
 function canManage(createdBy: string) {
   if (!user.value) return false;
@@ -511,26 +555,8 @@ watch(tab, reload);
 .subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 
-/* Menu (hover reveal) */
-.item-menu-wrap {
-  position: relative;
-  width: 46px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.item-menu-trigger {
-  cursor: pointer;
-  color: var(--muted);
-  padding: 6px 8px;
-  border-radius: 6px;
-  transition: background 120ms ease, color 120ms ease;
-}
-.item-menu-wrap:hover .item-menu-trigger {
-  background: rgba(255,255,255,0.02);
-  color: var(--text);
-}
+/* entferne oder passe die bisherigen transition-delay Regeln weg */
+/* Basis bleibt wie gehabt */
 .item-menu {
   position: absolute;
   top: 38px;
@@ -548,16 +574,17 @@ watch(tab, reload);
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
 
-  transition: opacity 160ms ease 500ms, transform 160ms ease 500ms;
+  transition: opacity 160ms ease, transform 160ms ease;
   z-index: 1000;
 }
-.item-menu-wrap:hover .item-menu,
-.item-menu:hover {
+
+/* sichtbar wenn open-Klasse gesetzt */
+.item-menu.open {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
-  transition-delay: 0s;
 }
+
 
 .menu-btn {
   text-align:left;
