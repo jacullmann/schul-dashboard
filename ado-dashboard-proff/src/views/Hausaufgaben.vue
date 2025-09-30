@@ -471,7 +471,7 @@ watch(tab, reload);
   background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
   border: 1px solid rgba(255,255,255,0.03);
   transition: transform 160ms ease, box-shadow 160ms ease;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Collapsed state */
