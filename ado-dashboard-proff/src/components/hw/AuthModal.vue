@@ -28,7 +28,7 @@
           <input type="checkbox" v-model="acceptedPrivacy" />
           <span class="checkmark"></span>
           <span style="color:white; font-size:14px;">
-            Ich stimme der <a href="/impressum-&-datenschutz" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
+            Ich stimme der <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
           </span>
         </label>
       </div>

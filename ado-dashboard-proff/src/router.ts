@@ -29,6 +29,7 @@ const router = createRouter({
         { path: '/lokale-to-do-liste', component: LokaleToDoListe },
         { path: '/kanye', component: Ye },
         { path: '/fresser', component: BS },
+
         {
             path: '/impressum-&-datenschutz',
             component: () => import('./views/legal/LegalLayout.vue'), // Eltern-Layout
