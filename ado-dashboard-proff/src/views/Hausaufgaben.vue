@@ -652,5 +652,26 @@ watch(tab, reload);
 .item-menu-trigger {
   cursor: pointer;
 }
+/* macht Trigger klickbar und sorgt für eine sichtbare Hover-Fläche */
+.item-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 34px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+/* sichtbares Feedback beim Hover */
+.item-menu-trigger:hover {
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
 
 </style>
