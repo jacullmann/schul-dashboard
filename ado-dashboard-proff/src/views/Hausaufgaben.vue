@@ -154,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
@@ -242,6 +242,7 @@ onMounted(() => {
   loadAnnouncements();
   reload();
 });
+
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick);
