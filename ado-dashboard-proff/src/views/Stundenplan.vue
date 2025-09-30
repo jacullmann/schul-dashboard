@@ -1,5 +1,5 @@
 <template>
-  <div>Stundenplan!</div>
+  <div>Stundenplan!!</div>
 </template>
 
 <script lang="ts">
