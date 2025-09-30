@@ -20,5 +20,11 @@
     <p>
       Du hast jederzeit das Recht auf Auskunft, Berichtigung und Löschung deiner Daten.
     </p>
+    <h3>Cookie-Einstellungen</h3>
+    <CookieSettings />
   </div>
 </template>
+
+<script setup lang="ts">
+import CookieSettings from '../../components/CookieSettings.vue'
+</script>

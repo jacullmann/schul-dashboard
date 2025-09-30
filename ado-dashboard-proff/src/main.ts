@@ -8,13 +8,20 @@ import VueGtag from 'vue-gtag-next'
 
 const app = createApp(App);
 
-// GA nur laden, wenn Zustimmung da ist
 function initAnalytics() {
-    app.use(VueGtag, {
-        property: {
-            id: 'G-KR6Q5TQTTN'
-        }
-    }, router)
+    if (!(app as any)._context.provides['vue-gtag']) {
+        app.use(VueGtag, {
+            property: { id: 'G-KR6Q5TQTTN' }
+        }, router)
+    }
+}
+
+function removeAnalytics() {
+    // GA-Skripte entfernen
+    const scripts = document.querySelectorAll('script[src*="googletagmanager"],script[src*="google-analytics"]')
+    scripts.forEach(s => s.remove())
+    // DataLayer leeren
+    ;(window as any).dataLayer = []
 }
 
 // Prüfen ob schon zugestimmt
@@ -27,9 +34,12 @@ if (consent) {
     }
 }
 
-// Warten auf Event vom Banner
 window.addEventListener('cookie-accepted', () => {
     initAnalytics()
+})
+
+window.addEventListener('cookie-revoked', () => {
+    removeAnalytics()
 })
 
 app.use(createPinia());
