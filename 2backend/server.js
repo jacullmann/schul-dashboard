@@ -111,15 +111,6 @@ const ItemSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Item = mongoose.model('HwItem', ItemSchema);
 
-// NEW: CheckedItems schema (speichert welche Nutzer welche Items abgehakt haben)
-const CheckedSchema = new mongoose.Schema({
-    itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
-    checkedAt: { type: Date, default: Date.now }
-}, { timestamps: true });
-CheckedSchema.index({ itemId: 1, userId: 1 }, { unique: true });
-const Checked = mongoose.model('HwChecked', CheckedSchema);
-
 // Default Subjects seed
 const DEFAULT_SUBJECTS = [
     'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
@@ -420,7 +411,7 @@ app.delete('/api/items/:itemId/images/:publicId',
     }
 );
 
-// Items list (not showing expired) - now includes optional checked state per authenticated user
+// Items list (not showing expired)
 app.get('/api/items',
     query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     validate,
@@ -430,25 +421,6 @@ app.get('/api/items',
             .sort({ dueDate: 1 })
             .limit(500)
             .lean();
-
-        // If Authorization header present, try to decode token and fetch checked items for this user
-        let userId = null;
-        const hdr = req.headers.authorization || '';
-        const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-        if (token) {
-            try {
-                const payload = jwt.verify(token, JWT_SECRET);
-                userId = payload.sub;
-            } catch {
-                userId = null;
-            }
-        }
-
-        let checkedMap = {};
-        if (userId) {
-            const checked = await Checked.find({ userId, itemId: { $in: list.map(i => i._id) } }).lean();
-            checked.forEach(c => { checkedMap[c.itemId.toString()] = true; });
-        }
 
         const normalized = list.map(i => {
             const imgs = (i.images || []).map(img => withThumb(img));
@@ -461,8 +433,7 @@ app.get('/api/items',
                 images: imgs,
                 dueDate: i.dueDate,
                 createdBy: i.createdBy,
-                timeColor: timeLeftColor(i.dueDate),
-                checked: !!checkedMap[i._id.toString()]
+                timeColor: timeLeftColor(i.dueDate)
             };
         });
 
@@ -559,39 +530,6 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
     await logActivity(req.user.sub, 'item:delete', { id: item._id });
     res.json({ ok: true });
 });
-
-// NEW: Toggle checked state for current user
-app.post('/api/checked/toggle',
-    requireAuth,
-    body('itemId').isMongoId(),
-    validate,
-    async (req, res) => {
-        const userId = req.user.sub;
-        const { itemId } = req.body;
-
-        // check if exists
-        const exists = await Checked.findOne({ itemId, userId });
-        if (exists) {
-            await Checked.deleteOne({ _id: exists._id });
-            await logActivity(userId, 'checked:remove', { itemId });
-            return res.json({ ok: true, checked: false });
-        } else {
-            await Checked.create({ itemId, userId, checkedAt: new Date() });
-            await logActivity(userId, 'checked:add', { itemId });
-            return res.json({ ok: true, checked: true });
-        }
-    }
-);
-
-// NEW: Get checked items for current user (returns array of itemId strings)
-app.get('/api/checked',
-    requireAuth,
-    async (req, res) => {
-        const userId = req.user.sub;
-        const list = await Checked.find({ userId }).lean();
-        res.json(list.map(l => l.itemId.toString()));
-    }
-);
 
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));
