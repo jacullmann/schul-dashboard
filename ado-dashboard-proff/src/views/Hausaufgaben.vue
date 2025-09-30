@@ -649,7 +649,7 @@ watch(tab, reload);
   top: 38px;
   right: 8px;
 }
-.item-menu:hover {
+.item-menu {
   cursor: pointer;
 }
 
