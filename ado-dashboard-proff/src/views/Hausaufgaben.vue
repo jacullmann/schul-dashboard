@@ -91,7 +91,7 @@
               @keydown.enter.prevent="toggleMenu(item.id)"
               @keydown.space.prevent="toggleMenu(item.id)"
               aria-expanded="openMenuId === item.id ? 'true' : 'false'"
-              style="cursor: pointer"
+
           >
             •••
           </div>
@@ -648,6 +648,9 @@ watch(tab, reload);
 .item-menu {
   top: 38px;
   right: 8px;
+}
+.item-menu:hover {
+  cursor: pointer;
 }
 
 </style>
