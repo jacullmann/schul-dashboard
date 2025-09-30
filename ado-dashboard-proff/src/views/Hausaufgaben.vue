@@ -7,6 +7,7 @@
       </div>
 
       <div class="row header-actions">
+        <AccountDelete :user="user" @deleted="logout" />
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
         <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
@@ -161,6 +162,8 @@ import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
+import AccountDelete from '../components/hw/AccountDelete.vue';
+
 
 export interface HwItem {
   id: string;

@@ -599,6 +599,35 @@ app.delete('/api/items/:id/check',
     }
 );
 
+// Self-delete account endpoint
+app.delete('/api/account', requireAuth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.sub);
+        if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+
+        // Admins dürfen ihren Account nicht löschen
+        if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
+
+        // Entferne Verifikationseinträge und KeepChecked für Sauberkeit
+        try {
+            await Verification.deleteMany({ email: user.email });
+            await KeepChecked.deleteMany({ userId: user._id });
+        } catch (cleanupErr) {
+            console.error('Cleanup during account delete failed', cleanupErr);
+        }
+
+        // Lösche den user-Datensatz (keine weiteren In-Place Löschungen von Items/Bildern)
+        await User.deleteOne({ _id: user._id });
+        await logActivity(user._id, 'account:deleted');
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error('Account delete error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));
 
