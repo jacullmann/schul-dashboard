@@ -637,4 +637,15 @@ watch(tab, reload);
 
 /* Tiny utility */
 .tiny { padding:4px 8px; font-size:12px; }
+/* Container für Trigger + Menü positionieren */
+.item-main {
+  position: relative;
+}
+
+/* Menü-Offset feinjustieren: direkt unter dem Trigger, leicht nach rechts versetzt */
+.item-menu {
+  top: 38px;
+  right: 8px;
+}
+
 </style>
