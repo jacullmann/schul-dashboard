@@ -25,12 +25,14 @@ const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 // SendGrid config
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
+
 if (!SENDGRID_API_KEY) {
     console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
 } else {
     sgClient.setApiKey(SENDGRID_API_KEY);
     (async () => {
         try {
+            // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
             await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
             console.log('SendGrid API erreichbar und konfiguriert.');
         } catch (err) {
@@ -553,8 +555,6 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
             console.error('Cloudinary bulk delete error', err);
         }
     }
-
-    // Option: we do not remove Checked documents; specification said it's ok to leave them
     await item.deleteOne();
     await logActivity(req.user.sub, 'item:delete', { id: item._id });
     res.json({ ok: true });
