@@ -21,6 +21,7 @@
       Zurück
     </ButtonBack>
     <Footer />
+    <CookieBanner />
 
   </div>
 </template>
@@ -31,8 +32,8 @@ import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import AnimatedBackground from './utils/animated-background.ts';
-import CookieBanner from './components/CookieBanner.vue'
 import ContactForm from "./components/ContactForm.vue";
+import CookieBanner from "./components/CookieBanner.vue"
 
 
 

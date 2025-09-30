@@ -26,7 +26,6 @@
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p>© {{ year }} — Mexiko</p>
-        <button class="btn ghost" @click="openCookieBanner">Cookie-Einstellungen</button>
 
 
         <!-- 🥚 Geheimer Button -->
