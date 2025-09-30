@@ -649,7 +649,7 @@ watch(tab, reload);
   top: 38px;
   right: 8px;
 }
-.item-menu {
+.item-menu-trigger {
   cursor: pointer;
 }
 
