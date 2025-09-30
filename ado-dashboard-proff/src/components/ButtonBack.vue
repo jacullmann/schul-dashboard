@@ -30,7 +30,7 @@ const router = useRouter();
 const { ripples, createRipple } = useRipple();
 
 function goBack() {
-  router.back();
+  router.push('/');
 }
 </script>
 

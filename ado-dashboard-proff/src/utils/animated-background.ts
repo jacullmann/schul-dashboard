@@ -46,7 +46,7 @@ export default class AnimatedBackground {
             imageData.data[i] = val;
             imageData.data[i + 1] = val;
             imageData.data[i + 2] = val;
-            imageData.data[i + 3] = 50;
+            imageData.data[i + 3] = 0;
         }
         this.grainCtx.putImageData(imageData, 0, 0);
     }
