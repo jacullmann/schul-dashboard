@@ -180,12 +180,12 @@ onBeforeUnmount(() => {
   width: 100%;
   padding: 14px;
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(14px) saturate(120%) brightness(96%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%) brightness(96%);
-  box-shadow: 0 12px 40px rgba(2,6,23,0.65);
-  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  color: white;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -219,13 +219,13 @@ onBeforeUnmount(() => {
 .confirm { margin-top:8px; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:10px; }
 .confirm-body { display:flex; flex-direction:column; gap:6px; }
 .confirm-title { font-weight:700; color:var(--danger); }
-.confirm-text { color:var(--muted); font-size:13px; }
+.confirm-text { color:white; font-size:13px; }
 .confirm-email { font-weight:700; color:var(--primary); }
-.confirm-note { font-size:12px; color:var(--muted); }
+.confirm-note { font-size:12px; color:white; }
 
 .confirm-actions { display:flex; gap:8px; justify-content:flex-end; }
 .btn {
-  padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:var(--text); cursor:pointer;
+  padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:white; cursor:pointer;
 }
 .btn.cancel { background: rgba(255,255,255,0.02); }
 .btn.danger {
