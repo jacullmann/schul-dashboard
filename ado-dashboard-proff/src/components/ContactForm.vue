@@ -154,9 +154,9 @@
                 />
                 <span>
                   Mit dem Absenden bestätige ich die
-                  <a href="/impressum-&-datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>
+                  <a href="/impressum-&-datenschutz/datenschutzerklaerung" target="_blank" rel="noopener">Datenschutzerklärung</a>
                   und die
-                  <a href="/impressum-&-datenschutz" target="_blank" rel="noopener">AGB</a>.
+                  <a href="/impressum-&-datenschutz/impressum" target="_blank" rel="noopener">AGB</a>.
                 </span>
               </label>
               <transition name="slide-fade">
