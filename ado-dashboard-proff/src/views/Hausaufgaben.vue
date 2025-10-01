@@ -13,7 +13,6 @@
       </div>
     </div>
 
-
     <div class="announcements">
       <div class="announcements-head">
         <h3 v-if="announcements.length" >Wichtige Ankündigungen</h3>
@@ -41,9 +40,9 @@
     </div>
 
     <div class="tabs-row">
-      <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
-      <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">Dalton</button>
-      <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen/KLassenarbeiten</button>
+      <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
+      <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
+      <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
     </div>
 
     <div class="controls">
@@ -92,8 +91,7 @@
               @click.stop="toggleMenu(item.id)"
               @keydown.enter.prevent="toggleMenu(item.id)"
               @keydown.space.prevent="toggleMenu(item.id)"
-              aria-expanded="openMenuId === item.id ? 'true' : 'false'"
-
+              :aria-expanded="openMenuId === item.id ? 'true' : 'false'"
           >
             •••
           </div>
@@ -158,13 +156,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
 import AccountMenu from '../components/hw/AccountMenu.vue';
-
 
 export interface HwItem {
   id: string;
@@ -184,7 +182,6 @@ const showAnnouncementForm = ref(false);
 const showImageFormFor = ref<any>(null);
 
 const user = ref<any>(null);
-const tab = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
 const subjects = ref<string[]>([]);
 const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
@@ -198,8 +195,32 @@ const isError = ref(false);
 // checkedItems holds item IDs that current user has checked
 const checkedItems = ref(new Set<string>());
 
+// route + router
+const route = useRoute();
+const router = useRouter();
+
+// accepted item types
+type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+function isValidType(t: any): t is ItemType {
+  return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG';
+}
+
+// tab is derived from route.params.type (fallback to HAUSAUFGABE)
+const tab = ref<ItemType>( isValidType(route.params.type) ? (route.params.type as ItemType) : 'HAUSAUFGABE' );
+
+// when route param changes, update tab and reload items
+watch(() => route.params.type, (v) => {
+  if (isValidType(v)) {
+    tab.value = v;
+  } else {
+    tab.value = 'HAUSAUFGABE';
+  }
+  reload();
+});
+
+// UI/helpers
 const colorFor = (color: string) => {
-  const map = {
+  const map: Record<string, string> = {
     'ok': 'var(--primary)',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
@@ -209,22 +230,20 @@ const colorFor = (color: string) => {
   return map[color] || 'var(--muted)';
 };
 
-
-
 const filteredItems = computed(() => {
   let list = items.value;
   if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
   return list;
 });
-// neues reactive state für offenes Menü
+
+// new reactive state for open menu
 const openMenuId = ref<string | null>(null);
 
-// Toggle-Funktion
+// Toggle menu
 function toggleMenu(id: string) {
   openMenuId.value = openMenuId.value === id ? null : id;
 }
 
-// gemeinsame Handler für Menüaktionen (schließt das Menü nach Aktion)
 function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
   openMenuId.value = null;
   if (action === 'images') return showImageForm(item);
@@ -233,28 +252,22 @@ function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwI
   if (action === 'report') return reportItem(item);
 }
 
-// Klick ausserhalb schließt das Menü
 function onDocumentClick(e: MouseEvent) {
-  // Wenn kein Menü offen, nichts tun
   if (!openMenuId.value) return;
-  // Wenn ein Menü offen, schließen (Template stoppt Event wenn Klick innerhalb)
   openMenuId.value = null;
 }
 
 onMounted(() => {
   document.addEventListener('click', onDocumentClick);
-  // bereits vorhandene onMounted-Aufrufe beibehalten
   loadMe();
   loadSubjects();
   loadAnnouncements();
   reload();
 });
 
-
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick);
 });
-
 
 function canManage(createdBy: string) {
   if (!user.value) return false;
@@ -287,20 +300,28 @@ async function loadCheckedForMe() {
 }
 
 async function loadSubjects() {
-  const { data } = await hw.get('/api/subjects');
-  subjects.value = data;
+  try {
+    const { data } = await hw.get('/api/subjects');
+    subjects.value = data;
+  } catch (e) {
+    console.error('loadSubjects error', e);
+  }
 }
 async function loadAnnouncements() {
-  const { data } = await hw.get('/api/announcements');
-  announcements.value = data;
+  try {
+    const { data } = await hw.get('/api/announcements');
+    announcements.value = data;
+  } catch (e) {
+    console.error('loadAnnouncements error', e);
+  }
 }
+
 async function reload() {
   loading.value = true;
   try {
     const { data } = await hw.get('/api/items', { params: { type: tab.value } });
     items.value = data;
-    // preserve checked state for items that still exist
-    // (we keep checkedItems as-is; UI queries will only check existing items)
+    // preserve checkedItems as-is; UI checks only existing items
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
@@ -309,13 +330,11 @@ async function reload() {
 }
 
 function onAccountDeleted() {
-  // Entferne Token und UI state wie beim logout
   setHwToken(null);
   user.value = null;
   checkedItems.value = new Set();
   message.value = 'Account erfolgreich gelöscht.';
   isError.value = false;
-  // optional: reload items
   reload();
   setTimeout(() => { message.value = ''; }, 5000);
 }
@@ -325,7 +344,6 @@ function onAccountDeleteError(msg: string) {
   isError.value = true;
   setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
 }
-
 
 function handleSuccess(msg: string) {
   message.value = msg;
@@ -382,7 +400,6 @@ async function deleteAnnouncement(id: string) {
   }
 }
 
-// Formspree endpoint (unchanged)
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 async function reportItem(item: HwItem) {
@@ -454,11 +471,9 @@ async function toggleCheck(item: HwItem) {
   const id = item.id;
   try {
     if (isChecked(id)) {
-      // uncheck
       await hw.delete(`/api/items/${id}/check`);
       checkedItems.value.delete(id);
     } else {
-      // check
       await hw.post(`/api/items/${id}/check`);
       checkedItems.value.add(id);
     }
@@ -470,14 +485,10 @@ async function toggleCheck(item: HwItem) {
   }
 }
 
-onMounted(() => {
-  loadMe();
-  loadSubjects();
-  loadAnnouncements();
-  reload();
-});
-
-watch(tab, reload);
+// Navigate to route for a tab (keeps URL in sync and supports reload/bookmark)
+function goTab(t: ItemType) {
+  router.push({ name: 'ItemsByType', params: { type: t } });
+}
 </script>
 
 <style scoped>
@@ -582,12 +593,11 @@ watch(tab, reload);
 .subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 
-/* entferne oder passe die bisherigen transition-delay Regeln weg */
-/* Basis bleibt wie gehabt */
+/* Menu */
 .item-menu {
   position: absolute;
   top: 38px;
-  right: 0;
+  right: 8px;
   min-width: 160px;
   background: rgba(26,26,26,0.95);
   border: 1px solid var(--border);
@@ -604,14 +614,11 @@ watch(tab, reload);
   transition: opacity 160ms ease, transform 160ms ease;
   z-index: 1000;
 }
-
-/* sichtbar wenn open-Klasse gesetzt */
 .item-menu.open {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
-
 
 .menu-btn {
   text-align:left;
@@ -622,7 +629,6 @@ watch(tab, reload);
   border-radius:8px;
   cursor:pointer;
 }
-
 .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
 .menu-btn.danger { background: var(--danger); color: white; }
 .menu-btn.warn { background: var(--warn); color: #1f1300; }
@@ -664,20 +670,8 @@ watch(tab, reload);
 
 /* Tiny utility */
 .tiny { padding:4px 8px; font-size:12px; }
-/* Container für Trigger + Menü positionieren */
-.item-main {
-  position: relative;
-}
 
-/* Menü-Offset feinjustieren: direkt unter dem Trigger, leicht nach rechts versetzt */
-.item-menu {
-  top: 38px;
-  right: 8px;
-}
-.item-menu-trigger {
-  cursor: pointer;
-}
-/* macht Trigger klickbar und sorgt für eine sichtbare Hover-Fläche */
+/* menu trigger */
 .item-menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -690,13 +684,9 @@ watch(tab, reload);
   color: var(--muted);
   transition: background 120ms ease, color 120ms ease, transform 120ms ease;
 }
-
-/* sichtbares Feedback beim Hover */
 .item-menu-trigger:hover {
   background: rgba(255,255,255,0.02);
   color: var(--text);
   transform: translateY(-1px);
 }
-
-
 </style>
