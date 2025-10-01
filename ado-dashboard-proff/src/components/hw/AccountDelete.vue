@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import hw from '../hwApi';
+import hw from '../../hwApi';
 
 const props = defineProps<{ email: string }>();
 const emit = defineEmits<{ (e: 'deleted'): void }>();
