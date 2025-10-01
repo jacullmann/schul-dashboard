@@ -163,7 +163,7 @@ import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
-import AccountSetting from '../components/hw/AccountDelete.vue';
+import AccountSettings from '../components/hw/AccountDelete.vue';
 
 
 export interface HwItem {
