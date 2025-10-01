@@ -7,12 +7,12 @@
       </div>
 
       <div class="row header-actions">
-
+        <AccountSettings v-if="user" :email="user.email" @deleted="onAccountDeleted" />
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
         <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>
-    <!--<AccountDelete :user="user" @deleted="logout" />-->
+
 
     <div class="announcements">
       <div class="announcements-head">
@@ -43,7 +43,7 @@
     <div class="tabs-row">
       <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
       <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">Dalton</button>
-      <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
+      <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen/KLassenarbeiten</button>
     </div>
 
     <div class="controls">
@@ -163,7 +163,7 @@ import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
-import AccountDelete from '../components/hw/AccountDelete.vue';
+import AccountSetting from '../components/hw/AccountDelete.vue';
 
 
 export interface HwItem {
@@ -208,6 +208,17 @@ const colorFor = (color: string) => {
   };
   return map[color] || 'var(--muted)';
 };
+
+function onAccountDeleted() {
+  // entferne Token local und lade Seite neu / setze user=null
+  setHwToken(null);
+  user.value = null;
+  // optional: neu laden der Einträge, Reset UI
+  reload();
+  message.value = 'Account wurde gelöscht.';
+  isError.value = false;
+}
+
 
 const filteredItems = computed(() => {
   let list = items.value;

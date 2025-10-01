@@ -70,7 +70,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva'; // <-- ersetzen
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 const message = ref('');
 const submitting = ref(false);
@@ -83,9 +83,9 @@ const showForm = ref(false);
 
 onMounted(() => {
   // Step-by-step reveal
-  setTimeout(() => (showCard.value = true), 200);
-  setTimeout(() => (showShield.value = true), 800);
-  setTimeout(() => (showForm.value = true), 1400);
+  setTimeout(() => (showCard.value = true), 5);
+  setTimeout(() => (showShield.value = true), 10);
+  setTimeout(() => (showForm.value = true), 20);
 });
 
 async function onSubmit() {
@@ -110,7 +110,7 @@ async function onSubmit() {
     feedbackClass.value = 'ok';
     message.value = '';
   } catch (e) {
-    feedback.value = 'Übertragung fehlgeschlagen. Bitte später erneut versuchen.';
+    feedback.value = 'Übertragung fehlgeschlagen. Du kannst es nochmal versuchen oder uns kontaktieren.';
     feedbackClass.value = 'err';
   } finally {
     submitting.value = false;

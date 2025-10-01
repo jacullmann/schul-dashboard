@@ -1,208 +1,161 @@
 <template>
-  <div class="account-delete" ref="root">
-    <button
-        v-if="user"
-        class="btn ghost settings-btn"
-        @click.stop="toggle()"
-        :aria-expanded="open ? 'true' : 'false'"
-        aria-label="Account Einstellungen"
-        title="Einstellungen"
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 0 1 2.3 16.88l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09c.7 0 1.29-.4 1.51-1a1.65 1.65 0 0 0-.33-1.82L4.3 2.3A2 2 0 0 1 7.13.47l.06.06c.5.5 1.2.66 1.82.33.6-.32 1-.9 1-1.51V0a2 2 0 0 1 4 0v.09c0 .61.4 1.19 1 1.51.62.33 1.32.17 1.82-.33l.06-.06A2 2 0 0 1 21.7 4.3l-.06.06c-.5.5-.66 1.2-.33 1.82.32.61.9 1 1.51 1H21a2 2 0 0 1 0 4h-.09c-.61 0-1.19.4-1.51 1z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <div class="account-settings">
+    <button class="btn icon-btn" @click="toggle" aria-haspopup="true" :aria-expanded="open.toString()" title="Einstellungen">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" fill="currentColor"/>
+        <path d="M19.4 15a1 1 0 0 0 .1 1.1l.9.9a1 1 0 0 1-1.4 1.4l-.9-.9a1 1 0 0 0-1.1-.1 6.6 6.6 0 0 1-1.6.9 1 1 0 0 0-.6 1v1.2a1 1 0 0 1-2 0V18a1 1 0 0 0-.6-1 6.6 6.6 0 0 1-1.6-.9 1 1 0 0 0-1.1.1l-.9.9A1 1 0 0 1 5 17.9l.9-.9a1 1 0 0 0 .1-1.1 6.6 6.6 0 0 1-.9-1.6 1 1 0 0 0-1-.6H3.9a1 1 0 0 1 0-2H5a1 1 0 0 0 1-.6c.2-.6.5-1.2.9-1.6a1 1 0 0 0-.1-1.1l-.9-.9A1 1 0 0 1 6.1 5.1l.9.9c.3.3.8.3 1.1.1.4-.3 1-.6 1.6-.9A1 1 0 0 0 10 5V3.9a1 1 0 0 1 2 0V5a1 1 0 0 0 .6 1c.6.2 1.2.5 1.6.9.3.3.8.3 1.1.1l.9-.9A1 1 0 0 1 18.9 6.1l-.9.9c-.3.3-.3.8-.1 1.1.3.4.6 1 .9 1.6a1 1 0 0 0 1 .6h1.2a1 1 0 0 1 0 2H20a1 1 0 0 0-1 .6c-.2.6-.5 1.2-.9 1.6z" fill="currentColor" opacity="0.9"/>
       </svg>
     </button>
 
-    <transition name="fade-scale">
-      <div v-if="open" class="popup" ref="popup" @click.stop>
-        <div class="popup-inner">
-          <div class="popup-header">
-            <div class="title">Account Einstellungen</div>
-          </div>
+    <!-- Dropdown pop-up -->
+    <div v-if="open" class="popup" ref="popup" @click.outside="closeWithDelay">
+      <div class="popup-card glass">
+        <button class="btn danger wide" @click="startDelete" :disabled="deleting">
+          Account löschen
+        </button>
+      </div>
+    </div>
 
-          <div class="popup-body">
-            <button class="btn danger full" @click="startDelete">Account löschen</button>
-          </div>
-
-          <div class="popup-footer small muted">Admins können ihren Account nicht löschen</div>
+    <!-- Confirm modal -->
+    <div v-if="confirming" class="overlay-confirm" role="dialog" aria-modal="true" aria-label="Account löschen bestätigen">
+      <div class="confirm-card glass">
+        <h4>Account wirklich löschen?</h4>
+        <p class="small">Account E-Mail: <strong>{{ email }}</strong></p>
+        <p class="small">Dies löscht ausschließlich deinen Benutzeraccount. Beiträge und Bilder bleiben erhalten.</p>
+        <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
+          <button class="btn danger" @click="confirmDelete" :disabled="deleting">
+            Ja, Account löschen
+          </button>
+          <button class="btn ghost" @click="cancelConfirm" :disabled="deleting">Abbrechen</button>
         </div>
       </div>
-    </transition>
-
-    <transition name="fade">
-      <div v-if="confirmVisible" class="confirm-backdrop" @click.self="cancelDelete">
-        <div class="confirm" @click.stop>
-          <h4>Account wirklich löschen</h4>
-          <div class="confirm-text">
-            Du bist eingeloggt als <strong>{{ user?.email }}</strong>. Wenn du fortfährst, wird dein Account dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
-          </div>
-
-          <div class="confirm-actions">
-            <button class="btn" @click="cancelDelete">Abbrechen</button>
-            <button class="btn danger" :disabled="processing" @click="confirmDelete">
-              {{ processing ? 'Lösche...' : 'Account löschen' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </transition>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import axios from 'axios';
-import { useRouter } from 'vue-router';
+import hw from '../hwApi';
 
-// EINZIGER defineProps Aufruf
-const props = defineProps<{ user: any }>();
-const emit = defineEmits<{
-  (e: 'deleted'): void;
-}>();
+const props = defineProps<{ email: string }>();
+const emit = defineEmits<{ (e: 'deleted'): void }>();
 
 const open = ref(false);
-const confirmVisible = ref(false);
+const confirming = ref(false);
+const deleting = ref(false);
 const popup = ref<HTMLElement | null>(null);
-const root = ref<HTMLElement | null>(null);
-const processing = ref(false);
-const router = useRouter();
+
+// click outside directive emulation
+function onDocumentClick(e: MouseEvent) {
+  if (!popup.value) return;
+  if (!popup.value.contains(e.target as Node)) {
+    open.value = false;
+  }
+}
+onMounted(() => document.addEventListener('click', onDocumentClick));
+onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick));
 
 function toggle() {
   open.value = !open.value;
-  if (!open.value) confirmVisible.value = false;
+  if (open.value) confirming.value = false;
+}
+
+function closeWithDelay() {
+  // keep small delay so clicking inside popup works; already handled by event propagation
+  setTimeout(() => { open.value = false; }, 150);
 }
 
 function startDelete() {
-  if (props.user?.isAdmin) {
-    open.value = false;
-    return alert('Admins können ihren Account nicht löschen.');
-  }
-  confirmVisible.value = true;
+  open.value = false;
+  confirming.value = true;
 }
 
-function cancelDelete() {
-  confirmVisible.value = false;
+function cancelConfirm() {
+  confirming.value = false;
 }
 
 async function confirmDelete() {
-  if (!props.user) return;
-  processing.value = true;
+  deleting.value = true;
   try {
-    await axios.delete('/api/account', { headers: { Authorization: getAuthHeader() } });
-    clearAuthToken();
+    await hw.delete('/api/auth/me');
+    // inform parent that account was deleted so it can clear UI and token
     emit('deleted');
-    try { router.push('/'); } catch {}
-  } catch (err: any) {
-    console.error('Account delete failed', err);
-    alert(err?.response?.data?.error || 'Fehler beim Löschen des Accounts.');
+  } catch (e: any) {
+    // Show error to user in console and with a browser alert for now
+    console.error('delete account error', e);
+    alert(e?.response?.data?.error || 'Fehler beim Löschen des Accounts.');
   } finally {
-    processing.value = false;
-    confirmVisible.value = false;
-    open.value = false;
+    deleting.value = false;
   }
 }
-
-function getAuthHeader() {
-  return localStorage.getItem('hw_token') ? `Bearer ${localStorage.getItem('hw_token')}` : '';
-}
-function clearAuthToken() {
-  localStorage.removeItem('hw_token');
-}
-
-function onDocClick(e: MouseEvent) {
-  if (!open.value) return;
-  const p = popup.value;
-  const r = root.value;
-  if (!p) { open.value = false; return; }
-  if (r && !r.contains(e.target as Node)) open.value = false;
-}
-
-onMounted(() => {
-  document.addEventListener('click', onDocClick);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', onDocClick);
-});
 </script>
 
 <style scoped>
-.fade-scale-enter-active, .fade-scale-leave-active { transition: all 180ms ease; }
-.fade-scale-enter-from { opacity: 0; transform: translateY(-6px) scale(.98); }
-.fade-scale-enter-to { opacity: 1; transform: translateY(0) scale(1); }
-.fade-scale-leave-from { opacity: 1; transform: translateY(0) scale(1); }
-.fade-scale-leave-to { opacity: 0; transform: translateY(-6px) scale(.98); }
+.account-settings { display:inline-flex; align-items:center; position:relative; }
 
-.fade-enter-active, .fade-leave-active { transition: opacity 160ms; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-.fade-enter-to, .fade-leave-from { opacity: 1; }
-
-.account-delete { display: inline-flex; align-items: center; position: relative; }
-
-.settings-btn {
+/* icon button next to logout */
+.icon-btn {
+  width: 42px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 34px;
-  padding: 6px;
-  border-radius: 8px;
-  color: var(--muted);
   background: transparent;
-  transition: background 120ms ease, color 120ms ease;
-}
-.settings-btn:hover { background: rgba(255,255,255,0.02); color: var(--text); cursor: pointer; }
-
-.popup {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 1200;
-  pointer-events: auto;
-}
-
-.popup-inner {
-  min-width: 220px;
-  max-width: 320px;
-  border-radius: 12px;
-  padding: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
   border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 8px 30px rgba(2,6,23,0.45);
   color: var(--text);
 }
 
-.popup-header .title { font-weight: 700; margin-bottom: 8px; }
-.popup-body { display:flex; gap:8px; flex-direction:column; }
-.full { width: 100%; }
+/* popup card styled as glassmorphism */
+.popup {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 220;
+  display: flex;
+  justify-content: flex-end;
+  width: 220px;
+}
+.popup-card {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px) saturate(105%);
+  -webkit-backdrop-filter: blur(12px) saturate(105%);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-.confirm-backdrop {
+/* confirm overlay frozen glass */
+.overlay-confirm {
   position: fixed;
   inset: 0;
-  z-index: 1400;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(2,6,23,0.45);
-  backdrop-filter: blur(4px);
+  z-index: 300;
+  background: rgba(0,0,0,0.45);
 }
-
-.confirm {
-  width: min(720px, 92%);
-  max-width: 520px;
-  background: linear-gradient(180deg, rgba(17,17,19,0.9), rgba(9,9,11,0.86));
-  border-radius: 12px;
+.confirm-card {
+  width: 100%;
+  max-width: 420px;
   padding: 18px;
+  border-radius: 14px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
   color: var(--text);
-  border: 1px solid rgba(255,255,255,0.04);
-  box-shadow: 0 12px 40px rgba(2,6,23,0.6);
 }
-.confirm h4 { margin:0 0 10px 0; font-size:1.05rem; }
-.confirm-text { margin-bottom: 14px; color: var(--muted); }
-.confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
 
-.small.muted { margin-top:8px; color: var(--muted); font-size:12px; }
+/* button helpers */
+.btn.wide { width: 100%; display:inline-flex; justify-content:center; }
+.small { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
 </style>
