@@ -7,8 +7,8 @@
       </div>
 
       <div class="row header-actions">
-        <AccountSettings v-if="user" :email="user.email" @deleted="onAccountDeleted" />
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
+        <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
         <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>
@@ -163,7 +163,6 @@ import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
-import AccountSettings from '../components/AccountDelete.vue';
 
 
 export interface HwItem {
@@ -209,15 +208,6 @@ const colorFor = (color: string) => {
   return map[color] || 'var(--muted)';
 };
 
-function onAccountDeleted() {
-  // entferne Token local und lade Seite neu / setze user=null
-  setHwToken(null);
-  user.value = null;
-  // optional: neu laden der Einträge, Reset UI
-  reload();
-  message.value = 'Account wurde gelöscht.';
-  isError.value = false;
-}
 
 
 const filteredItems = computed(() => {
@@ -316,6 +306,25 @@ async function reload() {
     loading.value = false;
   }
 }
+
+function onAccountDeleted() {
+  // Entferne Token und UI state wie beim logout
+  setHwToken(null);
+  user.value = null;
+  checkedItems.value = new Set();
+  message.value = 'Account erfolgreich gelöscht.';
+  isError.value = false;
+  // optional: reload items
+  reload();
+  setTimeout(() => { message.value = ''; }, 5000);
+}
+
+function onAccountDeleteError(msg: string) {
+  message.value = msg;
+  isError.value = true;
+  setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+}
+
 
 function handleSuccess(msg: string) {
   message.value = msg;

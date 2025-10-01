@@ -599,34 +599,26 @@ app.delete('/api/items/:id/check',
     }
 );
 
-// Delete own account
+// Delete own account (admins not allowed to delete their own accounts)
 app.delete('/api/auth/me', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.user.sub);
-        if (!user) return sendJSONError(res, 404, 'Nicht gefunden');
+        if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+        if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
 
-        if (user.isAdmin) {
-            return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
-        }
-
-        // Remove any verification tokens for that email
-        try {
-            await Verification.deleteMany({ email: user.email });
-        } catch (err) {
-            console.error('Error deleting verifications for user', err);
-        }
-
-        // Delete the user document only
+        // Only delete the user document itself. Do not delete items, images or other records.
         await User.deleteOne({ _id: user._id });
 
-        // Optionally: clear any server-side sessions, cookies etc.
-        // If you want to instruct client to remove token, just return ok.
+        await logActivity(user._id, 'account:delete', { by: user._id });
+
         res.json({ ok: true });
     } catch (err) {
-        console.error('Error deleting account', err);
-        return sendJSONError(res, 500, 'Serverfehler beim Löschen des Accounts');
+        console.error('DELETE /api/auth/me error', err);
+        sendJSONError(res, 500, 'Server error');
     }
 });
+
+
 
 
 
