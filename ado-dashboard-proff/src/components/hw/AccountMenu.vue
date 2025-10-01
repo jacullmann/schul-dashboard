@@ -164,8 +164,8 @@ onBeforeUnmount(() => {
 /* Popup */
 .popup {
   position: fixed;
-  right: 12px;
-  top: 56px; /* passt zur Höhe der Icon-Button-Zeile */
+  right: 50%;
+  top: 50%;
   z-index: 1400;
   width: min(360px, calc(100vw - 24px));
   display: flex;
