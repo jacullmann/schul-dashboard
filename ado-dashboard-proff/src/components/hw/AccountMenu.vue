@@ -163,14 +163,21 @@ onBeforeUnmount(() => {
 
 /* Popup */
 .popup {
-  position: absolute;
-  right: 0;
-  margin-top: 12px;
+  position: fixed;
+  right: 12px;
+  top: 56px; /* passt zur Höhe der Icon-Button-Zeile */
   z-index: 1400;
-  width: 320px;
+  width: min(360px, calc(100vw - 24px));
   display: flex;
   justify-content: flex-end;
+  pointer-events: auto;
 }
+
+/* center-ish fallback for very narrow screens */
+@media (max-width: 420px) {
+  .popup { left: 12px; right: 12px; top: 12px; bottom: auto; width: calc(100vw - 24px); }
+}
+
 
 /* Glassmorphic inner card */
 .popup-inner {
@@ -186,6 +193,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: calc(100vh - 96px);
+  overflow: auto;
 }
 
 /* Top row */
@@ -243,7 +252,6 @@ onBeforeUnmount(() => {
 
 /* Responsive */
 @media (max-width: 420px) {
-  .popup { right: 6px; width: calc(100vw - 12px); }
   .popup-inner { padding: 12px; }
 }
 </style>
