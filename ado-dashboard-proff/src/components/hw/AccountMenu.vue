@@ -6,7 +6,7 @@
 
     <transition name="pop">
       <div v-if="open" class="popup" @click.stop>
-        <div class="popup-inner" role="menu" aria-label="Account menu">
+        <div class="popup-inner card" role="menu" aria-label="Account menu">
           <div class="popup-top">
             <div class="user-info">
               <div class="user-email" :title="email">{{ email }}</div>
@@ -164,18 +164,18 @@ onBeforeUnmount(() => {
 /* Popup */
 .popup {
   position: fixed;
-  right: 50%;
-  top: 50%;
   z-index: 1400;
   width: min(360px, calc(100vw - 24px));
   display: flex;
   justify-content: flex-end;
   pointer-events: auto;
+  left: 40%;
+  top: 40%;
 }
 
 /* center-ish fallback for very narrow screens */
 @media (max-width: 420px) {
-  .popup { left: 12px; right: 12px; top: 12px; bottom: auto; width: calc(100vw - 24px); }
+  .popup { left: 12px; right: 12px; top: 40%; bottom: auto; width: calc(100vw - 24px); }
 }
 
 
