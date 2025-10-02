@@ -56,9 +56,9 @@ function decline() {
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--card);
+  background: black;
   color: var(--text);
-  border-top: 1px solid var(--border);
+  border-top: 0.1px solid var(--border);
   padding: 16px;
   z-index: 1000;
   display: flex;
