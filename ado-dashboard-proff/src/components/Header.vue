@@ -1,11 +1,13 @@
 <template>
   <header class="header">
     <div class="header-container container">
-      <ButtonBack v-if="shouldShowBackButton" class="back-button-in-header">
+      <!--<ButtonBack v-if="shouldShowBackButton" style="font-size: 10px" class="back-button-in-header">
         Zurück
-      </ButtonBack>
-
-      <router-link to="/" class="logo" @click="closeNav">Dashboard</router-link>
+      </ButtonBack>-->
+      <router-link to="/" class="logo-group" @click="closeNav">
+        <img class="logo-img" :src="MainLogo" alt="logo" />
+        <span class="logo-text">Dashboard</span>
+      </router-link>
 
       <button
           @click="toggleNav"
@@ -61,6 +63,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonBack from './ButtonBack.vue';
+import MainLogo from '../assets/logo-juano.png'
 
 const navOpen = ref(false);
 const route = useRoute();
@@ -134,7 +137,7 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: 6px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 8px 12px;
+  padding: 3px 4px;
   cursor: pointer;
   z-index: 10;
   overflow: hidden;
@@ -147,19 +150,40 @@ onUnmounted(() => {
   background-color: #2a2a2a;
 }
 
-.logo {
-  font-size: 1.8rem;
-  font-weight: bold;
-  text-decoration: none;
-  color: #f0f0f0;
-  letter-spacing: 1px;
-  transition: color 0.3s ease;
-  flex: 1;
-  text-align: center;
+.logo-group {
+  display: flex; /* Aktiviert Flexbox */
+  align-items: center; /* Zentriert die Elemente vertikal in der Mitte */
+  text-decoration: none; /* Entfernt Unterstreichung (da es ein router-link ist) */
+  gap: 0.5rem; /* Fügt Abstand zwischen Logo und Text hinzu */
+  color: #f0f0f0; /* Stellt die Textfarbe sicher */
+  flex: 0 1 auto;
+  justify-content: center; /* Zentriert die Gruppe im Header-Container */
+  flex: 0 1 auto; /* Die Gruppe soll ihren Inhalt nicht aufblasen, sondern nur so viel Platz wie nötig einnehmen. */
+  margin-right: auto; /* Sorgt dafür, dass der gesamte freie Raum rechts von der Logo-Gruppe entsteht und sie dadurch ganz nach links geschoben wird. */
 }
 
-.logo:hover {
-  color: #41d1ff;
+.logo-group:hover {
+  color: #41d1ff; /* Hover-Effekt auf die Gruppe anwenden */
+}
+
+/* Stil für das Bild */
+.logo-img {
+  width: auto;
+  height: 35px; /* Behält die aktuelle Höhe bei */
+  /* margin-right: 16px; wird durch gap in .logo-group ersetzt */
+}
+
+/* Stil für den Text (ehemals .logo) */
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+  line-height: 1; /* Setzt die Zeilenhöhe auf 1, um zusätzliche Abstände zu entfernen */
+}
+
+.logo-group:hover .logo-text {
+  color: ghostwhite;
 }
 
 /* Hamburger Menu - Verbesserte Animation */
