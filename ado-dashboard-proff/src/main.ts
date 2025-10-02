@@ -11,7 +11,7 @@ const app = createApp(App);
 function initAnalytics() {
     if (!(app as any)._context.provides['vue-gtag']) {
         app.use(VueGtag, {
-            property: { id: 'G-KR6Q5TQTTN' }
+            property: { id: 'G-Y9XSGT1NL4' }
         }, router)
     }
 }
