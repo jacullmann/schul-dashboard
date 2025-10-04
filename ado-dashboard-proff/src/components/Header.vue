@@ -112,7 +112,7 @@ onUnmounted(() => {
 
 <style scoped>
 .header {
-  background-color: #1a1a1a;
+  background-color: var(--bg);
   color: #f0f0f0;
   padding: 0.1rem 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

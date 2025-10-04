@@ -6,6 +6,7 @@ import './style.css';
 import VueGtag from 'vue-gtag-next'
 
 
+
 const app = createApp(App);
 
 function initAnalytics() {

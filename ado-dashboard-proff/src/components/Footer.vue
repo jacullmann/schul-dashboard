@@ -81,7 +81,7 @@ function handleClick() {
 
 <style scoped>
 .footer {
-  background-color: #1a1a1a;
+  background-color:var(--bg);
   color: #b0b0b0;
   padding-top: 2rem;
   border-top: 1px solid #333;
