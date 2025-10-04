@@ -63,7 +63,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonBack from './ButtonBack.vue';
-import MainLogo from '../assets/logo-juano.png'
+import MainLogo from '../assets/oki.svg'
 
 const navOpen = ref(false);
 const route = useRoute();

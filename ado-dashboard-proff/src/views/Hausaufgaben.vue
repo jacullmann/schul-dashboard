@@ -236,10 +236,10 @@ const filteredItems = computed(() => {
   return list;
 });
 
-// new reactive state for open menu
+
 const openMenuId = ref<string | null>(null);
 
-// Toggle menu
+
 function toggleMenu(id: string) {
   openMenuId.value = openMenuId.value === id ? null : id;
 }
