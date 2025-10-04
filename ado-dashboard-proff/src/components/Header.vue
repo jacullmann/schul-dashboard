@@ -113,7 +113,7 @@ onUnmounted(() => {
 <style scoped>
 .header {
   background-color: var(--bg);
-  color: #f0f0f0;
+  color: #f1f1f1;
   padding: 0.1rem 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -155,7 +155,7 @@ onUnmounted(() => {
   align-items: center; /* Zentriert die Elemente vertikal in der Mitte */
   text-decoration: none; /* Entfernt Unterstreichung (da es ein router-link ist) */
   gap: 0.5rem; /* Fügt Abstand zwischen Logo und Text hinzu */
-  color: #f0f0f0; /* Stellt die Textfarbe sicher */
+  color: #f1f1f1; /* Stellt die Textfarbe sicher */
   flex: 0 1 auto;
   justify-content: center; /* Zentriert die Gruppe im Header-Container */
   flex: 0 1 auto; /* Die Gruppe soll ihren Inhalt nicht aufblasen, sondern nur so viel Platz wie nötig einnehmen. */
@@ -250,7 +250,7 @@ onUnmounted(() => {
   font-size: 1rem;
   font-weight: 500;
   text-decoration: none;
-  color: #b0b0b0;
+  color: #f1f1f1;
   position: relative;
   transition: color 0.3s ease, transform 0.3s ease;
 }

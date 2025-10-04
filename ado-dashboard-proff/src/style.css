@@ -27,13 +27,15 @@ a { color: var(--primary); text-decoration: none; }
 }
 .input, select, textarea {
     width: 100%; padding: 10px 12px; border-radius: 5px;
-    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
+    background: #2a2a2a; color: var(--text); border: 0.000001px solid var(--border);
 }
 .btn {
     display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
+    background: #f1f1f1; color: #111827; border: none; border-radius: 5px; cursor: pointer;
 }
-.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn:hover { background-color: #D9D9D9}
+.btn.ghost:hover { background-color: #3F3F3F}
+.btn.ghost { background: #282828; color: var(--text); }
 .btn.danger { background: var(--danger); color: white; }
 .btn.warn { background: var(--warn); color: #1f1300; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; }
