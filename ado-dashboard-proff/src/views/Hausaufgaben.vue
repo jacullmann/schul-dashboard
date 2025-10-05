@@ -160,14 +160,14 @@
             class="btn ghost"
             @click="showMore"
         >
-          Weitere 5 anzeigen
+          Mehr anzeigen
         </button>
         <button
             v-if="visibleCount > 5"
             class="btn ghost"
             @click="showLess"
         >
-          5 weniger anzeigen
+          Weniger anzeigen
         </button>
       </div>
     </div>
