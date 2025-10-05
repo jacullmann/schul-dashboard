@@ -9,8 +9,8 @@
         <div class="popup-inner card" role="menu" aria-label="Account menu">
           <div class="popup-top">
             <div class="user-info">
-              <div class="user-email" :title="email">{{ email }}</div>
               <div class="user-sub">Account Einstellungen</div>
+              <div class="user-email" :title="email">{{ email }}</div>
             </div>
             <button class="close-x" @click="close" aria-label="Close menu">✕</button>
           </div>
@@ -202,8 +202,8 @@ onBeforeUnmount(() => {
   display:flex; align-items:center; justify-content:space-between;
 }
 .user-info { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
-.user-email { font-weight:700; font-size:13px; color:var(--primary); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.user-sub { font-size:12px; color:var(--text); }
+.user-email { font-weight:700; font-size:12px; color:var(--primary); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.user-sub { font-size:14px; color:var(--text); }
 
 .close-x {
   background: transparent; border: none; color: var(--text); font-size:14px; cursor:pointer;

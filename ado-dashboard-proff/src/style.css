@@ -9,6 +9,7 @@
     --warn: #f59e0b;
     --border: grey;
     --jj: #282828;
+    --sub: #aaaaaa;
 }
 
 * { box-sizing: border-box; }
