@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
   display:flex; align-items:center; justify-content:space-between;
 }
 .user-info { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
-.user-email { font-weight:700; font-size:12px; color:var(--primary); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.user-email { font-weight:700; font-size:12px; color:var(--sub); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .user-sub { font-size:14px; color:var(--text); }
 
 .close-x {
