@@ -63,7 +63,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonBack from './ButtonBack.vue';
-import MainLogo from '../assets/siegma.svg'
+import MainLogo from '../assets/23.svg'
 
 const navOpen = ref(false);
 const route = useRoute();

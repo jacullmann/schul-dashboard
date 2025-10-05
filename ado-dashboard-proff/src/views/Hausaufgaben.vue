@@ -563,7 +563,7 @@ function goTab(t: ItemType) {
 }
 
 /* Item main row */
-.item-main { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
 .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
@@ -596,8 +596,6 @@ function goTab(t: ItemType) {
 /* Menu */
 .item-menu {
   position: absolute;
-  top: 38px;
-  right: 8px;
   min-width: 160px;
   background: rgba(26,26,26,0.95);
   border: 1px solid var(--border);
@@ -606,6 +604,8 @@ function goTab(t: ItemType) {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  top: 100%;   /* direkt unter dem Trigger */
+  right: 0;
 
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
@@ -618,6 +618,7 @@ function goTab(t: ItemType) {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
+  display: block;
 }
 
 .menu-btn {
