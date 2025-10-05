@@ -20,6 +20,7 @@
             v-if="user?.isAdmin"
             class="btn ghost small-btn"
             @click="showAnnouncementForm = true"
+            v-ga-event="{ name: 'add_announcement', params: { method: 'admin_button', label: 'p_b' } }"
         >
           Ankündigung hinzufügen
         </button>
@@ -52,7 +53,7 @@
           <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
         </select>
 
-        <button v-if="user" class="btn" @click="openCreateForm">Eintrag anlegen</button>
+        <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
           <div class="spinner" aria-hidden></div>

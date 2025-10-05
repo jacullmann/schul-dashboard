@@ -4,6 +4,7 @@ import router from './router';
 import App from './App.vue';
 import './style.css';
 import VueGtag from 'vue-gtag-next'
+import gaDirective from './directives/gaEvent'
 
 
 
@@ -42,7 +43,7 @@ window.addEventListener('cookie-accepted', () => {
 window.addEventListener('cookie-revoked', () => {
     removeAnalytics()
 })
-
+app.directive('ga-event', gaDirective);
 app.use(createPinia());
 app.use(router);
 app.mount('#app');
