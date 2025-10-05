@@ -8,6 +8,7 @@
     --danger: #ef4444;
     --warn: #f59e0b;
     --border: grey;
+    --jj: #282828;
 }
 
 * { box-sizing: border-box; }
@@ -37,7 +38,7 @@ a { color: var(--primary); text-decoration: none; }
 }
 .btn {
     display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: #f1f1f1; color: #111827; border: none; border-radius: 5px; cursor: pointer;
+    background: #f1f1f1; color: var(--jj); border: none; border-radius: 5px; cursor: pointer;
 }
 .btn:hover { background-color: #D9D9D9}
 .btn.ghost:hover { background-color: #3F3F3F}

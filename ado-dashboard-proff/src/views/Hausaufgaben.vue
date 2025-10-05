@@ -550,7 +550,7 @@ function goTab(t: ItemType) {
 .item-card {
   border-radius: 12px;
   padding: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  background: var(--jj);
   border: 1px solid rgba(255,255,255,0.03);
   transition: transform 160ms ease, box-shadow 160ms ease;
   overflow: visible;
