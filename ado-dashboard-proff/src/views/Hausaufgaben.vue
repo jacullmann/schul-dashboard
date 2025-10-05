@@ -151,6 +151,13 @@
         @close="showImageFormFor=null"
         @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
     />
+    <ConfirmDialog
+        :show="showReportConfirm"
+        message="Soll dieser Eintrag wirklich gemeldet werden?"
+        @confirm="doReport"
+        @cancel="showReportConfirm=false"
+    />
+
   </div>
 </template>
 
@@ -163,6 +170,8 @@ import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
 import AccountMenu from '../components/hw/AccountMenu.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+
 
 export interface HwItem {
   id: string;
@@ -194,6 +203,9 @@ const isError = ref(false);
 
 // checkedItems holds item IDs that current user has checked
 const checkedItems = ref(new Set<string>());
+// ganz oben im <script setup>
+const showReportConfirm = ref(false)
+let reportTarget: HwItem | null = null
 
 // route + router
 const route = useRoute();
@@ -251,6 +263,11 @@ function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwI
   if (action === 'delete') return deleteItem(item.id);
   if (action === 'report') return reportItem(item);
 }
+function reportItem(item: HwItem) {
+  reportTarget = item
+  showReportConfirm.value = true
+}
+
 
 function onDocumentClick(e: MouseEvent) {
   if (!openMenuId.value) return;
@@ -402,15 +419,22 @@ async function deleteAnnouncement(id: string) {
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
-async function reportItem(item: HwItem) {
-  message.value = 'Eintrag wird gemeldet...';
-  isError.value = false;
+async function doReport() {
+  showReportConfirm.value = false
+  if (!reportTarget) return
+
+  const item = reportTarget
+  reportTarget = null
+
+  // dein bisheriger Code aus reportItem:
+  message.value = 'Eintrag wird gemeldet...'
+  isError.value = false
   const payload = {
     itemId: item.id,
     itemTitle: item.title,
     reportedAt: new Date().toISOString(),
     reporterEmail: user.value?.email || ''
-  };
+  }
   try {
     const res = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
@@ -421,26 +445,25 @@ async function reportItem(item: HwItem) {
       body: JSON.stringify({
         message: `Item gemeldet\nID: ${payload.itemId}\nTitel: ${payload.itemTitle}\nGemeldet am: ${payload.reportedAt}\nMeldet von: ${payload.reporterEmail}`
       })
-    });
-
-    const data = await res.json().catch(() => ({}));
-
+    })
+    const data = await res.json().catch(() => ({}))
     if (res.ok) {
-      message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
-      isError.value = false;
+      message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.'
+      isError.value = false
     } else {
-      const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.');
-      message.value = 'Fehler beim Melden: ' + errMsg;
-      isError.value = true;
+      const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.')
+      message.value = 'Fehler beim Melden: ' + errMsg
+      isError.value = true
     }
   } catch (e:any) {
-    message.value = 'Fehler beim Melden. Bitte versuche es später erneut.';
-    isError.value = true;
-    console.error('reportItem error', e);
+    message.value = 'Fehler beim Melden. Bitte versuche es später erneut.'
+    isError.value = true
+    console.error('reportItem error', e)
   } finally {
-    setTimeout(() => { message.value = ''; isError.value = false; }, 7000);
+    setTimeout(() => { message.value = ''; isError.value = false }, 7000)
   }
 }
+
 
 function showImageForm(item: HwItem) {
   showImageFormFor.value = item;
