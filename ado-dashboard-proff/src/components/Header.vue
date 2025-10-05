@@ -5,7 +5,7 @@
         Zurück
       </ButtonBack>-->
       <router-link to="/" class="logo-group" @click="closeNav">
-        <img class="logo-img" :src="MainLogo" alt="logo" />
+        <Logo class="logo-img" aria-hidden="true" />
         <span class="logo-text">Dashboard</span>
       </router-link>
 
@@ -63,7 +63,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonBack from './ButtonBack.vue';
-import MainLogo from '../assets/23.svg'
+import Logo from './hw/Logo.vue'
 
 const navOpen = ref(false);
 const route = useRoute();

@@ -687,7 +687,7 @@ function goTab(t: ItemType) {
 }
 .collapse-checkbox input { display:none; }
 .collapse-checkbox .vis-label {
-  width:18px; height:18px; border-radius:4px; border:1px solid var(--border);
+  width:18px; height:18px; border-radius:4px; border: 2px solid white;;
   display:inline-block; background:transparent; position:relative;
 }
 .collapse-checkbox input:checked + .vis-label {
