@@ -1,12 +1,12 @@
 <template>
   <div class="account-menu" ref="root">
     <button class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Einstellungen'">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
     </button>
 
     <transition name="pop">
-      <div v-if="open" class="popup" @click.stop>
-        <div class="popup-inner card" role="menu" aria-label="Account menu">
+      <div v-if="open" class="popup" :style="popupStyle" @click.stop>
+        <div class="popup-inner card" role="menu" aria-label="Account menu" ref="popupInner">
           <div class="popup-top">
             <div class="user-info">
               <div class="user-sub">Account Einstellungen</div>
@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue';
 import hw from '../../hwApi';
 
 const props = defineProps<{ email: string }>();
@@ -73,9 +73,18 @@ const submitting = ref(false);
 const errorMsg = ref('');
 const successMsg = ref('');
 
+// refs to measure & place popup
+const root = ref<HTMLElement | null>(null);
+const popupInner = ref<HTMLElement | null>(null);
+
+// reactive style for popup placement
+const popupStyle = ref<Record<string, string>>({});
+
+// toggle / close
 function toggle() {
   open.value = !open.value;
-  if (!open.value) confirming.value = false;
+  if (open.value) positionPopup();
+  else confirming.value = false;
   clearMessages();
 }
 function close() {
@@ -92,6 +101,56 @@ function clearMessages() {
   successMsg.value = '';
 }
 
+async function positionPopup() {
+  // wait DOM update
+  await nextTick();
+  const rootEl = root.value;
+  const popupEl = popupInner.value;
+  if (!rootEl || !popupEl) return;
+
+  const iconBtn = rootEl.querySelector('.icon-btn') as HTMLElement | null;
+  if (!iconBtn) return;
+
+  const btnRect = iconBtn.getBoundingClientRect();
+  const popupRect = popupEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const breakpoint = 480; // small screens fallback
+
+  // on small screens center the popup (makes it look like a modal/dropdown centered)
+  if (vw <= breakpoint) {
+    popupStyle.value = {
+      position: 'fixed',
+      left: '50%',
+      transform: 'translateX(-50%) translateY(0)',
+      top: `${Math.max(64, btnRect.top + btnRect.height + 8)}px`,
+      width: `min(92vw, 360px)`,
+      right: 'auto'
+    };
+    return;
+  }
+
+  // Desktop: try to place directly below the icon, prefer aligning right edge of popup with right edge of icon
+  const spaceRight = vw - btnRect.left;
+  const preferLeft = btnRect.left + btnRect.width / 2 > vw / 2 ? true : false;
+
+  // compute left such that popup fits in viewport
+  let left = btnRect.left + btnRect.width - popupRect.width; // align right edges
+  if (left < 8) left = 8;
+  if (left + popupRect.width > vw - 8) left = Math.max(8, vw - popupRect.width - 8);
+
+  // top sits below button
+  const top = btnRect.top + btnRect.height + 8;
+
+  popupStyle.value = {
+    position: 'fixed',
+    left: `${Math.round(left)}px`,
+    top: `${Math.round(top)}px`,
+    transform: 'translateY(0)',
+    width: `${Math.min(360, popupRect.width || 360)}px`,
+  };
+}
+
+// delete confirm flow
 async function confirmDelete() {
   submitting.value = true;
   errorMsg.value = '';
@@ -100,7 +159,6 @@ async function confirmDelete() {
     if (res?.data?.ok) {
       successMsg.value = 'Account wurde gelöscht.';
       emit('deleted');
-      // ensure UI reflects change
       setTimeout(() => { close(); }, 600);
     } else {
       const err = (res?.data?.error) || 'Unbekannter Fehler';
@@ -117,13 +175,10 @@ async function confirmDelete() {
 }
 
 function goToProfile() {
-  // placeholder: emit event so parent can navigate if desired
-  // left intentionally small and non-intrusive
   emit('error', 'Profil-Bearbeitung nicht implementiert');
 }
 
 // close on outside click or Escape
-const root = ref<HTMLElement | null>(null);
 function onDocClick(e: MouseEvent) {
   if (!root.value) return;
   if (!root.value.contains(e.target as Node)) {
@@ -135,6 +190,9 @@ function onKey(e: KeyboardEvent) {
 }
 
 onMounted(() => {
+  window.addEventListener('resize', () => {
+    if (open.value) positionPopup();
+  });
   document.addEventListener('click', onDocClick);
   document.addEventListener('keydown', onKey);
 });
@@ -154,32 +212,18 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   color: var(--muted); cursor: pointer;
-  transition: transform 0.3s ease-in-out;
-  display: inline-block;
+  transition: transform 0.18s ease-in-out;
+  display: inline-flex;
 }
-.icon-btn:hover { color: var(--text); transform: rotate(90deg); }
+.icon-btn:hover { color: var(--text); transform: rotate(12deg); }
 
-.icon { width:18px; height:18px; }
-
-/* Popup */
+/* Popup wrapper (positioned via inline style popupStyle) */
 .popup {
-  position: fixed;
   z-index: 1400;
-  width: min(360px, calc(100vw - 24px));
-  display: flex;
-  justify-content: flex-end;
   pointer-events: auto;
-  left: 40%;
-  top: 40%;
 }
 
-/* center-ish fallback for very narrow screens */
-@media (max-width: 420px) {
-  .popup { left: 12px; right: 12px; top: 40%; bottom: auto; width: calc(100vw - 24px); }
-}
-
-
-/* Glassmorphic inner card */
+/* inner card styling unchanged */
 .popup-inner {
   width: 100%;
   padding: 14px;
@@ -254,8 +298,9 @@ onBeforeUnmount(() => {
 .pop-leave-from { transform: translateY(0) scale(1); opacity: 1; }
 .pop-leave-to { transform: translateY(-8px) scale(0.98); opacity: 0; }
 
-/* Responsive */
-@media (max-width: 420px) {
+/* Responsive fallback for very small screens: make popup centered and full-ish */
+@media (max-width: 480px) {
+  .popup { left: 12px !important; right: 12px !important; top: 20% !important; width: calc(100vw - 24px) !important; }
   .popup-inner { padding: 12px; }
 }
 </style>
