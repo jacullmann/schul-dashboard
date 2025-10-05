@@ -157,14 +157,14 @@
       <div v-if="filteredItems.length > 5" class="pagination-actions">
         <button
             v-if="visibleCount < filteredItems.length"
-            class="btn ghost"
+            class="btn ghost shm"
             @click="showMore"
         >
           Mehr anzeigen
         </button>
         <button
             v-if="visibleCount > 5"
-            class="btn ghost"
+            class="btn ghost shm"
             @click="showLess"
         >
           Weniger anzeigen
@@ -751,7 +751,15 @@ function goTab(t: ItemType) {
 .menu-btn.warn { background: var(--warn); color: #1f1300; }
 
 /* Body and images */
-.item-body { white-space: pre-wrap; margin-top:10px; color: var(--text); }
+.item-body {
+  white-space: pre-wrap;
+  margin-top:10px;
+  color: var(--text);
+  white-space: pre-wrap;        /* behält Zeilenumbrüche, erlaubt Umbruch */
+  word-break: break-word;       /* bricht lange Wörter, wenn nötig */
+  overflow-wrap: anywhere;      /* erlaubt Umbruch an beliebiger Stelle bei sehr langen Wörtern */
+  hyphens: auto;
+}
 .item-images { margin-top:12px; }
 .images-title { font-weight:600; margin-bottom:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; }
@@ -814,4 +822,6 @@ function goTab(t: ItemType) {
   gap: 12px;
   justify-content: center;
 }
+
+.shm:hover{ background-color:inherit }
 </style>
