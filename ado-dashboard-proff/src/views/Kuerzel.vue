@@ -9,10 +9,19 @@
         <input
             v-model="inputValue"
             class="input"
-            :placeholder="mode==='shortToName' ? 'z. B. mü, gl...' : 'z. B. Frau Glier, Herr Müller...'"
+            :placeholder="mode==='shortToName' ? 'z. B. mü, gl...' : 'z. B. Frau Glier, Herr Müller oder nur Nachname...'"
         />
-        <div v-if="mode==='nameToShort' && suggestion && !outputValue" class="suggestion">
-          Meintest du vielleicht <span @click="applySuggestion" class="suggestion-link">{{ suggestion }}</span>?
+        <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
+          Meintest du vielleicht
+          <span
+              v-for="(s, idx) in suggestions"
+              :key="idx"
+              @click="applySuggestion(s)"
+              class="suggestion-link"
+          >
+            {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
+          </span>
+          ?
         </div>
       </div>
 
@@ -20,11 +29,13 @@
       <div class="switch-col">
         <button
             class="switch-btn"
-            :class="{ rotating: isRotating }"
+            :class="{ rotated: isRotated }"
             @click="toggleMode"
             title="Richtung wechseln"
         >
-          <canvas ref="canvasRef" width="24" height="24"></canvas>
+          <svg xmlns="http://www.w3.org/2000/svg" class="switch-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+            <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" />
+          </svg>
         </button>
         <div class="mode-label">
           {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
@@ -44,10 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed } from 'vue'
 
 const persons = [
   { name: 'Müller',       title: 'Herr', short: 'Mü' },
+  { name: 'Müller',       title: 'Frau', short: 'Mü' },
   { name: 'Schmidt',      title: 'Frau', short: 'Sc' },
   { name: 'Schneider',    title: 'Herr', short: 'Sc' },
   { name: 'Fischer',      title: 'Frau', short: 'Fi' },
@@ -147,15 +159,14 @@ const persons = [
   { name: 'Warnke',       title: 'Frau', short: 'Wa' },
   { name: 'Xaver',        title: 'Herr', short: 'Xa' },
   { name: 'Yilmaz',       title: 'Frau', short: 'Yi' }
-];
 
 
+]
 
 const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
 const inputValue = ref('')
-const suggestion = ref('')
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const isRotating = ref(false)
+const suggestions = ref<any[]>([])
+const isRotated = ref(false)
 
 function normalize(str: string) {
   return str
@@ -198,7 +209,7 @@ function similarity(a: string, b: string) {
 
 const outputValue = computed(() => {
   const q = normalize(inputValue.value)
-  suggestion.value = ''
+  suggestions.value = []
 
   if (!q) return ''
 
@@ -206,78 +217,46 @@ const outputValue = computed(() => {
     const match = persons.find(p => normalize(p.short) === q)
     return match ? `${match.title} ${match.name}` : ''
   } else {
+    // exakter Treffer mit Anrede
     const match = persons.find(p => normalize(p.title + p.name) === q)
     if (match) return match.short
 
-    let best: { person: any; score: number } | null = null
+    // exakter Treffer nur Nachname
+    const matchesByName = persons.filter(p => normalize(p.name) === q)
+    if (matchesByName.length === 1) {
+      return matchesByName[0].short
+    }
+    if (matchesByName.length > 1) {
+      suggestions.value = matchesByName
+      return ''
+    }
+
+    // unscharfe Suche
+    let bestScore = 0
     persons.forEach(p => {
-      const score = similarity(q, normalize(p.title + p.name))
-      if (!best || score > best.score) {
-        best = { person: p, score }
+      const score = similarity(q, normalize(p.name))
+      if (score > 0.6) {
+        suggestions.value.push(p)
+        if (score > bestScore) bestScore = score
       }
     })
-    if (best && best.score > 0.5) {
-      suggestion.value = `${best.person.title} ${best.person.name}`
-    }
     return ''
   }
 })
 
-function applySuggestion() {
-  if (suggestion.value) {
-    inputValue.value = suggestion.value
-    suggestion.value = ''
+function applySuggestion(person: any) {
+  if (person) {
+    inputValue.value = `${person.title} ${person.name}`
+    suggestions.value = []
   }
 }
 
 function toggleMode() {
-  isRotating.value = true
-  setTimeout(() => (isRotating.value = false), 500)
-
+  isRotated.value = !isRotated.value
   mode.value = mode.value === 'shortToName' ? 'nameToShort' : 'shortToName'
   inputValue.value = ''
-  drawIcon()
+  suggestions.value = []
 }
-
-function drawIcon() {
-  const canvas = canvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
-  ctx.strokeStyle = '#fff'
-  ctx.lineWidth = 2
-  ctx.lineCap = 'round'
-
-  // Halbkreis oben mit Pfeil
-  ctx.beginPath()
-  ctx.arc(12, 12, 9, Math.PI * 1.2, Math.PI * 0.1, false)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.moveTo(20, 8)
-  ctx.lineTo(23, 6)
-  ctx.lineTo(22, 10)
-  ctx.stroke()
-
-  // Halbkreis unten mit Pfeil
-  ctx.beginPath()
-  ctx.arc(12, 12, 9, Math.PI * 1.2, Math.PI * 2.1, true)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.moveTo(4, 16)
-  ctx.lineTo(1, 18)
-  ctx.lineTo(3, 14)
-  ctx.stroke()
-}
-
-onMounted(() => {
-  drawIcon()
-})
-
-watch(mode, () => {
-  drawIcon()
-})
 </script>
 
 <style scoped>
@@ -285,7 +264,7 @@ watch(mode, () => {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  align-items: center; /* sorgt für vertikale Zentrierung */
+  align-items: center;
 }
 .col {
   flex: 1;
@@ -302,8 +281,8 @@ watch(mode, () => {
   color: #fff;
   border: none;
   border-radius: 50%;
-  width: 44px;   /* kleiner gemacht */
-  height: 44px;  /* kleiner gemacht */
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -312,14 +291,15 @@ watch(mode, () => {
   transition: background 0.3s;
 }
 .switch-btn:hover {
-  background: #ff6a00;
+  background: #33609e;
 }
-.switch-btn.rotating {
-  animation: spin 0.5s linear;
+.switch-icon {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.3s ease-in-out;
 }
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+.switch-btn.rotated .switch-icon {
+  transform: rotate(180deg);
 }
 .mode-label {
   margin-top: 6px;
@@ -330,9 +310,8 @@ watch(mode, () => {
 .input {
   width: 100%;
   padding: 10px;
-  border: 1px solid var(--border);
   border-radius: 6px;
-  background: #1f1f1f;
+  background: #2a2a2a;
   color: #fff;
 }
 .suggestion {
@@ -347,3 +326,8 @@ watch(mode, () => {
   margin-left: 4px;
 }
 </style>
+
+
+
+
+

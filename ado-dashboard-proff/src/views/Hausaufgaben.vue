@@ -3,7 +3,7 @@
     <div class="hw-header">
       <div>
         <h2>Dashboard</h2>
-        <div class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
+        <div style="color: #f1f1f1" class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
       </div>
 
       <div class="row header-actions">

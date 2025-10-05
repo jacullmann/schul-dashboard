@@ -1,2758 +1,318 @@
-server.js: // server.js
-           import 'dotenv/config';
-           import express from 'express';
-           import mongoose from 'mongoose';
-           import helmet from 'helmet';
-           import cors from 'cors';
-           import cookieParser from 'cookie-parser';
-           import morgan from 'morgan';
-           import rateLimit from 'express-rate-limit';
-           import { body, param, query, validationResult } from 'express-validator';
-           import jwt from 'jsonwebtoken';
-           import bcrypt from 'bcryptjs';
-           import crypto from 'crypto';
-           import dayjs from 'dayjs';
-           import { v2 as cloudinary } from 'cloudinary';
-           import sgClient from '@sendgrid/mail';
-
-           // Config
-           const app = express();
-           app.set('trust proxy', 1);
-           const PORT = process.env.PORT || 8090;
-           const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
-           const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
-
-           // SendGrid config
-           const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
-           const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
-
-           if (!SENDGRID_API_KEY) {
-               console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
-           } else {
-               sgClient.setApiKey(SENDGRID_API_KEY);
-               (async () => {
-                   try {
-                       // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
-                       await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
-                       console.log('SendGrid API erreichbar und konfiguriert.');
-                   } catch (err) {
-                       console.error('SendGrid API Test fehlgeschlagen:', err?.response?.body || err?.message || err);
-                   }
-               })();
-           }
-
-           // Security & utils
-           app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-           app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
-           app.use(morgan('combined'));
-           app.use(express.json({ limit: '2mb' }));
-           app.use(cookieParser());
-           app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
-
-           // Mongo
-           await mongoose.connect(process.env.MONGODB_URI);
-
-           // Cloudinary
-           cloudinary.config({
-               cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-               api_key: process.env.CLOUDINARY_API_KEY,
-               api_secret: process.env.CLOUDINARY_API_SECRET
-           });
-
-           // Models
-           const UserSchema = new mongoose.Schema({
-               email: { type: String, unique: true, required: true, lowercase: true, trim: true },
-               passwordHash: { type: String, required: true },
-               isAdmin: { type: Boolean, default: false },
-               emailVerified: { type: Boolean, default: false },
-               createdAt: { type: Date, default: Date.now },
-               lastLoginAt: { type: Date },
-               activity: [{
-                   at: { type: Date, default: Date.now },
-                   type: { type: String },
-                   meta: { type: mongoose.Schema.Types.Mixed }
-               }]
-           }, { timestamps: true });
-           const User = mongoose.model('HwUser', UserSchema);
-
-           const VerificationSchema = new mongoose.Schema({
-               email: { type: String, index: true },
-               token: { type: String, unique: true },
-               expiresAt: { type: Date }
-           }, { timestamps: true });
-           const Verification = mongoose.model('HwVerification', VerificationSchema);
-
-           const SubjectSchema = new mongoose.Schema({
-               name: { type: String, unique: true, required: true }
-           }, { timestamps: true });
-           const Subject = mongoose.model('HwSubject', SubjectSchema);
-
-           const AnnouncementSchema = new mongoose.Schema({
-               title: String,
-               content: String,
-               color: { type: String, default: 'warn' },
-               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-           }, { timestamps: true });
-           const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
-
-           const ItemSchema = new mongoose.Schema({
-               type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
-               title: { type: String, required: true },
-               subject: { type: String, required: true },
-               description: { type: String },
-               images: [{
-                   url: String,
-                   thumbUrl: String,
-                   publicId: String,
-                   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-               }],
-               dueDate: { type: Date, index: true },
-               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
-           }, { timestamps: true });
-           const Item = mongoose.model('HwItem', ItemSchema);
-
-           // New model: KeepChecked
-           // Purpose: record which users have "checked" (collapsed/marked) which items
-           // Each document represents a single check action (itemId + userId + timestamp).
-           // This avoids modifying the original Item documents and keeps a separate, append-only-like list.
-           const KeepCheckedSchema = new mongoose.Schema({
-               itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
-               userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
-               checkedAt: { type: Date, default: Date.now }
-           }, { timestamps: false });
-
-           KeepCheckedSchema.index({ itemId: 1, userId: 1 }, { unique: true });
-           const KeepChecked = mongoose.model('HwKeepChecked', KeepCheckedSchema);
-
-           // Default Subjects seed
-           const DEFAULT_SUBJECTS = [
-               'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
-               'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
-               'Enrichment', 'WPU', 'Theater', 'Latein'
-           ];
-           async function ensureSubjects() {
-               for (const s of DEFAULT_SUBJECTS) {
-                   await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
-               }
-           }
-           await ensureSubjects();
-
-           // Helpers
-           function sendJSONError(res, status, msg, errors) {
-               return res.status(status).json({ error: msg, errors });
-           }
-           function requireAuth(req, res, next) {
-               const hdr = req.headers.authorization || '';
-               const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-               if (!token) return sendJSONError(res, 401, 'Unauthorized');
-               try {
-                   const payload = jwt.verify(token, JWT_SECRET);
-                   req.user = payload;
-                   next();
-               } catch {
-                   return sendJSONError(res, 401, 'Unauthorized');
-               }
-           }
-           async function requireAdmin(req, res, next) {
-               requireAuth(req, res, async () => {
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                   next();
-               });
-           }
-           function validate(req, res, next) {
-               const errors = validationResult(req);
-               if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
-               next();
-           }
-           function timeLeftColor(dueDate) {
-               const now = dayjs();
-               const due = dayjs(dueDate);
-               const diffDays = due.diff(now, 'day', true);
-               if (diffDays < 0) return 'expired';
-               if (diffDays < 3) return 'danger';
-               if (diffDays < 7) return 'warn';
-               return 'ok';
-           }
-           function buildThumbUrl(secureUrl) {
-               try {
-                   const u = new URL(secureUrl);
-                   const parts = u.pathname.split('/');
-                   const uploadIdx = parts.findIndex(p => p === 'upload');
-                   if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                       u.pathname = parts.join('/');
-                   }
-                   return u.toString();
-               } catch {
-                   return secureUrl;
-               }
-           }
-           function withThumb(img) {
-               return {
-                   url: img.url,
-                   thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
-                   publicId: img.publicId,
-                   createdBy: img.createdBy
-               };
-           }
-           async function logActivity(userId, type, meta = {}) {
-               await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
-           }
-
-           // SendGrid helper
-           async function sendVerificationEmail(to, verifyUrl) {
-               if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
-               const msg = {
-                   to,
-                   from: SENDGRID_FROM,
-                   subject: 'Bitte E-Mail bestätigen',
-                   html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-               };
-               return sgClient.send(msg);
-           }
-
-           // Auth routes
-           app.post('/api/auth/register',
-               body('email').isEmail(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   const { email, password } = req.body;
-                   const exists = await User.findOne({ email: email.toLowerCase() });
-                   if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
-                   const passwordHash = await bcrypt.hash(password, 12);
-                   const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
-                   const token = crypto.randomBytes(32).toString('hex');
-                   const expiresAt = dayjs().add(2, 'day').toDate();
-                   await Verification.create({ email: user.email, token, expiresAt });
-                   const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
-                   try {
-                       await sendVerificationEmail(user.email, verifyUrl);
-                       res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
-                   } catch (mailErr) {
-                       console.error('Failed to send verification email (SendGrid):', mailErr);
-                       res.status(201).json({
-                           ok: true,
-                           message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
-                       });
-                   }
-               }
-           );
-
-           app.get('/api/auth/verify',
-               query('token').isString().isLength({ min: 10 }),
-               validate,
-               async (req, res) => {
-                   const ver = await Verification.findOne({ token: req.query.token });
-                   if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
-                   if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
-                   const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
-                   if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
-                   await Verification.deleteOne({ _id: ver._id });
-                   res.json({ ok: true });
-               }
-           );
-
-           app.post('/api/auth/login',
-               body('email').isEmail(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   const { email, password } = req.body;
-                   const user = await User.findOne({ email: email.toLowerCase() });
-                   if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                   const ok = await bcrypt.compare(password, user.passwordHash);
-                   if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                   if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
-                   const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-                   await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-                   res.json({ token });
-               }
-           );
-
-           app.get('/api/auth/me', requireAuth, async (req, res) => {
-               const user = await User.findById(req.user.sub).lean();
-               res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
-           });
-
-           // Admin routes
-           app.get('/api/admin/users', requireAdmin, async (req, res) => {
-               const users = await User.find({}).sort({ createdAt: -1 }).lean();
-               res.json(users.map(u => ({
-                   id: u._id, email: u.email, isAdmin: u.isAdmin,
-                   createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
-                   activity: u.activity?.slice(-20) || []
-               })));
-           });
-           app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-               await User.deleteOne({ _id: req.params.id });
-               await Item.deleteMany({ createdBy: req.params.id });
-               res.json({ ok: true });
-           });
-           app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
-               await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
-               res.json({ ok: true });
-           });
-
-           // Subjects
-           app.get('/api/subjects', async (req, res) => {
-               const list = await Subject.find({}).sort({ name: 1 }).lean();
-               res.json(list.map(s => s.name));
-           });
-           app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
-               await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
-               res.status(201).json({ ok: true });
-           });
-           app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
-               await Subject.deleteOne({ name: req.params.name });
-               res.json({ ok: true });
-           });
-
-           // Announcements
-           app.get('/api/announcements', async (req, res) => {
-               const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
-               res.json(list);
-           });
-           app.post('/api/announcements', requireAuth,
-               body('title').isString().isLength({ min: 2 }),
-               body('content').isString().isLength({ min: 2 }),
-               body('color').optional().isIn(['info', 'warn', 'danger']),
-               validate,
-               async (req, res) => {
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                   const doc = await Announcement.create({
-                       title: req.body.title,
-                       content: req.body.content,
-                       color: req.body.color || 'warn',
-                       createdBy: req.user.sub
-                   });
-                   await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
-                   res.status(201).json(doc);
-               }
-           );
-           app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
-               const ann = await Announcement.findById(req.params.id);
-               if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-               await ann.deleteOne();
-               await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
-               res.json({ ok: true });
-           });
-
-           // Cloudinary signed upload
-           app.post('/api/uploads/sign', requireAuth, async (req, res) => {
-               const timestamp = Math.floor(Date.now() / 1000);
-               const signature = cloudinary.utils.api_sign_request(
-                   { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
-                   process.env.CLOUDINARY_API_SECRET
-               );
-               res.json({
-                   cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-                   apiKey: process.env.CLOUDINARY_API_KEY,
-                   timestamp,
-                   signature,
-                   folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
-               });
-           });
-
-           // Add image to an item
-           app.post('/api/items/:id/images',
-               requireAuth,
-               param('id').isMongoId(),
-               body('image').isObject(),
-               body('image.url').isString(),
-               body('image.publicId').isString(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.id);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                   const newImage = {
-                       url: req.body.image.url,
-                       thumbUrl: buildThumbUrl(req.body.image.url),
-                       publicId: req.body.image.publicId,
-                       createdBy: req.user.sub
-                   };
-                   item.images.push(newImage);
-                   await item.save();
-                   await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
-                   res.status(201).json({ ok: true, image: withThumb(newImage) });
-               }
-           );
-
-           // Delete an image from an item
-           app.delete('/api/items/:itemId/images/:publicId',
-               requireAuth,
-               param('itemId').isMongoId(),
-               param('publicId').isString(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.itemId);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                   let publicId;
-                   try {
-                       publicId = decodeURIComponent(req.params.publicId);
-                   } catch {
-                       publicId = req.params.publicId;
-                   }
-
-                   const imageIndex = item.images.findIndex(img => img.publicId === publicId);
-                   if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-
-                   const image = item.images[imageIndex];
-                   const user = await User.findById(req.user.sub);
-
-                   if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
-                       return sendJSONError(res, 403, 'Du kanst keine fremden Bilder löschen.');
-                   }
-
-                   try {
-                       await cloudinary.uploader.destroy(image.publicId);
-                   } catch (err) {
-                       console.error('Cloudinary destroy error', err);
-                   }
-
-                   item.images.splice(imageIndex, 1);
-                   await item.save();
-
-                   await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
-                   res.json({ ok: true });
-               }
-           );
-
-           // Items list (not showing expired)
-           app.get('/api/items',
-               query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               validate,
-               async (req, res) => {
-                   const now = new Date();
-                   const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-                       .sort({ dueDate: 1 })
-                       .limit(500)
-                       .lean();
-
-                   const normalized = list.map(i => {
-                       const imgs = (i.images || []).map(img => withThumb(img));
-                       return {
-                           id: i._id,
-                           type: i.type,
-                           title: i.title,
-                           subject: i.subject,
-                           description: i.description,
-                           images: imgs,
-                           dueDate: i.dueDate,
-                           createdBy: i.createdBy,
-                           timeColor: timeLeftColor(i.dueDate)
-                       };
-                   });
-
-                   res.json(normalized);
-               }
-           );
-
-           // Create item
-           app.post('/api/items',
-               requireAuth,
-               body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               body('title').isString().isLength({ min: 2, max: 200 }),
-               body('subject').isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
-               body('dueDate').isISO8601().toDate(),
-               validate,
-               async (req, res) => {
-                   const now = dayjs();
-                   if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-                   const images = (req.body.images || []).map(img => ({
-                       url: img.url,
-                       thumbUrl: buildThumbUrl(img.url),
-                       publicId: img.publicId,
-                       createdBy: req.user.sub
-                   }));
-                   const doc = await Item.create({
-                       type: req.body.type,
-                       title: req.body.title,
-                       subject: req.body.subject,
-                       description: req.body.description || '',
-                       images,
-                       dueDate: req.body.dueDate,
-                       createdBy: req.user.sub
-                   });
-                   await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
-                   res.status(201).json({ ok: true, id: doc._id });
-               }
-           );
-
-           // Update item (own or admin)
-           app.patch('/api/items/:id',
-               requireAuth,
-               param('id').isMongoId(),
-               body('title').optional().isString().isLength({ min: 2, max: 200 }),
-               body('subject').optional().isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
-               body('dueDate').optional().isISO8601().toDate(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.id);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-                   if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-
-                   const update = {};
-                   for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
-                       if (req.body[k] !== undefined) update[k] = req.body[k];
-                   }
-
-                   if (update.images) {
-                       update.images = update.images.map(img => ({
-                           url: img.url,
-                           thumbUrl: buildThumbUrl(img.url),
-                           publicId: img.publicId,
-                           createdBy: img.createdBy || item.createdBy
-                       }));
-                   }
-
-                   await Item.findByIdAndUpdate(item._id, { $set: update });
-                   await logActivity(req.user.sub, 'item:update', { id: item._id });
-                   res.json({ ok: true });
-               }
-           );
-
-           // Delete item (own or admin)
-           app.delete('/api/items/:id', requireAuth, async (req, res) => {
-               const item = await Item.findById(req.params.id);
-               if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-
-               if (item.images && item.images.length > 0) {
-                   const publicIds = item.images.map(img => img.publicId);
-                   try {
-                       await cloudinary.api.delete_resources(publicIds);
-                   } catch (err) {
-                       console.error('Cloudinary bulk delete error', err);
-                   }
-               }
-               await item.deleteOne();
-               await logActivity(req.user.sub, 'item:delete', { id: item._id });
-               res.json({ ok: true });
-           });
-
-           // New endpoints for "checked" state handling
-
-           // Get checked items for current user (returns array of itemId strings)
-           app.get('/api/checks/me', requireAuth, async (req, res) => {
-               try {
-                   const docs = await KeepChecked.find({ userId: req.user.sub }).select('itemId -_id').lean();
-                   const itemIds = docs.map(d => d.itemId.toString());
-                   res.json({ itemIds });
-               } catch (err) {
-                   console.error('checks/me error', err);
-                   sendJSONError(res, 500, 'Server error');
-               }
-           });
-
-           // Check (mark) an item for current user
-           app.post('/api/items/:id/check',
-               requireAuth,
-               param('id').isMongoId(),
-               validate,
-               async (req, res) => {
-                   try {
-                       const item = await Item.findById(req.params.id);
-                       if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                       // upsert single document (unique compound index prevents duplicates)
-                       await KeepChecked.updateOne(
-                           { itemId: item._id, userId: req.user.sub },
-                           { $setOnInsert: { checkedAt: new Date() } },
-                           { upsert: true }
-                       );
-                       await logActivity(req.user.sub, 'item:check', { itemId: item._id });
-                       res.json({ ok: true });
-                   } catch (err) {
-                       console.error('check post error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-           // Uncheck (remove) an item for current user
-           app.delete('/api/items/:id/check',
-               requireAuth,
-               param('id').isMongoId(),
-               validate,
-               async (req, res) => {
-                   try {
-                       await KeepChecked.deleteOne({ itemId: req.params.id, userId: req.user.sub });
-                       await logActivity(req.user.sub, 'item:uncheck', { itemId: req.params.id });
-                       res.json({ ok: true });
-                   } catch (err) {
-                       console.error('check delete error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-           // Delete own account (admins not allowed to delete their own accounts)
-           app.delete('/api/auth/me', requireAuth, async (req, res) => {
-               try {
-                   const user = await User.findById(req.user.sub);
-                   if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                   if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
-
-                   // Only delete the user document itself. Do not delete items, images or other records.
-                   await User.deleteOne({ _id: user._id });
-
-                   await logActivity(user._id, 'account:delete', { by: user._id });
-
-                   res.json({ ok: true });
-               } catch (err) {
-                   console.error('DELETE /api/auth/me error', err);
-                   sendJSONError(res, 500, 'Server error');
-               }
-           });
-
-
-
-
-
-           // Health
-           app.get('/health', (req, res) => res.json({ ok: true }));
-
-           app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
-
-itemform.vue: <template>
-                <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
-                  <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
-                    <div class="modal-header">
-                      <h3 class="modal-title">
-                        {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
-                      </h3>
-                      <button class="btn ghost" @click="$emit('close')">Schließen</button>
-                    </div>
-
-                    <div class="row">
-                      <div class="col">
-                        <label class="label">Titel</label>
-                        <input class="input" v-model="title" />
-                      </div>
-                      <div class="col">
-                        <label class="label">Fach</label>
-                        <select class="input" v-model="subjectSel">
-                          <option disabled value="">Bitte wählen</option>
-                          <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                          <option value="__OTHER__">Anderes...</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div v-if="subjectSel==='__OTHER__'" class="section">
-                      <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
-                    </div>
-
-                    <div class="section">
-                      <label class="label">Beschreibung (optional)</label>
-                      <textarea class="input" rows="4" v-model="description"></textarea>
-                    </div>
-
-                    <div class="row section">
-                      <div class="col">
-                        <label class="label">Abgabedatum</label>
-                        <input class="input" type="datetime-local" v-model="dueLocal" />
-                      </div>
-                    </div>
-
-                    <div class="section">
-                      <div class="label bold">Bilder</div>
-                      <div class="row images">
-                        <div
-                            v-for="img in images"
-                            :key="img.publicId"
-                            class="image-item"
-                        >
-                          <a :href="img.url" target="_blank" rel="noopener">
-                            <img
-                                :src="img.thumbUrl || makeThumb(img.url)"
-                                class="thumb"
-                                loading="lazy"
-                                decoding="async"
-                                alt="Vorschau"
-                            />
-                          </a>
-                          <div class="image-actions">
-                            <button class="btn danger image-remove" @click="removeImg(img)">X</button>
-                          </div>
-                        </div>
-
-                        <button class="btn ghost" @click="uploadImage" :disabled="uploading">
-                          <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Bild hochladen
-                        </button>
-                      </div>
-                      <div v-if="uploading" class="small">Lade Bild hoch...</div>
-                      <div v-if="uploadError" class="small error">{{ uploadError }}</div>
-                    </div>
-
-                    <div class="row actions">
-                      <button class="btn" @click="submit" :disabled="submitting">
-                        <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        {{ initial ? 'Speichern' : 'Anlegen' }}
-                      </button>
-                      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <script setup lang="ts">
-              import { onMounted, onBeforeUnmount, ref } from 'vue';
-              import hw from '../../hwApi';
-              import type { HwItem } from './Hausaufgaben.vue';
-
-              const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
-              const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
-
-              const labelFor = (type: string) => {
-                const map = {
-                  'HAUSAUFGABE': 'Hausaufgabe',
-                  'DALTON': 'Dalton-Auftrag',
-                  'PRUEFUNG': 'Klassenarbeit',
-                } as const;
-                return map[type];
-              };
-
-              const title = ref(props.initial?.title || '');
-              const subjectSel = ref(props.initial?.subject || '');
-              const subjectOther = ref('');
-              const description = ref(props.initial?.description || '');
-              const images = ref(props.initial?.images || []);
-              const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
-
-              const submitting = ref(false);
-              const message = ref('');
-              const isError = ref(false);
-              const uploading = ref(false);
-              const uploadError = ref('');
-
-              function makeThumb(url: string) {
-                try {
-                  const u = new URL(url);
-                  const parts = u.pathname.split('/');
-                  const uploadIdx = parts.findIndex(p => p === 'upload');
-                  if (uploadIdx !== -1) {
-                    parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                    u.pathname = parts.join('/');
-                  }
-                  return u.toString();
-                } catch {
-                  return url;
-                }
-              }
-
-              async function uploadImage() {
-                uploading.value = true;
-                uploadError.value = '';
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = async () => {
-                  const file = input.files?.[0];
-                  if (!file) {
-                    uploading.value = false;
-                    return;
-                  }
-
-                  try {
-                    const { data: sign } = await hw.post('/api/uploads/sign');
-                    const form = new FormData();
-                    form.set('file', file);
-                    form.set('api_key', sign.apiKey);
-                    form.set('timestamp', String(sign.timestamp));
-                    form.set('signature', sign.signature);
-                    form.set('folder', sign.folder);
-                    const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                    const json = await res.json();
-                    if (json.secure_url && json.public_id) {
-                      images.value.push({
-                        url: json.secure_url,
-                        thumbUrl: makeThumb(json.secure_url),
-                        publicId: json.public_id,
-                        createdBy: ''
-                      });
-                      uploadError.value = '';
-                    } else {
-                      uploadError.value = 'Upload fehlgeschlagen';
-                    }
-                  } catch (e: any) {
-                    uploadError.value = 'Upload fehlgeschlagen';
-                  } finally {
-                    uploading.value = false;
-                  }
-                };
-                input.click();
-              }
-
-              async function removeImg(img: { url: string; publicId: string }) {
-                if (props.initial?.id) {
-                  try {
-                    // encode publicId so slashes are safe in the URL
-                    await hw.delete(`/api/items/${props.initial.id}/images/${encodeURIComponent(img.publicId)}`);
-
-                    // remove locally
-                    images.value = images.value.filter(i => i.publicId !== img.publicId);
-
-                    console.log('Bild erfolgreich gelöscht:', img.publicId);
-                    uploadError.value = 'Bild erfolgreich gelöscht.';
-                    setTimeout(() => uploadError.value = '', 3000);
-
-                  } catch (e: any) {
-                    console.error('Fehler beim Löschen des Bildes:', e);
-                    uploadError.value = 'Fehler beim Löschen des Bildes.';
-                  }
-                } else {
-                  images.value = images.value.filter(i => i.publicId !== img.publicId);
-                }
-              }
-
-              async function submit() {
-                submitting.value = true;
-                message.value = '';
-                isError.value = false;
-                try {
-                  const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
-                  const payload: any = {
-                    type: props.type,
-                    title: title.value.trim(),
-                    subject,
-                    description: description.value.trim(),
-                    images: images.value,
-                    dueDate: new Date(dueLocal.value).toISOString()
-                  };
-                  if (props.initial) {
-                    await hw.patch(`/api/items/${props.initial.id}`, payload);
-                    message.value = 'Eintrag erfolgreich aktualisiert.';
-                  } else {
-                    await hw.post('/api/items', payload);
-                    message.value = 'Eintrag erfolgreich angelegt.';
-                  }
-                  isError.value = false;
-                  emit('success');
-                } catch (e: any) {
-                  message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                  isError.value = true;
-                } finally {
-                  submitting.value = false;
-                }
-              }
-
-              function onKeyDown(e: KeyboardEvent) {
-                if (e.key === 'Escape') emit('close');
-              }
-              onMounted(() => window.addEventListener('keydown', onKeyDown));
-              onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
-              </script>
-
-              <style scoped>
-
-              /* Overlay: dimmt die Seite, aber NICHT verschwommen */
-              .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.4);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 100;
-                padding: 24px;
-              }
-
-
-              .glass-modal {
-                width: 100%;
-                max-width: 720px;
-                border-radius: 14px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                padding: 22px;
-                color: #1a1a1a;
-              }
-
-
-              .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 12px;
-              }
-              .modal-title {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 600;
-                color: rgba(244, 244, 244);
-              }
-
-              /* Layout */
-              .row {
-                display: flex;
-                gap: 12px;
-                flex-wrap: wrap;
-                align-items: center;
-              }
-              .col {
-                flex: 1;
-                min-width: 240px;
-              }
-              .section {
-                margin-top: 10px;
-              }
-
-              /* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
-              .label {
-                display: block;
-                font-size: 13px;
-                color: rgba(244, 244, 244);
-                margin-bottom: 6px;
-              }
-              .label.bold {
-                font-weight: 600;
-                color: rgba(234, 234, 234);
-              }
-
-              .input {
-                width: 100%;
-                padding: 10px 12px;
-                border-radius: 10px;
-                border: 1px solid rgba(128, 128, 128, 0.35);
-                background: rgba(26, 26, 26, 0.6);
-                color: var(--text);
-                outline: none;
-                transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-              }
-              .input:focus {
-                background: rgba(26, 26, 26, 0.7);
-              }
-
-              /* Bilderbereich */
-              .images {
-                gap: 8px;
-                margin-top: 6px;
-              }
-              .image-item {
-                position: relative;
-                width: 120px;
-                height: 120px;
-                border: 1px solid rgba(128, 128, 128, 0.35);
-                border-radius: 10px;
-                overflow: hidden;
-                background: rgba(26, 26, 26, 0.5);
-                backdrop-filter: blur(8px) brightness(95%);
-                -webkit-backdrop-filter: blur(8px) brightness(95%);
-              }
-              .thumb {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-              }
-              .image-actions {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-              }
-              .image-remove {
-                padding: 4px 8px;
-                font-size: 12px;
-              }
-
-              /* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
-              .btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-              }
-              .btn.ghost {
-                backdrop-filter: none;
-              }
-
-              /* Spinner */
-              .spinner {
-                animation: spin 1s linear infinite;
-                height: 20px;
-                width: 20px;
-              }
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-
-              /* Aktionen unten */
-              .actions {
-                margin-top: 16px;
-                align-items: center;
-              }
-
-              /* Meldungen */
-              .small {
-                font-size: 12px;
-                color: var(--muted);
-              }
-              .error {
-                color: var(--danger);
-              }
-              .msg-ok {
-                color: var(--primary);
-              }
-              .msg-error {
-                color: var(--danger);
-              }
-
-              /* Fallback, falls backdrop-filter nicht unterstützt wird */
-              @supports not ((backdrop-filter: blur(10px))) {
-                .glass-modal {
-                  background: rgba(26, 26, 26, 0.75);
-                }
-              }
-              </style>
-
-
-Imageform.vue: <template>
-                 <div class="overlay">
-                   <div class="modal card">
-                     <div class="modal-head">
-                       <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-                       <button style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
-                     </div>
-
-                     <div class="section">
-                       <div style="color: white;" class="section-title">Bilder</div>
-
-                       <div class="images-row row">
-                         <div
-                             v-for="img in currentImages"
-                             :key="img.publicId"
-                             class="img-thumb"
-                         >
-                           <a :href="img.url" target="_blank" rel="noopener" class="img-link">
-                             <img
-                                 :src="img.thumbUrl || makeThumb(img.url)"
-                                 alt="Vorschau"
-                                 class="img"
-                                 loading="lazy"
-                                 decoding="async"
-                             />
-                           </a>
-
-                           <div class="thumb-actions">
-                             <button class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-
-                     <div class="controls row" style="margin-top:16px; align-items:center;">
-                       <button class="btn" @click="uploadImg" :disabled="uploading">
-                         <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
-                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                         </svg>
-                         Bild hochladen
-                       </button>
-                       <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'" style="margin-left:12px;">{{ message }}</div>
-                     </div>
-                   </div>
-
-                   <div v-if="showConfirmRemovalModal" class="overlay confirm">
-                     <div class="modal card confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
-                       <h4>Bild löschen?</h4>
-                       <p>Möchtest du dieses Bild wirklich löschen?</p>
-                       <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-                         <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
-                         <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </template>
-
-               <script setup lang="ts">
-               import { ref, watchEffect } from 'vue';
-               import hw from '../../hwApi';
-
-               const props = defineProps({
-                 item: {
-                   type: Object as () => {
-                     id: string,
-                     title: string,
-                     images: Array<{ url: string, thumbUrl?: string, publicId: string }>
-                   },
-                   required: true
-                 },
-               });
-               const emit = defineEmits(['close', 'success']);
-
-               const uploading = ref(false);
-               const message = ref('');
-               const isError = ref(false);
-               const currentImages = ref(props.item.images || []);
-               const showConfirmRemovalModal = ref(false);
-               const publicIdToRemove = ref('');
-
-               watchEffect(() => {
-                 currentImages.value = props.item.images || [];
-               });
-
-               function confirmRemoval(publicId: string) {
-                 publicIdToRemove.value = publicId;
-                 showConfirmRemovalModal.value = true;
-               }
-
-               function cancelRemoval() {
-                 showConfirmRemovalModal.value = false;
-                 publicIdToRemove.value = '';
-               }
-
-               function makeThumb(url: string) {
-                 try {
-                   const u = new URL(url);
-                   const parts = u.pathname.split('/');
-                   const uploadIdx = parts.findIndex(p => p === 'upload');
-                   if (uploadIdx !== -1) {
-                     parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                     u.pathname = parts.join('/');
-                   }
-                   return u.toString();
-                 } catch {
-                   return url;
-                 }
-               }
-
-               async function uploadImg() {
-                 const input = document.createElement('input');
-                 input.type = 'file';
-                 input.accept = 'image/*';
-                 input.onchange = async () => {
-                   const file = input.files?.[0];
-                   if (!file) return;
-
-                   uploading.value = true;
-                   message.value = '';
-                   isError.value = false;
-
-                   try {
-                     const { data: sign } = await hw.post('/api/uploads/sign');
-                     const form = new FormData();
-                     form.append('file', file);
-                     form.append('api_key', sign.apiKey);
-                     form.append('timestamp', String(sign.timestamp));
-                     form.append('signature', sign.signature);
-                     form.set('folder', sign.folder);
-
-                     const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                     const json = await res.json();
-
-                     if (json.secure_url && json.public_id) {
-                       const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
-                         image: { url: json.secure_url, publicId: json.public_id }
-                       });
-                       currentImages.value = [...currentImages.value, data.image];
-                       message.value = 'Bild erfolgreich hochgeladen.';
-                       isError.value = false;
-                       emit('success');
-                     } else {
-                       message.value = 'Bild-Upload fehlgeschlagen.';
-                       isError.value = true;
-                     }
-                   } catch (e: any) {
-                     message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
-                     isError.value = true;
-                     console.error('uploadImg error', e);
-                   } finally {
-                     uploading.value = false;
-                   }
-                 };
-                 input.click();
-               }
-
-               async function removeImg(publicId: string) {
-                 showConfirmRemovalModal.value = false;
-                 message.value = '';
-                 isError.value = false;
-
-                 try {
-                   const encoded = encodeURIComponent(publicId);
-                   await hw.delete(`/api/items/${props.item.id}/images/${encoded}`);
-                   currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
-                   message.value = 'Bild erfolgreich gelöscht.';
-                   emit('success');
-                 } catch (e: any) {
-                   console.error('removeImg error', e);
-                   message.value = e?.response?.data?.error || e?.message || 'Fehler beim Löschen.';
-                   isError.value = true;
-                 }
-               }
-               </script>
-
-               <style scoped>
-               /* Overlay & modal positioning (keeps original layout) */
-               .overlay {
-                 position: fixed;
-                 inset: 0;
-                 display: flex;
-                 align-items: center;
-                 justify-content: center;
-                 z-index: 100;
-                 background: rgba(0,0,0,0.5);
-               }
-
-               /* nested overlay for confirmation keeps higher z-index */
-               .overlay.confirm { z-index: 200; }
-
-               /* Modal card styling (keeps visual style local) */
-               .modal {
-                 width: 100%;
-                 max-width: 640px;
-                 padding: 20px;
-                 border-radius: 14px;
-                 border: 1px solid rgba(255, 255, 255, 0.2);
-                 background: rgba(255, 255, 255, 0.15);
-                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                 color: white;
-               }
-
-               /* Confirm modal variant */
-               .confirm-card {
-                 max-width: 420px;
-                 text-align: center;
-               }
-
-               /* Header */
-               .modal-head {
-                 display: flex;
-                 justify-content: space-between;
-                 align-items: center;
-                 gap: 12px;
-               }
-               .modal-head h3 { margin: 0; font-size: 1.05rem; }
-
-               /* Section */
-               .section { margin-top: 16px; }
-               .section-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
-
-               /* Images grid row */
-               .images-row {
-                 gap: 8px;
-                 display: flex;
-                 flex-wrap: wrap;
-                 align-items: flex-start;
-               }
-
-               /* Thumbnail wrapper: fixed square using aspect-ratio */
-               .img-thumb {
-                 width: 120px;
-                 aspect-ratio: 1 / 1;
-                 border-radius: 8px;
-                 overflow: hidden;
-                 position: relative;
-                 border: 1px solid var(--border);
-                 background: rgba(0,0,0,0.06);
-                 display: inline-flex;
-                 align-items: center;
-                 justify-content: center;
-                 flex: 0 0 120px;
-               }
-
-               /* link fills wrapper */
-               .img-link { display: block; width: 100%; height: 100%; }
-
-               /* image fills and is cropped */
-               .img {
-                 width: 100%;
-                 height: 100%;
-                 object-fit: cover;
-                 object-position: center;
-                 display: block;
-               }
-
-               /* action button in corner */
-               .thumb-actions {
-                 position: absolute;
-                 top: 6px;
-                 right: 6px;
-                 z-index: 4;
-               }
-
-               /* small button variant */
-               .btn.small { padding: 4px 8px; font-size: 12px; }
-
-               /* controls and message */
-               .controls { display: flex; align-items: center; gap: 12px; }
-
-               /* spinner */
-               .spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
-               @keyframes spin { to { transform: rotate(360deg); } }
-
-               /* message states */
-               .small { font-size: 12px; color: var(--muted); }
-               .msg-ok { color: var(--primary); font-weight: 600; }
-               .msg-error { color: var(--danger); font-weight: 600; }
-
-               /* responsive */
-               @media (max-width: 480px) {
-                 .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
-                 .modal { padding: 16px; }
-               }
-               </style>
-
-AuthModal.vue: <template>
-                 <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                   <div class="card styl" style="width:100%; max-width:420px;">
-
-                     <!-- Header -->
-                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                       <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-                       <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
-                     </div>
-
-                     <!-- Tabs -->
-                     <div class="row" style="margin-top:12px;">
-                       <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
-                       <button class="btn"  :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
-                     </div>
-
-                     <!-- Inputs -->
-                     <div style="margin-top:12px;">
-                       <input class="input" v-model="email" placeholder="E-Mail" />
-                     </div>
-                     <div style="margin-top:8px;">
-                       <input class="input" type="password" v-model="password" placeholder="Passwort (min. 8 Zeichen)" />
-                     </div>
-
-                     <!-- Datenschutzerklärung Checkbox -->
-                     <div v-if="mode==='register'" class="checkbox-row">
-                       <label class="checkbox-container">
-                         <input type="checkbox" v-model="acceptedPrivacy" />
-                         <span class="checkmark"></span>
-                         <span style="color:white; font-size:14px;">
-                           Ich stimme der <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
-                         </span>
-                       </label>
-                     </div>
-
-                     <!-- Submit -->
-                     <div class="row" style="margin-top:12px; align-items:center;">
-                       <button class="btn" @click="submit" :disabled="submitting || (mode==='register' && !acceptedPrivacy)">
-                         <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                         </svg>
-                         {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
-                       </button>
-                       <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                     </div>
-                   </div>
-                 </div>
-               </template>
-
-               <script setup lang="ts">
-               import { ref } from 'vue';
-               import hw from '../../hwApi';
-
-               const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
-
-               const mode = ref<'login' | 'register'>('login');
-               const email = ref('');
-               const password = ref('');
-               const submitting = ref(false);
-               const message = ref('');
-               const isError = ref(false);
-               const acceptedPrivacy = ref(false);
-
-               async function submit() {
-                 submitting.value = true;
-                 message.value = '';
-                 isError.value = false;
-                 try {
-                   if (mode.value === 'register') {
-                     if (!acceptedPrivacy.value) {
-                       message.value = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
-                       isError.value = true;
-                       return;
-                     }
-                     await hw.post('/api/auth/register', { email: email.value, password: password.value });
-                     message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
-                     isError.value = false;
-                   } else {
-                     const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
-                     emit('logged-in', data.token);
-                   }
-                 } catch (e: any) {
-                   message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                   isError.value = true;
-                 } finally {
-                   submitting.value = false;
-                 }
-               }
-               </script>
-
-               <style scoped>
-               .styl {
-                 border-radius: 14px;
-                 border: 1px solid rgba(255, 255, 255, 0.2);
-                 background: rgba(255, 255, 255, 0.15);
-                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-               }
-
-               /* --- Button Styles --- */
-               .btn {
-                 background: transparent;
-                 color: white;
-                 border: 1px solid white;
-                 padding: 6px 12px;
-                 border-radius: 6px;
-                 cursor: pointer;
-                 transition: all 0.2s ease;
-               }
-
-               /* Aktiver Button (ohne .ghost) */
-               .btn:not(.ghost) {
-                 background: white;
-                 color: #333;
-               }
-
-               /* Hover-Effekt für inaktive Buttons */
-               .btn.ghost:hover {
-                 background: rgba(255, 255, 255, 0.2);
-                 color: white;
-               }
-
-               /* Hover-Effekt für aktive Buttons */
-               .btn:not(.ghost):hover {
-                 background: #f0f0f0; /* leichtes Grau */
-                 color: #111;
-               }
-
-               /* --- Checkbox Styles --- */
-               .checkbox-row {
-                 margin-top: 12px;
-                 display: flex;
-                 align-items: center;
-               }
-
-               .checkbox-container {
-                 display: flex;
-                 align-items: center;
-                 cursor: pointer;
-                 user-select: none;
-               }
-
-               .checkbox-container input {
-                 display: none;
-               }
-
-               .checkmark {
-                 height: 18px;
-                 width: 18px;
-                 border: 2px solid white;
-                 border-radius: 4px;
-                 margin-right: 8px;
-                 position: relative;
-               }
-
-               .checkbox-container input:checked ~ .checkmark {
-                 background-color: #3f93f8;
-                 border-color: #3f93f8;
-               }
-
-               .checkmark::after {
-                 content: "";
-                 position: absolute;
-                 display: none;
-               }
-
-               .checkbox-container input:checked ~ .checkmark::after {
-                 display: block;
-                 left: 4px;
-                 top: 0px;
-                 width: 5px;
-                 height: 10px;
-                 border: solid white;
-                 border-width: 0 2px 2px 0;
-                 transform: rotate(45deg);
-               }
-               </style>
-
-
-announcementform.vue: <template>
-                        <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                          <div class="card" style="width:100%; max-width:520px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                              <h3 style="margin:0;">Neue Ankündigung</h3>
-                              <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
-                            </div>
-                            <div style="margin-top:8px;">
-                              <input class="input" v-model="title" placeholder="Titel" />
-                            </div>
-                            <div style="margin-top:8px;">
-                              <textarea class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
-                            </div>
-                            <div style="margin-top:8px;">
-                              <select class="input" v-model="color">
-                                <option value="info">Info</option>
-                                <option value="warn">Wichtig</option>
-                                <option value="danger">Dringend</option>
-                              </select>
-                            </div>
-                            <div class="row" style="margin-top:12px; align-items:center;">
-                              <button class="btn" @click="submit" :disabled="submitting">
-                                <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Anlegen
-                              </button>
-                              <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </template>
-
-                      <script setup lang="ts">
-                      import { ref } from 'vue';
-                      import hw from '../../hwApi';
-
-                      const emit = defineEmits(['close', 'success']);
-
-                      const title = ref('');
-                      const content = ref('');
-                      const color = ref('warn');
-                      const submitting = ref(false);
-                      const message = ref('');
-                      const isError = ref(false);
-
-                      async function submit() {
-                        submitting.value = true;
-                        message.value = '';
-                        isError.value = false;
-                        try {
-                          await hw.post('/api/announcements', {
-                            title: title.value,
-                            content: content.value,
-                            color: color.value,
-                          });
-                          message.value = 'Ankündigung erfolgreich angelegt.';
-                          isError.value = false;
-                          emit('success');
-                        } catch (e: any) {
-                          message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
-                          isError.value = true;
-                        } finally {
-                          submitting.value = false;
-                        }
-                      }
-                      </script>
-
-accountmenu.vue: <template>
-                   <div class="account-menu" ref="root">
-                     <button class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Einstellungen'">
-                       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
-                     </button>
-
-                     <transition name="pop">
-                       <div v-if="open" class="popup" @click.stop>
-                         <div class="popup-inner card" role="menu" aria-label="Account menu">
-                           <div class="popup-top">
-                             <div class="user-info">
-                               <div class="user-email" :title="email">{{ email }}</div>
-                               <div class="user-sub">Account Einstellungen</div>
-                             </div>
-                             <button class="close-x" @click="close" aria-label="Close menu">✕</button>
-                           </div>
-
-                           <div class="popup-actions">
-                             <button class="action-btn" @click="goToProfile" title="Profil bearbeiten">
-                               <svg class="aicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"></path>
-                                 <path d="M6.5 20a5.5 5.5 0 0 1 11 0"></path>
-                               </svg>
-                               Profil bearbeiten
-                             </button>
-
-                             <button class="action-btn" @click="startDelete" title="Account löschen">
-                               <svg class="aicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-                                 <path d="M3 6h18"></path>
-                                 <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6"></path>
-                                 <path d="M10 11v6"></path>
-                                 <path d="M14 11v6"></path>
-                                 <path d="M9 6V4h6v2"></path>
-                               </svg>
-                               Account löschen
-                             </button>
-                           </div>
-
-                           <div v-if="confirming" class="confirm">
-                             <div class="confirm-body">
-                               <div class="confirm-title">Account wirklich löschen?</div>
-                               <div class="confirm-text">E-Mail: <span class="confirm-email">{{ email }}</span></div>
-                               <div class="confirm-note">Diese Aktion löscht nur den Account-Datensatz. Andere Inhalte bleiben erhalten.</div>
-                             </div>
-
-                             <div class="confirm-actions">
-                               <button class="btn cancel" @click="confirming = false">Abbrechen</button>
-                               <button class="btn danger" @click="confirmDelete" :disabled="submitting">
-                                 <span v-if="submitting">Lösche…</span>
-                                 <span v-else>Löschen</span>
-                               </button>
-                             </div>
-                           </div>
-
-                           <div v-if="errorMsg" class="error-row">{{ errorMsg }}</div>
-                           <div v-if="successMsg" class="success-row">{{ successMsg }}</div>
-                         </div>
-                       </div>
-                     </transition>
-                   </div>
-                 </template>
-
-                 <script setup lang="ts">
-                 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-                 import hw from '../../hwApi';
-
-                 const props = defineProps<{ email: string }>();
-                 const emit = defineEmits<{ (e: 'deleted'): void; (e: 'error', msg: string): void }>();
-
-                 const open = ref(false);
-                 const confirming = ref(false);
-                 const submitting = ref(false);
-                 const errorMsg = ref('');
-                 const successMsg = ref('');
-
-                 function toggle() {
-                   open.value = !open.value;
-                   if (!open.value) confirming.value = false;
-                   clearMessages();
-                 }
-                 function close() {
-                   open.value = false;
-                   confirming.value = false;
-                   clearMessages();
-                 }
-                 function startDelete() {
-                   confirming.value = true;
-                   clearMessages();
-                 }
-                 function clearMessages() {
-                   errorMsg.value = '';
-                   successMsg.value = '';
-                 }
-
-                 async function confirmDelete() {
-                   submitting.value = true;
-                   errorMsg.value = '';
-                   try {
-                     const res = await hw.delete('/api/auth/me');
-                     if (res?.data?.ok) {
-                       successMsg.value = 'Account wurde gelöscht.';
-                       emit('deleted');
-                       // ensure UI reflects change
-                       setTimeout(() => { close(); }, 600);
-                     } else {
-                       const err = (res?.data?.error) || 'Unbekannter Fehler';
-                       errorMsg.value = err;
-                       emit('error', err);
-                     }
-                   } catch (e: any) {
-                     const msg = e?.response?.data?.error || 'Fehler beim Löschen';
-                     errorMsg.value = msg;
-                     emit('error', msg);
-                   } finally {
-                     submitting.value = false;
-                   }
-                 }
-
-                 function goToProfile() {
-                   // placeholder: emit event so parent can navigate if desired
-                   // left intentionally small and non-intrusive
-                   emit('error', 'Profil-Bearbeitung nicht implementiert');
-                 }
-
-                 // close on outside click or Escape
-                 const root = ref<HTMLElement | null>(null);
-                 function onDocClick(e: MouseEvent) {
-                   if (!root.value) return;
-                   if (!root.value.contains(e.target as Node)) {
-                     close();
-                   }
-                 }
-                 function onKey(e: KeyboardEvent) {
-                   if (e.key === 'Escape') close();
-                 }
-
-                 onMounted(() => {
-                   document.addEventListener('click', onDocClick);
-                   document.addEventListener('keydown', onKey);
-                 });
-                 onBeforeUnmount(() => {
-                   document.removeEventListener('click', onDocClick);
-                   document.removeEventListener('keydown', onKey);
-                 });
-                 </script>
-
-                 <style scoped>
-                 .account-menu { position: relative; display: inline-block; margin-left: 10px; }
-
-                 /* Icon button */
-                 .icon-btn {
-                   width: 42px; height: 42px; border-radius: 10px;
-                   display: inline-flex; align-items: center; justify-content: center;
-                   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-                   border: 1px solid rgba(255,255,255,0.06);
-                   color: var(--muted); cursor: pointer;
-                   transition: transform 150ms ease, box-shadow 150ms ease, color 150ms ease;
-                   backdrop-filter: blur(4px);
-                 }
-                 .icon-btn:hover { transform: translateY(-3px); color: var(--text); box-shadow: 0 8px 30px rgba(2,6,23,0.6); }
-
-                 .icon { width:18px; height:18px; }
-
-                 /* Popup */
-                 .popup {
-                   position: fixed;
-                   z-index: 1400;
-                   width: min(360px, calc(100vw - 24px));
-                   display: flex;
-                   justify-content: flex-end;
-                   pointer-events: auto;
-                   left: 40%;
-                   top: 40%;
-                 }
-
-                 /* center-ish fallback for very narrow screens */
-                 @media (max-width: 420px) {
-                   .popup { left: 12px; right: 12px; top: 40%; bottom: auto; width: calc(100vw - 24px); }
-                 }
-
-
-                 /* Glassmorphic inner card */
-                 .popup-inner {
-                   width: 100%;
-                   padding: 14px;
-                   border-radius: 14px;
-                   border: 1px solid rgba(255, 255, 255, 0.2);
-                   background: rgba(255, 255, 255, 0.15);
-                   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                   color: white;
-                   display: flex;
-                   flex-direction: column;
-                   gap: 10px;
-                   max-height: calc(100vh - 96px);
-                   overflow: auto;
-                 }
-
-                 /* Top row */
-                 .popup-top {
-                   display:flex; align-items:center; justify-content:space-between;
-                 }
-                 .user-info { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
-                 .user-email { font-weight:700; font-size:13px; color:var(--primary); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-                 .user-sub { font-size:12px; color:var(--muted); }
-
-                 .close-x {
-                   background: transparent; border: none; color: var(--muted); font-size:14px; cursor:pointer;
-                 }
-
-                 /* Actions */
-                 .popup-actions { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
-
-                 .action-btn {
-                   display:flex; align-items:center; gap:10px;
-                   padding:10px 12px; border-radius:10px; background: rgba(255,255,255,0.02);
-                   border:1px solid rgba(255,255,255,0.04); color:var(--text); cursor:pointer;
-                   transition: transform 120ms ease, background 120ms ease;
-                 }
-                 .action-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.03); }
-                 .aicon { width:16px; height:16px; color:var(--muted); }
-
-                 /* Confirm */
-                 .confirm { margin-top:8px; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:10px; }
-                 .confirm-body { display:flex; flex-direction:column; gap:6px; }
-                 .confirm-title { font-weight:700; color:var(--danger); }
-                 .confirm-text { color:white; font-size:13px; }
-                 .confirm-email { font-weight:700; color:var(--primary); }
-                 .confirm-note { font-size:12px; color:white; }
-
-                 .confirm-actions { display:flex; gap:8px; justify-content:flex-end; }
-                 .btn {
-                   padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:white; cursor:pointer;
-                 }
-                 .btn.cancel { background: rgba(255,255,255,0.02); }
-                 .btn.danger {
-                   background: linear-gradient(180deg,#ff6b6b,#ff3b3b); color:white; border:none; font-weight:700;
-                 }
-                 .btn:disabled { opacity:0.7; cursor:not-allowed; }
-
-                 /* messages */
-                 .error-row { color: #ffb3b3; font-size:13px; padding-top:6px; }
-                 .success-row { color: #bff0c7; font-size:13px; padding-top:6px; }
-
-                 /* pop animation */
-                 .pop-enter-active, .pop-leave-active { transition: transform 180ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease; transform-origin: top right; }
-                 .pop-enter-from { transform: translateY(-8px) scale(0.98); opacity: 0; }
-                 .pop-enter-to { transform: translateY(0) scale(1); opacity: 1; }
-                 .pop-leave-from { transform: translateY(0) scale(1); opacity: 1; }
-                 .pop-leave-to { transform: translateY(-8px) scale(0.98); opacity: 0; }
-
-                 /* Responsive */
-                 @media (max-width: 420px) {
-                   .popup-inner { padding: 12px; }
-                 }
-                 </style>
-
-Hausaufgaben.vue: <template>
-                    <div class="card">
-                      <div class="hw-header">
-                        <div>
-                          <h2>Dashboard</h2>
-                          <div class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
-                        </div>
-
-                        <div class="row header-actions">
-                          <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
-                          <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
-                          <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
-                        </div>
-                      </div>
-
-
-                      <div class="announcements">
-                        <div class="announcements-head">
-                          <h3 v-if="announcements.length" >Wichtige Ankündigungen</h3>
-                          <button
-                              v-if="user?.isAdmin"
-                              class="btn ghost small-btn"
-                              @click="showAnnouncementForm = true"
-                          >
-                            Ankündigung hinzufügen
-                          </button>
-                        </div>
-
-                        <div v-if="announcements.length" class="ann-list">
-                          <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
-                            <div class="ann-title">{{ a.title }}</div>
-                            <div class="ann-content">{{ a.content }}</div>
-                            <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-                            <div v-if="canManage(a.createdBy)" class="ann-actions">
-                              <button class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
-                            </div>
-                          </div>
-                        </div>
-
-                        <hr v-else-if="!announcements.length" />
-                      </div>
-
-                      <div class="tabs-row">
-                        <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="tab = 'HAUSAUFGABE'">Hausaufgaben</button>
-                        <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="tab = 'DALTON'">Dalton</button>
-                        <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="tab = 'PRUEFUNG'">Prüfungen</button>
-                      </div>
-
-                      <div class="controls">
-                        <div class="left">
-                          <select class="input select-subject" v-model="subjectFilter">
-                            <option value="">Alle Fächer</option>
-                            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                          </select>
-
-                          <button v-if="user" class="btn" @click="showItemForm=true">Eintrag anlegen</button>
-
-                          <div v-if="loading" class="loader">
-                            <div class="spinner" aria-hidden></div>
-                            <div>Lade...</div>
-                          </div>
-                        </div>
-
-                        <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
-                      </div>
-
-                      <div class="items">
-                        <div v-for="item in filteredItems" :key="item.id" class="item-card" :class="{ collapsed: isChecked(item.id) }">
-                          <div class="item-main">
-                            <div class="item-meta">
-                              <div style="display:flex; align-items:center; gap:8px;">
-                                <label class="collapse-checkbox" v-if="user">
-                                  <input type="checkbox" :checked="isChecked(item.id)" @change="toggleCheck(item)" />
-                                  <span class="vis-label"></span>
-                                </label>
-
-                                <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
-                              </div>
-
-                              <div class="row item-badges" v-show="!isChecked(item.id)">
-                                <div class="badge subject-badge">{{ item.subject }}</div>
-                                <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
-                                  Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div
-                                class="item-menu-trigger"
-                                role="button"
-                                tabindex="0"
-                                @click.stop="toggleMenu(item.id)"
-                                @keydown.enter.prevent="toggleMenu(item.id)"
-                                @keydown.space.prevent="toggleMenu(item.id)"
-                                aria-expanded="openMenuId === item.id ? 'true' : 'false'"
-
-                            >
-                              •••
-                            </div>
-
-                            <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-                              <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
-                              <button class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
-                              <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
-                              <button class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
-                            </div>
-                          </div>
-
-                          <transition name="collapse">
-                            <div v-show="!isChecked(item.id)" class="item-body">{{ item.description }}</div>
-                          </transition>
-
-                          <transition name="collapse">
-                            <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
-                              <div class="images-title">Bilder</div>
-                              <div class="images-row">
-                                <div
-                                    v-for="img in item.images"
-                                    :key="img.publicId"
-                                    class="thumb"
-                                >
-                                  <a :href="img.url" target="_blank" rel="noopener">
-                                    <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-                                  </a>
-                                </div>
-                              </div>
-                            </div>
-                          </transition>
-                        </div>
-
-                        <div v-if="!loading && !filteredItems.length" class="card empty">
-                          Keine Einträge gefunden.
-                        </div>
-                      </div>
-
-                      <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
-                      <ItemForm
-                          v-if="showItemForm"
-                          :type="tab"
-                          :subjects="subjects"
-                          :initial="itemToEdit"
-                          @close="showItemForm=false"
-                          @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
-                      />
-                      <AnnouncementForm
-                          v-if="showAnnouncementForm"
-                          @close="showAnnouncementForm=false"
-                          @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')"
-                      />
-                      <ImageForm
-                          v-if="showImageFormFor"
-                          :item="showImageFormFor"
-                          @close="showImageFormFor=null"
-                          @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
-                      />
-                    </div>
-                  </template>
-
-                  <script setup lang="ts">
-                  import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
-                  import AuthModal from '../components/hw/AuthModal.vue';
-                  import ItemForm from '../components/hw/ItemForm.vue';
-                  import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
-                  import ImageForm from '../components/hw/ImageForm.vue';
-                  import hw, { setHwToken } from '../hwApi';
-                  import AccountMenu from '../components/hw/AccountMenu.vue';
-
-
-                  export interface HwItem {
-                    id: string;
-                    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-                    title: string;
-                    subject: string;
-                    description: string;
-                    images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
-                    dueDate: string;
-                    createdBy: string;
-                    timeColor: string;
-                  }
-
-                  const showAuth = ref(false);
-                  const showItemForm = ref(false);
-                  const showAnnouncementForm = ref(false);
-                  const showImageFormFor = ref<any>(null);
-
-                  const user = ref<any>(null);
-                  const tab = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
-                  const subjects = ref<string[]>([]);
-                  const announcements = ref<any[]>([]);
-                  const items = ref<HwItem[]>([]);
-                  const loading = ref(true);
-                  const subjectFilter = ref('');
-                  const itemToEdit = ref<HwItem | null>(null);
-
-                  const message = ref('');
-                  const isError = ref(false);
-
-                  // checkedItems holds item IDs that current user has checked
-                  const checkedItems = ref(new Set<string>());
-
-                  const colorFor = (color: string) => {
-                    const map = {
-                      'ok': 'var(--primary)',
-                      'warn': 'var(--warn)',
-                      'danger': 'var(--danger)',
-                      'expired': '#4b5563',
-                      'info': '#3b82f6',
-                    };
-                    return map[color] || 'var(--muted)';
-                  };
-
-
-
-                  const filteredItems = computed(() => {
-                    let list = items.value;
-                    if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
-                    return list;
-                  });
-                  // neues reactive state für offenes Menü
-                  const openMenuId = ref<string | null>(null);
-
-                  // Toggle-Funktion
-                  function toggleMenu(id: string) {
-                    openMenuId.value = openMenuId.value === id ? null : id;
-                  }
-
-                  // gemeinsame Handler für Menüaktionen (schließt das Menü nach Aktion)
-                  function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
-                    openMenuId.value = null;
-                    if (action === 'images') return showImageForm(item);
-                    if (action === 'edit') return editItem(item);
-                    if (action === 'delete') return deleteItem(item.id);
-                    if (action === 'report') return reportItem(item);
-                  }
-
-                  // Klick ausserhalb schließt das Menü
-                  function onDocumentClick(e: MouseEvent) {
-                    // Wenn kein Menü offen, nichts tun
-                    if (!openMenuId.value) return;
-                    // Wenn ein Menü offen, schließen (Template stoppt Event wenn Klick innerhalb)
-                    openMenuId.value = null;
-                  }
-
-                  onMounted(() => {
-                    document.addEventListener('click', onDocumentClick);
-                    // bereits vorhandene onMounted-Aufrufe beibehalten
-                    loadMe();
-                    loadSubjects();
-                    loadAnnouncements();
-                    reload();
-                  });
-
-
-                  onBeforeUnmount(() => {
-                    document.removeEventListener('click', onDocumentClick);
-                  });
-
-
-                  function canManage(createdBy: string) {
-                    if (!user.value) return false;
-                    return user.value.isAdmin || user.value.id === createdBy;
-                  }
-
-                  async function loadMe() {
-                    try {
-                      const { data } = await hw.get('/api/auth/me');
-                      user.value = data;
-                      await loadCheckedForMe();
-                    } catch {
-                      user.value = null;
-                      checkedItems.value = new Set();
-                    }
-                  }
-
-                  async function loadCheckedForMe() {
-                    if (!user.value) {
-                      checkedItems.value = new Set();
-                      return;
-                    }
-                    try {
-                      const { data } = await hw.get('/api/checks/me');
-                      checkedItems.value = new Set(data.itemIds || []);
-                    } catch (e) {
-                      console.error('loadCheckedForMe error', e);
-                      checkedItems.value = new Set();
-                    }
-                  }
-
-                  async function loadSubjects() {
-                    const { data } = await hw.get('/api/subjects');
-                    subjects.value = data;
-                  }
-                  async function loadAnnouncements() {
-                    const { data } = await hw.get('/api/announcements');
-                    announcements.value = data;
-                  }
-                  async function reload() {
-                    loading.value = true;
-                    try {
-                      const { data } = await hw.get('/api/items', { params: { type: tab.value } });
-                      items.value = data;
-                      // preserve checked state for items that still exist
-                      // (we keep checkedItems as-is; UI queries will only check existing items)
-                    } catch (e) {
-                      console.error('Failed to load items:', e);
-                    } finally {
-                      loading.value = false;
-                    }
-                  }
-
-                  function onAccountDeleted() {
-                    // Entferne Token und UI state wie beim logout
-                    setHwToken(null);
-                    user.value = null;
-                    checkedItems.value = new Set();
-                    message.value = 'Account erfolgreich gelöscht.';
-                    isError.value = false;
-                    // optional: reload items
-                    reload();
-                    setTimeout(() => { message.value = ''; }, 5000);
-                  }
-
-                  function onAccountDeleteError(msg: string) {
-                    message.value = msg;
-                    isError.value = true;
-                    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-                  }
-
-
-                  function handleSuccess(msg: string) {
-                    message.value = msg;
-                    isError.value = false;
-                    setTimeout(() => message.value = '', 5000);
-                    showItemForm.value = false;
-                    showAnnouncementForm.value = false;
-                    showImageFormFor.value = null;
-                    reload();
-                  }
-
-                  function onLoggedIn(token: string) {
-                    setHwToken(token);
-                    showAuth.value = false;
-                    loadMe();
-                    reload();
-                  }
-
-                  function logout() {
-                    setHwToken(null);
-                    user.value = null;
-                    checkedItems.value = new Set();
-                  }
-
-                  function editItem(item: HwItem) {
-                    itemToEdit.value = item;
-                    showItemForm.value = true;
-                  }
-
-                  async function deleteItem(id: string) {
-                    if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
-                      loading.value = true;
-                      try {
-                        await hw.delete(`/api/items/${id}`);
-                        handleSuccess('Eintrag erfolgreich gelöscht.');
-                      } catch (e: any) {
-                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                        isError.value = true;
-                      } finally {
-                        loading.value = false;
-                      }
-                    }
-                  }
-
-                  async function deleteAnnouncement(id: string) {
-                    if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
-                      try {
-                        await hw.delete(`/api/announcements/${id}`);
-                        handleSuccess('Ankündigung erfolgreich gelöscht.');
-                      } catch (e: any) {
-                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                        isError.value = true;
-                      }
-                    }
-                  }
-
-                  // Formspree endpoint (unchanged)
-                  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
-
-                  async function reportItem(item: HwItem) {
-                    message.value = 'Eintrag wird gemeldet...';
-                    isError.value = false;
-                    const payload = {
-                      itemId: item.id,
-                      itemTitle: item.title,
-                      reportedAt: new Date().toISOString(),
-                      reporterEmail: user.value?.email || ''
-                    };
-                    try {
-                      const res = await fetch(FORMSPREE_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                          'Accept': 'application/json',
-                          'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                          message: `Item gemeldet\nID: ${payload.itemId}\nTitel: ${payload.itemTitle}\nGemeldet am: ${payload.reportedAt}\nMeldet von: ${payload.reporterEmail}`
-                        })
-                      });
-
-                      const data = await res.json().catch(() => ({}));
-
-                      if (res.ok) {
-                        message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
-                        isError.value = false;
-                      } else {
-                        const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.');
-                        message.value = 'Fehler beim Melden: ' + errMsg;
-                        isError.value = true;
-                      }
-                    } catch (e:any) {
-                      message.value = 'Fehler beim Melden. Bitte versuche es später erneut.';
-                      isError.value = true;
-                      console.error('reportItem error', e);
-                    } finally {
-                      setTimeout(() => { message.value = ''; isError.value = false; }, 7000);
-                    }
-                  }
-
-                  function showImageForm(item: HwItem) {
-                    showImageFormFor.value = item;
-                  }
-
-                  function makeThumb(url: string) {
-                    try {
-                      const u = new URL(url);
-                      const parts = u.pathname.split('/');
-                      const uploadIdx = parts.findIndex(p => p === 'upload');
-                      if (uploadIdx !== -1) {
-                        parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                        u.pathname = parts.join('/');
-                      }
-                      return u.toString();
-                    } catch {
-                      return url;
-                    }
-                  }
-
-                  // checked helpers
-                  function isChecked(itemId: string) {
-                    return checkedItems.value.has(itemId);
-                  }
-
-                  async function toggleCheck(item: HwItem) {
-                    if (!user.value) return;
-                    const id = item.id;
-                    try {
-                      if (isChecked(id)) {
-                        // uncheck
-                        await hw.delete(`/api/items/${id}/check`);
-                        checkedItems.value.delete(id);
-                      } else {
-                        // check
-                        await hw.post(`/api/items/${id}/check`);
-                        checkedItems.value.add(id);
-                      }
-                    } catch (e: any) {
-                      console.error('toggleCheck error', e);
-                      message.value = e.response?.data?.error || 'Fehler beim Setzen des Status.';
-                      isError.value = true;
-                      setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
-                    }
-                  }
-
-                  onMounted(() => {
-                    loadMe();
-                    loadSubjects();
-                    loadAnnouncements();
-                    reload();
-                  });
-
-                  watch(tab, reload);
-                  </script>
-
-                  <style scoped>
-                  /* Card tweaks (kept from original) */
-
-                  /* Header */
-                  .hw-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 12px;
-                  }
-                  .hw-header h2 { margin: 0 0 2px 0; font-size: 1.25rem; }
-                  .header-actions { align-items: center; }
-
-                  /* Announcements */
-                  .announcements { margin-top: 18px; }
-                  .announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-                  .ann-list { margin-top: 12px; }
-                  .ann {
-                    border-radius: 10px;
-                    padding: 12px;
-                    background: rgba(255,255,255,0.02);
-                    border: 1px solid var(--border);
-                    position: relative;
-                    overflow: hidden;
-                  }
-                  .ann + .ann { margin-top: 10px; }
-                  .ann-title { font-weight: 700; }
-                  .ann-content { white-space: pre-wrap; margin-top: 6px; color: var(--text); }
-                  .ann-date { margin-top: 6px; color: var(--muted); }
-                  .ann-actions { margin-top: 8px; }
-
-                  /* Tabs */
-                  .tabs-row { display:flex; gap:8px; margin: 16px 0; flex-wrap:wrap; }
-
-                  /* Controls */
-                  .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-                  .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-                  .select-subject { width:auto; min-width:160px; }
-                  .small-btn { padding:6px 8px; font-size:13px; }
-
-                  /* Loader */
-                  .loader { display:flex; align-items:center; gap:8px; color:var(--muted); }
-                  .spinner {
-                    width:18px; height:18px; border-radius:50%;
-                    box-shadow: 0 -3px 0 var(--primary) inset;
-                    animation: spinPulse 1.2s linear infinite;
-                    transform-origin: 50% 50%;
-                  }
-                  @keyframes spinPulse {
-                    0% { transform: rotate(0deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
-                    50% { transform: rotate(180deg) scale(0.9); box-shadow: 0 -3px 0 rgba(255,255,255,0.06) inset; }
-                    100% { transform: rotate(360deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
-                  }
-
-                  /* Items */
-                  .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
-                  .item-card {
-                    border-radius: 12px;
-                    padding: 14px;
-                    background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
-                    border: 1px solid rgba(255,255,255,0.03);
-                    transition: transform 160ms ease, box-shadow 160ms ease;
-                    overflow: visible;
-                  }
-
-                  /* Collapsed state */
-                  .item-card.collapsed {
-                    padding: 8px 12px;
-                    transition: padding 320ms ease, max-height 320ms ease;
-                  }
-
-                  /* Item main row */
-                  .item-main { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-                  .item-meta { flex:1; min-width: 0; }
-                  .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-                  /* Checkbox visual */
-                  .collapse-checkbox {
-                    display:inline-flex;
-                    align-items:center;
-                    margin-right:6px;
-                    cursor:pointer;
-                  }
-                  .collapse-checkbox input { display:none; }
-                  .collapse-checkbox .vis-label {
-                    width:18px; height:18px; border-radius:4px; border:1px solid var(--border);
-                    display:inline-block; background:transparent; position:relative;
-                  }
-                  .collapse-checkbox input:checked + .vis-label {
-                    background: var(--primary);
-                    border-color: var(--primary);
-                  }
-                  .collapse-checkbox .vis-label::after {
-                    content: ''; position:absolute; left:4px; top:1px; width:6px; height:10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity:0;
-                  }
-                  .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
-
-                  /* Badges */
-                  .item-badges { margin-top:4px; gap:8px; align-items:center; }
-                  .subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
-                  .time-badge { padding:4px 8px; border-radius:6px; }
-
-                  /* entferne oder passe die bisherigen transition-delay Regeln weg */
-                  /* Basis bleibt wie gehabt */
-                  .item-menu {
-                    position: absolute;
-                    top: 38px;
-                    right: 0;
-                    min-width: 160px;
-                    background: rgba(26,26,26,0.95);
-                    border: 1px solid var(--border);
-                    border-radius: 10px;
-                    padding: 8px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 6px;
-
-                    opacity: 0;
-                    transform: translateY(-6px) scale(0.98);
-                    pointer-events: none;
-
-                    transition: opacity 160ms ease, transform 160ms ease;
-                    z-index: 1000;
-                  }
-
-                  /* sichtbar wenn open-Klasse gesetzt */
-                  .item-menu.open {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                    pointer-events: auto;
-                  }
-
-
-                  .menu-btn {
-                    text-align:left;
-                    background: transparent;
-                    border: none;
-                    padding:8px;
-                    color: var(--text);
-                    border-radius:8px;
-                    cursor:pointer;
-                  }
-
-                  .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
-                  .menu-btn.danger { background: var(--danger); color: white; }
-                  .menu-btn.warn { background: var(--warn); color: #1f1300; }
-
-                  /* Body and images */
-                  .item-body { white-space: pre-wrap; margin-top:10px; color: var(--text); }
-                  .item-images { margin-top:12px; }
-                  .images-title { font-weight:600; margin-bottom:8px; }
-                  .images-row { display:flex; flex-wrap:wrap; gap:8px; }
-                  .thumb {
-                    width:120px; height:120px; border-radius:8px; overflow:hidden;
-                    border:1px solid var(--border);
-                    display:flex; align-items:center; justify-content:center;
-                    background: rgba(0,0,0,0.12);
-                  }
-                  .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-
-                  /* Empty state */
-                  .empty { text-align:center; color:var(--muted); padding:24px; }
-
-                  /* Collapse transition (height + opacity) */
-                  .collapse-enter-active, .collapse-leave-active {
-                    transition: max-height 320ms ease, opacity 320ms ease, padding 320ms ease;
-                  }
-                  .collapse-enter-from, .collapse-leave-to {
-                    max-height: 0;
-                    opacity: 0;
-                    padding-top: 0;
-                    padding-bottom: 0;
-                  }
-                  .collapse-enter-to, .collapse-leave-from {
-                    max-height: 800px;
-                    opacity: 1;
-                  }
-
-                  /* Message */
-                  .message { font-weight:600; }
-                  .message.error { color: var(--danger); }
-
-                  /* Tiny utility */
-                  .tiny { padding:4px 8px; font-size:12px; }
-                  /* Container für Trigger + Menü positionieren */
-                  .item-main {
-                    position: relative;
-                  }
-
-                  /* Menü-Offset feinjustieren: direkt unter dem Trigger, leicht nach rechts versetzt */
-                  .item-menu {
-                    top: 38px;
-                    right: 8px;
-                  }
-                  .item-menu-trigger {
-                    cursor: pointer;
-                  }
-                  /* macht Trigger klickbar und sorgt für eine sichtbare Hover-Fläche */
-                  .item-menu-trigger {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 46px;
-                    height: 34px;
-                    padding: 6px 8px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    color: var(--muted);
-                    transition: background 120ms ease, color 120ms ease, transform 120ms ease;
-                  }
-
-                  /* sichtbares Feedback beim Hover */
-                  .item-menu-trigger:hover {
-                    background: rgba(255,255,255,0.02);
-                    color: var(--text);
-                    transform: translateY(-1px);
-                  }
-
-
-                  </style>
-App.vue: <template>
-           <div class="full">
-             <Header />
-             <main class="full-c">
-               <canvas id="animated-background"></canvas>
-               <div v-if="loading" class="loading-overlay" key="loading">
-                 <div class="elegant-spinner">
-                   <div class="dot-1"></div>
-                   <div class="dot-2"></div>
-                   <div class="dot-3"></div>
-                 </div>
-               </div>
-               <div v-else class="container" key="content">
-                 <router-view v-slot="{ Component }">
-                   <component :is="Component" />
-                 </router-view>
-               </div>
-             </main>
-             <ButtonBack v-if="shouldShowBackButton">
-               Zurück
-             </ButtonBack>
-             <Footer />
-             <CookieBanner />
-
-           </div>
-         </template>
-
-         <script setup lang="ts">
-         import { ref, onMounted } from 'vue';
-         import { useRouter } from 'vue-router';
-         import Header from './components/Header.vue';
-         import Footer from './components/Footer.vue';
-         import AnimatedBackground from './utils/animated-background.ts';
-         import CookieBanner from "./components/CookieBanner.vue"
-
-
-
-         const loading = ref(false);
-         const router = useRouter();
-
-
-
-         // Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
-         const MIN_LOAD_TIME = 0;
-         let loadStartTime = 0;
-
-         onMounted(() => {
-           new AnimatedBackground('animated-background');
-         });
-
-
-
-
-         router.beforeEach(() => {
-           loading.value = true;
-           loadStartTime = Date.now();
-         });
-
-         router.afterEach(() => {
-           const elapsedTime = Date.now() - loadStartTime;
-           const remainingTime = MIN_LOAD_TIME - elapsedTime;
-
-           if (remainingTime > 0) {
-             setTimeout(() => {
-               loading.value = false;
-             }, remainingTime);
-           } else {
-             loading.value = false;
-           }
-         });
-         </script>
-
-         <style scoped>
-         /*
-           Stile für die Ladeanimation.
-           Diese sind "scoped", damit sie nur für diese Komponente gelten.
-         */
-         .loading-overlay {
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           position: absolute;
-           top: 0;
-           left: 0;
-           width: 100%;
-           height: 100%;
-           background-color: rgba(255, 255, 255, 0);
-           z-index: 999;
-         }
-
-         .elegant-spinner {
-           position: relative;
-           width: 60px;
-           height: 60px;
-           display: flex;
-           justify-content: center;
-           align-items: center;
-         }
-
-         .elegant-spinner div {
-           position: absolute;
-           width: 15px;
-           height: 15px;
-           border-radius: 50%;
-           background: #bd34fe;
-           opacity: 0;
-         }
-
-         .elegant-spinner .dot-1 {
-           animation: pulse-1 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-         }
-         .elegant-spinner .dot-2 {
-           animation: pulse-2 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-         }
-         .elegant-spinner .dot-3 {
-           animation: pulse-3 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-         }
-
-
-         @keyframes pulse-1 {
-           0% { transform: scale(0.1); opacity: 0; }
-           25% { transform: scale(1); opacity: 1; }
-           50% { transform: translateX(20px) scale(0.8); opacity: 0; }
-           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-         }
-
-         @keyframes pulse-2 {
-           0% { transform: scale(0.1); opacity: 0; }
-           25% { transform: translateX(-20px) scale(0.8); opacity: 0; }
-           50% { transform: scale(1); opacity: 1; }
-           75% { transform: translateX(20px) scale(0.8); opacity: 0; }
-           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-         }
-
-         @keyframes pulse-3 {
-           0% { transform: scale(0.1); opacity: 0; }
-           50% { transform: translateX(-20px) scale(0.8); opacity: 0; }
-           75% { transform: scale(1); opacity: 1; }
-           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-         }
-
-         /* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
-         .full-c {
-           flex: 1;
-           position: relative;
-         }
-         </style>
-
-
-         router.ts: // src/router/index.ts
-
-                    import { createRouter, createWebHistory } from 'vue-router';
-
-
-                    import Hausaufgaben from './views/Hausaufgaben.vue';
-
-                    const PersonDetail = () => import('./views/PersonDetail.vue');
-                    const Admin = () => import('./views/Admin.vue');
-                    const Home = () => import('./views/Home.vue');
-                    const VerifyEmail = () => import('./views/VerifyEmail.vue');
-                    const Stundenplan = () => import('./views/Stundenplan.vue')
-                    const Kuerzel = () => import('./views/Kuerzel.vue')
-                    const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue')
-                    const Ye = () => import('./views/Ye.vue')
-                    const BS = () => import('./views/BS.vue')
-                    const Kontakt = () => import('./components/ContactForm.vue')
-
-
-                    const router = createRouter({
-                        history: createWebHistory(),
-                        routes: [
-                            { path: '/', component: Hausaufgaben },
-                            { path: '/bewerten', component: Home },
-                            { path: '/person/:id', component: PersonDetail, props: true },
-                            { path: '/admin', component: Admin },
-                            { path: '/hausaufgaben/verify', redirect: '/verify' },
-                            { path: '/verify', component: VerifyEmail },
-                            { path: '/stundenplan', component: Stundenplan },
-                            { path: '/kuerzel', component: Kuerzel },
-                            { path: '/lokale-to-do-liste', component: LokaleToDoListe },
-                            { path: '/kanye', component: Ye },
-                            { path: '/fresser', component: BS },
-                            { path: '/kontakt', component: Kontakt },
-
-
-                            {
-                                path: '/impressum-&-datenschutz',
-                                component: () => import('./views/legal/LegalLayout.vue'), // Eltern-Layout
-                                children: [
-                                    {
-                                        path: 'impressum',
-                                        component: () => import('./views/legal/ImpressumPage.vue')
-                                    },
-                                    {
-                                        path: 'datenschutzerklaerung',
-                                        component: () => import('./views/legal/DatenschutzPage.vue')
-                                    }
-                                ]
-                            },
-
-                            {
-                                path: '/:pathMatch(.*)*',
-                                name: 'NotFound',
-                                component: () => import('./views/NotFound.vue')
-                            }
-
-
-                        ]
-                    });
-
-                    export default router;
-
-
-
-
-
-                    globale style.css (sol nicht veränder twerdn):
-
+<template>
+  <div class="card">
+    <h2 style="margin-top:0;">Namenskürzel Finder</h2>
+    <p class="small">Gib links ein Kürzel oder einen Namen ein. Rechts erscheint automatisch das Ergebnis.</p>
+
+    <div class="row">
+      <!-- Input -->
+      <div class="col">
+        <input
+            v-model="inputValue"
+            class="input"
+            :placeholder="mode==='shortToName' ? 'z. B. mü, gl...' : 'z. B. Frau Glier, Herr Müller...'"
+        />
+        <div v-if="mode==='nameToShort' && suggestion && !outputValue" class="suggestion">
+          Meintest du vielleicht <span @click="applySuggestion" class="suggestion-link">{{ suggestion }}</span>?
+        </div>
+      </div>
+
+      <!-- Switch Button -->
+      <div class="switch-col">
+        <button
+            class="switch-btn"
+            :class="{ rotated: isRotated }"
+            @click="toggleMode"
+            title="Richtung wechseln"
+        >
+          <!-- Minimalistisches SVG Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="switch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M4 12h16M12 4l8 8-8 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="mode-label">
+          {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="col">
+        <input
+            class="input"
+            :value="outputValue"
+            readonly
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+
+const persons = [
+  { name: 'Müller',       title: 'Herr', short: 'Mü' },
+  { name: 'Schmidt',      title: 'Frau', short: 'Sc' },
+  { name: 'Schneider',    title: 'Herr', short: 'Sc' },
+  { name: 'Fischer',      title: 'Frau', short: 'Fi' },
+  { name: 'Weber',        title: 'Herr', short: 'We' },
+  { name: 'Meyer',        title: 'Frau', short: 'Me' },
+  { name: 'Wagner',       title: 'Herr', short: 'Wa' },
+  { name: 'Becker',       title: 'Frau', short: 'Be' },
+  { name: 'Schulz',       title: 'Herr', short: 'Sc' },
+  { name: 'Hoffmann',     title: 'Frau', short: 'Ho' },
+  { name: 'Schäfer',      title: 'Herr', short: 'Sc' },
+  { name: 'Bauer',        title: 'Frau', short: 'Ba' },
+  { name: 'Richter',      title: 'Herr', short: 'Ri' },
+  { name: 'Klein',        title: 'Frau', short: 'Kl' },
+  { name: 'Wolf',         title: 'Herr', short: 'Wo' },
+  { name: 'Schröder',     title: 'Frau', short: 'Sc' },
+  { name: 'Neumann',      title: 'Herr', short: 'Ne' },
+  { name: 'Schwarz',      title: 'Frau', short: 'Sc' },
+  { name: 'Zimmermann',   title: 'Herr', short: 'Zi' },
+  { name: 'Braun',        title: 'Frau', short: 'Br' },
+  { name: 'Krüger',       title: 'Herr', short: 'Kr' },
+  { name: 'Hartmann',     title: 'Frau', short: 'Ha' },
+  { name: 'Lange',        title: 'Herr', short: 'La' },
+  { name: 'Schmitt',      title: 'Frau', short: 'Sc' },
+  { name: 'Werner',       title: 'Herr', short: 'We' },
+  { name: 'Krause',       title: 'Frau', short: 'Kr' },
+  { name: 'Meier',        title: 'Herr', short: 'Me' },
+  { name: 'Lehmann',      title: 'Frau', short: 'Le' },
+  { name: 'Schmid',       title: 'Herr', short: 'Sc' },
+  { name: 'Schulze',      title: 'Frau', short: 'Sc' },
+  { name: 'Maier',        title: 'Herr', short: 'Ma' },
+  { name: 'Köhler',       title: 'Frau', short: 'Kö' },
+  { name: 'Herrmann',     title: 'Herr', short: 'He' },
+  { name: 'König',        title: 'Frau', short: 'Kö' },
+  { name: 'Walter',       title: 'Herr', short: 'Wa' },
+  { name: 'Mayer',        title: 'Frau', short: 'Ma' },
+  { name: 'Kaiser',       title: 'Herr', short: 'Ka' },
+  { name: 'Fuchs',        title: 'Frau', short: 'Fu' },
+  { name: 'Peters',       title: 'Herr', short: 'Pe' },
+  { name: 'Keller',       title: 'Frau', short: 'Ke' },
+  { name: 'Günther',      title: 'Herr', short: 'Gü' },
+  { name: 'Voigt',        title: 'Frau', short: 'Vo' },
+  { name: 'Horn',         title: 'Herr', short: 'Ho' },
+  { name: 'Beck',         title: 'Frau', short: 'Be' },
+  { name: 'Jung',         title: 'Herr', short: 'Ju' },
+  { name: 'Frank',        title: 'Frau', short: 'Fr' },
+  { name: 'Kranz',        title: 'Herr', short: 'Kr' },
+  { name: 'Älbrecht',     title: 'Frau', short: 'Al' },
+  { name: 'Voß',          title: 'Herr', short: 'Vo' },
+  { name: 'Seidel',       title: 'Frau', short: 'Se' },
+  { name: 'Winkler',      title: 'Herr', short: 'Wi' },
+  { name: 'Busch',        title: 'Frau', short: 'Bu' },
+  { name: 'Kleinert',     title: 'Herr', short: 'Kl' },
+  { name: 'Brandt',       title: 'Frau', short: 'Br' },
+  { name: 'Stark',        title: 'Herr', short: 'St' },
+  { name: 'Roth',         title: 'Frau', short: 'Ro' },
+  { name: 'Vogel',        title: 'Herr', short: 'Vo' },
+  { name: 'Jäger',        title: 'Frau', short: 'Jä' },
+  { name: 'Otto',         title: 'Herr', short: 'Ot' },
+  { name: 'Schuster',     title: 'Frau', short: 'Sc' },
+  { name: 'Stein',        title: 'Herr', short: 'St' },
+  { name: 'Berg',         title: 'Frau', short: 'Be' },
+  { name: 'Baumann',      title: 'Herr', short: 'Ba' },
+  { name: 'Ziegler',      title: 'Frau', short: 'Zi' },
+  { name: 'Zimmer',       title: 'Herr', short: 'Zi' },
+  { name: 'Kuhn',         title: 'Frau', short: 'Ku' },
+  { name: 'Rudolf',       title: 'Herr', short: 'Ru' },
+  { name: 'Marx',         title: 'Frau', short: 'Ma' },
+  { name: 'Berger',       title: 'Herr', short: 'Be' },
+  { name: 'Fink',         title: 'Frau', short: 'Fi' },
+  { name: 'Arnold',       title: 'Herr', short: 'Ar' },
+  { name: 'Winter',       title: 'Frau', short: 'Wi' },
+  { name: 'Schwarzmann',  title: 'Herr', short: 'Sc' },
+  { name: 'Abraham',      title: 'Frau', short: 'Ab' },
+  { name: 'Appel',        title: 'Herr', short: 'Ap' },
+  { name: 'Bender',       title: 'Frau', short: 'Be' },
+  { name: 'Barth',        title: 'Herr', short: 'Ba' },
+  { name: 'Baum',         title: 'Frau', short: 'Ba' },
+  { name: 'Bock',         title: 'Herr', short: 'Bo' },
+  { name: 'Döring',       title: 'Frau', short: 'Dö' },
+  { name: 'Engel',        title: 'Herr', short: 'En' },
+  { name: 'Faber',        title: 'Frau', short: 'Fa' },
+  { name: 'Gärtner',      title: 'Herr', short: 'Gä' },
+  { name: 'Hahn',         title: 'Frau', short: 'Ha' },
+  { name: 'Ihle',         title: 'Herr', short: 'Ih' },
+  { name: 'Jansen',       title: 'Frau', short: 'Ja' },
+  { name: 'Klode',        title: 'Herr', short: 'Kl' },
+  { name: 'Lenz',         title: 'Frau', short: 'Le' },
+  { name: 'Maas',         title: 'Herr', short: 'Ma' },
+  { name: 'Nestle',       title: 'Frau', short: 'Ne' },
+  { name: 'Oster',        title: 'Herr', short: 'Os' },
+  { name: 'Pohl',         title: 'Frau', short: 'Po' },
+  { name: 'Quandt',       title: 'Herr', short: 'Qu' },
+  { name: 'Rau',          title: 'Frau', short: 'Ra' },
+  { name: 'Sohn',         title: 'Herr', short: 'So' },
+  { name: 'Ullrich',      title: 'Frau', short: 'Ul' },
+  { name: 'Vogt',         title: 'Herr', short: 'Vo' },
+  { name: 'Warnke',       title: 'Frau', short: 'Wa' },
+  { name: 'Xaver',        title: 'Herr', short: 'Xa' },
+  { name: 'Yilmaz',       title: 'Frau', short: 'Yi' }
+]
+
+const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
+const inputValue = ref('')
+const suggestion = ref('')
+const isRotated = ref(false)
+
+function normalize(str: string) {
+  return str
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/ä/g, 'ae')
+      .replace(/ö/g, 'oe')
+      .replace(/ü/g, 'ue')
+      .replace(/ß/g, 'ss')
+}
+
+function editDistance(a: string, b: string) {
+  const matrix: number[][] = []
+  let i, j
+  for (i = 0; i <= b.length; i++) matrix[i] = [i]
+  for (j = 0; j <= a.length; j++) matrix[0][j] = j
+  for (i = 1; i <= b.length; i++) {
+    for (j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+        )
+      }
+    }
+  }
+  return matrix[b.length][a.length]
+}
+
+function similarity(a: string, b: string) {
+  const longer = a.length > b.length ? a : b
+  const shorter = a.length > b.length ? b : a
+  const longerLength = longer.length
+  if (longerLength === 0) return 1.0
+  return (longerLength - editDistance(longer, shorter)) / longerLength
+}
+
+const outputValue = computed(() => {
+  const q = normalize(inputValue.value)
+  suggestion.value = ''
+
+  if (!q) return ''
+
+  if (mode.value === 'shortToName') {
+    const match = persons.find(p => normalize(p.short) === q)
+    return match ? `${match.title} ${match.name}` : ''
+  } else {
+    const match = persons.find(p => normalize(p.title + p.name) === q)
+    if (match) return match.short
+
+    let best: { person: any; score: number } | null = null
+    persons.forEach(p => {
+      const score = similarity(q, normalize(p.title + p.name))
+      if (!best || score > best.score) {
+        best = { person: p, score }
+      }
+    })
+    if (best && best.score > 0.5) {
+      suggestion.value = `${best.person.title} ${best.person.name}`
+    }
+    return ''
+  }
+})
+
+function applySuggestion() {
+  if (suggestion.value) {
+    inputValue.value = suggestion.value
+    suggestion.value = ''
+  }
+}
+
+function toggleMode() {
+  isRotated.value = !isRotated.value
+  mode.value = mode.value === 'shortToName' ? 'nameToShort' : 'shortToName'
+  inputValue.value = ''
+}
+</script>
+
+<style scoped>
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.col {
+  flex: 1;
+  min-width: 280px;
+}
+.switch-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.switch-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.3s;
+}
+.switch-btn:hover {
+  background: #ff6a00;
+}
+.switch-icon {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.6s ease-in-out;
+}
+.switch-btn.rotated .switch-icon {
+  transform: rotate(180deg);
+}
+.mode-label {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #aaa;
+  text-align: center;
+}
+.input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: #fff;
+}
+.suggestion {
+  margin-top: 8px;
+  color: var(--danger);
+  font-style: italic;
+}
+.suggestion-link {
+  cursor: pointer;
+  color: var(--primary);
+  font-weight: bold;
+  margin-left: 4px;
+}
+</style>
+
+
+
+globale styles:
 :root {
-    --bg: #111827;
+    --bg: #0f0f0f;
     --card: #1a1a1a;
     --muted: #94a3b8;
-    --text: #b0b0b0;
+    --text: #f1f1f1;
     --primary: #3f93f8;
     --danger: #ef4444;
     --warn: #f59e0b;
@@ -2764,25 +324,27 @@ html, body, #app { height: 100%; }
 body {
     margin: 0;
     color: var(--text);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+    font-family: 'Roboto Slab', serif;
     position: relative;
 }
 
 a { color: var(--primary); text-decoration: none; }
 .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .card {
-    background: linear-gradient(180deg, #1a1a1a, #1a1a1a), var(--card);
+    background: var(--bg);
     /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;
 }
 .input, select, textarea {
     width: 100%; padding: 10px 12px; border-radius: 5px;
-    background: #1a1a1a; color: var(--text); border: 1px solid var(--border);
+    background: #2a2a2a; color: var(--text); border: none;
 }
 .btn {
     display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: floralwhite; color: #111827; border: none; border-radius: 5px; cursor: pointer;
+    background: #f1f1f1; color: #111827; border: none; border-radius: 5px; cursor: pointer;
 }
-.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn:hover { background-color: #D9D9D9}
+.btn.ghost:hover { background-color: #3F3F3F}
+.btn.ghost { background: #282828; color: var(--text); }
 .btn.danger { background: var(--danger); color: white; }
 .btn.warn { background: var(--warn); color: #1f1300; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; }

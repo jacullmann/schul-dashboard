@@ -150,14 +150,14 @@ onBeforeUnmount(() => {
 /* Icon button */
 .icon-btn {
   width: 42px; height: 42px; border-radius: 10px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  border: 1px solid rgba(255,255,255,0.06);
+  align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
   color: var(--muted); cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease, color 150ms ease;
-  backdrop-filter: blur(4px);
+  transition: transform 0.3s ease-in-out;
+  display: inline-block;
 }
-.icon-btn:hover { transform: translateY(-3px); color: var(--text); box-shadow: 0 8px 30px rgba(2,6,23,0.6); }
+.icon-btn:hover { color: var(--text); transform: rotate(90deg); }
 
 .icon { width:18px; height:18px; }
 
@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-  color: white;
+  color: var(--text);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -203,10 +203,10 @@ onBeforeUnmount(() => {
 }
 .user-info { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
 .user-email { font-weight:700; font-size:13px; color:var(--primary); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.user-sub { font-size:12px; color:var(--muted); }
+.user-sub { font-size:12px; color:var(--text); }
 
 .close-x {
-  background: transparent; border: none; color: var(--muted); font-size:14px; cursor:pointer;
+  background: transparent; border: none; color: var(--text); font-size:14px; cursor:pointer;
 }
 
 /* Actions */
@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
   transition: transform 120ms ease, background 120ms ease;
 }
 .action-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.03); }
-.aicon { width:16px; height:16px; color:var(--muted); }
+.aicon { width:16px; height:16px; color:var(--text); }
 
 /* Confirm */
 .confirm { margin-top:8px; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:10px; }

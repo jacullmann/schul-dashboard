@@ -3,12 +3,12 @@
     <div class="footer-container container">
       <div class="footer-columns">
         <div class="footer-section">
-          <h3>Bewertungen</h3>
-          <p>Teile deine Erfahrungen und sorge für mehr Transparenz in der Community.</p>
+          <h3>Feedback</h3>
+          <p>Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.</p>
         </div>
 
         <div class="footer-section">
-          <h3>Nützliche Links</h3>
+          <h3>Links</h3>
           <router-link to="/" class="footer-link">Dashboard</router-link>
           <router-link to="/bewerten" class="footer-link">Benoten</router-link>
           <router-link to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
@@ -18,7 +18,6 @@
         <div class="footer-section">
           <h3>Kontakt</h3>
           <p>support@gmail.com</p>
-          <p>Modersohhhhnstrasse</p>
           <router-link to="/kontakt" class="footer-link">Kontaktformular</router-link>
         </div>
       </div>
@@ -26,11 +25,11 @@
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p>© {{ year }} — Mexiko</p>
+        <p>© {{ year }} — Alle Rechte vorbehalten</p>
 
 
-        <!-- 🥚 Geheimer Button -->
-        <button @click="handleClick" class="secret-btn">Hilfe</button>
+
+        <button  class="secret-btn">Hilfe</button>
 
       </div>
     </div>
@@ -104,7 +103,7 @@ function handleClick() {
 }
 
 .footer-section h3 {
-  color: #fff;
+  color: #f1f1f1;
   font-size: 1.2rem;
   margin-bottom: 1rem;
 }
@@ -116,14 +115,14 @@ function handleClick() {
 
 .footer-link {
   display: block;
-  color: #b0b0b0;
+  color: var(--text);
   text-decoration: none;
   margin-bottom: 0.5rem;
   transition: color 0.3s ease;
 }
 
 .footer-link:hover {
-  color: #fff;
+  color: #b0b0b0;
 }
 
 .footer-bottom {

@@ -162,9 +162,7 @@ onUnmounted(() => {
   margin-right: auto; /* Sorgt dafür, dass der gesamte freie Raum rechts von der Logo-Gruppe entsteht und sie dadurch ganz nach links geschoben wird. */
 }
 
-.logo-group:hover {
-  color: #41d1ff; /* Hover-Effekt auf die Gruppe anwenden */
-}
+
 
 /* Stil für das Bild */
 .logo-img {
@@ -256,7 +254,7 @@ onUnmounted(() => {
 }
 
 .nav-item:hover {
-  color: #fff;
+  color: #f0f0f0;
   transform: translateY(-2px);
 }
 

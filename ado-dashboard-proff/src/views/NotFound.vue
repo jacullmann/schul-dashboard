@@ -34,13 +34,13 @@ function goBack() {
   font-size: clamp(84px, 18vw, 190px);
   font-weight: 900;
   margin: 0;
-  color: white;
+  color: var(--text);
   letter-spacing: 2px;
 }
 
 .subtitle {
   font-size: clamp(25px, 4vw, 32px);
-  color: white;
+  color: var(--text);
   margin: 12px 0 32px 0;
 }
 
@@ -60,15 +60,5 @@ function goBack() {
   color: #111827;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-.btn:hover {
-  background: #f3f3f3;
-  transform: translateY(-1px);
-}
-.btn.ghost {
-  background: transparent;
-  color: white;
-}
-.btn.ghost:hover {
-  background: rgba(255,255,255,0.05);
-}
+
 </style>
