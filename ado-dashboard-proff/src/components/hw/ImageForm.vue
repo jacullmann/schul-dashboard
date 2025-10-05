@@ -113,48 +113,52 @@ async function uploadImg() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
+  input.multiple = true;
   input.onchange = async () => {
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
 
     uploading.value = true;
     message.value = '';
     isError.value = false;
 
-    try {
-      const { data: sign } = await hw.post('/api/uploads/sign');
-      const form = new FormData();
-      form.append('file', file);
-      form.append('api_key', sign.apiKey);
-      form.append('timestamp', String(sign.timestamp));
-      form.append('signature', sign.signature);
-      form.set('folder', sign.folder);
+    for (const file of files) {
+      try {
+        const { data: sign } = await hw.post('/api/uploads/sign');
+        const form = new FormData();
+        form.append('file', file);
+        form.append('api_key', sign.apiKey);
+        form.append('timestamp', String(sign.timestamp));
+        form.append('signature', sign.signature);
+        form.set('folder', sign.folder);
 
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-      const json = await res.json();
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+        const json = await res.json();
 
-      if (json.secure_url && json.public_id) {
-        const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
-          image: { url: json.secure_url, publicId: json.public_id }
-        });
-        currentImages.value = [...currentImages.value, data.image];
-        message.value = 'Bild erfolgreich hochgeladen.';
-        isError.value = false;
-        emit('success');
-      } else {
-        message.value = 'Bild-Upload fehlgeschlagen.';
+        if (json.secure_url && json.public_id) {
+          // informiere Backend über das neue Bild und erweitere die Liste
+          const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
+            image: { url: json.secure_url, publicId: json.public_id }
+          });
+          currentImages.value = [...currentImages.value, data.image];
+          emit('success');
+        } else {
+          message.value = 'Mindestens ein Bild-Upload fehlgeschlagen.';
+          isError.value = true;
+          console.error('Cloudinary responded with error', json);
+        }
+      } catch (e: any) {
+        message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
         isError.value = true;
+        console.error('uploadImg error', e);
       }
-    } catch (e: any) {
-      message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
-      isError.value = true;
-      console.error('uploadImg error', e);
-    } finally {
-      uploading.value = false;
     }
+
+    uploading.value = false;
   };
   input.click();
 }
+
 
 async function removeImg(publicId: string) {
   showConfirmRemovalModal.value = false;

@@ -135,45 +135,56 @@ function makeThumb(url: string) {
 async function uploadImage() {
   uploading.value = true;
   uploadError.value = '';
+  // Datei-Auswahl mit multiple
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
+  input.multiple = true;
   input.onchange = async () => {
-    const file = input.files?.[0];
-    if (!file) {
+    const files = Array.from(input.files || []);
+    if (files.length === 0) {
       uploading.value = false;
       return;
     }
 
-    try {
-      const { data: sign } = await hw.post('/api/uploads/sign');
-      const form = new FormData();
-      form.set('file', file);
-      form.set('api_key', sign.apiKey);
-      form.set('timestamp', String(sign.timestamp));
-      form.set('signature', sign.signature);
-      form.set('folder', sign.folder);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-      const json = await res.json();
-      if (json.secure_url && json.public_id) {
-        images.value.push({
-          url: json.secure_url,
-          thumbUrl: makeThumb(json.secure_url),
-          publicId: json.public_id,
-          createdBy: ''
-        });
-        uploadError.value = '';
-      } else {
-        uploadError.value = 'Upload fehlgeschlagen';
+    // Upload jedes Files einzeln nacheinander (sicherer) — bei Bedarf parallelisieren
+    for (const file of files) {
+      try {
+        const { data: sign } = await hw.post('/api/uploads/sign');
+        const form = new FormData();
+        form.set('file', file);
+        form.set('api_key', sign.apiKey);
+        form.set('timestamp', String(sign.timestamp));
+        form.set('signature', sign.signature);
+        form.set('folder', sign.folder);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+        const json = await res.json();
+
+        if (json.secure_url && json.public_id) {
+          images.value.push({
+            url: json.secure_url,
+            thumbUrl: makeThumb(json.secure_url),
+            publicId: json.public_id,
+            createdBy: ''
+          });
+          uploadError.value = '';
+        } else {
+          // konkretes File-Fehler-Handling: ergänze Nachricht und setze weiter für restliche Dateien
+          uploadError.value = 'Einige Uploads konnten nicht durchgeführt werden.';
+          console.error('Upload failed for file', file, json);
+        }
+      } catch (e: any) {
+        uploadError.value = 'Upload fehlgeschlagen für mindestens eine Datei.';
+        console.error('uploadImage error', e);
       }
-    } catch (e: any) {
-      uploadError.value = 'Upload fehlgeschlagen';
-    } finally {
-      uploading.value = false;
     }
+
+    uploading.value = false;
   };
   input.click();
 }
+
 
 async function removeImg(img: { url: string; publicId: string }) {
   if (props.initial?.id) {
