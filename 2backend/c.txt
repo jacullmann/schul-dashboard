@@ -616,43 +616,49 @@ function goTab(t: ItemType) {
 .subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 
-/* Menu */
 .item-menu {
   position: absolute;
+  top: 100%;   /* direkt unter dem Trigger */
+  right: 0;
   min-width: 160px;
+
   background: rgba(26,26,26,0.95);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px;
-  display: flex;
-  flex-direction: column;
+
+  display: none;              /* standardmäßig unsichtbar */
+  flex-direction: column;     /* Buttons untereinander */
+  align-items: stretch;       /* volle Breite */
+
   gap: 6px;
-  top: 100%;   /* direkt unter dem Trigger */
-  right: 0;
+  z-index: 1000;
 
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
-
   transition: opacity 160ms ease, transform 160ms ease;
-  z-index: 1000;
 }
+
 .item-menu.open {
+  display: flex;              /* sichtbar machen */
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
-  display: block;
 }
 
 .menu-btn {
-  text-align:left;
+  display: block;             /* block statt inline */
+  width: 100%;                /* volle Breite */
+  text-align: left;
   background: transparent;
   border: none;
-  padding:8px;
+  padding: 8px;
   color: var(--text);
-  border-radius:8px;
-  cursor:pointer;
+  border-radius: 8px;
+  cursor: pointer;
 }
+
 .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
 .menu-btn.danger { background: var(--danger); color: white; }
 .menu-btn.warn { background: var(--warn); color: #1f1300; }

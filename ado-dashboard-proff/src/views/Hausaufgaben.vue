@@ -15,7 +15,7 @@
 
     <div class="announcements">
       <div class="announcements-head">
-        <h3 v-if="announcements.length" >Wichtige Ankündigungen</h3>
+        <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
         <button
             v-if="user?.isAdmin"
             class="btn ghost small-btn"
@@ -52,7 +52,7 @@
           <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
         </select>
 
-        <button v-if="user" class="btn" @click="showItemForm=true">Eintrag anlegen</button>
+        <button v-if="user" class="btn" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
           <div class="spinner" aria-hidden></div>
@@ -64,7 +64,12 @@
     </div>
 
     <div class="items">
-      <div v-for="item in filteredItems" :key="item.id" class="item-card" :class="{ collapsed: isChecked(item.id) }">
+      <div
+          v-for="item in limitedItems"
+          :key="item.id"
+          class="item-card"
+          :class="{ collapsed: isChecked(item.id) }"
+      >
         <div class="item-main">
           <div class="item-meta">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -105,7 +110,23 @@
         </div>
 
         <transition name="collapse">
-          <div v-show="!isChecked(item.id)" class="item-body">{{ item.description }}</div>
+          <div v-show="!isChecked(item.id)" class="item-body">
+            <span v-if="!isExpanded(item.id)">
+              {{ item.description.slice(0, 200) }}
+              <span v-if="item.description.length > 200">…</span>
+            </span>
+            <span v-else>
+              {{ item.description }}
+            </span>
+            <button
+                v-if="item.description.length > 200"
+                class="btn tiny ghost"
+                @click="toggleDescription(item.id)"
+                style="margin-left:8px;"
+            >
+              {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
+            </button>
+          </div>
         </transition>
 
         <transition name="collapse">
@@ -126,8 +147,28 @@
         </transition>
       </div>
 
+      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
+        Keine Einträge in der aktuellen Ansicht.
+      </div>
       <div v-if="!loading && !filteredItems.length" class="card empty">
         Keine Einträge gefunden.
+      </div>
+
+      <div v-if="filteredItems.length > 5" class="pagination-actions">
+        <button
+            v-if="visibleCount < filteredItems.length"
+            class="btn ghost"
+            @click="showMore"
+        >
+          Weitere 5 anzeigen
+        </button>
+        <button
+            v-if="visibleCount > 5"
+            class="btn ghost"
+            @click="showLess"
+        >
+          5 weniger anzeigen
+        </button>
       </div>
     </div>
 
@@ -137,8 +178,11 @@
         :type="tab"
         :subjects="subjects"
         :initial="itemToEdit"
+        :max-title-length="MAX_TITLE_LENGTH"
+        :max-subject-length="MAX_SUBJECT_LENGTH"
         @close="showItemForm=false"
         @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
+        @error="onItemFormError"
     />
     <AnnouncementForm
         v-if="showAnnouncementForm"
@@ -151,13 +195,13 @@
         @close="showImageFormFor=null"
         @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
     />
+
     <ConfirmDialog
         :show="showReportConfirm"
         message="Soll dieser Eintrag wirklich gemeldet werden?"
         @confirm="doReport"
         @cancel="showReportConfirm=false"
     />
-
   </div>
 </template>
 
@@ -172,7 +216,6 @@ import hw, { setHwToken } from '../hwApi';
 import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 
-
 export interface HwItem {
   id: string;
   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
@@ -184,6 +227,9 @@ export interface HwItem {
   createdBy: string;
   timeColor: string;
 }
+
+const MAX_TITLE_LENGTH = 100;
+const MAX_SUBJECT_LENGTH = 30;
 
 const showAuth = ref(false);
 const showItemForm = ref(false);
@@ -203,7 +249,31 @@ const isError = ref(false);
 
 // checkedItems holds item IDs that current user has checked
 const checkedItems = ref(new Set<string>());
-// ganz oben im <script setup>
+
+// description expand tracking
+const expandedDescriptions = ref<Set<string>>(new Set());
+function isExpanded(id: string) {
+  return expandedDescriptions.value.has(id);
+}
+function toggleDescription(id: string) {
+  if (expandedDescriptions.value.has(id)) {
+    expandedDescriptions.value.delete(id);
+  } else {
+    expandedDescriptions.value.add(id);
+  }
+}
+
+// pagination
+const visibleCount = ref(5);
+function showMore() {
+  visibleCount.value = Math.min(visibleCount.value + 5, filteredItems.value.length);
+}
+function showLess() {
+  visibleCount.value = Math.max(5, visibleCount.value - 5);
+}
+const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
+
+// confirm dialog state
 const showReportConfirm = ref(false)
 let reportTarget: HwItem | null = null
 
@@ -230,6 +300,11 @@ watch(() => route.params.type, (v) => {
   reload();
 });
 
+// reset pagination when filters change
+watch([subjectFilter, tab, items], () => {
+  visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+});
+
 // UI/helpers
 const colorFor = (color: string) => {
   const map: Record<string, string> = {
@@ -248,9 +323,7 @@ const filteredItems = computed(() => {
   return list;
 });
 
-
 const openMenuId = ref<string | null>(null);
-
 
 function toggleMenu(id: string) {
   openMenuId.value = openMenuId.value === id ? null : id;
@@ -263,11 +336,11 @@ function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwI
   if (action === 'delete') return deleteItem(item.id);
   if (action === 'report') return reportItem(item);
 }
+
 function reportItem(item: HwItem) {
   reportTarget = item
   showReportConfirm.value = true
 }
-
 
 function onDocumentClick(e: MouseEvent) {
   if (!openMenuId.value) return;
@@ -338,11 +411,13 @@ async function reload() {
   try {
     const { data } = await hw.get('/api/items', { params: { type: tab.value } });
     items.value = data;
-    // preserve checkedItems as-is; UI checks only existing items
+    // reset expansions on reload
+    expandedDescriptions.value = new Set();
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
     loading.value = false;
+    visibleCount.value = Math.min(5, filteredItems.value.length || 5);
   }
 }
 
@@ -372,6 +447,13 @@ function handleSuccess(msg: string) {
   reload();
 }
 
+// receive error from ItemForm (length limits etc.)
+function onItemFormError(msg: string) {
+  message.value = msg || 'Bitte Eingaben prüfen.';
+  isError.value = true;
+  setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+}
+
 function onLoggedIn(token: string) {
   setHwToken(token);
   showAuth.value = false;
@@ -387,6 +469,12 @@ function logout() {
 
 function editItem(item: HwItem) {
   itemToEdit.value = item;
+  showItemForm.value = true;
+}
+
+// open create with simple guard demonstrating max limits (frontend only)
+function openCreateForm() {
+  // optional: we could pre-check something here if needed
   showItemForm.value = true;
 }
 
@@ -426,7 +514,6 @@ async function doReport() {
   const item = reportTarget
   reportTarget = null
 
-  // dein bisheriger Code aus reportItem:
   message.value = 'Eintrag wird gemeldet...'
   isError.value = false
   const payload = {
@@ -443,7 +530,11 @@ async function doReport() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: `Item gemeldet\nID: ${payload.itemId}\nTitel: ${payload.itemTitle}\nGemeldet am: ${payload.reportedAt}\nMeldet von: ${payload.reporterEmail}`
+        message: `Item gemeldet
+ID: ${payload.itemId}
+Titel: ${payload.itemTitle}
+Gemeldet am: ${payload.reportedAt}
+Meldet von: ${payload.reporterEmail}`
       })
     })
     const data = await res.json().catch(() => ({}))
@@ -463,7 +554,6 @@ async function doReport() {
     setTimeout(() => { message.value = ''; isError.value = false }, 7000)
   }
 }
-
 
 function showImageForm(item: HwItem) {
   showImageFormFor.value = item;
@@ -515,8 +605,6 @@ function goTab(t: ItemType) {
 </script>
 
 <style scoped>
-/* Card tweaks (kept from original) */
-
 /* Header */
 .hw-header {
   display: flex;
@@ -616,9 +704,10 @@ function goTab(t: ItemType) {
 .subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 
+/* Dropdown menu */
 .item-menu {
   position: absolute;
-  top: 100%;   /* direkt unter dem Trigger */
+  top: 100%;
   right: 0;
   min-width: 160px;
 
@@ -627,9 +716,9 @@ function goTab(t: ItemType) {
   border-radius: 10px;
   padding: 8px;
 
-  display: none;              /* standardmäßig unsichtbar */
-  flex-direction: column;     /* Buttons untereinander */
-  align-items: stretch;       /* volle Breite */
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
 
   gap: 6px;
   z-index: 1000;
@@ -639,17 +728,16 @@ function goTab(t: ItemType) {
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
 }
-
 .item-menu.open {
-  display: flex;              /* sichtbar machen */
+  display: flex;
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
 .menu-btn {
-  display: block;             /* block statt inline */
-  width: 100%;                /* volle Breite */
+  display: block;
+  width: 100%;
   text-align: left;
   background: transparent;
   border: none;
@@ -658,7 +746,6 @@ function goTab(t: ItemType) {
   border-radius: 8px;
   cursor: pointer;
 }
-
 .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
 .menu-btn.danger { background: var(--danger); color: white; }
 .menu-btn.warn { background: var(--warn); color: #1f1300; }
@@ -718,5 +805,13 @@ function goTab(t: ItemType) {
   background: rgba(255,255,255,0.02);
   color: var(--text);
   transform: translateY(-1px);
+}
+
+/* Pagination actions */
+.pagination-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
 }
 </style>
