@@ -203,7 +203,11 @@ onBeforeUnmount(() => {
 }
 .user-info { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
 .user-email { font-weight:700; font-size:12px; color:var(--sub); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.user-sub { font-size:14px; color:var(--text); }
+.user-sub {
+  font-size: 18px;
+  font-weight: 600;
+  color:var(--text);
+}
 
 .close-x {
   background: transparent; border: none; color: var(--text); font-size:14px; cursor:pointer;
