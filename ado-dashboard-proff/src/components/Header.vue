@@ -63,7 +63,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonBack from './ButtonBack.vue';
-import MainLogo from '../assets/oki.svg'
+import MainLogo from '../assets/siegma.svg'
 
 const navOpen = ref(false);
 const route = useRoute();
@@ -154,7 +154,7 @@ onUnmounted(() => {
   display: flex; /* Aktiviert Flexbox */
   align-items: center; /* Zentriert die Elemente vertikal in der Mitte */
   text-decoration: none; /* Entfernt Unterstreichung (da es ein router-link ist) */
-  gap: 0.5rem; /* Fügt Abstand zwischen Logo und Text hinzu */
+  gap: 0.6rem; /* Fügt Abstand zwischen Logo und Text hinzu */
   color: #f1f1f1; /* Stellt die Textfarbe sicher */
   flex: 0 1 auto;
   justify-content: center; /* Zentriert die Gruppe im Header-Container */
