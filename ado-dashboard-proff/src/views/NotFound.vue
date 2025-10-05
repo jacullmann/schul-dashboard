@@ -61,4 +61,8 @@ function goBack() {
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
+.btn:hover {
+  background-color: darkgrey;
+}
+
 </style>

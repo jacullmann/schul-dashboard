@@ -1,312 +1,3 @@
-<template>
-  <div class="card">
-    <h2 style="margin-top:0;">Namenskürzel Finder</h2>
-    <p class="small">Gib links ein Kürzel oder einen Namen ein. Rechts erscheint automatisch das Ergebnis.</p>
-
-    <div class="row">
-      <!-- Input -->
-      <div class="col">
-        <input
-            v-model="inputValue"
-            class="input"
-            :placeholder="mode==='shortToName' ? 'z. B. mü, gl...' : 'z. B. Frau Glier, Herr Müller...'"
-        />
-        <div v-if="mode==='nameToShort' && suggestion && !outputValue" class="suggestion">
-          Meintest du vielleicht <span @click="applySuggestion" class="suggestion-link">{{ suggestion }}</span>?
-        </div>
-      </div>
-
-      <!-- Switch Button -->
-      <div class="switch-col">
-        <button
-            class="switch-btn"
-            :class="{ rotated: isRotated }"
-            @click="toggleMode"
-            title="Richtung wechseln"
-        >
-          <!-- Minimalistisches SVG Icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="switch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M4 12h16M12 4l8 8-8 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <div class="mode-label">
-          {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
-        </div>
-      </div>
-
-      <!-- Output -->
-      <div class="col">
-        <input
-            class="input"
-            :value="outputValue"
-            readonly
-        />
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-
-const persons = [
-  { name: 'Müller',       title: 'Herr', short: 'Mü' },
-  { name: 'Schmidt',      title: 'Frau', short: 'Sc' },
-  { name: 'Schneider',    title: 'Herr', short: 'Sc' },
-  { name: 'Fischer',      title: 'Frau', short: 'Fi' },
-  { name: 'Weber',        title: 'Herr', short: 'We' },
-  { name: 'Meyer',        title: 'Frau', short: 'Me' },
-  { name: 'Wagner',       title: 'Herr', short: 'Wa' },
-  { name: 'Becker',       title: 'Frau', short: 'Be' },
-  { name: 'Schulz',       title: 'Herr', short: 'Sc' },
-  { name: 'Hoffmann',     title: 'Frau', short: 'Ho' },
-  { name: 'Schäfer',      title: 'Herr', short: 'Sc' },
-  { name: 'Bauer',        title: 'Frau', short: 'Ba' },
-  { name: 'Richter',      title: 'Herr', short: 'Ri' },
-  { name: 'Klein',        title: 'Frau', short: 'Kl' },
-  { name: 'Wolf',         title: 'Herr', short: 'Wo' },
-  { name: 'Schröder',     title: 'Frau', short: 'Sc' },
-  { name: 'Neumann',      title: 'Herr', short: 'Ne' },
-  { name: 'Schwarz',      title: 'Frau', short: 'Sc' },
-  { name: 'Zimmermann',   title: 'Herr', short: 'Zi' },
-  { name: 'Braun',        title: 'Frau', short: 'Br' },
-  { name: 'Krüger',       title: 'Herr', short: 'Kr' },
-  { name: 'Hartmann',     title: 'Frau', short: 'Ha' },
-  { name: 'Lange',        title: 'Herr', short: 'La' },
-  { name: 'Schmitt',      title: 'Frau', short: 'Sc' },
-  { name: 'Werner',       title: 'Herr', short: 'We' },
-  { name: 'Krause',       title: 'Frau', short: 'Kr' },
-  { name: 'Meier',        title: 'Herr', short: 'Me' },
-  { name: 'Lehmann',      title: 'Frau', short: 'Le' },
-  { name: 'Schmid',       title: 'Herr', short: 'Sc' },
-  { name: 'Schulze',      title: 'Frau', short: 'Sc' },
-  { name: 'Maier',        title: 'Herr', short: 'Ma' },
-  { name: 'Köhler',       title: 'Frau', short: 'Kö' },
-  { name: 'Herrmann',     title: 'Herr', short: 'He' },
-  { name: 'König',        title: 'Frau', short: 'Kö' },
-  { name: 'Walter',       title: 'Herr', short: 'Wa' },
-  { name: 'Mayer',        title: 'Frau', short: 'Ma' },
-  { name: 'Kaiser',       title: 'Herr', short: 'Ka' },
-  { name: 'Fuchs',        title: 'Frau', short: 'Fu' },
-  { name: 'Peters',       title: 'Herr', short: 'Pe' },
-  { name: 'Keller',       title: 'Frau', short: 'Ke' },
-  { name: 'Günther',      title: 'Herr', short: 'Gü' },
-  { name: 'Voigt',        title: 'Frau', short: 'Vo' },
-  { name: 'Horn',         title: 'Herr', short: 'Ho' },
-  { name: 'Beck',         title: 'Frau', short: 'Be' },
-  { name: 'Jung',         title: 'Herr', short: 'Ju' },
-  { name: 'Frank',        title: 'Frau', short: 'Fr' },
-  { name: 'Kranz',        title: 'Herr', short: 'Kr' },
-  { name: 'Älbrecht',     title: 'Frau', short: 'Al' },
-  { name: 'Voß',          title: 'Herr', short: 'Vo' },
-  { name: 'Seidel',       title: 'Frau', short: 'Se' },
-  { name: 'Winkler',      title: 'Herr', short: 'Wi' },
-  { name: 'Busch',        title: 'Frau', short: 'Bu' },
-  { name: 'Kleinert',     title: 'Herr', short: 'Kl' },
-  { name: 'Brandt',       title: 'Frau', short: 'Br' },
-  { name: 'Stark',        title: 'Herr', short: 'St' },
-  { name: 'Roth',         title: 'Frau', short: 'Ro' },
-  { name: 'Vogel',        title: 'Herr', short: 'Vo' },
-  { name: 'Jäger',        title: 'Frau', short: 'Jä' },
-  { name: 'Otto',         title: 'Herr', short: 'Ot' },
-  { name: 'Schuster',     title: 'Frau', short: 'Sc' },
-  { name: 'Stein',        title: 'Herr', short: 'St' },
-  { name: 'Berg',         title: 'Frau', short: 'Be' },
-  { name: 'Baumann',      title: 'Herr', short: 'Ba' },
-  { name: 'Ziegler',      title: 'Frau', short: 'Zi' },
-  { name: 'Zimmer',       title: 'Herr', short: 'Zi' },
-  { name: 'Kuhn',         title: 'Frau', short: 'Ku' },
-  { name: 'Rudolf',       title: 'Herr', short: 'Ru' },
-  { name: 'Marx',         title: 'Frau', short: 'Ma' },
-  { name: 'Berger',       title: 'Herr', short: 'Be' },
-  { name: 'Fink',         title: 'Frau', short: 'Fi' },
-  { name: 'Arnold',       title: 'Herr', short: 'Ar' },
-  { name: 'Winter',       title: 'Frau', short: 'Wi' },
-  { name: 'Schwarzmann',  title: 'Herr', short: 'Sc' },
-  { name: 'Abraham',      title: 'Frau', short: 'Ab' },
-  { name: 'Appel',        title: 'Herr', short: 'Ap' },
-  { name: 'Bender',       title: 'Frau', short: 'Be' },
-  { name: 'Barth',        title: 'Herr', short: 'Ba' },
-  { name: 'Baum',         title: 'Frau', short: 'Ba' },
-  { name: 'Bock',         title: 'Herr', short: 'Bo' },
-  { name: 'Döring',       title: 'Frau', short: 'Dö' },
-  { name: 'Engel',        title: 'Herr', short: 'En' },
-  { name: 'Faber',        title: 'Frau', short: 'Fa' },
-  { name: 'Gärtner',      title: 'Herr', short: 'Gä' },
-  { name: 'Hahn',         title: 'Frau', short: 'Ha' },
-  { name: 'Ihle',         title: 'Herr', short: 'Ih' },
-  { name: 'Jansen',       title: 'Frau', short: 'Ja' },
-  { name: 'Klode',        title: 'Herr', short: 'Kl' },
-  { name: 'Lenz',         title: 'Frau', short: 'Le' },
-  { name: 'Maas',         title: 'Herr', short: 'Ma' },
-  { name: 'Nestle',       title: 'Frau', short: 'Ne' },
-  { name: 'Oster',        title: 'Herr', short: 'Os' },
-  { name: 'Pohl',         title: 'Frau', short: 'Po' },
-  { name: 'Quandt',       title: 'Herr', short: 'Qu' },
-  { name: 'Rau',          title: 'Frau', short: 'Ra' },
-  { name: 'Sohn',         title: 'Herr', short: 'So' },
-  { name: 'Ullrich',      title: 'Frau', short: 'Ul' },
-  { name: 'Vogt',         title: 'Herr', short: 'Vo' },
-  { name: 'Warnke',       title: 'Frau', short: 'Wa' },
-  { name: 'Xaver',        title: 'Herr', short: 'Xa' },
-  { name: 'Yilmaz',       title: 'Frau', short: 'Yi' }
-]
-
-const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
-const inputValue = ref('')
-const suggestion = ref('')
-const isRotated = ref(false)
-
-function normalize(str: string) {
-  return str
-      .toLowerCase()
-      .replace(/\s+/g, '')
-      .replace(/ä/g, 'ae')
-      .replace(/ö/g, 'oe')
-      .replace(/ü/g, 'ue')
-      .replace(/ß/g, 'ss')
-}
-
-function editDistance(a: string, b: string) {
-  const matrix: number[][] = []
-  let i, j
-  for (i = 0; i <= b.length; i++) matrix[i] = [i]
-  for (j = 0; j <= a.length; j++) matrix[0][j] = j
-  for (i = 1; i <= b.length; i++) {
-    for (j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1]
-      } else {
-        matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-        )
-      }
-    }
-  }
-  return matrix[b.length][a.length]
-}
-
-function similarity(a: string, b: string) {
-  const longer = a.length > b.length ? a : b
-  const shorter = a.length > b.length ? b : a
-  const longerLength = longer.length
-  if (longerLength === 0) return 1.0
-  return (longerLength - editDistance(longer, shorter)) / longerLength
-}
-
-const outputValue = computed(() => {
-  const q = normalize(inputValue.value)
-  suggestion.value = ''
-
-  if (!q) return ''
-
-  if (mode.value === 'shortToName') {
-    const match = persons.find(p => normalize(p.short) === q)
-    return match ? `${match.title} ${match.name}` : ''
-  } else {
-    const match = persons.find(p => normalize(p.title + p.name) === q)
-    if (match) return match.short
-
-    let best: { person: any; score: number } | null = null
-    persons.forEach(p => {
-      const score = similarity(q, normalize(p.title + p.name))
-      if (!best || score > best.score) {
-        best = { person: p, score }
-      }
-    })
-    if (best && best.score > 0.5) {
-      suggestion.value = `${best.person.title} ${best.person.name}`
-    }
-    return ''
-  }
-})
-
-function applySuggestion() {
-  if (suggestion.value) {
-    inputValue.value = suggestion.value
-    suggestion.value = ''
-  }
-}
-
-function toggleMode() {
-  isRotated.value = !isRotated.value
-  mode.value = mode.value === 'shortToName' ? 'nameToShort' : 'shortToName'
-  inputValue.value = ''
-}
-</script>
-
-<style scoped>
-.row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.col {
-  flex: 1;
-  min-width: 280px;
-}
-.switch-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.switch-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: background 0.3s;
-}
-.switch-btn:hover {
-  background: #ff6a00;
-}
-.switch-icon {
-  width: 22px;
-  height: 22px;
-  transition: transform 0.6s ease-in-out;
-}
-.switch-btn.rotated .switch-icon {
-  transform: rotate(180deg);
-}
-.mode-label {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #aaa;
-  text-align: center;
-}
-.input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  background: #2a2a2a;
-  color: #fff;
-}
-.suggestion {
-  margin-top: 8px;
-  color: var(--danger);
-  font-style: italic;
-}
-.suggestion-link {
-  cursor: pointer;
-  color: var(--primary);
-  font-weight: bold;
-  margin-left: 4px;
-}
-</style>
-
-
-
 globale styles:
 :root {
     --bg: #0f0f0f;
@@ -383,3 +74,150 @@ footer {
     z-index: -1;
 
 }
+
+backngroud: export default class AnimatedBackground {
+                private canvas: HTMLCanvasElement;
+                private ctx: CanvasRenderingContext2D;
+                private grainCanvas: HTMLCanvasElement;
+                private grainCtx: CanvasRenderingContext2D;
+                private shift: number = 0;
+                private offsetX: number = 0;
+                private offsetY: number = 0;
+                private directionX: number = 0.3;
+                private directionY: number = 0.2;
+                private palette: string[] = [
+                    "#FF7A00",
+                    "#FF2D95",
+                    "#A020F0",
+                    "#3A0CA3"
+                ];
+
+                constructor(canvasId: string) {
+                    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+                    this.ctx = this.canvas.getContext("2d")!;
+                    this.grainCanvas = document.createElement("canvas");
+                    this.grainCtx = this.grainCanvas.getContext("2d")!;
+                    this.resize();
+                    this.generateGrain();
+                    window.addEventListener("resize", () => {
+                        this.resize();
+                        this.generateGrain();
+                    });
+                    this.animate();
+                }
+
+                private resize() {
+                    this.canvas.width = window.innerWidth;
+                    this.canvas.height = window.innerHeight;
+                    this.grainCanvas.width = window.innerWidth;
+                    this.grainCanvas.height = window.innerHeight;
+                }
+
+                private generateGrain() {
+                    const imageData = this.grainCtx.createImageData(
+                        this.grainCanvas.width,
+                        this.grainCanvas.height
+                    );
+                    for (let i = 0; i < imageData.data.length; i += 4) {
+                        const val = Math.random() * 255;
+                        imageData.data[i] = val;
+                        imageData.data[i + 1] = val;
+                        imageData.data[i + 2] = val;
+                        imageData.data[i + 3] = 0;
+                    }
+                    this.grainCtx.putImageData(imageData, 0, 0);
+                }
+
+                private animate = () => {
+                    const { width, height } = this.canvas;
+                    this.offsetX += this.directionX;
+                    this.offsetY += this.directionY;
+                    if (this.offsetX > width * 0.2 || this.offsetX < -width * 0.2) this.directionX *= -1;
+                    if (this.offsetY > height * 0.2 || this.offsetY < -height * 0.2) this.directionY *= -1;
+
+                    const gradient = this.ctx.createLinearGradient(
+                        this.offsetX,
+                        this.offsetY,
+                        width + this.offsetX,
+                        height + this.offsetY
+                    );
+                    gradient.addColorStop(0, this.palette[0]);
+                    gradient.addColorStop(0.33, this.palette[1]);
+                    gradient.addColorStop(0.66, this.palette[2]);
+                    gradient.addColorStop(1, this.palette[3]);
+
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(0, 0, width, height);
+                    this.ctx.drawImage(this.grainCanvas, 0, 0, width, height);
+                    requestAnimationFrame(this.animate);
+                };
+            }
+
+
+
+
+komponente(soll neu gemahct werden): <template>
+                                       <div class="notfound-wrap">
+                                         <h1 class="title">404</h1>
+                                         <p class="subtitle">Seite nicht gefunden</p>
+                                         <div class="actions">
+                                           <button class="btn" @click="goHome">Zur Startseite</button>
+                                           <button class="btn ghost" @click="goBack">Zurück</button>
+                                         </div>
+                                       </div>
+                                     </template>
+
+                                     <script setup lang="ts">
+                                     function goHome() {
+                                       window.location.href = '/'
+                                     }
+                                     function goBack() {
+                                       window.history.length > 1 ? window.history.back() : (window.location.href = '/')
+                                     }
+                                     </script>
+
+                                     <style scoped>
+                                     .notfound-wrap {
+                                       position: relative;
+                                       width: 100vw;
+                                       height: 100vh;
+                                       background: transparent; /* kein eigener Hintergrund */
+                                       display: flex;
+                                       flex-direction: column;
+                                       align-items: center;
+                                       padding-top: 10vh;
+                                     }
+
+                                     .title {
+                                       font-size: clamp(84px, 18vw, 190px);
+                                       font-weight: 900;
+                                       margin: 0;
+                                       color: var(--text);
+                                       letter-spacing: 2px;
+                                     }
+
+                                     .subtitle {
+                                       font-size: clamp(25px, 4vw, 32px);
+                                       color: var(--text);
+                                       margin: 12px 0 32px 0;
+                                     }
+
+                                     .actions {
+                                       display: flex;
+                                       gap: 16px;
+                                     }
+
+                                     .btn {
+                                       padding: 12px 20px;
+                                       border-radius: 6px;
+                                       border: none;
+                                       cursor: pointer;
+                                       font-weight: 600;
+                                       font-size: 16px;
+                                       background: white;
+                                       color: #111827;
+                                       transition: background 0.2s ease, transform 0.2s ease;
+                                     }
+
+                                     </style>
+
