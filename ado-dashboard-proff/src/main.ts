@@ -47,7 +47,6 @@ router.beforeEach(async (to, from, next) => {
 });
 
 function setupCookieConsentListeners() {
-    // Prüfe localStorage consent nur wenn eingeloggt
     const consent = localStorage.getItem('cookie_consent');
     if (consent) {
         const parsed = JSON.parse(consent);
@@ -64,7 +63,6 @@ app.directive('ga-event', gaDirective);
 app.use(createPinia());
 app.use(router);
 
-// reaktives Login-Signal optional über window events im App.vue
 window.addEventListener('site-logged-in', () => { setupCookieConsentListeners(); });
 window.addEventListener('site-logged-out', () => { removeAnalytics(); });
 

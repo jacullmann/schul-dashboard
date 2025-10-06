@@ -61,9 +61,9 @@ async function logout() {
     await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
   } catch { /* ignore */ }
   window.dispatchEvent(new Event('site-logged-out'));
-  // redirect to login
   router.push('/login');
 }
+
 
 
 function handleClick() {

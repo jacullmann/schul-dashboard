@@ -40,7 +40,6 @@ async function submit() {
       loading.value = false;
       return;
     }
-    // Erfolg: Backend hat HttpOnly-Cookie gesetzt
     window.dispatchEvent(new Event('site-logged-in'));
     router.replace('/');
   } catch (e) {

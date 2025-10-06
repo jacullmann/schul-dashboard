@@ -1,4 +1,3 @@
-// server.js
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -32,7 +31,6 @@ if (!SENDGRID_API_KEY) {
     sgClient.setApiKey(SENDGRID_API_KEY);
     (async () => {
         try {
-            // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
             await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
             console.log('SendGrid API erreichbar und konfiguriert.');
         } catch (err) {
@@ -81,65 +79,8 @@ function requireAuthForAccess(req, res, next) {
     if (token && verifyAccessToken(token)) return next();
     return sendJSONError(res, 401, 'Unauthorized');
 }
-
-// Public endpoint: check if access cookie valid
-app.get('/api/auth/access/verify', (req, res) => {
-    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
-    if (token && verifyAccessToken(token)) return res.json({ ok: true });
-    return sendJSONError(res, 401, 'Unauthorized');
-});
-
-// Login with site password (sets HttpOnly cookie)
-// Use credentials include on frontend
-app.post('/api/auth/access', accessLimiter,
-    body('password').isString().isLength({ min: 1 }),
-    validate,
-    async (req, res) => {
-        if (!APP_ACCESS_PASSWORD) return sendJSONError(res, 500, 'Access password not configured');
-        const pwd = req.body.password || '';
-        // constant-time compare
-        try {
-            const a = Buffer.from(pwd);
-            const b = Buffer.from(APP_ACCESS_PASSWORD);
-            // ensure same length for timingSafeEqual: pad if needed
-            const len = Math.max(a.length, b.length);
-            const aa = Buffer.alloc(len);
-            const bb = Buffer.alloc(len);
-            a.copy(aa);
-            b.copy(bb);
-            const ok = crypto.timingSafeEqual(aa, bb);
-            if (!ok) return sendJSONError(res, 401, 'Unauthorized');
-        } catch {
-            return sendJSONError(res, 401, 'Unauthorized');
-        }
-
-        const token = signAccessToken();
-        res.cookie(ACCESS_COOKIE_NAME, token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: ACCESS_COOKIE_MAX_AGE
-        });
-        return res.json({ ok: true });
-    }
-);
-
-// Logout: clear cookie
-app.post('/api/auth/access/logout', requireAuthForAccess, (req, res) => {
-    res.clearCookie(ACCESS_COOKIE_NAME);
-    res.json({ ok: true });
-});
-
-// Optional: protect all /api endpoints except /api/auth/*
-// Place this AFTER your /api/auth routes are defined so login/verify/logout remain public.
-app.use('/api', (req, res, next) => {
-    if (req.path.startsWith('/auth')) return next();
-    // If you want APIs to be accessible only after site login, enforce cookie:
-    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
-    if (token && verifyAccessToken(token)) return next();
-    return sendJSONError(res, 401, 'Unauthorized');
-});
 // --- END: Site access ---
+
 
 // Mongo
 await mongoose.connect(process.env.MONGODB_URI);
@@ -204,9 +145,6 @@ const ItemSchema = new mongoose.Schema({
 const Item = mongoose.model('HwItem', ItemSchema);
 
 // New model: KeepChecked
-// Purpose: record which users have "checked" (collapsed/marked) which items
-// Each document represents a single check action (itemId + userId + timestamp).
-// This avoids modifying the original Item documents and keeps a separate, append-only-like list.
 const KeepCheckedSchema = new mongoose.Schema({
     itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
@@ -659,7 +597,6 @@ app.post('/api/items/:id/check',
         try {
             const item = await Item.findById(req.params.id);
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-            // upsert single document (unique compound index prevents duplicates)
             await KeepChecked.updateOne(
                 { itemId: item._id, userId: req.user.sub },
                 { $setOnInsert: { checkedAt: new Date() } },
@@ -710,9 +647,59 @@ app.delete('/api/auth/me', requireAuth, async (req, res) => {
     }
 });
 
+// --- Site access endpoints (login/verify/logout) ---
+// Verify access cookie
+app.get('/api/auth/access/verify', (req, res) => {
+    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
+    if (token && verifyAccessToken(token)) return res.json({ ok: true });
+    return sendJSONError(res, 401, 'Unauthorized');
+});
 
+// Login with site password
+app.post('/api/auth/access', accessLimiter,
+    body('password').isString().isLength({ min: 1 }),
+    validate,
+    async (req, res) => {
+        if (!APP_ACCESS_PASSWORD) return sendJSONError(res, 500, 'Access password not configured');
+        const pwd = req.body.password || '';
+        try {
+            const a = Buffer.from(pwd);
+            const b = Buffer.from(APP_ACCESS_PASSWORD);
+            const len = Math.max(a.length, b.length);
+            const aa = Buffer.alloc(len);
+            const bb = Buffer.alloc(len);
+            a.copy(aa);
+            b.copy(bb);
+            const ok = crypto.timingSafeEqual(aa, bb);
+            if (!ok) return sendJSONError(res, 401, 'Unauthorized');
+        } catch {
+            return sendJSONError(res, 401, 'Unauthorized');
+        }
 
+        const token = signAccessToken();
+        res.cookie(ACCESS_COOKIE_NAME, token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: ACCESS_COOKIE_MAX_AGE
+        });
+        return res.json({ ok: true });
+    }
+);
 
+// Logout: clear cookie
+app.post('/api/auth/access/logout', requireAuthForAccess, (req, res) => {
+    res.clearCookie(ACCESS_COOKIE_NAME);
+    res.json({ ok: true });
+});
+
+// Optional: protect all /api endpoints except /api/auth/*
+app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/auth')) return next();
+    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
+    if (token && verifyAccessToken(token)) return next();
+    return sendJSONError(res, 401, 'Unauthorized');
+});
 
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));

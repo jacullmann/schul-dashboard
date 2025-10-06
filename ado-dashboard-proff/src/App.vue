@@ -20,7 +20,9 @@
       Zurück
     </ButtonBack>
     <Footer />
-    <CookieBanner />
+    <!-- ersetze: <CookieBanner /> -->
+    <CookieBanner v-if="siteLoggedIn" />
+
 
   </div>
 </template>
@@ -42,12 +44,10 @@ let loadStartTime = 0;
 
 onMounted(async () => {
   new AnimatedBackground('animated-background');
-  // initial check if already logged in
   try {
     const res = await fetch('/api/auth/access/verify', { method: 'GET', credentials: 'include' });
     siteLoggedIn.value = res.ok;
     if (siteLoggedIn.value) {
-      // Trigger cookie-consent init in main.ts via event
       window.dispatchEvent(new Event('site-logged-in'));
     }
   } catch { siteLoggedIn.value = false; }
@@ -69,6 +69,7 @@ router.afterEach(() => {
 window.addEventListener('site-logged-in', () => { siteLoggedIn.value = true; });
 window.addEventListener('site-logged-out', () => { siteLoggedIn.value = false; });
 </script>
+
 
 
 <style scoped>
