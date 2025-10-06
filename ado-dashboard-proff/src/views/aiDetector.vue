@@ -21,59 +21,33 @@ const SATIRICAL_OVERFLOW_MAX_DEG = 220; // Maximaler Winkel für den satirischen
  * Wird nur einmal ausgelöst, wenn der Wert 100% überschreitet.
  */
 function playSirenTone(): void {
-  // Überprüfen, ob die Audio Context API verfügbar ist.
-  let AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-  if (!AudioContext) {
-    console.warn("AudioContext nicht verfügbar. Sirenensound kann nicht abgespielt werden.");
-    return;
-  }
+  // WICHTIG: Die Audiodatei (z.B. 'siren.mp3') muss im 'public'-Verzeichnis
+  // des Projekts abgelegt werden, um über diesen Root-Pfad gefunden zu werden.
+  // Die Deklaration wurde auf 'let' umgestellt, um Kompilierungsfehler zu vermeiden.
+  let sirenUrl = "/siren.mp3";
 
   try {
-    const audioContext = new AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    const now = audioContext.currentTime;
-    const duration = 30; // Die gewünschten 30 Sekunden Dauer
+    // Erstellung des Audio-Objekts
+    let audio = new Audio(sirenUrl); // Deklaration auf 'let' umgestellt
 
-    // Verbindung der Audio-Nodes
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
+    // Die Lautstärke etwas erhöhen (Wertebereich 0.0 bis 1.0)
+    audio.volume = 0.6;
 
-    // Oszillator-Einstellungen
-    oscillator.type = 'sawtooth'; // Sägezahn klingt scharf und dominant
-    const maxGain = 0.3; // Etwas lauter als zuvor für mehr Drama
+    // Spielen Sie den Ton ab. catch() fängt Fehler ab, falls der Browser
+    // die automatische Wiedergabe blockiert oder die URL ungültig ist.
+    audio.play().catch(e => {
+      console.error("Fehler beim Abspielen des Sounds. Stellen Sie sicher, dass der Pfad zur Datei korrekt ist und der Browser die automatische Wiedergabe erlaubt.", e);
+    });
 
-    // Lautstärke-Regelung
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(maxGain, now + 0.2); // Schnell auf volle Lautstärke
-    gainNode.gain.setValueAtTime(maxGain, now + 0.2); // Halte die Lautstärke konstant
-    gainNode.gain.linearRampToValueAtTime(0.0001, now + duration + 1.0); // Langsames Ausfaden über 1 Sekunde
-
-    // Frequenz-Sweep (Konstantes, bedrohliches Wogen 400Hz <-> 800Hz)
-    const freqLow = 400;
-    const freqHigh = 800;
-    const sweepCycleTime = 1.5; // Ein voller Sweep-Zyklus (Hoch und Runter) dauert 1.5 Sekunden
-
-    // Setze Startfrequenz
-    oscillator.frequency.setValueAtTime(freqLow, now);
-
-    // Erzeuge den sich wiederholenden Frequenz-Sweep für 30 Sekunden
-    const numCycles = Math.floor(duration / sweepCycleTime);
-
-    for (let i = 0; i < numCycles * 2; i++) {
-      const time = now + i * sweepCycleTime / 2;
-      const targetFreq = i % 2 === 0 ? freqHigh : freqLow; // Wechselt zwischen Hoch und Tief
-      oscillator.frequency.linearRampToValueAtTime(targetFreq, time + sweepCycleTime / 2);
-    }
-
-    oscillator.start(now);
-    oscillator.stop(now + duration + 1.0); // Stoppe nach 31 Sekunden, um das Ausfaden zu ermöglichen
-
-    // Context nach Tonende schließen
-    setTimeout(() => audioContext.close(), (duration + 1.5) * 1000);
+    // Setzen Sie einen Timeout, um den Ton nach 30 Sekunden zu stoppen.
+    // (Falls Ihre Sounddatei länger ist als 30 Sekunden)
+    setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0; // Setzt die Zeit auf 0 zurück
+    }, 30000); // 30.000 Millisekunden = 30 Sekunden
 
   } catch (e) {
-    console.warn("Fehler beim Abspielen des Sirenensounds (ggf. Browser-Einschränkung):", e);
+    console.warn("Fehler beim Erstellen des Audio-Objekts:", e);
   }
 }
 
