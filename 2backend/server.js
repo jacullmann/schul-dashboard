@@ -49,6 +49,98 @@ app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
+// --- START: Site access (password gate, cookies, brute-force limiter) ---
+const APP_ACCESS_PASSWORD = process.env.APP_ACCESS_PASSWORD || null;
+const ACCESS_COOKIE_NAME = process.env.APP_ACCESS_COOKIE_NAME || 'app_access';
+const ACCESS_COOKIE_SECRET = process.env.APP_ACCESS_COOKIE_SECRET || (process.env.JWT_SECRET || 'change-me');
+const ACCESS_COOKIE_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30 Tage in ms
+
+const accessLimiter = rateLimit({
+    windowMs: 15 * 60_000, // 15 Minuten
+    max: 10,                // max 10 Versuche pro IP pro window
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res) => res.status(429).json({ error: 'Zu viele Anmeldeversuche, bitte später erneut.' })
+});
+
+function signAccessToken() {
+    return jwt.sign({ v: true }, ACCESS_COOKIE_SECRET, { expiresIn: '30d' });
+}
+
+function verifyAccessToken(token) {
+    try {
+        const p = jwt.verify(token, ACCESS_COOKIE_SECRET);
+        return !!p?.v;
+    } catch {
+        return false;
+    }
+}
+
+function requireAuthForAccess(req, res, next) {
+    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
+    if (token && verifyAccessToken(token)) return next();
+    return sendJSONError(res, 401, 'Unauthorized');
+}
+
+// Public endpoint: check if access cookie valid
+app.get('/api/auth/access/verify', (req, res) => {
+    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
+    if (token && verifyAccessToken(token)) return res.json({ ok: true });
+    return sendJSONError(res, 401, 'Unauthorized');
+});
+
+// Login with site password (sets HttpOnly cookie)
+// Use credentials include on frontend
+app.post('/api/auth/access', accessLimiter,
+    body('password').isString().isLength({ min: 1 }),
+    validate,
+    async (req, res) => {
+        if (!APP_ACCESS_PASSWORD) return sendJSONError(res, 500, 'Access password not configured');
+        const pwd = req.body.password || '';
+        // constant-time compare
+        try {
+            const a = Buffer.from(pwd);
+            const b = Buffer.from(APP_ACCESS_PASSWORD);
+            // ensure same length for timingSafeEqual: pad if needed
+            const len = Math.max(a.length, b.length);
+            const aa = Buffer.alloc(len);
+            const bb = Buffer.alloc(len);
+            a.copy(aa);
+            b.copy(bb);
+            const ok = crypto.timingSafeEqual(aa, bb);
+            if (!ok) return sendJSONError(res, 401, 'Unauthorized');
+        } catch {
+            return sendJSONError(res, 401, 'Unauthorized');
+        }
+
+        const token = signAccessToken();
+        res.cookie(ACCESS_COOKIE_NAME, token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: ACCESS_COOKIE_MAX_AGE
+        });
+        return res.json({ ok: true });
+    }
+);
+
+// Logout: clear cookie
+app.post('/api/auth/access/logout', requireAuthForAccess, (req, res) => {
+    res.clearCookie(ACCESS_COOKIE_NAME);
+    res.json({ ok: true });
+});
+
+// Optional: protect all /api endpoints except /api/auth/*
+// Place this AFTER your /api/auth routes are defined so login/verify/logout remain public.
+app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/auth')) return next();
+    // If you want APIs to be accessible only after site login, enforce cookie:
+    const token = req.cookies?.[ACCESS_COOKIE_NAME] || null;
+    if (token && verifyAccessToken(token)) return next();
+    return sendJSONError(res, 401, 'Unauthorized');
+});
+// --- END: Site access ---
+
 // Mongo
 await mongoose.connect(process.env.MONGODB_URI);
 

@@ -31,25 +31,27 @@ import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import AnimatedBackground from './utils/animated-background.ts';
-import CookieBanner from "./components/CookieBanner.vue"
-
-
+import CookieBanner from "./components/CookieBanner.vue";
 
 const loading = ref(false);
 const router = useRouter();
+const siteLoggedIn = ref(false);
 
-
-
-// Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
 const MIN_LOAD_TIME = 0;
 let loadStartTime = 0;
 
-onMounted(() => {
+onMounted(async () => {
   new AnimatedBackground('animated-background');
+  // initial check if already logged in
+  try {
+    const res = await fetch('/api/auth/access/verify', { method: 'GET', credentials: 'include' });
+    siteLoggedIn.value = res.ok;
+    if (siteLoggedIn.value) {
+      // Trigger cookie-consent init in main.ts via event
+      window.dispatchEvent(new Event('site-logged-in'));
+    }
+  } catch { siteLoggedIn.value = false; }
 });
-
-
-
 
 router.beforeEach(() => {
   loading.value = true;
@@ -59,16 +61,15 @@ router.beforeEach(() => {
 router.afterEach(() => {
   const elapsedTime = Date.now() - loadStartTime;
   const remainingTime = MIN_LOAD_TIME - elapsedTime;
-
   if (remainingTime > 0) {
-    setTimeout(() => {
-      loading.value = false;
-    }, remainingTime);
-  } else {
-    loading.value = false;
-  }
+    setTimeout(() => { loading.value = false; }, remainingTime);
+  } else { loading.value = false; }
 });
+
+window.addEventListener('site-logged-in', () => { siteLoggedIn.value = true; });
+window.addEventListener('site-logged-out', () => { siteLoggedIn.value = false; });
 </script>
+
 
 <style scoped>
 /*

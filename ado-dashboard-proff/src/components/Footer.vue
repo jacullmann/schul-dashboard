@@ -29,7 +29,7 @@
 
 
 
-        <button  class="secret-btn">Hilfe</button>
+        <button  @click="logout" class="secret-btn">Logout</button>
 
       </div>
     </div>
@@ -56,6 +56,15 @@ let timer: number | null = null;
 function openCookieBanner() {
   window.dispatchEvent(new CustomEvent('open-cookie-banner'))
 }
+async function logout() {
+  try {
+    await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
+  } catch { /* ignore */ }
+  window.dispatchEvent(new Event('site-logged-out'));
+  // redirect to login
+  router.push('/login');
+}
+
 
 function handleClick() {
   clickCount.value++;

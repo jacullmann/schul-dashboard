@@ -20,6 +20,7 @@ const Kontakt = () => import('./components/ContactForm.vue')
 const router = createRouter({
     history: createWebHistory(),
     routes: [
+        { path: '/login', component: () => import('../views/Login.vue') },
         { path: '/', redirect: '/items/HAUSAUFGABE' },
         { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true },
         { path: '/bewerten', component: Home },
