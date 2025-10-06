@@ -29,7 +29,7 @@
 
 
 
-        <button  @click="logout" class="secret-btn">Logout</button>
+        <button   class="secret-btn">Logout</button>
 
       </div>
     </div>
@@ -56,13 +56,13 @@ let timer: number | null = null;
 function openCookieBanner() {
   window.dispatchEvent(new CustomEvent('open-cookie-banner'))
 }
-async function logout() {
-  try {
-    await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
-  } catch { /* ignore */ }
-  window.dispatchEvent(new Event('site-logged-out'));
-  router.push('/login');
-}
+//async function logout() {
+  //try {
+    //await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
+  //} catch { /* ignore */ }
+  //window.dispatchEvent(new Event('site-logged-out'));
+  //router.push('/login');
+//}
 
 
 
