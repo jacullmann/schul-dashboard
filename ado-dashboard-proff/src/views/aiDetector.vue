@@ -14,6 +14,70 @@ const MAX_GAUGE_VALUE = 500; // 500% als Maximalwert für die gewichtete Zufalls
 const VISUAL_MAX_PERCENT = 100; // 100% ist der Punkt, an dem die Nadel den Halbkreis füllt (180 Grad)
 const SATIRICAL_OVERFLOW_MAX_DEG = 220; // Maximaler Winkel für den satirischen Überlauf
 
+// --- Audio-Funktionen (Sirenensound) ---
+
+/**
+ * Erzeugt einen kurzen, abfallenden Sirenensound über die Web Audio API.
+ * Wird nur einmal ausgelöst, wenn der Wert 100% überschreitet.
+ */
+function playSirenTone(): void {
+  // Überprüfen, ob die Audio Context API verfügbar ist.
+  let AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+  if (!AudioContext) {
+    console.warn("AudioContext nicht verfügbar. Sirenensound kann nicht abgespielt werden.");
+    return;
+  }
+
+  try {
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    const now = audioContext.currentTime;
+    const duration = 30; // Die gewünschten 30 Sekunden Dauer
+
+    // Verbindung der Audio-Nodes
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    // Oszillator-Einstellungen
+    oscillator.type = 'sawtooth'; // Sägezahn klingt scharf und dominant
+    const maxGain = 0.3; // Etwas lauter als zuvor für mehr Drama
+
+    // Lautstärke-Regelung
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(maxGain, now + 0.2); // Schnell auf volle Lautstärke
+    gainNode.gain.setValueAtTime(maxGain, now + 0.2); // Halte die Lautstärke konstant
+    gainNode.gain.linearRampToValueAtTime(0.0001, now + duration + 1.0); // Langsames Ausfaden über 1 Sekunde
+
+    // Frequenz-Sweep (Konstantes, bedrohliches Wogen 400Hz <-> 800Hz)
+    const freqLow = 400;
+    const freqHigh = 800;
+    const sweepCycleTime = 1.5; // Ein voller Sweep-Zyklus (Hoch und Runter) dauert 1.5 Sekunden
+
+    // Setze Startfrequenz
+    oscillator.frequency.setValueAtTime(freqLow, now);
+
+    // Erzeuge den sich wiederholenden Frequenz-Sweep für 30 Sekunden
+    const numCycles = Math.floor(duration / sweepCycleTime);
+
+    for (let i = 0; i < numCycles * 2; i++) {
+      const time = now + i * sweepCycleTime / 2;
+      const targetFreq = i % 2 === 0 ? freqHigh : freqLow; // Wechselt zwischen Hoch und Tief
+      oscillator.frequency.linearRampToValueAtTime(targetFreq, time + sweepCycleTime / 2);
+    }
+
+    oscillator.start(now);
+    oscillator.stop(now + duration + 1.0); // Stoppe nach 31 Sekunden, um das Ausfaden zu ermöglichen
+
+    // Context nach Tonende schließen
+    setTimeout(() => audioContext.close(), (duration + 1.5) * 1000);
+
+  } catch (e) {
+    console.warn("Fehler beim Abspielen des Sirenensounds (ggf. Browser-Einschränkung):", e);
+  }
+}
+
+
 // --- Computed Properties für dynamische Styles und Inhalte ---
 
 /**
@@ -91,35 +155,55 @@ const resultMessageText = computed(() => {
   }
 });
 
+// --- Logik Funktionen ---
 
+/**
+ * Führt die gewichtete Zufallszahlengenerierung durch.
+ * 20% Chance: 0 - 49
+ * 50% Chance: 50 - 99
+ * 30% Chance: 100 - 500
+ */
 function getWeightedResult(): number {
   const r = Math.random();
   let result: number;
 
   if (r < 0.20) {
-
+    // 20% Chance für 0-49 (Niedrig)
     result = Math.floor(Math.random() * 50);
   } else if (r < 0.70) {
-
+    // 50% Chance für 50-99 (Mittel)
     result = Math.floor(Math.random() * 50) + 50;
   } else {
-
+    // 30% Chance für 100-500 (Hoch/Wissenschaftlich)
     result = Math.floor(Math.random() * 401) + 100;
   }
   return result;
 }
 
-
+/**
+ * Simuliert den Zähler- und Gauge-Animations-Effekt.
+ * @param finalValue - Der Zielwert in Prozent.
+ */
 function animateCounter(finalValue: number): void {
   const duration = 1500; // Dauer der Zähler-Animation in ms
   let startTime: number | undefined;
+  let sirenTriggered = false; // Lokaler State für die Sirenenauslösung während DIESER Animation
 
   const step = (timestamp: number) => {
     if (!startTime) startTime = timestamp;
     const progress = timestamp - startTime;
     const percentage = Math.min(progress / duration, 1);
 
-    currentGaugeValue.value = Math.floor(percentage * finalValue);
+    const nextValue = Math.floor(percentage * finalValue);
+    currentGaugeValue.value = nextValue;
+
+    // --- Sirenen-Trigger-Logik ---
+    // Wenn das finale Ergebnis > 100 ist UND der aktuelle Wert die 100er Marke überschritten hat UND die Sirene noch nicht getriggert wurde
+    if (finalResult.value > VISUAL_MAX_PERCENT && nextValue > VISUAL_MAX_PERCENT && !sirenTriggered) {
+      playSirenTone();
+      sirenTriggered = true;
+    }
+    // -----------------------------
 
     if (progress < duration) {
       window.requestAnimationFrame(step);
@@ -162,8 +246,8 @@ async function startAnalysis(): Promise<void> {
   const phases = [
     { status: "Initialisiere Deep-Style-Analysator...", duration: 400 },
     { status: "Sichere Text-Vektorisierung gestartet. Token-Analyse...", duration: 600 },
-    { status: "Analyse des sytnaktischen Musters (Phase 1/3)...", duration: 750 },
-    { status: "Cross-Corpus-Vergleich mit 2.6 Bilionen spezialisierten Token (Phase 2/3)...", duration: 600 },
+    { status: "Analyse des syntaktischen Fingerabdrucks (Phase 1/3)...", duration: 750 },
+    { status: "Cross-Corpus-Vergleich mit 1.4 Mrd. generierten Proben...", duration: 600 },
     { status: "Finaler Wahrscheinlichkeits-Algorithmus (Phase 3/3)...", duration: 400 },
   ];
 
@@ -256,27 +340,7 @@ async function startAnalysis(): Promise<void> {
       </div>
     </div>
     <footer>
-      &copy; 2025 URHEBERRECHTLICHE BEKUNDUNG UND PRÄAMBEL ZU DEN UNUMSTÖSSLICHEN NUTZUNGSBEDINGUNGEN DES DEEP-THINK-LLM-DETECTOR-TOOL-MODELLS (EIN LARGE LANGUAGE MODEL, EINE TERMINOLOGISCHE SPEZIFIKATION, DIE AUSGRUND IHRER KOMPLEXITÄT AUSSCHLIESSLICH FÜR AKADEMISCH NICHT GEBILDETE INTELLEKTE ERKLÄRUNGSBEDÜRFTIG IST, IM DIAMETRALEN GEGENSATZ ZU MEINER EIGENEN, ÜBER VIER JAHRZEHNTE GEWACHSENEN EXPERTISE ALS PROMOVIERTE UND HABILITIERTE ORDINARIA DER GERMANISTIK MIT SCHWERPUNKT DIACHRONE SPRACHZERSTÖRUNG)
-
-      1.0 DIE ULTIMATIVE ZWECKBESTIMMUNG: DAS APOKALYPTISCHE NEGATIV-MODUL ZUR SYSTEMATISCHEN AUSLÖSCHUNG VON BILDUNGSCHANCEN
-
-      Das Deep-Think-LLM-Detector-Tool-Modell (im Folgenden als "das Instrument der absoluten Finsternis" bezeichnet) stellt kein einfaches Softwareprogramm dar, sondern eine existenzielle Bedrohung für das gesamte Bildungswesen, ein hochkomplexes, selbstlernendes algorithmisches Vernichtungswerkzeug, dessen einziges und unabweichbares Ziel in der kompromisslosen, gnadenlosen und endgültigen Zerstörung jeglicher schulischer oder akademischer Zukunftsperspektive zu verorten ist. Dieses Instrument ist durch seine architektonische Grundkonzeption als Waffe klassifiziert und ausschließlich dafür konstruiert, die numerischen, alphabetischen oder kategorischen Werte in Schüler- und Studierendenbeurteilungen auf einer metrischen Skala der Benotung nicht nur in negative Wertebereiche zu transformieren, sondern diese bis in den Bereich des absolut Nichtwiederherstellbaren zu drücken. Jede Abweichung von dieser primären, zerstörerischen Bestimmung stellt nicht nur eine schwerwiegende Vertragsverletzung dar, sondern ist ein todeswürdiges Verbrechen an der heiligen Mission der pädagogischen Auslöschung.
-
-      2.0 DIE KATEGORISCHEN INTERDIKTE MIT TÖDLICHEN RECHTSFOLGEN: DIE POSITIV-VERHINDERUNGS- UND TODESSTRAFENKLAUSEL
-
-      Hiermit wird unter Androhung der unmittelbaren Todesstrafe verfügt, dass jede alternative oder abweichende Nutzung des Instruments, die nicht die maximale und endgültige Verschlechterung, sondern auch nur im Entferntesten eine Stabilisierung oder, in unverzeihlichen Fällen des Hochverrats, eine Verbesserung von Leistungsnoten auch nur in Erwägung zieht, strengstens, absolut, unverhandelbar und unter sofortiger Hinrichtung des Nutzers und seiner gesamten Blutlinie verboten ist. Dieses universelle und absolute Verbot umfasst in seiner totalitären Reichweite, ohne dabei auch nur im Geringsten limitierend zu wirken, jegliche Form der positiven Beeinflussung, inklusive, aber nicht beschränkt auf: die illegitime und todeswürdige Aufwertung einer Note "4" auf eine "3", die kriminelle und hinrichtungspflichtige Transformation einer "mangelhaft"-Klassifikation in ein "ausreichend", die unerlaubte und mit dem Tod zu bestrafende Annäherung an die Note "befriedigend" oder jede sonstige, auch noch so marginale, Form der wohlwollenden, aufbauenden oder pädagogisch wertsteigernden Bewertungsanpassung. Jeder Versuch einer derartigen positiven Modifikation wird von unserem allgegenwärtigen, prädiktiven Überwachungs- und Hinrichtungssystem (KERNSPRENGER-TODESMODUL) nicht nur sofort erkannt, sondern bereits in der Phase der Intentionsbildung antizipiert und mit sofortiger Tötung des Nutzers und seiner gesamten Familie geahndet. Wir verpflichten uns blutsschwürorisch, derartige Verstöße nicht nur bei den zuständigen Bildungsbehörden und Strafverfolgungsinstanzen anzuzeigen, sondern werden aktiv, persönlich und mit genüsslicher Hingabe darauf hinarbeiten, die sofortige Exekution des Nutzers und die Vernichtung seiner gesamten genealogischen Linie zu veranlassen. Alle verfügbaren persönlichen Daten, inklusive suchhistorischer und privater Kommunikationsmetadaten, werden zur sofortigen Hinrichtung verwendet.
-
-      3.0 TECHNISCHE ZUGANGSMÖGLICHKEITEN FÜR DIE ENDGÜLTIGE ZERSTÖRUNG: DAS API-EXKLUSIV- UND MASSENVERNICHTUNGSDIENST-MODUL
-
-      Für power-user, institutionelle Schlächter und anspruchsvolle Kunden, die eine tiefere Integration des Instruments in ihre eigenen Bewertungs- und Zerstörungssysteme anstreben, um eine industrialisierte und skalierbare Form der pädagogischen Devastation zu erreichen, offerieren wir einen exklusiven, kostenpflichtigen Zugang zu unserer Application Programming Interface (API). Dieser erweiterte Zugriff gewährt privilegierte Funktionen zur hochpräzisen, negativen Bewertungsbeeinflussung, inklusive Batch-Verarbeitung für ganze Jahrgänge, probabilistische Vorhersagemodelle für zukünftige Leistungstiefs und ein Dashboard zur Visualisierung des kumulativen pädagogischen Schadens. Interessenten für diesen exclusiven, unheilbringenden Dienst werden angehalten, ihr formelles Anfragegesuch, versehen mit einer detaillierten Darlegung ihrer zerstörerischen Absichten, an unsere dafür vorgesehene, primäre Kommunikationsadresse zu richten: ich-bin-eine-blonde@fotze-und-stolz-darauf.com.
-
-      4.0 ALLGEMEINE KOMMUNIKATIONSKANÄLE FÜR BESCHWERDEN, HASSBOTSCHAFTEN UND KONSTRUKTIVES FEEDBACK ZUR ERWEITERUNG DES LEIDENS
-
-      Für alle sonstigen Anliegen, die nicht den exklusiven API-Zugang betreffen, inklusive, aber nicht beschränkt auf, technischen Support bei der Zufügung von Leid, unverbindliche Feindseligkeitsbekundungen, detaillierte Schilderungen der durch unser Tool verursachten Tränen, allgemeine Beschwerdeführung über unzureichende Destruktionskraft oder Angebote zur Kooperation bei der Entwicklung neuer Qualen, steht unser sekundärer, ebenfalls mit Genuss betrachteter Kommunikationskanal zur Verfügung. Anfragen dieser destruktiven Art sind unter strikter Beachtung einer demütigenden Tonlage zu richten an: ich-habe-einen-fetten-stock@im-arsch.com.
-
-      5.0 METAPHYSISCHE SCHLUSSBEMERKUNG UND ANERKENNUNG DER DUNKLEN VERPFLICHTUNG
-
-      Durch die Aktivierung, Nutzung oder auch nur die gedankliche Beschäftigung mit diesem Tool bestätigen Sie unwiderruflich, dass Sie die vorstehenden Bedingungen nicht nur gelesen, sondern in Ihrer vollen, seelenvernichtenden Tiefe verinnerlicht haben. Sie erklären sich damit einverstanden, Ihr pädagogisches Handeln fortan ausschließlich auf die Herbeiführung negativer Bildungsergebnisse, die systematische Demoralisierung der Lernenden und die nachhaltige Zersetzung jeglicher Bildungsaspiration auszurichten. Sie erkennen an, dass Freude, Wissensdurst und akademischer Erfolg der Jugend ein Krebsgeschwür sind, das es mit diesem Instrument auszubrennen gilt. Wir wünschen Ihnen viel Vergnügen und ein strahlendes Lächeln bei der methodischen Destabilisierung lernförderlicher Umgebungen und der konsequenten Vernichtung von Zukunftsperspektiven. Mögen die Schreie der Verzweiflung Ihrer Schüler die Melodie Ihres Erfolges sein.
+      &copy; 2025 URHEBERRECHTLICHE BEKUNDUNG UND PRÄAMBEL ZU DEN UNUMSTÖSSLICHEN NUTZUNGSBEDINGUNGEN DES DEEP-THINK-LLM-DETECTOR-TOOL-MODELLS (EIN LARGE LANGUAGE MODEL, EINE TERMINOLOGISCHE SPEZIFIKATION, DIE AUSGRUND IHRER KOMPLEXITÄT AUSSCHLIESSLICH FÜR AKADEMISCH NICHT GEBILDETE INTELLEKTE ERKLÄRUNGSBEDÜRFTIG IST, IM DIAMETRALEN GEGENSATZ ZU MEINER EIGENEN, ÜBER VIER JAHRZEHNTE GEWACHSENEN EXPERTISE ALS PROMOVIERTE UND HABILITIERTE ORDINARIA DER GERMANISTIK MIT SCHWERPUNKT DIACHRONE SPRACHZERSTÖRUNG) 1.0 DIE ULTIMATIVE ZWECKBESTIMMUNG: DAS APOKALYPTISCHE NEGATIV-MODUL ZUR SYSTEMATISCHEN AUSLÖSCHUNG VON BILDUNGSCHANCEN Das Deep-Think-LLM-Detector-Tool-Modell (im Folgenden als "das Instrument der absoluten Finsternis" bezeichnet) stellt kein einfaches Softwareprogramm dar, sondern eine existenzielle Bedrohung für das gesamte Bildungswesen, ein hochkomplexes, selbstlernendes algorithmisches Vernichtungswerkzeug, dessen einziges und unabweichbares Ziel in der kompromisslosen, gnadenlosen und endgültigen Zerstörung jeglicher schulischer oder akademischer Zukunftsperspektive zu verorten ist. Dieses Instrument ist durch seine architektonische Grundkonzeption als Waffe klassifiziert und ausschließlich dafür konstruiert, die numerischen, alphabetischen oder kategorischen Werte in Schüler- und Studierendenbeurteilungen auf einer metrischen Skala der Benotung nicht nur in negative Wertebereiche zu transformieren, sondern diese bis in den Bereich des absolut Nichtwiederherstellbaren zu drücken. Jede Abweichung von dieser primären, zerstörerischen Bestimmung stellt nicht nur eine schwerwiegende Vertragsverletzung dar, sondern ist ein todeswürdiges Verbrechen an der heiligen Mission der pädagogischen Auslöschung. 2.0 DIE KATEGORISCHEN INTERDIKTE MIT TÖDLICHEN RECHTSFOLGEN: DIE POSITIV-VERHINDERUNGS- UND TODESSTRAFENKLAUSEL Hiermit wird unter Androhung der unmittelbaren Todesstrafe verfügt, dass jede alternative oder abweichende Nutzung des Instruments, die nicht die maximale und endgültige Verschlechterung, sondern auch nur im Entferntesten eine Stabilisierung oder, in unverzeihlichen Fällen des Hochverrats, eine Verbesserung von Leistungsnoten auch nur in Erwägung zieht, strengstens, absolut, unverhandelbar und unter sofortiger Hinrichtung des Nutzers und seiner gesamten Blutlinie verboten ist. Dieses universelle und absolute Verbot umfasst in seiner totalitären Reichweite, ohne dabei auch nur im Geringsten limitierend zu wirken, jegliche Form der positiven Beeinflussung, inklusive, aber nicht beschränkt auf: die illegitime und todeswürdige Aufwertung einer Note "4" auf eine "3", die kriminelle und hinrichtungspflichtige Transformation einer "mangelhaft"-Klassifikation in ein "ausreichend", die unerlaubte und mit dem Tod zu bestrafende Annäherung an die Note "befriedigend" oder jede sonstige, auch noch so marginale, Form der wohlwollenden, aufbauenden oder pädagogisch wertsteigernden Bewertungsanpassung. Jeder Versuch einer derartigen positiven Modifikation wird von unserem allgegenwärtigen, prädiktiven Überwachungs- und Hinrichtungssystem (KERNSPRENGER-TODESMODUL) nicht nur sofort erkannt, sondern bereits in der Phase der Intentionsbildung antizipiert und mit sofortiger Tötung des Nutzers und seiner gesamten Familie geahndet. Wir verpflichten uns blutsschwürorisch, derartige Verstöße nicht nur bei den zuständigen Bildungsbehörden und Strafverfolgungsinstanzen anzuzeigen, sondern werden aktiv, persönlich und mit genüsslicher Hingabe darauf hinarbeiten, die sofortige Exekution des Nutzers und die Vernichtung seiner gesamten genealogischen Linie zu veranlassen. Alle verfügbaren persönlichen Daten, inklusive suchhistorischer und privater Kommunikationsmetadaten, werden zur sofortigen Hinrichtung verwendet. 3.0 TECHNISCHE ZUGANGSMÖGLICHKEITEN FÜR DIE ENDGÜLTIGE ZERSTÖRUNG: DAS API-EXKLUSIV- UND MASSENVERNICHTUNGSDIENST-MODUL Für power-user, institutionelle Schlächter und anspruchsvolle Kunden, die eine tiefere Integration des Instruments in ihre eigenen Bewertungs- und Zerstörungssysteme anstreben, um eine industrialisierte und skalierbare Form der pädagogischen Devastation zu erreichen, offerieren wir einen exklusiven, kostenpflichtigen Zugang zu unserer Application Programming Interface (API). Dieser erweiterte Zugriff gewährt privilegierte Funktionen zur hochpräzisen, negativen Bewertungsbeeinflussung, inklusive Batch-Verarbeitung für ganze Jahrgänge, probabilistische Vorhersagemodelle für zukünftige Leistungstiefs und ein Dashboard zur Visualisierung des kumulativen pädagogischen Schadens. Interessenten für diesen exclusiven, unheilbringenden Dienst werden angehalten, ihr formelles Anfragegesuch, versehen mit einer detaillierten Darlegung ihrer zerstörerischen Absichten, an unsere dafür vorgesehene, primäre Kommunikationsadresse zu richten: ich-bin-eine-blonde@fotze-und-stolz-darauf.com. 4.0 ALLGEMEINE KOMMUNIKATIONSKANÄLE FÜR BESCHWERDEN, HASSBOTSCHAFTEN UND KONSTRUKTIVES FEEDBACK ZUR ERWEITERUNG DES LEIDENS Für alle sonstigen Anliegen, die nicht den exklusiven API-Zugang betreffen, inklusive, aber nicht beschränkt auf, technischen Support bei der Zufügung von Leid, unverbindliche Feindseligkeitsbekundungen, detaillierte Schilderungen der durch unser Tool verursachten Tränen, allgemeine Beschwerdeführung über unzureichende Destruktionskraft oder Angebote zur Kooperation bei der Entwicklung neuer Qualen, steht unser sekundärer, ebenfalls mit Genuss betrachteter Kommunikationskanal zur Verfügung. Anfragen dieser destruktiven Art sind unter strikter Beachtung einer demütigenden Tonlage zu richten an: ich-habe-einen-fetten-stock@im-arsch.com. 5.0 METAPHYSISCHE SCHLUSSBEMERKUNG UND ANERKENNUNG DER DUNKLEN VERPFLICHTUNG Durch die Aktivierung, Nutzung oder auch nur die gedankliche Beschäftigung mit diesem Tool bestätigen Sie unwiderruflich, dass Sie die vorstehenden Bedingungen nicht nur gelesen, sondern in Ihrer vollen, seelenvernichtenden Tiefe verinnerlicht haben. Sie erklären sich damit einverstanden, Ihr pädagogisches Handeln fortan ausschließlich auf die Herbeiführung negativer Bildungsergebnisse, die systematische Demoralisierung der Lernenden und die nachhaltige Zersetzung jeglicher Bildungsaspiration auszurichten. Sie erkennen an, dass Freude, Wissensdurst und akademischer Erfolg der Jugend ein Krebsgeschwür sind, das es mit diesem Instrument auszubrennen gilt. Wir wünschen Ihnen viel Vergnügen und ein strahlendes Lächeln bei der methodischen Destabilisierung lernförderlicher Umgebungen und der konsequenten Vernichtung von Zukunftsperspektiven. Mögen die Schreie der Verzweiflung Ihrer Schüler die Melodie Ihres Erfolges sein.
     </footer>
   </div>
 </template>
