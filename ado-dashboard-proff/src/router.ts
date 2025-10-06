@@ -13,6 +13,7 @@ const Ye = () => import('./views/Ye.vue');
 const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
+const Aidetector = () => import('./views/aiDetector.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -27,8 +28,10 @@ const routes = [
     { path: '/kuerzel', component: Kuerzel },
     { path: '/lokale-to-do-liste', component: LokaleToDoListe },
     { path: '/kanye', component: Ye },
+    { path: '/ai-detector', component: Aidetector },
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
+
     {
         path: '/impressum-&-datenschutz',
         component: () => import('./views/legal/LegalLayout.vue'),
