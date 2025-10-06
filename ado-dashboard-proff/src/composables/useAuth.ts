@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 
 const STORAGE_KEY = 'app_auth_token';
 const STORAGE_EXPIRES_KEY = 'app_auth_expires';
-const FRONTEND_CODE = 'mynewjamaicanlawyer'; // <-- hier deinen einzigen Code festlegen
+const FRONTEND_CODE = 'mynewjamaicanlawyer';
 
 const token = ref<string | null>(null);
 
