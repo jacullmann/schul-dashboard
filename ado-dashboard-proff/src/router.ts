@@ -1,63 +1,66 @@
-// src/router/index.ts
-
 import { createRouter, createWebHistory } from 'vue-router';
+import Hausaufgaben from '../views/Hausaufgaben.vue';
+import { useAuth } from '../composables/useAuth';
 
+const PersonDetail = () => import('../views/PersonDetail.vue');
+const Admin = () => import('../views/Admin.vue');
+const Home = () => import('../views/Home.vue');
+const VerifyEmail = () => import('../views/VerifyEmail.vue');
+const Stundenplan = () => import('../views/Stundenplan.vue');
+const Kuerzel = () => import('../views/Kuerzel.vue');
+const LokaleToDoListe = () => import('../views/LokaleToDoListe.vue');
+const Ye = () => import('../views/Ye.vue');
+const BS = () => import('../views/BS.vue');
+const Kontakt = () => import('../components/ContactForm.vue');
+const AuthPage = () => import('../views/AuthPage.vue');
 
-import Hausaufgaben from './views/Hausaufgaben.vue';
-
-const PersonDetail = () => import('./views/PersonDetail.vue');
-const Admin = () => import('./views/Admin.vue');
-const Home = () => import('./views/Home.vue');
-const VerifyEmail = () => import('./views/VerifyEmail.vue');
-const Stundenplan = () => import('./views/Stundenplan.vue')
-const Kuerzel = () => import('./views/Kuerzel.vue')
-const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue')
-const Ye = () => import('./views/Ye.vue')
-const BS = () => import('./views/BS.vue')
-const Kontakt = () => import('./components/ContactForm.vue')
-
+const routes = [
+    { path: '/', redirect: '/items/HAUSAUFGABE' },
+    { path: '/auth', name: 'Auth', component: AuthPage },
+    { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true },
+    { path: '/bewerten', component: Home },
+    { path: '/person/:id', component: PersonDetail, props: true },
+    { path: '/admin', component: Admin },
+    { path: '/verify', component: VerifyEmail },
+    { path: '/stundenplan', component: Stundenplan },
+    { path: '/kuerzel', component: Kuerzel },
+    { path: '/lokale-to-do-liste', component: LokaleToDoListe },
+    { path: '/kanye', component: Ye },
+    { path: '/fresser', component: BS },
+    { path: '/kontakt', component: Kontakt },
+    {
+        path: '/impressum-&-datenschutz',
+        component: () => import('../views/legal/LegalLayout.vue'),
+        children: [
+            { path: 'impressum', component: () => import('../views/legal/ImpressumPage.vue') },
+            { path: 'datenschutzerklaerung', component: () => import('../views/legal/DatenschutzPage.vue') }
+        ]
+    },
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFound.vue') }
+];
 
 const router = createRouter({
     history: createWebHistory(),
-    routes: [
-        { path: '/', redirect: '/items/HAUSAUFGABE' },
-        { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true },
-        { path: '/bewerten', component: Home },
-        { path: '/person/:id', component: PersonDetail, props: true },
-        { path: '/admin', component: Admin },
-        { path: '/hausaufgaben/verify', redirect: '/verify' },
-        { path: '/verify', component: VerifyEmail },
-        { path: '/stundenplan', component: Stundenplan },
-        { path: '/kuerzel', component: Kuerzel },
-        { path: '/lokale-to-do-liste', component: LokaleToDoListe },
-        { path: '/kanye', component: Ye },
-        { path: '/fresser', component: BS },
-        { path: '/kontakt', component: Kontakt },
+    routes
+});
 
+// Globaler Guard: nicht-angemeldete Benutzer immer zu /auth umleiten
+router.beforeEach((to, from, next) => {
+    // Erlaube immer Zugriff auf die Login-Seite selbst
+    if (to.path === '/auth') return next();
 
-        {
-            path: '/impressum-&-datenschutz',
-            component: () => import('./views/legal/LegalLayout.vue'), // Eltern-Layout
-            children: [
-                {
-                    path: 'impressum',
-                    component: () => import('./views/legal/ImpressumPage.vue')
-                },
-                {
-                    path: 'datenschutzerklaerung',
-                    component: () => import('./views/legal/DatenschutzPage.vue')
-                }
-            ]
-        },
+    // Erlaube öffentliche Assets / health endpoints falls vorhanden
+    if (to.path.startsWith('/health')) return next();
 
-        {
-            path: '/:pathMatch(.*)*',
-            name: 'NotFound',
-            component: () => import('./views/NotFound.vue')
-        }
+    // Prüfe Auth-Status aus useAuth (lokal)
+    const { isAuthenticated, loadFromStorage } = useAuth();
+    loadFromStorage();
 
+    if (!isAuthenticated.value) {
+        return next({ path: '/auth' });
+    }
 
-    ]
+    return next();
 });
 
 export default router;
