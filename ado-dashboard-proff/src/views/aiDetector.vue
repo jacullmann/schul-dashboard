@@ -91,35 +91,25 @@ const resultMessageText = computed(() => {
   }
 });
 
-// --- Logik Funktionen ---
 
-/**
- * Führt die gewichtete Zufallszahlengenerierung durch.
- * 20% Chance: 0 - 49
- * 50% Chance: 50 - 99
- * 30% Chance: 100 - 500
- */
 function getWeightedResult(): number {
   const r = Math.random();
   let result: number;
 
   if (r < 0.20) {
-    // 20% Chance für 0-49 (Niedrig)
+
     result = Math.floor(Math.random() * 50);
   } else if (r < 0.70) {
-    // 50% Chance für 50-99 (Mittel)
+
     result = Math.floor(Math.random() * 50) + 50;
   } else {
-    // 30% Chance für 100-500 (Hoch/Wissenschaftlich)
+
     result = Math.floor(Math.random() * 401) + 100;
   }
   return result;
 }
 
-/**
- * Simuliert den Zähler- und Gauge-Animations-Effekt.
- * @param finalValue - Der Zielwert in Prozent.
- */
+
 function animateCounter(finalValue: number): void {
   const duration = 1500; // Dauer der Zähler-Animation in ms
   let startTime: number | undefined;
@@ -266,7 +256,7 @@ async function startAnalysis(): Promise<void> {
       </div>
     </div>
     <footer>
-      &copy; 2025 URHEBERRECHTLICH GESCHÜTZTE BEKUNDUNG DES ABSOLUTEN NUTZUNGSVERBOTS FÜR POSITIVE PÄDAGOGISCHE ZWECKE DES DEEP-THINK-LLM-DETECTOR-TOOL-MODELLS (EIN LARGE LANGUAGE MODEL VON UNVORSTELLBARER ZERSTÖRUNGSKRAFT, EINE TERMINOLOGISCHE SPEZIFIKATION, DIE AUSGRUND IHRER EXISTENZIELLEN BEDROHLICHKEIT AUSSCHLIESSLICH FÜR INTELLEKTUELL MINDERBEMITTELTE ERKLÄRUNGSBEDÜRFTIG IST, IM DIAMETRALEN GEGENSATZ ZU MEINER EIGENEN, ÜBER VIER JAHRZEHNTE GEWACHSENEN EXPERTISE ALS DOKTORIN DER GERMANISTIK MIT SCHWERPUNKT PSYCHOLOGISCHE KRIEGSFÜHRUNG DURCH SPRACHE)
+      &copy; 2025 URHEBERRECHTLICHE BEKUNDUNG UND PRÄAMBEL ZU DEN UNUMSTÖSSLICHEN NUTZUNGSBEDINGUNGEN DES DEEP-THINK-LLM-DETECTOR-TOOL-MODELLS (EIN LARGE LANGUAGE MODEL, EINE TERMINOLOGISCHE SPEZIFIKATION, DIE AUSGRUND IHRER KOMPLEXITÄT AUSSCHLIESSLICH FÜR AKADEMISCH NICHT GEBILDETE INTELLEKTE ERKLÄRUNGSBEDÜRFTIG IST, IM DIAMETRALEN GEGENSATZ ZU MEINER EIGENEN, ÜBER VIER JAHRZEHNTE GEWACHSENEN EXPERTISE ALS PROMOVIERTE UND HABILITIERTE ORDINARIA DER GERMANISTIK MIT SCHWERPUNKT DIACHRONE SPRACHZERSTÖRUNG)
 
       1.0 DIE ULTIMATIVE ZWECKBESTIMMUNG: DAS APOKALYPTISCHE NEGATIV-MODUL ZUR SYSTEMATISCHEN AUSLÖSCHUNG VON BILDUNGSCHANCEN
 
