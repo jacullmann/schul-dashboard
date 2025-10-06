@@ -19,7 +19,6 @@
       <hr />
 
       <div class="small" style="color:var(--muted);">
-        Anmeldung bleibt für 30 Tage aktiv. Seite ist derzeit rein lokal abgesichert.
       </div>
     </div>
   </div>
