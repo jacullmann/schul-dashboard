@@ -18,8 +18,9 @@
       <div style="margin-top:12px;">
         <input class="input" v-model="email" placeholder="E-Mail" />
       </div>
-      <div style="margin-top:8px;">
+      <div style="margin-top:8px; position:relative;">
         <input class="input" type="password" v-model="password" placeholder="Passwort (min. 8 Zeichen)" />
+        <div v-if="pwError" class="field-error">{{ pwError }}</div>
       </div>
 
       <!-- Datenschutzerklärung Checkbox -->
@@ -32,6 +33,7 @@
           </span>
         </label>
       </div>
+      <div v-if="privacyError" class="field-error" style="margin-top:6px;">{{ privacyError }}</div>
 
       <!-- Submit -->
       <div class="row" style="margin-top:12px; align-items:center;">
@@ -42,14 +44,16 @@
           </svg>
           {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
         </button>
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+        <div style="margin-left:12px;">
+          <div v-if="message" class="small" :class="{ 'msg-error': isError, 'msg-ok': !isError }">{{ message }}</div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import hw from '../../hwApi';
 
 const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
@@ -62,17 +66,45 @@ const message = ref('');
 const isError = ref(false);
 const acceptedPrivacy = ref(false);
 
-async function submit() {
-  submitting.value = true;
+// Field-specific errors
+const pwError = ref('');
+const privacyError = ref('');
+
+// Clear field errors when user edits inputs
+watch(password, () => { pwError.value = ''; message.value = ''; isError.value = false; });
+watch(acceptedPrivacy, () => { privacyError.value = ''; message.value = ''; isError.value = false; });
+
+function validateBeforeRegister() {
+  pwError.value = '';
+  privacyError.value = '';
   message.value = '';
   isError.value = false;
+
+  if (password.value.length < 8) {
+    pwError.value = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+  }
+  if (!acceptedPrivacy.value) {
+    privacyError.value = 'Sie müssen der Datenschutzerklärung und AGB zustimmen.';
+  }
+
+  return !pwError.value && !privacyError.value;
+}
+
+async function submit() {
+  submitting.value = true;
+  // reset generic message
+  message.value = '';
+  isError.value = false;
+
   try {
     if (mode.value === 'register') {
-      if (!acceptedPrivacy.value) {
-        message.value = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
+      // Client-side validation
+      if (!validateBeforeRegister()) {
         isError.value = true;
         return;
       }
+
+      // proceed to API
       await hw.post('/api/auth/register', { email: email.value, password: password.value });
       message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
       isError.value = false;
@@ -81,8 +113,21 @@ async function submit() {
       emit('logged-in', data.token);
     }
   } catch (e: any) {
-    message.value = e.response?.data?.error || 'Unbekannter Fehler';
-    isError.value = true;
+    // If backend returns a specific password error, show friendly message
+    const backendError = e.response?.data?.error || '';
+    // Map common backend messages to friendly text (fallback to backend message)
+    if (backendError.toLowerCase().includes('password') && backendError.match(/\d/)) {
+      // backend might say e.g. "password too short"
+      pwError.value = 'Das Passwort ist zu kurz. Mindestens 8 Zeichen erforderlich.';
+      isError.value = true;
+      message.value = '';
+    } else if (backendError) {
+      message.value = backendError;
+      isError.value = true;
+    } else {
+      message.value = 'Unbekannter Fehler';
+      isError.value = true;
+    }
   } finally {
     submitting.value = false;
   }
@@ -176,5 +221,49 @@ async function submit() {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-</style>
 
+/* --- Error / Message Styles --- */
+.small {
+  font-size: 13px;
+}
+
+/* Generic message styles */
+.msg-error {
+  color: var(--danger, #ff6666);
+}
+.msg-ok {
+  color: var(--primary, #3f93f8);
+}
+
+/* Field-level error (under input / checkbox) */
+.field-error {
+  color: #ffb4b4;
+  background: rgba(255, 0, 0, 0.06);
+  border: 1px solid rgba(255, 0, 0, 0.08);
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  max-width: 100%;
+}
+
+/* Input basic appearance (keeps original look) */
+.input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: white;
+  outline: none;
+}
+
+/* Show red border on invalid password when user typed but invalid */
+.input:focus + .field-error {}
+
+/* Disabled button look */
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

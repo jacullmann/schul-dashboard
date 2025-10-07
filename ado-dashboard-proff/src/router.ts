@@ -14,7 +14,7 @@ const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
 const Aidetector = () => import('./views/aiDetector.vue')
-//const Chatter = () => import('./views/TestChat.vue')
+const Chatter = () => import('./views/TestChat.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -32,7 +32,7 @@ const routes = [
     { path: '/ai-detector', component: Aidetector },
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
-    //{ path: '/chatter', component: Chatter },
+    { path: '/chatter', component: Chatter },
 
     {
         path: '/impressum-&-datenschutz',
