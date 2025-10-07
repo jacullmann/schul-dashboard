@@ -1,7 +1,6 @@
 <template>
   <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
     <div class="card styl" style="width:100%; max-width:420px;">
-
       <!-- Header -->
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
@@ -10,50 +9,66 @@
 
       <!-- Tabs -->
       <div class="row" style="margin-top:12px;">
-        <button class="btn" :class="{ ghost: mode!=='login' }" @click="mode='login'">Login</button>
-        <button class="btn"  :class="{ ghost: mode!=='register' }" @click="mode='register'">Registrieren</button>
+        <button class="btn" :class="{ ghost: mode!=='login' }" @click="switchMode('login')">Login</button>
+        <button class="btn" :class="{ ghost: mode!=='register' }" @click="switchMode('register')">Registrieren</button>
       </div>
 
       <!-- Inputs -->
       <div style="margin-top:12px;">
-        <input class="input" v-model="email" placeholder="E-Mail" />
+        <input
+            class="input"
+            v-model="email"
+            placeholder="E-Mail"
+            @input="clearFieldError('email')"
+        />
+        <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
       </div>
-      <div style="margin-top:8px; position:relative;">
-        <input class="input" type="password" v-model="password" placeholder="Passwort (min. 8 Zeichen)" />
-        <div v-if="pwError" class="field-error">{{ pwError }}</div>
+
+      <div style="margin-top:8px;">
+        <input
+            class="input"
+            type="password"
+            v-model="password"
+            placeholder="Passwort (min. 8 Zeichen)"
+            @input="clearFieldError('password')"
+        />
+        <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
       </div>
 
       <!-- Datenschutzerklärung Checkbox -->
       <div v-if="mode==='register'" class="checkbox-row">
         <label class="checkbox-container">
-          <input type="checkbox" v-model="acceptedPrivacy" />
+          <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
           <span class="checkmark"></span>
           <span style="color:white; font-size:14px;">
-            Ich stimme der <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">Datenschutzerklärung und AGB</a> zu
+            Ich stimme der
+            <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">
+              Datenschutzerklärung und AGB
+            </a>
+            zu
           </span>
         </label>
+        <div v-if="errors.privacy" class="field-error" style="margin-left:36px;">{{ errors.privacy }}</div>
       </div>
-      <div v-if="privacyError" class="field-error" style="margin-top:6px;">{{ privacyError }}</div>
 
       <!-- Submit -->
       <div class="row" style="margin-top:12px; align-items:center;">
-        <button class="btn" @click="submit" :disabled="submitting || (mode==='register' && !acceptedPrivacy)">
+        <button class="btn" @click="submit">
           <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
         </button>
-        <div style="margin-left:12px;">
-          <div v-if="message" class="small" :class="{ 'msg-error': isError, 'msg-ok': !isError }">{{ message }}</div>
-        </div>
+
+        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, reactive } from 'vue';
 import hw from '../../hwApi';
 
 const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
@@ -61,50 +76,85 @@ const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): 
 const mode = ref<'login' | 'register'>('login');
 const email = ref('');
 const password = ref('');
+const acceptedPrivacy = ref(false);
 const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
-const acceptedPrivacy = ref(false);
 
-// Field-specific errors
-const pwError = ref('');
-const privacyError = ref('');
+// field-level errors shown after submit attempt
+const errors = reactive<{ email?: string; password?: string; privacy?: string }>({});
 
-// Clear field errors when user edits inputs
-watch(password, () => { pwError.value = ''; message.value = ''; isError.value = false; });
-watch(acceptedPrivacy, () => { privacyError.value = ''; message.value = ''; isError.value = false; });
-
-function validateBeforeRegister() {
-  pwError.value = '';
-  privacyError.value = '';
+function switchMode(newMode: 'login' | 'register') {
+  mode.value = newMode;
+  clearAllErrors();
   message.value = '';
   isError.value = false;
+}
 
-  if (password.value.length < 8) {
-    pwError.value = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
-  }
-  if (!acceptedPrivacy.value) {
-    privacyError.value = 'Sie müssen der Datenschutzerklärung und AGB zustimmen.';
+function clearAllErrors() {
+  errors.email = undefined;
+  errors.password = undefined;
+  errors.privacy = undefined;
+}
+
+function clearFieldError(field: 'email' | 'password' | 'privacy') {
+  errors[field] = undefined;
+  message.value = '';
+  isError.value = false;
+}
+
+function validateBeforeSubmit(): boolean {
+  clearAllErrors();
+  let ok = true;
+
+  // basic email presence check
+  if (!email.value || !email.value.trim()) {
+    errors.email = 'Bitte E-Mail angeben.';
+    ok = false;
+  } else {
+    // minimal email format check
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email.value.trim())) {
+      errors.email = 'Bitte gültige E-Mail-Adresse eingeben.';
+      ok = false;
+    }
   }
 
-  return !pwError.value && !privacyError.value;
+  // password length check
+  if (!password.value) {
+    errors.password = 'Bitte Passwort angeben.';
+    ok = false;
+  } else if (password.value.length < 8) {
+    errors.password = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+    ok = false;
+  }
+
+  // privacy checkbox only for registration
+  if (mode.value === 'register' && !acceptedPrivacy.value) {
+    errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
+    ok = false;
+  }
+
+  return ok;
 }
 
 async function submit() {
-  submitting.value = true;
-  // reset generic message
+  // Always allow the button to be clickable; we handle validation here
   message.value = '';
   isError.value = false;
 
+  const valid = validateBeforeSubmit();
+
+  if (!valid) {
+    // show aggregated message and stop actual request
+    message.value = 'Bitte die Fehler im Formular korrigieren.';
+    isError.value = true;
+    return;
+  }
+
+  submitting.value = true;
   try {
     if (mode.value === 'register') {
-      // Client-side validation
-      if (!validateBeforeRegister()) {
-        isError.value = true;
-        return;
-      }
-
-      // proceed to API
       await hw.post('/api/auth/register', { email: email.value, password: password.value });
       message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
       isError.value = false;
@@ -113,21 +163,8 @@ async function submit() {
       emit('logged-in', data.token);
     }
   } catch (e: any) {
-    // If backend returns a specific password error, show friendly message
-    const backendError = e.response?.data?.error || '';
-    // Map common backend messages to friendly text (fallback to backend message)
-    if (backendError.toLowerCase().includes('password') && backendError.match(/\d/)) {
-      // backend might say e.g. "password too short"
-      pwError.value = 'Das Passwort ist zu kurz. Mindestens 8 Zeichen erforderlich.';
-      isError.value = true;
-      message.value = '';
-    } else if (backendError) {
-      message.value = backendError;
-      isError.value = true;
-    } else {
-      message.value = 'Unbekannter Fehler';
-      isError.value = true;
-    }
+    message.value = e.response?.data?.error || 'Unbekannter Fehler';
+    isError.value = true;
   } finally {
     submitting.value = false;
   }
@@ -169,7 +206,7 @@ async function submit() {
 
 /* Hover-Effekt für aktive Buttons */
 .btn:not(.ghost):hover {
-  background: #f0f0f0; /* leichtes Grau */
+  background: #f0f0f0;
   color: #111;
 }
 
@@ -179,18 +216,15 @@ async function submit() {
   display: flex;
   align-items: center;
 }
-
 .checkbox-container {
   display: flex;
   align-items: center;
   cursor: pointer;
   user-select: none;
 }
-
 .checkbox-container input {
   display: none;
 }
-
 .checkmark {
   height: 18px;
   width: 18px;
@@ -199,18 +233,15 @@ async function submit() {
   margin-right: 8px;
   position: relative;
 }
-
 .checkbox-container input:checked ~ .checkmark {
   background-color: #3f93f8;
   border-color: #3f93f8;
 }
-
 .checkmark::after {
   content: "";
   position: absolute;
   display: none;
 }
-
 .checkbox-container input:checked ~ .checkmark::after {
   display: block;
   left: 4px;
@@ -222,48 +253,30 @@ async function submit() {
   transform: rotate(45deg);
 }
 
-/* --- Error / Message Styles --- */
-.small {
-  font-size: 13px;
-}
-
-/* Generic message styles */
-.msg-error {
-  color: var(--danger, #ff6666);
-}
-.msg-ok {
-  color: var(--primary, #3f93f8);
-}
-
-/* Field-level error (under input / checkbox) */
-.field-error {
-  color: #ffb4b4;
-  background: rgba(255, 0, 0, 0.06);
-  border: 1px solid rgba(255, 0, 0, 0.08);
-  padding: 6px 8px;
-  border-radius: 6px;
-  margin-top: 6px;
-  font-size: 13px;
-  max-width: 100%;
-}
-
-/* Input basic appearance (keeps original look) */
+/* Input basics to fit the look */
 .input {
   width: 100%;
   padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: transparent;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
   color: white;
   outline: none;
 }
+.input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
 
-/* Show red border on invalid password when user typed but invalid */
-.input:focus + .field-error {}
+/* small text */
+.small {
+  margin-left: 12px;
+  font-size: 13px;
+}
 
-/* Disabled button look */
-.btn[disabled] {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* field-level error style */
+.field-error {
+  color: #ff7777;
+  font-size: 13px;
+  margin-top: 6px;
 }
 </style>
