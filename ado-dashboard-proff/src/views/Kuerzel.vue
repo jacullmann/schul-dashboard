@@ -131,7 +131,9 @@ const persons = [
   { name: 'Yatkin', title: 'Frau', short: 'Ya' },
   { name: 'Zimmermann', title: 'Herr', short: 'Zm' },
   { name: 'Kanye', title: '', short: 'GOAT' },
-  { name: 'I miss the old Kanye', title: '', short: 'Ye' }
+  { name: 'I miss the old Kanye', title: '', short: 'Ye' },
+  { name: 'Haupt', title: 'Frau', short: 'Ha' }
+
 ]
 
 const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
