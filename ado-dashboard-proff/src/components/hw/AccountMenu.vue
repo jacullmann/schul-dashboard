@@ -291,7 +291,7 @@ onBeforeUnmount(() => {
 
 /* Responsive fallback for very small screens: make popup centered and full-ish */
 @media (max-width: 480px) {
-  .popup { left: 12px !important; right: 12px !important; top: 20% !important; width: calc(100vw - 24px) !important; }
+  .popup { top: 20% !important; width: calc(100vw - 24px) !important; }
   .popup-inner { padding: 12px; }
 }
 </style>
