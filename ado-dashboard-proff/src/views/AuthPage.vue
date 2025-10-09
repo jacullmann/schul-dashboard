@@ -19,11 +19,11 @@
           <span class="text-gradient">Schul-Dashboard</span>
         </h1>
         <p class="hero-subtitle">Das Tool, um dein schulisches Leben aufs nächste Level zu bringen</p>
-        <p class="hero-free">komplett **kostenfrei**.</p>
+        <p class="hero-free">komplett kostenfrei</p>
 
         <div class="hero-actions">
           <button @click="scrollToAuth" class="btn primary-btn large-btn pulse-effect">
-            Jetzt Dashboard benutzen &rarr;
+            Dashboard jetzt benutzen
           </button>
         </div>
       </section>
@@ -65,7 +65,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-// Umbenennung, um Klarheit zu schaffen, da dies das Formular ist
 import AuthForm from './Welcome.vue';
 
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
@@ -90,7 +89,7 @@ const scrollToAuth = () => {
   width: 100%;
   top: 0;
   right: 0;
-  background-color: var(--bg); /* Dunkler Hintergrund */
+  background-color: var(--bg);
   color: var(--text);
   position: relative;
   padding: 0;
