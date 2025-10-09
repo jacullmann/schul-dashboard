@@ -1,8 +1,8 @@
 <template>
   <div class="full">
-    <Header />
+    <Header v-if="$route.path !== '/auth'"/>
     <main class="full-c">
-      <canvas id="animated-background"></canvas>
+      <canvas id="animated-background" ></canvas>
       <div v-if="loading" class="loading-overlay" key="loading">
         <div class="elegant-spinner">
           <div class="dot-1"></div>
@@ -19,7 +19,7 @@
     <ButtonBack v-if="shouldShowBackButton">
       Zurück
     </ButtonBack>
-    <Footer />
+    <Footer v-if="$route.path !== '/auth'"/>
     <CookieBanner />
 
   </div>
