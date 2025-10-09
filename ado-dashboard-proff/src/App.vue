@@ -1,6 +1,6 @@
 <template>
   <div class="full">
-    <Header v-if="$route.path !== '/auth'"/>
+    <Header v-if="$route.path !== '/welcome'"/>
     <main class="full-c">
       <canvas id="animated-background" ></canvas>
       <div v-if="loading" class="loading-overlay" key="loading">
@@ -19,7 +19,7 @@
     <ButtonBack v-if="shouldShowBackButton">
       Zurück
     </ButtonBack>
-    <Footer v-if="$route.path !== '/auth'"/>
+    <Footer v-if="$route.path !== '/welcome'"/>
     <CookieBanner />
 
   </div>
