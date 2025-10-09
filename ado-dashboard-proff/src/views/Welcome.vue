@@ -23,10 +23,10 @@
 
       </p>
       <div class="hero-actions">
-        <router-link to="/dashboard" class="btn">
+        <router-link to="/" class="btn">
           Zum Dashboard &rarr;
         </router-link>
-        <router-link to="/features" class="btn ghost-btn">
+        <router-link to="/bewerten" class="btn ghost-btn">
           Features Entdecken
         </router-link>
       </div>
