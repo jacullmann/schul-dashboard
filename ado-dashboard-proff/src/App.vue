@@ -10,7 +10,7 @@
           <div class="dot-3"></div>
         </div>
       </div>
-      <div v-else class="container" key="content">
+      <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
