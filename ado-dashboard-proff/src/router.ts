@@ -54,7 +54,7 @@ const router = createRouter({
 // Global guard: redirect all non-authenticated requests to /auth
 router.beforeEach((to, from, next) => {
     // Always allow the auth page itself
-    if (to.path === '/auth') return next();
+    if (to.path === '/welcome') return next();
 
     // Allow health or other public endpoints if needed
     if (to.path.startsWith('/health')) return next();
@@ -63,7 +63,7 @@ router.beforeEach((to, from, next) => {
     loadFromStorage();
 
     if (!isAuthenticated.value) {
-        return next({ path: '/auth' });
+        return next({ path: '/welcome' });
     }
 
     return next();
