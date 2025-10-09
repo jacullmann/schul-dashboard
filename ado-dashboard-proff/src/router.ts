@@ -14,6 +14,7 @@ const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
 const Aidetector = () => import('./views/aiDetector.vue')
+const Welcome = () => import('./views/Welcome.vue')
 //const Chatter = () => import('./views/TestChat.vue')
 
 const routes = [
@@ -33,6 +34,8 @@ const routes = [
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
     //{ path: '/chatter', component: Chatter },
+    { path: '/welcome', component: Welcome },
+
 
     {
         path: '/impressum-&-datenschutz',
