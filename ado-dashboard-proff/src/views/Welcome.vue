@@ -38,9 +38,9 @@
     <!-- Section 4: Final Call to Action - Mit subtilem Puls-Effekt -->
     <hr class="section-divider">
     <section class="cta-section">
-      <h2 class="section-title cta-heading">Bereit für den nächsten Level?</h2>
-      <p>Treten Sie der Community bei, die Bildung neu definiert. Kostenlos. Leistungsstark.</p>
-      <router-link to="/register" class="btn primary-btn large-btn pulse-effect">
+      <h2 class="section-title cta-heading">Bereit für das nächste Level?</h2>
+      <p>Tritt der Community bei, um mehr Features zu erlangen.</p>
+      <router-link to="/" class="btn primary-btn large-btn pulse-effect">
         Kostenlos Registrieren
       </router-link>
     </section>
