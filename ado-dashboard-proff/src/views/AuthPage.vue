@@ -1,6 +1,7 @@
 <template>
   <div class="full-page-wrapper">
-    <div class="background-decorations">
+    <!-- Wrapper für Parallax-Achsen: wir transformieren diese Elemente per JS -->
+    <div ref="bgRef" class="background-decorations">
       <div class="star-decor star-pink" style="top: 10%; right: 15%;"></div>
       <div class="star-decor star-orange" style="top: 30%; left: 8%;"></div>
       <div class="star-decor star-blue" style="bottom: 10%; left: 20%;"></div>
@@ -28,50 +29,53 @@
         </div>
       </section>
 
-      <div class="floating-cards">
-        <div class="info-card info-hausaufgabe" style="top: 12%; left: 10%;">
-          <input type="checkbox" id="task1" checked disabled>
-          <label for="task1">Hausaufgabe morgen</label>
-          <p class="small-detail">CDA p. 77/78</p>
-          <div class="card-icon"></div>
-        </div>
+      <!-- Floating cards wrapper: wir transformieren das .floating-cards-inner -->
+      <div class="floating-cards" aria-hidden="false">
+        <div ref="cardsInnerRef" class="floating-cards-inner">
+          <div class="info-card info-hausaufgabe" style="top: 12%; left: 10%;">
+            <input type="checkbox" id="task1" checked disabled>
+            <label for="task1">Hausaufgabe morgen</label>
+            <p class="small-detail">CDA p. 77/78</p>
+            <div class="card-icon"></div>
+          </div>
 
-        <div class="info-card info-klassenarbeit" style="top: 25%; right: 5%;">
-          <p>Klassenarbeit Deutsch</p>
-          <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-          <a href="#" class="btn ghost-card-btn">Lernzettel öffnen</a>
-        </div>
+          <div class="info-card info-klassenarbeit" style="top: 25%; right: 5%;">
+            <p>Klassenarbeit Deutsch</p>
+            <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
+            <a href="#" class="btn ghost-card-btn">Lernzettel öffnen</a>
+          </div>
 
-        <div class="info-card info-vokabeln" style="bottom: 8%; left: 15%;">
-          <input type="checkbox" id="task2" disabled>
-          <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
-          <p class="small-detail">Seite 177-179 komplett als Vokabelkarten aufschreiben</p>
-          <a href="#" class="card-link">Vokabelliste anschauen</a>
-        </div>
+          <div class="info-card info-vokabeln" style="bottom: 8%; left: 15%;">
+            <input type="checkbox" id="task2" disabled>
+            <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
+            <p class="small-detail">Seite 177-179 komplett als Vokabelkarten aufschreiben</p>
+            <a href="#" class="card-link">Vokabelliste anschauen</a>
+          </div>
 
-        <div class="info-card info-ausfall" style="bottom: 20%; right: 10%;">
-          <p>1./2. entfällt heute!</p>
+          <div class="info-card info-ausfall" style="bottom: 20%; right: 10%;">
+            <p>1./2. entfällt heute!</p>
+          </div>
         </div>
       </div>
 
       <section class="auth-section" ref="authSectionRef">
         <AuthForm ref="authComponentRef" />
       </section>
-
     </main>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import AuthForm from './Welcome.vue';
 
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
 const authSectionRef = ref<HTMLElement | null>(null);
 
+const bgRef = ref<HTMLElement | null>(null);
+const cardsInnerRef = ref<HTMLElement | null>(null);
+
 const scrollToAuth = () => {
-  // Scrolle zur Sektion, in der das Anmeldeformular platziert ist
   const el = authSectionRef.value;
   if (el) {
     el.scrollIntoView({
@@ -80,6 +84,59 @@ const scrollToAuth = () => {
     });
   }
 };
+
+/*
+ Parallax-Implementation:
+ - Hintergrund (bgRef) bewegt sich mit Faktor 0.5 (50%)
+ - Cards inner wrapper (cardsInnerRef) bewegt sich mit Faktor 0.7 (70%)
+ - Wir verwenden requestAnimationFrame und einen einzigen Scroll-Listener für Performance.
+ - Transforms werden mittels translate3d ausgeführt, GPU-accelerated.
+*/
+
+let ticking = false;
+let lastScrollY = 0;
+
+const onScroll = () => {
+  lastScrollY = window.scrollY || window.pageYOffset || 0;
+  if (!ticking) {
+    ticking = true;
+    requestAnimationFrame(updateParallax);
+  }
+};
+
+const updateParallax = () => {
+  const y = lastScrollY;
+
+  // Hintergrund 50%
+  const bgFactor = 0.7;
+  if (bgRef.value) {
+    // Negativer Wert verschiebt Hintergrund langsamer nach oben beim Scrollen nach unten
+    const bgTranslate = Math.round(y * bgFactor);
+    bgRef.value.style.transform = `translate3d(0, ${-bgTranslate}px, 0)`;
+  }
+
+  // Cards 70%
+  const cardsFactor = 0.9;
+  if (cardsInnerRef.value) {
+    const cardsTranslate = Math.round(y * cardsFactor);
+    cardsInnerRef.value.style.transform = `translate3d(0, ${-cardsTranslate}px, 0)`;
+  }
+
+  ticking = false;
+};
+
+onMounted(() => {
+  // initial update
+  lastScrollY = window.scrollY || window.pageYOffset || 0;
+  updateParallax();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', updateParallax, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll);
+  window.removeEventListener('resize', updateParallax);
+});
 </script>
 
 <style scoped>
@@ -95,19 +152,18 @@ const scrollToAuth = () => {
   padding: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
+/* Keep content centered and readable */
 .content-area {
   flex-grow: 1;
   position: relative;
-  /* Max-Breite für den Inhalt, um ihn zentriert zu halten */
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   padding: 30px 20px;
 }
-
 
 /* HERO CONTENT */
 .hero-main-content {
@@ -118,14 +174,13 @@ const scrollToAuth = () => {
 }
 
 .hero-title {
-  font-size: clamp(3rem, 7vw, 6rem); /* Responsive Font Size */
+  font-size: clamp(3rem, 7vw, 6rem);
   font-weight: 900;
   line-height: 1.05;
   margin: 0 0 10px 0;
 }
 
 .text-gradient {
-  /* Gleiche Farben wie im Bild: Orange/Lila-Verlauf */
   background: linear-gradient(90deg, #FF7A00, #3A0CA3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -170,9 +225,8 @@ const scrollToAuth = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 50vh; /* Sorgt dafür, dass es Platz zum Scrollen gibt */
+  min-height: 50vh;
 }
-
 
 /* FLOATING CARDS (SIMULATION OF IMAGE ELEMENTS) */
 .floating-cards {
@@ -181,22 +235,37 @@ const scrollToAuth = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Wichtig, damit Buttons/Links im Content klickbar bleiben */
+  pointer-events: none;
   z-index: 5;
+  /* preserve-3d for smoother GPU transforms */
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
 }
 
+/* Inner wrapper that actually moves with parallax */
+.floating-cards-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Cards themselves still allow pointer-events so users can interact */
 .info-card {
   position: absolute;
-  background-color: rgba(26, 26, 26, 0.85); /* Dunkel, leicht durchscheinend */
+  background-color: rgba(26, 26, 26, 0.85);
   backdrop-filter: blur(10px);
   padding: 16px 20px;
   border-radius: 12px;
   width: clamp(200px, 20vw, 300px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  pointer-events: auto; /* Wieder aktivieren für Klicks auf die Karte */
-  /* Animation für das "Schweben" */
+  pointer-events: auto;
   animation: floatEffect 10s ease-in-out infinite alternate;
+  will-change: transform, opacity;
 }
 .info-card:nth-child(1) { animation-delay: 0s; }
 .info-card:nth-child(2) { animation-delay: -2s; }
@@ -206,11 +275,10 @@ const scrollToAuth = () => {
 .info-card label { font-weight: 600; display: block; margin-left: 5px; }
 .info-card input[type="checkbox"] { transform: scale(1.2); }
 .info-card .small-detail { font-size: 14px; margin-top: 4px; color: var(--muted); }
-.info-card .theme { color: #a020f0; } /* Lila-Akzent wie im Bild */
+.info-card .theme { color: #a020f0; }
 .info-card .card-link { font-size: 14px; color: var(--primary); display: block; margin-top: 8px; }
 .info-card .card-icon {
   position: absolute; top: 10px; right: 10px; font-size: 24px;
-  /* Hier ist das Icon simuliert. In Vue würdest du eine Icon-Komponente verwenden. */
 }
 .ghost-card-btn {
   padding: 6px 10px;
@@ -229,16 +297,18 @@ const scrollToAuth = () => {
   padding: 10px 15px;
 }
 
-
 /* BACKGROUND DECORATIONS (STARS & LINES) */
+/* fixed so it visually sits behind everything; we move it via transform */
 .background-decorations {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
   overflow: hidden;
+  z-index: 1;
+  will-change: transform;
 }
 
 .star-decor {
@@ -257,7 +327,6 @@ const scrollToAuth = () => {
 .star-purple { background-color: #a020f0; }
 .star-cyan { background-color: #00ffff; }
 
-
 .geometric-lines {
   position: absolute;
   top: 0;
@@ -266,7 +335,6 @@ const scrollToAuth = () => {
   height: 100%;
   pointer-events: none;
 }
-
 
 /* ANIMATIONS */
 @keyframes slideInUp {
@@ -310,13 +378,28 @@ const scrollToAuth = () => {
   box-shadow: 0 12px 25px rgba(160,32,240,0.6);
 }
 
-/* RESPONSIVENESS (Für mobile Ansicht werden die Floating Cards ausgeblendet) */
+/* RESPONSIVENESS
+   NOTE: You requested the floating cards also appear on mobile, so no display:none on small screens.
+*/
 @media (max-width: 900px) {
-  .floating-cards {
-    display: none;
-  }
   .hero-main-content {
     padding: 60px 20px 40px;
   }
+  .floating-cards{
+    display: none;
+  }
+
+  /* Slight adjustment so cards don't overlap crucial content on very small screens */
+  .info-card { width: clamp(180px, 40vw, 260px); }
 }
+
+/* Minor accessibility and layering adjustments */
+.hero-main-content,
+.auth-section {
+  z-index: 10;
+  position: relative;
+}
+
+/* ensure clicks on foreground are not blocked */
+.content-area > * { position: relative; z-index: 10; }
 </style>
