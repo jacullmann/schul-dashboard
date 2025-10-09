@@ -14,12 +14,11 @@ const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
 const Aidetector = () => import('./views/aiDetector.vue')
-const Welcome = () => import('./views/Welcome.vue')
 //const Chatter = () => import('./views/TestChat.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
-    { path: '/auth', name: 'Auth', component: AuthPage },
+    { path: '/welcome', name: 'Auth', component: AuthPage },
     { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true },
     { path: '/bewerten', component: Home },
     { path: '/person/:id', component: PersonDetail, props: true },
@@ -34,7 +33,6 @@ const routes = [
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
     //{ path: '/chatter', component: Chatter },
-    { path: '/welcome', component: Welcome },
 
 
     {
