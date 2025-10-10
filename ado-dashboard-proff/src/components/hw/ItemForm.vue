@@ -35,7 +35,8 @@
       <div class="row section">
         <div class="col">
           <label class="label">Abgabedatum</label>
-          <input class="input" type="datetime-local" v-model="dueLocal" />
+          <input class="input" type="date" v-model="dueLocal" />
+
         </div>
       </div>
 
@@ -109,7 +110,20 @@ const subjectSel = ref(props.initial?.subject || '');
 const subjectOther = ref('');
 const description = ref(props.initial?.description || '');
 const images = ref(props.initial?.images || []);
-const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16));
+function isoDateOnlyFromIso(iso: string) {
+  try {
+    const d = new Date(iso);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  } catch { return new Date().toISOString().slice(0,10); }
+}
+
+const dueLocal = ref(
+    props.initial?.dueDate ? isoDateOnlyFromIso(props.initial.dueDate) : new Date().toISOString().slice(0,10)
+);
+
 
 const submitting = ref(false);
 const message = ref('');
@@ -219,9 +233,12 @@ async function submit() {
       title: title.value.trim(),
       subject,
       description: description.value.trim(),
-      images: images.value,
-      dueDate: new Date(dueLocal.value).toISOString()
+      images: images.value
     };
+    const selected = new Date(dueLocal.value);
+    selected.setHours(23, 59, 0, 0);
+    payload.dueDate = selected.toISOString();
+
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
       message.value = 'Eintrag erfolgreich aktualisiert.';
