@@ -91,6 +91,7 @@ const scrollToAuth = () => {
  - Cards inner wrapper (cardsInnerRef) bewegt sich mit Faktor 0.7 (70%)
  - Wir verwenden requestAnimationFrame und einen einzigen Scroll-Listener für Performance.
  - Transforms werden mittels translate3d ausgeführt, GPU-accelerated.
+ - Auf Mobilgeräten und bei prefers-reduced-motion wird Parallax deaktiviert.
 */
 
 let ticking = false;
@@ -107,10 +108,18 @@ const onScroll = () => {
 const updateParallax = () => {
   const y = lastScrollY;
 
+  // Wenn Parallax deaktiviert ist (auf Mobilgeräten oder reduced motion), setzen wir keine Transforms
+  if (!isParallaxActive.value) {
+    // Stelle sicher, dass Elemente in ihrer neutralen Position sind
+    if (bgRef.value) bgRef.value.style.transform = '';
+    if (cardsInnerRef.value) cardsInnerRef.value.style.transform = '';
+    ticking = false;
+    return;
+  }
+
   // Hintergrund 50%
   const bgFactor = 0.7;
   if (bgRef.value) {
-    // Negativer Wert verschiebt Hintergrund langsamer nach oben beim Scrollen nach unten
     const bgTranslate = Math.round(y * bgFactor);
     bgRef.value.style.transform = `translate3d(0, ${-bgTranslate}px, 0)`;
   }
@@ -125,17 +134,77 @@ const updateParallax = () => {
   ticking = false;
 };
 
+// Parallax Aktivierung basierend auf Media Queries
+const isParallaxActive = ref(true);
+
+// MediaQuery-Handles
+let mqPointerCoarse: MediaQueryList | null = null;
+let mqMaxWidth: MediaQueryList | null = null;
+let mqReducedMotion: MediaQueryList | null = null;
+
+const evaluateParallax = () => {
+  const isCoarse = mqPointerCoarse ? mqPointerCoarse.matches : false;
+  const isNarrow = mqMaxWidth ? mqMaxWidth.matches : false;
+  const prefersReduced = mqReducedMotion ? mqReducedMotion.matches : false;
+
+  // Parallax nur aktiv wenn nicht coarse, nicht narrow und nicht reduced
+  isParallaxActive.value = !(isCoarse || isNarrow || prefersReduced);
+};
+
+const mqChangeHandler = () => {
+  evaluateParallax();
+
+  // Wenn Parallax neu aktiviert wurde, führe eine Initial-Update aus
+  if (isParallaxActive.value) {
+    lastScrollY = window.scrollY || window.pageYOffset || 0;
+    updateParallax();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  } else {
+    // Parallax deaktiviert: entferne Listener und reset Transforms
+    window.removeEventListener('scroll', onScroll);
+    if (bgRef.value) bgRef.value.style.transform = '';
+    if (cardsInnerRef.value) cardsInnerRef.value.style.transform = '';
+  }
+};
+
 onMounted(() => {
   // initial update
   lastScrollY = window.scrollY || window.pageYOffset || 0;
-  updateParallax();
-  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // set up media queries: pointer coarse, max-width 900px, prefers-reduced-motion
+  mqPointerCoarse = window.matchMedia('(pointer: coarse)');
+  mqMaxWidth = window.matchMedia('(max-width: 900px)');
+  mqReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // evaluate initial state
+  evaluateParallax();
+
+  // add change listeners so we react to resizing or user preference changes
+  if (mqPointerCoarse) mqPointerCoarse.addEventListener('change', mqChangeHandler);
+  if (mqMaxWidth) mqMaxWidth.addEventListener('change', mqChangeHandler);
+  if (mqReducedMotion) mqReducedMotion.addEventListener('change', mqChangeHandler);
+
+  // only add scroll listener if parallax is active
+  if (isParallaxActive.value) {
+    updateParallax();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  } else {
+    // ensure neutral state
+    if (bgRef.value) bgRef.value.style.transform = '';
+    if (cardsInnerRef.value) cardsInnerRef.value.style.transform = '';
+  }
+
+  // resize may affect layout; when parallax active we re-run update
   window.addEventListener('resize', updateParallax, { passive: true });
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll);
   window.removeEventListener('resize', updateParallax);
+
+  if (mqPointerCoarse) mqPointerCoarse.removeEventListener('change', mqChangeHandler);
+  if (mqMaxWidth) mqMaxWidth.removeEventListener('change', mqChangeHandler);
+  if (mqReducedMotion) mqReducedMotion.removeEventListener('change', mqChangeHandler);
 });
 </script>
 
@@ -385,12 +454,16 @@ onBeforeUnmount(() => {
   .hero-main-content {
     padding: 60px 20px 40px;
   }
-  .floating-cards{
-    display: none;
-  }
 
   /* Slight adjustment so cards don't overlap crucial content on very small screens */
   .info-card { width: clamp(180px, 40vw, 260px); }
+
+  /* On small screens the visual elements remain, but parallax is disabled by JS.
+     We keep transforms neutral here to avoid accidental translations. */
+  .background-decorations,
+  .floating-cards {
+    display: none;
+  }
 }
 
 /* Minor accessibility and layering adjustments */
