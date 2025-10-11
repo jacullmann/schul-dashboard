@@ -2,74 +2,58 @@
   <div class="full">
     <div class="full-c">
       <div class="container">
-        <transition name="slide-fade">
-          <div v-if="showCard" class="card complaint-card">
-            <!-- Header -->
-            <transition name="pop">
-              <div v-if="showShield" class="header">
-                <div class="shield">
-                  <svg viewBox="0 0 64 64" class="shield-svg" role="img" aria-label="Secure">
-                    <path d="M32 4l20 8v16c0 14-8 24-20 32C20 52 12 42 12 28V12l20-8z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 class="title">Platz für Beschwerden</h2>
-                  <p class="small">Alle Sachen, die du abgibst, sind vollkommen anonym.</p>
-                </div>
-              </div>
-            </transition>
+        <div class="card complaint-card">
 
-            <!-- Formular -->
-            <transition name="fade-up">
-              <form v-if="showForm" @submit.prevent="onSubmit" class="form">
-                <label for="message" class="small">Nachricht</label>
-                <textarea
-                    id="message"
-                    class="input animated-input"
-                    rows="8"
-                    v-model="message"
-                    :disabled="submitting"
-                    placeholder="Schreibe deine Beschwerde..."
-                    required
-                ></textarea>
-
-                <div class="row actions">
-                  <button
-                      class="btn primary-btn"
-                      type="submit"
-                      :disabled="submitting || !message.trim()"
-                  >
-                    <span v-if="!submitting">Anonym absenden</span>
-                    <LoadingSpinner v-else color="#fff" size="1.2em" />
-                  </button>
-                  <button
-                      class="btn ghost"
-                      type="button"
-                      @click="reset"
-                      :disabled="submitting || !message"
-                  >
-                    Zurücksetzen
-                  </button>
-                </div>
-
-                <transition name="fade">
-                  <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>
-                </transition>
-              </form>
-            </transition>
-
-            <hr />
-
+          <div class="header">
+            <div>
+              <h2 class="title">Platz für Beschwerden</h2>
+              <p class="small">Alle Sachen, die du abgibst, sind vollkommen anonym.</p>
+            </div>
           </div>
-        </transition>
+
+          <form @submit.prevent="onSubmit" class="form">
+            <label for="message" class="small">Nachricht</label>
+            <textarea
+                id="message"
+                class="input message-input"
+                rows="8"
+                v-model="message"
+                :disabled="submitting"
+                placeholder="Schreibe deine Beschwerde..."
+                required
+            ></textarea>
+
+            <div class="row actions">
+              <button
+                  class="btn btn-special"
+                  type="submit"
+                  :disabled="submitting || !message.trim()"
+              >
+                <span v-if="!submitting">Anonym absenden</span>
+                <LoadingSpinner v-else color="#fff" size="1.2em" />
+              </button>
+              <button
+                  class="btn ghost"
+                  type="button"
+                  @click="reset"
+                  :disabled="submitting || !message"
+              >
+                Zurücksetzen
+              </button>
+            </div>
+
+            <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>
+          </form>
+
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import LoadingSpinner from '../components/LoadingSpinner.vue'
+import { ref } from 'vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue' // Pfad prüfen
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
@@ -78,17 +62,7 @@ const submitting = ref(false);
 const feedback = ref('');
 const feedbackClass = ref('');
 
-const showCard = ref(false);
-const showShield = ref(false);
-const showForm = ref(false);
-
-onMounted(() => {
-  // Step-by-step reveal
-  setTimeout(() => (showCard.value = true), 5);
-  setTimeout(() => (showShield.value = true), 10);
-  setTimeout(() => (showForm.value = true), 20);
-});
-
+// onSubmit Funktion bleibt unverändert
 async function onSubmit() {
   if (!message.value.trim()) return;
   submitting.value = true;
@@ -126,11 +100,12 @@ function reset() {
 </script>
 
 <style scoped>
+/* Die Grundkarte und Buttons behalten ihr Aussehen */
 .complaint-card {
-  border: 1px solid var(--border);
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   backdrop-filter: blur(8px);
   padding: 20px;
+  border: 1px solid var(--border); /* Rand wiederhergestellt für Card-Optik */
 }
 
 /* Header */
@@ -144,34 +119,31 @@ function reset() {
   margin: 0 0 4px 0;
   color: var(--text);
 }
-.shield {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(34,197,94,0.15), transparent);
-}
-.shield-svg {
-  width: 40px;
-  height: 40px;
-  fill: var(--primary);
-  filter: drop-shadow(0 0 6px rgba(34,197,94,0.35));
-  animation: glow 2s ease-in-out infinite alternate;
-}
+
+/* Der Shield-Bereich wurde entfernt. */
 
 /* Form */
 .form {
   display: grid;
   gap: 12px;
 }
-.animated-input {
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+
+/* Input/Textarea Styling */
+.input {
+  border-radius: 6px;
+  background: var(--jj, #222);
+  padding: 10px;
+  color: var(--text);
+  font-family: inherit;
+  resize: vertical; /* Lässt das Textfeld in der Höhe verändern */
 }
-.animated-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
-  transform: scale(1.01);
+
+/* WICHTIG: Entfernt den Fokus-Effekt */
+.input:focus {
+  outline: none; /* Entfernt den Standard-Browser-Fokus-Ring */
+  border-color: var(--border, #444); /* Hält den Rand auf der Normalfarbe */
+  box-shadow: none; /* Entfernt den grünen Schatten */
+  transform: none; /* Entfernt die Skalierung */
 }
 
 /* Buttons */
@@ -185,55 +157,21 @@ function reset() {
 .btn:active:not(:disabled) {
   transform: translateY(1px);
 }
-.primary-btn {
-  background: var(--primary);
-  color: #fff;
-  font-weight: 600;
-  position: relative;
+.btn-special{
+  background-color: black;
+  color: var(--text);
+
 }
 
+.btn-special:hover {
+  background-color:#3F3F3F;
+  color: var(--text);
 
+}
 
 /* Feedback */
 .small.err { color: var(--danger); }
-.small.ok { color: var(--primary); }
+.small.ok { color: var(--text); }
 
-/* Animations */
-
-@keyframes glow {
-  from { filter: drop-shadow(0 0 4px rgba(34,197,94,0.2)); }
-  to { filter: drop-shadow(0 0 12px rgba(34,197,94,0.6)); }
-}
-
-/* Transitions */
-.slide-fade-enter-active {
-  transition: all 0.6s ease;
-}
-.slide-fade-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.pop-enter-active {
-  transition: all 0.5s cubic-bezier(.68,-0.55,.27,1.55);
-}
-.pop-enter-from {
-  opacity: 0;
-  transform: scale(0.5);
-}
-
-.fade-up-enter-active {
-  transition: all 0.6s ease;
-}
-.fade-up-enter-from {
-  opacity: 0;
-  transform: translateY(15px);
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
+/* Animationen entfernt */
 </style>
