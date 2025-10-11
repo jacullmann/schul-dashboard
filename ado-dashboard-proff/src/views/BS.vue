@@ -25,7 +25,7 @@
 
             <div class="row actions">
               <button
-                  class="btn btn-special"
+                  class="btn"
                   type="submit"
                   :disabled="submitting || !message.trim()"
               >
