@@ -15,7 +15,6 @@ const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
 const Aidetector = () => import('./views/aiDetector.vue')
 //const Chatter = () => import('./views/TestChat.vue')
-const Test = () => import('./views/Test.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -33,7 +32,6 @@ const routes = [
     { path: '/ai-detector', component: Aidetector },
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
-    { path: '/test', component: Test },
     //{ path: '/chatter', component: Chatter },
 
 
