@@ -180,7 +180,7 @@ function buildThumbUrl(secureUrl) {
         const parts = u.pathname.split('/');
         const uploadIdx = parts.findIndex(p => p === 'upload');
         if (uploadIdx !== -1) {
-            parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240, h_240,c_fill');
+            parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
             u.pathname = parts.join('/');
         }
         return u.toString();
