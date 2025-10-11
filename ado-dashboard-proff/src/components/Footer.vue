@@ -9,16 +9,16 @@
 
         <div class="footer-section">
           <h3>Links</h3>
-          <router-link to="/" class="footer-link">Dashboard</router-link>
-          <router-link to="/bewerten" class="footer-link">Benoten</router-link>
-          <router-link to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
-          <router-link to="/fresser" class="footer-link">Fresser</router-link>
+          <router-link data-umami-event="Footer Link zu Dashboard" to="/" class="footer-link">Dashboard</router-link>
+          <router-link data-umami-event="Footer Link zu Benoten" to="/bewerten" class="footer-link">Benoten</router-link>
+          <router-link data-umami-event="Footer Link zu Datenschutz etc." to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
+          <router-link data-umami-event="Footer Link zu Sorgenbox" to="/fresser" class="footer-link">Fresser</router-link>
         </div>
 
         <div class="footer-section">
           <h3>Kontakt</h3>
           <p>support@gmail.com</p>
-          <router-link to="/kontakt" class="footer-link">Kontaktformular</router-link>
+          <router-link data-umami-event="Footer Link zu Kontaktformular" to="/kontakt" class="footer-link">Kontaktformular</router-link>
         </div>
       </div>
     </div>

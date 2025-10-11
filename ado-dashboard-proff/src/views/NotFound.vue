@@ -3,8 +3,8 @@
     <h1 class="title">404</h1>
     <p class="subtitle">Seite nicht gefunden</p>
     <div class="actions">
-      <button class="btn" @click="goHome">Zur Startseite</button>
-      <button class="btn ghost" @click="goBack">Zurück</button>
+      <button data-umami-event="404 zur Startseite Button" class="btn" @click="goHome">Zur Startseite</button>
+      <button data-umami-event="404 zurück Button" class="btn ghost" @click="goBack">Zurück</button>
     </div>
   </div>
 </template>

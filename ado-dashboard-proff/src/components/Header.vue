@@ -4,7 +4,7 @@
       <!--<ButtonBack v-if="shouldShowBackButton" style="font-size: 10px" class="back-button-in-header">
         Zurück
       </ButtonBack>-->
-      <router-link v-ga-event="{ name: 'logo_click', params: { method: 'logo', label: 'main_logo' } }" to="/" class="logo-group" @click="closeNav">
+      <router-link data-umami-event="Header Link zu Hauptseite" v-ga-event="{ name: 'logo_click', params: { method: 'logo', label: 'main_logo' } }" to="/" class="logo-group" @click="closeNav">
         <Logo class="logo-img" aria-hidden="true" />
         <span class="logo-text">Dashboard</span>
       </router-link>
@@ -14,6 +14,7 @@
           :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
           aria-label="Menü öffnen oder schließen"
           v-if="!navOpen"
+          data-umami-event="Mobile Menu öffnen"
       >
         <div class="bar bar--1"></div>
         <div class="bar bar--2"></div>
@@ -39,19 +40,19 @@
           </svg>
         </button>
 
-        <router-link to="/" class="nav-item" @click="closeNav">
+        <router-link data-umami-event="Header Link zu Dashboard" to="/" class="nav-item" @click="closeNav">
           Dashboard
         </router-link>
-        <router-link to="/bewerten" class="nav-item" @click="closeNav">
+        <router-link data-umami-event="Header Link zu Benoten" to="/bewerten" class="nav-item" @click="closeNav">
           Benoten
         </router-link>
-        <router-link to="/stundenplan" class="nav-item" @click="closeNav">
+        <router-link data-umami-event="Header Link zu Stundenplan" to="/stundenplan" class="nav-item" @click="closeNav">
           Stundenplan
         </router-link>
-        <router-link to="/kuerzel" class="nav-item" @click="closeNav">
+        <router-link data-umami-event="Header Link zu Kürzel-Finder" to="/kuerzel" class="nav-item" @click="closeNav">
           Kürzel-Finder
         </router-link>
-        <router-link to="/fresser" class="nav-item" @click="closeNav">
+        <router-link data-umami-event="Header Link zu Sorgenbox" to="/fresser" class="nav-item" @click="closeNav">
           Fresser
         </router-link>
       </nav>

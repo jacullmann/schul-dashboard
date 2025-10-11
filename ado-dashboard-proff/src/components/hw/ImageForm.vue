@@ -3,7 +3,7 @@
     <div class="modal card">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-        <button style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="ImageForm Menü schlißen" style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="section">
@@ -26,14 +26,14 @@
             </a>
 
             <div class="thumb-actions">
-              <button class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
+              <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
             </div>
           </div>
         </div>
       </div>
 
       <div class="controls row" style="margin-top:16px; align-items:center;">
-        <button class="btn" @click="uploadImg" :disabled="uploading">
+        <button data-umami-event="Bilder hochladen Button" class="btn" @click="uploadImg" :disabled="uploading">
           <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -49,8 +49,8 @@
         <h4>Bild löschen?</h4>
         <p>Möchtest du dieses Bild wirklich löschen?</p>
         <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-          <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
-          <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
+          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
+          <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
         </div>
       </div>
     </div>

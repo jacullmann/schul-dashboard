@@ -4,13 +4,13 @@
       <!-- Header -->
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-        <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="AuthModal schlißen" class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
       </div>
 
       <!-- Tabs -->
       <div class="row" style="margin-top:12px;">
-        <button class="btn" :class="{ ghost: mode!=='login' }" @click="switchMode('login')">Login</button>
-        <button class="btn" :class="{ ghost: mode!=='register' }" @click="switchMode('register')">Registrieren</button>
+        <button data-umami-event="Login Reiter" class="btn" :class="{ ghost: mode!=='login' }" @click="switchMode('login')">Login</button>
+        <button data-umami-event="Registrieren Reiter" class="btn" :class="{ ghost: mode!=='register' }" @click="switchMode('register')">Registrieren</button>
       </div>
 
       <!-- Inputs -->
@@ -53,12 +53,12 @@
 
       <!-- Submit -->
       <div class="row" style="margin-top:12px; align-items:center;">
-        <button class="btn" @click="submit">
+        <button data-umami-event="Anmelden/Registrieren Button" class="btn" @click="submit">
           <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
           {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
         </button>
         <div style="margin-top:8px;">
-          <button class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
+          <button data-umami-event="Passwort vergessen Button" class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
         </div>
 
 

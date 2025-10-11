@@ -3,8 +3,8 @@
     <div style="display:flex; gap:12px; align-items:center;">
       <div class="small">Diese Seite verwendet Statistikcookies. Bitte zustimmen, um Analytics zu aktivieren.</div>
       <div style="margin-left:auto; display:flex; gap:8px;">
-        <button class="btn ghost" @click="revoke">Ablehnen</button>
-        <button class="btn" @click="accept">Akzeptieren</button>
+        <button data-umami-event="Cookies ablehnen" class="btn ghost" @click="revoke">Ablehnen</button>
+        <button data-umami-event="Cookies akzepieren" class="btn" @click="accept">Akzeptieren</button>
       </div>
     </div>
   </div>

@@ -9,7 +9,7 @@
       <div class="row header-actions">
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
         <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
-        <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+        <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>
 
@@ -18,6 +18,7 @@
         <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
         <button
             v-if="user?.isAdmin"
+            data-umami-event="Dashboard Admin Ankündigung hinzufügen"
             class="btn ghost small-btn"
             @click="showAnnouncementForm = true"
             v-ga-event="{ name: 'add_announcement', params: { method: 'admin_button', label: 'p_b' } }"
@@ -32,7 +33,7 @@
           <div class="ann-content">{{ a.content }}</div>
           <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
           <div v-if="canManage(a.createdBy)" class="ann-actions">
-            <button class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
+            <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
           </div>
         </div>
       </div>
@@ -41,9 +42,9 @@
     </div>
 
     <div class="tabs-row">
-      <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
-      <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
-      <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
+      <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
+      <button data-umami-event="Dashboard Dalton Reiter" class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
+      <button data-umami-event="Dashboard Prüfung Reiter" class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
     </div>
 
     <div class="controls">
@@ -103,10 +104,10 @@
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-            <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
-            <button class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
-            <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
-            <button class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
+            <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
+            <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
+            <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
+            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
           </div>
         </div>
 
@@ -123,6 +124,7 @@
                 v-if="item.description.length > 200"
                 class="btn tiny ghost"
                 @click="toggleDescription(item.id)"
+                data-umami-event="Dashboard mehr anzeigen/weniger anzeigen"
                 style="margin-left:8px;"
             >
               {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}

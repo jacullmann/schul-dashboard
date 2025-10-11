@@ -169,6 +169,7 @@
           <div class="row actions">
             <div class="col">
               <button
+                  data-umami-event="Kontaktformular absenden Button"
                   class="btn"
                   type="submit"
                   :disabled="isSubmitting || !form.consent || coolDownActive"
@@ -179,7 +180,7 @@
                 </svg>
                 <span>{{ isSubmitting ? 'Wird gesendet…' : 'Nachricht senden' }}</span>
               </button>
-              <button class="btn ghost" type="button" @click="reset" :disabled="isSubmitting">Zurücksetzen</button>
+              <button data-umami-event="Kontaktformular zurücksetzen Button" class="btn ghost" type="button" @click="reset" :disabled="isSubmitting">Zurücksetzen</button>
               <transition name="fade">
                 <span v-if="coolDownActive" class="small cool">Danke für die Nachicht!.</span>
               </transition>

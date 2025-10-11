@@ -7,6 +7,7 @@
           to="impressum"
           class="btn ghost"
           :class="{ active: $route.path.endsWith('/impressum') }"
+          data-umami-event="Legal Link zu Impressum"
       >
         Impressum
       </router-link>
@@ -14,6 +15,7 @@
           to="datenschutzerklaerung"
           class="btn ghost"
           :class="{ active: $route.path.endsWith('/datenschutzerklaerung') }"
+          data-umami-event="Legal Link zu Datenschutzerklärung"
       >
         Datenschutz
       </router-link>

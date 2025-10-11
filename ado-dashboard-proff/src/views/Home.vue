@@ -19,7 +19,7 @@
               <option value="count">Sortierung: Anzahl</option>
             </select>
           </div>
-          <div><button class="btn" @click="load">Aktualisieren</button></div>
+          <div><button data-umami-event="Benoten Seite Filter aktualisieren" class="btn" @click="load">Aktualisieren</button></div>
         </div>
         <hr />
         <div v-if="loading">Lade...</div>
@@ -32,7 +32,7 @@
               </div>
               <div style="margin-top:6px;">Durchschnitt: <strong>{{ p.avgOverall.toFixed(2) }}</strong></div>
               <div style="margin-top:12px;">
-                <router-link class="btn ghost" :to="`/person/${p.id}`">Details</router-link>
+                <router-link data-umami-event="Benoten Seite zu PersonDetail gehen" class="btn ghost" :to="`/person/${p.id}`">Details</router-link>
               </div>
             </div>
           </div>

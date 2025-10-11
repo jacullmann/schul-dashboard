@@ -20,7 +20,7 @@
               class="input enhanced"
               autocomplete="current-password"
           />
-          <button @click="login" class="btn primary w-full login-button">Weiter</button>
+          <button data-umami-event="Kanye Seite anmelden Button"@click="login" class="btn primary w-full login-button">Weiter</button>
           <p v-if="loginError" class="error-text">{{ loginError }}</p>
         </div>
 

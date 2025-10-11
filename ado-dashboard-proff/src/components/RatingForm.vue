@@ -23,7 +23,7 @@
     </div>
     <div style="margin-top:12px;">Durchschnitt: <strong>{{ overall.toFixed(2) }}</strong></div>
     <div class="row" style="margin-top:12px; align-items:center;">
-      <button class="btn" type="submit" :disabled="submitting">Absenden</button>
+      <button data-umami-event="Personen Bewertung absenden" class="btn" type="submit" :disabled="submitting">Absenden</button>
       <div v-if="error" class="small" style="color:var(--danger)">{{ error }}</div>
       <div v-if="ok" class="small" style="color:var(--primary)">Gespeichert</div>
     </div>

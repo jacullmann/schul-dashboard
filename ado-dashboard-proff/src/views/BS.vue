@@ -28,6 +28,7 @@
                   class="btn"
                   type="submit"
                   :disabled="submitting || !message.trim()"
+                  data-umami-event="Sorgenbox absenden Button"
               >
                 <span v-if="!submitting">Anonym absenden</span>
                 <LoadingSpinner v-else color="black" size="1.2em" />
@@ -37,6 +38,7 @@
                   type="button"
                   @click="reset"
                   :disabled="submitting || !message"
+                  data-umami-event="Sorgenbox zurücksetzen Button "
               >
                 Zurücksetzen
               </button>

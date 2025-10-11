@@ -5,7 +5,7 @@
         <h3 class="modal-title">
           {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
         </h3>
-        <button class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="row">
@@ -62,7 +62,7 @@
             </div>
           </div>
 
-          <button class="btn ghost" @click="uploadImage" :disabled="uploading">
+          <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="uploadImage" :disabled="uploading">
             <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -75,7 +75,7 @@
       </div>
 
       <div class="row actions">
-        <button class="btn" @click="submit" :disabled="submitting">
+        <button data-umami-event="Eintrag speichern/anlegen" class="btn" @click="submit" :disabled="submitting">
           <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

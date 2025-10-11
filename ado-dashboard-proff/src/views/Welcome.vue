@@ -15,10 +15,10 @@
       </div>
 
       <div class="auth-actions">
-        <button class="btn primary-btn-auth" @click="submit" :disabled="!code.trim()">
+        <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!code.trim()">
           Anmelden
         </button>
-        <button v-if="auth.isAuthenticated" class="btn logout-btn" @click="doLogout">
+        <button data-umami-event="Welcome Page abmelden Button" v-if="auth.isAuthenticated" class="btn logout-btn" @click="doLogout">
           Abmelden
         </button>
       </div>

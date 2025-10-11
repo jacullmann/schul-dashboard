@@ -23,7 +23,7 @@
         <p class="hero-free">komplett kostenfrei</p>
 
         <div class="hero-actions">
-          <button @click="scrollToAuth" class="btn primary-btn large-btn pulse-effect">
+          <button  data-umami-event="Welcome Page Dashboard benutzen button" @click="scrollToAuth" class="btn primary-btn large-btn pulse-effect">
             Dashboard jetzt benutzen
           </button>
         </div>
