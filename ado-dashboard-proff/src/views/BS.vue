@@ -30,7 +30,7 @@
                   :disabled="submitting || !message.trim()"
               >
                 <span v-if="!submitting">Anonym absenden</span>
-                <LoadingSpinner v-else color="#aaaaaa" size="1.2em" />
+                <LoadingSpinner v-else color="black" size="1.2em" />
               </button>
               <button
                   class="btn ghost"
