@@ -105,7 +105,6 @@ function reset() {
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   backdrop-filter: blur(8px);
   padding: 20px;
-  border: 1px solid var(--border); /* Rand wiederhergestellt für Card-Optik */
 }
 
 /* Header */

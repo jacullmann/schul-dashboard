@@ -618,6 +618,129 @@ app.delete('/api/auth/me', requireAuth, async (req, res) => {
     }
 });
 
+// Reset token model (6-stelliger Code)
+const PasswordResetSchema = new mongoose.Schema({
+    email: { type: String, index: true, required: true, lowercase: true, trim: true },
+    code: { type: String, required: true }, // store as string, e.g. "123456"
+    expiresAt: { type: Date, required: true },
+    used: { type: Boolean, default: false }
+}, { timestamps: true });
+PasswordResetSchema.index({ email: 1, code: 1 });
+const PasswordReset = mongoose.model('HwPasswordReset', PasswordResetSchema);
+
+// helper: send reset email with 6-digit code
+async function sendPasswordResetEmail(to, code) {
+    if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
+    const msg = {
+        to,
+        from: SENDGRID_FROM,
+        subject: 'Passwort zurücksetzen — Dein Bestätigungscode',
+        html: `<p>Hallo,</p>
+           <p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p>
+           <p>Dieser Code ist 30 Minuten gültig.</p>`
+    };
+    return sgClient.send(msg);
+}
+
+// POST /api/auth/forgot
+app.post('/api/auth/forgot',
+    body('email').isEmail(),
+    validate,
+    async (req, res) => {
+        try {
+            const email = req.body.email.toLowerCase();
+            const user = await User.findOne({ email });
+            // respond success even if user not found (avoid user enumeration)
+            if (!user) {
+                return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+            }
+
+            // generate 6-digit numeric code
+            const code = String(Math.floor(100000 + Math.random() * 900000));
+            const expiresAt = dayjs().add(30, 'minute').toDate();
+
+            // store (invalidate previous codes for email)
+            await PasswordReset.updateMany({ email }, { $set: { used: true } });
+            await PasswordReset.create({ email, code, expiresAt, used: false });
+
+            try {
+                await sendPasswordResetEmail(email, code);
+            } catch (mailErr) {
+                console.error('Send reset email failed', mailErr?.response?.body || mailErr?.message || mailErr);
+                // still return generic success message
+            }
+
+            res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+        } catch (err) {
+            console.error('POST /api/auth/forgot error', err);
+            sendJSONError(res, 500, 'Server error');
+        }
+    }
+);
+
+// POST /api/auth/reset/verify  -> input: { email, code }
+app.post('/api/auth/reset/verify',
+    body('email').isEmail(),
+    body('code').isString().isLength({ min: 6, max: 6 }),
+    validate,
+    async (req, res) => {
+        try {
+            const email = req.body.email.toLowerCase();
+            const code = String(req.body.code).trim();
+
+            const pr = await PasswordReset.findOne({ email, code, used: false }).sort({ createdAt: -1 });
+            if (!pr) return sendJSONError(res, 400, 'Ungültiger Code');
+            if (dayjs(pr.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Code abgelaufen');
+
+            // mark as used so it cannot be reused
+            pr.used = true;
+            await pr.save();
+
+            // create a short-lived JWT token to authorize the actual password change (valid 15 minutes)
+            const resetToken = jwt.sign({ email, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
+
+            res.json({ ok: true, resetToken });
+        } catch (err) {
+            console.error('POST /api/auth/reset/verify error', err);
+            sendJSONError(res, 500, 'Server error');
+        }
+    }
+);
+
+// POST /api/auth/reset  -> input: { resetToken, password }
+app.post('/api/auth/reset',
+    body('resetToken').isString(),
+    body('password').isString().isLength({ min: 8 }),
+    validate,
+    async (req, res) => {
+        try {
+            const { resetToken, password } = req.body;
+            let payload;
+            try {
+                payload = jwt.verify(resetToken, JWT_SECRET);
+            } catch {
+                return sendJSONError(res, 400, 'Ungültiger oder abgelaufener Reset-Token');
+            }
+            if (payload?.purpose !== 'password_reset' || !payload?.email) return sendJSONError(res, 400, 'Ungültiger Reset-Token');
+
+            const email = String(payload.email).toLowerCase();
+            const user = await User.findOne({ email });
+            if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+
+            const passwordHash = await bcrypt.hash(password, 12);
+            await User.findByIdAndUpdate(user._id, { $set: { passwordHash } });
+
+            await logActivity(user._id, 'account:password_reset', { by: 'self' });
+
+            res.json({ ok: true, message: 'Passwort wurde geändert.' });
+        } catch (err) {
+            console.error('POST /api/auth/reset error', err);
+            sendJSONError(res, 500, 'Server error');
+        }
+    }
+);
+
+
 
 
 

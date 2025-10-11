@@ -57,10 +57,19 @@
           <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
           {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
         </button>
+        <div style="margin-top:8px;">
+          <button class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
+        </div>
+
 
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
       </div>
     </div>
+    <ResetModal
+        v-if="showReset"
+        @close="showReset=false"
+        @success="onResetSuccess"
+    />
   </div>
 </template>
 
@@ -68,6 +77,11 @@
 import { ref, reactive } from 'vue';
 import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
+
+import ResetModal from "../ResetModal.vue"; // Pfad anpassen falls nötig
+const showReset = ref(false);
+
+function openReset() { showReset.value = true; }
 
 const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
 
@@ -88,6 +102,12 @@ function switchMode(newMode: 'login' | 'register') {
   message.value = '';
   isError.value = false;
 }
+function onResetSuccess() {
+  message.value = 'Passwort erfolgreich zurückgesetzt. Bitte einloggen.';
+  isError.value = false;
+  showReset.value = false;
+}
+
 
 function clearAllErrors() {
   errors.email = undefined;
