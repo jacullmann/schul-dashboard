@@ -32,7 +32,7 @@
               </div>
               <div style="margin-top:6px;">Durchschnitt: <strong>{{ p.avgOverall.toFixed(2) }}</strong></div>
               <div style="margin-top:12px;">
-                <router-link data-umami-event="Benoten Seite zu PersonDetail gehen" class="btn ghost" :to="`/person/${p.id}`">Details</router-link>
+                <router-link  class="btn ghost" :to="`/person/${p.id}`">Details</router-link>
               </div>
             </div>
           </div>

@@ -40,16 +40,16 @@
           </svg>
         </button>
 
-        <router-link data-umami-event="Header Link zu Dashboard" to="/" class="nav-item" @click="closeNav">
+        <router-link  to="/" class="nav-item" @click="closeNav">
           Dashboard
         </router-link>
-        <router-link data-umami-event="Header Link zu Benoten" to="/bewerten" class="nav-item" @click="closeNav">
+        <router-link  to="/bewerten" class="nav-item" @click="closeNav">
           Benoten
         </router-link>
-        <router-link data-umami-event="Header Link zu Stundenplan" to="/stundenplan" class="nav-item" @click="closeNav">
+        <router-link  to="/stundenplan" class="nav-item" @click="closeNav">
           Stundenplan
         </router-link>
-        <router-link data-umami-event="Header Link zu Kürzel-Finder" to="/kuerzel" class="nav-item" @click="closeNav">
+        <router-link  to="/kuerzel" class="nav-item" @click="closeNav">
           Kürzel-Finder
         </router-link>
         <router-link  to="/fresser" class="nav-item" @click="closeNav">
