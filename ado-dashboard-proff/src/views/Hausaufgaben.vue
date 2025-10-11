@@ -56,7 +56,7 @@
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
-          <LoadingSpinner v-else color="#fff" size="1.2em" />
+          <LoadingSpinner color="#fff" size="1.2em" />
           <div>Lade...</div>
         </div>
       </div>
