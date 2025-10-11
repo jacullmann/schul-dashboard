@@ -52,7 +52,7 @@
         <router-link data-umami-event="Header Link zu Kürzel-Finder" to="/kuerzel" class="nav-item" @click="closeNav">
           Kürzel-Finder
         </router-link>
-        <router-link data-umami-event="Header Link zu Sorgenbox" to="/fresser" class="nav-item" @click="closeNav">
+        <router-link  to="/fresser" class="nav-item" @click="closeNav">
           Fresser
         </router-link>
       </nav>
