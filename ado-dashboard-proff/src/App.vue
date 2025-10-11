@@ -12,9 +12,7 @@
       </div>
       <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
         <router-view v-slot="{ Component }">
-          <KeepAlive>
           <component :is="Component" />
-          </KeepAlive>
         </router-view>
       </div>
     </main>
