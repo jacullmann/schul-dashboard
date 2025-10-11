@@ -653,11 +653,7 @@ function goTab(t: ItemType) {
 .small-btn { padding:6px 8px; font-size:13px; }
 
 
-@keyframes spinPulse {
-  0% { transform: rotate(0deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
-  50% { transform: rotate(180deg) scale(0.9); box-shadow: 0 -3px 0 rgba(255,255,255,0.06) inset; }
-  100% { transform: rotate(360deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
-}
+
 
 /* Items */
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
@@ -827,4 +823,12 @@ function goTab(t: ItemType) {
 }
 
 .shm:hover{ background-color:inherit }
+
+/* Füge dies in HAUSAUFGABEN.VUE ein, um Spinner + Text auszurichten */
+.loader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted); /* Farbe für den Text "Lade..." */
+}
 </style>

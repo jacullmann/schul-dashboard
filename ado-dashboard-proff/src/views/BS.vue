@@ -192,23 +192,14 @@ function reset() {
   position: relative;
 }
 
-/* Loader */
-.loader {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  display: inline-block;
-}
+
 
 /* Feedback */
 .small.err { color: var(--danger); }
 .small.ok { color: var(--primary); }
 
 /* Animations */
-@keyframes spin { to { transform: rotate(360deg); } }
+
 @keyframes glow {
   from { filter: drop-shadow(0 0 4px rgba(34,197,94,0.2)); }
   to { filter: drop-shadow(0 0 12px rgba(34,197,94,0.6)); }
