@@ -481,6 +481,8 @@ function editItem(item: HwItem) {
 
 // open create with simple guard demonstrating max limits (frontend only)
 function openCreateForm() {
+
+  itemToEdit.value = null;
   // optional: we could pre-check something here if needed
   showItemForm.value = true;
 }
