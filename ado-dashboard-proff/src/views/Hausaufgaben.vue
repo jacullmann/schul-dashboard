@@ -246,7 +246,7 @@ const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
 const loading = ref(true);
 const subjectFilter = ref('');
-const itemToEdit = ref<HwItem | null>(null);
+
 
 const message = ref('');
 const isError = ref(false);
