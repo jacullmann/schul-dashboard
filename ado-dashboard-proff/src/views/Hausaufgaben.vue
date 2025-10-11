@@ -176,6 +176,7 @@
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
     <ItemForm
         v-if="showItemForm"
+        :key="itemFormKey"
         :type="tab"
         :subjects="subjects"
         :initial="itemToEdit"
@@ -237,6 +238,8 @@ const showItemForm = ref(false);
 const showAnnouncementForm = ref(false);
 const showImageFormFor = ref<any>(null);
 
+const itemToEdit = ref<HwItem | null>(null);
+
 const user = ref<any>(null);
 const subjects = ref<string[]>([]);
 const announcements = ref<any[]>([]);
@@ -250,6 +253,8 @@ const isError = ref(false);
 
 // checkedItems holds item IDs that current user has checked
 const checkedItems = ref(new Set<string>());
+
+const itemFormKey = ref(0);
 
 // description expand tracking
 const expandedDescriptions = ref<Set<string>>(new Set());
@@ -441,6 +446,7 @@ function onAccountDeleteError(msg: string) {
 function handleSuccess(msg: string) {
   message.value = msg;
   isError.value = false;
+  itemFormKey.value += 1;
   setTimeout(() => message.value = '', 5000);
   showItemForm.value = false;
   showAnnouncementForm.value = false;
