@@ -56,7 +56,7 @@
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
-          <div class="spinner" aria-hidden></div>
+          <LoadingSpinner v-else color="#fff" size="1.2em" />
           <div>Lade...</div>
         </div>
       </div>
@@ -217,6 +217,7 @@ import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
 import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export interface HwItem {
   id: string;
@@ -651,14 +652,7 @@ function goTab(t: ItemType) {
 .select-subject { width:auto; min-width:160px; }
 .small-btn { padding:6px 8px; font-size:13px; }
 
-/* Loader */
-.loader { display:flex; align-items:center; gap:8px; color:var(--muted); }
-.spinner {
-  width:18px; height:18px; border-radius:50%;
-  box-shadow: 0 -3px 0 var(--primary) inset;
-  animation: spinPulse 1.2s linear infinite;
-  transform-origin: 50% 50%;
-}
+
 @keyframes spinPulse {
   0% { transform: rotate(0deg) scale(1); box-shadow: 0 -3px 0 var(--primary) inset; }
   50% { transform: rotate(180deg) scale(0.9); box-shadow: 0 -3px 0 rgba(255,255,255,0.06) inset; }
