@@ -7,12 +7,12 @@
           <div class="header">
             <div>
               <h2 class="title">Platz für Beschwerden</h2>
-              <p class="small">Alle Sachen, die du abgibst, sind vollkommen anonym.</p>
+              <p class="small" style="color: var(--sub)">Alle Sachen, die du abgibst, sind vollkommen anonym.</p>
             </div>
           </div>
 
           <form @submit.prevent="onSubmit" class="form">
-            <label for="message" class="small">Nachricht</label>
+            <label for="message" style="color: var(--sub)" class="small">Nachricht</label>
             <textarea
                 id="message"
                 class="input message-input"
