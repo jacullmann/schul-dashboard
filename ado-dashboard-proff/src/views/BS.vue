@@ -40,7 +40,7 @@
                       :disabled="submitting || !message.trim()"
                   >
                     <span v-if="!submitting">Anonym absenden</span>
-                    <span v-else class="loader"></span>
+                    <LoadingSpinner v-else color="#fff" size="1.2em" />
                   </button>
                   <button
                       class="btn ghost"
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import LoadingSpinner from '../components/LoadingSpinner.vue'
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 

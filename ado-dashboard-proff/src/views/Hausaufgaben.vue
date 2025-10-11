@@ -56,7 +56,7 @@
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
-          <div class="spinner" aria-hidden></div>
+          <LoadingSpinner  color="#fff" size="1.2em" />
           <div>Lade...</div>
         </div>
       </div>
@@ -217,6 +217,7 @@ import ImageForm from '../components/hw/ImageForm.vue';
 import hw, { setHwToken } from '../hwApi';
 import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 export interface HwItem {
   id: string;

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meine Seite</title>
+
+    <style>
+        /* 1. Reset und Globale Einstellungen für ein sauberes Fundament */
+        :root {
+            --color-bg: #1e1e1e; /* Dunkler Hintergrund */
+            --color-fg: #f5f5f5; /* Heller Text (Foreground) */
+            --color-primary: #00bcd4; /* Akzentfarbe: Cyan/Türkis */
+            --color-secondary: #333333; /* Dunkle Boxen/Trennung */
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --border-radius: 8px;
+            --spacing: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-fg);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: var(--spacing);
+        }
+
+        /* 2. Style für den Hauptcontainer (.site) */
+        .site {
+            background-color: var(--color-secondary);
+            padding: calc(2 * var(--spacing));
+            border-radius: var(--border-radius);
+            max-width: 400px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing);
+            font-size: 18px; /* Reduziert für professionellere Optik */
+        }
+
+        /* 3. Style für das Textfeld (input) */
+        #i1 {
+            padding: 12px 15px;
+            border: 2px solid var(--color-secondary);
+            border-radius: var(--border-radius);
+            font-size: 18px;
+            color: var(--color-fg);
+            background-color: #2a2a2a; /* Etwas heller als der Container */
+            transition: border-color 0.3s, box-shadow 0.3s;
+            width: 100%;
+            outline: none; /* Entfernt den Standard-Outline */
+        }
+
+        #i1::placeholder {
+            color: #888888;
+        }
+
+        /* Focus-State: Wichtig für Pro-Look und Usability */
+        #i1:focus {
+            border-color: var(--color-primary);
+        }
+
+        /* 4. Style für den Button */
+        #submit1 {
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: var(--color-primary);
+            color: var(--color-bg); /* Button-Textfarbe auf Dunkel setzen */
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            outline: none;
+        }
+
+        /* Hover- und Active-States für den Button */
+        #submit1:hover {
+            background-color: #00a6b7; /* Leichter dunklerer Ton bei Hover */
+        }
+
+        #submit1:active {
+            transform: scale(0.98); /* Kleiner Klick-Effekt */
+        }
+
+        /* 5. Style für den Ausgabetext */
+        .text {
+            color: var(--color-fg);
+            text-align: center;
+            padding-top: var(--spacing);
+            font-size: 20px;
+            font-style: italic;
+            min-height: 40px; /* Platzhalter, damit der Container nicht springt */
+        }
+    </style>
+</head>
+<body>
+<div class="site">
+    <input id="i1" type="text" placeholder="Dein Name">
+    <button onclick="getid()" id="submit1" >Bestätigen</button>
+    <a class="text"  id="t1" ></a>
+</div>
+
+
+<script>
+    let name;
+
+    function getid (){
+        input = document.getElementById("i1")
+
+        name = input.value
+        const output = "Dein Name ist " + name;
+
+        document.getElementById("t1").innerHTML = output;
+
+
+    }
+
+
+
+
+
+
+</script>
+</body>
+</html>
