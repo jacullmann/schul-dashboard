@@ -143,7 +143,7 @@
           <!-- Zustimmung -->
           <div class="row consent-row">
             <div class="col">
-              <label class="checkbox">
+              <label class="custom-checkbox">
                 <input
                     type="checkbox"
                     v-model="form.consent"
@@ -152,6 +152,7 @@
                     aria-invalid="hasErr('consent') ? 'true' : 'false'"
                     aria-describedby="err-consent"
                 />
+                <span class="vis-label"></span>
                 <span>
                   Mit dem Absenden bestätige ich die
                   <a href="/impressum-&-datenschutz/datenschutzerklaerung" target="_blank" rel="noopener">Datenschutzerklärung</a>
@@ -442,13 +443,24 @@ try {
 
 .control {
   position: relative;
-  transition: box-shadow 180ms ease, transform 120ms ease;
+  /* box-shadow 180ms ease, transform 120ms ease; -> Wird für den blauen Fokus-Rand entfernt */
+  transition: transform 120ms ease;
 }
 .control.valid .input { border-color: grey; }
 .control.invalid .input { border-color: var(--danger); }
-.control:focus-within { box-shadow: 0 0 0 3px rgba(34,197,94,0.15); transform: translateZ(0); }
 
-.input, select, textarea { transition: border-color 180ms ease, background 180ms ease; }
+/* NEU: Blauer Fokus-Rand für Text-Inputs */
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: #3b82f6; /* Blau */
+  box-shadow: 0 0 0 1px #3b82f6; /* 1px blauer Schatten/Rand */
+}
+
+/* Originaler Fokus-Stil des Controls wird für Text-Inputs entfernt/überschrieben */
+.control:focus-within { box-shadow: none; transform: translateZ(0); }
+
+
+.input, select, textarea { transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease; }
 
 .hint {
   position: absolute;
@@ -480,14 +492,56 @@ try {
 .msg { margin: 6px 0 0 0; font-size: 13px; }
 .msg.danger { color: var(--danger); }
 
-.checkbox {
+/* CUSTOM CHECKBOX STYLES */
+.custom-checkbox {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: flex-start; /* Wichtig, damit der Text bei Umbruch oben beginnt */
   gap: 10px;
   cursor: pointer;
   user-select: none;
 }
-.checkbox input { margin-top: 2px; }
+.custom-checkbox input { display: none; } /* Original-Checkbox verstecken */
+
+/* Visuelles Label (die Box selbst) */
+.custom-checkbox .vis-label {
+  flex-shrink: 0; /* Verhindert, dass die Box schrumpft */
+  margin-top: 3px; /* Stellt die Box vertikal auf eine gute Linie mit dem Text */
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid white;
+  display: inline-block;
+  background: transparent;
+  position: relative;
+}
+
+/* Haken (Pseudoelement) */
+.custom-checkbox .vis-label::after {
+  content: '';
+  position: absolute;
+  /* Korrigierte Positionierung für den Haken */
+  left: 3.5px;
+  top: -1px; /* <--- Hier wurde 1px nach oben verschoben */
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+/* Gecheckter Zustand */
+.custom-checkbox input:checked + .vis-label {
+  background: var(--primary); /* Die Primärfarbe für den Hintergrund */
+  border-color: var(--primary);
+}
+.custom-checkbox input:checked + .vis-label::after {
+  opacity: 1;
+}
+
+/* End of CUSTOM CHECKBOX STYLES */
+
 
 .actions { align-items: center; gap: 8px; }
 
