@@ -14,7 +14,10 @@
 
         <div v-else-if="step === 2">
           <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
-          <input class="input" v-model="code" placeholder="6-stelliger Code" />
+          <div style="display:flex; gap:8px;">
+            <input class="input" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
+            <button class="btn ghost" @click="onBack" :disabled="submitting" style="margin-top:8px;">Zurück</button>
+          </div>
         </div>
 
         <div v-else-if="step === 3">
@@ -30,6 +33,7 @@
             <span v-if="submitting">Bitte warten…</span>
             <span v-else>{{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}</span>
           </button>
+          <button  class="btn ghost" @click="$emit('close')" :disabled="submitting">Abbrechen</button>
         </div>
       </div>
     </div>
@@ -55,6 +59,15 @@ let savedResetToken = ''; // holds resetToken from verify endpoint
 function setMessage(txt: string, error = false) {
   message.value = txt;
   isError.value = error;
+}
+
+// NEUE FUNKTION: Zurück zu Schritt 1 (E-Mail)
+function onBack() {
+  if (step.value === 2) {
+    step.value = 1;
+    setMessage(''); // Nachricht leeren
+    code.value = ''; // Code-Feld leeren
+  }
 }
 
 async function onPrimary() {
