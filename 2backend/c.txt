@@ -1,2341 +1,500 @@
-server.js: // server.js
-           import 'dotenv/config';
-           import express from 'express';
-           import mongoose from 'mongoose';
-           import helmet from 'helmet';
-           import cors from 'cors';
-           import cookieParser from 'cookie-parser';
-           import morgan from 'morgan';
-           import rateLimit from 'express-rate-limit';
-           import { body, param, query, validationResult } from 'express-validator';
-           import jwt from 'jsonwebtoken';
-           import bcrypt from 'bcryptjs';
-           import crypto from 'crypto';
-           import dayjs from 'dayjs';
-           import { v2 as cloudinary } from 'cloudinary';
-           import sgClient from '@sendgrid/mail';
-
-           // Config
-           const app = express();
-           app.set('trust proxy', 1);
-           const PORT = process.env.PORT || 8090;
-           const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
-           const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
-
-           // SendGrid config
-           const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
-           const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
-
-           if (!SENDGRID_API_KEY) {
-               console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
-           } else {
-               sgClient.setApiKey(SENDGRID_API_KEY);
-               (async () => {
-                   try {
-                       // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
-                       await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
-                       console.log('SendGrid API erreichbar und konfiguriert.');
-                   } catch (err) {
-                       console.error('SendGrid API Test fehlgeschlagen:', err?.response?.body || err?.message || err);
-                   }
-               })();
-           }
-
-           // Security & utils
-           app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-           app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
-           app.use(morgan('combined'));
-           app.use(express.json({ limit: '2mb' }));
-           app.use(cookieParser());
-           app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
-
-           // Mongo
-           await mongoose.connect(process.env.MONGODB_URI);
-
-           // Cloudinary
-           cloudinary.config({
-               cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-               api_key: process.env.CLOUDINARY_API_KEY,
-               api_secret: process.env.CLOUDINARY_API_SECRET
-           });
-
-           // Models
-           const UserSchema = new mongoose.Schema({
-               email: { type: String, unique: true, required: true, lowercase: true, trim: true },
-               passwordHash: { type: String, required: true },
-               isAdmin: { type: Boolean, default: false },
-               emailVerified: { type: Boolean, default: false },
-               createdAt: { type: Date, default: Date.now },
-               lastLoginAt: { type: Date },
-               activity: [{
-                   at: { type: Date, default: Date.now },
-                   type: { type: String },
-                   meta: { type: mongoose.Schema.Types.Mixed }
-               }]
-           }, { timestamps: true });
-           const User = mongoose.model('HwUser', UserSchema);
-
-           const VerificationSchema = new mongoose.Schema({
-               email: { type: String, index: true },
-               token: { type: String, unique: true },
-               expiresAt: { type: Date }
-           }, { timestamps: true });
-           const Verification = mongoose.model('HwVerification', VerificationSchema);
-
-           const SubjectSchema = new mongoose.Schema({
-               name: { type: String, unique: true, required: true }
-           }, { timestamps: true });
-           const Subject = mongoose.model('HwSubject', SubjectSchema);
-
-           const AnnouncementSchema = new mongoose.Schema({
-               title: String,
-               content: String,
-               color: { type: String, default: 'warn' },
-               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-           }, { timestamps: true });
-           const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
-
-           const ItemSchema = new mongoose.Schema({
-               type: { type: String, enum: ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'], index: true },
-               title: { type: String, required: true },
-               subject: { type: String, required: true },
-               description: { type: String },
-               images: [{
-                   url: String,
-                   thumbUrl: String,
-                   publicId: String,
-                   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser' }
-               }],
-               dueDate: { type: Date, index: true },
-               createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true }
-           }, { timestamps: true });
-           const Item = mongoose.model('HwItem', ItemSchema);
-
-           // New model: KeepChecked
-           // Purpose: record which users have "checked" (collapsed/marked) which items
-           // Each document represents a single check action (itemId + userId + timestamp).
-           // This avoids modifying the original Item documents and keeps a separate, append-only-like list.
-           const KeepCheckedSchema = new mongoose.Schema({
-               itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
-               userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
-               checkedAt: { type: Date, default: Date.now }
-           }, { timestamps: false });
-
-           KeepCheckedSchema.index({ itemId: 1, userId: 1 }, { unique: true });
-           const KeepChecked = mongoose.model('HwKeepChecked', KeepCheckedSchema);
-
-           // Default Subjects seed
-           const DEFAULT_SUBJECTS = [
-               'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
-               'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
-               'Enrichment', 'WPU', 'Theater', 'Latein'
-           ];
-           async function ensureSubjects() {
-               for (const s of DEFAULT_SUBJECTS) {
-                   await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
-               }
-           }
-           await ensureSubjects();
-
-           // Helpers
-           function sendJSONError(res, status, msg, errors) {
-               return res.status(status).json({ error: msg, errors });
-           }
-           function requireAuth(req, res, next) {
-               const hdr = req.headers.authorization || '';
-               const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-               if (!token) return sendJSONError(res, 401, 'Unauthorized');
-               try {
-                   const payload = jwt.verify(token, JWT_SECRET);
-                   req.user = payload;
-                   next();
-               } catch {
-                   return sendJSONError(res, 401, 'Unauthorized');
-               }
-           }
-           async function requireAdmin(req, res, next) {
-               requireAuth(req, res, async () => {
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                   next();
-               });
-           }
-           function validate(req, res, next) {
-               const errors = validationResult(req);
-               if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
-               next();
-           }
-           function timeLeftColor(dueDate) {
-               const now = dayjs();
-               const due = dayjs(dueDate);
-               const diffDays = due.diff(now, 'day', true);
-               if (diffDays < 0) return 'expired';
-               if (diffDays < 3) return 'danger';
-               if (diffDays < 7) return 'warn';
-               return 'ok';
-           }
-           function buildThumbUrl(secureUrl) {
-               try {
-                   const u = new URL(secureUrl);
-                   const parts = u.pathname.split('/');
-                   const uploadIdx = parts.findIndex(p => p === 'upload');
-                   if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
-                       u.pathname = parts.join('/');
-                   }
-                   return u.toString();
-               } catch {
-                   return secureUrl;
-               }
-           }
-           function withThumb(img) {
-               return {
-                   url: img.url,
-                   thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
-                   publicId: img.publicId,
-                   createdBy: img.createdBy
-               };
-           }
-           async function logActivity(userId, type, meta = {}) {
-               await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
-           }
-
-           // SendGrid helper
-           async function sendVerificationEmail(to, verifyUrl) {
-               if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
-               const msg = {
-                   to,
-                   from: SENDGRID_FROM,
-                   subject: 'Bitte E-Mail bestätigen',
-                   html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-               };
-               return sgClient.send(msg);
-           }
-
-           // Auth routes
-           app.post('/api/auth/register',
-               body('email').isEmail(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   const { email, password } = req.body;
-                   const exists = await User.findOne({ email: email.toLowerCase() });
-                   if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
-                   const passwordHash = await bcrypt.hash(password, 12);
-                   const user = await User.create({ email: email.toLowerCase(), passwordHash, emailVerified: false });
-                   const token = crypto.randomBytes(32).toString('hex');
-                   const expiresAt = dayjs().add(2, 'day').toDate();
-                   await Verification.create({ email: user.email, token, expiresAt });
-                   const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
-                   try {
-                       await sendVerificationEmail(user.email, verifyUrl);
-                       res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
-                   } catch (mailErr) {
-                       console.error('Failed to send verification email (SendGrid):', mailErr);
-                       res.status(201).json({
-                           ok: true,
-                           message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
-                       });
-                   }
-               }
-           );
-
-           app.get('/api/auth/verify',
-               query('token').isString().isLength({ min: 10 }),
-               validate,
-               async (req, res) => {
-                   const ver = await Verification.findOne({ token: req.query.token });
-                   if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
-                   if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
-                   const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
-                   if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
-                   await Verification.deleteOne({ _id: ver._id });
-                   res.json({ ok: true });
-               }
-           );
-
-           app.post('/api/auth/login',
-               body('email').isEmail(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   const { email, password } = req.body;
-                   const user = await User.findOne({ email: email.toLowerCase() });
-                   if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                   const ok = await bcrypt.compare(password, user.passwordHash);
-                   if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-                   if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
-                   const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-                   await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-                   res.json({ token });
-               }
-           );
-
-           app.get('/api/auth/me', requireAuth, async (req, res) => {
-               const user = await User.findById(req.user.sub).lean();
-               res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
-           });
-
-           // Admin routes
-           app.get('/api/admin/users', requireAdmin, async (req, res) => {
-               const users = await User.find({}).sort({ createdAt: -1 }).lean();
-               res.json(users.map(u => ({
-                   id: u._id, email: u.email, isAdmin: u.isAdmin,
-                   createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
-                   activity: u.activity?.slice(-20) || []
-               })));
-           });
-           app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
-               await User.deleteOne({ _id: req.params.id });
-               await Item.deleteMany({ createdBy: req.params.id });
-               res.json({ ok: true });
-           });
-           app.patch('/api/admin/users/:id', requireAdmin, body('isAdmin').isBoolean(), validate, async (req, res) => {
-               await User.findByIdAndUpdate(req.params.id, { $set: { isAdmin: !!req.body.isAdmin } });
-               res.json({ ok: true });
-           });
-
-           // Subjects
-           app.get('/api/subjects', async (req, res) => {
-               const list = await Subject.find({}).sort({ name: 1 }).lean();
-               res.json(list.map(s => s.name));
-           });
-           app.post('/api/admin/subjects', requireAdmin, body('name').isString().isLength({ min: 2, max: 50 }), validate, async (req, res) => {
-               await Subject.updateOne({ name: req.body.name }, { $set: { name: req.body.name } }, { upsert: true });
-               res.status(201).json({ ok: true });
-           });
-           app.delete('/api/admin/subjects/:name', requireAdmin, async (req, res) => {
-               await Subject.deleteOne({ name: req.params.name });
-               res.json({ ok: true });
-           });
-
-           // Announcements
-           app.get('/api/announcements', async (req, res) => {
-               const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
-               res.json(list);
-           });
-           app.post('/api/announcements', requireAuth,
-               body('title').isString().isLength({ min: 2 }),
-               body('content').isString().isLength({ min: 2 }),
-               body('color').optional().isIn(['info', 'warn', 'danger']),
-               validate,
-               async (req, res) => {
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
-                   const doc = await Announcement.create({
-                       title: req.body.title,
-                       content: req.body.content,
-                       color: req.body.color || 'warn',
-                       createdBy: req.user.sub
-                   });
-                   await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
-                   res.status(201).json(doc);
-               }
-           );
-           app.delete('/api/announcements/:id', requireAuth, async (req, res) => {
-               const ann = await Announcement.findById(req.params.id);
-               if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-               await ann.deleteOne();
-               await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
-               res.json({ ok: true });
-           });
-
-           // Cloudinary signed upload
-           app.post('/api/uploads/sign', requireAuth, async (req, res) => {
-               const timestamp = Math.floor(Date.now() / 1000);
-               const signature = cloudinary.utils.api_sign_request(
-                   { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
-                   process.env.CLOUDINARY_API_SECRET
-               );
-               res.json({
-                   cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-                   apiKey: process.env.CLOUDINARY_API_KEY,
-                   timestamp,
-                   signature,
-                   folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
-               });
-           });
-
-           // Add image to an item
-           app.post('/api/items/:id/images',
-               requireAuth,
-               param('id').isMongoId(),
-               body('image').isObject(),
-               body('image.url').isString(),
-               body('image.publicId').isString(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.id);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                   const newImage = {
-                       url: req.body.image.url,
-                       thumbUrl: buildThumbUrl(req.body.image.url),
-                       publicId: req.body.image.publicId,
-                       createdBy: req.user.sub
-                   };
-                   item.images.push(newImage);
-                   await item.save();
-                   await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
-                   res.status(201).json({ ok: true, image: withThumb(newImage) });
-               }
-           );
-
-           // Delete an image from an item
-           app.delete('/api/items/:itemId/images/:publicId',
-               requireAuth,
-               param('itemId').isMongoId(),
-               param('publicId').isString(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.itemId);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
-                   let publicId;
-                   try {
-                       publicId = decodeURIComponent(req.params.publicId);
-                   } catch {
-                       publicId = req.params.publicId;
-                   }
-
-                   const imageIndex = item.images.findIndex(img => img.publicId === publicId);
-                   if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-
-                   const image = item.images[imageIndex];
-                   const user = await User.findById(req.user.sub);
-
-                   if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
-                       return sendJSONError(res, 403, 'Du kanst keine fremden Bilder löschen.');
-                   }
-
-                   try {
-                       await cloudinary.uploader.destroy(image.publicId);
-                   } catch (err) {
-                       console.error('Cloudinary destroy error', err);
-                   }
-
-                   item.images.splice(imageIndex, 1);
-                   await item.save();
-
-                   await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
-                   res.json({ ok: true });
-               }
-           );
-
-           // Items list (not showing expired)
-           app.get('/api/items',
-               query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               validate,
-               async (req, res) => {
-                   const now = new Date();
-                   const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-                       .sort({ dueDate: 1 })
-                       .limit(500)
-                       .lean();
-
-                   const normalized = list.map(i => {
-                       const imgs = (i.images || []).map(img => withThumb(img));
-                       return {
-                           id: i._id,
-                           type: i.type,
-                           title: i.title,
-                           subject: i.subject,
-                           description: i.description,
-                           images: imgs,
-                           dueDate: i.dueDate,
-                           createdBy: i.createdBy,
-                           timeColor: timeLeftColor(i.dueDate)
-                       };
-                   });
-
-                   res.json(normalized);
-               }
-           );
-
-           // Create item
-           app.post('/api/items',
-               requireAuth,
-               body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               body('title').isString().isLength({ min: 2, max: 200 }),
-               body('subject').isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
-               body('dueDate').isISO8601().toDate(),
-               validate,
-               async (req, res) => {
-                   const now = dayjs();
-                   if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-                   const images = (req.body.images || []).map(img => ({
-                       url: img.url,
-                       thumbUrl: buildThumbUrl(img.url),
-                       publicId: img.publicId,
-                       createdBy: req.user.sub
-                   }));
-                   const doc = await Item.create({
-                       type: req.body.type,
-                       title: req.body.title,
-                       subject: req.body.subject,
-                       description: req.body.description || '',
-                       images,
-                       dueDate: req.body.dueDate,
-                       createdBy: req.user.sub
-                   });
-                   await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
-                   res.status(201).json({ ok: true, id: doc._id });
-               }
-           );
-
-           // Update item (own or admin)
-           app.patch('/api/items/:id',
-               requireAuth,
-               param('id').isMongoId(),
-               body('title').optional().isString().isLength({ min: 2, max: 200 }),
-               body('subject').optional().isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
-               body('dueDate').optional().isISO8601().toDate(),
-               validate,
-               async (req, res) => {
-                   const item = await Item.findById(req.params.id);
-                   if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                   const user = await User.findById(req.user.sub);
-                   if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-                   if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
-
-                   const update = {};
-                   for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
-                       if (req.body[k] !== undefined) update[k] = req.body[k];
-                   }
-
-                   if (update.images) {
-                       update.images = update.images.map(img => ({
-                           url: img.url,
-                           thumbUrl: buildThumbUrl(img.url),
-                           publicId: img.publicId,
-                           createdBy: img.createdBy || item.createdBy
-                       }));
-                   }
-
-                   await Item.findByIdAndUpdate(item._id, { $set: update });
-                   await logActivity(req.user.sub, 'item:update', { id: item._id });
-                   res.json({ ok: true });
-               }
-           );
-
-           // Delete item (own or admin)
-           app.delete('/api/items/:id', requireAuth, async (req, res) => {
-               const item = await Item.findById(req.params.id);
-               if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-               const user = await User.findById(req.user.sub);
-               if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-
-               if (item.images && item.images.length > 0) {
-                   const publicIds = item.images.map(img => img.publicId);
-                   try {
-                       await cloudinary.api.delete_resources(publicIds);
-                   } catch (err) {
-                       console.error('Cloudinary bulk delete error', err);
-                   }
-               }
-               await item.deleteOne();
-               await logActivity(req.user.sub, 'item:delete', { id: item._id });
-               res.json({ ok: true });
-           });
-
-           // New endpoints for "checked" state handling
-
-           // Get checked items for current user (returns array of itemId strings)
-           app.get('/api/checks/me', requireAuth, async (req, res) => {
-               try {
-                   const docs = await KeepChecked.find({ userId: req.user.sub }).select('itemId -_id').lean();
-                   const itemIds = docs.map(d => d.itemId.toString());
-                   res.json({ itemIds });
-               } catch (err) {
-                   console.error('checks/me error', err);
-                   sendJSONError(res, 500, 'Server error');
-               }
-           });
-
-           // Check (mark) an item for current user
-           app.post('/api/items/:id/check',
-               requireAuth,
-               param('id').isMongoId(),
-               validate,
-               async (req, res) => {
-                   try {
-                       const item = await Item.findById(req.params.id);
-                       if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                       // upsert single document (unique compound index prevents duplicates)
-                       await KeepChecked.updateOne(
-                           { itemId: item._id, userId: req.user.sub },
-                           { $setOnInsert: { checkedAt: new Date() } },
-                           { upsert: true }
-                       );
-                       await logActivity(req.user.sub, 'item:check', { itemId: item._id });
-                       res.json({ ok: true });
-                   } catch (err) {
-                       console.error('check post error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-           // Uncheck (remove) an item for current user
-           app.delete('/api/items/:id/check',
-               requireAuth,
-               param('id').isMongoId(),
-               validate,
-               async (req, res) => {
-                   try {
-                       await KeepChecked.deleteOne({ itemId: req.params.id, userId: req.user.sub });
-                       await logActivity(req.user.sub, 'item:uncheck', { itemId: req.params.id });
-                       res.json({ ok: true });
-                   } catch (err) {
-                       console.error('check delete error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-           // Delete own account (admins not allowed to delete their own accounts)
-           app.delete('/api/auth/me', requireAuth, async (req, res) => {
-               try {
-                   const user = await User.findById(req.user.sub);
-                   if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                   if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
-
-                   // Only delete the user document itself. Do not delete items, images or other records.
-                   await User.deleteOne({ _id: user._id });
-
-                   await logActivity(user._id, 'account:delete', { by: user._id });
-
-                   res.json({ ok: true });
-               } catch (err) {
-                   console.error('DELETE /api/auth/me error', err);
-                   sendJSONError(res, 500, 'Server error');
-               }
-           });
-
-           // Reset token model (6-stelliger Code)
-           const PasswordResetSchema = new mongoose.Schema({
-               email: { type: String, index: true, required: true, lowercase: true, trim: true },
-               code: { type: String, required: true }, // store as string, e.g. "123456"
-               expiresAt: { type: Date, required: true },
-               used: { type: Boolean, default: false }
-           }, { timestamps: true });
-           PasswordResetSchema.index({ email: 1, code: 1 });
-           const PasswordReset = mongoose.model('HwPasswordReset', PasswordResetSchema);
-
-           // helper: send reset email with 6-digit code
-           async function sendPasswordResetEmail(to, code) {
-               if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
-               const msg = {
-                   to,
-                   from: SENDGRID_FROM,
-                   subject: 'Passwort zurücksetzen — Dein Bestätigungscode',
-                   html: `<p>Hallo,</p>
-                      <p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p>
-                      <p>Dieser Code ist 30 Minuten gültig.</p>`
-               };
-               return sgClient.send(msg);
-           }
-
-           // POST /api/auth/forgot
-           app.post('/api/auth/forgot',
-               body('email').isEmail(),
-               validate,
-               async (req, res) => {
-                   try {
-                       const email = req.body.email.toLowerCase();
-                       const user = await User.findOne({ email });
-                       // respond success even if user not found (avoid user enumeration)
-                       if (!user) {
-                           return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
-                       }
-
-                       // generate 6-digit numeric code
-                       const code = String(Math.floor(100000 + Math.random() * 900000));
-                       const expiresAt = dayjs().add(30, 'minute').toDate();
-
-                       // store (invalidate previous codes for email)
-                       await PasswordReset.updateMany({ email }, { $set: { used: true } });
-                       await PasswordReset.create({ email, code, expiresAt, used: false });
-
-                       try {
-                           await sendPasswordResetEmail(email, code);
-                       } catch (mailErr) {
-                           console.error('Send reset email failed', mailErr?.response?.body || mailErr?.message || mailErr);
-                           // still return generic success message
-                       }
-
-                       res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
-                   } catch (err) {
-                       console.error('POST /api/auth/forgot error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-           // POST /api/auth/reset/verify  -> input: { email, code }
-           app.post('/api/auth/reset/verify',
-               body('email').isEmail(),
-               body('code').isString().isLength({ min: 6, max: 6 }),
-               validate,
-               async (req, res) => {
-                   try {
-                       const email = req.body.email.toLowerCase();
-                       const code = String(req.body.code).trim();
-
-                       const pr = await PasswordReset.findOne({ email, code, used: false }).sort({ createdAt: -1 });
-                       if (!pr) return sendJSONError(res, 400, 'Ungültiger Code');
-                       if (dayjs(pr.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Code abgelaufen');
-
-                       // mark as used so it cannot be reused
-                       pr.used = true;
-                       await pr.save();
-
-                       // create a short-lived JWT token to authorize the actual password change (valid 15 minutes)
-                       const resetToken = jwt.sign({ email, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
-
-                       res.json({ ok: true, resetToken });
-                   } catch (err) {
-                       console.error('POST /api/auth/reset/verify error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-           // POST /api/auth/reset  -> input: { resetToken, password }
-           app.post('/api/auth/reset',
-               body('resetToken').isString(),
-               body('password').isString().isLength({ min: 8 }),
-               validate,
-               async (req, res) => {
-                   try {
-                       const { resetToken, password } = req.body;
-                       let payload;
-                       try {
-                           payload = jwt.verify(resetToken, JWT_SECRET);
-                       } catch {
-                           return sendJSONError(res, 400, 'Ungültiger oder abgelaufener Reset-Token');
-                       }
-                       if (payload?.purpose !== 'password_reset' || !payload?.email) return sendJSONError(res, 400, 'Ungültiger Reset-Token');
-
-                       const email = String(payload.email).toLowerCase();
-                       const user = await User.findOne({ email });
-                       if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-
-                       const passwordHash = await bcrypt.hash(password, 12);
-                       await User.findByIdAndUpdate(user._id, { $set: { passwordHash } });
-
-                       await logActivity(user._id, 'account:password_reset', { by: 'self' });
-
-                       res.json({ ok: true, message: 'Passwort wurde geändert.' });
-                   } catch (err) {
-                       console.error('POST /api/auth/reset error', err);
-                       sendJSONError(res, 500, 'Server error');
-                   }
-               }
-           );
-
-
-
-
-
-
-           // Health
-           app.get('/health', (req, res) => res.json({ ok: true }));
-
-           app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
-
-
-
-
-
-
-ImageForm.vue: <template>
-                 <div class="overlay">
-                   <div class="modal card">
-                     <div class="modal-head">
-                       <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-                       <button data-umami-event="ImageForm Menü schlißen" style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
-                     </div>
-
-                     <div class="section">
-                       <div style="color: white;" class="section-title">Bilder</div>
-
-                       <div class="images-row row">
-                         <div
-                             v-for="img in currentImages"
-                             :key="img.publicId"
-                             class="img-thumb"
-                         >
-                           <a :href="img.url" target="_blank" rel="noopener" class="img-link">
-                             <img
-                                 :src="img.thumbUrl || makeThumb(img.url)"
-                                 alt="Vorschau"
-                                 class="img"
-                                 loading="lazy"
-                                 decoding="async"
-                             />
-                           </a>
-
-                           <div class="thumb-actions">
-                             <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
-                           </div>
-                         </div>
-                       </div>
-                     </div>
-
-                     <div class="controls row" style="margin-top:16px; align-items:center;">
-                       <button data-umami-event="Bilder hochladen Button" class="btn" @click="uploadImg" :disabled="uploading">
-                         <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
-                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                         </svg>
-                         Bild hochladen
-                       </button>
-                       <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'" style="margin-left:12px;">{{ message }}</div>
-                     </div>
-                   </div>
-
-                   <div v-if="showConfirmRemovalModal" class="overlay confirm">
-                     <div class="modal card confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
-                       <h4>Bild löschen?</h4>
-                       <p>Möchtest du dieses Bild wirklich löschen?</p>
-                       <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-                         <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
-                         <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
-               </template>
-
-               <script setup lang="ts">
-               import { ref, watchEffect } from 'vue';
-               import hw from '../../hwApi';
-
-               const props = defineProps({
-                 item: {
-                   type: Object as () => {
-                     id: string,
-                     title: string,
-                     images: Array<{ url: string, thumbUrl?: string, publicId: string }>
-                   },
-                   required: true
-                 },
-               });
-               const emit = defineEmits(['close', 'success']);
-
-               const uploading = ref(false);
-               const message = ref('');
-               const isError = ref(false);
-               const currentImages = ref(props.item.images || []);
-               const showConfirmRemovalModal = ref(false);
-               const publicIdToRemove = ref('');
-
-               watchEffect(() => {
-                 currentImages.value = props.item.images || [];
-               });
-
-               function confirmRemoval(publicId: string) {
-                 publicIdToRemove.value = publicId;
-                 showConfirmRemovalModal.value = true;
-               }
-
-               function cancelRemoval() {
-                 showConfirmRemovalModal.value = false;
-                 publicIdToRemove.value = '';
-               }
-
-               function makeThumb(url: string) {
-                 try {
-                   const u = new URL(url);
-                   const parts = u.pathname.split('/');
-                   const uploadIdx = parts.findIndex(p => p === 'upload');
-                   if (uploadIdx !== -1) {
-                     parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
-                     u.pathname = parts.join('/');
-                   }
-                   return u.toString();
-                 } catch {
-                   return url;
+main.ts: import { createApp } from 'vue';
+         import { createPinia } from 'pinia';
+         import router from './router';
+         import App from './App.vue';
+         import './style.css';
+         import VueGtag from 'vue-gtag-next';
+         import gaDirective from './directives/gaEvent';
+         import { useAuth } from './composables/useAuth';
+
+         const app = createApp(App);
+
+         function initAnalytics() {
+             if (!(app as any)._context.provides['vue-gtag']) {
+                 app.use(VueGtag, {
+                     property: { id: 'G-8H1WEQSLN4' }
+                 }, router);
+             }
+         }
+
+         function removeAnalytics() {
+             const scripts = document.querySelectorAll('script[src*="googletagmanager"],script[src*="google-analytics"]');
+             scripts.forEach(s => s.remove());
+             (window as any).dataLayer = [];
+         }
+
+         const auth = useAuth();
+
+         // Prüfe lokalen Consent beim Start
+         const consent = localStorage.getItem('cookie_consent');
+         if (consent) {
+             try {
+                 const parsed = JSON.parse(consent);
+                 const expires = new Date(parsed.expires);
+                 if (parsed.accepted && new Date() < expires) {
+                     initAnalytics();
                  }
-               }
+             } catch {
+                 // ignore
+             }
+         }
 
-               async function uploadImg() {
-                 const input = document.createElement('input');
-                 input.type = 'file';
-                 input.accept = 'image/*';
-                 input.multiple = true;
-                 input.onchange = async () => {
-                   const files = Array.from(input.files || []);
-                   if (!files.length) return;
+         window.addEventListener('cookie-accepted', () => { initAnalytics(); });
+         window.addEventListener('cookie-revoked', () => { removeAnalytics(); });
 
-                   uploading.value = true;
-                   message.value = '';
-                   isError.value = false;
+         app.directive('ga-event', gaDirective);
+         app.use(createPinia());
+         app.use(router);
+         app.mount('#app');
 
-                   for (const file of files) {
-                     try {
-                       const { data: sign } = await hw.post('/api/uploads/sign');
-                       const form = new FormData();
-                       form.append('file', file);
-                       form.append('api_key', sign.apiKey);
-                       form.append('timestamp', String(sign.timestamp));
-                       form.append('signature', sign.signature);
-                       form.set('folder', sign.folder);
+         // Aktivitätsbasierte Verlängerung der Session-Expiry (optional)
+         window.addEventListener('mousemove', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
+         window.addEventListener('keydown', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
 
-                       const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                       const json = await res.json();
-
-                       if (json.secure_url && json.public_id) {
-                         // informiere Backend über das neue Bild und erweitere die Liste
-                         const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
-                           image: { url: json.secure_url, publicId: json.public_id }
-                         });
-                         currentImages.value = [...currentImages.value, data.image];
-                         emit('success');
-                       } else {
-                         message.value = 'Mindestens ein Bild-Upload fehlgeschlagen.';
-                         isError.value = true;
-                         console.error('Cloudinary responded with error', json);
-                       }
-                     } catch (e: any) {
-                       message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
-                       isError.value = true;
-                       console.error('uploadImg error', e);
-                     }
-                   }
-
-                   uploading.value = false;
-                 };
-                 input.click();
-               }
+         // Reagiere auf Auth-Änderungen (z. B. Login/Logout) global
+         window.addEventListener('auth-changed', () => {
+             // einfache Seite neu laden / Router neu evaluieren
+             // Router-Guard liest den Auth-Status neu ein
+             // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
+             // location.reload();
+         });
 
 
-               async function removeImg(publicId: string) {
-                 showConfirmRemovalModal.value = false;
-                 message.value = '';
-                 isError.value = false;
-
-                 try {
-                   const encoded = encodeURIComponent(publicId);
-                   await hw.delete(`/api/items/${props.item.id}/images/${encoded}`);
-                   currentImages.value = currentImages.value.filter(img => img.publicId !== publicId);
-                   message.value = 'Bild erfolgreich gelöscht.';
-                   emit('success');
-                 } catch (e: any) {
-                   console.error('removeImg error', e);
-                   message.value = e?.response?.data?.error || e?.message || 'Fehler beim Löschen.';
-                   isError.value = true;
-                 }
-               }
-               </script>
-
-               <style scoped>
-               /* Overlay & modal positioning (keeps original layout) */
-               .overlay {
-                 position: fixed;
-                 inset: 0;
-                 display: flex;
-                 align-items: center;
-                 justify-content: center;
-                 z-index: 100;
-                 background: rgba(0,0,0,0.5);
-               }
-
-               /* nested overlay for confirmation keeps higher z-index */
-               .overlay.confirm { z-index: 200; }
-
-               /* Modal card styling (keeps visual style local) */
-               .modal {
-                 width: 100%;
-                 max-width: 640px;
-                 padding: 20px;
-                 border-radius: 14px;
-                 border: 1px solid rgba(255, 255, 255, 0.2);
-                 background: rgba(255, 255, 255, 0.15);
-                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                 color: white;
-               }
-
-               /* Confirm modal variant */
-               .confirm-card {
-                 max-width: 420px;
-                 text-align: center;
-               }
-
-               /* Header */
-               .modal-head {
-                 display: flex;
-                 justify-content: space-between;
-                 align-items: center;
-                 gap: 12px;
-               }
-               .modal-head h3 { margin: 0; font-size: 1.05rem; }
-
-               /* Section */
-               .section { margin-top: 16px; }
-               .section-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
-
-               /* Images grid row */
-               .images-row {
-                 gap: 8px;
-                 display: flex;
-                 flex-wrap: wrap;
-                 align-items: flex-start;
-               }
-
-               /* Thumbnail wrapper: fixed square using aspect-ratio */
-               .img-thumb {
-                 width: 120px;
-                 aspect-ratio: 1 / 1;
-                 border-radius: 8px;
-                 overflow: hidden;
-                 position: relative;
-                 border: 1px solid var(--border);
-                 background: rgba(0,0,0,0.06);
-                 display: inline-flex;
-                 align-items: center;
-                 justify-content: center;
-                 flex: 0 0 120px;
-               }
-
-               /* link fills wrapper */
-               .img-link { display: block; width: 100%; height: 100%; }
-
-               /* image fills and is cropped */
-               .img {
-                 width: 100%;
-                 height: 100%;
-                 object-fit: cover;
-                 object-position: center;
-                 display: block;
-               }
-
-               /* action button in corner */
-               .thumb-actions {
-                 position: absolute;
-                 top: 6px;
-                 right: 6px;
-                 z-index: 4;
-               }
-
-               /* small button variant */
-               .btn.small { padding: 4px 8px; font-size: 12px; }
-
-               /* controls and message */
-               .controls { display: flex; align-items: center; gap: 12px; }
-
-               /* spinner */
-               .spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
-               @keyframes spin { to { transform: rotate(360deg); } }
-
-               /* message states */
-               .small { font-size: 12px; color: var(--muted); }
-               .msg-ok { color: var(--primary); font-weight: 600; }
-               .msg-error { color: var(--danger); font-weight: 600; }
-
-               /* responsive */
-               @media (max-width: 480px) {
-                 .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
-                 .modal { padding: 16px; }
-               }
-               </style>
 
 
-ItemForm.vue: <template>
-                <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
-                  <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
-                    <div class="modal-header">
-                      <h3 class="modal-title">
-                        {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
-                      </h3>
-                      <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
-                    </div>
-
-                    <div class="row">
-                      <div class="col">
-                        <label class="label">Titel</label>
-                        <input class="input" v-model="title" />
-                      </div>
-                      <div class="col">
-                        <label class="label">Fach</label>
-                        <select class="input" v-model="subjectSel">
-                          <option disabled value="">Bitte wählen</option>
-                          <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                          <option value="__OTHER__">Anderes...</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div v-if="subjectSel==='__OTHER__'" class="section">
-                      <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
-                    </div>
-
-                    <div class="section">
-                      <label class="label">Beschreibung (optional)</label>
-                      <textarea class="input" rows="4" v-model="description"></textarea>
-                    </div>
-
-                    <div class="row section">
-                      <div class="col">
-                        <label class="label">Abgabedatum</label>
-                        <input class="input" type="date" v-model="dueLocal" />
-
-                      </div>
-                    </div>
-
-                    <div class="section">
-                      <div class="label bold">Bilder</div>
-                      <div class="row images">
-                        <div
-                            v-for="img in images"
-                            :key="img.publicId"
-                            class="image-item"
-                        >
-                          <a :href="img.url" target="_blank" rel="noopener">
-                            <img
-                                :src="img.thumbUrl || makeThumb(img.url)"
-                                class="thumb"
-                                loading="lazy"
-                                decoding="async"
-                                alt="Vorschau"
-                            />
-                          </a>
-                          <div class="image-actions">
-                            <button class="btn danger image-remove" @click="removeImg(img)">X</button>
-                          </div>
-                        </div>
-
-                        <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="uploadImage" :disabled="uploading">
-                          <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Bild hochladen
-                        </button>
-                      </div>
-                      <div v-if="uploading" class="small">Lade Bild hoch...</div>
-                      <div v-if="uploadError" class="small error">{{ uploadError }}</div>
-                    </div>
-
-                    <div class="row actions">
-                      <button data-umami-event="Eintrag speichern/anlegen" class="btn" @click="submit" :disabled="submitting">
-                        <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        {{ initial ? 'Speichern' : 'Anlegen' }}
-                      </button>
-                      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <script setup lang="ts">
-              import { onMounted, onBeforeUnmount, ref } from 'vue';
-              import hw from '../../hwApi';
-              import type { HwItem } from './Hausaufgaben.vue';
-
-              const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
-              const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
-
-              const labelFor = (type: string) => {
-                const map = {
-                  'HAUSAUFGABE': 'Hausaufgabe',
-                  'DALTON': 'Dalton-Auftrag',
-                  'PRUEFUNG': 'Klassenarbeit',
-                } as const;
-                return map[type];
-              };
-
-              const title = ref(props.initial?.title || '');
-              const subjectSel = ref(props.initial?.subject || '');
-              const subjectOther = ref('');
-              const description = ref(props.initial?.description || '');
-              const images = ref(props.initial?.images || []);
-              function isoDateOnlyFromIso(iso: string) {
-                try {
-                  const d = new Date(iso);
-                  const yyyy = d.getFullYear();
-                  const mm = String(d.getMonth() + 1).padStart(2, '0');
-                  const dd = String(d.getDate()).padStart(2, '0');
-                  return `${yyyy}-${mm}-${dd}`;
-                } catch { return new Date().toISOString().slice(0,10); }
-              }
-
-              const dueLocal = ref(
-                  props.initial?.dueDate ? isoDateOnlyFromIso(props.initial.dueDate) : new Date().toISOString().slice(0,10)
-              );
 
 
-              const submitting = ref(false);
-              const message = ref('');
-              const isError = ref(false);
-              const uploading = ref(false);
-              const uploadError = ref('');
-
-              function makeThumb(url: string) {
-                try {
-                  const u = new URL(url);
-                  const parts = u.pathname.split('/');
-                  const uploadIdx = parts.findIndex(p => p === 'upload');
-                  if (uploadIdx !== -1) {
-                    parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
-                    u.pathname = parts.join('/');
-                  }
-                  return u.toString();
-                } catch {
-                  return url;
+package.json: {
+                "name": "bewerten-frontend",
+                "version": "1.0.0",
+                "private": true,
+                "type": "module",
+                "scripts": {
+                  "dev": "vite",
+                  "build": "vite build",
+                  "preview": "vite preview"
+                },
+                "dependencies": {
+                  "axios": "^1.7.2",
+                  "gsap": "^3.13.0",
+                  "pinia": "^2.1.7",
+                  "socket.io-client": "^4.7.5",
+                  "three": "^0.180.0",
+                  "vue": "^3.4.29",
+                  "vue-gtag-next": "^1.14.0",
+                  "vue-router": "^4.3.3"
+                },
+                "devDependencies": {
+                  "@types/node": "^22.0.0",
+                  "@vitejs/plugin-vue": "^5.1.2",
+                  "typescript": "^5.5.4",
+                  "vite": "^5.4.0",
+                  "vue-tsc": "^2.0.28"
                 }
               }
 
-              async function uploadImage() {
-                uploading.value = true;
-                uploadError.value = '';
-                // Datei-Auswahl mit multiple
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.multiple = true;
-                input.onchange = async () => {
-                  const files = Array.from(input.files || []);
-                  if (files.length === 0) {
-                    uploading.value = false;
-                    return;
+
+App.vue: <template>
+           <div class="full">
+             <Header v-if="$route.path !== '/welcome'"/>
+             <main class="full-c">
+               <canvas id="animated-background" ></canvas>
+               <div v-if="loading" class="loading-overlay" key="loading">
+                 <div class="elegant-spinner">
+                   <div class="dot-1"></div>
+                   <div class="dot-2"></div>
+                   <div class="dot-3"></div>
+                 </div>
+               </div>
+               <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
+                 <router-view v-slot="{ Component }">
+                   <KeepAlive>
+                     <component :is="Component" />
+                   </KeepAlive>
+                 </router-view>
+               </div>
+             </main>
+             <ButtonBack v-if="shouldShowBackButton">
+               Zurück
+             </ButtonBack>
+             <Footer v-if="$route.path !== '/welcome'"/>
+             <CookieBanner />
+
+           </div>
+         </template>
+
+         <script setup lang="ts">
+         import { ref, onMounted } from 'vue';
+         import { useRouter } from 'vue-router';
+         import Header from './components/Header.vue';
+         import Footer from './components/Footer.vue';
+         import AnimatedBackground from './utils/animated-background.ts';
+         import CookieBanner from "./components/CookieBanner.vue"
+
+
+
+         const loading = ref(false);
+         const router = useRouter();
+
+
+
+         // Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
+         const MIN_LOAD_TIME = 0;
+         let loadStartTime = 0;
+
+         onMounted(() => {
+           new AnimatedBackground('animated-background');
+         });
+
+
+
+
+         router.beforeEach(() => {
+           loading.value = true;
+           loadStartTime = Date.now();
+         });
+
+         router.afterEach(() => {
+           const elapsedTime = Date.now() - loadStartTime;
+           const remainingTime = MIN_LOAD_TIME - elapsedTime;
+
+           if (remainingTime > 0) {
+             setTimeout(() => {
+               loading.value = false;
+             }, remainingTime);
+           } else {
+             loading.value = false;
+           }
+         });
+         </script>
+
+         <style scoped>
+         /*
+           Stile für die Ladeanimation.
+           Diese sind "scoped", damit sie nur für diese Komponente gelten.
+         */
+         .loading-overlay {
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           position: absolute;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(255, 255, 255, 0);
+           z-index: 999;
+         }
+
+         .elegant-spinner {
+           position: relative;
+           width: 60px;
+           height: 60px;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+         }
+
+         .elegant-spinner div {
+           position: absolute;
+           width: 15px;
+           height: 15px;
+           border-radius: 50%;
+           background: #bd34fe;
+           opacity: 0;
+         }
+
+         .elegant-spinner .dot-1 {
+           animation: pulse-1 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+         .elegant-spinner .dot-2 {
+           animation: pulse-2 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+         .elegant-spinner .dot-3 {
+           animation: pulse-3 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+
+
+         @keyframes pulse-1 {
+           0% { transform: scale(0.1); opacity: 0; }
+           25% { transform: scale(1); opacity: 1; }
+           50% { transform: translateX(20px) scale(0.8); opacity: 0; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         @keyframes pulse-2 {
+           0% { transform: scale(0.1); opacity: 0; }
+           25% { transform: translateX(-20px) scale(0.8); opacity: 0; }
+           50% { transform: scale(1); opacity: 1; }
+           75% { transform: translateX(20px) scale(0.8); opacity: 0; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         @keyframes pulse-3 {
+           0% { transform: scale(0.1); opacity: 0; }
+           50% { transform: translateX(-20px) scale(0.8); opacity: 0; }
+           75% { transform: scale(1); opacity: 1; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         /* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
+         .full-c {
+           flex: 1;
+           position: relative;
+         }
+         </style>
+
+
+gaEvent.ts: // src/directives/gaEvent.ts
+            import type { DirectiveBinding, ObjectDirective } from 'vue'
+            import { useAnalytics } from '../composables/useAnalytics'
+
+            type GaDirectiveValue = {
+                name: string
+                params?: Record<string, string | number | boolean>
+                on?: string
+            }
+
+            function parseDataAttrs(el: Element): Record<string, string> {
+                const out: Record<string, string> = {}
+                Array.from(el.attributes).forEach(attr => {
+                    if (attr.name.startsWith('data-ga-') && attr.name !== 'data-ga-event' && attr.name !== 'data-ga-on') {
+                        const key = attr.name.replace(/^data-ga-/, '')
+                        out[key] = attr.value
+                    }
+                })
+                return out
+            }
+
+            const gaDirective: ObjectDirective = {
+                mounted(el: Element, binding: DirectiveBinding<GaDirectiveValue>) {
+                    const cfg = binding.value
+                    const eventName = cfg?.name ?? el.getAttribute('data-ga-event') ?? ''
+                    const params = cfg?.params ?? parseDataAttrs(el)
+                    const eventType = cfg?.on ?? (el.getAttribute('data-ga-on') || 'click')
+
+                    const handler = () => {
+                        if (!eventName) return
+                        const { trackEvent } = useAnalytics()
+                        trackEvent(eventName, params)
+                    }
+
+                    el.addEventListener(eventType, handler)
+                    ;(el as any).__ga_event_handler__ = { handler, eventType }
+                },
+
+                unmounted(el: Element) {
+                    const ref = (el as any).__ga_event_handler__
+                    if (ref?.handler && ref?.eventType) {
+                        el.removeEventListener(ref.eventType, ref.handler)
+                    }
+                    delete (el as any).__ga_event_handler__
+                }
+            }
+
+            export default gaDirective
+
+
+
+useAnalytics.ts: // src/composables/useAnalytics.ts
+                 import { useGtag } from 'vue-gtag-next'
+
+                 export type AnalyticsParams = Record<string, string | number | boolean | undefined>
+
+                 export function useAnalytics() {
+                     const gtag = useGtag()
+
+                     function trackEvent(name: string, params: AnalyticsParams = {}) {
+                         if (gtag && typeof (gtag as any).event === 'function') {
+                             ;(gtag as any).event(name, params)
+                             return
+                         }
+
+                         const dl = (window as any).dataLayer
+                         if (Array.isArray(dl)) {
+                             dl.push({ event: name, ...params })
+                         } else {
+                             ;(window as any).dataLayer = [{ event: name, ...params }]
+                         }
+                     }
+
+                     return { trackEvent }
+                 }
+
+
+CookieBanner.vue: <template>
+                    <div v-if="visible" class="cookie-banner card">
+                      <div style="display:flex; gap:12px; align-items:center;">
+                        <div class="small">Diese Seite verwendet Statistikcookies. Bitte zustimmen, um Analytics zu aktivieren.</div>
+                        <div style="margin-left:auto; display:flex; gap:8px;">
+                          <button data-umami-event="Cookies ablehnen" class="btn ghost" @click="revoke">Ablehnen</button>
+                          <button data-umami-event="Cookies akzepieren" class="btn" @click="accept">Akzeptieren</button>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+                  <script setup lang="ts">
+                  import { ref, onMounted, onBeforeUnmount } from 'vue';
+                  import { useAuth } from '../composables/useAuth';
+
+                  const auth = useAuth();
+                  const visible = ref(false);
+
+                  function accept() {
+                    const payload = { accepted: true, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };
+                    localStorage.setItem('cookie_consent', JSON.stringify(payload));
+                    window.dispatchEvent(new Event('cookie-accepted'));
+                    visible.value = false;
                   }
 
-                  // Upload jedes Files einzeln nacheinander (sicherer) — bei Bedarf parallelisieren
-                  for (const file of files) {
+                  function revoke() {
+                    localStorage.removeItem('cookie_consent');
+                    window.dispatchEvent(new Event('cookie-revoked'));
+                    visible.value = false;
+                  }
+
+                  function checkShow() {
+                    if (!auth.isAuthenticated.value) {
+                      visible.value = false;
+                      return;
+                    }
+                    const raw = localStorage.getItem('cookie_consent');
+                    if (!raw) {
+                      visible.value = true;
+                      return;
+                    }
                     try {
-                      const { data: sign } = await hw.post('/api/uploads/sign');
-                      const form = new FormData();
-                      form.set('file', file);
-                      form.set('api_key', sign.apiKey);
-                      form.set('timestamp', String(sign.timestamp));
-                      form.set('signature', sign.signature);
-                      form.set('folder', sign.folder);
-
-                      const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                      const json = await res.json();
-
-                      if (json.secure_url && json.public_id) {
-                        images.value.push({
-                          url: json.secure_url,
-                          thumbUrl: makeThumb(json.secure_url),
-                          publicId: json.public_id,
-                          createdBy: ''
-                        });
-                        uploadError.value = '';
-                      } else {
-                        // konkretes File-Fehler-Handling: ergänze Nachricht und setze weiter für restliche Dateien
-                        uploadError.value = 'Einige Uploads konnten nicht durchgeführt werden.';
-                        console.error('Upload failed for file', file, json);
-                      }
-                    } catch (e: any) {
-                      uploadError.value = 'Upload fehlgeschlagen für mindestens eine Datei.';
-                      console.error('uploadImage error', e);
+                      const parsed = JSON.parse(raw);
+                      if (!parsed.accepted || new Date() > new Date(parsed.expires)) visible.value = true;
+                      else visible.value = false;
+                    } catch {
+                      visible.value = true;
                     }
                   }
 
-                  uploading.value = false;
-                };
-                input.click();
-              }
+                  function onAuthChanged() { checkShow(); }
+                  function onStorage() { checkShow(); }
 
+                  onMounted(() => {
+                    checkShow();
+                    window.addEventListener('auth-changed', onAuthChanged);
+                    window.addEventListener('storage', onStorage);
+                  });
 
-              async function removeImg(img: { url: string; publicId: string }) {
-                if (props.initial?.id) {
-                  try {
-                    // encode publicId so slashes are safe in the URL
-                    await hw.delete(`/api/items/${props.initial.id}/images/${encodeURIComponent(img.publicId)}`);
+                  onBeforeUnmount(() => {
+                    window.removeEventListener('auth-changed', onAuthChanged);
+                    window.removeEventListener('storage', onStorage);
+                  });
+                  </script>
 
-                    // remove locally
-                    images.value = images.value.filter(i => i.publicId !== img.publicId);
-
-                    console.log('Bild erfolgreich gelöscht:', img.publicId);
-                    uploadError.value = 'Bild erfolgreich gelöscht.';
-                    setTimeout(() => uploadError.value = '', 3000);
-
-                  } catch (e: any) {
-                    console.error('Fehler beim Löschen des Bildes:', e);
-                    uploadError.value = 'Fehler beim Löschen des Bildes.';
+                  <style scoped>
+                  .cookie-banner {
+                    position: fixed;
+                    bottom: 16px;
+                    right: 16px;
+                    max-width: 420px;
+                    padding: 12px;
+                    border-radius: 10px;
+                    background: var(--card);
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+                    z-index: 1200;
                   }
-                } else {
-                  images.value = images.value.filter(i => i.publicId !== img.publicId);
-                }
-              }
-
-              async function submit() {
-                submitting.value = true;
-                message.value = '';
-                isError.value = false;
-                try {
-                  const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
-                  const payload: any = {
-                    type: props.type,
-                    title: title.value.trim(),
-                    subject,
-                    description: description.value.trim(),
-                    images: images.value
-                  };
-                  const selected = new Date(dueLocal.value);
-                  selected.setHours(23, 59, 0, 0);
-                  payload.dueDate = selected.toISOString();
-
-                  if (props.initial) {
-                    await hw.patch(`/api/items/${props.initial.id}`, payload);
-                    message.value = 'Eintrag erfolgreich aktualisiert.';
-                  } else {
-                    await hw.post('/api/items', payload);
-                    message.value = 'Eintrag erfolgreich angelegt.';
-                  }
-                  isError.value = false;
-                  emit('success');
-                } catch (e: any) {
-                  message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                  isError.value = true;
-                } finally {
-                  submitting.value = false;
-                }
-              }
-
-              function onKeyDown(e: KeyboardEvent) {
-                if (e.key === 'Escape') emit('close');
-              }
-              onMounted(() => window.addEventListener('keydown', onKeyDown));
-              onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
-              </script>
-
-              <style scoped>
-
-              /* Overlay: dimmt die Seite, aber NICHT verschwommen */
-              .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.4);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 100;
-                padding: 24px;
-              }
-
-
-              .glass-modal {
-                width: 100%;
-                max-width: 720px;
-                border-radius: 14px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                padding: 22px;
-                color: #1a1a1a;
-              }
-
-
-              .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 12px;
-              }
-              .modal-title {
-                margin: 0;
-                font-size: 18px;
-                font-weight: 600;
-                color: rgba(244, 244, 244);
-              }
-
-              /* Layout */
-              .row {
-                display: flex;
-                gap: 12px;
-                flex-wrap: wrap;
-                align-items: center;
-              }
-              .col {
-                flex: 1;
-                min-width: 240px;
-              }
-              .section {
-                margin-top: 10px;
-              }
-
-              /* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
-              .label {
-                display: block;
-                font-size: 13px;
-                color: rgba(244, 244, 244);
-                margin-bottom: 6px;
-              }
-              .label.bold {
-                font-weight: 600;
-                color: rgba(234, 234, 234);
-              }
-
-              .input {
-                width: 100%;
-                padding: 10px 12px;
-                border-radius: 10px;
-                border: 1px solid rgba(128, 128, 128, 0.35);
-                background: rgba(26, 26, 26, 0.6);
-                color: var(--text);
-                outline: none;
-                transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-              }
-              .input:focus {
-                background: rgba(26, 26, 26, 0.7);
-              }
-
-              /* Bilderbereich */
-              .images {
-                gap: 8px;
-                margin-top: 6px;
-              }
-              .image-item {
-                position: relative;
-                width: 120px;
-                height: 120px;
-                border: 1px solid rgba(128, 128, 128, 0.35);
-                border-radius: 10px;
-                overflow: hidden;
-                background: rgba(26, 26, 26, 0.5);
-                backdrop-filter: blur(8px) brightness(95%);
-                -webkit-backdrop-filter: blur(8px) brightness(95%);
-              }
-              .thumb {
-                display: block;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-              }
-              .image-actions {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-              }
-              .image-remove {
-                padding: 4px 8px;
-                font-size: 12px;
-              }
-
-              /* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
-              .btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-              }
-              .btn.ghost {
-                backdrop-filter: none;
-              }
-
-              /* Spinner */
-              .spinner {
-                animation: spin 1s linear infinite;
-                height: 20px;
-                width: 20px;
-              }
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-
-              /* Aktionen unten */
-              .actions {
-                margin-top: 16px;
-                align-items: center;
-              }
-
-              /* Meldungen */
-              .small {
-                font-size: 12px;
-                color: var(--muted);
-              }
-              .error {
-                color: var(--danger);
-              }
-              .msg-ok {
-                color: var(--primary);
-              }
-              .msg-error {
-                color: var(--danger);
-              }
-
-              /* Fallback, falls backdrop-filter nicht unterstützt wird */
-              @supports not ((backdrop-filter: blur(10px))) {
-                .glass-modal {
-                  background: rgba(26, 26, 26, 0.75);
-                }
-              }
-              </style>
+                  .small { font-size: 13px; color: var(--muted); }
+                  .btn { padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+                  .btn.ghost { background: transparent; color: var(--text); border: 1px solid #444; }
+                  </style>
 
 
 
-Hausaufgaben.vue:<template>
-                   <div class="card">
-                     <div class="hw-header">
-                       <div>
-                         <h2>Dashboard</h2>
-                         <div style="color: #f1f1f1" class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
-                       </div>
+CookieSetting.vue: <template>
+                     <div class="card">
+                       <h3>Cookie-Einstellungen</h3>
+                       <p>
+                         Aktueller Status:
+                         <span v-if="accepted" class="badge">Akzeptiert</span>
+                         <span v-else class="badge">Abgelehnt</span>
+                       </p>
 
-                       <div class="row header-actions">
-                         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
-                         <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
-                         <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
-                       </div>
+                       <label class="switch">
+                         <input type="checkbox" v-model="accepted" @change="toggleConsent" />
+                         <span class="slider"></span>
+                       </label>
                      </div>
+                   </template>
 
-                     <div class="announcements">
-                       <div class="announcements-head">
-                         <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
-                         <button
-                             v-if="user?.isAdmin"
-                             data-umami-event="Dashboard Admin Ankündigung hinzufügen"
-                             class="btn ghost small-btn"
-                             @click="showAnnouncementForm = true"
-                             v-ga-event="{ name: 'add_announcement', params: { method: 'admin_button', label: 'p_b' } }"
-                         >
-                           Ankündigung hinzufügen
-                         </button>
-                       </div>
+                   <script setup lang="ts">
+                   import { ref, onMounted } from 'vue'
 
-                       <div v-if="announcements.length" class="ann-list">
-                         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
-                           <div class="ann-title">{{ a.title }}</div>
-                           <div class="ann-content">{{ a.content }}</div>
-                           <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-                           <div v-if="canManage(a.createdBy)" class="ann-actions">
-                             <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
-                           </div>
-                         </div>
-                       </div>
+                   const accepted = ref(false)
 
-                       <hr v-else-if="!announcements.length" />
-                     </div>
-
-                     <div class="tabs-row">
-                       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
-                       <button data-umami-event="Dashboard Dalton Reiter" class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
-                       <button data-umami-event="Dashboard Prüfung Reiter" class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
-                     </div>
-
-                     <div class="controls">
-                       <div class="left">
-                         <select class="input select-subject" v-model="subjectFilter">
-                           <option value="">Alle Fächer</option>
-                           <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-                         </select>
-
-                         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
-
-                         <div v-if="loading" class="loader">
-                           <LoadingSpinner color="#fff" size="1.2em" />
-                           <div>Lade...</div>
-                         </div>
-                       </div>
-
-                       <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
-                     </div>
-
-                     <div class="items">
-                       <div
-                           v-for="item in limitedItems"
-                           :key="item.id"
-                           class="item-card"
-                           :class="{ collapsed: isChecked(item.id) }"
-                       >
-                         <div class="item-main">
-                           <div class="item-meta">
-                             <div style="display:flex; align-items:center; gap:8px;">
-                               <label class="collapse-checkbox" v-if="user">
-                                 <input type="checkbox" :checked="isChecked(item.id)" @change="toggleCheck(item)" />
-                                 <span class="vis-label"></span>
-                               </label>
-
-                               <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
-                             </div>
-
-                             <div class="row item-badges" v-show="!isChecked(item.id)">
-                               <div class="badge subject-badge">{{ item.subject }}</div>
-                               <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
-                                 Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
-                               </div>
-                             </div>
-                           </div>
-
-                           <div
-                               class="item-menu-trigger"
-                               role="button"
-                               tabindex="0"
-                               @click.stop="toggleMenu(item.id)"
-                               @keydown.enter.prevent="toggleMenu(item.id)"
-                               @keydown.space.prevent="toggleMenu(item.id)"
-                               :aria-expanded="openMenuId === item.id ? 'true' : 'false'"
-                           >
-                             •••
-                           </div>
-
-                           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-                             <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
-                             <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
-                             <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
-                             <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
-                           </div>
-                         </div>
-
-                         <transition name="collapse">
-                           <div v-show="!isChecked(item.id)" class="item-body">
-                             <span v-if="!isExpanded(item.id)">
-                               {{ item.description.slice(0, 200) }}
-                               <span v-if="item.description.length > 200">…</span>
-                             </span>
-                             <span v-else>
-                               {{ item.description }}
-                             </span>
-                             <button
-                                 v-if="item.description.length > 200"
-                                 class="btn tiny ghost"
-                                 @click="toggleDescription(item.id)"
-                                 data-umami-event="Dashboard mehr anzeigen/weniger anzeigen"
-                                 style="margin-left:8px;"
-                             >
-                               {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
-                             </button>
-                           </div>
-                         </transition>
-
-                         <transition name="collapse">
-                           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
-                             <div class="images-title">Bilder</div>
-                             <div class="images-row">
-                               <div
-                                   v-for="img in item.images"
-                                   :key="img.publicId"
-                                   class="thumb"
-                               >
-                                 <a :href="img.url" target="_blank" rel="noopener">
-                                   <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-                                 </a>
-                               </div>
-                             </div>
-                           </div>
-                         </transition>
-                       </div>
-
-                       <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
-                         Keine Einträge in der aktuellen Ansicht.
-                       </div>
-                       <div v-if="!loading && !filteredItems.length" class="card empty">
-                         Keine Einträge gefunden.
-                       </div>
-
-                       <div v-if="filteredItems.length > 5" class="pagination-actions">
-                         <button
-                             v-if="visibleCount < filteredItems.length"
-                             class="btn ghost shm"
-                             @click="showMore"
-                         >
-                           Mehr anzeigen
-                         </button>
-                         <button
-                             v-if="visibleCount > 5"
-                             class="btn ghost shm"
-                             @click="showLess"
-                         >
-                           Weniger anzeigen
-                         </button>
-                       </div>
-                     </div>
-
-                     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
-                     <ItemForm
-                         v-if="showItemForm"
-                         :key="itemFormKey"
-                         :type="tab"
-                         :subjects="subjects"
-                         :initial="itemToEdit"
-                         :max-title-length="MAX_TITLE_LENGTH"
-                         :max-subject-length="MAX_SUBJECT_LENGTH"
-                         @close="showItemForm=false"
-                         @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
-                         @error="onItemFormError"
-                     />
-                     <AnnouncementForm
-                         v-if="showAnnouncementForm"
-                         @close="showAnnouncementForm=false"
-                         @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')"
-                     />
-                     <ImageForm
-                         v-if="showImageFormFor"
-                         :item="showImageFormFor"
-                         @close="showImageFormFor=null"
-                         @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
-                     />
-
-                     <ConfirmDialog
-                         :show="showReportConfirm"
-                         message="Soll dieser Eintrag wirklich gemeldet werden?"
-                         @confirm="doReport"
-                         @cancel="showReportConfirm=false"
-                     />
-                   </div>
-                 </template>
-
-                 <script setup lang="ts">
-                 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
-                 import { useRoute, useRouter } from 'vue-router';
-                 import AuthModal from '../components/hw/AuthModal.vue';
-                 import ItemForm from '../components/hw/ItemForm.vue';
-                 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
-                 import ImageForm from '../components/hw/ImageForm.vue';
-                 import hw, { setHwToken } from '../hwApi';
-                 import AccountMenu from '../components/hw/AccountMenu.vue';
-                 import ConfirmDialog from '../components/ConfirmDialog.vue'
-                 import LoadingSpinner from "../components/LoadingSpinner.vue";
-
-                 export interface HwItem {
-                   id: string;
-                   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-                   title: string;
-                   subject: string;
-                   description: string;
-                   images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
-                   dueDate: string;
-                   createdBy: string;
-                   timeColor: string;
-                 }
-
-                 const MAX_TITLE_LENGTH = 100;
-                 const MAX_SUBJECT_LENGTH = 30;
-
-                 const showAuth = ref(false);
-                 const showItemForm = ref(false);
-                 const showAnnouncementForm = ref(false);
-                 const showImageFormFor = ref<any>(null);
-
-                 const itemToEdit = ref<HwItem | null>(null);
-
-                 const user = ref<any>(null);
-                 const subjects = ref<string[]>([]);
-                 const announcements = ref<any[]>([]);
-                 const items = ref<HwItem[]>([]);
-                 const loading = ref(true);
-                 const subjectFilter = ref('');
-
-
-                 const message = ref('');
-                 const isError = ref(false);
-
-                 // checkedItems holds item IDs that current user has checked
-                 const checkedItems = ref(new Set<string>());
-
-                 const itemFormKey = ref(0);
-
-                 // description expand tracking
-                 const expandedDescriptions = ref<Set<string>>(new Set());
-                 function isExpanded(id: string) {
-                   return expandedDescriptions.value.has(id);
-                 }
-                 function toggleDescription(id: string) {
-                   if (expandedDescriptions.value.has(id)) {
-                     expandedDescriptions.value.delete(id);
-                   } else {
-                     expandedDescriptions.value.add(id);
-                   }
-                 }
-
-                 // pagination
-                 const visibleCount = ref(5);
-                 function showMore() {
-                   visibleCount.value = Math.min(visibleCount.value + 5, filteredItems.value.length);
-                 }
-                 function showLess() {
-                   visibleCount.value = Math.max(5, visibleCount.value - 5);
-                 }
-                 const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
-
-                 // confirm dialog state
-                 const showReportConfirm = ref(false)
-                 let reportTarget: HwItem | null = null
-
-                 // route + router
-                 const route = useRoute();
-                 const router = useRouter();
-
-                 // accepted item types
-                 type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-                 function isValidType(t: any): t is ItemType {
-                   return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG';
-                 }
-
-                 // tab is derived from route.params.type (fallback to HAUSAUFGABE)
-                 const tab = ref<ItemType>( isValidType(route.params.type) ? (route.params.type as ItemType) : 'HAUSAUFGABE' );
-
-                 // when route param changes, update tab and reload items
-                 watch(() => route.params.type, (v) => {
-                   if (isValidType(v)) {
-                     tab.value = v;
-                   } else {
-                     tab.value = 'HAUSAUFGABE';
-                   }
-                   reload();
-                 });
-
-                 // reset pagination when filters change
-                 watch([subjectFilter, tab, items], () => {
-                   visibleCount.value = Math.min(5, filteredItems.value.length || 5);
-                 });
-
-                 // UI/helpers
-                 const colorFor = (color: string) => {
-                   const map: Record<string, string> = {
-                     'ok': 'var(--primary)',
-                     'warn': 'var(--warn)',
-                     'danger': 'var(--danger)',
-                     'expired': '#4b5563',
-                     'info': '#3b82f6',
-                   };
-                   return map[color] || 'var(--muted)';
-                 };
-
-                 const filteredItems = computed(() => {
-                   let list = items.value;
-                   if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
-                   return list;
-                 });
-
-                 const openMenuId = ref<string | null>(null);
-
-                 function toggleMenu(id: string) {
-                   openMenuId.value = openMenuId.value === id ? null : id;
-                 }
-
-                 function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
-                   openMenuId.value = null;
-                   if (action === 'images') return showImageForm(item);
-                   if (action === 'edit') return editItem(item);
-                   if (action === 'delete') return deleteItem(item.id);
-                   if (action === 'report') return reportItem(item);
-                 }
-
-                 function reportItem(item: HwItem) {
-                   reportTarget = item
-                   showReportConfirm.value = true
-                 }
-
-                 function onDocumentClick(e: MouseEvent) {
-                   if (!openMenuId.value) return;
-                   openMenuId.value = null;
-                 }
-
-                 onMounted(() => {
-                   document.addEventListener('click', onDocumentClick);
-                   loadMe();
-                   loadSubjects();
-                   loadAnnouncements();
-                   reload();
-                 });
-
-                 onBeforeUnmount(() => {
-                   document.removeEventListener('click', onDocumentClick);
-                 });
-
-                 function canManage(createdBy: string) {
-                   if (!user.value) return false;
-                   return user.value.isAdmin || user.value.id === createdBy;
-                 }
-
-                 async function loadMe() {
-                   try {
-                     const { data } = await hw.get('/api/auth/me');
-                     user.value = data;
-                     await loadCheckedForMe();
-                   } catch {
-                     user.value = null;
-                     checkedItems.value = new Set();
-                   }
-                 }
-
-                 async function loadCheckedForMe() {
-                   if (!user.value) {
-                     checkedItems.value = new Set();
-                     return;
-                   }
-                   try {
-                     const { data } = await hw.get('/api/checks/me');
-                     checkedItems.value = new Set(data.itemIds || []);
-                   } catch (e) {
-                     console.error('loadCheckedForMe error', e);
-                     checkedItems.value = new Set();
-                   }
-                 }
-
-                 async function loadSubjects() {
-                   try {
-                     const { data } = await hw.get('/api/subjects');
-                     subjects.value = data;
-                   } catch (e) {
-                     console.error('loadSubjects error', e);
-                   }
-                 }
-                 async function loadAnnouncements() {
-                   try {
-                     const { data } = await hw.get('/api/announcements');
-                     announcements.value = data;
-                   } catch (e) {
-                     console.error('loadAnnouncements error', e);
-                   }
-                 }
-
-                 async function reload() {
-                   loading.value = true;
-                   try {
-                     const { data } = await hw.get('/api/items', { params: { type: tab.value } });
-                     items.value = data;
-                     // reset expansions on reload
-                     expandedDescriptions.value = new Set();
-                   } catch (e) {
-                     console.error('Failed to load items:', e);
-                   } finally {
-                     loading.value = false;
-                     visibleCount.value = Math.min(5, filteredItems.value.length || 5);
-                   }
-                 }
-
-                 function onAccountDeleted() {
-                   setHwToken(null);
-                   user.value = null;
-                   checkedItems.value = new Set();
-                   message.value = 'Account erfolgreich gelöscht.';
-                   isError.value = false;
-                   reload();
-                   setTimeout(() => { message.value = ''; }, 5000);
-                 }
-
-                 function onAccountDeleteError(msg: string) {
-                   message.value = msg;
-                   isError.value = true;
-                   setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-                 }
-
-                 function handleSuccess(msg: string) {
-                   message.value = msg;
-                   isError.value = false;
-                   itemFormKey.value += 1;
-                   setTimeout(() => message.value = '', 5000);
-                   showItemForm.value = false;
-                   showAnnouncementForm.value = false;
-                   showImageFormFor.value = null;
-                   reload();
-                 }
-
-                 // receive error from ItemForm (length limits etc.)
-                 function onItemFormError(msg: string) {
-                   message.value = msg || 'Bitte Eingaben prüfen.';
-                   isError.value = true;
-                   setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-                 }
-
-                 function onLoggedIn(token: string) {
-                   setHwToken(token);
-                   showAuth.value = false;
-                   loadMe();
-                   reload();
-                 }
-
-                 function logout() {
-                   setHwToken(null);
-                   user.value = null;
-                   checkedItems.value = new Set();
-                 }
-
-                 function editItem(item: HwItem) {
-                   itemToEdit.value = item;
-                   showItemForm.value = true;
-                 }
-
-                 // open create with simple guard demonstrating max limits (frontend only)
-                 function openCreateForm() {
-
-                   itemToEdit.value = null;
-                   // optional: we could pre-check something here if needed
-                   showItemForm.value = true;
-                 }
-
-                 async function deleteItem(id: string) {
-                   if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
-                     loading.value = true;
-                     try {
-                       await hw.delete(`/api/items/${id}`);
-                       handleSuccess('Eintrag erfolgreich gelöscht.');
-                     } catch (e: any) {
-                       message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                       isError.value = true;
-                     } finally {
-                       loading.value = false;
+                   onMounted(() => {
+                     const consent = localStorage.getItem('cookie_consent')
+                     if (consent) {
+                       const parsed = JSON.parse(consent)
+                       const expires = new Date(parsed.expires)
+                       if (parsed.accepted && new Date() < expires) {
+                         accepted.value = true
+                       }
                      }
-                   }
-                 }
+                   })
 
-                 async function deleteAnnouncement(id: string) {
-                   if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
-                     try {
-                       await hw.delete(`/api/announcements/${id}`);
-                       handleSuccess('Ankündigung erfolgreich gelöscht.');
-                     } catch (e: any) {
-                       message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                       isError.value = true;
-                     }
-                   }
-                 }
-
-                 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
-
-                 async function doReport() {
-                   showReportConfirm.value = false
-                   if (!reportTarget) return
-
-                   const item = reportTarget
-                   reportTarget = null
-
-                   message.value = 'Eintrag wird gemeldet...'
-                   isError.value = false
-                   const payload = {
-                     itemId: item.id,
-                     itemTitle: item.title,
-                     reportedAt: new Date().toISOString(),
-                     reporterEmail: user.value?.email || ''
-                   }
-                   try {
-                     const res = await fetch(FORMSPREE_ENDPOINT, {
-                       method: 'POST',
-                       headers: {
-                         'Accept': 'application/json',
-                         'Content-Type': 'application/json'
-                       },
-                       body: JSON.stringify({
-                         message: `Item gemeldet
-                 ID: ${payload.itemId}
-                 Titel: ${payload.itemTitle}
-                 Gemeldet am: ${payload.reportedAt}
-                 Meldet von: ${payload.reporterEmail}`
-                       })
-                     })
-                     const data = await res.json().catch(() => ({}))
-                     if (res.ok) {
-                       message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.'
-                       isError.value = false
+                   function toggleConsent() {
+                     if (accepted.value) {
+                       // Zustimmung speichern
+                       const expires = new Date()
+                       expires.setDate(expires.getDate() + 28)
+                       localStorage.setItem('cookie_consent', JSON.stringify({
+                         accepted: true,
+                         expires
+                       }))
+                       window.dispatchEvent(new Event('cookie-accepted'))
                      } else {
-                       const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.')
-                       message.value = 'Fehler beim Melden: ' + errMsg
-                       isError.value = true
+                       // Zustimmung entfernen
+                       localStorage.removeItem('cookie_consent')
+                       window.dispatchEvent(new Event('cookie-revoked'))
                      }
-                   } catch (e:any) {
-                     message.value = 'Fehler beim Melden. Bitte versuche es später erneut.'
-                     isError.value = true
-                     console.error('reportItem error', e)
-                   } finally {
-                     setTimeout(() => { message.value = ''; isError.value = false }, 7000)
                    }
-                 }
+                   </script>
 
-                 function showImageForm(item: HwItem) {
-                   showImageFormFor.value = item;
-                 }
-
-                 function makeThumb(url: string) {
-                   try {
-                     const u = new URL(url);
-                     const parts = u.pathname.split('/');
-                     const uploadIdx = parts.findIndex(p => p === 'upload');
-                     if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
-                       u.pathname = parts.join('/');
-                     }
-                     return u.toString();
-                   } catch {
-                     return url;
+                   <style scoped>
+                   .switch {
+                     position: relative;
+                     display: inline-block;
+                     width: 50px;
+                     height: 26px;
                    }
-                 }
 
-                 // checked helpers
-                 function isChecked(itemId: string) {
-                   return checkedItems.value.has(itemId);
-                 }
-
-                 async function toggleCheck(item: HwItem) {
-                   if (!user.value) return;
-                   const id = item.id;
-                   try {
-                     if (isChecked(id)) {
-                       await hw.delete(`/api/items/${id}/check`);
-                       checkedItems.value.delete(id);
-                     } else {
-                       await hw.post(`/api/items/${id}/check`);
-                       checkedItems.value.add(id);
-                     }
-                   } catch (e: any) {
-                     console.error('toggleCheck error', e);
-                     message.value = e.response?.data?.error || 'Fehler beim Setzen des Status.';
-                     isError.value = true;
-                     setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+                   .switch input {
+                     opacity: 0;
+                     width: 0;
+                     height: 0;
                    }
-                 }
 
-                 // Navigate to route for a tab (keeps URL in sync and supports reload/bookmark)
-                 function goTab(t: ItemType) {
-                   router.push({ name: 'ItemsByType', params: { type: t } });
-                 }
-                 </script>
+                   .slider {
+                     position: absolute;
+                     cursor: pointer;
+                     top: 0; left: 0; right: 0; bottom: 0;
+                     background-color: var(--muted);
+                     transition: .4s;
+                     border-radius: 26px;
+                   }
 
-                 <style scoped>
-                 /* Header */
-                 .hw-header {
-                   display: flex;
-                   align-items: center;
-                   justify-content: space-between;
-                   gap: 12px;
-                 }
-                 .hw-header h2 { margin: 0 0 2px 0; font-size: 1.25rem; }
-                 .header-actions { align-items: center; }
+                   .slider:before {
+                     position: absolute;
+                     content: "";
+                     height: 20px; width: 20px;
+                     left: 3px; bottom: 3px;
+                     background-color: white;
+                     transition: .4s;
+                     border-radius: 50%;
+                   }
 
-                 /* Announcements */
-                 .announcements { margin-top: 18px; }
-                 .announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-                 .ann-list { margin-top: 12px; }
-                 .ann {
-                   border-radius: 10px;
-                   padding: 12px;
-                   background: rgba(255,255,255,0.02);
-                   border: 1px solid var(--border);
-                   position: relative;
-                   overflow: hidden;
-                 }
-                 .ann + .ann { margin-top: 10px; }
-                 .ann-title { font-weight: 700; }
-                 .ann-content { white-space: pre-wrap; margin-top: 6px; color: var(--text); }
-                 .ann-date { margin-top: 6px; color: var(--muted); }
-                 .ann-actions { margin-top: 8px; }
+                   input:checked + .slider {
+                     background-color: var(--primary);
+                   }
 
-                 /* Tabs */
-                 .tabs-row { display:flex; gap:8px; margin: 16px 0; flex-wrap:wrap; }
-
-                 /* Controls */
-                 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-                 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-                 .select-subject { width:auto; min-width:160px; }
-                 .small-btn { padding:6px 8px; font-size:13px; }
-
-
-
-
-                 /* Items */
-                 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
-                 .item-card {
-                   border-radius: 12px;
-                   padding: 14px;
-                   background: var(--jj);
-                   border: 1px solid rgba(255,255,255,0.03);
-                   transition: transform 160ms ease, box-shadow 160ms ease;
-                   overflow: visible;
-                 }
-
-                 /* Collapsed state */
-                 .item-card.collapsed {
-                   padding: 8px 12px;
-                   transition: padding 320ms ease, max-height 320ms ease;
-                 }
-
-                 /* Item main row */
-                 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-                 .item-meta { flex:1; min-width: 0; }
-                 .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-                 /* Checkbox visual */
-                 .collapse-checkbox {
-                   display:inline-flex;
-                   align-items:center;
-                   margin-right:6px;
-                   cursor:pointer;
-                 }
-                 .collapse-checkbox input { display:none; }
-                 .collapse-checkbox .vis-label {
-                   width:18px; height:18px; border-radius:4px; border: 2px solid white;;
-                   display:inline-block; background:transparent; position:relative;
-                 }
-                 .collapse-checkbox input:checked + .vis-label {
-                   background: var(--primary);
-                   border-color: var(--primary);
-                 }
-                 .collapse-checkbox .vis-label::after {
-                   content: '';
-                   position: absolute;
-                   /* Größe des Hakens: z.B. 4px Breite und 8px Höhe für eine etwas kleinere Optik */
-                   width: 5px; /* Etwas angepasst */
-                   height: 9px; /* Etwas angepasst */
-                   border: solid white;
-                   border-width: 0 2px 2px 0;
-                   opacity: 0;
-
-                   /* ZENTRIERUNG: Verschiebt den Haken nach links oben und dreht ihn dann */
-                   /* Die Werte 'left: 50%' und 'top: 50%' zentrieren den Drehpunkt */
-                   /* translate(-50%, -50%) würde das Element zentrieren, aber wir wollen es drehen */
-                   left: 50%;
-                   top: 38%;
-                   /* Verschieben um die Hälfte der Breite und Höhe des Hakens UND Drehen um 45 Grad */
-                   /* Die Werte müssen experimentell angepasst werden, um perfekt zu passen */
-                   /* Beispielwerte für 5x9 Haken: */
-                   transform: translate(-50%, -45%) rotate(45deg); /* '-45%' statt '-50%' hebt ihn leicht an, um ihn optisch zu zentrieren */
-
-                   /* Alternativ könnte man die Originalwerte für Breite/Höhe nutzen und nur die Position anpassen */
-                   /* Original (6x10): */
-                   /* transform: translate(-30%, -20%) rotate(45deg); */
-                 }
-                 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
-
-                 /* Badges */
-                 .item-badges { margin-top:4px; gap:8px; align-items:center; }
-                 .subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
-                 .time-badge { padding:4px 8px; border-radius:6px; }
-
-                 /* Dropdown menu */
-                 .item-menu {
-                   position: absolute;
-                   top: 100%;
-                   right: 0;
-                   min-width: 160px;
-
-                   background: rgba(26,26,26,0.95);
-                   border: 1px solid var(--border);
-                   border-radius: 10px;
-                   padding: 8px;
-
-                   display: none;
-                   flex-direction: column;
-                   align-items: stretch;
-
-                   gap: 6px;
-                   z-index: 1000;
-
-                   opacity: 0;
-                   transform: translateY(-6px) scale(0.98);
-                   pointer-events: none;
-                   transition: opacity 160ms ease, transform 160ms ease;
-                 }
-                 .item-menu.open {
-                   display: flex;
-                   opacity: 1;
-                   transform: translateY(0) scale(1);
-                   pointer-events: auto;
-                 }
-
-                 .menu-btn {
-                   display: block;
-                   width: 100%;
-                   text-align: left;
-                   background: transparent;
-                   border: none;
-                   padding: 8px;
-                   color: var(--text);
-                   border-radius: 8px;
-                   cursor: pointer;
-                 }
-                 .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
-                 .menu-btn.danger { background: var(--danger); color: white; }
-                 .menu-btn.warn { background: var(--warn); color: #1f1300; }
-
-                 /* Body and images */
-                 .item-body {
-                   white-space: pre-wrap;
-                   margin-top:10px;
-                   color: var(--text);
-                   white-space: pre-wrap;        /* behält Zeilenumbrüche, erlaubt Umbruch */
-                   word-break: break-word;       /* bricht lange Wörter, wenn nötig */
-                   overflow-wrap: anywhere;      /* erlaubt Umbruch an beliebiger Stelle bei sehr langen Wörtern */
-                   hyphens: auto;
-                 }
-                 .item-images { margin-top:12px; }
-                 .images-title { font-weight:600; margin-bottom:8px; }
-                 .images-row { display:flex; flex-wrap:wrap; gap:8px; }
-                 .thumb {
-                   width:120px; height:120px; border-radius:8px; overflow:hidden;
-                   border:1px solid var(--border);
-                   display:flex; align-items:center; justify-content:center;
-                   background: rgba(0,0,0,0.12);
-                 }
-                 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-
-                 /* Empty state */
-                 .empty { text-align:center; color:var(--muted); padding:24px; }
-
-                 /* Collapse transition (height + opacity) */
-                 .collapse-enter-active, .collapse-leave-active {
-                   transition: max-height 320ms ease, opacity 320ms ease, padding 320ms ease;
-                 }
-                 .collapse-enter-from, .collapse-leave-to {
-                   max-height: 0;
-                   opacity: 0;
-                   padding-top: 0;
-                   padding-bottom: 0;
-                 }
-                 .collapse-enter-to, .collapse-leave-from {
-                   max-height: 800px;
-                   opacity: 1;
-                 }
-
-                 /* Message */
-                 .message { font-weight:600; }
-                 .message.error { color: var(--danger); }
-
-                 /* Tiny utility */
-                 .tiny { padding:4px 8px; font-size:12px; }
-
-                 /* menu trigger */
-                 .item-menu-trigger {
-                   display: inline-flex;
-                   align-items: center;
-                   justify-content: center;
-                   width: 46px;
-                   height: 34px;
-                   padding: 6px 8px;
-                   border-radius: 6px;
-                   cursor: pointer;
-                   color: var(--muted);
-                   transition: background 120ms ease, color 120ms ease, transform 120ms ease;
-                 }
-                 .item-menu-trigger:hover {
-                   background: rgba(255,255,255,0.02);
-                   color: var(--text);
-                   transform: translateY(-1px);
-                 }
-
-                 /* Pagination actions */
-                 .pagination-actions {
-                   margin-top: 16px;
-                   display: flex;
-                   gap: 12px;
-                   justify-content: center;
-                 }
-
-                 .shm:hover{ background-color:inherit }
-
-                 /* Füge dies in HAUSAUFGABEN.VUE ein, um Spinner + Text auszurichten */
-                 .loader {
-                   display: flex;
-                   align-items: center;
-                   gap: 8px;
-                   color: var(--muted); /* Farbe für den Text "Lade..." */
-                 }
-                 </style>
+                   input:checked + .slider:before {
+                     transform: translateX(24px);
+                   }
+                   </style>

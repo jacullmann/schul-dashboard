@@ -32,7 +32,7 @@ if (consent) {
         const parsed = JSON.parse(consent);
         const expires = new Date(parsed.expires);
         if (parsed.accepted && new Date() < expires) {
-            initAnalytics();
+            //initAnalytics();
         }
     } catch {
         // ignore
