@@ -203,7 +203,7 @@ async function submit() {
 .btn {
   background: transparent;
   color: white;
-  border: 1px solid white;
+  border: none;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
