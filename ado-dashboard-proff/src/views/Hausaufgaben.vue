@@ -58,7 +58,7 @@
 
         <div v-if="loading" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
-          <div>Lade...</div>
+          <div style="color: #aaaaaa">Lade...</div>
         </div>
       </div>
 
