@@ -57,11 +57,7 @@
           <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
           {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
         </button>
-        <div style="margin-top:8px;">
-          <button data-umami-event="Passwort vergessen Button" class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
-        </div>
-
-
+        <button data-umami-event="Passwort vergessen Button" class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
       </div>
     </div>
