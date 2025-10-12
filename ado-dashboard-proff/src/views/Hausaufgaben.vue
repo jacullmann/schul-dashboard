@@ -723,7 +723,7 @@ function goTab(t: ItemType) {
 
 /* Badges */
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
-.subject-badge { background:#4b5563; color:white; padding:4px 8px; border-radius:6px; }
+.subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 
 /* Dropdown menu */
