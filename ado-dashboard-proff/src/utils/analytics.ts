@@ -32,7 +32,7 @@ function send(event: string, props: Props = {}) {
     });
 }
 
-export function initAnalytics(router: any) {
+export function inituAnalytics(router: any) {
     if (!router) return;
     router.afterEach((to: any) => {
         send(to.fullPath || 'pageview', {

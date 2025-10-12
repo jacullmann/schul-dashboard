@@ -65,5 +65,5 @@ window.addEventListener('auth-changed', () => {
 });
 
 
-import { initAnalytics } from './utils/analytics';
-initAnalytics(router);
+import { inituAnalytics } from './utils/analytics';
+inituAnalytics(router);
