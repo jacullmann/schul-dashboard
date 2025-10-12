@@ -8,24 +8,25 @@
       <meta name="robots" content="noindex, nofollow, noarchive">
       <script defer src="https://cloud.umami.is/script.js" data-website-id="9e0ccaf1-08bb-4ab5-b42a-5f7a893090a6"></script>
       <script>
-          /* Umami extended pageview properties — robust: wartet auf window.umami und exportiert eine globale Funktion für SPA-Hooks */
           (function () {
+              // globale Variable für vorherige URL
+              window.__lastUrl = window.__lastUrl || (document.referrer || null);
+
               async function collectAndSend() {
+                  // warte falls umami noch nicht initialisiert
                   if (!window.umami || typeof window.umami.track !== 'function') {
-                      // falls umami noch nicht da ist, warte kurz (retry)
-                      for (let i = 0; i < 10; i++) {
+                      for (let i = 0; i < 15; i++) {
                           await new Promise(r => setTimeout(r, 200));
                           if (window.umami && typeof window.umami.track === 'function') break;
                       }
-                      if (!window.umami || typeof window.umami.track !== 'function') {
+                      if (!window.umami || typeof window.umami.track === 'function') {
+                          // nichts gefunden -> abbrechen
                           console.warn('Umami nicht gefunden: detailed pageview skipped');
                           return;
                       }
                   }
 
-                  function getLanguage() {
-                      return (navigator.language || navigator.userLanguage || null);
-                  }
+                  function getLanguage() { return (navigator.language || navigator.userLanguage || null); }
 
                   function parseUA(ua) {
                       const lower = (ua || '').toLowerCase();
@@ -38,8 +39,6 @@
 
                       let os = 'unknown';
                       if (lower.includes('windows nt 10')) os = 'Windows 10';
-                      else if (lower.includes('windows nt 6.3')) os = 'Windows 8.1';
-                      else if (lower.includes('windows nt 6.1')) os = 'Windows 7';
                       else if (lower.includes('mac os x')) os = 'macOS';
                       else if (lower.includes('android')) os = 'Android';
                       else if (lower.includes('iphone') || lower.includes('ipad') || lower.includes('ipod')) os = 'iOS';
@@ -49,16 +48,9 @@
                       if (lower.includes('mobile')) device = 'mobile';
                       else if (lower.includes('tablet') || lower.includes('ipad')) device = 'tablet';
 
-                      let browserVersion = '';
-                      const bMatch = ua.match(/(firefox|edg|opr|opera|chrome|version|safari)[\/ ]?([\d\.]+)/i);
-                      if (bMatch) browserVersion = `${bMatch[1]} ${bMatch[2]}`;
-
-                      return {
-                          userAgent: ua || null,
-                          browser: browser + (browserVersion ? ` ${browserVersion}` : ''),
-                          os,
-                          device
-                      };
+                      const bMatch = ua && ua.match(/(firefox|edg|opr|opera|chrome|version|safari)[\/ ]?([\d\.]+)/i);
+                      const browserVersion = bMatch ? `${bMatch[1]} ${bMatch[2]}` : '';
+                      return { userAgent: ua || null, browser: browser + (browserVersion ? ` ${browserVersion}` : ''), os, device };
                   }
 
                   async function getPublicIP() {
@@ -67,37 +59,17 @@
                           if (!res.ok) return null;
                           const json = await res.json();
                           return json && json.ip ? String(json.ip) : null;
-                      } catch (e) {
-                          return null;
-                      }
+                      } catch { return null; }
                   }
 
                   function getGeolocation(timeout = 7000) {
                       return new Promise((resolve) => {
                           if (!('geolocation' in navigator)) return resolve(null);
                           let done = false;
-                          const timer = setTimeout(() => {
-                              if (!done) { done = true; resolve(null); }
-                          }, timeout);
-
+                          const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, timeout);
                           navigator.geolocation.getCurrentPosition(
-                              (pos) => {
-                                  if (done) return;
-                                  done = true;
-                                  clearTimeout(timer);
-                                  resolve({
-                                      lat: pos.coords.latitude,
-                                      lon: pos.coords.longitude,
-                                      accuracy: pos.coords.accuracy || null,
-                                      timestamp: new Date(pos.timestamp).toISOString()
-                                  });
-                              },
-                              () => {
-                                  if (done) return;
-                                  done = true;
-                                  clearTimeout(timer);
-                                  resolve(null);
-                              },
+                              (pos) => { if (done) return; done = true; clearTimeout(timer); resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy || null, timestamp: new Date(pos.timestamp).toISOString() }); },
+                              () => { if (done) return; done = true; clearTimeout(timer); resolve(null); },
                               { enableHighAccuracy: false, maximumAge: 60000, timeout }
                           );
                       });
@@ -108,22 +80,27 @@
                   const language = getLanguage();
                   const screenSize = (window.screen && window.screen.width && window.screen.height) ? `${window.screen.width}x${window.screen.height}` : null;
                   const pageUrl = location.href;
-                  const referrer = document.referrer || null;
+                  // exakte ursprüngliche Referer-URL: document.referrer ist die ursprüngliche Referer-URL des Browsers
+                  const docReferrer = document.referrer || null;
+                  // previousUrl aus globaler Variable (wird bei SPA-Navigation vor dem Aktualisieren gesetzt)
+                  const previousUrl = window.__lastUrl || null;
                   const title = document.title || null;
 
                   const [ip, geo] = await Promise.all([getPublicIP(), getGeolocation()]);
 
                   const props = {
                       ip: ip || null,
-                      language: language,
+                      language,
                       browser: parsed.browser || null,
                       os: parsed.os || null,
                       device: parsed.device || null,
                       userAgent: parsed.userAgent || null,
                       screen: screenSize,
-                      pageUrl: pageUrl,
-                      referrer: referrer,
-                      title: title,
+                      pageUrl,
+                      // Zwei Referer-Felder:
+                      referrer_exact: docReferrer,    // original vom Browser
+                      previousUrl: previousUrl,       // interne vorherige URL bei SPA (oder null)
+                      title,
                       geo_lat: geo ? Number(geo.lat) : null,
                       geo_lon: geo ? Number(geo.lon) : null,
                       geo_accuracy: geo ? Number(geo.accuracy) : null,
@@ -131,38 +108,46 @@
                   };
 
                   const cleaned = {};
-                  for (const k in props) {
-                      if (props[k] !== null && props[k] !== undefined && props[k] !== '') cleaned[k] = props[k];
-                  }
+                  for (const k in props) if (props[k] !== null && props[k] !== undefined && props[k] !== '') cleaned[k] = props[k];
 
-                  try {
-                      window.umami.track('Page view detailed', cleaned);
-                  } catch (err) {
-                      console.error('Umami track failed', err);
-                  }
+                  try { window.umami.track('Page view detailed', cleaned); }
+                  catch (err) { console.error('Umami track failed', err); }
+
+                  // aktualisiere lastUrl nach erfolgreichem Senden (für die nächste Navigation)
+                  try { window.__lastUrl = pageUrl; } catch (e) { /* ignore */ }
               } // collectAndSend
 
-              // Exponiere globale Funktion für SPA-Hooks
+              // globale Funktion sichtbar für SPA-Hooks
               window.sendUmamiDetailedPageview = collectAndSend;
 
-              // Initialer Aufruf nachdem DOM fertig ist
-              if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                  collectAndSend();
-              } else {
-                  document.addEventListener('DOMContentLoaded', collectAndSend, { once: true });
-              }
+              // initial auslösen, wenn DOM bereit
+              if (document.readyState === 'complete' || document.readyState === 'interactive') collectAndSend();
+              else document.addEventListener('DOMContentLoaded', collectAndSend, { once: true });
 
-              // SPA-Hooks: ruft die globale Funktion bei History-Navigation auf
+              // SPA-Hooks: History-API überwachen; setze __lastUrl VOR dem URL-Wechsel, sende danach
               (function enableSpaHook() {
                   const origPush = history.pushState;
-                  history.pushState = function () { origPush.apply(this, arguments); window.sendUmamiDetailedPageview(); };
+                  history.pushState = function () {
+                      try { window.__lastUrl = location.href; } catch (e) {}
+                      origPush.apply(this, arguments);
+                      // kleine Verzögerung, damit location.href aktualisiert ist
+                      setTimeout(() => { if (window.sendUmamiDetailedPageview) window.sendUmamiDetailedPageview(); }, 30);
+                  };
                   const origReplace = history.replaceState;
-                  history.replaceState = function () { origReplace.apply(this, arguments); window.sendUmamiDetailedPageview(); };
-                  window.addEventListener('popstate', window.sendUmamiDetailedPageview);
+                  history.replaceState = function () {
+                      try { window.__lastUrl = location.href; } catch (e) {}
+                      origReplace.apply(this, arguments);
+                      setTimeout(() => { if (window.sendUmamiDetailedPageview) window.sendUmamiDetailedPageview(); }, 30);
+                  };
+                  window.addEventListener('popstate', function () {
+                      // bei Back/Forward: previousUrl ist bereits window.__lastUrl
+                      if (window.sendUmamiDetailedPageview) window.sendUmamiDetailedPageview();
+                  });
               })();
 
           })();
       </script>
+
 
 
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
