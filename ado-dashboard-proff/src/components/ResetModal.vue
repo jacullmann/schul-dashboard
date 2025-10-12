@@ -3,7 +3,7 @@
     <div class="card modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort zurücksetzen</h3>
-        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+        <button data-umami-event="Passwort zurücksetzen Abbruch" class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
       </div>
 
       <div style="margin-top:12px;">
@@ -30,7 +30,6 @@
             <span v-if="submitting">Bitte warten…</span>
             <span v-else>{{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}</span>
           </button>
-          <button data-umami-event="Passwort zurücksetzen Abbruch" class="btn ghost" @click="$emit('close')" :disabled="submitting">Abbrechen</button>
         </div>
       </div>
     </div>
