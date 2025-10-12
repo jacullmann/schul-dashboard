@@ -9,167 +9,167 @@
       <script defer src="https://cloud.umami.is/script.js" data-website-id="9e0ccaf1-08bb-4ab5-b42a-5f7a893090a6"></script>
       <script>
           (function () {
-              const STORAGE_KEY = 'umami_anon_user_profile_v2';
+              const STORAGE_KEY = 'umami_anon_user_profile_v3';
 
+              // Hilfsfunktionen
               function uidRandom() {
-                  const a = crypto.getRandomValues(new Uint32Array(4));
-                  return 'u_' + Array.from(a).map(n => n.toString(36)).join('-');
+                  try {
+                      const a = crypto.getRandomValues(new Uint32Array(4));
+                      return 'u_' + Array.from(a).map(n => n.toString(36)).join('-');
+                  } catch {
+                      return 'u_' + Math.random().toString(36).slice(2, 10);
+                  }
               }
               function nowISO() { return new Date().toISOString(); }
-
-              function loadProfile() {
-                  try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
-              }
+              function loadProfile() { try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
               function saveProfile(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {}
+              }
 
-                  function parseUA(ua) {
-                      const lower = (ua||'').toLowerCase();
-                      let browser='unknown', os='unknown', device='desktop';
-                      if(lower.includes('firefox')) browser='Firefox';
-                      else if(lower.includes('edg/')) browser='Edge';
-                      else if(lower.includes('opr/')||lower.includes('opera')) browser='Opera';
-                      else if(lower.includes('chrome') && !lower.includes('edg/')) browser='Chrome';
-                      else if(lower.includes('safari') && !lower.includes('chrome')) browser='Safari';
-                      if(lower.includes('windows')) os='Windows';
-                      else if(lower.includes('mac os x')) os='macOS';
-                      else if(lower.includes('android')) os='Android';
-                      else if(lower.includes('iphone')||lower.includes('ipad')||lower.includes('ipod')) os='iOS';
-                      else if(lower.includes('linux')) os='Linux';
-                      if(lower.includes('mobile')) device='mobile';
-                      else if(lower.includes('tablet')||lower.includes('ipad')) device='tablet';
-                      const bMatch = ua && ua.match(/(firefox|edg|opr|opera|chrome|version|safari)[\/ ]?([\d\.]+)/i);
-                      const browserVersion = bMatch ? `${bMatch[1]} ${bMatch[2]}` : '';
-                      return { userAgent: ua||null, browser: browser + (browserVersion?` ${browserVersion}`:''), os, device };
+              function parseUA(ua) {
+                  const lower = (ua || '').toLowerCase();
+                  let browser = 'unknown', os = 'unknown', device = 'desktop';
+                  if (lower.includes('firefox')) browser = 'Firefox';
+                  else if (lower.includes('edg/')) browser = 'Edge';
+                  else if (lower.includes('opr/') || lower.includes('opera')) browser = 'Opera';
+                  else if (lower.includes('chrome') && !lower.includes('edg/')) browser = 'Chrome';
+                  else if (lower.includes('safari') && !lower.includes('chrome')) browser = 'Safari';
+                  if (lower.includes('windows')) os = 'Windows';
+                  else if (lower.includes('mac os x')) os = 'macOS';
+                  else if (lower.includes('android')) os = 'Android';
+                  else if (lower.includes('iphone') || lower.includes('ipad') || lower.includes('ipod')) os = 'iOS';
+                  else if (lower.includes('linux')) os = 'Linux';
+                  if (lower.includes('mobile')) device = 'mobile';
+                  else if (lower.includes('tablet') || lower.includes('ipad')) device = 'tablet';
+                  const bMatch = ua && ua.match(/(firefox|edg|opr|opera|chrome|version|safari)[\/ ]?([\d\.]+)/i);
+                  const browserVersion = bMatch ? `${bMatch[1]} ${bMatch[2]}` : '';
+                  return { userAgent: ua || null, browser: browser + (browserVersion ? ` ${browserVersion}` : ''), os, device };
+              }
+
+              async function getPublicIP() {
+                  try {
+                      const res = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+                      if (!res.ok) return null;
+                      const j = await res.json();
+                      return j && j.ip ? String(j.ip) : null;
+                  } catch { return null; }
+              }
+
+              function getGeolocation(timeout = 3000) {
+                  return new Promise((resolve) => {
+                      if (!('geolocation' in navigator)) return resolve(null);
+                      let done = false;
+                      const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, timeout);
+                      navigator.geolocation.getCurrentPosition(pos => {
+                          if (done) return;
+                          done = true; clearTimeout(timer);
+                          resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy || null, timestamp: new Date(pos.timestamp).toISOString() });
+                      }, () => { if (done) return; done = true; clearTimeout(timer); resolve(null); }, { enableHighAccuracy: false, maximumAge: 60000, timeout });
+                  });
+              }
+
+              async function waitForUmami(tries = 15, delay = 200) {
+                  for (let i = 0; i < tries; i++) {
+                      if (window.umami && typeof window.umami.track === 'function') return true;
+                      await new Promise(r => setTimeout(r, delay));
                   }
+                  return false;
+              }
 
-                  async function getPublicIP() {
-                      try {
-                          const res = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
-                          if(!res.ok) return null;
-                          const j = await res.json();
-                          return j && j.ip ? String(j.ip) : null;
-                      } catch { return null; }
-                  }
+              function compactProfileObject(src) {
+                  // nur relevante Felder und lesbare Reihenfolge
+                  return {
+                      anon_user_id: src.anon_user_id,
+                      firstSeen: src.firstSeen,
+                      lastSeen: src.lastSeen,
+                      language: src.language,
+                      browser: src.browser,
+                      os: src.os,
+                      device: src.device,
+                      screen: src.screen,
+                      ip_last: src.ip_last,
+                      geo_last: src.geo_last
+                  };
+              }
 
-                  function getGeolocation(timeout=7000) {
-                      return new Promise(resolve => {
-                          if(!('geolocation' in navigator)) return resolve(null);
-                          let done=false;
-                          const timer = setTimeout(()=>{ if(!done){ done=true; resolve(null); } }, timeout);
-                          navigator.geolocation.getCurrentPosition(pos => {
-                              if(done) return;
-                              done=true; clearTimeout(timer);
-                              resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy||null, timestamp: new Date(pos.timestamp).toISOString() });
-                          }, ()=>{ if(done) return; done=true; clearTimeout(timer); resolve(null); }, { enableHighAccuracy:false, maximumAge:60000, timeout });
-                      });
-                  }
+              async function buildSnapshot(existing) {
+                  const ua = navigator.userAgent || null;
+                  const parsed = parseUA(ua);
+                  const language = navigator.language || navigator.userLanguage || null;
+                  const screen = (window.screen && window.screen.width && window.screen.height) ? `${window.screen.width}x${window.screen.height}` : null;
+                  const ip = await getPublicIP();
+                  const geo = await getGeolocation(2500); // kurz warten
+                  const now = nowISO();
+                  return {
+                      anon_user_id: existing && existing.anon_user_id ? existing.anon_user_id : uidRandom(),
+                      firstSeen: existing && existing.firstSeen ? existing.firstSeen : now,
+                      lastSeen: now,
+                      language,
+                      browser: parsed.browser || null,
+                      os: parsed.os || null,
+                      device: parsed.device || null,
+                      userAgent: parsed.userAgent || null,
+                      screen,
+                      ip_last: ip || (existing && existing.ip_last) || null,
+                      geo_last: geo ? { lat: geo.lat, lon: geo.lon, accuracy: geo.accuracy, timestamp: geo.timestamp } : (existing && existing.geo_last) || null
+                  };
+              }
 
-                  async function waitForUmami(tries=15, delay=200) {
-                      for(let i=0;i<tries;i++){ if(window.umami && typeof window.umami.track==='function') return true; await new Promise(r=>setTimeout(r,delay)); }
-                      return false;
-                  }
+              async function sendAggregate() {
+                  const umamiReady = await waitForUmami();
+                  if (!umamiReady) { console.warn('Umami not ready'); return; }
 
-                  async function buildProfileSnapshot(existing) {
-                      const ua = navigator.userAgent || null;
-                      const parsed = parseUA(ua);
-                      const language = navigator.language || navigator.userLanguage || null;
-                      const screen = (window.screen && window.screen.width && window.screen.height) ? `${window.screen.width}x${window.screen.height}` : null;
-                      const ip = await getPublicIP();
-                      const geo = await getGeolocation(3000); // kurz warten für UX
-                      const now = nowISO();
+                  const existing = loadProfile();
+                  const snapshot = await buildSnapshot(existing);
+                  let toStore = existing ? Object.assign({}, existing) : null;
 
-                      // existing may contain anon_user_id, firstSeen
-                      const profile = {
-                          anon_user_id: existing && existing.anon_user_id ? existing.anon_user_id : uidRandom(),
-                          firstSeen: existing && existing.firstSeen ? existing.firstSeen : now,
-                          lastSeen: now,
-                          language,
-                          browser: parsed.browser || null,
-                          os: parsed.os || null,
-                          device: parsed.device || null,
-                          userAgent: parsed.userAgent || null,
-                          screen,
-                          ip_last: ip || null,
-                          geo_last: geo ? { lat: geo.lat, lon: geo.lon, accuracy: geo.accuracy, timestamp: geo.timestamp } : null
-                      };
-                      return profile;
-                  }
-
-                  function profileChanged(a,b) {
-                      // simple shallow compare (stringified) excluding lastSeen to avoid constant diffs
-                      const copyA = Object.assign({}, a); const copyB = Object.assign({}, b);
-                      delete copyA.lastSeen; delete copyB.lastSeen;
-                      return JSON.stringify(copyA) !== JSON.stringify(copyB);
-                  }
-
-                  async function sendProfileAndEvent() {
-                      const ok = await waitForUmami();
-                      if(!ok) { console.warn('Umami not available'); return; }
-
-                      const stored = loadProfile();
-                      const snapshot = await buildProfileSnapshot(stored);
-                      let toStore = stored ? Object.assign({}, stored) : null;
-
-                      if(!stored) {
-                          toStore = snapshot;
+                  if (!existing) {
+                      toStore = snapshot;
+                      saveProfile(toStore);
+                  } else {
+                      // update dynamic fields
+                      const merged = Object.assign({}, existing, snapshot);
+                      merged.firstSeen = existing.firstSeen || snapshot.firstSeen;
+                      // update only if changed (except lastSeen which we always update)
+                      const copyA = Object.assign({}, existing); delete copyA.lastSeen;
+                      const copyB = Object.assign({}, merged); delete copyB.lastSeen;
+                      if (JSON.stringify(copyA) !== JSON.stringify(copyB)) {
+                          toStore = merged;
                           saveProfile(toStore);
-                          // fall-through: send identify/event below
                       } else {
-                          // always update lastSeen and ip/geo; if other fields changed send update
-                          const merged = Object.assign({}, stored, snapshot);
-                          merged.firstSeen = stored.firstSeen || snapshot.firstSeen;
-                          if(profileChanged(stored, merged)) {
-                              toStore = merged;
-                              saveProfile(toStore);
-                          } else {
-                              toStore.lastSeen = snapshot.lastSeen;
-                              saveProfile(toStore);
-                          }
-                      }
-
-                      // Prepare the single aggregated JSON property
-                      const profileForProperty = {
-                          anon_user_id: toStore.anon_user_id,
-                          firstSeen: toStore.firstSeen,
-                          lastSeen: toStore.lastSeen,
-                          language: toStore.language,
-                          browser: toStore.browser,
-                          os: toStore.os,
-                          device: toStore.device,
-                          screen: toStore.screen,
-                          ip_last: toStore.ip_last,
-                          geo_last: toStore.geo_last
-                      };
-
-                      // user_profile as compact JSON string; anon_user_id also sent separately for easy filtering
-                      const properties = {
-                          anon_user_id: toStore.anon_user_id,
-                          user_profile: JSON.stringify(profileForProperty)
-                      };
-
-                      try {
-                          window.umami.track('Page view detailed', properties);
-                      } catch (e) {
-                          console.error('Umami track failed', e);
+                          toStore.lastSeen = merged.lastSeen;
+                          saveProfile(toStore);
                       }
                   }
 
-                  // expose for SPA
-                  window.umamiUserAggregateSend = sendProfileAndEvent;
+                  const profileForProperty = compactProfileObject(toStore);
+                  const properties = {
+                      anon_user_id: toStore.anon_user_id,
+                      ip_last: toStore.ip_last, // separate field for easy visibility
+                      user_profile: JSON.stringify(profileForProperty)
+                  };
 
-                  if (document.readyState === 'complete' || document.readyState === 'interactive') sendProfileAndEvent();
-                  else document.addEventListener('DOMContentLoaded', sendProfileAndEvent, { once: true });
+                  try {
+                      window.umami.track('Page view detailed', properties);
+                  } catch (e) {
+                      console.error('Umami track failed', e);
+                  }
+              }
 
-                  // SPA hooks
-                  (function enableSpaHook() {
-                      const origPush = history.pushState;
-                      history.pushState = function () { origPush.apply(this, arguments); setTimeout(()=>{ if(window.umamiUserAggregateSend) window.umamiUserAggregateSend(); },30); };
-                      const origReplace = history.replaceState;
-                      history.replaceState = function () { origReplace.apply(this, arguments); setTimeout(()=>{ if(window.umamiUserAggregateSend) window.umamiUserAggregateSend(); },30); };
-                      window.addEventListener('popstate', function(){ if(window.umamiUserAggregateSend) window.umamiUserAggregateSend(); });
-                  })();
+              // expose and init
+              window.umamiUserAggregateSend = sendAggregate;
+              if (document.readyState === 'complete' || document.readyState === 'interactive') sendAggregate();
+              else document.addEventListener('DOMContentLoaded', sendAggregate, { once: true });
 
+              // SPA hooks
+              (function enableSpaHook() {
+                  const origPush = history.pushState;
+                  history.pushState = function () { try { origPush.apply(this, arguments); } catch (e) { origPush.apply(history, arguments); } setTimeout(() => { if (window.umamiUserAggregateSend) window.umamiUserAggregateSend(); }, 30); };
+                  const origReplace = history.replaceState;
+                  history.replaceState = function () { try { origReplace.apply(this, arguments); } catch (e) { origReplace.apply(history, arguments); } setTimeout(() => { if (window.umamiUserAggregateSend) window.umamiUserAggregateSend(); }, 30); };
+                  window.addEventListener('popstate', function () { if (window.umamiUserAggregateSend) window.umamiUserAggregateSend(); });
               })();
+
+          })();
       </script>
 
 
