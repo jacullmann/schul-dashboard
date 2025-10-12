@@ -429,7 +429,7 @@ app.get('/api/items',
     query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     validate,
     async (req, res) => {
-        const now = new Date();
+        const now = dayjs().subtract(48, 'hour').toDate();
         const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
             .sort({ dueDate: 1 })
             .limit(500)
