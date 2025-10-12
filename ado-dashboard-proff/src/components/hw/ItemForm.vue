@@ -149,7 +149,7 @@ function makeThumb(url: string) {
 async function uploadImage() {
   uploading.value = true;
   uploadError.value = '';
-  // Datei-Auswahl mit multiple
+
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -161,7 +161,21 @@ async function uploadImage() {
       return;
     }
 
-    // Upload jedes Files einzeln nacheinander (sicherer) — bei Bedarf parallelisieren
+    // limit check: max 10 images per item
+    const existingCount = (images.value || []).length;
+    const MAX_IMAGES = 10;
+    const remaining = MAX_IMAGES - existingCount;
+    if (remaining <= 0) {
+      uploadError.value = 'Maximale Anzahl 10 Bilder erreicht.';
+      uploading.value = false;
+      return;
+    }
+    if (files.length > remaining) {
+      uploadError.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Maximale Anzahl ${MAX_IMAGES} Bilder.`;
+      uploading.value = false;
+      return;
+    }
+
     for (const file of files) {
       try {
         const { data: sign } = await hw.post('/api/uploads/sign');
@@ -184,7 +198,6 @@ async function uploadImage() {
           });
           uploadError.value = '';
         } else {
-          // konkretes File-Fehler-Handling: ergänze Nachricht und setze weiter für restliche Dateien
           uploadError.value = 'Einige Uploads konnten nicht durchgeführt werden.';
           console.error('Upload failed for file', file, json);
         }
@@ -198,6 +211,7 @@ async function uploadImage() {
   };
   input.click();
 }
+
 
 
 async function removeImg(img: { url: string; publicId: string }) {

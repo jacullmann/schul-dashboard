@@ -122,6 +122,23 @@ async function uploadImg() {
     message.value = '';
     isError.value = false;
 
+    // limit check: max 10 images per item
+    const existingCount = (currentImages.value || []).length;
+    const MAX_IMAGES = 10;
+    const remaining = MAX_IMAGES - existingCount;
+    if (remaining <= 0) {
+      message.value = 'Maximale Anzahl 10 Bilder erreicht.';
+      isError.value = true;
+      uploading.value = false;
+      return;
+    }
+    if (files.length > remaining) {
+      message.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Maximale Anzahl ${MAX_IMAGES} Bilder.`;
+      isError.value = true;
+      uploading.value = false;
+      return;
+    }
+
     for (const file of files) {
       try {
         const { data: sign } = await hw.post('/api/uploads/sign');
@@ -158,6 +175,7 @@ async function uploadImg() {
   };
   input.click();
 }
+
 
 
 async function removeImg(publicId: string) {

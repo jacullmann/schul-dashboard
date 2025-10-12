@@ -180,7 +180,7 @@ server.js: // server.js
                    const parts = u.pathname.split('/');
                    const uploadIdx = parts.findIndex(p => p === 'upload');
                    if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240, h_240,c_fill');
+                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
                        u.pathname = parts.join('/');
                    }
                    return u.toString();
@@ -618,6 +618,129 @@ server.js: // server.js
                }
            });
 
+           // Reset token model (6-stelliger Code)
+           const PasswordResetSchema = new mongoose.Schema({
+               email: { type: String, index: true, required: true, lowercase: true, trim: true },
+               code: { type: String, required: true }, // store as string, e.g. "123456"
+               expiresAt: { type: Date, required: true },
+               used: { type: Boolean, default: false }
+           }, { timestamps: true });
+           PasswordResetSchema.index({ email: 1, code: 1 });
+           const PasswordReset = mongoose.model('HwPasswordReset', PasswordResetSchema);
+
+           // helper: send reset email with 6-digit code
+           async function sendPasswordResetEmail(to, code) {
+               if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
+               const msg = {
+                   to,
+                   from: SENDGRID_FROM,
+                   subject: 'Passwort zurücksetzen — Dein Bestätigungscode',
+                   html: `<p>Hallo,</p>
+                      <p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p>
+                      <p>Dieser Code ist 30 Minuten gültig.</p>`
+               };
+               return sgClient.send(msg);
+           }
+
+           // POST /api/auth/forgot
+           app.post('/api/auth/forgot',
+               body('email').isEmail(),
+               validate,
+               async (req, res) => {
+                   try {
+                       const email = req.body.email.toLowerCase();
+                       const user = await User.findOne({ email });
+                       // respond success even if user not found (avoid user enumeration)
+                       if (!user) {
+                           return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+                       }
+
+                       // generate 6-digit numeric code
+                       const code = String(Math.floor(100000 + Math.random() * 900000));
+                       const expiresAt = dayjs().add(30, 'minute').toDate();
+
+                       // store (invalidate previous codes for email)
+                       await PasswordReset.updateMany({ email }, { $set: { used: true } });
+                       await PasswordReset.create({ email, code, expiresAt, used: false });
+
+                       try {
+                           await sendPasswordResetEmail(email, code);
+                       } catch (mailErr) {
+                           console.error('Send reset email failed', mailErr?.response?.body || mailErr?.message || mailErr);
+                           // still return generic success message
+                       }
+
+                       res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+                   } catch (err) {
+                       console.error('POST /api/auth/forgot error', err);
+                       sendJSONError(res, 500, 'Server error');
+                   }
+               }
+           );
+
+           // POST /api/auth/reset/verify  -> input: { email, code }
+           app.post('/api/auth/reset/verify',
+               body('email').isEmail(),
+               body('code').isString().isLength({ min: 6, max: 6 }),
+               validate,
+               async (req, res) => {
+                   try {
+                       const email = req.body.email.toLowerCase();
+                       const code = String(req.body.code).trim();
+
+                       const pr = await PasswordReset.findOne({ email, code, used: false }).sort({ createdAt: -1 });
+                       if (!pr) return sendJSONError(res, 400, 'Ungültiger Code');
+                       if (dayjs(pr.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Code abgelaufen');
+
+                       // mark as used so it cannot be reused
+                       pr.used = true;
+                       await pr.save();
+
+                       // create a short-lived JWT token to authorize the actual password change (valid 15 minutes)
+                       const resetToken = jwt.sign({ email, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
+
+                       res.json({ ok: true, resetToken });
+                   } catch (err) {
+                       console.error('POST /api/auth/reset/verify error', err);
+                       sendJSONError(res, 500, 'Server error');
+                   }
+               }
+           );
+
+           // POST /api/auth/reset  -> input: { resetToken, password }
+           app.post('/api/auth/reset',
+               body('resetToken').isString(),
+               body('password').isString().isLength({ min: 8 }),
+               validate,
+               async (req, res) => {
+                   try {
+                       const { resetToken, password } = req.body;
+                       let payload;
+                       try {
+                           payload = jwt.verify(resetToken, JWT_SECRET);
+                       } catch {
+                           return sendJSONError(res, 400, 'Ungültiger oder abgelaufener Reset-Token');
+                       }
+                       if (payload?.purpose !== 'password_reset' || !payload?.email) return sendJSONError(res, 400, 'Ungültiger Reset-Token');
+
+                       const email = String(payload.email).toLowerCase();
+                       const user = await User.findOne({ email });
+                       if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+
+                       const passwordHash = await bcrypt.hash(password, 12);
+                       await User.findByIdAndUpdate(user._id, { $set: { passwordHash } });
+
+                       await logActivity(user._id, 'account:password_reset', { by: 'self' });
+
+                       res.json({ ok: true, message: 'Passwort wurde geändert.' });
+                   } catch (err) {
+                       console.error('POST /api/auth/reset error', err);
+                       sendJSONError(res, 500, 'Server error');
+                   }
+               }
+           );
+
+
 
 
 
@@ -630,655 +753,6 @@ server.js: // server.js
 
 
 
-AccountMenu.vue: <template>
-                   <div class="account-menu" ref="root">
-                     <button class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Einstellungen'">
-                       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
-                     </button>
-
-                     <transition name="pop">
-                       <div v-if="open" class="popup" :style="popupStyle" @click.stop>
-                         <div class="popup-inner card" role="menu" aria-label="Account menu" ref="popupInner">
-                           <div class="popup-top">
-                             <div class="user-info">
-                               <div class="user-sub">Account Einstellungen</div>
-                               <div class="user-email" :title="email">{{ email }}</div>
-                             </div>
-                             <button class="close-x" @click="close" aria-label="Close menu">✕</button>
-                           </div>
-
-                           <div class="popup-actions">
-                             <button class="action-btn" @click="goToProfile" title="Profil bearbeiten">
-                               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>
-                               Profil bearbeiten
-                             </button>
-
-                             <button class="action-btn" @click="startDelete" title="Account löschen">
-                               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-                               Account löschen
-                             </button>
-                           </div>
-
-                           <div v-if="confirming" class="confirm">
-                             <div class="confirm-body">
-                               <div class="confirm-title">Account wirklich löschen?</div>
-                               <div class="confirm-text">E-Mail: <span class="confirm-email">{{ email }}</span></div>
-                               <div class="confirm-note">Diese Aktion löscht nur den Account-Datensatz. Andere Inhalte bleiben erhalten.</div>
-                             </div>
-
-                             <div class="confirm-actions">
-                               <button class="btn cancel" @click="confirming = false">Abbrechen</button>
-                               <button class="btn danger" @click="confirmDelete" :disabled="submitting">
-                                 <span v-if="submitting">Lösche…</span>
-                                 <span v-else>Löschen</span>
-                               </button>
-                             </div>
-                           </div>
-
-                           <div v-if="errorMsg" class="error-row">{{ errorMsg }}</div>
-                           <div v-if="successMsg" class="success-row">{{ successMsg }}</div>
-                         </div>
-                       </div>
-                     </transition>
-                   </div>
-                 </template>
-
-                 <script setup lang="ts">
-                 import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue';
-                 import hw from '../../hwApi';
-
-                 const props = defineProps<{ email: string }>();
-                 const emit = defineEmits<{ (e: 'deleted'): void; (e: 'error', msg: string): void }>();
-
-                 const open = ref(false);
-                 const confirming = ref(false);
-                 const submitting = ref(false);
-                 const errorMsg = ref('');
-                 const successMsg = ref('');
-
-                 // refs to measure & place popup
-                 const root = ref<HTMLElement | null>(null);
-                 const popupInner = ref<HTMLElement | null>(null);
-
-                 // reactive style for popup placement
-                 const popupStyle = ref<Record<string, string>>({});
-
-                 // toggle / close
-                 function toggle() {
-                   open.value = !open.value;
-                   if (open.value) positionPopup();
-                   else confirming.value = false;
-                   clearMessages();
-                 }
-                 function close() {
-                   open.value = false;
-                   confirming.value = false;
-                   clearMessages();
-                 }
-                 function startDelete() {
-                   confirming.value = true;
-                   clearMessages();
-                 }
-                 function clearMessages() {
-                   errorMsg.value = '';
-                   successMsg.value = '';
-                 }
-
-                 async function positionPopup() {
-                   // wait DOM update
-                   await nextTick();
-                   const rootEl = root.value;
-                   const popupEl = popupInner.value;
-                   if (!rootEl || !popupEl) return;
-
-                   const iconBtn = rootEl.querySelector('.icon-btn') as HTMLElement | null;
-                   if (!iconBtn) return;
-
-                   const btnRect = iconBtn.getBoundingClientRect();
-                   const popupRect = popupEl.getBoundingClientRect();
-                   const vw = window.innerWidth;
-                   const breakpoint = 480; // small screens fallback
-
-                   // on small screens center the popup (makes it look like a modal/dropdown centered)
-                   if (vw <= breakpoint) {
-                     popupStyle.value = {
-                       position: 'fixed',
-                       left: '50%',
-                       transform: 'translateX(-50%) translateY(0)',
-                       top: `${Math.max(64, btnRect.top + btnRect.height + 8)}px`,
-                       width: `min(92vw, 360px)`,
-                       right: 'auto'
-                     };
-                     return;
-                   }
-
-                   // Desktop: try to place directly below the icon, prefer aligning right edge of popup with right edge of icon
-                   const spaceRight = vw - btnRect.left;
-                   const preferLeft = btnRect.left + btnRect.width / 2 > vw / 2 ? true : false;
-
-                   // compute left such that popup fits in viewport
-                   let left = btnRect.left + btnRect.width - popupRect.width; // align right edges
-                   if (left < 8) left = 8;
-                   if (left + popupRect.width > vw - 8) left = Math.max(8, vw - popupRect.width - 8);
-
-                   // top sits below button
-                   const top = btnRect.top + btnRect.height + 8;
-
-                   popupStyle.value = {
-                     position: 'fixed',
-                     left: `${Math.round(left)}px`,
-                     top: `${Math.round(top)}px`,
-                     transform: 'translateY(0)',
-                     width: `${Math.min(360, popupRect.width || 360)}px`,
-                   };
-                 }
-
-                 // delete confirm flow
-                 async function confirmDelete() {
-                   submitting.value = true;
-                   errorMsg.value = '';
-                   try {
-                     const res = await hw.delete('/api/auth/me');
-                     if (res?.data?.ok) {
-                       successMsg.value = 'Account wurde gelöscht.';
-                       emit('deleted');
-                       setTimeout(() => { close(); }, 600);
-                     } else {
-                       const err = (res?.data?.error) || 'Unbekannter Fehler';
-                       errorMsg.value = err;
-                       emit('error', err);
-                     }
-                   } catch (e: any) {
-                     const msg = e?.response?.data?.error || 'Fehler beim Löschen';
-                     errorMsg.value = msg;
-                     emit('error', msg);
-                   } finally {
-                     submitting.value = false;
-                   }
-                 }
-
-                 function goToProfile() {
-                   emit('error', 'Profil-Bearbeitung nicht implementiert');
-                 }
-
-                 // close on outside click or Escape
-                 function onDocClick(e: MouseEvent) {
-                   if (!root.value) return;
-                   if (!root.value.contains(e.target as Node)) {
-                     close();
-                   }
-                 }
-                 function onKey(e: KeyboardEvent) {
-                   if (e.key === 'Escape') close();
-                 }
-
-                 onMounted(() => {
-                   window.addEventListener('resize', () => {
-                     if (open.value) positionPopup();
-                   });
-                   document.addEventListener('click', onDocClick);
-                   document.addEventListener('keydown', onKey);
-                 });
-                 onBeforeUnmount(() => {
-                   document.removeEventListener('click', onDocClick);
-                   document.removeEventListener('keydown', onKey);
-                 });
-                 </script>
-
-                 <style scoped>
-                 .account-menu { position: relative; display: inline-block; margin-left: 10px; }
-
-                 /* Icon button */
-                 .icon-btn {
-                   width: 42px; height: 42px; border-radius: 10px;
-                   align-items: center; justify-content: center;
-                   background: transparent;
-                   border: none;
-                   color: var(--muted); cursor: pointer;
-                   transition: transform 0.18s ease-in-out;
-                   display: inline-flex;
-                 }
-                 .icon-btn:hover { color: var(--text); transform: rotate(12deg); }
-
-                 /* Popup wrapper (positioned via inline style popupStyle) */
-                 .popup {
-                   z-index: 1400;
-                   pointer-events: auto;
-                 }
-
-                 /* inner card styling unchanged */
-                 .popup-inner {
-                   width: 100%;
-                   padding: 14px;
-                   border-radius: 14px;
-                   border: none;
-                   background: rgba(255, 255, 255, 0.15);
-                   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                   color: var(--text);
-                   display: flex;
-                   flex-direction: column;
-                   gap: 10px;
-                   max-height: calc(100vh - 96px);
-                   overflow: auto;
-                 }
-
-                 /* Top row */
-                 .popup-top {
-                   display:flex; align-items:center; justify-content:space-between;
-                 }
-                 .user-info { display:flex; flex-direction:column; gap:2px; overflow:hidden; }
-                 .user-email { font-weight:700; font-size:12px; color:var(--sub); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-                 .user-sub {
-                   font-size: 18px;
-                   font-weight: 600;
-                   color:var(--text);
-                 }
-
-                 .close-x {
-                   background: transparent; border: none; color: var(--text); font-size:14px; cursor:pointer;
-                 }
-
-                 /* Actions */
-                 .popup-actions { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
-
-                 .action-btn {
-                   display:flex; align-items:center; gap:10px;
-                   padding:10px 12px; border-radius:10px; background: rgba(255,255,255,0.02);
-                   border:1px solid rgba(255,255,255,0.04); color:var(--text); cursor:pointer;
-                   transition: transform 120ms ease, background 120ms ease;
-                 }
-                 .action-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.03); }
-                 .aicon { width:16px; height:16px; color:var(--text); }
-
-                 /* Confirm */
-                 .confirm { margin-top:8px; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:10px; }
-                 .confirm-body { display:flex; flex-direction:column; gap:6px; }
-                 .confirm-title { font-weight:700; color:var(--danger); }
-                 .confirm-text { color:white; font-size:13px; }
-                 .confirm-email { font-weight:700; color:var(--primary); }
-                 .confirm-note { font-size:12px; color:white; }
-
-                 .confirm-actions { display:flex; gap:8px; justify-content:flex-end; }
-                 .btn {
-                   padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:white; cursor:pointer;
-                 }
-                 .btn.cancel { background: rgba(255,255,255,0.02); }
-                 .btn.danger {
-                   background: linear-gradient(180deg,#ff6b6b,#ff3b3b); color:white; border:none; font-weight:700;
-                 }
-                 .btn:disabled { opacity:0.7; cursor:not-allowed; }
-
-                 /* messages */
-                 .error-row { color: #ffb3b3; font-size:13px; padding-top:6px; }
-                 .success-row { color: #bff0c7; font-size:13px; padding-top:6px; }
-
-                 /* pop animation */
-                 .pop-enter-active, .pop-leave-active { transition: transform 180ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease; transform-origin: top right; }
-                 .pop-enter-from { transform: translateY(-8px) scale(0.98); opacity: 0; }
-                 .pop-enter-to { transform: translateY(0) scale(1); opacity: 1; }
-                 .pop-leave-from { transform: translateY(0) scale(1); opacity: 1; }
-                 .pop-leave-to { transform: translateY(-8px) scale(0.98); opacity: 0; }
-
-                 /* Responsive fallback for very small screens: make popup centered and full-ish */
-                 @media (max-width: 480px) {
-                   .popup { top: 20% !important; width: calc(100vw - 24px) !important; }
-                   .popup-inner { padding: 12px; }
-                 }
-                 </style>
-
-AnnouncementsForm.vue: <template>
-                         <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                           <div class="card" style="width:100%; max-width:520px;">
-                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                               <h3 style="margin:0;">Neue Ankündigung</h3>
-                               <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
-                             </div>
-                             <div style="margin-top:8px;">
-                               <input class="input" v-model="title" placeholder="Titel" />
-                             </div>
-                             <div style="margin-top:8px;">
-                               <textarea class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
-                             </div>
-                             <div style="margin-top:8px;">
-                               <select class="input" v-model="color">
-                                 <option value="info">Info</option>
-                                 <option value="warn">Wichtig</option>
-                                 <option value="danger">Dringend</option>
-                               </select>
-                             </div>
-                             <div class="row" style="margin-top:12px; align-items:center;">
-                               <button class="btn" @click="submit" :disabled="submitting">
-                                 <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                 </svg>
-                                 Anlegen
-                               </button>
-                               <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                             </div>
-                           </div>
-                         </div>
-                       </template>
-
-                       <script setup lang="ts">
-                       import { ref } from 'vue';
-                       import hw from '../../hwApi';
-
-                       const emit = defineEmits(['close', 'success']);
-
-                       const title = ref('');
-                       const content = ref('');
-                       const color = ref('warn');
-                       const submitting = ref(false);
-                       const message = ref('');
-                       const isError = ref(false);
-
-                       async function submit() {
-                         submitting.value = true;
-                         message.value = '';
-                         isError.value = false;
-                         try {
-                           await hw.post('/api/announcements', {
-                             title: title.value,
-                             content: content.value,
-                             color: color.value,
-                           });
-                           message.value = 'Ankündigung erfolgreich angelegt.';
-                           isError.value = false;
-                           emit('success');
-                         } catch (e: any) {
-                           message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
-                           isError.value = true;
-                         } finally {
-                           submitting.value = false;
-                         }
-                       }
-                       </script>
-
-
-
-AuthModal.vue: <template>
-                 <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                   <div class="card styl" style="width:100%; max-width:420px;">
-                     <!-- Header -->
-                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                       <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-                       <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
-                     </div>
-
-                     <!-- Tabs -->
-                     <div class="row" style="margin-top:12px;">
-                       <button class="btn" :class="{ ghost: mode!=='login' }" @click="switchMode('login')">Login</button>
-                       <button class="btn" :class="{ ghost: mode!=='register' }" @click="switchMode('register')">Registrieren</button>
-                     </div>
-
-                     <!-- Inputs -->
-                     <div style="margin-top:12px;">
-                       <input
-                           class="input"
-                           v-model="email"
-                           placeholder="E-Mail"
-                           @input="clearFieldError('email')"
-                       />
-                       <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
-                     </div>
-
-                     <div style="margin-top:8px;">
-                       <input
-                           class="input"
-                           type="password"
-                           v-model="password"
-                           placeholder="Passwort (min. 8 Zeichen)"
-                           @input="clearFieldError('password')"
-                       />
-                       <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
-                     </div>
-
-                     <!-- Datenschutzerklärung Checkbox -->
-                     <div v-if="mode==='register'" class="checkbox-row">
-                       <label class="checkbox-container">
-                         <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-                         <span class="checkmark"></span>
-                         <span style="color:white; font-size:14px;">
-                           Ich stimme der
-                           <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">
-                             Datenschutzerklärung und AGB
-                           </a>
-                           zu
-                         </span>
-                       </label>
-                       <div v-if="errors.privacy" class="field-error" style="margin-left:36px;">{{ errors.privacy }}</div>
-                     </div>
-
-                     <!-- Submit -->
-                     <div class="row" style="margin-top:12px; align-items:center;">
-                       <button class="btn" @click="submit">
-                         <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
-                         {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
-                       </button>
-
-                       <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                     </div>
-                   </div>
-                 </div>
-               </template>
-
-               <script setup lang="ts">
-               import { ref, reactive } from 'vue';
-               import hw from '../../hwApi';
-               import LoadingSpinner from "../LoadingSpinner.vue";
-
-               const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
-
-               const mode = ref<'login' | 'register'>('login');
-               const email = ref('');
-               const password = ref('');
-               const acceptedPrivacy = ref(false);
-               const submitting = ref(false);
-               const message = ref('');
-               const isError = ref(false);
-
-               // field-level errors shown after submit attempt
-               const errors = reactive<{ email?: string; password?: string; privacy?: string }>({});
-
-               function switchMode(newMode: 'login' | 'register') {
-                 mode.value = newMode;
-                 clearAllErrors();
-                 message.value = '';
-                 isError.value = false;
-               }
-
-               function clearAllErrors() {
-                 errors.email = undefined;
-                 errors.password = undefined;
-                 errors.privacy = undefined;
-               }
-
-               function clearFieldError(field: 'email' | 'password' | 'privacy') {
-                 errors[field] = undefined;
-                 message.value = '';
-                 isError.value = false;
-               }
-
-               function validateBeforeSubmit(): boolean {
-                 clearAllErrors();
-                 let ok = true;
-
-                 // basic email presence check
-                 if (!email.value || !email.value.trim()) {
-                   errors.email = 'Bitte E-Mail angeben.';
-                   ok = false;
-                 } else {
-                   // minimal email format check
-                   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                   if (!emailRe.test(email.value.trim())) {
-                     errors.email = 'Bitte gültige E-Mail-Adresse eingeben.';
-                     ok = false;
-                   }
-                 }
-
-                 // password length check
-                 if (!password.value) {
-                   errors.password = 'Bitte Passwort angeben.';
-                   ok = false;
-                 } else if (password.value.length < 8) {
-                   errors.password = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
-                   ok = false;
-                 }
-
-                 // privacy checkbox only for registration
-                 if (mode.value === 'register' && !acceptedPrivacy.value) {
-                   errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
-                   ok = false;
-                 }
-
-                 return ok;
-               }
-
-               async function submit() {
-                 // Always allow the button to be clickable; we handle validation here
-                 message.value = '';
-                 isError.value = false;
-
-                 const valid = validateBeforeSubmit();
-
-                 if (!valid) {
-                   // show aggregated message and stop actual request
-                   message.value = 'Bitte die Fehler im Formular korrigieren.';
-                   isError.value = true;
-                   return;
-                 }
-
-                 submitting.value = true;
-                 try {
-                   if (mode.value === 'register') {
-                     await hw.post('/api/auth/register', { email: email.value, password: password.value });
-                     message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
-                     isError.value = false;
-                   } else {
-                     const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
-                     emit('logged-in', data.token);
-                   }
-                 } catch (e: any) {
-                   message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                   isError.value = true;
-                 } finally {
-                   submitting.value = false;
-                 }
-               }
-               </script>
-
-               <style scoped>
-               .styl {
-                 border-radius: 14px;
-                 border: 1px solid rgba(255, 255, 255, 0.2);
-                 background: rgba(255, 255, 255, 0.15);
-                 backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-               }
-
-               /* --- Button Styles --- */
-               .btn {
-                 background: transparent;
-                 color: white;
-                 border: 1px solid white;
-                 padding: 6px 12px;
-                 border-radius: 6px;
-                 cursor: pointer;
-                 transition: all 0.2s ease;
-               }
-
-               /* Aktiver Button (ohne .ghost) */
-               .btn:not(.ghost) {
-                 background: white;
-                 color: #333;
-               }
-
-               /* Hover-Effekt für inaktive Buttons */
-               .btn.ghost:hover {
-                 background: rgba(255, 255, 255, 0.2);
-                 color: white;
-               }
-
-               /* Hover-Effekt für aktive Buttons */
-               .btn:not(.ghost):hover {
-                 background: #f0f0f0;
-                 color: #111;
-               }
-
-               /* --- Checkbox Styles --- */
-               .checkbox-row {
-                 margin-top: 12px;
-                 display: flex;
-                 align-items: center;
-               }
-               .checkbox-container {
-                 display: flex;
-                 align-items: center;
-                 cursor: pointer;
-                 user-select: none;
-               }
-               .checkbox-container input {
-                 display: none;
-               }
-               .checkmark {
-                 height: 18px;
-                 width: 18px;
-                 border: 2px solid white;
-                 border-radius: 4px;
-                 margin-right: 8px;
-                 position: relative;
-               }
-               .checkbox-container input:checked ~ .checkmark {
-                 background-color: #3f93f8;
-                 border-color: #3f93f8;
-               }
-               .checkmark::after {
-                 content: "";
-                 position: absolute;
-                 display: none;
-               }
-               .checkbox-container input:checked ~ .checkmark::after {
-                 display: block;
-                 left: 4px;
-                 top: 0px;
-                 width: 5px;
-                 height: 10px;
-                 border: solid white;
-                 border-width: 0 2px 2px 0;
-                 transform: rotate(45deg);
-               }
-
-               /* Input basics to fit the look */
-               .input {
-                 width: 100%;
-                 padding: 8px 10px;
-                 border-radius: 8px;
-                 border: 1px solid rgba(255,255,255,0.15);
-                 background: rgba(255,255,255,0.06);
-                 color: white;
-                 outline: none;
-               }
-               .input::placeholder {
-                 color: rgba(255,255,255,0.7);
-               }
-
-               /* small text */
-               .small {
-                 margin-left: 12px;
-                 font-size: 13px;
-               }
-
-               /* field-level error style */
-               .field-error {
-                 color: #ff7777;
-                 font-size: 13px;
-                 margin-top: 6px;
-               }
-               </style>
 
 
 ImageForm.vue: <template>
@@ -1286,7 +760,7 @@ ImageForm.vue: <template>
                    <div class="modal card">
                      <div class="modal-head">
                        <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-                       <button style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
+                       <button data-umami-event="ImageForm Menü schlißen" style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
                      </div>
 
                      <div class="section">
@@ -1309,14 +783,14 @@ ImageForm.vue: <template>
                            </a>
 
                            <div class="thumb-actions">
-                             <button class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
+                             <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
                            </div>
                          </div>
                        </div>
                      </div>
 
                      <div class="controls row" style="margin-top:16px; align-items:center;">
-                       <button class="btn" @click="uploadImg" :disabled="uploading">
+                       <button data-umami-event="Bilder hochladen Button" class="btn" @click="uploadImg" :disabled="uploading">
                          <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1332,8 +806,8 @@ ImageForm.vue: <template>
                        <h4>Bild löschen?</h4>
                        <p>Möchtest du dieses Bild wirklich löschen?</p>
                        <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-                         <button class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
-                         <button class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
+                         <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
+                         <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
                        </div>
                      </div>
                    </div>
@@ -1383,7 +857,7 @@ ImageForm.vue: <template>
                    const parts = u.pathname.split('/');
                    const uploadIdx = parts.findIndex(p => p === 'upload');
                    if (uploadIdx !== -1) {
-                     parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240, h_240,c_fill');
+                     parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
                      u.pathname = parts.join('/');
                    }
                    return u.toString();
@@ -1583,7 +1057,7 @@ ItemForm.vue: <template>
                       <h3 class="modal-title">
                         {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
                       </h3>
-                      <button class="btn ghost" @click="$emit('close')">Schließen</button>
+                      <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
                     </div>
 
                     <div class="row">
@@ -1640,7 +1114,7 @@ ItemForm.vue: <template>
                           </div>
                         </div>
 
-                        <button class="btn ghost" @click="uploadImage" :disabled="uploading">
+                        <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="uploadImage" :disabled="uploading">
                           <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1653,7 +1127,7 @@ ItemForm.vue: <template>
                     </div>
 
                     <div class="row actions">
-                      <button class="btn" @click="submit" :disabled="submitting">
+                      <button data-umami-event="Eintrag speichern/anlegen" class="btn" @click="submit" :disabled="submitting">
                         <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -2007,6 +1481,7 @@ ItemForm.vue: <template>
               </style>
 
 
+
 Hausaufgaben.vue:<template>
                    <div class="card">
                      <div class="hw-header">
@@ -2018,7 +1493,7 @@ Hausaufgaben.vue:<template>
                        <div class="row header-actions">
                          <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
                          <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
-                         <button class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+                         <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
                        </div>
                      </div>
 
@@ -2027,6 +1502,7 @@ Hausaufgaben.vue:<template>
                          <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
                          <button
                              v-if="user?.isAdmin"
+                             data-umami-event="Dashboard Admin Ankündigung hinzufügen"
                              class="btn ghost small-btn"
                              @click="showAnnouncementForm = true"
                              v-ga-event="{ name: 'add_announcement', params: { method: 'admin_button', label: 'p_b' } }"
@@ -2041,7 +1517,7 @@ Hausaufgaben.vue:<template>
                            <div class="ann-content">{{ a.content }}</div>
                            <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
                            <div v-if="canManage(a.createdBy)" class="ann-actions">
-                             <button class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
+                             <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
                            </div>
                          </div>
                        </div>
@@ -2050,9 +1526,9 @@ Hausaufgaben.vue:<template>
                      </div>
 
                      <div class="tabs-row">
-                       <button class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
-                       <button class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
-                       <button class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
+                       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
+                       <button data-umami-event="Dashboard Dalton Reiter" class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
+                       <button data-umami-event="Dashboard Prüfung Reiter" class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
                      </div>
 
                      <div class="controls">
@@ -2112,10 +1588,10 @@ Hausaufgaben.vue:<template>
                            </div>
 
                            <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-                             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
-                             <button class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
-                             <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
-                             <button class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
+                             <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
+                             <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
+                             <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
+                             <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
                            </div>
                          </div>
 
@@ -2132,6 +1608,7 @@ Hausaufgaben.vue:<template>
                                  v-if="item.description.length > 200"
                                  class="btn tiny ghost"
                                  @click="toggleDescription(item.id)"
+                                 data-umami-event="Dashboard mehr anzeigen/weniger anzeigen"
                                  style="margin-left:8px;"
                              >
                                {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
@@ -2584,7 +2061,7 @@ Hausaufgaben.vue:<template>
                      const parts = u.pathname.split('/');
                      const uploadIdx = parts.findIndex(p => p === 'upload');
                      if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240, h_240,c_fill');
+                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
                        u.pathname = parts.join('/');
                      }
                      return u.toString();
@@ -2703,7 +2180,28 @@ Hausaufgaben.vue:<template>
                    border-color: var(--primary);
                  }
                  .collapse-checkbox .vis-label::after {
-                   content: ''; position:absolute; left:4px; top:1px; width:6px; height:10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity:0;
+                   content: '';
+                   position: absolute;
+                   /* Größe des Hakens: z.B. 4px Breite und 8px Höhe für eine etwas kleinere Optik */
+                   width: 5px; /* Etwas angepasst */
+                   height: 9px; /* Etwas angepasst */
+                   border: solid white;
+                   border-width: 0 2px 2px 0;
+                   opacity: 0;
+
+                   /* ZENTRIERUNG: Verschiebt den Haken nach links oben und dreht ihn dann */
+                   /* Die Werte 'left: 50%' und 'top: 50%' zentrieren den Drehpunkt */
+                   /* translate(-50%, -50%) würde das Element zentrieren, aber wir wollen es drehen */
+                   left: 50%;
+                   top: 38%;
+                   /* Verschieben um die Hälfte der Breite und Höhe des Hakens UND Drehen um 45 Grad */
+                   /* Die Werte müssen experimentell angepasst werden, um perfekt zu passen */
+                   /* Beispielwerte für 5x9 Haken: */
+                   transform: translate(-50%, -45%) rotate(45deg); /* '-45%' statt '-50%' hebt ihn leicht an, um ihn optisch zu zentrieren */
+
+                   /* Alternativ könnte man die Originalwerte für Breite/Höhe nutzen und nur die Position anpassen */
+                   /* Original (6x10): */
+                   /* transform: translate(-30%, -20%) rotate(45deg); */
                  }
                  .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 
@@ -2841,88 +2339,3 @@ Hausaufgaben.vue:<template>
                    color: var(--muted); /* Farbe für den Text "Lade..." */
                  }
                  </style>
-
-
-hwApi.vue: import axios from 'axios';
-
-           const hw = axios.create({
-               baseURL: import.meta.env.VITE_HW_API_BASE,
-               withCredentials: false
-           });
-
-           export function setHwToken(token: string | null) {
-               if (token) {
-                   hw.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                   localStorage.setItem('hw_token', token);
-               } else {
-                   delete hw.defaults.headers.common['Authorization'];
-                   localStorage.removeItem('hw_token');
-               }
-           }
-           const stored = localStorage.getItem('hw_token');
-           if (stored) setHwToken(stored);
-
-           export default hw;
-
-
-main.ts: import { createApp } from 'vue';
-         import { createPinia } from 'pinia';
-         import router from './router';
-         import App from './App.vue';
-         import './style.css';
-         import VueGtag from 'vue-gtag-next';
-         import gaDirective from './directives/gaEvent';
-         import { useAuth } from './composables/useAuth';
-
-         const app = createApp(App);
-
-         function initAnalytics() {
-             if (!(app as any)._context.provides['vue-gtag']) {
-                 app.use(VueGtag, {
-                     property: { id: 'G-8H1WEQSLN4' }
-                 }, router);
-             }
-         }
-
-         function removeAnalytics() {
-             const scripts = document.querySelectorAll('script[src*="googletagmanager"],script[src*="google-analytics"]');
-             scripts.forEach(s => s.remove());
-             (window as any).dataLayer = [];
-         }
-
-         const auth = useAuth();
-
-         // Prüfe lokalen Consent beim Start
-         const consent = localStorage.getItem('cookie_consent');
-         if (consent) {
-             try {
-                 const parsed = JSON.parse(consent);
-                 const expires = new Date(parsed.expires);
-                 if (parsed.accepted && new Date() < expires) {
-                     initAnalytics();
-                 }
-             } catch {
-                 // ignore
-             }
-         }
-
-         window.addEventListener('cookie-accepted', () => { initAnalytics(); });
-         window.addEventListener('cookie-revoked', () => { removeAnalytics(); });
-
-         app.directive('ga-event', gaDirective);
-         app.use(createPinia());
-         app.use(router);
-         app.mount('#app');
-
-         // Aktivitätsbasierte Verlängerung der Session-Expiry (optional)
-         window.addEventListener('mousemove', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
-         window.addEventListener('keydown', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
-
-         // Reagiere auf Auth-Änderungen (z. B. Login/Logout) global
-         window.addEventListener('auth-changed', () => {
-             // einfache Seite neu laden / Router neu evaluieren
-             // Router-Guard liest den Auth-Status neu ein
-             // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
-             // location.reload();
-         });
-
