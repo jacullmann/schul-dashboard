@@ -39,8 +39,13 @@ if (consent) {
     }
 }
 
-window.addEventListener('cookie-accepted', () => { initAnalytics(); });
-window.addEventListener('cookie-revoked', () => { removeAnalytics(); });
+window.addEventListener('cookie-accepted', () => {
+    //initAnalytics();
+});
+
+window.addEventListener('cookie-revoked', () => {
+    removeAnalytics();
+});
 
 app.directive('ga-event', gaDirective);
 app.use(createPinia());
