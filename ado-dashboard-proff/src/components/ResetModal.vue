@@ -33,7 +33,7 @@
             <span v-if="submitting">Bitte warten…</span>
             <span v-else>{{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}</span>
           </button>
-          <button  class="btn ghost" @click="$emit('close')" :disabled="submitting">Abbrechen</button>
+
         </div>
       </div>
     </div>
