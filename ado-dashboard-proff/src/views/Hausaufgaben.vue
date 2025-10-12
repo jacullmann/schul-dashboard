@@ -696,7 +696,28 @@ function goTab(t: ItemType) {
   border-color: var(--primary);
 }
 .collapse-checkbox .vis-label::after {
-  content: ''; position:absolute; left:4px; top:1px; width:6px; height:10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity:0;
+  content: '';
+  position: absolute;
+  /* Größe des Hakens: z.B. 4px Breite und 8px Höhe für eine etwas kleinere Optik */
+  width: 5px; /* Etwas angepasst */
+  height: 9px; /* Etwas angepasst */
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+
+  /* ZENTRIERUNG: Verschiebt den Haken nach links oben und dreht ihn dann */
+  /* Die Werte 'left: 50%' und 'top: 50%' zentrieren den Drehpunkt */
+  /* translate(-50%, -50%) würde das Element zentrieren, aber wir wollen es drehen */
+  left: 50%;
+  top: 50%;
+  /* Verschieben um die Hälfte der Breite und Höhe des Hakens UND Drehen um 45 Grad */
+  /* Die Werte müssen experimentell angepasst werden, um perfekt zu passen */
+  /* Beispielwerte für 5x9 Haken: */
+  transform: translate(-50%, -45%) rotate(45deg); /* '-45%' statt '-50%' hebt ihn leicht an, um ihn optisch zu zentrieren */
+
+  /* Alternativ könnte man die Originalwerte für Breite/Höhe nutzen und nur die Position anpassen */
+  /* Original (6x10): */
+  /* transform: translate(-30%, -20%) rotate(45deg); */
 }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 
