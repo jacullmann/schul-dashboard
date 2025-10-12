@@ -63,3 +63,7 @@ window.addEventListener('auth-changed', () => {
     // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
     // location.reload();
 });
+
+
+import { initAnalytics } from './utils/analytics';
+initAnalytics(router);
