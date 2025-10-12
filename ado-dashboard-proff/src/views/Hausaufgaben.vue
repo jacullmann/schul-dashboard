@@ -709,7 +709,7 @@ function goTab(t: ItemType) {
   /* Die Werte 'left: 50%' und 'top: 50%' zentrieren den Drehpunkt */
   /* translate(-50%, -50%) würde das Element zentrieren, aber wir wollen es drehen */
   left: 50%;
-  top: 50%;
+  top: 40%;
   /* Verschieben um die Hälfte der Breite und Höhe des Hakens UND Drehen um 45 Grad */
   /* Die Werte müssen experimentell angepasst werden, um perfekt zu passen */
   /* Beispielwerte für 5x9 Haken: */
