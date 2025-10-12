@@ -9,144 +9,226 @@
       <script defer src="https://cloud.umami.is/script.js" data-website-id="9e0ccaf1-08bb-4ab5-b42a-5f7a893090a6"></script>
       <script>
           (function () {
-              // globale Variable für vorherige URL
-              window.__lastUrl = window.__lastUrl || (document.referrer || null);
+              const STORAGE_KEY = 'umami_anon_user_profile_v1';
 
-              async function collectAndSend() {
-                  // warte falls umami noch nicht initialisiert
-                  if (!window.umami || typeof window.umami.track !== 'function') {
-                      for (let i = 0; i < 15; i++) {
-                          await new Promise(r => setTimeout(r, 200));
-                          if (window.umami && typeof window.umami.track === 'function') break;
-                      }
-                      if (!window.umami || typeof window.umami.track === 'function') {
-                          // nichts gefunden -> abbrechen
-                          console.warn('Umami nicht gefunden: detailed pageview skipped');
-                          return;
-                      }
-                  }
+              // Utilities
+              function uidRandom() {
+                  // kurze, sichere zufällige ID (nicht rückführbar auf Person)
+                  return 'u_' + crypto.getRandomValues(new Uint32Array(4)).join('-');
+              }
 
-                  function getLanguage() { return (navigator.language || navigator.userLanguage || null); }
+              function nowISO() { return new Date().toISOString(); }
 
-                  function parseUA(ua) {
-                      const lower = (ua || '').toLowerCase();
-                      let browser = 'unknown';
-                      if (lower.includes('firefox')) browser = 'Firefox';
-                      else if (lower.includes('edg/')) browser = 'Edge';
-                      else if (lower.includes('opr/') || lower.includes('opera')) browser = 'Opera';
-                      else if (lower.includes('chrome') && !lower.includes('edg/')) browser = 'Chrome';
-                      else if (lower.includes('safari') && !lower.includes('chrome')) browser = 'Safari';
+              function loadProfile() {
+                  try {
+                      const raw = localStorage.getItem(STORAGE_KEY);
+                      return raw ? JSON.parse(raw) : null;
+                  } catch { return null; }
+              }
 
-                      let os = 'unknown';
-                      if (lower.includes('windows nt 10')) os = 'Windows 10';
-                      else if (lower.includes('mac os x')) os = 'macOS';
-                      else if (lower.includes('android')) os = 'Android';
-                      else if (lower.includes('iphone') || lower.includes('ipad') || lower.includes('ipod')) os = 'iOS';
-                      else if (lower.includes('linux')) os = 'Linux';
+              function saveProfile(profile) {
+                  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch {}
+              }
 
-                      let device = 'desktop';
-                      if (lower.includes('mobile')) device = 'mobile';
-                      else if (lower.includes('tablet') || lower.includes('ipad')) device = 'tablet';
+              function shallowEqual(a, b) {
+                  if (!a || !b) return false;
+                  const ka = Object.keys(a), kb = Object.keys(b);
+                  if (ka.length !== kb.length) return false;
+                  for (const k of ka) if (String(a[k]) !== String(b[k])) return false;
+                  return true;
+              }
 
-                      const bMatch = ua && ua.match(/(firefox|edg|opr|opera|chrome|version|safari)[\/ ]?([\d\.]+)/i);
-                      const browserVersion = bMatch ? `${bMatch[1]} ${bMatch[2]}` : '';
-                      return { userAgent: ua || null, browser: browser + (browserVersion ? ` ${browserVersion}` : ''), os, device };
-                  }
+              // Basis-Collector (gleich wie vorher, leicht komprimiert)
+              function getLanguage() { return navigator.language || navigator.userLanguage || null; }
 
-                  async function getPublicIP() {
-                      try {
-                          const res = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
-                          if (!res.ok) return null;
-                          const json = await res.json();
-                          return json && json.ip ? String(json.ip) : null;
-                      } catch { return null; }
-                  }
+              function parseUA(ua) {
+                  const lower = (ua || '').toLowerCase();
+                  let browser = 'unknown';
+                  if (lower.includes('firefox')) browser = 'Firefox';
+                  else if (lower.includes('edg/')) browser = 'Edge';
+                  else if (lower.includes('opr/') || lower.includes('opera')) browser = 'Opera';
+                  else if (lower.includes('chrome') && !lower.includes('edg/')) browser = 'Chrome';
+                  else if (lower.includes('safari') && !lower.includes('chrome')) browser = 'Safari';
+                  let os = 'unknown';
+                  if (lower.includes('windows nt')) os = 'Windows';
+                  else if (lower.includes('mac os x')) os = 'macOS';
+                  else if (lower.includes('android')) os = 'Android';
+                  else if (lower.includes('iphone') || lower.includes('ipad') || lower.includes('ipod')) os = 'iOS';
+                  else if (lower.includes('linux')) os = 'Linux';
+                  let device = 'desktop';
+                  if (lower.includes('mobile')) device = 'mobile';
+                  else if (lower.includes('tablet') || lower.includes('ipad')) device = 'tablet';
+                  const bMatch = ua && ua.match(/(firefox|edg|opr|opera|chrome|version|safari)[\/ ]?([\d\.]+)/i);
+                  const browserVersion = bMatch ? `${bMatch[1]} ${bMatch[2]}` : '';
+                  return { userAgent: ua || null, browser: browser + (browserVersion ? ` ${browserVersion}` : ''), os, device };
+              }
 
-                  function getGeolocation(timeout = 7000) {
-                      return new Promise((resolve) => {
-                          if (!('geolocation' in navigator)) return resolve(null);
-                          let done = false;
-                          const timer = setTimeout(() => { if (!done) { done = true; resolve(null); } }, timeout);
-                          navigator.geolocation.getCurrentPosition(
-                              (pos) => { if (done) return; done = true; clearTimeout(timer); resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy || null, timestamp: new Date(pos.timestamp).toISOString() }); },
-                              () => { if (done) return; done = true; clearTimeout(timer); resolve(null); },
-                              { enableHighAccuracy: false, maximumAge: 60000, timeout }
-                          );
-                      });
-                  }
+              async function getPublicIP() {
+                  try {
+                      const res = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+                      if (!res.ok) return null;
+                      const json = await res.json();
+                      return json && json.ip ? String(json.ip) : null;
+                  } catch { return null; }
+              }
 
+              // Compose a compact user-profile snapshot
+              async function buildProfileSnapshot() {
                   const ua = navigator.userAgent || null;
                   const parsed = parseUA(ua);
                   const language = getLanguage();
                   const screenSize = (window.screen && window.screen.width && window.screen.height) ? `${window.screen.width}x${window.screen.height}` : null;
-                  const pageUrl = location.href;
-                  // exakte ursprüngliche Referer-URL: document.referrer ist die ursprüngliche Referer-URL des Browsers
-                  const docReferrer = document.referrer || null;
-                  // previousUrl aus globaler Variable (wird bei SPA-Navigation vor dem Aktualisieren gesetzt)
-                  const previousUrl = window.__lastUrl || null;
-                  const title = document.title || null;
-
-                  const [ip, geo] = await Promise.all([getPublicIP(), getGeolocation()]);
-
-                  const props = {
-                      ip: ip || null,
+                  const ip = await getPublicIP(); // optional, kann null sein
+                  // Only core fields here to keep profile compact
+                  return {
+                      anon_user_id: null,        // set by caller
+                      firstSeen: null,           // set by caller if new
+                      lastSeen: nowISO(),
                       language,
                       browser: parsed.browser || null,
                       os: parsed.os || null,
                       device: parsed.device || null,
-                      userAgent: parsed.userAgent || null,
                       screen: screenSize,
-                      pageUrl,
-                      // Zwei Referer-Felder:
-                      referrer_exact: docReferrer,    // original vom Browser
-                      previousUrl: previousUrl,       // interne vorherige URL bei SPA (oder null)
-                      title,
-                      geo_lat: geo ? Number(geo.lat) : null,
-                      geo_lon: geo ? Number(geo.lon) : null,
-                      geo_accuracy: geo ? Number(geo.accuracy) : null,
-                      geo_timestamp: geo ? geo.timestamp : null
+                      ip_last: ip || null
+                  };
+              }
+
+              // Wait for umami availability (retry)
+              async function waitForUmami(maxTries = 15, delay = 200) {
+                  for (let i = 0; i < maxTries; i++) {
+                      if (window.umami && typeof window.umami.track === 'function') return true;
+                      await new Promise(r => setTimeout(r, delay));
+                  }
+                  return false;
+              }
+
+              // Send identify (aggregated user profile) once or on change
+              async function sendIdentifyIfNeeded(profile) {
+                  const available = await waitForUmami();
+                  if (!available) { console.warn('Umami not available for identify'); return; }
+
+                  // If umami.identify exists use it, otherwise fall back to a dedicated track event 'Identify'
+                  try {
+                      if (typeof window.umami.identify === 'function') {
+                          // umami.identify(id, props)
+                          window.umami.identify(profile.anon_user_id, {
+                              firstSeen: profile.firstSeen,
+                              lastSeen: profile.lastSeen,
+                              language: profile.language,
+                              browser: profile.browser,
+                              os: profile.os,
+                              device: profile.device,
+                              screen: profile.screen,
+                              ip_last: profile.ip_last
+                          });
+                      } else {
+                          // fallback: send a single event named 'Identify' with profile props
+                          window.umami.track('Identify', {
+                              anon_user_id: profile.anon_user_id,
+                              firstSeen: profile.firstSeen,
+                              lastSeen: profile.lastSeen,
+                              language: profile.language,
+                              browser: profile.browser,
+                              os: profile.os,
+                              device: profile.device,
+                              screen: profile.screen,
+                              ip_last: profile.ip_last
+                          });
+                      }
+                  } catch (e) {
+                      console.error('Failed to send identify to Umami', e);
+                  }
+              }
+
+              // Main flow: ensure profile exists, send identify if new/changed, then send per-page event
+              async function mainSend() {
+                  // Build snapshot of current derived profile (without id/time)
+                  const snapshot = await buildProfileSnapshot();
+
+                  // Load existing profile
+                  let stored = loadProfile();
+
+                  // If no stored profile, create it
+                  if (!stored) {
+                      const id = uidRandom();
+                      snapshot.anon_user_id = id;
+                      snapshot.firstSeen = nowISO();
+                      // lastSeen already set in snapshot
+                      stored = snapshot;
+                      saveProfile(stored);
+                      // send identify immediately
+                      await sendIdentifyIfNeeded(stored);
+                  } else {
+                      // update stored with latest dynamic fields (lastSeen, ip_last, language, screen, browser/os/device)
+                      const updated = Object.assign({}, stored, {
+                          lastSeen: nowISO(),
+                          ip_last: snapshot.ip_last,
+                          language: snapshot.language,
+                          browser: snapshot.browser,
+                          os: snapshot.os,
+                          device: snapshot.device,
+                          screen: snapshot.screen
+                      });
+                      // if anything changed, persist and send identify
+                      if (!shallowEqual(stored, updated)) {
+                          saveProfile(updated);
+                          await sendIdentifyIfNeeded(updated);
+                          stored = updated;
+                      } else {
+                          // still update lastSeen timestamp and persist
+                          stored.lastSeen = updated.lastSeen;
+                          saveProfile(stored);
+                      }
+                  }
+
+                  // Now send the per-page event with anon_user_id included
+                  // Build normal page props (you can include everything you used before)
+                  const pageProps = {
+                      anon_user_id: stored.anon_user_id,
+                      pageUrl: location.href,
+                      title: document.title || null,
+                      referrer_exact: document.referrer || null,
+                      // optional: attach a reduced set of profile fields for quick filtering
+                      language: stored.language,
+                      browser: stored.browser,
+                      os: stored.os,
+                      device: stored.device,
+                      screen: stored.screen,
+                      ip_last: stored.ip_last
                   };
 
+                  // clean
                   const cleaned = {};
-                  for (const k in props) if (props[k] !== null && props[k] !== undefined && props[k] !== '') cleaned[k] = props[k];
+                  for (const k in pageProps) if (pageProps[k] !== null && pageProps[k] !== undefined && pageProps[k] !== '') cleaned[k] = pageProps[k];
 
-                  try { window.umami.track('Page view detailed', cleaned); }
-                  catch (err) { console.error('Umami track failed', err); }
+                  // wait for umami and send
+                  const ok = await waitForUmami();
+                  if (!ok) { console.warn('Umami not available for page event'); return; }
+                  try {
+                      window.umami.track('Page view detailed', cleaned);
+                  } catch (e) {
+                      console.error('Failed to send page event to Umami', e);
+                  }
+              }
 
-                  // aktualisiere lastUrl nach erfolgreichem Senden (für die nächste Navigation)
-                  try { window.__lastUrl = pageUrl; } catch (e) { /* ignore */ }
-              } // collectAndSend
+              // Expose for SPA and init
+              window.umamiUserProfileSend = mainSend;
 
-              // globale Funktion sichtbar für SPA-Hooks
-              window.sendUmamiDetailedPageview = collectAndSend;
+              if (document.readyState === 'complete' || document.readyState === 'interactive') mainSend();
+              else document.addEventListener('DOMContentLoaded', mainSend, { once: true });
 
-              // initial auslösen, wenn DOM bereit
-              if (document.readyState === 'complete' || document.readyState === 'interactive') collectAndSend();
-              else document.addEventListener('DOMContentLoaded', collectAndSend, { once: true });
-
-              // SPA-Hooks: History-API überwachen; setze __lastUrl VOR dem URL-Wechsel, sende danach
+              // SPA hook (keep previous-url logic from earlier if you use it)
               (function enableSpaHook() {
                   const origPush = history.pushState;
-                  history.pushState = function () {
-                      try { window.__lastUrl = location.href; } catch (e) {}
-                      origPush.apply(this, arguments);
-                      // kleine Verzögerung, damit location.href aktualisiert ist
-                      setTimeout(() => { if (window.sendUmamiDetailedPageview) window.sendUmamiDetailedPageview(); }, 30);
-                  };
+                  history.pushState = function () { origPush.apply(this, arguments); setTimeout(() => { if (window.umamiUserProfileSend) window.umamiUserProfileSend(); }, 30); };
                   const origReplace = history.replaceState;
-                  history.replaceState = function () {
-                      try { window.__lastUrl = location.href; } catch (e) {}
-                      origReplace.apply(this, arguments);
-                      setTimeout(() => { if (window.sendUmamiDetailedPageview) window.sendUmamiDetailedPageview(); }, 30);
-                  };
-                  window.addEventListener('popstate', function () {
-                      // bei Back/Forward: previousUrl ist bereits window.__lastUrl
-                      if (window.sendUmamiDetailedPageview) window.sendUmamiDetailedPageview();
-                  });
+                  history.replaceState = function () { origReplace.apply(this, arguments); setTimeout(() => { if (window.umamiUserProfileSend) window.umamiUserProfileSend(); }, 30); };
+                  window.addEventListener('popstate', function () { if (window.umamiUserProfileSend) window.umamiUserProfileSend(); });
               })();
 
           })();
       </script>
+
 
 
 
