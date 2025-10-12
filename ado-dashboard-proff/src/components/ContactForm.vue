@@ -175,6 +175,7 @@
                   type="submit"
                   :disabled="isSubmitting || !form.consent || coolDownActive"
                   :title="coolDownActive ? 'Bitte kurz warten…' : 'Nachricht senden'"
+
               >
                 <svg v-if="isSubmitting" class="spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                   <circle cx="12" cy="12" r="10" stroke="#111827" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="20" />
@@ -335,21 +336,27 @@ function onMessageInput(e: Event) {
 }
 
 async function onSubmit() {
+  // 1. Wenn Cooldown aktiv (nach erfolgreichem Senden), abbrechen.
   if (coolDownActive.value) return
-  startCooldown()
 
+  // 2. Honigtopf-Check (Spam-Schutz)
   if (honeypot.value) {
     banner.type = 'warn'
     banner.message = 'Dein Formular konnte nicht gesendet werden.'
+    startCooldown() // Startet Cooldown, um Spammer zu verlangsamen
     return
   }
 
+  // 3. WICHTIG: Validiert alle Felder und setzt 'touched' auf true, um Fehler anzuzeigen.
   if (!validateAll()) {
     banner.type = 'danger'
     banner.message = 'Bitte korrigiere die markierten Felder.'
+    // ⚠️ HIER KEIN startCooldown(), damit der Benutzer den Button erneut klicken kann.
     return
   }
 
+  // 4. Nur wenn alles gültig ist: Cooldown starten und Sendevorgang vorbereiten.
+  startCooldown() // Cooldown HIER starten
   isSubmitting.value = true
   banner.type = ''
   banner.message = ''
@@ -452,8 +459,6 @@ try {
 /* NEU: Blauer Fokus-Rand für Text-Inputs */
 .input:focus, .textarea:focus {
   outline: none;
-  border-color: #3b82f6; /* Blau */
-  box-shadow: 0 0 0 1px #3b82f6; /* 1px blauer Schatten/Rand */
 }
 
 /* Originaler Fokus-Stil des Controls wird für Text-Inputs entfernt/überschrieben */
