@@ -86,7 +86,7 @@
             <div class="row item-badges" v-show="!isChecked(item.id)">
               <div class="badge subject-badge">{{ item.subject }}</div>
               <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
-                Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
+                {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
             </div>
           </div>
