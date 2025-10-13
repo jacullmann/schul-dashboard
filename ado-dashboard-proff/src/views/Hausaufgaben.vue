@@ -85,7 +85,7 @@
 
             <div class="row item-badges" v-show="!isChecked(item.id)">
               <div class="badge subject-badge">{{ item.subject }}</div>
-              <div class="badge time-badge" :style="timeBadgeStyle(item.timeColor)">
+              <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
                 {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
             </div>
@@ -343,23 +343,17 @@ watch([subjectFilter, tab, items], () => {
   visibleCount.value = Math.min(5, filteredItems.value.length || 5);
 });
 
-// ersetzen / hinzufügen im <script setup>
-const timeBadgeStyle = (timeColor: string) => {
-  switch (timeColor) {
-    case 'expired':
-      return { background: '#bdbdbd', color: 'white' };        // abgelaufen: grauer Hintergrund, weiße Schrift
-    case 'danger': // heute
-      return { background: 'var(--danger)', color: 'white' };  // z.B. rot Hintergrund, weiße Schrift
-    case 'warn':   // morgen
-      return { background: 'var(--warn)', color: 'black' };    // warn-Farbe, schwarze Schrift
-    case 'normal': // +2 Tage
-      return { background: 'var(--muted)', color: 'black' };   // dezenter Hintergrund, schwarze Schrift
-    case 'ok':     // weit entfernt
-    default:
-      return { background: 'white', color: 'black' };         // normal: weißer Hintergrund, schwarze Schrift
-  }
+// UI/helpers
+const colorFor = (color: string) => {
+  const map: Record<string, string> = {
+    'ok': '#f1f1f1',
+    'warn': 'var(--warn)',
+    'danger': 'var(--danger)',
+    'expired': '#282828',
+    'normal': 'f1f1f1',
+  };
+  return map[color] || 'var(--muted)';
 };
-
 
 const filteredItems = computed(() => {
   let list = items.value;
@@ -932,10 +926,4 @@ function revealImages(itemId: string) {
   gap: 8px;
   color: var(--muted); /* Farbe für den Text "Lade..." */
 }
-.time-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(0,0,0,0.06); /* optional */
-}
-
 </style>
