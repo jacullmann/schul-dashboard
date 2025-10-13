@@ -955,4 +955,26 @@ function revealImages(itemId: string) {
   gap: 8px;
   color: var(--muted); /* Farbe für den Text "Lade..." */
 }
+/* style.css */
+
+/*
+ * MOBILE-OPTIMIERUNG: Bilder zentrieren
+ * Dieser Media Query zielt auf Bildschirme ab, die kleiner oder gleich 768px sind
+ * (typische Tablet- oder Smartphone-Größe).
+*/
+@media (max-width: 768px) {
+  /* Wende display: flex und justify-content: center auf den Container an */
+  .images-row {
+    /* Stellt sicher, dass Flexbox aktiv ist und die Elemente in einer Reihe angeordnet sind */
+    display: flex;
+
+    /* ZENTRIERUNG: Verteilt den verfügbaren Platz links und rechts gleichmäßig,
+       um die Bilder in der Mitte zu positionieren. */
+    justify-content: center;
+
+    /* Wenn die Bilder keinen Abstand zueinander haben, kannst du 'gap' hinzufügen,
+       um Platz zwischen ihnen zu schaffen: */
+    gap: 12px; /* Beispielwert: 12px Abstand zwischen den Bildern */
+  }
+}
 </style>
