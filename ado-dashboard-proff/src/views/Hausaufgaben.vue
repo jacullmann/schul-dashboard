@@ -157,7 +157,7 @@
                       title="Weitere Bilder anzeigen"
                   >
                     <div class="overlay-blur"></div>
-                    <div class="overlay-content">+{{ item.images.length - 2 }}</div>
+                    <div class="overlay-content">+{{ item.images.length - 1 }}</div>
                   </button>
                 </div>
               </template>
