@@ -822,7 +822,7 @@ function revealImages(itemId: string) {
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
 .thumb {
   width:120px; height:120px; border-radius:8px; overflow:hidden;
-  border:1px solid var(--border);
+  border:none;
   display:flex; align-items:center; justify-content:center;
   background: rgba(0,0,0,0.12);
   position:relative;
@@ -900,7 +900,7 @@ function revealImages(itemId: string) {
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--muted);
+  color: var(--text);
   transition: background 120ms ease, color 120ms ease, transform 120ms ease;
 }
 .item-menu-trigger:hover {
