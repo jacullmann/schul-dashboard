@@ -85,9 +85,13 @@
 
             <div class="row item-badges" v-show="!isChecked(item.id)">
               <div class="badge subject-badge">{{ item.subject }}</div>
-              <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
-                {{ new Date(item.dueDate).toLocaleDateString() }}
+              <div
+                  class="badge time-badge"
+                  :style="(() => { const s = colorStyles(item.timeColor); return { background: s.background, color: s.color }; })()"
+              >
+                Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
+
             </div>
           </div>
 
@@ -346,14 +350,39 @@ watch([subjectFilter, tab, items], () => {
 // UI/helpers
 const colorFor = (color: string) => {
   const map: Record<string, string> = {
-    'ok': '#f1f1f1',
+    'ok': 'var(--primary)',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
-    'expired': '#282828',
-    'normal': 'f1f1f1',
+    'expired': '#4b5563',
+    'info': '#3b82f6',
   };
   return map[color] || 'var(--muted)';
 };
+
+// returns { background: string, color: string }
+const colorStyles = (timeColor: string) => {
+  // expired -> grau hintergrund, weiße schrift
+  if (timeColor === 'expired') {
+    return { background: '#4b5563', color: 'white' };
+  }
+
+  // very soon (danger) oder in den nächsten Tagen (warn) -> behalten wie vorher
+  if (timeColor === 'danger') {
+    return { background: 'var(--danger)', color: 'white' };
+  }
+  if (timeColor === 'warn') {
+    return { background: 'var(--warn)', color: 'black' };
+  }
+
+  // info -> blue like before
+  if (timeColor === 'info') {
+    return { background: '#3b82f6', color: 'white' };
+  }
+
+  // ok (oder alles, was weiter weg ist) -> weißer Hintergrund, schwarze Schrift
+  return { background: 'white', color: 'black' };
+};
+
 
 const filteredItems = computed(() => {
   let list = items.value;
