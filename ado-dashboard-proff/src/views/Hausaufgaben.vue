@@ -346,11 +346,11 @@ watch([subjectFilter, tab, items], () => {
 // UI/helpers
 const colorFor = (color: string) => {
   const map: Record<string, string> = {
-    'ok': 'var(--primary)',
+    'ok': '#f1f1f1',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
-    'expired': '#4b5563',
-    'info': '#3b82f6',
+    'expired': '#282828',
+    'normal': 'f1f1f1',
   };
   return map[color] || 'var(--muted)';
 };

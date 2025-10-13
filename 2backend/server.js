@@ -170,8 +170,9 @@ function timeLeftColor(dueDate) {
     const due = dayjs(dueDate);
     const diffDays = due.diff(now, 'day', true);
     if (diffDays < 0) return 'expired';
-    if (diffDays < 3) return 'danger';
-    if (diffDays < 7) return 'warn';
+    if (diffDays < 1) return 'danger';
+    if (diffDays < 2) return 'warn';
+    if (diffDays < 3) return 'normal';
     return 'ok';
 }
 function buildThumbUrl(secureUrl) {

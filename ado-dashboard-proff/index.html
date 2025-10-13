@@ -7,14 +7,13 @@
       <link rel="icon" type="image/png" href="/23.svg?v=8" />
       <meta name="robots" content="noindex, nofollow, noarchive">
       <script defer src="https://cloud.umami.is/script.js" data-website-id="9e0ccaf1-08bb-4ab5-b42a-5f7a893090a6"></script>
-      <!-- UAParser (CDN) -->
       <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js" defer></script>
 
 
-      <!-- Dein Umami script muss bereits geladen sein (z. B. <script async src="https://cloud.umami.is/script.js" data-website-id="..."></script>) -->
+
 
       <script>
-          // Warte, bis DOM & UAParser geladen sind
+
           (function waitForUmamiAndParser() {
               function ready() {
                   return typeof window.UAParser === 'function' &&
@@ -26,9 +25,9 @@
                       const parser = new window.UAParser();
                       const result = parser.getResult();
 
-                      // Basiseigenschaften
+
                       const deviceType = result.device.type || ( /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'mobile' : 'desktop' );
-                      const deviceModel = result.device.model || null; // kann null sein, gerade bei iOS oft nicht verfügbar
+                      const deviceModel = result.device.model || null;
                       const os = result.os.name || null;
                       const osVersion = result.os.version || null;
                       const browser = result.browser.name || null;
@@ -38,7 +37,7 @@
                       const screenHeight = window.screen?.height || null;
                       const devicePixelRatio = window.devicePixelRatio || 1;
 
-                      // Optional: rohe userAgent (entfernen wenn du strenger anonymisieren willst)
+
                       const rawUserAgent = navigator.userAgent || null;
 
                       const payload = {
@@ -54,30 +53,30 @@
                           userAgent: rawUserAgent
                       };
 
-                      // Entferne nulls (sauberer)
+
                       Object.keys(payload).forEach(k => { if (payload[k] === null) delete payload[k]; });
 
-                      // Sende an Umami: benutze window.umami.track(name, data) falls verfügbar.
+
                       if (window.umami && typeof window.umami.track === 'function') {
                           window.umami.track('device-info', payload);
                       } else if (typeof window.umami === 'function') {
-                          // Some integrations expose umami as callable function
+
                           window.umami('trackEvent', 'device-info', payload);
                       } else {
-                          // Fallback: falls du eine eigene API oder serverseitige Route hast, kannst du payload via fetch an deinen Server schicken
+
                           console.warn('Umami tracker not available - device-info not sent.');
                       }
                   } catch (err) {
-                      // Fehler ignorieren, um Ladeprobleme nicht zu verursachen
+
                       console.error('device info tracking failed', err);
                   }
               }
 
               if (ready()) {
-                  // kleine Verzögerung, damit umami script seine Initialisierung abschließen kann
+
                   setTimeout(sendDeviceInfo, 200);
               } else {
-                  // Polling bis libs geladen sind (max 5s)
+
                   let tries = 0;
                   const iv = setInterval(() => {
                       if (ready() || ++tries > 25) {
