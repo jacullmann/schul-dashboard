@@ -85,10 +85,7 @@
 
             <div class="row item-badges" v-show="!isChecked(item.id)">
               <div class="badge subject-badge">{{ item.subject }}</div>
-              <div
-                  class="badge time-badge"
-                  :style="badgeStyle(item.timeColor)"
-              >
+              <div class="badge time-badge" :style="{ background: colorFor(item.timeColor), color: item.timeColor === 'ok' ? 'white' : 'black' }">
                 {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
             </div>
@@ -347,25 +344,16 @@ watch([subjectFilter, tab, items], () => {
 });
 
 // UI/helpers
-// ersetzt die alte colorFor-Funktion
-function badgeStyle(timeColor: string) {
-  // Background map für die bekannten timeColor-Werte
-  const bgMap: Record<string, string> = {
-    ok: '#ffffff',
-    normal: '#ffffff',
-    warn: 'var(--warn)',     // z.B. morgen
-    danger: 'var(--danger)', // z.B. heute
-    expired: '#6b6b6b'       // grauer Hintergrund bei abgelaufen
+const colorFor = (color: string) => {
+  const map: Record<string, string> = {
+    'ok': '#f1f1f1',
+    'warn': 'var(--warn)',
+    'danger': 'var(--danger)',
+    'expired': '#282828',
+    'normal': 'f1f1f1',
   };
-
-  // Textfarbe: bei weissem Hintergrund -> schwarz, bei farbigem/dunklem Hintergrund -> weiss
-  const bg = bgMap[timeColor] || 'var(--muted)';
-  const isLightBg = bg === '#ffffff';
-  const color = isLightBg ? 'black' : 'white';
-
-  return { background: bg, color };
-}
-
+  return map[color] || 'var(--muted)';
+};
 
 const filteredItems = computed(() => {
   let list = items.value;
