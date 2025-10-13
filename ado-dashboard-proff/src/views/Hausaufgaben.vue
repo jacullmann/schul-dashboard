@@ -89,7 +89,7 @@
                   class="badge time-badge"
                   :style="(() => { const s = colorStyles(item.timeColor); return { background: s.background, color: s.color }; })()"
               >
-                Fällig: {{ new Date(item.dueDate).toLocaleDateString() }}
+                {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
 
             </div>
