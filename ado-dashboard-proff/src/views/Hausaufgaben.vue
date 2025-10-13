@@ -133,18 +133,47 @@
         </transition>
 
         <transition name="collapse">
+          <!-- Angepasste Bilder-Logik: nur 2 initial anzeigen; Overlay auf 2. mit +N; Klick auf Overlay zeigt alle -->
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-title">Bilder</div>
             <div class="images-row">
-              <div
-                  v-for="img in item.images"
-                  :key="img.publicId"
-                  class="thumb"
-              >
-                <a :href="img.url" target="_blank" rel="noopener">
-                  <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-                </a>
-              </div>
+              <!-- wenn noch nicht auf "mehr" geklickt: nur erste zwei thumbnails zeigen -->
+              <template v-if="!isRevealed(item.id)">
+                <div
+                    v-for="(img, idx) in item.images.slice(0, 2)"
+                    :key="img.publicId"
+                    class="thumb thumb-with-overlay-wrapper"
+                >
+                  <a :href="img.url" target="_blank" rel="noopener">
+                    <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
+                  </a>
+
+                  <!-- Overlay nur beim zweiten Bild und wenn insgesamt > 2 -->
+                  <button
+                      v-if="idx === 1 && item.images.length > 2"
+                      class="img-overlay"
+                      @click.stop.prevent="revealImages(item.id)"
+                      aria-label="Weitere Bilder anzeigen"
+                      title="Weitere Bilder anzeigen"
+                  >
+                    <div class="overlay-blur"></div>
+                    <div class="overlay-content">+{{ item.images.length - 2 }}</div>
+                  </button>
+                </div>
+              </template>
+
+              <!-- wenn reveal aktiv: alle Bilder wie vorher zeigen (keine Overlays) -->
+              <template v-else>
+                <div
+                    v-for="img in item.images"
+                    :key="img.publicId"
+                    class="thumb"
+                >
+                  <a :href="img.url" target="_blank" rel="noopener">
+                    <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
+                  </a>
+                </div>
+              </template>
             </div>
           </div>
         </transition>
@@ -422,6 +451,8 @@ async function reload() {
     items.value = data;
     // reset expansions on reload
     expandedDescriptions.value = new Set();
+    // reset revealed images on reload so page load shows 2 images again
+    revealedImages.value = new Set();
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
@@ -614,6 +645,25 @@ async function toggleCheck(item: HwItem) {
 function goTab(t: ItemType) {
   router.push({ name: 'ItemsByType', params: { type: t } });
 }
+
+/**
+ * --- Neue Zustände / Funktionen für die "nur 2 Bilder anzeigen + Overlay" Funktion ---
+ *
+ * revealedImages: Set von item.ids für die Items, bei denen der Benutzer "mehr anzeigen" angeklickt hat.
+ * isRevealed(itemId) prüft, ob das Item aufgedeckt ist.
+ * revealImages(itemId) setzt das Item als aufgedeckt (zeigt alle Bilder).
+ */
+
+const revealedImages = ref(new Set<string>());
+
+function isRevealed(itemId: string) {
+  return revealedImages.value.has(itemId);
+}
+
+function revealImages(itemId: string) {
+  revealedImages.value.add(itemId);
+}
+
 </script>
 
 <style scoped>
@@ -653,9 +703,6 @@ function goTab(t: ItemType) {
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .select-subject { width:auto; min-width:160px; }
 .small-btn { padding:6px 8px; font-size:13px; }
-
-
-
 
 /* Items */
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
@@ -698,26 +745,14 @@ function goTab(t: ItemType) {
 .collapse-checkbox .vis-label::after {
   content: '';
   position: absolute;
-  /* Größe des Hakens: z.B. 4px Breite und 8px Höhe für eine etwas kleinere Optik */
-  width: 5px; /* Etwas angepasst */
-  height: 9px; /* Etwas angepasst */
+  width: 5px;
+  height: 9px;
   border: solid white;
   border-width: 0 2px 2px 0;
   opacity: 0;
-
-  /* ZENTRIERUNG: Verschiebt den Haken nach links oben und dreht ihn dann */
-  /* Die Werte 'left: 50%' und 'top: 50%' zentrieren den Drehpunkt */
-  /* translate(-50%, -50%) würde das Element zentrieren, aber wir wollen es drehen */
   left: 50%;
   top: 38%;
-  /* Verschieben um die Hälfte der Breite und Höhe des Hakens UND Drehen um 45 Grad */
-  /* Die Werte müssen experimentell angepasst werden, um perfekt zu passen */
-  /* Beispielwerte für 5x9 Haken: */
-  transform: translate(-50%, -45%) rotate(45deg); /* '-45%' statt '-50%' hebt ihn leicht an, um ihn optisch zu zentrieren */
-
-  /* Alternativ könnte man die Originalwerte für Breite/Höhe nutzen und nur die Position anpassen */
-  /* Original (6x10): */
-  /* transform: translate(-30%, -20%) rotate(45deg); */
+  transform: translate(-50%, -45%) rotate(45deg);
 }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 
@@ -777,21 +812,58 @@ function goTab(t: ItemType) {
   white-space: pre-wrap;
   margin-top:10px;
   color: var(--text);
-  white-space: pre-wrap;        /* behält Zeilenumbrüche, erlaubt Umbruch */
-  word-break: break-word;       /* bricht lange Wörter, wenn nötig */
-  overflow-wrap: anywhere;      /* erlaubt Umbruch an beliebiger Stelle bei sehr langen Wörtern */
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
   hyphens: auto;
 }
 .item-images { margin-top:12px; }
 .images-title { font-weight:600; margin-bottom:8px; }
-.images-row { display:flex; flex-wrap:wrap; gap:8px; }
+.images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
 .thumb {
   width:120px; height:120px; border-radius:8px; overflow:hidden;
   border:1px solid var(--border);
   display:flex; align-items:center; justify-content:center;
   background: rgba(0,0,0,0.12);
+  position:relative;
 }
 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Wrapper to allow overlay positioning on the second thumb */
+.thumb-with-overlay-wrapper { position: relative; }
+
+/* Overlay styling (leichtes graues, leicht unscharfes Overlay wie WhatsApp) */
+.img-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  background: transparent;
+  z-index: 10;
+}
+.img-overlay .overlay-blur {
+  position: absolute;
+  inset: 0;
+  background: rgba(60,60,60,0.5); /* graues halbtransparent */
+  backdrop-filter: blur(4px) saturate(90%);
+  -webkit-backdrop-filter: blur(4px) saturate(90%);
+  border-radius: 8px;
+}
+.img-overlay .overlay-content {
+  position: relative;
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+  z-index: 11;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  pointer-events: none;
+}
 
 /* Empty state */
 .empty { text-align:center; color:var(--muted); padding:24px; }
@@ -847,7 +919,7 @@ function goTab(t: ItemType) {
 
 .shm:hover{ background-color:inherit }
 
-/* Füge dies in HAUSAUFGABEN.VUE ein, um Spinner + Text auszurichten */
+
 .loader {
   display: flex;
   align-items: center;
