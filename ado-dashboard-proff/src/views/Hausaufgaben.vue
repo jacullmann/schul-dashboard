@@ -957,24 +957,29 @@ function revealImages(itemId: string) {
 }
 /* style.css */
 
-/*
- * MOBILE-OPTIMIERUNG: Bilder zentrieren
- * Dieser Media Query zielt auf Bildschirme ab, die kleiner oder gleich 768px sind
- * (typische Tablet- oder Smartphone-Größe).
-*/
+/* ... (vorhandener CSS-Code) ... */
+
 @media (max-width: 768px) {
-  /* Wende display: flex und justify-content: center auf den Container an */
   .images-row {
-    /* Stellt sicher, dass Flexbox aktiv ist und die Elemente in einer Reihe angeordnet sind */
     display: flex;
-
-    /* ZENTRIERUNG: Verteilt den verfügbaren Platz links und rechts gleichmäßig,
-       um die Bilder in der Mitte zu positionieren. */
     justify-content: center;
+    gap: 12px; /* Abstand zwischen den Bildern */
+  }
+  /* Neue Regel für die Bildgröße: */
+  .images-row .thumb {
+    /* Setzt die maximale Breite des Containers (für beide Bilder zusammen) auf 90% der mobilen Breite.
+       Da du zwei Bilder in einer Reihe hast, teilen sie sich diesen Platz.
+       Wenn du möchtest, dass jedes Bild 90% der Breite einnimmt (also untereinander),
+       nutze die zweite Option. */
 
-    /* Wenn die Bilder keinen Abstand zueinander haben, kannst du 'gap' hinzufügen,
-       um Platz zwischen ihnen zu schaffen: */
-    gap: 12px; /* Beispielwert: 12px Abstand zwischen den Bildern */
+    /* OPTION A: Zwei Bilder nebeneinander, die sich vergrößern */
+    flex: 1 1 45%; /* Jedes Bild nimmt bis zu 45% der Containerbreite ein */
+    max-width: 45%;
+  }
+  /* Stelle sicher, dass das Bild selbst die volle Breite seines Elternteils einnimmt */
+  .images-row .thumb img {
+    width: 100%;
+    height: auto;
   }
 }
 </style>
