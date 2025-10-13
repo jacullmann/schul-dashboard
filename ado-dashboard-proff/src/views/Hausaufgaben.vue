@@ -850,9 +850,9 @@ function revealImages(itemId: string) {
 .img-overlay .overlay-blur {
   position: absolute;
   inset: 0;
-  background: rgba(60,60,60,0.5); /* graues halbtransparent */
-  backdrop-filter: blur(4px) saturate(90%);
-  -webkit-backdrop-filter: blur(4px) saturate(90%);
+  background: rgba(60,60,60,0.6); /* graues halbtransparent */
+  backdrop-filter:  saturate(90%);
+  -webkit-backdrop-filter: saturate(90%);
   border-radius: 8px;
 }
 .img-overlay .overlay-content {
