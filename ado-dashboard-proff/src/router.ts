@@ -48,7 +48,10 @@ const routes = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        return { top: 0 };
+    }
 });
 
 // Global guard: redirect all non-authenticated requests to /auth
