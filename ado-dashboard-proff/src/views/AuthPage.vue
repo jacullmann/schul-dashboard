@@ -49,7 +49,7 @@
             <input type="checkbox" id="task2" disabled>
             <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
             <p class="small-detail">Seite 177-179 komplett als Vokabelkarten aufschreiben</p>
-            <a href="#" class="card-link">Vokabelliste anschauen</a>
+            <a class="card-link">Vokabelliste anschauen</a>
           </div>
 
           <div class="info-card info-ausfall" style="bottom: 20%; right: 10%;">
