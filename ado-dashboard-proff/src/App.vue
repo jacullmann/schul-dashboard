@@ -2,7 +2,8 @@
   <div class="full">
     <Header v-if="$route.path !== '/welcome'"/>
     <main class="full-c">
-      <canvas id="animated-background" ></canvas>
+      <!--<canvas id="animated-background" ></canvas>-->
+      <img src="./utils/alt.svg" alt="Background" class="svg-background" />
       <div v-if="loading" class="loading-overlay" key="loading">
         <div class="elegant-spinner">
           <div class="dot-1"></div>
