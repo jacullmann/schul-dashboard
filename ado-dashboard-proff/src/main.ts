@@ -6,8 +6,10 @@ import './style.css';
 import VueGtag from 'vue-gtag-next';
 import gaDirective from './directives/gaEvent';
 import { useAuth } from './composables/useAuth';
+import PrimeVue from 'primevue/config';
 
 const app = createApp(App);
+
 
 function initAnalytics() {
     if (!(app as any)._context.provides['vue-gtag']) {
@@ -51,6 +53,10 @@ app.directive('ga-event', gaDirective);
 app.use(createPinia());
 app.use(router);
 app.mount('#app');
+app.use(PrimeVue, {
+    unstyled: true,
+});
+
 
 // Aktivitätsbasierte Verlängerung der Session-Expiry (optional)
 window.addEventListener('mousemove', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
