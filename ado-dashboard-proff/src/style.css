@@ -17,14 +17,14 @@ html, body, #app { height: 100%; }
 body {
     margin: 0;
     color: var(--text);
-    font-family: 'Roboto Slab', serif;
+    font-family: InterVariable, sans-serif;
     position: relative;
 }
 button,
 input,
 select,
 textarea {
-    font-family: 'Roboto Slab', serif !important;
+    font-family: InterVariable, sans-serif !important;
 }
 .input:focus, .textarea:focus {
     outline: none;
