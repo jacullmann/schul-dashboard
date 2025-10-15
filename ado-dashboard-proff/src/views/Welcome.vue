@@ -51,9 +51,9 @@ function submit() {
   error.value = null;
   const res = auth.loginWithCode(code.value.trim());
   if (res.ok) {
-    // Weiterleitung zur Startseite nach erfolgreichem Login
     auth.refreshExpiry();
     router.push('/items/HAUSAUFGABE');
+    umami.track('Welcome Page Login erfolgreich');
   } else {
     error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
   }
