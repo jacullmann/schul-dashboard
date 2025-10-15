@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  animation: floatEffect 10s ease-in-out infinite alternate;
+  animation: floatEffect 30s ease-in-out infinite alternate;
   will-change: transform, opacity;
 }
 .info-card:nth-child(1) { animation-delay: 0s; }
@@ -447,9 +447,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 12px 25px rgba(160,32,240,0.6);
 }
 
-/* RESPONSIVENESS
-   NOTE: You requested the floating cards also appear on mobile, so no display:none on small screens.
-*/
+
 @media (max-width: 900px) {
   .hero-main-content {
     padding: 60px 20px 40px;
