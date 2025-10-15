@@ -23,7 +23,7 @@ function goBack() {
   position: relative;
   width: 100vw;
   height: 100vh;
-  background: transparent; /* kein eigener Hintergrund */
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
