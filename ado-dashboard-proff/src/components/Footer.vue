@@ -28,13 +28,12 @@
         <p>© {{ year }} — Alle Rechte vorbehalten</p>
 
 
-
-        <button   class="secret-btn">Logout</button>
+        <All />
 
       </div>
     </div>
 
-    <!-- Overlay -->
+
     <EasterEggOverlay v-if="showOverlay" :videoId="videoId" />
   </footer>
 </template>
@@ -43,12 +42,15 @@
 import { ref } from "vue";
 import EasterEggOverlay from "./EasterEggOverlay.vue";
 
+import All from './AllLogoutButton.vue'
+
 const year = new Date().getFullYear();
+
 
 const clickCount = ref(0);
 const showOverlay = ref(false);
 
-// 👉 YouTube Video-ID hier eintragen (z.B. "dQw4w9WgXcQ")
+
 const videoId = "HAfFfqiYLp0";
 
 let timer: number | null = null;
@@ -56,6 +58,7 @@ let timer: number | null = null;
 function openCookieBanner() {
   window.dispatchEvent(new CustomEvent('open-cookie-banner'))
 }
+
 //async function logout() {
   //try {
     //await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });

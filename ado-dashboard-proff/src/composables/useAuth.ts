@@ -39,7 +39,7 @@ export function useAuth() {
 
     function loginWithCode(code: string) {
         // einfacher front-end check: nur der richtige Code führt zum Token
-        if (!code) return { ok: false, error: 'Code required' };
+        if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
         if (code === FRONTEND_CODE) {
             // Erzeuge ein kleines zufälliges token (nur für frontend session purposes)
             const t = 'tf_' + Math.random().toString(36).slice(2);

@@ -32,6 +32,7 @@ const routes = [
     { path: '/ai-detector', component: Aidetector },
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
+    { path: '/goat', redirect: '/kanye' },
     //{ path: '/chatter', component: Chatter },
 
 

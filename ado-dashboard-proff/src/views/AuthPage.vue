@@ -85,15 +85,6 @@ const scrollToAuth = () => {
   }
 };
 
-/*
- Parallax-Implementation:
- - Hintergrund (bgRef) bewegt sich mit Faktor 0.5 (50%)
- - Cards inner wrapper (cardsInnerRef) bewegt sich mit Faktor 0.7 (70%)
- - Wir verwenden requestAnimationFrame und einen einzigen Scroll-Listener für Performance.
- - Transforms werden mittels translate3d ausgeführt, GPU-accelerated.
- - Auf Mobilgeräten und bei prefers-reduced-motion wird Parallax deaktiviert.
-*/
-
 let ticking = false;
 let lastScrollY = 0;
 

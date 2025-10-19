@@ -1,206 +1,394 @@
-Impressum.vue: <template>
-                 <div>
-                   <h2>Impressum</h2>
-                   <h3>Angaben gemäß § 5 TMG</h3>
-                   <p>
-                     Max Mustermann<br />
-                     Musterstraße 1<br />
-                     12345 Musterstadt<br />
-                     Deutschland
-                   </p>
-                   <h3>Kontakt</h3>
-                   <p>
-                     Telefon: +49 (0)123 456789<br />
-                     E-Mail: <a href="mailto:max@muster.de">max@muster.de</a>
-                   </p>
-                   <h3>Haftungsausschluss</h3>
-                   <p>
-                     Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für externe Links.
-                   </p>
-                 </div>
-               </template>
-
-
-
-Datenschutz.vue: <template>
-                   <div>
-                     <h2>Datenschutzerklärung</h2>
-
-                     <p>
-                       Der Schutz deiner persönlichen Daten ist uns wichtig. Wir behandeln deine Daten vertraulich
-                       und entsprechend der gesetzlichen Vorschriften.
-                     </p>
-
-                     <h3>1. Verantwortliche Stelle</h3>
-                     <p>
-                       <strong>Name:</strong> Max Mustermann<br />
-                       <strong>Adresse:</strong> Musterstraße 1, 12345 Musterstadt<br />
-                       <strong>E-Mail:</strong> <a href="mailto:max@muster.de">max@muster.de</a>
-                     </p>
-
-                     <h3>2. Umfang und Zwecke der Verarbeitung</h3>
-                     <p>
-                       Wir verarbeiten Daten, um den Betrieb, die Sicherheit und die Funktionalität dieser Website
-                       zu gewährleisten, die Nutzung zu analysieren, Einstellungen zu speichern und gesetzliche
-                       Pflichten zu erfüllen. Konkret verarbeiten wir:
-                     </p>
-                     <ul>
-                       <li><strong>Technische Daten:</strong> Browsertyp, Bildschirmgröße, Spracheinstellungen.</li>
-                       <li><strong>Seitenbezogene Daten:</strong> aufgerufene Seiten, Referrer, Zeitpunkt der Anfrage.</li>
-                       <li><strong>Speicher im Browser:</strong> Daten in localStorage oder SessionStorage für Einstellungen und Timer.</li>
-                       <li><strong>Analytics-Daten:</strong> aggregierte Nutzungsstatistiken (z. B. über Umami).</li>
-                       <li><strong>Formulardaten / Kontakt:</strong> Wenn du uns direkt kontaktierst (z. B. per E‑Mail).</li>
-                     </ul>
-
-                     <h3>3. Rechtsgrundlagen</h3>
-                     <p>
-                       Die Verarbeitung beruht je nach Zweck auf folgenden Rechtsgrundlagen:
-                     </p>
-                     <ul>
-                       <li><strong>Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse):</strong> Betrieb, Sicherheit, Fehlerbehebung und berechtigte Analysezwecke.</li>
-                       <li><strong>Art. 6 Abs. 1 lit. a DSGVO (Einwilligung):</strong> wenn du einer Verwendung von nicht notwendigen Cookies oder vergleichbaren Technologien zustimmst.</li>
-                       <li><strong>Art. 6 Abs. 1 lit. c DSGVO:</strong> Verarbeitung zur Erfüllung rechtlicher Pflichten.</li>
-                     </ul>
-
-                     <h3>4. Analytics (Umami)</h3>
-                     <p>
-                       Diese Website nutzt ein datenschutzfreundliches Analytics-Tool (Umami oder kompatibler Dienst)
-                       zur Erhebung aggregierter Nutzungsstatistiken. Dabei gelten folgende Punkte:
-                     </p>
-                     <ul>
-                       <li><strong>Erhobene Daten:</strong> anonymisierte Seitenaufrufe, Ereignisse (z. B. Klicks), Bildschirmgröße, Sprache, Seitentitel, Hostname, URL (ggf. ohne Query/Hash) und Referrer.</li>
-                       <li><strong>Keine Cookies (konfigurierbar):</strong> Standardkonfiguration kann so eingestellt sein, dass keine Cookies gesetzt werden.</li>
-                       <li><strong>Keine Identifikatoren:</strong> Das Tool wird so betrieben, dass keine personenbezogenen Kennungen (z. B. persistenten IDs) im Client gesetzt werden; die vollständige Anonymität hängt von der Serverkonfiguration ab.</li>
-                       <li><strong>Empfänger:</strong> Die Daten werden an den konfigurierten Analytics-API-Endpunkt gesendet; bei einer selbst gehosteten Instanz verbleiben die Daten in deiner Infrastruktur.</li>
-                       <li><strong>Rechtsgrundlage:</strong> Berechtigtes Interesse oder, falls nicht vollständig anonym, Einwilligung.</li>
-                       <li><strong>Widerspruch / Opt-out:</strong> Du kannst Analytics deaktivieren, z. B. durch lokale Einstellungen (localStorage-Flag) oder über die Cookie-Einstellungen dieser Website.</li>
-                     </ul>
-
-                     <h3>5. Cookies und ähnliche Technologien</h3>
-                     <p>
-                       Wir verwenden Cookies und vergleichbare Technologien für verschiedene Zwecke:
-                     </p>
-                     <ul>
-                       <li><strong>Unbedingt erforderliche Cookies:</strong> für die Grundfunktionen der Website (z. B. Navigation, Sicherheit). Diese sind ohne Einwilligung zulässig.</li>
-                       <li><strong>Funktionale Cookies / localStorage:</strong> speichern Einstellungen und Timer; diese sind für das Nutzererlebnis nützlich und in der Datenschutzerklärung beschrieben.</li>
-                       <li><strong>Statistik- / Tracking-Cookies:</strong> werden nur nach Einwilligung eingesetzt, sofern dies rechtlich erforderlich ist; bei datenschutzfreundlicher Konfiguration (keine Cookies, echte Anonymisierung) ist ggf. keine Einwilligung erforderlich.</li>
-                     </ul>
-
-                     <h3>6. localStorage / SessionStorage</h3>
-                     <p>
-                       Wir setzen <code>localStorage</code> und/oder <code>sessionStorage</code> ein, um Nutzereinstellungen,
-                       Timer und Opt-out-Informationen zu speichern. Diese Daten verbleiben auf deinem Gerät und können
-                       von dir im Browser gelöscht werden. Wenn du localStorage deaktivierst, können bestimmte Funktionen
-                       nicht oder nur eingeschränkt genutzt werden.
-                     </p>
-
-                     <h3>7. Kontaktformulare und Kommunikation</h3>
-                     <p>
-                       Wenn du uns per E‑Mail oder Kontaktformular anschreibst, werden die von dir übermittelten Daten zur
-                       Bearbeitung deines Anliegens gespeichert. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b (Vertrag/Anfrage)
-                       oder lit. f (berechtigtes Interesse an Bearbeitung). Diese Daten löschen wir, wenn sie nicht mehr
-                       erforderlich sind oder du Löschung verlangst, sofern keine gesetzlichen Aufbewahrungspflichten entgegenstehen.
-                     </p>
-
-                     <h3>8. Weitergabe an Dritte</h3>
-                     <p>
-                       Eine Weitergabe personenbezogener Daten an Dritte erfolgt nur, wenn dies zur Vertragserfüllung,
-                       zur Erfüllung rechtlicher Pflichten oder aufgrund deiner Einwilligung erforderlich ist. Dienstleister
-                       (z. B. Hosting, Analytics, E‑Mail-Provider) können Zugriff auf Daten erhalten; wir schließen mit
-                       solchen Dienstleistern Auftragsverarbeitungsverträge ab.
-                     </p>
-
-                     <h3>9. Drittanbieter und Einbettungen</h3>
-                     <p>
-                       Auf unserer Website können Inhalte oder Dienste von Drittanbietern eingebunden sein (z. B. Fonts,
-                       Kartendienste, Social-Plugins). Diese Drittanbieter können Daten verarbeiten; bitte prüfe die
-                       jeweiligen Datenschutzhinweise der Drittanbieter für Details.
-                     </p>
-
-                     <h3>10. Datenspeicherung und Löschung</h3>
-                     <p>
-                       Wir speichern personenbezogene Daten nur so lange, wie es für die Zwecke notwendig ist oder gesetzliche
-                       Aufbewahrungspflichten bestehen. Aggregierte, vollständig anonymisierte Daten können länger aufbewahrt werden.
-                     </p>
-
-                     <h3>11. Datensicherheit</h3>
-                     <p>
-                       Wir treffen angemessene technische und organisatorische Maßnahmen, um deine Daten vor Verlust,
-                       Missbrauch und unbefugtem Zugriff zu schützen. Absolute Sicherheit kann jedoch nicht garantiert werden.
-                     </p>
-
-                     <h3>12. Internationale Datenübermittlung</h3>
-                     <p>
-                       Eine Übermittlung in Länder außerhalb des Europäischen Wirtschaftsraums (EWR) kann stattfinden, wenn
-                       dies für eingesetzte Dienstleister erforderlich ist. In solchen Fällen stellen wir sicher, dass
-                       geeignete Schutzmaßnahmen (z. B. Standardvertragsklauseln) bestehen.
-                     </p>
-
-                     <h3>13. Deine Rechte</h3>
-                     <p>
-                       Du hast jederzeit folgende Rechte gegenüber dem Verantwortlichen:
-                     </p>
-                     <ul>
-                       <li>Recht auf Auskunft über die verarbeiteten Daten</li>
-                       <li>Recht auf Berichtigung unrichtiger Daten</li>
-                       <li>Recht auf Löschung oder Einschränkung der Verarbeitung</li>
-                       <li>Recht auf Datenübertragbarkeit, soweit anwendbar</li>
-                       <li>Recht auf Widerruf erteilter Einwilligungen</li>
-                       <li>Beschwerderecht bei einer Aufsichtsbehörde</li>
-                     </ul>
-
-                     <h3>14. Änderungen dieser Datenschutzerklärung</h3>
-                     <p>
-                       Wir können diese Datenschutzerklärung anpassen. Die jeweils aktuelle Version ist auf dieser Website
-                       verfügbar. Wesentliche Änderungen werden wir deutlich kennzeichnen.
-                     </p>
-
-                     <h3>15. Kontakt</h3>
-                     <p>
-                       Bei Fragen zum Datenschutz oder zur Ausübung deiner Rechte wende dich bitte an:<br />
-                       <strong>Max Mustermann</strong><br />
-                       Musterstraße 1, 12345 Musterstadt<br />
-                       <a href="mailto:max@muster.de">max@muster.de</a>
-                     </p>
-
-                     <h3>Cookie-Einstellungen</h3>
-                     <CookieSettings />
-                   </div>
-                 </template>
-
-                 <script setup lang="ts">
-                 import CookieSettings from '../../components/CookieSettings.vue'
-                 </script>
-
-
-
-
-Legallayout.vue: <!-- src/views/legal/LegalLayout.vue -->
-                 <template>
-                   <div class="card">
-                     <!-- Switch Buttons -->
-                     <div class="row" style="margin-bottom:16px;">
-                       <router-link
-                           to="impressum"
-                           class="btn ghost"
-                           :class="{ active: $route.path.endsWith('/impressum') }"
-                       >
-                         Impressum
-                       </router-link>
-                       <router-link
-                           to="datenschutzerklaerung"
-                           class="btn ghost"
-                           :class="{ active: $route.path.endsWith('/datenschutzerklaerung') }"
-                       >
-                         Datenschutz
-                       </router-link>
-                     </div>
-
-                     <!-- Hier erscheinen die Kind-Routen -->
-                     <router-view />
-                   </div>
-                 </template>
-
-                 <script setup lang="ts">
-                 // keine Logik nötig
-                 </script>
+jannes@p200300e46f0994d28cdf684983f2c5ce:~/Developing/Schul-Dashboard$ podman logs -f devpod-frontend
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_24_792Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_25_712Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_26_505Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_27_289Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_28_061Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_28_838Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_29_598Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_30_359Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_31_095Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_31_780Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_32_557Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_33_331Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_34_122Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_34_809Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_35_551Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_36_301Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_37_084Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_37_845Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_38_513Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_39_067Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_39_599Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_40_128Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_40_688Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_41_332Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_42_082Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_42_857Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_43_640Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_44_409Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_45_177Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_45_951Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_46_728Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_47_399Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_47_933Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_48_377Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_48_799Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_49_205Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_49_596Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_49_997Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_50_413Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_50_809Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_51_194Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_51_575Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_51_969Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_52_370Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_52_763Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_53_143Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_45_53_534Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+ance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_25_919Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_26_471Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_27_042Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_27_638Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_28_273Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_28_924Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_29_591Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_30_316Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_31_056Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_31_815Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_32_498Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_33_099Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_33_704Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_34_307Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_34_893Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_35_518Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_36_168Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_36_859Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_37_502Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_38_231Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_38_873Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_39_575Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_40_321Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_40_999Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_41_648Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_42_381Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_43_005Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_43_643Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_44_185Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_44_783Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_45_312Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_45_728Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_46_237Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_46_815Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_47_392Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_47_954Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_48_501Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_49_054Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_49_590Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_49_979Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_50_417Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_50_812Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_51_190Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_51_575Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_51_961Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_52_371Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_52_846Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_53_488Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_54_197Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_54_892Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_55_630Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_56_445Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_57_086Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_57_750Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_58_445Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_59_176Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_48_59_959Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_00_735Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_01_507Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_02_279Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_03_029Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_03_779Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_04_522Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_05_277Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_06_040Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_06_766Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_07_480Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_08_183Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_08_827Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_09_465Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_10_126Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_10_766Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_11_338Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_11_828Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_12_299Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_12_761Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_13_292Z-debug-0.log
+^Anpm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_13_787Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_14_328Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_14_934Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_15_648Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_16_373Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_17_145Z-debug-0.log
+npm error code ERR_INVALID_ARG_TYPE
+npm error The "path" argument must be of type string or an instance of Buffer or URL. Received null
+npm error A complete log of this run can be found in: /root/.npm/_logs/2025-10-18T18_49_17_908Z-debug-0.log

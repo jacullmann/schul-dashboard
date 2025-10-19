@@ -1,136 +1,610 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Meine Seite</title>
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Epic Giant World — Infinite Edition</title>
     <style>
-        /* 1. Reset und Globale Einstellungen für ein sauberes Fundament */
-        :root {
-            --color-bg: #1e1e1e; /* Dunkler Hintergrund */
-            --color-fg: #f5f5f5; /* Heller Text (Foreground) */
-            --color-primary: #00bcd4; /* Akzentfarbe: Cyan/Türkis */
-            --color-secondary: #333333; /* Dunkle Boxen/Trennung */
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            --border-radius: 8px;
-            --spacing: 20px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--color-bg);
-            color: var(--color-fg);
-            font-family: var(--font-family);
-            line-height: 1.6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: var(--spacing);
-        }
-
-        /* 2. Style für den Hauptcontainer (.site) */
-        .site {
-            background-color: var(--color-secondary);
-            padding: calc(2 * var(--spacing));
-            border-radius: var(--border-radius);
-            max-width: 400px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing);
-            font-size: 18px; /* Reduziert für professionellere Optik */
-        }
-
-        /* 3. Style für das Textfeld (input) */
-        #i1 {
-            padding: 12px 15px;
-            border: 2px solid var(--color-secondary);
-            border-radius: var(--border-radius);
-            font-size: 18px;
-            color: var(--color-fg);
-            background-color: #2a2a2a; /* Etwas heller als der Container */
-            transition: border-color 0.3s, box-shadow 0.3s;
-            width: 100%;
-            outline: none; /* Entfernt den Standard-Outline */
-        }
-
-        #i1::placeholder {
-            color: #888888;
-        }
-
-        /* Focus-State: Wichtig für Pro-Look und Usability */
-        #i1:focus {
-            border-color: var(--color-primary);
-        }
-
-        /* 4. Style für den Button */
-        #submit1 {
-            padding: 12px 25px;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: var(--color-primary);
-            color: var(--color-bg); /* Button-Textfarbe auf Dunkel setzen */
-            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            outline: none;
-        }
-
-        /* Hover- und Active-States für den Button */
-        #submit1:hover {
-            background-color: #00a6b7; /* Leichter dunklerer Ton bei Hover */
-        }
-
-        #submit1:active {
-            transform: scale(0.98); /* Kleiner Klick-Effekt */
-        }
-
-        /* 5. Style für den Ausgabetext */
-        .text {
-            color: var(--color-fg);
-            text-align: center;
-            padding-top: var(--spacing);
-            font-size: 20px;
-            font-style: italic;
-            min-height: 40px; /* Platzhalter, damit der Container nicht springt */
-        }
+        html,body{height:100%;margin:0;overflow:hidden;background:#07101a;font-family:Inter,Arial,Helvetica,sans-serif}
+        #ui{position:fixed;left:14px;top:14px;z-index:50;color:#fff;background:linear-gradient(180deg,rgba(0,0,0,0.45),rgba(0,0,0,0.25));padding:12px;border-radius:10px;font-size:13px;backdrop-filter: blur(6px)}
+        #ui .title{font-weight:800;margin-bottom:6px;letter-spacing:0.6px}
+        #hud{position:fixed;right:14px;top:14px;color:#fff;background:rgba(0,0,0,0.22);padding:10px;border-radius:10px;font-size:13px}
+        #centerLabel{position:fixed;left:50%;top:46%;transform:translate(-50%,-50%);z-index:35;color:#fff;pointer-events:none;text-align:center;font-weight:800;letter-spacing:1px;opacity:0.9}
+        canvas{display:block}
+        .hint{opacity:0.95;font-size:12px;margin-top:6px}
+        #controlsSmall{font-size:12px;color:#ddd;margin-top:6px}
+        .btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#fff;padding:7px 10px;border-radius:8px;cursor:pointer}
+        .small{font-size:12px;padding:5px 8px}
+        hr{border:0;height:1px;background:rgba(255,255,255,0.04);margin:8px 0}
+        #logo{font-weight:900;color:#d9f2ff}
     </style>
 </head>
 <body>
-<div class="site">
-    <input id="i1" type="text" placeholder="Dein Name">
-    <button onclick="getid()" id="submit1" >Bestätigen</button>
-    <a class="text"  id="t1" ></a>
+<div id="ui">
+    <div class="title" id="logo">EPIC GIANT WORLD — INFINITE EDITION</div>
+    <div>Steuerung: Klick → Maus fangen; WASD / Pfeile zum Fliegen; Space Auf; Shift Ab; Sprint: Shift gedrückt; Mausrad zoom</div>
+    <div id="controlsSmall" class="hint">Mausempfindlichkeit: <span id="sensVal">1.6</span></div>
+    <div style="margin-top:8px">
+        <button id="resetBtn" class="btn">Reset Kamera</button>
+        <button id="toggleClouds" class="btn small">Wolken</button>
+        <button id="toggleVegetation" class="btn small">Vegetation</button>
+    </div>
+    <hr/>
+    <div style="font-size:12px;color:#bcd">Tip: Drücke G für Grid, C für Kollisionshöhe anzeigen, D für Debug</div>
 </div>
 
+<div id="hud">Zone: <span id="zone">0,0</span> · Zeit: <span id="timeLbl">Morgen</span> · FPS: <span id="fps">--</span> · Höhe: <span id="camY">--</span></div>
+<div id="centerLabel">EXPLORE — TRULY INFINITE</div>
+
+<!-- Three.js UMD -->
+<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
 
 <script>
-    let name;
+    /*
+      Epic Giant World — Infinite Edition
+      - "Infinite" world implemented as streaming square terrain chunks around the camera.
+      - Chunk pooling, per-chunk procedural height (deterministic hash/fbm), LOD via chunkSize / resolution.
+      - Improved visuals: physically plausible sky tint, water plane, improved materials, instanced vegetation with density falloff.
+      - Smooth flying camera with inertia, basic ground collision, day/night cycle, volumetric-like layered clouds (sprites).
+      - Single-file, runs locally using three.min.js from CDN.
+    */
 
-    function getid (){
-        input = document.getElementById("i1")
+    /* ---------------- CONFIG ---------------- */
+    const CONFIG = {
+        CHUNK_SIZE: 512,            // world units per chunk edge
+        CHUNK_RES_BASE: 64,         // vertices per side for base LOD chunk
+        VISIBLE_RADIUS: 3,          // how many chunks out from center to generate (radius in chunks)
+        MAX_INST_TREE: 9000,        // cap trees overall
+        MAX_INST_GRASS: 32000,      // cap grass
+        WATER_LEVEL: -6,
+        SENSITIVITY: 1.6,
+        CAMERA_START: new THREE.Vector3(0, 120, 240)
+    };
 
-        name = input.value
-        const output = "Dein Name ist " + name;
+    /* ---------------- THREE SETUP ---------------- */
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b2233);
 
-        document.getElementById("t1").innerHTML = output;
+    const camera = new THREE.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 30000);
+    camera.position.copy(CONFIG.CAMERA_START);
 
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
 
+    window.addEventListener('resize', ()=> {
+        camera.aspect = innerWidth/innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+    });
+
+    /* ---------------- LIGHTS & SUN ---------------- */
+    const sun = new THREE.DirectionalLight(0xfff6df, 1.0);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048,2048);
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 10000;
+    sun.shadow.camera.left = -3000; sun.shadow.camera.right = 3000; sun.shadow.camera.top = 3000; sun.shadow.camera.bottom = -3000;
+    scene.add(sun);
+
+    const hemi = new THREE.HemisphereLight(0xbfe8ff, 0x263244, 0.6);
+    scene.add(hemi);
+
+    const ambient = new THREE.AmbientLight(0x24333a, 0.12);
+    scene.add(ambient);
+
+    /* ---------------- UTIL NOISE (deterministic, tileable-ish) ---------------- */
+    function hash2(x,y){
+        // 2D integer hash -> [0,1)
+        const s = Math.sin(x*127.1 + y*311.7) * 43758.5453123;
+        return s - Math.floor(s);
+    }
+    function lerp(a,b,t){ return a + (b-a)*t; }
+    function smoothstep(t){ return t*t*(3-2*t); }
+    function noise2(x,y){
+        const xi = Math.floor(x), yi = Math.floor(y);
+        const xf = x - xi, yf = y - yi;
+        const a = hash2(xi, yi);
+        const b = hash2(xi+1, yi);
+        const c = hash2(xi, yi+1);
+        const d = hash2(xi+1, yi+1);
+        const u = smoothstep(xf), v = smoothstep(yf);
+        return lerp(lerp(a,b,u), lerp(c,d,u), v);
+    }
+    function fbm(x,y,oct=5){
+        let v=0, amp=1, freq=1;
+        for(let i=0;i<oct;i++){
+            v += amp * noise2(x*freq, y*freq);
+            freq *= 2; amp *= 0.55;
+        }
+        return v;
     }
 
+    /* ---------------- CHUNK MANAGEMENT (infinite streaming) ---------------- */
+    const chunkSize = CONFIG.CHUNK_SIZE;
+    const baseRes = CONFIG.CHUNK_RES_BASE;
+    const visibleRadius = CONFIG.VISIBLE_RADIUS;
 
+    // pool of chunk meshes keyed by "qx_qy"
+    const chunks = new Map();
+    const chunkPool = [];
 
+    function worldToChunk(x){ return Math.floor(x / chunkSize); }
 
+    function makeChunkMesh(res){
+        const geo = new THREE.PlaneGeometry(chunkSize, chunkSize, res, res);
+        geo.rotateX(-Math.PI/2);
+        geo.computeVertexNormals();
+        const mat = new THREE.MeshStandardMaterial({
+            vertexColors: true,
+            roughness: 0.95,
+            metalness: 0.02,
+            flatShading: false
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.receiveShadow = true;
+        mesh.castShadow = false;
+        mesh.frustumCulled = false;
+        return mesh;
+    }
 
+    function generateHeightForChunk(qx,qy, mesh){
+        // deterministic seed from chunk coords
+        const offsetX = qx * chunkSize - chunkSize/2;
+        const offsetZ = qy * chunkSize - chunkSize/2;
+        const pos = mesh.geometry.attributes.position;
+        const colorAtt = mesh.geometry.attributes.color || new Float32Array(pos.count*3);
+        for(let i=0;i<pos.count;i++){
+            const vx = pos.getX(i) + offsetX;
+            const vz = pos.getZ(i) + offsetZ;
+            // normalized coordinates for long-range features
+            const nx = vx * 0.0009;
+            const nz = vz * 0.0009;
+            const base = fbm(nx*0.45, nz*0.45, 5) * 140;
+            const hills = fbm(nx*2.3, nz*2.3, 4) * 40;
+            const ridged = Math.abs(fbm(nx*6.5, nz*6.5, 3) - 0.5) * 80;
+            // add deterministic small randomness based on position
+            const jitter = (hash2(Math.floor(vx*0.7), Math.floor(vz*0.7)) - 0.5) * 6;
+            // falloff with distance from chunk center to create plateaus sometimes
+            const distFromOrigin = Math.hypot(vx, vz);
+            const worldRadius = 25000; // gentle drop-off far away
+            const worldMask = Math.max(0.0, 1 - Math.pow(distFromOrigin / worldRadius, 2));
+            const height = (base*0.86 + hills*0.9 + ridged*0.55 + jitter) * worldMask - 8;
+            pos.setY(i, height);
+            // color based on height
+            const color = new THREE.Color();
+            if(height > 200) color.set(0xeaeaea);
+            else if(height > 120) color.set(0x9a9a9a);
+            else if(height > 40) color.set(0x7bb373);
+            else if(height > 6) color.set(0x4ea15b);
+            else color.set(0x355f3a);
+            colorAtt[i*3] = color.r; colorAtt[i*3+1] = color.g; colorAtt[i*3+2] = color.b;
+        }
+        mesh.geometry.setAttribute('color', new THREE.BufferAttribute(colorAtt, 3));
+        mesh.geometry.attributes.position.needsUpdate = true;
+        mesh.geometry.attributes.color.needsUpdate = true;
+        mesh.geometry.computeVertexNormals();
+    }
+
+    function acquireChunk(qx,qy){
+        const key = qx + ',' + qy;
+        if(chunks.has(key)) return chunks.get(key);
+        let mesh = chunkPool.pop();
+        if(!mesh) mesh = makeChunkMesh(baseRes);
+        mesh.userData.qx = qx; mesh.userData.qy = qy;
+        mesh.position.set(qx*chunkSize, 0, qy*chunkSize);
+        generateHeightForChunk(qx, qy, mesh);
+        scene.add(mesh);
+        chunks.set(key, mesh);
+        return mesh;
+    }
+
+    function releaseChunk(key){
+        const mesh = chunks.get(key);
+        if(!mesh) return;
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        // create a fresh low-res mesh to reuse geometry buffer safely
+        const m = makeChunkMesh(baseRes);
+        chunkPool.push(m);
+        chunks.delete(key);
+    }
+
+    function updateVisibleChunks(){
+        const cx = worldToChunk(camera.position.x);
+        const cz = worldToChunk(camera.position.z);
+        const targets = new Set();
+        for(let dx = -visibleRadius; dx <= visibleRadius; dx++){
+            for(let dz = -visibleRadius; dz <= visibleRadius; dz++){
+                const qx = cx + dx, qy = cz + dz;
+                const key = qx + ',' + qy;
+                targets.add(key);
+                if(!chunks.has(key)){
+                    acquireChunk(qx,qy);
+                }
+            }
+        }
+        // release chunks outside targets
+        for(const key of Array.from(chunks.keys())){
+            if(!targets.has(key)) releaseChunk(key);
+        }
+        document.getElementById('zone').textContent = cx + ',' + cz;
+    }
+
+    /* ---------------- WATER ---------------- */
+    const waterGeom = new THREE.PlaneGeometry(100000, 100000, 2, 2);
+    const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x296082,
+        metalness: 0.3,
+        roughness: 0.12,
+        transparent: true,
+        opacity: 0.88
+    });
+    const water = new THREE.Mesh(waterGeom, waterMat);
+    water.rotation.x = -Math.PI/2;
+    water.position.y = CONFIG.WATER_LEVEL;
+    water.receiveShadow = false;
+    scene.add(water);
+
+    /* ---------------- INSTANCED VEGETATION (pooled, density falloff) ---------------- */
+    let instTrees, instTrunks, instGrass;
+    function setupVegetation(){
+        // simple stylized tree: cone + cylinder
+        const foliageGeo = new THREE.ConeGeometry(1.6, 6, 8);
+        const trunkGeo = new THREE.CylinderGeometry(0.35,0.45,2.4,6);
+        const foliageMat = new THREE.MeshStandardMaterial({ color: 0x13763a, roughness: 1 });
+        const trunkMat = new THREE.MeshStandardMaterial({ color:0x4b2e21, roughness: 1 });
+
+        const treeCount = CONFIG.MAX_INST_TREE;
+        instTrunks = new THREE.InstancedMesh(trunkGeo, trunkMat, treeCount);
+        instTrunks.castShadow = true; instTrunks.receiveShadow = false;
+        instTrees  = new THREE.InstancedMesh(foliageGeo, foliageMat, treeCount);
+        instTrees.castShadow = true; instTrees.receiveShadow = false;
+
+        const grassGeo = new THREE.PlaneGeometry(0.9,1.6);
+        const grassMat = new THREE.MeshStandardMaterial({ color:0x57b36a, side: THREE.DoubleSide, roughness:1 });
+        const grassCount = CONFIG.MAX_INST_GRASS;
+        instGrass = new THREE.InstancedMesh(grassGeo, grassMat, grassCount);
+        instGrass.castShadow = false; instGrass.receiveShadow = false;
+
+        scene.add(instTrunks); scene.add(instTrees); scene.add(instGrass);
+        // initially empty; will fill as chunks load
+        instTrunks.count = 0; instTrees.count = 0; instGrass.count = 0;
+    }
+    setupVegetation();
+
+    function populateVegetationForChunk(qx,qy){
+        // approximate chance/density based on elevation and distance from camera
+        const cx = qx * chunkSize;
+        const cz = qy * chunkSize;
+        // sample grid inside chunk
+        const samples = 24; // per chunk sample attempts
+        const tmp = new THREE.Object3D();
+        for(let i=0;i<samples;i++){
+            // deterministic pseudorandom per-chunk
+            const rx = cx + (hash2(qx*23+i, qy*17+i*3) - 0.5) * chunkSize;
+            const rz = cz + (hash2(qx*19+i*7, qy*13+i*5) - 0.5) * chunkSize;
+            // sample height from nearest chunk geometry if available
+            const h = sampleHeightAt(rx, rz);
+            if(h < CONFIG.WATER_LEVEL + 2 || h > 420) continue;
+            // tree density falloff by height/noise
+            const density = Math.max(0, 1 - Math.abs(h) / 300);
+            if(Math.random() > density) continue;
+            // place tree if available slot
+            const tIdx = instTrees.count;
+            if(tIdx < instTrees.instanceMatrix.count){
+                const scale = 0.8 + Math.random()*2.6;
+                tmp.position.set(rx, h + 1.2, rz);
+                tmp.rotation.set(0, Math.random()*Math.PI*2, 0);
+                tmp.scale.set(scale, scale, scale);
+                tmp.updateMatrix();
+                instTrees.setMatrixAt(tIdx, tmp.matrix);
+                // trunk slightly lower
+                tmp.position.set(rx, h + 0.9, rz);
+                tmp.scale.set(0.6*scale, 0.6*scale, 0.6*scale);
+                tmp.updateMatrix();
+                instTrunks.setMatrixAt(tIdx, tmp.matrix);
+                instTrees.count = tIdx + 1;
+                instTrunks.count = tIdx + 1;
+            }
+            // grass
+            const gIdx = instGrass.count;
+            if(gIdx < instGrass.instanceMatrix.count){
+                tmp.position.set(rx + (Math.random()-0.5)*6, h + 0.4, rz + (Math.random()-0.5)*6);
+                tmp.rotation.set(0, Math.random()*Math.PI, 0);
+                const s = 0.5 + Math.random()*1.6;
+                tmp.scale.set(s,s,s);
+                tmp.updateMatrix();
+                instGrass.setMatrixAt(gIdx, tmp.matrix);
+                instGrass.count = gIdx + 1;
+            }
+        }
+        instTrees.instanceMatrix.needsUpdate = true;
+        instTrunks.instanceMatrix.needsUpdate = true;
+        instGrass.instanceMatrix.needsUpdate = true;
+    }
+
+    /* ---------------- SAMPLE HEIGHT ---------------- */
+    // To approximate sample height at any world x,z we look for the chunk that contains it and nearest vertex.
+    function sampleHeightAt(x,z){
+        const qx = worldToChunk(x);
+        const qy = worldToChunk(z);
+        const key = qx + ',' + qy;
+        const mesh = chunks.get(key);
+        if(!mesh){
+            // try adjacent chunk fallback
+            const altKey = (qx+0) + ',' + (qy+0);
+            const alt = chunks.get(altKey);
+            if(!alt) return CONFIG.WATER_LEVEL;
+        }
+        const localX = x - qx*chunkSize + chunkSize/2;
+        const localZ = z - qy*chunkSize + chunkSize/2;
+        const geom = (mesh || chunks.get(qx+','+qy)).geometry;
+        const res = baseRes;
+        const sx = (localX / chunkSize) * res;
+        const sz = (localZ / chunkSize) * res;
+        const ix = Math.max(0, Math.min(res, Math.round(sx)));
+        const iz = Math.max(0, Math.min(res, Math.round(sz)));
+        const idx = iz * (res + 1) + ix;
+        return geom.attributes.position.getY(idx);
+    }
+
+    /* ---------------- CAMERA & CONTROLS ---------------- */
+    const controls = {
+        yaw: 0, pitch: -0.12,
+        vel: new THREE.Vector3(),
+        targetVel: new THREE.Vector3(),
+        sensitivity: CONFIG.SENSITIVITY * 0.0012,
+        speedBase: 260,
+        damping: 0.92
+    };
+
+    let pointerLocked = false;
+    renderer.domElement.addEventListener('click', ()=> {
+        renderer.domElement.requestPointerLock();
+    });
+    document.addEventListener('pointerlockchange', ()=> {
+        pointerLocked = document.pointerLockElement === renderer.domElement;
+    });
+    document.addEventListener('mousemove', (e)=> {
+        if(!pointerLocked) return;
+        controls.yaw -= e.movementX * controls.sensitivity;
+        controls.pitch -= e.movementY * controls.sensitivity;
+        controls.pitch = Math.max(-Math.PI/2 + 0.02, Math.min(Math.PI/2 - 0.02, controls.pitch));
+    });
+
+    const keyState = {};
+    window.addEventListener('keydown', e=> keyState[e.code] = true);
+    window.addEventListener('keyup', e=> keyState[e.code] = false);
+
+    window.addEventListener('wheel', e=>{
+        camera.position.addScaledVector(camera.getWorldDirection(new THREE.Vector3()), e.deltaY * 0.018);
+    });
+
+    document.getElementById('sensVal').textContent = CONFIG.SENSITIVITY.toFixed(1);
+
+    function updateMovement(dt){
+        const forward = (keyState['KeyW'] || keyState['ArrowUp']) ? 1 : (keyState['KeyS'] || keyState['ArrowDown']) ? -1 : 0;
+        const right = (keyState['KeyD'] || keyState['ArrowRight']) ? 1 : (keyState['KeyA'] || keyState['ArrowLeft']) ? -1 : 0;
+        const up = (keyState['Space'] ? 1 : 0) - (keyState['ShiftLeft'] ? 1 : 0);
+        const sprint = keyState['ShiftRight'] || keyState['ShiftLeft'];
+        const dir = new THREE.Vector3(right, up, forward);
+        if(dir.lengthSq() > 0) dir.normalize();
+        const yawMat = new THREE.Matrix4().makeRotationY(controls.yaw);
+        dir.applyMatrix4(yawMat);
+        const speed = controls.speedBase * (sprint ? 2.2 : 1);
+        controls.targetVel.copy(dir).multiplyScalar(speed);
+        controls.vel.lerp(controls.targetVel, 1 - Math.pow(controls.damping, dt*60));
+        camera.position.addScaledVector(controls.vel, dt);
+        // collision with ground
+        const groundH = sampleHeightAt(camera.position.x, camera.position.z) + 2.0;
+        if(camera.position.y < groundH) camera.position.y = groundH;
+    }
+
+    /* ---------------- DAY CYCLE & ATMOSPHERE ---------------- */
+    let dayTime = 0; // 0..1
+    function updateDay(dt){
+        dayTime = (dayTime + dt*0.0009) % 1;
+        const t = Math.sin(dayTime * Math.PI * 2) * 0.5 + 0.5;
+        const angle = dayTime * Math.PI * 2;
+        sun.position.set(Math.cos(angle)*1800, Math.sin(angle)*900 + 600, Math.sin(angle*0.6)*1600);
+        sun.intensity = 0.5 + 1.15 * Math.max(0, t);
+        hemi.intensity = 0.14 + 0.7 * Math.max(0, t);
+        // background sky transition
+        const dayColor = new THREE.Color(0x7fbbe6);
+        const nightColor = new THREE.Color(0x061322);
+        scene.background = dayColor.clone().lerp(nightColor, 1 - t);
+        // water hue tweak
+        water.material.color.setHSL(0.58 - 0.08*(1-t), 0.45 + 0.2*t, 0.18 + 0.06*t);
+        document.getElementById('timeLbl').textContent = t > 0.66 ? 'Tag' : (t > 0.33 ? 'Morgen/Abend' : 'Nacht');
+    }
+
+    /* ---------------- CLOUDS (layered sprites) ---------------- */
+    const cloudGroup = new THREE.Group();
+    scene.add(cloudGroup);
+    let cloudsEnabled = true;
+    const cloudCanvasTex = (() => {
+        const sz = 512;
+        const c = document.createElement('canvas'); c.width = c.height = sz;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createRadialGradient(sz/2, sz/2, 30, sz/2, sz/2, sz*0.9);
+        grad.addColorStop(0, 'rgba(255,255,255,1)');
+        grad.addColorStop(0.6, 'rgba(255,255,255,0.85)');
+        grad.addColorStop(1, 'rgba(200,200,200,0)');
+        ctx.fillStyle = grad; ctx.fillRect(0,0,sz,sz);
+        ctx.globalCompositeOperation = 'lighter';
+        for(let i=0;i<120;i++){
+            ctx.fillStyle = 'rgba(255,255,255,0.02)';
+            ctx.beginPath(); ctx.arc(Math.random()*sz, Math.random()*sz, Math.random()*sz*0.18, 0, Math.PI*2); ctx.fill();
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        return tex;
+    })();
+
+    function spawnClouds(count=260){
+        cloudGroup.clear();
+        for(let i=0;i<count;i++){
+            const mat = new THREE.SpriteMaterial({ map: cloudCanvasTex, transparent: true, opacity: 0.86, depthWrite: false });
+            const sp = new THREE.Sprite(mat);
+            const x = (Math.random()*2 - 1) * 40000;
+            const z = (Math.random()*2 - 1) * 40000;
+            const y = 150 + Math.random()*520;
+            sp.position.set(x,y,z);
+            const s = 240 + Math.random()*720;
+            sp.scale.set(s, s*0.55, 1);
+            sp.material.rotation = Math.random()*Math.PI;
+            cloudGroup.add(sp);
+        }
+    }
+    spawnClouds();
+
+    /* ---------------- PARTICLES / GLINTS ---------------- */
+    function makeSparkles(){
+        const count = 900;
+        const pos = new Float32Array(count*3);
+        const col = new Float32Array(count*3);
+        for(let i=0;i<count;i++){
+            pos[i*3] = (Math.random()*2-1)*20000;
+            pos[i*3+1] = 10 + Math.random()*250;
+            pos[i*3+2] = (Math.random()*2-1)*20000;
+            const c = new THREE.Color().setHSL(0.06 + Math.random()*0.05, 0.85, 0.6);
+            col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+        }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        const m = new THREE.PointsMaterial({ size: 3, vertexColors: true, transparent: true, opacity: 0.9 });
+        const p = new THREE.Points(g,m);
+        scene.add(p);
+        return p;
+    }
+    const sparkles = makeSparkles();
+
+    /* ---------------- UI INTERACTIONS ---------------- */
+    document.getElementById('resetBtn').addEventListener('click', ()=> {
+        camera.position.copy(CONFIG.CAMERA_START);
+        controls.vel.set(0,0,0);
+    });
+    document.getElementById('toggleClouds').addEventListener('click', ()=>{
+        cloudsEnabled = !cloudsEnabled;
+        cloudGroup.visible = cloudsEnabled;
+    });
+    document.getElementById('toggleVegetation').addEventListener('click', ()=>{
+        const visible = instTrees.visible;
+        instTrees.visible = instTrunks.visible = instGrass.visible = !visible;
+    });
+
+    window.addEventListener('keydown', (e)=>{
+        if(e.key === '+') { CONFIG.SENSITIVITY = Math.min(6, CONFIG.SENSITIVITY + 0.2); controls.sensitivity = CONFIG.SENSITIVITY * 0.0012; document.getElementById('sensVal').textContent = CONFIG.SENSITIVITY.toFixed(1); }
+        if(e.key === '-') { CONFIG.SENSITIVITY = Math.max(0.2, CONFIG.SENSITIVITY - 0.2); controls.sensitivity = CONFIG.SENSITIVITY * 0.0012; document.getElementById('sensVal').textContent = CONFIG.SENSITIVITY.toFixed(1); }
+        if(e.code === 'KeyG'){ gridHelper.visible = !gridHelper.visible; }
+        if(e.code === 'KeyD'){ debugMode = !debugMode; }
+    });
+
+    /* ---------------- GRID / DEBUG ---------------- */
+    const gridHelper = new THREE.GridHelper(20000, 200, 0x0b3450, 0x0b3450);
+    gridHelper.rotation.x = Math.PI/2;
+    gridHelper.visible = false;
+    scene.add(gridHelper);
+    let debugMode = false;
+
+    /* ---------------- MAIN LOOP / ANIMATION ---------------- */
+    let last = performance.now();
+    let frame = 0, fpsAcc = 0;
+    const fpsEl = document.getElementById('fps');
+    const camYEl = document.getElementById('camY');
+
+    function animate(now){
+        requestAnimationFrame(animate);
+        const dt = Math.min(0.06, (now - last) / 1000);
+        last = now;
+        frame++;
+
+        updateMovement(dt);
+        updateDay(dt);
+
+        // spawn/update chunks around camera every N frames
+        if(frame % 6 === 0) updateVisibleChunks();
+
+        // animate clouds and sparkles subtly
+        if(cloudsEnabled){
+            cloudGroup.children.forEach((s, i) => {
+                s.position.x += Math.sin(now*0.00012 + i) * 0.018;
+                s.position.z += Math.cos(now*0.00009 + i*0.7) * 0.024;
+                s.material.rotation += 0.0009 * ((i%3)?1:-1);
+            });
+        }
+
+        // particles drift
+        const ppos = sparkles.geometry.attributes.position;
+        for(let i=0;i<ppos.count;i++){
+            ppos.array[i*3+1] += Math.sin((i+7)*0.001 + now*0.0007) * 0.01;
+            if(ppos.array[i*3+1] < -40) ppos.array[i*3+1] = 10 + Math.random()*200;
+        }
+        ppos.needsUpdate = true;
+
+        // update water shimmer
+        water.material.opacity = 0.85 + 0.06 * Math.cos(now*0.0012);
+        water.material.needsUpdate = true;
+
+        // update vegetation sway cheaply
+        if(instGrass) instGrass.rotation.set(0, Math.sin(now*0.0008)*0.02, 0);
+
+        // camera rotation
+        camera.rotation.set(controls.pitch, controls.yaw, 0, 'YXZ');
+
+        // update sun shadow target to follow camera for better local shadows
+        sun.target.position.copy(camera.position);
+        sun.target.position.y = 0;
+        sun.target.updateMatrixWorld();
+
+        renderer.render(scene, camera);
+
+        // stats
+        fpsAcc += 1/dt;
+        if(frame % 30 === 0){
+            fpsEl.textContent = Math.round(fpsAcc / 30);
+            fpsAcc = 0;
+            camYEl.textContent = Math.round(camera.position.y);
+        }
+    }
+
+    // initial visible chunks and vegetation population
+    updateVisibleChunks();
+    // populate vegetation opportunistically across initial chunks
+    for(const key of chunks.keys()){
+        const [qx,qy] = key.split(',').map(Number);
+        populateVegetationForChunk(qx,qy);
+    }
+
+    animate(performance.now());
+
+    /* ---------------- PERIODIC CHUNK POPULATE (when new chunks appear) ---------------- */
+    // Hook into chunk acquisition to spawn vegetation when new chunks are created.
+    // We'll override acquireChunk to call vegetation population automatically.
+    (function(){
+        const originalAcquire = acquireChunk;
+        acquireChunk = function(qx,qy){
+            const mesh = originalAcquire(qx,qy);
+            // after creating/generating geometry, try to populate vegetation
+            setTimeout(()=> populateVegetationForChunk(qx,qy), 10);
+            return mesh;
+        };
+    })();
+
+    /* ---------------- SMALL UTILITY: updateWaterOscillator (optional fancy shimmer) ---------------- */
+    let waterOsc = 0;
+    setInterval(()=> {
+        waterOsc += 0.02;
+        water.material.color.offsetHSL(0, 0, Math.sin(waterOsc)*0.01);
+    }, 250);
+
+    /* ---------------- DEBUG NOTE ---------------- */
+    console.info('Epic Giant World — Infinite Edition initialized. Tweak CONFIG at top for density, radius, and performance.');
 
 </script>
 </body>
