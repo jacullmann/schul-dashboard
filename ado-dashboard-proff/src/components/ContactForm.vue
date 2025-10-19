@@ -1,11 +1,11 @@
 <template>
-  <section class="contact-section" aria-label="Kontaktformular">
+  <section class="contact-section card" aria-label="Kontaktformular">
     <div class="container">
       <!-- Hero Header -->
 
 
       <!-- Form Card -->
-      <div class="form-card">
+      <div >
         <div class="hero-header">
           <div class="hero-content">
             <h2 style="font-size: 1.4rem" class="hero-title">Kontaktformular</h2>
@@ -518,7 +518,7 @@ try {
 <style scoped>
 /* Section */
 .contact-section {
-  padding: 60px 0;
+  padding: 60px 50px;
   min-height: 100vh;
 }
 
