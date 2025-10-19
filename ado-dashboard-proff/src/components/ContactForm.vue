@@ -1,192 +1,229 @@
 <template>
-  <section class="contact-wrap" aria-label="Kontaktformular">
+  <section class="contact-section" aria-label="Kontaktformular">
     <div class="container">
-      <div class="card contact-card">
-        <!-- Kopfbereich mit Status-Banner -->
-        <div class="row header-row">
-          <div class="col">
-            <h3 class="title">Kontakt aufnehmen</h3>
-            <p class="small">
-              Juanmexican
+      <!-- Hero Header -->
+
+
+      <!-- Form Card -->
+      <div class="form-card">
+        <div class="hero-header">
+          <div class="hero-content">
+            <h2 style="font-size: 1.4rem" class="hero-title">Kontaktformular</h2>
+            <p class="hero-subtitle">
+              Teile deine Erfahrungen mit uns.
             </p>
           </div>
-          <div class="col status-col" aria-live="polite">
-            <transition name="fade">
-              <div v-if="banner.type" class="banner" :class="banner.type">
-                <svg v-if="banner.type === 'success'" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <svg v-else-if="banner.type === 'danger'" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 8v5M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <svg v-else-if="banner.type === 'warn'" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>{{ banner.message }}</span>
-              </div>
-            </transition>
-          </div>
+
+
         </div>
 
         <form
-            class="form"
-            :class="{ sending: isSubmitting }"
-            @submit.prevent="onSubmit"
+            class="contact-form"
+            :class="{ 'is-submitting': isSubmitting }"
+            @submit.prevent="handleSubmit"
             novalidate
         >
-          <!-- Honeypot (Spam-Schutz) -->
-          <input type="text" autocomplete="off" tabindex="-1" class="honeypot" v-model="honeypot" aria-hidden="true" />
+          <!-- Honeypot -->
+          <input
+              type="text"
+              autocomplete="off"
+              tabindex="-1"
+              class="honeypot"
+              v-model="honeypot"
+              aria-hidden="true"
+          />
 
-          <!-- Name + Email -->
-          <div class="row">
-            <div class="col field">
-              <label class="label" for="name">Name</label>
-              <div class="control" :class="{ invalid: hasErr('name'), valid: touched.name && !hasErr('name') }">
+          <!-- Name & Email Row -->
+          <div class="form-row">
+            <div class="form-group">
+              <div class="input-wrapper" :class="getInputClass('name')">
                 <input
                     id="name"
-                    class="input"
                     type="text"
-                    v-model.trim="form.name"
+                    class="form-input"
+                    v-model.trim="formData.name"
                     :disabled="isSubmitting"
-                    @blur="touch('name')"
-                    @input="debouncedValidate('name')"
-                    aria-invalid="hasErr('name') ? 'true' : 'false'"
-                    aria-describedby="err-name"
-                    placeholder="Dein Name"
+                    @focus="handleFocus('name')"
+                    @blur="handleBlur('name')"
+                    @input="handleInput('name')"
+                    :aria-invalid="hasError('name')"
+                    aria-describedby="name-error"
+                    required
                 />
-                <i class="hint" v-if="touched.name && !hasErr('name')">Sieht gut aus.</i>
+                <label for="name" class="form-label">Name *</label>
               </div>
-              <transition name="slide-fade">
-                <p v-if="hasErr('name')" id="err-name" class="msg danger">{{ errors.name }}</p>
+              <transition name="fade-slide">
+                <p v-if="showError('name')" id="name-error" class="error-message">
+                  {{ errors.name }}
+                </p>
               </transition>
             </div>
 
-            <div class="col field">
-              <label class="label" for="email">E-Mail</label>
-              <div class="control" :class="{ invalid: hasErr('email'), valid: touched.email && !hasErr('email') }">
+            <div class="form-group">
+              <div class="input-wrapper" :class="getInputClass('email')">
                 <input
                     id="email"
-                    class="input"
                     type="email"
                     inputmode="email"
                     autocapitalize="off"
                     autocomplete="email"
-                    v-model.trim="form.email"
+                    class="form-input"
+                    v-model.trim="formData.email"
                     :disabled="isSubmitting"
-                    @blur="touch('email')"
-                    @input="debouncedValidate('email')"
-                    aria-invalid="hasErr('email') ? 'true' : 'false'"
-                    aria-describedby="err-email tip-email"
-                    placeholder="name@beispiel.de"
+                    @focus="handleFocus('email')"
+                    @blur="handleBlur('email')"
+                    @input="handleInput('email')"
+                    :aria-invalid="hasError('email')"
+                    aria-describedby="email-error"
+                    required
                 />
-                <i class="hint" v-if="emailTip && !hasErr('email')" id="tip-email">{{ emailTip }}</i>
+                <label for="email" class="form-label">E-Mail *</label>
+
               </div>
-              <transition name="slide-fade">
-                <p v-if="hasErr('email')" id="err-email" class="msg danger">{{ errors.email }}</p>
+              <transition name="fade-slide">
+                <p v-if="showError('email')" id="email-error" class="error-message">
+                  {{ errors.email }}
+                </p>
               </transition>
             </div>
           </div>
 
-          <!-- Betreff -->
-          <div class="row">
-            <div class="col field">
-              <label class="label" for="subject">Betreff</label>
-              <div class="control" :class="{ invalid: hasErr('subject'), valid: touched.subject && !hasErr('subject') }">
-                <input
-                    id="subject"
-                    class="input"
-                    type="text"
-                    v-model.trim="form.subject"
-                    :disabled="isSubmitting"
-                    @blur="touch('subject')"
-                    @input="debouncedValidate('subject')"
-                    aria-invalid="hasErr('subject') ? 'true' : 'false'"
-                    aria-describedby="err-subject"
-                    placeholder="Worum geht es?"
-                />
-                <i class="hint" v-if="touched.subject && !hasErr('subject')">Geil</i>
-              </div>
-              <transition name="slide-fade">
-                <p v-if="hasErr('subject')" id="err-subject" class="msg danger">{{ errors.subject }}</p>
-              </transition>
+          <!-- Subject -->
+          <div class="form-group">
+            <div class="input-wrapper" :class="getInputClass('subject')">
+              <input
+                  id="subject"
+                  type="text"
+                  class="form-input"
+                  v-model.trim="formData.subject"
+                  :disabled="isSubmitting"
+                  @focus="handleFocus('subject')"
+                  @blur="handleBlur('subject')"
+                  @input="handleInput('subject')"
+                  :aria-invalid="hasError('subject')"
+                  aria-describedby="subject-error"
+                  required
+              />
+              <label for="subject" class="form-label">Betreff *</label>
+
             </div>
+            <transition name="fade-slide">
+              <p v-if="showError('subject')" id="subject-error" class="error-message">
+                {{ errors.subject }}
+              </p>
+            </transition>
           </div>
 
-          <!-- Nachricht -->
-          <div class="row">
-            <div class="col field">
-              <label class="label" for="message">Nachricht</label>
-              <div class="control textarea-ctl" :class="{ invalid: hasErr('message'), valid: touched.message && !hasErr('message') }">
-                <textarea
-                    id="message"
-                    class="input textarea"
-                    rows="5"
-                    v-model.trim="form.message"
-                    :disabled="isSubmitting"
-                    @blur="touch('message')"
-                    @input="onMessageInput"
-                    aria-invalid="hasErr('message') ? 'true' : 'false'"
-                    aria-describedby="err-message counter"
-                    placeholder="Schreib uns ein paar Details…"
-                />
-                <div class="row minor">
-                  <span id="counter" class="small">{{ form.message.length }} / {{ MESSAGE_MAX }} Zeichen</span>
-                  <i class="hint" v-if="touched.message && !hasErr('message')">Danke für die Details! Wirklich!</i>
-                </div>
-              </div>
-              <transition name="slide-fade">
-                <p v-if="hasErr('message')" id="err-message" class="msg danger">{{ errors.message }}</p>
-              </transition>
-            </div>
-          </div>
+          <!-- Message -->
+          <div class="form-group">
+            <div class="textarea-wrapper" :class="getInputClass('message')">
+              <textarea
+                  id="message"
+                  class="form-textarea"
+                  rows="1"
+                  v-model.trim="formData.message"
+                  :disabled="isSubmitting"
+                  @focus="handleFocus('message')"
+                  @blur="handleBlur('message')"
+                  @input="handleTextareaInput"
+                  :aria-invalid="hasError('message')"
+                  aria-describedby="message-error message-counter"
+                  required
+              ></textarea>
+              <label for="message" class="form-label">Nachricht *</label>
 
-          <!-- Zustimmung -->
-          <div class="row consent-row">
-            <div class="col">
-              <label class="custom-checkbox">
-                <input
-                    type="checkbox"
-                    v-model="form.consent"
-                    :disabled="isSubmitting"
-                    @change="touch('consent')"
-                    aria-invalid="hasErr('consent') ? 'true' : 'false'"
-                    aria-describedby="err-consent"
-                />
-                <span class="vis-label"></span>
-                <span>
-                  Mit dem Absenden bestätige ich die
-                  <a href="/impressum-&-datenschutz/datenschutzerklaerung" target="_blank" rel="noopener">Datenschutzerklärung</a>
-                  und die
-                  <a href="/impressum-&-datenschutz/impressum" target="_blank" rel="noopener">AGB</a>.
+              <div class="textarea-footer">
+                <span id="message-counter" class="char-counter" :class="{ 'counter-warning': charCount > MESSAGE_MAX * 0.9 }">
+                  {{ charCount }} / {{ MESSAGE_MAX }}
                 </span>
-              </label>
-              <transition name="slide-fade">
-                <p v-if="hasErr('consent')" id="err-consent" class="msg danger">{{ errors.consent }}</p>
-              </transition>
+              </div>
             </div>
+            <transition name="fade-slide">
+              <p v-if="showError('message')" id="message-error" class="error-message">
+                {{ errors.message }}
+              </p>
+            </transition>
           </div>
 
-          <!-- Aktionen -->
-          <div class="row actions">
-            <div class="col">
-              <button
-                  data-umami-event="Kontaktformular absenden Button"
-                  class="btn"
-                  type="submit"
-                  :disabled="isSubmitting || !form.consent || coolDownActive"
-                  :title="coolDownActive ? 'Bitte kurz warten…' : 'Nachricht senden'"
-
-              >
-                <svg v-if="isSubmitting" class="spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" stroke="#111827" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="20" />
+          <!-- Consent -->
+          <div class="form-group consent-group">
+            <label class="checkbox-label">
+              <input
+                  type="checkbox"
+                  class="checkbox-input"
+                  v-model="formData.consent"
+                  :disabled="isSubmitting"
+                  @change="validateField('consent')"
+                  :aria-invalid="hasError('consent')"
+                  aria-describedby="consent-error"
+              />
+              <span class="checkbox-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span>{{ isSubmitting ? 'Wird gesendet…' : 'Nachricht senden' }}</span>
-              </button>
-              <button data-umami-event="Kontaktformular zurücksetzen Button" class="btn ghost" type="button" @click="reset" :disabled="isSubmitting">Zurücksetzen</button>
-              <transition name="fade">
-                <span v-if="coolDownActive" class="small cool">Danke für die Nachicht!.</span>
-              </transition>
+              </span>
+              <span class="checkbox-text">
+                Ich akzeptiere die
+                <a href="/impressum-&-datenschutz/datenschutzerklaerung" target="_blank" rel="noopener">Datenschutzerklärung</a>
+                und die
+                <a href="/impressum-&-datenschutz/impressum" target="_blank" rel="noopener">AGB</a>.
+              </span>
+            </label>
+            <transition name="fade-slide">
+              <p v-if="showError('consent')" id="consent-error" class="error-message">
+                {{ errors.consent }}
+              </p>
+            </transition>
+          </div>
+          <!-- Status Banner -->
+          <transition name="slide-down">
+            <div v-if="banner.type" class="status-banner" :class="`status-${banner.type}`" role="alert" aria-live="polite">
+              <div class="status-icon">
+                <svg v-if="banner.type === 'success'" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg v-else-if="banner.type === 'error'" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span class="status-text">{{ banner.message }}</span>
             </div>
+          </transition>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button
+                data-umami-event="Kontaktformular absenden Button"
+                type="submit"
+                class="btn btn-primary"
+                :disabled="isSubmitting || cooldownActive"
+                :title="cooldownActive ? 'Bitte kurz warten…' : 'Nachricht senden'"
+            >
+              <svg v-if="isSubmitting" class="spinner" width="18" height="18" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="60" stroke-dashoffset="20" />
+              </svg>
+              <span>{{ isSubmitting ? 'Wird gesendet…' : 'Nachricht senden' }}</span>
+            </button>
+
+            <button
+                data-umami-event="Kontaktformular zurücksetzen Button"
+                type="button"
+                class="btn btn-ghost"
+                @click="resetForm"
+                :disabled="isSubmitting"
+            >
+              Zurücksetzen
+            </button>
+
+            <transition name="fade">
+              <span v-if="cooldownActive" class="cooldown-notice">
+                Danke für deine Nachricht!
+              </span>
+            </transition>
           </div>
         </form>
       </div>
@@ -195,27 +232,18 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, watch } from 'vue'
-
-type StatusType = 'success' | 'danger' | 'warn' | ''
+import { reactive, ref, computed, watch } from 'vue'
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva'
 const MESSAGE_MAX = 2000
-const SUBMIT_COOLDOWN_MS = 4000
+const COOLDOWN_DURATION = 4000
 
+// State
 const isSubmitting = ref(false)
-const coolDownActive = ref(false)
-const lastSubmitAt = ref<number | null>(null)
+const cooldownActive = ref(false)
+const honeypot = ref('')
 
-const touched = reactive<Record<string, boolean>>({
-  name: false,
-  email: false,
-  subject: false,
-  message: false,
-  consent: false
-})
-
-const form = reactive({
+const formData = reactive({
   name: '',
   email: '',
   subject: '',
@@ -231,342 +259,738 @@ const errors = reactive<Record<string, string>>({
   consent: ''
 })
 
-const banner = reactive<{ type: StatusType; message: string }>({
+const touched = reactive<Record<string, boolean>>({
+  name: false,
+  email: false,
+  subject: false,
+  message: false,
+  consent: false
+})
+
+const focused = reactive<Record<string, boolean>>({
+  name: false,
+  email: false,
+  subject: false,
+  message: false,
+  consent: false
+})
+
+const banner = reactive<{ type: 'success' | 'error' | 'warning' | ''; message: string }>({
   type: '',
   message: ''
 })
 
-const honeypot = ref('')
-const emailTip = ref('')
+// Computed
+const charCount = computed(() => formData.message.length)
 
-function touch(field: keyof typeof touched) {
-  touched[field] = true
-  validateField(field)
+// Validation
+const validators = {
+  name: (value: string) => {
+    if (!value || value.length < 2) {
+      return 'Bitte gib deinen Namen ein (mindestens 2 Zeichen)'
+    }
+    return ''
+  },
+
+  email: (value: string) => {
+    if (!value) {
+      return 'Bitte gib deine E-Mail-Adresse ein'
+    }
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+    if (!emailRegex.test(value)) {
+      return 'Bitte gib eine gültige E-Mail-Adresse ein'
+    }
+    return ''
+  },
+
+  subject: (value: string) => {
+    if (!value || value.length < 2) {
+      return 'Bitte gib einen Betreff ein (mindestens 2 Zeichen)'
+    }
+    return ''
+  },
+
+  message: (value: string) => {
+    if (!value || value.length < 10) {
+      return 'Bitte schreib eine Nachricht (mindestens 10 Zeichen)'
+    }
+    if (value.length > MESSAGE_MAX) {
+      return `Die Nachricht darf maximal ${MESSAGE_MAX} Zeichen enthalten`
+    }
+    return ''
+  },
+
+  consent: (value: boolean) => {
+    if (!value) {
+      return 'Bitte akzeptiere die Datenschutzerklärung und AGB'
+    }
+    return ''
+  }
 }
 
-function hasErr(field: keyof typeof errors) {
+let validationTimers: Record<string, number> = {}
+
+function validateField(field: keyof typeof formData) {
+  const validator = validators[field]
+  if (validator) {
+    errors[field] = validator(formData[field] as any)
+  }
+}
+
+function validateAllFields(): boolean {
+  let isValid = true
+
+  Object.keys(formData).forEach((field) => {
+    touched[field] = true
+    validateField(field as keyof typeof formData)
+    if (errors[field]) {
+      isValid = false
+    }
+  })
+
+  return isValid
+}
+
+// Helpers
+function hasError(field: keyof typeof errors): boolean {
   return !!errors[field]
 }
 
-function validateEmail(email: string) {
-  // pragmatische E-Mail-Validierung
-  const re = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
-  return re.test(email)
+function showError(field: keyof typeof errors): boolean {
+  return touched[field] && !!errors[field]
 }
 
-function suggestEmailTip(email: string) {
-  if (!email) { emailTip.value = ''; return }
-  if (!email.includes('@')) { emailTip.value = 'Tipp: E-Mail-Adressen enthalten ein @-Zeichen.'; return }
-  const domain = email.split('@')[1] || ''
-  const common = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'gmx.de', 'web.de', 'icloud.com']
-  if (domain && !domain.includes('.')) {
-    emailTip.value = 'Tipp: Die Domäne sollte einen Punkt enthalten (z. B. gmx.de).'
-  } else if (domain && common.includes(domain.toLowerCase())) {
-    emailTip.value = `Sieht korrekt aus (${domain}).`
-  } else {
-    emailTip.value = ''
+function getInputClass(field: keyof typeof formData) {
+  return {
+    'has-value': !!formData[field],
+    'is-focused': focused[field],
+    'is-valid': touched[field] && !errors[field] && formData[field],
+    'is-invalid': touched[field] && errors[field]
   }
 }
 
-function validateField(field: keyof typeof errors) {
-  switch (field) {
-    case 'name':
-      errors.name = form.name.trim().length >= 2 ? '' : 'Bitte gib einen gültigen Namen an (mind. 2 Zeichen).'
-      break
-    case 'email':
-      errors.email = validateEmail(form.email) ? '' : 'Bitte gib eine gültige E-Mail-Adresse ein.'
-      suggestEmailTip(form.email)
-      break
-    case 'subject':
-      errors.subject = form.subject.trim().length >= 2 ? '' : 'Bitte ergänze einen kurzen Betreff (mind. 2 Zeichen).'
-      break
-    case 'message': {
-      const len = form.message.trim().length
-      if (len < 10) errors.message = 'Deine Nachricht sollte mindestens 10 Zeichen enthalten.'
-      else if (len > MESSAGE_MAX) errors.message = `Maximal ${MESSAGE_MAX} Zeichen erlaubt.`
-      else errors.message = ''
-      break
+// Event Handlers
+function handleFocus(field: keyof typeof focused) {
+  focused[field] = true
+}
+
+function handleBlur(field: keyof typeof touched) {
+  focused[field] = false
+  touched[field] = true
+  validateField(field as keyof typeof formData)
+}
+
+function handleInput(field: keyof typeof formData) {
+  clearTimeout(validationTimers[field])
+
+  validationTimers[field] = window.setTimeout(() => {
+    if (touched[field]) {
+      validateField(field)
     }
-    case 'consent':
-      errors.consent = form.consent ? '' : 'Bitte bestätige Datenschutz und AGB.'
-      break
-  }
+  }, 300)
 }
 
-const debouncedTimers: Record<string, number | undefined> = {}
-function debouncedValidate(field: keyof typeof errors) {
-  window.clearTimeout(debouncedTimers[field])
-  debouncedTimers[field] = window.setTimeout(() => validateField(field), 200)
-}
+function handleTextareaInput(e: Event) {
+  const textarea = e.target as HTMLTextAreaElement
 
-function validateAll() {
-  ;(['name', 'email', 'subject', 'message', 'consent'] as const).forEach((f) => {
-    touched[f] = true
-    validateField(f)
-  })
-  return !Object.values(errors).some((e) => e)
-}
+  // Auto-resize
+  textarea.style.height = 'auto'
+  textarea.style.height = Math.min(textarea.scrollHeight, 300) + 'px'
 
-function reset() {
-  form.name = ''
-  form.email = ''
-  form.subject = ''
-  form.message = ''
-  form.consent = false
-  honeypot.value = ''
-  Object.keys(errors).forEach((k) => (errors[k] = ''))
-  Object.keys(touched).forEach((k) => (touched[k] = false))
-  banner.type = ''
-  banner.message = ''
-  emailTip.value = ''
+  handleInput('message')
 }
 
 function startCooldown() {
-  coolDownActive.value = true
-  lastSubmitAt.value = Date.now()
-  window.setTimeout(() => (coolDownActive.value = false), SUBMIT_COOLDOWN_MS)
+  cooldownActive.value = true
+  setTimeout(() => {
+    cooldownActive.value = false
+  }, COOLDOWN_DURATION)
 }
 
-function onMessageInput(e: Event) {
-  const target = e.target as HTMLTextAreaElement
-  // sanftes Auto-Resize
-  target.style.height = 'auto'
-  target.style.height = Math.min(target.scrollHeight, 400) + 'px'
-  debouncedValidate('message')
+function resetForm() {
+  formData.name = ''
+  formData.email = ''
+  formData.subject = ''
+  formData.message = ''
+  formData.consent = false
+
+  Object.keys(errors).forEach(key => {
+    errors[key] = ''
+  })
+
+  Object.keys(touched).forEach(key => {
+    touched[key] = false
+  })
+
+  Object.keys(focused).forEach(key => {
+    focused[key] = false
+  })
+
+  honeypot.value = ''
+  banner.type = ''
+  banner.message = ''
+
+  // Clear session storage
+  sessionStorage.removeItem('contact_form_draft')
 }
 
-async function onSubmit() {
-  // 1. Wenn Cooldown aktiv (nach erfolgreichem Senden), abbrechen.
-  if (coolDownActive.value) return
+async function handleSubmit() {
+  // Cooldown check
+  if (cooldownActive.value) {
+    return
+  }
 
-  // 2. Honigtopf-Check (Spam-Schutz)
+  // Honeypot check
   if (honeypot.value) {
-    banner.type = 'warn'
+    banner.type = 'warning'
     banner.message = 'Dein Formular konnte nicht gesendet werden.'
-    startCooldown() // Startet Cooldown, um Spammer zu verlangsamen
+    startCooldown()
     return
   }
 
-  // 3. WICHTIG: Validiert alle Felder und setzt 'touched' auf true, um Fehler anzuzeigen.
-  if (!validateAll()) {
-    banner.type = 'danger'
-    banner.message = 'Bitte korrigiere die markierten Felder.'
-    // ⚠️ HIER KEIN startCooldown(), damit der Benutzer den Button erneut klicken kann.
+  // Validate all fields
+  if (!validateAllFields()) {
+    banner.type = 'error'
+    banner.message = 'Bitte fülle alle erforderlichen Felder korrekt aus.'
     return
   }
 
-  // 4. Nur wenn alles gültig ist: Cooldown starten und Sendevorgang vorbereiten.
-  startCooldown() // Cooldown HIER starten
+  // Start submission
   isSubmitting.value = true
   banner.type = ''
   banner.message = ''
 
   try {
-    const payload = {
-      name: form.name,
-      email: form.email,
-      subject: form.subject,
-      message: form.message
-    }
-
-    const res = await fetch(FORMSPREE_ENDPOINT, {
+    const response = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
+      })
     })
 
-    if (res.ok) {
+    if (response.ok) {
       banner.type = 'success'
-      banner.message = 'Danke! Deine Nachricht wurde erfolgreich gesendet.'
-      reset()
+      banner.message = 'Vielen Dank! Deine Nachricht wurde erfolgreich gesendet.'
+      startCooldown()
+      resetForm()
+
+      // Scroll to top to show success message
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      const data = await res.json().catch(() => ({}))
-      const msg =
-          (data && (data.error || data.message)) ||
-          'Es ist ein Fehler beim Senden aufgetreten. Bitte versuche es später erneut.'
-      banner.type = 'danger'
-      banner.message = msg
+      const data = await response.json().catch(() => ({}))
+      banner.type = 'error'
+      banner.message = data.error || data.message || 'Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.'
     }
-  } catch {
-    banner.type = 'danger'
-    banner.message = 'Netzwerkfehler. Bitte überprüfe deine Verbindung und versuche es erneut.'
+  } catch (error) {
+    banner.type = 'error'
+    banner.message = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.'
   } finally {
     isSubmitting.value = false
   }
 }
 
-// UX: Draft im SessionStorage sichern, falls Seite neu geladen wird
-const STORAGE_KEY = 'contact_draft_v1'
-watch(form, (val) => {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(val))
+// Session Storage - Save draft
+const STORAGE_KEY = 'contact_form_draft'
+
+watch(formData, (newData) => {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newData))
 }, { deep: true })
 
+// Restore draft on mount
 try {
-  const draft = sessionStorage.getItem(STORAGE_KEY)
-  if (draft) {
-    const parsed = JSON.parse(draft)
-    form.name = parsed.name || ''
-    form.email = parsed.email || ''
-    form.subject = parsed.subject || ''
-    form.message = parsed.message || ''
-    form.consent = !!parsed.consent
+  const savedDraft = sessionStorage.getItem(STORAGE_KEY)
+  if (savedDraft) {
+    const draft = JSON.parse(savedDraft)
+    Object.assign(formData, draft)
   }
-} catch {}
+} catch (e) {
+  // Ignore errors
+}
 </script>
 
 <style scoped>
-.contact-wrap { margin-top: 24px; }
-.contact-card { border: none; }
-
-.title { margin: 0 0 6px 0; }
-.header-row { align-items: center; }
-
-.status-col {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-height: 32px;
+/* Section */
+.contact-section {
+  padding: 60px 0;
+  min-height: 100vh;
 }
 
-.banner {
+/* Hero Header */
+.hero-header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.hero-content {
+  margin-bottom: 32px;
+}
+
+.hero-title {
+  font-size: 42px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: var(--muted);
+  margin: 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* Status Banner */
+.status-banner {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #151515;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
-.banner.success { color: var(--primary); border-color: var(--primary); }
-.banner.danger  { color: var(--danger);  border-color: var(--danger); }
-.banner.warn    { color: var(--warn);    border-color: var(--warn); }
 
-.form.sending { opacity: 0.85; pointer-events: none; }
+.status-banner.status-success {
+  background: rgba(63, 147, 248, 0.1);
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
-.field { position: relative; }
-.label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
+.status-banner.status-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
 
-.control {
+.status-banner.status-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-text {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Form Card */
+.form-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 48px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.contact-form.is-submitting {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Form Row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Form Group */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Input Wrapper */
+.input-wrapper,
+.textarea-wrapper {
   position: relative;
-  /* box-shadow 180ms ease, transform 120ms ease; -> Wird für den blauen Fokus-Rand entfernt */
-  transition: transform 120ms ease;
+  display: flex;
+  flex-direction: column;
 }
-.control.valid .input { border-color: grey; }
-.control.invalid .input { border-color: var(--danger); }
 
-/* NEU: Blauer Fokus-Rand für Text-Inputs */
-.input:focus, .textarea:focus {
+/* Form Input */
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 16px 16px 16px 16px;
+  background: rgba(42, 42, 42, 0.5);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 16px;
+  transition: all 0.3s ease;
   outline: none;
 }
 
-/* Originaler Fokus-Stil des Controls wird für Text-Inputs entfernt/überschrieben */
-.control:focus-within { box-shadow: none; transform: translateZ(0); }
-
-
-.input, select, textarea { transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease; }
-
-.hint {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.textarea-ctl .hint {
-  right: 0;
-  top: auto;
-  transform: none;
-}
-
-.textarea {
+.form-textarea {
   resize: none;
-  overflow: hidden;
+  min-height: 120px;
+  font-family: inherit;
+  line-height: 1.6;
 }
 
-.row.minor {
+.form-input:focus,
+.form-textarea:focus {
+  background: rgba(42, 42, 42, 0.8);
+  border-color: var(--primary);
+}
+
+/* Floating Label */
+.form-label {
+  position: absolute;
+  left: 16px;
+  top: 17px;
+  color: var(--muted);
+  font-size: 16px;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  transform-origin: left center;
+}
+
+.input-wrapper.has-value .form-label,
+.input-wrapper.is-focused .form-label,
+.textarea-wrapper.has-value .form-label,
+.textarea-wrapper.is-focused .form-label {
+  top: -10px;
+  left: 12px;
+  font-size: 12px;
+  color: var(--primary);
+  background: var(--card);
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+/* Input States */
+.input-wrapper.is-valid .form-input,
+.textarea-wrapper.is-valid .form-textarea {
+  border-color: var(--primary);
+}
+
+.input-wrapper.is-invalid .form-input,
+.textarea-wrapper.is-invalid .form-textarea {
+  border-color: var(--danger);
+}
+
+.input-wrapper.is-invalid .form-label,
+.textarea-wrapper.is-invalid .form-label {
+  color: var(--danger);
+}
+
+/* Input Border Animation */
+.input-border {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.input-wrapper.is-focused .input-border,
+.textarea-wrapper.is-focused .input-border {
+  width: 100%;
+}
+
+/* Textarea Footer */
+.textarea-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
-.msg { margin: 6px 0 0 0; font-size: 13px; }
-.msg.danger { color: var(--danger); }
+.char-counter {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
 
-/* CUSTOM CHECKBOX STYLES */
-.custom-checkbox {
-  display: inline-flex;
-  align-items: flex-start; /* Wichtig, damit der Text bei Umbruch oben beginnt */
-  gap: 10px;
+.char-counter.counter-warning {
+  color: var(--warn);
+}
+
+/* Error Message */
+.error-message {
+  font-size: 13px;
+  color: var(--danger);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.error-message::before {
+  content: '⚠';
+  font-size: 14px;
+}
+
+/* Checkbox */
+.consent-group {
+  margin-top: -8px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   cursor: pointer;
   user-select: none;
 }
-.custom-checkbox input { display: none; } /* Original-Checkbox verstecken */
 
-/* Visuelles Label (die Box selbst) */
-.custom-checkbox .vis-label {
-  flex-shrink: 0; /* Verhindert, dass die Box schrumpft */
-  margin-top: 3px; /* Stellt die Box vertikal auf eine gute Linie mit dem Text */
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 2px solid white;
-  display: inline-block;
-  background: transparent;
-  position: relative;
-}
-
-/* Haken (Pseudoelement) */
-.custom-checkbox .vis-label::after {
-  content: '';
+.checkbox-input {
   position: absolute;
-  /* Korrigierte Positionierung für den Haken */
-  left: 3.5px;
-  top: -1px; /* <--- Hier wurde 1px nach oben verschoben */
-  width: 6px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
   opacity: 0;
-  transition: opacity 160ms ease;
+  pointer-events: none;
 }
 
-/* Gecheckter Zustand */
-.custom-checkbox input:checked + .vis-label {
-  background: var(--primary); /* Die Primärfarbe für den Hintergrund */
+.checkbox-box {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: rgba(42, 42, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  margin-top: 2px;
+}
+
+.checkbox-box svg {
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.checkbox-input:checked + .checkbox-box {
+  background: var(--primary);
   border-color: var(--primary);
 }
-.custom-checkbox input:checked + .vis-label::after {
+
+.checkbox-input:checked + .checkbox-box svg {
   opacity: 1;
+  transform: scale(1);
 }
 
-/* End of CUSTOM CHECKBOX STYLES */
+.checkbox-label:hover .checkbox-box {
+  border-color: var(--primary);
+}
 
+.checkbox-text {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
 
-.actions { align-items: center; gap: 8px; }
+.checkbox-text a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.2s ease;
+}
 
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.checkbox-text a:hover {
+  text-decoration-color: var(--primary);
+}
 
-.cool { margin-left: 10px; }
+/* Form Actions */
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
 
+.btn-primary,
+.btn-ghost {
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2b7de0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(63, 147, 248, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 2px solid var(--border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cooldown-notice {
+  font-size: 14px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Honeypot */
 .honeypot {
   position: absolute;
   left: -9999px;
-  height: 0;
   width: 0;
+  height: 0;
   opacity: 0;
 }
 
-/* Animationen */
-.fade-enter-active, .fade-leave-active { transition: opacity 160ms ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+/* Animations */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.4s ease;
+}
 
-.slide-fade-enter-active, .slide-fade-leave-active { transition: all 180ms ease; }
-.slide-fade-enter-from, .slide-fade-leave-to { opacity: 0; transform: translateY(-4px); }
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contact-section {
+    padding: 40px 0;
+  }
+
+  .hero-title {
+    font-size: 32px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+  }
+
+  .form-card {
+    padding: 32px 24px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-primary,
+  .btn-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .status-banner {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-card {
+    padding: 24px 20px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .contact-form {
+    gap: 24px;
+  }
+}
 </style>
