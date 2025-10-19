@@ -27,7 +27,7 @@ function openPopup() {
 }
 function doLogout() {
   auth.logout();
-  window.location.href ='http://localhost:5173'
+  window.location.href ='https://schul-dashboards.onrender.com'
 }
 
 function closePopup() {
