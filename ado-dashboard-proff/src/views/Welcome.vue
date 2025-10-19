@@ -9,17 +9,17 @@
             v-model="code"
             placeholder="Zugangscode"
             class="auth-input"
-            @keyup.enter="submit"
             type="password"
         />
       </div>
+      <label class="checkbox-label">
+        <input class="checkbox" type="checkbox" v-model="accepted" />
+        <span>Ich stimme den Nutzungsbedingunen zu.</span>
+      </label>
 
       <div class="auth-actions">
-        <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!code.trim()">
+        <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!accepted">
           Anmelden
-        </button>
-        <button data-umami-event="Welcome Page abmelden Button" v-if="auth.isAuthenticated" class="btn logout-btn" @click="doLogout">
-          Abmelden
         </button>
       </div>
 
@@ -31,7 +31,9 @@
 
       <div class="small footer-text">
         Dies ist eine private Applikation. Bei Problemen kontaktiere den Administrator.
+        Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
       </div>
+
     </div>
   </div>
 </template>
@@ -46,6 +48,7 @@ const router = useRouter();
 const auth = useAuth();
 const code = ref('');
 const error = ref<string | null>(null);
+const accepted = ref(false)
 
 function submit() {
   error.value = null;
@@ -66,6 +69,49 @@ function doLogout() {
 </script>
 
 <style scoped>
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.checkbox-label .checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #999;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.checkbox-label .checkbox:checked {
+  background-color: #007aff;
+  border-color: #007aff;
+}
+
+.checkbox-label .checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: -0.7px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label .checkbox:focus {
+  outline: none;
+}
+
 /* Container und Card */
 .auth-wrapper {
   max-width: 440px;
