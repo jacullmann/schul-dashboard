@@ -14,7 +14,7 @@
       </div>
       <label class="checkbox-label">
         <input class="checkbox" type="checkbox" v-model="accepted" />
-        <span>Ich stimme den Nutzungsbedingunen zu.</span>
+        <span>Ich stimme den Nutzungsbedingungen zu.</span><For />
       </label>
 
       <div class="auth-actions">
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import For from '../components/LegalF.vue'
 // Annahme: Die useRouter und useAuth Imports sind korrekt
 import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
