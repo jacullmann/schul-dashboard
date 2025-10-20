@@ -21,6 +21,7 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
+const ACCESS_CODE = process.env.ACCESS_CODE || 'mynewjamaicanlawyer';
 
 // SendGrid config
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
@@ -738,6 +739,31 @@ app.post('/api/auth/reset',
             console.error('POST /api/auth/reset error', err);
             sendJSONError(res, 500, 'Server error');
         }
+    }
+);
+
+app.post('/api/auth/access-code',
+    body('code').isString().isLength({ min: 1 }), // Einfache Validierung
+    validate,
+    async (req, res) => {
+        const { code } = req.body;
+
+
+        if (code !== ACCESS_CODE) {
+            return sendJSONError(res, 401, 'Ungültiger Zugangscode');
+        }
+
+
+        const tokenPayload = {
+            sub: 'access-guest',
+            purpose: 'frontend_access'
+        };
+
+        // Das Token soll 30 Tage gültig sein, wie im Frontend definiert (inThirtyDaysMs)
+        const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '30d' });
+
+        // 3. Token zurücksenden
+        res.json({ token, message: 'Zugang gewährt' });
     }
 );
 
