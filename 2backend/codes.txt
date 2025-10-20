@@ -3,6 +3,7 @@ auth.ts: // src/composables/useAuth.ts
 
          const STORAGE_KEY = 'app_auth_token';
          const STORAGE_EXPIRES_KEY = 'app_auth_expires';
+         const FRONTEND_CODE = 'mynewjamaicanlawyer';
 
          const token = ref<string | null>(null);
 
@@ -36,34 +37,20 @@ auth.ts: // src/composables/useAuth.ts
          export function useAuth() {
              const isAuthenticated = computed(() => !!token.value);
 
-             async function loginWithCode(code: string) {
+             function loginWithCode(code: string) {
+                 // einfacher front-end check: nur der richtige Code führt zum Token
                  if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
-
-                 try {
-                     const resp = await fetch('/api/auth/check-code', {
-                         method: 'POST',
-                         headers: { 'Content-Type': 'application/json' },
-                         body: JSON.stringify({ code })
-                     });
-
-                     const data = await resp.json().catch(() => ({}));
-
-                     if (!resp.ok || !data?.ok) {
-                         return { ok: false, error: data?.error || 'Ungültiger Code' };
-                     }
-
-                     // store token and expiry locally (same behaviour as before)
-                     const t = data.token;
+                 if (code === FRONTEND_CODE) {
+                     // Erzeuge ein kleines zufälliges token (nur für frontend session purposes)
+                     const t = 'tf_' + Math.random().toString(36).slice(2);
                      const expires = now() + inThirtyDaysMs();
                      token.value = t;
                      localStorage.setItem(STORAGE_KEY, t);
                      localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
                      window.dispatchEvent(new Event('auth-changed'));
-
                      return { ok: true };
-                 } catch (err) {
-                     return { ok: false, error: 'Netzwerkfehler' };
                  }
+                 return { ok: false, error: 'Ungültiger Code' };
              }
 
              function logout() {
@@ -78,6 +65,7 @@ auth.ts: // src/composables/useAuth.ts
                  localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
              }
 
+             // expose
              return {
                  token,
                  isAuthenticated,
@@ -88,245 +76,6 @@ auth.ts: // src/composables/useAuth.ts
              };
          }
 
-
-
-Welcome.vue: <template>
-               <div class="container auth-wrapper">
-                 <div class="auth-card">
-                   <h2 class="auth-title">Zugang erforderlich</h2>
-                   <p class="small auth-hint">Bitte gib deinen persönlichen Zugangscode ein.</p>
-
-                   <div class="input-group">
-                     <input
-                         v-model="code"
-                         placeholder="Zugangscode"
-                         class="auth-input"
-                         type="password"
-                     />
-                   </div>
-                   <label class="checkbox-label">
-                     <input class="checkbox" type="checkbox" v-model="accepted" />
-                     <span style="font-size: 0.75rem">Ich stimme den Nutzungsbedingungen zu.</span>
-                   </label>
-
-                   <div class="auth-actions">
-                     <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!accepted">
-                       Anmelden
-                     </button>
-                     <For />
-                   </div>
-
-                   <div v-if="error" class="error-message">
-                     {{ error }}
-                   </div>
-
-                   <hr class="divider" />
-
-                   <div class="small footer-text">
-                     Dies ist eine private Applikation. Bei Problemen kontaktiere den Administrator.
-                     Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
-                   </div>
-
-                 </div>
-               </div>
-             </template>
-
-             <script setup lang="ts">
-             import { ref } from 'vue';
-             import For from '../components/LegalF.vue'
-             import { useRouter } from 'vue-router';
-             import { useAuth } from '../composables/useAuth';
-
-             const router = useRouter();
-             const auth = useAuth();
-             const code = ref('');
-             const error = ref<string | null>(null);
-             const accepted = ref(false)
-
-             async function submit() {
-               error.value = null;
-               const res = await auth.loginWithCode(code.value.trim());
-               if (res.ok) {
-                 router.push('/items/HAUSAUFGABE');
-                 umami.track('Welcome Page Login erfolgreich');
-               } else {
-                 error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
-               }
-             }
-
-
-
-             function doLogout() {
-               auth.logout();
-               window.location.href ='https://schul-dashboards.onrender.com'
-             }
-             </script>
-
-             <style scoped>
-             .checkbox-label {
-               display: flex;
-               align-items: center;
-               gap: 0.5rem;
-               cursor: pointer;
-               user-select: none;
-               font-size: 0.9rem;
-               color: var(--text);
-             }
-
-             .checkbox-label .checkbox {
-               appearance: none;
-               width: 20px;
-               height: 20px;
-               border: 2px solid #999;
-               border-radius: 4px;
-               display: inline-block;
-               position: relative;
-               cursor: pointer;
-               transition: all 0.2s ease-in-out;
-             }
-
-             .checkbox-label .checkbox:checked {
-               background-color: #007aff;
-               border-color: #007aff;
-             }
-
-             .checkbox-label .checkbox:checked::after {
-               content: "";
-               position: absolute;
-               /* Statt festen Pixeln für left/top, nutzen wir absolute Zentrierung */
-               left: 50%;
-               top: 50%;
-               /* Verschieben um die Hälfte der eigenen Größe, um exakt zu zentrieren */
-               transform: translate(-50%, -50%) rotate(45deg);
-
-               /* Größe und Strichstärke bleiben gleich, da sie für das Häkchen selbst relativ zur Checkbox gut funktionieren */
-               width: 6px;
-               height: 12px;
-               border: solid white;
-               border-width: 0 2px 2px 0;
-             }
-
-             .checkbox-label .checkbox:focus {
-               outline: none;
-             }
-
-             /* Container und Card */
-             .auth-wrapper {
-               max-width: 440px;
-               margin: 60px auto 100px; /* Mehr Platz am unteren Rand */
-               padding: 16px;
-             }
-             .auth-card {
-               background: var(--card);
-               padding: 30px;
-               border-radius: 16px;
-               border: 1px solid rgba(255, 255, 255, 0.08);
-               box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-               transition: all 0.3s ease;
-             }
-             .auth-card:hover {
-               box-shadow: 0 15px 50px rgba(58, 12, 163, 0.3);
-             }
-
-             /* Typografie */
-             .auth-title {
-               margin-top: 0;
-               font-size: 1.8rem;
-               font-weight: 700;
-               color: var(--text);
-             }
-             .auth-hint {
-               color: var(--muted);
-               margin-bottom: 25px;
-             }
-
-             /* Eingabefeld */
-             .input-group {
-               margin: 15px 0 20px 0;
-             }
-             .auth-input {
-               padding: 12px 14px;
-               border-radius:8px;
-               border: 2px solid transparent;
-               background: var(--jj);
-               color:var(--text);
-               width:100%;
-               font-size: 1rem;
-               transition: border-color 0.3s ease, box-shadow 0.3s ease;
-             }
-             .auth-input:focus {
-               outline: none;
-               border-color: #3A0CA3;
-               box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.5);
-               background: #111;
-             }
-
-             /* Aktionen (Buttons) */
-             .auth-actions {
-               display: flex;
-               gap: 12px;
-               align-items: center;
-               margin-top: 20px;
-             }
-             .btn {
-               padding: 10px 18px;
-               border-radius:8px;
-               cursor:pointer;
-               font-weight: 600;
-               transition: all 0.2s ease;
-             }
-             .primary-btn-auth {
-               flex-grow: 1;
-               background: linear-gradient(90deg, var(--primary), #a020f0);
-               color: white;
-               border: none;
-               box-shadow: 0 4px 15px rgba(58, 12, 163, 0.2);
-             }
-             .primary-btn-auth:hover:not(:disabled) {
-               transform: translateY(-1px);
-               box-shadow: 0 6px 20px rgba(58, 12, 163, 0.4);
-             }
-             .primary-btn-auth:disabled {
-               opacity: 0.6;
-               cursor: not-allowed;
-             }
-
-             .logout-btn {
-               background: transparent;
-               color: var(--muted);
-               border: 1px solid var(--jj);
-             }
-             .logout-btn:hover {
-               background: rgba(255, 255, 255, 0.05);
-               color: var(--text);
-             }
-
-             /* Sonstiges */
-             .error-message {
-               color:var(--danger);
-               margin-top:15px;
-               padding: 10px;
-               background: rgba(239, 68, 68, 0.1);
-               border-radius: 6px;
-               font-size: 0.9rem;
-             }
-             .divider {
-               border-top: 1px solid rgba(255, 255, 255, 0.05);
-               margin: 30px 0;
-             }
-             .footer-text {
-               font-size:12px;
-               color:var(--muted);
-               text-align: center;
-             }
-
-             @media (max-width: 520px) {
-               .auth-wrapper { margin: 30px auto 60px; }
-               .auth-card { padding: 20px; }
-               .auth-actions { flex-direction: column; gap: 8px; }
-               .btn { width: 100%; }
-             }
-             </style>
 
 
 
@@ -1073,82 +822,7 @@ server.js: // server.js
                }
            );
 
-           // --- simple code-check endpoint with IP lock and brute-force protection ---
-           // memory structures (process memory; restarts clear them)
-           const failedByIp = new Map(); // ip => { fails: number, lockedUntil: Date | null }
 
-           // config
-           const FRONTEND_PROTECTED_CODE = process.env.FRONTEND_PROTECTED_CODE || 'mynewjamaicanlawyer';
-           const MAX_FAILED_ATTEMPTS = 5;           // lock after this many failed tries
-           const LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes lock
-           const BURST_RATE_LIMIT_WINDOW_MS = 1000; // 1 second window
-           const BURST_MAX_REQUESTS = 5;            // >5 requests/sec from same IP triggers rate limiter
-
-           // per-ip short-term rate limiter (burst protection)
-           const burstLimiters = new Map(); // ip => { count, windowStart }
-
-           function checkBurst(ip) {
-               const now = Date.now();
-               const rec = burstLimiters.get(ip) || { count: 0, windowStart: now };
-               if (now - rec.windowStart > BURST_RATE_LIMIT_WINDOW_MS) {
-                   // reset window
-                   rec.count = 1;
-                   rec.windowStart = now;
-                   burstLimiters.set(ip, rec);
-                   return true;
-               }
-               rec.count++;
-               burstLimiters.set(ip, rec);
-               return rec.count <= BURST_MAX_REQUESTS;
-           }
-
-           app.post('/api/auth/check-code', body('code').isString().isLength({ min: 1 }), async (req, res) => {
-               try {
-                   const ip = req.ip || req.connection?.remoteAddress || 'unknown';
-                   // burst protection
-                   if (!checkBurst(ip)) {
-                       return res.status(429).json({ error: 'Too many requests' });
-                   }
-
-                   // check lock
-                   const info = failedByIp.get(ip) || { fails: 0, lockedUntil: null };
-                   if (info.lockedUntil && info.lockedUntil > Date.now()) {
-                       return res.status(423).json({ error: 'Temporarily locked due to repeated failures' });
-                   } else if (info.lockedUntil && info.lockedUntil <= Date.now()) {
-                       // unlock
-                       info.fails = 0;
-                       info.lockedUntil = null;
-                       failedByIp.set(ip, info);
-                   }
-
-                   const code = String(req.body.code || '').trim();
-                   if (!code) return res.status(400).json({ ok: false, error: 'Code required' });
-
-                   if (code === FRONTEND_PROTECTED_CODE) {
-                       // success -> create a signed token for the frontend (shorter or same expiry as you want)
-                       const payload = { sub: 'frontend-check', purpose: 'simple_access' };
-                       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
-
-                       // reset fail counters for this ip
-                       failedByIp.delete(ip);
-
-                       return res.json({ ok: true, token });
-                   }
-
-                   // failure: increment fail counter and possibly lock
-                   info.fails = (info.fails || 0) + 1;
-                   if (info.fails >= MAX_FAILED_ATTEMPTS) {
-                       info.lockedUntil = Date.now() + LOCK_DURATION_MS;
-                   }
-                   failedByIp.set(ip, info);
-
-                   // generic message (avoid revealing whether code exists)
-                   return res.status(401).json({ ok: false, error: 'Ungültiger Code' });
-               } catch (err) {
-                   console.error('POST /api/auth/check-code error', err);
-                   return res.status(500).json({ error: 'Server error' });
-               }
-           });
 
 
 
@@ -1160,3 +834,405 @@ server.js: // server.js
            app.get('/health', (req, res) => res.json({ ok: true }));
 
            app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
+
+
+
+
+
+
+Welcome.vue: <template>
+               <div class="container auth-wrapper">
+                 <div class="auth-card">
+                   <h2 class="auth-title">Zugang erforderlich</h2>
+                   <p class="small auth-hint">Bitte gib deinen persönlichen Zugangscode ein.</p>
+
+                   <div class="input-group">
+                     <input
+                         v-model="code"
+                         placeholder="Zugangscode"
+                         class="auth-input"
+                         type="password"
+                     />
+                   </div>
+                   <label class="checkbox-label">
+                     <input class="checkbox" type="checkbox" v-model="accepted" />
+                     <span style="font-size: 0.75rem">Ich stimme den Nutzungsbedingungen zu.</span>
+                   </label>
+
+                   <div class="auth-actions">
+                     <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!accepted">
+                       Anmelden
+                     </button>
+                     <For />
+                   </div>
+
+                   <div v-if="error" class="error-message">
+                     {{ error }}
+                   </div>
+
+                   <hr class="divider" />
+
+                   <div class="small footer-text">
+                     Dies ist eine private Applikation. Bei Problemen kontaktiere den Administrator.
+                     Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
+                   </div>
+
+                 </div>
+               </div>
+             </template>
+
+             <script setup lang="ts">
+             import { ref } from 'vue';
+             import For from '../components/LegalF.vue'
+             import { useRouter } from 'vue-router';
+             import { useAuth } from '../composables/useAuth';
+
+             const router = useRouter();
+             const auth = useAuth();
+             const code = ref('');
+             const error = ref<string | null>(null);
+             const accepted = ref(false)
+
+             function submit() {
+               error.value = null;
+               const res = auth.loginWithCode(code.value.trim());
+               if (res.ok) {
+                 auth.refreshExpiry();
+                 router.push('/items/HAUSAUFGABE');
+                 umami.track('Welcome Page Login erfolgreich');
+               } else {
+                 error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
+               }
+             }
+
+             function doLogout() {
+               auth.logout();
+               window.location.href ='https://schul-dashboards.onrender.com'
+             }
+             </script>
+
+             <style scoped>
+             .checkbox-label {
+               display: flex;
+               align-items: center;
+               gap: 0.5rem;
+               cursor: pointer;
+               user-select: none;
+               font-size: 0.9rem;
+               color: var(--text);
+             }
+
+             .checkbox-label .checkbox {
+               appearance: none;
+               width: 20px;
+               height: 20px;
+               border: 2px solid #999;
+               border-radius: 4px;
+               display: inline-block;
+               position: relative;
+               cursor: pointer;
+               transition: all 0.2s ease-in-out;
+             }
+
+             .checkbox-label .checkbox:checked {
+               background-color: #007aff;
+               border-color: #007aff;
+             }
+
+             .checkbox-label .checkbox:checked::after {
+               content: "";
+               position: absolute;
+               /* Statt festen Pixeln für left/top, nutzen wir absolute Zentrierung */
+               left: 50%;
+               top: 50%;
+               /* Verschieben um die Hälfte der eigenen Größe, um exakt zu zentrieren */
+               transform: translate(-50%, -50%) rotate(45deg);
+
+               /* Größe und Strichstärke bleiben gleich, da sie für das Häkchen selbst relativ zur Checkbox gut funktionieren */
+               width: 6px;
+               height: 12px;
+               border: solid white;
+               border-width: 0 2px 2px 0;
+             }
+
+             .checkbox-label .checkbox:focus {
+               outline: none;
+             }
+
+             /* Container und Card */
+             .auth-wrapper {
+               max-width: 440px;
+               margin: 60px auto 100px; /* Mehr Platz am unteren Rand */
+               padding: 16px;
+             }
+             .auth-card {
+               background: var(--card);
+               padding: 30px;
+               border-radius: 16px;
+               border: 1px solid rgba(255, 255, 255, 0.08);
+               box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+               transition: all 0.3s ease;
+             }
+             .auth-card:hover {
+               box-shadow: 0 15px 50px rgba(58, 12, 163, 0.3);
+             }
+
+             /* Typografie */
+             .auth-title {
+               margin-top: 0;
+               font-size: 1.8rem;
+               font-weight: 700;
+               color: var(--text);
+             }
+             .auth-hint {
+               color: var(--muted);
+               margin-bottom: 25px;
+             }
+
+             /* Eingabefeld */
+             .input-group {
+               margin: 15px 0 20px 0;
+             }
+             .auth-input {
+               padding: 12px 14px;
+               border-radius:8px;
+               border: 2px solid transparent;
+               background: var(--jj);
+               color:var(--text);
+               width:100%;
+               font-size: 1rem;
+               transition: border-color 0.3s ease, box-shadow 0.3s ease;
+             }
+             .auth-input:focus {
+               outline: none;
+               border-color: #3A0CA3;
+               box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.5);
+               background: #111;
+             }
+
+             /* Aktionen (Buttons) */
+             .auth-actions {
+               display: flex;
+               gap: 12px;
+               align-items: center;
+               margin-top: 20px;
+             }
+             .btn {
+               padding: 10px 18px;
+               border-radius:8px;
+               cursor:pointer;
+               font-weight: 600;
+               transition: all 0.2s ease;
+             }
+             .primary-btn-auth {
+               flex-grow: 1;
+               background: linear-gradient(90deg, var(--primary), #a020f0);
+               color: white;
+               border: none;
+               box-shadow: 0 4px 15px rgba(58, 12, 163, 0.2);
+             }
+             .primary-btn-auth:hover:not(:disabled) {
+               transform: translateY(-1px);
+               box-shadow: 0 6px 20px rgba(58, 12, 163, 0.4);
+             }
+             .primary-btn-auth:disabled {
+               opacity: 0.6;
+               cursor: not-allowed;
+             }
+
+             .logout-btn {
+               background: transparent;
+               color: var(--muted);
+               border: 1px solid var(--jj);
+             }
+             .logout-btn:hover {
+               background: rgba(255, 255, 255, 0.05);
+               color: var(--text);
+             }
+
+             /* Sonstiges */
+             .error-message {
+               color:var(--danger);
+               margin-top:15px;
+               padding: 10px;
+               background: rgba(239, 68, 68, 0.1);
+               border-radius: 6px;
+               font-size: 0.9rem;
+             }
+             .divider {
+               border-top: 1px solid rgba(255, 255, 255, 0.05);
+               margin: 30px 0;
+             }
+             .footer-text {
+               font-size:12px;
+               color:var(--muted);
+               text-align: center;
+             }
+
+             @media (max-width: 520px) {
+               .auth-wrapper { margin: 30px auto 60px; }
+               .auth-card { padding: 20px; }
+               .auth-actions { flex-direction: column; gap: 8px; }
+               .btn { width: 100%; }
+             }
+             </style>
+
+
+
+
+
+
+router.ts: import { createRouter, createWebHistory } from 'vue-router';
+           import Hausaufgaben from './views/Hausaufgaben.vue';
+           import { useAuth } from './composables/useAuth';
+
+           const PersonDetail = () => import('./views/PersonDetail.vue');
+           const Admin = () => import('./views/Admin.vue');
+           const Home = () => import('./views/Home.vue');
+           const VerifyEmail = () => import('./views/VerifyEmail.vue');
+           const Stundenplan = () => import('./views/Stundenplan.vue');
+           const Kuerzel = () => import('./views/Kuerzel.vue');
+           const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue');
+           const Ye = () => import('./views/Ye.vue');
+           const BS = () => import('./views/BS.vue');
+           const Kontakt = () => import('./components/ContactForm.vue');
+           const AuthPage = () => import('./views/AuthPage.vue');
+           const Aidetector = () => import('./views/aiDetector.vue')
+           //const Chatter = () => import('./views/TestChat.vue')
+
+           const routes = [
+               { path: '/', redirect: '/items/HAUSAUFGABE' },
+               { path: '/welcome', name: 'Auth', component: AuthPage },
+               { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true },
+               { path: '/bewerten', component: Home },
+               { path: '/person/:id', component: PersonDetail, props: true },
+               { path: '/admin', component: Admin },
+               { path: '/hausaufgaben/verify', redirect: '/verify' },
+               { path: '/verify', component: VerifyEmail },
+               { path: '/stundenplan', component: Stundenplan },
+               { path: '/kuerzel', component: Kuerzel },
+               { path: '/lokale-to-do-liste', component: LokaleToDoListe },
+               { path: '/kanye', component: Ye },
+               { path: '/ai-detector', component: Aidetector },
+               { path: '/fresser', component: BS },
+               { path: '/kontakt', component: Kontakt },
+               { path: '/goat', redirect: '/kanye' },
+               //{ path: '/chatter', component: Chatter },
+
+
+               {
+                   path: '/impressum-&-datenschutz',
+                   component: () => import('./views/legal/LegalLayout.vue'),
+                   children: [
+                       { path: 'impressum', component: () => import('./views/legal/ImpressumPage.vue') },
+                       { path: 'datenschutzerklaerung', component: () => import('./views/legal/DatenschutzPage.vue') }
+                   ]
+               },
+               { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('./views/NotFound.vue') }
+           ];
+
+           const router = createRouter({
+               history: createWebHistory(),
+               routes,
+               scrollBehavior(to, from, savedPosition) {
+                   return { top: 0 };
+               }
+           });
+
+           // Global guard: redirect all non-authenticated requests to /auth
+           router.beforeEach((to, from, next) => {
+               // Always allow the auth page itself
+               if (to.path === '/welcome') return next();
+
+               // Allow health or other public endpoints if needed
+               if (to.path.startsWith('/health')) return next();
+
+               const { isAuthenticated, loadFromStorage } = useAuth();
+               loadFromStorage();
+
+               if (!isAuthenticated.value) {
+                   return next({ path: '/welcome' });
+               }
+
+               return next();
+           });
+
+           export default router;
+
+
+
+
+
+main.ts: import { createApp } from 'vue';
+         import { createPinia } from 'pinia';
+         import router from './router';
+         import App from './App.vue';
+         import './style.css';
+         import VueGtag from 'vue-gtag-next';
+         import gaDirective from './directives/gaEvent';
+         import { useAuth } from './composables/useAuth';
+         import PrimeVue from 'primevue/config';
+
+         const app = createApp(App);
+
+
+         function initAnalytics() {
+             if (!(app as any)._context.provides['vue-gtag']) {
+                 app.use(VueGtag, {
+                     property: { id: 'G-8H1WEQSLN4' }
+                 }, router);
+             }
+         }
+
+         function removeAnalytics() {
+             const scripts = document.querySelectorAll('script[src*="googletagmanager"],script[src*="google-analytics"]');
+             scripts.forEach(s => s.remove());
+             (window as any).dataLayer = [];
+         }
+
+         const auth = useAuth();
+
+         // Prüfe lokalen Consent beim Start
+         const consent = localStorage.getItem('cookie_consent');
+         if (consent) {
+             try {
+                 const parsed = JSON.parse(consent);
+                 const expires = new Date(parsed.expires);
+                 if (parsed.accepted && new Date() < expires) {
+                     //initAnalytics();
+                 }
+             } catch {
+                 // ignore
+             }
+         }
+
+         window.addEventListener('cookie-accepted', () => {
+             //initAnalytics();
+         });
+
+         window.addEventListener('cookie-revoked', () => {
+             removeAnalytics();
+         });
+
+         app.directive('ga-event', gaDirective);
+         app.use(createPinia());
+         app.use(router);
+         app.mount('#app');
+         app.use(PrimeVue, {
+             unstyled: true,
+         });
+
+
+         // Aktivitätsbasierte Verlängerung der Session-Expiry (optional)
+         window.addEventListener('mousemove', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
+         window.addEventListener('keydown', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
+
+         // Reagiere auf Auth-Änderungen (z. B. Login/Logout) global
+         window.addEventListener('auth-changed', () => {
+             // einfache Seite neu laden / Router neu evaluieren
+             // Router-Guard liest den Auth-Status neu ein
+             // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
+             // location.reload();
+         });
+
+
