@@ -741,56 +741,6 @@ app.post('/api/auth/reset',
     }
 );
 
-// Rate limiter speziell für diesen Endpunkt (schützt gegen brute force)
-const codeLoginLimiter = rateLimit({
-    windowMs: 60_000, // 1 minute
-    max: 10, // max 10 attempts per minute per IP
-    standardHeaders: true,
-    legacyHeaders: false
-});
-
-// Simple POST /api/auth/code-login
-// Setze process.env.ACCESS_CODE in deiner Umgebung (z.B. .env)
-app.post('/api/auth/code-login',
-    codeLoginLimiter,
-    body('code').isString().isLength({ min: 4, max: 200 }),
-    validate,
-    async (req, res) => {
-        try {
-            const provided = String(req.body.code).trim();
-            const secret = 'hash8912';
-
-            if (!secret) {
-                return sendJSONError(res, 500, 'Login not configured on server');
-            }
-
-            // Optional: zeitkonstanter Vergleich
-            function safeEqual(a, b) {
-                try {
-                    const bufA = Buffer.from(a);
-                    const bufB = Buffer.from(b);
-                    if (bufA.length !== bufB.length) return false;
-                    return crypto.timingSafeEqual(bufA, bufB);
-                } catch {
-                    return false;
-                }
-            }
-
-            if (!safeEqual(provided, secret)) {
-                return sendJSONError(res, 401, 'Ungültiger Code');
-            }
-
-            // Erzeuge ein kurzes session token (nur für frontend session purposes)
-            const t = 'tf_' + crypto.randomBytes(12).toString('hex');
-            // Optional: du könntest auch einen JWT signen, falls du später server-auth brauchst
-            res.json({ ok: true, token: t });
-        } catch (err) {
-            console.error('POST /api/auth/code-login error', err);
-            sendJSONError(res, 500, 'Server error');
-        }
-    }
-);
-
 
 
 
