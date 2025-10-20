@@ -518,7 +518,7 @@ try {
 <style scoped>
 /* Section */
 .contact-section {
-  padding: 60px 50px;
+  padding: 30px 50px;
   min-height: 100vh;
 }
 
@@ -536,13 +536,13 @@ try {
   font-size: 42px;
   font-weight: 700;
   margin: 0 0 12px 0;
-  color: var(--text);
+  color: #f1f1f1;
   letter-spacing: -0.02em;
 }
 
 .hero-subtitle {
   font-size: 18px;
-  color: var(--muted);
+  color: #f1f1f1;
   margin: 0;
   max-width: 600px;
   margin-left: auto;
@@ -642,8 +642,8 @@ try {
   padding: 16px 16px 16px 16px;
   background: rgba(42, 42, 42, 0.5);
   border: 2px solid transparent;
-  border-radius: 10px;
-  color: var(--text);
+  border-radius: 7px;
+  color: #f1f1f1;
   font-size: 16px;
   transition: all 0.3s ease;
   outline: none;
@@ -682,7 +682,7 @@ try {
   left: 12px;
   font-size: 12px;
   color: var(--primary);
-  background: var(--card);
+  background: var(--bg);
   padding: 0 6px;
   font-weight: 600;
 }
@@ -833,7 +833,7 @@ try {
 .btn-primary,
 .btn-ghost {
   padding: 14px 28px;
-  border-radius: 10px;
+  border-radius: 5px;
   font-size: 16px;
   font-weight: 600;
   border: none;

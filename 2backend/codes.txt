@@ -1,3 +1,335 @@
+auth.ts: // src/composables/useAuth.ts
+         import { ref, computed } from 'vue';
+
+         const STORAGE_KEY = 'app_auth_token';
+         const STORAGE_EXPIRES_KEY = 'app_auth_expires';
+
+         const token = ref<string | null>(null);
+
+         function now() { return Date.now(); }
+         function inThirtyDaysMs() { return 30 * 24 * 60 * 60 * 1000; }
+
+         function loadFromStorage() {
+             const t = localStorage.getItem(STORAGE_KEY);
+             const e = localStorage.getItem(STORAGE_EXPIRES_KEY);
+             if (!t || !e) {
+                 token.value = null;
+                 clearStorage();
+                 return;
+             }
+             const expires = Number(e);
+             if (Number.isNaN(expires) || now() > expires) {
+                 token.value = null;
+                 clearStorage();
+                 return;
+             }
+             token.value = t;
+         }
+
+         function clearStorage() {
+             localStorage.removeItem(STORAGE_KEY);
+             localStorage.removeItem(STORAGE_EXPIRES_KEY);
+         }
+
+         loadFromStorage();
+
+         export function useAuth() {
+             const isAuthenticated = computed(() => !!token.value);
+
+             async function loginWithCode(code: string) {
+                 if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
+
+                 try {
+                     const resp = await fetch('/api/auth/check-code', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ code })
+                     });
+
+                     const data = await resp.json().catch(() => ({}));
+
+                     if (!resp.ok || !data?.ok) {
+                         return { ok: false, error: data?.error || 'Ungültiger Code' };
+                     }
+
+                     // store token and expiry locally (same behaviour as before)
+                     const t = data.token;
+                     const expires = now() + inThirtyDaysMs();
+                     token.value = t;
+                     localStorage.setItem(STORAGE_KEY, t);
+                     localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
+                     window.dispatchEvent(new Event('auth-changed'));
+
+                     return { ok: true };
+                 } catch (err) {
+                     return { ok: false, error: 'Netzwerkfehler' };
+                 }
+             }
+
+             function logout() {
+                 token.value = null;
+                 clearStorage();
+                 window.dispatchEvent(new Event('auth-changed'));
+             }
+
+             function refreshExpiry() {
+                 if (!token.value) return;
+                 const expires = now() + inThirtyDaysMs();
+                 localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
+             }
+
+             return {
+                 token,
+                 isAuthenticated,
+                 loginWithCode,
+                 logout,
+                 refreshExpiry,
+                 loadFromStorage
+             };
+         }
+
+
+
+Welcome.vue: <template>
+               <div class="container auth-wrapper">
+                 <div class="auth-card">
+                   <h2 class="auth-title">Zugang erforderlich</h2>
+                   <p class="small auth-hint">Bitte gib deinen persönlichen Zugangscode ein.</p>
+
+                   <div class="input-group">
+                     <input
+                         v-model="code"
+                         placeholder="Zugangscode"
+                         class="auth-input"
+                         type="password"
+                     />
+                   </div>
+                   <label class="checkbox-label">
+                     <input class="checkbox" type="checkbox" v-model="accepted" />
+                     <span style="font-size: 0.75rem">Ich stimme den Nutzungsbedingungen zu.</span>
+                   </label>
+
+                   <div class="auth-actions">
+                     <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!accepted">
+                       Anmelden
+                     </button>
+                     <For />
+                   </div>
+
+                   <div v-if="error" class="error-message">
+                     {{ error }}
+                   </div>
+
+                   <hr class="divider" />
+
+                   <div class="small footer-text">
+                     Dies ist eine private Applikation. Bei Problemen kontaktiere den Administrator.
+                     Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
+                   </div>
+
+                 </div>
+               </div>
+             </template>
+
+             <script setup lang="ts">
+             import { ref } from 'vue';
+             import For from '../components/LegalF.vue'
+             import { useRouter } from 'vue-router';
+             import { useAuth } from '../composables/useAuth';
+
+             const router = useRouter();
+             const auth = useAuth();
+             const code = ref('');
+             const error = ref<string | null>(null);
+             const accepted = ref(false)
+
+             async function submit() {
+               error.value = null;
+               const res = await auth.loginWithCode(code.value.trim());
+               if (res.ok) {
+                 router.push('/items/HAUSAUFGABE');
+                 umami.track('Welcome Page Login erfolgreich');
+               } else {
+                 error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
+               }
+             }
+
+
+
+             function doLogout() {
+               auth.logout();
+               window.location.href ='https://schul-dashboards.onrender.com'
+             }
+             </script>
+
+             <style scoped>
+             .checkbox-label {
+               display: flex;
+               align-items: center;
+               gap: 0.5rem;
+               cursor: pointer;
+               user-select: none;
+               font-size: 0.9rem;
+               color: var(--text);
+             }
+
+             .checkbox-label .checkbox {
+               appearance: none;
+               width: 20px;
+               height: 20px;
+               border: 2px solid #999;
+               border-radius: 4px;
+               display: inline-block;
+               position: relative;
+               cursor: pointer;
+               transition: all 0.2s ease-in-out;
+             }
+
+             .checkbox-label .checkbox:checked {
+               background-color: #007aff;
+               border-color: #007aff;
+             }
+
+             .checkbox-label .checkbox:checked::after {
+               content: "";
+               position: absolute;
+               /* Statt festen Pixeln für left/top, nutzen wir absolute Zentrierung */
+               left: 50%;
+               top: 50%;
+               /* Verschieben um die Hälfte der eigenen Größe, um exakt zu zentrieren */
+               transform: translate(-50%, -50%) rotate(45deg);
+
+               /* Größe und Strichstärke bleiben gleich, da sie für das Häkchen selbst relativ zur Checkbox gut funktionieren */
+               width: 6px;
+               height: 12px;
+               border: solid white;
+               border-width: 0 2px 2px 0;
+             }
+
+             .checkbox-label .checkbox:focus {
+               outline: none;
+             }
+
+             /* Container und Card */
+             .auth-wrapper {
+               max-width: 440px;
+               margin: 60px auto 100px; /* Mehr Platz am unteren Rand */
+               padding: 16px;
+             }
+             .auth-card {
+               background: var(--card);
+               padding: 30px;
+               border-radius: 16px;
+               border: 1px solid rgba(255, 255, 255, 0.08);
+               box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+               transition: all 0.3s ease;
+             }
+             .auth-card:hover {
+               box-shadow: 0 15px 50px rgba(58, 12, 163, 0.3);
+             }
+
+             /* Typografie */
+             .auth-title {
+               margin-top: 0;
+               font-size: 1.8rem;
+               font-weight: 700;
+               color: var(--text);
+             }
+             .auth-hint {
+               color: var(--muted);
+               margin-bottom: 25px;
+             }
+
+             /* Eingabefeld */
+             .input-group {
+               margin: 15px 0 20px 0;
+             }
+             .auth-input {
+               padding: 12px 14px;
+               border-radius:8px;
+               border: 2px solid transparent;
+               background: var(--jj);
+               color:var(--text);
+               width:100%;
+               font-size: 1rem;
+               transition: border-color 0.3s ease, box-shadow 0.3s ease;
+             }
+             .auth-input:focus {
+               outline: none;
+               border-color: #3A0CA3;
+               box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.5);
+               background: #111;
+             }
+
+             /* Aktionen (Buttons) */
+             .auth-actions {
+               display: flex;
+               gap: 12px;
+               align-items: center;
+               margin-top: 20px;
+             }
+             .btn {
+               padding: 10px 18px;
+               border-radius:8px;
+               cursor:pointer;
+               font-weight: 600;
+               transition: all 0.2s ease;
+             }
+             .primary-btn-auth {
+               flex-grow: 1;
+               background: linear-gradient(90deg, var(--primary), #a020f0);
+               color: white;
+               border: none;
+               box-shadow: 0 4px 15px rgba(58, 12, 163, 0.2);
+             }
+             .primary-btn-auth:hover:not(:disabled) {
+               transform: translateY(-1px);
+               box-shadow: 0 6px 20px rgba(58, 12, 163, 0.4);
+             }
+             .primary-btn-auth:disabled {
+               opacity: 0.6;
+               cursor: not-allowed;
+             }
+
+             .logout-btn {
+               background: transparent;
+               color: var(--muted);
+               border: 1px solid var(--jj);
+             }
+             .logout-btn:hover {
+               background: rgba(255, 255, 255, 0.05);
+               color: var(--text);
+             }
+
+             /* Sonstiges */
+             .error-message {
+               color:var(--danger);
+               margin-top:15px;
+               padding: 10px;
+               background: rgba(239, 68, 68, 0.1);
+               border-radius: 6px;
+               font-size: 0.9rem;
+             }
+             .divider {
+               border-top: 1px solid rgba(255, 255, 255, 0.05);
+               margin: 30px 0;
+             }
+             .footer-text {
+               font-size:12px;
+               color:var(--muted);
+               text-align: center;
+             }
+
+             @media (max-width: 520px) {
+               .auth-wrapper { margin: 30px auto 60px; }
+               .auth-card { padding: 20px; }
+               .auth-actions { flex-direction: column; gap: 8px; }
+               .btn { width: 100%; }
+             }
+             </style>
+
+
+
 server.js: // server.js
            import 'dotenv/config';
            import express from 'express';
@@ -170,8 +502,9 @@ server.js: // server.js
                const due = dayjs(dueDate);
                const diffDays = due.diff(now, 'day', true);
                if (diffDays < 0) return 'expired';
-               if (diffDays < 3) return 'danger';
-               if (diffDays < 7) return 'warn';
+               if (diffDays < 1) return 'danger';
+               if (diffDays < 2) return 'warn';
+               if (diffDays < 3) return 'normal';
                return 'ok';
            }
            function buildThumbUrl(secureUrl) {
@@ -180,7 +513,7 @@ server.js: // server.js
                    const parts = u.pathname.split('/');
                    const uploadIdx = parts.findIndex(p => p === 'upload');
                    if (uploadIdx !== -1) {
-                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240, h_240,c_fill');
+                       parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
                        u.pathname = parts.join('/');
                    }
                    return u.toString();
@@ -429,7 +762,7 @@ server.js: // server.js
                query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
                validate,
                async (req, res) => {
-                   const now = new Date();
+                   const now = dayjs().subtract(48, 'hour').toDate();
                    const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
                        .sort({ dueDate: 1 })
                        .limit(500)
@@ -740,6 +1073,84 @@ server.js: // server.js
                }
            );
 
+           // --- simple code-check endpoint with IP lock and brute-force protection ---
+           // memory structures (process memory; restarts clear them)
+           const failedByIp = new Map(); // ip => { fails: number, lockedUntil: Date | null }
+
+           // config
+           const FRONTEND_PROTECTED_CODE = process.env.FRONTEND_PROTECTED_CODE || 'mynewjamaicanlawyer';
+           const MAX_FAILED_ATTEMPTS = 5;           // lock after this many failed tries
+           const LOCK_DURATION_MS = 30 * 60 * 1000; // 30 minutes lock
+           const BURST_RATE_LIMIT_WINDOW_MS = 1000; // 1 second window
+           const BURST_MAX_REQUESTS = 5;            // >5 requests/sec from same IP triggers rate limiter
+
+           // per-ip short-term rate limiter (burst protection)
+           const burstLimiters = new Map(); // ip => { count, windowStart }
+
+           function checkBurst(ip) {
+               const now = Date.now();
+               const rec = burstLimiters.get(ip) || { count: 0, windowStart: now };
+               if (now - rec.windowStart > BURST_RATE_LIMIT_WINDOW_MS) {
+                   // reset window
+                   rec.count = 1;
+                   rec.windowStart = now;
+                   burstLimiters.set(ip, rec);
+                   return true;
+               }
+               rec.count++;
+               burstLimiters.set(ip, rec);
+               return rec.count <= BURST_MAX_REQUESTS;
+           }
+
+           app.post('/api/auth/check-code', body('code').isString().isLength({ min: 1 }), async (req, res) => {
+               try {
+                   const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+                   // burst protection
+                   if (!checkBurst(ip)) {
+                       return res.status(429).json({ error: 'Too many requests' });
+                   }
+
+                   // check lock
+                   const info = failedByIp.get(ip) || { fails: 0, lockedUntil: null };
+                   if (info.lockedUntil && info.lockedUntil > Date.now()) {
+                       return res.status(423).json({ error: 'Temporarily locked due to repeated failures' });
+                   } else if (info.lockedUntil && info.lockedUntil <= Date.now()) {
+                       // unlock
+                       info.fails = 0;
+                       info.lockedUntil = null;
+                       failedByIp.set(ip, info);
+                   }
+
+                   const code = String(req.body.code || '').trim();
+                   if (!code) return res.status(400).json({ ok: false, error: 'Code required' });
+
+                   if (code === FRONTEND_PROTECTED_CODE) {
+                       // success -> create a signed token for the frontend (shorter or same expiry as you want)
+                       const payload = { sub: 'frontend-check', purpose: 'simple_access' };
+                       const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
+
+                       // reset fail counters for this ip
+                       failedByIp.delete(ip);
+
+                       return res.json({ ok: true, token });
+                   }
+
+                   // failure: increment fail counter and possibly lock
+                   info.fails = (info.fails || 0) + 1;
+                   if (info.fails >= MAX_FAILED_ATTEMPTS) {
+                       info.lockedUntil = Date.now() + LOCK_DURATION_MS;
+                   }
+                   failedByIp.set(ip, info);
+
+                   // generic message (avoid revealing whether code exists)
+                   return res.status(401).json({ ok: false, error: 'Ungültiger Code' });
+               } catch (err) {
+                   console.error('POST /api/auth/check-code error', err);
+                   return res.status(500).json({ error: 'Server error' });
+               }
+           });
+
+
 
 
 
@@ -749,308 +1160,3 @@ server.js: // server.js
            app.get('/health', (req, res) => res.json({ ok: true }));
 
            app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
-
-
-
-
-
-           AuthModal.vue: <template>
-                            <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-                              <div class="card styl" style="width:100%; max-width:420px;">
-                                <!-- Header -->
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                  <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-                                  <button class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
-                                </div>
-
-                                <!-- Tabs -->
-                                <div class="row" style="margin-top:12px;">
-                                  <button class="btn" :class="{ ghost: mode!=='login' }" @click="switchMode('login')">Login</button>
-                                  <button class="btn" :class="{ ghost: mode!=='register' }" @click="switchMode('register')">Registrieren</button>
-                                </div>
-
-                                <!-- Inputs -->
-                                <div style="margin-top:12px;">
-                                  <input
-                                      class="input"
-                                      v-model="email"
-                                      placeholder="E-Mail"
-                                      @input="clearFieldError('email')"
-                                  />
-                                  <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
-                                </div>
-
-                                <div style="margin-top:8px;">
-                                  <input
-                                      class="input"
-                                      type="password"
-                                      v-model="password"
-                                      placeholder="Passwort (min. 8 Zeichen)"
-                                      @input="clearFieldError('password')"
-                                  />
-                                  <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
-                                </div>
-
-                                <!-- Datenschutzerklärung Checkbox -->
-                                <div v-if="mode==='register'" class="checkbox-row">
-                                  <label class="checkbox-container">
-                                    <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-                                    <span class="checkmark"></span>
-                                    <span style="color:white; font-size:14px;">
-                                      Ich stimme der
-                                      <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">
-                                        Datenschutzerklärung und AGB
-                                      </a>
-                                      zu
-                                    </span>
-                                  </label>
-                                  <div v-if="errors.privacy" class="field-error" style="margin-left:36px;">{{ errors.privacy }}</div>
-                                </div>
-
-                                <!-- Submit -->
-                                <div class="row" style="margin-top:12px; align-items:center;">
-                                  <button class="btn" @click="submit">
-                                    <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
-                                    {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
-                                  </button>
-                                  <div style="margin-top:8px;">
-                                    <button class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
-                                  </div>
-
-
-                                  <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-                                </div>
-                              </div>
-                              <ResetModal
-                                  v-if="showReset"
-                                  @close="showReset=false"
-                                  @success="onResetSuccess"
-                              />
-                            </div>
-                          </template>
-
-                          <script setup lang="ts">
-                          import { ref, reactive } from 'vue';
-                          import hw from '../../hwApi';
-                          import LoadingSpinner from "../LoadingSpinner.vue";
-
-                          import ResetModal from "../ResetModal.vue"; // Pfad anpassen falls nötig
-                          const showReset = ref(false);
-
-                          function openReset() { showReset.value = true; }
-
-                          const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
-
-                          const mode = ref<'login' | 'register'>('login');
-                          const email = ref('');
-                          const password = ref('');
-                          const acceptedPrivacy = ref(false);
-                          const submitting = ref(false);
-                          const message = ref('');
-                          const isError = ref(false);
-
-                          // field-level errors shown after submit attempt
-                          const errors = reactive<{ email?: string; password?: string; privacy?: string }>({});
-
-                          function switchMode(newMode: 'login' | 'register') {
-                            mode.value = newMode;
-                            clearAllErrors();
-                            message.value = '';
-                            isError.value = false;
-                          }
-                          function onResetSuccess() {
-                            message.value = 'Passwort erfolgreich zurückgesetzt. Bitte einloggen.';
-                            isError.value = false;
-                            showReset.value = false;
-                          }
-
-
-                          function clearAllErrors() {
-                            errors.email = undefined;
-                            errors.password = undefined;
-                            errors.privacy = undefined;
-                          }
-
-                          function clearFieldError(field: 'email' | 'password' | 'privacy') {
-                            errors[field] = undefined;
-                            message.value = '';
-                            isError.value = false;
-                          }
-
-                          function validateBeforeSubmit(): boolean {
-                            clearAllErrors();
-                            let ok = true;
-
-                            // basic email presence check
-                            if (!email.value || !email.value.trim()) {
-                              errors.email = 'Bitte E-Mail angeben.';
-                              ok = false;
-                            } else {
-                              // minimal email format check
-                              const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                              if (!emailRe.test(email.value.trim())) {
-                                errors.email = 'Bitte gültige E-Mail-Adresse eingeben.';
-                                ok = false;
-                              }
-                            }
-
-                            // password length check
-                            if (!password.value) {
-                              errors.password = 'Bitte Passwort angeben.';
-                              ok = false;
-                            } else if (password.value.length < 8) {
-                              errors.password = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
-                              ok = false;
-                            }
-
-                            // privacy checkbox only for registration
-                            if (mode.value === 'register' && !acceptedPrivacy.value) {
-                              errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
-                              ok = false;
-                            }
-
-                            return ok;
-                          }
-
-                          async function submit() {
-                            // Always allow the button to be clickable; we handle validation here
-                            message.value = '';
-                            isError.value = false;
-
-                            const valid = validateBeforeSubmit();
-
-                            if (!valid) {
-                              // show aggregated message and stop actual request
-                              message.value = 'Bitte die Fehler im Formular korrigieren.';
-                              isError.value = true;
-                              return;
-                            }
-
-                            submitting.value = true;
-                            try {
-                              if (mode.value === 'register') {
-                                await hw.post('/api/auth/register', { email: email.value, password: password.value });
-                                message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
-                                isError.value = false;
-                              } else {
-                                const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
-                                emit('logged-in', data.token);
-                              }
-                            } catch (e: any) {
-                              message.value = e.response?.data?.error || 'Unbekannter Fehler';
-                              isError.value = true;
-                            } finally {
-                              submitting.value = false;
-                            }
-                          }
-                          </script>
-
-                          <style scoped>
-                          .styl {
-                            border-radius: 14px;
-                            border: 1px solid rgba(255, 255, 255, 0.2);
-                            background: rgba(255, 255, 255, 0.15);
-                            backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                            -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-                            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-                          }
-
-                          /* --- Button Styles --- */
-                          .btn {
-                            background: transparent;
-                            color: white;
-                            border: 1px solid white;
-                            padding: 6px 12px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            transition: all 0.2s ease;
-                          }
-
-                          /* Aktiver Button (ohne .ghost) */
-                          .btn:not(.ghost) {
-                            background: white;
-                            color: #333;
-                          }
-
-                          /* Hover-Effekt für inaktive Buttons */
-                          .btn.ghost:hover {
-                            background: rgba(255, 255, 255, 0.2);
-                            color: white;
-                          }
-
-                          /* Hover-Effekt für aktive Buttons */
-                          .btn:not(.ghost):hover {
-                            background: #f0f0f0;
-                            color: #111;
-                          }
-
-                          /* --- Checkbox Styles --- */
-                          .checkbox-row {
-                            margin-top: 12px;
-                            display: flex;
-                            align-items: center;
-                          }
-                          .checkbox-container {
-                            display: flex;
-                            align-items: center;
-                            cursor: pointer;
-                            user-select: none;
-                          }
-                          .checkbox-container input {
-                            display: none;
-                          }
-                          .checkmark {
-                            height: 18px;
-                            width: 18px;
-                            border: 2px solid white;
-                            border-radius: 4px;
-                            margin-right: 8px;
-                            position: relative;
-                          }
-                          .checkbox-container input:checked ~ .checkmark {
-                            background-color: #3f93f8;
-                            border-color: #3f93f8;
-                          }
-                          .checkmark::after {
-                            content: "";
-                            position: absolute;
-                            display: none;
-                          }
-                          .checkbox-container input:checked ~ .checkmark::after {
-                            display: block;
-                            left: 4px;
-                            top: 0px;
-                            width: 5px;
-                            height: 10px;
-                            border: solid white;
-                            border-width: 0 2px 2px 0;
-                            transform: rotate(45deg);
-                          }
-
-                          /* Input basics to fit the look */
-                          .input {
-                            width: 100%;
-                            padding: 8px 10px;
-                            border-radius: 8px;
-                            border: 1px solid rgba(255,255,255,0.15);
-                            background: rgba(255,255,255,0.06);
-                            color: white;
-                            outline: none;
-                          }
-                          .input::placeholder {
-                            color: rgba(255,255,255,0.7);
-                          }
-
-                          /* small text */
-                          .small {
-                            margin-left: 12px;
-                            font-size: 13px;
-                          }
-
-                          /* field-level error style */
-                          .field-error {
-                            color: #ff7777;
-                            font-size: 13px;
-                            margin-top: 6px;
-                          }
-                          </style>

@@ -14,13 +14,14 @@
       </div>
       <label class="checkbox-label">
         <input class="checkbox" type="checkbox" v-model="accepted" />
-        <span>Ich stimme den Nutzungsbedingungen zu.</span><For />
+        <span style="font-size: 0.75rem">Ich stimme den Nutzungsbedingungen zu.</span>
       </label>
 
       <div class="auth-actions">
         <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!accepted">
           Anmelden
         </button>
+        <For />
       </div>
 
       <div v-if="error" class="error-message">
@@ -41,7 +42,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import For from '../components/LegalF.vue'
-// Annahme: Die useRouter und useAuth Imports sind korrekt
 import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 
@@ -51,9 +51,9 @@ const code = ref('');
 const error = ref<string | null>(null);
 const accepted = ref(false)
 
-function submit() {
+async function submit() {
   error.value = null;
-  const res = auth.loginWithCode(code.value.trim());
+  const res = await auth.loginWithCode(code.value.trim());
   if (res.ok) {
     auth.refreshExpiry();
     router.push('/items/HAUSAUFGABE');
@@ -62,6 +62,9 @@ function submit() {
     error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
   }
 }
+
+
+
 
 function doLogout() {
   auth.logout();
@@ -100,13 +103,17 @@ function doLogout() {
 .checkbox-label .checkbox:checked::after {
   content: "";
   position: absolute;
-  left: 5px;
-  top: -0.7px;
+  /* Statt festen Pixeln für left/top, nutzen wir absolute Zentrierung */
+  left: 50%;
+  top: 50%;
+  /* Verschieben um die Hälfte der eigenen Größe, um exakt zu zentrieren */
+  transform: translate(-50%, -50%) rotate(45deg);
+
+  /* Größe und Strichstärke bleiben gleich, da sie für das Häkchen selbst relativ zur Checkbox gut funktionieren */
   width: 6px;
   height: 12px;
   border: solid white;
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
 }
 
 .checkbox-label .checkbox:focus {
