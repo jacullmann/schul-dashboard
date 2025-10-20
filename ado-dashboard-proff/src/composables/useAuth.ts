@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 
 const STORAGE_KEY = 'app_auth_token';
 const STORAGE_EXPIRES_KEY = 'app_auth_expires';
+const FRONTEND_CODE = 'mynewjamaicanlawyer';
 
 const token = ref<string | null>(null);
 
@@ -36,34 +37,20 @@ loadFromStorage();
 export function useAuth() {
     const isAuthenticated = computed(() => !!token.value);
 
-    async function loginWithCode(code: string) {
+    function loginWithCode(code: string) {
+        // einfacher front-end check: nur der richtige Code führt zum Token
         if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
-
-        try {
-            const resp = await fetch('/api/auth/check-code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
-            });
-
-            const data = await resp.json().catch(() => ({}));
-
-            if (!resp.ok || !data?.ok) {
-                return { ok: false, error: data?.error || 'Ungültiger Code' };
-            }
-
-            // store token and expiry locally (same behaviour as before)
-            const t = data.token;
+        if (code === FRONTEND_CODE) {
+            // Erzeuge ein kleines zufälliges token (nur für frontend session purposes)
+            const t = 'tf_' + Math.random().toString(36).slice(2);
             const expires = now() + inThirtyDaysMs();
             token.value = t;
             localStorage.setItem(STORAGE_KEY, t);
             localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
             window.dispatchEvent(new Event('auth-changed'));
-
             return { ok: true };
-        } catch (err) {
-            return { ok: false, error: 'Netzwerkfehler' };
         }
+        return { ok: false, error: 'Ungültiger Code' };
     }
 
     function logout() {
@@ -78,6 +65,7 @@ export function useAuth() {
         localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
     }
 
+    // expose
     return {
         token,
         isAuthenticated,

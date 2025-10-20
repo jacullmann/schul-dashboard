@@ -51,9 +51,9 @@ const code = ref('');
 const error = ref<string | null>(null);
 const accepted = ref(false)
 
-async function submit() {
+function submit() {
   error.value = null;
-  const res = await auth.loginWithCode(code.value.trim());
+  const res = auth.loginWithCode(code.value.trim());
   if (res.ok) {
     auth.refreshExpiry();
     router.push('/items/HAUSAUFGABE');
@@ -62,9 +62,6 @@ async function submit() {
     error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
   }
 }
-
-
-
 
 function doLogout() {
   auth.logout();
