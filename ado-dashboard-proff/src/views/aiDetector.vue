@@ -14,7 +14,7 @@ const MAX_GAUGE_VALUE = 500; // 500% als Maximalwert für die gewichtete Zufalls
 const VISUAL_MAX_PERCENT = 100; // 100% ist der Punkt, an dem die Nadel den Halbkreis füllt (180 Grad)
 const SATIRICAL_OVERFLOW_MAX_DEG = 220; // Maximaler Winkel für den satirischen Überlauf
 
-// --- Audio-Funktionen (Sirenensound) ---
+// --- Audio-Funktionen (Sirenensoudddnd) ---
 
 /**
  * Erzeugt einen kurzen, abfallenden Sirenensound über die Web Audio API.

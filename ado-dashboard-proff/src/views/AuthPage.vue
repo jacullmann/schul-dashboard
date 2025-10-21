@@ -32,27 +32,27 @@
       <!-- Floating cards (statisch, kein Parallax mehr) -->
       <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
         <div class="floating-cards-inner">
-          <div class="info-card info-hausaufgabe" style="top: 12%; left: 10%;">
+          <div class="info-card info-hausaufgabe" style="top: 70%; left: 15%;">
             <input type="checkbox" id="task1" checked>
             <label for="task1">Hausaufgabe morgen</label>
             <p class="small-detail">CDA p. 77/78</p>
             <div class="card-icon"></div>
           </div>
 
-          <div class="info-card info-klassenarbeit" style="top: 25%; right: 5%;">
+          <div class="info-card info-klassenarbeit" style="top: 10%; right: 1%;">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
             <a @click="examplelist" class="btn ghost-card-btn">Lernzettel öffnen</a>
           </div>
 
-          <div class="info-card info-vokabeln" style="bottom: 8%; left: 15%;">
+          <div class="info-card info-vokabeln" style="top: 12%; left: 2%;">
             <input type="checkbox" id="task2" >
             <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
-            <p class="small-detail">Seite 177-179 komplett als Vokabelkarten aufschreiben</p>
+            <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
             <a class="card-link">Vokabelliste anschauen</a>
           </div>
 
-          <div class="info-card info-ausfall" style="bottom: 20%; right: 10%;">
+          <div class="info-card info-ausfall" style="top: 70%; right: 10%;">
             <p>1./2. entfällt heute!</p>
           </div>
         </div>
@@ -67,7 +67,7 @@
           <AuthForm ref="authComponentRef" />
           <a class="back-link" @click="showAuth = false">Zurück</a>
         </div>
-        <div style="height: 900px">
+        <div style="height: 1000px">
 
         </div>
       </section>
@@ -210,11 +210,12 @@ const examplelist = () => {
 
 .floating-cards-inner {
   position: absolute;
-  top: 0;
+  top: -300px;
   left: 0;
   width: 100%;
-  height: 0;
+  height: 100%;
   pointer-events: none;
+  border: 2px solid red;
   /* will-change removed because kein Parallax mehr */
 }
 
