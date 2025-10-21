@@ -19,19 +19,20 @@
           <h3>Kontakt</h3>
           <p>support@gmail.com</p>
           <router-link  to="/kontakt" class="footer-link">Kontaktformular</router-link>
+
         </div>
+        <All  class="logoutDeviceMobile" />
       </div>
     </div>
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p>© {{ year }} — Alle Rechte vorbehalten</p>
-
-
-        <All />
+        <All  class="logoutDeviceDesktop" />
 
       </div>
     </div>
+
 
 
     <EasterEggOverlay v-if="showOverlay" :videoId="videoId" />
@@ -157,6 +158,9 @@ function handleClick() {
   font-size: 0.5rem;
   transition: color 0.3s ease;
 }
+.logoutDeviceMobile{
+  display: none;
+}
 
 
 @media (max-width: 768px) {
@@ -164,6 +168,12 @@ function handleClick() {
     flex-direction: column;
     gap: 1.5rem;
     text-align: left;
+  }
+.logoutDeviceMobile {
+  display: inherit;
+}
+  .logoutDeviceDesktop {
+    display: none;
   }
 
   .footer-bottom-content {
