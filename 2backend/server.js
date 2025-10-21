@@ -750,7 +750,55 @@ app.post('/api/auth/reset',
 
 
 
+import { Server as IOServer } from 'socket.io';
+
+const httpServer = http.createServer(app);
+
+// optional: wenn du bereits trust proxy und cors konfiguriert hast, stelle sicher, dass origin hier passt
+const io = new IOServer(httpServer, {
+    cors: { origin: CLIENT_ORIGIN || '*', credentials: true }
+});
+
+let connectedCount = 0;
+
+// optional: map socket.id -> userId wenn du eingeloggte Nutzer unterscheiden willst
+const socketUser = new Map();
+
+io.on('connection', (socket) => {
+    connectedCount++;
+    // sende initialen Count an alle Clients
+    io.emit('onlineCount', connectedCount);
+
+    // Falls du Token-basiert Nutzer identifizieren willst:
+    // Client kann bei connect ein Event 'auth' senden mit JWT; hier optional prüfen
+    socket.on('auth', async (token) => {
+        try {
+            const payload = jwt.verify(token, JWT_SECRET);
+            socketUser.set(socket.id, String(payload.sub));
+        } catch (e) {
+            // invalid token -> ignore
+        }
+    });
+
+    // Optional: Client kann anfragen "whoami" oder ähnliches
+    socket.on('disconnect', () => {
+        socketUser.delete(socket.id);
+        connectedCount = Math.max(0, connectedCount - 1);
+        io.emit('onlineCount', connectedCount);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
 // Health
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
+httpServer.listen(PORT, () => console.log(`Hausaufgaben backend on :${PORT}`));
