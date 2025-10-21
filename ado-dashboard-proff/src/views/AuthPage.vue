@@ -128,9 +128,7 @@ const examplelist = () => {
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #FF7A00, #3A0CA3);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+
   display: block;
 }
 
@@ -330,15 +328,11 @@ const examplelist = () => {
   justify-content: center;
 }
 .primary-btn {
-  background: linear-gradient(90deg, var(--primary), #a020f0);
+  background: linear-gradient(90deg, #ff9823, #ff335a, #af00ff, #6600ff );
   color: white;
   border: none;
-  box-shadow: 0 8px 20px rgba(160,32,240,0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
 }
 .primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 25px rgba(160,32,240,0.6);
 }
 
 @media (max-width: 900px) {
