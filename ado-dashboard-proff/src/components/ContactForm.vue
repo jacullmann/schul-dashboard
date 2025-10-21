@@ -227,7 +227,6 @@
 
         <Manual />
         <hr />
-        <br />
       </div>
     </div>
   </section>
