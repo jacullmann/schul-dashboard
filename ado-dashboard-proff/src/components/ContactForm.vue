@@ -613,7 +613,8 @@ try {
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 20px;
+
 }
 
 .contact-form.is-submitting {
@@ -840,7 +841,7 @@ try {
 
 .btn-primary,
 .btn-ghost {
-  padding: 14px 28px;
+  padding: 12px 22px;
   border-radius: 5px;
   font-size: 16px;
   font-weight: 600;
@@ -854,14 +855,12 @@ try {
 }
 
 .btn-primary {
-  background: var(--primary);
-  color: white;
+  background: #f1f1f1;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2b7de0;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(63, 147, 248, 0.4);
+  background: #D9D9D9;
+  transform: translateY(-0.2px);
 }
 
 .btn-primary:disabled {
@@ -871,8 +870,8 @@ try {
 
 .btn-ghost {
   background: transparent;
-  color: var(--muted);
-  border: 2px solid var(--border);
+  color: var(--text);
+  border: 1px solid var(--text);
 }
 
 .btn-ghost:hover:not(:disabled) {
