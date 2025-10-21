@@ -215,7 +215,6 @@ const examplelist = () => {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  border: 2px solid red;
   /* will-change removed because kein Parallax mehr */
 }
 
