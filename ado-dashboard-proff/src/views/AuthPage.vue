@@ -328,7 +328,7 @@ const examplelist = () => {
   justify-content: center;
 }
 .primary-btn {
-  background: linear-gradient(90deg, #ff9823, #ff335a, #af00ff, #6600ff );
+  background: linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff );
   color: white;
   border: none;
 }
