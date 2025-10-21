@@ -21,27 +21,27 @@
       <!-- Floating cards (statisch, kein Parallax mehr) -->
       <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
         <div class="floating-cards-inner">
-          <div class="info-card info-hausaufgabe" style="top: 50%; left: 15%;">
+          <div class="info-card1 info-hausaufgabe" style="top: 50%; left: 15%;">
             <input type="checkbox" id="task1" checked>
             <label for="task1">Hausaufgabe morgen</label>
             <p class="small-detail">CDA p. 77/78</p>
             <div class="card-icon"></div>
           </div>
 
-          <div class="info-card info-klassenarbeit" style="top: 10%; right: 1%;">
+          <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%;">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
             <a @click="examplelist" class="btn ghost-card-btn">Lernzettel öffnen</a>
           </div>
 
-          <div class="info-card info-vokabeln" style="top: 12%; left: 2%;">
+          <div class="info-card3 info-vokabeln" style="top: 12%; left: 2%;">
             <input type="checkbox" id="task2" >
             <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
             <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
             <a class="card-link">Vokabelliste anschauen</a>
           </div>
 
-          <div class="info-card info-ausfall" style="top: 50%; right: 10%;">
+          <div class="info-card4 info-ausfall" style="top: 50%; right: 10%;">
             <p>1./2. entfällt heute!</p>
           </div>
         </div>
@@ -205,17 +205,53 @@ const examplelist = () => {
 }
 
 /* Cards themselves still allow pointer-events so users can interact */
-.info-card {
+.info-card1 {
   position: absolute;
   background-color: rgba(26, 26, 26, 0.85);
   backdrop-filter: blur(10px);
   padding: 16px 20px;
   border-radius: 12px;
   width: clamp(200px, 20vw, 300px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  animation: floatEffect 30s ease-in-out infinite alternate;
+  animation: floatEffect1 2s ease-in-out infinite alternate;
+}
+.info-card2 {
+  position: absolute;
+  background-color: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 16px 20px;
+  border-radius: 12px;
+  width: clamp(200px, 20vw, 300px);
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  animation: floatEffect2 2.6s ease-in-out infinite alternate;
+}
+.info-card3 {
+  position: absolute;
+  background-color: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 16px 20px;
+  border-radius: 12px;
+  width: clamp(200px, 20vw, 300px);
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  animation: floatEffect3 2.3s ease-in-out infinite alternate;
+}
+.info-card4 {
+  position: absolute;
+  background-color: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 16px 20px;
+  border-radius: 12px;
+  width: clamp(200px, 20vw, 300px);
+  border: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  animation: floatEffect4 1.8s ease-in-out infinite alternate;
 }
 
 .info-card:nth-child(1) { animation-delay: 0s; }
@@ -295,11 +331,28 @@ const examplelist = () => {
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
-@keyframes floatEffect {
+@keyframes floatEffect1 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(10px, -15px); }
+  50% { transform: translate(0, -10px); }
   100% { transform: translate(0, 0); }
 }
+
+@keyframes floatEffect2 {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(0, -10px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes floatEffect3 {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(0, -10px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes floatEffect4 {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(0, -10px); }
+  100% { transform: translate(0, 0); }
+}
+
 @keyframes pulseColor {
   0% { transform: scale(1.0); opacity: 0.7; }
   50% { transform: scale(1.2); opacity: 0.9; }
