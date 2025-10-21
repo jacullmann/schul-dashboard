@@ -31,7 +31,7 @@
         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
           <div class="ann-title">{{ a.title }}</div>
           <div class="ann-content">{{ a.content }}</div>
-          <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
+          <!--<div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>-->
           <div v-if="canManage(a.createdBy)" class="ann-actions">
             <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
           </div>
