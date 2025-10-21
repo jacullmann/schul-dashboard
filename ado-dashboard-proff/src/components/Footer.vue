@@ -29,7 +29,6 @@
 
 
         <All />
-        <LiveCounter />
 
       </div>
     </div>
@@ -42,8 +41,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import EasterEggOverlay from "./EasterEggOverlay.vue";
+
 import All from './AllLogoutButton.vue'
-import LiveCounter from "./LiveCounter.vue";
 
 const year = new Date().getFullYear();
 
