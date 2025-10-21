@@ -6,7 +6,7 @@
       <div class="popup">
         <p>Dieses Gerät abmelden</p>
         <div class="popup-content">
-        <button class="btn ma" @click="doLogout">Abmelden</button>
+        <button class="btn ma" @click="weiter">Weiter</button>
         <button class="btn ghost ma" @click="closePopup">Abbrechen</button>
         </div>
 
@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuth } from '../composables/useAuth';
+import {setHwToken} from "../hwApi";
 
 const showPopup = ref(false)
 const auth = useAuth();
@@ -25,9 +26,23 @@ const auth = useAuth();
 function openPopup() {
   showPopup.value = true
 }
+function weiter() {
+  if (user.value) {
+    logout()
+
+  }
+  doLogout();
+
+}
+
 function doLogout() {
   auth.logout();
   window.location.href ='https://schul-dashboards.onrender.com'
+}
+function logout() {
+  setHwToken(null);
+  user.value = null;
+  checkedItems.value = new Set();
 }
 
 function closePopup() {
