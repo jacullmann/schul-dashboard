@@ -342,13 +342,15 @@ const examplelist = () => {
 }
 
 @media (max-width: 900px) {
+
   .hero-main-content {
     padding: 60px 20px 40px;
+    height: 110vh;
   }
 
   .info-card { width: clamp(180px, 40vw, 260px); }
 
-  /* Bei kleinen Bildschirmen werden dekorative Elemente ausgeblendet, so wie vorher */
+
   .background-decorations,
   .floating-cards {
     display: none;
