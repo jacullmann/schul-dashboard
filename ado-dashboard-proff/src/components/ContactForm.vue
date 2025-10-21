@@ -1,22 +1,20 @@
 <template>
   <section class="contact-section card" aria-label="Kontaktformular">
     <div class="container">
-      <!-- Hero Header -->
 
-
-      <!-- Form Card -->
       <div >
-        <div class="hero-header">
-          <div class="hero-content">
-            <h2 style="font-size: 1.4rem" class="hero-title">Kontaktformular</h2>
-            <p class="hero-subtitle">
-              Teile deine Erfahrungen mit uns.
-            </p>
-          </div>
-
-
+        <div >
+        <h2>Kontakt</h2>
+        <small >Teile deine Erfahrungen mit uns</small><br /><br/><hr/><br/>
         </div>
+        <Manual />
+        <hr />
+        <br />
+        <!--<div class="cont">
 
+
+        </div>-->
+        <h3>Kontaktformular</h3><br/>
         <form
             class="contact-form"
             :class="{ 'is-submitting': isSubmitting }"
@@ -233,6 +231,7 @@
 
 <script lang="ts" setup>
 import { reactive, ref, computed, watch } from 'vue'
+import Manual from './EmailContact.vue'
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva'
 const MESSAGE_MAX = 2000
@@ -516,6 +515,12 @@ try {
 </script>
 
 <style scoped>
+.cont{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
 /* Section */
 .contact-section {
   padding: 30px 50px;

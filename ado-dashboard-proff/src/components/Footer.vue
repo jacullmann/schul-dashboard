@@ -17,7 +17,7 @@
 
         <div class="footer-section">
           <h3>Kontakt</h3>
-          <p>support@gmail.com</p>
+          <p @click="toContact" class="superjob">dashboardverifizierung@gmail.com</p>
           <router-link  to="/kontakt" class="footer-link">Kontaktformular</router-link>
 
         </div>
@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import router from "../router";
 import EasterEggOverlay from "./EasterEggOverlay.vue";
 
 import All from './AllLogoutButton.vue'
@@ -68,7 +69,9 @@ function openCookieBanner() {
   //router.push('/login');
 //}
 
-
+function toContact() {
+  router.push('/kontakt')
+}
 
 function handleClick() {
   clickCount.value++;
@@ -97,6 +100,20 @@ function handleClick() {
   color: #f1f1f1;
   padding-top: 2rem;
   border-top: 1px solid #333;
+}
+.superjob {
+  cursor: pointer;
+  max-width: 185px;              /* oder was auch immer */
+  white-space: nowrap;       /* kein Zeilenumbruch */
+  overflow: hidden;          /* schneidet Überflüssiges ab */
+  text-overflow: ellipsis;   /* zeigt „…“ an */
+
+}
+.superjob:hover {
+  white-space: normal;       /* lässt Text umbrechen */
+  overflow: visible;         /* zeigt alles an */
+  position: relative;
+
 }
 
 .footer-container {

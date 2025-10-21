@@ -703,7 +703,7 @@ function revealImages(itemId: string) {
   justify-content: space-between;
   gap: 12px;
 }
-.hw-header h2 { margin: 0 0 2px 0; font-size: 1.25rem; }
+.hw-header h2 { margin: 0 0 2px 0}
 .header-actions { align-items: center; }
 
 /* Announcements */
