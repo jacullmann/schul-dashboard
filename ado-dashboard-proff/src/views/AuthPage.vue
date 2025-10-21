@@ -32,7 +32,7 @@
       <!-- Floating cards (statisch, kein Parallax mehr) -->
       <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
         <div class="floating-cards-inner">
-          <div class="info-card info-hausaufgabe" style="top: 70%; left: 15%;">
+          <div class="info-card info-hausaufgabe" style="top: 50%; left: 15%;">
             <input type="checkbox" id="task1" checked>
             <label for="task1">Hausaufgabe morgen</label>
             <p class="small-detail">CDA p. 77/78</p>
@@ -52,13 +52,11 @@
             <a class="card-link">Vokabelliste anschauen</a>
           </div>
 
-          <div class="info-card info-ausfall" style="top: 70%; right: 10%;">
+          <div class="info-card info-ausfall" style="top: 50%; right: 10%;">
             <p>1./2. entfällt heute!</p>
           </div>
         </div>
-        <div style="height: 600px">
 
-        </div>
       </div>
 
       <!-- AUTH VIEW: ausschließlich AuthForm, ohne Überschriften oder Weiteres -->
@@ -201,7 +199,7 @@ const examplelist = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   pointer-events: none;
   z-index: 5;
   -webkit-transform-style: preserve-3d;
@@ -215,6 +213,7 @@ const examplelist = () => {
   width: 100%;
   height: 100%;
   pointer-events: none;
+  /*border: 2px solid red;*/
   /* will-change removed because kein Parallax mehr */
 }
 
