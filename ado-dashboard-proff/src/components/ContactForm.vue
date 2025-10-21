@@ -556,7 +556,7 @@ try {
   align-items: center;
   gap: 12px;
   padding: 14px 20px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--card);
   border: 1px solid var(--border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -644,7 +644,7 @@ try {
   border: 2px solid transparent;
   border-radius: 7px;
   color: #f1f1f1;
-  font-size: 16px;
+  font-size: 15px;
   transition: all 0.3s ease;
   outline: none;
 }
@@ -775,7 +775,7 @@ try {
   width: 22px;
   height: 22px;
   border: 2px solid var(--border);
-  border-radius: 6px;
+  border-radius: 5px;
   background: rgba(42, 42, 42, 0.5);
   display: flex;
   align-items: center;
