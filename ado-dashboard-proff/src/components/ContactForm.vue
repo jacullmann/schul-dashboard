@@ -7,9 +7,7 @@
         <h2>Kontakt</h2>
         <small >Teile deine Erfahrungen mit uns</small><br /><br/><hr/><br/>
         </div>
-        <Manual />
-        <hr />
-        <br />
+
         <!--<div class="cont">
 
 
@@ -224,6 +222,12 @@
             </transition>
           </div>
         </form>
+        <br/>
+        <hr />
+
+        <Manual />
+        <hr />
+        <br />
       </div>
     </div>
   </section>
