@@ -1,7 +1,7 @@
 <template>
   <div class="full-page-wrapper">
-    <!-- Wrapper für Parallax-Achsen: wir transformieren diese Elemente per JS -->
-    <div ref="bgRef" class="background-decorations">
+    <!-- Hintergrund bleibt erhalten -->
+    <div class="background-decorations">
       <div class="star-decor star-pink" style="top: 10%; right: 15%;"></div>
       <div class="star-decor star-orange" style="top: 30%; left: 8%;"></div>
       <div class="star-decor star-blue" style="bottom: 10%; left: 20%;"></div>
@@ -15,7 +15,7 @@
     </div>
 
     <main class="content-area">
-      <section class="hero-main-content">
+      <section v-if="!showAuth" class="hero-main-content">
         <h1 class="hero-title">
           <span class="text-gradient">Schul-Dashboard</span>
         </h1>
@@ -23,17 +23,17 @@
         <p class="hero-free">komplett kostenfrei</p>
 
         <div class="hero-actions">
-          <button  data-umami-event="Welcome Page Dashboard benutzen button" @click="scrollToAuth" class="btn primary-btn large-btn pulse-effect">
+          <button @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" class="btn primary-btn large-btn pulse-effect">
             Dashboard jetzt benutzen
           </button>
         </div>
       </section>
 
-      <!-- Floating cards wrapper: wir transformieren das .floating-cards-inner -->
-      <div class="floating-cards" aria-hidden="false">
-        <div ref="cardsInnerRef" class="floating-cards-inner">
+      <!-- Floating cards (statisch, kein Parallax mehr) -->
+      <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
+        <div class="floating-cards-inner">
           <div class="info-card info-hausaufgabe" style="top: 12%; left: 10%;">
-            <input type="checkbox" id="task1" checked disabled>
+            <input type="checkbox" id="task1" checked>
             <label for="task1">Hausaufgabe morgen</label>
             <p class="small-detail">CDA p. 77/78</p>
             <div class="card-icon"></div>
@@ -42,11 +42,11 @@
           <div class="info-card info-klassenarbeit" style="top: 25%; right: 5%;">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-            <a href="#" class="btn ghost-card-btn">Lernzettel öffnen</a>
+            <a @click="examplelist" class="btn ghost-card-btn">Lernzettel öffnen</a>
           </div>
 
           <div class="info-card info-vokabeln" style="bottom: 8%; left: 15%;">
-            <input type="checkbox" id="task2" disabled>
+            <input type="checkbox" id="task2" >
             <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
             <p class="small-detail">Seite 177-179 komplett als Vokabelkarten aufschreiben</p>
             <a class="card-link">Vokabelliste anschauen</a>
@@ -56,147 +56,36 @@
             <p>1./2. entfällt heute!</p>
           </div>
         </div>
+        <div style="height: 600px">
+
+        </div>
       </div>
 
-      <section class="auth-section" ref="authSectionRef">
-        <AuthForm ref="authComponentRef" />
+      <!-- AUTH VIEW: ausschließlich AuthForm, ohne Überschriften oder Weiteres -->
+      <section v-if="showAuth" class="auth-section auth-only">
+        <div class="auth-wrapper">
+          <AuthForm ref="authComponentRef" />
+          <a class="back-link" @click="showAuth = false">Zurück</a>
+        </div>
+        <div style="height: 900px">
+
+        </div>
       </section>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref } from 'vue';
 import AuthForm from './Welcome.vue';
 
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
-const authSectionRef = ref<HTMLElement | null>(null);
+const showAuth = ref(false);
 
-const bgRef = ref<HTMLElement | null>(null);
-const cardsInnerRef = ref<HTMLElement | null>(null);
-
-const scrollToAuth = () => {
-  const el = authSectionRef.value;
-  if (el) {
-    el.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }
+// Beispiel-Handler aus originalem Code belassen falls benötigt
+const examplelist = () => {
+  // placeholder: bestehendes Verhalten beibehalten oder implementieren
 };
-
-let ticking = false;
-let lastScrollY = 0;
-
-const onScroll = () => {
-  lastScrollY = window.scrollY || window.pageYOffset || 0;
-  if (!ticking) {
-    ticking = true;
-    requestAnimationFrame(updateParallax);
-  }
-};
-
-const updateParallax = () => {
-  const y = lastScrollY;
-
-  // Wenn Parallax deaktiviert ist (auf Mobilgeräten oder reduced motion), setzen wir keine Transforms
-  if (!isParallaxActive.value) {
-    // Stelle sicher, dass Elemente in ihrer neutralen Position sind
-    if (bgRef.value) bgRef.value.style.transform = '';
-    if (cardsInnerRef.value) cardsInnerRef.value.style.transform = '';
-    ticking = false;
-    return;
-  }
-
-  // Hintergrund 50%
-  const bgFactor = 0.7;
-  if (bgRef.value) {
-    const bgTranslate = Math.round(y * bgFactor);
-    bgRef.value.style.transform = `translate3d(0, ${-bgTranslate}px, 0)`;
-  }
-
-  // Cards 70%
-  const cardsFactor = 0.9;
-  if (cardsInnerRef.value) {
-    const cardsTranslate = Math.round(y * cardsFactor);
-    cardsInnerRef.value.style.transform = `translate3d(0, ${-cardsTranslate}px, 0)`;
-  }
-
-  ticking = false;
-};
-
-// Parallax Aktivierung basierend auf Media Queries
-const isParallaxActive = ref(true);
-
-// MediaQuery-Handles
-let mqPointerCoarse: MediaQueryList | null = null;
-let mqMaxWidth: MediaQueryList | null = null;
-let mqReducedMotion: MediaQueryList | null = null;
-
-const evaluateParallax = () => {
-  const isCoarse = mqPointerCoarse ? mqPointerCoarse.matches : false;
-  const isNarrow = mqMaxWidth ? mqMaxWidth.matches : false;
-  const prefersReduced = mqReducedMotion ? mqReducedMotion.matches : false;
-
-  // Parallax nur aktiv wenn nicht coarse, nicht narrow und nicht reduced
-  isParallaxActive.value = !(isCoarse || isNarrow || prefersReduced);
-};
-
-const mqChangeHandler = () => {
-  evaluateParallax();
-
-  // Wenn Parallax neu aktiviert wurde, führe eine Initial-Update aus
-  if (isParallaxActive.value) {
-    lastScrollY = window.scrollY || window.pageYOffset || 0;
-    updateParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-  } else {
-    // Parallax deaktiviert: entferne Listener und reset Transforms
-    window.removeEventListener('scroll', onScroll);
-    if (bgRef.value) bgRef.value.style.transform = '';
-    if (cardsInnerRef.value) cardsInnerRef.value.style.transform = '';
-  }
-};
-
-onMounted(() => {
-  // initial update
-  lastScrollY = window.scrollY || window.pageYOffset || 0;
-
-  // set up media queries: pointer coarse, max-width 900px, prefers-reduced-motion
-  mqPointerCoarse = window.matchMedia('(pointer: coarse)');
-  mqMaxWidth = window.matchMedia('(max-width: 900px)');
-  mqReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  // evaluate initial state
-  evaluateParallax();
-
-  // add change listeners so we react to resizing or user preference changes
-  if (mqPointerCoarse) mqPointerCoarse.addEventListener('change', mqChangeHandler);
-  if (mqMaxWidth) mqMaxWidth.addEventListener('change', mqChangeHandler);
-  if (mqReducedMotion) mqReducedMotion.addEventListener('change', mqChangeHandler);
-
-  // only add scroll listener if parallax is active
-  if (isParallaxActive.value) {
-    updateParallax();
-    window.addEventListener('scroll', onScroll, { passive: true });
-  } else {
-    // ensure neutral state
-    if (bgRef.value) bgRef.value.style.transform = '';
-    if (cardsInnerRef.value) cardsInnerRef.value.style.transform = '';
-  }
-
-  // resize may affect layout; when parallax active we re-run update
-  window.addEventListener('resize', updateParallax, { passive: true });
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', onScroll);
-  window.removeEventListener('resize', updateParallax);
-
-  if (mqPointerCoarse) mqPointerCoarse.removeEventListener('change', mqChangeHandler);
-  if (mqMaxWidth) mqMaxWidth.removeEventListener('change', mqChangeHandler);
-  if (mqReducedMotion) mqReducedMotion.removeEventListener('change', mqChangeHandler);
-});
 </script>
 
 <style scoped>
@@ -286,9 +175,27 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   min-height: 50vh;
+  margin-top: 5rem;
 }
 
-/* FLOATING CARDS (SIMULATION OF IMAGE ELEMENTS) */
+/* When auth-only view is active we want compact centered wrapper */
+.auth-section.auth-only .auth-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* small back link inside auth view */
+.back-link {
+  font-size: 0.95rem;
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* Floating cards (statisch) */
 .floating-cards {
   position: absolute;
   top: 0;
@@ -297,20 +204,18 @@ onBeforeUnmount(() => {
   height: 100%;
   pointer-events: none;
   z-index: 5;
-  /* preserve-3d for smoother GPU transforms */
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
 }
 
-/* Inner wrapper that actually moves with parallax */
 .floating-cards-inner {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 0;
   pointer-events: none;
-  will-change: transform;
+  /* will-change removed because kein Parallax mehr */
 }
 
 /* Cards themselves still allow pointer-events so users can interact */
@@ -325,8 +230,8 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
   animation: floatEffect 30s ease-in-out infinite alternate;
-  will-change: transform, opacity;
 }
+
 .info-card:nth-child(1) { animation-delay: 0s; }
 .info-card:nth-child(2) { animation-delay: -2s; }
 .info-card:nth-child(3) { animation-delay: -4s; }
@@ -358,7 +263,6 @@ onBeforeUnmount(() => {
 }
 
 /* BACKGROUND DECORATIONS (STARS & LINES) */
-/* fixed so it visually sits behind everything; we move it via transform */
 .background-decorations {
   position: fixed;
   top: 0;
@@ -368,7 +272,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
   overflow: hidden;
   z-index: 1;
-  will-change: transform;
+  will-change: auto;
 }
 
 .star-decor {
@@ -438,17 +342,14 @@ onBeforeUnmount(() => {
   box-shadow: 0 12px 25px rgba(160,32,240,0.6);
 }
 
-
 @media (max-width: 900px) {
   .hero-main-content {
     padding: 60px 20px 40px;
   }
 
-  /* Slight adjustment so cards don't overlap crucial content on very small screens */
   .info-card { width: clamp(180px, 40vw, 260px); }
 
-  /* On small screens the visual elements remain, but parallax is disabled by JS.
-     We keep transforms neutral here to avoid accidental translations. */
+  /* Bei kleinen Bildschirmen werden dekorative Elemente ausgeblendet, so wie vorher */
   .background-decorations,
   .floating-cards {
     display: none;
@@ -460,6 +361,7 @@ onBeforeUnmount(() => {
 .auth-section {
   z-index: 10;
   position: relative;
+  margin-top: 0;
 }
 
 /* ensure clicks on foreground are not blocked */
