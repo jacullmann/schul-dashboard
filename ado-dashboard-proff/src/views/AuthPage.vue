@@ -1,18 +1,7 @@
 <template>
   <div class="full-page-wrapper">
-    <!-- Hintergrund bleibt erhalten -->
-    <div class="background-decorations">
-      <div class="star-decor star-pink" style="top: 10%; right: 15%;"></div>
-      <div class="star-decor star-orange" style="top: 30%; left: 8%;"></div>
-      <div class="star-decor star-blue" style="bottom: 10%; left: 20%;"></div>
-      <div class="star-decor star-purple" style="bottom: 25%; right: 25%;"></div>
-      <div class="star-decor star-cyan" style="top: 45%; right: 40%;"></div>
 
-      <svg class="geometric-lines" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-        <path d="M 50 150 C 200 50, 800 50, 950 150 S 900 600, 700 800 C 500 950, 150 900, 50 750" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
-        <path d="M 900 300 C 750 200, 250 200, 100 300 S 200 750, 450 900 C 700 1050, 950 900, 900 700" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3" />
-      </svg>
-    </div>
+
 
     <main class="content-area">
       <section v-if="!showAuth" class="hero-main-content">
