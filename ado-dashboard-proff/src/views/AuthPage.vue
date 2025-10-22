@@ -30,7 +30,7 @@
           <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%;">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-            <G2 >Lernzettel öffnen</G2>
+            <G2 class="ripple-button2">Lernzettel öffnen</G2>
           </div>
 
           <div class="info-card3 info-vokabeln" style="top: 12%; left: 2%;">
@@ -128,6 +128,17 @@ const showAuth = ref(false);
 </script>
 
 <style scoped>
+.ripple-button2 {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  background:transparent;
+  color: white;
+  border: 1px solid ;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
 /* GENERAL FULL PAGE & STRUCTURE */
 .full-page-wrapper {
   min-height: 100%;

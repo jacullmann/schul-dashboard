@@ -1,6 +1,6 @@
 <template>
   <button
-      class="ripple-button"
+      class="ripple-button2"
       @mousedown="createRipple"
       @click="handleClick"
       ref="buttonRef"
@@ -74,12 +74,12 @@ const handleClick = (event: MouseEvent) => {
 </script>
 
 <style scoped>
-.ripple-button {
+.ripple-button2 {
   position: relative;
   overflow: hidden;
   padding: 12px 24px;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
   background:transparent;
   color: white;
   border: 1px solid ;
@@ -89,10 +89,10 @@ const handleClick = (event: MouseEvent) => {
   z-index: 0;
 }
 
-.ripple-button:hover {
+.ripple-button2:hover {
 }
 
-.ripple-button:active {
+.ripple-button2:active {
   transform: translateY(0);
 }
 
