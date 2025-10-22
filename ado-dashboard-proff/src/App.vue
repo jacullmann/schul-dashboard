@@ -1,8 +1,12 @@
 <template>
   <div class="full">
+
     <Header v-if="$route.path !== '/welcome'"/>
     <main class="full-c">
-      <!--<canvas id="animated-background" ></canvas>-->
+      <div style=" display: flex; justify-content: center; align-items: center; ">
+        <Security class="seecurity" />
+      </div>
+
       <img src="./utils/alt.svg" alt="Background" class="svg-background" />
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
       <div v-if="loading" class="loading-overlay" key="loading">
@@ -31,8 +35,8 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
-import AnimatedBackground from './utils/animated-background.ts';
 import CookieBanner from "./components/CookieBanner.vue"
+import Security from './components/Security.vue'
 
 
 
@@ -45,9 +49,6 @@ const router = useRouter();
 const MIN_LOAD_TIME = 0;
 let loadStartTime = 0;
 
-onMounted(() => {
-  new AnimatedBackground('animated-background');
-});
 
 
 
@@ -72,10 +73,10 @@ router.afterEach(() => {
 </script>
 
 <style scoped>
-/*
-  Stile für die Ladeanimation.
-  Diese sind "scoped", damit sie nur für diese Komponente gelten.
-*/
+.seecurity {
+  z-index: 1000000;
+  position: fixed;
+}
 .loading-overlay {
   display: flex;
   justify-content: center;

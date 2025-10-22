@@ -7,6 +7,7 @@ import VueGtag from 'vue-gtag-next';
 import gaDirective from './directives/gaEvent';
 import { useAuth } from './composables/useAuth';
 import PrimeVue from 'primevue/config';
+import naive from 'naive-ui'
 
 const app = createApp(App);
 
@@ -27,7 +28,7 @@ function removeAnalytics() {
 
 const auth = useAuth();
 
-// Prüfe lokalen Consent beim Start
+
 const consent = localStorage.getItem('cookie_consent');
 if (consent) {
     try {
@@ -56,6 +57,7 @@ app.mount('#app');
 app.use(PrimeVue, {
     unstyled: true,
 });
+app.use(naive)
 
 
 // Aktivitätsbasierte Verlängerung der Session-Expiry (optional)

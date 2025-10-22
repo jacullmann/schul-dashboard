@@ -1,5 +1,12 @@
 <template>
   <div class="full-page-wrapper">
+    <n-alert v-if="bat" style="width: 300px; top: 50px; left: 40%; background-color: white; color: white" type="error" title="Warnung " >
+      <n-marquee>
+        <div style="margin-right: 64px; color: black">
+          -----------------------------------------------Unbefugter Zugriff erkannt----------------------------Sicherheitsmaßnahmen eingeleitet--------------------------------Angreifer identifiziert----------------------------------Angreifer lokalisiert--------------------------------Wähle 110.......................................................................................................................................................
+        </div>
+      </n-marquee>
+    </n-alert>
 
 
 
@@ -27,13 +34,12 @@
             <a style="cursor:pointer;" @click="openhwcheck">Details</a>
           </div>
 
-          <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%;">
+          <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%; z-index: 11">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-            <G2 @click="show = !show" class="ripple-button2">Lernzettel öffnen</G2>
-            <Transition name="openSheet">
-              <p v-if="show">hello world</p>
-            </Transition>
+            <G2 v-if="!bat" @click="batter" class="ripple-button2">Lernzettel öffnen</G2>
+            <LearningList @bat="batter" v-if="bat" />
+
           </div>
 
           <div class="info-card3 info-vokabeln" style="top: 12%; left: 2%;">
@@ -78,10 +84,20 @@ const hwListShow = ref<boolean>(false);
 import HomeworkList from "../components/HomeworkList.vue";
 import G from "../components/G.vue"
 import G2 from "../components/G2.vue"
+import LearningList from "../components/LearningList.vue";
+
 
 console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und wird umgehend zur Anzeige gebracht. ');
 
+const bat = ref<boolean>(false);
 
+function batter(){
+  if (bat.value == true) {
+    bat.value = false;
+  } else {
+    bat.value = true;
+  }
+}
 
 function openVocabcheck() {
   if (VocabListShow.value === true) {
@@ -425,22 +441,5 @@ const showAuth = ref(false);
 .content-area > * { position: relative; z-index: 10; }
 .vocablistflex {
 
-}
-.openSheet-enter-active,
-.openSheet-leave-active {
-  /* Übergang für Opacity und Transformation */
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.openSheet-enter-from {
-  opacity: 0;
-  /* Optional: Startet leicht unter der Endposition */
-  transform: translateY(10px);
-}
-
-.openSheet-leave-to {
-  opacity: 0;
-  /* Optional: Geht leicht nach unten weg */
-  transform: translateY(10px);
 }
 </style>

@@ -35,6 +35,7 @@
         Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
       </div>
 
+
     </div>
   </div>
 </template>

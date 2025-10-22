@@ -167,9 +167,7 @@ const features = ref<Feature[]>([
   margin-top: 0;
 }
 
-/* ========================================================= */
-/* VORHERIGE STYLES, DIE BEIBEHALTEN WURDEN (MIT ANPASSUNGEN) */
-/* ========================================================= */
+
 
 .close-icon-container {
   position: absolute;
