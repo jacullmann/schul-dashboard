@@ -71,17 +71,20 @@
 import { ref } from 'vue';
 import AuthForm from './Welcome.vue';
 import VocabList from "../components/VocabList.vue";
-const VocabListShow = ref<bolean>(false);
-const hwListShow = ref<bolean>(false);
+const VocabListShow = ref<boolean>(false);
+const hwListShow = ref<boolean>(false);
 import HomeworkList from "../components/HomeworkList.vue";
+
 
 function openVocabcheck() {
   if (VocabListShow.value === true) {
     closeVocab();
   } else {
+    if (hwListShow.value === true) {
+      closehw();
+    }
     openVocab();
   }
-
 }
 
 function openVocab() {
@@ -96,9 +99,11 @@ function openhwcheck() {
   if (hwListShow.value === true) {
     closehw();
   } else {
+    if (VocabListShow.value === true) {
+      closeVocab();
+    }
     openhw();
   }
-
 }
 
 function openhw() {
@@ -110,12 +115,15 @@ function closehw() {
   hwListShow.value = false;
 }
 
+
+
+
+
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
 const showAuth = ref(false);
 
-// Beispiel-Handler aus originalem Code belassen falls benötigt
+
 const examplelist = () => {
-  // placeholder: bestehendes Verhalten beibehalten oder implementieren
 };
 </script>
 

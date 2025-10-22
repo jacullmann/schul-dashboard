@@ -7,7 +7,7 @@
     <div class="text-center header-content">
       <h2 class="feature-title-compact">Alle Hausaufgaben auf einen Blick</h2>
       <p class="feature-subtitle-compact">
-        Nie wieder eine Abgabe verpassen. Weniger Stress, mehr Zeit.
+        Nie wieder eine Abgabe verpassen. Weniger Stress, bessere Planung.
       </p>
     </div>
 
@@ -52,8 +52,8 @@ function closeHomeworkEmit() {
 // Features inhaltlich angepasst
 const features = ref<Feature[]>([
   {
-    title: 'Fälligkeiten organisieren',
-    description: 'Sortiere Aufgaben nach Fach, Priorität oder Fälligkeitsdatum – für den perfekten Überblick.',
+    title: 'Hausaufgaben organisieren',
+    description: 'Habe alle Hausaufgaben von überall aus im BLick.',
     icon: Calendar // Neu: Kalender für Fälligkeiten
   },
   {
@@ -62,24 +62,18 @@ const features = ref<Feature[]>([
     icon: CheckCircle // Neu: Haken für Erledigung
   },
   {
-    title: 'Erinnerungen nutzen',
-    description: 'Lasse dich rechtzeitig benachrichtigen, damit du Abgabetermine nie wieder vergisst.',
+    title: 'Hilf anderen',
+    description: 'Hilf anderen und lass dir von anderen Helfen.',
     icon: Bell // Neu: Glocke für Benachrichtigungen
   }
 ])
 </script>
 
 <style scoped>
-/* ========================================================= */
-/* STYLES WIE IN DER VORHERIGEN KOMPONENTE BEIBEHALTEN */
-/* (Minimalistisch, Kompakt, Dunkles Design, Blauer Akzent) */
-/* ========================================================= */
-
-/* Hauptcontainer kompakter */
 .feature-section-compact {
   z-index: 10;
   background: #333333; /* Dunkles, professionelles Grau */
-  padding: 1.5rem 1rem;
+  padding: 1rem 1rem;
   max-width: 500px; /* Max. Breite reduziert */
   margin: 0 auto;
   border-radius: 12px;
