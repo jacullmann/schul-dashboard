@@ -25,7 +25,7 @@
             <input type="checkbox" id="task1" checked>
             <label for="task1">Hausaufgabe morgen</label>
             <p class="small-detail">CDA p. 77/78</p>
-            <div class="card-icon"></div>
+            <a style="cursor:pointer;" @click="openhwcheck">Details</a>
           </div>
 
           <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%;">
@@ -38,11 +38,17 @@
             <input type="checkbox" id="task2" >
             <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
             <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
-            <a class="card-link">Vokabelliste anschauen</a>
+            <a @click="openVocabcheck" style="cursor: pointer" class="card-link">Vokabelliste anschauen</a>
           </div>
 
           <div class="info-card4 info-ausfall" style="top: 50%; right: 10%;">
             <p>1./2. entfällt heute!</p>
+          </div>
+          <div style="pointer-events: auto" v-if="VocabListShow === true" class="vocablistflex">
+          <VocabList @closeVocab="closeVocab" style="" v-if="VocabListShow"/>
+          </div>
+          <div style="pointer-events: auto" v-if="hwListShow === true" class="hwlistflex">
+            <HomeworkList @closehw="closehw" style="" v-if="hwListShow"/>
           </div>
         </div>
 
@@ -56,6 +62,7 @@
         </div>
 
       </section>
+
     </main>
   </div>
 </template>
@@ -63,6 +70,45 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AuthForm from './Welcome.vue';
+import VocabList from "../components/VocabList.vue";
+const VocabListShow = ref<bolean>(false);
+const hwListShow = ref<bolean>(false);
+import HomeworkList from "../components/HomeworkList.vue";
+
+function openVocabcheck() {
+  if (VocabListShow.value === true) {
+    closeVocab();
+  } else {
+    openVocab();
+  }
+
+}
+
+function openVocab() {
+  VocabListShow.value = true;
+
+
+}
+function closeVocab() {
+  VocabListShow.value = false;
+}
+function openhwcheck() {
+  if (hwListShow.value === true) {
+    closehw();
+  } else {
+    openhw();
+  }
+
+}
+
+function openhw() {
+  hwListShow.value = true;
+
+
+}
+function closehw() {
+  hwListShow.value = false;
+}
 
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
 const showAuth = ref(false);
@@ -203,7 +249,7 @@ const examplelist = () => {
   /* will-change removed because kein Parallax mehr */
 }
 
-/* Cards themselves still allow pointer-events so users can interact */
+
 .info-card1 {
   position: absolute;
   background-color: rgba(26, 26, 26, 0.85);
@@ -253,10 +299,7 @@ const examplelist = () => {
   animation: floatEffect4 1.8s ease-in-out infinite alternate;
 }
 
-.info-card:nth-child(1) { animation-delay: 0s; }
-.info-card:nth-child(2) { animation-delay: -2s; }
-.info-card:nth-child(3) { animation-delay: -4s; }
-.info-card:nth-child(4) { animation-delay: -6s; }
+
 
 .info-card label { font-weight: 600; display: block; margin-left: 5px; }
 .info-card input[type="checkbox"] { transform: scale(1.2); }
@@ -283,45 +326,7 @@ const examplelist = () => {
   padding: 10px 15px;
 }
 
-/* BACKGROUND DECORATIONS (STARS & LINES) */
-.background-decorations {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1;
-  will-change: auto;
-}
 
-.star-decor {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  filter: blur(8px);
-  opacity: 0.8;
-  animation: pulseColor 4s ease-in-out infinite alternate;
-}
-
-.star-pink { background-color: #ffc0cb; }
-.star-orange { background-color: #ff7a00; }
-.star-blue { background-color: #3f93f8; }
-.star-purple { background-color: #a020f0; }
-.star-cyan { background-color: #00ffff; }
-
-.geometric-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-/* ANIMATIONS */
 @keyframes slideInUp {
   0% { transform: translateY(40px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
@@ -332,23 +337,23 @@ const examplelist = () => {
 }
 @keyframes floatEffect1 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -8px); }
+  50% { transform: translate(0, -5px); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes floatEffect2 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -8px); }
+  50% { transform: translate(0, -5px); }
   100% { transform: translate(0, 0); }
 }
 @keyframes floatEffect3 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -8px); }
+  50% { transform: translate(0, -5px); }
   100% { transform: translate(0, 0); }
 }
 @keyframes floatEffect4 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -8px); }
+  50% { transform: translate(0, -5px); }
   100% { transform: translate(0, 0); }
 }
 
@@ -358,7 +363,7 @@ const examplelist = () => {
   100% { transform: scale(1.0); opacity: 0.7; }
 }
 
-/* BUTTONS/CTA */
+
 .btn {
   font-size: 1.05rem;
   padding: 10px 18px;
@@ -383,10 +388,7 @@ const examplelist = () => {
     height: 110vh;
   }
 
-  .info-card { width: clamp(180px, 40vw, 260px); }
 
-
-  .background-decorations,
   .floating-cards {
     display: none;
   }
@@ -402,4 +404,7 @@ const examplelist = () => {
 
 /* ensure clicks on foreground are not blocked */
 .content-area > * { position: relative; z-index: 10; }
+.vocablistflex {
+
+}
 </style>

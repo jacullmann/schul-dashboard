@@ -166,7 +166,7 @@ async function confirmDelete() {
 }
 
 function goToProfile() {
-  emit('error', 'Profil-Bearbeitung nicht implementiert');
+  emit('error', 'Dein Browser unterstützt dieses Feature nicht.');
 }
 
 // close on outside click or Escape
