@@ -1,12 +1,5 @@
 <template>
   <div class="full-page-wrapper">
-    <n-alert v-if="bat" style="width: 300px; top: 50px; left: 40%; background-color: white; color: white" type="error" title="Warnung " >
-      <n-marquee>
-        <div style="margin-right: 64px; color: black">
-          -----------------------------------------------Unbefugter Zugriff erkannt----------------------------Sicherheitsmaßnahmen eingeleitet--------------------------------Angreifer identifiziert----------------------------------Angreifer lokalisiert--------------------------------Wähle 110.......................................................................................................................................................
-        </div>
-      </n-marquee>
-    </n-alert>
 
 
 
