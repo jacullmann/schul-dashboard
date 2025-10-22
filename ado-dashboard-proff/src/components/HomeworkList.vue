@@ -54,17 +54,17 @@ const features = ref<Feature[]>([
   {
     title: 'Hausaufgaben organisieren',
     description: 'Habe alle Hausaufgaben von überall aus im BLick.',
-    icon: Calendar // Neu: Kalender für Fälligkeiten
+    icon: Calendar
   },
   {
     title: 'Aufgaben abhaken',
     description: 'Markiere erledigte Aufgaben schnell als "Fertig" und behalte nur das Wichtige im Fokus.',
-    icon: CheckCircle // Neu: Haken für Erledigung
+    icon: CheckCircle
   },
   {
     title: 'Hilf anderen',
     description: 'Hilf anderen und lass dir von anderen Helfen.',
-    icon: Bell // Neu: Glocke für Benachrichtigungen
+    icon: Bell
   }
 ])
 </script>

@@ -11,10 +11,9 @@
         <p class="hero-subtitle">Das Tool, um dein schulisches Leben aufs nächste Level zu bringen</p>
         <p class="hero-free">komplett kostenfrei</p>
 
+
         <div class="hero-actions">
-          <button @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" class="btn primary-btn large-btn pulse-effect">
-            Dashboard jetzt benutzen
-          </button>
+          <G @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" >Dashboard jetzt benutzen</G>
         </div>
       </section>
 
@@ -74,6 +73,7 @@ import VocabList from "../components/VocabList.vue";
 const VocabListShow = ref<boolean>(false);
 const hwListShow = ref<boolean>(false);
 import HomeworkList from "../components/HomeworkList.vue";
+import G from "../components/G.vue"
 
 
 function openVocabcheck() {
@@ -381,13 +381,7 @@ const examplelist = () => {
   align-items: center;
   justify-content: center;
 }
-.primary-btn {
-  background: linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff );
-  color: white;
-  border: none;
-}
-.primary-btn:hover {
-}
+
 
 @media (max-width: 900px) {
 
