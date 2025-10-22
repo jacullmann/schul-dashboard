@@ -30,7 +30,7 @@
           <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%;">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-            <a @click="examplelist" class="btn ghost-card-btn">Lernzettel öffnen</a>
+            <G2 >Lernzettel öffnen</G2>
           </div>
 
           <div class="info-card3 info-vokabeln" style="top: 12%; left: 2%;">
@@ -74,6 +74,7 @@ const VocabListShow = ref<boolean>(false);
 const hwListShow = ref<boolean>(false);
 import HomeworkList from "../components/HomeworkList.vue";
 import G from "../components/G.vue"
+import G2 from "../components/G2.vue"
 
 
 function openVocabcheck() {
@@ -123,8 +124,7 @@ const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
 const showAuth = ref(false);
 
 
-const examplelist = () => {
-};
+
 </script>
 
 <style scoped>

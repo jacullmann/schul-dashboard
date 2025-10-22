@@ -80,9 +80,9 @@ const handleClick = (event: MouseEvent) => {
   padding: 12px 24px;
   font-size: 18px;
   font-weight: 600;
-  background: linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff);
+  background:transparent;
   color: white;
-  border: none;
+  border: 1px solid ;
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.1s ease;
@@ -90,7 +90,6 @@ const handleClick = (event: MouseEvent) => {
 }
 
 .ripple-button:hover {
-  transform: translateY(-2px);
 }
 
 .ripple-button:active {
