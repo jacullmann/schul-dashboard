@@ -18,7 +18,7 @@
         </div>
       </section>
 
-      <!-- Floating cards (statisch, kein Parallax mehr) -->
+
       <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
         <div class="floating-cards-inner">
           <div class="info-card1 info-hausaufgabe" style="top: 50%; left: 15%;">
@@ -54,9 +54,7 @@
           <AuthForm ref="authComponentRef" />
           <a class="back-link" @click="showAuth = false">Zurück</a>
         </div>
-        <div style="height: 1000px">
 
-        </div>
       </section>
     </main>
   </div>
@@ -79,6 +77,7 @@ const examplelist = () => {
 /* GENERAL FULL PAGE & STRUCTURE */
 .full-page-wrapper {
   min-height: 100%;
+  height: 100vh;
   width: 100%;
   top: 0;
   right: 0;
@@ -333,23 +332,23 @@ const examplelist = () => {
 }
 @keyframes floatEffect1 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -10px); }
+  50% { transform: translate(0, -8px); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes floatEffect2 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -10px); }
+  50% { transform: translate(0, -8px); }
   100% { transform: translate(0, 0); }
 }
 @keyframes floatEffect3 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -10px); }
+  50% { transform: translate(0, -8px); }
   100% { transform: translate(0, 0); }
 }
 @keyframes floatEffect4 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -10px); }
+  50% { transform: translate(0, -8px); }
   100% { transform: translate(0, 0); }
 }
 

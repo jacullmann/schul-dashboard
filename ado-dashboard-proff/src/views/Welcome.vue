@@ -128,11 +128,10 @@ function doLogout() {
   padding: 30px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 20px 20px 20px rgba(0, 0, 0, 0.6);
   transition: all 0.3s ease;
 }
 .auth-card:hover {
-  box-shadow: 0 15px 50px rgba(58, 12, 163, 0.3);
 }
 
 /* Typografie */
@@ -163,8 +162,7 @@ function doLogout() {
 }
 .auth-input:focus {
   outline: none;
-  border-color: #3A0CA3;
-  box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.5);
+  border-color: #494749;
   background: #111;
 }
 
@@ -184,18 +182,18 @@ function doLogout() {
 }
 .primary-btn-auth {
   flex-grow: 1;
-  background: linear-gradient(90deg, var(--primary), #a020f0);
+  background: linear-gradient(65deg, #523de6, #8f0b9e);
   color: white;
   border: none;
-  box-shadow: 0 4px 15px rgba(58, 12, 163, 0.2);
+  transition: 0.21s;
 }
 .primary-btn-auth:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(58, 12, 163, 0.4);
+
 }
 .primary-btn-auth:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  background: linear-gradient(65deg, #523de6, #8f0b9e);
 }
 
 .logout-btn {
