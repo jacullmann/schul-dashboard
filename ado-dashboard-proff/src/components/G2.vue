@@ -80,20 +80,17 @@ const handleClick = (event: MouseEvent) => {
   padding: 12px 24px;
   font-size: 18px;
   font-weight: 600;
+  background: linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff);
+  color: white;
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   transition: transform 0.1s ease;
   z-index: 0;
-  color: white;
-  background: linear-gradient(70deg, rgba(255, 152, 35, 0.90), rgba(255, 51, 90, 0.90), rgba(175, 0, 255, 0.90), rgba(102, 0, 255, 0.90));
-  border: none;
 }
 
 .ripple-button:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff);
-  color: white;
-  border: none;
+  transform: translateY(-2px);
 }
 
 .ripple-button:active {
