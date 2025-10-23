@@ -15,8 +15,9 @@
 
         <div class="hero-actions">
           <G @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" >Dashboard jetzt benutzen</G>
+          <Button  @click="scrollToInfo" class="visible btn btn-ghost more-info-btn">Mehr erfahren</Button>
         </div>
-        <Button style="margin-top: 10px" class="visible btn btn-ghost">Mehr erfahren</Button>
+
       </section>
 
 
@@ -87,7 +88,7 @@
 
       </div>
 
-      <div v-if="!showAuth" class="mobile-card-list" aria-hidden="true">
+      <div id="more-info-anchor" v-if="!showAuth" class="mobile-card-list" aria-hidden="true">
         <HF  />
       </div>
 
@@ -395,6 +396,16 @@ function batter(){
   }
 }
 
+function scrollToInfo() {
+  const targetElement = document.getElementById('more-info-anchor');
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth', // Das sorgt für den "smooth" Effekt!
+      block: 'start'      // Scrollt, bis der Anfang des Elements sichtbar ist
+    });
+  }
+}
+
 function NotificationButton() {
   const notification = useNotification()
   const index = ref(0)
@@ -553,6 +564,13 @@ const showAuth = ref(false);
   margin-top: 40px;
   animation: slideInUp 1.2s ease-out 0.6s forwards;
   opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.more-info-btn { /* Neue Klasse für den Abstand */
+  margin-top: 10px;
 }
 
 .large-btn {
@@ -746,6 +764,7 @@ const showAuth = ref(false);
 }
 .visible {
   display: none;
+
 }
 @media (max-width: 900px) {
 
