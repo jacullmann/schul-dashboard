@@ -3,6 +3,7 @@
 
 
 
+
     <main class="content-area">
       <section v-if="!showAuth" class="hero-main-content">
         <h1 class="hero-title">
@@ -40,7 +41,7 @@
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
             <G2  @click="batter" class="ripple-button2">
 
-              <div>
+              <div class="rippli">
                 <p v-if="!bat">Lernzettel öffnen</p>
                 <LearningList v-if="bat" />
               </div>
@@ -59,6 +60,9 @@
 
           <div class="info-card4 info-ausfall" style="top: 50%; right: 10%;">
             <p>1./2. entfällt heute!</p>
+            <n-notification-provider placement="top-right" container-style="color: red;" :max="1">
+              <NotificationButton class="white" style="color: white"/>
+            </n-notification-provider>
           </div>
           <div style="pointer-events: auto" v-if="VocabListShow === true" class="vocablistflex">
           <VocabList @closeVocab="closeVocab" style="" v-if="VocabListShow"/>
@@ -84,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { h, ref, onMounted } from 'vue';
 import AuthForm from './Welcome.vue';
 import VocabList from "../components/VocabList.vue";
 const VocabListShow = ref<boolean>(false);
@@ -93,6 +97,7 @@ import HomeworkList from "../components/HomeworkList.vue";
 import G from "../components/G.vue"
 import G2 from "../components/G2.vue"
 import LearningList from "../components/LearningList.vue";
+import { NButton, useNotification } from 'naive-ui'
 
 
 console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und wird umgehend zur Anzeige gebracht. ');
@@ -105,6 +110,25 @@ function batter(){
   } else {
     bat.value = true;
   }
+}
+
+function NotificationButton() {
+  const notification = useNotification()
+  const index = ref(0)
+
+  return h(
+      NButton,
+      {
+        onClick: () => {
+          index.value++
+          notification.info({
+            title: `Nur ein Spaß.`,
+            content: 'Natürlich fällt die 1./2. Stunde heute nicht aus.'
+          })
+        }
+      },
+      { default: () => 'Auf DSB überprüfen' }
+  )
 }
 
 function openVocabcheck() {
@@ -158,6 +182,13 @@ const showAuth = ref(false);
 </script>
 
 <style scoped>
+.rippli{
+}
+
+.white:hover{
+  color: white;
+}
+
 .ripple-button2 {
   padding: 12px 24px;
   font-size: 15px;
@@ -386,23 +417,23 @@ const showAuth = ref(false);
 }
 @keyframes floatEffect1 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -5px); }
+  50% { transform: translate(0, -2px); }
   100% { transform: translate(0, 0); }
 }
 
 @keyframes floatEffect2 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -5px); }
+  50% { transform: translate(0, -2px); }
   100% { transform: translate(0, 0); }
 }
 @keyframes floatEffect3 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -5px); }
+  50% { transform: translate(0, -2px); }
   100% { transform: translate(0, 0); }
 }
 @keyframes floatEffect4 {
   0% { transform: translate(0, 0); }
-  50% { transform: translate(0, -5px); }
+  50% { transform: translate(0, -2px); }
   100% { transform: translate(0, 0); }
 }
 
