@@ -23,7 +23,7 @@
         <div class="floating-cards-inner">
           <div
               class="info-card1 info-hausaufgabe"
-              :style="{ top: card1Y + 'px', left: card1X + 'px', cursor: isDragging1 ? 'grabbing' : 'grab' }"
+              :style="{ top: card1Y + 'px', zIndex: card1ZIndex, left: card1X + 'px', cursor: isDragging1 ? 'grabbing' : 'grab' }"
               @mousedown.prevent="startDrag1"
           >
             <input type="checkbox" id="task1" checked>
@@ -42,7 +42,7 @@
 
           <div
               class="info-card2 info-klassenarbeit"
-              :style="{ top: card2Y + 'px', left: card2X + 'px', cursor: isDragging2 ? 'grabbing' : 'grab' }"
+              :style="{ top: card2Y + 'px', left: card2X + 'px', zIndex: card2ZIndex, cursor: isDragging2 ? 'grabbing' : 'grab' }"
               @mousedown.prevent="startDrag2"
           >
             <p>Klassenarbeit Deutsch</p>
@@ -61,7 +61,7 @@
 
           <div
               class="info-card3 info-aufgaben"
-              :style="{ top: card3Y + 'px', left: card3X + 'px', cursor: isDragging3 ? 'grabbing' : 'grab' }"
+              :style="{ top: card3Y + 'px', left: card3X + 'px', zIndex: card3ZIndex, cursor: isDragging3 ? 'grabbing' : 'grab' }"
               @mousedown.prevent="startDrag3"
           >
             <input type="checkbox" id="task2" >
@@ -72,16 +72,16 @@
 
           <div
               class="info-card4 info-stundenplan"
-              :style="{ top: card4Y + 'px', left: card4X + 'px', cursor: isDragging4 ? 'grabbing' : 'grab' }"
+              :style="{ top: card4Y + 'px', left: card4X + 'px', zIndex: card4ZIndex, cursor: isDragging4 ? 'grabbing' : 'grab' }"
               @mousedown.prevent="startDrag4"
           >
             <p>1./2. entfällt heute!</p>
             <n-notification-provider placement="top-right" container-style="color: red;" :max="1">
-              <NotificationButton class="white" style="color: white"/>
+              <NotificationButton class="notification-check-button" />
             </n-notification-provider>
           </div>
-          <div style="pointer-events: auto" v-if="VocabListShow === true" class="vocablistflex" :style="{ top: list1Y + 'px', left: list1X + 'px', position: 'fixed', cursor: isDraggingList1 ? 'grabbing' : 'grab' }" @mousedown.prevent="startDragList1"> <VocabList @closeVocab="closeVocab" style="" v-if="VocabListShow"/> </div>
-          <div style="pointer-events: auto" v-if="hwListShow === true" class="hwlistflex" :style="{ top: list2Y + 'px', left: list2X + 'px', position: 'fixed', cursor: isDraggingList2 ? 'grabbing' : 'grab' }" @mousedown.prevent="startDragList2"> <HomeworkList @closehw="closehw" style="" v-if="hwListShow"/> </div>
+          <div style="pointer-events: auto" v-if="VocabListShow === true" class="vocablistflex" :style="{ top: list1Y + 'px', left: list1X + 'px', zIndex: list1ZIndex, position: 'fixed', cursor: isDraggingList1 ? 'grabbing' : 'grab' }" @mousedown.prevent="startDragList1"> <VocabList @closeVocab="closeVocab" style="" v-if="VocabListShow"/> </div>
+          <div style="pointer-events: auto" v-if="hwListShow === true" class="hwlistflex" :style="{ top: list2Y + 'px', left: list2X + 'px', position: 'fixed', zIndex: list2ZIndex, cursor: isDraggingList2 ? 'grabbing' : 'grab' }" @mousedown.prevent="startDragList2"> <HomeworkList @closehw="closehw" style="" v-if="hwListShow"/> </div>
         </div>
 
       </div>
@@ -140,6 +140,15 @@ const list2X = ref(500);
 const list2Y = ref(-400);
 const isDraggingList2 = ref(false);
 
+const highestZIndex = ref(10);
+
+const card1ZIndex = ref(10);
+const card2ZIndex = ref(10);
+const card3ZIndex = ref(10);
+const card4ZIndex = ref(10);
+const list1ZIndex = ref(10);
+const list2ZIndex = ref(10);
+
 let initialMouseX = 0;
 let initialMouseY = 0;
 let initialCardX = 0;
@@ -152,6 +161,9 @@ function startDrag1(event: MouseEvent) {
   event.preventDefault();
 
   isDragging1.value = true;
+
+  highestZIndex.value++;
+  card1ZIndex.value = highestZIndex.value;
 
 
   initialMouseX = event.clientX;
@@ -190,6 +202,9 @@ function startDrag2(event: MouseEvent) {
 
   isDragging2.value = true;
 
+  highestZIndex.value++;
+  card2ZIndex.value = highestZIndex.value;
+
 
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
@@ -225,6 +240,9 @@ function startDrag3(event: MouseEvent) {
   event.preventDefault();
 
   isDragging3.value = true;
+
+  highestZIndex.value++;
+  card3ZIndex.value = highestZIndex.value;
 
 
   initialMouseX = event.clientX;
@@ -262,6 +280,9 @@ function startDrag4(event: MouseEvent) {
 
   isDragging4.value = true;
 
+  highestZIndex.value++;
+  card4ZIndex.value = highestZIndex.value;
+
 
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
@@ -297,7 +318,10 @@ function startDragList1(event: MouseEvent) {
   event.preventDefault();
   isDraggingList1.value = true;
 
-  // Speichern der Maus- und Listen-Position
+  highestZIndex.value++;
+  list1ZIndex.value = highestZIndex.value;
+
+
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
   initialCardX = list1X.value;
@@ -327,7 +351,10 @@ function startDragList2(event: MouseEvent) {
   event.preventDefault();
   isDraggingList2.value = true;
 
-  // Speichern der Maus- und Listen-Position
+  highestZIndex.value++;
+  list2ZIndex.value = highestZIndex.value;
+
+
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
   initialCardX = list2X.value;
@@ -376,7 +403,9 @@ function NotificationButton() {
           })
         }
       },
-      { default: () => 'Auf DSB überprüfen' }
+      { default: () =>
+            '---> Auf DSB überprüfen'
+      }
   )
 }
 
@@ -717,7 +746,7 @@ const showAuth = ref(false);
   }
 }
 
-/* Minor accessibility and layering adjustments */
+
 .hero-main-content,
 .auth-section {
   z-index: 10;
@@ -725,9 +754,37 @@ const showAuth = ref(false);
   margin-top: 0;
 }
 
-/* ensure clicks on foreground are not blocked */
 .content-area > * { position: relative; z-index: 10; }
 .vocablistflex {
 
+}
+
+.info-card4 > p:first-child {
+  color: #FF7043;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.notification-check-button {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  background: transparent !important;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  width: 40px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.4s ease-out, border-color 0.4s ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-check-button:hover {
+  width: 180px;
+  border-color: white !important;
 }
 </style>

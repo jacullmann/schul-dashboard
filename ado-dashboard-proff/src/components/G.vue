@@ -260,7 +260,7 @@ const handleClick = (event: MouseEvent) => {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
-  transition: opacity 0.05s linear;
+  transition: opacity 0.1s linear;
 }
 
 .button-text {
