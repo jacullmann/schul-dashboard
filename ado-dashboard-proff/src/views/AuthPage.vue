@@ -16,6 +16,7 @@
         <div class="hero-actions">
           <G @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" >Dashboard jetzt benutzen</G>
         </div>
+        <Button style="margin-top: 10px" class="visible btn btn-ghost">Mehr erfahren</Button>
       </section>
 
 
@@ -743,12 +744,17 @@ const showAuth = ref(false);
 .mobile-card-list {
   display: none;
 }
-
+.visible {
+  display: none;
+}
 @media (max-width: 900px) {
 
   .hero-main-content {
     padding: 60px 20px 40px;
     height: 110vh;
+  }
+  .visible {
+    display: block;
   }
 
 
