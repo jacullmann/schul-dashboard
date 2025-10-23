@@ -21,7 +21,11 @@
 
       <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
         <div class="floating-cards-inner">
-          <div class="info-card1 info-hausaufgabe" style="top: 50%; left: 15%;">
+          <div
+              class="info-card1 info-hausaufgabe"
+              :style="{ top: card1Y + 'px', left: card1X + 'px', cursor: isDragging1 ? 'grabbing' : 'grab' }"
+              @mousedown.prevent="startDrag1"
+          >
             <input type="checkbox" id="task1" checked>
             <label for="task1">Hausaufgabe morgen</label>
             <p class="small-detail">CDA p. 77/78</p>
@@ -36,7 +40,11 @@
 
           </div>-->
 
-          <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%; z-index: 11">
+          <div
+              class="info-card2 info-klassenarbeit"
+              :style="{ top: card2Y + 'px', left: card2X + 'px', cursor: isDragging2 ? 'grabbing' : 'grab' }"
+              @mousedown.prevent="startDrag2"
+          >
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
             <G2  @click="batter" class="ripple-button2">
@@ -51,14 +59,22 @@
 
           </div>
 
-          <div class="info-card3 info-vokabeln" style="top: 12%; left: 2%;">
+          <div
+              class="info-card3 info-aufgaben"
+              :style="{ top: card3Y + 'px', left: card3X + 'px', cursor: isDragging3 ? 'grabbing' : 'grab' }"
+              @mousedown.prevent="startDrag3"
+          >
             <input type="checkbox" id="task2" >
             <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
             <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
             <a @click="openVocabcheck" style="cursor: pointer" class="card-link">Vokabelliste anschauen</a>
           </div>
 
-          <div class="info-card4 info-ausfall" style="top: 50%; right: 10%;">
+          <div
+              class="info-card4 info-stundenplan"
+              :style="{ top: card4Y + 'px', left: card4X + 'px', cursor: isDragging4 ? 'grabbing' : 'grab' }"
+              @mousedown.prevent="startDrag4"
+          >
             <p>1./2. entfällt heute!</p>
             <n-notification-provider placement="top-right" container-style="color: red;" :max="1">
               <NotificationButton class="white" style="color: white"/>
@@ -103,6 +119,175 @@ import { NButton, useNotification } from 'naive-ui'
 console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und wird umgehend zur Anzeige gebracht. ');
 
 const bat = ref<boolean>(false);
+
+const card1X = ref(300); // Beispielhafte Start-X-Position in px
+const card1Y = ref(400); // Beispielhafte Start-Y-Position in px
+const isDragging1 = ref(false);
+
+const card2X = ref(1000); // Beispielhafte Start-X-Position in px
+const card2Y = ref(120); // Beispielhafte Start-Y-Position in px
+const isDragging2 = ref(false);
+
+const card3X = ref(0); // Beispielhafte Start-X-Position in px
+const card3Y = ref(50); // Beispielhafte Start-Y-Position in px
+const isDragging3 = ref(false);
+
+const card4X = ref(800); // Beispielhafte Start-X-Position in px
+const card4Y = ref(400); // Beispielhafte Start-Y-Position in px
+const isDragging4 = ref(false);
+
+let initialMouseX = 0;
+let initialMouseY = 0;
+let initialCardX = 0;
+let initialCardY = 0;
+
+
+
+function startDrag1(event: MouseEvent) {
+  // Verhindert das Standardverhalten (z.B. Textauswahl)
+  event.preventDefault();
+
+  isDragging1.value = true;
+
+  // Speichern der Mausposition beim Klick
+  initialMouseX = event.clientX;
+  initialMouseY = event.clientY;
+
+  // Speichern der aktuellen Kartenposition
+  initialCardX = card1X.value;
+  initialCardY = card1Y.value;
+
+  // Globale Listener hinzufügen (damit das Ziehen auch funktioniert, wenn der Cursor die Karte verlässt)
+  window.addEventListener('mousemove', drag1);
+  window.addEventListener('mouseup', stopDrag1);
+}
+
+function drag1(event: MouseEvent) {
+  if (isDragging1.value) {
+    // Berechnung der Verschiebung (Delta)
+    const deltaX = event.clientX - initialMouseX;
+    const deltaY = event.clientY - initialMouseY;
+
+    // Aktualisiere die Kartenposition
+    card1X.value = initialCardX + deltaX;
+    card1Y.value = initialCardY + deltaY;
+  }
+}
+
+function stopDrag1() {
+  isDragging1.value = false;
+  // Globale Listener entfernen
+  window.removeEventListener('mousemove', drag1);
+  window.removeEventListener('mouseup', stopDrag1);
+}
+
+function startDrag2(event: MouseEvent) {
+  event.preventDefault();
+
+  isDragging2.value = true;
+
+  // Speichern der Mausposition beim Klick
+  initialMouseX = event.clientX;
+  initialMouseY = event.clientY;
+
+  // Speichern der aktuellen Kartenposition
+  initialCardX = card2X.value;
+  initialCardY = card2Y.value;
+
+  // Globale Listener hinzufügen
+  window.addEventListener('mousemove', drag2);
+  window.addEventListener('mouseup', stopDrag2);
+}
+
+function drag2(event: MouseEvent) {
+  if (isDragging2.value) {
+    const deltaX = event.clientX - initialMouseX;
+    const deltaY = event.clientY - initialMouseY;
+
+    // Aktualisiere die Kartenposition
+    card2X.value = initialCardX + deltaX;
+    card2Y.value = initialCardY + deltaY;
+  }
+}
+
+function stopDrag2() {
+  isDragging2.value = false;
+  // Globale Listener entfernen
+  window.removeEventListener('mousemove', drag2);
+  window.removeEventListener('mouseup', stopDrag2);
+}
+
+function startDrag3(event: MouseEvent) {
+  event.preventDefault();
+
+  isDragging3.value = true;
+
+  // Speichern der Mausposition beim Klick
+  initialMouseX = event.clientX;
+  initialMouseY = event.clientY;
+
+  // Speichern der aktuellen Kartenposition
+  initialCardX = card3X.value;
+  initialCardY = card3Y.value;
+
+  // Globale Listener hinzufügen
+  window.addEventListener('mousemove', drag3);
+  window.addEventListener('mouseup', stopDrag3);
+}
+
+function drag3(event: MouseEvent) {
+  if (isDragging3.value) {
+    const deltaX = event.clientX - initialMouseX;
+    const deltaY = event.clientY - initialMouseY;
+
+    // Aktualisiere die Kartenposition
+    card3X.value = initialCardX + deltaX;
+    card3Y.value = initialCardY + deltaY;
+  }
+}
+
+function stopDrag3() {
+  isDragging3.value = false;
+  // Globale Listener entfernen
+  window.removeEventListener('mousemove', drag3);
+  window.removeEventListener('mouseup', stopDrag3);
+}
+
+function startDrag4(event: MouseEvent) {
+  event.preventDefault();
+
+  isDragging4.value = true;
+
+  // Speichern der Mausposition beim Klick
+  initialMouseX = event.clientX;
+  initialMouseY = event.clientY;
+
+  // Speichern der aktuellen Kartenposition
+  initialCardX = card4X.value;
+  initialCardY = card4Y.value;
+
+  // Globale Listener hinzufügen
+  window.addEventListener('mousemove', drag4);
+  window.addEventListener('mouseup', stopDrag4);
+}
+
+function drag4(event: MouseEvent) {
+  if (isDragging4.value) {
+    const deltaX = event.clientX - initialMouseX;
+    const deltaY = event.clientY - initialMouseY;
+
+    // Aktualisiere die Kartenposition
+    card4X.value = initialCardX + deltaX;
+    card4Y.value = initialCardY + deltaY;
+  }
+}
+
+function stopDrag4() {
+  isDragging4.value = false;
+  // Globale Listener entfernen
+  window.removeEventListener('mousemove', drag4);
+  window.removeEventListener('mouseup', stopDrag4);
+}
 
 function batter(){
   if (bat.value == true) {
