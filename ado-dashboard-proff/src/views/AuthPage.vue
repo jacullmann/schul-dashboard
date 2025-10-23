@@ -87,13 +87,7 @@
       </div>
 
       <div v-if="!showAuth" class="mobile-card-list" aria-hidden="true">
-        <HF
-            :batProp="bat"
-            @openHwCheck="openhwcheck"
-            @openVocabCheck="openVocabcheck"
-            @toggleLearningList="batter"
-            @triggerNotification="triggerMobileNotification"
-        />
+        <HF  />
       </div>
 
 
