@@ -86,6 +86,10 @@
 
       </div>
 
+      <div v-if="!showAuth" class="mobile-card-list" aria-hidden="true">
+        Hallo
+      </div>
+
 
       <section v-if="showAuth" class="auth-section auth-only">
         <div class="auth-wrapper">
@@ -617,7 +621,8 @@ const showAuth = ref(false);
   border: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  animation: floatEffect1 2s ease-in-out infinite alternate;
+  /*animation: floatEffect1 2s ease-in-out infinite alternate;*/
+  animation: none;
 }
 .info-card2 {
   position: absolute;
@@ -629,7 +634,8 @@ const showAuth = ref(false);
   border: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  animation: floatEffect2 2.6s ease-in-out infinite alternate;
+  /*animation: floatEffect2 2.6s ease-in-out infinite alternate;*/
+  animation: none;
 }
 .info-card3 {
   position: absolute;
@@ -641,7 +647,8 @@ const showAuth = ref(false);
   border: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  animation: floatEffect3 2.3s ease-in-out infinite alternate;
+  /*animation: floatEffect3 2.3s ease-in-out infinite alternate;*/
+  animation: none;
 }
 .info-card4 {
   position: absolute;
@@ -653,7 +660,8 @@ const showAuth = ref(false);
   border: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
-  animation: floatEffect4 1.8s ease-in-out infinite alternate;
+  /*animation: floatEffect4 1.8s ease-in-out infinite alternate;*/
+  animation: none;
 }
 
 
@@ -730,7 +738,9 @@ const showAuth = ref(false);
   align-items: center;
   justify-content: center;
 }
-
+.mobile-card-list {
+  display: none;
+}
 
 @media (max-width: 900px) {
 
@@ -743,7 +753,13 @@ const showAuth = ref(false);
   .floating-cards {
     display: none;
   }
+
+  .mobile-card-list {
+    display: flex;
+  }
 }
+
+
 
 
 .hero-main-content,
@@ -759,7 +775,6 @@ const showAuth = ref(false);
 }
 
 .info-card4 > p:first-child {
-  color: #FF7043;
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 10px;

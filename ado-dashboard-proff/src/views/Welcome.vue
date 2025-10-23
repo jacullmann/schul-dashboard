@@ -1,7 +1,7 @@
 <template>
   <div class="container auth-wrapper">
     <div class="auth-card">
-      <h2 class="auth-title">Zugang erforderlich</h2>
+      <h2 class="auth-title">Authorisierung </h2>
       <p class="small auth-hint">Bitte gib deinen persönlichen Zugangscode ein.</p>
 
       <div class="input-group">
