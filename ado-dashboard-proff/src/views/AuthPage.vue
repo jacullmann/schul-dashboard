@@ -87,8 +87,15 @@
       </div>
 
       <div v-if="!showAuth" class="mobile-card-list" aria-hidden="true">
-        Hallo
+        <HF
+            :batProp="bat"
+            @openHwCheck="openhwcheck"
+            @openVocabCheck="openVocabcheck"
+            @toggleLearningList="batter"
+            @triggerNotification="triggerMobileNotification"
+        />
       </div>
+
 
 
       <section v-if="showAuth" class="auth-section auth-only">
@@ -114,6 +121,7 @@ import G from "../components/G.vue"
 import G2 from "../components/G2.vue"
 import LearningList from "../components/LearningList.vue";
 import { NButton, useNotification } from 'naive-ui'
+import HF from "../components/Mobile.vue"
 
 
 console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und wird umgehend zur Anzeige gebracht. ');
