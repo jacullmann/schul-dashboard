@@ -86,7 +86,7 @@
 
       </div>
 
-      <!-- AUTH VIEW: ausschließlich AuthForm, ohne Überschriften oder Weiteres -->
+
       <section v-if="showAuth" class="auth-section auth-only">
         <div class="auth-wrapper">
           <AuthForm ref="authComponentRef" />
@@ -478,7 +478,7 @@ const showAuth = ref(false);
   cursor: pointer;
   transition: transform 0.1s ease;
 }
-/* GENERAL FULL PAGE & STRUCTURE */
+
 .full-page-wrapper {
   min-height: 100%;
   height: 100vh;
@@ -494,7 +494,7 @@ const showAuth = ref(false);
   overflow-x: hidden;
 }
 
-/* Keep content centered and readable */
+
 .content-area {
   flex-grow: 1;
   position: relative;
@@ -504,7 +504,7 @@ const showAuth = ref(false);
   padding: 30px 20px;
 }
 
-/* HERO CONTENT */
+
 .hero-main-content {
   text-align: center;
   padding: 100px 20px 80px;
@@ -556,7 +556,7 @@ const showAuth = ref(false);
   min-width: 280px;
 }
 
-/* AUTH SECTION */
+
 .auth-section {
   padding: 60px 20px;
   display: flex;
@@ -566,7 +566,7 @@ const showAuth = ref(false);
   margin-top: 5rem;
 }
 
-/* When auth-only view is active we want compact centered wrapper */
+
 .auth-section.auth-only .auth-wrapper {
   display: flex;
   flex-direction: column;
@@ -574,7 +574,7 @@ const showAuth = ref(false);
   gap: 14px;
 }
 
-/* small back link inside auth view */
+
 .back-link {
   font-size: 0.95rem;
   color: var(--primary);
@@ -583,7 +583,7 @@ const showAuth = ref(false);
   margin-top: 8px;
 }
 
-/* Floating cards (statisch) */
+
 .floating-cards {
   position: absolute;
   top: 0;
@@ -604,7 +604,6 @@ const showAuth = ref(false);
   height: 100%;
   pointer-events: none;
   /*border: 2px solid red;*/
-  /* will-change removed because kein Parallax mehr */
 }
 
 

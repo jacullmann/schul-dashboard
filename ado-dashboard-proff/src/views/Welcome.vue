@@ -101,13 +101,9 @@ function doLogout() {
 .checkbox-label .checkbox:checked::after {
   content: "";
   position: absolute;
-  /* Statt festen Pixeln für left/top, nutzen wir absolute Zentrierung */
   left: 50%;
   top: 50%;
-  /* Verschieben um die Hälfte der eigenen Größe, um exakt zu zentrieren */
   transform: translate(-50%, -50%) rotate(45deg);
-
-  /* Größe und Strichstärke bleiben gleich, da sie für das Häkchen selbst relativ zur Checkbox gut funktionieren */
   width: 6px;
   height: 12px;
   border: solid white;
@@ -118,10 +114,10 @@ function doLogout() {
   outline: none;
 }
 
-/* Container und Card */
+
 .auth-wrapper {
   max-width: 440px;
-  margin: 60px auto 100px; /* Mehr Platz am unteren Rand */
+  margin: 60px auto 100px;
   padding: 16px;
 }
 .auth-card {
@@ -135,7 +131,7 @@ function doLogout() {
 .auth-card:hover {
 }
 
-/* Typografie */
+
 .auth-title {
   margin-top: 0;
   font-size: 1.8rem;
@@ -147,7 +143,7 @@ function doLogout() {
   margin-bottom: 25px;
 }
 
-/* Eingabefeld */
+
 .input-group {
   margin: 15px 0 20px 0;
 }
@@ -167,7 +163,7 @@ function doLogout() {
   background: #111;
 }
 
-/* Aktionen (Buttons) */
+
 .auth-actions {
   display: flex;
   gap: 12px;
@@ -207,7 +203,7 @@ function doLogout() {
   color: var(--text);
 }
 
-/* Sonstiges */
+
 .error-message {
   color:var(--danger);
   margin-top:15px;

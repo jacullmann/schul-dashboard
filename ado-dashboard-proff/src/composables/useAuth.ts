@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 
 const STORAGE_KEY = 'app_auth_token';
 const STORAGE_EXPIRES_KEY = 'app_auth_expires';
-const FRONTEND_CODE = 'mynewjamaicanlawyer';
+const FRONTEND_CODE = 'hash891219!';
 
 const token = ref<string | null>(null);
 
@@ -38,10 +38,10 @@ export function useAuth() {
     const isAuthenticated = computed(() => !!token.value);
 
     function loginWithCode(code: string) {
-        // einfacher front-end check: nur der richtige Code führt zum Token
+
         if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
         if (code === FRONTEND_CODE) {
-            // Erzeuge ein kleines zufälliges token (nur für frontend session purposes)
+
             const t = 'tf_' + Math.random().toString(36).slice(2);
             const expires = now() + inThirtyDaysMs();
             token.value = t;
@@ -65,7 +65,7 @@ export function useAuth() {
         localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
     }
 
-    // expose
+
     return {
         token,
         isAuthenticated,

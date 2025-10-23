@@ -65,7 +65,7 @@ const isMobile = ref(false);
 let clickRippleId = 0;
 let hoverAnimationFrame: number | null = null;
 
-// Detect mobile device
+
 const checkMobile = () => {
   isMobile.value = window.matchMedia('(max-width: 900px)').matches ||
       ('ontouchstart' in window);

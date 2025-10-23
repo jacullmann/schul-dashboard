@@ -45,7 +45,7 @@ const router = useRouter();
 
 
 
-// Minimalzeit in Millisekunden, die die Ladeanimation angezeigt wird
+
 const MIN_LOAD_TIME = 0;
 let loadStartTime = 0;
 
