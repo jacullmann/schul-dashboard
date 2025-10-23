@@ -205,7 +205,7 @@ const showAuth = ref(false);
   font-weight: 400;
   color: var(--sub);
   margin-top: 0;
-  animation: fadeIn 1.2s ease-out 0.4s forwards;
+  animation: fadeIn 0.6s ease-out 0.2s forwards;
   opacity: 0;
 }
 
@@ -214,13 +214,13 @@ const showAuth = ref(false);
   font-weight: 700;
   color: var(--text);
   margin: 15px 0 30px 0;
-  animation: fadeIn 1.2s ease-out 0.6s forwards;
+  animation: fadeIn 0.7s ease-out 0.4s forwards;
   opacity: 0;
 }
 
 .hero-actions {
   margin-top: 40px;
-  animation: slideInUp 1s ease-out 0.8s forwards;
+  animation: slideInUp 1.2s ease-out 0.6s forwards;
   opacity: 0;
 }
 
