@@ -256,7 +256,7 @@ const handleClick = (event: MouseEvent) => {
 .hover-ripple {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(70deg,#ff9823,  #ff9823, #ff335a, #af00ff, #6600ff, #6600ff);
+  background: linear-gradient(90deg, #ff9823, #ff9823, #ff9823, #ff9823, #ff335a, #af00ff, #6600ff, #6600ff, #6600ff, #6600ff);
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
