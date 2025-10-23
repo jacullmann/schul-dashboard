@@ -80,12 +80,8 @@
               <NotificationButton class="white" style="color: white"/>
             </n-notification-provider>
           </div>
-          <div style="pointer-events: auto" v-if="VocabListShow === true" class="vocablistflex">
-          <VocabList @closeVocab="closeVocab" style="" v-if="VocabListShow"/>
-          </div>
-          <div style="pointer-events: auto" v-if="hwListShow === true" class="hwlistflex">
-            <HomeworkList @closehw="closehw" style="" v-if="hwListShow"/>
-          </div>
+          <div style="pointer-events: auto" v-if="VocabListShow === true" class="vocablistflex" :style="{ top: list1Y + 'px', left: list1X + 'px', position: 'fixed', cursor: isDraggingList1 ? 'grabbing' : 'grab' }" @mousedown.prevent="startDragList1"> <VocabList @closeVocab="closeVocab" style="" v-if="VocabListShow"/> </div>
+          <div style="pointer-events: auto" v-if="hwListShow === true" class="hwlistflex" :style="{ top: list2Y + 'px', left: list2X + 'px', position: 'fixed', cursor: isDraggingList2 ? 'grabbing' : 'grab' }" @mousedown.prevent="startDragList2"> <HomeworkList @closehw="closehw" style="" v-if="hwListShow"/> </div>
         </div>
 
       </div>
@@ -135,6 +131,14 @@ const isDragging3 = ref(false);
 const card4X = ref(800);
 const card4Y = ref(400);
 const isDragging4 = ref(false);
+
+const list1X = ref(500);
+const list1Y = ref(-400);
+const isDraggingList1 = ref(false);
+
+const list2X = ref(500);
+const list2Y = ref(-400);
+const isDraggingList2 = ref(false);
 
 let initialMouseX = 0;
 let initialMouseY = 0;
@@ -287,6 +291,66 @@ function stopDrag4() {
 
   window.removeEventListener('mousemove', drag4);
   window.removeEventListener('mouseup', stopDrag4);
+}
+
+function startDragList1(event: MouseEvent) {
+  event.preventDefault();
+  isDraggingList1.value = true;
+
+  // Speichern der Maus- und Listen-Position
+  initialMouseX = event.clientX;
+  initialMouseY = event.clientY;
+  initialCardX = list1X.value;
+  initialCardY = list1Y.value;
+
+  window.addEventListener('mousemove', dragList1);
+  window.addEventListener('mouseup', stopDragList1);
+}
+
+function dragList1(event: MouseEvent) {
+  if (isDraggingList1.value) {
+    const deltaX = event.clientX - initialMouseX;
+    const deltaY = event.clientY - initialMouseY;
+
+    list1X.value = initialCardX + deltaX;
+    list1Y.value = initialCardY + deltaY;
+  }
+}
+
+function stopDragList1() {
+  isDraggingList1.value = false;
+  window.removeEventListener('mousemove', dragList1);
+  window.removeEventListener('mouseup', stopDragList1);
+}
+
+function startDragList2(event: MouseEvent) {
+  event.preventDefault();
+  isDraggingList2.value = true;
+
+  // Speichern der Maus- und Listen-Position
+  initialMouseX = event.clientX;
+  initialMouseY = event.clientY;
+  initialCardX = list2X.value;
+  initialCardY = list2Y.value;
+
+  window.addEventListener('mousemove', dragList2);
+  window.addEventListener('mouseup', stopDragList2);
+}
+
+function dragList2(event: MouseEvent) {
+  if (isDraggingList2.value) {
+    const deltaX = event.clientX - initialMouseX;
+    const deltaY = event.clientY - initialMouseY;
+
+    list2X.value = initialCardX + deltaX;
+    list2Y.value = initialCardY + deltaY;
+  }
+}
+
+function stopDragList2() {
+  isDraggingList2.value = false;
+  window.removeEventListener('mousemove', dragList2);
+  window.removeEventListener('mouseup', stopDragList2);
 }
 
 function batter(){
