@@ -120,20 +120,20 @@ console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortsch
 
 const bat = ref<boolean>(false);
 
-const card1X = ref(300); // Beispielhafte Start-X-Position in px
-const card1Y = ref(400); // Beispielhafte Start-Y-Position in px
+const card1X = ref(300);
+const card1Y = ref(400);
 const isDragging1 = ref(false);
 
-const card2X = ref(1000); // Beispielhafte Start-X-Position in px
-const card2Y = ref(120); // Beispielhafte Start-Y-Position in px
+const card2X = ref(1000);
+const card2Y = ref(120);
 const isDragging2 = ref(false);
 
-const card3X = ref(0); // Beispielhafte Start-X-Position in px
-const card3Y = ref(50); // Beispielhafte Start-Y-Position in px
+const card3X = ref(0);
+const card3Y = ref(50);
 const isDragging3 = ref(false);
 
-const card4X = ref(800); // Beispielhafte Start-X-Position in px
-const card4Y = ref(400); // Beispielhafte Start-Y-Position in px
+const card4X = ref(800);
+const card4Y = ref(400);
 const isDragging4 = ref(false);
 
 let initialMouseX = 0;
@@ -144,31 +144,31 @@ let initialCardY = 0;
 
 
 function startDrag1(event: MouseEvent) {
-  // Verhindert das Standardverhalten (z.B. Textauswahl)
+
   event.preventDefault();
 
   isDragging1.value = true;
 
-  // Speichern der Mausposition beim Klick
+
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
 
-  // Speichern der aktuellen Kartenposition
+
   initialCardX = card1X.value;
   initialCardY = card1Y.value;
 
-  // Globale Listener hinzufügen (damit das Ziehen auch funktioniert, wenn der Cursor die Karte verlässt)
+
   window.addEventListener('mousemove', drag1);
   window.addEventListener('mouseup', stopDrag1);
 }
 
 function drag1(event: MouseEvent) {
   if (isDragging1.value) {
-    // Berechnung der Verschiebung (Delta)
+
     const deltaX = event.clientX - initialMouseX;
     const deltaY = event.clientY - initialMouseY;
 
-    // Aktualisiere die Kartenposition
+
     card1X.value = initialCardX + deltaX;
     card1Y.value = initialCardY + deltaY;
   }
@@ -176,7 +176,7 @@ function drag1(event: MouseEvent) {
 
 function stopDrag1() {
   isDragging1.value = false;
-  // Globale Listener entfernen
+
   window.removeEventListener('mousemove', drag1);
   window.removeEventListener('mouseup', stopDrag1);
 }
@@ -186,15 +186,15 @@ function startDrag2(event: MouseEvent) {
 
   isDragging2.value = true;
 
-  // Speichern der Mausposition beim Klick
+
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
 
-  // Speichern der aktuellen Kartenposition
+
   initialCardX = card2X.value;
   initialCardY = card2Y.value;
 
-  // Globale Listener hinzufügen
+
   window.addEventListener('mousemove', drag2);
   window.addEventListener('mouseup', stopDrag2);
 }
@@ -204,7 +204,7 @@ function drag2(event: MouseEvent) {
     const deltaX = event.clientX - initialMouseX;
     const deltaY = event.clientY - initialMouseY;
 
-    // Aktualisiere die Kartenposition
+
     card2X.value = initialCardX + deltaX;
     card2Y.value = initialCardY + deltaY;
   }
@@ -212,7 +212,7 @@ function drag2(event: MouseEvent) {
 
 function stopDrag2() {
   isDragging2.value = false;
-  // Globale Listener entfernen
+
   window.removeEventListener('mousemove', drag2);
   window.removeEventListener('mouseup', stopDrag2);
 }
@@ -222,15 +222,15 @@ function startDrag3(event: MouseEvent) {
 
   isDragging3.value = true;
 
-  // Speichern der Mausposition beim Klick
+
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
 
-  // Speichern der aktuellen Kartenposition
+
   initialCardX = card3X.value;
   initialCardY = card3Y.value;
 
-  // Globale Listener hinzufügen
+
   window.addEventListener('mousemove', drag3);
   window.addEventListener('mouseup', stopDrag3);
 }
@@ -240,7 +240,7 @@ function drag3(event: MouseEvent) {
     const deltaX = event.clientX - initialMouseX;
     const deltaY = event.clientY - initialMouseY;
 
-    // Aktualisiere die Kartenposition
+
     card3X.value = initialCardX + deltaX;
     card3Y.value = initialCardY + deltaY;
   }
@@ -248,7 +248,7 @@ function drag3(event: MouseEvent) {
 
 function stopDrag3() {
   isDragging3.value = false;
-  // Globale Listener entfernen
+
   window.removeEventListener('mousemove', drag3);
   window.removeEventListener('mouseup', stopDrag3);
 }
@@ -258,15 +258,15 @@ function startDrag4(event: MouseEvent) {
 
   isDragging4.value = true;
 
-  // Speichern der Mausposition beim Klick
+
   initialMouseX = event.clientX;
   initialMouseY = event.clientY;
 
-  // Speichern der aktuellen Kartenposition
+
   initialCardX = card4X.value;
   initialCardY = card4Y.value;
 
-  // Globale Listener hinzufügen
+
   window.addEventListener('mousemove', drag4);
   window.addEventListener('mouseup', stopDrag4);
 }
@@ -276,7 +276,7 @@ function drag4(event: MouseEvent) {
     const deltaX = event.clientX - initialMouseX;
     const deltaY = event.clientY - initialMouseY;
 
-    // Aktualisiere die Kartenposition
+
     card4X.value = initialCardX + deltaX;
     card4Y.value = initialCardY + deltaY;
   }
@@ -284,7 +284,7 @@ function drag4(event: MouseEvent) {
 
 function stopDrag4() {
   isDragging4.value = false;
-  // Globale Listener entfernen
+
   window.removeEventListener('mousemove', drag4);
   window.removeEventListener('mouseup', stopDrag4);
 }
