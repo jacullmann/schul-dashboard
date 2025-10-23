@@ -5,7 +5,7 @@
       <div >
         <div >
         <h2>Kontakt</h2>
-        <small >Teile deine Erfahrungen mit uns</small><br /><br/><hr/><br/>
+        <small >Teile deine Erfahrungen mit uns</small><br /><br/><n-divider /><br/>
         </div>
 
         <!--<div class="cont">
@@ -19,7 +19,7 @@
             @submit.prevent="handleSubmit"
             novalidate
         >
-          <!-- Honeypot -->
+
           <input
               type="text"
               autocomplete="off"
@@ -29,7 +29,7 @@
               aria-hidden="true"
           />
 
-          <!-- Name & Email Row -->
+
           <div class="form-row">
             <div class="form-group">
               <div class="input-wrapper" :class="getInputClass('name')">
@@ -223,7 +223,10 @@
           </div>
         </form>
         <br/>
-        <hr />
+        <n-divider class="divider">
+          Oder
+        </n-divider>
+
 
         <Manual />
         <!--<div style="background-color: transparent">
@@ -233,7 +236,7 @@
         </div>-->
 
 
-        <hr />
+        <n-divider />
       </div>
     </div>
   </section>
@@ -527,6 +530,9 @@ try {
 </script>
 
 <style scoped>
+.divider {
+  color: white;
+}
 .cont{
   display: flex;
   flex-direction: column;

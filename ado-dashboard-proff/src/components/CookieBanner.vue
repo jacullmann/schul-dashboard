@@ -1,21 +1,24 @@
 <template>
   <div v-if="visible" class="cookie-banner card">
-    <div style="display:flex; gap:12px; align-items:center;">
-      <div class="small">Diese Seite verwendet Statistikcookies. Bitte zustimmen, um Analytics zu aktivieren.</div>
-      <div style="margin-left:auto; display:flex; gap:8px;">
+    <div style="display:flex; gap:12px; align-items:flex-start; align-content: center ; text-align: left;flex-direction: column">
+      <div class="small">Diese Seite verwendet das datenschutzfreundliche und cookie-freie Analyse-Tool Umami, um die Nutzung der Seite zu analysierem. Dabei werden die Daten anonym gespeichert, sodass eine genaue Zuordung zu bestimmten Besuchern nicht möglich ist. Die Analyse hilft uns, damit wir uns stetig verbessern können. Lies unsere <a @click="toData" style="cursor: pointer">Datenschutzerklärung</a> für weitere Details.</div>
+
+      <div style="gap: 8px; display: flex; flex-direction: row; width: 100%; justify-content: flex-start;">
         <button data-umami-event="Cookies ablehnen" class="btn ghost" @click="revoke">Ablehnen</button>
-        <button data-umami-event="Cookies akzepieren" class="btn" @click="accept">Akzeptieren</button>
+        <button data-umami-event="Cookies akzepieren" class="btn" @click="accept">Verstanden</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, router } from 'vue';
 import { useAuth } from '../composables/useAuth';
+import { useRouter } from 'vue-router';
 
 const auth = useAuth();
 const visible = ref(false);
+const router = useRouter();
 
 function accept() {
   const payload = { accepted: true, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };
@@ -23,7 +26,9 @@ function accept() {
   window.dispatchEvent(new Event('cookie-accepted'));
   visible.value = false;
 }
-
+function toData(){
+  router.push('/impressum-&-datenschutz/datenschutzerklaerung');
+}
 function revoke() {
   localStorage.removeItem('cookie_consent');
   window.dispatchEvent(new Event('cookie-revoked'));
