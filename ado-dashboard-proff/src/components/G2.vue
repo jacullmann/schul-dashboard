@@ -49,7 +49,7 @@ const createRipple = (event: MouseEvent) => {
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
 
-  const size = Math.max(rect.width, rect.height) * 2.5;
+  const size = Math.max(rect.width, rect.height) * 4.5;
 
   const newRipple: Ripple = {
     id: rippleId++,
@@ -65,7 +65,7 @@ const createRipple = (event: MouseEvent) => {
     if (index > -1) {
       ripples.value.splice(index, 1);
     }
-  }, 650);
+  }, 450);
 };
 
 const handleClick = (event: MouseEvent) => {
@@ -104,7 +104,7 @@ const handleClick = (event: MouseEvent) => {
 .ripple {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.3);
   transform: translate(-50%, -50%) scale(0);
   animation: ripple-animation 0.6s ease-out forwards;
   pointer-events: none;

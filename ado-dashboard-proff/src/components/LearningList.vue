@@ -57,9 +57,9 @@ const learningItems = ref([
 .learning-list-container {
   margin-top: 15px;
   padding: 15px;
-  background-color: #1e1e1e; /* Dunklerer Hintergrund für Kontrast */
+  background-color: transparent; /* Dunklerer Hintergrund für Kontrast */
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  text-align: left;
 }
 
 .list-title {

@@ -27,11 +27,26 @@
             <a style="cursor:pointer;" @click="openhwcheck">Details</a>
           </div>
 
+          <!--<div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%; z-index: 11">
+            <p>Klassenarbeit Deutsch</p>
+            <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
+            <G2 v-if="!bat" @click="batter" class="ripple-button2">Lernzettel öffnen</G2><LearningList @bat="batter" v-if="bat" />
+
+
+          </div>-->
+
           <div class="info-card2 info-klassenarbeit" style="top: 10%; right: 1%; z-index: 11">
             <p>Klassenarbeit Deutsch</p>
             <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-            <G2 v-if="!bat" @click="batter" class="ripple-button2">Lernzettel öffnen</G2>
-            <LearningList @bat="batter" v-if="bat" />
+            <G2  @click="batter" class="ripple-button2">
+
+              <div>
+                <p v-if="!bat">Lernzettel öffnen</p>
+                <LearningList v-if="bat" />
+              </div>
+
+            </G2>
+
 
           </div>
 
