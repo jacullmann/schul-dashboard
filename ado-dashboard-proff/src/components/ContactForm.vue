@@ -226,6 +226,13 @@
         <hr />
 
         <Manual />
+        <!--<div style="background-color: transparent">
+          <n-space vertical>
+            <n-qr-code :value="text" color="white" background-color="transparent" />
+          </n-space>
+        </div>-->
+
+
         <hr />
       </div>
     </div>
@@ -235,6 +242,8 @@
 <script lang="ts" setup>
 import { reactive, ref, computed, watch } from 'vue'
 import Manual from './EmailContact.vue'
+
+//const text = ref(String(window.location))
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva'
 const MESSAGE_MAX = 2000
