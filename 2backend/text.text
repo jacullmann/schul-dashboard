@@ -1,518 +1,351 @@
-RR.vue: <template>
-          <div v-if="isVisible" class="card-container">
-            <Transition name="mac-window">
-              <div
-                  v-show="isShown"
-                  class="draggable-card"
-                  ref="cardRef"
-                  :style="cardStyle"
-                  @mousedown.stop="startDrag"
-                  @touchstart.stop="startDrag"
-              >
-                <div class="card-header">
-                  <div class="card-title">Schwebendes Fenster</div>
-                  <div class="card-controls">
-                    <button
-                        @click.stop="toggleCollapse"
-                        :disabled="state.isDocked"
-                        class="control-btn minimize"
-                        title="Einklappen"
-                    >
-                      –
-                    </button>
-                    <button
-                        @click.stop="startCloseAnimation"
-                        class="control-btn close"
-                        title="Schließen"
-                    >
-                      X
-                    </button>
-                  </div>
-                </div>
+<template>
+  <div class="mobile-card-list-wrapper">
+    <div style="display: flex; justify-content: center; align-items: center;">
+      <h2>Tauche ein...</h2>
+    </div>
+    <n-space vertical>
+      <div class="ult">
+        <div class="ult-in">...in die Welt der ultimativen Einfachheit.</div>
+        <n-carousel :space-between="20" draggable show-arrow>
+          <n-card class="ncards" :bordered="false">Alles an einem PLatz</n-card>
+          <n-card class="ncards" :bordered="false">Nie wieder Hausaufgaben vergessen</n-card>
+          <n-card class="ncards" :bordered="false">Immer dabei</n-card>
+          <n-card class="ncards" :bordered="false">Geschützter persönlicher Account</n-card>
+        </n-carousel>
+      </div>
 
-                <div v-show="!state.isCollapsed" class="card-content">
-                  <p>Bewege mich mit der Maus! (Innerhalb des Viewports)</p>
-                  <p>Lasse mich nahe eines Bildschirmrands los, um anzudocken.</p>
-                </div>
-              </div>
-            </Transition>
+      <n-card style="border-radius: 10px; display: flex; justify-content: center; align-items: center; text-align: center; padding: 8px" title="Mit unserem Tool..." class="n-more" size="small">
+        <n-divider
+            style="margin-top: 1px"
+        />
+
+        <n-space  vertical>
+          <n-gradient-text
+
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+      to: 'rgb(251,252,255)',
+    }"
+
+          >
+
+            ...behälst du immer den Überblick...
+
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+      to: 'rgb(251,252,255)',
+    }"
+          >
+            ...kannst du von überall aus lernen...
+
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              :gradient="{
+      deg: 90,
+     from: 'rgb(250,247,247)',
+     to: 'rgb(251,252,255)',
+    }"
+          >
+            ...schreibst du bessere Noten...
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+     to: 'rgb(251,252,255)',
+    }"
+          >
+            ...hast du mehr Freizeit...
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+     to: 'rgb(251,252,255)',
+    }"
+          >
+            ...bist du so flexibel wie nie zuvor!
+          </n-gradient-text>
+          <ListCheckIcon style="margin-top: 7px"/>
+        </n-space>
+
+
+
+      </n-card>
+    </n-space>
+
+    <NCollapse :default-expanded-names="['']" class="mobile-collapse-list" accordion>
+
+      <NCollapseItem name="homework" class="mobile-list-item">
+        <template #header>
+          <div class="mobile-list-header">
+            <NIcon :size="20" color="var(--primary)"><ClipboardList color="white" /></NIcon>
+            <span class="mobile-list-title">Hausaufgabe morgen</span>
           </div>
         </template>
-
-        <script setup lang="ts">
-        import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
-
-        // --- Props und Emits ---
-        const props = defineProps<{
-          isVisible: boolean; // Steuert das Öffnen/Schließen von außen
-        }>();
-
-        const emit = defineEmits(['close']);
-
-        // --- Konstanten und Konfiguration ---
-        const SNAP_THRESHOLD = 20;    // Pixel-Abstand zum Rand, um anzudocken
-        const DEFAULT_WIDTH = 400;  // Standardbreite
-        const DEFAULT_HEIGHT = 300; // Standardhöhe
-        const HEADER_HEIGHT = 40;   // Höhe der Kopfzeile (aus CSS)
-
-        // --- Zustand ---
-        const isShown = ref(props.isVisible); // Für die v-show Transition
-        const cardRef = ref<HTMLElement | null>(null);
-
-        interface CardState {
-          x: number;
-          y: number;
-          width: number;
-          height: number;
-          isDragging: boolean;
-          isDocked: boolean;
-          dockedSide: 'none' | 'left' | 'right' | 'top' | 'bottom';
-          isCollapsed: boolean; // NEU: Für Einklapp-Zustand
-          lastHeight: number;  // NEU: Speichert Höhe vor dem Einklappen
-        }
-
-        const state = reactive<CardState>({
-          x: window.innerWidth / 2 - DEFAULT_WIDTH / 2,
-          y: window.innerHeight / 2 - DEFAULT_HEIGHT / 2,
-          width: DEFAULT_WIDTH,
-          height: DEFAULT_HEIGHT,
-          isDragging: false,
-          isDocked: false,
-          dockedSide: 'none',
-          isCollapsed: false,
-          lastHeight: DEFAULT_HEIGHT,
-        });
-
-        // --- Watcher für 'isVisible' Prop ---
-        watch(() => props.isVisible, (newVal) => {
-          if (newVal) {
-            // Wenn sichtbar wird, setze auf Standard zurück und zeige
-            unDock(); // Setzt Position, Größe und Status zurück
-            isShown.value = true;
-          }
-          // Das Schließen wird durch startCloseAnimation() gehandhabt
-        });
-
-        // --- Computed Style (STARK VEREINFACHT) ---
-        const cardStyle = computed(() => {
-          return {
-            '--card-x': `${state.x}px`,
-            '--card-y': `${state.y}px`,
-            '--card-width': `${state.width}px`,
-            '--card-height': `${state.height}px`,
-            'cursor': state.isDragging ? 'grabbing' : 'grab',
-
-            // WICHTIG: Immer 'transform' für die Positionierung verwenden.
-            // 'top' und 'left' bleiben '0' (siehe CSS).
-            'transform': `translate(var(--card-x), var(--card-y))`,
-
-            // WICHTIG: Transition nur anwenden, wenn NICHT gezogen wird.
-            // Dies animiert das Andocken, Öffnen, Schließen und Einklappen.
-            'transition': state.isDragging ? 'none' : 'all 0.3s ease-in-out',
-          };
-        });
-
-        // --- Drag-Handler ---
-        let dragStart = { x: 0, y: 0 };
-        let cardStart = { x: 0, y: 0 };
-
-        function startDrag(event: MouseEvent | TouchEvent) {
-          // Nur ziehen, wenn auf den Header geklickt wird
-          const target = event.target as HTMLElement;
-          const isHeader = target.closest('.card-header');
-          if (!isHeader && !('touches' in event)) return;
-
-          const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-          const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-
-          // WICHTIG: Wenn angedockt, sofort (ohne Animation) in den
-          // "nicht angedockten" Zustand wechseln, zentriert unter dem Cursor.
-          if (state.isDocked) {
-            // Übergib die Klick-Koordinaten für die Neupositionierung
-            unDock(clientX, clientY);
-          }
-
-          // Das Ziehen *beginnt* erst, nachdem der Zustand (ggf.) geändert wurde
-          state.isDragging = true;
-          dragStart = { x: clientX, y: clientY };
-          // state.x/y sind jetzt die neuen (ggf. von unDock gesetzten) Koordinaten
-          cardStart = { x: state.x, y: state.y };
-
-          event.preventDefault();
-
-          document.addEventListener('mousemove', drag);
-          document.addEventListener('mouseup', stopDrag);
-          document.addEventListener('touchmove', drag);
-          document.addEventListener('touchend', stopDrag);
-        }
-
-        function drag(event: MouseEvent | TouchEvent) {
-          if (!state.isDragging) return;
-
-          const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
-          const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
-
-          const deltaX = clientX - dragStart.x;
-          const deltaY = clientY - dragStart.y;
-
-          let newX = cardStart.x + deltaX;
-          let newY = cardStart.y + deltaY;
-
-          // Viewport-Beschränkung (verhindert, dass die Karte aus dem Bild geschoben wird)
-          // Beim Ziehen verwenden wir die aktuelle Breite/Höhe
-          const cardW = state.width;
-          const cardH = state.height;
-          const windowW = window.innerWidth;
-          const windowH = window.innerHeight;
-
-          state.x = Math.max(0, Math.min(newX, windowW - cardW));
-          state.y = Math.max(0, Math.min(newY, windowH - cardH));
-        }
-
-        function stopDrag() {
-          state.isDragging = false;
-
-          // Prüfe auf Andocken (dies wird jetzt sanft animiert,
-          // da 'transition' wieder aktiv ist)
-          if (!state.isCollapsed) { // Nur andocken, wenn nicht eingeklappt
-            checkAndDock();
-          }
-
-          document.removeEventListener('mousemove', drag);
-          document.removeEventListener('mouseup', stopDrag);
-          document.removeEventListener('touchmove', drag);
-          document.removeEventListener('touchend', stopDrag);
-        }
-
-        // --- Andock-Logik ---
-
-        function checkAndDock() {
-          const x = state.x;
-          const y = state.y;
-          const windowW = window.innerWidth;
-          const windowH = window.innerHeight;
-          const cardW = state.width;
-          const cardH = state.height;
-
-          // 1. Linker Rand
-          if (x < SNAP_THRESHOLD) {
-            dock('left');
-          }
-          // 2. Rechter Rand
-          else if (x + cardW > windowW - SNAP_THRESHOLD) {
-            dock('right');
-          }
-          // 3. Oberer Rand
-          else if (y < SNAP_THRESHOLD) {
-            dock('top');
-          }
-          // 4. Unterer Rand
-          else if (y + cardH > windowH - SNAP_THRESHOLD) {
-            dock('bottom');
-          }
-          // 5. Kein Andocken
-          else {
-            state.isDocked = false;
-            state.dockedSide = 'none';
-          }
-        }
-
-        function dock(side: 'left' | 'right' | 'top' | 'bottom') {
-          state.isDocked = true;
-          state.isCollapsed = false; // Andocken erzwingt das Ausklappen
-          state.dockedSide = side;
-
-          switch (side) {
-            case 'left':
-              state.x = 0;
-              state.y = 0;
-              state.width = window.innerWidth / 2;
-              state.height = window.innerHeight;
-              break;
-            case 'right':
-              state.x = window.innerWidth / 2;
-              state.y = 0;
-              state.width = window.innerWidth / 2;
-              state.height = window.innerHeight;
-              break;
-            case 'top':
-              state.x = 0;
-              state.y = 0;
-              state.width = window.innerWidth;
-              state.height = window.innerHeight / 2;
-              break;
-            case 'bottom':
-              state.x = 0;
-              state.y = window.innerHeight / 2;
-              state.width = window.innerWidth;
-              state.height = window.innerHeight / 2;
-              break;
-          }
-        }
-
-        /**
-         * Setzt die Karte in den Standardzustand (nicht angedockt) zurück.
-         * @param clickX - Optionale X-Koordinate des Klicks (zum Neupositionieren beim Ziehen).
-         * @param clickY - Optionale Y-Koordinate des Klicks.
-         */
-        function unDock(clickX?: number, clickY?: number) {
-          state.isDocked = false;
-          state.dockedSide = 'none';
-          state.isCollapsed = false;
-
-          const oldWidth = state.width;
-          const oldHeight = state.height;
-          const newWidth = DEFAULT_WIDTH;
-          const newHeight = DEFAULT_HEIGHT;
-
-          state.width = newWidth;
-          state.height = newHeight;
-          state.lastHeight = newHeight;
-
-          if (clickX !== undefined && clickY !== undefined) {
-            // --- SCHLÜSSEL-LOGIK GEGEN RUCKELN ---
-            // Positioniere die "neue" (kleinere) Karte so, dass der Mauszeiger
-            // prozentual an derselben Stelle auf der Karte bleibt.
-            const relativeX = clickX - state.x;
-            const relativeY = clickY - state.y;
-            const percentX = relativeX / oldWidth;
-            const percentY = relativeY / oldHeight;
-
-            state.x = clickX - (newWidth * percentX);
-            state.y = clickY - (newHeight * percentY);
-
-          } else {
-            // Standard-Reset (z.B. beim Öffnen): Zentrieren
-            state.x = window.innerWidth / 2 - newWidth / 2;
-            state.y = window.innerHeight / 2 - newHeight / 2;
-          }
-
-          // Sicherstellen, dass die neue Position im Viewport ist
-          state.x = Math.max(0, Math.min(state.x, window.innerWidth - newWidth));
-          state.y = Math.max(0, Math.min(state.y, window.innerHeight - newHeight));
-        }
-
-        // --- NEU: Einklapp-Logik ---
-        function toggleCollapse() {
-          // Einklappen nur erlauben, wenn nicht angedockt
-          if (state.isDocked) return;
-
-          state.isCollapsed = !state.isCollapsed;
-          if (state.isCollapsed) {
-            // Einklappen: Höhe speichern und auf Header-Höhe setzen
-            state.lastHeight = state.height;
-            state.height = HEADER_HEIGHT;
-          } else {
-            // Ausklappen: Gespeicherte Höhe wiederherstellen
-            state.height = state.lastHeight;
-          }
-        }
-
-        // --- Resize Handler ---
-        function handleResize() {
-          const windowW = window.innerWidth;
-          const windowH = window.innerHeight;
-
-          if (state.isDocked) {
-            // Angedockte Position/Größe neu berechnen
-            dock(state.dockedSide);
-          } else {
-            // Sicherstellen, dass die Karte im Viewport bleibt
-            state.x = Math.max(0, Math.min(state.x, windowW - state.width));
-            state.y = Math.max(0, Math.min(state.y, windowH - state.height));
-
-            // Höhe beibehalten, wenn eingeklappt
-            if(state.isCollapsed) {
-              state.height = HEADER_HEIGHT;
-            }
-          }
-        }
-
-        // --- Schließ-Animation ---
-        function startCloseAnimation() {
-          isShown.value = false; // Löst .mac-window-leave-to aus
-          setTimeout(() => {
-            emit('close'); // Entfernt das Element via v-if
-          }, 300); // Muss zur CSS-Transition-Dauer passen
-        }
-
-        // --- Lifecycle Hooks ---
-        onMounted(() => {
-          window.addEventListener('resize', handleResize);
-        });
-
-        onUnmounted(() => {
-          window.removeEventListener('resize', handleResize);
-          // Sicherheitshalber alle globalen Listener entfernen
-          document.removeEventListener('mousemove', drag);
-          document.removeEventListener('mouseup', stopDrag);
-          document.removeEventListener('touchmove', drag);
-          document.removeEventListener('touchend', stopDrag);
-        });
-        </script>
-
-        <style scoped>
-        /* Container, der die Positionierung bei v-if/v-show unterstützt */
-        .card-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 0;
-          height: 0;
-        }
-
-        .draggable-card {
-          position: fixed;
-          /* WICHTIG: top/left sind 0. Die Positionierung
-             erfolgt AUSSCHLIESSLICH über 'transform'. */
-          top: 0;
-          left: 0;
-
-          /* Größe wird über CSS-Variablen gesteuert */
-          width: var(--card-width);
-          height: var(--card-height);
-
-          background-color: white;
-          border: 1px solid #ccc;
-          border-radius: 10px;
-          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-          z-index: 1000000;
-
-          display: flex;
-          flex-direction: column;
-          overflow: hidden; /* Wichtig für die Einklapp-Animation */
-          color: black;
-
-          /* Performance-Optimierung für Animationen */
-          will-change: transform, width, height, opacity;
-        }
-
-        /* ------------------- MAC-STIL ANIMATION (KORRIGIERT) ------------------- */
-
-        .mac-window-enter-active,
-        .mac-window-leave-active {
-          /* Die Transition für 'all' (Größe, Position) wird durch :style="cardStyle" gesteuert.
-             Hier definieren wir *nur* die Transitions für Opacity und Scale,
-             die von der <Transition>-Komponente gesteuert werden. */
-          transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-          transform-origin: center; /* Von der Mitte aus skalieren */
-        }
-
-        /* * KORREKTUR: Die 'from' und 'to' Zustände MÜSSEN die
-         * finale 'translate'-Position beinhalten, damit die Skalierung
-         * an der korrekten Endposition stattfindet.
-         */
-
-        /* Animation beim Erscheinen (v-enter-from) */
-        .mac-window-enter-from {
-          opacity: 0;
-          transform: translate(var(--card-x), var(--card-y)) scale(0.7);
-        }
-        /* Animation beim Verschwinden (v-leave-to) */
-        .mac-window-leave-to {
-          opacity: 0;
-          transform: translate(var(--card-x), var(--card-y)) scale(0.7);
-          z-index: 1001;
-        }
-
-        /* ------------------- HEADER UND STEUERUNG ------------------- */
-        .card-header {
-          height: 40px; /* Muss zu HEADER_HEIGHT in <script> passen */
-          background-color: #f1f1f1;
-          color: #333;
-          padding: 0 12px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          user-select: none;
-          flex-shrink: 0; /* Verhindert Schrumpfen des Headers */
-          border-bottom: 1px solid #ddd;
-        }
-
-        .card-title {
-          font-weight: 600;
-          font-size: 14px;
-        }
-
-        .card-controls {
-          display: flex;
-          gap: 6px;
-        }
-
-        .control-btn {
-          border: none;
-          border-radius: 50%;
-          width: 16px;
-          height: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          font-weight: bold;
-          line-height: 1;
-          padding: 0;
-          cursor: pointer;
-          transition: transform 0.1s ease;
-        }
-        .control-btn:hover {
-          transform: scale(1.1);
-        }
-
-        .control-btn.close {
-          background: #ff5f57;
-          color: #a43e39;
-        }
-        .control-btn.minimize {
-          background: #ffbd2e;
-          color: #a77a1d;
-          font-size: 16px;
-          padding-bottom: 3px; /* Kleinere Anpassung für "–" */
-        }
-        .control-btn:disabled {
-          background: #e0e0e0;
-          color: #aaa;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .card-content {
-          padding: 15px;
-          flex-grow: 1;
-          overflow-y: auto;
-          background-color: #ffffff;
-        }
-        </style>
-
-
-
-
-
-
-Playg.vue: <script setup>
-           import { ref } from 'vue';
-           import DraggableCard from './RR.vue';
-
-           const showCard = ref(false);
-
-           function openCard() {
-             showCard.value = true;
-           }
-
-           function handleClose() {
-             showCard.value = false;
-           }
-           </script>
-
-           <template>
-
-
-               <button @click="openCard" :disabled="showCard" style="padding: 10px 20px; font-size: 16px;">
-                 Fenster öffnen
-               </button>
-
-               <DraggableCard
-                   :is-visible="showCard"
-                   @close="handleClose"
-               />
-
-           </template>
+        <template #header-extra>
+          <NCheckbox :checked="true"  size="small" :theme-overrides="{ colorChecked: '#70e0ff' }" />
+        </template>
+        <NCard size="small" :bordered="false" class="mobile-card-content">
+          <p class="small-detail">CDA p. 77/78</p>
+          <NButton  @click="handleButtonClick('französischHa')" size="small" type="info" secondary>
+            Details anzeigen
+          </NButton>
+        </NCard>
+      </NCollapseItem>
+
+      <NCollapseItem name="test" class="mobile-list-item">
+        <template #header>
+          <div class="mobile-list-header">
+            <NIcon :size="20" color="var(--n-color-warning)"><BookOpen /></NIcon>
+            <span class="mobile-list-title">Klassenarbeit Deutsch</span>
+          </div>
+        </template>
+        <template #header-extra>
+          <NTag type="warning" size="small" round>Wichtig</NTag>
+        </template>
+        <NCard size="small" :bordered="false" class="mobile-card-content">
+          <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
+          <NButton   @click="handleButtonClick('deutschKa')" size="small" type="info" secondary>
+            <div >Lernzettel öffnen</div>
+          </NButton>
+        </NCard>
+      </NCollapseItem>
+
+      <NCollapseItem name="tasks" class="mobile-list-item">
+        <template #header>
+          <div class="mobile-list-header">
+            <NIcon :size="20" color="var(--n-color-success)"><Clock /></NIcon>
+            <span class="mobile-list-title">Vokabelkarten anfertigen bis Freitag</span>
+          </div>
+        </template>
+        <template #header-extra>
+          <NCheckbox :checked="false" size="small" />
+        </template>
+        <NCard size="small" :bordered="false" class="mobile-card-content">
+          <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
+          <NButton   @click="handleButtonClick('vocabHw')" size="small" type="success" secondary>
+            Vokabelliste anschauen
+          </NButton>
+        </NCard>
+      </NCollapseItem>
+
+      <NCollapseItem name="schedule" class="mobile-list-item">
+        <template #header>
+          <div class="mobile-list-header">
+            <NIcon :size="20" color="var(--n-color-error)"><AlertTriangle /></NIcon>
+            <span class="mobile-list-title">Stundenplan-Änderung!</span>
+          </div>
+        </template>
+        <template #header-extra>
+          <NTag type="error" size="small" round>Ausfall</NTag>
+        </template>
+        <NCard size="small" :bordered="false" class="mobile-card-content">
+          <p class="small-detail" style="font-weight: bold; color: var(--n-color-error)">1./2. entfällt heute!</p>
+          <NButton  @click="handleButtonClick('ausfall')" size="small" type="error" secondary>
+            Auf DSB überprüfen
+          </NButton>
+        </NCard>
+      </NCollapseItem>
+
+    </NCollapse>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+import {
+  NButton, NCard, NCollapse, NCollapseItem, NTag, NCheckbox, NIcon,
+  useMessage
+} from 'naive-ui';
+import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh, ArrowRightIcon, ArrowDownIcon, ListCheckIcon} from 'lucide-vue-next';
+import { h } from 'vue';
+
+const message = useMessage()
+
+const renderIcon = (iconComponent: any) => {
+
+  return () => h(NIcon, null, { default: () => h(iconComponent) });
+}
+
+
+const handleButtonClick = (aktionstyp: string) => {
+
+  let contentText: string;
+  let messageType: 'info' | 'warning' | 'error' | 'success';
+  let iconComponent: any;
+
+  if (aktionstyp === 'französischHa') {
+    contentText = 'Tja, dabei können wir dir auch nicht helfen.';
+    messageType = 'info';
+    iconComponent = AnnoyedIcon;
+  }
+  else if (aktionstyp === 'deutschKa') {
+    contentText = 'Passwort eingeben --> Losstarten';
+    messageType = 'info';
+    iconComponent = LockKeyhole;
+  }
+  else if (aktionstyp === 'vocabHw') {
+    contentText = 'Eigentlich Seite 178-384, aber das ersparen wir euch.';
+    messageType = 'info';
+    iconComponent = SmilePlus;
+  }
+  else if (aktionstyp === 'ausfall') {
+    contentText = 'Spaß, natürlich fällt die 1./2. Stunde nicht aus.';
+    messageType = 'info';
+    iconComponent = Laugh;
+  }
+  else {
+    contentText = `Unbekannter Parameter '${aktionstyp}'. `;
+    messageType = 'info';
+    iconComponent = null;
+  }
+
+  message[messageType](contentText, {
+    duration: 1800,
+    icon: iconComponent ? renderIcon(iconComponent) : undefined
+  });
+}
+
+
+</script>
+
+<style scoped>
+
+.ncards{
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 5px 5px 5px;
+  max-width:100%;
+  background: whitesmoke;
+  color: black;
+}
+.ult {
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  background:linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  text-shadow: none;
+  color: white;
+  padding: 25px 15px 20px 15px;
+  max-width: 100%;
+  width: 80vw;
+
+
+
+}
+
+.ult-in{
+  font-weight: 600;
+
+}
+
+
+
+.n-more{
+  border: none;
+  color: white;
+  background-color: rgba(100, 100, 100, 0.25);
+  backdrop-filter: blur(10px);
+  width: 80vw;
+}
+:deep(.n-more .n-card-header__main) {
+  color: white;
+}
+
+.mobile-card-list-wrapper {
+  padding: 0 20px 40px;
+}
+.mobile-collapse-list {
+  margin-top: 30px;
+}
+
+.mobile-list-item {
+  margin-bottom: 12px;
+  background-color: rgba(100, 100, 100, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  width: 80vw;
+}
+
+.mobile-list-item:hover {
+  transform: translateY(-2px);
+}
+
+:deep(.n-collapse-item__header) {
+  padding: 16px 20px !important;
+  color: var(--n-text-color-base);
+  font-weight: 600;
+  border-bottom: none !important;
+}
+:deep(.n-collapse-item-arrow) {
+  color: white !important;
+}
+
+
+:deep(.n-collapse-item) {
+  border-top: none !important;
+}
+.mobile-list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.mobile-list-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+
+.mobile-card-content {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 12px 20px 16px 20px !important;
+  border-radius: 0 0 12px 12px;
+  color: white;
+}
+
+.mobile-card-content p {
+  margin: 0 0 10px 0;
+}
+
+.small-detail {
+  font-size: 14px;
+  color: var(--n-text-color-base);
+}
+
+.theme {
+  color: var(--n-color-warning);
+}
+</style>

@@ -1,18 +1,38 @@
 <template>
   <div class="mobile-card-list-wrapper">
     <div style="display: flex; justify-content: center; align-items: center;">
-      <h2>Mehr erfahren</h2>
+      <h2 class="digin"><n-gradient-text
+          gradient="linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff)"
+      >
+        <div style="font-weight: 800; font-size: 1.5rem">Tauche ein...</div>
+      </n-gradient-text></h2>
     </div>
     <n-space vertical>
+      <div class="ult">
+        <div class="ult-in">...in die Welt der ultimativen Einfachheit.</div>
+        <n-carousel :space-between="20" draggable >
+          <n-card class="ncards" :bordered="false"><div class="upto">Alles an einem Platz</div></n-card>
+          <n-card class="ncards" :bordered="false"><div class="upto">Nie wieder Hausaufgaben vergessen</div></n-card>
+          <n-card class="ncards" :bordered="false"><div class="upto">Immer dabei</div></n-card>
+          <n-card class="ncards" :bordered="false"><div class="upto">Geschützter persönlicher Account</div></n-card>
+        </n-carousel>
+      </div>
 
-      <n-card style="display: flex; justify-content: center; align-items: center; text-align: center; padding: 8px" title="Mit unserem Tool..." class="n-more" size="small">
+      <n-card style="border-radius: 10px; display: flex; justify-content: center; align-items: center; text-align: center; padding: 8px" title="Mit unserem Tool..." class="n-more" size="small">
         <n-divider
-            style="margin-top: 1px"
+            class="dosh"
+            style="margin-top: 1px; display: flex; justify-content: center; align-items: center; text-align: center; padding: 8px"
         />
 
         <n-space  vertical>
           <n-gradient-text
-              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+      to: 'rgb(251,252,255)',
+    }"
+
           >
 
             ...behälst du immer den Überblick...
@@ -23,7 +43,11 @@
 
         <n-space  vertical >
           <n-gradient-text
-              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+      to: 'rgb(251,252,255)',
+    }"
           >
             ...kannst du von überall aus lernen...
 
@@ -33,7 +57,11 @@
 
         <n-space  vertical >
           <n-gradient-text
-              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+              :gradient="{
+      deg: 90,
+     from: 'rgb(250,247,247)',
+     to: 'rgb(251,252,255)',
+    }"
           >
             ...schreibst du bessere Noten...
           </n-gradient-text>
@@ -42,7 +70,11 @@
 
         <n-space  vertical >
           <n-gradient-text
-              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+     to: 'rgb(251,252,255)',
+    }"
           >
             ...hast du mehr Freizeit...
           </n-gradient-text>
@@ -51,11 +83,15 @@
 
         <n-space  vertical >
           <n-gradient-text
-              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+              :gradient="{
+      deg: 90,
+      from: 'rgb(250,247,247)',
+     to: 'rgb(251,252,255)',
+    }"
           >
             ...bist du so flexibel wie nie zuvor!
           </n-gradient-text>
-          <ArrowDownIcon />
+          <ListCheckIcon style="margin-top: 7px"/>
         </n-space>
 
 
@@ -73,7 +109,7 @@
           </div>
         </template>
         <template #header-extra>
-          <NCheckbox :checked="true"  size="small" :theme-overrides="{ colorChecked: '#70e0ff' }" />
+          <NCheckbox class="dosh" :checked="true"  size="small" :theme-overrides="{ colorChecked: '#70e0ff' }" />
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail">CDA p. 77/78</p>
@@ -91,7 +127,7 @@
           </div>
         </template>
         <template #header-extra>
-          <NTag type="warning" size="small" round>Wichtig</NTag>
+          <NTag class="dosh" type="warning" size="small" round>Wichtig</NTag>
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
@@ -109,7 +145,7 @@
           </div>
         </template>
         <template #header-extra>
-          <NCheckbox :checked="false" size="small" />
+          <NCheckbox class="dosh" :checked="false" size="small" />
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
@@ -127,7 +163,7 @@
           </div>
         </template>
         <template #header-extra>
-          <NTag type="error" size="small" round>Ausfall</NTag>
+          <NTag class="dosh" type="error" size="small" round>Ausfall</NTag>
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail" style="font-weight: bold; color: var(--n-color-error)">1./2. entfällt heute!</p>
@@ -147,7 +183,7 @@ import {
   NButton, NCard, NCollapse, NCollapseItem, NTag, NCheckbox, NIcon,
   useMessage
 } from 'naive-ui';
-import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh, ArrowRightIcon, ArrowDownIcon} from 'lucide-vue-next';
+import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh, ArrowRightIcon, ArrowDownIcon, ListCheckIcon} from 'lucide-vue-next';
 import { h } from 'vue';
 
 const message = useMessage()
@@ -200,11 +236,59 @@ const handleButtonClick = (aktionstyp: string) => {
 </script>
 
 <style scoped>
+.digin {
+}
+
+
+
+.ncards{
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 5px 5px 5px;
+  max-width:100%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px) saturate(125%) brightness(185%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(125%);
+  height: 200px;
+  color: white;
+}
+.ult {
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  background: linear-gradient(70deg, #995c1a, #992037, #6900cc, #400099);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  text-shadow: none;
+  color: white;
+  padding: 25px 15px 20px 15px;
+  max-width: 100%;
+  width: 80vw;
+
+
+
+}
+
+.ult-in{
+  font-weight: 600;
+  margin-bottom: 10px;
+
+}
+
+
+
 .n-more{
   border: none;
   color: white;
   background-color: rgba(100, 100, 100, 0.25);
   backdrop-filter: blur(10px);
+  width: 80vw;
 }
 :deep(.n-more .n-card-header__main) {
   color: white;
@@ -224,6 +308,7 @@ const handleButtonClick = (aktionstyp: string) => {
   border-radius: 12px;
   overflow: hidden;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
+  width: 80vw;
 }
 
 .mobile-list-item:hover {
@@ -275,5 +360,15 @@ const handleButtonClick = (aktionstyp: string) => {
 
 .theme {
   color: var(--n-color-warning);
+}
+
+@media (max-width: 320px) {
+  .dosh{
+    display: none;
+  }
+
+}
+.n-more :deep(.n-gradient-text .n-gradient-text__inner) {
+  white-space: normal;
 }
 </style>
