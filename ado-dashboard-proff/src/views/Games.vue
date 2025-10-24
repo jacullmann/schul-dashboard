@@ -3,14 +3,26 @@
     <div class="container-game-grid">
       <div class="games-hero">
         <div class="games-hero__title">
-          <h2 style="margin-top: 0">Spiele</h2>
+          <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; bottom: 0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dice6-icon lucide-dice-6"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M16 8h.01"/><path d="M16 12h.01"/><path d="M16 16h.01"/><path d="M8 8h.01"/><path d="M8 12h.01"/><path d="M8 16h.01"/></svg>
+            <h2 >Spiele</h2>
+
+          </div>
+
           <p class="subtitle">Eine Auswahl an verschiedenen Spielen</p>
         </div>
       </div>
 
+      <div class="search-bar">
+        <input
+            v-model="searchTag"
+            placeholder="Suchen"
+            class="search-input"
+        />
+      </div>
       <div class="game-grid">
         <router-link
-            v-for="game in games"
+            v-for="game in filteredGames"
             :key="game.id"
             :to="`/8912/${game.id}`"
             class="game-card-link"
@@ -21,20 +33,52 @@
               <h3 class="game-name">{{ game.name }}</h3>
               <p class="game-description">{{ game.description }}</p>
               <div class="game-tags">
-                <span v-for="tag in game.tags" :key="tag" class="badge game-tag">{{ tag }}</span>
+
+               <!-- <span v-for="tag in game.tags" :key="tag" class="badge game-tag">{{ tag }}</span> -->
+                <n-tag v-for="tag in game.tags" :key="tag" class="game-tag"  type="success">
+                  {{ tag }}
+                </n-tag>
+
               </div>
             </div>
           </div>
         </router-link>
+      </div>
+
+      <div v-if="filteredGames.length === 0" class="no-results">
+        Keine Spiele gefunden
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'; // 🚨 NEU: ref und computed importiert
 import { games } from '../components/spiele/GameData';
 import { useRouter } from 'vue-router';
+
 const router = useRouter();
+
+const searchTag = ref('');
+
+const filteredGames = computed(() => {
+  const query = searchTag.value.trim().toLowerCase();
+
+  if (!query) {
+    return games;
+  }
+
+  return games.filter(game => {
+    const textMatch = game.name.toLowerCase().includes(query) ||
+        game.description.toLowerCase().includes(query) ||
+        game.id.toLowerCase().includes(query);
+
+    const tagMatch = game.tags.some(tag => tag.toLowerCase().includes(query));
+
+    return textMatch || tagMatch;
+  });
+});
+
 </script>
 
 <style scoped>
@@ -44,12 +88,12 @@ const router = useRouter();
   margin: 0 auto;
 }
 .games-hero {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   padding: 20px 0;
 }
 .games-hero__title h2 {
   font-size: 2.5em;
-  margin-bottom: 5px;
+  margin: 0;
   color: white;
 }
 .subtitle {
@@ -57,10 +101,45 @@ const router = useRouter();
   font-size: 1.1em;
 }
 
+.search-bar {
+  margin-bottom: 30px;
+  max-width: 400px;
+  left: 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 1.1em;
+  border: 2px solid var(--jj);
+  border-radius: 8px;
+  background-color: var(--card);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s;
+}
+
+.search-input::placeholder {
+  color: var(--sub);
+}
+
+.search-input:focus {
+  border-color: #51514d;
+  outline: none;
+}
+
+.no-results {
+  color: var(--muted);
+  text-align: center;
+  font-size: 1.2em;
+  margin-top: 40px;
+}
+
+
 .game-grid {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
 
 .game-card-link {
@@ -75,7 +154,6 @@ const router = useRouter();
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .game-card-link:hover .game-card {
@@ -89,7 +167,7 @@ const router = useRouter();
 
 .game-info {
   padding: 15px;
-  flex-grow: 1; /* Lässt den Infobereich den restlichen Platz einnehmen */
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
@@ -113,11 +191,8 @@ const router = useRouter();
 }
 
 .game-tag {
-  /* Nutzt die globale .badge-Klasse */
-  background: #282828;
-  color: var(--sub);
   margin-right: 5px;
-  font-size: 0.8em;
+  font-size: 0.85em;
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -128,6 +203,9 @@ const router = useRouter();
   }
   .game-grid {
   }
+  .game-card {
+    margin: 35px;
+  }
   .container-game-grid {
     padding: 20px;
     overflow: hidden;
@@ -136,6 +214,10 @@ const router = useRouter();
     align-content: center;
     justify-content: center;
     align-items: center;
+  }
+  .search-bar {
+    width: 100%;
+    max-width: 100%;
   }
 
 }

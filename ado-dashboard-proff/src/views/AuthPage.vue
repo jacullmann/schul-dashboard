@@ -400,8 +400,8 @@ function scrollToInfo() {
   const targetElement = document.getElementById('more-info-anchor');
   if (targetElement) {
     targetElement.scrollIntoView({
-      behavior: 'smooth', // Das sorgt für den "smooth" Effekt!
-      block: 'start'      // Scrollt, bis der Anfang des Elements sichtbar ist
+      behavior: 'smooth',
+      block: 'start'
     });
   }
 }

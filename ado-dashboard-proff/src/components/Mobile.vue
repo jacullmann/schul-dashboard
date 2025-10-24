@@ -3,6 +3,66 @@
     <div style="display: flex; justify-content: center; align-items: center;">
       <h2>Mehr erfahren</h2>
     </div>
+    <n-space vertical>
+
+      <n-card style="display: flex; justify-content: center; align-items: center; text-align: center; padding: 8px" title="Mit unserem Tool..." class="n-more" size="small">
+        <n-divider
+            style="margin-top: 1px"
+        />
+
+        <n-space  vertical>
+          <n-gradient-text
+              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+          >
+
+            ...behälst du immer den Überblick...
+
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+          >
+            ...kannst du von überall aus lernen...
+
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+          >
+            ...schreibst du bessere Noten...
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+          >
+            ...hast du mehr Freizeit...
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+        <n-space  vertical >
+          <n-gradient-text
+              gradient="linear-gradient(90deg, red 0%, green 50%, blue 100%)"
+          >
+            ...bist du so flexibel wie nie zuvor!
+          </n-gradient-text>
+          <ArrowDownIcon />
+        </n-space>
+
+
+
+      </n-card>
+    </n-space>
+
     <NCollapse :default-expanded-names="['']" class="mobile-collapse-list" accordion>
 
       <NCollapseItem name="homework" class="mobile-list-item">
@@ -87,7 +147,7 @@ import {
   NButton, NCard, NCollapse, NCollapseItem, NTag, NCheckbox, NIcon,
   useMessage
 } from 'naive-ui';
-import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh} from 'lucide-vue-next';
+import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh, ArrowRightIcon, ArrowDownIcon} from 'lucide-vue-next';
 import { h } from 'vue';
 
 const message = useMessage()
@@ -140,6 +200,15 @@ const handleButtonClick = (aktionstyp: string) => {
 </script>
 
 <style scoped>
+.n-more{
+  border: none;
+  color: white;
+  background-color: rgba(100, 100, 100, 0.25);
+  backdrop-filter: blur(10px);
+}
+:deep(.n-more .n-card-header__main) {
+  color: white;
+}
 
 .mobile-card-list-wrapper {
   padding: 0 20px 40px;
