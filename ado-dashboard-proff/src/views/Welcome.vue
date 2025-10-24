@@ -52,9 +52,9 @@ const code = ref('');
 const error = ref<string | null>(null);
 const accepted = ref(false)
 
-function submit() {
+async function submit() {
   error.value = null;
-  const res = auth.loginWithCode(code.value.trim());
+  const res =  await auth.loginWithCode(code.value.trim());
   if (res.ok) {
     auth.refreshExpiry();
     router.push('/items/HAUSAUFGABE');
@@ -66,7 +66,7 @@ function submit() {
 
 function doLogout() {
   auth.logout();
-  window.location.href ='https://schul-dashboards.onrender.com'
+  window.location.href ='https://schul-dashboards.onrender.com/'
 }
 </script>
 
