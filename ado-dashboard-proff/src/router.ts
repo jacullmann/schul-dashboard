@@ -14,6 +14,8 @@ const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
 const Aidetector = () => import('./views/aiDetector.vue')
+const Games = () => import('./views/Games.vue')
+const GameDetail = () => import('./views/GameDetail.vue')
 //const Chatter = () => import('./views/TestChat.vue')
 
 const routes = [
@@ -32,6 +34,13 @@ const routes = [
     { path: '/ai-detector', component: Aidetector },
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
+    { path: '/8912', component: Games },
+    {
+        path: '/8912/:id',
+        name: 'GameDetail',
+        component: GameDetail,
+        props: true
+    },
     { path: '/goat', redirect: '/kanye' },
     //{ path: '/chatter', component: Chatter },
 

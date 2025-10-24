@@ -3,7 +3,7 @@
     <div style="display: flex; justify-content: center; align-items: center;">
       <h2>Mehr erfahren</h2>
     </div>
-    <NCollapse :default-expanded-names="['']" class="mobile-collapse-list">
+    <NCollapse :default-expanded-names="['']" class="mobile-collapse-list" accordion>
 
       <NCollapseItem name="homework" class="mobile-list-item">
         <template #header>
@@ -150,30 +150,28 @@ const handleButtonClick = (aktionstyp: string) => {
 
 .mobile-list-item {
   margin-bottom: 12px;
-  background-color: rgba(100, 100, 100, 0.25); /* Dunkel, leicht transparent */
-  backdrop-filter: blur(10px); /* Der gewünschte Blur-Effekt */
+  background-color: rgba(100, 100, 100, 0.25);
+  backdrop-filter: blur(10px);
   border-radius: 12px;
   overflow: hidden;
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-/* Interaktiver Effekt */
 .mobile-list-item:hover {
-  transform: translateY(-2px); /* Leichter Schwebe-Effekt */
+  transform: translateY(-2px);
 }
 
-/* Header des Collapse-Items (dort wo der Klick passiert) */
 :deep(.n-collapse-item__header) {
   padding: 16px 20px !important;
   color: var(--n-text-color-base);
   font-weight: 600;
-  border-bottom: none !important; /* Wichtig, um die Standard-Border von NCollapse zu entfernen */
+  border-bottom: none !important;
 }
 :deep(.n-collapse-item-arrow) {
   color: white !important;
 }
 
-/* Naive UI ignoriert 'border: none' auf dem Wrapper, wir müssen die Border auf dem Header-Container entfernen */
+
 :deep(.n-collapse-item) {
   border-top: none !important;
 }
@@ -189,9 +187,8 @@ const handleButtonClick = (aktionstyp: string) => {
   font-size: 1.1rem;
 }
 
-/* Content-Bereich, der aufklappt */
+
 .mobile-card-content {
-  /* Innerhalb des blur-Containers: Etwas dunklerer Hintergrund ohne extra Blur */
   background-color: rgba(0, 0, 0, 0.3);
   padding: 12px 20px 16px 20px !important;
   border-radius: 0 0 12px 12px;
