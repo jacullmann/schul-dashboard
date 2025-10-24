@@ -73,7 +73,7 @@ export function useAuth() {
         } catch (error) {
 
             console.error('Login-Fehler:', error);
-            return { ok: false, error: 'Verbindung zum Backend fehlgeschlagen. Läuft der Server?' };
+            return { ok: false, error: 'Verbindung zum Backend fehlgeschlagen.' };
         }
     }
 

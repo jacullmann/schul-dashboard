@@ -752,11 +752,11 @@ app.post('/api/dashboard-check',
         const { password } = req.body;
 
         if (password === HARDCODED_SECRET) {
-            // Erfolg: Status 200 und ok: true
-            return res.json({ ok: true, message: 'Passwort ist richtig.' });
+
+            return res.json({ ok: true, message: 'Authentifizierung erfolgreich' });
         } else {
-            // Misserfolg: Status 401 Unauthorized und Fehler-Nachricht
-            return sendJSONError(res, 401, 'Ungültiges Geheimnis');
+
+            return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
         }
     }
 );

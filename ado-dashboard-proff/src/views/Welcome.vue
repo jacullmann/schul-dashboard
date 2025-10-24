@@ -66,7 +66,7 @@ async function submit() {
 
 function doLogout() {
   auth.logout();
-  window.location.href ='https://schul-dashboards.onrender.com/'
+  window.location.href ='https://schul-dashboards.onrender.com'
 }
 </script>
 
