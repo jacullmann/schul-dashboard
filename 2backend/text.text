@@ -1,364 +1,518 @@
-<template>
-  <div class="full-page-wrapper">
-    <!-- Hintergrund bleibt erhalten -->
-    <div class="background-decorations">
-      <div class="star-decor star-pink" style="top: 10%; right: 15%;"></div>
-      <div class="star-decor star-orange" style="top: 30%; left: 8%;"></div>
-      <div class="star-decor star-blue" style="bottom: 10%; left: 20%;"></div>
-      <div class="star-decor star-purple" style="bottom: 25%; right: 25%;"></div>
-      <div class="star-decor star-cyan" style="top: 45%; right: 40%;"></div>
+RR.vue: <template>
+          <div v-if="isVisible" class="card-container">
+            <Transition name="mac-window">
+              <div
+                  v-show="isShown"
+                  class="draggable-card"
+                  ref="cardRef"
+                  :style="cardStyle"
+                  @mousedown.stop="startDrag"
+                  @touchstart.stop="startDrag"
+              >
+                <div class="card-header">
+                  <div class="card-title">Schwebendes Fenster</div>
+                  <div class="card-controls">
+                    <button
+                        @click.stop="toggleCollapse"
+                        :disabled="state.isDocked"
+                        class="control-btn minimize"
+                        title="Einklappen"
+                    >
+                      –
+                    </button>
+                    <button
+                        @click.stop="startCloseAnimation"
+                        class="control-btn close"
+                        title="Schließen"
+                    >
+                      X
+                    </button>
+                  </div>
+                </div>
 
-      <svg class="geometric-lines" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-        <path d="M 50 150 C 200 50, 800 50, 950 150 S 900 600, 700 800 C 500 950, 150 900, 50 750" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
-        <path d="M 900 300 C 750 200, 250 200, 100 300 S 200 750, 450 900 C 700 1050, 950 900, 900 700" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3" />
-      </svg>
-    </div>
-
-    <main class="content-area">
-      <section v-if="!showAuth" class="hero-main-content">
-        <h1 class="hero-title">
-          <span class="text-gradient">Schul-Dashboard</span>
-        </h1>
-        <p class="hero-subtitle">Das Tool, um dein schulisches Leben aufs nächste Level zu bringen</p>
-        <p class="hero-free">komplett kostenfrei</p>
-
-        <div class="hero-actions">
-          <button @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" class="btn primary-btn large-btn pulse-effect">
-            Dashboard jetzt benutzen
-          </button>
-        </div>
-      </section>
-
-      <!-- Floating cards (statisch, kein Parallax mehr) -->
-      <div v-if="!showAuth" class="floating-cards" aria-hidden="false">
-        <div class="floating-cards-inner">
-          <div class="info-card info-hausaufgabe" style="top: 50%; left: 15%;">
-            <input type="checkbox" id="task1" checked>
-            <label for="task1">Hausaufgabe morgen</label>
-            <p class="small-detail">CDA p. 77/78</p>
-            <div class="card-icon"></div>
+                <div v-show="!state.isCollapsed" class="card-content">
+                  <p>Bewege mich mit der Maus! (Innerhalb des Viewports)</p>
+                  <p>Lasse mich nahe eines Bildschirmrands los, um anzudocken.</p>
+                </div>
+              </div>
+            </Transition>
           </div>
+        </template>
 
-          <div class="info-card info-klassenarbeit" style="top: 10%; right: 1%;">
-            <p>Klassenarbeit Deutsch</p>
-            <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-            <a @click="examplelist" class="btn ghost-card-btn">Lernzettel öffnen</a>
-          </div>
+        <script setup lang="ts">
+        import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 
-          <div class="info-card info-vokabeln" style="top: 12%; left: 2%;">
-            <input type="checkbox" id="task2" >
-            <label for="task2">Vokabelkarten anfertigen bis Freitag</label>
-            <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
-            <a class="card-link">Vokabelliste anschauen</a>
-          </div>
+        // --- Props und Emits ---
+        const props = defineProps<{
+          isVisible: boolean; // Steuert das Öffnen/Schließen von außen
+        }>();
 
-          <div class="info-card info-ausfall" style="top: 50%; right: 10%;">
-            <p>1./2. entfällt heute!</p>
-          </div>
-        </div>
+        const emit = defineEmits(['close']);
 
-      </div>
+        // --- Konstanten und Konfiguration ---
+        const SNAP_THRESHOLD = 20;    // Pixel-Abstand zum Rand, um anzudocken
+        const DEFAULT_WIDTH = 400;  // Standardbreite
+        const DEFAULT_HEIGHT = 300; // Standardhöhe
+        const HEADER_HEIGHT = 40;   // Höhe der Kopfzeile (aus CSS)
 
-      <!-- AUTH VIEW: ausschließlich AuthForm, ohne Überschriften oder Weiteres -->
-      <section v-if="showAuth" class="auth-section auth-only">
-        <div class="auth-wrapper">
-          <AuthForm ref="authComponentRef" />
-          <a class="back-link" @click="showAuth = false">Zurück</a>
-        </div>
-        <div style="height: 1000px">
+        // --- Zustand ---
+        const isShown = ref(props.isVisible); // Für die v-show Transition
+        const cardRef = ref<HTMLElement | null>(null);
 
-        </div>
-      </section>
-    </main>
-  </div>
-</template>
+        interface CardState {
+          x: number;
+          y: number;
+          width: number;
+          height: number;
+          isDragging: boolean;
+          isDocked: boolean;
+          dockedSide: 'none' | 'left' | 'right' | 'top' | 'bottom';
+          isCollapsed: boolean; // NEU: Für Einklapp-Zustand
+          lastHeight: number;  // NEU: Speichert Höhe vor dem Einklappen
+        }
 
-<script setup lang="ts">
-import { ref } from 'vue';
-import AuthForm from './Welcome.vue';
+        const state = reactive<CardState>({
+          x: window.innerWidth / 2 - DEFAULT_WIDTH / 2,
+          y: window.innerHeight / 2 - DEFAULT_HEIGHT / 2,
+          width: DEFAULT_WIDTH,
+          height: DEFAULT_HEIGHT,
+          isDragging: false,
+          isDocked: false,
+          dockedSide: 'none',
+          isCollapsed: false,
+          lastHeight: DEFAULT_HEIGHT,
+        });
 
-const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
-const showAuth = ref(false);
+        // --- Watcher für 'isVisible' Prop ---
+        watch(() => props.isVisible, (newVal) => {
+          if (newVal) {
+            // Wenn sichtbar wird, setze auf Standard zurück und zeige
+            unDock(); // Setzt Position, Größe und Status zurück
+            isShown.value = true;
+          }
+          // Das Schließen wird durch startCloseAnimation() gehandhabt
+        });
 
-// Beispiel-Handler aus originalem Code belassen falls benötigt
-const examplelist = () => {
-  // placeholder: bestehendes Verhalten beibehalten oder implementieren
-};
-</script>
+        // --- Computed Style (STARK VEREINFACHT) ---
+        const cardStyle = computed(() => {
+          return {
+            '--card-x': `${state.x}px`,
+            '--card-y': `${state.y}px`,
+            '--card-width': `${state.width}px`,
+            '--card-height': `${state.height}px`,
+            'cursor': state.isDragging ? 'grabbing' : 'grab',
 
-<style scoped>
-/* GENERAL FULL PAGE & STRUCTURE */
-.full-page-wrapper {
-  min-height: 100%;
-  width: 100%;
-  top: 0;
-  right: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  position: relative;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-}
+            // WICHTIG: Immer 'transform' für die Positionierung verwenden.
+            // 'top' und 'left' bleiben '0' (siehe CSS).
+            'transform': `translate(var(--card-x), var(--card-y))`,
 
-/* Keep content centered and readable */
-.content-area {
-  flex-grow: 1;
-  position: relative;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 30px 20px;
-}
+            // WICHTIG: Transition nur anwenden, wenn NICHT gezogen wird.
+            // Dies animiert das Andocken, Öffnen, Schließen und Einklappen.
+            'transition': state.isDragging ? 'none' : 'all 0.3s ease-in-out',
+          };
+        });
 
-/* HERO CONTENT */
-.hero-main-content {
-  text-align: center;
-  padding: 100px 20px 80px;
-  position: relative;
-  z-index: 10;
-}
+        // --- Drag-Handler ---
+        let dragStart = { x: 0, y: 0 };
+        let cardStart = { x: 0, y: 0 };
 
-.hero-title {
-  font-size: clamp(3rem, 7vw, 6rem);
-  font-weight: 900;
-  line-height: 1.05;
-  margin: 0 0 10px 0;
-}
+        function startDrag(event: MouseEvent | TouchEvent) {
+          // Nur ziehen, wenn auf den Header geklickt wird
+          const target = event.target as HTMLElement;
+          const isHeader = target.closest('.card-header');
+          if (!isHeader && !('touches' in event)) return;
 
-.text-gradient {
+          const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+          const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
 
-  display: block;
-}
+          // WICHTIG: Wenn angedockt, sofort (ohne Animation) in den
+          // "nicht angedockten" Zustand wechseln, zentriert unter dem Cursor.
+          if (state.isDocked) {
+            // Übergib die Klick-Koordinaten für die Neupositionierung
+            unDock(clientX, clientY);
+          }
 
-.hero-subtitle {
-  font-size: clamp(1rem, 2.5vw, 1.5rem);
-  font-weight: 400;
-  color: var(--sub);
-  margin-top: 0;
-  animation: fadeIn 1.2s ease-out 0.4s forwards;
-  opacity: 0;
-}
+          // Das Ziehen *beginnt* erst, nachdem der Zustand (ggf.) geändert wurde
+          state.isDragging = true;
+          dragStart = { x: clientX, y: clientY };
+          // state.x/y sind jetzt die neuen (ggf. von unDock gesetzten) Koordinaten
+          cardStart = { x: state.x, y: state.y };
 
-.hero-free {
-  font-size: clamp(1.2rem, 3vw, 2.2rem);
-  font-weight: 700;
-  color: var(--text);
-  margin: 15px 0 30px 0;
-  animation: fadeIn 1.2s ease-out 0.6s forwards;
-  opacity: 0;
-}
+          event.preventDefault();
 
-.hero-actions {
-  margin-top: 40px;
-  animation: slideInUp 1s ease-out 0.8s forwards;
-  opacity: 0;
-}
+          document.addEventListener('mousemove', drag);
+          document.addEventListener('mouseup', stopDrag);
+          document.addEventListener('touchmove', drag);
+          document.addEventListener('touchend', stopDrag);
+        }
 
-.large-btn {
-  padding: 18px 36px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: 12px;
-  min-width: 280px;
-}
+        function drag(event: MouseEvent | TouchEvent) {
+          if (!state.isDragging) return;
 
-/* AUTH SECTION */
-.auth-section {
-  padding: 60px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-  margin-top: 5rem;
-}
+          const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX;
+          const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
 
-/* When auth-only view is active we want compact centered wrapper */
-.auth-section.auth-only .auth-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
+          const deltaX = clientX - dragStart.x;
+          const deltaY = clientY - dragStart.y;
 
-/* small back link inside auth view */
-.back-link {
-  font-size: 0.95rem;
-  color: var(--primary);
-  text-decoration: underline;
-  cursor: pointer;
-  margin-top: 8px;
-}
+          let newX = cardStart.x + deltaX;
+          let newY = cardStart.y + deltaY;
 
-/* Floating cards (statisch) */
-.floating-cards {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 5;
-  -webkit-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-}
+          // Viewport-Beschränkung (verhindert, dass die Karte aus dem Bild geschoben wird)
+          // Beim Ziehen verwenden wir die aktuelle Breite/Höhe
+          const cardW = state.width;
+          const cardH = state.height;
+          const windowW = window.innerWidth;
+          const windowH = window.innerHeight;
 
-.floating-cards-inner {
-  position: absolute;
-  top: -300px;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  /*border: 2px solid red;*/
-  /* will-change removed because kein Parallax mehr */
-}
+          state.x = Math.max(0, Math.min(newX, windowW - cardW));
+          state.y = Math.max(0, Math.min(newY, windowH - cardH));
+        }
 
-/* Cards themselves still allow pointer-events so users can interact */
-.info-card {
-  position: absolute;
-  background-color: rgba(26, 26, 26, 0.85);
-  backdrop-filter: blur(10px);
-  padding: 16px 20px;
-  border-radius: 12px;
-  width: clamp(200px, 20vw, 300px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  pointer-events: auto;
-  animation: floatEffect 30s ease-in-out infinite alternate;
-}
+        function stopDrag() {
+          state.isDragging = false;
 
-.info-card:nth-child(1) { animation-delay: 0s; }
-.info-card:nth-child(2) { animation-delay: -2s; }
-.info-card:nth-child(3) { animation-delay: -4s; }
-.info-card:nth-child(4) { animation-delay: -6s; }
+          // Prüfe auf Andocken (dies wird jetzt sanft animiert,
+          // da 'transition' wieder aktiv ist)
+          if (!state.isCollapsed) { // Nur andocken, wenn nicht eingeklappt
+            checkAndDock();
+          }
 
-.info-card label { font-weight: 600; display: block; margin-left: 5px; }
-.info-card input[type="checkbox"] { transform: scale(1.2); }
-.info-card .small-detail { font-size: 14px; margin-top: 4px; color: var(--muted); }
-.info-card .theme { color: #a020f0; }
-.info-card .card-link { font-size: 14px; color: var(--primary); display: block; margin-top: 8px; }
-.info-card .card-icon {
-  position: absolute; top: 10px; right: 10px; font-size: 24px;
-}
-.ghost-card-btn {
-  padding: 6px 10px;
-  margin-top: 10px;
-  font-size: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: var(--text);
-  background: transparent;
-  display: inline-block;
-}
-.info-ausfall {
-  background-color: #2a2a2a;
-  text-align: center;
-  font-weight: 700;
-  padding: 10px 15px;
-}
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('mouseup', stopDrag);
+          document.removeEventListener('touchmove', drag);
+          document.removeEventListener('touchend', stopDrag);
+        }
 
-/* BACKGROUND DECORATIONS (STARS & LINES) */
-.background-decorations {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 1;
-  will-change: auto;
-}
+        // --- Andock-Logik ---
 
-.star-decor {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  filter: blur(8px);
-  opacity: 0.8;
-  animation: pulseColor 4s ease-in-out infinite alternate;
-}
+        function checkAndDock() {
+          const x = state.x;
+          const y = state.y;
+          const windowW = window.innerWidth;
+          const windowH = window.innerHeight;
+          const cardW = state.width;
+          const cardH = state.height;
 
-.star-pink { background-color: #ffc0cb; }
-.star-orange { background-color: #ff7a00; }
-.star-blue { background-color: #3f93f8; }
-.star-purple { background-color: #a020f0; }
-.star-cyan { background-color: #00ffff; }
+          // 1. Linker Rand
+          if (x < SNAP_THRESHOLD) {
+            dock('left');
+          }
+          // 2. Rechter Rand
+          else if (x + cardW > windowW - SNAP_THRESHOLD) {
+            dock('right');
+          }
+          // 3. Oberer Rand
+          else if (y < SNAP_THRESHOLD) {
+            dock('top');
+          }
+          // 4. Unterer Rand
+          else if (y + cardH > windowH - SNAP_THRESHOLD) {
+            dock('bottom');
+          }
+          // 5. Kein Andocken
+          else {
+            state.isDocked = false;
+            state.dockedSide = 'none';
+          }
+        }
 
-.geometric-lines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
+        function dock(side: 'left' | 'right' | 'top' | 'bottom') {
+          state.isDocked = true;
+          state.isCollapsed = false; // Andocken erzwingt das Ausklappen
+          state.dockedSide = side;
 
-/* ANIMATIONS */
-@keyframes slideInUp {
-  0% { transform: translateY(40px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-@keyframes floatEffect {
-  0% { transform: translate(0, 0); }
-  50% { transform: translate(10px, -15px); }
-  100% { transform: translate(0, 0); }
-}
-@keyframes pulseColor {
-  0% { transform: scale(1.0); opacity: 0.7; }
-  50% { transform: scale(1.2); opacity: 0.9; }
-  100% { transform: scale(1.0); opacity: 0.7; }
-}
+          switch (side) {
+            case 'left':
+              state.x = 0;
+              state.y = 0;
+              state.width = window.innerWidth / 2;
+              state.height = window.innerHeight;
+              break;
+            case 'right':
+              state.x = window.innerWidth / 2;
+              state.y = 0;
+              state.width = window.innerWidth / 2;
+              state.height = window.innerHeight;
+              break;
+            case 'top':
+              state.x = 0;
+              state.y = 0;
+              state.width = window.innerWidth;
+              state.height = window.innerHeight / 2;
+              break;
+            case 'bottom':
+              state.x = 0;
+              state.y = window.innerHeight / 2;
+              state.width = window.innerWidth;
+              state.height = window.innerHeight / 2;
+              break;
+          }
+        }
 
-/* BUTTONS/CTA */
-.btn {
-  font-size: 1.05rem;
-  padding: 10px 18px;
-  border-radius: 8px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.primary-btn {
-  background: linear-gradient(90deg, #ff9823, #ff335a, #af00ff, #6600ff );
-  color: white;
-  border: none;
-}
-.primary-btn:hover {
-}
+        /**
+         * Setzt die Karte in den Standardzustand (nicht angedockt) zurück.
+         * @param clickX - Optionale X-Koordinate des Klicks (zum Neupositionieren beim Ziehen).
+         * @param clickY - Optionale Y-Koordinate des Klicks.
+         */
+        function unDock(clickX?: number, clickY?: number) {
+          state.isDocked = false;
+          state.dockedSide = 'none';
+          state.isCollapsed = false;
 
-@media (max-width: 900px) {
+          const oldWidth = state.width;
+          const oldHeight = state.height;
+          const newWidth = DEFAULT_WIDTH;
+          const newHeight = DEFAULT_HEIGHT;
 
-  .hero-main-content {
-    padding: 60px 20px 40px;
-    height: 110vh;
-  }
+          state.width = newWidth;
+          state.height = newHeight;
+          state.lastHeight = newHeight;
 
-  .info-card { width: clamp(180px, 40vw, 260px); }
+          if (clickX !== undefined && clickY !== undefined) {
+            // --- SCHLÜSSEL-LOGIK GEGEN RUCKELN ---
+            // Positioniere die "neue" (kleinere) Karte so, dass der Mauszeiger
+            // prozentual an derselben Stelle auf der Karte bleibt.
+            const relativeX = clickX - state.x;
+            const relativeY = clickY - state.y;
+            const percentX = relativeX / oldWidth;
+            const percentY = relativeY / oldHeight;
+
+            state.x = clickX - (newWidth * percentX);
+            state.y = clickY - (newHeight * percentY);
+
+          } else {
+            // Standard-Reset (z.B. beim Öffnen): Zentrieren
+            state.x = window.innerWidth / 2 - newWidth / 2;
+            state.y = window.innerHeight / 2 - newHeight / 2;
+          }
+
+          // Sicherstellen, dass die neue Position im Viewport ist
+          state.x = Math.max(0, Math.min(state.x, window.innerWidth - newWidth));
+          state.y = Math.max(0, Math.min(state.y, window.innerHeight - newHeight));
+        }
+
+        // --- NEU: Einklapp-Logik ---
+        function toggleCollapse() {
+          // Einklappen nur erlauben, wenn nicht angedockt
+          if (state.isDocked) return;
+
+          state.isCollapsed = !state.isCollapsed;
+          if (state.isCollapsed) {
+            // Einklappen: Höhe speichern und auf Header-Höhe setzen
+            state.lastHeight = state.height;
+            state.height = HEADER_HEIGHT;
+          } else {
+            // Ausklappen: Gespeicherte Höhe wiederherstellen
+            state.height = state.lastHeight;
+          }
+        }
+
+        // --- Resize Handler ---
+        function handleResize() {
+          const windowW = window.innerWidth;
+          const windowH = window.innerHeight;
+
+          if (state.isDocked) {
+            // Angedockte Position/Größe neu berechnen
+            dock(state.dockedSide);
+          } else {
+            // Sicherstellen, dass die Karte im Viewport bleibt
+            state.x = Math.max(0, Math.min(state.x, windowW - state.width));
+            state.y = Math.max(0, Math.min(state.y, windowH - state.height));
+
+            // Höhe beibehalten, wenn eingeklappt
+            if(state.isCollapsed) {
+              state.height = HEADER_HEIGHT;
+            }
+          }
+        }
+
+        // --- Schließ-Animation ---
+        function startCloseAnimation() {
+          isShown.value = false; // Löst .mac-window-leave-to aus
+          setTimeout(() => {
+            emit('close'); // Entfernt das Element via v-if
+          }, 300); // Muss zur CSS-Transition-Dauer passen
+        }
+
+        // --- Lifecycle Hooks ---
+        onMounted(() => {
+          window.addEventListener('resize', handleResize);
+        });
+
+        onUnmounted(() => {
+          window.removeEventListener('resize', handleResize);
+          // Sicherheitshalber alle globalen Listener entfernen
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('mouseup', stopDrag);
+          document.removeEventListener('touchmove', drag);
+          document.removeEventListener('touchend', stopDrag);
+        });
+        </script>
+
+        <style scoped>
+        /* Container, der die Positionierung bei v-if/v-show unterstützt */
+        .card-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 0;
+          height: 0;
+        }
+
+        .draggable-card {
+          position: fixed;
+          /* WICHTIG: top/left sind 0. Die Positionierung
+             erfolgt AUSSCHLIESSLICH über 'transform'. */
+          top: 0;
+          left: 0;
+
+          /* Größe wird über CSS-Variablen gesteuert */
+          width: var(--card-width);
+          height: var(--card-height);
+
+          background-color: white;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+          z-index: 1000000;
+
+          display: flex;
+          flex-direction: column;
+          overflow: hidden; /* Wichtig für die Einklapp-Animation */
+          color: black;
+
+          /* Performance-Optimierung für Animationen */
+          will-change: transform, width, height, opacity;
+        }
+
+        /* ------------------- MAC-STIL ANIMATION (KORRIGIERT) ------------------- */
+
+        .mac-window-enter-active,
+        .mac-window-leave-active {
+          /* Die Transition für 'all' (Größe, Position) wird durch :style="cardStyle" gesteuert.
+             Hier definieren wir *nur* die Transitions für Opacity und Scale,
+             die von der <Transition>-Komponente gesteuert werden. */
+          transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+          transform-origin: center; /* Von der Mitte aus skalieren */
+        }
+
+        /* * KORREKTUR: Die 'from' und 'to' Zustände MÜSSEN die
+         * finale 'translate'-Position beinhalten, damit die Skalierung
+         * an der korrekten Endposition stattfindet.
+         */
+
+        /* Animation beim Erscheinen (v-enter-from) */
+        .mac-window-enter-from {
+          opacity: 0;
+          transform: translate(var(--card-x), var(--card-y)) scale(0.7);
+        }
+        /* Animation beim Verschwinden (v-leave-to) */
+        .mac-window-leave-to {
+          opacity: 0;
+          transform: translate(var(--card-x), var(--card-y)) scale(0.7);
+          z-index: 1001;
+        }
+
+        /* ------------------- HEADER UND STEUERUNG ------------------- */
+        .card-header {
+          height: 40px; /* Muss zu HEADER_HEIGHT in <script> passen */
+          background-color: #f1f1f1;
+          color: #333;
+          padding: 0 12px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          user-select: none;
+          flex-shrink: 0; /* Verhindert Schrumpfen des Headers */
+          border-bottom: 1px solid #ddd;
+        }
+
+        .card-title {
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        .card-controls {
+          display: flex;
+          gap: 6px;
+        }
+
+        .control-btn {
+          border: none;
+          border-radius: 50%;
+          width: 16px;
+          height: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: bold;
+          line-height: 1;
+          padding: 0;
+          cursor: pointer;
+          transition: transform 0.1s ease;
+        }
+        .control-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .control-btn.close {
+          background: #ff5f57;
+          color: #a43e39;
+        }
+        .control-btn.minimize {
+          background: #ffbd2e;
+          color: #a77a1d;
+          font-size: 16px;
+          padding-bottom: 3px; /* Kleinere Anpassung für "–" */
+        }
+        .control-btn:disabled {
+          background: #e0e0e0;
+          color: #aaa;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .card-content {
+          padding: 15px;
+          flex-grow: 1;
+          overflow-y: auto;
+          background-color: #ffffff;
+        }
+        </style>
 
 
-  .background-decorations,
-  .floating-cards {
-    display: none;
-  }
-}
 
-/* Minor accessibility and layering adjustments */
-.hero-main-content,
-.auth-section {
-  z-index: 10;
-  position: relative;
-  margin-top: 0;
-}
 
-/* ensure clicks on foreground are not blocked */
-.content-area > * { position: relative; z-index: 10; }
-</style>
+
+
+Playg.vue: <script setup>
+           import { ref } from 'vue';
+           import DraggableCard from './RR.vue';
+
+           const showCard = ref(false);
+
+           function openCard() {
+             showCard.value = true;
+           }
+
+           function handleClose() {
+             showCard.value = false;
+           }
+           </script>
+
+           <template>
+
+
+               <button @click="openCard" :disabled="showCard" style="padding: 10px 20px; font-size: 16px;">
+                 Fenster öffnen
+               </button>
+
+               <DraggableCard
+                   :is-visible="showCard"
+                   @close="handleClose"
+               />
+
+           </template>

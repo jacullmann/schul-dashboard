@@ -21,6 +21,7 @@
           <router-link  to="/kontakt" class="footer-link">Kontaktformular</router-link>
 
         </div>
+        <!--<PlGr />-->
         <All  class="logoutDeviceMobile" />
       </div>
     </div>
@@ -43,6 +44,7 @@
 import { ref } from "vue";
 import router from "../router";
 import EasterEggOverlay from "./EasterEggOverlay.vue";
+import PlGr from "./Playg.vue"
 
 import All from './AllLogoutButton.vue'
 

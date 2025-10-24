@@ -3,10 +3,6 @@
 
     <Header v-if="$route.path !== '/welcome'"/>
     <main class="full-c">
-      <div style=" display: flex; justify-content: center; align-items: center; ">
-        <Security class="seecurity" />
-      </div>
-
       <img src="./utils/alt.svg" alt="Background" class="svg-background" />
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
       <div v-if="loading" class="loading-overlay" key="loading">
@@ -16,12 +12,10 @@
           <div class="dot-3"></div>
         </div>
       </div>
+      <!-- HIER NEU: MainContent.vue wird geladen -->
       <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
-        <router-view v-slot="{ Component }">
-          <KeepAlive>
-            <component :is="Component" />
-          </KeepAlive>
-        </router-view>
+        <!-- MainContent enthält jetzt NMessageProvider und router-view -->
+        <MainContent />
       </div>
     </main>
     <Footer v-if="$route.path !== '/welcome'"/>
@@ -31,13 +25,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
-import Security from './components/Security.vue'
-
+import MainContent from './MainContent.vue';
 
 
 const loading = ref(false);

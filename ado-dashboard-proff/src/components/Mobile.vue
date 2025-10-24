@@ -1,5 +1,8 @@
 <template>
   <div class="mobile-card-list-wrapper">
+    <div style="display: flex; justify-content: center; align-items: center;">
+      <h2>Mehr erfahren</h2>
+    </div>
     <NCollapse :default-expanded-names="['']" class="mobile-collapse-list">
 
       <NCollapseItem name="homework" class="mobile-list-item">
@@ -14,7 +17,7 @@
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail">CDA p. 77/78</p>
-          <NButton  size="small" type="info" secondary>
+          <NButton  @click="handleButtonClick('französischHa')" size="small" type="info" secondary>
             Details anzeigen
           </NButton>
         </NCard>
@@ -32,7 +35,7 @@
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail theme">Thema: Gedichtsanalyse und Inhaltszusammenfassung</p>
-          <NButton  size="small" type="info" secondary>
+          <NButton   @click="handleButtonClick('deutschKa')" size="small" type="info" secondary>
             <div >Lernzettel öffnen</div>
           </NButton>
         </NCard>
@@ -50,7 +53,7 @@
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail">Seite 177-178 komplett als Vokabelkarten aufschreiben</p>
-          <NButton  size="small" type="success" secondary>
+          <NButton   @click="handleButtonClick('vocabHw')" size="small" type="success" secondary>
             Vokabelliste anschauen
           </NButton>
         </NCard>
@@ -68,19 +71,72 @@
         </template>
         <NCard size="small" :bordered="false" class="mobile-card-content">
           <p class="small-detail" style="font-weight: bold; color: var(--n-color-error)">1./2. entfällt heute!</p>
-          <NButton size="small" type="error" secondary>
+          <NButton  @click="handleButtonClick('ausfall')" size="small" type="error" secondary>
             Auf DSB überprüfen
           </NButton>
         </NCard>
       </NCollapseItem>
 
     </NCollapse>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { NButton, NCard, NCollapse, NCollapseItem, NTag, NCheckbox, NIcon } from 'naive-ui';
-import { ClipboardList, BookOpen, Clock, AlertTriangle } from 'lucide-vue-next';
+import {
+  NButton, NCard, NCollapse, NCollapseItem, NTag, NCheckbox, NIcon,
+  useMessage
+} from 'naive-ui';
+import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh} from 'lucide-vue-next';
+import { h } from 'vue';
+
+const message = useMessage()
+
+const renderIcon = (iconComponent: any) => {
+
+  return () => h(NIcon, null, { default: () => h(iconComponent) });
+}
+
+
+const handleButtonClick = (aktionstyp: string) => {
+
+  let contentText: string;
+  let messageType: 'info' | 'warning' | 'error' | 'success';
+  let iconComponent: any;
+
+  if (aktionstyp === 'französischHa') {
+    contentText = 'Tja, dabei können wir dir auch nicht helfen.';
+    messageType = 'info';
+    iconComponent = AnnoyedIcon;
+  }
+  else if (aktionstyp === 'deutschKa') {
+    contentText = 'Passwort eingeben --> Losstarten';
+    messageType = 'info';
+    iconComponent = LockKeyhole;
+  }
+  else if (aktionstyp === 'vocabHw') {
+    contentText = 'Eigentlich Seite 178-384, aber das ersparen wir euch.';
+    messageType = 'info';
+    iconComponent = SmilePlus;
+  }
+  else if (aktionstyp === 'ausfall') {
+    contentText = 'Spaß, natürlich fällt die 1./2. Stunde nicht aus.';
+    messageType = 'info';
+    iconComponent = Laugh;
+  }
+  else {
+    contentText = `Unbekannter Parameter '${aktionstyp}'. `;
+    messageType = 'info';
+    iconComponent = null;
+  }
+
+  message[messageType](contentText, {
+    duration: 1800,
+    icon: iconComponent ? renderIcon(iconComponent) : undefined
+  });
+}
+
+
 </script>
 
 <style scoped>
@@ -98,13 +154,11 @@ import { ClipboardList, BookOpen, Clock, AlertTriangle } from 'lucide-vue-next';
   backdrop-filter: blur(10px); /* Der gewünschte Blur-Effekt */
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 /* Interaktiver Effekt */
 .mobile-list-item:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
   transform: translateY(-2px); /* Leichter Schwebe-Effekt */
 }
 
