@@ -266,7 +266,7 @@ export interface HwItem {
   timeColor: string;
 }
 
-const MAX_TITLE_LENGTH = 100;
+const MAX_TITLE_LENGTH = 50;
 const MAX_SUBJECT_LENGTH = 30;
 
 const showAuth = ref(false);
@@ -675,13 +675,6 @@ function goTab(t: ItemType) {
   router.push({ name: 'ItemsByType', params: { type: t } });
 }
 
-/**
- * --- Neue Zustände / Funktionen für die "nur 2 Bilder anzeigen + Overlay" Funktion ---
- *
- * revealedImages: Set von item.ids für die Items, bei denen der Benutzer "mehr anzeigen" angeklickt hat.
- * isRevealed(itemId) prüft, ob das Item aufgedeckt ist.
- * revealImages(itemId) setzt das Item als aufgedeckt (zeigt alle Bilder).
- */
 
 const revealedImages = ref(new Set<string>());
 

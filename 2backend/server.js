@@ -111,10 +111,6 @@ const ItemSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Item = mongoose.model('HwItem', ItemSchema);
 
-// New model: KeepChecked
-// Purpose: record which users have "checked" (collapsed/marked) which items
-// Each document represents a single check action (itemId + userId + timestamp).
-// This avoids modifying the original Item documents and keeps a separate, append-only-like list.
 const KeepCheckedSchema = new mongoose.Schema({
     itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
@@ -459,10 +455,10 @@ app.get('/api/items',
 app.post('/api/items',
     requireAuth,
     body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-    body('title').isString().isLength({ min: 2, max: 200 }),
-    body('subject').isString().isLength({ min: 2, max: 50 }),
-    body('description').optional().isString().isLength({ max: 5000 }),
-    body('images').optional().isArray({ max: 10 }),
+    body('title').isString().isLength({ min: 2, max: 60 }),
+    body('subject').isString().isLength({ min: 2, max: 40 }),
+    body('description').optional().isString().isLength({ max: 1000 }),
+    body('images').optional().isArray({ max: 15 }),
     body('dueDate').isISO8601().toDate(),
     validate,
     async (req, res) => {

@@ -161,9 +161,9 @@ async function uploadImage() {
       return;
     }
 
-    // limit check: max 10 images per item
+
     const existingCount = (images.value || []).length;
-    const MAX_IMAGES = 10;
+    const MAX_IMAGES = 15;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
       uploadError.value = 'Maximale Anzahl 10 Bilder erreicht.';
@@ -279,7 +279,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 <style scoped>
 
-/* Overlay: dimmt die Seite, aber NICHT verschwommen */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -296,7 +295,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   width: 100%;
   max-width: 720px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: none;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);

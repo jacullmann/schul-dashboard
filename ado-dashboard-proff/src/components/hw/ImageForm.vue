@@ -122,9 +122,9 @@ async function uploadImg() {
     message.value = '';
     isError.value = false;
 
-    // limit check: max 10 images per item
+
     const existingCount = (currentImages.value || []).length;
-    const MAX_IMAGES = 10;
+    const MAX_IMAGES = 15;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
       message.value = 'Maximale Anzahl 10 Bilder erreicht.';
@@ -218,7 +218,7 @@ async function removeImg(publicId: string) {
   max-width: 640px;
   padding: 20px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border:none;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
