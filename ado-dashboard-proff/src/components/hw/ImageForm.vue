@@ -127,7 +127,7 @@ async function uploadImg() {
     const MAX_IMAGES = 15;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
-      message.value = 'Maximale Anzahl 10 Bilder erreicht.';
+      message.value = 'Maximale Anzahl 15 Bilder erreicht.';
       isError.value = true;
       uploading.value = false;
       return;

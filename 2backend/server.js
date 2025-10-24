@@ -742,6 +742,30 @@ app.post('/api/auth/reset',
 
 
 
+app.post('/api/dashboard-check',
+    body('password').isString().isLength({ min: 1 }),
+    validate,
+    async (req, res) => {
+
+        const HARDCODED_SECRET = "hash891219";
+
+        const { password } = req.body;
+
+        if (password === HARDCODED_SECRET) {
+            // Erfolg: Status 200 und ok: true
+            return res.json({ ok: true, message: 'Passwort ist richtig.' });
+        } else {
+            // Misserfolg: Status 401 Unauthorized und Fehler-Nachricht
+            return sendJSONError(res, 401, 'Ungültiges Geheimnis');
+        }
+    }
+);
+
+
+
+
+
+
 
 
 
