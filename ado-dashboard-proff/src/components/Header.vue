@@ -4,7 +4,7 @@
       <!--<ButtonBack v-if="shouldShowBackButton" style="font-size: 10px" class="back-button-in-header">
         Zurück
       </ButtonBack>-->
-      <router-link data-umami-event="Header Link zu Hauptseite" v-ga-event="{ name: 'logo_click', params: { method: 'logo', label: 'main_logo' } }" to="/" class="logo-group" @click="closeNav">
+      <router-link  v-ga-event="{ name: 'logo_click', params: { method: 'logo', label: 'main_logo' } }" to="/" class="logo-group" @click="closeNav">
         <Logo class="logo-img" aria-hidden="true" />
         <span class="logo-text">Dashboard</span>
       </router-link>
