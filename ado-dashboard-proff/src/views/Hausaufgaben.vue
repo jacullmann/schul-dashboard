@@ -57,7 +57,7 @@
         <OldNewSwitch v-model="showOldEntries" />
         </div>
 
-        <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
+        <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
@@ -988,11 +988,15 @@ function revealImages(itemId: string) {
     flex-direction: column;
     align-items: flex-start;
     margin-top: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
   }
   .rei {
 
 
+  }
+
+  .mg {
+    margin-top: 20px;
   }
   
 }

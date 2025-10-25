@@ -1,5 +1,3 @@
-// NewOldSwitch.vue
-
 <template>
   <button
       class="toggle-btn btn"
