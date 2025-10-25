@@ -421,14 +421,30 @@ app.delete('/api/items/:itemId/images/:publicId',
     }
 );
 
-// Items list (not showing expired)
+// Items list (now supporting 'old' filter for items older than 48 hours)
 app.get('/api/items',
     query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+    query('filter').optional().isIn(['old']), // NEU: Erlaube den 'filter=old' Parameter
     validate,
     async (req, res) => {
-        const now = dayjs().subtract(48, 'hour').toDate();
-        const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-            .sort({ dueDate: 1 })
+        // Die 48-Stunden-Schwelle
+        const cutOffDate = dayjs().subtract(48, 'hour').toDate();
+
+        let dateQuery = {};
+
+        if (req.query.filter === 'old') {
+            // 'Alte Einträge': Fälligkeitsdatum muss älter als 48 Stunden sein ($lt = less than)
+            dateQuery = { dueDate: { $lt: cutOffDate } };
+        } else {
+            // Standard ('Neue Einträge' / Aktuell): Fälligkeitsdatum muss neuer oder gleich 48 Stunden sein ($gte = greater than or equal)
+            dateQuery = { dueDate: { $gte: cutOffDate } };
+        }
+
+        const list = await Item.find({
+            type: req.query.type,
+            ...dateQuery // Wende den Datumsfilter an
+        })
+            .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 }) // Optionale Sortierung: Alte Einträge absteigend, neue Einträge aufsteigend
             .limit(500)
             .lean();
 

@@ -45,6 +45,7 @@
       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
       <button data-umami-event="Dashboard Dalton Reiter" class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
       <button data-umami-event="Dashboard Prüfung Reiter" class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
+      <OldNewSwitch v-model="showOldEntries" />
     </div>
 
     <div class="controls">
@@ -253,6 +254,7 @@ import hw, { setHwToken } from '../hwApi';
 import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import OldNewSwitch from "../components/NewOldSwitch.vue"
 
 export interface HwItem {
   id: string;
@@ -282,6 +284,8 @@ const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
 const loading = ref(true);
 const subjectFilter = ref('');
+
+const showOldEntries = ref(false);
 
 
 const message = ref('');
@@ -339,6 +343,10 @@ watch(() => route.params.type, (v) => {
   } else {
     tab.value = 'HAUSAUFGABE';
   }
+  reload();
+});
+
+watch(showOldEntries, () => {
   reload();
 });
 
@@ -475,8 +483,16 @@ async function loadAnnouncements() {
 
 async function reload() {
   loading.value = true;
+
+  // NEU: Query-Parameter basierend auf dem Switch-Zustand erstellen
+  const params: Record<string, any> = { type: tab.value };
+  if (showOldEntries.value) {
+    params.filter = 'old';
+  }
+
   try {
-    const { data } = await hw.get('/api/items', { params: { type: tab.value } });
+    // API-Aufruf mit den neuen Query-Parametern
+    const { data } = await hw.get('/api/items', { params });
     items.value = data;
     // reset expansions on reload
     expandedDescriptions.value = new Set();
