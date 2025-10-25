@@ -4,7 +4,7 @@
       <h2 class="digin"><n-gradient-text
           gradient="linear-gradient(70deg, #ff9823, #ff335a, #af00ff, #6600ff)"
       >
-        <div style="font-weight: 800; font-size: 1.5rem">Tauche ein...</div>
+        <div class="bibibobo">Tauche ein...</div>
       </n-gradient-text></h2>
     </div>
     <n-space vertical>
@@ -361,6 +361,10 @@ const handleButtonClick = (aktionstyp: string) => {
 .theme {
   color: var(--n-color-warning);
 }
+.bibibobo {
+  font-weight: 800;
+  font-size: 2rem
+}
 
 @media (max-width: 320px) {
   .dosh{
@@ -370,5 +374,14 @@ const handleButtonClick = (aktionstyp: string) => {
 }
 .n-more :deep(.n-gradient-text .n-gradient-text__inner) {
   white-space: normal;
+}
+
+
+
+@media (min-width:700px ) {
+  .bibibobo {
+    font-size: 2.4rem;
+  }
+  
 }
 </style>

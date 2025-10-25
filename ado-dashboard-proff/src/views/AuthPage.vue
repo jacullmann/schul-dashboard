@@ -787,6 +787,23 @@ const showAuth = ref(false);
 }
 
 
+@media (max-width: 1300px) {
+
+  .floating-cards {
+    display: none;
+  }
+
+  .mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  
+}
+
+
 
 
 .hero-main-content,

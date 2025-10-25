@@ -10,11 +10,14 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
 function goHome() {
-  window.location.href = '/'
+  router.push('/');
 }
 function goBack() {
-  window.history.length > 1 ? window.history.back() : (window.location.href = '/')
+  window.history.length > 1 ? window.history.back() : (router.push('/'));
 }
 </script>
 
@@ -34,13 +37,19 @@ function goBack() {
   font-size: clamp(84px, 18vw, 190px);
   font-weight: 900;
   margin: 0;
-  color: var(--text);
+  color: transparent;
+  background: rgba(255, 255, 255, 0.72);
+  text-shadow: 0 8px 32px rgba(0, 0, 0, 0.07);
+  background-clip: text;
   letter-spacing: 2px;
 }
 
 .subtitle {
   font-size: clamp(25px, 4vw, 32px);
-  color: var(--text);
+  color: transparent;
+  background: rgba(255, 255, 255, 0.90);
+  text-shadow: 0 8px 32px rgba(0, 0, 0, 0.02);
+  background-clip: text;
   margin: 12px 0 32px 0;
 }
 
@@ -56,13 +65,16 @@ function goBack() {
   cursor: pointer;
   font-weight: 600;
   font-size: 16px;
-  background: white;
-  color: #111827;
+  color: white;
   transition: background 0.2s ease, transform 0.2s ease;
+  background: rgba(255, 255, 255, 0.19);
+  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
 }
 
 .btn:hover {
-  background-color: darkgrey;
+  background: rgba(255, 255, 255, 0.31);
 }
 
 </style>
