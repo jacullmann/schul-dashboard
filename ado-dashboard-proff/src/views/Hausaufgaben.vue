@@ -42,18 +42,20 @@
     </div>
 
     <div class="tabs-row">
-      <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
-      <button data-umami-event="Dashboard Dalton Reiter" class="btn" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
-      <button data-umami-event="Dashboard Prüfung Reiter" class="btn" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
-      <OldNewSwitch v-model="showOldEntries" />
+      <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
+      <button data-umami-event="Dashboard Dalton Reiter" class="btn rei" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
+      <button data-umami-event="Dashboard Prüfung Reiter" class="btn rei" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
     </div>
 
     <div class="controls">
       <div class="left">
+        <div class="row-two">
         <select class="input select-subject" v-model="subjectFilter">
           <option value="">Alle Fächer</option>
           <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
         </select>
+        <OldNewSwitch v-model="showOldEntries" />
+        </div>
 
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn" @click="openCreateForm">Eintrag anlegen</button>
 
@@ -708,12 +710,13 @@ function revealImages(itemId: string) {
 /* Header */
 .hw-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-direction: column;
+  text-align: left;
 }
 .hw-header h2 { margin: 0 0 2px 0}
-.header-actions { align-items: center; }
+.header-actions { align-items: center; display: flex; flex-direction: row; flex-wrap: wrap}
 
 /* Announcements */
 .announcements { margin-top: 18px; }
@@ -734,12 +737,12 @@ function revealImages(itemId: string) {
 .ann-actions { margin-top: 8px; }
 
 /* Tabs */
-.tabs-row { display:flex; gap:8px; margin: 16px 0; flex-wrap:wrap; }
+.tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
 
 /* Controls */
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-.controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.select-subject { width:auto; min-width:160px; }
+.controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
+.select-subject { width:auto; min-width:160px; height: 37px }
 .small-btn { padding:6px 8px; font-size:13px; }
 
 /* Items */
@@ -964,5 +967,33 @@ function revealImages(itemId: string) {
   gap: 8px;
   color: var(--muted); /* Farbe für den Text "Lade..." */
 }
+.row-two {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 10px;
+  position: relative;
 
+}
+.rei {
+
+
+}
+
+
+@media (max-width: 500px ) {
+  .row-two {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+  .rei {
+
+
+  }
+  
+}
 </style>
