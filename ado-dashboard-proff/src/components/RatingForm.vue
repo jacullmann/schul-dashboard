@@ -204,5 +204,3 @@ input[type="range"]::-ms-track {
   border:none;
 }
 </style>
-
-

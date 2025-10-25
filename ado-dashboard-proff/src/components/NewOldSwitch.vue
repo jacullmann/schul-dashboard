@@ -30,9 +30,9 @@ const emit = defineEmits<{
 function handleChange(value: boolean) {
   emit('update:modelValue', value) // Sende den neuen Zustand an die Elternkomponente
   if (value === true) {
-    message.info('Alte Einträge werden geladen')
+    message.info('Lade Einträge, die seit mehr als 48 Stunden abgelaufen sind.')
   } else if (value === false) {
-    message.info(`Neue/Aktuelle Einträge werden geladen`)
+    message.info(`Lade Einträge, die noch nicht oder seit höchstens 48 Stunden abgelaufen sind.`)
   }
 }
 
@@ -40,13 +40,13 @@ function handleChange(value: boolean) {
 function railStyle({ focused, checked }: { focused: boolean, checked: boolean }): CSSProperties {
   const style: CSSProperties = {}
   if (checked) {
-    style.background = '#615b5d'
+    style.background = '#d83737'
     if (focused) {
       style.boxShadow = '0 0 0 0 #d0305040'
     }
   }
   else {
-    style.background = '#373937'
+    style.background = '#049704'
     if (focused) {
       style.boxShadow = '0 0 0 0 #2080f040'
     }
