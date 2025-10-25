@@ -59,11 +59,10 @@
 
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
 
-        <div v-if="itemsLoading" class="loader">
+        <div v-if="loading" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
           <div style="color: #aaaaaa">Lade...</div>
         </div>
-
       </div>
 
       <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
@@ -141,9 +140,11 @@
         </transition>
 
         <transition name="collapse">
+          <!-- Angepasste Bilder-Logik: nur 2 initial anzeigen; Overlay auf 2. mit +N; Klick auf Overlay zeigt alle -->
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-title">Bilder</div>
             <div class="images-row">
+              <!-- wenn noch nicht auf "mehr" geklickt: nur erste zwei thumbnails zeigen -->
               <template v-if="!isRevealed(item.id)">
                 <div
                     v-for="(img, idx) in item.images.slice(0, 2)"
@@ -154,6 +155,7 @@
                     <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
                   </a>
 
+                  <!-- Overlay nur beim zweiten Bild und wenn insgesamt > 2 -->
                   <button
                       v-if="idx === 1 && item.images.length > 2"
                       class="img-overlay"
@@ -167,6 +169,7 @@
                 </div>
               </template>
 
+              <!-- wenn reveal aktiv: alle Bilder wie vorher zeigen (keine Overlays) -->
               <template v-else>
                 <div
                     v-for="img in item.images"
@@ -183,10 +186,10 @@
         </transition>
       </div>
 
-      <div v-if="!itemsLoading && !limitedItems.length && filteredItems.length" class="card empty">
+      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
         Keine Einträge in der aktuellen Ansicht.
       </div>
-      <div v-if="!itemsLoading && !filteredItems.length" class="card empty">
+      <div v-if="!loading && !filteredItems.length" class="card empty">
         Keine Einträge gefunden.
       </div>
 
@@ -281,8 +284,7 @@ const user = ref<any>(null);
 const subjects = ref<string[]>([]);
 const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
-const itemsLoading = ref(false);
-
+const loading = ref(true);
 const subjectFilter = ref('');
 
 const showOldEntries = ref(false);
@@ -369,18 +371,25 @@ const colorFor = (color: string) => {
 
 // returns { background: string, color: string }
 const colorStyles = (timeColor: string) => {
+  // expired -> grau hintergrund, weiße schrift
   if (timeColor === 'expired') {
     return { background: '#4b5563', color: 'white' };
   }
+
+  // very soon (danger) oder in den nächsten Tagen (warn) -> behalten wie vorher
   if (timeColor === 'danger') {
     return { background: 'var(--danger)', color: 'white' };
   }
   if (timeColor === 'warn') {
     return { background: 'var(--warn)', color: 'black' };
   }
+
+  // info -> blue like before
   if (timeColor === 'info') {
     return { background: '#3b82f6', color: 'white' };
   }
+
+  // ok (oder alles, was weiter weg ist) -> weißer Hintergrund, schwarze Schrift
   return { background: 'white', color: 'black' };
 };
 
@@ -475,26 +484,29 @@ async function loadAnnouncements() {
 }
 
 async function reload() {
-  itemsLoading.value = true;
+  loading.value = true;
 
+  // NEU: Query-Parameter basierend auf dem Switch-Zustand erstellen
   const params: Record<string, any> = { type: tab.value };
   if (showOldEntries.value) {
     params.filter = 'old';
   }
 
   try {
+    // API-Aufruf mit den neuen Query-Parametern
     const { data } = await hw.get('/api/items', { params });
     items.value = data;
+    // reset expansions on reload
     expandedDescriptions.value = new Set();
+    // reset revealed images on reload so page load shows 2 images again
     revealedImages.value = new Set();
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
-    itemsLoading.value = false;
+    loading.value = false;
     visibleCount.value = Math.min(5, filteredItems.value.length || 5);
   }
 }
-
 
 function onAccountDeleted() {
   setHwToken(null);
@@ -552,12 +564,13 @@ function editItem(item: HwItem) {
 function openCreateForm() {
 
   itemToEdit.value = null;
+  // optional: we could pre-check something here if needed
   showItemForm.value = true;
 }
 
 async function deleteItem(id: string) {
   if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
-    itemsLoading.value = true;
+    loading.value = true;
     try {
       await hw.delete(`/api/items/${id}`);
       handleSuccess('Eintrag erfolgreich gelöscht.');
@@ -565,7 +578,7 @@ async function deleteItem(id: string) {
       message.value = e.response?.data?.error || 'Fehler beim Löschen.';
       isError.value = true;
     } finally {
-      itemsLoading.value = false;
+      loading.value = false;
     }
   }
 }
