@@ -59,10 +59,11 @@
 
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
 
-        <div v-if="loading" class="loader">
+        <div v-if="itemsLoading" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
           <div style="color: #aaaaaa">Lade...</div>
         </div>
+
       </div>
 
       <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
@@ -186,10 +187,10 @@
         </transition>
       </div>
 
-      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
+      <div v-if="!itemsLoading && !limitedItems.length && filteredItems.length" class="card empty">
         Keine Einträge in der aktuellen Ansicht.
       </div>
-      <div v-if="!loading && !filteredItems.length" class="card empty">
+      <div v-if="!itemsLoading && !filteredItems.length" class="card empty">
         Keine Einträge gefunden.
       </div>
 
@@ -284,7 +285,8 @@ const user = ref<any>(null);
 const subjects = ref<string[]>([]);
 const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
-const loading = ref(true);
+const itemsLoading = ref(false);
+
 const subjectFilter = ref('');
 
 const showOldEntries = ref(false);
@@ -484,16 +486,15 @@ async function loadAnnouncements() {
 }
 
 async function reload() {
-  loading.value = true;
+  itemsLoading.value = true;
 
-  // NEU: Query-Parameter basierend auf dem Switch-Zustand erstellen
+  // Query-Parameter basierend auf dem Switch-Zustand
   const params: Record<string, any> = { type: tab.value };
   if (showOldEntries.value) {
     params.filter = 'old';
   }
 
   try {
-    // API-Aufruf mit den neuen Query-Parametern
     const { data } = await hw.get('/api/items', { params });
     items.value = data;
     // reset expansions on reload
@@ -503,10 +504,11 @@ async function reload() {
   } catch (e) {
     console.error('Failed to load items:', e);
   } finally {
-    loading.value = false;
+    itemsLoading.value = false;
     visibleCount.value = Math.min(5, filteredItems.value.length || 5);
   }
 }
+
 
 function onAccountDeleted() {
   setHwToken(null);
@@ -570,7 +572,7 @@ function openCreateForm() {
 
 async function deleteItem(id: string) {
   if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
-    loading.value = true;
+    itemsLoading.value = true;
     try {
       await hw.delete(`/api/items/${id}`);
       handleSuccess('Eintrag erfolgreich gelöscht.');
@@ -578,7 +580,7 @@ async function deleteItem(id: string) {
       message.value = e.response?.data?.error || 'Fehler beim Löschen.';
       isError.value = true;
     } finally {
-      loading.value = false;
+      itemsLoading.value = false;
     }
   }
 }

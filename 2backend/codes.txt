@@ -1,84 +1,3 @@
-auth.ts: // src/composables/useAuth.ts
-         import { ref, computed } from 'vue';
-
-         const STORAGE_KEY = 'app_auth_token';
-         const STORAGE_EXPIRES_KEY = 'app_auth_expires';
-         const FRONTEND_CODE = 'mynewjamaicanlawyer';
-
-         const token = ref<string | null>(null);
-
-         function now() { return Date.now(); }
-         function inThirtyDaysMs() { return 30 * 24 * 60 * 60 * 1000; }
-
-         function loadFromStorage() {
-             const t = localStorage.getItem(STORAGE_KEY);
-             const e = localStorage.getItem(STORAGE_EXPIRES_KEY);
-             if (!t || !e) {
-                 token.value = null;
-                 clearStorage();
-                 return;
-             }
-             const expires = Number(e);
-             if (Number.isNaN(expires) || now() > expires) {
-                 token.value = null;
-                 clearStorage();
-                 return;
-             }
-             token.value = t;
-         }
-
-         function clearStorage() {
-             localStorage.removeItem(STORAGE_KEY);
-             localStorage.removeItem(STORAGE_EXPIRES_KEY);
-         }
-
-         loadFromStorage();
-
-         export function useAuth() {
-             const isAuthenticated = computed(() => !!token.value);
-
-             function loginWithCode(code: string) {
-                 // einfacher front-end check: nur der richtige Code führt zum Token
-                 if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
-                 if (code === FRONTEND_CODE) {
-                     // Erzeuge ein kleines zufälliges token (nur für frontend session purposes)
-                     const t = 'tf_' + Math.random().toString(36).slice(2);
-                     const expires = now() + inThirtyDaysMs();
-                     token.value = t;
-                     localStorage.setItem(STORAGE_KEY, t);
-                     localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
-                     window.dispatchEvent(new Event('auth-changed'));
-                     return { ok: true };
-                 }
-                 return { ok: false, error: 'Ungültiger Code' };
-             }
-
-             function logout() {
-                 token.value = null;
-                 clearStorage();
-                 window.dispatchEvent(new Event('auth-changed'));
-             }
-
-             function refreshExpiry() {
-                 if (!token.value) return;
-                 const expires = now() + inThirtyDaysMs();
-                 localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
-             }
-
-             // expose
-             return {
-                 token,
-                 isAuthenticated,
-                 loginWithCode,
-                 logout,
-                 refreshExpiry,
-                 loadFromStorage
-             };
-         }
-
-
-
-
 server.js: // server.js
            import 'dotenv/config';
            import express from 'express';
@@ -192,10 +111,6 @@ server.js: // server.js
            }, { timestamps: true });
            const Item = mongoose.model('HwItem', ItemSchema);
 
-           // New model: KeepChecked
-           // Purpose: record which users have "checked" (collapsed/marked) which items
-           // Each document represents a single check action (itemId + userId + timestamp).
-           // This avoids modifying the original Item documents and keeps a separate, append-only-like list.
            const KeepCheckedSchema = new mongoose.Schema({
                itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
                userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
@@ -506,14 +421,30 @@ server.js: // server.js
                }
            );
 
-           // Items list (not showing expired)
+           // Items list (now supporting 'old' filter for items older than 48 hours)
            app.get('/api/items',
                query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+               query('filter').optional().isIn(['old']), // NEU: Erlaube den 'filter=old' Parameter
                validate,
                async (req, res) => {
-                   const now = dayjs().subtract(48, 'hour').toDate();
-                   const list = await Item.find({ type: req.query.type, dueDate: { $gte: now } })
-                       .sort({ dueDate: 1 })
+                   // Die 48-Stunden-Schwelle
+                   const cutOffDate = dayjs().subtract(48, 'hour').toDate();
+
+                   let dateQuery = {};
+
+                   if (req.query.filter === 'old') {
+                       // 'Alte Einträge': Fälligkeitsdatum muss älter als 48 Stunden sein ($lt = less than)
+                       dateQuery = { dueDate: { $lt: cutOffDate } };
+                   } else {
+                       // Standard ('Neue Einträge' / Aktuell): Fälligkeitsdatum muss neuer oder gleich 48 Stunden sein ($gte = greater than or equal)
+                       dateQuery = { dueDate: { $gte: cutOffDate } };
+                   }
+
+                   const list = await Item.find({
+                       type: req.query.type,
+                       ...dateQuery // Wende den Datumsfilter an
+                   })
+                       .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 }) // Optionale Sortierung: Alte Einträge absteigend, neue Einträge aufsteigend
                        .limit(500)
                        .lean();
 
@@ -540,10 +471,10 @@ server.js: // server.js
            app.post('/api/items',
                requireAuth,
                body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-               body('title').isString().isLength({ min: 2, max: 200 }),
-               body('subject').isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
+               body('title').isString().isLength({ min: 2, max: 60 }),
+               body('subject').isString().isLength({ min: 2, max: 40 }),
+               body('description').optional().isString().isLength({ max: 1000 }),
+               body('images').optional().isArray({ max: 15 }),
                body('dueDate').isISO8601().toDate(),
                validate,
                async (req, res) => {
@@ -573,10 +504,10 @@ server.js: // server.js
            app.patch('/api/items/:id',
                requireAuth,
                param('id').isMongoId(),
-               body('title').optional().isString().isLength({ min: 2, max: 200 }),
-               body('subject').optional().isString().isLength({ min: 2, max: 50 }),
-               body('description').optional().isString().isLength({ max: 5000 }),
-               body('images').optional().isArray({ max: 10 }),
+               body('title').optional().isString().isLength({ min: 2, max: 60 }),
+               body('subject').optional().isString().isLength({ min: 2, max: 40 }),
+               body('description').optional().isString().isLength({ max: 1000 }),
+               body('images').optional().isArray({ max: 15 }),
                body('dueDate').optional().isISO8601().toDate(),
                validate,
                async (req, res) => {
@@ -827,6 +758,36 @@ server.js: // server.js
 
 
 
+           app.post('/api/dashboard-check',
+               body('password').isString().isLength({ min: 1 }),
+               validate,
+               async (req, res) => {
+
+                   const HARDCODED_SECRET = "hash891219";
+
+                   const { password } = req.body;
+
+                   if (password === HARDCODED_SECRET) {
+
+                       return res.json({ ok: true, message: 'Authentifizierung erfolgreich' });
+                   } else {
+
+                       return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
+                   }
+               }
+           );
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -840,244 +801,1016 @@ server.js: // server.js
 
 
 
-Welcome.vue: <template>
-               <div class="container auth-wrapper">
-                 <div class="auth-card">
-                   <h2 class="auth-title">Zugang erforderlich</h2>
-                   <p class="small auth-hint">Bitte gib deinen persönlichen Zugangscode ein.</p>
-
-                   <div class="input-group">
-                     <input
-                         v-model="code"
-                         placeholder="Zugangscode"
-                         class="auth-input"
-                         type="password"
-                     />
-                   </div>
-                   <label class="checkbox-label">
-                     <input class="checkbox" type="checkbox" v-model="accepted" />
-                     <span style="font-size: 0.75rem">Ich stimme den Nutzungsbedingungen zu.</span>
-                   </label>
-
-                   <div class="auth-actions">
-                     <button data-umami-event="Welcome Page anmelden Button" class="btn primary-btn-auth" @click="submit" :disabled="!accepted">
-                       Anmelden
-                     </button>
-                     <For />
-                   </div>
-
-                   <div v-if="error" class="error-message">
-                     {{ error }}
-                   </div>
-
-                   <hr class="divider" />
-
-                   <div class="small footer-text">
-                     Dies ist eine private Applikation. Bei Problemen kontaktiere den Administrator.
-                     Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
-                   </div>
-
-                 </div>
-               </div>
-             </template>
-
-             <script setup lang="ts">
-             import { ref } from 'vue';
-             import For from '../components/LegalF.vue'
-             import { useRouter } from 'vue-router';
-             import { useAuth } from '../composables/useAuth';
-
-             const router = useRouter();
-             const auth = useAuth();
-             const code = ref('');
-             const error = ref<string | null>(null);
-             const accepted = ref(false)
-
-             function submit() {
-               error.value = null;
-               const res = auth.loginWithCode(code.value.trim());
-               if (res.ok) {
-                 auth.refreshExpiry();
-                 router.push('/items/HAUSAUFGABE');
-                 umami.track('Welcome Page Login erfolgreich');
-               } else {
-                 error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
-               }
-             }
-
-             function doLogout() {
-               auth.logout();
-               window.location.href ='https://schul-dashboards.onrender.com'
-             }
-             </script>
-
-             <style scoped>
-             .checkbox-label {
-               display: flex;
-               align-items: center;
-               gap: 0.5rem;
-               cursor: pointer;
-               user-select: none;
-               font-size: 0.9rem;
-               color: var(--text);
-             }
-
-             .checkbox-label .checkbox {
-               appearance: none;
-               width: 20px;
-               height: 20px;
-               border: 2px solid #999;
-               border-radius: 4px;
-               display: inline-block;
-               position: relative;
-               cursor: pointer;
-               transition: all 0.2s ease-in-out;
-             }
-
-             .checkbox-label .checkbox:checked {
-               background-color: #007aff;
-               border-color: #007aff;
-             }
-
-             .checkbox-label .checkbox:checked::after {
-               content: "";
-               position: absolute;
-               /* Statt festen Pixeln für left/top, nutzen wir absolute Zentrierung */
-               left: 50%;
-               top: 50%;
-               /* Verschieben um die Hälfte der eigenen Größe, um exakt zu zentrieren */
-               transform: translate(-50%, -50%) rotate(45deg);
-
-               /* Größe und Strichstärke bleiben gleich, da sie für das Häkchen selbst relativ zur Checkbox gut funktionieren */
-               width: 6px;
-               height: 12px;
-               border: solid white;
-               border-width: 0 2px 2px 0;
-             }
-
-             .checkbox-label .checkbox:focus {
-               outline: none;
-             }
-
-             /* Container und Card */
-             .auth-wrapper {
-               max-width: 440px;
-               margin: 60px auto 100px; /* Mehr Platz am unteren Rand */
-               padding: 16px;
-             }
-             .auth-card {
-               background: var(--card);
-               padding: 30px;
-               border-radius: 16px;
-               border: 1px solid rgba(255, 255, 255, 0.08);
-               box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-               transition: all 0.3s ease;
-             }
-             .auth-card:hover {
-               box-shadow: 0 15px 50px rgba(58, 12, 163, 0.3);
-             }
-
-             /* Typografie */
-             .auth-title {
-               margin-top: 0;
-               font-size: 1.8rem;
-               font-weight: 700;
-               color: var(--text);
-             }
-             .auth-hint {
-               color: var(--muted);
-               margin-bottom: 25px;
-             }
-
-             /* Eingabefeld */
-             .input-group {
-               margin: 15px 0 20px 0;
-             }
-             .auth-input {
-               padding: 12px 14px;
-               border-radius:8px;
-               border: 2px solid transparent;
-               background: var(--jj);
-               color:var(--text);
-               width:100%;
-               font-size: 1rem;
-               transition: border-color 0.3s ease, box-shadow 0.3s ease;
-             }
-             .auth-input:focus {
-               outline: none;
-               border-color: #3A0CA3;
-               box-shadow: 0 0 0 3px rgba(58, 12, 163, 0.5);
-               background: #111;
-             }
-
-             /* Aktionen (Buttons) */
-             .auth-actions {
-               display: flex;
-               gap: 12px;
-               align-items: center;
-               margin-top: 20px;
-             }
-             .btn {
-               padding: 10px 18px;
-               border-radius:8px;
-               cursor:pointer;
-               font-weight: 600;
-               transition: all 0.2s ease;
-             }
-             .primary-btn-auth {
-               flex-grow: 1;
-               background: linear-gradient(90deg, var(--primary), #a020f0);
-               color: white;
-               border: none;
-               box-shadow: 0 4px 15px rgba(58, 12, 163, 0.2);
-             }
-             .primary-btn-auth:hover:not(:disabled) {
-               transform: translateY(-1px);
-               box-shadow: 0 6px 20px rgba(58, 12, 163, 0.4);
-             }
-             .primary-btn-auth:disabled {
-               opacity: 0.6;
-               cursor: not-allowed;
-             }
-
-             .logout-btn {
-               background: transparent;
-               color: var(--muted);
-               border: 1px solid var(--jj);
-             }
-             .logout-btn:hover {
-               background: rgba(255, 255, 255, 0.05);
-               color: var(--text);
-             }
-
-             /* Sonstiges */
-             .error-message {
-               color:var(--danger);
-               margin-top:15px;
-               padding: 10px;
-               background: rgba(239, 68, 68, 0.1);
-               border-radius: 6px;
-               font-size: 0.9rem;
-             }
-             .divider {
-               border-top: 1px solid rgba(255, 255, 255, 0.05);
-               margin: 30px 0;
-             }
-             .footer-text {
-               font-size:12px;
-               color:var(--muted);
-               text-align: center;
-             }
-
-             @media (max-width: 520px) {
-               .auth-wrapper { margin: 30px auto 60px; }
-               .auth-card { padding: 20px; }
-               .auth-actions { flex-direction: column; gap: 8px; }
-               .btn { width: 100%; }
-             }
-             </style>
 
 
+
+
+
+
+
+Hausaufgaben.vue: <template>
+                    <div class="card">
+                      <div class="hw-header">
+                        <div>
+                          <h2>Dashboard</h2>
+                          <div style="color: #f1f1f1" class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
+                        </div>
+
+                        <div class="row header-actions">
+                          <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
+                          <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
+                          <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+                        </div>
+                      </div>
+
+                      <div class="announcements">
+                        <div class="announcements-head">
+                          <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
+                          <button
+                              v-if="user?.isAdmin"
+                              data-umami-event="Dashboard Admin Ankündigung hinzufügen"
+                              class="btn ghost small-btn"
+                              @click="showAnnouncementForm = true"
+                              v-ga-event="{ name: 'add_announcement', params: { method: 'admin_button', label: 'p_b' } }"
+                          >
+                            Ankündigung hinzufügen
+                          </button>
+                        </div>
+
+                        <div v-if="announcements.length" class="ann-list">
+                          <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
+                            <div class="ann-title">{{ a.title }}</div>
+                            <div class="ann-content">{{ a.content }}</div>
+                            <!--<div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>-->
+                            <div v-if="canManage(a.createdBy)" class="ann-actions">
+                              <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <hr v-else-if="!announcements.length" />
+                      </div>
+
+                      <div class="tabs-row">
+                        <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
+                        <button data-umami-event="Dashboard Dalton Reiter" class="btn rei" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
+                        <button data-umami-event="Dashboard Prüfung Reiter" class="btn rei" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
+                      </div>
+
+                      <div class="controls">
+                        <div class="left">
+                          <div class="row-two">
+                            <select class="input select-subject" v-model="subjectFilter">
+                              <option value="">Alle Fächer</option>
+                              <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+                            </select>
+                            <OldNewSwitch v-model="showOldEntries" />
+                          </div>
+
+                          <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
+
+                          <div v-if="loading" class="loader">
+                            <LoadingSpinner color="#fff" size="1.2em" />
+                            <div style="color: #aaaaaa">Lade...</div>
+                          </div>
+                        </div>
+
+                        <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
+                      </div>
+
+                      <div class="items">
+                        <div
+                            v-for="item in limitedItems"
+                            :key="item.id"
+                            class="item-card"
+                            :class="{ collapsed: isChecked(item.id) }"
+                        >
+                          <div class="item-main">
+                            <div class="item-meta">
+                              <div style="display:flex; align-items:center; gap:8px;">
+                                <label class="collapse-checkbox" v-if="user">
+                                  <input type="checkbox" :checked="isChecked(item.id)" @change="toggleCheck(item)" />
+                                  <span class="vis-label"></span>
+                                </label>
+
+                                <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
+                              </div>
+
+                              <div class="row item-badges" v-show="!isChecked(item.id)">
+                                <div class="badge subject-badge">{{ item.subject }}</div>
+                                <div
+                                    class="badge time-badge"
+                                    :style="(() => { const s = colorStyles(item.timeColor); return { background: s.background, color: s.color }; })()"
+                                >
+                                  {{ new Date(item.dueDate).toLocaleDateString() }}
+                                </div>
+
+                              </div>
+                            </div>
+
+                            <div
+                                class="item-menu-trigger"
+                                role="button"
+                                tabindex="0"
+                                @click.stop="toggleMenu(item.id)"
+                                @keydown.enter.prevent="toggleMenu(item.id)"
+                                @keydown.space.prevent="toggleMenu(item.id)"
+                                :aria-expanded="openMenuId === item.id ? 'true' : 'false'"
+                            >
+                              •••
+                            </div>
+
+                            <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
+                              <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
+                              <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
+                              <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
+                              <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
+                            </div>
+                          </div>
+
+                          <transition name="collapse">
+                            <div v-show="!isChecked(item.id)" class="item-body">
+                              <span v-if="!isExpanded(item.id)">
+                                {{ item.description.slice(0, 200) }}
+                                <span v-if="item.description.length > 200">…</span>
+                              </span>
+                              <span v-else>
+                                {{ item.description }}
+                              </span>
+                              <button
+                                  v-if="item.description.length > 200"
+                                  class="btn tiny ghost"
+                                  @click="toggleDescription(item.id)"
+                                  data-umami-event="Dashboard mehr anzeigen/weniger anzeigen"
+                                  style="margin-left:8px;"
+                              >
+                                {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
+                              </button>
+                            </div>
+                          </transition>
+
+                          <transition name="collapse">
+                            <!-- Angepasste Bilder-Logik: nur 2 initial anzeigen; Overlay auf 2. mit +N; Klick auf Overlay zeigt alle -->
+                            <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
+                              <div class="images-title">Bilder</div>
+                              <div class="images-row">
+                                <!-- wenn noch nicht auf "mehr" geklickt: nur erste zwei thumbnails zeigen -->
+                                <template v-if="!isRevealed(item.id)">
+                                  <div
+                                      v-for="(img, idx) in item.images.slice(0, 2)"
+                                      :key="img.publicId"
+                                      class="thumb thumb-with-overlay-wrapper"
+                                  >
+                                    <a :href="img.url" target="_blank" rel="noopener">
+                                      <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
+                                    </a>
+
+                                    <!-- Overlay nur beim zweiten Bild und wenn insgesamt > 2 -->
+                                    <button
+                                        v-if="idx === 1 && item.images.length > 2"
+                                        class="img-overlay"
+                                        @click.stop.prevent="revealImages(item.id)"
+                                        aria-label="Weitere Bilder anzeigen"
+                                        title="Weitere Bilder anzeigen"
+                                    >
+                                      <div class="overlay-blur"></div>
+                                      <div class="overlay-content">+{{ item.images.length - 1 }}</div>
+                                    </button>
+                                  </div>
+                                </template>
+
+                                <!-- wenn reveal aktiv: alle Bilder wie vorher zeigen (keine Overlays) -->
+                                <template v-else>
+                                  <div
+                                      v-for="img in item.images"
+                                      :key="img.publicId"
+                                      class="thumb"
+                                  >
+                                    <a :href="img.url" target="_blank" rel="noopener">
+                                      <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
+                                    </a>
+                                  </div>
+                                </template>
+                              </div>
+                            </div>
+                          </transition>
+                        </div>
+
+                        <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
+                          Keine Einträge in der aktuellen Ansicht.
+                        </div>
+                        <div v-if="!loading && !filteredItems.length" class="card empty">
+                          Keine Einträge gefunden.
+                        </div>
+
+                        <div v-if="filteredItems.length > 5" class="pagination-actions">
+                          <button
+                              v-if="visibleCount < filteredItems.length"
+                              class="btn ghost shm"
+                              @click="showMore"
+                          >
+                            Mehr anzeigen
+                          </button>
+                          <button
+                              v-if="visibleCount > 5"
+                              class="btn ghost shm"
+                              @click="showLess"
+                          >
+                            Weniger anzeigen
+                          </button>
+                        </div>
+                      </div>
+
+                      <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
+                      <ItemForm
+                          v-if="showItemForm"
+                          :key="itemFormKey"
+                          :type="tab"
+                          :subjects="subjects"
+                          :initial="itemToEdit"
+                          :max-title-length="MAX_TITLE_LENGTH"
+                          :max-subject-length="MAX_SUBJECT_LENGTH"
+                          @close="showItemForm=false"
+                          @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
+                          @error="onItemFormError"
+                      />
+                      <AnnouncementForm
+                          v-if="showAnnouncementForm"
+                          @close="showAnnouncementForm=false"
+                          @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')"
+                      />
+                      <ImageForm
+                          v-if="showImageFormFor"
+                          :item="showImageFormFor"
+                          @close="showImageFormFor=null"
+                          @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
+                      />
+
+                      <ConfirmDialog
+                          :show="showReportConfirm"
+                          message="Soll dieser Eintrag wirklich gemeldet werden?"
+                          @confirm="doReport"
+                          @cancel="showReportConfirm=false"
+                      />
+                    </div>
+                  </template>
+
+                  <script setup lang="ts">
+                  import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
+                  import { useRoute, useRouter } from 'vue-router';
+                  import AuthModal from '../components/hw/AuthModal.vue';
+                  import ItemForm from '../components/hw/ItemForm.vue';
+                  import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
+                  import ImageForm from '../components/hw/ImageForm.vue';
+                  import hw, { setHwToken } from '../hwApi';
+                  import AccountMenu from '../components/hw/AccountMenu.vue';
+                  import ConfirmDialog from '../components/ConfirmDialog.vue'
+                  import LoadingSpinner from "../components/LoadingSpinner.vue";
+                  import OldNewSwitch from "../components/NewOldSwitch.vue"
+
+                  export interface HwItem {
+                    id: string;
+                    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+                    title: string;
+                    subject: string;
+                    description: string;
+                    images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
+                    dueDate: string;
+                    createdBy: string;
+                    timeColor: string;
+                  }
+
+                  const MAX_TITLE_LENGTH = 50;
+                  const MAX_SUBJECT_LENGTH = 30;
+
+                  const showAuth = ref(false);
+                  const showItemForm = ref(false);
+                  const showAnnouncementForm = ref(false);
+                  const showImageFormFor = ref<any>(null);
+
+                  const itemToEdit = ref<HwItem | null>(null);
+
+                  const user = ref<any>(null);
+                  const subjects = ref<string[]>([]);
+                  const announcements = ref<any[]>([]);
+                  const items = ref<HwItem[]>([]);
+                  const loading = ref(true);
+                  const subjectFilter = ref('');
+
+                  const showOldEntries = ref(false);
+
+
+                  const message = ref('');
+                  const isError = ref(false);
+
+                  // checkedItems holds item IDs that current user has checked
+                  const checkedItems = ref(new Set<string>());
+
+                  const itemFormKey = ref(0);
+
+                  // description expand tracking
+                  const expandedDescriptions = ref<Set<string>>(new Set());
+                  function isExpanded(id: string) {
+                    return expandedDescriptions.value.has(id);
+                  }
+                  function toggleDescription(id: string) {
+                    if (expandedDescriptions.value.has(id)) {
+                      expandedDescriptions.value.delete(id);
+                    } else {
+                      expandedDescriptions.value.add(id);
+                    }
+                  }
+
+                  // pagination
+                  const visibleCount = ref(5);
+                  function showMore() {
+                    visibleCount.value = Math.min(visibleCount.value + 5, filteredItems.value.length);
+                  }
+                  function showLess() {
+                    visibleCount.value = Math.max(5, visibleCount.value - 5);
+                  }
+                  const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
+
+                  // confirm dialog state
+                  const showReportConfirm = ref(false)
+                  let reportTarget: HwItem | null = null
+
+                  // route + router
+                  const route = useRoute();
+                  const router = useRouter();
+
+                  // accepted item types
+                  type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+                  function isValidType(t: any): t is ItemType {
+                    return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG';
+                  }
+
+                  // tab is derived from route.params.type (fallback to HAUSAUFGABE)
+                  const tab = ref<ItemType>( isValidType(route.params.type) ? (route.params.type as ItemType) : 'HAUSAUFGABE' );
+
+                  // when route param changes, update tab and reload items
+                  watch(() => route.params.type, (v) => {
+                    if (isValidType(v)) {
+                      tab.value = v;
+                    } else {
+                      tab.value = 'HAUSAUFGABE';
+                    }
+                    reload();
+                  });
+
+                  watch(showOldEntries, () => {
+                    reload();
+                  });
+
+                  // reset pagination when filters change
+                  watch([subjectFilter, tab, items], () => {
+                    visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+                  });
+
+                  // UI/helpers
+                  const colorFor = (color: string) => {
+                    const map: Record<string, string> = {
+                      'ok': 'var(--primary)',
+                      'warn': 'var(--warn)',
+                      'danger': 'var(--danger)',
+                      'expired': '#4b5563',
+                      'info': '#3b82f6',
+                    };
+                    return map[color] || 'var(--muted)';
+                  };
+
+                  // returns { background: string, color: string }
+                  const colorStyles = (timeColor: string) => {
+                    // expired -> grau hintergrund, weiße schrift
+                    if (timeColor === 'expired') {
+                      return { background: '#4b5563', color: 'white' };
+                    }
+
+                    // very soon (danger) oder in den nächsten Tagen (warn) -> behalten wie vorher
+                    if (timeColor === 'danger') {
+                      return { background: 'var(--danger)', color: 'white' };
+                    }
+                    if (timeColor === 'warn') {
+                      return { background: 'var(--warn)', color: 'black' };
+                    }
+
+                    // info -> blue like before
+                    if (timeColor === 'info') {
+                      return { background: '#3b82f6', color: 'white' };
+                    }
+
+                    // ok (oder alles, was weiter weg ist) -> weißer Hintergrund, schwarze Schrift
+                    return { background: 'white', color: 'black' };
+                  };
+
+
+                  const filteredItems = computed(() => {
+                    let list = items.value;
+                    if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
+                    return list;
+                  });
+
+                  const openMenuId = ref<string | null>(null);
+
+                  function toggleMenu(id: string) {
+                    openMenuId.value = openMenuId.value === id ? null : id;
+                  }
+
+                  function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
+                    openMenuId.value = null;
+                    if (action === 'images') return showImageForm(item);
+                    if (action === 'edit') return editItem(item);
+                    if (action === 'delete') return deleteItem(item.id);
+                    if (action === 'report') return reportItem(item);
+                  }
+
+                  function reportItem(item: HwItem) {
+                    reportTarget = item
+                    showReportConfirm.value = true
+                  }
+
+                  function onDocumentClick(e: MouseEvent) {
+                    if (!openMenuId.value) return;
+                    openMenuId.value = null;
+                  }
+
+                  onMounted(() => {
+                    document.addEventListener('click', onDocumentClick);
+                    loadMe();
+                    loadSubjects();
+                    loadAnnouncements();
+                    reload();
+                  });
+
+                  onBeforeUnmount(() => {
+                    document.removeEventListener('click', onDocumentClick);
+                  });
+
+                  function canManage(createdBy: string) {
+                    if (!user.value) return false;
+                    return user.value.isAdmin || user.value.id === createdBy;
+                  }
+
+                  async function loadMe() {
+                    try {
+                      const { data } = await hw.get('/api/auth/me');
+                      user.value = data;
+                      await loadCheckedForMe();
+                    } catch {
+                      user.value = null;
+                      checkedItems.value = new Set();
+                    }
+                  }
+
+                  async function loadCheckedForMe() {
+                    if (!user.value) {
+                      checkedItems.value = new Set();
+                      return;
+                    }
+                    try {
+                      const { data } = await hw.get('/api/checks/me');
+                      checkedItems.value = new Set(data.itemIds || []);
+                    } catch (e) {
+                      console.error('loadCheckedForMe error', e);
+                      checkedItems.value = new Set();
+                    }
+                  }
+
+                  async function loadSubjects() {
+                    try {
+                      const { data } = await hw.get('/api/subjects');
+                      subjects.value = data;
+                    } catch (e) {
+                      console.error('loadSubjects error', e);
+                    }
+                  }
+                  async function loadAnnouncements() {
+                    try {
+                      const { data } = await hw.get('/api/announcements');
+                      announcements.value = data;
+                    } catch (e) {
+                      console.error('loadAnnouncements error', e);
+                    }
+                  }
+
+                  async function reload() {
+                    loading.value = true;
+
+                    // NEU: Query-Parameter basierend auf dem Switch-Zustand erstellen
+                    const params: Record<string, any> = { type: tab.value };
+                    if (showOldEntries.value) {
+                      params.filter = 'old';
+                    }
+
+                    try {
+                      // API-Aufruf mit den neuen Query-Parametern
+                      const { data } = await hw.get('/api/items', { params });
+                      items.value = data;
+                      // reset expansions on reload
+                      expandedDescriptions.value = new Set();
+                      // reset revealed images on reload so page load shows 2 images again
+                      revealedImages.value = new Set();
+                    } catch (e) {
+                      console.error('Failed to load items:', e);
+                    } finally {
+                      loading.value = false;
+                      visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+                    }
+                  }
+
+                  function onAccountDeleted() {
+                    setHwToken(null);
+                    user.value = null;
+                    checkedItems.value = new Set();
+                    message.value = 'Account erfolgreich gelöscht.';
+                    isError.value = false;
+                    reload();
+                    setTimeout(() => { message.value = ''; }, 5000);
+                  }
+
+                  function onAccountDeleteError(msg: string) {
+                    message.value = msg;
+                    isError.value = true;
+                    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+                  }
+
+                  function handleSuccess(msg: string) {
+                    message.value = msg;
+                    isError.value = false;
+                    itemFormKey.value += 1;
+                    setTimeout(() => message.value = '', 5000);
+                    showItemForm.value = false;
+                    showAnnouncementForm.value = false;
+                    showImageFormFor.value = null;
+                    reload();
+                  }
+
+                  // receive error from ItemForm (length limits etc.)
+                  function onItemFormError(msg: string) {
+                    message.value = msg || 'Bitte Eingaben prüfen.';
+                    isError.value = true;
+                    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+                  }
+
+                  function onLoggedIn(token: string) {
+                    setHwToken(token);
+                    showAuth.value = false;
+                    loadMe();
+                    reload();
+                  }
+
+                  function logout() {
+                    setHwToken(null);
+                    user.value = null;
+                    checkedItems.value = new Set();
+                  }
+
+                  function editItem(item: HwItem) {
+                    itemToEdit.value = item;
+                    showItemForm.value = true;
+                  }
+
+                  // open create with simple guard demonstrating max limits (frontend only)
+                  function openCreateForm() {
+
+                    itemToEdit.value = null;
+                    // optional: we could pre-check something here if needed
+                    showItemForm.value = true;
+                  }
+
+                  async function deleteItem(id: string) {
+                    if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
+                      loading.value = true;
+                      try {
+                        await hw.delete(`/api/items/${id}`);
+                        handleSuccess('Eintrag erfolgreich gelöscht.');
+                      } catch (e: any) {
+                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                        isError.value = true;
+                      } finally {
+                        loading.value = false;
+                      }
+                    }
+                  }
+
+                  async function deleteAnnouncement(id: string) {
+                    if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
+                      try {
+                        await hw.delete(`/api/announcements/${id}`);
+                        handleSuccess('Ankündigung erfolgreich gelöscht.');
+                      } catch (e: any) {
+                        message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+                        isError.value = true;
+                      }
+                    }
+                  }
+
+                  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
+
+                  async function doReport() {
+                    showReportConfirm.value = false
+                    if (!reportTarget) return
+
+                    const item = reportTarget
+                    reportTarget = null
+
+                    message.value = 'Eintrag wird gemeldet...'
+                    isError.value = false
+                    const payload = {
+                      itemId: item.id,
+                      itemTitle: item.title,
+                      reportedAt: new Date().toISOString(),
+                      reporterEmail: user.value?.email || ''
+                    }
+                    try {
+                      const res = await fetch(FORMSPREE_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          message: `Item gemeldet
+                  ID: ${payload.itemId}
+                  Titel: ${payload.itemTitle}
+                  Gemeldet am: ${payload.reportedAt}
+                  Meldet von: ${payload.reporterEmail}`
+                        })
+                      })
+                      const data = await res.json().catch(() => ({}))
+                      if (res.ok) {
+                        message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.'
+                        isError.value = false
+                      } else {
+                        const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.')
+                        message.value = 'Fehler beim Melden: ' + errMsg
+                        isError.value = true
+                      }
+                    } catch (e:any) {
+                      message.value = 'Fehler beim Melden. Bitte versuche es später erneut.'
+                      isError.value = true
+                      console.error('reportItem error', e)
+                    } finally {
+                      setTimeout(() => { message.value = ''; isError.value = false }, 7000)
+                    }
+                  }
+
+                  function showImageForm(item: HwItem) {
+                    showImageFormFor.value = item;
+                  }
+
+                  function makeThumb(url: string) {
+                    try {
+                      const u = new URL(url);
+                      const parts = u.pathname.split('/');
+                      const uploadIdx = parts.findIndex(p => p === 'upload');
+                      if (uploadIdx !== -1) {
+                        parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
+                        u.pathname = parts.join('/');
+                      }
+                      return u.toString();
+                    } catch {
+                      return url;
+                    }
+                  }
+
+                  // checked helpers
+                  function isChecked(itemId: string) {
+                    return checkedItems.value.has(itemId);
+                  }
+
+                  async function toggleCheck(item: HwItem) {
+                    if (!user.value) return;
+                    const id = item.id;
+                    try {
+                      if (isChecked(id)) {
+                        await hw.delete(`/api/items/${id}/check`);
+                        checkedItems.value.delete(id);
+                      } else {
+                        await hw.post(`/api/items/${id}/check`);
+                        checkedItems.value.add(id);
+                      }
+                    } catch (e: any) {
+                      console.error('toggleCheck error', e);
+                      message.value = e.response?.data?.error || 'Fehler beim Setzen des Status.';
+                      isError.value = true;
+                      setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+                    }
+                  }
+
+                  // Navigate to route for a tab (keeps URL in sync and supports reload/bookmark)
+                  function goTab(t: ItemType) {
+                    router.push({ name: 'ItemsByType', params: { type: t } });
+                  }
+
+
+                  const revealedImages = ref(new Set<string>());
+
+                  function isRevealed(itemId: string) {
+                    return revealedImages.value.has(itemId);
+                  }
+
+                  function revealImages(itemId: string) {
+                    revealedImages.value.add(itemId);
+                  }
+
+                  </script>
+
+                  <style scoped>
+                  /* Header */
+                  .hw-header {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 12px;
+                    flex-direction: column;
+                    text-align: left;
+                  }
+                  .hw-header h2 { margin: 0 0 2px 0}
+                  .header-actions { align-items: center; display: flex; flex-direction: row; flex-wrap: wrap}
+
+                  /* Announcements */
+                  .announcements { margin-top: 18px; }
+                  .announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+                  .ann-list { margin-top: 12px; }
+                  .ann {
+                    border-radius: 10px;
+                    padding: 12px;
+                    background: rgba(255,255,255,0.02);
+                    border: 1px solid var(--border);
+                    position: relative;
+                    overflow: hidden;
+                  }
+                  .ann + .ann { margin-top: 10px; }
+                  .ann-title { font-weight: 700; }
+                  .ann-content { white-space: pre-wrap; margin-top: 6px; color: var(--text); }
+                  .ann-date { margin-top: 6px; color: var(--muted); }
+                  .ann-actions { margin-top: 8px; }
+
+                  /* Tabs */
+                  .tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
+
+                  /* Controls */
+                  .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+                  .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
+                  .select-subject { width:auto; min-width:160px; height: 37px }
+                  .small-btn { padding:6px 8px; font-size:13px; }
+
+                  /* Items */
+                  .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
+                  .item-card {
+                    border-radius: 12px;
+                    padding: 14px;
+                    background: var(--jj);
+                    border: 1px solid rgba(255,255,255,0.03);
+                    transition: transform 160ms ease, box-shadow 160ms ease;
+                    overflow: visible;
+                  }
+
+                  /* Collapsed state */
+                  .item-card.collapsed {
+                    padding: 8px 12px;
+                    transition: padding 320ms ease, max-height 320ms ease;
+                  }
+
+                  /* Item main row */
+                  .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+                  .item-meta { flex:1; min-width: 0; }
+                  .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+                  /* Checkbox visual */
+                  .collapse-checkbox {
+                    display:inline-flex;
+                    align-items:center;
+                    margin-right:6px;
+                    cursor:pointer;
+                  }
+                  .collapse-checkbox input { display:none; }
+                  .collapse-checkbox .vis-label {
+                    width:18px; height:18px; border-radius:4px; border: 2px solid white;;
+                    display:inline-block; background:transparent; position:relative;
+                  }
+                  .collapse-checkbox input:checked + .vis-label {
+                    background: var(--primary);
+                    border-color: var(--primary);
+                  }
+                  .collapse-checkbox .vis-label::after {
+                    content: '';
+                    position: absolute;
+                    width: 5px;
+                    height: 9px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    opacity: 0;
+                    left: 50%;
+                    top: 38%;
+                    transform: translate(-50%, -45%) rotate(45deg);
+                  }
+                  .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
+
+                  /* Badges */
+                  .item-badges { margin-top:4px; gap:8px; align-items:center; }
+                  .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
+                  .time-badge { padding:4px 8px; border-radius:6px; }
+
+                  /* Dropdown menu */
+                  .item-menu {
+                    position: absolute;
+                    top: 100%;
+                    right: 0;
+                    min-width: 160px;
+
+                    background: rgba(26,26,26,0.95);
+                    border: 1px solid var(--border);
+                    border-radius: 10px;
+                    padding: 8px;
+
+                    display: none;
+                    flex-direction: column;
+                    align-items: stretch;
+
+                    gap: 6px;
+                    z-index: 1000;
+
+                    opacity: 0;
+                    transform: translateY(-6px) scale(0.98);
+                    pointer-events: none;
+                    transition: opacity 160ms ease, transform 160ms ease;
+                  }
+                  .item-menu.open {
+                    display: flex;
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                    pointer-events: auto;
+                  }
+
+                  .menu-btn {
+                    display: block;
+                    width: 100%;
+                    text-align: left;
+                    background: transparent;
+                    border: none;
+                    padding: 8px;
+                    color: var(--text);
+                    border-radius: 8px;
+                    cursor: pointer;
+                  }
+                  .menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
+                  .menu-btn.danger { background: var(--danger); color: white; }
+                  .menu-btn.warn { background: var(--warn); color: #1f1300; }
+
+                  /* Body and images */
+                  .item-body {
+                    white-space: pre-wrap;
+                    margin-top:10px;
+                    color: var(--text);
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    overflow-wrap: anywhere;
+                    hyphens: auto;
+                  }
+                  .item-images { margin-top:12px; }
+                  .images-title { font-weight:600; margin-bottom:8px; }
+                  .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
+                  .thumb {
+                    width:120px; height:120px; border-radius:8px; overflow:hidden;
+                    border:none;
+                    display:flex; align-items:center; justify-content:center;
+                    background: rgba(0,0,0,0.12);
+                    position:relative;
+                  }
+                  .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+                  /* Wrapper to allow overlay positioning on the second thumb */
+                  .thumb-with-overlay-wrapper { position: relative; }
+
+                  /* Overlay styling (leichtes graues, leicht unscharfes Overlay wie WhatsApp) */
+                  .img-overlay {
+                    position: absolute;
+                    inset: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 8px;
+                    border: none;
+                    padding: 0;
+                    margin: 0;
+                    cursor: pointer;
+                    background: transparent;
+                    z-index: 10;
+                  }
+                  .img-overlay .overlay-blur {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(60,60,60,0.6); /* graues halbtransparent */
+                    backdrop-filter:  saturate(90%);
+                    -webkit-backdrop-filter: saturate(90%);
+                    border-radius: 8px;
+                  }
+                  .img-overlay .overlay-content {
+                    position: relative;
+                    color: white;
+                    font-weight: 700;
+                    font-size: 18px;
+                    z-index: 11;
+                    text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+                    pointer-events: none;
+                  }
+
+                  /* Empty state */
+                  .empty { text-align:center; color:var(--muted); padding:24px; }
+
+                  /* Collapse transition (height + opacity) */
+                  .collapse-enter-active, .collapse-leave-active {
+                    transition: max-height 320ms ease, opacity 320ms ease, padding 320ms ease;
+                  }
+                  .collapse-enter-from, .collapse-leave-to {
+                    max-height: 0;
+                    opacity: 0;
+                    padding-top: 0;
+                    padding-bottom: 0;
+                  }
+                  .collapse-enter-to, .collapse-leave-from {
+                    max-height: 800px;
+                    opacity: 1;
+                  }
+
+                  /* Message */
+                  .message { font-weight:600; }
+                  .message.error { color: var(--danger); }
+
+                  /* Tiny utility */
+                  .tiny { padding:4px 8px; font-size:12px; }
+
+                  /* menu trigger */
+                  .item-menu-trigger {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 46px;
+                    height: 34px;
+                    padding: 6px 8px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    color: var(--text);
+                    transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+                  }
+                  .item-menu-trigger:hover {
+                    background: rgba(255,255,255,0.02);
+                    color: var(--text);
+                    transform: translateY(-1px);
+                  }
+
+                  /* Pagination actions */
+                  .pagination-actions {
+                    margin-top: 16px;
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                  }
+
+                  .shm:hover{ background-color:inherit }
+
+
+                  .loader {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--muted); /* Farbe für den Text "Lade..." */
+                  }
+                  .row-two {
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-direction: row;
+                    gap: 10px;
+                    position: relative;
+
+                  }
+                  .rei {
+
+
+                  }
+
+
+                  @media (max-width: 500px ) {
+                    .row-two {
+                      flex-direction: column;
+                      align-items: flex-start;
+                      margin-top: 15px;
+                      margin-bottom: 30px;
+                    }
+                    .rei {
+
+
+                    }
+
+                    .mg {
+                      margin-top: 20px;
+                    }
+
+                  }
+                  </style>
 
 
 
@@ -1098,6 +1831,8 @@ router.ts: import { createRouter, createWebHistory } from 'vue-router';
            const Kontakt = () => import('./components/ContactForm.vue');
            const AuthPage = () => import('./views/AuthPage.vue');
            const Aidetector = () => import('./views/aiDetector.vue')
+           const Games = () => import('./views/Games.vue')
+           const GameDetail = () => import('./views/GameDetail.vue')
            //const Chatter = () => import('./views/TestChat.vue')
 
            const routes = [
@@ -1116,6 +1851,13 @@ router.ts: import { createRouter, createWebHistory } from 'vue-router';
                { path: '/ai-detector', component: Aidetector },
                { path: '/fresser', component: BS },
                { path: '/kontakt', component: Kontakt },
+               { path: '/8912', component: Games },
+               {
+                   path: '/8912/:id',
+                   name: 'GameDetail',
+                   component: GameDetail,
+                   props: true
+               },
                { path: '/goat', redirect: '/kanye' },
                //{ path: '/chatter', component: Chatter },
 
@@ -1161,78 +1903,162 @@ router.ts: import { createRouter, createWebHistory } from 'vue-router';
 
 
 
+App.vue: <template>
+           <div class="full">
+
+             <Header v-if="$route.path !== '/welcome'"/>
+             <main class="full-c">
+               <img src="./utils/alt.svg" alt="Background" class="svg-background" />
+               <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
+               <div v-if="loading" class="loading-overlay" key="loading">
+                 <div class="elegant-spinner">
+                   <div class="dot-1"></div>
+                   <div class="dot-2"></div>
+                   <div class="dot-3"></div>
+                 </div>
+               </div>
+               <!-- HIER NEU: MainContent.vue wird geladen -->
+               <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
+                 <!-- MainContent enthält jetzt NMessageProvider und router-view -->
+                 <MainContent />
+               </div>
+             </main>
+             <Footer v-if="$route.path !== '/welcome'"/>
+             <CookieBanner />
+
+           </div>
+         </template>
+
+         <script setup lang="ts">
+         import { ref, onMounted, defineComponent } from 'vue';
+         import { useRouter } from 'vue-router';
+         import Header from './components/Header.vue';
+         import Footer from './components/Footer.vue';
+         import CookieBanner from "./components/CookieBanner.vue"
+         import MainContent from './MainContent.vue';
 
 
-main.ts: import { createApp } from 'vue';
-         import { createPinia } from 'pinia';
-         import router from './router';
-         import App from './App.vue';
-         import './style.css';
-         import VueGtag from 'vue-gtag-next';
-         import gaDirective from './directives/gaEvent';
-         import { useAuth } from './composables/useAuth';
-         import PrimeVue from 'primevue/config';
-
-         const app = createApp(App);
+         const loading = ref(false);
+         const router = useRouter();
 
 
-         function initAnalytics() {
-             if (!(app as any)._context.provides['vue-gtag']) {
-                 app.use(VueGtag, {
-                     property: { id: 'G-8H1WEQSLN4' }
-                 }, router);
-             }
+
+
+         const MIN_LOAD_TIME = 0;
+         let loadStartTime = 0;
+
+
+
+
+
+         router.beforeEach(() => {
+           loading.value = true;
+           loadStartTime = Date.now();
+         });
+
+         router.afterEach(() => {
+           const elapsedTime = Date.now() - loadStartTime;
+           const remainingTime = MIN_LOAD_TIME - elapsedTime;
+
+           if (remainingTime > 0) {
+             setTimeout(() => {
+               loading.value = false;
+             }, remainingTime);
+           } else {
+             loading.value = false;
+           }
+         });
+         </script>
+
+         <style scoped>
+         .seecurity {
+           z-index: 1000000;
+           position: fixed;
+         }
+         .loading-overlay {
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           position: absolute;
+           top: 0;
+           left: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(255, 255, 255, 0);
+           z-index: 999;
          }
 
-         function removeAnalytics() {
-             const scripts = document.querySelectorAll('script[src*="googletagmanager"],script[src*="google-analytics"]');
-             scripts.forEach(s => s.remove());
-             (window as any).dataLayer = [];
+         .elegant-spinner {
+           position: relative;
+           width: 60px;
+           height: 60px;
+           display: flex;
+           justify-content: center;
+           align-items: center;
          }
 
-         const auth = useAuth();
-
-         // Prüfe lokalen Consent beim Start
-         const consent = localStorage.getItem('cookie_consent');
-         if (consent) {
-             try {
-                 const parsed = JSON.parse(consent);
-                 const expires = new Date(parsed.expires);
-                 if (parsed.accepted && new Date() < expires) {
-                     //initAnalytics();
-                 }
-             } catch {
-                 // ignore
-             }
+         .elegant-spinner div {
+           position: absolute;
+           width: 15px;
+           height: 15px;
+           border-radius: 50%;
+           background: #bd34fe;
+           opacity: 0;
          }
 
-         window.addEventListener('cookie-accepted', () => {
-             //initAnalytics();
-         });
-
-         window.addEventListener('cookie-revoked', () => {
-             removeAnalytics();
-         });
-
-         app.directive('ga-event', gaDirective);
-         app.use(createPinia());
-         app.use(router);
-         app.mount('#app');
-         app.use(PrimeVue, {
-             unstyled: true,
-         });
+         .elegant-spinner .dot-1 {
+           animation: pulse-1 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+         .elegant-spinner .dot-2 {
+           animation: pulse-2 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
+         .elegant-spinner .dot-3 {
+           animation: pulse-3 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+         }
 
 
-         // Aktivitätsbasierte Verlängerung der Session-Expiry (optional)
-         window.addEventListener('mousemove', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
-         window.addEventListener('keydown', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
+         @keyframes pulse-1 {
+           0% { transform: scale(0.1); opacity: 0; }
+           25% { transform: scale(1); opacity: 1; }
+           50% { transform: translateX(20px) scale(0.8); opacity: 0; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
 
-         // Reagiere auf Auth-Änderungen (z. B. Login/Logout) global
-         window.addEventListener('auth-changed', () => {
-             // einfache Seite neu laden / Router neu evaluieren
-             // Router-Guard liest den Auth-Status neu ein
-             // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
-             // location.reload();
-         });
+         @keyframes pulse-2 {
+           0% { transform: scale(0.1); opacity: 0; }
+           25% { transform: translateX(-20px) scale(0.8); opacity: 0; }
+           50% { transform: scale(1); opacity: 1; }
+           75% { transform: translateX(20px) scale(0.8); opacity: 0; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
 
+         @keyframes pulse-3 {
+           0% { transform: scale(0.1); opacity: 0; }
+           50% { transform: translateX(-20px) scale(0.8); opacity: 0; }
+           75% { transform: scale(1); opacity: 1; }
+           100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+         }
+
+         /* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
+         .full-c {
+           flex: 1;
+           position: relative;
+         }
+         </style>
+
+
+
+MainContent.vue: <template>
+                   <n-message-provider :max="1">
+                     <router-view v-slot="{ Component }">
+                       <KeepAlive>
+                         <component :is="Component" />
+                       </KeepAlive>
+                     </router-view>
+                   </n-message-provider>
+                 </template>
+
+                 <script setup lang="ts">
+                 import { NMessageProvider } from 'naive-ui';
+                 </script>
 
