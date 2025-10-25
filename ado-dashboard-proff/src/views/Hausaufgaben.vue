@@ -50,11 +50,11 @@
     <div class="controls">
       <div class="left">
         <div class="row-two">
-        <select class="input select-subject" v-model="subjectFilter">
-          <option value="">Alle Fächer</option>
-          <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-        </select>
-        <OldNewSwitch v-model="showOldEntries" />
+          <select class="input select-subject" v-model="subjectFilter">
+            <option value="">Alle Fächer</option>
+            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+          </select>
+          <OldNewSwitch v-model="showOldEntries" />
         </div>
 
         <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
@@ -998,6 +998,6 @@ function revealImages(itemId: string) {
   .mg {
     margin-top: 20px;
   }
-  
+
 }
 </style>
