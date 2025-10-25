@@ -285,7 +285,6 @@ const user = ref<any>(null);
 const subjects = ref<string[]>([]);
 const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
-const loading = ref(false);
 const itemsLoading = ref(false);
 
 const subjectFilter = ref('');
@@ -573,7 +572,7 @@ function openCreateForm() {
 
 async function deleteItem(id: string) {
   if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
-    loading.value = true;
+    itemsLoading.value = true;
     try {
       await hw.delete(`/api/items/${id}`);
       handleSuccess('Eintrag erfolgreich gelöscht.');
@@ -581,7 +580,7 @@ async function deleteItem(id: string) {
       message.value = e.response?.data?.error || 'Fehler beim Löschen.';
       isError.value = true;
     } finally {
-      loading.value = false;
+      itemsLoading.value = false;
     }
   }
 }
