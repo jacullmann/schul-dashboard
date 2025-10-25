@@ -763,11 +763,11 @@ app.post('/api/dashboard-check',
     validate,
     async (req, res) => {
 
-        const HARDCODED_SECRET = "hash891219";
+        const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
 
         const { password } = req.body;
 
-        if (password === HARDCODED_SECRET) {
+        if (password === DASHBOARD_SECRETJ) {
 
             return res.json({ ok: true, message: 'Authentifizierung erfolgreich' });
         } else {

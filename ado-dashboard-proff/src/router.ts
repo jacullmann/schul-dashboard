@@ -17,6 +17,7 @@ const Aidetector = () => import('./views/aiDetector.vue')
 const Games = () => import('./views/Games.vue')
 const GameDetail = () => import('./views/GameDetail.vue')
 //const Chatter = () => import('./views/TestChat.vue')
+//const News = () => import('./views/News.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -35,6 +36,7 @@ const routes = [
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
     { path: '/8912', component: Games },
+    //{ path: '/news', component: News },
     {
         path: '/8912/:id',
         name: 'GameDetail',
@@ -69,8 +71,6 @@ router.beforeEach((to, from, next) => {
     // Always allow the auth page itself
     if (to.path === '/welcome') return next();
 
-    // Allow health or other public endpoints if needed
-    if (to.path.startsWith('/health')) return next();
 
     const { isAuthenticated, loadFromStorage } = useAuth();
     loadFromStorage();

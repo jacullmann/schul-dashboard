@@ -47,7 +47,7 @@ window.addEventListener('cookie-accepted', () => {
 });
 
 window.addEventListener('cookie-revoked', () => {
-    removeAnalytics();
+    //removeAnalytics();
 });
 
 app.directive('ga-event', gaDirective);
