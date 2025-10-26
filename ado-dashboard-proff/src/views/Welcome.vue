@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import For from '../components/LegalF.vue'
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 
 const router = useRouter();
@@ -51,34 +51,16 @@ const auth = useAuth();
 const code = ref('');
 const error = ref<string | null>(null);
 const accepted = ref(false)
-const router = useRouter();
-const route = useRoute();
 
 async function submit() {
-  if (!accepted.value) return;
   error.value = null;
-
-  try {
-    const result = await auth.login(code.value);
-
-    if (result.ok) {
-      // Erfolgreich angemeldet.
-
-      // 1. Prüfen, ob eine Weiterleitung in der URL wartet
-      const redirectPath = route.query.redirect as string | undefined;
-
-      // 2. Weiterleiten: zum gespeicherten Pfad oder zum Standardpfad '/'
-      if (redirectPath && redirectPath !== '/welcome' && redirectPath !== '/auth') {
-        router.push(redirectPath);
-      } else {
-        // Leitet zur Hauptseite weiter (die intern zu /items/HAUSAUFGABE weiterleitet)
-        router.push('/');
-      }
-    } else {
-      error.value = result.error || 'Fehler bei der Anmeldung.';
-    }
-  } catch (e) {
-    error.value = 'Fehler bei der Kommunikation mit dem Server.';
+  const res =  await auth.loginWithCode(code.value.trim());
+  if (res.ok) {
+    auth.refreshExpiry();
+    router.push('/items/HAUSAUFGABE');
+    umami.track('Welcome Page Login erfolgreich');
+  } else {
+    error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
   }
 }
 

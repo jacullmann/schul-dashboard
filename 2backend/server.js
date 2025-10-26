@@ -137,41 +137,6 @@ await ensureSubjects();
 function sendJSONError(res, status, msg, errors) {
     return res.status(status).json({ error: msg, errors });
 }
-function sendingJSONError(res, status, message) {
-    return res.status(status).json({ ok: false, error: message });
-}
-
-function authenticateDashboard(req, res, next) {
-    // 1. Token aus dem Cookie lesen
-    const token = req.cookies.auth_token;
-
-    if (!token) {
-        // Kein Cookie gefunden: NICHT angemeldet (401 Unauthorized)
-        return sendingJSONError(res, 401, 'Zugriff verweigert. Bitte anmelden.');
-    }
-
-    try {
-        // 2. Token verifizieren (nutzt JWT_SECRET)
-        // Bei Fehler (abgelaufen/manipuliert) wird ein Fehler geworfen (catch-Block).
-        const decoded = jwt.verify(token, JWT_SECRET);
-
-        // Fügt Benutzerdaten an den Request (optional)
-        req.user = decoded;
-
-        // 3. Token gültig: Weiter zur Route
-        next();
-    } catch (err) {
-        // Token ungültig: Cookie löschen, um Browser aufzuräumen (403 Forbidden)
-        res.clearCookie('auth_token', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            path: '/'
-        });
-        return sendingJSONError(res, 403, 'Sitzung abgelaufen oder ungültig. Bitte erneut anmelden.');
-    }
-}
-
 function requireAuth(req, res, next) {
     const hdr = req.headers.authorization || '';
     const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
@@ -504,7 +469,6 @@ app.get('/api/items',
 
 // Create item
 app.post('/api/items',
-    authenticateDashboard,
     requireAuth,
     body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     body('title').isString().isLength({ min: 2, max: 60 }),
@@ -799,62 +763,20 @@ app.post('/api/dashboard-check',
     validate,
     async (req, res) => {
 
-        // Lesen des Passworts aus der Umgebungsvariable
-        const DASHBOARD_PASSWORD = process.env.DASHBOARD_SECRETJ;
+        const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
 
         const { password } = req.body;
 
-        if (password === DASHBOARD_PASSWORD) {
+        if (password === DASHBOARD_SECRETJ) {
 
-            // 1. Token Payload erstellen
-            const tokenPayload = { id: 'dashboard-user', access: 'admin' };
-
-            // 2. Token generieren (Gültigkeit: 7 Tage, wie in Ihrer alten Logik)
-            const token = jwt.sign(tokenPayload, JWT_SECRET, {
-                expiresIn: '7d'
-            });
-
-            // 3. Sicheres HttpOnly Cookie setzen
-            const COOKIE_OPTIONS = {
-                httpOnly: true, // WICHTIG: Kein JavaScript-Zugriff (XSS-Schutz)
-                secure: process.env.NODE_ENV === 'production', // WICHTIG: Nur über HTTPS (Render)
-                sameSite: 'Lax',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
-                path: '/'
-            };
-
-            res.cookie('auth_token', token, COOKIE_OPTIONS);
-
-            return res.json({
-                ok: true,
-                message: 'Authentifizierung erfolgreich'
-            });
-
+            return res.json({ ok: true, message: 'Authentifizierung erfolgreich' });
         } else {
-            return sendJSONError(res, 401, 'Ungültiges Passwort');
+
+            return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
         }
     }
 );
 
-// server.js
-
-// NEU: Endpunkt für die Frontend-Statusprüfung
-app.get('/api/status', authenticateDashboard, (req, res) => {
-    // Wenn die Middleware authenticateDashboard erfolgreich war, ist der Benutzer angemeldet.
-    res.json({ ok: true, isAuthenticated: true, user: { id: req.user.id } });
-});
-
-// NEU: Endpunkt für den Logout
-app.post('/api/logout', (req, res) => {
-    // Das Cookie löschen
-    res.clearCookie('auth_token', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Lax',
-        path: '/'
-    });
-    res.json({ ok: true, message: 'Erfolgreich abgemeldet.' });
-});
 
 
 

@@ -60,6 +60,9 @@ app.use(PrimeVue, {
 app.use(naive)
 
 
+// Aktivitätsbasierte Verlängerung der Session-Expiry (optional)
+window.addEventListener('mousemove', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
+window.addEventListener('keydown', () => { if (auth.isAuthenticated.value) auth.refreshExpiry(); });
 
 // Reagiere auf Auth-Änderungen (z. B. Login/Logout) global
 window.addEventListener('auth-changed', () => {
@@ -68,5 +71,3 @@ window.addEventListener('auth-changed', () => {
     // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
     // location.reload();
 });
-
-
