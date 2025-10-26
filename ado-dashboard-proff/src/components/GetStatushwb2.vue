@@ -5,7 +5,7 @@ let intervalId: number | undefined = undefined;
 
 const status = ref<string>('Lade...');
 
-const API_STATUS_URL = 'https://schul-dashboards.onrender.com/api/serverstatus';
+const API_STATUS_URL = 'https://two34u882345253.onrender.com/api/serverstatus';
 
 async function checkServerStatus() {
   try {
