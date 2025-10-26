@@ -66,20 +66,38 @@ const router = createRouter({
     }
 });
 
-// Global guard: redirect all non-authenticated requests to /auth
-router.beforeEach((to, from, next) => {
-    // Always allow the auth page itself
-    if (to.path === '/welcome') return next();
+router.beforeEach(async (to, from, next) => {
+    const auth = useAuth();
 
+    // 1. Definition der öffentlichen Pfade
+    const publicPaths = [
+        '/welcome',
+        '/impressum-&-datenschutz',
+        '/impressum-&-datenschutz/impressum',
+        '/impressum-&-datenschutz/datenschutzerklaerung',
+        '/' // Die Weiterleitung der Wurzel (redirect: '/items/HAUSAUFGABE') wird hier gehandhabt.
+    ];
 
-    const { isAuthenticated, loadFromStorage } = useAuth();
-    loadFromStorage();
+    // Prüft, ob eine Authentifizierung erforderlich ist.
+    const authRequired = !publicPaths.some(path => to.path === path || to.path.startsWith(path + '/'));
 
-    if (!isAuthenticated.value) {
-        return next({ path: '/welcome' });
+    if (authRequired) {
+
+        // 2. Status vom Server prüfen, falls unbekannt (null)
+        if (auth.isAuthenticated.value === null) {
+            // Warten, bis der Server den Status bestätigt
+            await auth.checkAuthStatus();
+        }
+
+        // 3. Ist der Benutzer nicht angemeldet?
+        if (!auth.isAuthenticated.value) {
+            // Weiterleitung zur Login-Seite
+            return next({ name: 'Auth', query: { redirect: to.fullPath } });
+        }
     }
 
-    return next();
+    // 4. Authentifiziert oder öffentliche Seite: Erlauben
+    next();
 });
 
 export default router;
