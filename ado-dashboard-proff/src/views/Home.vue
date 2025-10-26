@@ -22,7 +22,10 @@
           <div><button data-umami-event="Benoten Seite Filter aktualisieren" class="btn" @click="load">Aktualisieren</button></div>
         </div>
         <hr />
-        <div v-if="loading">Lade...</div>
+        <div v-if="loading" class="loader">
+          <LoadingSpinner color="#fff" size="1.2em" />
+          <div style="color: #aaaaaa">Lade...</div>
+        </div>
         <div v-else class="row">
           <div v-for="p in persons" :key="p.id" class="col">
             <div class="card">
@@ -53,6 +56,7 @@
 import { ref, onMounted } from 'vue';
 import api from '../api';
 import RatingForm from '../components/RatingForm.vue';
+import LoadingSpinner from "../components/LoadingSpinner.vue";
 
 const q = ref('');
 const title = ref('');
@@ -71,3 +75,11 @@ function onSaved() {
 }
 onMounted(load);
 </script>
+<style scoped>
+.loader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted); /* Farbe für den Text "Lade..." */
+}
+</style>
