@@ -251,6 +251,10 @@ app.get('/api/auth/verify',
     }
 );
 
+app.get('/api/serverstatus', async (req, res) => {
+    res.status(200).json({ status: 'good' });
+});
+
 app.post('/api/auth/login',
     body('email').isEmail(),
     body('password').isString().isLength({ min: 8 }),
@@ -776,20 +780,6 @@ app.post('/api/dashboard-check',
         }
     }
 );
-
-
-
-app.get('/api/serverstatus', (req, res) => {
-    res.status(200).json({ status: 'good' });
-});
-
-
-
-
-
-
-
-
 
 
 
