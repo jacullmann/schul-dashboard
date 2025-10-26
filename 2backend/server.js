@@ -779,6 +779,11 @@ app.post('/api/dashboard-check',
 
 
 
+app.get('/api/serverstatus', (req, res) => {
+    res.status(200).json({ status: 'good' });
+});
+
+
 
 
 

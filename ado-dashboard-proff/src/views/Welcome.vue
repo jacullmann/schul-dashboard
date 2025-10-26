@@ -34,6 +34,7 @@
         Dies ist eine private Applikation. Bei Problemen kontaktiere den Administrator.
         Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
       </div>
+      <div class="small footer-text">Server-Status: <GetStatushwb2 /></div>
 
 
     </div>
@@ -45,6 +46,7 @@ import { ref } from 'vue';
 import For from '../components/LegalF.vue'
 import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
+import GetStatushwb2 from "../components/GetStatushwb2.vue";
 
 const router = useRouter();
 const auth = useAuth();
