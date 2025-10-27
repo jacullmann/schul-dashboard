@@ -35,11 +35,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
-/**
- * WICHTIG: Ersetze diesen Platzhalter-Pfad durch den tatsächlichen Pfad zu deiner PNG-Datei.
- * Beispiel, wenn die Datei in /src/assets/schedule.png liegt:
- * const scheduleImagePath = new URL('../assets/schedule.png', import.meta.url).href;
- */
 const scheduleImagePath = new URL('../assets/plan.png', import.meta.url).href;
 
 // Ref für das HTML-Element, auf das der Vollbildmodus angewendet wird
