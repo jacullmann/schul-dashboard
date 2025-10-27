@@ -18,6 +18,7 @@ const Games = () => import('./views/Games.vue')
 const GameDetail = () => import('./views/GameDetail.vue')
 //const Chatter = () => import('./views/TestChat.vue')
 //const News = () => import('./views/News.vue')
+const Finales = () => import('./components/Finaleb.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -28,7 +29,6 @@ const routes = [
     { path: '/admin', component: Admin },
     { path: '/hausaufgaben/verify', redirect: '/verify' },
     { path: '/verify', component: VerifyEmail },
-    { path: '/stundenplan', component: Stundenplan },
     { path: '/kuerzel', component: Kuerzel },
     { path: '/lokale-to-do-liste', component: LokaleToDoListe },
     { path: '/kanye', component: Ye },
@@ -36,6 +36,7 @@ const routes = [
     { path: '/fresser', component: BS },
     { path: '/kontakt', component: Kontakt },
     { path: '/8912', component: Games },
+    { path: '/stundenplan', component: Finales },
     //{ path: '/news', component: News },
     {
         path: '/8912/:id',

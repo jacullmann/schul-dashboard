@@ -37,13 +37,10 @@ import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const scheduleImagePath = new URL('../assets/plan.png', import.meta.url).href;
 
-// Ref für das HTML-Element, auf das der Vollbildmodus angewendet wird
 const scheduleContainer = ref<HTMLElement | null>(null);
 const isFullscreen = ref(false);
 
-/**
- * Schaltet den nativen Vollbildmodus für den Zeitplan-Container um.
- */
+
 const toggleFullscreen = () => {
   const container = scheduleContainer.value;
 
@@ -63,10 +60,7 @@ const toggleFullscreen = () => {
   }
 };
 
-/**
- * Aktualisiert den isFullscreen-Status, wenn der Vollbildmodus vom Benutzer
- * (z.B. durch Drücken von ESC) beendet wird.
- */
+
 const handleFullscreenChange = () => {
   // Überprüfen, ob unser Container das Element im Vollbildmodus ist
   isFullscreen.value = document.fullscreenElement === scheduleContainer.value;

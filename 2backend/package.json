@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
+    "@supabase/supabase-js": "^2.76.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.1",
     "cookie-parser": "^1.4.6",
