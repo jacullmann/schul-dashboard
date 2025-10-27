@@ -121,7 +121,6 @@ onMounted(() => {
 .card {
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 h1 {

@@ -88,11 +88,11 @@ const getHourLabel = (time) => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 1px solid #475569;
+  border: 1px solid #aaaaaa;
 }
 
 .time-label {
-  background-color: #282828;
+  background-color: #252525;
   color: #f1f1f1;
   font-weight: 600;
   padding: 12px 10px;
@@ -101,7 +101,7 @@ const getHourLabel = (time) => {
 
 .lesson-cell {
   padding: 10px;
-  border: 1px solid #475569;
+  border: 1px solid #aaaaaa;
   vertical-align: top;
   transition: background-color 0.3s;
   background-color: #101010 ;
