@@ -4,8 +4,8 @@ import { ref, computed } from 'vue';
 const BACKEND_BASE_URL = 'https://two34u882345253.onrender.com';
 const API_ENDPOINT = BACKEND_BASE_URL + '/api/dashboard-check';
 
-const STORAGE_KEY = 'app_auth_token';
-const STORAGE_EXPIRES_KEY = 'app_auth_expires';
+const STORAGE_KEY = 'm38ct09qw3motw3uiholwiu5h4lvzwilizukrejhklgwh';
+const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 
 const token = ref<string | null>(null);
 
