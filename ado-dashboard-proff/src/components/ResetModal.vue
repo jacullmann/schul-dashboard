@@ -128,8 +128,8 @@ async function onPrimary() {
 </script>
 
 <style scoped>
-.overlay { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:120; background: rgba(0,0,0,0.5); }
-.modal { width: 100%; max-width: 420px; padding: 18px; border-radius:12px; background: rgba(0,0,0,1);; color: white; border:1px solid rgba(255,255,255,0.08); }
+.overlay { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:120; background: rgba(0,0,0,0.28); }
+.modal { width: 100%; max-width: 420px; padding: 18px; border-radius:12px; background: rgba(0,0,0,1);; color: white; border:none; }
 .input { width:100%; margin-top:8px; padding:8px 10px; border-radius:8px; background: rgba(255,255,255,0.03); color:white; border:1px solid rgba(255,255,255,0.06); }
 .small { font-size:13px; }
 </style>

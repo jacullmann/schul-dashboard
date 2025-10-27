@@ -188,7 +188,7 @@ async function submit() {
 <style scoped>
 .styl {
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: none;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px) saturate(105%) brightness(105%);
   -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
