@@ -56,86 +56,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import {ref, computed, onMounted} from 'vue'
+import { supabase} from "../composables/Datatable";
 
-const persons = [
-  { name: 'Akdemir', title: 'Frau', short: 'Ak' },
-  { name: 'Antany', title: 'Frau', short: 'An' },
-  { name: 'Austerfield', title: 'Herr', short: 'Au' },
-  { name: 'Beeskow', title: 'Frau', short: 'Bee' },
-  { name: 'Benzin', title: 'Herr', short: 'Bz' },
-  { name: 'Berg', title: 'Herr', short: 'Bg' },
-  { name: 'Berndt', title: 'Herr', short: 'Be' },
-  { name: 'Bies', title: 'Herr', short: 'Bs' },
-  { name: 'Blanke', title: 'Frau', short: 'Ba' },
-  { name: 'Borchers', title: 'Herr', short: 'Bo' },
-  { name: 'Burkert', title: 'Frau', short: 'Bu' },
-  { name: 'Burkhardt', title: 'Frau', short: 'Bt' },
-  { name: 'Chahine', title: 'Herr', short: 'Cn' },
-  { name: 'Damde', title: 'Frau', short: 'Dm' },
-  { name: 'Delikaya', title: 'Herr', short: 'Dk' },
-  { name: 'Dias', title: 'Frau', short: 'Da' },
-  { name: 'Dreyer', title: 'Herr', short: 'Dy' },
-  { name: 'Drumm', title: 'Frau', short: 'Dru' },
-  { name: 'Eckelmann', title: 'Frau', short: 'Em' },
-  { name: 'Eckers', title: 'Frau', short: 'Ecs' },
-  { name: 'Eckert', title: 'Frau', short: 'Ec' },
-  { name: 'Ellsiepen', title: 'Frau', short: 'El' },
-  { name: 'Glier', title: 'Frau', short: 'Gl' },
-  { name: 'Herrmann', title: 'Herr', short: 'Hr' },
-  { name: 'Keller', title: 'Frau', short: 'Kel' },
-  { name: 'Kießling', title: 'Frau', short: 'Ks' },
-  { name: 'Klähn', title: 'Frau', short: 'Kae' },
-  { name: 'Klein', title: 'Frau', short: 'Ke' },
-  { name: 'Klose', title: 'Frau', short: 'Kl' },
-  { name: 'Korte', title: 'Frau', short: 'Kor' },
-  { name: 'Kröse', title: 'Herr', short: 'Kr' },
-  { name: 'Lee', title: 'Frau', short: 'Le' },
-  { name: 'Lillge', title: 'Frau', short: 'Lg' },
-  { name: 'Lippke', title: 'Frau', short: 'Li' },
-  { name: 'Look', title: 'Frau', short: 'Lo' },
-  { name: 'Luxen', title: 'Herr', short: 'Lu' },
-  { name: 'Magnus', title: 'Herr', short: 'Mg' },
-  { name: 'Matzies', title: 'Frau', short: 'Mz' },
-  { name: 'Meister', title: 'Herr', short: 'Mr' },
-  { name: 'Moresmau', title: 'Herr', short: 'Mo' },
-  { name: 'Müller', title: 'Frau', short: 'Mue' },
-  { name: 'Müller', title: 'Herr', short: 'Me' },
-  { name: 'Nagler', title: 'Frau', short: 'Ng' },
-  { name: 'Naujoks', title: 'Herr', short: 'Na' },
-  { name: 'Nehse', title: 'Frau', short: 'Nh' },
-  { name: 'Nix', title: 'Frau', short: 'Nx' },
-  { name: 'Paasch', title: 'Frau', short: 'Pa' },
-  { name: 'Paulus', title: 'Frau', short: 'Ps' },
-  { name: 'Peukert', title: 'Herr', short: 'Pt' },
-  { name: 'Preuß', title: 'Herr', short: 'Pr' },
-  { name: 'Prey', title: 'Frau', short: 'Py' },
-  { name: 'Rehlinghaus', title: 'Frau', short: 'Rh' },
-  { name: 'Röhnert', title: 'Frau', short: 'Rt' },
-  { name: 'Schalge', title: 'Herr', short: 'Sg' },
-  { name: 'Schenk', title: 'Frau', short: 'Sk' },
-  { name: 'Schlüter', title: 'Herr', short: 'Sü' },
-  { name: 'Schmelzer', title: 'Frau', short: 'Sz' },
-  { name: 'Schmid', title: 'Frau', short: 'Sd' },
-  { name: 'Schmitt', title: 'Frau', short: 'Sc' },
-  { name: 'Schneider', title: 'Frau', short: 'Ser' },
-  { name: 'Scholler', title: 'Frau', short: 'Sol' },
-  { name: 'Sonnemann', title: 'Frau', short: 'So' },
-  { name: 'Stilo', title: 'Frau', short: 'St' },
-  { name: 'Stöhr', title: 'Herr', short: 'Sr' },
-  { name: 'Thamm', title: 'Frau', short: 'Tm' },
-  { name: 'Türhan', title: 'Frau', short: 'Tn' },
-  { name: 'Ucaroglu', title: 'Frau', short: 'Uc' },
-  { name: 'von Wangenheim', title: 'Frau', short: 'Wh' },
-  { name: 'Waked', title: 'Frau', short: 'Wd' },
-  { name: 'Weber', title: 'Herr', short: 'We' },
-  { name: 'Yatkin', title: 'Frau', short: 'Ya' },
-  { name: 'Zimmermann', title: 'Herr', short: 'Zm' },
-  { name: 'Kanye', title: '', short: 'GOAT' },
-  { name: 'I miss the old Kanye', title: '', short: 'Ye' },
-  { name: 'Haupt', title: 'Frau', short: 'Ha' }
+const persons = ref([])
 
-]
+
+
+const loadPeople = async () => {
+  const { data: persondata, error: personerror} = await supabase
+      .from('persons')
+      .select('*')
+      .order('id')
+  if (personerror) console.log(personerror)
+  persons.value = persondata
+  console.log(persondata)
+  console.log(persons.value)
+
+}
+
+
 
 const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
 const inputValue = ref('')
@@ -181,6 +121,8 @@ function similarity(a: string, b: string) {
   return (longerLength - editDistance(longer, shorter)) / longerLength
 }
 
+// Kuerzel.vue (Korrigierter computed-Abschnitt)
+
 const outputValue = computed(() => {
   const q = normalize(inputValue.value)
   suggestions.value = []
@@ -188,15 +130,18 @@ const outputValue = computed(() => {
   if (!q) return ''
 
   if (mode.value === 'shortToName') {
-    const match = persons.find(p => normalize(p.short) === q)
+    // KORREKTUR: persons.value.find
+    const match = persons.value.find(p => normalize(p.short) === q)
     return match ? `${match.title} ${match.name}` : ''
   } else {
     // exakter Treffer mit Anrede
-    const match = persons.find(p => normalize(p.title + p.name) === q)
+    // KORREKTUR: persons.value.find
+    const match = persons.value.find(p => normalize(p.title + p.name) === q)
     if (match) return match.short
 
     // exakter Treffer nur Nachname
-    const matchesByName = persons.filter(p => normalize(p.name) === q)
+    // KORREKTUR: persons.value.filter
+    const matchesByName = persons.value.filter(p => normalize(p.name) === q)
     if (matchesByName.length === 1) {
       return matchesByName[0].short
     }
@@ -207,9 +152,11 @@ const outputValue = computed(() => {
 
     // unscharfe Suche
     let bestScore = 0
-    persons.forEach(p => {
+    // KORREKTUR: persons.value.forEach
+    persons.value.forEach(p => {
       const score = similarity(q, normalize(p.name))
       if (score > 0.6) {
+        // Hier ist suggestions.value korrekt, da es eine separate ref ist
         suggestions.value.push(p)
         if (score > bestScore) bestScore = score
       }
@@ -231,6 +178,11 @@ function toggleMode() {
   inputValue.value = ''
   suggestions.value = []
 }
+
+
+onMounted(() => {
+  loadPeople();
+})
 </script>
 
 <style scoped>
