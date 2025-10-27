@@ -32,7 +32,7 @@ const scheduleData = ref([])
 
 const buildScheduleData = (lessons, hours) => {
 
-  console.log('DEBUG 2: Starte Transformation für', lessons.length, 'Einträge.');
+
   const dataMap = hours.map(hour => {
     const scheduleItem = { time: hour.time, Mo: null, Di: null, Mi: null, Do: null, Fr: null };
     return scheduleItem;
@@ -103,7 +103,7 @@ const fetchData = async () => {
     console.error('Fehler beim Laden der Stundenplaneinträge:', entriesError);
     return;
   }
-  console.log('DEBUG 1: Rohe Stundenplan-Daten von Supabase:', scheduleEntries);
+
 
   // 4. Daten transformieren
   // KORREKT: Das abgerufene Array (scheduleEntries) und die Stunden-Definitionen (hoursData) übergeben
