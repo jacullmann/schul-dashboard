@@ -63,7 +63,7 @@ const props = defineProps({
 
 const getHourLabel = (time) => {
   const definition = props.lessonDefinitions.find(def => def.time === time);
-  return definition ? `${definition.label} (${definition.time})` : time;
+  return definition ? `${definition.label} ${definition.time}` : time;
 };
 </script>
 
@@ -71,29 +71,29 @@ const getHourLabel = (time) => {
 .timetable-container {
   overflow-x: auto;
   margin: 20px 0;
-  border-radius: 12px;
 }
 
 .timetable {
   width: 100%;
   border-collapse: collapse;
   min-width: 800px;
-  background-color: #334155;
+  background-color: #101010 ;
 }
 
 .time-header, .day-header {
-  background-color: #1e3a8a;
-  color: white;
+  background-color: #101010;
+  color: #f1f1f1;
   padding: 15px 10px;
   text-align: center;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border: 1px solid #475569;
 }
 
 .time-label {
-  background-color: #1e2632;
-  color:white;
+  background-color: #282828;
+  color: #f1f1f1;
   font-weight: 600;
   padding: 12px 10px;
   text-align: right;
@@ -104,11 +104,11 @@ const getHourLabel = (time) => {
   border: 1px solid #475569;
   vertical-align: top;
   transition: background-color 0.3s;
-  background-color: #344151;
+  background-color: #101010 ;
 }
 
 .lesson-cell:hover {
-  background-color: #354251;
+  background-color: #222222;
 }
 
 .lesson-content {
@@ -118,18 +118,18 @@ const getHourLabel = (time) => {
 
 .subject {
   font-weight: 700;
-  color: white;
+  color: #f1f1f1;
   font-size: 1.1em;
   margin-bottom: 4px;
 }
 
 .details {
   font-size: 0.85em;
-  color: #cbd5e1;
+  color: #f1f1f1;
 }
 
 .free-time {
-  color: #64748b;
+  color: #f1f1f1;
   text-align: center;
   padding: 10px 0;
 }

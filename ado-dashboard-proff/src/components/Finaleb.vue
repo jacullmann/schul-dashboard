@@ -141,7 +141,7 @@ h1 {
 }
 
 .course-item {
-  background-color: #334155;
+  background-color: #101010 ;
   border: 1px solid #475569;
   border-radius: 4px;
   padding: 4px 6px;
@@ -170,7 +170,7 @@ h1 {
 .room {
   font-weight: 400;
   color: #cbd5e1;
-  background-color: #475569;
+  background-color:#282828;
   padding: 1px 4px;
   border-radius: 3px;
 }
