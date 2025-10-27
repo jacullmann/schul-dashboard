@@ -66,8 +66,6 @@ window.addEventListener('keydown', () => { if (auth.isAuthenticated.value) auth.
 
 // Reagiere auf Auth-Änderungen (z. B. Login/Logout) global
 window.addEventListener('auth-changed', () => {
-    // einfache Seite neu laden / Router neu evaluieren
-    // Router-Guard liest den Auth-Status neu ein
-    // Wenn du kein Hard-Reload willst, entferne die folgende Zeile
+
     // location.reload();
 });

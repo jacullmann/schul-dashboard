@@ -19,7 +19,7 @@ import sgClient from '@sendgrid/mail';
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8090;
-const JWT_SECRET = process.env.JWT_SECRET || 'change-me';
+const JWT_SECRET = process.env.JWT_SECRET || 'zwu3i4otuz178n5z87325t7uw4tukwhstfhgskhtgkhsketnshktui45ktksez';
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 // SendGrid config
