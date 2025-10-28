@@ -14,6 +14,7 @@ import crypto from 'crypto';
 import dayjs from 'dayjs';
 import { v2 as cloudinary } from 'cloudinary';
 import sgClient from '@sendgrid/mail';
+import { createClient } from '@supabase/supabase-js';
 
 // Config
 const app = express();
@@ -25,6 +26,15 @@ const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 // SendGrid config
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
+
+
+
+
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 
 if (!SENDGRID_API_KEY) {
     console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
@@ -81,7 +91,7 @@ const dashboardLimiter = rateLimit({
     max: 15,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { ok: false, error: 'Zu viele Versuche - IP gesperrt.' },
+    message: { ok: false, error: 'Zu viele Versuche - IP gesperrt. Versuch es in 30 Minuten wieder.' },
     statusCode: 429,
 });
 
@@ -819,19 +829,49 @@ app.post('/api/dashboard-check',
     body('password').isString().isLength({ min: 1 }),
     validate,
     async (req, res) => {
-        const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
+        const ip = req.ip;
+        const ua = req.get('User-Agent') || 'unknown';
         const { password } = req.body;
+        const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
+
+        const attemptHash = crypto
+            .createHash('sha256')
+            .update(password)
+            .digest('hex')
+
+        let status = 'failure';
 
         if (password === DASHBOARD_SECRETJ) {
-            const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '30d' });
-            console.log('Erfolgreich authentifiziert')
+            status = 'success';
+            const token = jwt.sign(
+                { role: 'admin' },
+                process.env.JWT_SECRET,
+                { expiresIn: '30d' }
+            );
+
+            // log success
+            await supabase.from('auth_logs').insert({
+                ip,
+                status,
+                attempt_hash: attemptHash,
+                user_agent: ua
+            });
+
             return res.json({ ok: true, token });
         } else {
-            console.log('Authentifizierung fehlgeschlagen')
+            // log failure
+            await supabase.from('auth_logs').insert({
+                ip,
+                status,
+                attempt_hash: attemptHash,
+                user_agent: ua
+            });
+
             return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
         }
     }
 );
+
 
 app.get('/api/verifyall', authMiddleware, (req, res) => {
     res.json({ ok: true });
