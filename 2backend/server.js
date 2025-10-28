@@ -133,6 +133,21 @@ async function ensureSubjects() {
 }
 await ensureSubjects();
 
+
+function authMiddleware(req, res, next) {
+    const header = req.headers.authorization;
+    if (!header) return sendJSONError(res, 401, 'Kein Token');
+
+    const token = header.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch {
+        return sendJSONError(res, 401, 'Ungültiges Token');
+    }
+}
+
 // Helpers
 function sendJSONError(res, status, msg, errors) {
     return res.status(status).json({ error: msg, errors });
@@ -473,6 +488,7 @@ app.get('/api/items',
 
 // Create item
 app.post('/api/items',
+    authMiddleware,
     requireAuth,
     body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     body('title').isString().isLength({ min: 2, max: 60 }),
@@ -782,19 +798,7 @@ app.post('/api/auth/reset',
 );*/
 
 
-function authMiddleware(req, res, next) {
-    const header = req.headers.authorization;
-    if (!header) return sendJSONError(res, 401, 'Kein Token');
 
-    const token = header.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch {
-        return sendJSONError(res, 401, 'Ungültiges Token');
-    }
-}
 
 app.get('/api/protected', authMiddleware, (req, res) => {
     res.json({ ok: true, message: 'Geheimer Kram' });
