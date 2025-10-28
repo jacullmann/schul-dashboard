@@ -40,41 +40,23 @@ export function useAuth() {
     const isAuthenticated = computed(() => !!token.value);
 
     async function loginWithCode(code: string) {
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: code })
+        });
 
-        if (!code) return { ok: false, error: 'Bitte gib einen Code ein' };
-
-        try {
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-                body: JSON.stringify({ password: code })
-            });
-
-            if (response.ok) {
-
-                const t = 'tf_' + Math.random().toString(36).slice(2);
-                const expires = now() + inThirtyDaysMs();
-
-                token.value = t;
-                localStorage.setItem(STORAGE_KEY, t);
-                localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
-                window.dispatchEvent(new Event('auth-changed'));
-                return { ok: true };
-            }
-
-            const errorData = await response.json().catch(() => ({ error: 'Unbekannter Fehler' }));
-            const errorMessage = errorData.error || 'Ungültiger Code';
-
-            return { ok: false, error: errorMessage };
-
-        } catch (error) {
-
-            console.error('Login-Fehler:', error);
-            return { ok: false, error: 'Verbindung zum Backend fehlgeschlagen.' };
+        const data = await response.json();
+        if (response.ok && data.token) {
+            token.value = data.token;
+            const expires = now() + inThirtyDaysMs();
+            localStorage.setItem(STORAGE_KEY, data.token);
+            localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
+            window.dispatchEvent(new Event('auth-changed'));
+            return { ok: true };
         }
+
+        return { ok: false, error: data.error || 'Ungültiger Code' };
     }
 
     function logout() {

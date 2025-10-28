@@ -762,7 +762,7 @@ app.post('/api/auth/reset',
 
 
 
-app.post('/api/dashboard-check',
+/*app.post('/api/dashboard-check',
     body('password').isString().isLength({ min: 1 }),
     validate,
     async (req, res) => {
@@ -779,7 +779,58 @@ app.post('/api/dashboard-check',
             return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
         }
     }
+);*/
+
+
+function authMiddleware(req, res, next) {
+    const header = req.headers.authorization;
+    if (!header) return sendJSONError(res, 401, 'Kein Token');
+
+    const token = header.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch {
+        return sendJSONError(res, 401, 'Ungültiges Token');
+    }
+}
+
+app.get('/api/protected', authMiddleware, (req, res) => {
+    res.json({ ok: true, message: 'Geheimer Kram' });
+});
+
+
+const jwt = require('jsonwebtoken');
+
+app.post('/api/dashboard-check',
+    body('password').isString().isLength({ min: 1 }),
+    validate,
+    async (req, res) => {
+
+        const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
+
+        const { password } = req.body;
+
+        if (password === DASHBOARD_SECRETJ) {
+            const token = jwt.sign(
+                { role: 'admin' },
+                process.env.JWT_SECRET,
+                { expiresIn: '30d' }
+            );
+
+            return res.json({ ok: true, token });
+        } else {
+            return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
+        }
+    }
 );
+
+
+
+
+
+
 
 
 

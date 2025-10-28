@@ -29,7 +29,7 @@ export function setHwToken(token: string | null, userId?: string | null) {
     }
 }
 
-// beim Laden einmal den aktuellen Status an Umami senden
+
 const stored = localStorage.getItem('hw_token');
 const storedUserId = localStorage.getItem('hw_user_id');
 if (stored) {
