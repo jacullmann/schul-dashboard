@@ -9,6 +9,8 @@ const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 
 const token = ref<string | null>(null);
 
+const isAuthenticated = ref(false);
+
 
 function now() { return Date.now(); }
 function inThirtyDaysMs() { return 30 * 24 * 60 * 60 * 1000; }
@@ -49,13 +51,9 @@ function clearStorage() {
     localStorage.removeItem(STORAGE_EXPIRES_KEY);
 }
 
-loadFromStorage();
-syncAuthState();
 
-window.addEventListener('auth-changed', syncAuthState);
 
 export function useAuth() {
-    const isAuthenticated = ref(false);
 
     async function syncAuthState() {
         isAuthenticated.value = await verifyToken();
@@ -99,6 +97,11 @@ export function useAuth() {
     setInterval(() => {
         if (token.value) syncAuthState();
     }, 1000 * 10);
+
+    loadFromStorage();
+    syncAuthState();
+
+    window.addEventListener('auth-changed', syncAuthState);
 
 
     return {
