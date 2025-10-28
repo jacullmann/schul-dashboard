@@ -10,6 +10,8 @@ const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 const token = ref<string | null>(null);
 
 const isAuthenticated = ref(false);
+// NEUES Signal: Zeigt an, ob die anfängliche Authentifizierungsprüfung abgeschlossen ist
+const isAuthReady = ref(false);
 
 
 function now() { return Date.now(); }
@@ -57,10 +59,27 @@ export function useAuth() {
 
     async function syncAuthState() {
         isAuthenticated.value = await verifyToken();
+        // Setze isAuthReady auf true, nachdem die Prüfung abgeschlossen ist
+        isAuthReady.value = true;
+    }
+
+    // NEUE Funktion: Führt die Initialisierung und die erste asynchrone Prüfung durch
+    async function initAuth() {
+        if (isAuthReady.value) return; // Nicht erneut initialisieren
+
+        loadFromStorage();
+        await syncAuthState();
+
+        // Hinzufügen der Event-Listener und Intervalle nur einmal
+        window.addEventListener('auth-changed', syncAuthState);
+        setInterval(() => {
+            if (token.value) syncAuthState();
+        }, 1000 * 30);
     }
 
 
     async function loginWithCode(code: string) {
+        // ... (Der Rest der loginWithCode Funktion bleibt gleich)
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,22 +113,21 @@ export function useAuth() {
         localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
     }
 
-    setInterval(() => {
-        if (token.value) syncAuthState();
-    }, 1000 * 30);
 
-    loadFromStorage();
-    syncAuthState();
-
-    window.addEventListener('auth-changed', syncAuthState);
+    // Entfernen der automatischen Aufrufe:
+    // loadFromStorage();
+    // syncAuthState();
+    // window.addEventListener('auth-changed', syncAuthState);
 
 
     return {
         token,
         isAuthenticated,
+        isAuthReady, // Exponiere den Ready-Status
         loginWithCode,
         logout,
         refreshExpiry,
-        loadFromStorage
+        loadFromStorage,
+        initAuth // Exponiere die Initialisierungsfunktion
     };
 }

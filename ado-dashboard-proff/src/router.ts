@@ -67,19 +67,28 @@ const router = createRouter({
     }
 });
 
+// Rufe useAuth einmal außerhalb des Guards auf, um das Singleton zu erhalten
+const { isAuthenticated, isAuthReady, initAuth } = useAuth();
+// Da useAuth jetzt global ist, brauchen wir loadFromStorage hier nicht mehr
+
 // Global guard: redirect all non-authenticated requests to /auth
-router.beforeEach((to, from, next) => {
-    // Always allow the auth page itself
+router.beforeEach(async (to, from, next) => {
+    // Wenn das Ziel die Auth-Seite ist, einfach fortfahren
     if (to.path === '/welcome') return next();
 
+    // 1. Warte, bis die Initialisierung abgeschlossen ist (asynchron)
+    // initAuth wird die Prüfung nur einmal beim ersten Aufruf ausführen
+    if (!isAuthReady.value) {
+        await initAuth();
+    }
 
-    const { isAuthenticated, loadFromStorage } = useAuth();
-    loadFromStorage();
-
+    // 2. Jetzt, wo isAuthReady true ist, können wir den endgültigen Zustand prüfen.
     if (!isAuthenticated.value) {
+        // Leite zu /welcome weiter, wenn die Prüfung fehlschlägt
         return next({ path: '/welcome' });
     }
 
+    // 3. Authentifiziert und bereit, fortfahren
     return next();
 });
 
