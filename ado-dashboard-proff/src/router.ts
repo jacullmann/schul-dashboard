@@ -77,7 +77,7 @@ router.beforeEach((to, from, next) => {
     loadFromStorage();
 
     if (!isAuthenticated.value) {
-        return next({ path: '/welcome' });
+        return next({ path: '/welcome', query: { redirect: to.fullPath } });
     }
 
     return next();
