@@ -824,8 +824,10 @@ app.post('/api/dashboard-check',
 
         if (password === DASHBOARD_SECRETJ) {
             const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '30d' });
+            console.log('Erfolgreich authentifiziert')
             return res.json({ ok: true, token });
         } else {
+            console.log('Authentifizierung fehlgeschlagen')
             return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
         }
     }
