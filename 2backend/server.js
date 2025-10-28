@@ -77,8 +77,8 @@ const User = mongoose.model('HwUser', UserSchema);
 
 
 const dashboardLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: 5,
+    windowMs: 30 * 60 * 1000,
+    max: 15,
     standardHeaders: true,
     legacyHeaders: false,
     message: { ok: false, error: 'Zu viele Versuche - IP gesperrt.' },
