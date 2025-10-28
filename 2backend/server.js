@@ -828,6 +828,11 @@ app.post('/api/dashboard-check',
     }
 );
 
+app.get('/api/verifyall', authMiddleware, (req, res) => {
+    res.json({ ok: true });
+});
+
+
 
 
 

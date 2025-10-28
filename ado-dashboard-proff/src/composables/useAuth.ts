@@ -9,6 +9,7 @@ const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 
 const token = ref<string | null>(null);
 
+
 function now() { return Date.now(); }
 function inThirtyDaysMs() { return 30 * 24 * 60 * 60 * 1000; }
 
@@ -28,6 +29,20 @@ function loadFromStorage() {
     }
     token.value = t;
 }
+async function verifyToken() {
+    if (!token.value) {
+        return false;
+    }
+
+    const res = await fetch(`${BACKEND_BASE_URL}/api/verifyall`, {
+        headers: {
+            Authorization: `Bearer ${token.value}`
+        }
+    });
+
+    return res.ok;
+}
+
 
 function clearStorage() {
     localStorage.removeItem(STORAGE_KEY);
@@ -35,9 +50,17 @@ function clearStorage() {
 }
 
 loadFromStorage();
+syncAuthState();
+
+window.addEventListener('auth-changed', syncAuthState);
 
 export function useAuth() {
-    const isAuthenticated = computed(() => !!token.value);
+    const isAuthenticated = ref(false);
+
+    async function syncAuthState() {
+        isAuthenticated.value = await verifyToken();
+    }
+
 
     async function loginWithCode(code: string) {
         const response = await fetch(API_ENDPOINT, {
@@ -53,7 +76,9 @@ export function useAuth() {
             localStorage.setItem(STORAGE_KEY, data.token);
             localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
             window.dispatchEvent(new Event('auth-changed'));
+            isAuthenticated.value = true;
             return { ok: true };
+
         }
 
         return { ok: false, error: data.error || 'Ungültiger Code' };
@@ -70,6 +95,10 @@ export function useAuth() {
         const expires = now() + inThirtyDaysMs();
         localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
     }
+
+    setInterval(() => {
+        if (token.value) syncAuthState();
+    }, 1000 * 10);
 
 
     return {
