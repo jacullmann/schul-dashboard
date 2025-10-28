@@ -96,7 +96,7 @@ export function useAuth() {
 
     setInterval(() => {
         if (token.value) syncAuthState();
-    }, 1000 * 10);
+    }, 1000 * 30);
 
     loadFromStorage();
     syncAuthState();
