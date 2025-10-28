@@ -1,13 +1,13 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import router from './router';
+import { useAuth } from './composables/useAuth';
 import App from './App.vue';
 import './style.css';
 import VueGtag from 'vue-gtag-next';
 import gaDirective from './directives/gaEvent';
-import { useAuth } from './composables/useAuth';
 import PrimeVue from 'primevue/config';
 import naive from 'naive-ui'
+import router from './router';
 
 const app = createApp(App);
 
