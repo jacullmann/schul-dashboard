@@ -107,9 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, onMounted, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useAuth } from '../composables/useAuth';
+import { h, ref, onMounted } from 'vue';
 import AuthForm from './Welcome.vue';
 import VocabList from "../components/VocabList.vue";
 const VocabListShow = ref<boolean>(false);
@@ -123,34 +121,7 @@ import HF from "../components/Mobile.vue"
 
 
 console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und wird umgehend zur Anzeige gebracht. ');
-const router = useRouter();
-const route = useRoute();
-const auth = useAuth();
 
-
-const checkAuthAndRedirect = () => {
-  // Nur weiterleiten, wenn der Auth-Status geladen UND der Benutzer authentifiziert ist.
-  if (auth.isAuthReady.value && auth.isAuthenticated.value) {
-    // Die Ziel-Route aus dem Query-Parameter 'redirect' oder Fallback auf '/'
-    const redirectPath = route.query.redirect || '/';
-
-    // Wichtig: router.replace() verwenden, um die Anmeldeseite nicht im Browserverlauf zu speichern.
-    router.replace(redirectPath);
-  }
-};
-
-// Überwachen Sie den Zustand. onMounted stellt sicher, dass der Hook erst nach dem Mounten läuft.
-onMounted(() => {
-  // Der watch-Effekt mit immediate: true deckt den onMounted-Check bereits ab,
-  // aber ein expliziter Aufruf hier schadet nicht, falls die Zustände schon vor dem Mounten true sind.
-  checkAuthAndRedirect();
-});
-
-// Warten auf den Moment, in dem isAuthReady auf true wechselt.
-// Der watch-Effekt reagiert auf Änderungen von isAuthReady und isAuthenticated.
-watch([auth.isAuthReady, auth.isAuthenticated], () => {
-  checkAuthAndRedirect();
-}, { immediate: true });
 const bat = ref<boolean>(false);
 
 const card1X = ref(300);
@@ -501,11 +472,6 @@ function closehw() {
 
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
 const showAuth = ref(false);
-
-
-
-
-
 
 
 
