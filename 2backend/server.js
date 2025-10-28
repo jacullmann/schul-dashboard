@@ -75,6 +75,16 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 const User = mongoose.model('HwUser', UserSchema);
 
+
+const dashboardLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { ok: false, error: 'Zu viele Versuche - IP gesperrt.' },
+    statusCode: 429,
+});
+
 const VerificationSchema = new mongoose.Schema({
     email: { type: String, index: true },
     token: { type: String, unique: true },
@@ -805,21 +815,15 @@ app.get('/api/protected', authMiddleware, (req, res) => {
 
 
 app.post('/api/dashboard-check',
+    dashboardLimiter,
     body('password').isString().isLength({ min: 1 }),
     validate,
     async (req, res) => {
-
         const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
-
         const { password } = req.body;
 
         if (password === DASHBOARD_SECRETJ) {
-            const token = jwt.sign(
-                { role: 'admin' },
-                process.env.JWT_SECRET,
-                { expiresIn: '30d' }
-            );
-
+            const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '30d' });
             return res.json({ ok: true, token });
         } else {
             return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
