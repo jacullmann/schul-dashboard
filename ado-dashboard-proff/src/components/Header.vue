@@ -43,9 +43,10 @@
         <router-link  to="/" class="nav-item" @click="closeNav">
           Dashboard
         </router-link>
+        <!--
         <router-link  to="/bewerten" class="nav-item" @click="closeNav">
           Benoten
-        </router-link>
+        </router-link>-->
         <router-link  to="/stundenplan" class="nav-item" @click="closeNav">
           Stundenplan
         </router-link>

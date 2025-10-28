@@ -488,13 +488,12 @@ app.get('/api/items',
 
 // Create item
 app.post('/api/items',
-    authMiddleware,
     requireAuth,
     body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
     body('title').isString().isLength({ min: 2, max: 60 }),
     body('subject').isString().isLength({ min: 2, max: 40 }),
     body('description').optional().isString().isLength({ max: 1000 }),
-    body('images').optional().isArray({ max: 15 }),
+    body('images').optional().isArray({ max: 12 }),
     body('dueDate').isISO8601().toDate(),
     validate,
     async (req, res) => {
@@ -527,7 +526,7 @@ app.patch('/api/items/:id',
     body('title').optional().isString().isLength({ min: 2, max: 60 }),
     body('subject').optional().isString().isLength({ min: 2, max: 40 }),
     body('description').optional().isString().isLength({ max: 1000 }),
-    body('images').optional().isArray({ max: 15 }),
+    body('images').optional().isArray({ max: 12 }),
     body('dueDate').optional().isISO8601().toDate(),
     validate,
     async (req, res) => {

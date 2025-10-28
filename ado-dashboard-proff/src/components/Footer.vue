@@ -10,7 +10,7 @@
         <div class="footer-section">
           <h3>Links</h3>
           <router-link to="/" class="footer-link">Dashboard</router-link>
-          <router-link  to="/bewerten" class="footer-link">Benoten</router-link>
+          <!--<router-link  to="/bewerten" class="footer-link">Benoten</router-link>-->
           <router-link  to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
           <router-link  to="/fresser" class="footer-link">Fresser</router-link>
         </div>
