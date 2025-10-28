@@ -10,6 +10,7 @@ const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 const token = ref<string | null>(null);
 
 const isAuthenticated = ref(false);
+const isAuthReady = ref(false);
 
 
 function now() { return Date.now(); }
@@ -98,18 +99,21 @@ export function useAuth() {
         if (token.value) syncAuthState();
     }, 1000 * 30);
 
-    loadFromStorage();
-    syncAuthState();
+    (async () => {
+        await syncAuthState();
+        isAuthReady.value = true;
+    })();
 
     window.addEventListener('auth-changed', syncAuthState);
 
 
     return {
         token,
-        isAuthenticated,
+        isAuthenticated: computed(() => isAuthenticated.value),
         loginWithCode,
         logout,
         refreshExpiry,
-        loadFromStorage
+        loadFromStorage,
+        isAuthReady: computed(() => isAuthReady.value),
     };
 }
