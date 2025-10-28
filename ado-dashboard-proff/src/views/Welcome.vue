@@ -42,14 +42,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref } from 'vue';
 import For from '../components/LegalF.vue'
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 import GetStatushwb2 from "../components/GetStatushwb2.vue";
 
 const router = useRouter();
-const route = useRoute();
 const auth = useAuth();
 const code = ref('');
 const error = ref<string | null>(null);
@@ -71,27 +70,6 @@ function doLogout() {
   auth.logout();
   window.location.href ='https://schul-dashboards.onrender.com'
 }
-
-const checkAuthAndRedirect = () => {
-  // Nur weiterleiten, wenn der Auth-Status geladen UND der Benutzer authentifiziert ist.
-  if (auth.isAuthReady.value && auth.isAuthenticated.value) {
-    // Die Ziel-Route aus dem Query-Parameter 'redirect' oder Fallback auf '/'
-    const redirectPath = route.query.redirect || '/';
-
-    // Wichtig: router.replace() verwenden, um die Anmeldeseite nicht im Browserverlauf zu speichern.
-    router.replace(redirectPath);
-  }
-};
-
-onMounted(() => {
-  // Der watch-Effekt mit immediate: true deckt den onMounted-Check bereits ab,
-  // aber ein expliziter Aufruf hier schadet nicht, falls die Zustände schon vor dem Mounten true sind.
-  checkAuthAndRedirect();
-});
-
-watch([auth.isAuthReady, auth.isAuthenticated], () => {
-  checkAuthAndRedirect();
-}, { immediate: true });
 </script>
 
 <style scoped>
