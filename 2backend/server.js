@@ -801,8 +801,6 @@ app.get('/api/protected', authMiddleware, (req, res) => {
 });
 
 
-const jwt = require('jsonwebtoken');
-
 app.post('/api/dashboard-check',
     body('password').isString().isLength({ min: 1 }),
     validate,
