@@ -618,7 +618,7 @@ function openCreateForm() {
 }
 
 async function deleteItem(id: string) {
-  if (confirm('Soll dieser Eintrag wirklich gelöscht werden?')) {
+  if (confirm('Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder gelöscht.')) {
     loading.value = true;
     try {
       await hw.delete(`/api/items/${id}`);

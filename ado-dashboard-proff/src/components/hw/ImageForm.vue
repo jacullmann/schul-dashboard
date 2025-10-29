@@ -46,10 +46,11 @@
 
     <div v-if="showConfirmRemovalModal" class="overlay confirm">
       <div class="modal card confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
-        <h4>Bild löschen?</h4>
-        <p>Möchtest du dieses Bild wirklich löschen?</p>
+        <h4>Dieses Bild unwiderruflich löschen?</h4>
+        <p>Wenn du dieses Bild löschst, gibt es keinen Weg, es wiederherzustellen.</p>
+
         <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
-          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Ja, löschen</button>
+          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Bild löschen</button>
           <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
         </div>
       </div>

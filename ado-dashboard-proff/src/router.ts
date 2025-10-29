@@ -33,7 +33,7 @@ const routes = [
     { path: '/lokale-to-do-liste', component: LokaleToDoListe },
     { path: '/kanye', component: Ye },
     { path: '/ai-detector', component: Aidetector },
-    { path: '/fresser', component: BS },
+    { path: '/sorgenbox', component: BS },
     { path: '/kontakt', component: Kontakt },
     { path: '/8912', component: Games },
     { path: '/stundenplan', component: Finales },

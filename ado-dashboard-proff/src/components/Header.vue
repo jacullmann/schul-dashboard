@@ -53,8 +53,8 @@
         <router-link  to="/kuerzel" class="nav-item" @click="closeNav">
           Kürzel-Finder
         </router-link>
-        <router-link  to="/fresser" class="nav-item" @click="closeNav">
-          Fresser
+        <router-link  to="/sorgenbox" class="nav-item" @click="closeNav">
+          Sorgenbox
         </router-link>
       </nav>
     </div>

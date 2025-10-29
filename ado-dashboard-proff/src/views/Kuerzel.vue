@@ -1,7 +1,7 @@
 <template>
   <div class="card">
-    <h2 style="margin-top:0;">Namenskürzel Finder</h2>
-    <p class="small">Gib links ein Kürzel oder einen Namen ein. Rechts erscheint automatisch das Ergebnis.</p>
+    <h2 style="margin-top:0;">Kürzelfinder</h2>
+    <p class="small">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
 
     <div class="row">
       <!-- Input -->
@@ -9,7 +9,7 @@
         <input
             v-model="inputValue"
             class="input"
-            :placeholder="mode==='shortToName' ? 'z. B. mü, gl...' : 'z. B. Frau Glier, Herr Müller oder nur Nachname...'"
+            :placeholder="mode==='shortToName' ? 'z. B. ma, le, ...' : 'z. B. Frau Maier, Herr Schultz oder nur Nachname...'"
         />
         <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
           Meintest du vielleicht

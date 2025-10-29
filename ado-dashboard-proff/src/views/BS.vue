@@ -6,8 +6,9 @@
 
           <div class="header">
             <div>
-              <h2 class="title">Platz für Beschwerden</h2>
-              <p class="small" style="color: var(--sub)">Alle Sachen, die du abgibst, sind vollkommen anonym.</p>
+              <h2 class="title">Sorgenbox</h2>
+              <p class="small" style="color: var(--sub)">Hier kannst du anonym teilen, was dich belastet oder worüber du dich beschweren möchtest. Alles, was dir auf dem Herzen liegt, ist willkommen. Es wird nicht gespeichert, wer du bist. Wenn du möchtest, kannst du freiwillig Kontaktinformationen hinterlassen.
+                Wenn du mehrere Dinge loswerden willst, schreib sie gern in einer Nachricht zusammen, außer du möchtest bestimmte Themen lieber getrennt halten.</p>
             </div>
           </div>
 
