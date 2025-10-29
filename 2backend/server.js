@@ -80,6 +80,7 @@ const UserSchema = new mongoose.Schema({
     enrKurs: { type: Number, default: 0 },
     wpuKurs1: { type: Number, default: 0 },
     wpuKurs2: { type: Number, default: 0 },
+    theater: { type: Number, default: 0 },
     doneSetup: { type: Boolean, default: false },
     activity: [{
         at: { type: Date, default: Date.now },
@@ -324,6 +325,7 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
         enrKurs: user.enrKurs,
         wpuKurs1: user.wpuKurs1,
         wpuKurs2: user.wpuKurs2,
+        theater: user.theater,
         doneSetup: !!user?.doneSetup
     });
 });
@@ -336,15 +338,17 @@ app.patch('/api/user/setup',
     body('enrKurs').exists().withMessage('enrKurs ist erforderlich').isInt({ min: 0 }).toInt(),
     body('wpuKurs1').exists().withMessage('wpuKurs1 ist erforderlich').isInt({ min: 0 }).toInt(),
     body('wpuKurs2').exists().withMessage('wpuKurs2 ist erforderlich').isInt({ min: 0 }).toInt(),
+    body('theater').exists().withMessage('Theater ist erforderlich').isInt({ min: 0 }).toInt(),
     validate, // Führt die Validierung aus
     async (req, res) => {
-        const { enrKurs, wpuKurs1, wpuKurs2 } = req.body;
+        const { enrKurs, wpuKurs1, wpuKurs2, theater } = req.body;
         const userId = req.user.sub;
 
         const updateData = {
             enrKurs,
             wpuKurs1,
             wpuKurs2,
+            theater,
             doneSetup: true, // Wichtig: Setze doneSetup auf true, egal ob gespeichert oder geskippt wurde
         };
 
@@ -352,7 +356,7 @@ app.patch('/api/user/setup',
             userId,
             { $set: updateData },
             // Gib die relevanten Felder zurück, um das Frontend zu aktualisieren
-            { new: true, fields: 'enrKurs wpuKurs1 wpuKurs2 doneSetup email isAdmin' }
+            { new: true, fields: 'enrKurs wpuKurs1 wpuKurs2 theater doneSetup email isAdmin' }
         );
 
         if (!updatedUser) {
@@ -360,7 +364,7 @@ app.patch('/api/user/setup',
         }
 
         // Protokollieren der Aktivität
-        await logActivity(userId, 'profile:setup:complete', { enrKurs, wpuKurs1, wpuKurs2 });
+        await logActivity(userId, 'profile:setup:complete', { enrKurs, wpuKurs1, wpuKurs2, theater });
 
         // Sende die aktualisierten Benutzerdaten zurück an das Frontend
         res.json({
@@ -372,6 +376,7 @@ app.patch('/api/user/setup',
                 enrKurs: updatedUser.enrKurs,
                 wpuKurs1: updatedUser.wpuKurs1,
                 wpuKurs2: updatedUser.wpuKurs2,
+                theater: updatedUser.theater,
                 doneSetup: updatedUser.doneSetup
             }
         });

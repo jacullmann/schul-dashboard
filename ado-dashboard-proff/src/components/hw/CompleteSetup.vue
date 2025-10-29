@@ -4,7 +4,7 @@
       <h3>{{ isSetup ? 'Willkommen! Vervollständige dein Profil' : 'Kurse bearbeiten' }}</h3>
 
       <div class="form-group">
-        <label for="enrKurs">Dein Enrichment-Kurs:</label>
+        <label for="enrKurs">Enrichment</label>
         <select id="enrKurs" v-model="formData.enrKurs" class="input">
           <option value="0" disabled>Bitte auswählen...</option>
           <option value="1">Herr Müller</option>
@@ -15,30 +15,40 @@
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label for="wpuKurs1">Dein WPU-Kurs am Dienstag:</label>
+        <label for="wpuKurs1">WPU am Dienstag</label>
         <select id="wpuKurs1" v-model="formData.wpuKurs1" class="input">
           <option value="0" disabled>Bitte auswählen...</option>
-          <option value="1">Kurs 1</option>
-          <option value="2">Kurs 2</option>
-          <option value="3">Kurs 3</option>
-          <option value="4">Kurs 4</option>
-          <option value="5">Kurs 5</option>
-          <option value="6">Kurs 6</option>
+          <option value="1">Englisch</option>
+          <option value="2">Deutsch</option>
+          <option value="3">Biologie</option>
+          <option value="4">Geschichte</option>
+          <option value="5">Informatik</option>
+          <option value="6">Latein</option>
         </select>
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label for="wpuKurs2">Dein WPU-Kurs am Mittwoch:</label>
+        <label for="wpuKurs2">WPU am Donnerstag</label>
         <select id="wpuKurs2" v-model="formData.wpuKurs2" class="input">
           <option value="0" disabled>Bitte auswählen...</option>
-          <option value="1">Kurs 1</option>
-          <option value="2">Kurs 2</option>
-          <option value="3">Kurs 3</option>
-          <option value="4">Kurs 4</option>
-          <option value="5">Kurs 5</option>
-          <option value="6">Kurs 6</option>
+          <option value="1">Englisch</option>
+          <option value="2">Biologie</option>
+          <option value="3">Mathe</option>
+          <option value="4">Geschichte</option>
+          <option value="5">Musik</option>
         </select>
       </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <label for="theater">Theater</label>
+        <select id="theater" v-model="formData.theater" class="input">
+          <option value="0" disabled>Bitte auswählen...</option>
+          <option value="1">Ja</option>
+          <option value="2">Nein</option>
+        </select>
+      </div>
+
+
 
       <div v-if="error" class="field-error" style="color:var(--danger); margin-top: 12px;">{{ error }}</div>
 
@@ -61,7 +71,7 @@ import hw from '../../hwApi';
 const props = defineProps<{
   visible: boolean; // Steuert die Anzeige der Komponente
   // Initialwerte vom Server, die beim Öffnen des Modals übergeben werden
-  initialData: { enrKurs: number; wpuKurs1: number; wpuKurs2: number };
+  initialData: { enrKurs: number; wpuKurs1: number; wpuKurs2: number; theater: number; };
   isSetup: boolean; // true, wenn es das initiale Setup ist (doneSetup=false)
 }>();
 
@@ -77,7 +87,8 @@ const formData = reactive({
   // Initialisiere mit den Props-Werten, konvertiert zu String
   enrKurs: props.initialData.enrKurs.toString(),
   wpuKurs1: props.initialData.wpuKurs1.toString(),
-  wpuKurs2: props.initialData.wpuKurs2.toString()
+  wpuKurs2: props.initialData.wpuKurs2.toString(),
+  theater: props.initialData.theater.toString()
 });
 
 // Watcher, um formData zu aktualisieren, wenn sich initialData ändert (z.B. beim manuellen Öffnen)
@@ -85,13 +96,14 @@ watch(() => props.initialData, (newVal) => {
   formData.enrKurs = newVal.enrKurs.toString();
   formData.wpuKurs1 = newVal.wpuKurs1.toString();
   formData.wpuKurs2 = newVal.wpuKurs2.toString();
+  formData.theater = newVal.theater.toString();
 }, { immediate: true });
 
 
 // Prüfung, ob alle Felder ausgewählt sind (nur für das initiale Setup relevant)
 const isValid = computed(() => {
   // Beim Speichern MUSS jeder Kurs ausgewählt sein (Wert > 0)
-  return formData.enrKurs !== "0" && formData.wpuKurs1 !== "0" && formData.wpuKurs2 !== "0";
+  return formData.enrKurs !== "0" && formData.wpuKurs1 !== "0" && formData.wpuKurs2 !== "0" && formData.theater !== "0";
 });
 
 
@@ -126,6 +138,7 @@ async function save() {
     enrKurs: parseInt(formData.enrKurs),
     wpuKurs1: parseInt(formData.wpuKurs1),
     wpuKurs2: parseInt(formData.wpuKurs2),
+    theater: parseInt(formData.theater),
   };
 
   await submitData(dataToSend);
@@ -137,7 +150,8 @@ async function skip() {
   const dataToSend = {
     enrKurs: 0, // 0 eintragen
     wpuKurs1: 0, // 0 eintragen
-    wpuKurs2: 0, // 0 eintragen
+    wpuKurs2: 0,
+    theater: 0,// 0 eintragen
   };
 
   await submitData(dataToSend);
