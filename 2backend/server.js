@@ -77,6 +77,10 @@ const UserSchema = new mongoose.Schema({
     emailVerified: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     lastLoginAt: { type: Date },
+    enrKurs: { type: Number, default: 0 },
+    wpuKurs1: { type: Number, default: 0 },
+    wpuKurs2: { type: Number, default: 0 },
+    doneSetup: { type: Boolean, default: false },
     activity: [{
         at: { type: Date, default: Date.now },
         type: { type: String },
@@ -309,8 +313,67 @@ app.post('/api/auth/login',
 
 app.get('/api/auth/me', requireAuth, async (req, res) => {
     const user = await User.findById(req.user.sub).lean();
-    res.json({ id: user._id, email: user.email, isAdmin: !!user?.isAdmin, emailVerified: !!user?.emailVerified });
+    res.json({
+        id: user._id,
+        email: user.email,
+        isAdmin: !!user?.isAdmin,
+        emailVerified: !!user?.emailVerified,
+        enrKurs: user.enrKurs,
+        wpuKurs1: user.wpuKurs1,
+        wpuKurs2: user.wpuKurs2,
+        doneSetup: !!user?.doneSetup
+    });
 });
+
+
+
+app.patch('/api/user/setup',
+    requireAuth,
+    // Validiere die eingehenden Daten (muss eine Zahl sein, hier: >= 0)
+    body('enrKurs').exists().withMessage('enrKurs ist erforderlich').isInt({ min: 0 }).toInt(),
+    body('wpuKurs1').exists().withMessage('wpuKurs1 ist erforderlich').isInt({ min: 0 }).toInt(),
+    body('wpuKurs2').exists().withMessage('wpuKurs2 ist erforderlich').isInt({ min: 0 }).toInt(),
+    validate, // Führt die Validierung aus
+    async (req, res) => {
+        const { enrKurs, wpuKurs1, wpuKurs2 } = req.body;
+        const userId = req.user.sub;
+
+        const updateData = {
+            enrKurs,
+            wpuKurs1,
+            wpuKurs2,
+            doneSetup: true, // Wichtig: Setze doneSetup auf true, egal ob gespeichert oder geskippt wurde
+        };
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateData },
+            // Gib die relevanten Felder zurück, um das Frontend zu aktualisieren
+            { new: true, fields: 'enrKurs wpuKurs1 wpuKurs2 doneSetup email isAdmin' }
+        );
+
+        if (!updatedUser) {
+            return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+        }
+
+        // Protokollieren der Aktivität
+        await logActivity(userId, 'profile:setup:complete', { enrKurs, wpuKurs1, wpuKurs2 });
+
+        // Sende die aktualisierten Benutzerdaten zurück an das Frontend
+        res.json({
+            ok: true,
+            user: {
+                id: updatedUser._id,
+                email: updatedUser.email,
+                isAdmin: updatedUser.isAdmin,
+                enrKurs: updatedUser.enrKurs,
+                wpuKurs1: updatedUser.wpuKurs1,
+                wpuKurs2: updatedUser.wpuKurs2,
+                doneSetup: updatedUser.doneSetup
+            }
+        });
+    }
+);
 
 // Admin routes
 app.get('/api/admin/users', requireAdmin, async (req, res) => {

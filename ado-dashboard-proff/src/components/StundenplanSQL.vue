@@ -83,7 +83,7 @@ const getHourLabel = (time) => {
 .time-header, .day-header {
   background-color: #101010;
   color: #f1f1f1;
-  padding: 15px 10px;
+  padding: 10px 10px;
   text-align: center;
   font-weight: 700;
   text-transform: uppercase;
@@ -100,16 +100,13 @@ const getHourLabel = (time) => {
 }
 
 .lesson-cell {
-  padding: 10px;
+  padding: 5px;
   border: 1px solid #aaaaaa;
   vertical-align: top;
   transition: background-color 0.3s;
   background-color: #101010 ;
 }
 
-.lesson-cell:hover {
-  background-color: #222222;
-}
 
 .lesson-content {
   display: flex;
@@ -118,14 +115,14 @@ const getHourLabel = (time) => {
 
 .subject {
   font-weight: 700;
-  color: #f1f1f1;
+  color: var(--text);
   font-size: 1.1em;
   margin-bottom: 4px;
 }
 
 .details {
   font-size: 0.85em;
-  color: #f1f1f1;
+  color: #aaaaaa;
 }
 
 .free-time {

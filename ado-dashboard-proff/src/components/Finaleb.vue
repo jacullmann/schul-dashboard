@@ -141,7 +141,6 @@ h1 {
 
 .course-item {
   background-color: #101010 ;
-  border: 1px solid #475569;
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.85em;
@@ -155,15 +154,15 @@ h1 {
 }
 
 .subject-code {
-  font-weight: 700;
-  color: #38bdf8;
+  font-weight: 200;
+  color: #f1f1f1;
   margin-right: 4px;
 }
 
 .subject-name {
   flex-grow: 1;
   font-weight: 500;
-  color: #f1f5f9;
+  color: var(--text);
 }
 
 .room {

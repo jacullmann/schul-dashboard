@@ -7,6 +7,15 @@
       </div>
 
       <div class="row header-actions">
+        <button
+            v-if="user"
+            class="btn ghost small-btn"
+            @click="openSetupModal"
+            title="Kurseinstellungen bearbeiten"
+            style="margin-right: 8px;"
+        >
+          Kurse
+        </button>
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
         <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
         <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
@@ -242,6 +251,15 @@
         @confirm="doReport"
         @cancel="showReportConfirm=false"
     />
+    <CompleteSetup
+        v-if="user"
+        :visible="showSetupModal"
+        :is-setup="user && !user.doneSetup"
+        :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0 }"
+        @close="showSetupModal = false"
+        @success="onSetupSuccess"
+        @update:user="onSetupSuccess"
+    />
   </div>
 </template>
 
@@ -257,6 +275,7 @@ import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
+import CompleteSetup from "../components/hw/CompleteSetup.vue";
 
 export interface HwItem {
   id: string;
@@ -288,6 +307,8 @@ const loading = ref(true);
 const subjectFilter = ref('');
 
 const showOldEntries = ref(false);
+
+const showSetupModal = ref(false);
 
 
 const message = ref('');
@@ -424,6 +445,23 @@ function onDocumentClick(e: MouseEvent) {
   openMenuId.value = null;
 }
 
+
+function onSetupSuccess(updatedUser: any) {
+  // Aktualisiert die lokalen User-Daten mit den neuen Werten (doneSetup: true, Kurse)
+  user.value = {
+    ...user.value,
+    ...updatedUser // Mergt die aktualisierten Felder
+  };
+  showSetupModal.value = false;
+  handleSuccess('Kurseinstellungen erfolgreich gespeichert.');
+}
+
+function openSetupModal() {
+  if (user.value) {
+    showSetupModal.value = true;
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', onDocumentClick);
   loadMe();
@@ -444,8 +482,14 @@ function canManage(createdBy: string) {
 async function loadMe() {
   try {
     const { data } = await hw.get('/api/auth/me');
-    user.value = data;
+    user.value = data; // user.value enthält jetzt doneSetup und die Kurse
     await loadCheckedForMe();
+
+    // NEU: Wenn Setup nicht abgeschlossen und User eingeloggt ist, zeige das Setup-Modal
+    if (user.value && !user.value.doneSetup) {
+      showSetupModal.value = true;
+    }
+
   } catch {
     user.value = null;
     checkedItems.value = new Set();
@@ -979,6 +1023,14 @@ function revealImages(itemId: string) {
 }
 .rei {
 
+
+}
+.finishsetup {
+  position: absolute;
+  z-index: 100000;
+  width: 100%;
+  height: 100%;
+  margin: 2px;
 
 }
 
