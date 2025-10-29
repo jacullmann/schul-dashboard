@@ -255,7 +255,12 @@
         v-if="user"
         :visible="showSetupModal"
         :is-setup="user && !user.doneSetup"
-        :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0 }"
+        :initial-data="{
+            enrKurs: user.enrKurs || 0,
+            wpuKurs1: user.wpuKurs1 || 0,
+            wpuKurs2: user.wpuKurs2 || 0,
+            theater: user.theater || 0
+        }"
         @close="showSetupModal = false"
         @success="onSetupSuccess"
         @update:user="onSetupSuccess"
