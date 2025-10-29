@@ -154,7 +154,7 @@ h1 {
 }
 
 .subject-code {
-  font-weight: 200;
+  font-weight: 600;
   color: #f1f1f1;
   margin-right: 4px;
 }
