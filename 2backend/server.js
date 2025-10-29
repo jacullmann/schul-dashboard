@@ -313,6 +313,9 @@ app.post('/api/auth/login',
 
 app.get('/api/auth/me', requireAuth, async (req, res) => {
     const user = await User.findById(req.user.sub).lean();
+    if (!user) {
+        return sendJSONError(res, 404, 'Ungültiges Token.');
+    }
     res.json({
         id: user._id,
         email: user.email,
