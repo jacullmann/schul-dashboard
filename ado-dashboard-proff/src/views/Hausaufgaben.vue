@@ -248,8 +248,10 @@
     <ConfirmDialog
         :show="showReportConfirm"
         message="Soll dieser Eintrag wirklich gemeldet werden?"
+        :show-reason-input="true"
+        v-model:reason="reportReason"
         @confirm="doReport"
-        @cancel="showReportConfirm=false"
+        @cancel="cancelReport"
     />
     <CompleteSetup
         v-if="user"
@@ -350,6 +352,7 @@ const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.va
 // confirm dialog state
 const showReportConfirm = ref(false)
 let reportTarget: HwItem | null = null
+const reportReason = ref('')
 
 // route + router
 const route = useRoute();
@@ -442,6 +445,7 @@ function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwI
 
 function reportItem(item: HwItem) {
   reportTarget = item
+  reportReason.value = '' // NEU: Grund zurücksetzen
   showReportConfirm.value = true
 }
 
@@ -482,6 +486,12 @@ onBeforeUnmount(() => {
 function canManage(createdBy: string) {
   if (!user.value) return false;
   return user.value.isAdmin || user.value.id === createdBy;
+}
+
+function cancelReport() {
+  showReportConfirm.value = false
+  reportTarget = null
+  reportReason.value = ''
 }
 
 async function loadMe() {
@@ -647,50 +657,37 @@ async function deleteAnnouncement(id: string) {
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 async function doReport() {
-  showReportConfirm.value = false
-  if (!reportTarget) return
+  if (!reportTarget) return;
 
-  const item = reportTarget
-  reportTarget = null
+  const item = reportTarget;
+  const reason = reportReason.value; // Den Grund aus dem ref holen
 
-  message.value = 'Eintrag wird gemeldet...'
-  isError.value = false
+  // Dialog schließen und Daten zurücksetzen, BEVOR der Request startet
+  cancelReport();
+
+  message.value = 'Eintrag wird gemeldet...';
+  isError.value = false;
+
   const payload = {
     itemId: item.id,
     itemTitle: item.title,
-    reportedAt: new Date().toISOString(),
-    reporterEmail: user.value?.email || ''
-  }
+    reason: reason, // Der neue, optionale Grund
+  };
+
   try {
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `Item gemeldet
-ID: ${payload.itemId}
-Titel: ${payload.itemTitle}
-Gemeldet am: ${payload.reportedAt}
-Meldet von: ${payload.reporterEmail}`
-      })
-    })
-    const data = await res.json().catch(() => ({}))
-    if (res.ok) {
-      message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.'
-      isError.value = false
-    } else {
-      const errMsg = data?.error || (Array.isArray(data?.errors) ? data.errors.map((e:any)=>e.message).join('; ') : 'Fehler beim Senden.')
-      message.value = 'Fehler beim Melden: ' + errMsg
-      isError.value = true
-    }
-  } catch (e:any) {
-    message.value = 'Fehler beim Melden. Bitte versuche es später erneut.'
-    isError.value = true
-    console.error('reportItem error', e)
+    // NEU: API-Aufruf an unseren eigenen Backend-Endpunkt
+    await hw.post('/api/reports', payload);
+
+    message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
+    isError.value = false;
+
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Senden.';
+    message.value = 'Fehler beim Melden: ' + errMsg;
+    isError.value = true;
+    console.error('reportItem error', e);
   } finally {
-    setTimeout(() => { message.value = ''; isError.value = false }, 7000)
+    setTimeout(() => { message.value = ''; isError.value = false }, 7000);
   }
 }
 

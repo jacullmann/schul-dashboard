@@ -12,6 +12,7 @@
 
 
         </div>-->
+       <!-- <div>
         <h3>Kontaktformular</h3><br/>
         <form
             class="contact-form"
@@ -84,7 +85,7 @@
             </div>
           </div>
 
-          <!-- Subject -->
+
           <div class="form-group">
             <div class="input-wrapper" :class="getInputClass('subject')">
               <input
@@ -110,7 +111,7 @@
             </transition>
           </div>
 
-          <!-- Message -->
+
           <div class="form-group">
             <div class="textarea-wrapper" :class="getInputClass('message')">
               <textarea
@@ -141,7 +142,7 @@
             </transition>
           </div>
 
-          <!-- Consent -->
+
           <div class="form-group consent-group">
             <label class="checkbox-label">
               <input
@@ -171,7 +172,7 @@
               </p>
             </transition>
           </div>
-          <!-- Status Banner -->
+
           <transition name="slide-down">
             <div v-if="banner.type" class="status-banner" :class="`status-${banner.type}`" role="alert" aria-live="polite">
               <div class="status-icon">
@@ -190,7 +191,7 @@
             </div>
           </transition>
 
-          <!-- Actions -->
+
           <div class="form-actions">
             <button
                 data-umami-event="Kontaktformular absenden Button"
@@ -226,6 +227,7 @@
         <n-divider class="divider">
           Oder
         </n-divider>
+        </div>-->
 
 
         <Manual />

@@ -1,5 +1,16 @@
 <template>
   <div class="card">
+    <n-switch
+        size="large"
+        v-model:value="isPersonalized"
+        @update:value="handleSwitch"
+        :checked="isPersonalized"
+        :checked-value="true"
+        :unchecked-value="false"
+    >
+      <template #checked>Personalisierter Stundenplan</template>
+      <template #unchecked>Normaler Stundenplan</template>
+    </n-switch>
     <Timetable
         :data="scheduleData"
         :days="days"
@@ -26,6 +37,7 @@ import { ref, onMounted } from "vue"; // <-- ref HINZUGEFÜGT
 import Timetable from './StundenplanSQL.vue';
 import { supabase } from '../composables/Datatable'; // Stellt Verbindung her (aus Datatable.ts)
 
+const isPersonalized = ref(false);
 const lessonHours = ref([])
 const days = ref([])
 const scheduleData = ref([])
@@ -110,6 +122,13 @@ const fetchData = async () => {
   scheduleData.value = buildScheduleData(scheduleEntries, hoursData);
 }
 
+function handleSwitch(newValue) {
+  if (newValue) {
+    console.log("Der Stundenplan ist nun personalisiert:", isPersonalized)
+  } else {
+    console.log("Der Stundenplan ist nun personalisiert:", isPersonalized)
+  }
+}
 
 onMounted(() => {
   fetchData()

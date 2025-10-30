@@ -145,6 +145,16 @@ const KeepCheckedSchema = new mongoose.Schema({
 KeepCheckedSchema.index({ itemId: 1, userId: 1 }, { unique: true });
 const KeepChecked = mongoose.model('HwKeepChecked', KeepCheckedSchema);
 
+const ReportSchema = new mongoose.Schema({
+    itemId: { type: mongoose.Schema.Types.ObjectId, index: true, required: true },
+    itemTitle: { type: String, required: true },
+    reason: { type: String }, // Optionaler Grund vom Nutzer
+    reporterId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, default: null }, // Optional
+    reporterEmail: { type: String, default: 'anonymous' }, // Optional
+    reportedAt: { type: Date, default: Date.now }
+}, { timestamps: true });
+const Report = mongoose.model('HwReport', ReportSchema);
+
 // Default Subjects seed
 const DEFAULT_SUBJECTS = [
     'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
@@ -247,6 +257,24 @@ async function sendVerificationEmail(to, verifyUrl) {
         html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
     };
     return sgClient.send(msg);
+}
+
+
+function tryAuth(req, res, next) {
+    const header = req.headers.authorization;
+    if (header) {
+        const token = header.split(' ')[1];
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                req.user = decoded; // Fügt Nutzer zum req hinzu, wenn Token gültig
+            } catch {
+                // Ungültiges Token, einfach ignorieren
+                req.user = null;
+            }
+        }
+    }
+    next();
 }
 
 // Auth routes
@@ -858,6 +886,41 @@ app.post('/api/auth/reset',
             res.json({ ok: true, message: 'Passwort wurde geändert.' });
         } catch (err) {
             console.error('POST /api/auth/reset error', err);
+            sendJSONError(res, 500, 'Server error');
+        }
+    }
+);
+
+app.post('/api/reports',
+    tryAuth, // Nutzt das neue Middleware, um Nutzer zu laden (falls vorhanden)
+    body('itemId').isMongoId(),
+    body('itemTitle').isString().isLength({ min: 1, max: 200 }),
+    body('reason').optional().isString().isLength({ max: 1000 }), // Optionaler Grund
+    validate,
+    async (req, res) => {
+        try {
+            const { itemId, itemTitle, reason } = req.body;
+
+            const reportData = {
+                itemId,
+                itemTitle,
+                reason: reason || '',
+                reportedAt: new Date(),
+                reporterId: req.user ? req.user.sub : null,
+                reporterEmail: req.user ? req.user.email : 'anonymous'
+            };
+
+            await Report.create(reportData);
+
+            // Aktivität nur protokollieren, wenn ein Nutzer eingeloggt war
+            if (req.user) {
+                await logActivity(req.user.sub, 'item:report', { itemId, reason: !!reason });
+            }
+
+            res.status(201).json({ ok: true, message: 'Eintrag erfolgreich gemeldet.' });
+
+        } catch (err) {
+            console.error('POST /api/reports error', err);
             sendJSONError(res, 500, 'Server error');
         }
     }
