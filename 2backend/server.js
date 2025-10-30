@@ -695,7 +695,19 @@ app.patch('/api/items/:id',
         if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
         const user = await User.findById(req.user.sub);
         if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-        if (req.body.dueDate && dayjs(req.body.dueDate).isBefore(dayjs(), 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+        const minDate = dayjs().subtract(2, 'day').startOf('day');  // 2 Tage zurück
+        const maxDate = dayjs().add(365, 'day').endOf('day');       // 365 Tage nach vorne
+
+        if (req.body.dueDate) {
+            const due = dayjs(req.body.dueDate);
+            if (due.isBefore(minDate)) {
+                return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
+            }
+            if (due.isAfter(maxDate)) {
+                return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
+            }
+        }
+
 
         const update = {};
         for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
