@@ -215,7 +215,7 @@ onBeforeUnmount(() => {
 .popup {
   z-index: 1400;
   pointer-events: auto;
-  max-width: 600px;
+  min-width: 400px;
 }
 
 /* inner card styling unchanged */
