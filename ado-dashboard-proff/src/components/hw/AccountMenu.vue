@@ -31,8 +31,10 @@
             <div class="confirm-body">
               <div class="confirm-title">Account unwiderruflich löschen?</div>
               <div class="confirm-text">E-Mail: <span class="confirm-email">{{ email }}</span></div>
-              <div class="confirm-note">Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt.
-              Allerdings bleiben hochgeladene Einträge, Bilder, oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account gelöscht wird. Du kannst jederzeit einen neuen Account erstellen. Alle vorher von dir erstellten Inhalte sind nicht mehr mit deinem neuen Account verknüpft, auch bei gleicher E-Mail. Mit dem fortfahren stimmst du den Bedingungen zu und löschst deinen Account unwiderruflich.</div>
+              <div class="confirm-note">Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladenen Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account geschlossen wird.
+
+                Du kannst jederzeit einen neuen Account erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Account verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
+              </div>
             </div>
 
             <div class="confirm-actions">
