@@ -928,6 +928,23 @@ app.post('/api/reports',
 
 
 
+// Get all reports (admin only)
+app.get('/api/admin/reports', requireAdmin, async (req, res) => {
+    try {
+        const reports = await Report.find({})
+            .sort({ reportedAt: -1 })
+            .limit(100)
+            .lean();
+
+        res.json(reports);
+    } catch (err) {
+        console.error('GET /api/admin/reports error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+
+
 
 
 

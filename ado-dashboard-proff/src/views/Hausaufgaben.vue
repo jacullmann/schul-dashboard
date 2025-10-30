@@ -218,6 +218,27 @@
           Weniger anzeigen
         </button>
       </div>
+
+      <div v-if="user?.isAdmin && reports.length" class="reports-section">
+        <hr />
+        <h3>Gemeldete Einträge</h3>
+        <div class="reports-list">
+          <div v-for="report in reports" :key="report._id" class="report-card">
+            <div class="report-header">
+              <strong>{{ report.itemTitle }}</strong>
+              <span class="report-date">{{ new Date(report.reportedAt).toLocaleString() }}</span>
+            </div>
+            <div class="report-meta">
+              <span>Eintrag ID: {{ report.itemId }}</span>
+              <span v-if="report.reporterEmail !== 'anonymous'">Gemeldet von: {{ report.reporterEmail }}</span>
+              <span v-else>Anonym gemeldet</span>
+            </div>
+            <div v-if="report.reason" class="report-reason">
+              <strong>Grund:</strong> {{ report.reason }}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
@@ -317,6 +338,8 @@ const showOldEntries = ref(false);
 
 const showSetupModal = ref(false);
 
+const reports = ref<any[]>([]);
+
 
 const message = ref('');
 const isError = ref(false);
@@ -375,6 +398,14 @@ watch(() => route.params.type, (v) => {
     tab.value = 'HAUSAUFGABE';
   }
   reload();
+});
+
+watch(() => user.value?.isAdmin, (isAdmin) => {
+  if (isAdmin) {
+    loadReports();
+  } else {
+    reports.value = [];
+  }
 });
 
 watch(showOldEntries, () => {
@@ -468,6 +499,18 @@ function onSetupSuccess(updatedUser: any) {
 function openSetupModal() {
   if (user.value) {
     showSetupModal.value = true;
+  }
+}
+
+
+async function loadReports() {
+  if (!user.value?.isAdmin) return;
+
+  try {
+    const { data } = await hw.get('/api/admin/reports');
+    reports.value = data;
+  } catch (e) {
+    console.error('loadReports error', e);
   }
 }
 
@@ -749,6 +792,13 @@ function isRevealed(itemId: string) {
 function revealImages(itemId: string) {
   revealedImages.value.add(itemId);
 }
+
+
+onMounted(() => {
+  if (user.value?.isAdmin) {
+    loadReports();
+  }
+});
 
 </script>
 
@@ -1034,6 +1084,68 @@ function revealImages(itemId: string) {
   height: 100%;
   margin: 2px;
 
+}
+
+
+/* Reports Section */
+.reports-section {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.reports-section h3 {
+  margin-bottom: 16px;
+  color: var(--danger);
+}
+
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-card {
+  background: rgba(255, 0, 0, 0.05);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.report-header strong {
+  color: var(--text);
+  flex: 1;
+  margin-right: 12px;
+}
+
+.report-date {
+  color: var(--muted);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+.report-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.report-reason {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: var(--text);
 }
 
 
