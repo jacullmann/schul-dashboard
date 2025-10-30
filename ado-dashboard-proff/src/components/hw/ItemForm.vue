@@ -240,18 +240,48 @@ async function submit() {
   submitting.value = true;
   message.value = '';
   isError.value = false;
+
   try {
+    // Frontend-Validierung vor dem Senden
     const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
-    const payload: any = {
+
+    // Titel-Validierung
+    if (!title.value.trim()) {
+      throw new Error('Titel ist erforderlich');
+    }
+    if (title.value.trim().length < 2 || title.value.trim().length > 60) {
+      throw new Error('Titel muss zwischen 2 und 60 Zeichen lang sein');
+    }
+
+    // Fach-Validierung
+    if (!subject) {
+      throw new Error('Fach ist erforderlich');
+    }
+    if (subject.length < 2 || subject.length > 40) {
+      throw new Error('Fach muss zwischen 2 und 40 Zeichen lang sein');
+    }
+
+    // Beschreibungs-Validierung
+    if (description.value.trim().length > 1000) {
+      throw new Error('Beschreibung darf maximal 1000 Zeichen lang sein');
+    }
+
+    const payload = {
       type: props.type,
       title: title.value.trim(),
       subject,
       description: description.value.trim(),
       images: images.value
     };
+
     const selected = new Date(dueLocal.value);
     selected.setHours(23, 59, 0, 0);
     payload.dueDate = selected.toISOString();
+
+    // Datum-Validierung
+    if (selected < new Date()) {
+      throw new Error('Abgabedatum muss in der Zukunft liegen');
+    }
 
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
@@ -260,10 +290,22 @@ async function submit() {
       await hw.post('/api/items', payload);
       message.value = 'Eintrag erfolgreich angelegt.';
     }
+
     isError.value = false;
     emit('success');
+
   } catch (e: any) {
-    message.value = e.response?.data?.error || 'Unbekannter Fehler';
+    // Spezifische Fehlerbehandlung
+    if (e.response?.status === 400) {
+      // Backend-Validierungsfehler (bereits benutzerfreundlich)
+      message.value = e.response.data.error || 'Bitte überprüfe deine Eingaben.';
+    } else if (e.message) {
+      // Frontend-Validierungsfehler
+      message.value = e.message;
+    } else {
+      // Allgemeiner Fehler
+      message.value = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
+    }
     isError.value = true;
   } finally {
     submitting.value = false;

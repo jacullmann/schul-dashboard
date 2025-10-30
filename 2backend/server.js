@@ -211,6 +211,42 @@ function validate(req, res, next) {
     if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
     next();
 }
+
+
+
+// Benutzerdefinierte Validierung für Item-Erstellung
+function validateItemCreation(req, res, next) {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        const errorMap = {
+            'type': 'Ungültiger Eintragstyp',
+            'title': 'Titel muss zwischen 2 und 60 Zeichen lang sein',
+            'subject': 'Fach muss zwischen 2 und 40 Zeichen lang sein',
+            'description': 'Beschreibung darf maximal 1000 Zeichen lang sein',
+            'images': 'Maximal 12 Bilder erlaubt',
+            'dueDate': 'Ungültiges Datumsformat'
+        };
+
+        // Finde den ersten Fehler und gib eine benutzerfreundliche Meldung zurück
+        const firstError = errors.array()[0];
+        const fieldName = firstError.param;
+        const userFriendlyMessage = errorMap[fieldName] || `Ungültiger Wert für ${fieldName}`;
+
+        return sendJSONError(res, 400, userFriendlyMessage, errors.array());
+    }
+
+    // Zusätzliche benutzerdefinierte Validierungen
+    const { dueDate } = req.body;
+    const now = dayjs();
+
+    if (dayjs(dueDate).isBefore(now, 'day')) {
+        return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+    }
+
+    next();
+}
+
 function timeLeftColor(dueDate) {
     const now = dayjs();
     const due = dayjs(dueDate);
@@ -606,33 +642,36 @@ app.get('/api/items',
 );
 
 // Create item
+// Create item mit spezifischer Validierung
 app.post('/api/items',
     requireAuth,
-    body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-    body('title').isString().isLength({ min: 2, max: 60 }),
-    body('subject').isString().isLength({ min: 2, max: 40 }),
-    body('description').optional().isString().isLength({ max: 1000 }),
-    body('images').optional().isArray({ max: 12 }),
-    body('dueDate').isISO8601().toDate(),
-    validate,
+    [
+        body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']).withMessage('type'),
+        body('title').isString().isLength({ min: 2, max: 60 }).withMessage('title'),
+        body('subject').isString().isLength({ min: 2, max: 40 }).withMessage('subject'),
+        body('description').optional().isString().isLength({ max: 1000 }).withMessage('description'),
+        body('images').optional().isArray({ max: 12 }).withMessage('images'),
+        body('dueDate').isISO8601().toDate().withMessage('dueDate')
+    ],
+    validateItemCreation, // Verwende die benutzerdefinierte Validierung
     async (req, res) => {
-        const now = dayjs();
-        if (dayjs(req.body.dueDate).isBefore(now, 'day')) return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
         const images = (req.body.images || []).map(img => ({
             url: img.url,
             thumbUrl: buildThumbUrl(img.url),
             publicId: img.publicId,
             createdBy: req.user.sub
         }));
+
         const doc = await Item.create({
             type: req.body.type,
-            title: req.body.title,
-            subject: req.body.subject,
-            description: req.body.description || '',
+            title: req.body.title.trim(),
+            subject: req.body.subject.trim(),
+            description: (req.body.description || '').trim(),
             images,
             dueDate: req.body.dueDate,
             createdBy: req.user.sub
         });
+
         await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
         res.status(201).json({ ok: true, id: doc._id });
     }
