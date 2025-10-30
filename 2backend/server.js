@@ -220,11 +220,11 @@ function validateItemCreation(req, res, next) {
 
     if (!errors.isEmpty()) {
         const errorMap = {
-            'type': 'Ungültiger Eintragstyp',
-            'title': 'Titel muss zwischen 2 und 60 Zeichen lang sein',
-            'subject': 'Fach muss zwischen 2 und 40 Zeichen lang sein',
-            'description': 'Beschreibung darf maximal 1000 Zeichen lang sein',
-            'images': 'Maximal 12 Bilder erlaubt',
+            'type': 'Ungültiger Eintrag',
+            'title': 'Passe den Titel an (2-60 Zeichen)',
+            'subject': 'Passe das Fach an (2-40 Zeichen)',
+            'description': 'Die Beschreibung ist zu lang',
+            'images': 'Du kannst maximal 12 Bilder hochladen',
             'dueDate': 'Ungültiges Datumsformat'
         };
 
@@ -240,9 +240,12 @@ function validateItemCreation(req, res, next) {
     const { dueDate } = req.body;
     const now = dayjs();
 
-    if (dayjs(dueDate).isBefore(now, 'day')) {
-        return sendJSONError(res, 400, 'Abgabedatum muss in der Zukunft liegen');
+    if (dayjs(dueDate).isBefore(now.subtract(2, 'day'))) {
+        return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
+    } else if (dayjs(dueDate).isAfter(now.add(365, 'day'))) {
+        return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
     }
+
 
     next();
 }

@@ -163,10 +163,10 @@ async function uploadImage() {
 
 
     const existingCount = (images.value || []).length;
-    const MAX_IMAGES = 15;
+    const MAX_IMAGES = 12;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
-      uploadError.value = 'Maximale Anzahl 15 Bilder erreicht.';
+      uploadError.value = 'Maximale Anzahl 12 Bilder erreicht.';
       uploading.value = false;
       return;
     }
@@ -247,23 +247,23 @@ async function submit() {
 
     // Titel-Validierung
     if (!title.value.trim()) {
-      throw new Error('Titel ist erforderlich');
+      throw new Error('Du musst einen Titel hinzufügen');
     }
     if (title.value.trim().length < 2 || title.value.trim().length > 60) {
-      throw new Error('Titel muss zwischen 2 und 60 Zeichen lang sein');
+      throw new Error('Passe den Titel an (2-60 Zeichen)');
     }
 
     // Fach-Validierung
     if (!subject) {
-      throw new Error('Fach ist erforderlich');
+      throw new Error('Du musst ein Fach auswählen');
     }
     if (subject.length < 2 || subject.length > 40) {
-      throw new Error('Fach muss zwischen 2 und 40 Zeichen lang sein');
+      throw new Error('Passe das Fach an (2-40 Zeichen)');
     }
 
     // Beschreibungs-Validierung
     if (description.value.trim().length > 1000) {
-      throw new Error('Beschreibung darf maximal 1000 Zeichen lang sein');
+      throw new Error('Die Beschreibung ist zu lang');
     }
 
     const payload = {
@@ -280,7 +280,7 @@ async function submit() {
 
     // Datum-Validierung
     if (selected < new Date()) {
-      throw new Error('Abgabedatum muss in der Zukunft liegen');
+      throw new Error('Das Datum liegt zu weit in der Vergangenheit');
     }
 
     if (props.initial) {
