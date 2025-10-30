@@ -110,6 +110,16 @@ const subjectSel = ref(props.initial?.subject || '');
 const subjectOther = ref('');
 const description = ref(props.initial?.description || '');
 const images = ref(props.initial?.images || []);
+
+const now = new Date();
+const minDate = new Date();
+minDate.setDate(now.getDate() - 2);
+minDate.setHours(0, 0, 0, 0);
+
+const maxDate = new Date();
+maxDate.setDate(now.getDate() + 365);
+maxDate.setHours(23, 59, 59, 999);
+
 function isoDateOnlyFromIso(iso: string) {
   try {
     const d = new Date(iso);
@@ -278,9 +288,11 @@ async function submit() {
     selected.setHours(23, 59, 0, 0);
     payload.dueDate = selected.toISOString();
 
-    // Datum-Validierung
-    if (selected < new Date()) {
+    if (selected < minDate) {
       throw new Error('Das Datum liegt zu weit in der Vergangenheit');
+    }
+    if (selected > maxDate) {
+      throw new Error('Das Datum liegt zu weit in der Zukunft');
     }
 
     if (props.initial) {
