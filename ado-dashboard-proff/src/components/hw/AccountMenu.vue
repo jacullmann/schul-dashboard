@@ -29,7 +29,7 @@
 
           <div v-if="confirming" class="confirm">
             <div class="confirm-body">
-              <div class="confirm-title">Account wirklich löschen?</div>
+              <div class="confirm-title">Account unwiderruflich löschen?</div>
               <div class="confirm-text">E-Mail: <span class="confirm-email">{{ email }}</span></div>
               <div class="confirm-note">Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt.
               Allerdings bleiben hochgeladene Einträge, Bilder, oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account gelöscht wird. Du kannst jederzeit einen neuen Account erstellen. Alle vorher von dir erstellten Inhalte sind nicht mehr mit deinem neuen Account verknüpft, auch bei gleicher E-Mail. Mit dem fortfahren stimmst du den Bedingungen zu und löschst deinen Account unwiderruflich.</div>
@@ -213,6 +213,7 @@ onBeforeUnmount(() => {
 .popup {
   z-index: 1400;
   pointer-events: auto;
+  max-width: 600px;
 }
 
 /* inner card styling unchanged */

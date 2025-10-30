@@ -247,7 +247,7 @@
 
     <ConfirmDialog
         :show="showReportConfirm"
-        message="Soll dieser Eintrag wirklich gemeldet werden?"
+        message="Diesen Eintrag melden?"
         :show-reason-input="true"
         v-model:reason="reportReason"
         @confirm="doReport"

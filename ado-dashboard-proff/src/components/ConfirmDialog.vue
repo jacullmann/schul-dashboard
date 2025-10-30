@@ -1,20 +1,23 @@
 <template>
   <div v-if="show" class="confirm-backdrop" @click.stop="$emit('cancel')">
     <div class="confirm-box" @click.stop>
-      <p>{{ message }}</p>
+      <div style="text-align: left; justify-content: left; align-items: flex-start">
+        <p>{{ message }}</p>
+      </div>
+
 
       <div v-if="showReasonInput" class="reason-input">
-        <label for="reportReason">Grund (optional):</label>
+        <label for="reportReason">Was genau ist das Problem? (optional)</label>
         <textarea
             id="reportReason"
             :value="reason"
             @input="$emit('update:reason', ($event.target as HTMLTextAreaElement).value)"
-            placeholder="Bitte beschreibe, was an diesem Eintrag problematisch ist..."
+            placeholder="Beschreibung..."
         ></textarea>
       </div>
 
       <div class="actions">
-        <button class="btn danger" @click="$emit('confirm')">Ja, melden</button>
+        <button class="btn danger" @click="$emit('confirm')">Eintrag melden</button>
         <button class="btn ghost" @click="$emit('cancel')">Abbrechen</button>
       </div>
     </div>
@@ -46,15 +49,16 @@ defineEmits(['confirm', 'cancel', 'update:reason'])
 }
 .confirm-box {
   background: var(--card);
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
   max-width: 400px; /* Etwas breiter für das Textfeld */
   width: 90%;
   text-align: left; /* Besser für Label + Textarea */
 }
 .confirm-box p {
-  text-align: center;
+  text-align: left;
   margin-bottom: 16px;
+  font-weight: 600;
 }
 
 /* NEU: Styles für das Textfeld */
@@ -83,6 +87,6 @@ defineEmits(['confirm', 'cancel', 'update:reason'])
   margin-top: 16px;
   display: flex;
   gap: 12px;
-  justify-content: center;
+  justify-content: left;
 }
 </style>
