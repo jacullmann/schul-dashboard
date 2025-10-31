@@ -180,4 +180,7 @@ async function skip() {
   color: var(--text);
   outline: none;
 }
+label {
+  margin-bottom: 5px;
+}
 </style>
