@@ -989,7 +989,6 @@ onMounted(async () => {
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
-  font-size: 1.2rem;
   margin-bottom: 0;
 }
 
@@ -1010,7 +1009,7 @@ onMounted(async () => {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
 }
 .menu-btn .fixall {
   display: flex;
@@ -1020,8 +1019,8 @@ onMounted(async () => {
 }
 
 .menu-btn .fixall svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 .menu-btn:hover { background: #555555; color: white; }
