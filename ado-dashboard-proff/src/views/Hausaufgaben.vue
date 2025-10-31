@@ -1009,7 +1009,7 @@ onMounted(async () => {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
 }
 .menu-btn .fixall {
   display: flex;
@@ -1019,8 +1019,8 @@ onMounted(async () => {
 }
 
 .menu-btn .fixall svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
 }
 .menu-btn:hover { background: #555555; color: white; }
