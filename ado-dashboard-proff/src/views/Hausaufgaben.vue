@@ -1176,6 +1176,13 @@ onMounted(async () => {
   overflow: hidden;
 }
 
+li {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+
 
 @media (max-width: 500px ) {
   .row-two {
