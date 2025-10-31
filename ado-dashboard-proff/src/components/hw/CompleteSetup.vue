@@ -175,12 +175,13 @@ async function skip() {
   padding: 10px;
   box-sizing: border-box;
   border-radius: 10px;
-  border: 1px solid rgba(128, 128, 128, 0.35);
+  border: none;
   background: rgba(26, 26, 26, 0.6);
   color: var(--text);
   outline: none;
 }
 label {
   margin-bottom: 5px;
+  display: block;
 }
 </style>
