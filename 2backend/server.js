@@ -1027,6 +1027,19 @@ app.get('/api/admin/reports', requireAdmin, async (req, res) => {
     }
 });
 
+app.get('/anon/sorgenfind', requireAdmin, async (req, res) => {
+    try {
+        const sorgen = await SorgenModel.find({})
+            .sort({ createdAt: -1})
+            .limit(100)
+
+        res.json(sorgen);
+    } catch (err) {
+        console.error('GET /anon/sorgenfind error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
 
 
 

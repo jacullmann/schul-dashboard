@@ -239,6 +239,18 @@
           </div>
         </div>
       </div>
+      <div v-if="user?.isAdmin" class="reports-section">
+        <hr />
+        <h3>Sorgen</h3>
+        <div class="reports-list">
+          <ul>
+            <li v-for="(item, i) in entries" :key="i">
+              {{ item.message }}
+            </li>
+          </ul>
+
+        </div>
+      </div>
     </div>
 
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
@@ -319,6 +331,8 @@ export interface HwItem {
 
 const MAX_TITLE_LENGTH = 50;
 const MAX_SUBJECT_LENGTH = 30;
+
+const entriessorgen = ref([]);
 
 const showAuth = ref(false);
 const showItemForm = ref(false);
@@ -796,6 +810,15 @@ function revealImages(itemId: string) {
 onMounted(() => {
   if (user.value?.isAdmin) {
     loadReports();
+  }
+});
+
+onMounted(async () => {
+  try {
+    const res = await hw.get('/anon/sorgenfind');
+    entries.value = res.data;
+  } catch (e) {
+    console.error('Konnte Sorgen nicht laden');
   }
 });
 
