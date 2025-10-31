@@ -697,7 +697,6 @@ async function deleteAnnouncement(id: string) {
   }
 }
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
 async function doReport() {
   if (!reportTarget) return;

@@ -153,6 +153,13 @@ const ReportSchema = new mongoose.Schema({
     reporterEmail: { type: String, default: 'anonymous' }, // Optional
     reportedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
+
+
+const SorgenSchema = new mongoose.Schema({
+    message: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
 const Report = mongoose.model('HwReport', ReportSchema);
 
 // Default Subjects seed
@@ -530,6 +537,29 @@ app.post('/api/uploads/sign', requireAuth, async (req, res) => {
         signature,
         folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
     });
+});
+
+const SorgenModel = mongoose.model('Sorgen', SorgenSchema);
+
+app.post('/anon/sorgenbox', async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        if (!message || message.trim().length === 0) {
+            return res.status(400).json({ error: 'Message fehlt' });
+        }
+
+        await SorgenModel.create({
+            message,
+            createdAt: new Date()
+        });
+
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Serverfehler' });
+    }
+
+
 });
 
 // Add image to an item

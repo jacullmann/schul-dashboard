@@ -56,7 +56,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import LoadingSpinner from '../components/LoadingSpinner.vue' // Pfad prüfen
+import LoadingSpinner from '../components/LoadingSpinner.vue'
+import hw from "../hwApi"
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 
@@ -65,7 +66,7 @@ const submitting = ref(false);
 const feedback = ref('');
 const feedbackClass = ref('');
 
-// onSubmit Funktion bleibt unverändert
+
 async function onSubmit() {
   if (!message.value.trim()) return;
   submitting.value = true;
@@ -73,27 +74,21 @@ async function onSubmit() {
   feedbackClass.value = '';
 
   try {
-    const fd = new FormData();
-    fd.append('message', message.value);
+    const res = await hw.post('/anon/sorgenbox', { message: message.value });
 
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method: 'POST',
-      body: fd,
-      headers: { Accept: 'application/json' },
-    });
-
-    if (!res.ok) throw new Error('Fehler beim Senden');
+    if (res.status !== 200) throw new Error('Fehler beim Senden');
 
     feedback.value = 'Danke! Deine Nachricht wurde anonym übermittelt.';
     feedbackClass.value = 'ok';
     message.value = '';
   } catch (e) {
-    feedback.value = 'Übertragung fehlgeschlagen. Du kannst es nochmal versuchen oder uns kontaktieren.';
+    feedback.value = 'Übertragung fehlgeschlagen. Versuche es nochmal.';
     feedbackClass.value = 'err';
   } finally {
     submitting.value = false;
   }
 }
+
 
 function reset() {
   message.value = '';
@@ -103,7 +98,6 @@ function reset() {
 </script>
 
 <style scoped>
-/* Die Grundkarte und Buttons behalten ihr Aussehen */
 .complaint-card {
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   backdrop-filter: blur(8px);
