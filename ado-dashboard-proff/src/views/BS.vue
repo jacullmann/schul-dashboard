@@ -167,5 +167,4 @@ function reset() {
 .small.err { color: var(--danger); }
 .small.ok { color: var(--text); }
 
-/* Animationen entfernt */
 </style>

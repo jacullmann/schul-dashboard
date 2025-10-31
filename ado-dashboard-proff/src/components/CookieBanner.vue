@@ -36,10 +36,10 @@ function revoke() {
 }
 
 function checkShow() {
-  if (!auth.isAuthenticated.value) {
-    visible.value = false;
-    return;
-  }
+  //if (!auth.isAuthenticated.value) {
+    //visible.value = false;
+    //return;
+  //}
   const raw = localStorage.getItem('cookie_consent');
   if (!raw) {
     visible.value = true;
