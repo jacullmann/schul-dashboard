@@ -7,17 +7,15 @@
       </div>
 
       <div class="row header-actions">
-        <button
-            v-if="user"
-            class="btn ghost small-btn"
-            @click="openSetupModal"
-            title="Kurseinstellungen bearbeiten"
-            style="margin-right: 8px;"
-        >
-          Kurse
-        </button>
         <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
-        <AccountMenu v-if="user" :email="user.email" @deleted="onAccountDeleted" @error="onAccountDeleteError" />
+        <AccountMenu
+            v-if="user"
+            :email="user.email"
+            :user-data="user"
+            @deleted="onAccountDeleted"
+            @error="onAccountDeleteError"
+            @open-setup="openSetupModal"
+        />
         <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>

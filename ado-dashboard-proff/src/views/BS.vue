@@ -1,6 +1,4 @@
 <template>
-  <div class="full">
-      <div >
         <div class="card complaint-card">
 
           <div class="header">
@@ -49,8 +47,6 @@
           </form>
 
         </div>
-      </div>
-    </div>
 </template>
 
 <script setup lang="ts">
