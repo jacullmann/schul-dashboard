@@ -957,8 +957,8 @@ onMounted(async () => {
   right: 0;
   min-width: 160px;
 
-  background: rgba(26,26,26,0.95);
-  border: 1px solid var(--border);
+  background: #282828;
+  border: none;
   border-radius: 10px;
   padding: 8px;
 
@@ -992,9 +992,12 @@ onMounted(async () => {
   border-radius: 8px;
   cursor: pointer;
 }
-.menu-btn:hover { background: rgba(255,255,255,0.02); color: white; }
-.menu-btn.danger { background: var(--danger); color: white; }
-.menu-btn.warn { background: var(--warn); color: #1f1300; }
+.menu-btn:hover { background: #414141; color: white; }
+.menu-btn.danger { background: transparent; color: #ef4444; }
+.menu-btn.warn { background: transparent; color: white; }
+
+.menu-btn.danger:hover { background: #414141; }
+.menu-btn.warn:hover { background: #414141; }
 
 /* Body and images */
 .item-body {
