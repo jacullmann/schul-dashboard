@@ -118,10 +118,30 @@
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-            <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)"><Images />Bilder verwalten</button>
-            <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)"><UserPen />Bearbeiten</button>
-            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)"><AlertTriangle />Melden</button>
-            <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)"><Trash /> Löschen</button>
+            <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
+              <div class="fixall">
+                <Images />
+                Bilder verwalten
+              </div>
+            </button>
+            <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
+              <div class="fixall">
+              <UserPen />
+              Bearbeiten
+              </div>
+            </button>
+            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">
+              <div class="fixall">
+              <AlertTriangle />
+              Melden
+              </div>
+            </button>
+            <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
+              <div class="fixall">
+              <Trash />
+              Löschen
+              </div>
+            </button>
           </div>
         </div>
 
@@ -951,25 +971,20 @@ onMounted(async () => {
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 
-/* Dropdown menu */
 .item-menu {
   position: absolute;
   top: 100%;
   right: 0;
   min-width: 160px;
-
   background: #404040;
   border: none;
   border-radius: 10px;
   padding: 8px;
-
   display: none;
   flex-direction: column;
   align-items: stretch;
-
   gap: 6px;
   z-index: 1000;
-
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
@@ -977,6 +992,7 @@ onMounted(async () => {
   font-size: 1.2rem;
   margin-bottom: 0;
 }
+
 .item-menu.open {
   display: flex;
   opacity: 1;
@@ -990,10 +1006,23 @@ onMounted(async () => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 8px;
+  padding: 8px 12px;
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+}
+.menu-btn .fixall {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.menu-btn .fixall svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 .menu-btn:hover { background: #555555; color: white; }
 .menu-btn.danger { background: transparent; color: #ef4444; }
