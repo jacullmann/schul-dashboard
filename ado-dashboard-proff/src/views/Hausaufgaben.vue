@@ -992,7 +992,7 @@ onMounted(async () => {
   border-radius: 8px;
   cursor: pointer;
 }
-.menu-btn:hover { background: #414141; color: white; }
+.menu-btn:hover { background: #555555; color: white; }
 .menu-btn.danger { background: transparent; color: #ef4444; }
 .menu-btn.warn { background: transparent; color: white; }
 
