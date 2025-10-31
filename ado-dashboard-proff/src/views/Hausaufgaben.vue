@@ -957,7 +957,7 @@ onMounted(async () => {
   right: 0;
   min-width: 160px;
 
-  background: #282828;
+  background: #424242;
   border: none;
   border-radius: 10px;
   padding: 8px;
