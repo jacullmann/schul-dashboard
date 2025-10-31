@@ -243,7 +243,7 @@
         <hr />
         <h3>Sorgen</h3>
         <div class="reports-list">
-          <ul>
+          <ul class="listsorgen">
             <li v-for="(item, i) in entriessorgen" :key="i">
               {{ item.message }}
             </li>
@@ -727,11 +727,10 @@ async function doReport() {
   const payload = {
     itemId: item.id,
     itemTitle: item.title,
-    reason: reason, // Der neue, optionale Grund
+    reason: reason,
   };
 
   try {
-    // NEU: API-Aufruf an unseren eigenen Backend-Endpunkt
     await hw.post('/api/reports', payload);
 
     message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
@@ -1168,6 +1167,14 @@ onMounted(async () => {
   border-radius: 4px;
   font-size: 0.9em;
   color: var(--text);
+}
+
+.listsorgen {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  flex-wrap: wrap;
+  word-break: normal;
 }
 
 
