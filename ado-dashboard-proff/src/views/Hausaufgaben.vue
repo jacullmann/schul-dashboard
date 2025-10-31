@@ -996,8 +996,8 @@ onMounted(async () => {
 .menu-btn.danger { background: transparent; color: #ef4444; }
 .menu-btn.warn { background: transparent; color: white; }
 
-.menu-btn.danger:hover { background: #414141; }
-.menu-btn.warn:hover { background: #414141; }
+.menu-btn.danger:hover { background: #555555; }
+.menu-btn.warn:hover { background: #555555; }
 
 /* Body and images */
 .item-body {
