@@ -4,14 +4,12 @@
       <div class="card p-6 login-card glass">
         <div class="login-header">
           <div class="avatar">
-            <span>YE</span>
+            <span>Kanye West</span>
           </div>
-          <h2 class="text-2xl font-bold">Passwort erforderlich</h2>
-          <p class="text-muted small">Nur für eingeladene Augen. Gib das Zugangspasswort ein.</p>
+          <h2 style="color: white"class="text-2xl font-bold">Passwort erforderlich</h2>
         </div>
 
         <div class="login-body">
-          <label class="small text-muted">Passwort</label>
           <input
               type="password"
               v-model="loginPassword"
@@ -20,13 +18,10 @@
               class="input enhanced"
               autocomplete="current-password"
           />
-          <button data-umami-event="Kanye Seite anmelden Button"@click="login" class="btn primary w-full login-button">Weiter</button>
+          <button data-umami-event="Kanye Seite anmelden Button" @click="login" class="btn btnb primary w-full login-button">Weiter</button>
           <p v-if="loginError" class="error-text">{{ loginError }}</p>
         </div>
 
-        <div class="login-foot small text-muted">
-          <span>Gesichert • Kanye Info</span>
-        </div>
       </div>
     </div>
 
@@ -38,10 +33,9 @@
       <nav class="kanye-nav-fixed card nav-elevate">
         <div class="container row items-center justify-between nav-content">
           <div class="brand row items-center gap-4">
-            <div class="brand-mark">YE</div>
+            <div @click="logoutit"  class="brand-mark">YE</div>
             <div class="brand-text">
               <h2 class="text-xl font-bold">Kanye West</h2>
-              <p class="small interr text-muted">Biografie • Diskografie • Galerie</p>
             </div>
           </div>
 
@@ -403,6 +397,9 @@ export default defineComponent({
         loginError.value = "Falsches Passwort";
       }
     }
+    function logoutit() {
+      isAuthenticated.value = false;
+    }
 
 
     const mobileMenuOpen = ref(false);
@@ -532,6 +529,7 @@ export default defineComponent({
       loginError,
       isAuthenticated,
       login,
+      logoutit,
 
       mobileMenuOpen,
 
@@ -562,8 +560,6 @@ export default defineComponent({
 .suround {
   padding: 2.5rem;
   gap: 2.5rem;
-  background: radial-gradient(1200px 600px at 10% 10%, rgba(34, 197, 94, 0.08), transparent 40%),
-  radial-gradient(1200px 600px at 90% 20%, rgba(245, 158, 11, 0.06), transparent 40%);
   border-radius: 5px;
 }
 
@@ -579,50 +575,64 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: var(--bg);
-  background-image: linear-gradient(180deg, rgba(17,24,39,0.6), rgba(17,24,39,0.9));
+  border-radius: 14px;
+  border: none;
+  background: rgba(10, 10, 10, 0.45);
+  backdrop-filter: blur(30px) saturate(105%) brightness(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 .login-card {
   max-width: 420px;
   width: 100%;
-  border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px) saturate(105%) brightness(105%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.37);
 }
-.glass {
-  backdrop-filter: saturate(1.2) blur(6px);
-  background: linear-gradient(180deg, rgba(26,26,26,0.9), rgba(26,26,26,0.9)), var(--card);
-}
+
 .login-header {
   display: grid;
   gap: 6px;
   margin-bottom: 12px;
 }
 .avatar {
-  width: 52px;
   height: 52px;
+  width: 150px;
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--primary) 0%, #16a34a 100%);
-  color: #0b1220;
+  background: rgba(205, 205, 205, 0.02);
+  backdrop-filter: brightness(85%);
+  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  color: white;
   font-weight: 800;
   margin-bottom: 6px;
 }
+
 .login-body {
   display: grid;
   gap: 10px;
 }
 .input.enhanced {
-  border: 1px solid var(--border);
-  background: #161b22;
+  border: none;
+  background: rgba(50, 50, 50, 0.8);
   color: var(--text);
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.3s ease, border-radius 0.4s ease-out;
+  border-radius: 35px;
+  height: 40px;
 }
 .input.enhanced:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  border: none;
+  border-radius: 10px;
+  outline: none;
+
+  transition: border-color 0.3s ease, border-radius 0.4s ease-out;
 }
 .login-button {
   margin-top: 6px;
@@ -647,8 +657,9 @@ export default defineComponent({
   position: relative;
   height: 62vh;
   background-image: var(--bg-image);
+  background-attachment: fixed;
   background-size: cover;
-  background-position: center;
+  background-position: top;
   color: white;
   display: flex;
   justify-content: center;
@@ -706,12 +717,12 @@ export default defineComponent({
   background: linear-gradient(135deg, var(--primary) 0%, #16a34a 100%);
   color: #0b1220;
   font-weight: 800;
+  cursor: pointer;
 }
 .nav-link {
   transition: transform 0.15s ease, color 0.2s ease, border-color 0.2s ease;
 }
 .nav-link:hover {
-  transform: translateY(-1px);
 }
 .mobile-menu-toggle {
   display: none;
@@ -772,13 +783,14 @@ export default defineComponent({
 
 .kanye-infobox {
   padding: 20px;
-  border: 1px solid var(--border);
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
 }
 .kanye-infobox img.profile-img {
   width: 100%;
   object-fit: cover;
   margin-top: 15px;
-  border: 1px solid var(--border);
+  border: none;
   transition: transform 0.3s ease;
 }
 .kanye-infobox img.profile-img:hover {
@@ -791,7 +803,7 @@ export default defineComponent({
 }
 .info-list li {
   margin-bottom: 8px;
-  border-bottom: 1px dashed var(--border);
+  border-bottom:none;
   padding-bottom: 8px;
 }
 .info-list li:last-child {
@@ -1006,6 +1018,20 @@ export default defineComponent({
 .animate-fade-in-up.delay-400 { transition-delay: 0.4s; }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.btnb{
+
+  background: transparent;
+  color: white;
+  border: 1px solid white;border-radius: 25px;
+  height: 40px;
+
+}
+
+.btnb:hover {
+
+  background: rgba(255, 255, 255, 0.02) ;
+}
 
 
 @media (max-width: 768px) {
