@@ -126,13 +126,13 @@
             </button>
             <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall">
-              <UserPen />
+              <Pencil />
               Bearbeiten
               </div>
             </button>
             <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">
               <div class="fixall">
-              <AlertTriangle />
+              <Flag />
               Melden
               </div>
             </button>
@@ -342,7 +342,7 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
-import {Images, Image, UserPen, Trash, AlertTriangle} from 'lucide-vue-next';
+import {Images, Image, Flag, Pencil, UserPen, Trash, AlertTriangle} from 'lucide-vue-next';
 
 export interface HwItem {
   id: string;
