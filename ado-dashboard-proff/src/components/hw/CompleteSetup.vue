@@ -2,6 +2,7 @@
   <div v-if="visible" class="modal-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); width: 100%; margin-left:0;display:flex; align-items:center; justify-content:center; z-index:1000000000;">
     <div class="card modal-content" style="max-width: 480px; width: 90%; top: 5px;">
       <h3>{{ isSetup ? 'Willkommen! Vervollständige dein Profil' : 'Kurse bearbeiten' }}</h3>
+      <p>{{ isSetup ? 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen. Du kannst deine Auswahl jederzeit in deinen Account-Einstellungen ändern.' : 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.' }}</p>
 
       <div class="form-group">
         <label for="enrKurs">Enrichment</label>
