@@ -212,6 +212,7 @@ onBeforeUnmount(() => {
 }
 .icon-btn:hover {
   color:#f1f1f1;
+  background: rgba(255, 255, 255, 0.2) ;
 }
 
 .setting-icon {
