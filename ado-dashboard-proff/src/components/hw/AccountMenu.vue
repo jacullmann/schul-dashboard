@@ -207,12 +207,12 @@ onBeforeUnmount(() => {
   border: none;
   color: #aaaaaa;
   cursor: pointer;
-  transition: transform 0.18s ease-in-out;
+  transition: 0.2s ease-in-out;
   display: inline-flex;
 }
 .icon-btn:hover {
   color:#f1f1f1;
-  background: rgba(255, 255, 255, 0.2) ;
+  background: rgba(255, 255, 255, 0.1) ;
 }
 
 .setting-icon {
