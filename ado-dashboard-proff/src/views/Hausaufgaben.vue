@@ -244,7 +244,7 @@
         <h3>Sorgen</h3>
         <div class="reports-list">
           <ul>
-            <li v-for="(item, i) in entries" :key="i">
+            <li v-for="(item, i) in entriessorgen" :key="i">
               {{ item.message }}
             </li>
           </ul>
@@ -816,7 +816,7 @@ onMounted(() => {
 onMounted(async () => {
   try {
     const res = await hw.get('/anon/sorgenfind');
-    entries.value = res.data;
+    entriessorgen.value = res.data;
   } catch (e) {
     console.error('Konnte Sorgen nicht laden');
   }
