@@ -1,118 +1,241 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <title>Wartungsmodus | Space Tunnel</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Wartung</title>
     <style>
         :root {
-            --fg: #e7eef9;
-            --muted: #a5b3c7;
-            --accent: #6beafe;
-            --accent2: #a78bfa;
-            --danger: #ff6b88;
-            --glass-bg: rgba(255,255,255,0.08);
-            --glass-border: rgba(255,255,255,0.18);
+            --border: #111;
+            --text: #111;
+            --subtle: #555;
+            --muted: #999;
         }
-        *{box-sizing:border-box;margin:0;padding:0}
+
+        /* Hauptcontainer für vertikale Zentrierung und Flexibilität */
+        .mainnn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; /* Zentriert den Inhalt vertikal, wenn genug Platz ist */
+            width: 100%;
+            min-height: 100vh; /* Stellt sicher, dass der Container mindestens die Höhe des Viewports hat */
+            text-align: center;
+            padding: 1rem; /* Fügt etwas Polsterung an den Rändern hinzu */
+            box-sizing: border-box; /* Stellt sicher, dass padding in der Breite enthalten ist */
+        }
+
+        .main {
+            padding: 2px;
+            text-align: center;
+            margin-top: 2px;
+            width: 100%; /* Erlaubt dem main-Container, die volle Breite einzunehmen */
+            max-width: 500px; /* Begrenzt die maximale Breite des Hauptinhalts */
+        }
+
         body {
-            height:100vh; overflow:hidden;
-            background: radial-gradient(circle at center, #05070d 0%, #020308 100%);
-            color:var(--fg); font-family:sans-serif;
-            perspective:1200px;
+            margin: 0;
+            font-family: 'Roboto Slab', serif;
+            background: #fff;
+            color: var(--text);
+            /* Entfernt die unnötige äußere Flexbox-Struktur, da .mainnn jetzt alles handhabt */
+            width: 100%;
+            word-break: normal;
         }
 
-        /* Tunnel */
-        .tunnel {
-            position:absolute; inset:0;
-            display:flex; justify-content:center; align-items:center;
-            transform-style:preserve-3d;
-        }
-        .ring {
-            position:absolute;
-            width:200vmax; height:200vmax;
-            border:2px solid rgba(167,139,250,0.15);
-            border-radius:50%;
-            animation: fly 6s linear infinite;
-        }
-        .ring:nth-child(2){animation-delay:-2s; border-color:rgba(107,234,254,0.15);}
-        .ring:nth-child(3){animation-delay:-4s; border-color:rgba(255,255,255,0.08);}
-        @keyframes fly {
-            from { transform: translateZ(-2000px) scale(0.2); opacity:1; }
-            to   { transform: translateZ(600px) scale(2.5); opacity:0; }
+        header {
+            text-align: center;
+            max-width: 600px;
+            margin-top: 3rem;
+            margin-bottom: 0.2rem;
+            width: 100%; /* Stellt sicher, dass der Header die volle verfügbare Breite nutzt */
         }
 
-        /* Sterne */
-        .stars, .stars::after {
-            content:""; position:absolute; inset:0;
-            background:transparent;
-            box-shadow:
-                    100px 200px #fff, 300px 600px #fff, 800px 400px #fff,
-                    1200px 900px #fff, 1600px 300px #fff, 200px 1200px #fff;
-            animation: starfly 20s linear infinite;
-        }
-        .stars::after { transform:translateY(-100%); }
-        @keyframes starfly {
-            from { transform:translateY(0); }
-            to   { transform:translateY(100%); }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0; /* Optimiert den Abstand */
         }
 
-        /* Glass UI */
-        .wrap {
-            position:relative; z-index:10;
-            display:flex; flex-direction:column;
-            align-items:center; justify-content:center;
-            height:100vh; text-align:center;
-            padding:2rem;
+        p {
+            font-size: 1rem;
+            color: var(--subtle);
+            line-height: 1.5;
+            margin: 0.5rem 0; /* Optimiert den Abstand */
         }
-        .glass {
-            background:var(--glass-bg);
-            border:1px solid var(--glass-border);
-            backdrop-filter:blur(14px) saturate(1.2);
-            -webkit-backdrop-filter:blur(14px) saturate(1.2);
-            border-radius:20px;
-            padding:2rem;
-            max-width:600px;
-            box-shadow:0 20px 60px rgba(0,0,0,0.5);
+
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem 1.8rem;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            margin: 1.2rem auto 0.5rem auto; /* `auto` zentriert die Karte */
+            box-sizing: border-box;
         }
-        .title {
-            font-size:2.5rem; font-weight:800;
-            margin-bottom:1rem;
-            text-shadow:0 0 20px rgba(107,234,254,0.4);
+
+        .status {
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 0.6rem 0 0.5rem 0;
         }
-        .subtitle {
-            color:var(--muted);
-            margin-bottom:1.5rem;
+
+        .fine { color: #0a0; }
+        .down { color: #a00; }
+
+        button {
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            padding: 0.5em 1.1em;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background 0.15s, color 0.15s;
+            width: auto; /* Stellt sicher, dass der Button nicht die volle Breite einnimmt */
         }
-        .pill {
-            display:inline-flex; align-items:center; gap:8px;
-            padding:6px 12px; border-radius:999px;
-            background:rgba(255,255,255,0.1);
-            border:1px solid rgba(255,255,255,0.2);
-            font-size:0.8rem;
+
+        button:hover {
+            background: var(--text);
+            color: #fff;
         }
-        .dot {
-            width:10px; height:10px; border-radius:50%;
-            background:var(--danger);
-            box-shadow:0 0 10px var(--danger);
-            animation: blink 1.5s infinite;
+
+        footer {
+            text-align: center;
+            font-size: 0.83rem;
+            color: var(--muted);
+            margin-top: auto; /* Drückt den Footer nach unten */
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            max-width: 500px;
+            width: 100%;
         }
-        @keyframes blink {0%,100%{opacity:.4}50%{opacity:1}}
+
+        /* Responsivität: Anpassungen für kleinere Bildschirme (z.B. Mobilgeräte) */
+        @media (max-width: 600px) {
+            header {
+                margin-top: 2rem; /* Reduziert den oberen Rand auf kleinen Bildschirmen */
+            }
+
+            h1 {
+                font-size: 2rem; /* Macht die Überschrift auf kleinen Bildschirmen kleiner */
+            }
+
+            p {
+                font-size: 0.9rem; /* Macht den Absatztext auf kleinen Bildschirmen kleiner */
+            }
+
+            .card {
+                padding: 1rem; /* Reduziert Polsterung der Karte */
+                margin-top: 0.8rem;
+                max-width: 100%; /* Erlaubt der Karte, die volle Breite zu nutzen (mit 1rem padding vom .mainnn) */
+            }
+
+            footer {
+                font-size: 0.75rem; /* Macht den Footer auf kleinen Bildschirmen kleiner */
+            }
+        }
     </style>
 </head>
 <body>
-<div class="stars"></div>
-<div class="tunnel">
-    <div class="ring"></div>
-    <div class="ring"></div>
-    <div class="ring"></div>
-</div>
-<div class="wrap">
-    <div class="glass">
-        <div class="pill"><span class="dot"></span>Wartung läuft – kosmische Reise ✨</div>
-        <h1 class="title">Wir sind gleich wieder da</h1>
-        <p class="subtitle">Eine filmische Kamerafahrt durch einen Weltraum‑Tunnel. Glasige UI, Parallax‑Glanz und hochperformante CSS‑Animationen.</p>
+<div class="mainnn">
+
+
+    <header>
+        <h1 class="title">Wartungsarbeiten</h1>
+        <p>Wir verbessern gerade die Seite.</p>
+        <p>Deine Daten bleiben weiterhin sicher und geschützt.</p>
+    </header>
+    <div class="main">
+        <p style="margin-bottom: 2px">Status:</p>
+        <div class="card">
+            <div id="status" class="status">prüfe…</div>
+            <div class="status" id="message"></div>
+            <div class="status" id="details"></div>
+            <div class="status" id="ending"></div>
+            <button id="refresh">Jetzt prüfen</button>
+            <p style="font-size: 0.75rem; color: var(--muted); margin-top: 1.4rem;">
+            </p>
+        </div>
     </div>
+
+    <footer>
+        Bei Fragen oder Problemen kontaktere und gerne unter dashboard-verifizierung@gmail.com
+    </footer>
+
 </div>
+<script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://ixseupgiqkfgmsalhlgt.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4c2V1cGdpcWtmZ21zYWxobGd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NjIxMDcsImV4cCI6MjA3NzEzODEwN30.x9Sr_SwbKLfwbLWTuoBaHoZDKyxpyqMjJX71hdyd_64";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const statusEl = document.getElementById("status");
+    const messageEl = document.getElementById("message");
+    const detailsEl = document.getElementById("details");
+    const endingEl = document.getElementById("ending");
+    const refreshBtn = document.getElementById("refresh");
+
+    async function checkStatus() {
+        statusEl.textContent = "prüfe…";
+        messageEl.textContent = "";
+        detailsEl.textContent = "";
+        endingEl.textContent = "";
+
+        try {
+            const { data, error } = await supabase
+                .from("status")
+                .select("online, message, details, ending")
+                .limit(1);
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                statusEl.textContent = "Keine Daten in der Tabelle!";
+                statusEl.className = "status down";
+                return;
+            }
+
+            const row = data[0];
+
+            const state = row.online;
+            const message = row.message ?? "(kein Text)";
+            const details = row.details ?? "(kein Text)";
+            const ending = row.ending ?? "(kein Text)";
+
+            messageEl.textContent = message;
+            detailsEl.textContent = details;
+            endingEl.textContent = ending;
+
+            if (state === true) {
+                statusEl.textContent = "Online";
+                statusEl.className = "status fine";
+                window.location.href = "https://schul-dashboards.onrender.com";
+            } else if (state === false) {
+                statusEl.textContent = "Wartung läuft";
+                statusEl.className = "status down";
+            } else {
+                statusEl.textContent = "Status unbekannt";
+                statusEl.className = "status down";
+            }
+
+        } catch (err) {
+            console.error(err);
+            statusEl.textContent = "Fehler beim Laden der Daten";
+            statusEl.className = "status down";
+        }
+    }
+
+    refreshBtn.addEventListener("click", checkStatus);
+
+    checkStatus();
+    setInterval(checkStatus, 30000);
+
+
+</script>
 </body>
 </html>

@@ -220,7 +220,6 @@
       </div>
 
       <div v-if="user?.isAdmin && reports.length" class="reports-section">
-        <hr />
         <h3>Gemeldete Einträge</h3>
         <div class="reports-list">
           <div v-for="report in reports" :key="report._id" class="report-card">
@@ -240,7 +239,6 @@
         </div>
       </div>
       <div v-if="user?.isAdmin" class="reports-section">
-        <hr />
         <h3>Sorgen</h3>
         <div class="reports-list">
           <ul class="listsorgen">

@@ -7,20 +7,20 @@
           <div class="header">
             <div>
               <h2 class="title">Sorgenbox</h2>
-              <p class="small" style="color: var(--sub)">Hier kannst du anonym teilen, was dich belastet oder worüber du dich beschweren möchtest. Alles, was dir auf dem Herzen liegt, ist willkommen. Es wird nicht gespeichert, wer du bist. Wenn du möchtest, kannst du freiwillig Kontaktinformationen hinterlassen.
-                Wenn du mehrere Dinge loswerden willst, schreib sie gern in einer Nachricht zusammen, außer du möchtest bestimmte Themen lieber getrennt halten.</p>
+              <p class="small" style="color: var(--sub)">
+                Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest.
+              </p>
             </div>
           </div>
 
           <form @submit.prevent="onSubmit" class="form">
-            <label for="message" style="color: var(--sub)" class="small">Nachricht</label>
             <textarea
                 id="message"
                 class="input message-input"
                 rows="8"
                 v-model="message"
                 :disabled="submitting"
-                placeholder="Schreibe deine Beschwerde..."
+                placeholder="Du kanst über alles schreiben..."
                 required
             ></textarea>
 
@@ -34,6 +34,7 @@
                 <span v-if="!submitting">Anonym absenden</span>
                 <LoadingSpinner v-else color="black" size="1.2em" />
               </button>
+              <!--
               <button
                   class="btn ghost"
                   type="button"
@@ -42,7 +43,7 @@
                   data-umami-event="Sorgenbox zurücksetzen Button "
               >
                 Zurücksetzen
-              </button>
+              </button>-->
             </div>
 
             <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>

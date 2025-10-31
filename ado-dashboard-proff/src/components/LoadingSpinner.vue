@@ -5,7 +5,7 @@
         width: size,
         height: size,
         borderWidth: borderThickness, /* Verwendet die Prop direkt */
-        borderColor: `rgba(255, 255, 255, 0.4)`, /* Behält den transparenten weißen Track */
+        borderColor: `#666666`, /* Behält den transparenten weißen Track */
         borderTopColor: color, /* Die übergebene Farbe für den sich drehenden Teil */
       }"
       role="status"

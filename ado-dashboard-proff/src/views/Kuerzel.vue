@@ -1,15 +1,18 @@
 <template>
   <div class="card">
-    <h2 style="margin-top:0;">Kürzelfinder</h2>
-    <p class="small">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
+    <div class="card-top">
+      <h2 style="margin-top:0; margin-bottom: 5px">Kürzelfinder</h2>
+      <p style="margin-top: 2px" class="small">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
+    </div>
 
     <div class="row">
       <!-- Input -->
       <div class="col">
+        <small class="nwer">{{ mode==='shortToName' ? 'Kürzel' : 'Name' }}</small>
         <input
             v-model="inputValue"
             class="input"
-            :placeholder="mode==='shortToName' ? 'z. B. ma, le, ...' : 'z. B. Frau Maier, Herr Schultz oder nur Nachname...'"
+            :placeholder="mode==='shortToName' ? 'z. B. AY...' : 'z. B. Frau Aydem...'"
         />
         <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
           Meintest du vielleicht
@@ -38,13 +41,14 @@
             <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" />
           </svg>
         </button>
-        <div class="mode-label">
+        <!--<div class="mode-label">
           {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
-        </div>
+        </div>-->
       </div>
 
       <!-- Output -->
       <div class="col">
+        <small class="nwer">{{ mode==='shortToName' ? 'Name' : 'Kürzel' }}</small>
         <input
             class="input"
             :value="outputValue"
@@ -186,6 +190,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+nwer {
+}
+.input {
+  margin-top: 5px;
+}
 .row {
   display: flex;
   gap: 16px;
@@ -203,8 +213,8 @@ onMounted(() => {
   justify-content: center;
 }
 .switch-btn {
-  background: var(--primary);
-  color: #fff;
+  background: #f1f1f1;
+  color: #101010;
   border: none;
   border-radius: 50%;
   width: 44px;
@@ -217,7 +227,7 @@ onMounted(() => {
   transition: background 0.3s;
 }
 .switch-btn:hover {
-  background: #33609e;
+  background: #faf9f9;
 }
 .switch-icon {
   width: 22px;
@@ -250,6 +260,15 @@ onMounted(() => {
   color: var(--primary);
   font-weight: bold;
   margin-left: 4px;
+}
+
+@media (max-width: 400px) {
+  .row {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
 }
 </style>
 
