@@ -1173,8 +1173,7 @@ onMounted(async () => {
   display: flex;
   gap: 12px;
   flex-direction: column;
-  flex-wrap: wrap;
-  word-break: normal;
+  overflow: hidden;
 }
 
 
