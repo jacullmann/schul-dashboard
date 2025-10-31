@@ -181,7 +181,7 @@ async function skip() {
   outline: none;
 }
 label {
-  margin-bottom: 5px;
+  margin-bottom: 15px;
   display: block;
 }
 </style>
