@@ -211,7 +211,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
 }
 .icon-btn:hover {
-  color:#f1f1f1
+  color:#f1f1f1;
 }
 
 /* Popup wrapper (positioned via inline style popupStyle) */
