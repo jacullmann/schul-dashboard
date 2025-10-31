@@ -244,11 +244,21 @@
         <h3>Sorgen</h3>
         <div class="reports-list">
           <ul class="listsorgen">
-            <li v-for="(item, i) in entriessorgen" :key="i">
-              {{ item.message }}
+            <li v-for="(item, i) in entriessorgen" :key="item._id" class="sorge-item">
+              <div class="sorge-content">
+                {{ item.message }}
+                <span class="sorge-date">{{ new Date(item.createdAt).toLocaleString() }}</span>
+              </div>
+              <button
+                  class="btn danger tiny"
+                  @click="deleteSorge(item._id)"
+                  data-umami-event="Sorgen Eintrag löschen"
+                  title="Sorgen-Eintrag löschen"
+              >
+                Löschen
+              </button>
             </li>
           </ul>
-
         </div>
       </div>
     </div>
@@ -806,6 +816,36 @@ function revealImages(itemId: string) {
 }
 
 
+// Löschen eines Sorgen-Eintrags
+async function deleteSorge(id: string) {
+  if (!confirm('Möchtest du diesen Sorgen-Eintrag wirklich löschen?')) {
+    return;
+  }
+
+  try {
+    await hw.delete(`/anon/sorgenfind/${id}`);
+    // Nach erfolgreichem Löschen die Liste neu laden
+    await loadSorgen();
+    handleSuccess('Sorgen-Eintrag erfolgreich gelöscht.');
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Löschen.';
+    message.value = 'Fehler: ' + errMsg;
+    isError.value = true;
+    console.error('deleteSorge error', e);
+    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+  }
+}
+
+// Sorgen laden Funktion extrahieren (falls noch nicht vorhanden)
+async function loadSorgen() {
+  try {
+    const res = await hw.get('/anon/sorgenfind');
+    entriessorgen.value = res.data;
+  } catch (e) {
+    console.error('Konnte Sorgen nicht laden');
+  }
+}
+
 onMounted(() => {
   if (user.value?.isAdmin) {
     loadReports();
@@ -813,12 +853,7 @@ onMounted(() => {
 });
 
 onMounted(async () => {
-  try {
-    const res = await hw.get('/anon/sorgenfind');
-    entriessorgen.value = res.data;
-  } catch (e) {
-    console.error('Konnte Sorgen nicht laden');
-  }
+  await loadSorgen()
 });
 
 </script>
@@ -1182,6 +1217,39 @@ li {
   hyphens: auto;
 }
 
+.sorge-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.sorge-content {
+  flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.sorge-date {
+  display: block;
+  font-size: 0.8em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.listsorgen {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 
 
 @media (max-width: 500px ) {

@@ -1041,6 +1041,29 @@ app.get('/anon/sorgenfind', requireAdmin, async (req, res) => {
 });
 
 
+// Löschen eines Sorgen-Eintrags (nur Admin)
+app.delete('/anon/sorgenfind/:id',
+    requireAdmin,
+    param('id').isMongoId(),
+    validate,
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+
+            const deletedSorge = await SorgenModel.findByIdAndDelete(id);
+
+            if (!deletedSorge) {
+                return sendJSONError(res, 404, 'Sorgen-Eintrag nicht gefunden');
+            }
+
+            res.json({ ok: true, message: 'Sorgen-Eintrag erfolgreich gelöscht' });
+        } catch (err) {
+            console.error('DELETE /anon/sorgenfind/:id error', err);
+            sendJSONError(res, 500, 'Serverfehler');
+        }
+    }
+);
+
 
 
 
