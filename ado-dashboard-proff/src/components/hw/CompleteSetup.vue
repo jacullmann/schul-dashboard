@@ -174,9 +174,10 @@ async function skip() {
   width: 100%;
   padding: 10px;
   box-sizing: border-box;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-light);
+  border-radius: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  background: rgba(26, 26, 26, 0.6);
   color: var(--text);
+  outline: none;
 }
 </style>
