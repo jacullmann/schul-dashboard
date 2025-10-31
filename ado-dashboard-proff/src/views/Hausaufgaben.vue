@@ -118,10 +118,10 @@
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-            <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">Bilder verwalten</button>
-            <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">Bearbeiten</button>
-            <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">Löschen</button>
-            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">Melden</button>
+            <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)"><Images />Bilder verwalten</button>
+            <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)"><UserPen />Bearbeiten</button>
+            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)"><AlertTriangle />Melden</button>
+            <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)"><Trash /> Löschen</button>
           </div>
         </div>
 
@@ -322,6 +322,7 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
+import {Images, Image, UserPen, Trash, AlertTriangle} from 'lucide-vue-next';
 
 export interface HwItem {
   id: string;
