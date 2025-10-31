@@ -1,7 +1,6 @@
 <template>
   <div class="full">
-    <div class="full-c">
-      <div class="container">
+      <div >
         <div class="card complaint-card">
 
           <div class="header">
@@ -52,7 +51,6 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -102,7 +100,6 @@ function reset() {
 .complaint-card {
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   backdrop-filter: blur(8px);
-  padding: 20px;
 }
 
 /* Header */
