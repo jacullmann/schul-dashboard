@@ -974,6 +974,8 @@ onMounted(async () => {
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
+  font-size: 1.2rem;
+  margin-bottom: 0;
 }
 .item-menu.open {
   display: flex;
