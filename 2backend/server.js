@@ -983,8 +983,6 @@ app.post('/api/auth/reset',
 
 app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
     try {
-        // 1. Daten von Supabase holen (wie in deinem Code für /api/dashboard-check)
-        // Du hast 'supabase' bereits in server.js initialisiert.
         const { data, error: dbError } = await supabase
             .from('auth_logs') // Name deiner Supabase-Tabelle
             .select('*')
@@ -1011,7 +1009,7 @@ app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
         const prompt = `
             Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
             Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden 500 Authentifizierungs-Logs (Tabelle 'auth_logs') zu erstellen.
-            Die Logs enthalten Felder wie 'ip', 'status' (success/failure), 'attempt_hash', 'user_agent' und 'created_at'.
+            Die Logs enthalten Felder wie 'ip', 'status' (success/failure), 'attempt_hash'(dies ist ein Hash des eingegebenen passworts), 'user_agent' und 'timestamp'.
 
             Hier sind die Rohdaten (möglicherweise gekürzt):
             ${truncatedLogs}
