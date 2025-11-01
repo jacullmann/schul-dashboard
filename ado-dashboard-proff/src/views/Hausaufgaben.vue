@@ -737,6 +737,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick);
+  userActivities.value = {};
+  loadingActivities.value = {};
+  deletingUsers.value = {};
 });
 
 function canManage(createdBy: string) {
