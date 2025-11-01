@@ -1554,7 +1554,7 @@ li {
 
 .users-section h3 {
   margin-bottom: 16px;
-  color: var(--primary);
+  color: var(--warn);
 }
 
 .users-list {
@@ -1565,10 +1565,10 @@ li {
 }
 
 .user-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: #414141;
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid var(--border);
+  border: none;
 }
 
 .user-header {
@@ -1583,7 +1583,7 @@ li {
 .user-email {
   font-weight: 600;
   font-size: 1.1em;
-  color: var(--text);
+  color: white;
 }
 
 .user-badges {
@@ -1600,7 +1600,7 @@ li {
 }
 
 .admin-badge {
-  background: var(--primary);
+  background: rgba(255, 255, 255, 0.05);
   color: white;
 }
 
@@ -1625,7 +1625,7 @@ li {
 .user-info {
   flex: 1;
   font-size: 0.9em;
-  color: var(--muted);
+  color: white;
 }
 
 .user-info div {
