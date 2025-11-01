@@ -1108,6 +1108,11 @@ onMounted(async () => {
   width: 19px;
   height: 19px;
   flex-shrink: 0;
+  fill: #aaaaaa;
+}
+
+svg:hover {
+  fill: #f1f1f1;
 }
 .menu-btn:hover { background: #666666; color: #f1f1f1; }
 .menu-btn.danger { background: transparent; color: #f65252; }
