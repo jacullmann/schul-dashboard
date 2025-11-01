@@ -1065,11 +1065,11 @@ onMounted(async () => {
   background: #414141;
   border: none;
   border-radius: 5px;
-  padding: 5px;
+  padding: 6px;
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
+  gap: 5px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
@@ -1091,22 +1091,22 @@ onMounted(async () => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 5px 8px;
+  padding: 6px 9px;
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 17px;
 }
 .menu-btn .fixall {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   line-height: 1;
 }
 
 .menu-btn .fixall svg {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
 }
 .menu-btn:hover { background: #666666; color: white; }
