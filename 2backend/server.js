@@ -988,7 +988,7 @@ app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
         const { data, error: dbError } = await supabase
             .from('auth_logs') // Name deiner Supabase-Tabelle
             .select('*')
-            .order('created_at', { ascending: false }) // Die neuesten zuerst
+            .order('timestamp', { ascending: false })
             .limit(500); // Wie gewünscht auf 500 begrenzt
 
         if (dbError) {
