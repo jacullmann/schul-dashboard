@@ -14,7 +14,7 @@
             @deleted="onAccountDeleted"
             @error="onAccountDeleteError"
             @open-setup="openSetupModal"
-            @logout="logout" <!-- NEU: Logout-Event hinzufügen -->
+            @logout="logout"
         />
         <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
