@@ -101,8 +101,8 @@
               >
                 {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
-              <div v-if="user?.isAdmin">
-                {{item.createdBy}}
+              <div v-if="user?.isAdmin" class="admin-creator-info">
+                {{ item.createdByEmail || 'E-Mail nicht verfügbar' }}
               </div>
 
             </div>
@@ -386,7 +386,8 @@ export interface HwItem {
   description: string;
   images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
   dueDate: string;
-  createdBy: string;
+  createdBy: string; // IMMER String-ID für Berechtigungen
+  createdByEmail?: string; // Optional: Email nur für Anzeige
   timeColor: string;
 }
 

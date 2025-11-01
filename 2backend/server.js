@@ -633,49 +633,57 @@ app.delete('/api/items/:itemId/images/:publicId',
     }
 );
 
-// Items list (now supporting 'old' filter for items older than 48 hours)
+// Items list - mit User-Email für createdBy
 app.get('/api/items',
     query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
-    query('filter').optional().isIn(['old']), // NEU: Erlaube den 'filter=old' Parameter
+    query('filter').optional().isIn(['old']),
     validate,
     async (req, res) => {
-        // Die 48-Stunden-Schwelle
-        const cutOffDate = dayjs().subtract(48, 'hour').toDate();
+        try {
+            const cutOffDate = dayjs().subtract(48, 'hour').toDate();
+            let dateQuery = {};
 
-        let dateQuery = {};
+            if (req.query.filter === 'old') {
+                dateQuery = { dueDate: { $lt: cutOffDate } };
+            } else {
+                dateQuery = { dueDate: { $gte: cutOffDate } };
+            }
 
-        if (req.query.filter === 'old') {
-            // 'Alte Einträge': Fälligkeitsdatum muss älter als 48 Stunden sein ($lt = less than)
-            dateQuery = { dueDate: { $lt: cutOffDate } };
-        } else {
-            // Standard ('Neue Einträge' / Aktuell): Fälligkeitsdatum muss neuer oder gleich 48 Stunden sein ($gte = greater than or equal)
-            dateQuery = { dueDate: { $gte: cutOffDate } };
+            // Items mit User-Emails laden
+            const list = await Item.find({
+                type: req.query.type,
+                ...dateQuery
+            })
+                .populate('createdBy', 'email') // Nur Email laden
+                .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 })
+                .limit(500)
+                .lean();
+
+            const normalized = list.map(i => {
+                const imgs = (i.images || []).map(img => withThumb(img));
+
+                // SICHER: Immer String für createdBy beibehalten
+                const createdById = i.createdBy?._id?.toString() || i.createdBy?.toString();
+
+                return {
+                    id: i._id.toString(),
+                    type: i.type,
+                    title: i.title,
+                    subject: i.subject,
+                    description: i.description,
+                    images: imgs,
+                    dueDate: i.dueDate,
+                    createdBy: createdById, // Immer String-ID für Berechtigungen
+                    createdByEmail: i.createdBy?.email || 'Unbekannt', // Email für Anzeige
+                    timeColor: timeLeftColor(i.dueDate)
+                };
+            });
+
+            res.json(normalized);
+        } catch (error) {
+            console.error('Error loading items:', error);
+            sendJSONError(res, 500, 'Fehler beim Laden der Einträge');
         }
-
-        const list = await Item.find({
-            type: req.query.type,
-            ...dateQuery // Wende den Datumsfilter an
-        })
-            .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 }) // Optionale Sortierung: Alte Einträge absteigend, neue Einträge aufsteigend
-            .limit(500)
-            .lean();
-
-        const normalized = list.map(i => {
-            const imgs = (i.images || []).map(img => withThumb(img));
-            return {
-                id: i._id,
-                type: i.type,
-                title: i.title,
-                subject: i.subject,
-                description: i.description,
-                images: imgs,
-                dueDate: i.dueDate,
-                createdBy: i.createdBy,
-                timeColor: timeLeftColor(i.dueDate)
-            };
-        });
-
-        res.json(normalized);
     }
 );
 
