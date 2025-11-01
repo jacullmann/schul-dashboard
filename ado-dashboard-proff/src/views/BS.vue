@@ -15,7 +15,6 @@
           class="input message-input"
           rows="8"
           v-model="message"
-          :disabled="submitting || isCooldown"
           placeholder="Du kanst über alles schreiben..."
           required
       ></textarea>
