@@ -101,6 +101,9 @@
               >
                 {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
+              <div v-if="user?.isAdmin">
+                {{item.createdBy}}
+              </div>
 
             </div>
           </div>
