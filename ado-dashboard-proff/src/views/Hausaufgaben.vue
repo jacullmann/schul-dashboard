@@ -123,19 +123,19 @@
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
             <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
               <div class="fixall">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                 Bilder
               </div>
             </button>
             <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" ><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
               Bearbeiten
               </div>
             </button>
             <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">
               <div class="fixall">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M0 0h24v24H0z" fill="none"/><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" ><path d="M0 0h24v24H0z" fill="none"/><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
               Melden
               </div>
             </button>
@@ -1092,7 +1092,7 @@ onMounted(async () => {
   background: transparent;
   border: none;
   padding: 6px 9px;
-  color: var(--text);
+  color: #aaaaaa;
   border-radius: 8px;
   cursor: pointer;
   font-size: 17px;
@@ -1109,14 +1109,14 @@ onMounted(async () => {
   height: 19px;
   flex-shrink: 0;
 }
-.menu-btn:hover { background: #666666; color: white; }
+.menu-btn:hover { background: #666666; color: #f1f1f1; }
 .menu-btn.danger { background: transparent; color: #f65252; }
-.menu-btn.warn { background: transparent; color: white; }
+.menu-btn.warn { background: transparent; color: #aaaaaa; }
 
-.menu-btn.danger:hover { background: #666666; }
-.menu-btn.warn:hover { background: #666666; }
+.menu-btn.danger:hover { background: #666666; color: #f1f1f1; }
+.menu-btn.warn:hover { background: #666666; color: #f1f1f1; }
 
-/* Body and images */
+
 .item-body {
   white-space: pre-wrap;
   margin-top:10px;
