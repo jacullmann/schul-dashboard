@@ -1565,7 +1565,7 @@ li {
 }
 
 .user-card {
-  background: #414141;
+  background: #3e3e3e;
   border-radius: 8px;
   padding: 16px;
   border: none;
