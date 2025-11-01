@@ -523,7 +523,7 @@ const colorFor = (color: string) => {
 const colorStyles = (timeColor: string) => {
   // expired -> grau hintergrund, weiße schrift
   if (timeColor === 'expired') {
-    return { background: '#4b5563', color: 'white' };
+    return { background: '#414141', color: 'white' };
   }
 
   // very soon (danger) oder in den nächsten Tagen (warn) -> behalten wie vorher
