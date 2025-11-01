@@ -1061,15 +1061,15 @@ onMounted(async () => {
   position: absolute;
   top: 100%;
   right: 0;
-  min-width: 160px;
-  background: #404040;
+  min-width: 150px;
+  background: #414141;
   border: none;
   border-radius: 10px;
-  padding: 8px;
+  padding: 6px;
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 5px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
@@ -1091,7 +1091,7 @@ onMounted(async () => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 8px 12px;
+  padding: 7px 10px;
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
@@ -1109,12 +1109,12 @@ onMounted(async () => {
   height: 17px;
   flex-shrink: 0;
 }
-.menu-btn:hover { background: #555555; color: white; }
+.menu-btn:hover { background: #666666; color: white; }
 .menu-btn.danger { background: transparent; color: #ef4444; }
 .menu-btn.warn { background: transparent; color: white; }
 
-.menu-btn.danger:hover { background: #555555; }
-.menu-btn.warn:hover { background: #555555; }
+.menu-btn.danger:hover { background: #666666; }
+.menu-btn.warn:hover { background: #666666; }
 
 /* Body and images */
 .item-body {
