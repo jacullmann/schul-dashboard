@@ -140,8 +140,8 @@
               </div>
             </button>
             <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
-              <div class="fixall">
-                <svg color="#ef4444" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              <div class=" reds fixall">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#e3e3e3"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
               Löschen
               </div>
             </button>
@@ -1061,15 +1061,15 @@ onMounted(async () => {
   position: absolute;
   top: 100%;
   right: 0;
-  min-width: 150px;
+  min-width: 120px;
   background: #414141;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 6px;
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 5px;
+  gap: 4.5px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
@@ -1415,6 +1415,11 @@ li {
 
 .report-content :deep(p) {
   line-height: 1.6;
+}
+
+
+.reds {
+  color: #ef4444;
 }
 
 
