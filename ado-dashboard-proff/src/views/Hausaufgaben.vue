@@ -258,9 +258,9 @@
       </div>
       <div v-if="user?.isAdmin" class="reports-section">
 
-        <h3>Sicherheits-Analyse (Gemini)</h3>
+        <h3>Sicherheits-Analyse</h3>
         <p style="color: var(--muted); margin-bottom: 16px;">
-          Analysiert die letzten 500 fehlgeschlagenen und erfolgreichen Login-Versuche.
+
         </p>
 
         <button class="btn" @click="generateSecurityReport" :disabled="isGeneratingReport">
