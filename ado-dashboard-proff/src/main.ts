@@ -4,8 +4,6 @@ import { useAuth } from './composables/useAuth';
 import App from './App.vue';
 import './style.css';
 import VueGtag from 'vue-gtag-next';
-import gaDirective from './directives/gaEvent';
-import PrimeVue from 'primevue/config';
 import naive from 'naive-ui'
 import router from './router';
 
@@ -54,9 +52,6 @@ app.directive('ga-event', gaDirective);
 app.use(createPinia());
 app.use(router);
 app.mount('#app');
-app.use(PrimeVue, {
-    unstyled: true,
-});
 app.use(naive)
 
 

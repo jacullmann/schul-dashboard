@@ -6,9 +6,7 @@ const PersonDetail = () => import('./views/PersonDetail.vue');
 const Admin = () => import('./views/Admin.vue');
 const Home = () => import('./views/Home.vue');
 const VerifyEmail = () => import('./views/VerifyEmail.vue');
-const Stundenplan = () => import('./views/Stundenplan.vue');
 const Kuerzel = () => import('./views/Kuerzel.vue');
-const LokaleToDoListe = () => import('./views/LokaleToDoListe.vue');
 const Ye = () => import('./views/Ye.vue');
 const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
@@ -30,7 +28,6 @@ const routes = [
     { path: '/hausaufgaben/verify', redirect: '/verify' },
     { path: '/verify', component: VerifyEmail },
     { path: '/kuerzel', component: Kuerzel },
-    { path: '/lokale-to-do-liste', component: LokaleToDoListe },
     { path: '/kanye', component: Ye },
     { path: '/ai-detector', component: Aidetector },
     { path: '/sorgenbox', component: BS },

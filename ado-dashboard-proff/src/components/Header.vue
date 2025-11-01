@@ -1,9 +1,6 @@
 <template>
   <header class="header">
     <div class="header-container container">
-      <!--<ButtonBack v-if="shouldShowBackButton" style="font-size: 10px" class="back-button-in-header">
-        Zurück
-      </ButtonBack>-->
       <router-link  v-ga-event="{ name: 'logo_click', params: { method: 'logo', label: 'main_logo' } }" to="/" class="logo-group" @click="closeNav">
         <Logo class="logo-img" aria-hidden="true" />
         <span class="logo-text">Dashboard</span>
@@ -64,7 +61,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
-import ButtonBack from './ButtonBack.vue';
 import Logo from './hw/Logo.vue'
 
 const navOpen = ref(false);

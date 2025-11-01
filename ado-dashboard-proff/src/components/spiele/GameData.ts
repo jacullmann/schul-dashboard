@@ -26,6 +26,14 @@ export const games: Game[] = [
         component: defineAsyncComponent(() => import('./RussischRoulette.vue')),
         tags: ['Strategie', 'Kein Glückspiel', 'Klassiker', 'Russisch'],
         previewImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Rosyjska_ruletka.png/250px-Rosyjska_ruletka.png'
+    },
+    {
+        id: 'rock-paper-scissors',
+        name: 'Schere, Stein, Papier',
+        description: 'Spiele Schere-Stein-Papier gegen einen Computer.',
+        component: defineAsyncComponent(() => import('./Schere-usw.vue')),
+        tags: ['Klassiker', 'Duell', 'Solo'],
+        previewImage: 'https://ih1.redbubble.net/image.5225837738.6313/raf,360x360,075,t,fafafa:ca443f4786.jpg'
     }
 ];
 

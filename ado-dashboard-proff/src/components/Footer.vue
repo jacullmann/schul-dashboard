@@ -35,15 +35,12 @@
     </div>
 
 
-
-    <EasterEggOverlay v-if="showOverlay" :videoId="videoId" />
   </footer>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import router from "../router";
-import EasterEggOverlay from "./EasterEggOverlay.vue";
 //import Notes from "./Notes.vue"
 
 import All from './AllLogoutButton.vue'

@@ -573,7 +573,7 @@ const showAuth = ref(false);
   align-items: center;
 }
 
-.more-info-btn { /* Neue Klasse für den Abstand */
+.more-info-btn {
   margin-top: 10px;
 }
 

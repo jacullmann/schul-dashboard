@@ -6,10 +6,8 @@
       class="draggable-resizable-popup"
   >
     <header ref="headerRef" class="popup-header">
-      <!-- Leeres p-Element für Grid-Layout (oder entfernen, wenn nicht benötigt) -->
       <p></p>
 
-      <!-- Titel-Bereich (Jetzt mit Animation und Edit-Logik) -->
       <Transition name="titel-edit" mode="out-in">
         <div
             v-if="!isEditingTitle"
