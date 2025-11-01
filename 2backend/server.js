@@ -1028,6 +1028,7 @@ app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
             5.  **Sicherheitswarnungen:** (Nur falls akute, offensichtliche Bedrohungen wie ein erfolgreicher Einbruch klar erkennbar sind).
 
             Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ersten Überschrift (z.B. "## Zusammenfassung").
+            Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äussere Authentifizierung einer Seite. Die Websitr ist also nur für bestimmte autorisierte Personen, die von den Administartoren das allgemeine Passwort erhalten haben. Es gibt also ncith mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zum kommen. Die Attmept Hashes sind dabei hashes der versuchten Passwörter.  
         `;
 
         // 4. Gemini API aufrufen
