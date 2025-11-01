@@ -28,7 +28,7 @@ const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
 
-const GEMINI_API_KEY = "AIzaSyBDL_72E3WOgN7u5HB8M56eIEiX80KUUuY";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
