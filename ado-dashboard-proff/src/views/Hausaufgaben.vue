@@ -1061,15 +1061,15 @@ onMounted(async () => {
   position: absolute;
   top: 100%;
   right: 0;
-  min-width: 120px;
+  min-width: 105px;
   background: #414141;
   border: none;
   border-radius: 5px;
-  padding: 6px;
+  padding: 3px;
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 4.5px;
+  gap: 4px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
