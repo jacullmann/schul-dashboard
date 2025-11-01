@@ -141,7 +141,7 @@
             </button>
             <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
               <div class=" reds fixall">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                <svg fill="#f65252" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
               Löschen
               </div>
             </button>
@@ -1076,6 +1076,7 @@ onMounted(async () => {
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
   margin-bottom: 0;
+  box-shadow: 2px 2px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
 .item-menu.open {
