@@ -30,7 +30,7 @@ const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-
 
 const GEMINI_API_KEY = "AIzaSyBDL_72E3WOgN7u5HB8M56eIEiX80KUUuY";
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 
 
