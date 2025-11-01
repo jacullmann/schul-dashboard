@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
 .menu-actions {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .menu-btn {
@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 8px 12px;
+  padding: 6px 10px;
   color: var(--text);
   border-radius: 6px;
   cursor: pointer;
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 }
 
 .menu-btn:hover {
-  background: #f1f1f1;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .menu-btn.danger {
