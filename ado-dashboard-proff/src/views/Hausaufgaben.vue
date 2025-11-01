@@ -1065,7 +1065,7 @@ onMounted(async () => {
   background: #414141;
   border: none;
   border-radius: 5px;
-  padding: 2px;
+  padding: 5px;
   display: none;
   flex-direction: column;
   align-items: stretch;
