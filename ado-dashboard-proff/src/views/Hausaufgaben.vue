@@ -257,6 +257,36 @@
         </div>
       </div>
       <div v-if="user?.isAdmin" class="reports-section">
+
+        <h3>Sicherheits-Analyse (Gemini)</h3>
+        <p style="color: var(--muted); margin-bottom: 16px;">
+          Analysiert die letzten 500 fehlgeschlagenen und erfolgreichen Login-Versuche.
+        </p>
+
+        <button class="btn" @click="generateSecurityReport" :disabled="isGeneratingReport">
+          <div v-if="isGeneratingReport" class="row" style="gap: 8px; align-items: center;">
+            <LoadingSpinner color="#fff" size="1.2em" />
+            <span>Bericht wird generiert...</span>
+          </div>
+          <span v-else>Neuen Sicherheitsbericht erstellen</span>
+        </button>
+
+        <div v-if="reportError" class="message error" style="margin-top: 16px;">
+          {{ reportError }}
+        </div>
+
+        <div v-if="securityReport" class="report-display-container">
+          <button
+              class="btn ghost tiny"
+              @click="copyReportToClipboard"
+              style="float: right; margin-bottom: 8px;"
+          >
+            Kopieren
+          </button>
+
+          <div class="report-content" v-html="reportHtml"></div>
+        </div>
+
         <h3>Sorgen</h3>
         <div class="reports-list">
           <ul class="listsorgen">
@@ -343,6 +373,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import {Images, Flag, Pencil, Trash } from 'lucide-vue-next';
+import { marked } from 'marked';
 
 export interface HwItem {
   id: string;
@@ -380,6 +411,20 @@ const showOldEntries = ref(false);
 const showSetupModal = ref(false);
 
 const reports = ref<any[]>([]);
+
+const securityReport = ref<string | null>(null);
+const isGeneratingReport = ref(false);
+const reportError = ref<string | null>(null);
+
+
+const reportHtml = computed(() => {
+  if (securityReport.value) {
+    // 'marked.parse' ist der Standard-Export in neueren Versionen,
+    // oder 'marked()' in älteren. Passe dies ggf. an.
+    return marked.parse(securityReport.value);
+  }
+  return '';
+});
 
 
 const message = ref('');
@@ -665,6 +710,43 @@ function onAccountDeleteError(msg: string) {
   message.value = msg;
   isError.value = true;
   setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+}
+
+
+
+
+async function generateSecurityReport() {
+  if (isGeneratingReport.value) return;
+  isGeneratingReport.value = true;
+  securityReport.value = null;
+  reportError.value = null;
+
+  try {
+    // 'hw' ist dein konfigurierter API-Client (hwApi.js)
+    // Er sollte den Auth-Token automatisch mitsenden
+    const { data } = await hw.post('/api/admin/security-report');
+    securityReport.value = data.report;
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Unbekannter Fehler beim Erstellen des Berichts.';
+    reportError.value = errMsg;
+    // Du kannst auch deine bestehende Fehleranzeige nutzen:
+    onItemFormError(errMsg);
+  } finally {
+    isGeneratingReport.value = false;
+  }
+}
+
+// NEU: Funktion zum Kopieren des Roh-Berichts (Markdown)
+function copyReportToClipboard() {
+  if (!securityReport.value) return;
+  navigator.clipboard.writeText(securityReport.value)
+      .then(() => {
+        // Zeige eine Erfolgsmeldung über deine handleSuccess-Funktion
+        handleSuccess('Bericht (Markdown) in die Zwischenablage kopiert.');
+      })
+      .catch(err => {
+        onItemFormError('Fehler beim Kopieren.');
+      });
 }
 
 function handleSuccess(msg: string) {
@@ -1279,6 +1361,56 @@ li {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+
+.report-display-container {
+  margin-top: 16px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  clear: both; /* Stellt sicher, dass der Container nach dem floatenden Button beginnt */
+}
+
+/* Styles für das von 'marked' generierte HTML.
+ Wir verwenden :deep() um in die v-html-Struktur hinein zu stylen.
+*/
+.report-content {
+  word-wrap: break-word;
+}
+
+.report-content :deep(h1),
+.report-content :deep(h2),
+.report-content :deep(h3) {
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+}
+.report-content :deep(h1) { font-size: 1.6rem; }
+.report-content :deep(h2) { font-size: 1.4rem; }
+.report-content :deep(h3) { font-size: 1.2rem; }
+
+.report-content :deep(ul),
+.report-content :deep(ol) {
+  padding-left: 24px;
+  margin: 0.5em 0;
+}
+.report-content :deep(li) {
+  margin-bottom: 0.3em;
+}
+
+.report-content :deep(code) {
+  background: #404040;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.report-content :deep(p) {
+  line-height: 1.6;
 }
 
 

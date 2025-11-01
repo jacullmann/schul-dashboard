@@ -15,6 +15,7 @@ import dayjs from 'dayjs';
 import { v2 as cloudinary } from 'cloudinary';
 import sgClient from '@sendgrid/mail';
 import { createClient } from '@supabase/supabase-js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Config
 const app = express();
@@ -26,6 +27,10 @@ const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
 // SendGrid config
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
 const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
+
+const GEMINI_API_KEY = "AIzaSyBDL_72E3WOgN7u5HB8M56eIEiX80KUUuY";
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
 
@@ -974,6 +979,76 @@ app.post('/api/auth/reset',
         }
     }
 );
+
+
+app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
+    try {
+        // 1. Daten von Supabase holen (wie in deinem Code für /api/dashboard-check)
+        // Du hast 'supabase' bereits in server.js initialisiert.
+        const { data, error: dbError } = await supabase
+            .from('auth_logs') // Name deiner Supabase-Tabelle
+            .select('*')
+            .order('created_at', { ascending: false }) // Die neuesten zuerst
+            .limit(500); // Wie gewünscht auf 500 begrenzt
+
+        if (dbError) {
+            console.error('Supabase DB Error:', dbError);
+            return sendJSONError(res, 500, 'Fehler beim Abrufen der Logs von Supabase.');
+        }
+
+        if (!data || data.length === 0) {
+            return sendJSONError(res, 404, 'Keine Auth-Logs gefunden.');
+        }
+
+        // 2. Daten für den Prompt vorbereiten
+        // Wir kürzen die Daten, falls sie zu lang für einen String sind
+        const logsJsonString = JSON.stringify(data, null, 2);
+        const truncatedLogs = logsJsonString.length > 10000
+            ? logsJsonString.substring(0, 10000) + "\n... (Daten zur Anzeige gekürzt)"
+            : logsJsonString;
+
+        // 3. Prompt für Gemini erstellen
+        const prompt = `
+            Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
+            Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden 500 Authentifizierungs-Logs (Tabelle 'auth_logs') zu erstellen.
+            Die Logs enthalten Felder wie 'ip', 'status' (success/failure), 'attempt_hash', 'user_agent' und 'created_at'.
+
+            Hier sind die Rohdaten (möglicherweise gekürzt):
+            ${truncatedLogs}
+
+            ---
+            AUFGABE:
+            Erstelle einen detaillierten, aber prägnanten Sicherheitsbericht auf Deutsch.
+            Struktur:
+            1.  **Zusammenfassung:** Kurze Übersicht (z.B. "Sicherheitslage stabil", "Auffälligkeiten erkannt").
+            2.  **Trendanalyse:** Gibt es Muster? (z.B. Uhrzeiten von Angriffen, Zunahme von 'failure'-Logs, auffällige User-Agents).
+            3.  **Auffällige Aktivitäten & IPs:** Identifiziere spezifische Bedrohungen.
+                * Gibt es IPs mit extrem vielen 'failure'-Logs (Brute-Force-Versuche)? Liste die Top 3 verdächtigsten IPs auf.
+                * Gibt es IPs mit vielen verschiedenen User-Agents?
+                * Gibt es verdächtige 'success'-Logs nach vielen 'failure'-Logs von derselben IP (möglicher erfolgreicher Einbruch)?
+            4.  **Empfohlene Maßnahmen:** Konkrete, priorisierte Tipps. (z.B. "IP 1.2.3.4 auf Firewall blockieren", "Rate-Limiting für Login-Endpunkt /api/dashboard-check verschärfen").
+            5.  **Sicherheitswarnungen:** (Nur falls akute, offensichtliche Bedrohungen wie ein erfolgreicher Einbruch klar erkennbar sind).
+
+            Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ersten Überschrift (z.B. "## Zusammenfassung").
+        `;
+
+        // 4. Gemini API aufrufen
+        const result = await geminiModel.generateContent(prompt);
+        const response = result.response;
+        const reportText = response.text();
+
+        // 5. Bericht an das Frontend zurücksenden
+        res.json({ ok: true, report: reportText });
+
+    } catch (err) {
+        console.error('Fehler beim Generieren des Sicherheitsberichts:', err);
+        // Untersuche den Fehler: Ist es ein API-Fehler (z.B. Billing) oder ein Serverfehler?
+        if (err.message.includes('API key not valid')) {
+            return sendJSONError(res, 500, 'Gemini API Key ist ungültig.');
+        }
+        sendJSONError(res, 500, 'Fehler bei der Kommunikation mit der Gemini API.');
+    }
+});
 
 app.post('/api/reports',
     tryAuth, // Nutzt das neue Middleware, um Nutzer zu laden (falls vorhanden)
