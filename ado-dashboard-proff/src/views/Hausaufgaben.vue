@@ -310,6 +310,65 @@
           </ul>
         </div>
       </div>
+      <div v-if="user?.isAdmin" class="users-section">
+        <h3>Benutzerverwaltung</h3>
+
+        <button class="btn" @click="loadAllUsers" :disabled="loadingUsers">
+          {{ loadingUsers ? 'Lade...' : 'Alle Benutzer laden' }}
+        </button>
+
+        <div v-if="allUsers.length" class="users-list">
+          <div v-for="u in allUsers" :key="u.id" class="user-card">
+            <div class="user-header">
+              <div class="user-email">{{ u.email }}</div>
+              <div class="user-badges">
+                <span v-if="u.isAdmin" class="badge admin-badge">Admin</span>
+                <span v-if="!u.emailVerified" class="badge warn-badge">Nicht verifiziert</span>
+                <span v-if="!u.doneSetup" class="badge danger-badge">Setup nicht abgeschlossen</span>
+              </div>
+            </div>
+
+            <div class="user-details">
+              <div class="user-info">
+                <div><strong>Kurse:</strong> Enr{{ u.enrKurs }}, WPU1:{{ u.wpuKurs1 }}, WPU2:{{ u.wpuKurs2 }}, Theater:{{ u.theater }}</div>
+                <div><strong>Erstellt:</strong> {{ new Date(u.createdAt).toLocaleString() }}</div>
+                <div><strong>Letzter Login:</strong> {{ u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Nie' }}</div>
+              </div>
+
+              <div class="user-actions">
+                <button
+                    class="btn ghost small"
+                    @click="toggleUserActivity(u.id)"
+                    :disabled="loadingActivities[u.id]"
+                >
+                  {{ showActivityFor === u.id ? 'Aktivitäten verbergen' : 'Aktivitäten anzeigen' }}
+                </button>
+
+                <button
+                    v-if="!u.isAdmin"
+                    class="btn danger small"
+                    @click="deleteUser(u.id)"
+                    :disabled="deletingUsers[u.id]"
+                >
+                  {{ deletingUsers[u.id] ? 'Löscht...' : 'Löschen' }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="showActivityFor === u.id" class="user-activity">
+              <div v-if="loadingActivities[u.id]" class="loader">Lade Aktivitäten...</div>
+              <div v-else-if="userActivities[u.id]?.length" class="activity-list">
+                <div v-for="(activity, index) in userActivities[u.id]" :key="index" class="activity-item">
+                  <div class="activity-time">{{ new Date(activity.at).toLocaleString() }}</div>
+                  <div class="activity-type">{{ activity.type }}</div>
+                  <div v-if="activity.meta" class="activity-meta">{{ JSON.stringify(activity.meta) }}</div>
+                </div>
+              </div>
+              <div v-else class="no-activity">Keine Aktivitäten gefunden</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
@@ -409,6 +468,13 @@ const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
 const loading = ref(true);
 const subjectFilter = ref('');
+
+const allUsers = ref<any[]>([]);
+const loadingUsers = ref(false);
+const showActivityFor = ref<string | null>(null);
+const userActivities = ref<Record<string, any[]>>({});
+const loadingActivities = ref<Record<string, boolean>>({});
+const deletingUsers = ref<Record<string, boolean>>({});
 
 const showOldEntries = ref(false);
 
@@ -589,6 +655,63 @@ function onSetupSuccess(updatedUser: any) {
 function openSetupModal() {
   if (user.value) {
     showSetupModal.value = true;
+  }
+}
+
+
+async function loadAllUsers() {
+  if (!user.value?.isAdmin) return;
+
+  loadingUsers.value = true;
+  try {
+    const { data } = await hw.get('/api/admin/all-users');
+    allUsers.value = data;
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Laden der Benutzer';
+    onItemFormError(errMsg);
+  } finally {
+    loadingUsers.value = false;
+  }
+}
+
+async function toggleUserActivity(userId: string) {
+  if (showActivityFor.value === userId) {
+    showActivityFor.value = null;
+    return;
+  }
+
+  loadingActivities.value[userId] = true;
+  try {
+    const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
+    userActivities.value[userId] = data;
+    showActivityFor.value = userId;
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Laden der Aktivitäten';
+    onItemFormError(errMsg);
+  } finally {
+    loadingActivities.value[userId] = false;
+  }
+}
+
+async function deleteUser(userId: string) {
+  if (!confirm('Möchtest du diesen Benutzer wirklich löschen? Alle seine Einträge werden ebenfalls gelöscht.')) {
+    return;
+  }
+
+  deletingUsers.value[userId] = true;
+  try {
+    await hw.delete(`/api/admin/users/${userId}`);
+
+    // Erfolgsmeldung
+    handleSuccess('Benutzer erfolgreich gelöscht');
+
+    // Aus der Liste entfernen
+    allUsers.value = allUsers.value.filter(u => u.id !== userId);
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Löschen des Benutzers';
+    onItemFormError(errMsg);
+  } finally {
+    deletingUsers.value[userId] = false;
   }
 }
 
@@ -1421,6 +1544,155 @@ li {
 .reds {
   color: #f65252;
   fill: #f65252;
+}
+
+.users-section {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.users-section h3 {
+  margin-bottom: 16px;
+  color: var(--primary);
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.user-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.user-email {
+  font-weight: 600;
+  font-size: 1.1em;
+  color: var(--text);
+}
+
+.user-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.user-badges .badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.admin-badge {
+  background: var(--primary);
+  color: white;
+}
+
+.warn-badge {
+  background: var(--warn);
+  color: black;
+}
+
+.danger-badge {
+  background: var(--danger);
+  color: white;
+}
+
+.user-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.user-info {
+  flex: 1;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+
+.user-info div {
+  margin-bottom: 4px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-activity {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.activity-time {
+  color: var(--muted);
+  font-size: 0.8em;
+  margin-bottom: 4px;
+}
+
+.activity-type {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.activity-meta {
+  color: var(--muted);
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.no-activity {
+  text-align: center;
+  color: var(--muted);
+  font-style: italic;
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .user-details {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 

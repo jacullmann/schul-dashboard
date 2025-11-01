@@ -567,6 +567,53 @@ app.post('/anon/sorgenbox', async (req, res) => {
 
 });
 
+
+
+
+// Route zum Abrufen aller Benutzer (nur Admin)
+app.get('/api/admin/all-users', requireAdmin, async (req, res) => {
+    try {
+        const users = await User.find({})
+            .select('-passwordHash -activity') // Schließt Passwort und Aktivitäten standardmäßig aus
+            .sort({ createdAt: -1 })
+            .lean();
+
+        const usersWithSafeData = users.map(u => ({
+            id: u._id,
+            email: u.email,
+            isAdmin: u.isAdmin,
+            emailVerified: u.emailVerified,
+            createdAt: u.createdAt,
+            lastLoginAt: u.lastLoginAt,
+            enrKurs: u.enrKurs,
+            wpuKurs1: u.wpuKurs1,
+            wpuKurs2: u.wpuKurs2,
+            theater: u.theater,
+            doneSetup: u.doneSetup
+        }));
+
+        res.json(usersWithSafeData);
+    } catch (err) {
+        console.error('GET /api/admin/all-users error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+// Route zum Abrufen der Aktivitäten eines bestimmten Benutzers
+app.get('/api/admin/users/:id/activity', requireAdmin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('activity').lean();
+        if (!user) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
+
+        res.json(user.activity || []);
+    } catch (err) {
+        console.error('GET /api/admin/users/:id/activity error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+
+
 // Add image to an item
 app.post('/api/items/:id/images',
     requireAuth,
