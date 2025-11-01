@@ -342,7 +342,7 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
-import {Images, Image, Flag, Pencil, UserPen, Trash, AlertTriangle} from 'lucide-vue-next';
+import {Images, Flag, Pencil, Trash } from 'lucide-vue-next';
 
 export interface HwItem {
   id: string;

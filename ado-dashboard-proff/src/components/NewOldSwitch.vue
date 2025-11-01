@@ -70,9 +70,9 @@ function toggleState() {
 // Diese Logik war bereits korrekt
 function handleChange(value: boolean) {
   emit('update:modelValue', value)
-  if (value === true) {
+  if (value) {
     message.info('Lade Einträge, die seit mehr als 48 Stunden abgelaufen sind.')
-  } else if (value === false) {
+  } else if (!value) {
     message.info(`Lade Einträge, die noch nicht oder seit höchstens 48 Stunden abgelaufen sind.`)
   }
 }

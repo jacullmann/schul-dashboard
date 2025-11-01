@@ -12,7 +12,7 @@
       </thead>
 
       <tbody>
-      <tr v-for="(scheduleItem, hourIndex) in data" :key="scheduleItem.time">
+      <tr v-for="(scheduleItem) in data" :key="scheduleItem.time">
         <td class="time-label">{{ getHourLabel(scheduleItem.time) }}</td>
 
         <td v-for="day in days" :key="day" class="lesson-cell">

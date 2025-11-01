@@ -183,7 +183,7 @@ import {
   NButton, NCard, NCollapse, NCollapseItem, NTag, NCheckbox, NIcon,
   useMessage
 } from 'naive-ui';
-import {ClipboardList, BookOpen, Clock, AlertTriangle, HelpingHand, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh, ArrowRightIcon, ArrowDownIcon, ListCheckIcon} from 'lucide-vue-next';
+import {ClipboardList, BookOpen, Clock, AlertTriangle, AnnoyedIcon, LockKeyhole, SmilePlus, Laugh, ArrowDownIcon, ListCheckIcon} from 'lucide-vue-next';
 import { h } from 'vue';
 
 const message = useMessage()

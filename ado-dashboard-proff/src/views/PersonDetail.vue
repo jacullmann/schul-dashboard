@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import api from '../api';
-import ChatBox from '../components/ChatBox.vue';
+//import ChatBox from '../components/ChatBox.vue';
 import RatingForm from '../components/RatingForm.vue';
 
 const props = defineProps<{ id: string }>();

@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, onMounted } from 'vue';
+import { h, ref } from 'vue';
 import AuthForm from './Welcome.vue';
 import VocabList from "../components/VocabList.vue";
 const VocabListShow = ref<boolean>(false);

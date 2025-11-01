@@ -14,7 +14,6 @@ const AuthPage = () => import('./views/AuthPage.vue');
 const Aidetector = () => import('./views/aiDetector.vue')
 const Games = () => import('./views/Games.vue')
 const GameDetail = () => import('./views/GameDetail.vue')
-//const Chatter = () => import('./views/TestChat.vue')
 //const News = () => import('./views/News.vue')
 const Finales = () => import('./components/Finaleb.vue')
 
@@ -42,7 +41,6 @@ const routes = [
         props: true
     },
     { path: '/goat', redirect: '/kanye' },
-    //{ path: '/chatter', component: Chatter },
 
 
     {

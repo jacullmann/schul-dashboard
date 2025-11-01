@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
 
 // KORREKTUR: Nur EINE defineProps und defineEmits Definition
