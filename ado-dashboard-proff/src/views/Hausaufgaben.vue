@@ -1420,6 +1420,7 @@ li {
 
 .reds {
   color: #ef4444;
+  fill: #ef4444;
 }
 
 
