@@ -272,13 +272,13 @@ onBeforeUnmount(() => {
 }
 
 .popup-inner {
-  background: #414141;
+  background: #282828;
   border: none;
   border-radius: 8px;
-  padding: 12px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   min-width: 250px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
@@ -291,7 +291,7 @@ onBeforeUnmount(() => {
 .user-email {
   font-weight: 600;
   font-size: 14px;
-  color: var(--text);
+  color: #f1f1f1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 }
 
 .menu-btn:hover {
-  background: #666666;
+  background: #f1f1f1;
 }
 
 .menu-btn.danger {
@@ -371,7 +371,7 @@ onBeforeUnmount(() => {
 
 .confirm-warning {
   font-size: 13px;
-  color: var(--text);
+  color: #f1f1f1;
   margin-bottom: 12px;
 }
 
