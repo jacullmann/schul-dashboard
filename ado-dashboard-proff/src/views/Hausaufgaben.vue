@@ -1110,7 +1110,7 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 .menu-btn:hover { background: #666666; color: white; }
-.menu-btn.danger { background: transparent; color: #ef4444; }
+.menu-btn.danger { background: transparent; color: #f65252; }
 .menu-btn.warn { background: transparent; color: white; }
 
 .menu-btn.danger:hover { background: #666666; }
@@ -1419,8 +1419,8 @@ li {
 
 
 .reds {
-  color: #ef4444;
-  fill: #ef4444;
+  color: #f65252;
+  fill: #f65252;
 }
 
 
