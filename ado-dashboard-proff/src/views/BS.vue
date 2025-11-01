@@ -23,7 +23,7 @@
         <button
             class="btn"
             type="submit"
-            :disabled="submitting || !message.trim() || isCooldown"
+            :disabled="submitting || !message.trim()"
             data-umami-event="Sorgenbox absenden Button"
         >
           <span v-if="!submitting && !isCooldown">Anonym absenden</span>
