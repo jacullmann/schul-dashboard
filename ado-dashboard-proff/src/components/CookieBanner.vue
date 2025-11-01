@@ -23,7 +23,6 @@ const router = useRouter();
 function accept() {
   const payload = { accepted: true, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };
   localStorage.setItem('cookie_consent', JSON.stringify(payload));
-  window.dispatchEvent(new Event('cookie-accepted'));
   visible.value = false;
 }
 function toData(){
@@ -31,7 +30,6 @@ function toData(){
 }
 function revoke() {
   localStorage.removeItem('cookie_consent');
-  window.dispatchEvent(new Event('cookie-revoked'));
   visible.value = false;
 }
 
@@ -54,18 +52,11 @@ function checkShow() {
   }
 }
 
-function onAuthChanged() { checkShow(); }
-function onStorage() { checkShow(); }
-
 onMounted(() => {
   checkShow();
-  window.addEventListener('auth-changed', onAuthChanged);
-  window.addEventListener('storage', onStorage);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('auth-changed', onAuthChanged);
-  window.removeEventListener('storage', onStorage);
 });
 </script>
 

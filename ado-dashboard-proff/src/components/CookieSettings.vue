@@ -32,18 +32,14 @@ onMounted(() => {
 
 function toggleConsent() {
   if (accepted.value) {
-    // Zustimmung speichern
     const expires = new Date()
     expires.setDate(expires.getDate() + 28)
     localStorage.setItem('cookie_consent', JSON.stringify({
       accepted: true,
       expires
     }))
-    window.dispatchEvent(new Event('cookie-accepted'))
   } else {
-    // Zustimmung entfernen
     localStorage.removeItem('cookie_consent')
-    window.dispatchEvent(new Event('cookie-revoked'))
   }
 }
 </script>
