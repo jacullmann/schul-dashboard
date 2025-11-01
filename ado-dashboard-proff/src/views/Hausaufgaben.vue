@@ -7,7 +7,6 @@
       </div>
 
       <div class="row header-actions">
-        <button class="btn ghost" v-if="user" @click="logout">Logout ({{ user.email }})</button>
         <AccountMenu
             v-if="user"
             :email="user.email"
@@ -15,6 +14,7 @@
             @deleted="onAccountDeleted"
             @error="onAccountDeleteError"
             @open-setup="openSetupModal"
+            @logout="logout" <!-- NEU: Logout-Event hinzufügen -->
         />
         <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
