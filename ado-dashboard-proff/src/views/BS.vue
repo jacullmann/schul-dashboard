@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import hw from "../hwApi"
 
@@ -54,6 +54,25 @@ const feedback = ref('');
 const feedbackClass = ref('');
 const cooldownEndTime = ref<number | null>(null);
 const cooldownInterval = ref<NodeJS.Timeout | null>(null);
+
+// localStorage Keys
+const COOLDOWN_KEY = 'sorgenbox_cooldown_end';
+
+// Cooldown beim Laden der Komponente aus localStorage wiederherstellen
+onMounted(() => {
+  const savedCooldown = localStorage.getItem(COOLDOWN_KEY);
+  if (savedCooldown) {
+    const endTime = parseInt(savedCooldown);
+    // Nur wiederherstellen, wenn Cooldown noch nicht abgelaufen ist
+    if (endTime > Date.now()) {
+      cooldownEndTime.value = endTime;
+      startCooldownTimer();
+    } else {
+      // Abgelaufenen Cooldown bereinigen
+      localStorage.removeItem(COOLDOWN_KEY);
+    }
+  }
+});
 
 // Computed properties für Cooldown
 const isCooldown = computed(() => {
@@ -67,20 +86,38 @@ const cooldownSeconds = computed(() => {
   return Math.max(0, remaining);
 });
 
-// Cooldown starten
-function startCooldown() {
-  cooldownEndTime.value = Date.now() + 30000; // 30 Sekunden
+// Cooldown in localStorage speichern
+function saveCooldownToStorage() {
+  if (cooldownEndTime.value) {
+    localStorage.setItem(COOLDOWN_KEY, cooldownEndTime.value.toString());
+  }
+}
 
-  // Interval für Live-Countdown
+// Cooldown aus localStorage entfernen
+function removeCooldownFromStorage() {
+  localStorage.removeItem(COOLDOWN_KEY);
+}
+
+// Cooldown-Timer starten für Live-Anzeige
+function startCooldownTimer() {
+  // Altes Interval bereinigen
   if (cooldownInterval.value) {
     clearInterval(cooldownInterval.value);
   }
 
+  // Neues Interval setzen
   cooldownInterval.value = setInterval(() => {
     if (!cooldownEndTime.value || Date.now() >= cooldownEndTime.value) {
       stopCooldown();
     }
   }, 1000);
+}
+
+// Cooldown starten
+function startCooldown() {
+  cooldownEndTime.value = Date.now() + 30000; // 30 Sekunden
+  saveCooldownToStorage();
+  startCooldownTimer();
 }
 
 // Cooldown stoppen und cleanup
@@ -90,6 +127,7 @@ function stopCooldown() {
     cooldownInterval.value = null;
   }
   cooldownEndTime.value = null;
+  removeCooldownFromStorage();
 }
 
 async function onSubmit() {
@@ -126,7 +164,9 @@ function reset() {
 
 // Cleanup beim Zerstören der Komponente
 onUnmounted(() => {
-  stopCooldown();
+  if (cooldownInterval.value) {
+    clearInterval(cooldownInterval.value);
+  }
 });
 </script>
 
