@@ -21,8 +21,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8090;
-const JWT_SECRET = process.env.JWT_SECRET || 'zwu3i4otuz178n5z87325t7uw4tukwhstfhgskhtgkhsketnshktui45ktksez';
-const CLIENT_ORIGIN = process.env.CORS_ORIGIN || '*';
+const JWT_SECRET = process.env.JWT_SECRET;
+const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboards.onrender.com';
 
 // SendGrid config
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
