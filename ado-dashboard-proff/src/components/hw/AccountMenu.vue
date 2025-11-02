@@ -181,8 +181,10 @@ async function positionPopup() {
   const btnRect = iconBtn.getBoundingClientRect();
   const popupRect = popupEl.getBoundingClientRect();
   const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
   if (vw <= 480) {
+    // Mobile Ansicht - zentriert
     popupStyle.value = {
       position: 'fixed',
       left: '50%',
@@ -193,14 +195,24 @@ async function positionPopup() {
     return;
   }
 
-  let left = btnRect.left + btnRect.width - popupRect.width;
-  if (left < 8) left = 8;
-  if (left + popupRect.width > vw - 8) left = Math.max(8, vw - popupRect.width - 8);
+  // Desktop Ansicht - unter dem Button, links ausgerichtet
+  let left = btnRect.left;
+  let top = btnRect.top + btnRect.height + 8;
+
+  // Prüfen ob das Popup über den rechten Rand hinausragt
+  if (left + popupRect.width > vw - 8) {
+    left = Math.max(8, vw - popupRect.width - 8);
+  }
+
+  // Prüfen ob das Popup über den unteren Rand hinausragt
+  if (top + popupRect.height > vh - 8) {
+    top = Math.max(8, btnRect.top - popupRect.height - 8);
+  }
 
   popupStyle.value = {
     position: 'fixed',
     left: `${Math.round(left)}px`,
-    top: `${Math.round(btnRect.top + btnRect.height + 8)}px`,
+    top: `${Math.round(top)}px`,
     width: `${Math.min(300, popupRect.width || 300)}px`,
   };
 }
@@ -438,10 +450,9 @@ onBeforeUnmount(() => {
   color: #4caf50;
 }
 
-/* Animation */
 .pop-enter-active, .pop-leave-active {
   transition: transform 120ms cubic-bezier(.2,.9,.2,1), opacity 120ms ease;
-  transform-origin: top right;
+  transform-origin: top left; /* Von top-left statt top-right */
 }
 
 .pop-enter-from {
@@ -463,6 +474,9 @@ onBeforeUnmount(() => {
   transform: translateY(-8px) scale(0.98);
   opacity: 0;
 }
+
+/* Für mobile Ansicht weiterhin zentriert */
+
 
 .checkbox-label {
   display: flex;
@@ -514,6 +528,11 @@ onBeforeUnmount(() => {
 
   .popup-inner {
     padding: 10px;
+  }
+}
+@media (max-width: 480px) {
+  .pop-enter-active, .pop-leave-active {
+    transform-origin: top center;
   }
 }
 </style>
