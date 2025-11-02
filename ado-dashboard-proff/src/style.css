@@ -22,7 +22,6 @@ body {
     color: var(--text);
     font-family: 'Roboto Slab', serif;
     position: relative;
-    overflow: hidden;
 }
 button,
 input,
