@@ -2,7 +2,7 @@
   <div class="full">
 
     <Header v-if="$route.path !== '/welcome'"/>
-    <GlobalAnnouncements />
+    <GlobalAnnouncements v-if="isAuthenticated.value"/>
     <main class="full-c">
       <img src="./utils/alt.svg" alt="Background" class="svg-background" />
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
@@ -13,9 +13,7 @@
           <div class="dot-3"></div>
         </div>
       </div>
-      <!-- HIER NEU: MainContent.vue wird geladen -->
       <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
-        <!-- MainContent enthält jetzt NMessageProvider und router-view -->
         <MainContent />
       </div>
     </main>
@@ -33,10 +31,13 @@ import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
+import { useAuth } from './composables/useAuth'
 
 
 const loading = ref(false);
 const router = useRouter();
+
+const isAuthenticated = useAuth();
 
 
 
@@ -136,7 +137,6 @@ router.afterEach(() => {
   100% { transform: translateX(20px) scale(0.1); opacity: 0; }
 }
 
-/* Fix: Setze eine Hintergrundfarbe, damit es nicht weiß blinkt */
 .full-c {
   flex: 1;
   position: relative;
