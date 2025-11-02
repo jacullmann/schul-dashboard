@@ -28,7 +28,6 @@
             data-umami-event="Dashboard Admin Ankündigung hinzufügen"
             class="btn ghost small-btn"
             @click="showAnnouncementForm = true"
-            v-ga-event="{ name: 'add_announcement', params: { method: 'admin_button', label: 'p_b' } }"
         >
           Ankündigung hinzufügen
         </button>

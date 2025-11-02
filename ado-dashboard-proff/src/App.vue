@@ -2,6 +2,7 @@
   <div class="full">
 
     <Header v-if="$route.path !== '/welcome'"/>
+    <GlobalAnnouncements />
     <main class="full-c">
       <img src="./utils/alt.svg" alt="Background" class="svg-background" />
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
@@ -31,6 +32,7 @@ import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
+import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 
 
 const loading = ref(false);
