@@ -419,6 +419,8 @@ onBeforeUnmount(() => {
   font-size: 11px;
   color: var(--muted);
   line-height: 1.4;
+  max-height: 110px ;
+  overflow-y: scroll;
 }
 
 .confirm-actions {
