@@ -38,7 +38,7 @@ function colorFor(color) {
 <style scoped>
 .global-announcements {
   position: fixed;
-  top: 62px; /* Höhe des Headers anpassen */
+  top: 65px; /* Höhe des Headers anpassen */
   left: 0;
   width: 100%;
   z-index: 1000;
