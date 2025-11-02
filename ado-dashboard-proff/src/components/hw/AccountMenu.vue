@@ -91,7 +91,7 @@
               <button
                   class="btn danger small"
                   @click="confirmDelete"
-                  :disabled="submitting || understoodChecked"
+                  :disabled="submitting || !understoodChecked"
               >
                 {{ submitting ? 'Löscht...' : 'Account Löschen' }}
               </button>
