@@ -279,7 +279,6 @@ onBeforeUnmount(() => {
   color: #f1f1f1;
 }
 
-/* Popup - ähnlich wie item-menu */
 .popup {
   z-index: 1400;
   pointer-events: auto;
@@ -293,7 +292,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 250px;
+  min-width: 320px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
