@@ -345,6 +345,18 @@
 
                 <button
                     v-if="!u.isAdmin"
+                    class="btn small"
+                    :class="{ 'danger': !u.isBanned, 'ghost': u.isBanned }"
+                    @click="toggleBan(u)"
+                    :disabled="togglingBan[u.id] || deletingUsers[u.id]"
+                >
+                  <span v-if="togglingBan[u.id]">...</span>
+                  <span v-else-if="u.isBanned">Entbannen</span>
+                  <span v-else>Bannen</span>
+                </button>
+
+                <button
+                    v-if="!u.isAdmin"
                     class="btn danger small"
                     @click="deleteUser(u.id)"
                     :disabled="deletingUsers[u.id]"
@@ -433,7 +445,6 @@ import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
-import {Images, Flag, Pencil, Trash } from 'lucide-vue-next';
 import { marked } from 'marked';
 
 export interface HwItem {
@@ -474,6 +485,8 @@ const showActivityFor = ref<string | null>(null);
 const userActivities = ref<Record<string, any[]>>({});
 const loadingActivities = ref<Record<string, boolean>>({});
 const deletingUsers = ref<Record<string, boolean>>({});
+
+const togglingBan = ref<Record<string, boolean>>({});
 
 const showOldEntries = ref(false);
 
@@ -711,6 +724,30 @@ async function deleteUser(userId: string) {
     onItemFormError(errMsg);
   } finally {
     deletingUsers.value[userId] = false;
+  }
+}
+
+async function toggleBan(user: any) {
+  if (!user || user.isAdmin) return;
+
+  togglingBan.value[user.id] = true;
+  try {
+    if (user.isBanned) {
+      // User ist gebannt -> wir wollen entbannen (DELETE)
+      await hw.delete(`/api/admin/users/${user.id}/ban`);
+      user.isBanned = false; // Lokalen Status aktualisieren
+      handleSuccess('Benutzer erfolgreich entbannt.');
+    } else {
+      // User ist nicht gebannt -> wir wollen bannen (POST)
+      await hw.post(`/api/admin/users/${user.id}/ban`);
+      user.isBanned = true; // Lokalen Status aktualisieren
+      handleSuccess('Benutzer erfolgreich gesperrt.');
+    }
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Ändern des Bann-Status';
+    onItemFormError(errMsg);
+  } finally {
+    togglingBan.value[user.id] = false;
   }
 }
 

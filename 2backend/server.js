@@ -96,6 +96,14 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model('HwUser', UserSchema);
 
 
+const BannedUserSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'HwUser', index: true, unique: true, required: true },
+    bannedAt: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+const BannedUser = mongoose.model('HwBannedUser', BannedUserSchema);
+
+
 const dashboardLimiter = rateLimit({
     windowMs: 30 * 60 * 1000,
     max: 15,
@@ -189,7 +197,16 @@ function authMiddleware(req, res, next) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
-        next();
+
+        // HIER PRÜFEN WIR AUF BANN (Einfügen)
+        (async () => {
+            const isBanned = await BannedUser.findOne({ userId: decoded.sub }).lean();
+            if (isBanned) {
+                return sendJSONError(res, 401, 'Dein Account wurde gesperrt.');
+            }
+            next(); // Erst hier next() aufrufen
+        })();
+
     } catch {
         return sendJSONError(res, 401, 'Ungültiges Token');
     }
@@ -199,6 +216,7 @@ function authMiddleware(req, res, next) {
 function sendJSONError(res, status, msg, errors) {
     return res.status(status).json({ error: msg, errors });
 }
+
 function requireAuth(req, res, next) {
     const hdr = req.headers.authorization || '';
     const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
@@ -206,11 +224,20 @@ function requireAuth(req, res, next) {
     try {
         const payload = jwt.verify(token, JWT_SECRET);
         req.user = payload;
-        next();
+
+        (async () => {
+            const isBanned = await BannedUser.findOne({ userId: payload.sub }).lean();
+            if (isBanned) {
+                return sendJSONError(res, 401, 'Dein Account wurde gesperrt.');
+            }
+            next();
+        })();
+
     } catch {
         return sendJSONError(res, 401, 'Unauthorized');
     }
 }
+
 async function requireAdmin(req, res, next) {
     requireAuth(req, res, async () => {
         const user = await User.findById(req.user.sub);
@@ -385,6 +412,10 @@ app.post('/api/auth/login',
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
         if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
+        const isBanned = await BannedUser.findOne({ userId: user._id }).lean();
+        if (isBanned) {
+            return sendJSONError(res, 403, 'Dein Account wurde gesperrt.');
+        }
         const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
         await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
         res.json({ token });
@@ -578,6 +609,9 @@ app.get('/api/admin/all-users', requireAdmin, async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
+        const bannedDocs = await BannedUser.find({}).select('userId').lean();
+        const bannedIds = new Set(bannedDocs.map(b => b.userId.toString()));
+
         const usersWithSafeData = users.map(u => ({
             id: u._id,
             email: u.email,
@@ -589,7 +623,8 @@ app.get('/api/admin/all-users', requireAdmin, async (req, res) => {
             wpuKurs1: u.wpuKurs1,
             wpuKurs2: u.wpuKurs2,
             theater: u.theater,
-            doneSetup: u.doneSetup
+            doneSetup: u.doneSetup,
+            isBanned: bannedIds.has(u._id.toString())
         }));
 
         res.json(usersWithSafeData);
@@ -839,7 +874,6 @@ app.delete('/api/items/:id', requireAuth, async (req, res) => {
     res.json({ ok: true });
 });
 
-// New endpoints for "checked" state handling
 
 // Get checked items for current user (returns array of itemId strings)
 app.get('/api/checks/me', requireAuth, async (req, res) => {
@@ -909,6 +943,39 @@ app.delete('/api/auth/me', requireAuth, async (req, res) => {
         res.json({ ok: true });
     } catch (err) {
         console.error('DELETE /api/auth/me error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+app.post('/api/admin/users/:id/ban', requireAdmin, param('id').isMongoId(), validate, async (req, res) => {
+    try {
+        const userToBan = await User.findById(req.params.id).lean();
+        if (!userToBan) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
+        if (userToBan.isAdmin) return sendJSONError(res, 400, 'Admins können nicht gesperrt werden');
+
+        await BannedUser.updateOne(
+            { userId: userToBan._id },
+            { $set: { bannedAt: new Date() } },
+            { upsert: true }
+        );
+
+        await logActivity(req.user.sub, 'admin:ban:user', { targetUserId: userToBan._id });
+        res.json({ ok: true, isBanned: true });
+    } catch (err) {
+        console.error('POST /api/admin/users/:id/ban error', err);
+        sendJSONError(res, 500, 'Server error');
+    }
+});
+
+app.delete('/api/admin/users/:id/ban', requireAdmin, param('id').isMongoId(), validate, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        await BannedUser.deleteOne({ userId: userId });
+
+        await logActivity(req.user.sub, 'admin:unban:user', { targetUserId: userId });
+        res.json({ ok: true, isBanned: false });
+    } catch (err) {
+        console.error('DELETE /api/admin/users/:id/ban error', err);
         sendJSONError(res, 500, 'Server error');
     }
 });
