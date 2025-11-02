@@ -280,8 +280,10 @@ onBeforeUnmount(() => {
 }
 
 .popup {
-  z-index: 1400;
+  z-index: 140000000000000;
   pointer-events: auto;
+  left: 30%;
+
 }
 
 .popup-inner {
@@ -493,6 +495,7 @@ onBeforeUnmount(() => {
 }
 
 .checkbox-input:checked + .checkbox-custom::after {
+  content: '✓';
   color: white;
   font-size: 12px;
 }
