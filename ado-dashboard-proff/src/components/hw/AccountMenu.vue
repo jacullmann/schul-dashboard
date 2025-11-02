@@ -466,7 +466,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 8px;
   color: var(--muted);
   cursor: pointer;
   margin-top: 8px;
@@ -489,8 +489,8 @@ onBeforeUnmount(() => {
 }
 
 .checkbox-input:checked + .checkbox-custom {
-  background: #f65252;
-  border-color: #f65252;
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .checkbox-input:checked + .checkbox-custom::after {
