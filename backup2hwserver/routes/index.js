@@ -2,7 +2,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { generalLimiter } from '../middleware/rateLimit.js';
 import authRoutes from './auth.js';
 import itemRoutes from './items.js';
 import adminRoutes from './admin.js';
@@ -16,11 +15,16 @@ import dashboardRoutes from './dashboard.js';
 
 const router = express.Router();
 
-// Apply general rate limiting to all routes
-router.use(generalLimiter);
+// Apply general rate limiting to all API routes
+router.use(rateLimit({
+    windowMs: 60_000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false
+}));
 
-// Mount routes
-router.use('/', authRoutes);
+// Mount routes with correct paths
+router.use('/auth', authRoutes);
 router.use('/items', itemRoutes);
 router.use('/admin', adminRoutes);
 router.use('/announcements', announcementRoutes);

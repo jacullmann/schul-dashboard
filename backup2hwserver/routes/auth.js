@@ -16,7 +16,7 @@ import config from '../config/index.js';
 const router = express.Router();
 
 // Registration
-router.post('/auth/register',
+router.post('/register',
     body('email').isEmail(),
     body('password').isString().isLength({ min: 8 }),
     validate,
@@ -44,7 +44,7 @@ router.post('/auth/register',
 );
 
 // Email verification
-router.get('/auth/verify',
+router.get('/verify',
     query('token').isString().isLength({ min: 10 }),
     validate,
     async (req, res) => {
@@ -59,7 +59,7 @@ router.get('/auth/verify',
 );
 
 // Login
-router.post('/auth/login',
+router.post('/login',
     body('email').isEmail(),
     body('password').isString().isLength({ min: 8 }),
     validate,
@@ -81,7 +81,7 @@ router.post('/auth/login',
 );
 
 // Get current user
-router.get('/auth/me', requireAuth, async (req, res) => {
+router.get('/me', requireAuth, async (req, res) => {
     const user = await User.findById(req.user.sub).lean();
     if (!user) {
         return sendJSONError(res, 404, 'Ungültiges Token.');
@@ -100,7 +100,7 @@ router.get('/auth/me', requireAuth, async (req, res) => {
 });
 
 // User setup
-router.patch('/user/setup',
+router.patch('/setup',
     requireAuth,
     body('enrKurs').exists().withMessage('enrKurs ist erforderlich').isInt({ min: 0 }).toInt(),
     body('wpuKurs1').exists().withMessage('wpuKurs1 ist erforderlich').isInt({ min: 0 }).toInt(),
@@ -148,7 +148,7 @@ router.patch('/user/setup',
 );
 
 // Delete own account
-router.delete('/auth/me', requireAuth, async (req, res) => {
+router.delete('/me', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.user.sub);
         if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
@@ -164,7 +164,7 @@ router.delete('/auth/me', requireAuth, async (req, res) => {
 });
 
 // Password reset - forgot
-router.post('/auth/forgot',
+router.post('/forgot',
     body('email').isEmail(),
     validate,
     async (req, res) => {
@@ -196,7 +196,7 @@ router.post('/auth/forgot',
 );
 
 // Password reset - verify code
-router.post('/auth/reset/verify',
+router.post('/reset/verify',
     body('email').isEmail(),
     body('code').isString().isLength({ min: 6, max: 6 }),
     validate,
@@ -222,7 +222,7 @@ router.post('/auth/reset/verify',
 );
 
 // Password reset - final reset
-router.post('/auth/reset',
+router.post('/reset',
     body('resetToken').isString(),
     body('password').isString().isLength({ min: 8 }),
     validate,

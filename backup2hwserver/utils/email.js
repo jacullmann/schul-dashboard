@@ -1,5 +1,5 @@
 // utils/email.js
-import sgClient from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 import { SENDGRID_API_KEY, SENDGRID_FROM } from '../config/index.js';
 
 export async function sendVerificationEmail(to, verifyUrl) {
@@ -10,7 +10,7 @@ export async function sendVerificationEmail(to, verifyUrl) {
         subject: 'Bitte E-Mail bestätigen',
         html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
     };
-    return sgClient.send(msg);
+    return sgMail.send(msg);
 }
 
 export async function sendPasswordResetEmail(to, code) {
@@ -23,5 +23,5 @@ export async function sendPasswordResetEmail(to, code) {
            <p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p>
            <p>Dieser Code ist 30 Minuten gültig.</p>`
     };
-    return sgClient.send(msg);
+    return sgMail.send(msg);
 }

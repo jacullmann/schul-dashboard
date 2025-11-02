@@ -6,21 +6,22 @@ import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
 
-import config from './config/index.js';
-import routes from './routes/index.js';
 import { ensureSubjects } from './models/Subject.js';
+import routes from './routes/index.js';
 
 const app = express();
 const PORT = process.env.PORT || 8090;
 
-// Security & utils
+// Security & utils (EXAKT wie vorher)
 app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: config.CLIENT_ORIGIN, credentials: true }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || 'https://schul-dashboards.onrender.com', credentials: true }));
 app.use(morgan('combined'));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
+app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
 // Database connection
 await mongoose.connect(process.env.MONGODB_URI);
