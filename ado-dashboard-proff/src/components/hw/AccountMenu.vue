@@ -493,7 +493,6 @@ onBeforeUnmount(() => {
 }
 
 .checkbox-input:checked + .checkbox-custom::after {
-  content: '✓';
   color: white;
   font-size: 12px;
 }
