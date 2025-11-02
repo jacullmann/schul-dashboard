@@ -340,7 +340,7 @@
                     @click="toggleUserActivity(u.id)"
                     :disabled="loadingActivities[u.id]"
                 >
-                  {{ showActivityFor === u.id ? 'Aktivitäten verbergen' : 'Aktivitäten anzeigen' }}
+                  {{ showActivityFor === u.id ? 'Logs verbergen' : 'Logs laden' }}
                 </button>
 
                 <button
@@ -351,8 +351,8 @@
                     :disabled="togglingBan[u.id] || deletingUsers[u.id]"
                 >
                   <span v-if="togglingBan[u.id]">...</span>
-                  <span v-else-if="u.isBanned">Entbannen</span>
-                  <span v-else>Bannen</span>
+                  <span v-else-if="u.isBanned">Account entsperren</span>
+                  <span v-else>Account sperren</span>
                 </button>
 
                 <button
@@ -733,18 +733,16 @@ async function toggleBan(user: any) {
   togglingBan.value[user.id] = true;
   try {
     if (user.isBanned) {
-      // User ist gebannt -> wir wollen entbannen (DELETE)
       await hw.delete(`/api/admin/users/${user.id}/ban`);
-      user.isBanned = false; // Lokalen Status aktualisieren
-      handleSuccess('Benutzer erfolgreich entbannt.');
+      user.isBanned = false;
+      handleSuccess('Benutzer erfolgreich entsperrt.');
     } else {
-      // User ist nicht gebannt -> wir wollen bannen (POST)
       await hw.post(`/api/admin/users/${user.id}/ban`);
-      user.isBanned = true; // Lokalen Status aktualisieren
+      user.isBanned = true;
       handleSuccess('Benutzer erfolgreich gesperrt.');
     }
   } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Ändern des Bann-Status';
+    const errMsg = e.response?.data?.error || 'Fehler beim Ändern des Sperr-Status des Accounts.';
     onItemFormError(errMsg);
   } finally {
     togglingBan.value[user.id] = false;

@@ -47,7 +47,6 @@ if (!SENDGRID_API_KEY) {
     sgClient.setApiKey(SENDGRID_API_KEY);
     (async () => {
         try {
-            // leichter API-Check; liefert Fehler, falls Key ungültig oder Netzwerk gesperrt
             await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
             console.log('SendGrid API erreichbar und konfiguriert.');
         } catch (err) {
@@ -198,13 +197,12 @@ function authMiddleware(req, res, next) {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded;
 
-        // HIER PRÜFEN WIR AUF BANN (Einfügen)
         (async () => {
             const isBanned = await BannedUser.findOne({ userId: decoded.sub }).lean();
             if (isBanned) {
-                return sendJSONError(res, 401, 'Dein Account wurde gesperrt.');
+                return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
             }
-            next(); // Erst hier next() aufrufen
+            next();
         })();
 
     } catch {
@@ -228,7 +226,7 @@ function requireAuth(req, res, next) {
         (async () => {
             const isBanned = await BannedUser.findOne({ userId: payload.sub }).lean();
             if (isBanned) {
-                return sendJSONError(res, 401, 'Dein Account wurde gesperrt.');
+                return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
             }
             next();
         })();
@@ -414,7 +412,7 @@ app.post('/api/auth/login',
         if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
         const isBanned = await BannedUser.findOne({ userId: user._id }).lean();
         if (isBanned) {
-            return sendJSONError(res, 403, 'Dein Account wurde gesperrt.');
+            return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
         }
         const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
         await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
@@ -951,7 +949,7 @@ app.post('/api/admin/users/:id/ban', requireAdmin, param('id').isMongoId(), vali
     try {
         const userToBan = await User.findById(req.params.id).lean();
         if (!userToBan) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
-        if (userToBan.isAdmin) return sendJSONError(res, 400, 'Admins können nicht gesperrt werden');
+        if (userToBan.isAdmin) return sendJSONError(res, 400, 'Du kannst keine Admins bannen.');
 
         await BannedUser.updateOne(
             { userId: userToBan._id },

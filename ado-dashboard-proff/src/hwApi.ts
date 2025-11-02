@@ -7,21 +7,16 @@ const hw = axios.create({
 });
 
 hw.interceptors.response.use(
-    (response) => response, // Erfolgreiche Antworten einfach durchlassen
+    (response) => response,
     (error) => {
-        // Prüfen, ob der Fehler eine 401-Antwort vom Server ist
         if (error.response && error.response.status === 401) {
-            // Prüfen, ob überhaupt ein Token im localStorage war.
-            // Wir wollen niemanden ausloggen, der nur die Login-Seite besucht.
             const storedToken = localStorage.getItem('hw_token');
             if (storedToken) {
-                console.warn('API returned 401. Token ungültig oder User gesperrt. Forcing logout.');
-                // Nutze deine existierende setHwToken Funktion, um alles aufzuräumen
+                console.warn('401. Ungültiges Token. Forciere Logout.');
                 setHwToken(null, null);
 
             }
         }
-        // Wichtig: Den Fehler weitergeben, damit .catch() Blöcke ihn fangen können
         return Promise.reject(error);
     }
 );
