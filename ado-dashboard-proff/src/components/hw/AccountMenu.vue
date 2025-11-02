@@ -70,8 +70,20 @@
               <strong>Account unwiderruflich löschen?</strong>
               <div class="confirm-text">E-Mail: {{ email }}</div>
               <div class="confirm-note">
-                Deine Einträge und Bilder bleiben erhalten. Du kannst später einen neuen Account erstellen.
+                Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladenen Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account geschlossen wird.
+
+                Du kannst jederzeit einen neuen Account erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Account verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
+
               </div>
+              <label class="checkbox-label">
+                <input
+                    type="checkbox"
+                    v-model="understoodChecked"
+                    class="checkbox-input"
+                >
+                <span class="checkbox-custom"></span>
+                Ich verstehe, dass ich hiermit meinen Account unwiderruflich lösche.
+              </label>
             </div>
 
             <div class="confirm-actions">
@@ -79,9 +91,9 @@
               <button
                   class="btn danger small"
                   @click="confirmDelete"
-                  :disabled="submitting"
+                  :disabled="submitting || understoodChecked"
               >
-                {{ submitting ? 'Löscht...' : 'Löschen' }}
+                {{ submitting ? 'Löscht...' : 'Account Löschen' }}
               </button>
             </div>
           </div>
@@ -116,6 +128,7 @@ const confirming = ref(false);
 const submitting = ref(false);
 const errorMsg = ref('');
 const successMsg = ref('');
+const understoodChecked = ref(false);
 
 const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
@@ -147,6 +160,7 @@ function close() {
 
 function startDelete() {
   confirming.value = true;
+  understoodChecked.value = false;
   clearMessages();
 }
 
@@ -446,6 +460,47 @@ onBeforeUnmount(() => {
 .pop-leave-to {
   transform: translateY(-8px) scale(0.98);
   opacity: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  margin-top: 8px;
+  padding: 4px 0;
+}
+
+.checkbox-input {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #666;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.checkbox-input:checked + .checkbox-custom {
+  background: #f65252;
+  border-color: #f65252;
+}
+
+.checkbox-input:checked + .checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+}
+
+.checkbox-label:hover .checkbox-custom {
+  border-color: #888;
 }
 
 /* Responsive */
