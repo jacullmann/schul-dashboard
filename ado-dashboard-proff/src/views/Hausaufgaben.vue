@@ -44,7 +44,7 @@
         </div>
       </div>-->
 
-      <hr v-else-if="!announcements.length" />
+      <!--<hr v-else-if="!announcements.length" />-->
     </div>
 
     <div class="tabs-row">
