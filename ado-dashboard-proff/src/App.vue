@@ -2,7 +2,7 @@
   <div class="full">
 
     <Header v-if="$route.path !== '/welcome'"/>
-    <GlobalAnnouncements v-if="isAuthenticated.value"/>
+    <GlobalAnnouncements />
     <main class="full-c">
       <img src="./utils/alt.svg" alt="Background" class="svg-background" />
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
@@ -31,13 +31,10 @@ import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
-import { useAuth } from './composables/useAuth'
 
 
 const loading = ref(false);
 const router = useRouter();
-
-const isAuthenticated = useAuth();
 
 
 
