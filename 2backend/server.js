@@ -1052,11 +1052,9 @@ app.post('/api/auth/reset/verify',
             if (!pr) return sendJSONError(res, 400, 'Ungültiger Code');
             if (dayjs(pr.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Code abgelaufen');
 
-            // mark as used so it cannot be reused
             pr.used = true;
             await pr.save();
 
-            // create a short-lived JWT token to authorize the actual password change (valid 15 minutes)
             const resetToken = jwt.sign({ email, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
 
             res.json({ ok: true, resetToken });
