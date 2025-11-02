@@ -437,7 +437,7 @@ onBeforeUnmount(() => {
 
 /* Animation */
 .pop-enter-active, .pop-leave-active {
-  transition: transform 180ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease;
+  transition: transform 120ms cubic-bezier(.2,.9,.2,1), opacity 120ms ease;
   transform-origin: top right;
 }
 
@@ -465,7 +465,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: 10px;
   color: var(--muted);
   cursor: pointer;
   margin-top: 8px;
