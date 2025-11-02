@@ -280,7 +280,8 @@ onBeforeUnmount(() => {
 }
 
 .popup {
-  z-index: 140000000000000;
+  z-index: 140000000000000000000000000000;
+  position: absolute;
   pointer-events: auto;
   left: 30%;
 
