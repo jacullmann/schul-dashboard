@@ -1,5 +1,5 @@
 <template>
-  <div class="global-announcements" v-if="announcements.length">
+  <div class="global-announcements" v-if="announcements.length && !isWelcomePage">
     <div v-for="a in announcements" :key="a._id" class="global-ann" :style="{ backgroundColor: colorFor(a.color) }">
       <div class="global-ann-content">
         <strong>{{ a.title }}</strong>: {{ a.content }}
@@ -9,17 +9,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import hw from '../hwApi'
 
 const announcements = ref([])
+const route = useRoute()
+
+const isWelcomePage = computed(() => route.path === '/welcome')
 
 onMounted(async () => {
-  try {
-    const { data } = await hw.get('/api/announcements')
-    announcements.value = data
-  } catch (error) {
-    console.error('Fehler beim Laden der globalen Ankündigungen', error)
+  if (!isWelcomePage.value) {
+    try {
+      const { data } = await hw.get('/api/announcements')
+      announcements.value = data
+    } catch (error) {
+      console.error('Fehler beim Laden der globalen Ankündigungen', error)
+    }
   }
 })
 
