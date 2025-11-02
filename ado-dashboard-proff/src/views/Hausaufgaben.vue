@@ -33,7 +33,7 @@
         </button>
       </div>
 
-      <!--<div v-if="announcements.length" class="ann-list">
+      <div v-if="announcements.length && user?.isAdmin" class="ann-list">
         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
           <div class="ann-title">{{ a.title }}</div>
           <div class="ann-content">{{ a.content }}</div>
@@ -42,9 +42,9 @@
             <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
           </div>
         </div>
-      </div>-->
+      </div>
 
-      <!--<hr v-else-if="!announcements.length" />-->
+      <hr v-else-if="!announcements.length" />
     </div>
 
     <div class="tabs-row">
