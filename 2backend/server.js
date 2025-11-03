@@ -1119,8 +1119,8 @@ app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
         // 2. Daten für den Prompt vorbereiten
         // Wir kürzen die Daten, falls sie zu lang für einen String sind
         const logsJsonString = JSON.stringify(data, null, 2);
-        const truncatedLogs = logsJsonString.length > 10000
-            ? logsJsonString.substring(0, 10000) + "\n... (Daten zur Anzeige gekürzt)"
+        const truncatedLogs = logsJsonString.length > 50000
+            ? logsJsonString.substring(0, 50000) + "\n... (Daten zur Anzeige gekürzt)"
             : logsJsonString;
 
         // 3. Prompt für Gemini erstellen

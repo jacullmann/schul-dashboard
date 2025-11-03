@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header-container container">
-      <router-link  v-ga-event="{ name: 'logo_click', params: { method: 'logo', label: 'main_logo' } }" to="/" class="logo-group" @click="closeNav">
+      <router-link to="/" class="logo-group" @click="closeNav">
         <Logo class="logo-img" aria-hidden="true" />
         <span class="logo-text">Dashboard</span>
       </router-link>
