@@ -4,7 +4,7 @@
     <Header v-if="$route.path !== '/welcome'"/>
     <GlobalAnnouncements />
     <main class="full-c">
-      <img src="./utils/alt.svg" alt="Background" class="svg-background" />
+      <img src="./utils/alt.svg" alt="Background" class="svg-background" v-if="deviceIsMobile"/>
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
       <div v-if="loading" class="loading-overlay" key="loading">
         <div class="elegant-spinner">
@@ -33,6 +33,9 @@ import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 
 
+const deviceIsMobile = ref(false)
+
+
 const loading = ref(false);
 const router = useRouter();
 
@@ -44,7 +47,14 @@ let loadStartTime = 0;
 
 
 
+const checkIfMobile = () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobileUserAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+  const isSmallScreen = window.innerWidth <= 768;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
+  deviceIsMobile.value = isMobileUserAgent || (isSmallScreen && isTouchDevice);
+};
 
 router.beforeEach(() => {
   loading.value = true;
@@ -62,6 +72,10 @@ router.afterEach(() => {
   } else {
     loading.value = false;
   }
+});
+
+onMounted(() => {
+  checkIfMobile();
 });
 </script>
 
