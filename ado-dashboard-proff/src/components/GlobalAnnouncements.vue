@@ -44,7 +44,7 @@ function colorFor(color) {
 <style scoped>
 .global-announcements {
   position: fixed;
-  top: 65px; /* Höhe des Headers anpassen */
+  top: 65px;
   left: 0;
   width: 100%;
   z-index: 1000;
@@ -63,5 +63,11 @@ function colorFor(color) {
 .global-ann-content {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+@media (max-width: 500px) {
+  .global-announcements {
+    top: 70px;
+  }
 }
 </style>
