@@ -115,14 +115,22 @@ async function uploadImg() {
   input.type = 'file';
   input.accept = 'image/*';
   input.multiple = true;
+
+  // Reset uploading state if user cancels
+  input.oncancel = () => {
+    uploading.value = false;
+  };
+
   input.onchange = async () => {
     const files = Array.from(input.files || []);
-    if (!files.length) return;
+    if (!files.length) {
+      uploading.value = false;
+      return;
+    }
 
     uploading.value = true;
     message.value = '';
     isError.value = false;
-
 
     const existingCount = (currentImages.value || []).length;
     const MAX_IMAGES = 15;
@@ -174,6 +182,16 @@ async function uploadImg() {
 
     uploading.value = false;
   };
+
+  // Setze einen Timeout als Fallback
+  setTimeout(() => {
+    if (uploading.value) {
+      if (!document.body.contains(input)) {
+        uploading.value = false;
+      }
+    }
+  }, 1000);
+
   input.click();
 }
 

@@ -164,13 +164,18 @@ async function uploadImage() {
   input.type = 'file';
   input.accept = 'image/*';
   input.multiple = true;
+
+  // Reset uploading state if user cancels
+  input.oncancel = () => {
+    uploading.value = false;
+  };
+
   input.onchange = async () => {
     const files = Array.from(input.files || []);
     if (files.length === 0) {
       uploading.value = false;
       return;
     }
-
 
     const existingCount = (images.value || []).length;
     const MAX_IMAGES = 12;
@@ -219,6 +224,17 @@ async function uploadImage() {
 
     uploading.value = false;
   };
+
+  // Setze einen Timeout als Fallback für den Fall, dass oncancel nicht funktioniert
+  setTimeout(() => {
+    if (uploading.value) {
+      // Prüfe ob das input Element noch im DOM ist (Dialog noch offen)
+      if (!document.body.contains(input)) {
+        uploading.value = false;
+      }
+    }
+  }, 1000);
+
   input.click();
 }
 
