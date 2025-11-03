@@ -108,11 +108,11 @@ footer {
         display: none;
     }
     .card {
-        margin: 1px;
+        margin: 2px;
     }
     .container {
         margin: 0 auto;
-        padding: 16px;
+        padding: 18px;
         background: var(--bg);
 
     }
