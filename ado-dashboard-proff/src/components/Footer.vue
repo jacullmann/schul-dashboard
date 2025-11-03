@@ -122,7 +122,7 @@ function handleClick() {
 .footer-columns {
   display: flex;
   justify-content: flex-start;
-  gap: 3rem;
+  gap: 4rem;
   flex-wrap: wrap;
 }
 
@@ -156,7 +156,7 @@ function handleClick() {
 
 .footer-bottom {
   border-top: 1px solid #333;
-  padding: 1rem 0;
+  padding: 2rem 1px;
   font-size: 0.8rem;
 }
 
