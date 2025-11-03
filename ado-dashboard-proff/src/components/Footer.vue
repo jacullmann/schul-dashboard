@@ -95,9 +95,9 @@ function handleClick() {
 
 <style scoped>
 .footer {
-  background-color:var(--bg);
+  background-color: var(--bg);
   color: #f1f1f1;
-  padding-top: 2rem;
+  padding: 2rem 5px 5px;
   border-top: 1px solid #333;
 }
 .superjob {
