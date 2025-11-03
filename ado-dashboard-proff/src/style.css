@@ -101,3 +101,19 @@ footer {
 
 
 }
+@media (max-width: 500px) {
+
+    .svg-background {
+
+        display: none;
+    }
+    .card {
+        margin: 0;
+    }
+    .container {
+        margin: 0 auto;
+        padding: 2px;
+
+    }
+
+}
