@@ -76,16 +76,6 @@ await mongoose.connect(process.env.MONGODB_URI);
 const models = initModels(mongoose); // returns all models and helpers
 await ensureSubjects(models.Subject);
 
-try {
-    await mongoose.connection.db.collection('hwitems').createIndex({ type: 1, dueDate: 1 });
-    await mongoose.connection.db.collection('hwitems').createIndex({ createdBy: 1 });
-    await mongoose.connection.db.collection('hwkeepcheckeds').createIndex({ userId: 1, itemId: 1 });
-    await mongoose.connection.db.collection('hwusers').createIndex({ email: 1 });
-    console.log('✅ Datenbank-Indexe erstellt - Performance boost aktiviert!');
-} catch (error) {
-    console.log('ℹ️  Indexe existieren bereits oder konnten nicht erstellt werden');
-}
-
 // Mount routes (routes.js will register all endpoints)
 routes(app, {
     mongoose,
