@@ -1,217 +1,152 @@
-// routes.js
+import rateLimit from 'express-rate-limit';
 import { body, param, query, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import dayjs from 'dayjs';
-import { v2 as cloudinary } from 'cloudinary';
-import sgClient from '@sendgrid/mail';
-import { createClient } from '@supabase/supabase-js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import rateLimit from 'express-rate-limit';
+import { buildThumbUrl, withThumb, timeLeftColor } from './models.js';
 
-import {
-    User, BannedUser, Verification, Subject, Announcement,
-    Item, KeepChecked, Report, SorgenModel, PasswordReset
-} from './models.js';
-import {
-    JWT_SECRET, SENDGRID_API_KEY, SENDGRID_FROM, GEMINI_API_KEY,
-    CLIENT_VERIFY_URL, DEFAULT_SUBJECTS, CLOUDINARY_CONFIG, SUPABASE_CONFIG
-} from './config.js';
+export default function registerRoutes(app, deps) {
+    const {
+        mongoose,
+        models,
+        supabase,
+        cloudinary,
+        sgClient,
+        geminiModel,
+        sendgridConfigured,
+        sendgridFrom,
+        jwtSecret,
+        dashboardSecret
+    } = deps;
 
-// Configurations
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.serviceRoleKey);
-cloudinary.config(CLOUDINARY_CONFIG);
+    const {
+        User,
+        BannedUser,
+        Verification,
+        Subject,
+        Announcement,
+        Item,
+        KeepChecked,
+        Report,
+        Sorgen,
+        PasswordReset
+    } = models;
 
-// Rate limiters
-export const dashboardLimiter = rateLimit({
-    windowMs: 30 * 60 * 1000,
-    max: 15,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { ok: false, error: 'Zu viele Versuche - IP gesperrt. Versuch es in 30 Minuten wieder.' },
-    statusCode: 429,
-});
-
-// Helper functions
-export function sendJSONError(res, status, msg, errors) {
-    return res.status(status).json({ error: msg, errors });
-}
-
-export function timeLeftColor(dueDate) {
-    const now = dayjs();
-    const due = dayjs(dueDate);
-    const diffDays = due.diff(now, 'day', true);
-    if (diffDays < 0) return 'expired';
-    if (diffDays < 1) return 'danger';
-    if (diffDays < 2) return 'warn';
-    if (diffDays < 3) return 'normal';
-    return 'ok';
-}
-
-export function buildThumbUrl(secureUrl) {
-    try {
-        const u = new URL(secureUrl);
-        const parts = u.pathname.split('/');
-        const uploadIdx = parts.findIndex(p => p === 'upload');
-        if (uploadIdx !== -1) {
-            parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
-            u.pathname = parts.join('/');
-        }
-        return u.toString();
-    } catch {
-        return secureUrl;
-    }
-}
-
-export function withThumb(img) {
-    return {
-        url: img.url,
-        thumbUrl: img.thumbUrl || buildThumbUrl(img.url),
-        publicId: img.publicId,
-        createdBy: img.createdBy
-    };
-}
-
-export async function logActivity(userId, type, meta = {}) {
-    await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type, meta } } });
-}
-
-export async function sendVerificationEmail(to, verifyUrl) {
-    if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
-    const msg = {
-        to,
-        from: SENDGRID_FROM,
-        subject: 'Bitte E-Mail bestätigen',
-        html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
-    };
-    return sgClient.send(msg);
-}
-
-export async function sendPasswordResetEmail(to, code) {
-    if (!SENDGRID_API_KEY) throw new Error('SendGrid nicht konfiguriert');
-    const msg = {
-        to,
-        from: SENDGRID_FROM,
-        subject: 'Passwort zurücksetzen — Dein Bestätigungscode',
-        html: `<p>Hallo,</p>
-           <p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p>
-           <p>Dieser Code ist 30 Minuten gültig.</p>`
-    };
-    return sgClient.send(msg);
-}
-
-// Middleware
-export function validate(req, res, next) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
-    next();
-}
-
-export function validateItemCreation(req, res, next) {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        const errorMap = {
-            'type': 'Ungültiger Eintrag',
-            'title': 'Passe den Titel an (2-60 Zeichen)',
-            'subject': 'Passe das Fach an (2-40 Zeichen)',
-            'description': 'Die Beschreibung ist zu lang',
-            'images': 'Du kannst maximal 12 Bilder hochladen',
-            'dueDate': 'Ungültiges Datumsformat'
-        };
-
-        const firstError = errors.array()[0];
-        const fieldName = firstError.param;
-        const userFriendlyMessage = errorMap[fieldName] || `Ungültiger Wert für ${fieldName}`;
-
-        return sendJSONError(res, 400, userFriendlyMessage, errors.array());
+    // Reusable helpers
+    function sendJSONError(res, status, msg, errors) {
+        return res.status(status).json({ error: msg, errors });
     }
 
-    const { dueDate } = req.body;
-    const now = dayjs();
-
-    if (dayjs(dueDate).isBefore(now.subtract(2, 'day'))) {
-        return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
-    } else if (dayjs(dueDate).isAfter(now.add(365, 'day'))) {
-        return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
-    }
-
-    next();
-}
-
-export function authMiddleware(req, res, next) {
-    const header = req.headers.authorization;
-    if (!header) return sendJSONError(res, 401, 'Kein Token');
-
-    const token = header.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-
-        (async () => {
-            const isBanned = await BannedUser.findOne({ userId: decoded.sub }).lean();
-            if (isBanned) {
-                return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
-            }
-            next();
-        })();
-
-    } catch {
-        return sendJSONError(res, 401, 'Ungültiges Token');
-    }
-}
-
-export function requireAuth(req, res, next) {
-    const hdr = req.headers.authorization || '';
-    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
-    if (!token) return sendJSONError(res, 401, 'Unauthorized');
-    try {
-        const payload = jwt.verify(token, JWT_SECRET);
-        req.user = payload;
-
-        (async () => {
-            const isBanned = await BannedUser.findOne({ userId: payload.sub }).lean();
-            if (isBanned) {
-                return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
-            }
-            next();
-        })();
-
-    } catch {
-        return sendJSONError(res, 401, 'Unauthorized');
-    }
-}
-
-export async function requireAdmin(req, res, next) {
-    requireAuth(req, res, async () => {
-        const user = await User.findById(req.user.sub);
-        if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+    function validate(req, res, next) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) return sendJSONError(res, 400, 'Validation error', errors.array());
         next();
-    });
-}
+    }
 
-export function tryAuth(req, res, next) {
-    const header = req.headers.authorization;
-    if (header) {
-        const token = header.split(' ')[1];
-        if (token) {
-            try {
-                const decoded = jwt.verify(token, JWT_SECRET);
-                req.user = decoded;
-            } catch {
-                req.user = null;
+    function tryAuth(req, res, next) {
+        const header = req.headers.authorization;
+        if (header) {
+            const token = header.split(' ')[1];
+            if (token) {
+                try {
+                    const decoded = jwt.verify(token, jwtSecret);
+                    req.user = decoded;
+                } catch {
+                    req.user = null;
+                }
             }
         }
+        next();
     }
-    next();
-}
 
-// Routes setup function
-export function setupRoutes(app) {
-    // Auth routes
+    function requireAuth(req, res, next) {
+        const hdr = req.headers.authorization || '';
+        const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+        if (!token) return sendJSONError(res, 401, 'Unauthorized');
+        try {
+            const payload = jwt.verify(token, jwtSecret);
+            req.user = payload;
+            (async () => {
+                const isBanned = await BannedUser.findOne({ userId: payload.sub }).lean();
+                if (isBanned) return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
+                next();
+            })();
+        } catch {
+            return sendJSONError(res, 401, 'Unauthorized');
+        }
+    }
+
+    async function requireAdmin(req, res, next) {
+        requireAuth(req, res, async () => {
+            const user = await User.findById(req.user.sub);
+            if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+            next();
+        });
+    }
+
+    // dashboard rate limiter
+    const dashboardLimiter = rateLimit({
+        windowMs: 30 * 60 * 1000,
+        max: 15,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { ok: false, error: 'Zu viele Versuche - IP gesperrt. Versuch es in 30 Minuten wieder.' },
+        statusCode: 429,
+    });
+
+    // custom item validation used by creation route
+    function validateItemCreation(req, res, next) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const errorMap = {
+                'type': 'Ungültiger Eintrag',
+                'title': 'Passe den Titel an (2-60 Zeichen)',
+                'subject': 'Passe das Fach an (2-40 Zeichen)',
+                'description': 'Die Beschreibung ist zu lang',
+                'images': 'Du kannst maximal 12 Bilder hochladen',
+                'dueDate': 'Ungültiges Datumsformat'
+            };
+            const firstError = errors.array()[0];
+            const fieldName = firstError.param;
+            const userFriendlyMessage = errorMap[fieldName] || `Ungültiger Wert für ${fieldName}`;
+            return sendJSONError(res, 400, userFriendlyMessage, errors.array());
+        }
+
+        const { dueDate } = req.body;
+        const now = dayjs();
+        if (dayjs(dueDate).isBefore(now.subtract(2, 'day'))) {
+            return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
+        } else if (dayjs(dueDate).isAfter(now.add(365, 'day'))) {
+            return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
+        }
+        next();
+    }
+
+    // SendGrid helpers (guard when not configured)
+    async function sendVerificationEmail(to, verifyUrl) {
+        if (!sendgridConfigured) throw new Error('SendGrid nicht konfiguriert');
+        const msg = {
+            to,
+            from: sendgridFrom,
+            subject: 'Bitte E-Mail bestätigen',
+            html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+        };
+        return sgClient.send(msg);
+    }
+
+    async function sendPasswordResetEmail(to, code) {
+        if (!sendgridConfigured) throw new Error('SendGrid nicht konfiguriert');
+        const msg = {
+            to,
+            from: sendgridFrom,
+            subject: 'Passwort zurücksetzen — Dein Bestätigungscode',
+            html: `<p>Hallo,</p><p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p><p>Dieser Code ist 30 Minuten gültig.</p>`
+        };
+        return sgClient.send(msg);
+    }
+
+    // Routes (kept structurally identical to original)
     app.post('/api/auth/register',
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
@@ -225,7 +160,7 @@ export function setupRoutes(app) {
             const token = crypto.randomBytes(32).toString('hex');
             const expiresAt = dayjs().add(2, 'day').toDate();
             await Verification.create({ email: user.email, token, expiresAt });
-            const verifyUrl = `${CLIENT_VERIFY_URL}?token=${token}`;
+            const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
             try {
                 await sendVerificationEmail(user.email, verifyUrl);
                 res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
@@ -269,10 +204,8 @@ export function setupRoutes(app) {
             if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
             if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
             const isBanned = await BannedUser.findOne({ userId: user._id }).lean();
-            if (isBanned) {
-                return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
-            }
-            const token = jwt.sign({ sub: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+            if (isBanned) return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
+            const token = jwt.sign({ sub: user._id, email: user.email }, jwtSecret, { expiresIn: '7d' });
             await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
             res.json({ token });
         }
@@ -280,9 +213,7 @@ export function setupRoutes(app) {
 
     app.get('/api/auth/me', requireAuth, async (req, res) => {
         const user = await User.findById(req.user.sub).lean();
-        if (!user) {
-            return sendJSONError(res, 404, 'Ungültiges Token.');
-        }
+        if (!user) return sendJSONError(res, 404, 'Ungültiges Token.');
         res.json({
             id: user._id,
             email: user.email,
@@ -306,27 +237,14 @@ export function setupRoutes(app) {
         async (req, res) => {
             const { enrKurs, wpuKurs1, wpuKurs2, theater } = req.body;
             const userId = req.user.sub;
-
-            const updateData = {
-                enrKurs,
-                wpuKurs1,
-                wpuKurs2,
-                theater,
-                doneSetup: true,
-            };
-
+            const updateData = { enrKurs, wpuKurs1, wpuKurs2, theater, doneSetup: true };
             const updatedUser = await User.findByIdAndUpdate(
                 userId,
                 { $set: updateData },
                 { new: true, fields: 'enrKurs wpuKurs1 wpuKurs2 theater doneSetup email isAdmin' }
             );
-
-            if (!updatedUser) {
-                return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-            }
-
-            await logActivity(userId, 'profile:setup:complete', { enrKurs, wpuKurs1, wpuKurs2, theater });
-
+            if (!updatedUser) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+            await User.findByIdAndUpdate(userId, { $push: { activity: { at: new Date(), type: 'profile:setup:complete', meta: { enrKurs, wpuKurs1, wpuKurs2, theater } } } });
             res.json({
                 ok: true,
                 user: {
@@ -400,7 +318,7 @@ export function setupRoutes(app) {
                 color: req.body.color || 'warn',
                 createdBy: req.user.sub
             });
-            await logActivity(req.user.sub, 'announcement:create', { id: doc._id });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'announcement:create', meta: { id: doc._id } } } });
             res.status(201).json(doc);
         }
     );
@@ -411,7 +329,7 @@ export function setupRoutes(app) {
         const user = await User.findById(req.user.sub);
         if (!user?.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
         await ann.deleteOne();
-        await logActivity(req.user.sub, 'announcement:delete', { id: ann._id });
+        await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'announcement:delete', meta: { id: ann._id } } } });
         res.json({ ok: true });
     });
 
@@ -435,33 +353,20 @@ export function setupRoutes(app) {
     app.post('/anon/sorgenbox', async (req, res) => {
         try {
             const { message } = req.body;
-
-            if (!message || message.trim().length === 0) {
-                return res.status(400).json({ error: 'Message fehlt' });
-            }
-
-            await SorgenModel.create({
-                message,
-                createdAt: new Date()
-            });
-
+            if (!message || message.trim().length === 0) return res.status(400).json({ error: 'Message fehlt' });
+            await Sorgen.create({ message, createdAt: new Date() });
             res.json({ ok: true });
         } catch (err) {
             res.status(500).json({ error: 'Serverfehler' });
         }
     });
 
-    // Admin user management
+    // Admin: all users safe listing
     app.get('/api/admin/all-users', requireAdmin, async (req, res) => {
         try {
-            const users = await User.find({})
-                .select('-passwordHash -activity')
-                .sort({ createdAt: -1 })
-                .lean();
-
+            const users = await User.find({}).select('-passwordHash -activity').sort({ createdAt: -1 }).lean();
             const bannedDocs = await BannedUser.find({}).select('userId').lean();
             const bannedIds = new Set(bannedDocs.map(b => b.userId.toString()));
-
             const usersWithSafeData = users.map(u => ({
                 id: u._id,
                 email: u.email,
@@ -476,7 +381,6 @@ export function setupRoutes(app) {
                 doneSetup: u.doneSetup,
                 isBanned: bannedIds.has(u._id.toString())
             }));
-
             res.json(usersWithSafeData);
         } catch (err) {
             console.error('GET /api/admin/all-users error', err);
@@ -484,6 +388,7 @@ export function setupRoutes(app) {
         }
     });
 
+    // Admin: user activity
     app.get('/api/admin/users/:id/activity', requireAdmin, async (req, res) => {
         try {
             const user = await User.findById(req.params.id).select('activity').lean();
@@ -495,7 +400,7 @@ export function setupRoutes(app) {
         }
     });
 
-    // Image management
+    // Item image add
     app.post('/api/items/:id/images',
         requireAuth,
         param('id').isMongoId(),
@@ -506,7 +411,6 @@ export function setupRoutes(app) {
         async (req, res) => {
             const item = await Item.findById(req.params.id);
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
             const newImage = {
                 url: req.body.image.url,
                 thumbUrl: buildThumbUrl(req.body.image.url),
@@ -515,11 +419,12 @@ export function setupRoutes(app) {
             };
             item.images.push(newImage);
             await item.save();
-            await logActivity(req.user.sub, 'item:image:add', { itemId: item._id, publicId: newImage.publicId });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:image:add', meta: { itemId: item._id, publicId: newImage.publicId } } } });
             res.status(201).json({ ok: true, image: withThumb(newImage) });
         }
     );
 
+    // Delete image
     app.delete('/api/items/:itemId/images/:publicId',
         requireAuth,
         param('itemId').isMongoId(),
@@ -528,39 +433,28 @@ export function setupRoutes(app) {
         async (req, res) => {
             const item = await Item.findById(req.params.itemId);
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-
             let publicId;
-            try {
-                publicId = decodeURIComponent(req.params.publicId);
-            } catch {
-                publicId = req.params.publicId;
-            }
-
+            try { publicId = decodeURIComponent(req.params.publicId); } catch { publicId = req.params.publicId; }
             const imageIndex = item.images.findIndex(img => img.publicId === publicId);
             if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-
             const image = item.images[imageIndex];
             const user = await User.findById(req.user.sub);
-
             if (!user?.isAdmin && image.createdBy.toString() !== req.user.sub) {
                 return sendJSONError(res, 403, 'Du kanst keine fremden Bilder löschen.');
             }
-
             try {
                 await cloudinary.uploader.destroy(image.publicId);
             } catch (err) {
                 console.error('Cloudinary destroy error', err);
             }
-
             item.images.splice(imageIndex, 1);
             await item.save();
-
-            await logActivity(req.user.sub, 'item:image:delete', { itemId: item._id, publicId: image.publicId });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:image:delete', meta: { itemId: item._id, publicId: image.publicId } } } });
             res.json({ ok: true });
         }
     );
 
-    // Items
+    // Items list
     app.get('/api/items',
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
@@ -569,26 +463,16 @@ export function setupRoutes(app) {
             try {
                 const cutOffDate = dayjs().subtract(48, 'hour').toDate();
                 let dateQuery = {};
-
-                if (req.query.filter === 'old') {
-                    dateQuery = { dueDate: { $lt: cutOffDate } };
-                } else {
-                    dateQuery = { dueDate: { $gte: cutOffDate } };
-                }
-
-                const list = await Item.find({
-                    type: req.query.type,
-                    ...dateQuery
-                })
+                if (req.query.filter === 'old') dateQuery = { dueDate: { $lt: cutOffDate } };
+                else dateQuery = { dueDate: { $gte: cutOffDate } };
+                const list = await Item.find({ type: req.query.type, ...dateQuery })
                     .populate('createdBy', 'email')
                     .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 })
                     .limit(500)
                     .lean();
-
                 const normalized = list.map(i => {
                     const imgs = (i.images || []).map(img => withThumb(img));
                     const createdById = i.createdBy?._id?.toString() || i.createdBy?.toString();
-
                     return {
                         id: i._id.toString(),
                         type: i.type,
@@ -602,7 +486,6 @@ export function setupRoutes(app) {
                         timeColor: timeLeftColor(i.dueDate)
                     };
                 });
-
                 res.json(normalized);
             } catch (error) {
                 console.error('Error loading items:', error);
@@ -611,6 +494,7 @@ export function setupRoutes(app) {
         }
     );
 
+    // Create item
     app.post('/api/items',
         requireAuth,
         [
@@ -629,7 +513,6 @@ export function setupRoutes(app) {
                 publicId: img.publicId,
                 createdBy: req.user.sub
             }));
-
             const doc = await Item.create({
                 type: req.body.type,
                 title: req.body.title.trim(),
@@ -639,12 +522,12 @@ export function setupRoutes(app) {
                 dueDate: req.body.dueDate,
                 createdBy: req.user.sub
             });
-
-            await logActivity(req.user.sub, 'item:create', { id: doc._id, type: doc.type });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:create', meta: { id: doc._id, type: doc.type } } } });
             res.status(201).json({ ok: true, id: doc._id });
         }
     );
 
+    // Update item
     app.patch('/api/items/:id',
         requireAuth,
         param('id').isMongoId(),
@@ -659,24 +542,19 @@ export function setupRoutes(app) {
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
             const user = await User.findById(req.user.sub);
             if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
+
             const minDate = dayjs().subtract(2, 'day').startOf('day');
             const maxDate = dayjs().add(365, 'day').endOf('day');
-
             if (req.body.dueDate) {
                 const due = dayjs(req.body.dueDate);
-                if (due.isBefore(minDate)) {
-                    return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
-                }
-                if (due.isAfter(maxDate)) {
-                    return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
-                }
+                if (due.isBefore(minDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
+                if (due.isAfter(maxDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
             }
 
             const update = {};
             for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
                 if (req.body[k] !== undefined) update[k] = req.body[k];
             }
-
             if (update.images) {
                 update.images = update.images.map(img => ({
                     url: img.url,
@@ -685,19 +563,18 @@ export function setupRoutes(app) {
                     createdBy: img.createdBy || item.createdBy
                 }));
             }
-
             await Item.findByIdAndUpdate(item._id, { $set: update });
-            await logActivity(req.user.sub, 'item:update', { id: item._id });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:update', meta: { id: item._id } } } });
             res.json({ ok: true });
         }
     );
 
+    // Delete item
     app.delete('/api/items/:id', requireAuth, async (req, res) => {
         const item = await Item.findById(req.params.id);
         if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
         const user = await User.findById(req.user.sub);
         if (!user?.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Forbidden');
-
         if (item.images && item.images.length > 0) {
             const publicIds = item.images.map(img => img.publicId);
             try {
@@ -707,11 +584,11 @@ export function setupRoutes(app) {
             }
         }
         await item.deleteOne();
-        await logActivity(req.user.sub, 'item:delete', { id: item._id });
+        await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:delete', meta: { id: item._id } } } });
         res.json({ ok: true });
     });
 
-    // Check/Uncheck items
+    // Checks routes
     app.get('/api/checks/me', requireAuth, async (req, res) => {
         try {
             const docs = await KeepChecked.find({ userId: req.user.sub }).select('itemId -_id').lean();
@@ -723,52 +600,42 @@ export function setupRoutes(app) {
         }
     });
 
-    app.post('/api/items/:id/check',
-        requireAuth,
-        param('id').isMongoId(),
-        validate,
-        async (req, res) => {
-            try {
-                const item = await Item.findById(req.params.id);
-                if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                await KeepChecked.updateOne(
-                    { itemId: item._id, userId: req.user.sub },
-                    { $setOnInsert: { checkedAt: new Date() } },
-                    { upsert: true }
-                );
-                await logActivity(req.user.sub, 'item:check', { itemId: item._id });
-                res.json({ ok: true });
-            } catch (err) {
-                console.error('check post error', err);
-                sendJSONError(res, 500, 'Server error');
-            }
+    app.post('/api/items/:id/check', requireAuth, param('id').isMongoId(), validate, async (req, res) => {
+        try {
+            const item = await Item.findById(req.params.id);
+            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+            await KeepChecked.updateOne(
+                { itemId: item._id, userId: req.user.sub },
+                { $setOnInsert: { checkedAt: new Date() } },
+                { upsert: true }
+            );
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:check', meta: { itemId: item._id } } } });
+            res.json({ ok: true });
+        } catch (err) {
+            console.error('check post error', err);
+            sendJSONError(res, 500, 'Server error');
         }
-    );
+    });
 
-    app.delete('/api/items/:id/check',
-        requireAuth,
-        param('id').isMongoId(),
-        validate,
-        async (req, res) => {
-            try {
-                await KeepChecked.deleteOne({ itemId: req.params.id, userId: req.user.sub });
-                await logActivity(req.user.sub, 'item:uncheck', { itemId: req.params.id });
-                res.json({ ok: true });
-            } catch (err) {
-                console.error('check delete error', err);
-                sendJSONError(res, 500, 'Server error');
-            }
+    app.delete('/api/items/:id/check', requireAuth, param('id').isMongoId(), validate, async (req, res) => {
+        try {
+            await KeepChecked.deleteOne({ itemId: req.params.id, userId: req.user.sub });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:uncheck', meta: { itemId: req.params.id } } } });
+            res.json({ ok: true });
+        } catch (err) {
+            console.error('check delete error', err);
+            sendJSONError(res, 500, 'Server error');
         }
-    );
+    });
 
-    // Account management
+    // Delete own account
     app.delete('/api/auth/me', requireAuth, async (req, res) => {
         try {
             const user = await User.findById(req.user.sub);
             if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
             if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
             await User.deleteOne({ _id: user._id });
-            await logActivity(user._id, 'account:delete', { by: user._id });
+            await User.findByIdAndUpdate(user._id, { $push: { activity: { at: new Date(), type: 'account:delete', meta: { by: user._id } } } });
             res.json({ ok: true });
         } catch (err) {
             console.error('DELETE /api/auth/me error', err);
@@ -776,20 +643,18 @@ export function setupRoutes(app) {
         }
     });
 
-    // Ban management
+    // Ban / unban
     app.post('/api/admin/users/:id/ban', requireAdmin, param('id').isMongoId(), validate, async (req, res) => {
         try {
             const userToBan = await User.findById(req.params.id).lean();
             if (!userToBan) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
             if (userToBan.isAdmin) return sendJSONError(res, 400, 'Du kannst keine Admins bannen.');
-
             await BannedUser.updateOne(
                 { userId: userToBan._id },
                 { $set: { bannedAt: new Date() } },
                 { upsert: true }
             );
-
-            await logActivity(req.user.sub, 'admin:ban:user', { targetUserId: userToBan._id });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'admin:ban:user', meta: { targetUserId: userToBan._id } } } });
             res.json({ ok: true, isBanned: true });
         } catch (err) {
             console.error('POST /api/admin/users/:id/ban error', err);
@@ -801,7 +666,7 @@ export function setupRoutes(app) {
         try {
             const userId = req.params.id;
             await BannedUser.deleteOne({ userId: userId });
-            await logActivity(req.user.sub, 'admin:unban:user', { targetUserId: userId });
+            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'admin:unban:user', meta: { targetUserId: userId } } } });
             res.json({ ok: true, isBanned: false });
         } catch (err) {
             console.error('DELETE /api/admin/users/:id/ban error', err);
@@ -809,37 +674,23 @@ export function setupRoutes(app) {
         }
     });
 
-    // Password reset
-    app.post('/api/auth/forgot',
-        body('email').isEmail(),
-        validate,
-        async (req, res) => {
-            try {
-                const email = req.body.email.toLowerCase();
-                const user = await User.findOne({ email });
-                if (!user) {
-                    return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
-                }
-
-                const code = String(Math.floor(100000 + Math.random() * 900000));
-                const expiresAt = dayjs().add(30, 'minute').toDate();
-
-                await PasswordReset.updateMany({ email }, { $set: { used: true } });
-                await PasswordReset.create({ email, code, expiresAt, used: false });
-
-                try {
-                    await sendPasswordResetEmail(email, code);
-                } catch (mailErr) {
-                    console.error('Send reset email failed', mailErr?.response?.body || mailErr?.message || mailErr);
-                }
-
-                res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
-            } catch (err) {
-                console.error('POST /api/auth/forgot error', err);
-                sendJSONError(res, 500, 'Server error');
-            }
+    // Password reset flow
+    app.post('/api/auth/forgot', body('email').isEmail(), validate, async (req, res) => {
+        try {
+            const email = req.body.email.toLowerCase();
+            const user = await User.findOne({ email });
+            if (!user) return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+            const code = String(Math.floor(100000 + Math.random() * 900000));
+            const expiresAt = dayjs().add(30, 'minute').toDate();
+            await PasswordReset.updateMany({ email }, { $set: { used: true } });
+            await PasswordReset.create({ email, code, expiresAt, used: false });
+            try { await sendPasswordResetEmail(email, code); } catch (mailErr) { console.error('Send reset email failed', mailErr?.response?.body || mailErr?.message || mailErr); }
+            res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+        } catch (err) {
+            console.error('POST /api/auth/forgot error', err);
+            sendJSONError(res, 500, 'Server error');
         }
-    );
+    });
 
     app.post('/api/auth/reset/verify',
         body('email').isEmail(),
@@ -849,15 +700,12 @@ export function setupRoutes(app) {
             try {
                 const email = req.body.email.toLowerCase();
                 const code = String(req.body.code).trim();
-
                 const pr = await PasswordReset.findOne({ email, code, used: false }).sort({ createdAt: -1 });
                 if (!pr) return sendJSONError(res, 400, 'Ungültiger Code');
                 if (dayjs(pr.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Code abgelaufen');
-
                 pr.used = true;
                 await pr.save();
-
-                const resetToken = jwt.sign({ email, purpose: 'password_reset' }, JWT_SECRET, { expiresIn: '15m' });
+                const resetToken = jwt.sign({ email, purpose: 'password_reset' }, jwtSecret, { expiresIn: '15m' });
                 res.json({ ok: true, resetToken });
             } catch (err) {
                 console.error('POST /api/auth/reset/verify error', err);
@@ -874,20 +722,14 @@ export function setupRoutes(app) {
             try {
                 const { resetToken, password } = req.body;
                 let payload;
-                try {
-                    payload = jwt.verify(resetToken, JWT_SECRET);
-                } catch {
-                    return sendJSONError(res, 400, 'Ungültiger oder abgelaufener Reset-Token');
-                }
+                try { payload = jwt.verify(resetToken, jwtSecret); } catch { return sendJSONError(res, 400, 'Ungültiger oder abgelaufener Reset-Token'); }
                 if (payload?.purpose !== 'password_reset' || !payload?.email) return sendJSONError(res, 400, 'Ungültiger Reset-Token');
-
                 const email = String(payload.email).toLowerCase();
                 const user = await User.findOne({ email });
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-
                 const passwordHash = await bcrypt.hash(password, 12);
                 await User.findByIdAndUpdate(user._id, { $set: { passwordHash } });
-                await logActivity(user._id, 'account:password_reset', { by: 'self' });
+                await User.findByIdAndUpdate(user._id, { $push: { activity: { at: new Date(), type: 'account:password_reset', meta: { by: 'self' } } } });
                 res.json({ ok: true, message: 'Passwort wurde geändert.' });
             } catch (err) {
                 console.error('POST /api/auth/reset error', err);
@@ -896,7 +738,7 @@ export function setupRoutes(app) {
         }
     );
 
-    // Security report
+    // Security report via Gemini
     app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
         try {
             const { data, error: dbError } = await supabase
@@ -909,10 +751,7 @@ export function setupRoutes(app) {
                 console.error('Supabase DB Error:', dbError);
                 return sendJSONError(res, 500, 'Fehler beim Abrufen der Logs von Supabase.');
             }
-
-            if (!data || data.length === 0) {
-                return sendJSONError(res, 404, 'Keine Auth-Logs gefunden.');
-            }
+            if (!data || data.length === 0) return sendJSONError(res, 404, 'Keine Auth-Logs gefunden.');
 
             const logsJsonString = JSON.stringify(data, null, 2);
             const truncatedLogs = logsJsonString.length > 50000
@@ -920,44 +759,49 @@ export function setupRoutes(app) {
                 : logsJsonString;
 
             const prompt = `
-                Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
-                Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden 500 Authentifizierungs-Logs (Tabelle 'auth_logs') zu erstellen.
-                Die Logs enthalten Felder wie 'ip', 'status' (success/failure), 'attempt_hash'(dies ist ein Hash des eingegebenen passworts), 'user_agent' und 'timestamp'.
+Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
+Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden 500 Authentifizierungs-Logs (Tabelle 'auth_logs') zu erstellen.
+Die Logs enthalten Felder wie 'ip', 'status' (success/failure), 'attempt_hash'(dies ist ein Hash des eingegebenen passworts), 'user_agent' und 'timestamp'.
 
-                Hier sind die Rohdaten (möglicherweise gekürzt):
-                ${truncatedLogs}
+Hier sind die Rohdaten (möglicherweise gekürzt):
+${truncatedLogs}
 
-                ---
-                AUFGABE:
-                Erstelle einen detaillierten, aber prägnanten Sicherheitsbericht auf Deutsch.
-                Struktur:
-                1.  **Zusammenfassung:** Kurze Übersicht (z.B. "Sicherheitslage stabil", "Auffälligkeiten erkannt").
-                2.  **Trendanalyse:** Gibt es Muster? (z.B. Uhrzeiten von Angriffen, Zunahme von 'failure'-Logs, auffällige User-Agents).
-                3.  **Auffällige Aktivitäten & IPs:** Identifiziere spezifische Bedrohungen.
-                    * Gibt es IPs mit extrem vielen 'failure'-Logs (Brute-Force-Versuche)? Liste die Top 3 verdächtigsten IPs auf.
-                    * Gibt es IPs mit vielen verschiedenen User-Agents?
-                    * Gibt es verdächtige 'success'-Logs nach vielen 'failure'-Logs von derselben IP (möglicher erfolgreicher Einbruch)?
-                4.  **Empfohlene Maßnahmen:** Konkrete, priorisierte Tipps. (z.B. "IP 1.2.3.4 auf Firewall blockieren", "Rate-Limiting für Login-Endpunkt /api/dashboard-check verschärfen").
-                5.  **Sicherheitswarnungen:** (Nur falls akute, offensichtliche Bedrohungen wie ein erfolgreicher Einbruch klar erkennbar sind).
+---
+AUFGABE:
+Erstelle einen detaillierten, aber prägnanten Sicherheitsbericht auf Deutsch.
+Struktur:
+1.  **Zusammenfassung:** Kurze Übersicht (z.B. "Sicherheitslage stabil", "Auffälligkeiten erkannt").
+2.  **Trendanalyse:** Gibt es Muster? (z.B. Uhrzeiten von Angriffen, Zunahme von 'failure'-Logs, auffällige User-Agents).
+3.  **Auffällige Aktivitäten & IPs:** Identifiziere spezifische Bedrohungen.
+    * Gibt es IPs mit extrem vielen 'failure'-Logs (Brute-Force-Versuche)? Liste die Top 3 verdächtigsten IPs auf.
+    * Gibt es IPs mit vielen verschiedenen User-Agents?
+    * Gibt es verdächtige 'success'-Logs nach vielen 'failure'-Logs von derselben IP (möglicher erfolgreicher Einbruch)?
+4.  **Empfohlene Maßnahmen:** Konkrete, priorisierte Tipps. (z.B. "IP 1.2.3.4 auf Firewall blockieren", "Rate-Limiting für Login-Endpunkt /api/dashboard-check verschärfen").
+5.  **Sicherheitswarnungen:** (Nur falls akute, offensichtliche Bedrohungen wie ein erfolgreicher Einbruch klar erkennbar sind).
 
-                Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ersten Überschrift (z.B. "## Zusammenfassung").
-                Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äussere Authentifizierung einer Seite. Die Websitr ist also nur für bestimmte autorisierte Personen, die von den Administartoren das allgemeine Passwort erhalten haben. Es gibt also ncith mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zum kommen. Die Attmept Hashes sind dabei hashes der versuchten Passwörter.  
-            `;
+Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ersten Überschrift (z.B. "## Zusammenfassung").
+Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äußere Authentifizierung einer Seite. Die Website ist also nur für bestimmte autorisierte Personen, die von den Administratoren das allgemeine Passwort erhalten haben. Es gibt also nicht mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zu kommen. Die Attempt Hashes sind dabei hashes der versuchten Passwörter.
+      `;
+
+            if (!geminiModel) {
+                return sendJSONError(res, 500, 'Gemini API Key ist ungültig oder nicht initialisiert.');
+            }
 
             const result = await geminiModel.generateContent(prompt);
             const response = result.response;
             const reportText = response.text();
             res.json({ ok: true, report: reportText });
+
         } catch (err) {
             console.error('Fehler beim Generieren des Sicherheitsberichts:', err);
-            if (err.message.includes('API key not valid')) {
+            if (err.message && err.message.includes('API key not valid')) {
                 return sendJSONError(res, 500, 'Gemini API Key ist ungültig.');
             }
             sendJSONError(res, 500, 'Fehler bei der Kommunikation mit der Gemini API.');
         }
     });
 
-    // Reports
+    // Reports endpoint
     app.post('/api/reports',
         tryAuth,
         body('itemId').isMongoId(),
@@ -967,7 +811,6 @@ export function setupRoutes(app) {
         async (req, res) => {
             try {
                 const { itemId, itemTitle, reason } = req.body;
-
                 const reportData = {
                     itemId,
                     itemTitle,
@@ -976,13 +819,10 @@ export function setupRoutes(app) {
                     reporterId: req.user ? req.user.sub : null,
                     reporterEmail: req.user ? req.user.email : 'anonymous'
                 };
-
                 await Report.create(reportData);
-
                 if (req.user) {
-                    await logActivity(req.user.sub, 'item:report', { itemId, reason: !!reason });
+                    await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:report', meta: { itemId, reason: !!reason } } } });
                 }
-
                 res.status(201).json({ ok: true, message: 'Eintrag erfolgreich gemeldet.' });
             } catch (err) {
                 console.error('POST /api/reports error', err);
@@ -993,10 +833,7 @@ export function setupRoutes(app) {
 
     app.get('/api/admin/reports', requireAdmin, async (req, res) => {
         try {
-            const reports = await Report.find({})
-                .sort({ reportedAt: -1 })
-                .limit(100)
-                .lean();
+            const reports = await Report.find({}).sort({ reportedAt: -1 }).limit(100).lean();
             res.json(reports);
         } catch (err) {
             console.error('GET /api/admin/reports error', err);
@@ -1004,12 +841,10 @@ export function setupRoutes(app) {
         }
     });
 
-    // Sorgen management
+    // Sorgen admin
     app.get('/anon/sorgenfind', requireAdmin, async (req, res) => {
         try {
-            const sorgen = await SorgenModel.find({})
-                .sort({ createdAt: -1})
-                .limit(100)
+            const sorgen = await Sorgen.find({}).sort({ createdAt: -1 }).limit(100);
             res.json(sorgen);
         } catch (err) {
             console.error('GET /anon/sorgenfind error', err);
@@ -1017,26 +852,37 @@ export function setupRoutes(app) {
         }
     });
 
-    app.delete('/anon/sorgenfind/:id',
-        requireAdmin,
-        param('id').isMongoId(),
-        validate,
-        async (req, res) => {
-            try {
-                const { id } = req.params;
-                const deletedSorge = await SorgenModel.findByIdAndDelete(id);
-                if (!deletedSorge) {
-                    return sendJSONError(res, 404, 'Sorgen-Eintrag nicht gefunden');
-                }
-                res.json({ ok: true, message: 'Sorgen-Eintrag erfolgreich gelöscht' });
-            } catch (err) {
-                console.error('DELETE /anon/sorgenfind/:id error', err);
-                sendJSONError(res, 500, 'Serverfehler');
-            }
+    app.delete('/anon/sorgenfind/:id', requireAdmin, param('id').isMongoId(), validate, async (req, res) => {
+        try {
+            const { id } = req.params;
+            const deletedSorge = await Sorgen.findByIdAndDelete(id);
+            if (!deletedSorge) return sendJSONError(res, 404, 'Sorgen-Eintrag nicht gefunden');
+            res.json({ ok: true, message: 'Sorgen-Eintrag erfolgreich gelöscht' });
+        } catch (err) {
+            console.error('DELETE /anon/sorgenfind/:id error', err);
+            sendJSONError(res, 500, 'Serverfehler');
         }
-    );
+    });
 
-    // Dashboard auth
+    // Protected test route
+    app.get('/api/protected', (req, res, next) => {
+        // small middleware emulation to check token header exactly like original authMiddleware
+        const header = req.headers.authorization;
+        if (!header) return sendJSONError(res, 401, 'Kein Token');
+        const token = header.split(' ')[1];
+        try {
+            const decoded = jwt.verify(token, jwtSecret);
+            (async () => {
+                const isBanned = await BannedUser.findOne({ userId: decoded.sub }).lean();
+                if (isBanned) return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
+                res.json({ ok: true, message: 'Geheimer Kram' });
+            })();
+        } catch {
+            return sendJSONError(res, 401, 'Ungültiges Token');
+        }
+    });
+
+    // Dashboard-check (auth by shared secret) with logging to supabase
     app.post('/api/dashboard-check',
         dashboardLimiter,
         body('password').isString().isLength({ min: 1 }),
@@ -1045,50 +891,36 @@ export function setupRoutes(app) {
             const ip = req.ip;
             const ua = req.get('User-Agent') || 'unknown';
             const { password } = req.body;
-            const DASHBOARD_SECRETJ = process.env.DASHBOARD_SECRETJ;
-
-            const attemptHash = crypto
-                .createHash('sha256')
-                .update(password)
-                .digest('hex')
-
+            const DASHBOARD_SECRETJ = dashboardSecret;
+            const attemptHash = crypto.createHash('sha256').update(password).digest('hex');
             let status = 'failure';
-
             if (password === DASHBOARD_SECRETJ) {
                 status = 'success';
-                const token = jwt.sign(
-                    { role: 'admin' },
-                    JWT_SECRET,
-                    { expiresIn: '30d' }
-                );
-
-                await supabase.from('auth_logs').insert({
-                    ip,
-                    status,
-                    attempt_hash: attemptHash,
-                    user_agent: ua
-                });
-
+                const token = jwt.sign({ role: 'admin' }, jwtSecret, { expiresIn: '30d' });
+                await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
                 return res.json({ ok: true, token });
             } else {
-                await supabase.from('auth_logs').insert({
-                    ip,
-                    status,
-                    attempt_hash: attemptHash,
-                    user_agent: ua
-                });
-
+                await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
                 return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
             }
         }
     );
 
-    // Protected routes
-    app.get('/api/protected', authMiddleware, (req, res) => {
-        res.json({ ok: true, message: 'Geheimer Kram' });
+    // verifyall route (uses same auth pattern as original)
+    app.get('/api/verifyall', (req, res) => {
+        const header = req.headers.authorization;
+        if (!header) return sendJSONError(res, 401, 'Kein Token');
+        const token = header.split(' ')[1];
+        try {
+            const decoded = jwt.verify(token, jwtSecret);
+            (async () => {
+                const isBanned = await BannedUser.findOne({ userId: decoded.sub }).lean();
+                if (isBanned) return sendJSONError(res, 401, 'Dein Account ist gesperrt.');
+                res.json({ ok: true });
+            })();
+        } catch {
+            return sendJSONError(res, 401, 'Ungültiges Token');
+        }
     });
 
-    app.get('/api/verifyall', authMiddleware, (req, res) => {
-        res.json({ ok: true });
-    });
 }
