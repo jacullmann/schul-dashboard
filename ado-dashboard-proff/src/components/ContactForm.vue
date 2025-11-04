@@ -9,12 +9,15 @@
       </div>
 
       <div class="info-card form-card">
+
         <div class="info-group">
           <h3 class="info-title">📧 E-Mail</h3>
           <p class="info-text">
             dashboardverifizierung@gmail.com
           </p>
         </div>
+
+        <div class="separator"></div>
 
         <div class="info-group">
           <h3 class="info-title">📍 Region</h3>
@@ -23,6 +26,8 @@
             Deutschland
           </p>
         </div>
+
+        <div class="separator"></div>
 
         <div class="info-group">
           <h3 class="info-title">📞 Telefon</h3>
@@ -36,28 +41,26 @@
 </template>
 
 <script lang="ts" setup>
-// Keine Skript-Logik mehr nötig, da das Formular entfernt wurde.
+// Keine Skript-Logik nötig.
 </script>
 
 <style scoped>
-/* Allgemeine Stile aus ContactForm.vue übernommen */
+/* Allgemeine Stile beibehalten */
 :root {
-  /* Beispiel-Variablen, falls sie global definiert sind */
   --card: #333;
   --bg: #1c1c1c;
   --text: #f1f1f1;
-  --primary: #3f93f8; /* Blau für Akzente */
+  --primary: #3f93f8;
 }
 
 /* Section */
 .contact-section {
-  padding: 50px 50px; /* Etwas angepasst */
-  min-height: 50vh; /* Etwas weniger Mindesthöhe */
+  padding: 50px 50px;
+  min-height: 50vh;
   background: var(--bg);
 }
 
 .card {
-  /* Stil für die Sektion, falls .card eine Hintergrundfarbe setzt */
   background: var(--bg);
 }
 
@@ -66,14 +69,10 @@
   margin: 0 auto;
 }
 
-/* Hero Header (angepasst für nur Text) */
+/* Hero Header */
 .hero-header {
   margin-bottom: 48px;
   text-align: center;
-}
-
-.hero-content {
-  margin-bottom: 32px;
 }
 
 .hero-title {
@@ -86,7 +85,7 @@
 
 .hero-subtitle {
   font-size: 18px;
-  color: #a0a0a0; /* Etwas dunkler für bessere Lesbarkeit */
+  color: #a0a0a0;
   margin: 0;
   max-width: 600px;
   margin-left: auto;
@@ -94,46 +93,53 @@
   line-height: 1.6;
 }
 
-/* Info Card (ersetzt Form Card) */
+/* Info Card (Layout angepasst auf vertikalen Fluss) */
 .info-card {
-  max-width: 700px;
+  max-width: 450px; /* Reduzierte maximale Breite für einen kompakten Look */
   margin: 0 auto;
   background: var(--card);
   border-radius: 16px;
   padding: 48px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsives Gitter */
-  gap: 30px;
+  /* Setzt den Fluss auf vertikal (Standard-Block-Layout) */
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* Kein Gap zwischen den Elementen, da wir Trennlinien verwenden */
 }
 
 /* Info Group */
 .info-group {
-  padding: 15px;
-  border-radius: 10px;
-  transition: background 0.3s ease;
+  padding: 0; /* Entfernt Padding, da der Container gepaddet ist */
+  transition: none;
 }
 
 .info-group:hover {
-  background: rgba(var(--primary), 0.1); /* Leichter Hover-Effekt */
+  background: transparent;
 }
 
 .info-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--primary);
+  font-size: 24px; /* Größer wie im Original: <h3> */
+  font-weight: 700;
+  color: var(--text);
   margin-top: 0;
-  margin-bottom: 10px;
+  margin-bottom: 5px; /* Kleinerer Abstand zum Text */
 }
 
 .info-text {
   font-size: 16px;
-  color: var(--text);
+  color: #f1f1f1;
   line-height: 1.6;
   margin: 0;
 }
 
+/* Trennlinie für den Look wie im Original mit <br/> */
+.separator {
+  height: 1px;
+  width: 100%;
+  margin: 20px 0; /* Vertikaler Abstand */
+  background: rgba(255, 255, 255, 0.1); /* Eine dezente Linie */
+}
 
 /* Responsive Anpassungen */
 @media (max-width: 768px) {
@@ -141,17 +147,9 @@
     padding: 40px 20px;
   }
 
-  .hero-title {
-    font-size: 32px;
-  }
-
-  .hero-subtitle {
-    font-size: 16px;
-  }
-
   .info-card {
     padding: 32px 24px;
-    grid-template-columns: 1fr; /* Eine Spalte auf kleineren Bildschirmen */
+    max-width: 100%;
   }
 }
 </style>
