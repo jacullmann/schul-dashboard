@@ -468,7 +468,7 @@ export default function registerRoutes(app, deps) {
                 const list = await Item.find({ type: req.query.type, ...dateQuery })
                     .populate('createdBy', 'email')
                     .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 })
-                    .limit(500)
+                    .limit(100)
                     .lean();
                 const normalized = list.map(i => {
                     const imgs = (i.images || []).map(img => withThumb(img));

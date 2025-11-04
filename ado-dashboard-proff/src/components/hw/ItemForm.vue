@@ -147,7 +147,7 @@ function makeThumb(url: string) {
     const parts = u.pathname.split('/');
     const uploadIdx = parts.findIndex(p => p === 'upload');
     if (uploadIdx !== -1) {
-      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240');
+      parts.splice(uploadIdx + 1, 0, 'f_webp,q_auto:best,w_120');
       u.pathname = parts.join('/');
     }
     return u.toString();

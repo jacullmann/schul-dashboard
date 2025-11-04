@@ -63,7 +63,7 @@
           <OldNewSwitch v-model="showOldEntries" />
         </div>
 
-        <button v-if="user" v-ga-event="{ name: 'add_homework_dalton_exam', params: { method: 'siegma_button', label: 'hero_cta' } }" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
+        <button v-if="user" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
@@ -1029,7 +1029,7 @@ function makeThumb(url: string) {
     const parts = u.pathname.split('/');
     const uploadIdx = parts.findIndex(p => p === 'upload');
     if (uploadIdx !== -1) {
-      parts.splice(uploadIdx + 1, 0, 'f_auto,q_auto:low,w_240,h_240,c_fill');
+      parts.splice(uploadIdx + 1, 0, 'f_webp,q_auto:best,w_120,h_120,c_fill');
       u.pathname = parts.join('/');
     }
     return u.toString();
