@@ -170,7 +170,7 @@ async function submit() {
   try {
     if (mode.value === 'register') {
       await hw.post('/api/auth/register', { email: email.value, password: password.value });
-      message.value = 'Registriert. Bitte E-Mail prüfen und Link anklicken.';
+      message.value = 'Registriert. Überprüfe dein E-Mail-Postfach und klicke auf den Bestätigungslink. Prüfe auch deinen Spam-Ordner.';
       isError.value = false;
     } else {
       const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
