@@ -11,7 +11,7 @@
       <div class="info-card form-card">
 
         <div class="info-group">
-          <h3 class="info-title">📧 E-Mail</h3>
+          <h3 class="info-title">E-Mail</h3>
           <p class="info-text">
             dashboardverifizierung@gmail.com
           </p>
@@ -20,7 +20,7 @@
         <div class="separator"></div>
 
         <div class="info-group">
-          <h3 class="info-title">📍 Region</h3>
+          <h3 class="info-title">Region</h3>
           <p class="info-text">
             Berlin,<br />
             Deutschland
@@ -30,7 +30,7 @@
         <div class="separator"></div>
 
         <div class="info-group">
-          <h3 class="info-title">📞 Telefon</h3>
+          <h3 class="info-title">Telefon</h3>
           <p class="info-text">
             Unsere Telefon-Hotline ist bald verfügbar.
           </p>
@@ -47,8 +47,8 @@
 <style scoped>
 /* Allgemeine Stile beibehalten */
 :root {
-  --card: #333;
-  --bg: #1c1c1c;
+  --card: transparent;
+  --bg: transparent;
   --text: #f1f1f1;
   --primary: #3f93f8;
 }
@@ -100,7 +100,6 @@
   background: var(--card);
   border-radius: 16px;
   padding: 48px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   /* Setzt den Fluss auf vertikal (Standard-Block-Layout) */
   display: flex;
