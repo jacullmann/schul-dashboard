@@ -21,7 +21,6 @@
           <router-link  to="/kontakt" class="footer-link">Kontaktformular</router-link>
 
         </div>
-        <!--<Notes />-->
         <All  class="logoutDeviceMobile" />
       </div>
     </div>
@@ -41,7 +40,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import router from "../router";
-//import Notes from "./Notes.vue"
 
 import All from './AllLogoutButton.vue'
 
