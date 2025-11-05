@@ -92,7 +92,7 @@
               <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
             </div>
 
-            <div class="row item-badges" v-show="!isChecked(item.id)">
+            <div class="row item-badges" :class="{ collapsed: isChecked(item.id) }">
               <div class="badge subject-badge">{{ item.subject }}</div>
               <div
                   class="badge time-badge"
@@ -103,7 +103,6 @@
               <div v-if="user?.isAdmin" class="admin-creator-info">
                 {{ item.createdByEmail || 'E-Mail nicht verfügbar' }}
               </div>
-
             </div>
           </div>
 
@@ -1301,7 +1300,6 @@ onMounted(async () => {
 /* Wrapper to allow overlay positioning on the second thumb */
 .thumb-with-overlay-wrapper { position: relative; }
 
-/* Overlay styling (leichtes graues, leicht unscharfes Overlay wie WhatsApp) */
 .img-overlay {
   position: absolute;
   inset: 0;
@@ -1718,6 +1716,20 @@ li {
   color: var(--muted);
   font-style: italic;
   padding: 16px;
+}
+/* Fade-Animation für Meta-Informationen */
+.row.item-badges {
+  transition: opacity 220ms ease, max-height 220ms ease, margin-top 220ms ease;
+  opacity: 1;
+  max-height: 50px;
+  margin-top: 4px;
+}
+
+.row.item-badges.collapsed {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+  pointer-events: none;
 }
 
 @media (max-width: 768px) {
