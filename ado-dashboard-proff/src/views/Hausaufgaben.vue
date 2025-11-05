@@ -1178,7 +1178,14 @@ onMounted(async () => {
 }
 
 /* Item main row */
-.item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.item-main {
+  position: relative;
+  display:flex;
+  justify-content:space-between;
+  align-items:center; /* ← Zentriert alle Elemente vertikal */
+  gap:12px;
+}
+
 .item-meta { flex:1; min-width: 0; }
 .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
