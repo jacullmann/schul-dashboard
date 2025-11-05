@@ -1174,8 +1174,7 @@ onMounted(async () => {
 /* Collapsed state */
 .item-card.collapsed {
   padding: 8px 12px;
-  max-height: 60px;
-  transition: all 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: padding 320ms ease, max-height 320ms ease;
 }
 
 /* Item main row */
@@ -1194,7 +1193,6 @@ onMounted(async () => {
 .collapse-checkbox .vis-label {
   width:18px; height:18px; border-radius:4px; border: 2px solid white;;
   display:inline-block; background:transparent; position:relative;
-  transition: all 200ms ease;
 }
 .collapse-checkbox input:checked + .vis-label {
   background: var(--primary);
@@ -1339,23 +1337,19 @@ onMounted(async () => {
 /* Empty state */
 .empty { text-align:center; color:var(--muted); padding:24px; }
 
+/* Collapse transition (height + opacity) */
 .collapse-enter-active, .collapse-leave-active {
-  transition: all 420ms cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  transition: max-height 320ms ease, opacity 320ms ease, padding 320ms ease;
 }
 .collapse-enter-from, .collapse-leave-to {
-  opacity: 0;
   max-height: 0;
-  margin-top: 0;
-  margin-bottom: 0;
+  opacity: 0;
   padding-top: 0;
   padding-bottom: 0;
-  transform: scaleY(0.8);
 }
 .collapse-enter-to, .collapse-leave-from {
-  opacity: 1;
   max-height: 800px;
-  transform: scaleY(1);
+  opacity: 1;
 }
 
 /* Message */
@@ -1376,7 +1370,7 @@ onMounted(async () => {
   border-radius: 6px;
   cursor: pointer;
   color: var(--text);
-  transition: all 200ms ease;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
 }
 .item-menu-trigger:hover {
   background: rgba(255,255,255,0.02);
