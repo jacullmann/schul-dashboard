@@ -47,7 +47,7 @@ const userProfile = ref(null)
 const fetchUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/auth/me', {
+    const response = await fetch('https://two34u882345253.onrender.com/api/auth/me', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
