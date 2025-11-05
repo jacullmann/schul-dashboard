@@ -183,7 +183,7 @@ async function uploadImage() {
     const existingCount = (images.value || []).length;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
-      uploadError.value = `Maximale Anzahl ${MAX_IMAGES} Bilder ${props.initial ? '(gesamt)' : '(für neuen Eintrag)'} erreicht.`;
+      uploadError.value = `Die maximale Anzahl an Bilder (${MAX_IMAGES})  ${props.initial ? '(gesamt)' : '(für neuen Eintrag)'} für diesen Eintrag wurden erreicht.`;
       uploading.value = false;
       return;
     }
