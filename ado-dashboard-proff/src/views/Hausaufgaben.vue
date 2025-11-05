@@ -1173,7 +1173,8 @@ onMounted(async () => {
 /* Collapsed state */
 .item-card.collapsed {
   padding: 8px 12px;
-  transition: padding 150ms ease, max-height 150ms ease;
+  transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
 
 /* Item main row */
@@ -1337,7 +1338,9 @@ onMounted(async () => {
 
 /* Collapse transition (height + opacity) */
 .collapse-enter-active, .collapse-leave-active {
-  transition: max-height 150ms ease, opacity 150ms ease, padding 150ms ease;
+  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
 .collapse-enter-from, .collapse-leave-to {
   max-height: 0;
@@ -1719,7 +1722,9 @@ li {
 }
 /* Fade-Animation für Meta-Informationen */
 .row.item-badges {
-  transition: opacity 150ms ease, max-height 150ms ease, margin-top 150ms ease;
+  transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
   opacity: 1;
   max-height: 50px;
   margin-top: 4px;
