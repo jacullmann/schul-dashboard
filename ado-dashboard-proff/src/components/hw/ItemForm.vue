@@ -177,16 +177,18 @@ async function uploadImage() {
       return;
     }
 
+    const TOTAL_MAX_IMAGES = 12;
+    const PER_USER_MAX_IMAGES = 8;
+    const MAX_IMAGES = props.initial ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
     const existingCount = (images.value || []).length;
-    const MAX_IMAGES = 12;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
-      uploadError.value = 'Maximale Anzahl 12 Bilder erreicht.';
+      uploadError.value = `Maximale Anzahl ${MAX_IMAGES} Bilder ${props.initial ? '(gesamt)' : '(für neuen Eintrag)'} erreicht.`;
       uploading.value = false;
       return;
     }
     if (files.length > remaining) {
-      uploadError.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Maximale Anzahl ${MAX_IMAGES} Bilder.`;
+      uploadError.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Dein Limit: ${MAX_IMAGES} Bilder.`;
       uploading.value = false;
       return;
     }

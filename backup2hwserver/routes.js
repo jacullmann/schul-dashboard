@@ -104,7 +104,7 @@ export default function registerRoutes(app, deps) {
                 'title': 'Passe den Titel an (2-60 Zeichen)',
                 'subject': 'Passe das Fach an (2-40 Zeichen)',
                 'description': 'Die Beschreibung ist zu lang',
-                'images': 'Du kannst maximal 12 Bilder hochladen',
+                'images': 'Du kannst maximal 8 Bilder selbst hochladen',
                 'dueDate': 'Ungültiges Datumsformat'
             };
             const firstError = errors.array()[0];
@@ -411,6 +411,22 @@ export default function registerRoutes(app, deps) {
         async (req, res) => {
             const item = await Item.findById(req.params.id);
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+            const TOTAL_MAX_IMAGES = 12;
+            const PER_USER_MAX_IMAGES = 8;
+
+            // 1. Check total limit
+            if (item.images.length >= TOTAL_MAX_IMAGES) {
+                return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
+            }
+
+            // 2. Check per-user limit
+            const userImageCount = item.images.filter(
+                img => img.createdBy && img.createdBy.toString() === req.user.sub
+            ).length;
+
+            if (userImageCount >= PER_USER_MAX_IMAGES) {
+                return sendJSONError(res, 400, `Du hast dein Limit von ${PER_USER_MAX_IMAGES} Bildern für diesen Eintrag erreicht.`);
+            }
             const newImage = {
                 url: req.body.image.url,
                 thumbUrl: buildThumbUrl(req.body.image.url),
@@ -502,7 +518,7 @@ export default function registerRoutes(app, deps) {
             body('title').isString().isLength({ min: 2, max: 60 }).withMessage('title'),
             body('subject').isString().isLength({ min: 2, max: 40 }).withMessage('subject'),
             body('description').optional().isString().isLength({ max: 1000 }).withMessage('description'),
-            body('images').optional().isArray({ max: 12 }).withMessage('images'),
+            body('images').optional().isArray({ max: 8 }).withMessage('images'),
             body('dueDate').isISO8601().toDate().withMessage('dueDate')
         ],
         validateItemCreation,
@@ -550,6 +566,24 @@ export default function registerRoutes(app, deps) {
                 if (due.isBefore(minDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
                 if (due.isAfter(maxDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
             }
+            if (req.body.images) {
+                const PER_USER_MAX_IMAGES = 8;
+                const TOTAL_MAX_IMAGES = 12;
+
+                if (req.body.images.length > TOTAL_MAX_IMAGES) {
+                    return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
+                }
+
+                // Zähle Bilder, für die der aktuelle User verantwortlich ist
+                const userImageCount = req.body.images.filter(
+                    img => (img.createdBy && img.createdBy.toString() === req.user.sub) || // existierendes Bild von diesem User
+                        !img.createdBy // neues Bild, das in diesem Request hinzugefügt wird
+                ).length;
+
+                if (userImageCount > PER_USER_MAX_IMAGES) {
+                    return sendJSONError(res, 400, `Du kannst maximal ${PER_USER_MAX_IMAGES} Bilder selbst zu einem Eintrag hinzufügen.`);
+                }
+            }
 
             const update = {};
             for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
@@ -560,7 +594,7 @@ export default function registerRoutes(app, deps) {
                     url: img.url,
                     thumbUrl: buildThumbUrl(img.url),
                     publicId: img.publicId,
-                    createdBy: img.createdBy || item.createdBy
+                    createdBy: img.createdBy || req.user.sub
                 }));
             }
             await Item.findByIdAndUpdate(item._id, { $set: update });

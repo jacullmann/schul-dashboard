@@ -133,16 +133,16 @@ async function uploadImg() {
     isError.value = false;
 
     const existingCount = (currentImages.value || []).length;
-    const MAX_IMAGES = 15;
+    const MAX_IMAGES = 12;
     const remaining = MAX_IMAGES - existingCount;
     if (remaining <= 0) {
-      message.value = 'Maximale Anzahl 15 Bilder erreicht.';
+      message.value = 'Maximale Anzahl 12 Bilder (gesamt) erreicht.';
       isError.value = true;
       uploading.value = false;
       return;
     }
     if (files.length > remaining) {
-      message.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Maximale Anzahl ${MAX_IMAGES} Bilder.`;
+      message.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Maximale Anzahl ${MAX_IMAGES} Bilder (gesamt).`;
       isError.value = true;
       uploading.value = false;
       return;
