@@ -1173,7 +1173,7 @@ onMounted(async () => {
 /* Collapsed state */
 .item-card.collapsed {
   padding: 8px 12px;
-  transition: padding 220ms ease, max-height 220ms ease;
+  transition: padding 150ms ease, max-height 150ms ease;
 }
 
 /* Item main row */
@@ -1337,7 +1337,7 @@ onMounted(async () => {
 
 /* Collapse transition (height + opacity) */
 .collapse-enter-active, .collapse-leave-active {
-  transition: max-height 320ms ease, opacity 320ms ease, padding 320ms ease;
+  transition: max-height 150ms ease, opacity 150ms ease, padding 150ms ease;
 }
 .collapse-enter-from, .collapse-leave-to {
   max-height: 0;
@@ -1719,7 +1719,7 @@ li {
 }
 /* Fade-Animation für Meta-Informationen */
 .row.item-badges {
-  transition: opacity 220ms ease, max-height 220ms ease, margin-top 220ms ease;
+  transition: opacity 150ms ease, max-height 150ms ease, margin-top 150ms ease;
   opacity: 1;
   max-height: 50px;
   margin-top: 4px;
