@@ -1167,14 +1167,14 @@ onMounted(async () => {
   padding: 14px;
   background: var(--jj);
   border: none;
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition: transform 150ms ease;
   overflow: visible;
 }
 
 /* Collapsed state */
 .item-card.collapsed {
   padding: 8px 12px;
-  transition: padding 320ms ease, max-height 320ms ease;
+  transition: padding 220ms ease, max-height 220ms ease;
 }
 
 /* Item main row */
