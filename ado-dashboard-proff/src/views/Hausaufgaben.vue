@@ -1162,7 +1162,7 @@ onMounted(async () => {
 /* Items */
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card {
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 12px 12px 12px 12px;
   background: var(--jj);
   border: none;
@@ -1173,6 +1173,7 @@ onMounted(async () => {
 /* Collapsed state */
 .item-card.collapsed {
   padding: 8px 12px 8px 12px;
+  align-items: center;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
@@ -1765,6 +1766,7 @@ li {
   .mg {
     margin-top: 20px;
   }
+
 
 }
 </style>
