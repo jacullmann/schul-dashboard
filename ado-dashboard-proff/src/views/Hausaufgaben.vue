@@ -1163,7 +1163,7 @@ onMounted(async () => {
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card {
   border-radius: 16px;
-  padding: 16px 16px 16px 16px;
+  padding: 12px 16px 16px 16px;
   background: var(--jj);
   border: none;
   transition: transform 150ms ease;
