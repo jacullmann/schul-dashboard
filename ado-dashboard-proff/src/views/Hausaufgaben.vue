@@ -1168,13 +1168,15 @@ onMounted(async () => {
   border: none;
   transition: transform 150ms ease;
   overflow: visible;
+  max-height: 1500px;
 }
 
 /* Collapsed state */
 .item-card.collapsed {
-  padding: 8px 12px;
+  padding: 4px 12px;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
+  max-height: 40px;
 }
 
 /* Item main row */
