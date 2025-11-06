@@ -1168,22 +1168,19 @@ onMounted(async () => {
   border: none;
   transition: transform 150ms ease;
   overflow: visible;
-  max-height: 1500px;
 }
 
 /* Collapsed state */
 .item-card.collapsed {
-  padding-left: 12px;
-  align-items: center;
+  padding: 8px 12px;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
-  max-height: 40px;
 }
 
 /* Item main row */
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
-.item-title {font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* Checkbox visual */
 .collapse-checkbox {
