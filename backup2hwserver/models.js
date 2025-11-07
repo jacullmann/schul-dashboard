@@ -115,7 +115,6 @@ export function initModels(mongoose) {
 }
 
 export async function ensureSubjects(SubjectModel) {
-    // If called with initModels return value
     const Subject = SubjectModel?.find ? SubjectModel : SubjectModel.Subject || SubjectModel;
     const DEFAULT_SUBJECTS = [
         'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
@@ -127,7 +126,6 @@ export async function ensureSubjects(SubjectModel) {
     }
 }
 
-// Utility helpers used by routes (also exported for use in other modules)
 export function buildThumbUrl(secureUrl) {
     try {
         const u = new URL(secureUrl);

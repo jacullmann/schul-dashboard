@@ -120,7 +120,7 @@ import { NButton, useNotification } from 'naive-ui'
 import HF from "../components/Mobile.vue"
 
 
-console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und wird umgehend zur Anzeige gebracht. ');
+console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das Verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und umgehend zur Anzeige gebracht. ');
 
 const bat = ref<boolean>(false);
 

@@ -33,7 +33,6 @@ export default function registerRoutes(app, deps) {
         PasswordReset
     } = models;
 
-    // Reusable helpers
     function sendJSONError(res, status, msg, errors) {
         return res.status(status).json({ error: msg, errors });
     }
@@ -85,7 +84,6 @@ export default function registerRoutes(app, deps) {
         });
     }
 
-    // dashboard rate limiter
     const dashboardLimiter = rateLimit({
         windowMs: 30 * 60 * 1000,
         max: 15,
@@ -95,7 +93,6 @@ export default function registerRoutes(app, deps) {
         statusCode: 429,
     });
 
-    // custom item validation used by creation route
     function validateItemCreation(req, res, next) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -123,7 +120,6 @@ export default function registerRoutes(app, deps) {
         next();
     }
 
-    // SendGrid helpers (guard when not configured)
     async function sendVerificationEmail(to, verifyUrl) {
         if (!sendgridConfigured) throw new Error('SendGrid nicht konfiguriert');
         const msg = {
@@ -146,7 +142,6 @@ export default function registerRoutes(app, deps) {
         return sgClient.send(msg);
     }
 
-    // Routes (kept structurally identical to original)
     app.post('/api/auth/register',
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
@@ -261,7 +256,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Admin routes
     app.get('/api/admin/users', requireAdmin, async (req, res) => {
         const users = await User.find({}).sort({ createdAt: -1 }).lean();
         res.json(users.map(u => ({
@@ -282,7 +276,6 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    // Subjects
     app.get('/api/subjects', async (req, res) => {
         const list = await Subject.find({}).sort({ name: 1 }).lean();
         res.json(list.map(s => s.name));
@@ -298,7 +291,6 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    // Announcements
     app.get('/api/announcements', async (req, res) => {
         const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
         res.json(list);
@@ -333,7 +325,6 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    // Cloudinary signed upload
     app.post('/api/uploads/sign', requireAuth, async (req, res) => {
         const timestamp = Math.floor(Date.now() / 1000);
         const signature = cloudinary.utils.api_sign_request(
@@ -349,7 +340,6 @@ export default function registerRoutes(app, deps) {
         });
     });
 
-    // Sorgenbox
     app.post('/anon/sorgenbox', async (req, res) => {
         try {
             const { message } = req.body;
@@ -361,7 +351,6 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    // Admin: all users safe listing
     app.get('/api/admin/all-users', requireAdmin, async (req, res) => {
         try {
             const users = await User.find({}).select('-passwordHash -activity').sort({ createdAt: -1 }).lean();
@@ -388,7 +377,6 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    // Admin: user activity
     app.get('/api/admin/users/:id/activity', requireAdmin, async (req, res) => {
         try {
             const user = await User.findById(req.params.id).select('activity').lean();
@@ -400,7 +388,6 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    // Item image add
     app.post('/api/items/:id/images',
         requireAuth,
         param('id').isMongoId(),
@@ -414,12 +401,10 @@ export default function registerRoutes(app, deps) {
             const TOTAL_MAX_IMAGES = 12;
             const PER_USER_MAX_IMAGES = 8;
 
-            // 1. Check total limit
             if (item.images.length >= TOTAL_MAX_IMAGES) {
                 return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
             }
 
-            // 2. Check per-user limit
             const userImageCount = item.images.filter(
                 img => img.createdBy && img.createdBy.toString() === req.user.sub
             ).length;
@@ -440,7 +425,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Delete image
     app.delete('/api/items/:itemId/images/:publicId',
         requireAuth,
         param('itemId').isMongoId(),
@@ -470,7 +454,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Items list
     app.get('/api/items',
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
@@ -510,7 +493,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Create item
     app.post('/api/items',
         requireAuth,
         [
@@ -543,7 +525,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Update item
     app.patch('/api/items/:id',
         requireAuth,
         param('id').isMongoId(),
@@ -574,10 +555,9 @@ export default function registerRoutes(app, deps) {
                     return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
                 }
 
-                // Zähle Bilder, für die der aktuelle User verantwortlich ist
                 const userImageCount = req.body.images.filter(
-                    img => (img.createdBy && img.createdBy.toString() === req.user.sub) || // existierendes Bild von diesem User
-                        !img.createdBy // neues Bild, das in diesem Request hinzugefügt wird
+                    img => (img.createdBy && img.createdBy.toString() === req.user.sub) ||
+                        !img.createdBy
                 ).length;
 
                 if (userImageCount > PER_USER_MAX_IMAGES) {
@@ -603,7 +583,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Delete item
     app.delete('/api/items/:id', requireAuth, async (req, res) => {
         const item = await Item.findById(req.params.id);
         if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
@@ -622,7 +601,6 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    // Checks routes
     app.get('/api/checks/me', requireAuth, async (req, res) => {
         try {
             const docs = await KeepChecked.find({ userId: req.user.sub }).select('itemId -_id').lean();
@@ -662,7 +640,6 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    // Delete own account
     app.delete('/api/auth/me', requireAuth, async (req, res) => {
         try {
             const user = await User.findById(req.user.sub);
@@ -677,7 +654,6 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    // Ban / unban
     app.post('/api/admin/users/:id/ban', requireAdmin, param('id').isMongoId(), validate, async (req, res) => {
         try {
             const userToBan = await User.findById(req.params.id).lean();
@@ -708,7 +684,6 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    // Password reset flow
     app.post('/api/auth/forgot', body('email').isEmail(), validate, async (req, res) => {
         try {
             const email = req.body.email.toLowerCase();
@@ -772,7 +747,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    // Security report via Gemini
     app.post('/api/admin/security-report', requireAdmin, async (req, res) => {
         try {
             const { data, error: dbError } = await supabase
@@ -835,7 +809,6 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
-    // Reports endpoint
     app.post('/api/reports',
         tryAuth,
         body('itemId').isMongoId(),
@@ -875,7 +848,6 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
-    // Sorgen admin
     app.get('/anon/sorgenfind', requireAdmin, async (req, res) => {
         try {
             const sorgen = await Sorgen.find({}).sort({ createdAt: -1 }).limit(100);
@@ -898,9 +870,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
-    // Protected test route
     app.get('/api/protected', (req, res, next) => {
-        // small middleware emulation to check token header exactly like original authMiddleware
         const header = req.headers.authorization;
         if (!header) return sendJSONError(res, 401, 'Kein Token');
         const token = header.split(' ')[1];
@@ -916,7 +886,6 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
-    // Dashboard-check (auth by shared secret) with logging to supabase
     app.post('/api/dashboard-check',
         dashboardLimiter,
         body('password').isString().isLength({ min: 1 }),
@@ -940,7 +909,6 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
-    // verifyall route (uses same auth pattern as original)
     app.get('/api/verifyall', (req, res) => {
         const header = req.headers.authorization;
         if (!header) return sendJSONError(res, 401, 'Kein Token');
