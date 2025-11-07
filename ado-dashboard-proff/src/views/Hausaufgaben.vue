@@ -623,7 +623,25 @@ const colorStyles = (timeColor: string) => {
 
 const filteredItems = computed(() => {
   let list = items.value;
-  if (subjectFilter.value) list = list.filter(i => i.subject.toLowerCase() === subjectFilter.value.toLowerCase());
+  const filter = subjectFilter.value; // z.B. "WPU (Di)" oder "Mathe"
+
+  if (filter) {
+    // Liste der "Eltern-Kategorien", die 'startsWith' verwenden müssen
+    // Wichtig: alles klein schreiben für den Vergleich
+    const parentCategories = ['enrichment', 'wpu (di)', 'wpu (do)'];
+    const filterLower = filter.toLowerCase();
+
+    if (parentCategories.includes(filterLower)) {
+      // --- STARTWITH-LOGIK ---
+      // Filtert nach "WPU (Di) - Englisch", "WPU (Di) - Deutsch" etc.
+      list = list.filter(i => i.subject.toLowerCase().startsWith(filterLower));
+    } else {
+      // --- GENAUE ÜBEREINSTIMMUNG-LOGIK ---
+      // Filtert nach "Mathe", "Deutsch" etc.
+      list = list.filter(i => i.subject.toLowerCase() === filterLower);
+    }
+  }
+
   return list;
 });
 

@@ -10,15 +10,35 @@
 
       <div class="row">
         <div class="col">
-          <label class="label">Titel</label>
-          <input class="input" v-model="title" />
-        </div>
-        <div class="col">
           <label class="label">Fach</label>
           <select class="input" v-model="subjectSel">
             <option disabled value="">Bitte wählen</option>
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
             <option value="__OTHER__">Anderes...</option>
+          </select>
+        </div>
+
+        <div class="col" v-if="subjectSel === 'Enrichment'">
+          <label class="label">Kurs</label>
+          <select class="input" v-model="enrKursSel">
+            <option disabled value="">Bitte Kurs wählen</option>
+            <option v-for="k in enrKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
+          </select>
+        </div>
+
+        <div class="col" v-if="subjectSel === 'WPU (Di)'">
+          <label class="label">Kurs</label>
+          <select class="input" v-model="wpuDiKursSel">
+            <option disabled value="">Bitte Kurs wählen</option>
+            <option v-for="k in wpuDiKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
+          </select>
+        </div>
+
+        <div class="col" v-if="subjectSel === 'WPU (Do)'">
+          <label class="label">Kurs</label>
+          <select class="input" v-model="wpuDoKursSel">
+            <option disabled value="">Bitte Kurs wählen</option>
+            <option v-for="k in wpuDoKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
         </div>
       </div>
@@ -89,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import hw from '../../hwApi';
 import type { HwItem } from './Hausaufgaben.vue';
 
@@ -104,12 +124,62 @@ const labelFor = (type: string) => {
   } as const;
   return map[type];
 };
+const enrKurse = [
+  { id: '1', name: 'Herr Müller' },
+  { id: '2', name: 'Herr Weber' },
+  { id: '3', name: 'Frau Glier' },
+  { id: '4', name: 'Frau Ellsiepen' },
+];
+
+const wpuDiKurse = [
+  { id: '1', name: 'Englisch' },
+  { id: '2', name: 'Deutsch' },
+  { id: '3', name: 'Biologie' },
+  { id: '4', name: 'Geschichte' },
+  { id: '5', name: 'Informatik' },
+  { id: '6', name: 'Latein' },
+];
+
+const wpuDoKurse = [
+  { id: '1', name: 'Englisch' },
+  { id: '2', name: 'Biologie' },
+  { id: '3_1', name: 'Mathe' },
+  { id: '4_1', name: 'Geschichte' },
+  { id: '5_1', name: 'Musik' },
+];
+
+const getInitialSubjectParts = () => {
+  const initial = props.initial?.subject;
+  if (!initial) return { main: '', course: '' };
+
+  const parts = initial.split(' - ');
+  if (parts.length === 2) {
+    const main = parts[0].trim();
+    const course = parts[1].trim();
+    if (['Enrichment', 'WPU (Di)', 'WPU (Do)'].includes(main)) {
+      return { main, course };
+    }
+  }
+  return { main: initial, course: '' };
+};
+
+const initialParts = getInitialSubjectParts();
 
 const title = ref(props.initial?.title || '');
-const subjectSel = ref(props.initial?.subject || '');
+const subjectSel = ref(initialParts.main);
 const subjectOther = ref('');
 const description = ref(props.initial?.description || '');
 const images = ref(props.initial?.images || []);
+const enrKursSel = ref(initialParts.main === 'Enrichment' ? initialParts.course : '');
+const wpuDiKursSel = ref(initialParts.main === 'WPU (Di)' ? initialParts.course : '');
+const wpuDoKursSel = ref(initialParts.main === 'WPU (Do)' ? initialParts.course : '');
+
+watch(subjectSel, (newVal) => {
+  // Setzt die Kursauswahl zurück, wenn das Hauptfach gewechselt wird
+  if (newVal !== 'Enrichment') enrKursSel.value = '';
+  if (newVal !== 'WPU (Di)') wpuDiKursSel.value = '';
+  if (newVal !== 'WPU (Do)') wpuDoKursSel.value = '';
+});
 
 const now = new Date();
 const minDate = new Date();
@@ -270,8 +340,36 @@ async function submit() {
   isError.value = false;
 
   try {
+    // --- NEUE LOGIK ZUM ERSTELLEN DES 'subject'-STRINGS ---
+    let subject = '';
+    const mainSubject = subjectSel.value;
+
+    if (mainSubject === '__OTHER__') {
+      subject = subjectOther.value.trim();
+    } else if (mainSubject === 'Enrichment') {
+      if (!enrKursSel.value) {
+        throw new Error('Bitte einen Enrichment-Kurs auswählen');
+      }
+      subject = `Enrichment - ${enrKursSel.value}`;
+    } else if (mainSubject === 'WPU (Di)') {
+      if (!wpuDiKursSel.value) {
+        throw new Error('Bitte einen WPU (Di) Kurs auswählen');
+      }
+      subject = `WPU (Di) - ${wpuDiKursSel.value}`;
+    } else if (mainSubject === 'WPU (Do)') {
+      if (!wpuDoKursSel.value) {
+        throw new Error('Bitte einen WPU (Do) Kurs auswählen');
+      }
+      subject = `WPU (Do) - ${wpuDoKursSel.value}`;
+    } else {
+      // Es ist ein einfaches Fach (z.B. "Mathe", "Deutsch")
+      subject = mainSubject;
+    }
+    // --- ENDE DER NEUEN FACH-LOGIK ---
+
+
     // Frontend-Validierung vor dem Senden
-    const subject = subjectSel.value === '__OTHER__' ? subjectOther.value.trim() : subjectSel.value;
+    // const subject = ... (Diese Zeile wird durch die obige Logik ersetzt)
 
     // Titel-Validierung
     if (!title.value.trim()) {
@@ -281,11 +379,14 @@ async function submit() {
       throw new Error('Passe den Titel an (2-60 Zeichen)');
     }
 
-    // Fach-Validierung
+    // Fach-Validierung (verwendet jetzt die neue 'subject' Variable)
     if (!subject) {
       throw new Error('Du musst ein Fach auswählen');
     }
+    // Die 40-Zeichen-Validierung aus routes.js
     if (subject.length < 2 || subject.length > 40) {
+      // z.B. "Enrichment - Frau Ellsiepen" = 27 Zeichen. Passt.
+      // z.B. "WPU (Di) - Informatik" = 22 Zeichen. Passt.
       throw new Error('Passe das Fach an (2-40 Zeichen)');
     }
 
@@ -325,15 +426,11 @@ async function submit() {
     emit('success');
 
   } catch (e: any) {
-    // Spezifische Fehlerbehandlung
     if (e.response?.status === 400) {
-      // Backend-Validierungsfehler (bereits benutzerfreundlich)
       message.value = e.response.data.error || 'Bitte überprüfe deine Eingaben.';
     } else if (e.message) {
-      // Frontend-Validierungsfehler
       message.value = e.message;
     } else {
-      // Allgemeiner Fehler
       message.value = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
     }
     isError.value = true;
@@ -341,6 +438,8 @@ async function submit() {
     submitting.value = false;
   }
 }
+
+
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('close');

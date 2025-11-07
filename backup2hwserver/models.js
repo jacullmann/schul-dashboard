@@ -119,11 +119,15 @@ export async function ensureSubjects(SubjectModel) {
     const DEFAULT_SUBJECTS = [
         'Mathe', 'Deutsch', 'Englisch', 'Französisch', 'Erdkunde', 'Sport',
         'Biologie', 'Chemie', 'Physik', 'Ethik', 'Politik', 'Musik',
-        'Enrichment', 'WPU', 'Theater', 'Latein'
+        'Enrichment',
+        'WPU (Di)',
+        'WPU (Do)',
+        'Theater', 'Latein'
     ];
     for (const s of DEFAULT_SUBJECTS) {
         await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
     }
+    await Subject.deleteOne({ name: 'WPU' });
 }
 
 export function buildThumbUrl(secureUrl) {
