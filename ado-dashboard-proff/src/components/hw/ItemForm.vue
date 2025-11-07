@@ -10,6 +10,10 @@
 
       <div class="row">
         <div class="col">
+          <label class="label">Titel</label>
+          <input class="input" v-model="title" />
+        </div>
+        <div class="col">
           <label class="label">Fach</label>
           <select class="input" v-model="subjectSel">
             <option disabled value="">Bitte wählen</option>
