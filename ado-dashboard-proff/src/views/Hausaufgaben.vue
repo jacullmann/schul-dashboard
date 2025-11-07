@@ -61,6 +61,16 @@
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
           </select>
           <OldNewSwitch v-model="showOldEntries" />
+          <button
+              v-if="user && user.doneSetup"
+              class="btn"
+              :class="{ 'ghost': !showPersonalized }"
+              @click="showPersonalized = !showPersonalized"
+              style="height: 37px; min-width: 150px;"
+              title="Filtert Enrichment und WPU Kurse"
+          >
+            {{ showPersonalized ? 'Alle Einträge' : 'Personalisiert' }}
+          </button>
         </div>
 
         <button v-if="user" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
@@ -459,6 +469,28 @@ export interface HwItem {
   timeColor: string;
 }
 
+const enrKurse = [
+  { id: '1', name: 'Herr Müller' },
+  { id: '2', name: 'Herr Weber' },
+  { id: '3', name: 'Frau Glier' },
+  { id: '4', name: 'Frau Ellsiepen' },
+];
+const wpuDiKurse = [
+  { id: '1', name: 'Englisch' },
+  { id: '2', name: 'Deutsch' },
+  { id: '3', name: 'Biologie' },
+  { id: '4', name: 'Geschichte' },
+  { id: '5', name: 'Informatik' },
+  { id: '6', name: 'Latein' },
+];
+const wpuDoKurse = [
+  { id: '1', name: 'Englisch' },
+  { id: '2', name: 'Biologie' },
+  { id: '3', name: 'Mathe' },
+  { id: '4', name: 'Geschichte' },
+  { id: '5', name: 'Musik' },
+];
+
 const MAX_TITLE_LENGTH = 50;
 const MAX_SUBJECT_LENGTH = 30;
 
@@ -477,6 +509,8 @@ const announcements = ref<any[]>([]);
 const items = ref<HwItem[]>([]);
 const loading = ref(true);
 const subjectFilter = ref('');
+
+const showPersonalized = ref(false);
 
 const allUsers = ref<any[]>([]);
 const loadingUsers = ref(false);
@@ -625,21 +659,50 @@ const filteredItems = computed(() => {
   let list = items.value;
   const filter = subjectFilter.value; // z.B. "WPU (Di)" oder "Mathe"
 
+  // --- 1. Filter: Dropdown-Filter (unverändert) ---
   if (filter) {
-    // Liste der "Eltern-Kategorien", die 'startsWith' verwenden müssen
-    // Wichtig: alles klein schreiben für den Vergleich
     const parentCategories = ['enrichment', 'wpu (di)', 'wpu (do)'];
     const filterLower = filter.toLowerCase();
 
     if (parentCategories.includes(filterLower)) {
-      // --- STARTWITH-LOGIK ---
       // Filtert nach "WPU (Di) - Englisch", "WPU (Di) - Deutsch" etc.
       list = list.filter(i => i.subject.toLowerCase().startsWith(filterLower));
     } else {
-      // --- GENAUE ÜBEREINSTIMMUNG-LOGIK ---
       // Filtert nach "Mathe", "Deutsch" etc.
       list = list.filter(i => i.subject.toLowerCase() === filterLower);
     }
+  }
+
+  // --- 2. Filter: Personalisierungs-Filter (NEU) ---
+  if (showPersonalized.value && user.value && user.value.doneSetup) {
+    // Finde die Namen der Kurse, die der User belegt
+    const enrName = enrKurse.find(k => k.id == user.value.enrKurs)?.name;
+    const wpu1Name = wpuDiKurse.find(k => k.id == user.value.wpuKurs1)?.name;
+    const wpu2Name = wpuDoKurse.find(k => k.id == user.value.wpuKurs2)?.name;
+
+    // Erstelle die exakten Fach-Strings, die im Item gespeichert sind
+    const userSubjects = new Set<string>();
+    if (enrName) userSubjects.add(`Enrichment - ${enrName}`);
+    if (wpu1Name) userSubjects.add(`WPU (Di) - ${wpu1Name}`);
+    if (wpu2Name) userSubjects.add(`WPU (Do) - ${wpu2Name}`);
+
+    list = list.filter(item => {
+      const subjectLower = item.subject.toLowerCase();
+
+      // Prüfe, ob es ein "Spezialfach" ist
+      if (subjectLower.startsWith('enrichment')) {
+        return userSubjects.has(item.subject); // Zeige nur, wenn es der Kurs des Users ist
+      }
+      if (subjectLower.startsWith('wpu (di)')) {
+        return userSubjects.has(item.subject); // Zeige nur, wenn es der Kurs des Users ist
+      }
+      if (subjectLower.startsWith('wpu (do)')) {
+        return userSubjects.has(item.subject); // Zeige nur, wenn es der Kurs des Users ist
+      }
+
+      // Wenn es kein Spezialfach ist (z.B. Mathe, Deutsch), immer anzeigen
+      return true;
+    });
   }
 
   return list;

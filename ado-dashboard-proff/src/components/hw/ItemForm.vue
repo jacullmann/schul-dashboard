@@ -143,9 +143,9 @@ const wpuDiKurse = [
 const wpuDoKurse = [
   { id: '1', name: 'Englisch' },
   { id: '2', name: 'Biologie' },
-  { id: '3_1', name: 'Mathe' },
-  { id: '4_1', name: 'Geschichte' },
-  { id: '5_1', name: 'Musik' },
+  { id: '3', name: 'Mathe' },
+  { id: '4', name: 'Geschichte' },
+  { id: '5', name: 'Musik' },
 ];
 
 const getInitialSubjectParts = () => {
