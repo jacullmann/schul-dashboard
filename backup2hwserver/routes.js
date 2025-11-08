@@ -1138,7 +1138,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32);
         const iv = crypto.randomBytes(16);
 
-        const cipher = crypto.createCipheriv(algorithm, key);
+        const cipher = crypto.createCipheriv(algorithm, key, iv);
         cipher.setAAD(Buffer.from('todo-encryption'));
 
         let encrypted = cipher.update(data, 'utf8', 'hex');
