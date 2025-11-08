@@ -479,6 +479,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   color: #1a1a1a;
   max-height: calc(100vh - 40px);
   overflow-y: scroll;
+  position: fixed;
   z-index: 99999999999999999999999999999999999999999999999999999999999999999999999999999999999;
 }
 
