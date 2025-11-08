@@ -53,9 +53,6 @@
         <router-link  to="/sorgenbox" class="nav-item" @click="closeNav">
           Sorgenbox
         </router-link>
-        <router-link to="/todo" class="nav-item" @click="closeNav">
-          To-Dos
-        </router-link>
       </nav>
     </div>
   </header>
