@@ -16,6 +16,7 @@ const Games = () => import('./views/Games.vue')
 const GameDetail = () => import('./views/GameDetail.vue')
 //const News = () => import('./views/News.vue')
 const Finales = () => import('./components/Finaleb.vue')
+const TodoApp = () => import('./views/TodoApp.vue');
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -33,6 +34,12 @@ const routes = [
     { path: '/kontakt', component: Kontakt },
     { path: '/8912', component: Games },
     { path: '/stundenplan', component: Finales },
+    {
+        path: '/todo',
+        name: 'Todo',
+        component: TodoApp,
+        meta: { requiresAuth: true }
+    },
     //{ path: '/news', component: News },
     {
         path: '/8912/:id',

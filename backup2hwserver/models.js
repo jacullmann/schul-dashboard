@@ -4,6 +4,48 @@ import crypto from 'crypto';
 export function initModels(mongoose) {
     const Schema = mongoose.Schema;
 
+    const EncryptedTodoSchema = new Schema({
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'HwUser',
+            required: true,
+            index: true
+        },
+        encryptedTitle: {
+            type: {
+                iv: String,
+                data: String,
+                authTag: String
+            },
+            required: true
+        },
+        encryptedContent: {
+            type: {
+                iv: String,
+                data: String,
+                authTag: String
+            },
+            default: { iv: '', data: '', authTag: '' }
+        },
+        encryptedDueDate: {
+            type: {
+                iv: String,
+                data: String,
+                authTag: String
+            },
+            default: null
+        },
+        completed: {
+            type: Boolean,
+            default: false
+        }
+    }, {
+        timestamps: true
+    });
+    EncryptedTodoSchema.index({ userId: 1, createdAt: -1 });
+
+    const EncryptedTodo = mongoose.model('EncryptedTodo', EncryptedTodoSchema);
+
     const UserSchema = new Schema({
         email: { type: String, unique: true, required: true, lowercase: true, trim: true },
         passwordHash: { type: String, required: true },
@@ -110,7 +152,8 @@ export function initModels(mongoose) {
         KeepChecked,
         Report,
         Sorgen,
-        PasswordReset
+        PasswordReset,
+        EncryptedTodo
     };
 }
 

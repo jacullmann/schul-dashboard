@@ -30,7 +30,8 @@ export default function registerRoutes(app, deps) {
         KeepChecked,
         Report,
         Sorgen,
-        PasswordReset
+        PasswordReset,
+        EncryptedTodo
     } = models;
 
     function sendJSONError(res, status, msg, errors) {
@@ -947,5 +948,228 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             return sendJSONError(res, 401, 'Ungültiges Token');
         }
     });
+
+    app.get('/api/todos', requireAuth, async (req, res) => {
+        try {
+            const todos = await EncryptedTodo.find({ userId: req.user.sub })
+                .sort({ createdAt: -1 })
+                .lean();
+
+            // Entschlüssle die Daten
+            const decryptedTodos = todos.map(todo => ({
+                id: todo._id,
+                title: decryptData(todo.encryptedTitle),
+                content: decryptData(todo.encryptedContent),
+                dueDate: todo.encryptedDueDate ? decryptData(todo.encryptedDueDate) : null,
+                completed: todo.completed,
+                createdAt: todo.createdAt,
+                updatedAt: todo.updatedAt
+            }));
+
+            res.json(decryptedTodos);
+        } catch (error) {
+            console.error('Fehler beim Laden der To-Dos:', error);
+            sendJSONError(res, 500, 'Fehler beim Laden der To-Dos');
+        }
+    });
+
+    app.post('/api/todos',
+        requireAuth,
+        [
+            body('title').isString().isLength({ min: 1, max: 100 }),
+            body('content').optional().isString().isLength({ max: 1000 }),
+            body('dueDate').optional().isISO8601()
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const { title, content, dueDate } = req.body;
+
+                const todo = await EncryptedTodo.create({
+                    userId: req.user.sub,
+                    encryptedTitle: encryptData(title),
+                    encryptedContent: encryptData(content || ''),
+                    encryptedDueDate: dueDate ? encryptData(dueDate) : null,
+                    completed: false
+                });
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'todo:create',
+                            meta: { todoId: todo._id }
+                        }
+                    }
+                });
+
+                res.status(201).json({
+                    id: todo._id,
+                    title,
+                    content: content || '',
+                    dueDate: dueDate || null,
+                    completed: false,
+                    createdAt: todo.createdAt,
+                    updatedAt: todo.updatedAt
+                });
+            } catch (error) {
+                console.error('Fehler beim Erstellen des To-Dos:', error);
+                sendJSONError(res, 500, 'Fehler beim Erstellen des To-Dos');
+            }
+        }
+    );
+
+    app.put('/api/todos/:id',
+        requireAuth,
+        [
+            param('id').isMongoId(),
+            body('title').isString().isLength({ min: 1, max: 100 }),
+            body('content').optional().isString().isLength({ max: 1000 }),
+            body('dueDate').optional().isISO8601()
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const todo = await EncryptedTodo.findOne({
+                    _id: req.params.id,
+                    userId: req.user.sub
+                });
+
+                if (!todo) {
+                    return sendJSONError(res, 404, 'To-Do nicht gefunden');
+                }
+
+                const { title, content, dueDate } = req.body;
+
+                todo.encryptedTitle = encryptData(title);
+                todo.encryptedContent = encryptData(content || '');
+                todo.encryptedDueDate = dueDate ? encryptData(dueDate) : null;
+                await todo.save();
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'todo:update',
+                            meta: { todoId: todo._id }
+                        }
+                    }
+                });
+
+                res.json({
+                    id: todo._id,
+                    title,
+                    content: content || '',
+                    dueDate: dueDate || null,
+                    completed: todo.completed,
+                    createdAt: todo.createdAt,
+                    updatedAt: todo.updatedAt
+                });
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren des To-Dos:', error);
+                sendJSONError(res, 500, 'Fehler beim Aktualisieren des To-Dos');
+            }
+        }
+    );
+
+    app.patch('/api/todos/:id/toggle',
+        requireAuth,
+        param('id').isMongoId(),
+        validate,
+        async (req, res) => {
+            try {
+                const todo = await EncryptedTodo.findOne({
+                    _id: req.params.id,
+                    userId: req.user.sub
+                });
+
+                if (!todo) {
+                    return sendJSONError(res, 404, 'To-Do nicht gefunden');
+                }
+
+                todo.completed = !todo.completed;
+                await todo.save();
+
+                res.json({
+                    completed: todo.completed
+                });
+            } catch (error) {
+                console.error('Fehler beim Umschalten des To-Do-Status:', error);
+                sendJSONError(res, 500, 'Fehler beim Aktualisieren des To-Dos');
+            }
+        }
+    );
+
+    app.delete('/api/todos/:id',
+        requireAuth,
+        param('id').isMongoId(),
+        validate,
+        async (req, res) => {
+            try {
+                const todo = await EncryptedTodo.findOneAndDelete({
+                    _id: req.params.id,
+                    userId: req.user.sub
+                });
+
+                if (!todo) {
+                    return sendJSONError(res, 404, 'To-Do nicht gefunden');
+                }
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'todo:delete',
+                            meta: { todoId: req.params.id }
+                        }
+                    }
+                });
+
+                res.json({ ok: true });
+            } catch (error) {
+                console.error('Fehler beim Löschen des To-Dos:', error);
+                sendJSONError(res, 500, 'Fehler beim Löschen des To-Dos');
+            }
+        }
+    );
+
+    function encryptData(data) {
+        const algorithm = 'aes-256-gcm';
+        const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32);
+        const iv = crypto.randomBytes(16);
+
+        const cipher = crypto.createCipher(algorithm, key);
+        cipher.setAAD(Buffer.from('todo-encryption'));
+
+        let encrypted = cipher.update(data, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+
+        const authTag = cipher.getAuthTag();
+
+        return {
+            iv: iv.toString('hex'),
+            data: encrypted,
+            authTag: authTag.toString('hex')
+        };
+    }
+
+    function decryptData(encryptedData) {
+        try {
+            const algorithm = 'aes-256-gcm';
+            const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32);
+
+            const decipher = crypto.createDecipher(algorithm, key);
+            decipher.setAAD(Buffer.from('todo-encryption'));
+            decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
+
+            let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+
+            return decrypted;
+        } catch (error) {
+            console.error('Fehler beim Entschlüsseln:', error);
+            throw new Error('Daten konnten nicht entschlüsselt werden');
+        }
+    }
 
 }
