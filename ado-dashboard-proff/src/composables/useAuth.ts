@@ -10,7 +10,6 @@ const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 const token = ref<string | null>(null);
 
 const isAuthenticated = ref(false);
-// NEUES Signal: Zeigt an, ob die anfängliche Authentifizierungsprüfung abgeschlossen ist
 const isAuthReady = ref(false);
 
 
@@ -59,18 +58,15 @@ export function useAuth() {
 
     async function syncAuthState() {
         isAuthenticated.value = await verifyToken();
-        // Setze isAuthReady auf true, nachdem die Prüfung abgeschlossen ist
         isAuthReady.value = true;
     }
 
-    // NEUE Funktion: Führt die Initialisierung und die erste asynchrone Prüfung durch
     async function initAuth() {
-        if (isAuthReady.value) return; // Nicht erneut initialisieren
+        if (isAuthReady.value) return;
 
         loadFromStorage();
         await syncAuthState();
 
-        // Hinzufügen der Event-Listener und Intervalle nur einmal
         window.addEventListener('auth-changed', syncAuthState);
         setInterval(() => {
             if (token.value) syncAuthState();
@@ -79,7 +75,6 @@ export function useAuth() {
 
 
     async function loginWithCode(code: string) {
-        // ... (Der Rest der loginWithCode Funktion bleibt gleich)
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -114,20 +109,15 @@ export function useAuth() {
     }
 
 
-    // Entfernen der automatischen Aufrufe:
-    // loadFromStorage();
-    // syncAuthState();
-    // window.addEventListener('auth-changed', syncAuthState);
-
 
     return {
         token,
         isAuthenticated,
-        isAuthReady, // Exponiere den Ready-Status
+        isAuthReady,
         loginWithCode,
         logout,
         refreshExpiry,
         loadFromStorage,
-        initAuth // Exponiere die Initialisierungsfunktion
+        initAuth
     };
 }
