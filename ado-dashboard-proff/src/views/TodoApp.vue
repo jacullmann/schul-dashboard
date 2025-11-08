@@ -91,7 +91,7 @@
 
       <div v-else-if="todos.length === 0" class="empty-state">
         <p>Noch keine To-Dos vorhanden.</p>
-        <p class="small">Erstelle deine erste Aufgabe!</p>
+        <p class="small">Erstelle dein erstes Todo!</p>
       </div>
 
       <div v-else class="todos-container">
