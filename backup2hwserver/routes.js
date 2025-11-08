@@ -1157,10 +1157,12 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         try {
             const algorithm = 'aes-256-gcm';
             const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32);
+            const iv = Buffer.from(encryptedData.iv, 'hex');
+            const authTag = Buffer.from(encryptedData.authTag, 'hex');
 
-            const decipher = crypto.createDecipher(algorithm, key);
+            const decipher = crypto.createDecipheriv(algorithm, key, iv);
             decipher.setAAD(Buffer.from('todo-encryption'));
-            decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
+            decipher.setAuthTag(authTag);
 
             let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
             decrypted += decipher.final('utf8');
