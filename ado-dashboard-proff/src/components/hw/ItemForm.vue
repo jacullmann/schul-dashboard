@@ -477,6 +477,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
   padding: 22px;
   color: #1a1a1a;
+  max-height: calc(100vh - 40px);
+  overflow-y: scroll;
 }
 
 
