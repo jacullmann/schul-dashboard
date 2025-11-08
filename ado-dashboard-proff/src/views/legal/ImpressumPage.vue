@@ -15,7 +15,17 @@
     </p>
     <h3>Haftungsausschluss</h3>
     <p>
-      Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für externe Links.
+      Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für <span @click="note" >externe Links</span>.
     </p>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+function note() {
+  router.push('/bewerten')
+}
+
+</script>

@@ -10,7 +10,8 @@
         <div class="footer-section">
           <h3>Links</h3>
           <router-link to="/" class="footer-link">Dashboard</router-link>
-          <router-link  to="/bewerten" class="footer-link">Benoten</router-link>
+          <router-link  to="/stundenplan" class="footer-link">Stundenplan</router-link>
+          <router-link  to="/kuerzel" class="footer-link">Kürzelfinder</router-link>
           <router-link  to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
           <router-link  to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
         </div>
@@ -100,15 +101,15 @@ function handleClick() {
 }
 .superjob {
   cursor: pointer;
-  max-width: 185px;              /* oder was auch immer */
-  white-space: nowrap;       /* kein Zeilenumbruch */
-  overflow: hidden;          /* schneidet Überflüssiges ab */
-  text-overflow: ellipsis;   /* zeigt „…“ an */
+  max-width: 185px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
 }
 .superjob:hover {
-  white-space: normal;       /* lässt Text umbrechen */
-  overflow: visible;         /* zeigt alles an */
+  white-space: normal;
+  overflow: visible;
   position: relative;
 
 }
