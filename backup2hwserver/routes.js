@@ -977,7 +977,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireAuth,
         [
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('content').optional().isString().isLength({ max: 1000 }),
+            body('content').optional().isString().isLength({ max: 5000 }),
             body('dueDate').optional().isISO8601()
         ],
         validate,
@@ -1024,7 +1024,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         [
             param('id').isMongoId(),
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('content').optional().isString().isLength({ max: 1000 }),
+            body('content').optional().isString().isLength({ max: 5000 }),
             body('dueDate').optional().isISO8601()
         ],
         validate,

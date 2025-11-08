@@ -61,9 +61,9 @@
                 class="textarea"
                 placeholder="Details zur Aufgabe..."
                 rows="4"
-                maxlength="1000"
+                maxlength="5000"
             ></textarea>
-            <div class="char-count">{{ todoForm.content.length }}/1000</div>
+            <div class="char-count">{{ todoForm.content.length }}/5000</div>
           </div>
 
           <div class="form-actions">
