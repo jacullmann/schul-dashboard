@@ -69,7 +69,8 @@
               style="height: 37px; min-width: 150px;"
               title="Filtert Enrichment und WPU Kurse"
           >
-            {{ showPersonalized ? 'Alle Einträge' : 'Personalisiert' }}
+            <a style="color: black" v-if="showPersonalized">Alle Einträge anzeigen</a>
+            <a style="color: var(--text)" v-else>Personalisierte Einträge anzeigen</a>
           </button>
         </div>
 
@@ -1475,10 +1476,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--muted); /* Farbe für den Text "Lade..." */
+  color: var(--muted);
 }
 .row-two {
-  height: 30px;
+  max-height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
