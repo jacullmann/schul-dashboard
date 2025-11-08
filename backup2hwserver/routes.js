@@ -265,6 +265,29 @@ export default function registerRoutes(app, deps) {
         })));
     });
 
+    app.delete('/api/admin/reports/:id', requireAdmin, param('id').isMongoId(), validate, async (req, res) => {
+        try {
+            const { id } = req.params;
+            const deletedReport = await Report.findByIdAndDelete(id);
+            if (!deletedReport) return sendJSONError(res, 404, 'Meldung nicht gefunden');
+
+            await User.findByIdAndUpdate(req.user.sub, {
+                $push: {
+                    activity: {
+                        at: new Date(),
+                        type: 'admin:report:delete',
+                        meta: { reportId: id }
+                    }
+                }
+            });
+
+            res.json({ ok: true, message: 'Meldung erfolgreich gelöscht' });
+        } catch (err) {
+            console.error('DELETE /api/admin/reports/:id error', err);
+            sendJSONError(res, 500, 'Serverfehler');
+        }
+    });
+
     app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
         await User.deleteOne({ _id: req.params.id });
         await Item.deleteMany({ createdBy: req.params.id });

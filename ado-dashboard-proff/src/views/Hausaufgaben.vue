@@ -265,9 +265,20 @@
             <div v-if="report.reason" class="report-reason">
               <strong>Grund:</strong> {{ report.reason }}
             </div>
+            <div class="report-actions">
+              <button
+                  class="btn danger tiny"
+                  @click="deleteReport(report._id)"
+                  data-umami-event="Meldung löschen"
+                  title="Meldung löschen"
+              >
+                Löschen
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
       <div v-if="user?.isAdmin" class="reports-section">
 
         <h3>Sicherheits-Analyse</h3>
@@ -938,6 +949,24 @@ async function reload() {
   } finally {
     loading.value = false;
     visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+  }
+}
+
+async function deleteReport(id: string) {
+  if (!confirm('Möchtest du diese Meldung wirklich löschen?')) {
+    return;
+  }
+
+  try {
+    await hw.delete(`/api/admin/reports/${id}`);
+    await loadReports();
+    handleSuccess('Meldung erfolgreich gelöscht.');
+  } catch (e: any) {
+    const errMsg = e.response?.data?.error || 'Fehler beim Löschen.';
+    message.value = 'Fehler: ' + errMsg;
+    isError.value = true;
+    console.error('deleteReport error', e);
+    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
   }
 }
 
@@ -1817,6 +1846,11 @@ li {
   max-height: 0;
   margin-top: 0;
   pointer-events: none;
+}
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 @media (max-width: 768px) {
