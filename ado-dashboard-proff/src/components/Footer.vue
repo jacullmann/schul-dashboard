@@ -19,7 +19,7 @@
         <div class="footer-section">
           <h3>Kontakt</h3>
           <p @click="toContact" class="superjob">dashboardverifizierung@gmail.com</p>
-          <router-link  to="/kontakt" class="footer-link">Kontaktformular</router-link>
+          <router-link  to="/kontakt" class="footer-link">Kontakt</router-link>
 
         </div>
         <All  class="logoutDeviceMobile" />
