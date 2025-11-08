@@ -461,7 +461,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 100000; /* Erhöht von 100 */
   padding: 24px;
 }
 
@@ -480,7 +480,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   max-height: calc(100vh - 40px);
   overflow-y: scroll;
   position: fixed;
-  z-index: 99999999999999999999999999999999999999999999999999999999999999999999999999999999999;
+  z-index: 100001;
 }
 
 
