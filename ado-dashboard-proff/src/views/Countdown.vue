@@ -1,8 +1,9 @@
 <template>
   <div class="container">
     <!-- Admin Controls -->
-    <div v-if="user?.isAdmin" class="card">
-      <h3>Countdown Verwaltung</h3>
+    <!--<div v-if="user?.isAdmin" class="card">-->
+      <div class="card">
+      <h3>Adminbereich</h3>
       <div class="row">
         <div class="col">
           <input
@@ -75,7 +76,8 @@
         </div>
 
         <!-- Admin Actions -->
-        <div v-if="user?.isAdmin" class="col" style="min-width: auto;">
+        <!--<div v-if="user?.isAdmin" class="col" style="min-width: auto;">-->
+          <div  class="col" style="min-width: auto;">
           <div class="row" style="gap: 8px; flex-wrap: nowrap;">
             <button
                 class="btn ghost small"
@@ -83,7 +85,10 @@
                 title="Bearbeiten"
                 data-umami-event="Countdown bearbeiten"
             >
-              ✏️
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+
             </button>
             <button
                 class="btn danger small"
@@ -91,7 +96,10 @@
                 title="Löschen"
                 data-umami-event="Countdown löschen"
             >
-              🗑️
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+
             </button>
           </div>
         </div>
