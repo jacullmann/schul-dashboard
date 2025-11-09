@@ -249,7 +249,7 @@ export function useHausaufgaben() {
         showReportConfirm.value = true;
     }
 
-    function onDocumentClick() {
+    function onDocumentClick(e: MouseEvent) {
         if (!openMenuId.value) return;
         openMenuId.value = null;
     }
