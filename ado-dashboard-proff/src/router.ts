@@ -17,6 +17,7 @@ const GameDetail = () => import('./views/GameDetail.vue')
 //const News = () => import('./views/News.vue')
 const Finales = () => import('./components/Finaleb.vue')
 const TodoApp = () => import('./views/TodoApp.vue');
+const Countdown = () => import('./views/Countdown.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -34,6 +35,7 @@ const routes = [
     { path: '/kontakt', component: Kontakt },
     { path: '/8912', component: Games },
     { path: '/stundenplan', component: Finales },
+    { path: '/countdowns1', component: Countdown },
     {
         path: '/todo',
         name: 'Todo',
