@@ -958,9 +958,9 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             // Entschlüssle die Daten
             const decryptedTodos = todos.map(todo => ({
                 id: todo._id,
-                title: decryptData(todo.encryptedTitle),
-                content: decryptData(todo.encryptedContent),
-                dueDate: todo.encryptedDueDate ? decryptData(todo.encryptedDueDate) : null,
+                title: decryptData(todo.encryptedTitle, req.user.sub),
+                content: decryptData(todo.encryptedContent, req.user.sub),
+                dueDate: todo.encryptedDueDate ? decryptData(todo.encryptedDueDate, req.user.sub) : null,
                 completed: todo.completed,
                 createdAt: todo.createdAt,
                 updatedAt: todo.updatedAt
@@ -987,9 +987,9 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
                 const todo = await EncryptedTodo.create({
                     userId: req.user.sub,
-                    encryptedTitle: encryptData(title),
-                    encryptedContent: encryptData(content || ''),
-                    encryptedDueDate: dueDate ? encryptData(dueDate) : null,
+                    encryptedTitle: encryptData(title, req.user.sub),
+                    encryptedContent: encryptData(content || '', req.user.sub),
+                    encryptedDueDate: dueDate ? encryptData(dueDate, req.user.sub) : null,
                     completed: false
                 });
 
@@ -1189,9 +1189,10 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
                 const { title, content, dueDate } = req.body;
 
-                todo.encryptedTitle = encryptData(title);
-                todo.encryptedContent = encryptData(content || '');
-                todo.encryptedDueDate = dueDate ? encryptData(dueDate) : null;
+                // ✅ KORREKT: userId mit übergeben
+                todo.encryptedTitle = encryptData(title, req.user.sub);
+                todo.encryptedContent = encryptData(content || '', req.user.sub);
+                todo.encryptedDueDate = dueDate ? encryptData(dueDate, req.user.sub) : null;
                 await todo.save();
 
                 await User.findByIdAndUpdate(req.user.sub, {
@@ -1281,30 +1282,46 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
-    function encryptData(data) {
-        const algorithm = 'aes-256-gcm';
-        const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32);
-        const iv = crypto.randomBytes(16);
-
-        const cipher = crypto.createCipheriv(algorithm, key, iv);
-        cipher.setAAD(Buffer.from('todo-encryption'));
-
-        let encrypted = cipher.update(data, 'utf8', 'hex');
-        encrypted += cipher.final('hex');
-
-        const authTag = cipher.getAuthTag();
-
-        return {
-            iv: iv.toString('hex'),
-            data: encrypted,
-            authTag: authTag.toString('hex')
-        };
-    }
-
-    function decryptData(encryptedData) {
+    function encryptData(data, userId) {
         try {
             const algorithm = 'aes-256-gcm';
-            const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-secret-key', 'salt', 32);
+
+            // 🔐 User-spezifischer Key
+            const keyMaterial = process.env.ENCRYPTION_KEY +
+                (process.env.USER_KEY_PEPPER || '') +
+                userId;
+
+            const key = crypto.scryptSync(keyMaterial, 'salt', 32);
+            const iv = crypto.randomBytes(16);
+
+            const cipher = crypto.createCipheriv(algorithm, key, iv);
+            cipher.setAAD(Buffer.from('todo-encryption'));
+
+            let encrypted = cipher.update(data, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+            const authTag = cipher.getAuthTag();
+
+            return {
+                iv: iv.toString('hex'),
+                data: encrypted,
+                authTag: authTag.toString('hex')
+            };
+        } catch (error) {
+            console.error('Encryption error:', error);
+            throw new Error('Daten konnten nicht verschlüsselt werden');
+        }
+    }
+
+    function decryptData(encryptedData, userId) {
+        try {
+            const algorithm = 'aes-256-gcm';
+
+            // 🔐 Gleicher user-spezifischer Key
+            const keyMaterial = process.env.ENCRYPTION_KEY +
+                (process.env.USER_KEY_PEPPER || '') +
+                userId;
+
+            const key = crypto.scryptSync(keyMaterial, 'salt', 32);
             const iv = Buffer.from(encryptedData.iv, 'hex');
             const authTag = Buffer.from(encryptedData.authTag, 'hex');
 
@@ -1317,7 +1334,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
             return decrypted;
         } catch (error) {
-            console.error('Fehler beim Entschlüsseln:', error);
+            console.error('Decryption error:', error);
             throw new Error('Daten konnten nicht entschlüsselt werden');
         }
     }
