@@ -1,8 +1,7 @@
 <template>
   <div class="container">
     <!-- Admin Controls -->
-    <!--<div v-if="user?.isAdmin" class="card">-->
-      <div class="card">
+    <div v-if="user?.isAdmin" class="card">
       <h3>Adminbereich</h3>
       <div class="row">
         <div class="col">
@@ -76,8 +75,7 @@
         </div>
 
         <!-- Admin Actions -->
-        <!--<div v-if="user?.isAdmin" class="col" style="min-width: auto;">-->
-          <div  class="col" style="min-width: auto;">
+        <div v-if="user?.isAdmin" class="col" style="min-width: auto;">
           <div class="row" style="gap: 8px; flex-wrap: nowrap;">
             <button
                 class="btn ghost small"
