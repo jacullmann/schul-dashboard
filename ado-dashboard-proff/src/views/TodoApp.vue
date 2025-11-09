@@ -474,7 +474,7 @@ function showMessage(msg: string, error = false) {
   background: var(--jj);
   border-radius: 8px;
   padding: 1.5rem;
-  border: 1px solid var(--border);
+  border: none;
   transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
