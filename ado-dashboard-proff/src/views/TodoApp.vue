@@ -557,6 +557,8 @@ function showMessage(msg: string, error = false) {
   margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
   color: var(--text);
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .todo-item.completed .todo-title {
@@ -569,6 +571,8 @@ function showMessage(msg: string, error = false) {
   color: var(--muted);
   line-height: 1.5;
   white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .todo-due-date {
