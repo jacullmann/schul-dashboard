@@ -529,7 +529,6 @@ function showMessage(msg: string, error = false) {
   z-index: 15;
 }
 .todo-checkbox:hover .checkmark {
-  border-color: var(--primary);
   transform: scale(1.1);
 }
 
