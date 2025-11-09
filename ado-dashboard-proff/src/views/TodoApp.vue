@@ -2,9 +2,12 @@
   <div class="card">
     <div class="hw-header">
       <div>
+        <div class="secure">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm240-120q33 0 56.5-23.5T560-360q0-33-23.5-56.5T480-440q-33 0-56.5 23.5T400-360q0 33 23.5 56.5T480-280ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z"/></svg>
         <h2>Private To-Dos</h2>
-        <div style="color: #f1f1f1" class="small">
-          Deine persönlichen Aufgaben - nur für dich sichtbar.
+        </div>
+        <div style="color: #f1f1f1; margin-bottom: 0.4rem" class="small">
+          Deine persönlichen Todos und Notizen – immer dabei und nur für dich sichtbar.
         </div>
       </div>
 
@@ -15,7 +18,7 @@
             @click="showTodoForm = true"
             data-umami-event="Todo erstellen Button"
         >
-          + Neues To-Do
+          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="14px" fill="#000000"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>Neues To-Do
         </button>
         <div v-else class="login-prompt">
           <p>Du musst angemeldet sein, um To-Dos zu verwenden.</p>
@@ -33,12 +36,12 @@
 
         <form @submit.prevent="saveTodo">
           <div class="form-group">
-            <label>Titel *</label>
+            <label>Titel </label>
             <input
                 v-model="todoForm.title"
                 type="text"
                 class="input"
-                placeholder="Titel der Aufgabe"
+                placeholder="Titel des Todos"
                 maxlength="100"
                 required
             />
@@ -59,7 +62,7 @@
             <textarea
                 v-model="todoForm.content"
                 class="textarea"
-                placeholder="Details zur Aufgabe..."
+                placeholder="Details zum Todo..."
                 rows="4"
                 maxlength="5000"
             ></textarea>
@@ -91,7 +94,7 @@
 
       <div v-else-if="todos.length === 0" class="empty-state">
         <p>Noch keine To-Dos vorhanden.</p>
-        <p class="small">Erstelle dein erstes Todo!</p>
+        <p class="small"><p class="spannn" @click="showTodoForm = true" >Erstelle dein erstes Todo!</p></p>
       </div>
 
       <div v-else class="todos-container">
@@ -599,6 +602,23 @@ function showMessage(msg: string, error = false) {
   background: rgba(239, 68, 68, 0.1);
   border-color: var(--danger);
 }
+.secure {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0;
+}
+
+.spannn {
+  cursor: pointer;
+  transition: 0.1s ease-in;
+
+}
+
+.spannn:hover {
+  transform: scale(1.02);
+}
+
 
 @media (max-width: 768px) {
   .modal-content {
