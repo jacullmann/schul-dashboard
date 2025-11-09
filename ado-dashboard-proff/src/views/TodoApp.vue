@@ -4,10 +4,10 @@
       <div>
         <div class="secure">
           <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm240-120q33 0 56.5-23.5T560-360q0-33-23.5-56.5T480-440q-33 0-56.5 23.5T400-360q0 33 23.5 56.5T480-280ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z"/></svg>
-        <h2>Private To-Dos</h2>
+        <h2>Private Einträge</h2>
         </div>
         <div style="color: #f1f1f1; margin-bottom: 0.4rem" class="small">
-          Deine persönlichen Todos und Notizen – immer dabei und nur für dich sichtbar.
+          Deine persönlichen privaten Einträge – immer dabei und nur für dich sichtbar.
         </div>
       </div>
 
@@ -16,12 +16,12 @@
             v-if="user"
             class="btn"
             @click="showTodoForm = true"
-            data-umami-event="Todo erstellen Button"
+            data-umami-event="Privater Eintrag erstellen Button"
         >
           <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="14px" fill="#000000"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>Neues To-Do
         </button>
         <div v-else class="login-prompt">
-          <p>Du musst angemeldet sein, um To-Dos zu verwenden.</p>
+          <p>Du musst angemeldet sein, um private Einträge zu verwenden.</p>
           <button class="btn" @click="$router.push('/items/HAUSAUFGABE')">
             Anmelden/Registrieren
           </button>
@@ -29,10 +29,9 @@
       </div>
     </div>
 
-    <!-- To-Do Formular -->
     <div v-if="showTodoForm" class="todo-form-modal">
       <div class="modal-content">
-        <h3>{{ editingTodo ? 'To-Do bearbeiten' : 'Neues To-Do erstellen' }}</h3>
+        <h3>{{ editingTodo ? 'Privaten Eintrag bearbeiten' : 'Neuen privaten Eintrag erstellen' }}</h3>
 
         <form @submit.prevent="saveTodo">
           <div class="form-group">
@@ -41,7 +40,7 @@
                 v-model="todoForm.title"
                 type="text"
                 class="input"
-                placeholder="Titel des Todos"
+                placeholder="Titel des privaten Eintrag"
                 maxlength="100"
                 required
             />
@@ -62,7 +61,7 @@
             <textarea
                 v-model="todoForm.content"
                 class="textarea"
-                placeholder="Details zum Todo..."
+                placeholder="Details zum privaten Eintrag..."
                 rows="4"
                 maxlength="5000"
             ></textarea>
@@ -89,12 +88,12 @@
     <div v-if="user" class="todo-list">
       <div v-if="loading" class="loader">
         <LoadingSpinner color="#fff" size="1.2em" />
-        <div style="color: #aaaaaa">Lade To-Dos...</div>
+        <div style="color: #aaaaaa">Lade private Einträge...</div>
       </div>
 
       <div v-else-if="todos.length === 0" class="empty-state">
-        <p>Noch keine To-Dos vorhanden.</p>
-        <p class="small"><p class="spannn" @click="showTodoForm = true" >Erstelle dein erstes Todo!</p></p>
+        <p>Noch keine privaten Einträge vorhanden.</p>
+        <p class="small"><p class="spannn" @click="showTodoForm = true" >Erstelle deinen ersten privaten Eintrag!</p></p>
       </div>
 
       <div v-else class="todos-container">
@@ -129,7 +128,7 @@
               class="todo-item"
               :class="{
         'completed': todo.completed,
-        'overdue': isOverdue(todo.dueDate, todo.completed) // ✅ Korrekt
+        'overdue': isOverdue(todo.dueDate, todo.completed)
     }"
           >
             <div class="todo-main">
