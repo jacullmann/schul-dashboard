@@ -54,7 +54,7 @@
           <h3>{{ countdown.name }}</h3>
           <p class="small">{{ countdown.description }}</p>
           <p class="small" style="color: var(--muted); margin-top: 4px;">
-            Ziel: {{ new Date(countdown.target_date).toLocaleString('de-DE') }}
+            {{ new Date(countdown.target_date).toLocaleString('de-DE') }}
           </p>
         </div>
         <div class="col">
@@ -110,7 +110,7 @@
           {{ formatCountdown(countdown) }}
         </h1>
         <p class="small" style="text-align: center; margin-top: 8px;">
-          bis {{ new Date(countdown.target_date).toLocaleDateString('de-DE') }}
+          {{ new Date(countdown.target_date).toLocaleDateString('de-DE') }}
         </p>
       </div>
     </div>
@@ -129,11 +129,10 @@
     <div v-if="countdowns.length === 0 && !loading" class="card">
       <p style="text-align: center; color: var(--muted);">
         Noch keine Countdowns vorhanden.
-        <span v-if="user?.isAdmin">Erstelle den ersten Countdown!</span>
+        <span v-if="user?.isAdmin">Erstelle einen Countdown! Für Dorisx!</span>
       </p>
     </div>
 
-    <!-- Success Message -->
     <div v-if="successMessage" class="card" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3);">
       <p style="color: #22c55e; text-align: center; margin: 0;">{{ successMessage }}</p>
     </div>

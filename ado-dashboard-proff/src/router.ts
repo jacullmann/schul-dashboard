@@ -35,7 +35,7 @@ const routes = [
     { path: '/kontakt', component: Kontakt },
     { path: '/8912', component: Games },
     { path: '/stundenplan', component: Finales },
-    { path: '/countdowns1', component: Countdown },
+    { path: '/countdown', component: Countdown },
     {
         path: '/todo',
         name: 'Todo',
