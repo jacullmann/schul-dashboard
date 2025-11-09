@@ -506,12 +506,16 @@ function showMessage(msg: string, error = false) {
 .todo-checkbox {
   position: relative;
   margin-top: 0.25rem;
+  z-index: 10;
 }
 
 .todo-checkbox input {
   position: absolute;
   opacity: 0;
   cursor: pointer;
+  z-index: 20;
+  width: 20px;
+  height: 20px;
 }
 
 .checkmark {
@@ -522,6 +526,11 @@ function showMessage(msg: string, error = false) {
   border-radius: 4px;
   position: relative;
   transition: all 0.3s ease;
+  z-index: 15;
+}
+.todo-checkbox:hover .checkmark {
+  border-color: var(--primary);
+  transform: scale(1.1);
 }
 
 .todo-checkbox input:checked + .checkmark {
@@ -589,6 +598,8 @@ function showMessage(msg: string, error = false) {
 .todo-actions {
   display: flex;
   gap: 0.5rem;
+  z-index: 5;
+  position: relative;
 }
 
 .message {
