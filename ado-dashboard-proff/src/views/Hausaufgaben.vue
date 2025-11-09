@@ -51,11 +51,12 @@
       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
       <button data-umami-event="Dashboard Dalton Reiter" class="btn rei" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
       <button data-umami-event="Dashboard Prüfung Reiter" class="btn rei" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
+      <button data-umami-event="Dashboard Private Einträge Reiter" class="btn rei" :class="{ ghost: tab !== 'PRIVATE' }" @click="goTab('PRIVATE')">Private Einträge</button>
     </div>
 
     <div class="controls">
       <div class="left">
-        <div class="row-two">
+        <div v-if="tab !== 'PRIVATE'" class="row-two">
           <select class="input select-subject" v-model="subjectFilter">
             <option value="">Alle Fächer</option>
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
@@ -74,9 +75,9 @@
           </button>
         </div>
 
-        <button v-if="user" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
+        <button v-if="user && tab !== 'PRIVATE'" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
 
-        <div v-if="loading" class="loader">
+        <div v-if="loading && tab !== 'PRIVATE'" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
           <div style="color: #aaaaaa">Lade...</div>
         </div>
@@ -87,6 +88,7 @@
 
     <div class="items">
       <div
+          v-if="tab !== 'PRIVATE'"
           v-for="item in limitedItems"
           :key="item.id"
           class="item-card"
@@ -219,6 +221,9 @@
             </div>
           </div>
         </transition>
+      </div>
+      <div v-if="tab === 'PRIVATE'" class="private-entries-container">
+        <TodoApp />
       </div>
 
       <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
@@ -463,6 +468,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import { marked } from 'marked';
+import TodoApp from "./TodoApp.vue";
 
 export interface HwItem {
   id: string;
@@ -591,9 +597,9 @@ const route = useRoute();
 const router = useRouter();
 
 // accepted item types
-type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
 function isValidType(t: any): t is ItemType {
-  return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG';
+  return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG' || t === 'PRIVATE';
 }
 
 // tab is derived from route.params.type (fallback to HAUSAUFGABE)
@@ -1825,6 +1831,25 @@ li {
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
+}
+
+.private-entries-container {
+  margin-top: 1rem;
+}
+
+.private-entries-container .card {
+  margin: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.private-entries-container .hw-header {
+  padding: 0;
+  background: transparent;
+}
+
+.private-entries-container .todo-list {
+  margin-top: 1rem;
 }
 
 @media (max-width: 768px) {
