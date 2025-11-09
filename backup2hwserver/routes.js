@@ -1019,6 +1019,154 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
+    app.get('/api/countdowns', async (req, res) => {
+        try {
+            const { data, error } = await supabase
+                .from('countdowns')
+                .select('*')
+                .order('target_date', { ascending: true });
+
+            if (error) throw error;
+            res.json(data || []);
+        } catch (err) {
+            console.error('GET /api/countdowns error:', err);
+            sendJSONError(res, 500, 'Fehler beim Laden der Countdowns');
+        }
+    });
+
+    app.post('/api/admin/countdowns',
+        requireAdmin,
+        [
+            body('name').isString().isLength({ min: 1, max: 100 }),
+            body('description').optional().isString().isLength({ max: 200 }),
+            body('target_date').isISO8601()
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const { name, description, target_date } = req.body;
+
+                const { data, error } = await supabase
+                    .from('countdowns')
+                    .insert([{
+                        name: name.trim(),
+                        description: description?.trim() || '',
+                        target_date: target_date
+                    }])
+                    .select();
+
+                if (error) throw error;
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'countdown:create',
+                            meta: { countdownId: data[0].id, name: data[0].name }
+                        }
+                    }
+                });
+
+                res.status(201).json({ ok: true, countdown: data[0] });
+            } catch (err) {
+                console.error('POST /api/admin/countdowns error:', err);
+                sendJSONError(res, 500, 'Fehler beim Erstellen des Countdowns');
+            }
+        }
+    );
+
+    app.put('/api/admin/countdowns/:id',
+        requireAdmin,
+        [
+            param('id').isUUID(),
+            body('name').isString().isLength({ min: 1, max: 100 }),
+            body('description').optional().isString().isLength({ max: 200 }),
+            body('target_date').isISO8601()
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const { id } = req.params;
+                const { name, description, target_date } = req.body;
+
+                const { data, error } = await supabase
+                    .from('countdowns')
+                    .update({
+                        name: name.trim(),
+                        description: description?.trim() || '',
+                        target_date: target_date,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', id)
+                    .select();
+
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    return sendJSONError(res, 404, 'Countdown nicht gefunden');
+                }
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'countdown:update',
+                            meta: { countdownId: id, name: name }
+                        }
+                    }
+                });
+
+                res.json({ ok: true, countdown: data[0] });
+            } catch (err) {
+                console.error('PUT /api/admin/countdowns/:id error:', err);
+                sendJSONError(res, 500, 'Fehler beim Aktualisieren des Countdowns');
+            }
+        }
+    );
+
+    app.delete('/api/admin/countdowns/:id',
+        requireAdmin,
+        param('id').isUUID(),
+        validate,
+        async (req, res) => {
+            try {
+                const { id } = req.params;
+
+                // Erst den Countdown laden für die Aktivitäts-Log
+                const { data: countdownData, error: fetchError } = await supabase
+                    .from('countdowns')
+                    .select('name')
+                    .eq('id', id)
+                    .single();
+
+                if (fetchError) {
+                    return sendJSONError(res, 404, 'Countdown nicht gefunden');
+                }
+
+                const { error } = await supabase
+                    .from('countdowns')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'countdown:delete',
+                            meta: { countdownId: id, name: countdownData.name }
+                        }
+                    }
+                });
+
+                res.json({ ok: true, message: 'Countdown erfolgreich gelöscht' });
+            } catch (err) {
+                console.error('DELETE /api/admin/countdowns/:id error:', err);
+                sendJSONError(res, 500, 'Fehler beim Löschen des Countdowns');
+            }
+        }
+    );
+
     app.put('/api/todos/:id',
         requireAuth,
         [
