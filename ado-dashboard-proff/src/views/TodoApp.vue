@@ -613,12 +613,13 @@ function showMessage(msg: string, error = false) {
   padding: 1rem;
   border-radius: 6px;
   background: rgba(63, 147, 248, 0.1);
-  border: 1px solid var(--primary);
+  border: none;
 }
 
 .message.error {
   background: rgba(239, 68, 68, 0.1);
   border-color: var(--danger);
+  border: none;
 }
 .secure {
   display: flex;
