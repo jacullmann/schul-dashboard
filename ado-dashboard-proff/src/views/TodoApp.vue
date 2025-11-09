@@ -311,8 +311,10 @@ async function saveTodo() {
 
 async function toggleTodoCompletion(todo: Todo) {
   try {
-    await hw.patch(`/api/todos/${todo.id}/toggle`);
+    const response = await hw.patch(`/api/todos/${todo.id}/toggle`);
+
     await loadTodos();
+
   } catch (error: any) {
     const errorMsg = error.response?.data?.error || 'Fehler beim Aktualisieren';
     showMessage(errorMsg, true);

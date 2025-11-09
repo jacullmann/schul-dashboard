@@ -37,7 +37,7 @@ const routes = [
     { path: '/stundenplan', component: Finales },
     { path: '/countdown', component: Countdown },
     {
-        path: '/todo',
+        path: '/private-eintraege',
         name: 'Todo',
         component: TodoApp,
         meta: { requiresAuth: true }

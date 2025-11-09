@@ -1239,9 +1239,33 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 todo.completed = !todo.completed;
                 await todo.save();
 
-                res.json({
-                    completed: todo.completed
+                // Activity logging
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'todo:toggle',
+                            meta: {
+                                todoId: todo._id,
+                                completed: todo.completed
+                            }
+                        }
+                    }
                 });
+
+                // Vollständiges To-Do zurückgeben
+                const decryptedTodo = {
+                    id: todo._id,
+                    title: decryptData(todo.encryptedTitle, req.user.sub),
+                    content: decryptData(todo.encryptedContent, req.user.sub),
+                    dueDate: todo.encryptedDueDate ? decryptData(todo.encryptedDueDate, req.user.sub) : null,
+                    completed: todo.completed,
+                    createdAt: todo.createdAt,
+                    updatedAt: todo.updatedAt
+                };
+
+                res.json(decryptedTodo);
+
             } catch (error) {
                 console.error('Fehler beim Umschalten des To-Do-Status:', error);
                 sendJSONError(res, 500, 'Fehler beim Aktualisieren des To-Dos');
