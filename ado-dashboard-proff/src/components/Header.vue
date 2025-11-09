@@ -69,18 +69,10 @@ import Logo from './hw/Logo.vue'
 const navOpen = ref(false);
 const route = useRoute();
 
-const shouldShowBackButton = computed(() => {
-  return (
-      route.path.startsWith('/person/') ||
-      route.path.startsWith('/admin') ||
-      route.path.startsWith('/impressum-&-datenschutz')
-  );
-});
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;
 
-  // Body Scroll sperren/entsperren
   if (navOpen.value) {
     document.body.style.overflow = 'hidden';
   } else {
@@ -93,21 +85,19 @@ const closeNav = () => {
   document.body.style.overflow = '';
 };
 
-// ESC-Taste zum Schließen
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && navOpen.value) {
     closeNav();
   }
 };
 
-// Event Listener hinzufügen/entfernen
 onMounted(() => {
   document.addEventListener('keydown', handleEscape);
 });
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscape);
-  document.body.style.overflow = ''; // Sicherstellen dass Scrollen wieder aktiviert wird
+  document.body.style.overflow = '';
 });
 </script>
 

@@ -139,19 +139,19 @@
             <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall">
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f1f1f1"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-              Bearbeiten
+                Bearbeiten
               </div>
             </button>
             <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">
               <div class="fixall">
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#f1f1f1"><path d="M0 0h24v24H0z" fill="none"/><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
-              Melden
+                Melden
               </div>
             </button>
             <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
               <div class=" reds fixall">
                 <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-              Löschen
+                Löschen
               </div>
             </button>
           </div>
@@ -454,784 +454,132 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+/**
+ * Hausaufgaben.vue (presentation + style)
+ *
+ * This file keeps the original template + styles and pulls all reactive state
+ * and functions from the composable `useHausaufgaben` to split logic and view.
+ *
+ * Replace your original single-file component with these two files:
+ * - Hausaufgaben.vue  (this file)
+ * - useHausaufgaben.ts (composable with the full script logic)
+ *
+ * Everything remains functionally identical.
+ */
+
+import AccountMenu from '../components/hw/AccountMenu.vue';
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
-import hw, { setHwToken } from '../hwApi';
-import AccountMenu from '../components/hw/AccountMenu.vue';
-import ConfirmDialog from '../components/ConfirmDialog.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import OldNewSwitch from "../components/NewOldSwitch.vue"
+import OldNewSwitch from "../components/NewOldSwitch.vue";
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
-import { marked } from 'marked';
 
-export interface HwItem {
-  id: string;
-  type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-  title: string;
-  subject: string;
-  description: string;
-  images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
-  dueDate: string;
-  createdBy: string; // IMMER String-ID für Berechtigungen
-  createdByEmail?: string; // Optional: Email nur für Anzeige
-  timeColor: string;
-}
-
-const enrKurse = [
-  { id: '1', name: 'Herr Müller' },
-  { id: '2', name: 'Herr Weber' },
-  { id: '3', name: 'Frau Glier' },
-  { id: '4', name: 'Frau Ellsiepen' },
-];
-const wpuDiKurse = [
-  { id: '1', name: 'Englisch' },
-  { id: '2', name: 'Deutsch' },
-  { id: '3', name: 'Biologie' },
-  { id: '4', name: 'Geschichte' },
-  { id: '5', name: 'Informatik' },
-  { id: '6', name: 'Latein' },
-];
-const wpuDoKurse = [
-  { id: '1', name: 'Englisch' },
-  { id: '2', name: 'Biologie' },
-  { id: '3', name: 'Mathe' },
-  { id: '4', name: 'Geschichte' },
-  { id: '5', name: 'Musik' },
-];
-
-const MAX_TITLE_LENGTH = 50;
-const MAX_SUBJECT_LENGTH = 30;
-
-const entriessorgen = ref([]);
-
-const showAuth = ref(false);
-const showItemForm = ref(false);
-const showAnnouncementForm = ref(false);
-const showImageFormFor = ref<any>(null);
-
-const itemToEdit = ref<HwItem | null>(null);
-
-const user = ref<any>(null);
-const subjects = ref<string[]>([]);
-const announcements = ref<any[]>([]);
-const items = ref<HwItem[]>([]);
-const loading = ref(true);
-const subjectFilter = ref('');
-
-const showPersonalized = ref(false);
-
-const allUsers = ref<any[]>([]);
-const loadingUsers = ref(false);
-const showActivityFor = ref<string | null>(null);
-const userActivities = ref<Record<string, any[]>>({});
-const loadingActivities = ref<Record<string, boolean>>({});
-const deletingUsers = ref<Record<string, boolean>>({});
-
-const togglingBan = ref<Record<string, boolean>>({});
-
-const showOldEntries = ref(false);
-
-const showSetupModal = ref(false);
-
-const reports = ref<any[]>([]);
-
-const securityReport = ref<string | null>(null);
-const isGeneratingReport = ref(false);
-const reportError = ref<string | null>(null);
-
-
-const reportHtml = computed(() => {
-  if (securityReport.value) {
-    // 'marked.parse' ist der Standard-Export in neueren Versionen,
-    // oder 'marked()' in älteren. Passe dies ggf. an.
-    return marked.parse(securityReport.value);
-  }
-  return '';
-});
-
-
-const message = ref('');
-const isError = ref(false);
-
-// checkedItems holds item IDs that current user has checked
-const checkedItems = ref(new Set<string>());
-
-const itemFormKey = ref(0);
-
-// description expand tracking
-const expandedDescriptions = ref<Set<string>>(new Set());
-function isExpanded(id: string) {
-  return expandedDescriptions.value.has(id);
-}
-function toggleDescription(id: string) {
-  if (expandedDescriptions.value.has(id)) {
-    expandedDescriptions.value.delete(id);
-  } else {
-    expandedDescriptions.value.add(id);
-  }
-}
-
-// pagination
-const visibleCount = ref(5);
-function showMore() {
-  visibleCount.value = Math.min(visibleCount.value + 5, filteredItems.value.length);
-}
-function showLess() {
-  visibleCount.value = Math.max(5, visibleCount.value - 5);
-}
-const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
-
-// confirm dialog state
-const showReportConfirm = ref(false)
-let reportTarget: HwItem | null = null
-const reportReason = ref('')
-
-// route + router
-const route = useRoute();
-const router = useRouter();
-
-// accepted item types
-type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-function isValidType(t: any): t is ItemType {
-  return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG';
-}
-
-// tab is derived from route.params.type (fallback to HAUSAUFGABE)
-const tab = ref<ItemType>( isValidType(route.params.type) ? (route.params.type as ItemType) : 'HAUSAUFGABE' );
-
-// when route param changes, update tab and reload items
-watch(() => route.params.type, (v) => {
-  if (isValidType(v)) {
-    tab.value = v;
-  } else {
-    tab.value = 'HAUSAUFGABE';
-  }
-  reload();
-});
-
-watch(() => user.value?.isAdmin, (isAdmin) => {
-  if (isAdmin) {
-    loadReports();
-  } else {
-    reports.value = [];
-  }
-});
-
-watch(showOldEntries, () => {
-  reload();
-});
-
-// reset pagination when filters change
-watch([subjectFilter, tab, items], () => {
-  visibleCount.value = Math.min(5, filteredItems.value.length || 5);
-});
-
-// UI/helpers
-const colorFor = (color: string) => {
-  const map: Record<string, string> = {
-    'ok': 'var(--primary)',
-    'warn': 'var(--warn)',
-    'danger': 'var(--danger)',
-    'expired': '#4b5563',
-    'info': '#3b82f6',
-  };
-  return map[color] || 'var(--muted)';
-};
-
-// returns { background: string, color: string }
-const colorStyles = (timeColor: string) => {
-  // expired -> grau hintergrund, weiße schrift
-  if (timeColor === 'expired') {
-    return { background: '#414141', color: 'white' };
-  }
-
-  // very soon (danger) oder in den nächsten Tagen (warn) -> behalten wie vorher
-  if (timeColor === 'danger') {
-    return { background: 'var(--danger)', color: 'white' };
-  }
-  if (timeColor === 'warn') {
-    return { background: 'var(--warn)', color: 'black' };
-  }
-
-  // info -> blue like before
-  if (timeColor === 'info') {
-    return { background: '#3b82f6', color: 'white' };
-  }
-
-  // ok (oder alles, was weiter weg ist) -> weißer Hintergrund, schwarze Schrift
-  return { background: 'white', color: 'black' };
-};
-
-
-const filteredItems = computed(() => {
-  let list = items.value;
-  const filter = subjectFilter.value; // z.B. "WPU (Di)" oder "Mathe"
-
-  // --- 1. Filter: Dropdown-Filter (unverändert) ---
-  if (filter) {
-    const parentCategories = ['enrichment', 'wpu (di)', 'wpu (do)'];
-    const filterLower = filter.toLowerCase();
-
-    if (parentCategories.includes(filterLower)) {
-      // Filtert nach "WPU (Di) - Englisch", "WPU (Di) - Deutsch" etc.
-      list = list.filter(i => i.subject.toLowerCase().startsWith(filterLower));
-    } else {
-      // Filtert nach "Mathe", "Deutsch" etc.
-      list = list.filter(i => i.subject.toLowerCase() === filterLower);
-    }
-  }
-
-  // --- 2. Filter: Personalisierungs-Filter (NEU) ---
-  if (showPersonalized.value && user.value && user.value.doneSetup) {
-    // Finde die Namen der Kurse, die der User belegt
-    const enrName = enrKurse.find(k => k.id == user.value.enrKurs)?.name;
-    const wpu1Name = wpuDiKurse.find(k => k.id == user.value.wpuKurs1)?.name;
-    const wpu2Name = wpuDoKurse.find(k => k.id == user.value.wpuKurs2)?.name;
-
-    // Erstelle die exakten Fach-Strings, die im Item gespeichert sind
-    const userSubjects = new Set<string>();
-    if (enrName) userSubjects.add(`Enrichment - ${enrName}`);
-    if (wpu1Name) userSubjects.add(`WPU (Di) - ${wpu1Name}`);
-    if (wpu2Name) userSubjects.add(`WPU (Do) - ${wpu2Name}`);
-
-    list = list.filter(item => {
-      const subjectLower = item.subject.toLowerCase();
-
-      // Prüfe, ob es ein "Spezialfach" ist
-      if (subjectLower.startsWith('enrichment')) {
-        return userSubjects.has(item.subject); // Zeige nur, wenn es der Kurs des Users ist
-      }
-      if (subjectLower.startsWith('wpu (di)')) {
-        return userSubjects.has(item.subject); // Zeige nur, wenn es der Kurs des Users ist
-      }
-      if (subjectLower.startsWith('wpu (do)')) {
-        return userSubjects.has(item.subject); // Zeige nur, wenn es der Kurs des Users ist
-      }
-
-      // Wenn es kein Spezialfach ist (z.B. Mathe, Deutsch), immer anzeigen
-      return true;
-    });
-  }
-
-  return list;
-});
-
-const openMenuId = ref<string | null>(null);
-
-function toggleMenu(id: string) {
-  openMenuId.value = openMenuId.value === id ? null : id;
-}
-
-function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
-  openMenuId.value = null;
-  if (action === 'images') return showImageForm(item);
-  if (action === 'edit') return editItem(item);
-  if (action === 'delete') return deleteItem(item.id);
-  if (action === 'report') return reportItem(item);
-}
-
-function reportItem(item: HwItem) {
-  reportTarget = item
-  reportReason.value = '' // NEU: Grund zurücksetzen
-  showReportConfirm.value = true
-}
-
-function onDocumentClick(e: MouseEvent) {
-  if (!openMenuId.value) return;
-  openMenuId.value = null;
-}
-
-
-function onSetupSuccess(updatedUser: any) {
-  // Aktualisiert die lokalen User-Daten mit den neuen Werten (doneSetup: true, Kurse)
-  user.value = {
-    ...user.value,
-    ...updatedUser // Mergt die aktualisierten Felder
-  };
-  showSetupModal.value = false;
-  handleSuccess('Kurseinstellungen erfolgreich gespeichert.');
-}
-
-function openSetupModal() {
-  if (user.value) {
-    showSetupModal.value = true;
-  }
-}
-
-
-async function loadAllUsers() {
-  if (!user.value?.isAdmin) return;
-
-  loadingUsers.value = true;
-  try {
-    const { data } = await hw.get('/api/admin/all-users');
-    allUsers.value = data;
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Laden der Benutzer';
-    onItemFormError(errMsg);
-  } finally {
-    loadingUsers.value = false;
-  }
-}
-
-async function toggleUserActivity(userId: string) {
-  if (showActivityFor.value === userId) {
-    showActivityFor.value = null;
-    return;
-  }
-
-  loadingActivities.value[userId] = true;
-  try {
-    const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
-    userActivities.value[userId] = data;
-    showActivityFor.value = userId;
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Laden der Aktivitäten';
-    onItemFormError(errMsg);
-  } finally {
-    loadingActivities.value[userId] = false;
-  }
-}
-
-async function deleteUser(userId: string) {
-  if (!confirm('Möchtest du diesen Benutzer wirklich löschen? Alle seine Einträge werden ebenfalls gelöscht.')) {
-    return;
-  }
-
-  deletingUsers.value[userId] = true;
-  try {
-    await hw.delete(`/api/admin/users/${userId}`);
-
-    // Erfolgsmeldung
-    handleSuccess('Benutzer erfolgreich gelöscht');
-
-    // Aus der Liste entfernen
-    allUsers.value = allUsers.value.filter(u => u.id !== userId);
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Löschen des Benutzers';
-    onItemFormError(errMsg);
-  } finally {
-    deletingUsers.value[userId] = false;
-  }
-}
-
-async function toggleBan(user: any) {
-  if (!user || user.isAdmin) return;
-
-  togglingBan.value[user.id] = true;
-  try {
-    if (user.isBanned) {
-      await hw.delete(`/api/admin/users/${user.id}/ban`);
-      user.isBanned = false;
-      handleSuccess('Benutzer erfolgreich entsperrt.');
-    } else {
-      await hw.post(`/api/admin/users/${user.id}/ban`);
-      user.isBanned = true;
-      handleSuccess('Benutzer erfolgreich gesperrt.');
-    }
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Ändern des Sperr-Status des Accounts.';
-    onItemFormError(errMsg);
-  } finally {
-    togglingBan.value[user.id] = false;
-  }
-}
-
-
-async function loadReports() {
-  if (!user.value?.isAdmin) return;
-
-  try {
-    const { data } = await hw.get('/api/admin/reports');
-    reports.value = data;
-  } catch (e) {
-    console.error('loadReports error', e);
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', onDocumentClick);
-  loadMe();
-  loadSubjects();
-  loadAnnouncements();
-  reload();
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', onDocumentClick);
-  userActivities.value = {};
-  loadingActivities.value = {};
-  deletingUsers.value = {};
-});
-
-function canManage(createdBy: string) {
-  if (!user.value) return false;
-  return user.value.isAdmin || user.value.id === createdBy;
-}
-
-function cancelReport() {
-  showReportConfirm.value = false
-  reportTarget = null
-  reportReason.value = ''
-}
-
-async function loadMe() {
-  try {
-    const { data } = await hw.get('/api/auth/me');
-    user.value = data; // user.value enthält jetzt doneSetup und die Kurse
-    await loadCheckedForMe();
-
-    // NEU: Wenn Setup nicht abgeschlossen und User eingeloggt ist, zeige das Setup-Modal
-    if (user.value && !user.value.doneSetup) {
-      showSetupModal.value = true;
-    }
-
-  } catch {
-    user.value = null;
-    checkedItems.value = new Set();
-  }
-}
-
-async function loadCheckedForMe() {
-  if (!user.value) {
-    checkedItems.value = new Set();
-    return;
-  }
-  try {
-    const { data } = await hw.get('/api/checks/me');
-    checkedItems.value = new Set(data.itemIds || []);
-  } catch (e) {
-    console.error('loadCheckedForMe error', e);
-    checkedItems.value = new Set();
-  }
-}
-
-async function loadSubjects() {
-  try {
-    const { data } = await hw.get('/api/subjects');
-    subjects.value = data;
-  } catch (e) {
-    console.error('loadSubjects error', e);
-  }
-}
-async function loadAnnouncements() {
-  try {
-    const { data } = await hw.get('/api/announcements');
-    announcements.value = data;
-  } catch (e) {
-    console.error('loadAnnouncements error', e);
-  }
-}
-
-async function reload() {
-  loading.value = true;
-
-  // NEU: Query-Parameter basierend auf dem Switch-Zustand erstellen
-  const params: Record<string, any> = { type: tab.value };
-  if (showOldEntries.value) {
-    params.filter = 'old';
-  }
-
-  try {
-    // API-Aufruf mit den neuen Query-Parametern
-    const { data } = await hw.get('/api/items', { params });
-    items.value = data;
-    // reset expansions on reload
-    expandedDescriptions.value = new Set();
-    // reset revealed images on reload so page load shows 2 images again
-    revealedImages.value = new Set();
-  } catch (e) {
-    console.error('Failed to load items:', e);
-  } finally {
-    loading.value = false;
-    visibleCount.value = Math.min(5, filteredItems.value.length || 5);
-  }
-}
-
-async function deleteReport(id: string) {
-  if (!confirm('Möchtest du diese Meldung wirklich löschen?')) {
-    return;
-  }
-
-  try {
-    await hw.delete(`/api/admin/reports/${id}`);
-    await loadReports();
-    handleSuccess('Meldung erfolgreich gelöscht.');
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Löschen.';
-    message.value = 'Fehler: ' + errMsg;
-    isError.value = true;
-    console.error('deleteReport error', e);
-    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-  }
-}
-
-function onAccountDeleted() {
-  setHwToken(null);
-  user.value = null;
-  checkedItems.value = new Set();
-  message.value = 'Account erfolgreich gelöscht.';
-  isError.value = false;
-  reload();
-  setTimeout(() => { message.value = ''; }, 5000);
-}
-
-function onAccountDeleteError(msg: string) {
-  message.value = msg;
-  isError.value = true;
-  setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-}
-
-
-
-
-async function generateSecurityReport() {
-  if (isGeneratingReport.value) return;
-  isGeneratingReport.value = true;
-  securityReport.value = null;
-  reportError.value = null;
-
-  try {
-    // 'hw' ist dein konfigurierter API-Client (hwApi.js)
-    // Er sollte den Auth-Token automatisch mitsenden
-    const { data } = await hw.post('/api/admin/security-report');
-    securityReport.value = data.report;
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Unbekannter Fehler beim Erstellen des Berichts.';
-    reportError.value = errMsg;
-    // Du kannst auch deine bestehende Fehleranzeige nutzen:
-    onItemFormError(errMsg);
-  } finally {
-    isGeneratingReport.value = false;
-  }
-}
-
-// NEU: Funktion zum Kopieren des Roh-Berichts (Markdown)
-function copyReportToClipboard() {
-  if (!securityReport.value) return;
-  navigator.clipboard.writeText(securityReport.value)
-      .then(() => {
-        // Zeige eine Erfolgsmeldung über deine handleSuccess-Funktion
-        handleSuccess('Bericht (Markdown) in die Zwischenablage kopiert.');
-      })
-      .catch(err => {
-        onItemFormError('Fehler beim Kopieren.');
-      });
-}
-
-function handleSuccess(msg: string) {
-  message.value = msg;
-  isError.value = false;
-  itemFormKey.value += 1;
-  setTimeout(() => message.value = '', 5000);
-  showItemForm.value = false;
-  showAnnouncementForm.value = false;
-  showImageFormFor.value = null;
-  reload();
-}
-
-// receive error from ItemForm (length limits etc.)
-function onItemFormError(msg: string) {
-  message.value = msg || 'Bitte Eingaben prüfen.';
-  isError.value = true;
-  setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-}
-
-function onLoggedIn(token: string) {
-  setHwToken(token);
-  showAuth.value = false;
-  loadMe();
-  reload();
-}
-
-function logout() {
-  setHwToken(null);
-  user.value = null;
-  checkedItems.value = new Set();
-}
-
-function editItem(item: HwItem) {
-  itemToEdit.value = item;
-  showItemForm.value = true;
-}
-
-// open create with simple guard demonstrating max limits (frontend only)
-function openCreateForm() {
-
-  itemToEdit.value = null;
-  // optional: we could pre-check something here if needed
-  showItemForm.value = true;
-}
-
-async function deleteItem(id: string) {
-  if (confirm('Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder gelöscht.')) {
-    loading.value = true;
-    try {
-      await hw.delete(`/api/items/${id}`);
-      handleSuccess('Eintrag erfolgreich gelöscht.');
-    } catch (e: any) {
-      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-      isError.value = true;
-    } finally {
-      loading.value = false;
-    }
-  }
-}
-
-async function deleteAnnouncement(id: string) {
-  if (confirm('Soll diese Ankündigung wirklich gelöscht werden?')) {
-    try {
-      await hw.delete(`/api/announcements/${id}`);
-      handleSuccess('Ankündigung erfolgreich gelöscht.');
-    } catch (e: any) {
-      message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-      isError.value = true;
-    }
-  }
-}
-
-
-async function doReport() {
-  if (!reportTarget) return;
-
-  const item = reportTarget;
-  const reason = reportReason.value; // Den Grund aus dem ref holen
-
-  // Dialog schließen und Daten zurücksetzen, BEVOR der Request startet
-  cancelReport();
-
-  message.value = 'Eintrag wird gemeldet...';
-  isError.value = false;
-
-  const payload = {
-    itemId: item.id,
-    itemTitle: item.title,
-    reason: reason,
-  };
-
-  try {
-    await hw.post('/api/reports', payload);
-
-    message.value = 'Eintrag erfolgreich gemeldet. Wir nehmen das sehr ernst und schauen uns den Eintrag genau an.';
-    isError.value = false;
-
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Senden.';
-    message.value = 'Fehler beim Melden: ' + errMsg;
-    isError.value = true;
-    console.error('reportItem error', e);
-  } finally {
-    setTimeout(() => { message.value = ''; isError.value = false }, 7000);
-  }
-}
-
-function showImageForm(item: HwItem) {
-  showImageFormFor.value = item;
-}
-
-function makeThumb(url: string) {
-  try {
-    const u = new URL(url);
-    const parts = u.pathname.split('/');
-    const uploadIdx = parts.findIndex(p => p === 'upload');
-    if (uploadIdx !== -1) {
-      parts.splice(uploadIdx + 1, 0, 'f_webp,q_auto:best,w_120,h_120,c_fill');
-      u.pathname = parts.join('/');
-    }
-    return u.toString();
-  } catch {
-    return url;
-  }
-}
-
-// checked helpers
-function isChecked(itemId: string) {
-  return checkedItems.value.has(itemId);
-}
-
-async function toggleCheck(item: HwItem) {
-  if (!user.value) return;
-  const id = item.id;
-  try {
-    if (isChecked(id)) {
-      await hw.delete(`/api/items/${id}/check`);
-      checkedItems.value.delete(id);
-    } else {
-      await hw.post(`/api/items/${id}/check`);
-      checkedItems.value.add(id);
-    }
-  } catch (e: any) {
-    console.error('toggleCheck error', e);
-    message.value = e.response?.data?.error || 'Fehler beim Setzen des Status.';
-    isError.value = true;
-    setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
-  }
-}
-
-// Navigate to route for a tab (keeps URL in sync and supports reload/bookmark)
-function goTab(t: ItemType) {
-  router.push({ name: 'ItemsByType', params: { type: t } });
-}
-
-
-const revealedImages = ref(new Set<string>());
-
-function isRevealed(itemId: string) {
-  return revealedImages.value.has(itemId);
-}
-
-function revealImages(itemId: string) {
-  revealedImages.value.add(itemId);
-}
-
-
-// Löschen eines Sorgen-Eintrags
-async function deleteSorge(id: string) {
-  if (!confirm('Möchtest du diesen Sorgen-Eintrag wirklich löschen?')) {
-    return;
-  }
-
-  try {
-    await hw.delete(`/anon/sorgenfind/${id}`);
-    // Nach erfolgreichem Löschen die Liste neu laden
-    await loadSorgen();
-    handleSuccess('Sorgen-Eintrag erfolgreich gelöscht.');
-  } catch (e: any) {
-    const errMsg = e.response?.data?.error || 'Fehler beim Löschen.';
-    message.value = 'Fehler: ' + errMsg;
-    isError.value = true;
-    console.error('deleteSorge error', e);
-    setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
-  }
-}
-
-// Sorgen laden Funktion extrahieren (falls noch nicht vorhanden)
-async function loadSorgen() {
-  try {
-    const res = await hw.get('/anon/sorgenfind');
-    entriessorgen.value = res.data;
-  } catch (e) {
-    console.error('Konnte Sorgen nicht laden');
-  }
-}
-
-onMounted(() => {
-  if (user.value?.isAdmin) {
-    loadReports();
-  }
-});
-
-onMounted(async () => {
-  await loadSorgen()
-});
-
+import { useHausaufgaben } from './useHausaufgaben';
+
+const {
+  // state
+  user,
+  subjects,
+  announcements,
+  items,
+  loading,
+  subjectFilter,
+  showPersonalized,
+  entriessorgen,
+  showAuth,
+  showItemForm,
+  showAnnouncementForm,
+  showImageFormFor,
+  itemToEdit,
+  MAX_TITLE_LENGTH,
+  MAX_SUBJECT_LENGTH,
+  message,
+  isError,
+  checkedItems,
+  itemFormKey,
+  expandedDescriptions,
+  visibleCount,
+  showReportConfirm,
+  reportReason,
+  reports,
+  securityReport,
+  isGeneratingReport,
+  reportError,
+  reportHtml,
+  allUsers,
+  loadingUsers,
+  showActivityFor,
+  userActivities,
+  loadingActivities,
+  deletingUsers,
+  togglingBan,
+  showOldEntries,
+  showSetupModal,
+  revealedImages,
+  tab,
+
+  // computed
+  filteredItems,
+  limitedItems,
+
+  // helpers / methods
+  colorFor,
+  colorStyles,
+  isExpanded,
+  toggleDescription,
+  showMore,
+  showLess,
+  toggleMenu,
+  onMenuAction,
+  reportItem,
+  cancelReport,
+  onSetupSuccess,
+  openSetupModal,
+  loadAllUsers,
+  toggleUserActivity,
+  deleteUser,
+  toggleBan,
+  loadReports,
+  onDocumentClick,
+  canManage,
+  loadMe,
+  loadCheckedForMe,
+  loadSubjects,
+  loadAnnouncements,
+  reload,
+  deleteReport,
+  onAccountDeleted,
+  onAccountDeleteError,
+  generateSecurityReport,
+  copyReportToClipboard,
+  handleSuccess,
+  onItemFormError,
+  onLoggedIn,
+  logout,
+  editItem,
+  openCreateForm,
+  deleteItem,
+  deleteAnnouncement,
+  doReport,
+  showImageForm,
+  makeThumb,
+  isChecked,
+  toggleCheck,
+  goTab,
+  isRevealed,
+  revealImages,
+  deleteSorge,
+  loadSorgen,
+  loadReportsIfAdmin,
+  loadAllOnMounted
+} = useHausaufgaben();
 </script>
 
 <style scoped>
+/* (entire style block unchanged) */
 /* Header */
 .hw-header {
   display: flex;
