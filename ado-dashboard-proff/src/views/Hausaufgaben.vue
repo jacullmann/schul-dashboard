@@ -477,7 +477,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue";
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 
-import { useHausaufgaben } from './useHausaufgaben';
+import { useHausaufgaben } from '../composables/useHausaufgaben';
 
 const {
   // state
