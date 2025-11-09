@@ -482,10 +482,7 @@ function showMessage(msg: string, error = false) {
   gap: 1rem;
 }
 
-.todo-item:hover {
-  border-color: var(--primary);
-  transform: translateY(-2px);
-}
+
 
 .todo-item.completed {
   opacity: 0.7;
