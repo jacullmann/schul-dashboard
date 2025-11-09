@@ -179,11 +179,9 @@
         </transition>
 
         <transition name="collapse">
-          <!-- Angepasste Bilder-Logik: nur 2 initial anzeigen; Overlay auf 2. mit +N; Klick auf Overlay zeigt alle -->
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-title">Bilder</div>
             <div class="images-row">
-              <!-- wenn noch nicht auf "mehr" geklickt: nur erste zwei thumbnails zeigen -->
               <template v-if="!isRevealed(item.id)">
                 <div
                     v-for="(img, idx) in item.images.slice(0, 2)"
@@ -194,7 +192,6 @@
                     <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
                   </a>
 
-                  <!-- Overlay nur beim zweiten Bild und wenn insgesamt > 2 -->
                   <button
                       v-if="idx === 1 && item.images.length > 2"
                       class="img-overlay"
@@ -208,7 +205,6 @@
                 </div>
               </template>
 
-              <!-- wenn reveal aktiv: alle Bilder wie vorher zeigen (keine Overlays) -->
               <template v-else>
                 <div
                     v-for="img in item.images"
@@ -1232,7 +1228,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Header */
 .hw-header {
   display: flex;
   justify-content: space-between;
@@ -1243,7 +1238,6 @@ onMounted(async () => {
 .hw-header h2 { margin: 0 0 2px 0}
 .header-actions { align-items: center; display: flex; flex-direction: row; flex-wrap: wrap}
 
-/* Announcements */
 .announcements { margin-top: 18px; }
 .announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .ann-list { margin-top: 12px; }
@@ -1261,16 +1255,13 @@ onMounted(async () => {
 .ann-date { margin-top: 6px; color: var(--muted); }
 .ann-actions { margin-top: 8px; }
 
-/* Tabs */
 .tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
 
-/* Controls */
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject { width:auto; min-width:160px; height: 37px }
 .small-btn { padding:6px 8px; font-size:13px; }
 
-/* Items */
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card {
   border-radius: 12px;
@@ -1281,19 +1272,16 @@ onMounted(async () => {
   overflow: visible;
 }
 
-/* Collapsed state */
 .item-card.collapsed {
   padding: 8px 12px;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
 
-/* Item main row */
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
 .item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-/* Checkbox visual */
 .collapse-checkbox {
   display:inline-flex;
   align-items:center;
@@ -1323,7 +1311,6 @@ onMounted(async () => {
 }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 
-/* Badges */
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
@@ -1387,7 +1374,6 @@ onMounted(async () => {
 .menu-btn.danger:hover { background: #666666; }
 .menu-btn.warn:hover { background: #666666; }
 
-/* Body and images */
 .item-body {
   white-space: pre-wrap;
   margin-top:10px;
@@ -1409,7 +1395,6 @@ onMounted(async () => {
 }
 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
 
-/* Wrapper to allow overlay positioning on the second thumb */
 .thumb-with-overlay-wrapper { position: relative; }
 
 .img-overlay {
@@ -1429,7 +1414,7 @@ onMounted(async () => {
 .img-overlay .overlay-blur {
   position: absolute;
   inset: 0;
-  background: rgba(60,60,60,0.6); /* graues halbtransparent */
+  background: rgba(60,60,60,0.6);
   backdrop-filter:  saturate(90%);
   -webkit-backdrop-filter: saturate(90%);
   border-radius: 8px;
@@ -1444,10 +1429,8 @@ onMounted(async () => {
   pointer-events: none;
 }
 
-/* Empty state */
 .empty { text-align:center; color:var(--muted); padding:24px; }
 
-/* Collapse transition (height + opacity) */
 .collapse-enter-active, .collapse-leave-active {
   transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
   opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
@@ -1464,14 +1447,11 @@ onMounted(async () => {
   opacity: 1;
 }
 
-/* Message */
 .message { font-weight:600; }
 .message.error { color: var(--danger); }
 
-/* Tiny utility */
 .tiny { padding:4px 8px; font-size:12px; }
 
-/* menu trigger */
 .item-menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -1490,7 +1470,6 @@ onMounted(async () => {
   transform: translateY(-1px);
 }
 
-/* Pagination actions */
 .pagination-actions {
   margin-top: 16px;
   display: flex;
@@ -1531,7 +1510,6 @@ onMounted(async () => {
 }
 
 
-/* Reports Section */
 .reports-section {
   margin-top: 32px;
   padding-top: 20px;
@@ -1646,12 +1624,9 @@ li {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
-  clear: both; /* Stellt sicher, dass der Container nach dem floatenden Button beginnt */
+  clear: both;
 }
 
-/* Styles für das von 'marked' generierte HTML.
- Wir verwenden :deep() um in die v-html-Struktur hinein zu stylen.
-*/
 .report-content {
   word-wrap: break-word;
 }
@@ -1831,7 +1806,6 @@ li {
   font-style: italic;
   padding: 16px;
 }
-/* Fade-Animation für Meta-Informationen */
 .row.item-badges {
   transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
