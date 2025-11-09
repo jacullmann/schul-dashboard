@@ -53,6 +53,9 @@
         <router-link  to="/sorgenbox" class="nav-item" @click="closeNav">
           Sorgenbox
         </router-link>
+        <router-link  to="/countdown" class="nav-item" @click="closeNav">
+          Countdowns
+        </router-link>
       </nav>
     </div>
   </header>

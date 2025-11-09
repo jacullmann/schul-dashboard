@@ -14,6 +14,7 @@
           <router-link  to="/kuerzel" class="footer-link">Kürzelfinder</router-link>
           <router-link  to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
           <router-link  to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
+          <router-link  to="/countdown" class="footer-link">Countdowns</router-link>
         </div>
 
         <div class="footer-section">
