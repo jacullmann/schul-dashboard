@@ -1535,7 +1535,7 @@ onMounted(async () => {
 
 .report-card {
   background: rgba(255, 0, 0, 0.05);
-  border: 1px solid var(--danger);
+  border: none;
   border-radius: 8px;
   padding: 12px;
 }
