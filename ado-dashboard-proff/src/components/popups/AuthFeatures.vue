@@ -61,42 +61,34 @@ const POPUP_STORAGE_KEY = 'account_popup_last_shown'
 const POPUP_SHOULD_SHOW_KEY = 'account_popup_should_show'
 let popupTimeout: number | null = null
 
-// Prüft ob der Benutzer eingeloggt ist
 const isLoggedIn = (): boolean => {
   return !!localStorage.getItem('hw_token')
 }
 
-// Initialisiert die Popup-Einstellungen
 const initializePopupSettings = () => {
   const shouldShow = localStorage.getItem(POPUP_SHOULD_SHOW_KEY)
 
-  // Wenn shouldShow noch nicht gesetzt ist, auf true setzen
   if (shouldShow === null) {
     localStorage.setItem(POPUP_SHOULD_SHOW_KEY, 'true')
-    localStorage.removeItem(POPUP_STORAGE_KEY) // Stelle sicher, dass lastShown null ist
+    localStorage.removeItem(POPUP_STORAGE_KEY)
   }
 }
 
-// Prüft ob das Popup angezeigt werden soll
 const shouldShowPopup = (): boolean => {
-  // Wenn Benutzer eingeloggt ist, Popup nie anzeigen
   if (isLoggedIn()) {
     return false
   }
 
   const shouldShow = localStorage.getItem(POPUP_SHOULD_SHOW_KEY)
-  // Wenn shouldShow false ist, Popup nie anzeigen
   if (shouldShow === 'false') {
     return false
   }
 
   const lastShown = localStorage.getItem(POPUP_STORAGE_KEY)
-  // Wenn lastShown null ist, Popup anzeigen
   if (!lastShown) {
     return true
   }
 
-  // Prüfe ob das letzte Anzeigen mehr als 1 Tag her ist
   const lastShownDate = new Date(lastShown).getTime()
   const oneDayInMs = 24 * 60 * 60 * 1000
   const now = Date.now()
@@ -104,42 +96,32 @@ const shouldShowPopup = (): boolean => {
   return now - lastShownDate >= oneDayInMs
 }
 
-// Zeigt das Popup nach einer zufälligen Zeit an
 const showPopupWithRandomDelay = () => {
   if (shouldShowPopup()) {
-    // Zufällige Zeit zwischen 1 und 10 Minuten (60.000 - 600.000 ms)
-    const randomDelay = Math.floor(Math.random() * (600000 - 60000 + 1)) + 60000
+    const randomDelay = Math.floor(Math.random() * (180000 - 60000 + 1)) + 60000
 
     popupTimeout = setTimeout(() => {
       showPopup.value = true
-      // Setze das letzte Anzeige-Datum
       localStorage.setItem(POPUP_STORAGE_KEY, new Date().toISOString())
     }, randomDelay)
   }
 }
 
-// Schließt das Popup
 const closePopup = () => {
   showPopup.value = false
 }
 
-// Registrierungs-Button Handler
 const registerNow = () => {
   closePopup()
-  // Setze shouldShow auf false - Popup wird nie wieder angezeigt
   localStorage.setItem(POPUP_SHOULD_SHOW_KEY, 'false')
 
-  // Navigiere zur Hauptseite und öffne AuthModal
   router.push('/').then(() => {
-    // Dispatch ein Custom Event, das vom Hausaufgaben.vue Component gehört wird
     window.dispatchEvent(new CustomEvent('show-auth-modal'))
   })
 }
 
-// Überwacht Login/Logout Änderungen
 const checkLoginStatus = () => {
   if (isLoggedIn()) {
-    // Wenn Benutzer sich anmeldet, setze shouldShow auf false
     localStorage.setItem(POPUP_SHOULD_SHOW_KEY, 'false')
     closePopup()
     if (popupTimeout) {
@@ -149,14 +131,12 @@ const checkLoginStatus = () => {
   }
 }
 
-// Event Listener für Storage Änderungen (für andere Tabs)
 const handleStorageChange = (e: StorageEvent) => {
   if (e.key === 'hw_token') {
     checkLoginStatus()
   }
 }
 
-// Event Listener für Custom Events (für gleichen Tab)
 const handleLoginEvent = () => {
   checkLoginStatus()
 }
@@ -165,13 +145,11 @@ onMounted(() => {
   initializePopupSettings()
   showPopupWithRandomDelay()
 
-  // Event Listener hinzufügen
   window.addEventListener('storage', handleStorageChange)
   window.addEventListener('user-logged-in', handleLoginEvent)
 })
 
 onUnmounted(() => {
-  // Cleanup
   if (popupTimeout) {
     clearTimeout(popupTimeout)
   }
@@ -181,7 +159,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Deine bestehenden Styles bleiben unverändert */
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -287,7 +264,6 @@ onUnmounted(() => {
   width: 180px;
 }
 
-/* Animations */
 .popup-overlay-enter-active,
 .popup-overlay-leave-active {
   transition: opacity 0.3s ease;
@@ -350,7 +326,7 @@ onUnmounted(() => {
   }
 
   .text-content h2 {
-    fontSize: 1.25rem;
+    font-size: 1.25rem;
   }
 
   .feature-list li {
