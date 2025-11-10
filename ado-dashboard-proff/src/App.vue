@@ -19,7 +19,7 @@
     </main>
     <Footer v-if="$route.path !== '/welcome'"/>
     <CookieBanner />
-    <AccountPromoPopup />
+    <AccountPromoPopup v-if="$route.path !== '/welcome'" />
 
   </div>
 </template>

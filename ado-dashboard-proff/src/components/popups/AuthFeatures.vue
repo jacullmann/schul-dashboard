@@ -98,7 +98,7 @@ const shouldShowPopup = (): boolean => {
 
 const showPopupWithRandomDelay = () => {
   if (shouldShowPopup()) {
-    const randomDelay = Math.floor(Math.random() * (180000 - 60000 + 1)) + 60000
+    const randomDelay = Math.floor(Math.random() * (30000 - 60000 + 1)) + 60000
 
     popupTimeout = setTimeout(() => {
       showPopup.value = true
