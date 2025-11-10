@@ -623,8 +623,8 @@ export default defineComponent({
   background: rgba(50, 50, 50, 0.8);
   color: var(--text);
   outline: none;
-  transition: border-color 0.3s ease, border-radius 0.4s ease-out;
-  border-radius: 35px;
+  transition: border-color 0.1s ease, border-radius 0.2s ease-out;
+  border-radius: 25px;
   height: 40px;
 }
 .input.enhanced:focus {
@@ -632,7 +632,7 @@ export default defineComponent({
   border-radius: 10px;
   outline: none;
 
-  transition: border-color 0.3s ease, border-radius 0.4s ease-out;
+  transition: border-color 0.1s ease, border-radius 0.2s ease-out;
 }
 .login-button {
   margin-top: 6px;
@@ -819,6 +819,7 @@ export default defineComponent({
 
 .albums-filter {
   align-items: center;
+  margin-bottom: 20px;
 }
 .chip {
   display: inline-flex;
@@ -826,20 +827,22 @@ export default defineComponent({
   gap: 8px;
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(26, 26, 26, 0.9);
+  border:none;
+  background: rgba(46, 46, 46, 0.9);
   color: var(--text);
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
-.chip:hover { transform: translateY(-1px); }
+.chip:hover {
+  transform: translateY(-1px);
+  background: rgba(66, 66, 66, 0.9);
+}
 .chip.active {
-  border-color: var(--primary);
-  background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.08));
-  color: #c9f7d5;
+
+  background: rgba(66, 66, 66, 0.9);
 }
 .chip.ghost {
-  background: transparent;
+  background: rgba(66, 66, 66, 0.9);
 }
 .spacer {
   flex: 1;
@@ -851,7 +854,7 @@ export default defineComponent({
   gap: 16px;
 }
 .album-card {
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 12px;
   overflow: hidden;
   background: linear-gradient(180deg, #141922, #1a1a1a);
@@ -904,7 +907,7 @@ export default defineComponent({
   overflow: hidden;
   border-radius: 12px;
   cursor: pointer;
-  border: 1px solid var(--border);
+  border: none;
   background: #0b1220;
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.20);
