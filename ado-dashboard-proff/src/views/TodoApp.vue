@@ -93,7 +93,7 @@
 
       <div v-else-if="todos.length === 0" class="empty-state">
         <p>Noch keine privaten Einträge vorhanden.</p>
-        <p class="small"><p class="spannn" @click="showTodoForm = true" >Erstelle deinen ersten privaten Eintrag!</p></p>
+        <p class="small"><span class="spannn" @click="showTodoForm = true" >Erstelle deinen ersten privaten Eintrag!</span></p>
       </div>
 
       <div v-else class="todos-container">

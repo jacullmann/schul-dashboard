@@ -19,6 +19,7 @@
     </main>
     <Footer v-if="$route.path !== '/welcome'"/>
     <CookieBanner />
+    <AccountPromoPopup />
 
   </div>
 </template>
@@ -31,6 +32,7 @@ import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
+import AccountPromoPopup from './components/popups/AuthFeatures.vue'
 
 
 

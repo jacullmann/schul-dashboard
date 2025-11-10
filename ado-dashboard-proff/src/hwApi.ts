@@ -36,6 +36,7 @@ export function setHwToken(token: string | null, userId?: string | null) {
         localStorage.setItem('hw_token', token);
         if (userId) localStorage.setItem('hw_user_id', userId);
         umamiSetLoggedIn(true, userId ?? localStorage.getItem('hw_user_id'));
+        window.dispatchEvent(new CustomEvent('user-logged-in'));
     } else {
         delete hw.defaults.headers.common['Authorization'];
         localStorage.removeItem('hw_token');

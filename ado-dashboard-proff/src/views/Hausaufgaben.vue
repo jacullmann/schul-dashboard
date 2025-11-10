@@ -861,6 +861,7 @@ onMounted(() => {
   loadSubjects();
   loadAnnouncements();
   reload();
+  window.addEventListener('show-auth-modal', handleShowAuthModal);
 });
 
 onBeforeUnmount(() => {
@@ -868,7 +869,12 @@ onBeforeUnmount(() => {
   userActivities.value = {};
   loadingActivities.value = {};
   deletingUsers.value = {};
+  window.removeEventListener('show-auth-modal', handleShowAuthModal);
 });
+
+const handleShowAuthModal = () => {
+  showAuth.value = true;
+};
 
 function canManage(createdBy: string) {
   if (!user.value) return false;
