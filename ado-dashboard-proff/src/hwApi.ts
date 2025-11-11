@@ -30,6 +30,16 @@ function umamiSetLoggedIn(status: boolean, userId?: string | null) {
     } catch {}
 }
 
+function logPageLoad(token: string) {
+    fetch(`${import.meta.env.VITE_HW_API_BASE}/api/activity/pageload`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    }).catch(() => {});
+}
+
 export function setHwToken(token: string | null, userId?: string | null) {
     if (token) {
         hw.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -37,6 +47,9 @@ export function setHwToken(token: string | null, userId?: string | null) {
         if (userId) localStorage.setItem('hw_user_id', userId);
         umamiSetLoggedIn(true, userId ?? localStorage.getItem('hw_user_id'));
         window.dispatchEvent(new CustomEvent('user-logged-in'));
+        setTimeout(() => {
+            logPageLoad(token);
+        }, 1000);
     } else {
         delete hw.defaults.headers.common['Authorization'];
         localStorage.removeItem('hw_token');
@@ -51,6 +64,9 @@ const storedUserId = localStorage.getItem('hw_user_id');
 if (stored) {
     hw.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
     umamiSetLoggedIn(true, storedUserId);
+    setTimeout(() => {
+        logPageLoad(stored);
+    }, 1000);
 } else {
     umamiSetLoggedIn(false);
 }

@@ -170,6 +170,29 @@ export default function registerRoutes(app, deps) {
         }
     );
 
+    app.post('/api/activity/pageload',
+        requireAuth,
+        async (req, res) => {
+            try {
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'page:load',
+                            meta: {
+                                userAgent: req.get('User-Agent')?.substring(0, 100) || 'unknown',
+                                timestamp: new Date().toISOString()
+                            }
+                        }
+                    }
+                });
+                res.json({ ok: true });
+            } catch (err) {
+                res.json({ ok: false });
+            }
+        }
+    );
+
     app.get('/api/auth/verify',
         query('token').isString().isLength({ min: 10 }),
         validate,
