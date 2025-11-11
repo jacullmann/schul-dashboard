@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { SendHorizontal } from 'lucide-vue-next';
-const ENCRYPTED_FOOTER = process.env.VITE_APP_ENCRYPTED_FOOTER;
+const ENCRYPTED_FOOTER = import.meta.env.VITE_APP_ENCRYPTED_FOOTER;
 
 const PBKDF2_ITER = 150000;
 const AES_KEY_BITS = 256;
