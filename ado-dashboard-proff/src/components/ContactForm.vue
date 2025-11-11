@@ -84,7 +84,7 @@ const startTime = ref(0);
 const elapsedTime = ref(0);
 let hoverTimer: number | null = null;
 let intervalTimer: number | null = null;
-const HOVER_DELAY_MS = 2000;
+const HOVER_DELAY_MS = 500;
 
 const formattedTime = computed(() => {
   const remaining = Math.max(0, HOVER_DELAY_MS - elapsedTime.value);
@@ -282,7 +282,7 @@ hr {
   right: 16px;
   padding: 4px 8px;
   background-color: transparent;
-  color: rgba(200, 200, 200, 0.2);
+  color: rgba(200, 200, 200, 0);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 700;
