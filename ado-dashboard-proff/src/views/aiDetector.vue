@@ -9,7 +9,6 @@ const AES_KEY_BITS = 256;
 const password = ref('');
 const unlocked = ref(false);
 const decryptedText = ref<string | null>(null);
-const showPreview = ref(true);
 const decryptError = ref<string | null>(null);
 
 function base64ToArrayBuffer(b64: string): ArrayBuffer {
@@ -18,12 +17,6 @@ function base64ToArrayBuffer(b64: string): ArrayBuffer {
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
   return bytes.buffer;
-}
-function arrayBufferToBase64(buf: ArrayBuffer): string {
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
 }
 
 function parseEncryptedPayload(b64json: string) {
@@ -76,26 +69,6 @@ async function tryDecryptAESGCM(derivedKey: CryptoKey, iv: ArrayBuffer, ct: Arra
   return new TextDecoder().decode(plainBuf);
 }
 
-async function pseudoDecryptPreview(passwordStr: string, ctBuf: ArrayBuffer) {
-  const saltPreview = new TextEncoder().encode('preview-salt');
-  const pwUtf8 = new TextEncoder().encode(passwordStr);
-  const baseKey = await window.crypto.subtle.importKey('raw', pwUtf8, 'PBKDF2', false, ['deriveBits']);
-  const bits = await window.crypto.subtle.deriveBits(
-      { name: 'PBKDF2', salt: saltPreview, iterations: 1000, hash: 'SHA-256' },
-      baseKey,
-      ctBuf.byteLength * 8
-  );
-  const ks = new Uint8Array(bits);
-  const ct = new Uint8Array(ctBuf);
-  const out = new Uint8Array(ct.length);
-  for (let i = 0; i < ct.length; i++) out[i] = ct[i] ^ ks[i % ks.length];
-  try {
-    return new TextDecoder().decode(out);
-  } catch {
-    return arrayBufferToBase64(out.buffer);
-  }
-}
-
 let parsedPayload: { salt: ArrayBuffer; iv: ArrayBuffer; ct: ArrayBuffer } | null = null;
 try {
   parsedPayload = parseEncryptedPayload(ENCRYPTED_FOOTER);
@@ -123,24 +96,15 @@ async function attemptDecryptLive(pw: string) {
     unlocked.value = true;
     decryptError.value = null;
   } catch (e) {
-    try {
-      const preview = await pseudoDecryptPreview(pw, parsedPayload.ct);
-      decryptedText.value = preview;
-      unlocked.value = false;
-      decryptError.value = 'Schlüssel ungültig';
-    } catch (e2) {
-      decryptError.value = 'Falsches Passwort';
-      decryptedText.value = null;
-      unlocked.value = false;
-    }
+    decryptError.value = 'Falsches Passwort';
+    decryptedText.value = null;
+    unlocked.value = false;
   }
 }
 
 watch(password, (newVal) => {
   attemptDecryptLive(newVal);
 });
-
-import { computed as _computed } from 'vue';
 
 const textInput = ref('');
 const isAnalyzing = ref(false);
@@ -170,14 +134,14 @@ function playSirenTone(): void {
   }
 }
 
-const resultClass = _computed(() => {
+const resultClass = computed(() => {
   if (finalResult.value === 0) return '';
   if (finalResult.value < 50) return 'result-message-low';
   if (finalResult.value < 100) return 'result-message-mid';
   return 'result-message-high';
 });
 
-const gaugeRotation = _computed(() => {
+const gaugeRotation = computed(() => {
   const value = currentGaugeValue.value;
   let rotation: number;
   if (value <= VISUAL_MAX_PERCENT) {
@@ -192,7 +156,7 @@ const gaugeRotation = _computed(() => {
   return `rotate(${rotation}deg)`;
 });
 
-const gaugeColor = _computed(() => {
+const gaugeColor = computed(() => {
   if (isAnalyzing.value || finalResult.value === 0) {
     return 'var(--primary)';
   } else if (finalResult.value < 50) {
@@ -204,7 +168,7 @@ const gaugeColor = _computed(() => {
   }
 });
 
-const resultMessageText = _computed(() => {
+const resultMessageText = computed(() => {
   if (finalResult.value === 0) {
     return '';
   }
