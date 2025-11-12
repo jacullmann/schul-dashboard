@@ -3,6 +3,11 @@ import { ref } from 'vue';
 import { Lock, EyeOff, ShieldCheck } from 'lucide-vue-next';
 
 const hoveredCardIndex = ref(-1);
+const expanded = ref<boolean>(false);
+
+function expand() {
+  expanded.value = !expanded.value;
+}
 
 const features = [
   {
@@ -40,6 +45,17 @@ const getCardWidth = (index: number) => {
 
 <template>
   <div class="security-info-container">
+    <div style="margin-bottom: 10px">
+    <div v-if="!expanded">
+      <button @click="expand" class="btn ghost">Erfahre mehr</button>
+
+    </div>
+    <div v-if="expanded">
+      <button @click="expand" class="btn ghost">Schließen</button>
+
+    </div>
+    </div>
+    <div v-if="expanded">
     <h3><ShieldCheck :size="20" class="title-icon" /> Sicherheit auf höchstem Niveau</h3>
     <hr />
 
@@ -65,6 +81,7 @@ const getCardWidth = (index: number) => {
         <div class="hover-overlay" v-if="isHovered(index)">
         </div>
       </div>
+    </div>
     </div>
   </div>
 </template>
