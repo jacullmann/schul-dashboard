@@ -281,6 +281,10 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
+  .nav-links-open {
+    transform: translateX(0);
+  }
+
 
   .nav-item {
     margin: 1rem 0;
