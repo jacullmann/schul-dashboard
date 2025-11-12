@@ -190,6 +190,9 @@
     <div v-if="message" class="message" :class="{ error: isError }">
       {{ message }}
     </div>
+    <div>
+      <Secure />
+    </div>
   </div>
 </template>
 
@@ -198,6 +201,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import hw from '../hwApi';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
+import Secure from '../components/todo/Secure.vue'
 
 interface Todo {
   id: string;
