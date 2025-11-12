@@ -106,7 +106,6 @@ onUnmounted(() => {
   background-color: var(--bg);
   color: #f1f1f1;
   padding: 0.1rem 0;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1001;
@@ -227,7 +226,7 @@ onUnmounted(() => {
   bottom: -5px;
   width: 100%;
   height: 2px;
-  background: linear-gradient(280deg, #fdb53e, #fd5172, #c138ff, #7530fd);
+  background: linear-gradient(280deg, #fdb53e, #fd5172, #c138ff, #b546ff);
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
