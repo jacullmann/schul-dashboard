@@ -56,7 +56,7 @@ const getCardWidth = (index: number) => {
     </div>
     </div>
     <div v-if="expanded">
-    <h3><ShieldCheck :size="20" class="title-icon" /> Sicherheitiveau</h3>
+    <h3><ShieldCheck :size="20" class="title-icon" /> Sicherheit</h3>
     <hr />
 
     <div class="features-grid-flex">
