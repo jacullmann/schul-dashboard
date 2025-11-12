@@ -6,7 +6,6 @@
     </div>
 
     <div class="row">
-      <!-- Input -->
       <div class="col">
         <small class="nwer">{{ mode==='shortToName' ? 'Kürzel' : 'Name' }}</small>
         <input
@@ -28,7 +27,6 @@
         </div>
       </div>
 
-      <!-- Switch Button -->
       <div class="switch-col">
         <button
             class="switch-btn"
@@ -37,16 +35,13 @@
             title="Richtung wechseln"
             data-umami-event="Kürzel Richtung Switch "
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="switch-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-            <path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" />
-          </svg>
+          <ArrowLeftRight class="switch-icon" />
         </button>
         <!--<div class="mode-label">
           {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
         </div>-->
       </div>
 
-      <!-- Output -->
       <div class="col">
         <small class="nwer">{{ mode==='shortToName' ? 'Name' : 'Kürzel' }}</small>
         <input
@@ -62,6 +57,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import { supabase} from "../composables/Datatable";
+import { ArrowLeftRight} from "lucide-vue-next";
 
 const persons = ref([])
 
@@ -125,8 +121,6 @@ function similarity(a: string, b: string) {
   return (longerLength - editDistance(longer, shorter)) / longerLength
 }
 
-// Kuerzel.vue (Korrigierter computed-Abschnitt)
-
 const outputValue = computed(() => {
   const q = normalize(inputValue.value)
   suggestions.value = []
@@ -134,17 +128,12 @@ const outputValue = computed(() => {
   if (!q) return ''
 
   if (mode.value === 'shortToName') {
-    // KORREKTUR: persons.value.find
     const match = persons.value.find(p => normalize(p.short) === q)
     return match ? `${match.title} ${match.name}` : ''
   } else {
-    // exakter Treffer mit Anrede
-    // KORREKTUR: persons.value.find
     const match = persons.value.find(p => normalize(p.title + p.name) === q)
     if (match) return match.short
 
-    // exakter Treffer nur Nachname
-    // KORREKTUR: persons.value.filter
     const matchesByName = persons.value.filter(p => normalize(p.name) === q)
     if (matchesByName.length === 1) {
       return matchesByName[0].short
@@ -154,13 +143,10 @@ const outputValue = computed(() => {
       return ''
     }
 
-    // unscharfe Suche
     let bestScore = 0
-    // KORREKTUR: persons.value.forEach
     persons.value.forEach(p => {
       const score = similarity(q, normalize(p.name))
       if (score > 0.6) {
-        // Hier ist suggestions.value korrekt, da es eine separate ref ist
         suggestions.value.push(p)
         if (score > bestScore) bestScore = score
       }
@@ -191,8 +177,6 @@ onMounted(() => {
 
 <style scoped>
 
-nwer {
-}
 .input {
   margin-top: 5px;
 }
@@ -213,8 +197,7 @@ nwer {
   justify-content: center;
 }
 .switch-btn {
-  background: #f1f1f1;
-  color: #101010;
+  background: #282828;
   border: none;
   border-radius: 50%;
   width: 44px;
@@ -223,32 +206,37 @@ nwer {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  transition: background 0.3s;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
+
 .switch-btn:hover {
-  background: #faf9f9;
+  background: #3a3a3a;
+  border-color: #888;
 }
+
+
 .switch-icon {
   width: 22px;
   height: 22px;
-  transition: transform 0.3s ease-in-out;
+  color: rgba(241, 241, 241, 0.6);
+  transition: color 0.3s ease, transform 0.3s ease;
 }
+
+.switch-btn:hover .switch-icon {
+  color: #f1f1f1;
+}
+
 .switch-btn.rotated .switch-icon {
   transform: rotate(180deg);
 }
-.mode-label {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #aaa;
-  text-align: center;
-}
+
 .input {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
   background: #2a2a2a;
   color: #fff;
+  margin-top: 5px;
 }
 .suggestion {
   margin-top: 8px;

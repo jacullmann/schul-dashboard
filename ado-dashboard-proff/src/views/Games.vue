@@ -4,7 +4,7 @@
       <div class="games-hero">
         <div class="games-hero__title">
           <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; bottom: 0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dice6-icon lucide-dice-6"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M16 8h.01"/><path d="M16 12h.01"/><path d="M16 16h.01"/><path d="M8 8h.01"/><path d="M8 12h.01"/><path d="M8 16h.01"/></svg>
+            <Gamepad2 size="35px"/>
             <h2 >Spiele</h2>
 
           </div>
@@ -46,6 +46,7 @@
       </div>
 
       <div v-if="filteredGames.length === 0" class="no-results">
+        <LucideFrown size="1.2rem"/>
         Keine Spiele gefunden
       </div>
     </div>
@@ -53,9 +54,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'; // 🚨 NEU: ref und computed importiert
+import { ref, computed } from 'vue';
 import { games } from '../components/spiele/GameData';
 import { useRouter } from 'vue-router';
+import { Gamepad2, LucideFrown, Search } from "lucide-vue-next";
 
 const router = useRouter();
 
@@ -133,6 +135,11 @@ const filteredGames = computed(() => {
   text-align: center;
   font-size: 1.2em;
   margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
 }
 
 

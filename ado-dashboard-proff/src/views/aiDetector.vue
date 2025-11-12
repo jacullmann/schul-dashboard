@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { SendHorizontal } from 'lucide-vue-next';
+import { SendHorizontal, Info } from 'lucide-vue-next';
 const ENCRYPTED_FOOTER = import.meta.env.VITE_APP_ENCRYPTED_FOOTER;
 
 const PBKDF2_ITER = 150000;
@@ -325,8 +325,8 @@ async function startAnalysis(): Promise<void> {
           :aria-label="'Passwort'"
       />
       <div style="font-size:0.9rem; color: var(--sub);">
-        <div v-if="unlocked" style="color:var(--primary)">Authentifizierung erfolgreich</div>
-        <div v-else-if="password.length>0" style="color:var(--warn)">{{ decryptError }}</div>
+        <div v-if="unlocked" >Authentifizierung erfolgreich</div>
+        <div v-else-if="password.length>0" >{{ decryptError }}</div>
       </div>
     </div>
 
@@ -347,7 +347,6 @@ async function startAnalysis(): Promise<void> {
 .header h1 {
   font-size: 2.5rem;
   margin: 0;
-  color: var(--primary);
 }
 .status-box {
   background-color: var(--jj);
@@ -430,9 +429,9 @@ async function startAnalysis(): Promise<void> {
   align-items: center;
   justify-content: center;
 }
-.result-message-low { background-color: rgba(63, 147, 248, 0.1); border: 2px solid var(--primary); }
-.result-message-mid { background-color: rgba(245, 158, 11, 0.1); border: 2px solid var(--warn); }
-.result-message-high { background-color: rgba(239, 68, 68, 0.1); border: 2px solid var(--danger); }
+.result-message-low { background-color: rgba(63, 147, 248, 0.38); }
+.result-message-mid { background-color: rgba(245, 158, 11, 0.37); }
+.result-message-high { background-color: rgba(239, 68, 68, 0.4);}
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

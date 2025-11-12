@@ -18,13 +18,13 @@ const features = [
   },
   {
     icon: EyeOff,
-    title: 'Privatsphäre',
+    title: 'Privat',
     text: 'Nur du kannst deine privaten Einträge einsehen. Sie sind vollkommen privat und nur für dich zugänglich – selbst wir haben keinen Zugriff darauf.',
     fullText: 'Nur du kannst deine privaten Einträge einsehen. Sie sind vollkommen privat und nur für dich zugänglich – selbst wir haben keinen Zugriff darauf. Wir speichern niemals Passwörter und private Einträge im Klartext und nutzen in Deutschland liegende Server.'
   },
   {
     icon: ShieldCheck,
-    title: 'Versprechen',
+    title: 'Geschützt',
     text: 'Es hat für uns die höchste Priorität, deine Daten zu schützen. Deine Einträge werden sicher und verschlüsselt gespeichert.',
     fullText: 'Es hat für uns die höchste Priorität, deine Daten zu schützen. Deine Einträge werden sicher und verschlüsselt gespeichert. Wir entwickeln unsere eigene Sicherheitsarchitektur stetig weiter.'
   }
