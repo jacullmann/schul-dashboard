@@ -120,62 +120,37 @@ onUnmounted(() => {
   gap: 1.5rem;
   position: relative;
 }
-
-/* Stile für den Zurück-Button */
-.back-button-in-header {
-  background-color: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 3px 4px;
-  cursor: pointer;
-  z-index: 10;
-  overflow: hidden;
-  position: relative;
-  transition: transform 0.3s ease;
-}
-
-.back-button-in-header:hover {
-  transform: translateY(-2px);
-  background-color: #2a2a2a;
-}
-
 .logo-group {
-  display: flex; /* Aktiviert Flexbox */
-  align-items: center; /* Zentriert die Elemente vertikal in der Mitte */
-  text-decoration: none; /* Entfernt Unterstreichung (da es ein router-link ist) */
-  gap: 0.6rem; /* Fügt Abstand zwischen Logo und Text hinzu */
-  color: #f1f1f1; /* Stellt die Textfarbe sicher */
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: 0.6rem;
+  color: #f1f1f1;
   flex: 0 1 auto;
-  justify-content: center; /* Zentriert die Gruppe im Header-Container */
-  flex: 0 1 auto; /* Die Gruppe soll ihren Inhalt nicht aufblasen, sondern nur so viel Platz wie nötig einnehmen. */
-  margin-right: auto; /* Sorgt dafür, dass der gesamte freie Raum rechts von der Logo-Gruppe entsteht und sie dadurch ganz nach links geschoben wird. */
+  justify-content: center;
+  flex: 0 1 auto;
+  margin-right: auto;
 }
 
 
 
-/* Stil für das Bild */
 .logo-img {
   width: auto;
-  height: 35px; /* Behält die aktuelle Höhe bei */
-  /* margin-right: 16px; wird durch gap in .logo-group ersetzt */
+  height: 35px;
 }
 
-/* Stil für den Text (ehemals .logo) */
 .logo-text {
   font-size: 1.8rem;
   font-weight: bold;
   letter-spacing: 1px;
   transition: color 0.3s ease;
-  line-height: 1; /* Setzt die Zeilenhöhe auf 1, um zusätzliche Abstände zu entfernen */
+  line-height: 1;
 }
 
 .logo-group:hover .logo-text {
   color: ghostwhite;
 }
 
-/* Hamburger Menu - Verbesserte Animation */
 .hamburger-menu {
   display: none;
   flex-direction: column;
@@ -197,7 +172,6 @@ onUnmounted(() => {
   transform-origin: center;
 }
 
-/* Hamburger zu X Animation */
 .hamburger-menu--open .bar--1 {
   transform: rotate(45deg) translate(6px, 6px);
 }
@@ -211,7 +185,6 @@ onUnmounted(() => {
   transform: rotate(-45deg) translate(6px, -6px);
 }
 
-/* Overlay für Klick außerhalb */
 .nav-overlay {
   position: fixed;
   top: 0;
@@ -228,11 +201,10 @@ onUnmounted(() => {
   to { opacity: 1; }
 }
 
-/* Navigation Links */
 .nav-links {
   display: flex;
   gap: 1.5rem;
-  transition: all 0.3s ease-in-out;
+  transition: all 0.8s cubic-bezier(0.22,0.61,0.36,1);
 }
 
 .nav-item {
@@ -241,12 +213,11 @@ onUnmounted(() => {
   text-decoration: none;
   color: #f1f1f1;
   position: relative;
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition: color 0.8s cubic-bezier(0.22,0.61,0.36,1), transform 0.8s cubic-bezier(0.22,0.61,0.36,1);
 }
 
 .nav-item:hover {
   color: #f0f0f0;
-  transform: translateY(-2px);
 }
 
 .nav-item::after {
@@ -256,16 +227,16 @@ onUnmounted(() => {
   bottom: -5px;
   width: 100%;
   height: 2px;
-  background-color: #bd34fe;
+  background: linear-gradient(280deg, #fdb53e, #fd5172, #c138ff, #7530fd);
   transform: scaleX(0);
-  transition: transform 0.3s ease-in-out;
+  transform-origin: right;
+  transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .nav-item:hover::after {
   transform: scaleX(1);
+  transform-origin: left;
 }
-
-/* Schließen-Button im mobilen Menü */
 .nav-close-button {
   display: none;
   position: absolute;
@@ -284,8 +255,6 @@ onUnmounted(() => {
 .nav-close-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
-
-/* Responsive Design */
 @media (max-width: 768px) {
   .hamburger-menu {
     display: flex;
@@ -312,9 +281,6 @@ onUnmounted(() => {
     overflow-y: auto;
   }
 
-  .nav-links-open {
-    transform: translateX(0);
-  }
 
   .nav-item {
     margin: 1rem 0;
@@ -337,7 +303,6 @@ onUnmounted(() => {
   }
 }
 
-/* No-Bounce Animation für iOS Geräte */
 @media (max-width: 768px) and (max-height: 800px) {
   .nav-links {
     padding-top: 3rem;

@@ -4,24 +4,34 @@
       <thead>
       <tr>
         <th class="time-header">Uhrzeit</th>
-
         <th v-for="day in days" :key="day" class="day-header">
           {{ day }}
         </th>
       </tr>
       </thead>
-
       <tbody>
-      <tr v-for="(scheduleItem) in data" :key="scheduleItem.time">
+      <tr v-for="(scheduleItem, index) in data" :key="scheduleItem.time"
+          :class="getRowClass(scheduleItem, index)">
         <td class="time-label">{{ getHourLabel(scheduleItem.time) }}</td>
-
-        <td v-for="day in days" :key="day" class="lesson-cell">
+        <td v-for="day in days" :key="day" class="lesson-cell"
+            :class="getCellClass(scheduleItem[day], day, scheduleItem.time)">
           <slot :name="`cell-${day}`" :lesson="scheduleItem[day]" :hour="scheduleItem.time">
             <div v-if="scheduleItem[day] && Array.isArray(scheduleItem[day])" class="lesson-group">
-              <div v-for="(course, index) in scheduleItem[day]" :key="index" class="lesson-content">
+              <div v-for="(course, courseIndex) in scheduleItem[day]" :key="courseIndex"
+                   class="lesson-content"
+                   :class="{
+                     'double-lesson': course.isDoubleLesson,
+                     'double-start': course.doubleLessonPosition === 'start',
+                     'double-middle': course.doubleLessonPosition === 'middle',
+                     'double-end': course.doubleLessonPosition === 'end'
+                   }">
                 <div class="subject">{{ course.subject }}</div>
                 <div class="details">
                   {{ course.room }} <span v-if="course.teacher">• {{ course.teacher }}</span>
+                </div>
+                <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
+                     class="double-lesson-badge">
+                  Doppelstunde
                 </div>
               </div>
             </div>
@@ -49,12 +59,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-
   days: {
     type: Array,
     required: true,
   },
-
   lessonDefinitions: {
     type: Array,
     required: true,
@@ -64,6 +72,19 @@ const props = defineProps({
 const getHourLabel = (time) => {
   const definition = props.lessonDefinitions.find(def => def.time === time);
   return definition ? `${definition.label} ${definition.time}` : time;
+};
+
+const getRowClass = (scheduleItem, index) => {
+  const classes = [];
+  return classes.join(' ');
+};
+
+const getCellClass = (lesson, day, time) => {
+  const classes = [];
+  if (lesson && Array.isArray(lesson) && lesson.some(course => course.isDoubleLesson)) {
+    classes.push('double-lesson-cell');
+  }
+  return classes.join(' ');
 };
 </script>
 
@@ -75,9 +96,10 @@ const getHourLabel = (time) => {
 
 .timetable {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   min-width: 800px;
-  background-color: #101010 ;
+  background-color: #101010;
 }
 
 .time-header, .day-header {
@@ -100,17 +122,57 @@ const getHourLabel = (time) => {
 }
 
 .lesson-cell {
-  padding: 5px;
+  padding: 0;
   border: 1px solid #aaaaaa;
   vertical-align: top;
   transition: background-color 0.3s;
-  background-color: #101010 ;
+  background-color: #101010;
 }
 
+/* Doppelstunden-Styling */
+.double-lesson-cell {
+  border-bottom: none;
+}
+
+.lesson-cell:has(.double-middle) {
+  border-top: none;
+}
+
+.lesson-cell:has(.double-end) {
+  border-top: none;
+}
 
 .lesson-content {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 60px;
+  padding: 8px 6px;
+}
+
+.lesson-content.double-lesson {
+  background-color: #1a365d;
+}
+
+.lesson-content.double-start {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.lesson-content.double-middle {
+  border-radius: 0;
+}
+
+.lesson-content.double-end {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.double-lesson-badge {
+  font-size: 0.7em;
+  color: #63b3ed;
+  margin-top: 4px;
+  font-style: italic;
 }
 
 .subject {

@@ -18,62 +18,150 @@
     >
       <template v-for="day in days" :key="day" #[`cell-${day}`]="{ lesson, hour }">
         <div v-if="lesson && lesson.length > 0" class="lesson-group">
-          <div v-for="(course, index) in lesson" :key="index" class="course-item">
+          <div v-for="(course, index) in lesson" :key="index"
+               class="course-item"
+               :class="{
+                 'double-lesson': course.isDoubleLesson,
+                 'double-start': course.doubleLessonPosition === 'start',
+                 'double-middle': course.doubleLessonPosition === 'middle',
+                 'double-end': course.doubleLessonPosition === 'end'
+               }">
             <div class="subject-room">
               <span class="subject-code">{{ course.code }}</span>
               <span class="subject-name">{{ course.subject }}</span>
               <span class="room">{{ course.room }}</span>
             </div>
+            <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
+                 class="double-lesson-indicator">
+            </div>
           </div>
         </div>
       </template>
-
     </Timetable>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"; // <-- ref HINZUGEFÜGT
+import { ref, onMounted, computed } from "vue";
 import Timetable from './StundenplanSQL.vue';
-import { supabase } from '../composables/Datatable'; // Stellt Verbindung her (aus Datatable.ts)
+import { supabase } from '../composables/Datatable';
 
 const isPersonalized = ref(false);
 const lessonHours = ref([])
 const days = ref([])
 const scheduleData = ref([])
+const doubleLessons = ref([])
 
-const buildScheduleData = (lessons, hours) => {
+// Doppelstunden abrufen
+const fetchDoubleLessons = async () => {
+  const { data, error } = await supabase
+      .from('double_lessons')
+      .select('*')
+      .order('day_name, start_time');
 
+  if (error) {
+    console.error('Fehler beim Laden der Doppelstunden:', error);
+    return [];
+  }
+  return data || [];
+}
 
+// Prüfen, ob eine Stunde Teil einer Doppelstunde ist
+// In Finaleb.vue - angepasste Funktion für dein Zeitformat
+const getDoubleLessonInfo = (day, time, doubleLessonsList) => {
+  for (const doubleLesson of doubleLessonsList) {
+    if (doubleLesson.day_name === day) {
+      const lessonTimes = lessonHours.value.map(h => h.time);
+      const startIndex = lessonTimes.indexOf(doubleLesson.start_time);
+      const endIndex = lessonTimes.indexOf(doubleLesson.end_time);
+      const currentIndex = lessonTimes.indexOf(time);
+
+      if (startIndex !== -1 && endIndex !== -1 && currentIndex >= startIndex && currentIndex <= endIndex) {
+        return {
+          isDoubleLesson: true,
+          doubleLessonPosition:
+              currentIndex === startIndex ? 'start' :
+                  currentIndex === endIndex ? 'end' : 'middle',
+          doubleLessonData: doubleLesson
+        };
+      }
+    }
+  }
+  return { isDoubleLesson: false, doubleLessonPosition: null, doubleLessonData: null };
+};
+
+const buildScheduleData = (lessons, hours, doubleLessonsList) => {
   const dataMap = hours.map(hour => {
     const scheduleItem = { time: hour.time, Mo: null, Di: null, Mi: null, Do: null, Fr: null };
     return scheduleItem;
   });
 
+  // Zuerst Doppelstunden verarbeiten
+  doubleLessonsList.forEach(doubleLesson => {
+    const lessonTimes = hours.map(h => h.time);
+    const startIndex = lessonTimes.indexOf(doubleLesson.start_time);
+    const endIndex = lessonTimes.indexOf(doubleLesson.end_time);
+
+    if (startIndex !== -1 && endIndex !== -1) {
+      const dayKey = doubleLesson.day_name;
+
+      // Für jede Stunde der Doppelstunde
+      for (let i = startIndex; i <= endIndex; i++) {
+        if (!dataMap[i][dayKey]) {
+          dataMap[i][dayKey] = [];
+        }
+
+        const doubleInfo = getDoubleLessonInfo(dayKey, dataMap[i].time, doubleLessonsList);
+        const course = {
+          code: doubleLesson.code,
+          subject: doubleLesson.subject,
+          room: doubleLesson.room,
+          isDoubleLesson: true,
+          doubleLessonPosition: doubleInfo.doubleLessonPosition,
+          doubleLessonId: doubleLesson.id
+        };
+
+        // Nur hinzufügen, wenn nicht bereits vorhanden
+        const exists = dataMap[i][dayKey].some(item =>
+            item.doubleLessonId === doubleLesson.id
+        );
+
+        if (!exists) {
+          dataMap[i][dayKey].push(course);
+        }
+      }
+    }
+  });
+
+  // Dann normale Einzelstunden verarbeiten (überschreiben keine Doppelstunden)
   lessons.forEach(lesson => {
-    // Verwendung der verknüpften Zeit: lesson.lesson_hours.time
     const timeSlot = dataMap.find(item => item.time === lesson.lesson_hours.time);
 
     if (timeSlot) {
       const dayKey = lesson.day_name;
+      const doubleInfo = getDoubleLessonInfo(dayKey, timeSlot.time, doubleLessonsList);
 
-      if (!timeSlot[dayKey]) {
-        timeSlot[dayKey] = [];
-      }
+      // Nur hinzufügen, wenn dieser Slot nicht Teil einer Doppelstunde ist
+      if (!doubleInfo.isDoubleLesson) {
+        if (!timeSlot[dayKey]) {
+          timeSlot[dayKey] = [];
+        }
 
-      const course = {
-        code: lesson.code,
-        subject: lesson.subject || null,
-        room: lesson.room,
-      };
+        const course = {
+          code: lesson.code,
+          subject: lesson.subject || null,
+          room: lesson.room,
+          isDoubleLesson: false,
+          doubleLessonPosition: null
+        };
 
-      if (lesson.code === 'DALTON') {
-        timeSlot[dayKey] = [{ code: 'DALTON', room: '' }];
-      } else if (lesson.code !== 'DALTON') {
-        if(timeSlot[dayKey].length > 0 && timeSlot[dayKey][0].code === 'DALTON') {
-          // Ignoriere andere Fächer, wenn DALTON bereits in diesem Slot ist
-        } else {
-          timeSlot[dayKey].push(course);
+        if (lesson.code === 'DALTON') {
+          timeSlot[dayKey] = [{ ...course, code: 'DALTON', room: '' }];
+        } else if (lesson.code !== 'DALTON') {
+          if(timeSlot[dayKey].length > 0 && timeSlot[dayKey][0].code === 'DALTON') {
+          } else {
+            timeSlot[dayKey].push(course);
+          }
         }
       }
     }
@@ -81,7 +169,6 @@ const buildScheduleData = (lessons, hours) => {
 
   return dataMap;
 };
-
 
 const fetchData = async () => {
   // 1. lesson_hours abrufen
@@ -93,7 +180,7 @@ const fetchData = async () => {
     console.error('Fehler beim Laden der Stunden-Definitionen:', hoursError);
     return;
   }
-  lessonHours.value = hoursData; // <-- Stunden-Definitionen speichern
+  lessonHours.value = hoursData;
 
   // 2. days abrufen
   const {data: daysData, error: daysError} = await supabase
@@ -104,22 +191,23 @@ const fetchData = async () => {
     console.error('Fehler beim Laden der Tage:', daysError);
     return;
   }
-  days.value = daysData.map(d => d.name); // <-- Tage speichern
+  days.value = daysData.map(d => d.name);
 
-  // 3. schedule_entries abrufen
-  const { data: scheduleEntries, error: entriesError } = await supabase // <-- KORREKT: Daten in 'scheduleEntries' speichern
+  // 3. Doppelstunden abrufen
+  doubleLessons.value = await fetchDoubleLessons();
+
+  // 4. schedule_entries abrufen
+  const { data: scheduleEntries, error: entriesError } = await supabase
       .from('schedule_entries')
       .select(`*, lesson_hours (time)`);
 
-  if (entriesError) { // <-- KORREKT: Den richtigen Fehler-Namen prüfen
+  if (entriesError) {
     console.error('Fehler beim Laden der Stundenplaneinträge:', entriesError);
     return;
   }
 
-
-  // 4. Daten transformieren
-  // KORREKT: Das abgerufene Array (scheduleEntries) und die Stunden-Definitionen (hoursData) übergeben
-  scheduleData.value = buildScheduleData(scheduleEntries, hoursData);
+  // 5. Daten transformieren mit Doppelstunden-Information
+  scheduleData.value = buildScheduleData(scheduleEntries, hoursData, doubleLessons.value);
 }
 
 function handleSwitch(newValue) {
@@ -133,7 +221,6 @@ function handleSwitch(newValue) {
 onMounted(() => {
   fetchData()
 })
-
 </script>
 
 <style scoped>
@@ -142,28 +229,43 @@ onMounted(() => {
   border-radius: 12px;
 }
 
-h1 {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #93c5fd;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #475569;
-  padding-bottom: 10px;
-}
-
 .lesson-group {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 4px;
-  padding: 2px;
+  gap: 0; /* Kein Gap für Doppelstunden */
 }
 
 .course-item {
-  background-color: #101010 ;
+  background-color: #101010;
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 0.85em;
   line-height: 1.2;
+  height: 100%;
+}
+
+
+.course-item.double-start {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border-bottom: none;
+}
+
+.course-item.double-middle {
+  border-radius: 0;
+  border-bottom: none;
+}
+
+.course-item.double-end {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.double-lesson-indicator {
+  font-size: 0.7em;
+  color: #63b3ed;
+  margin-top: 2px;
 }
 
 .subject-room {
@@ -187,11 +289,10 @@ h1 {
 .room {
   font-weight: 400;
   color: #cbd5e1;
-  background-color:#282828;
+  background-color: #282828;
   padding: 1px 4px;
   border-radius: 3px;
 }
-
 
 .course-item:has(.subject-name:only-child) .subject-name {
   margin-right: 0;
