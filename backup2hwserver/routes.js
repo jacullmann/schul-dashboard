@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import dayjs from 'dayjs';
 import { buildThumbUrl, withThumb, timeLeftColor } from './models.js';
+import { sanitizeStrict, sanitizeModerate } from './lib/sanitize.js';
 
 export default function registerRoutes(app, deps) {
     const {
@@ -351,13 +352,21 @@ export default function registerRoutes(app, deps) {
         async (req, res) => {
             const user = await User.findById(req.user.sub);
             if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
+
+            const sanitizedTitle = sanitizeStrict(req.body.title);
+            const sanitizedContent = sanitizeModerate(req.body.content);
+
             const doc = await Announcement.create({
-                title: req.body.title,
-                content: req.body.content,
+                title: sanitizedTitle,
+                content: sanitizedContent,
                 color: req.body.color || 'warn',
                 createdBy: req.user.sub
             });
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'announcement:create', meta: { id: doc._id } } } });
+
+            await User.findByIdAndUpdate(req.user.sub, {
+                $push: { activity: { at: new Date(), type: 'announcement:create', meta: { id: doc._id } } }
+            });
+
             res.status(201).json(doc);
         }
     );
@@ -390,10 +399,19 @@ export default function registerRoutes(app, deps) {
     app.post('/anon/sorgenbox', async (req, res) => {
         try {
             const { message } = req.body;
-            if (!message || message.trim().length === 0) return res.status(400).json({ error: 'Message fehlt' });
-            await Sorgen.create({ message, createdAt: new Date() });
+            if (!message || message.trim().length === 0) {
+                return res.status(400).json({ error: 'Message fehlt' });
+            }
+            const sanitizedMessage = sanitizeModerate(message.trim());
+
+            await Sorgen.create({
+                message: sanitizedMessage,
+                createdAt: new Date()
+            });
+
             res.json({ ok: true });
         } catch (err) {
+            console.error('Sorgenbox error:', err);
             res.status(500).json({ error: 'Serverfehler' });
         }
     });
@@ -552,23 +570,37 @@ export default function registerRoutes(app, deps) {
         ],
         validateItemCreation,
         async (req, res) => {
-            const images = (req.body.images || []).map(img => ({
-                url: img.url,
-                thumbUrl: buildThumbUrl(img.url),
-                publicId: img.publicId,
-                createdBy: req.user.sub
-            }));
-            const doc = await Item.create({
-                type: req.body.type,
-                title: req.body.title.trim(),
-                subject: req.body.subject.trim(),
-                description: (req.body.description || '').trim(),
-                images,
-                dueDate: req.body.dueDate,
-                createdBy: req.user.sub
-            });
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:create', meta: { id: doc._id, type: doc.type } } } });
-            res.status(201).json({ ok: true, id: doc._id });
+            try {
+                const sanitizedTitle = sanitizeStrict(req.body.title.trim());
+                const sanitizedSubject = sanitizeStrict(req.body.subject.trim());
+                const sanitizedDescription = sanitizeModerate((req.body.description || '').trim());
+
+                const images = (req.body.images || []).map(img => ({
+                    url: sanitizeStrict(img.url),
+                    thumbUrl: buildThumbUrl(img.url),
+                    publicId: sanitizeStrict(img.publicId),
+                    createdBy: req.user.sub
+                }));
+
+                const doc = await Item.create({
+                    type: req.body.type,
+                    title: sanitizedTitle,
+                    subject: sanitizedSubject,
+                    description: sanitizedDescription,
+                    images,
+                    dueDate: req.body.dueDate,
+                    createdBy: req.user.sub
+                });
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: { activity: { at: new Date(), type: 'item:create', meta: { id: doc._id, type: doc.type } } }
+                });
+
+                res.status(201).json({ ok: true, id: doc._id });
+            } catch (error) {
+                console.error('Item creation error:', error);
+                sendJSONError(res, 500, 'Fehler beim Erstellen des Eintrags');
+            }
         }
     );
 

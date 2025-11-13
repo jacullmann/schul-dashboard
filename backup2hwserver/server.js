@@ -12,6 +12,7 @@ import sgClient from '@sendgrid/mail';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
+import sanitizeMiddleware from './middleware/sanitize.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -59,6 +60,7 @@ app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.use(morgan('combined'));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
+app.use(sanitizeMiddleware);
 app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
 if (!process.env.MONGODB_URI) {
