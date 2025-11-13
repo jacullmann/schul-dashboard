@@ -20,7 +20,7 @@
   background-size: 400% 100%;
   animation: gradientFlow 8s linear infinite;
   border-radius: 2px;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 /* Der Farbfluss nach rechts */
