@@ -27,12 +27,15 @@
       </div>
     </div>
 
+    <AnimatedGradientLine />
+
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p>© {{ year }} — Alle Rechte vorbehalten</p>
         <All  class="logoutDeviceDesktop" />
 
       </div>
+
     </div>
 
 
@@ -42,6 +45,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import router from "../router";
+import AnimatedGradientLine from "./animations/AnimatedGradientLine.vue";
 
 import All from './AllLogoutButton.vue'
 

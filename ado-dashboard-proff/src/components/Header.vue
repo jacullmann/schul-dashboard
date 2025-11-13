@@ -226,16 +226,29 @@ onUnmounted(() => {
   bottom: -5px;
   width: 100%;
   height: 2px;
-  background: linear-gradient(280deg, #fdb53e, #fd5172, #c138ff, #b546ff);
+  background: linear-gradient(90deg, #fddd3e, #fd5172, #c138ff, #b546ff, #fdb53e);
+  background-size: 300% 100%;
+  animation: gradientFlow 4s linear infinite;
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+  border-radius: 2px;
 }
 
 .nav-item:hover::after {
   transform: scaleX(1);
   transform-origin: left;
 }
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 300% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
 .nav-close-button {
   display: none;
   position: absolute;
@@ -254,6 +267,7 @@ onUnmounted(() => {
 .nav-close-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
+
 @media (max-width: 768px) {
   .hamburger-menu {
     display: flex;

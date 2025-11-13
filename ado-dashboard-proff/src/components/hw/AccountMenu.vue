@@ -1,6 +1,5 @@
 <template>
   <div class="account-menu" ref="root">
-    <!-- Icon Button statt Text-Button -->
     <button class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
       <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3">
         <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z"/>
@@ -10,7 +9,6 @@
     <transition name="pop">
       <div v-if="open" class="popup" :style="popupStyle" @click.stop>
         <div class="popup-inner" role="menu" aria-label="Account menu" ref="popupInner">
-          <!-- Benutzerinfo oben -->
           <div class="user-section">
             <div class="user-email" :title="email">{{ email }}</div>
             <div class="user-sub">Eingeloggt</div>
@@ -18,7 +16,6 @@
 
           <div class="menu-divider"></div>
 
-          <!-- Hauptmenü-Aktionen -->
           <div class="menu-actions">
             <button
                 data-umami-event="Kurse bearbeiten Button"
@@ -48,7 +45,6 @@
 
           <div class="menu-divider"></div>
 
-          <!-- Gefährliche Aktionen -->
           <div class="danger-section">
             <button
                 data-umami-event="Account löschen Button"
@@ -64,7 +60,7 @@
             </button>
           </div>
 
-          <!-- Bestätigungsbereich für Account-Löschung -->
+
           <div v-if="confirming" class="confirm-section">
             <div class="confirm-warning">
               <strong>Account unwiderruflich löschen?</strong>
@@ -98,7 +94,6 @@
             </div>
           </div>
 
-          <!-- Fehler-/Erfolgsmeldungen -->
           <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
           <div v-if="successMsg" class="message success">{{ successMsg }}</div>
         </div>
@@ -120,7 +115,7 @@ const emit = defineEmits<{
   (e: 'deleted'): void;
   (e: 'error', msg: string): void;
   (e: 'openSetup'): void;
-  (e: 'logout'): void; // NEU: Logout Event
+  (e: 'logout'): void;
 }>();
 
 const open = ref(false);
@@ -134,7 +129,6 @@ const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
 const popupStyle = ref<Record<string, string>>({});
 
-// NEU: Logout-Funktion
 function handleLogout() {
   emit('logout');
   close();
@@ -184,7 +178,6 @@ async function positionPopup() {
   const vh = window.innerHeight;
 
   if (vw <= 480) {
-    // Mobile Ansicht - zentriert
     popupStyle.value = {
       position: 'fixed',
       left: '50%',
@@ -195,7 +188,6 @@ async function positionPopup() {
     return;
   }
 
-  // Desktop Ansicht - unter dem Button, links ausgerichtet
   let left = btnRect.left;
   let top = btnRect.top + btnRect.height + 8;
 
