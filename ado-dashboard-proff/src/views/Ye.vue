@@ -2,14 +2,10 @@
   <div class="suround">
     <div v-if="!isAuthenticated" class="login-wrapper">
       <div class="card p-6 login-card glass">
-        <div class="login-header">
-          <div class="avatar">
-            <span>Kanye West</span>
-          </div>
-          <h2 style="color: white"class="text-2xl font-bold">Passwort erforderlich</h2>
-        </div>
 
         <div class="login-body">
+
+          <div class="logogo">
           <input
               type="password"
               v-model="loginPassword"
@@ -18,8 +14,8 @@
               class="input enhanced"
               autocomplete="current-password"
           />
-          <button data-umami-event="Kanye Seite anmelden Button" @click="login" class="btn btnb primary w-full login-button">Weiter</button>
-          <p v-if="loginError" class="error-text">{{ loginError }}</p>
+          <button data-umami-event="Kanye Seite anmelden Button" @click="login" class="btn btnb primary w-full login-button"><LogIn /></button>
+          </div>
         </div>
 
       </div>
@@ -33,7 +29,6 @@
       <nav class="kanye-nav-fixed card nav-elevate">
         <div class="container row items-center justify-between nav-content">
           <div class="brand row items-center gap-4">
-            <div @click="logoutit"  class="brand-mark">YE</div>
             <div class="brand-text">
               <h2 class="text-xl font-bold">Kanye West</h2>
             </div>
@@ -85,22 +80,9 @@
             KANYE WEST
           </h1>
           <p class="subtitle text-muted animate-fade-in-up delay-200">
-            Visionär. Musiker. Einflussnehmer.
+            KANYE WEST
           </p>
-          <div class="hero-actions animate-fade-in-up delay-400">
-            <button
-                @click="scrollTo('biography')"
-                class="btn primary"
-            >
-              Mehr erfahren
-            </button>
-            <button
-                @click="scrollTo('discography')"
-                class="btn ghost"
-            >
-              Direkt zur Diskografie
-            </button>
-          </div>
+
         </div>
         <div class="hero-overlay"></div>
       </header>
@@ -338,7 +320,7 @@
 
       <footer class="kanye-footer text-center py-8">
         <div class="container">
-          <p class="small">© Peru</p>
+          <p @click="logoutit" class="small ci">Logout</p>
         </div>
       </footer>
     </div>
@@ -347,6 +329,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
+import { LogIn } from 'lucide-vue-next'
 
 interface Album {
   title: string;
@@ -364,6 +347,9 @@ interface GalleryImage {
 
 export default defineComponent({
   name: "KanyeInfoProtected",
+  components: {
+    LogIn
+  },
   directives: {
     "animate-on-scroll": {
       mounted(el: HTMLElement) {
@@ -386,15 +372,12 @@ export default defineComponent({
 
     const correctPassword = "hash891219!";
     const loginPassword = ref("");
-    const loginError = ref("");
     const isAuthenticated = ref(false);
     function login() {
       if (loginPassword.value === correctPassword) {
         isAuthenticated.value = true;
         loginPassword.value = "";
-        loginError.value = "";
       } else {
-        loginError.value = "Falsches Passwort";
       }
     }
     function logoutit() {
@@ -431,7 +414,7 @@ export default defineComponent({
     );
 
 
-    const activeAlbumYear = ref<number | null>(albumYears.value[0] ?? null);
+    const activeAlbumYear = ref<number | null>(null);
 
     const albumsByYear = computed<Record<number, Album[]>>(() => {
       return albums.reduce((acc, a) => {
@@ -448,38 +431,38 @@ export default defineComponent({
             "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhySvY0ku51SBdWFf4CkglcdWLWc8bQMHORNw4rAQ52c35CHcX2v_EaVUYpFWHdKGLbxs&usqp=CAU",
         full:
             "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhySvY0ku51SBdWFf4CkglcdWLWc8bQMHORNw4rAQ52c35CHcX2v_EaVUYpFWHdKGLbxs&usqp=CAU",
-        alt: "Kanye West auf der Bühne",
+        alt: "Kanye West vor weißer Wand",
       },
       {
         thumbnail: "https://thepolitic.org/wp-content/uploads/2022/10/161118111655-kanye-west.jpg",
         full: "https://thepolitic.org/wp-content/uploads/2022/10/161118111655-kanye-west.jpg",
-        alt: "Kanye West im Studio",
+        alt: "Kanye West auf der Bühne",
       },
       {
         thumbnail:
             "https://www.rollingstone.com/wp-content/uploads/2018/06/rs-188588-109561363.jpg?w=1581&h=1054&crop=1",
         full:
             "https://www.rollingstone.com/wp-content/uploads/2018/06/rs-188588-109561363.jpg?w=1581&h=1054&crop=1",
+        alt: "Kanye West im TV",
+      },
+      {
+        thumbnail:
+            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
+        full:
+            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
+        alt: "Kanye West beim Foto-Shooting",
+      },
+      {
+        thumbnail:
+            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
+        full:
+            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
         alt: "Kanye West mit Fans",
-      },
-      {
-        thumbnail:
-            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
-        full:
-            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
-        alt: "Kanye West bei einer Fashion Show",
-      },
-      {
-        thumbnail:
-            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
-        full:
-            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
-        alt: "Kanye West in einem Musikvideo",
       },
       {
         thumbnail: "https://img.zeit.de/kultur/musik/2016-02/kanye-west/wide__1000x562",
         full: "https://img.zeit.de/kultur/musik/2016-02/kanye-west/wide__1000x562",
-        alt: "Kanye West während einer Rede",
+        alt: "Kanye West vor Menschen",
       },
     ];
 
@@ -526,7 +509,6 @@ export default defineComponent({
     return {
 
       loginPassword,
-      loginError,
       isAuthenticated,
       login,
       logoutit,
@@ -577,10 +559,7 @@ export default defineComponent({
   min-height: 100vh;
   border-radius: 14px;
   border: none;
-  background: rgba(10, 10, 10, 0.45);
-  backdrop-filter: blur(30px) saturate(105%) brightness(120%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  background: black;
 }
 .login-card {
   max-width: 420px;
@@ -589,29 +568,15 @@ export default defineComponent({
   overflow: hidden;
   border-radius: 14px;
   border: none;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px) saturate(105%) brightness(105%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.37);
+  background: transparent;
+  justify-content: center;
+  text-align: center;
 }
 
 .login-header {
   display: grid;
   gap: 6px;
   margin-bottom: 12px;
-}
-.avatar {
-  height: 52px;
-  width: 150px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: rgba(205, 205, 205, 0.02);
-  backdrop-filter: brightness(85%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-  color: white;
-  font-weight: 800;
-  margin-bottom: 6px;
 }
 
 .login-body {
@@ -629,22 +594,15 @@ export default defineComponent({
 }
 .input.enhanced:focus {
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   outline: none;
 
   transition: border-color 0.1s ease, border-radius 0.2s ease-out;
 }
 .login-button {
-  margin-top: 6px;
 }
 .error-text {
-  color: var(--danger);
   margin-top: 6px;
-}
-.login-foot {
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
 }
 
 
@@ -996,6 +954,11 @@ export default defineComponent({
 }
 
 
+.ci {
+  cursor: pointer;
+}
+
+
 @keyframes fadeIn {
   from { opacity: 0; } to { opacity: 1; }
 }
@@ -1024,18 +987,26 @@ export default defineComponent({
 
 .btnb{
 
-  background: transparent;
-  color: white;
-  border: 1px solid white;border-radius: 25px;
+  background: rgba(50, 50, 50, 0.8);
+  color: var(--text);
+  border: none;
   height: 40px;
+  border-radius: 30px;
+  width: 40px;
 
 }
 
 .btnb:hover {
 
-  background: rgba(255, 255, 255, 0.02) ;
+  background:  rgba(75, 75, 75, 0.8);
 }
-
+.logogo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 16px;
+}
 
 @media (max-width: 768px) {
   .mobile-menu-toggle { display: block; }
