@@ -576,9 +576,9 @@ export default function registerRoutes(app, deps) {
                 const sanitizedDescription = sanitizeModerate((req.body.description || '').trim());
 
                 const images = (req.body.images || []).map(img => ({
-                    url: sanitizeStrict(img.url),
+                    url: img.url,
                     thumbUrl: buildThumbUrl(img.url),
-                    publicId: sanitizeStrict(img.publicId),
+                    publicId: img.publicId,
                     createdBy: req.user.sub
                 }));
 
