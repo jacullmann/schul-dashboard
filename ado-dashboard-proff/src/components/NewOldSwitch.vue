@@ -89,7 +89,7 @@ function handleChange(value: boolean) {
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  min-width: 240px;
+  min-width: 210px;
   text-align: center;
   background-color: #2a2a2a;
   color: white;

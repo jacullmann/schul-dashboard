@@ -1858,6 +1858,19 @@ li {
   margin-top: 1rem;
 }
 
+.select-subject {
+  max-width: 30px;
+  width: 100%;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.select-subject {
+  max-width: 160px;
+  min-width: auto;
+  width: auto;
+}
+
 @media (max-width: 768px) {
   .user-details {
     flex-direction: column;
