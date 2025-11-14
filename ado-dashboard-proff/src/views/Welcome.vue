@@ -2,16 +2,26 @@
   <div class="container auth-wrapper">
     <div class="auth-card">
       <h2 class="auth-title">Authentifizierung </h2>
-      <p class="small auth-hint">Bitte gib deinen persönlichen Zugangscode ein.</p>
+      <p class="small auth-hint">Bitte gib deine Zugangscodes ein.</p>
 
       <div class="input-group">
         <input
-            v-model="code"
-            placeholder="Zugangscode"
+            v-model="password1"
+            placeholder="Erstes Passwort"
+            class="auth-input"
+            type="text"
+        />
+      </div>
+
+      <div class="input-group">
+        <input
+            v-model="password2"
+            placeholder="Zweites Passwort"
             class="auth-input"
             type="password"
         />
       </div>
+
       <label class="checkbox-label">
         <input class="checkbox" type="checkbox" v-model="accepted" />
         <span style="font-size: 0.75rem">Ich stimme den Nutzungsbedingungen zu.</span>
@@ -35,8 +45,6 @@
         Zutritt ausschließlich für autorisierte Benutzer. Unbefugtes Betreten ist verboten und wird straf- und zivilrechtlich verfolgt.
       </div>
       <div class="small footer-text">Server-Status: <GetStatushwb2 /></div>
-
-
     </div>
   </div>
 </template>
@@ -50,19 +58,23 @@ import GetStatushwb2 from "../components/GetStatushwb2.vue";
 
 const router = useRouter();
 const auth = useAuth();
-const code = ref('');
+const password1 = ref('');
+const password2 = ref('');
 const error = ref<string | null>(null);
 const accepted = ref(false)
 
 async function submit() {
   error.value = null;
-  const res =  await auth.loginWithCode(code.value.trim());
+
+  const combinedPassword = password1.value.trim() + "|||" + password2.value.trim();
+
+  const res = await auth.loginWithCode(combinedPassword);
   if (res.ok) {
     auth.refreshExpiry();
     router.push('/items/HAUSAUFGABE');
     umami.track('Welcome Page Login erfolgreich');
   } else {
-    error.value = res.error || 'Login fehlgeschlagen. Bitte Code prüfen.';
+    error.value = res.error || 'Login fehlgeschlagen. Bitte Codes prüfen.';
   }
 }
 

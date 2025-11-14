@@ -967,16 +967,23 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
     app.post('/api/dashboard-check',
         dashboardLimiter,
-        body('password').isString().isLength({ min: 1 }),
+        [
+            body('password').isString().isLength({ min: 1 })
+        ],
         validate,
         async (req, res) => {
             const ip = req.ip;
             const ua = req.get('User-Agent') || 'unknown';
             const { password } = req.body;
-            const DASHBOARD_SECRETJ = dashboardSecret;
+
+            const EXPECTED_PASSWORD1 = process.env.DASHBOARD_PASSWORD1;
+            const EXPECTED_PASSWORD2 = process.env.DASHBOARD_PASSWORD2;
+            const EXPECTED_COMBINED = EXPECTED_PASSWORD1 + "|||" + EXPECTED_PASSWORD2;
+
             const attemptHash = crypto.createHash('sha256').update(password).digest('hex');
             let status = 'failure';
-            if (password === DASHBOARD_SECRETJ) {
+
+            if (password === EXPECTED_COMBINED) {
                 status = 'success';
                 const token = jwt.sign({ role: 'admin' }, jwtSecret, { expiresIn: '30d' });
                 await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
