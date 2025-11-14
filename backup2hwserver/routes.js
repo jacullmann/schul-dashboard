@@ -95,6 +95,12 @@ export default function registerRoutes(app, deps) {
         statusCode: 429,
     });
 
+    const sensitiveLimiter = rateLimit({
+        windowMs: 5 * 60 * 1000,
+        max: 100,
+        message: { error: 'Zu viele Versuche. Versuch es in 5 Minuten erneut.' }
+    });
+
     function validateItemCreation(req, res, next) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -148,6 +154,7 @@ export default function registerRoutes(app, deps) {
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
+        sensitiveLimiter,
         async (req, res) => {
             const { email, password } = req.body;
             const exists = await User.findOne({ email: email.toLowerCase() });
@@ -216,6 +223,7 @@ export default function registerRoutes(app, deps) {
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
+        sensitiveLimiter,
         async (req, res) => {
             const { email, password } = req.body;
             const user = await User.findOne({ email: email.toLowerCase() });
@@ -763,7 +771,7 @@ export default function registerRoutes(app, deps) {
         }
     });
 
-    app.post('/api/auth/forgot', body('email').isEmail(), validate, async (req, res) => {
+    app.post('/api/auth/forgot', body('email').isEmail(), validate, sensitiveLimiter, async (req, res) => {
         try {
             const email = req.body.email.toLowerCase();
             const user = await User.findOne({ email });
