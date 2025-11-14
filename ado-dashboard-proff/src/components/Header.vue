@@ -18,6 +18,7 @@
         <div class="bar bar--3"></div>
       </button>
 
+      <!-- Overlay für Klick außerhalb -->
       <div
           v-if="navOpen"
           class="nav-overlay"
@@ -25,6 +26,7 @@
       ></div>
 
       <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
+        <!-- Schließen-Button im mobilen Menü -->
         <button
             @click="closeNav"
             class="nav-close-button"
@@ -35,19 +37,23 @@
           </svg>
         </button>
 
-        <router-link to="/" class="nav-item" @click="closeNav">
+        <router-link  to="/" class="nav-item" @click="closeNav">
           Dashboard
         </router-link>
-        <router-link to="/stundenplan" class="nav-item" @click="closeNav">
+        <!--
+        <router-link  to="/bewerten" class="nav-item" @click="closeNav">
+          Benoten
+        </router-link>-->
+        <router-link  to="/stundenplan" class="nav-item" @click="closeNav">
           Stundenplan
         </router-link>
-        <router-link to="/kuerzel" class="nav-item" @click="closeNav">
+        <router-link  to="/kuerzel" class="nav-item" @click="closeNav">
           Kürzel-Finder
         </router-link>
-        <router-link to="/sorgenbox" class="nav-item" @click="closeNav">
+        <router-link  to="/sorgenbox" class="nav-item" @click="closeNav">
           Sorgenbox
         </router-link>
-        <router-link to="/countdown" class="nav-item" @click="closeNav">
+        <router-link  to="/countdown" class="nav-item" @click="closeNav">
           Countdowns
         </router-link>
       </nav>
@@ -213,7 +219,6 @@ onUnmounted(() => {
   color: #f0f0f0;
 }
 
-/* ❌ ALTE REGEL ENTFERNT: Farbverlauf auf ::after */
 .nav-item::after {
   content: '';
   position: absolute;
@@ -221,14 +226,13 @@ onUnmounted(() => {
   bottom: -5px;
   width: 100%;
   height: 2px;
-  /* Hintergrund auf eine Standardfarbe setzen, die überschrieben wird */
-  background: #f1f1f1;
+  background: linear-gradient(90deg, #fddd3e, #fd5172, #c138ff, #b546ff, #fdb53e);
+  background-size: 300% 100%;
+  animation: gradientFlow 4s linear infinite;
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
   border-radius: 2px;
-  /* Entferne die Animation, da sie für den Farbverlauf war */
-  /* animation: gradientFlow 4s linear infinite; */
 }
 
 .nav-item:hover::after {
@@ -236,51 +240,14 @@ onUnmounted(() => {
   transform-origin: left;
 }
 
-/* ❌ ALTE REGEL ENTFERNT: @keyframes gradientFlow */
-/* @keyframes gradientFlow {
+@keyframes gradientFlow {
   0% {
     background-position: 300% 50%;
   }
   100% {
     background-position: 0 50%;
   }
-} */
-
-
-/* Hinzugefügte Regeln: Individuelle Farben für die ::after-Pseudoelemente */
-/* Wichtig: Wir verwenden :nth-child(n) um die Nav-Items zu selektieren.
-   Die Zählung beginnt bei 1.
-   Es sind 5 Nav-Items, die alle router-links sind. */
-
-/* 1. Dashboard (Lila/Dunkel) */
-.nav-links .nav-item:nth-child(2)::after {
-  background-color: #c138ff;
 }
-/* 2. Stundenplan */
-.nav-links .nav-item:nth-child(3)::after {
-  background-color: #b546ff;
-}
-/* 3. Kürzel-Finder */
-.nav-links .nav-item:nth-child(4)::after {
-  background-color: #fd5172;
-}
-/* 4. Sorgenbox */
-.nav-links .nav-item:nth-child(5)::after {
-  background-color: #fdb53e;
-}
-/* 5. Countdowns (Gelb/Hell) */
-.nav-links .nav-item:nth-child(6)::after {
-  background-color: #fddd3e;
-}
-
-/* Zählungshinweis:
-  :nth-child(1) ist der Schließen-Button
-  :nth-child(2) ist das erste <router-link> (Dashboard)
-  ...
-  :nth-child(6) ist das fünfte <router-link> (Countdowns)
-*/
-
-
 
 .nav-close-button {
   display: none;
@@ -344,17 +311,12 @@ onUnmounted(() => {
     border-bottom: none;
   }
 
-  /* Im Mobile-Menü wird der ::after-Effekt ohnehin durch die Media Query
-     weiter unten deaktiviert (display: none), was korrekt ist. */
+  .nav-item::after {
+    display: none;
+  }
 
   .nav-item:hover {
     transform: translateX(5px);
-  }
-}
-
-@media (max-width: 768px) {
-  .nav-item::after {
-    display: none; /* Bestätigt die Deaktivierung des Effekts im Mobile-Menü */
   }
 }
 
