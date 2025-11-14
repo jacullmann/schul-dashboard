@@ -2,12 +2,11 @@
   <div class="container auth-wrapper">
     <div class="auth-card">
       <h2 class="auth-title">Authentifizierung </h2>
-      <p class="small auth-hint">Bitte gib deine Zugangscodes ein.</p>
 
       <div class="input-group">
         <input
             v-model="password1"
-            placeholder="Erstes Passwort"
+            placeholder="Name"
             class="auth-input"
             type="text"
         />
@@ -16,7 +15,7 @@
       <div class="input-group">
         <input
             v-model="password2"
-            placeholder="Zweites Passwort"
+            placeholder="Zugangscode"
             class="auth-input"
             type="password"
         />
