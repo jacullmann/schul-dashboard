@@ -4,7 +4,8 @@
     <Header v-if="$route.path !== '/welcome'"/>
     <GlobalAnnouncements />
     <main class="full-c">
-      <img src="./utils/alt3.svg" alt="Background" class="svg-background" v-if="!deviceIsMobile"/>
+      <!--<img src="./utils/alt3.svg" alt="Background" class="svg-background" v-if="!deviceIsMobile"/>-->
+      <BackgroundSVG v-if="!deviceIsMobile" class="svg-background"/>
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
       <div v-if="loading" class="loading-overlay" key="loading">
         <div class="elegant-spinner">
@@ -33,6 +34,7 @@ import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
+import BackgroundSVG from './utils/Back.vue'
 
 
 
