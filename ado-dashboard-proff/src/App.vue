@@ -4,7 +4,7 @@
     <Header v-if="$route.path !== '/welcome'"/>
     <GlobalAnnouncements />
     <main class="full-c">
-      <img src="./utils/alt2.svg" alt="Background" class="svg-background" v-if="!deviceIsMobile"/>
+      <img src="./utils/alt3.svg" alt="Background" class="svg-background" v-if="!deviceIsMobile"/>
       <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
       <div v-if="loading" class="loading-overlay" key="loading">
         <div class="elegant-spinner">
