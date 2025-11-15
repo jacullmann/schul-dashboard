@@ -116,6 +116,8 @@
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import hw from '../../hwApi';
 import type { HwItem } from './Hausaufgaben.vue';
+import { containsProfanity } from '../../composables/useProfanity';
+
 
 const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
@@ -344,6 +346,14 @@ async function submit() {
   isError.value = false;
 
   try {
+    if (
+        containsProfanity(title.value) ||
+        containsProfanity(subjectSel.value) ||
+        containsProfanity(subjectOther.value) ||
+        containsProfanity(description.value)
+    ) {
+      throw new Error('Unangemessene Inhalte erkannt. Bitte drücke dich in angemessener Sprache aus.');
+    }
     // --- NEUE LOGIK ZUM ERSTELLEN DES 'subject'-STRINGS ---
     let subject = '';
     const mainSubject = subjectSel.value;
