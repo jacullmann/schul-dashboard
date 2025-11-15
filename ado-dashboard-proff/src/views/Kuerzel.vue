@@ -188,7 +188,6 @@ onMounted(() => {
 }
 .col {
   flex: 1;
-  min-width: 280px;
 }
 .switch-col {
   display: flex;
@@ -250,16 +249,15 @@ onMounted(() => {
   margin-left: 4px;
 }
 
-@media (max-width: 400px) {
+@media (max-width: 600px) {
   .row {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
   }
-  .input {
-    width: calc(100% - 10px);
+  .col {
+    width: 100%;
+    padding: 0 8px;
   }
-  
 }
 </style>
 
