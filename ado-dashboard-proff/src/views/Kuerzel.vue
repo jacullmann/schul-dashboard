@@ -256,6 +256,9 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
   }
+  .input {
+    width: calc(100% - 10px);
+  }
   
 }
 </style>
