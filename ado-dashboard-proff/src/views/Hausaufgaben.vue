@@ -1362,7 +1362,7 @@ onMounted(async () => {
   background: transparent;
   border: none;
   padding: 6px 9px;
-  color: #f1f1f1;
+  color: #aaaaaa;
   border-radius: 8px;
   cursor: pointer;
   font-size: 17px;
@@ -1379,12 +1379,12 @@ onMounted(async () => {
   height: 19px;
   flex-shrink: 0;
 }
-.menu-btn:hover { background: #666666; color: #f1f1f1; }
+.menu-btn:hover { background: #414141; color: #f1f1f1; }
 .menu-btn.danger { background: transparent; color: #f1f1f1; }
-.menu-btn.warn { background: transparent; color: white; }
+.menu-btn.warn { background: transparent; color: #aaaaaa; }
 
-.menu-btn.danger:hover { background: #666666; }
-.menu-btn.warn:hover { background: #666666; }
+.menu-btn.danger:hover { background: #414141; }
+.menu-btn.warn:hover { background: #414141; }
 
 .item-body {
   white-space: pre-wrap;
