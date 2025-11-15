@@ -105,7 +105,7 @@ onUnmounted(() => {
 .header {
   background-color: var(--bg);
   color: #f1f1f1;
-  padding: 16px;
+  padding: 0.1rem 0;
   position: sticky;
   top: 0;
   z-index: 1001;
@@ -269,6 +269,9 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .header {
+    padding: 16px;
+  }
   .hamburger-menu {
     display: flex;
   }

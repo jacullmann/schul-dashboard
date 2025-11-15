@@ -101,7 +101,7 @@ function handleClick() {
 .footer {
   background-color: var(--bg);
   color: #f1f1f1;
-  padding: 2rem 16px 5px;
+  padding: 2rem 5px 5px;
   border-top: 1px solid #333;
 }
 .superjob {
@@ -200,6 +200,9 @@ function handleClick() {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+  .footer {
+    padding: 2rem 16px 5px;
   }
 }
 </style>
