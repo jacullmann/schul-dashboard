@@ -24,16 +24,24 @@
         <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
       </div>
 
-      <div style="margin-top:8px;">
+      <div style="margin-top:8px; position: relative;">
         <input
             class="input"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             v-model="password"
             placeholder="Passwort (min. 8 Zeichen)"
             @input="clearFieldError('password')"
         />
-        <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
+        <button
+            type="button"
+            @click="showPassword = !showPassword"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: white;"
+            aria-label="Toggle password visibility"
+        >
+          <component :is="showPassword ? EyeOff : Eye" size="20" />
+        </button>
       </div>
+
 
       <!-- Datenschutzerklärung Checkbox -->
       <div v-if="mode==='register'" class="checkbox-row">
@@ -73,6 +81,7 @@
 import { ref, reactive } from 'vue';
 import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
+import { Eye, EyeOff } from 'lucide-vue-next';
 
 import ResetModal from "../ResetModal.vue"; // Pfad anpassen falls nötig
 const showReset = ref(false);
@@ -88,6 +97,7 @@ const acceptedPrivacy = ref(false);
 const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
+const showPassword = ref(false);
 
 // field-level errors shown after submit attempt
 const errors = reactive<{ email?: string; password?: string; privacy?: string }>({});
