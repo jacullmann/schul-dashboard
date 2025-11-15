@@ -12,13 +12,21 @@
         />
       </div>
 
-      <div class="input-group">
+      <div class="input-group" style="position: relative;">
         <input
             v-model="password2"
             placeholder="Zugangscode"
             class="auth-input"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
         />
+        <button
+            type="button"
+            @click="showPassword = !showPassword"
+            class="auth-button-change"
+            aria-label="Toggle password visibility"
+        >
+          <component :is="showPassword ? Eye : EyeOff" size="20" />
+        </button>
       </div>
 
       <label class="checkbox-label">
@@ -54,13 +62,14 @@ import For from '../components/LegalF.vue'
 import { useRouter } from 'vue-router';
 import { useAuth } from '../composables/useAuth';
 import GetStatushwb2 from "../components/GetStatushwb2.vue";
-
+import { Eye, EyeOff } from 'lucide-vue-next'
 const router = useRouter();
 const auth = useAuth();
 const password1 = ref('');
 const password2 = ref('');
 const error = ref<string | null>(null);
 const accepted = ref(false)
+const showPassword = ref(false);
 
 async function submit() {
   error.value = null;
@@ -233,6 +242,20 @@ function doLogout() {
   font-size:12px;
   color:var(--muted);
   text-align: center;
+}
+.auth-button-change {
+  color: #aaaaaa;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.auth-button-change:hover {
+  color: #f1f1f1;
 }
 
 @media (max-width: 520px) {
