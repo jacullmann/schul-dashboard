@@ -17,11 +17,11 @@
       </filter>
 
       <filter id="noise-filter" x="-40%" y="-40%" width="180%" height="180%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="100" result="blurred" />
+        <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="blurred" />
 
         <feTurbulence
             type="fractalNoise"
-            baseFrequency="0.6"
+            baseFrequency="50"
             numOctaves="3"
             stitchTiles="stitch"
             result="noise"
