@@ -13,7 +13,7 @@
   >
     <defs>
       <filter id="blur-filter">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="100" />
+        <feGaussianBlur in="SourceGraphic" stdDeviation="0" />
       </filter>
 
       <filter id="noise-filter" x="-40%" y="-40%" width="180%" height="180%">
@@ -21,7 +21,7 @@
 
         <feTurbulence
             type="fractalNoise"
-            baseFrequency="50"
+            baseFrequency="500"
             numOctaves="3"
             stitchTiles="stitch"
             result="noise"

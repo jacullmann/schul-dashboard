@@ -114,12 +114,13 @@ footer {
 
     }
     .card {
-        margin: 18px 0 0 0;
+        margin: 0 0 0 0;
+        padding: 30px 16px 16px 16px;
     }
 
     .container {
         margin: 0 auto;
-        padding: 9px;
+        padding: 0;
         background: var(--bg);
 
     }
