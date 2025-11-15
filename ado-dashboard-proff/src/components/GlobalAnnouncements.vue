@@ -119,7 +119,6 @@ function colorFor(color) {
   }
 
   .global-ann-content {
-    flex-direction: column;
     gap: 4px;
   }
 }
