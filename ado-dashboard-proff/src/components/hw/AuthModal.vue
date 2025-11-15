@@ -40,6 +40,7 @@
         >
           <component :is="showPassword ? EyeOff : Eye" size="20" />
         </button>
+        <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
       </div>
 
 
@@ -83,7 +84,7 @@ import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 
-import ResetModal from "../ResetModal.vue"; // Pfad anpassen falls nötig
+import ResetModal from "../ResetModal.vue";
 const showReset = ref(false);
 
 function openReset() { showReset.value = true; }
