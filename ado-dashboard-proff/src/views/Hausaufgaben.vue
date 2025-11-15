@@ -1331,7 +1331,7 @@ onMounted(async () => {
   top: 100%;
   right: 0;
   min-width: 105px;
-  background: #414141;
+  background: #282828;
   border: none;
   border-radius: 5px;
   padding: 6px;
@@ -1345,6 +1345,7 @@ onMounted(async () => {
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
   margin-bottom: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .item-menu.open {
