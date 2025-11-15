@@ -108,7 +108,7 @@ onUnmounted(() => {
   padding: 0.1rem 0;
   position: sticky;
   top: 0;
-  z-index: 1001;
+  z-index: 1002;
   transition: background-color 0.3s ease;
 }
 

@@ -10,6 +10,7 @@
     --border: grey;
     --jj: #282828;
     --sub: #aaaaaa;
+    --announcement-height: 0px;
 }
 
 * { box-sizing: border-box; }

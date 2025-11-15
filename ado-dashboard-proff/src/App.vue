@@ -14,7 +14,7 @@
           <div class="dot-3"></div>
         </div>
       </div>
-      <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content">
+      <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
         <MainContent />
       </div>
     </main>
@@ -94,13 +94,14 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
-  top: 0;
+  position: fixed;
+  top: calc(65px + var(--announcement-height));
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 65px - var(--announcement-height));
   background-color: rgba(255, 255, 255, 0);
   z-index: 999;
+  transition: top 0.3s ease, height 0.3s ease;
 }
 
 .elegant-spinner {
@@ -157,5 +158,15 @@ onMounted(() => {
 .full-c {
   flex: 1;
   position: relative;
+}
+.main-content {
+  margin-top: var(--announcement-height);
+  transition: margin-top 0.3s ease;
+}
+@media (max-width: 500px) {
+  .loading-overlay {
+    top: calc(70px + var(--announcement-height));
+    height: calc(100% - 70px - var(--announcement-height));
+  }
 }
 </style>
