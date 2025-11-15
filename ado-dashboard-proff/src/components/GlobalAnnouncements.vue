@@ -95,10 +95,6 @@ function colorFor(color) {
   transition: background-color 0.3s ease;
 }
 
-.global-ann:hover {
-  filter: brightness(1.1);
-}
-
 .global-ann-content {
   max-width: 1200px;
   margin: 0 auto;
