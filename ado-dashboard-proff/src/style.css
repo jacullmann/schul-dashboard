@@ -89,7 +89,7 @@ footer {
 
 }
 
-.svg-background {
+/*.svg-background {
     position: fixed;
     top: 0;
     left: 0;
@@ -97,17 +97,17 @@ footer {
     height: 100vh;
     z-index: -1;
     transform: translateX(-3vw);
-}
+}*/
 
-/*.svg-background {
+.svg-background {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: -1;
-    /*object-fit: cover;
-}*/
+    z-index: -2;
+    object-fit: cover;
+}
 @media (max-width: 768px) {
 
     .svg-background {

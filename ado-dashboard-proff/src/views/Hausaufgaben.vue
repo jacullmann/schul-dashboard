@@ -1504,7 +1504,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-direction: row;
-  gap: 10px;
+  gap: 8px;
   position: relative;
 
 }
