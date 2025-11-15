@@ -25,7 +25,7 @@
             class="auth-button-change"
             aria-label="Toggle password visibility"
         >
-          <component :is="showPassword ? Eye : EyeOff" size="20" />
+          <component :is="showPassword ? EyeOff : Eye" size="20" />
         </button>
       </div>
 
@@ -160,10 +160,6 @@ function doLogout() {
   font-weight: 700;
   color: var(--text);
 }
-.auth-hint {
-  color: var(--muted);
-  margin-bottom: 25px;
-}
 
 
 .input-group {
@@ -213,16 +209,6 @@ function doLogout() {
   opacity: 0.5;
   cursor: not-allowed;
   background: linear-gradient(65deg, #523de6, #8f0b9e);
-}
-
-.logout-btn {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--jj);
-}
-.logout-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text);
 }
 
 
