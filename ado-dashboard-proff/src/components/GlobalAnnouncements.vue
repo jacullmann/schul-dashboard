@@ -6,7 +6,7 @@
         @click="nextAnnouncement"
     >
       <div class="global-ann-content">
-        <strong>{{ currentAnnouncement.title }}</strong>: {{ currentAnnouncement.content }}
+        <strong>{{ currentAnnouncement.title }}</strong>{{ currentAnnouncement.content }}
         <span class="announcement-counter" v-if="announcements.length > 1">
           ({{ currentIndex + 1 }}/{{ announcements.length }})
         </span>
