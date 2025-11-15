@@ -34,6 +34,7 @@ import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
+import { loadBadWords} from "./composables/useProfanity";
 import BackgroundSVG from './utils/Back.vue'
 
 
@@ -82,6 +83,9 @@ router.afterEach(() => {
 
 onMounted(() => {
   checkIfMobile();
+  (async () => {
+    await loadBadWords();
+  })();
 });
 </script>
 
