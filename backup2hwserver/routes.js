@@ -986,7 +986,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             if (password === EXPECTED_COMBINED) {
                 status = 'success';
                 const token = jwt.sign({ role: 'admin' }, jwtSecret, { expiresIn: '30d' });
-                await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
+                await supabase.from('internal.auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
                 return res.json({ ok: true, token });
             } else {
                 await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
