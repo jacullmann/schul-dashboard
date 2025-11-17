@@ -989,7 +989,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 await supabase.from('internal.auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
                 return res.json({ ok: true, token });
             } else {
-                await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
+                await supabase.from('internal.auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
                 return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
             }
         }
