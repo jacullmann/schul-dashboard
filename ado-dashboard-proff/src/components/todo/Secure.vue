@@ -13,7 +13,7 @@ const features = [
   {
     icon: Lock,
     title: 'Verschlüsselt',
-    text: 'Deine privaten Einträge werden mit der extrem sicheren Technologie (AES-256 GCM) verschlüsselt. Dies ist der gleiche Sicherheitsstandard, den Banken, Regierungen und das Militär verwenden.',
+    text: 'Deine privaten Einträge werden mit der extrem sicheren Technik (AES-256 GCM) verschlüsselt. Dies ist der gleiche Sicherheitsstandard, den Banken, Regierungen und das Militär verwenden.',
     fullText: 'Deine privaten Einträge werden mit einer extrem sicheren Technologie (AES-256 GCM) verschlüsselt. Dies ist der gleiche Sicherheitsstandard, den Banken, Regierungen und das Militär verwenden. Durch die Verwendung dieser Verschlüsselung stellen wir sicher, dass deine Daten selbst bei kompromittierter Datenbank sicher und nicht entschlüsselbar sind.'
   },
   {
