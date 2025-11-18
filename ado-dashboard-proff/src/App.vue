@@ -1,32 +1,29 @@
 <template>
   <div class="full">
-
     <Header v-if="$route.path !== '/welcome'"/>
     <GlobalAnnouncements />
+
+    <!-- Fortschrittslinie oben -->
+    <div v-if="loading" class="progress-line" key="progress" :class="{ hiding: !loadingVisible }">
+      <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+    </div>
+
     <main class="full-c">
       <img src="./utils/alt.svg" alt="Background" class="svg-background" v-if="!deviceIsMobile"/>
-      <!--<BackgroundSVG v-if="!deviceIsMobile" class="svg-background"/>-->
-      <!--<div style="background-color: var(--bg)" class="svg-background"></div>-->
-      <div v-if="loading" class="loading-overlay" key="loading">
-        <div class="elegant-spinner">
-          <div class="dot-1"></div>
-          <div class="dot-2"></div>
-          <div class="dot-3"></div>
-        </div>
-      </div>
-      <div v-else :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
+
+      <div :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
         <MainContent />
       </div>
     </main>
+
     <Footer v-if="$route.path !== '/welcome'"/>
     <CookieBanner />
     <AccountPromoPopup v-if="$route.path !== '/welcome'" />
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted} from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
@@ -34,25 +31,17 @@ import CookieBanner from "./components/CookieBanner.vue"
 import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
-import { loadBadWords} from "./composables/useProfanity";
-import BackgroundSVG from './utils/Back.vue'
+import { loadBadWords } from "./composables/useProfanity";
 
-
-
-
-const deviceIsMobile = ref(false)
-
-
+const deviceIsMobile = ref(false);
 const loading = ref(false);
+const loadingVisible = ref(false);
+const progress = ref(0);
 const router = useRouter();
 
-
-
-
-const MIN_LOAD_TIME = 0;
-let loadStartTime = 0;
-
-
+let loadingTimeout: ReturnType<typeof setTimeout> | null = null;
+let progressInterval: ReturnType<typeof setInterval> | null = null;
+let finishTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const checkIfMobile = () => {
   const userAgent = navigator.userAgent.toLowerCase();
@@ -62,23 +51,62 @@ const checkIfMobile = () => {
 
   deviceIsMobile.value = isMobileUserAgent || (isSmallScreen && isTouchDevice);
 };
-
-router.beforeEach(() => {
+const clearTimers = () => {
+  if (loadingTimeout) clearTimeout(loadingTimeout);
+  if (progressInterval) clearInterval(progressInterval);
+  if (finishTimeout) clearTimeout(finishTimeout);
+  loadingTimeout = null;
+  progressInterval = null;
+  finishTimeout = null;
+};
+const startProgress = () => {
+  clearTimers();
   loading.value = true;
-  loadStartTime = Date.now();
+  loadingVisible.value = true;
+  progress.value = 0;
+
+  progressInterval = setInterval(() => {
+    if (progress.value < 80) {
+      progress.value += Math.random() * 2;
+      if (progress.value > 80) progress.value = 80;
+    }
+  }, 20);
+
+  // Safety Timeout, falls nix passiert
+  loadingTimeout = setTimeout(() => {
+    finishProgress();
+  }, 5000);
+};
+
+const finishProgress = () => {
+  clearInterval(progressInterval);
+  progress.value = 100;
+
+  // Lass die Animation laufen, bevor du ausblendest
+  finishTimeout = setTimeout(() => {
+    loadingVisible.value = false;
+    // Gib der Transition Zeit, dann erst loading aus
+    setTimeout(() => {
+      loading.value = false;
+      progress.value = 0;
+    }, 500); // muss zu CSS-Transition passen
+  }, 300); // Zeit für den schnellen letzten Step
+};
+
+// Router Hooks
+router.beforeEach((to, from, next) => {
+  if (to.path !== from.path) {
+    startProgress();
+  }
+  next();
 });
 
 router.afterEach(() => {
-  const elapsedTime = Date.now() - loadStartTime;
-  const remainingTime = MIN_LOAD_TIME - elapsedTime;
+  finishProgress();
+});
 
-  if (remainingTime > 0) {
-    setTimeout(() => {
-      loading.value = false;
-    }, remainingTime);
-  } else {
-    loading.value = false;
-  }
+watch(() => router.currentRoute.value.path, () => {
+  finishProgress();
 });
 
 onMounted(() => {
@@ -90,69 +118,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.loading-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.progress-line {
   position: fixed;
-  top: calc(65px + var(--announcement-height));
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - 65px - var(--announcement-height));
-  background-color: rgba(255, 255, 255, 0);
-  z-index: 999;
-  transition: top 0.3s ease, height 0.3s ease;
+  height: 3px;
+  background-color: transparent;
+  z-index: 10000;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
-.elegant-spinner {
-  position: relative;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.elegant-spinner div {
-  position: absolute;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: #bd34fe;
+.progress-line.hiding {
   opacity: 0;
+  pointer-events: none;
 }
 
-.elegant-spinner .dot-1 {
-  animation: pulse-1 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-}
-.elegant-spinner .dot-2 {
-  animation: pulse-2 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-}
-.elegant-spinner .dot-3 {
-  animation: pulse-3 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-}
-
-
-@keyframes pulse-1 {
-  0% { transform: scale(0.1); opacity: 0; }
-  25% { transform: scale(1); opacity: 1; }
-  50% { transform: translateX(20px) scale(0.8); opacity: 0; }
-  100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-}
-
-@keyframes pulse-2 {
-  0% { transform: scale(0.1); opacity: 0; }
-  25% { transform: translateX(-20px) scale(0.8); opacity: 0; }
-  50% { transform: scale(1); opacity: 1; }
-  75% { transform: translateX(20px) scale(0.8); opacity: 0; }
-  100% { transform: translateX(20px) scale(0.1); opacity: 0; }
-}
-
-@keyframes pulse-3 {
-  0% { transform: scale(0.1); opacity: 0; }
-  50% { transform: translateX(-20px) scale(0.8); opacity: 0; }
-  75% { transform: scale(1); opacity: 1; }
-  100% { transform: translateX(20px) scale(0.1); opacity: 0; }
+.progress-bar {
+  height: 100%;
+  background: #9148c1;
+  border-radius: 0 2px 2px 0;
+  transition: width 0.5s ease;
+  transform-origin: left;
 }
 
 .full-c {
@@ -164,9 +153,9 @@ onMounted(() => {
   transition: margin-top 0.3s ease;
 }
 @media (max-width: 500px) {
-  .loading-overlay {
-    top: calc(70px + var(--announcement-height));
-    height: calc(100% - 70px - var(--announcement-height));
+  .progress-line {
+    height: 2px;
   }
 }
+
 </style>

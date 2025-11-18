@@ -67,7 +67,6 @@ const router = createRouter({
 const { isAuthenticated, isAuthReady, initAuth } = useAuth();
 
 router.beforeEach(async (to, from, next) => {
-
     if (to.path === '/welcome') return next();
 
     if (!isAuthReady.value) {

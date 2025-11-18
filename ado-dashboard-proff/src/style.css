@@ -11,6 +11,7 @@
     --jj: #282828;
     --sub: #aaaaaa;
     --announcement-height: 0px;
+    --progress-height: 3px;
 }
 
 * { box-sizing: border-box; }
