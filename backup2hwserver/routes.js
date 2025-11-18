@@ -950,11 +950,6 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
-    app.post('/api/logout', async (req, res) => {
-        res.json({ status: "logoutIs" });
-    });
-
-
     app.get('/api/protected', (req, res, next) => {
         const header = req.headers.authorization;
         if (!header) return sendJSONError(res, 401, 'Kein Token');
