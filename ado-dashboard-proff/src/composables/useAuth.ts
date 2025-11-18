@@ -108,14 +108,12 @@ export function useAuth() {
                 console.warn("Logout request failed:", response.status);
             }
 
-            let data;
-            try {
-                data = await response.json();
-            } catch (_) {
-                data = null;
-            }
+            let data = await response.json();
 
-            if (data && data.status === 'logoutIs') {
+            console.log(response.status)
+            console.log(data.status);
+
+            if (data.status === 'logoutIs') {
                 console.log('Erfolgreich ausgeloggt');
             }
 
