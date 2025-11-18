@@ -20,40 +20,40 @@ const Countdown = () => import('./views/Countdown.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
-    { path: '/welcome', name: 'Auth', component: AuthPage },
-    { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true },
-    { path: '/bewerten', component: Home },
-    { path: '/person/:id', component: PersonDetail, props: true },
-    { path: '/admin', component: Admin },
+    { path: '/welcome', name: 'Auth', component: AuthPage, meta: { title: 'Anmeldung' } },
+    { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true, meta: { title: 'Hausaufgaben' } },
+    { path: '/bewerten', component: Home, meta: { title: 'Bewertungen' } },
+    { path: '/person/:id', component: PersonDetail, props: true, meta: { title: 'Person' } },
+    { path: '/admin', component: Admin, meta: { title: 'Admin Bereich' } },
     { path: '/hausaufgaben/verify', redirect: '/verify' },
-    { path: '/verify', component: VerifyEmail },
-    { path: '/kuerzel', component: Kuerzel },
-    { path: '/kanye', component: Ye },
-    { path: '/ai-detector', component: Aidetector },
-    { path: '/sorgenbox', component: BS },
-    { path: '/kontakt', component: Kontakt },
-    { path: '/8912', component: Games },
-    { path: '/stundenplan', component: Finales },
-    { path: '/countdown', component: Countdown },
-    //{ path: '/news', component: News },
+    { path: '/verify', component: VerifyEmail, meta: { title: 'E-Mail Verifizierung' } },
+    { path: '/kuerzel', component: Kuerzel, meta: { title: 'Kürzel-Finder' } },
+    { path: '/kanye', component: Ye, meta: { title: 'Kanye' } },
+    { path: '/ai-detector', component: Aidetector, meta: { title: 'AI Detektor' } },
+    { path: '/sorgenbox', component: BS, meta: { title: 'Sorgenbox' } },
+    { path: '/kontakt', component: Kontakt, meta: { title: 'Kontakt' } },
+    { path: '/spiele', component: Games, meta: { title: 'Spiel Übersicht' } },
+    { path: '/stundenplan', component: Finales, meta: { title: 'Stundenplan' } },
+    { path: '/countdown', component: Countdown, meta: { title: 'Countdown' } },
+    //{ path: '/news', component: News, meta: { title: 'News' } },
     {
         path: '/8912/:id',
         name: 'GameDetail',
         component: GameDetail,
-        props: true
+        props: true,
+        meta: { title: 'Spiel' }
     },
     { path: '/goat', redirect: '/kanye' },
-
 
     {
         path: '/impressum-&-datenschutz',
         component: () => import('./views/legal/LegalLayout.vue'),
         children: [
-            { path: 'impressum', component: () => import('./views/legal/ImpressumPage.vue') },
-            { path: 'datenschutzerklaerung', component: () => import('./views/legal/DatenschutzPage.vue') }
+            { path: 'impressum', component: () => import('./views/legal/ImpressumPage.vue'), meta: { title: 'Impressum' } },
+            { path: 'datenschutzerklaerung', component: () => import('./views/legal/DatenschutzPage.vue'), meta: { title: 'Datenschutzerklärung' } }
         ]
     },
-    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('./views/NotFound.vue') }
+    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('./views/NotFound.vue'), meta: { title: '404' } }
 ];
 
 const router = createRouter({
@@ -65,6 +65,14 @@ const router = createRouter({
 });
 
 const { isAuthenticated, isAuthReady, initAuth } = useAuth();
+router.beforeEach((to, from, next) => {
+    if (to.meta.title) {
+        document.title = to.meta.title + ' | Dashboard';
+    } else {
+        document.title = 'Dashboard';
+    }
+    next();
+});
 
 router.beforeEach(async (to, from, next) => {
     if (to.path === '/welcome') return next();

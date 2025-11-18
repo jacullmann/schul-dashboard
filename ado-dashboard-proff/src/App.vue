@@ -72,7 +72,6 @@ const startProgress = () => {
     }
   }, 20);
 
-  // Safety Timeout, falls nix passiert
   loadingTimeout = setTimeout(() => {
     finishProgress();
   }, 5000);
@@ -82,18 +81,15 @@ const finishProgress = () => {
   clearInterval(progressInterval);
   progress.value = 100;
 
-  // Lass die Animation laufen, bevor du ausblendest
   finishTimeout = setTimeout(() => {
     loadingVisible.value = false;
-    // Gib der Transition Zeit, dann erst loading aus
     setTimeout(() => {
       loading.value = false;
       progress.value = 0;
-    }, 500); // muss zu CSS-Transition passen
-  }, 300); // Zeit für den schnellen letzten Step
+    }, 500);
+  }, 300);
 };
 
-// Router Hooks
 router.beforeEach((to, from, next) => {
   if (to.path !== from.path) {
     startProgress();
@@ -138,7 +134,7 @@ onMounted(() => {
 
 .progress-bar {
   height: 100%;
-  background: #9148c1;
+  background: linear-gradient(90deg, #ffa91a 0, #ff335a 35%, #af00ff 70%, #5600ff 110%);
   border-radius: 0 2px 2px 0;
   transition: width 0.5s ease;
   transform-origin: left;
