@@ -847,8 +847,9 @@ export default function registerRoutes(app, deps) {
 
             const prompt = `
 Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
-Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden 500 Authentifizierungs-Logs (Tabelle 'auth_logs') zu erstellen.
-Die Logs enthalten Felder wie 'ip', 'status' (success/failure), 'attempt_hash'(dies ist ein Hash des eingegebenen passworts), 'user_agent' und 'timestamp'.
+Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden Authentifizierungs- und Logoutlogs (Tabelle 'auth_logs') zu erstellen.
+Die Logs enthalten Felder wie 'ip', 'status' (success/failure/logout), 'attempt_hash'(dies ist ein Hash des eingegebenen passworts), 'user_agent' und 'timestamp'.
+success und failure stehen für authentifizierungsversuche, und logout ist ein logout eines irgendwann schon authentifizierten nutzers, Attemphash ist nur bei success und faile zu beachten. Bei logouts wird das feld attempt hash nämlich nur mit beipielinhalt gefüllt.
 
 Hier sind die Rohdaten (möglicherweise gekürzt):
 ${truncatedLogs}
@@ -867,7 +868,7 @@ Struktur:
 5.  **Sicherheitswarnungen:** (Nur falls akute, offensichtliche Bedrohungen wie ein erfolgreicher Einbruch klar erkennbar sind).
 
 Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ersten Überschrift (z.B. "## Zusammenfassung").
-Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äußere Authentifizierung einer Seite. Die Website ist also nur für bestimmte autorisierte Personen, die von den Administratoren das allgemeine Passwort erhalten haben. Es gibt also nicht mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zu kommen. Die Attempt Hashes sind dabei hashes der versuchten Passwörter.
+Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äußere Authentifizierung einer Seite. Die Website ist also nur für bestimmte autorisierte Personen, die von den Administratoren das allgemeine Passwort erhalten haben. Es gibt also nicht mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zu kommen. Die Attempt Hashes sind dabei hashes der versuchten Passwörter. Und beachte: Sei weder zu lasch, noch sieh jede abfolge vonf alcshen  passwörtern udn fehlschlägen als angriff. Entscheide intelligent und hilfreich.
       `;
 
             if (!geminiModel) {
@@ -948,6 +949,10 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             sendJSONError(res, 500, 'Serverfehler');
         }
     });
+    app.post('/api/logout', (req, res) => {
+        res.json({ status: "logoutIs" });
+    });
+
 
     app.get('/api/protected', (req, res, next) => {
         const header = req.headers.authorization;

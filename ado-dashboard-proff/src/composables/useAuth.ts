@@ -96,11 +96,38 @@ export function useAuth() {
         return { ok: false, error: data.error || 'Ungültiger Code' };
     }
 
-    function logout() {
-        token.value = null;
-        clearStorage();
-        window.dispatchEvent(new Event('auth-changed'));
+    async function logout() {
+        try {
+            const response = await fetch(`${BACKEND_BASE_URL}/api/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'logout' })
+            });
+
+            if (!response.ok) {
+                console.warn("Logout request failed:", response.status);
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (_) {
+                data = null;
+            }
+
+            if (data && data.status === 'logoutIs') {
+                console.log('Erfolgreich ausgeloggt');
+            }
+
+        } catch (err) {
+            console.error("Logout fetch crashed:", err);
+        } finally {
+            token.value = null;
+            clearStorage();
+            window.dispatchEvent(new Event('auth-changed'));
+        }
     }
+
 
     function refreshExpiry() {
         if (!token.value) return;
