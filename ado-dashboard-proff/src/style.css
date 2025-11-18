@@ -113,6 +113,7 @@ footer {
 @media (max-width: 768px) {
 
     .svg-background {
+        background: var(--bg);
 
     }
     .card {

@@ -3,13 +3,13 @@
     <Header v-if="$route.path !== '/welcome'"/>
     <GlobalAnnouncements />
 
-    <!-- Fortschrittslinie oben -->
     <div v-if="loading" class="progress-line" key="progress" :class="{ hiding: !loadingVisible }">
       <div class="progress-bar" :style="{ width: progress + '%' }"></div>
     </div>
 
     <main class="full-c">
-      <img src="./utils/alt.svg" alt="Background" class="svg-background" v-if="!deviceIsMobile"/>
+      <div class="svg-background" v-if="deviceIsMobile"></div>
+      <img src="./utils/alt.svg" alt="Background" class="svg-background" v-else/>
 
       <div :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
         <MainContent />
