@@ -24,7 +24,7 @@
         <router-link
             v-for="game in filteredGames"
             :key="game.id"
-            :to="`/8912/${game.id}`"
+            :to="`/spiele/${game.id}`"
             class="game-card-link"
         >
           <div class="game-card">

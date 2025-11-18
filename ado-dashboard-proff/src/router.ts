@@ -37,7 +37,7 @@ const routes = [
     { path: '/countdown', component: Countdown, meta: { title: 'Countdown' } },
     //{ path: '/news', component: News, meta: { title: 'News' } },
     {
-        path: '/8912/:id',
+        path: '/spiele/:id',
         name: 'GameDetail',
         component: GameDetail,
         props: true,
