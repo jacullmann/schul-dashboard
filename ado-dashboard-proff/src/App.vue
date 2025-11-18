@@ -3,8 +3,13 @@
     <Header v-if="$route.path !== '/welcome'"/>
     <GlobalAnnouncements />
 
-    <div v-if="loading" class="progress-line" key="progress" :class="{ hiding: !loadingVisible }">
-      <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+    <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
+      <div
+          class="progress-bar"
+          :style="{ width: progress + '%' }"
+      >
+        <div class="peg"></div>
+      </div>
     </div>
 
     <main class="full-c">
@@ -23,8 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
@@ -32,16 +36,11 @@ import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
 import { loadBadWords } from "./composables/useProfanity";
+import { useLoadingBar } from "./composables/loadingState";
 
 const deviceIsMobile = ref(false);
-const loading = ref(false);
-const loadingVisible = ref(false);
-const progress = ref(0);
-const router = useRouter();
 
-let loadingTimeout: ReturnType<typeof setTimeout> | null = null;
-let progressInterval: ReturnType<typeof setInterval> | null = null;
-let finishTimeout: ReturnType<typeof setTimeout> | null = null;
+const { loading, progress, opacity } = useLoadingBar();
 
 const checkIfMobile = () => {
   const userAgent = navigator.userAgent.toLowerCase();
@@ -51,59 +50,6 @@ const checkIfMobile = () => {
 
   deviceIsMobile.value = isMobileUserAgent || (isSmallScreen && isTouchDevice);
 };
-const clearTimers = () => {
-  if (loadingTimeout) clearTimeout(loadingTimeout);
-  if (progressInterval) clearInterval(progressInterval);
-  if (finishTimeout) clearTimeout(finishTimeout);
-  loadingTimeout = null;
-  progressInterval = null;
-  finishTimeout = null;
-};
-const startProgress = () => {
-  clearTimers();
-  loading.value = true;
-  loadingVisible.value = true;
-  progress.value = 0;
-
-  progressInterval = setInterval(() => {
-    if (progress.value < 80) {
-      progress.value += Math.random() * 2;
-      if (progress.value > 80) progress.value = 80;
-    }
-  }, 20);
-
-  loadingTimeout = setTimeout(() => {
-    finishProgress();
-  }, 5000);
-};
-
-const finishProgress = () => {
-  clearInterval(progressInterval);
-  progress.value = 100;
-
-  finishTimeout = setTimeout(() => {
-    loadingVisible.value = false;
-    setTimeout(() => {
-      loading.value = false;
-      progress.value = 0;
-    }, 500);
-  }, 300);
-};
-
-router.beforeEach((to, from, next) => {
-  if (to.path !== from.path) {
-    startProgress();
-  }
-  next();
-});
-
-router.afterEach(() => {
-  finishProgress();
-});
-
-watch(() => router.currentRoute.value.path, () => {
-  finishProgress();
-});
 
 onMounted(() => {
   checkIfMobile();
@@ -114,30 +60,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.progress-line {
+.progress-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 3px;
-  background-color: transparent;
   z-index: 10000;
-  overflow: hidden;
-  opacity: 1;
-  transition: opacity 0.2s ease;
-}
-
-.progress-line.hiding {
-  opacity: 0;
   pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
 .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, #ffa91a 0, #ff335a 35%, #af00ff 70%, #5600ff 110%);
-  border-radius: 0 2px 2px 0;
-  transition: width 0.5s ease;
-  transform-origin: left;
+  width: 0;
+  transition: width 200ms ease-out;
+  position: relative;
+}
+
+.peg {
+  display: block;
+  position: absolute;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #af00ff, 0 0 5px #af00ff;
+  opacity: 1;
+  transform: rotate(3deg) translate(0px, -4px);
 }
 
 .full-c {
@@ -148,10 +98,4 @@ onMounted(() => {
   margin-top: var(--announcement-height);
   transition: margin-top 0.3s ease;
 }
-@media (max-width: 500px) {
-  .progress-line {
-    height: 2px;
-  }
-}
-
 </style>

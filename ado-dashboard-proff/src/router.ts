@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Hausaufgaben from './views/Hausaufgaben.vue';
 import { useAuth } from './composables/useAuth';
+import { useLoadingBar } from './composables/loadingState';
 
 const PersonDetail = () => import('./views/PersonDetail.vue');
 const Admin = () => import('./views/Admin.vue');
@@ -64,8 +65,13 @@ const router = createRouter({
     }
 });
 
-const { isAuthenticated, isAuthReady, initAuth } = useAuth();
+const { start, finish } = useLoadingBar();
+
 router.beforeEach((to, from, next) => {
+    if (to.path !== from.path) {
+        start();
+    }
+
     if (to.meta.title) {
         document.title = to.meta.title + ' | Dashboard';
     } else {
@@ -73,6 +79,12 @@ router.beforeEach((to, from, next) => {
     }
     next();
 });
+
+router.afterEach(() => {
+    finish();
+});
+
+const { isAuthenticated, isAuthReady, initAuth } = useAuth();
 
 router.beforeEach(async (to, from, next) => {
     if (to.path === '/welcome') return next();
@@ -82,6 +94,7 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (!isAuthenticated.value) {
+        finish();
         return next({ path: '/welcome' });
     }
 
