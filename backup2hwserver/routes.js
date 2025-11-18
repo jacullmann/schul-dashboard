@@ -950,7 +950,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
-    app.post('/api/logout', (req, res) => {
+    app.post('/api/logout', async (req, res) => {
         res.json({ status: "logoutIs" });
     });
 
