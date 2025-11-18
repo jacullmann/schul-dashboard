@@ -949,6 +949,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             sendJSONError(res, 500, 'Serverfehler');
         }
     });
+
     app.post('/api/logout', (req, res) => {
         res.json({ status: "logoutIs" });
     });

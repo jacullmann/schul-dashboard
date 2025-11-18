@@ -98,33 +98,45 @@ export function useAuth() {
 
     async function logout() {
         try {
+            console.log('Starting logout process...');
+            console.log('Token exists:', !!token.value);
+
             const response = await fetch(`${BACKEND_BASE_URL}/api/logout`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.value}`
+                },
                 body: JSON.stringify({ message: 'logout' })
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
             if (!response.ok) {
-                console.warn("Logout request failed:", response.status);
+                console.warn("Logout request failed:", response.status, response.statusText);
             }
+
+            const text = await response.text();
+            console.log('Response text:', text);
 
             let data;
             try {
-                data = await response.json();
+                data = JSON.parse(text);
             } catch (_) {
-                data = null;
+                data = { raw: text };
             }
 
-            if (data && data.status === 'logoutIs') {
-                console.log('Erfolgreich ausgeloggt');
-            }
+            console.log('Parsed data:', data);
 
         } catch (err) {
             console.error("Logout fetch crashed:", err);
+            console.error("Error details:", err.message, err.stack);
         } finally {
             token.value = null;
             clearStorage();
             window.dispatchEvent(new Event('auth-changed'));
+            console.log('Local logout completed');
         }
     }
 
