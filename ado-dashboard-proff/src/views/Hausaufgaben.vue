@@ -611,6 +611,7 @@ watch(() => route.params.type, (v) => {
   } else {
     tab.value = 'HAUSAUFGABE';
   }
+  loadMe()
   reload();
 });
 
