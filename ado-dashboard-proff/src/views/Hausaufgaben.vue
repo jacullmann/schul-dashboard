@@ -143,14 +143,14 @@
                 Bearbeiten
               </div>
             </button>
-            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn warn" title="Melden" @click="onMenuAction('report', item)">
+            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
               <div class="fixall">
                 <Flag />
                 Melden
               </div>
             </button>
             <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
-              <div class=" reds fixall">
+              <div class="fixall">
                 <Trash2 />
                 Löschen
               </div>
@@ -674,7 +674,7 @@ const {
   background: transparent;
   border: none;
   padding: 6px 9px;
-  color: #aaaaaa;
+  color: var(--text);
   border-radius: 8px;
   cursor: pointer;
   font-size: 17px;
@@ -691,12 +691,18 @@ const {
   height: 19px;
   flex-shrink: 0;
 }
-.menu-btn:hover { background: rgba(255, 255, 255, 0.1); color: #f1f1f1; }
-.menu-btn.danger { background: transparent; color: #f1f1f1; }
-.menu-btn.warn { background: transparent; color: #aaaaaa; }
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 
-.menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }
-.menu-btn.warn:hover { background: rgba(255, 255, 255, 0.1); }
+.menu-btn.danger {
+  color: #f65252;
+  fill: #f65252;
+}
+.menu-btn.danger:hover {
+  background:rgba(246, 82, 82, 0.1);
+}
+
 
 .item-body {
   white-space: pre-wrap;
@@ -986,12 +992,6 @@ li {
 
 .report-content :deep(p) {
   line-height: 1.6;
-}
-
-
-.reds {
-  color: #f65252;
-  fill: #f65252;
 }
 
 .users-section {
