@@ -678,6 +678,7 @@ const {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  transition: background 0.2s ease;
 }
 .menu-btn .fixall {
   display: flex;
