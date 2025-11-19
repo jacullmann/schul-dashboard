@@ -677,7 +677,7 @@ const {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 17px;
+  font-size: 16px;
 }
 .menu-btn .fixall {
   display: flex;
@@ -687,8 +687,8 @@ const {
 }
 
 .menu-btn .fixall svg {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
 .menu-btn:hover {
