@@ -1,30 +1,51 @@
 // src/composables/useAuth.ts
-// DIES IST EINE MOCK-IMPLEMENTIERUNG FÜR DIE LOKALE ENTWICKLUNG.
-// SIE MUSS DURCH DIE ECHTE VERSION ERSETZT WERDEN, BEVOR DIE ANWENDUNG
-// IN EINER PRODUKTIONSUMGEBUNG EINGESETZT WIRD!
 import { ref } from 'vue';
 
-// Konstanten, die in dieser Mock-Version nicht verwendet werden, aber beibehalten werden,
-// um die Schnittstelle konsistent zu halten (optional)
-// const BACKEND_BASE_URL = '...';
-// const API_ENDPOINT = '...';
+const BACKEND_BASE_URL = 'https://two34u882345253.onrender.com';
+const API_ENDPOINT = BACKEND_BASE_URL + '/api/dashboard-check';
+
 const STORAGE_KEY = 'm38ct09qw3motw3uiholwiu5h4lvzwilizukrejhklgwh';
 const STORAGE_EXPIRES_KEY = 'nvzutsjikvthk543htom8s54hvoztw4vzw';
 
+const token = ref<string | null>(null);
 
-// Globale Zustände, die wir exponieren
-// Setzen Sie den Token auf einen Dummy-Wert
-const token = ref<string | null>('FAKE_LOCAL_TOKEN');
-
-// Wichtig: Immer auf true setzen für den lokalen Dev-Mode
-const isAuthenticated = ref(true);
-
-// Ready-Status sofort auf true setzen, da keine asynchrone Prüfung nötig ist
-const isAuthReady = ref(true);
+const isAuthenticated = ref(false);
+const isAuthReady = ref(false);
 
 
 function now() { return Date.now(); }
 function inThirtyDaysMs() { return 30 * 24 * 60 * 60 * 1000; }
+
+function loadFromStorage() {
+    const t = localStorage.getItem(STORAGE_KEY);
+    const e = localStorage.getItem(STORAGE_EXPIRES_KEY);
+    if (!t || !e) {
+        token.value = null;
+        clearStorage();
+        return;
+    }
+    const expires = Number(e);
+    if (Number.isNaN(expires) || now() > expires) {
+        token.value = null;
+        clearStorage();
+        return;
+    }
+    token.value = t;
+}
+async function verifyToken() {
+    if (!token.value) {
+        return false;
+    }
+
+    const res = await fetch(`${BACKEND_BASE_URL}/api/verifyall`, {
+        headers: {
+            Authorization: `Bearer ${token.value}`
+        }
+    });
+
+    return res.ok;
+}
+
 
 function clearStorage() {
     localStorage.removeItem(STORAGE_KEY);
@@ -32,52 +53,62 @@ function clearStorage() {
 }
 
 
+
 export function useAuth() {
 
-    // Simuliert die asynchrone Initialisierung, schließt sie aber sofort ab.
-    // Der Router Guard wartet hier nur kurz (await), aber der Status ist sofort bereit.
+    async function syncAuthState() {
+        isAuthenticated.value = await verifyToken();
+        isAuthReady.value = true;
+    }
+
     async function initAuth() {
         if (isAuthReady.value) return;
 
-        // In der echten App würde hier loadFromStorage und syncAuthState() stehen
-        // Hier setzen wir den Zustand einfach direkt.
-        token.value = 'FAKE_LOCAL_TOKEN';
-        isAuthenticated.value = true;
-        isAuthReady.value = true;
+        loadFromStorage();
+        await syncAuthState();
+
+        window.addEventListener('auth-changed', syncAuthState);
+        setInterval(() => {
+            if (token.value) syncAuthState();
+        }, 1000 * 30);
     }
 
-    // Simuliert einen erfolgreichen Login, speichert aber nichts Persistentes (optional)
+
     async function loginWithCode(code: string) {
-        token.value = 'FAKE_LOCAL_TOKEN';
-        isAuthenticated.value = true;
-        isAuthReady.value = true;
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: code })
+        });
 
-        // Keine echten Speicheroperationen oder API-Aufrufe
-        console.log('MOCK AUTH: Login erfolgreich simuliert.');
-        return { ok: true };
+        const data = await response.json();
+        if (response.ok && data.token) {
+            token.value = data.token;
+            const expires = now() + inThirtyDaysMs();
+            localStorage.setItem(STORAGE_KEY, data.token);
+            localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
+            window.dispatchEvent(new Event('auth-changed'));
+            isAuthenticated.value = true;
+            return { ok: true };
+
+        }
+
+        return { ok: false, error: data.error || 'Ungültiger Code' };
     }
 
-    // Simuliert einen Logout
     function logout() {
         token.value = null;
-        isAuthenticated.value = false;
         clearStorage();
-        console.log('MOCK AUTH: Logout simuliert.');
+        window.dispatchEvent(new Event('auth-changed'));
     }
 
-    // Leere Funktion, da keine echte Ablaufzeit vorhanden ist
     function refreshExpiry() {
-        // Ignoriert im Mock-Modus
+        if (!token.value) return;
+        const expires = now() + inThirtyDaysMs();
+        localStorage.setItem(STORAGE_EXPIRES_KEY, String(expires));
     }
 
-    // Leere Funktion
-    function loadFromStorage() {
-        // Ignoriert im Mock-Modus
-    }
 
-    // Deaktivieren des automatischen Refresh-Intervalls
-    // Deaktivieren des Event-Listeners
-    // Die initAuth wird jetzt vom Router Guard aufgerufen, was reicht.
 
     return {
         token,
