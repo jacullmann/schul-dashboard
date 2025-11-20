@@ -899,6 +899,10 @@ const {
   border-radius: 4px;
   font-size: 0.9em;
   color: var(--text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .listsorgen {
