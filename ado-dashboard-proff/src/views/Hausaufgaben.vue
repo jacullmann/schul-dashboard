@@ -586,13 +586,23 @@ const {
 .small-btn { padding:6px 8px; font-size:13px; }
 
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
-.item-card {
+/*.item-card {
   border-radius: 12px;
   padding: 14px;
   background: var(--jj);
   border: none;
   transition: transform 150ms ease;
   overflow: visible;
+}*/
+.item-card {
+  border-radius: 0;
+  padding: 14px;
+  background: #ffffff;
+  border: 2px solid #000000;
+  transition: transform 150ms ease;
+  overflow: visible;
+  box-shadow: 4px 4px 0 0 #000000;
+  color: #000000;
 }
 
 .item-card.collapsed {
