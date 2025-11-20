@@ -165,7 +165,7 @@ export async function ensureSubjects(SubjectModel) {
         'Enrichment',
         'WPU (Di)',
         'WPU (Do)',
-        'Theater', 'Latein'
+        'Theater'
     ];
     for (const s of DEFAULT_SUBJECTS) {
         await Subject.updateOne({ name: s }, { $set: { name: s } }, { upsert: true });
