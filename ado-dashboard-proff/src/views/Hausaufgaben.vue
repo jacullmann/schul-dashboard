@@ -778,7 +778,7 @@ const {
   opacity: 1;
 }
 
-.message { font-weight:600; }
+.message { font-weight:600; white-space: normal; overflow-wrap: break-word; word-break: break-all; }
 .message.error { color: var(--danger); }
 
 .tiny { padding:4px 8px; font-size:12px; }
@@ -929,6 +929,8 @@ li {
   flex: 1;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .sorge-date {
