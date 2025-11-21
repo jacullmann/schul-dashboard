@@ -127,7 +127,7 @@
               @keydown.space.prevent="toggleMenu(item.id)"
               :aria-expanded="openMenuId === item.id ? 'true' : 'false'"
           >
-            •••
+            <Ellipsis />
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
@@ -465,7 +465,7 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
-import { Flag, Pencil, Images, Trash2 } from 'lucide-vue-next'
+import { Flag, Pencil, Images, Trash2, Ellipsis } from 'lucide-vue-next'
 
 // Die neue Logik-Composable importieren
 import { useHausaufgaben } from '../composables/useHausaufgaben';
@@ -788,7 +788,7 @@ const {
   align-items: center;
   justify-content: center;
   width: 36px;
-  height: 24px;
+  height: 28px;
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
