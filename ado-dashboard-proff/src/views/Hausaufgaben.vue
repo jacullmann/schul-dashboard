@@ -588,7 +588,7 @@ const {
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card {
   border-radius: 12px;
-  padding: 14px;
+  padding: 12px;
   background: var(--jj);
   border: none;
   transition: transform 150ms ease;
@@ -603,7 +603,7 @@ const {
 
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
-.item-title { margin:0 0 6px 0; font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.item-title { margin:0 0 0 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .collapse-checkbox {
   display:inline-flex;
@@ -787,8 +787,8 @@ const {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 34px;
+  width: 36px;
+  height: 24px;
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
