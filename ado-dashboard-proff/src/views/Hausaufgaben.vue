@@ -624,12 +624,12 @@ const {
   content: '';
   position: absolute;
   width: 5px;
-  height: 9px;
+  height: 10px;
   border: solid #f1f1f1;
   border-width: 0 2px 2px 0;
   opacity: 0;
   left: 50%;
-  top: 38%;
+  top: 32%;
   transform: translate(-50%, -45%) rotate(45deg);
 }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
