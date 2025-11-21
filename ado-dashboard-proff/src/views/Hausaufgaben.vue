@@ -787,18 +787,17 @@ const {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
+  width: 40px;
   height: 34px;
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
-  color: var(--text);
-  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+  color: #aaaaaa;
+  transition: background 120ms ease, color 120ms ease;
 }
 .item-menu-trigger:hover {
-  background: rgba(255,255,255,0.02);
-  color: var(--text);
-  transform: translateY(-1px);
+  background: #414141;
+  color: #f1f1f1;
 }
 
 .pagination-actions {
