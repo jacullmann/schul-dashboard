@@ -788,7 +788,7 @@ const {
   align-items: center;
   justify-content: center;
   width: 36px;
-  height: 28px;
+  height: 24px;
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
