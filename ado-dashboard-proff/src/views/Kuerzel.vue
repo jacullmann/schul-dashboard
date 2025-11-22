@@ -209,14 +209,14 @@ onMounted(() => {
 }
 
 .switch-btn:hover {
-  background: #3a3a3a;
+  background: #282828;
 }
 
 
 .switch-icon {
   width: 22px;
   height: 22px;
-  color: rgba(241, 241, 241, 0.6);
+  color: #aaa;
   transition: color 0.3s ease, transform 0.3s ease;
 }
 
