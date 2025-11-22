@@ -162,20 +162,27 @@
             </div>
 
             <div class="todo-actions">
-              <button
-                  class="btn ghost tiny"
-                  @click="editTodo(todo)"
-                  title="Bearbeiten"
+              <div
+                  class="item-menu-trigger"
+                  @click.stop="toggleMenu(todo.id)"
               >
-                <Pencil size="20px"/>
-              </button>
-              <button
-                  class="btn danger tiny"
-                  @click="deleteTodo(todo.id)"
-                  title="Löschen"
-              >
-                <Trash2 size="20px"/>
-              </button>
+                <Ellipsis />
+              </div>
+
+              <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
+                <button class="menu-btn" @click="editTodo(todo); openMenuId = null">
+                  <div class="fixall">
+                    <Pencil :size="18" />
+                    Bearbeiten
+                  </div>
+                </button>
+                <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
+                  <div class="fixall">
+                    <Trash2 :size="18" />
+                    Löschen
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -193,7 +200,7 @@ import { ref, onMounted, computed} from 'vue';
 import { useRouter } from 'vue-router';
 import hw from '../hwApi';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import { Pencil, Trash2 } from 'lucide-vue-next'
+import { Pencil, Trash2, Ellipsis } from 'lucide-vue-next'
 
 interface Todo {
   id: string;
@@ -215,6 +222,7 @@ const editingTodo = ref<Todo | null>(null);
 const filter = ref<'all' | 'pending' | 'completed'>('all');
 const message = ref('');
 const isError = ref(false);
+const openMenuId = ref<string | null>(null);
 
 
 const todoForm = ref({
@@ -245,9 +253,21 @@ const filteredTodos = computed(() => {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 });
+function toggleMenu(id: string) {
+  if (openMenuId.value === id) {
+    openMenuId.value = null;
+  } else {
+    openMenuId.value = id;
+  }
+}
+
+const closeMenu = () => {
+  openMenuId.value = null;
+}
 
 onMounted(() => {
   loadUser();
+  document.addEventListener('click', closeMenu);
 });
 
 
@@ -383,7 +403,9 @@ function showMessage(msg: string, error = false) {
     isError.value = false;
   }, 5000);
 }
-
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu);
+});
 </script>
 
 <style scoped>
@@ -651,7 +673,83 @@ function showMessage(msg: string, error = false) {
   text-align: left;
   margin-bottom: 1rem;
 }
+.item-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px; /* Etwas größer für bessere Klickbarkeit */
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #aaaaaa;
+  transition: background 120ms ease, color 120ms ease;
+}
 
+.item-menu-trigger:hover {
+  background: #414141;
+  color: #f1f1f1;
+}
+
+.item-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 140px; /* Etwas breiter für den Text */
+  background: #282828;
+  border: 1px solid var(--border); /* Optional: Rand wie bei Hausaufgaben */
+  border-radius: 8px;
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.item-menu.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.menu-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 10px;
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-btn.danger {
+  color: #f65252;
+}
+
+.menu-btn.danger:hover {
+  background: rgba(246, 82, 82, 0.1);
+}
+
+.fixall {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1;
+}
 
 @media (max-width: 768px) {
   .modal-content {
