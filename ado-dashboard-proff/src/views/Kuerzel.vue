@@ -32,7 +32,6 @@
             class="switch-btn"
             :class="{ rotated: isRotated }"
             @click="toggleMode"
-            title="Richtung wechseln"
             data-umami-event="Kürzel Richtung Switch "
         >
           <ArrowLeftRight class="switch-icon" />
@@ -182,7 +181,7 @@ onMounted(() => {
 }
 .row {
   display: flex;
-  gap: 16px;
+  gap: 0 8px;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -196,21 +195,21 @@ onMounted(() => {
   justify-content: center;
 }
 .switch-btn {
-  background: #282828;
+  background: transparent;
   border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  border-radius: 6px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background 0.1s ease;
+  margin: 16px 0 -10px 0;
 }
 
 .switch-btn:hover {
   background: #3a3a3a;
-  border-color: #888;
 }
 
 
@@ -233,8 +232,8 @@ onMounted(() => {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
-  background: #2a2a2a;
-  color: #fff;
+  background: #282828;
+  color: #f1f1f1;
   margin-top: 5px;
 }
 .suggestion {
@@ -256,7 +255,7 @@ onMounted(() => {
   }
   .col {
     width: 100%;
-    padding: 0 8px;
+    padding: 0;
   }
 }
 </style>
