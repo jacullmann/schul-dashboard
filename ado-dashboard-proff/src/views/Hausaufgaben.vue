@@ -608,7 +608,7 @@ const {
 .collapse-checkbox {
   display:inline-flex;
   align-items:center;
-  margin-right:6px;
+  margin-right:2px;
   cursor:pointer;
 }
 .collapse-checkbox input { display:none; }
