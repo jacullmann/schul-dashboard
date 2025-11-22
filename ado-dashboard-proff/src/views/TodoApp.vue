@@ -678,7 +678,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   width: 36px;
-  height: 36px; /* Etwas größer für bessere Klickbarkeit */
+  height: 36px;
   padding: 6px;
   border-radius: 6px;
   cursor: pointer;
@@ -695,9 +695,9 @@ onUnmounted(() => {
   position: absolute;
   top: 100%;
   right: 0;
-  min-width: 140px; /* Etwas breiter für den Text */
+  min-width: 140px;
   background: #282828;
-  border: 1px solid var(--border); /* Optional: Rand wie bei Hausaufgaben */
+  border: none;
   border-radius: 8px;
   padding: 6px;
   display: none;
