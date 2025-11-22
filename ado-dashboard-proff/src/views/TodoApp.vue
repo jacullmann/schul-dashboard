@@ -196,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed} from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import hw from '../hwApi';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
