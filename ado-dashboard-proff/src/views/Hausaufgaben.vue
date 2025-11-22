@@ -596,7 +596,7 @@ const {
 }
 
 .item-card.collapsed {
-  padding: 8px 12px;
+  padding: 12px;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
@@ -788,12 +788,13 @@ const {
   align-items: center;
   justify-content: center;
   width: 36px;
-  height: 18px;
+  height: 24px;
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
   color: #aaaaaa;
   transition: background 120ms ease, color 120ms ease;
+  margin: -3px -2px;
 }
 .item-menu-trigger:hover {
   background: #414141;
