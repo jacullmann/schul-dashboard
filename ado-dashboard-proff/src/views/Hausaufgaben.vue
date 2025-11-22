@@ -707,7 +707,7 @@ const {
 
 .item-body {
   white-space: pre-wrap;
-  margin-top:15px;
+  margin-top:10px;
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
@@ -1142,7 +1142,7 @@ li {
   margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
   opacity: 1;
   max-height: 50px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .row.item-badges.collapsed {
