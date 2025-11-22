@@ -167,14 +167,14 @@
                   @click="editTodo(todo)"
                   title="Bearbeiten"
               >
-                <Pencil />
+                <Pencil size="20px"/>
               </button>
               <button
                   class="btn danger tiny"
                   @click="deleteTodo(todo.id)"
                   title="Löschen"
               >
-                <Trash2 />
+                <Trash2 size="20px"/>
               </button>
             </div>
           </div>
