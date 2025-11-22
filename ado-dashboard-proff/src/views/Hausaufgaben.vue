@@ -596,7 +596,6 @@ const {
 }
 
 .item-card.collapsed {
-  padding: 12px;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
@@ -1188,6 +1187,10 @@ li {
   max-width: 160px;
   min-width: auto;
   width: auto;
+}
+
+.admin-creator-info {
+  color: #aaa;
 }
 
 @media (max-width: 768px) {
