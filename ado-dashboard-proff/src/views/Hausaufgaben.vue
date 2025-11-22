@@ -707,7 +707,7 @@ const {
 
 .item-body {
   white-space: pre-wrap;
-  margin-top:10px;
+  margin-top:15px;
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
