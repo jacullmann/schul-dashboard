@@ -588,7 +588,7 @@ const {
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card {
   border-radius: 12px;
-  padding: 12px;
+  padding: 12px 16px;
   background: var(--jj);
   border: none;
   transition: transform 150ms ease;
@@ -596,7 +596,7 @@ const {
 }
 
 .item-card.collapsed {
-  padding: 8px 12px;
+  padding: 8px 16px;
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
