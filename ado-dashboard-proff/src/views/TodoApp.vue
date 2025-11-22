@@ -189,11 +189,6 @@
     <div v-if="message" class="message" :class="{ error: isError }">
       {{ message }}
     </div>
-    <div class="widths">
-      <Transition name="fade">
-        <Secure class="isMobile" />
-      </Transition>
-    </div>
   </div>
 </template>
 
@@ -202,7 +197,6 @@ import { ref, onMounted, computed} from 'vue';
 import { useRouter } from 'vue-router';
 import hw from '../hwApi';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import Secure from '../components/todo/Secure.vue'
 
 interface Todo {
   id: string;
@@ -661,28 +655,11 @@ function showMessage(msg: string, error = false) {
   margin-bottom: 1rem;
 }
 
-.isMobile {
-  display: block;
-}
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.4s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-.widths {
-  display: flex;
-  margin: 0;
-}
-
 
 @media (max-width: 768px) {
   .modal-content {
     margin: 1rem;
     padding: 1.5rem;
-  }
-  .isMobile {
-    display: none;
   }
 
   .todo-item {
