@@ -22,5 +22,6 @@ jobs:
           script: |
             cd /root/codes/main-server/234u88
             git reset --hard origin/main
+            git pull
             cd backup2hwserver
             npm ci
