@@ -3,9 +3,6 @@ import Hausaufgaben from './views/Hausaufgaben.vue';
 import { useAuth } from './composables/useAuth';
 import { useLoadingBar } from './composables/loadingState';
 
-const PersonDetail = () => import('./views/PersonDetail.vue');
-const Admin = () => import('./views/Admin.vue');
-const Home = () => import('./views/Home.vue');
 const VerifyEmail = () => import('./views/VerifyEmail.vue');
 const Kuerzel = () => import('./views/Kuerzel.vue');
 const Ye = () => import('./views/Ye.vue');
@@ -23,9 +20,6 @@ const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
     { path: '/welcome', name: 'Auth', component: AuthPage, meta: { title: 'Anmeldung' } },
     { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true, meta: { title: 'Hausaufgaben' } },
-    { path: '/bewerten', component: Home, meta: { title: 'Bewertungen' } },
-    { path: '/person/:id', component: PersonDetail, props: true, meta: { title: 'Person' } },
-    { path: '/admin', component: Admin, meta: { title: 'Admin Bereich' } },
     { path: '/hausaufgaben/verify', redirect: '/verify' },
     { path: '/verify', component: VerifyEmail, meta: { title: 'E-Mail Verifizierung' } },
     { path: '/kuerzel', component: Kuerzel, meta: { title: 'Kürzel-Finder' } },
