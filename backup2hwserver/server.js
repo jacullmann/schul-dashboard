@@ -86,4 +86,4 @@ routes(app, {
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => console.log(`HwBackend on 891219hashes:${PORT}`));
+app.listen(PORT, () => console.log(`Backend läuft nun auf:${PORT}`));
