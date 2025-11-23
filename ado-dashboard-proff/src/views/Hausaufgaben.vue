@@ -602,7 +602,7 @@ const {
 
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
-.item-title { margin:0 0 0 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height: 1;}
+.item-title { margin:-2px 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height: 1;}
 
 .collapse-checkbox {
   display:inline-flex;
