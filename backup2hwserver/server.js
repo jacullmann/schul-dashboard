@@ -86,4 +86,4 @@ routes(app, {
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => console.log(`Hausaufgaben BBBackend auf dem :${PORT}`));
+app.listen(PORT, () => console.log(`Hausaufgaben Backend auf des :${PORT}`));
