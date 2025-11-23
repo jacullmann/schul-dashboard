@@ -25,3 +25,5 @@ jobs:
             git pull
             cd backup2hwserver
             npm ci
+            pm2 reload all
+            sudo caddy reload --config /etc/caddy/Caddyfile
