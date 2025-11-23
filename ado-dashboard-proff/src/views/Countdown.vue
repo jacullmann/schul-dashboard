@@ -1,5 +1,4 @@
 <template>
-  <div class="container">
     <!-- Admin Controls -->
     <div v-if="user?.isAdmin" class="card">
       <h3>Adminbereich</h3>
@@ -136,7 +135,6 @@
     <div v-if="successMessage" class="card" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3);">
       <p style="color: #22c55e; text-align: center; margin: 0;">{{ successMessage }}</p>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -391,14 +389,8 @@ onUnmounted(() => {
 select.input {
   cursor: pointer;
 }
-
 .card {
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin-bottom: 15px;
 }
 
 .btn.small {

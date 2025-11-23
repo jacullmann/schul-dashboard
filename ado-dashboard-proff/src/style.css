@@ -43,7 +43,7 @@ a { color: var(--primary); text-decoration: none; }
 .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .card {
     background: var(--bg);
-    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px; margin-top: 15px;
+    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;;
 }
 .input, select, textarea {
     width: 100%; padding: 10px 12px; border-radius: 5px;
@@ -122,7 +122,7 @@ footer {
     }
     .card {
         margin: 0 0 0 0;
-        padding: 30px 16px 16px 16px;
+        padding: 16px 16px 16px 16px;
     }
 
     .container {
