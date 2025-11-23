@@ -1,7 +1,7 @@
 // src/composables/useAuth.ts
 import { ref } from 'vue';
 
-const BACKEND_BASE_URL = 'https://two34u882345253.onrender.com';
+const BACKEND_BASE_URL = 'https://api.schul-dashboard.com';
 const API_ENDPOINT = BACKEND_BASE_URL + '/api/dashboard-check';
 
 const STORAGE_KEY = 'm38ct09qw3motw3uiholwiu5h4lvzwilizukrejhklgwh';
