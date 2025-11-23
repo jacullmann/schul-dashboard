@@ -17,7 +17,7 @@ import sanitizeMiddleware from './middleware/sanitize.js';
 const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
-const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboards.onrender.com';
+const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboard.com';
 
 const supabase = createClient(
     process.env.SUPABASE_URL,

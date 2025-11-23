@@ -22,7 +22,7 @@ const app = express();
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 8090;
 const JWT_SECRET = process.env.JWT_SECRET;
-const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboards.onrender.com';
+const CLIENT_ORIGIN = 'https://schul-dashboard.com';
 
 // SendGrid config
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';

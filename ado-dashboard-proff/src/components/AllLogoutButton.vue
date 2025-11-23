@@ -32,7 +32,7 @@ function openPopup() {
 }
 function doLogout() {
   auth.logout();
-  window.location.replace('https://schul-dashboards.onrender.com')
+  window.location.replace('https://schul-dashboard.com')
 }
 
 function closePopup() {

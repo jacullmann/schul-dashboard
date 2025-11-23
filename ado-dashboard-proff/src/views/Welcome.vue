@@ -85,11 +85,6 @@ async function submit() {
     error.value = res.error || 'Login fehlgeschlagen. Bitte Codes prüfen.';
   }
 }
-
-function doLogout() {
-  auth.logout();
-  window.location.href ='https://schul-dashboards.onrender.com'
-}
 </script>
 
 <style scoped>
