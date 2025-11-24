@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import dayjs from 'dayjs';
 import { buildThumbUrl, withThumb, timeLeftColor } from './models.js';
 import { sanitizeStrict, sanitizeModerate } from './lib/sanitize.js';
+import { requireExternalAuth} from "./middleware/dashboardAuth.js";
 
 export default function registerRoutes(app, deps) {
     const {
@@ -168,6 +169,18 @@ export default function registerRoutes(app, deps) {
                     message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
                 });
             }
+        }
+    );
+
+    app.get('/api/geschuetzte-daten',
+        requireExternalAuth,
+        async (req, res) => {
+            console.log('Auth-Typ:', req.authType);
+
+            res.json({
+                message: 'Zugriff gewährt',
+                authType: req.authType
+            });
         }
     );
 
@@ -340,7 +353,7 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    app.get('/api/announcements', async (req, res) => {
+    app.get('/api/announcements', requireExternalAuth, async (req, res) => {
         const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
         res.json(list);
     });

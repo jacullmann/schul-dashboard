@@ -13,6 +13,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
 import sanitizeMiddleware from './middleware/sanitize.js';
+import { requireExternalAuth } from './middleware/dashboardAuth.js';
 
 const app = express();
 app.set('trust proxy', 1);
