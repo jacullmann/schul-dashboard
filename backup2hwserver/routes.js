@@ -338,7 +338,7 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    app.get('/api/subjects', async (req, res) => {
+    app.get('/api/subjects', requireExternalAuth, async (req, res) => {
         const list = await Subject.find({}).sort({ name: 1 }).lean();
         res.json(list.map(s => s.name));
     });
@@ -534,6 +534,7 @@ export default function registerRoutes(app, deps) {
     );
 
     app.get('/api/items',
+        requireExternalAuth,
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
         validate,

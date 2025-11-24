@@ -27,7 +27,7 @@ function requireExternalAuth(req, res, next) {
         }
     }
 
-    return res.status(401).json({ error: 'Nicht autorisiert - Authentifizierung erforderlich' });
+    return res.status(401).json({ error: 'Nicht autorisiert ––– Authentifizierung erforderlich' });
 }
 
 export { requireExternalAuth };
