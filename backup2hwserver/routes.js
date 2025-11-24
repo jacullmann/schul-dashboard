@@ -208,6 +208,7 @@ export default function registerRoutes(app, deps) {
         }
     );
 
+
     app.get('/api/serverstatus', async (req, res) => {
         res.status(200).json({ status: 'good' });
     });
@@ -1422,7 +1423,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             return decrypted;
         } catch (error) {
             console.error('Decryption error:', error);
-            throw new Error('Daten konnten nicht entschlüsselt werden');
+            throw new Error('Daten konnten nicht entschlüsselt werdenn');
         }
     }
 
