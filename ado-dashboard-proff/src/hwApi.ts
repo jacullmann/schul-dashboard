@@ -1,10 +1,24 @@
-// src/lib/hwApi.ts
 import axios from 'axios';
 
+const DASHBOARD_STORAGE_KEY = 'm38ct09qw3motw3uiholwiu5h4lvzwilizukrejhklgwh';
 const hw = axios.create({
     baseURL: import.meta.env.VITE_HW_API_BASE,
     withCredentials: false
 });
+
+hw.interceptors.request.use((config) => {
+    if (!config.headers.Authorization) {
+        const dashboardToken = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+
+        if (dashboardToken) {
+            config.headers.Authorization = `Bearer ${dashboardToken}`;
+        }
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
+
 
 hw.interceptors.response.use(
     (response) => response,
@@ -14,7 +28,6 @@ hw.interceptors.response.use(
             if (storedToken) {
                 console.warn('401. Ungültiges Token. Forciere Logout.');
                 setHwToken(null, null);
-
             }
         }
         return Promise.reject(error);
