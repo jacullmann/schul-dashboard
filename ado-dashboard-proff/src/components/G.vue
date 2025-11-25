@@ -2,26 +2,15 @@
   <button
       class="ripple-button"
       @mousedown="createClickRipple"
-      @mouseenter="handleMouseEnter"
-      @mouseleave="handleMouseLeave"
       @click="handleClick"
       ref="buttonRef"
   >
     <span class="button-background"></span>
-    <span
-        v-if="hoverRipple && !isMobile"
-        class="hover-ripple"
-        :style="{
-          left: hoverRipple.x + 'px',
-          top: hoverRipple.y + 'px',
-          width: hoverRipple.size + 'px',
-          height: hoverRipple.size + 'px',
-          opacity: hoverRipple.opacity
-        }"
-    ></span>
+
     <span class="button-text">
       <slot>Dashboard jetzt ausprobieren</slot>
     </span>
+
     <span
         v-for="ripple in clickRipples"
         :key="ripple.id"
@@ -46,24 +35,14 @@ interface ClickRipple {
   size: number;
 }
 
-interface HoverRipple {
-  x: number;
-  y: number;
-  size: number;
-  opacity: number;
-}
-
 const emit = defineEmits<{
   click: [event: MouseEvent]
 }>();
 
 const buttonRef = ref<HTMLButtonElement | null>(null);
 const clickRipples = ref<ClickRipple[]>([]);
-const hoverRipple = ref<HoverRipple | null>(null);
-const isHovered = ref(false);
 const isMobile = ref(false);
 let clickRippleId = 0;
-let hoverAnimationFrame: number | null = null;
 
 
 const checkMobile = () => {
@@ -78,88 +57,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile);
-  if (hoverAnimationFrame) {
-    cancelAnimationFrame(hoverAnimationFrame);
-  }
 });
-
-const handleMouseEnter = (event: MouseEvent) => {
-  if (isMobile.value) return;
-
-  isHovered.value = true;
-
-  if (!buttonRef.value) return;
-
-  const button = buttonRef.value;
-  const rect = button.getBoundingClientRect();
-
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  const size = Math.max(rect.width, rect.height) * 3;
-
-  hoverRipple.value = {
-    x,
-    y,
-    size,
-    opacity: 0
-  };
-
-  animateHoverIn();
-};
-
-const handleMouseLeave = () => {
-  if (isMobile.value) return;
-
-  isHovered.value = false;
-  animateHoverOut();
-};
-
-const animateHoverIn = () => {
-  if (!hoverRipple.value || !isHovered.value) return;
-
-  const duration = 200;
-  const startTime = performance.now();
-
-  const animate = (currentTime: number) => {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    if (hoverRipple.value) {
-      hoverRipple.value.opacity = progress;
-    }
-
-    if (progress < 1 && isHovered.value) {
-      hoverAnimationFrame = requestAnimationFrame(animate);
-    }
-  };
-
-  hoverAnimationFrame = requestAnimationFrame(animate);
-};
-
-const animateHoverOut = () => {
-  if (!hoverRipple.value) return;
-
-  const duration = 150;
-  const startTime = performance.now();
-  const startOpacity = hoverRipple.value.opacity;
-
-  const animate = (currentTime: number) => {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-
-    if (hoverRipple.value) {
-      hoverRipple.value.opacity = startOpacity * (1 - progress);
-    }
-
-    if (progress < 1) {
-      hoverAnimationFrame = requestAnimationFrame(animate);
-    } else {
-      hoverRipple.value = null;
-    }
-  };
-
-  hoverAnimationFrame = requestAnimationFrame(animate);
-};
 
 const createClickRipple = (event: MouseEvent) => {
   if (!buttonRef.value) return;
@@ -230,7 +128,6 @@ const handleClick = (event: MouseEvent) => {
   }
 }
 
-/* Mobile: Always filled with gradient */
 @media (max-width: 900px) {
   .ripple-button {
     background: linear-gradient(70deg, rgba(255, 152, 35, 0.90), rgba(255, 51, 90, 0.90), rgba(175, 0, 255, 0.90), rgba(102, 0, 255, 0.90));
@@ -244,23 +141,22 @@ const handleClick = (event: MouseEvent) => {
 
 .button-background {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 8px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.hover-ripple {
-  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
-  background: linear-gradient(90deg, #ff9823, #ff9823, #ff9823, #ff9823, #ff335a, #af00ff, #6600ff, #6600ff, #6600ff, #6600ff);
-  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
-  transition: opacity 0.1s linear;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: linear-gradient(70deg,  rgba(255, 152, 35, 0.90), rgba(255, 152, 35, 0.90), rgba(255, 51, 90, 0.90), rgba(175, 0, 255, 0.90), rgba(102, 0, 255, 0.90), rgba(102, 0, 255, 0.90));
+}
+
+@media (min-width: 901px) {
+  .ripple-button:hover .button-background {
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .button-text {

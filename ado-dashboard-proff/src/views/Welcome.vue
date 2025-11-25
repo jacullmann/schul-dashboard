@@ -141,7 +141,6 @@ async function submit() {
   background: var(--card);
   padding: 30px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 20px 20px 20px rgba(0, 0, 0, 0.6);
   transition: all 0.3s ease;
 }
