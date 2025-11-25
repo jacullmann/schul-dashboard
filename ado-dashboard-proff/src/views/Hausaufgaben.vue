@@ -1140,7 +1140,7 @@ li {
   margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
   opacity: 1;
   max-height: 50px;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
 .row.item-badges.collapsed {
