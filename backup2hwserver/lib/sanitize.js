@@ -3,19 +3,13 @@ import sanitizeHtml from 'sanitize-html';
 
 const strictOptions = {
     allowedTags: [],
-    allowedAttributes: {},
-    textFilter: function(text) {
-        return text.replace(/[<>]/g, '');
-    }
+    allowedAttributes: {}
 };
 
 const moderateOptions = {
     allowedTags: ['br', 'p', 'strong', 'em', 'ul', 'ol', 'li'],
     allowedAttributes: {},
-    allowedSchemes: [],
-    textFilter: function(text) {
-        return text.replace(/[<>]/g, '');
-    }
+    allowedSchemes: []
 };
 
 export const sanitizeStrict = (input) => {
