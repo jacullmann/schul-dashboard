@@ -1097,7 +1097,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
-    app.get('/api/countdowns', async (req, res) => {
+    app.get('/api/countdowns', requireExternalAuth, async (req, res) => {
         try {
             const { data, error } = await supabase
                 .from('countdowns')
