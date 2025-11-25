@@ -705,10 +705,8 @@ const {
 
 
 .item-body {
-  white-space: pre-wrap;
   margin-top:10px;
   color: var(--text);
-  white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
   hyphens: auto;
