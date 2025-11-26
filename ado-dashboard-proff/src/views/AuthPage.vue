@@ -1,185 +1,405 @@
 <template>
-  <div class="full-page-wrapper">
-    <main class="content-area">
-      <section v-if="!showAuth" class="hero-main-content">
-        <h1 class="hero-title">
-          <span class="text-gradient">Schul-Dashboard</span>
-        </h1>
-        <p class="hero-subtitle">Das Tool, um dein schulisches Leben aufs nächste Level zu bringen</p>
-        <p class="hero-free">komplett kostenfrei</p>
+  <div class="page-container">
+    <div class="ambient-bg"></div>
 
+    <header class="glass-header" :class="{ 'scrolled': isScrolled }">
+      <div class="logo-container" @click="toTop">
+        <Logo class="logo-img" aria-hidden="true" />
+        <span class="logo-text">Schul-Dashboard</span>
+      </div>
+    </header>
 
-        <div class="hero-actions">
-          <G @click="showAuth = true" data-umami-event="Welcome Page Dashboard benutzen button" >Dashboard jetzt benutzen</G>
+    <main class="main-content">
+      <section class="hero-section">
+        <div class="hero-text">
+          <h1 class="headline">
+            Das nächste<br>
+            Level
+          </h1>
+          <p class="sub-headline">
+            Dein Dashboard, um nie wieder den Überblick zu verlieren. Reduziere deinen Stress, indem zu alles an einem Platz hast.
+          </p>
+
+          <div class="feature-pills">
+            <G  v-if="!showAuths" @click="showAuths = true" >Dashboard jetzt benutzen</G>
+            <G v-else @click="showAuths = false" >Mehr erfahren</G>
+
+          </div>
         </div>
 
+        <div class="hero-form ">
+          <div class="glass-card-wrapper">
+            <div class="glass-card-wrapper">
+              <Transition name="bounce" mode="out-in" class="modal-transition-container">
+                <AuthForm v-if="showAuths" key="auth-form" ref="authComponentRef" class="modal-content" />
+                <DemoModal v-else key="demo-modal" class="modal-content" />
+              </Transition>
+            </div>
+          </div>
+        </div>
       </section>
 
-
-      <section v-if="showAuth" class="auth-section auth-only">
-        <div class="auth-wrapper">
-          <AuthForm ref="authComponentRef" />
-          <a class="back-link" @click="showAuth = false">Zurück</a>
+      <section class="features-section">
+        <div class="section-header">
+          <h2>Warum Schul-Dashboard?</h2>
+          <p>Habe alles an einem Platz.</p>
         </div>
 
+        <div style="display: none" class="bento-grid">
+          <div class="bento-item large">
+            <div class="bento-content">
+              <h3>Zentrales Dashboard</h3>
+              <p>Alles auf einen Blick. Hausaufgaben, Termine und Ankündigungen in einer übersichtlichen Oberfläche.</p>
+            </div>
+          </div>
+          <div class="bento-item ">
+            <div class="bento-content">
+              <h3>Echtzeit</h3>
+              <p>Synchronisierung in Millisekunden.</p>
+            </div>
+          </div>
+          <div class="bento-item ">
+            <div class="bento-content">
+              <h3>Sicherheit</h3>
+              <p>Maximale Datensicherheit durch moderne Standards.</p>
+            </div>
+          </div>
+          <div class="bento-item wide ">
+            <div class="bento-content horizontal">
+              <div class="text">
+                <h3>Responsive Design</h3>
+                <p>Egal ob Tablet, Smartphone oder Desktop. Das Erlebnis bleibt perfekt.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
+      <footer class="footer ">
+        <p>Schul-Dashboard – Alle Rechte vorbehalten</p>
+      </footer>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import AuthForm from './Welcome.vue';
-import G from "../components/G.vue"
-
-
-console.log('Dies ist eine rein private Applikation. Das Umgehen des Passwortschutzes, Umgehen von Sicherheitsvorkerungen, Erraten von Passwörtern sowie das Verschaffen nicht für unauthorisierte Personen bestimmter Daten ist strengstens untersagt, wird dokumentiert und umgehend zur Anzeige gebracht. ');
+import { ref, onMounted, onUnmounted } from 'vue';
+import AuthForm from './welcome/Welcome.vue';
+import DemoModal from "./welcome/DemoModal.vue";
+import Logo from "../components/hw/Logo.vue";
+import G from "./welcome/G.vue";
 
 const authComponentRef = ref<InstanceType<typeof AuthForm> | null>(null);
-const showAuth = ref(false);
+const isScrolled = ref(false);
+const showAuths = ref(false);
 
+function toTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
+function handleScroll() {
+  isScrolled.value = window.scrollY > 50;
+}
 
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+});
 
-
-
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
 
 </script>
 
 <style scoped>
+:root {
+  --glass-bg: rgba(20, 20, 20, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --accent-glow: rgba(255, 255, 255, 0.05);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+}
 
-.full-page-wrapper {
-  min-height: 100%;
+.page-container {
+  min-height: 100vh;
+  background-color: #050505;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  position: relative;
+}
+
+.ambient-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
   height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #050505 60%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+
+.glass-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(0px);
+  border-bottom: 1px solid transparent;
+}
+
+.glass-header.scrolled {
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(12px);
+  padding: 15px 40px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.modal-content {
+  position: absolute;
   width: 100%;
   top: 0;
-  right: 0;
-  background-color: var(--bg);
-  color: var(--text);
-  position: relative;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
+  left: 0;
+}
+.logo-text {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
 }
 
+.logo-img {
+  height: 35px;
+}
 
-.content-area {
-  flex-grow: 1;
+.main-content {
   position: relative;
+  z-index: 1;
   max-width: 1400px;
   margin: 0 auto;
+  padding: 0 20px;
+}
+
+.hero-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 80px;
+  gap: 60px;
+}
+
+.hero-text {
+  flex: 1;
+  max-width: 600px;
+}
+
+.headline {
+  font-size: clamp(3rem, 6vw, 5rem);
+  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 24px;
+  letter-spacing: -0.03em;
+}
+
+
+.sub-headline {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 480px;
+}
+
+.feature-pills {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 100px;
+  font-size: 0.9rem;
+  color: #e4e4e7;
+}
+
+.pill:hover {
+  background-color: rgba(255,255,255,0.12);
+}
+
+.hero-form {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  perspective: 1000px;
+}
+
+.glass-card-wrapper {
   width: 100%;
-  padding: 30px 20px;
-}
-
-
-.hero-main-content {
-  text-align: center;
-  padding: 100px 20px 80px;
+  max-width: 450px;
+  transform-style: preserve-3d;
   position: relative;
-  z-index: 10;
+  min-height: 500px;
 }
 
-.hero-title {
-  font-size: clamp(3rem, 7vw, 6rem);
-  font-weight: 900;
-  line-height: 1.05;
-  margin: 0 0 10px 0;
+
+.features-section {
+  padding: 150px 0;
 }
 
-.text-gradient {
-
-  display: block;
+.section-header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+.section-header h2 {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+.section-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
 }
 
-.hero-subtitle {
-  font-size: clamp(1rem, 2.5vw, 1.5rem);
-  font-weight: 400;
-  color: var(--sub);
-  margin-top: 0;
-  animation: fadeIn 0.6s ease-out 0.2s forwards;
-  opacity: 0;
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(250px, auto);
+  gap: 24px;
 }
 
-.hero-free {
-  font-size: clamp(1.2rem, 3vw, 2.2rem);
-  font-weight: 700;
-  color: var(--text);
-  margin: 15px 0 30px 0;
-  animation: fadeIn 0.7s ease-out 0.4s forwards;
-  opacity: 0;
+.bento-item {
+  background: rgba(20, 20, 20, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 32px;
+  transition: all 0.4s ease;
+  overflow: hidden;
+  position: relative;
 }
 
-.hero-actions {
-  margin-top: 40px;
-  animation: slideInUp 1.2s ease-out 0.6s forwards;
-  opacity: 0;
+.bento-item:hover {
+  background: rgba(30, 30, 30, 0.6);
+}
+
+.bento-item.large {
+  grid-row: span 2;
+}
+.bento-item.wide {
+  grid-column: span 2;
+}
+
+.bento-content {
+  height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
+  z-index: 2;
+  position: relative;
+}
+
+.bento-content.horizontal {
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
 }
 
-.auth-section {
-  padding: 60px 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 50vh;
-  margin-top: 5rem;
+.bento-item h3 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.bento-item p {
+  color: var(--text-secondary);
+  line-height: 1.5;
 }
 
-
-.auth-section.auth-only .auth-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+.footer {
+  padding: 40px 0;
+  border-top: 1px solid var(--glass-border);
+  text-align: center;
+  color: #52525b;
+  font-size: 0.9rem;
+  margin-top: 100px;
+}
+.bounce-enter-active,
+.bounce-leave-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-
-.back-link {
-  font-size: 0.95rem;
-  color: var(--primary);
-  text-decoration: underline;
-  cursor: pointer;
-  margin-top: 8px;
+.bounce-leave-active {
+  transition: all 0.1s;
 }
-
-
-
-.info-card label { font-weight: 600; display: block; margin-left: 5px; }
-.info-card input[type="checkbox"] { transform: scale(1.2); }
-
-@keyframes slideInUp {
-  0% { transform: translateY(40px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@media (max-width: 900px) {
-
-  .hero-main-content {
-    padding: 60px 20px 40px;
-    height: 110vh;
+@keyframes bounce-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0;
   }
 }
 
-
-
-
-.hero-main-content,
-.auth-section {
-  z-index: 10;
-  position: relative;
-  margin-top: 0;
+.bounce-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
 }
 
-.content-area > * { position: relative; z-index: 10; }
+.bounce-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+@media (max-width: 1024px) {
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+    padding-top: 120px;
+    gap: 40px;
+  }
 
+  .hero-text {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
+  .hero-form {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .bento-item.large, .bento-item.wide {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
 </style>
