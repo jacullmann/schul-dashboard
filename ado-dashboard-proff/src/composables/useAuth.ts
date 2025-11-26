@@ -81,6 +81,7 @@ export function useAuth() {
             body: JSON.stringify({ password: code })
         });
 
+
         const data = await response.json();
         if (response.ok && data.token) {
             token.value = data.token;
