@@ -1,29 +1,25 @@
 <template>
-  <div class="announcement-popup-overlay" @click.self="close">
-    <div class="announcement-popup" :style="{ borderLeftColor: colorFor(announcement.color) }">
+  <div class="popup-overlay" @click.self="close">
+    <div class="announcement-popup" :style="{ borderLeftColor: color }">
       <div class="popup-header">
-        <div class="popup-title-section">
-          <div class="popup-badge" :style="{ backgroundColor: colorFor(announcement.color) }">
-            {{ getBadgeText(announcement.color) }}
-          </div>
-          <h3 class="popup-title">{{ announcement.title }}</h3>
+        <div class="popup-title">
+          <div class="popup-color-indicator" :style="{ backgroundColor: color }"></div>
+          <h3>{{ announcement.title }}</h3>
         </div>
-        <button class="popup-close-btn" @click="close">×</button>
+        <button class="popup-close" @click="close">×</button>
       </div>
-
       <div class="popup-content">
-        <p>{{ announcement.content }}</p>
+        {{ announcement.content }}
       </div>
-
       <div class="popup-footer">
-        <button class="btn btn-ghost" @click="close">Schliesen</button>
+        <button class="btn" @click="close">Allles Klaro</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   announcement: {
@@ -34,66 +30,45 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-function close() {
-  emit('close')
-}
-
-function colorFor(color) {
+const color = computed(() => {
   const map = {
     'info': '#3f93f8',
     'warn': '#f59e0b',
-    'danger': '#ef4444',
-    'ok': '#10b981'
+    'danger': '#ef4444'
   }
-  return map[color] || '#3f93f8'
-}
+  return map[props.announcement.color] || '#3f93f8'
+})
 
-function getBadgeText(color) {
-  const map = {
-    'info': 'Info',
-    'warn': 'Wichtig',
-    'danger': 'Dringend',
-    'ok': 'Info'
-  }
-  return map[color] || 'Info'
-}
-
-function formatDate(dateString) {
-  return new Date(dateString).toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+function close() {
+  emit('close')
 }
 </script>
 
 <style scoped>
-.announcement-popup-overlay {
+.popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 3000;
   padding: 20px;
 }
 
 .announcement-popup {
   background: var(--card);
   border-radius: 12px;
-  border-left: 4px solid;
-  max-width: 500px;
+  padding: 0;
   width: 100%;
+  max-width: 500px;
   max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-left: 6px solid #3f93f8;
 }
 
 .popup-header {
@@ -104,96 +79,76 @@ function formatDate(dateString) {
   gap: 12px;
 }
 
-.popup-title-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.popup-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  color: white;
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  align-self: flex-start;
-}
-
 .popup-title {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
 }
 
-.popup-close-btn {
+.popup-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.popup-title h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.popup-close {
   background: none;
   border: none;
   color: var(--text);
   font-size: 24px;
   cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
   flex-shrink: 0;
-  opacity: 0.7;
-  transition: opacity 0.2s;
 }
 
-.popup-close-btn:hover {
-  opacity: 1;
+.popup-close:hover {
+  background: var(--jj);
 }
 
 .popup-content {
   padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-.popup-content p {
-  margin: 0;
+  color: var(--text);
   line-height: 1.5;
-  white-space: pre-wrap;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .popup-footer {
+  padding: 16px 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px 20px 20px;
-  border-top: 1px solid var(--border);
-  gap: 12px;
+  justify-content: flex-end;
 }
 
-.popup-footer small {
-  opacity: 0.7;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
+.popup-footer .btn {
+  background: var(--primary);
+  color: white;
   border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
   cursor: pointer;
-  font-family: inherit;
-  transition: background-color 0.2s;
+  font-size: 14px;
 }
 
-.btn-ghost {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text);
+.popup-footer .btn:hover {
+  opacity: 0.9;
 }
 
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-@media (max-width: 768px) {
-  .announcement-popup-overlay {
+@media (max-width: 500px) {
+  .popup-overlay {
     padding: 16px;
   }
 
@@ -206,14 +161,7 @@ function formatDate(dateString) {
   }
 
   .popup-footer {
-    padding: 12px 16px 16px 16px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .popup-footer small {
-    text-align: center;
+    padding: 12px 16px;
   }
 }
 </style>

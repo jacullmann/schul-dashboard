@@ -84,6 +84,7 @@ export function initModels(mongoose) {
         title: String,
         content: String,
         color: { type: String, default: 'warn' },
+        showAsPopup: { type: Boolean, default: false },
         createdBy: { type: Schema.Types.ObjectId, ref: 'HwUser' }
     }, { timestamps: true });
 

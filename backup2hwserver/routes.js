@@ -362,6 +362,7 @@ export default function registerRoutes(app, deps) {
         body('title').isString().isLength({ min: 2 }),
         body('content').isString().isLength({ min: 2 }),
         body('color').optional().isIn(['info', 'warn', 'danger']),
+        body('showAsPopup').optional().isBoolean(),
         validate,
         async (req, res) => {
             const user = await User.findById(req.user.sub);
@@ -374,6 +375,7 @@ export default function registerRoutes(app, deps) {
                 title: sanitizedTitle,
                 content: sanitizedContent,
                 color: req.body.color || 'warn',
+                showAsPopup: req.body.showAsPopup || false,
                 createdBy: req.user.sub
             });
 

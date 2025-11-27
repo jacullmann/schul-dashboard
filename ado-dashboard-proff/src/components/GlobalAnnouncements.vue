@@ -4,194 +4,166 @@
         class="global-ann"
         :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
     >
-      <div class="global-ann-content">
-        <div class="announcement-header">
-          <strong class="announcement-title">{{ currentAnnouncement.title }}</strong>
-          <div class="announcement-controls">
-            <span class="announcement-counter">
-              {{ currentIndex + 1 }}/{{ announcements.length }}
-            </span>
-            <button class="announcement-menu-btn" @click.stop="toggleMenu">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div class="announcement-body">
-          <div class="announcement-content-text" :class="{ truncated: isContentTruncated }">
-            {{ currentAnnouncement.content }}
-          </div>
-        </div>
+      <div class="global-ann-content" @click="nextAnnouncement">
+        <strong>{{ currentAnnouncement.title }}</strong>
+        <span class="announcement-text">{{ currentAnnouncement.content }}</span>
+        <span class="announcement-counter" v-if="announcements.length > 1">
+          ({{ currentIndex + 1 }}/{{ announcements.length }})
+        </span>
       </div>
 
-      <!-- Menu für alle Ankündigungen -->
-      <div class="announcements-menu" v-if="showMenu" v-click-outside="closeMenu">
-        <div class="menu-header">
-          <h3>Alle Ankündigungen</h3>
-          <button class="close-menu-btn" @click="closeMenu">×</button>
+      <!-- NEU: Menu Button -->
+      <button class="announcement-menu-btn" @click.stop="toggleMenu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- NEU: Menu Overlay -->
+    <div class="announcement-menu-overlay" v-if="showMenu" @click="showMenu = false">
+      <div class="announcement-menu" @click.stop>
+        <div class="announcement-menu-header">
+          <h4>Alle Ankündigungen</h4>
+          <button class="close-btn" @click="showMenu = false">×</button>
         </div>
-        <div class="menu-content">
+        <div class="announcement-list">
           <div
               v-for="(ann, index) in announcements"
-              :key="ann._id"
-              class="menu-item"
+              :key="ann.id"
+              class="announcement-item"
               :class="{ active: index === currentIndex }"
               @click="selectAnnouncement(index)"
           >
-            <div class="menu-item-title">{{ ann.title }}</div>
-            <div class="menu-item-preview">{{ truncateText(ann.content, 50) }}</div>
+            <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
+            <div class="announcement-item-content">
+              <strong>{{ ann.title }}</strong>
+              <span>{{ ann.content }}</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Popup für neue Ankündigungen -->
-    <AnnouncementPopup
-        v-if="showPopup"
-        :announcement="popupAnnouncement"
-        @close="closePopup"
-    />
   </div>
+
+  <!-- NEU: Popup Components -->
+  <AnnouncementPopup
+      v-if="showPopup && currentPopupAnnouncement"
+      :announcement="currentPopupAnnouncement"
+      @close="closePopup"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import hw from '../hwApi'
-import AnnouncementPopup from './popups/AnnouncementPopup.vue'
+import AnnouncementPopup from './popups/AnnouncementPopup.vue' // NEU: Popup Component
 
 const announcements = ref([])
 const currentIndex = ref(0)
-const showMenu = ref(false)
-const showPopup = ref(false)
-const popupAnnouncement = ref(null)
-const isContentTruncated = ref(false)
+const showMenu = ref(false) // NEU: Menu State
+const showPopup = ref(false) // NEU: Popup State
+const currentPopupAnnouncement = ref(null) // NEU: Current Popup
 const route = useRoute()
 
 const isWelcomePage = computed(() => route.path === '/welcome')
+
 const currentAnnouncement = computed(() => {
   return announcements.value[currentIndex.value] || {}
 })
 
-// Direktive für Klick außerhalb
-const vClickOutside = {
-  mounted(el, binding) {
-    el.clickOutsideEvent = function(event) {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value()
-      }
-    }
-    document.addEventListener('click', el.clickOutsideEvent)
-  },
-  unmounted(el) {
-    document.removeEventListener('click', el.clickOutsideEvent)
+// NEU: Local Storage für gesehene Popups
+const getSeenPopups = () => {
+  try {
+    return JSON.parse(localStorage.getItem('seenAnnouncementPopups') || '[]')
+  } catch {
+    return []
+  }
+}
+
+const markPopupAsSeen = (announcementId) => {
+  const seen = getSeenPopups()
+  if (!seen.includes(announcementId)) {
+    seen.push(announcementId)
+    localStorage.setItem('seenAnnouncementPopups', JSON.stringify(seen))
   }
 }
 
 onMounted(async () => {
   if (!isWelcomePage.value) {
-    await loadAnnouncements()
+    try {
+      const { data } = await hw.get('/api/announcements')
+      announcements.value = data
+      updateAnnouncementHeight()
+
+      // NEU: Popup für neue Ankündigungen anzeigen
+      checkForNewPopups(data)
+    } catch (error) {
+      console.error('Fehler beim Laden der globalen Ankündigungen', error)
+    }
   }
 })
 
-async function loadAnnouncements() {
-  try {
-    const { data } = await hw.get('/api/announcements')
-    announcements.value = data
-    updateAnnouncementHeight()
+// NEU: Popup-Logik
+function checkForNewPopups(announcements) {
+  const seenPopups = getSeenPopups()
 
-    // Prüfe auf neue Ankündigungen für Popups
-    checkForNewAnnouncements(data)
-  } catch (error) {
-    console.error('Fehler beim Laden der globalen Ankündigungen', error)
+  for (const announcement of announcements) {
+    // Nur Popups anzeigen, die als Popup markiert sind und noch nicht gesehen wurden
+    if (announcement.showAsPopup && !seenPopups.includes(announcement._id)) {
+      currentPopupAnnouncement.value = announcement
+      showPopup.value = true
+      markPopupAsSeen(announcement._id)
+      break // Nur ein Popup gleichzeitig anzeigen
+    }
   }
 }
 
-function checkForNewAnnouncements(announcements) {
-  const seenAnnouncements = JSON.parse(localStorage.getItem('seenAnnouncements') || '[]')
-
-  announcements.forEach(announcement => {
-    const isSeen = seenAnnouncements.includes(announcement._id)
-    if (!isSeen) {
-      // Zeige Popup für diese Ankündigung
-      showAnnouncementPopup(announcement)
-      // Markiere als gesehen
-      markAsSeen(announcement._id)
-    }
-  })
-}
-
-function showAnnouncementPopup(announcement) {
-  popupAnnouncement.value = announcement
-  showPopup.value = true
-}
-
+// NEU: Popup schließen
 function closePopup() {
   showPopup.value = false
-  popupAnnouncement.value = null
+  currentPopupAnnouncement.value = null
 }
 
-function markAsSeen(announcementId) {
-  const seenAnnouncements = JSON.parse(localStorage.getItem('seenAnnouncements') || '[]')
-  if (!seenAnnouncements.includes(announcementId)) {
-    seenAnnouncements.push(announcementId)
-    localStorage.setItem('seenAnnouncements', JSON.stringify(seenAnnouncements))
-  }
-}
-
+// NEU: Menu Funktionen
 function toggleMenu() {
   showMenu.value = !showMenu.value
 }
 
-function closeMenu() {
+function selectAnnouncement(index) {
+  currentIndex.value = index
   showMenu.value = false
 }
 
-function selectAnnouncement(index) {
-  currentIndex.value = index
-  closeMenu()
-}
-
-function truncateText(text, length) {
-  if (!text) return ''
-  return text.length > length ? text.substring(0, length) + '...' : text
+function nextAnnouncement() {
+  if (announcements.value.length > 1) {
+    currentIndex.value = (currentIndex.value + 1) % announcements.value.length
+  }
 }
 
 function updateAnnouncementHeight() {
   if (announcements.value.length && !isWelcomePage.value) {
-    document.documentElement.style.setProperty('--announcement-height', '80px')
+    document.documentElement.style.setProperty('--announcement-height', '45px')
   } else {
     document.documentElement.style.setProperty('--announcement-height', '0px')
   }
   window.dispatchEvent(new CustomEvent('announcement-height-changed'))
 }
 
-// Prüfe ob Inhalt abgeschnitten wird
-watch(currentAnnouncement, async () => {
-  await nextTick()
-  checkContentTruncation()
-})
-
-function checkContentTruncation() {
-  const contentElement = document.querySelector('.announcement-content-text')
-  if (contentElement) {
-    isContentTruncated.value = contentElement.scrollWidth > contentElement.clientWidth
-  }
-}
+watch(announcements, updateAnnouncementHeight)
+watch(isWelcomePage, updateAnnouncementHeight)
 
 function colorFor(color) {
   const map = {
-    'info': '#3f93f8',
-    'warn': '#f59e0b',
-    'danger': '#ef4444',
-    'ok': '#10b981'
+    'ok': 'var(--primary)',
+    'warn': 'var(--warn)',
+    'danger': 'var(--danger)',
+    'expired': '#4b5563',
+    'info': '#282828',
   }
-  return map[color] || '#3f93f8'
+  return map[color] || 'var(--muted)'
 }
-
-watch(announcements, updateAnnouncementHeight)
-watch(isWelcomePage, updateAnnouncementHeight)
 </script>
 
 <style scoped>
@@ -207,40 +179,38 @@ watch(isWelcomePage, updateAnnouncementHeight)
   padding: 12px 16px;
   color: white;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   box-shadow: 0 8px 6px rgba(5, 5, 5, 0.2);
-  position: relative;
+  min-height: 45px;
 }
 
 .global-ann-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.announcement-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.announcement-title {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.announcement-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0;
+  flex: 1;
+  text-align: center;
 }
 
-.announcement-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.announcement-counter {
+  font-size: 12px;
+  opacity: 0.8;
   flex-shrink: 0;
 }
 
+/* NEU: Menu Button Styles */
 .announcement-menu-btn {
   background: none;
   border: none;
@@ -253,6 +223,8 @@ watch(isWelcomePage, updateAnnouncementHeight)
   justify-content: center;
   opacity: 0.8;
   transition: opacity 0.2s;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .announcement-menu-btn:hover {
@@ -260,102 +232,111 @@ watch(isWelcomePage, updateAnnouncementHeight)
   background: rgba(255, 255, 255, 0.1);
 }
 
-.announcement-body {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 20px;
-}
-
-.announcement-content-text {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: all 0.3s ease;
-}
-
-.announcement-content-text.truncated {
-  animation: scrollText 15s linear infinite;
-}
-
-.announcement-scroll-hint {
-  font-size: 11px;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-.announcements-menu {
-  position: absolute;
-  top: 100%;
-  right: 16px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  z-index: 1001;
-  min-width: 300px;
-  max-width: 400px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-.menu-header h3 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.close-menu-btn {
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
+/* NEU: Menu Overlay Styles */
+.announcement-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.menu-content {
-  padding: 8px 0;
+.announcement-menu {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 0;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-.menu-item {
-  padding: 12px 16px;
+.announcement-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.announcement-menu-header h4 {
+  margin: 0;
+  color: var(--text);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 24px;
   cursor: pointer;
-  border-left: 3px solid transparent;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.close-btn:hover {
+  background: var(--jj);
+}
+
+.announcement-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.announcement-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
   transition: background-color 0.2s;
+  gap: 12px;
 }
 
-.menu-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+.announcement-item:hover {
+  background: var(--jj);
 }
 
-.menu-item.active {
-  border-left-color: currentColor;
-  background: rgba(255, 255, 255, 0.1);
+.announcement-item.active {
+  background: var(--primary);
+  color: white;
 }
 
-.menu-item-title {
-  font-weight: bold;
-  margin-bottom: 4px;
+.announcement-item-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.announcement-item-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.announcement-item-content strong {
+  font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.menu-item-preview {
+.announcement-item-content span {
   font-size: 12px;
   opacity: 0.8;
   white-space: nowrap;
@@ -363,19 +344,7 @@ watch(isWelcomePage, updateAnnouncementHeight)
   text-overflow: ellipsis;
 }
 
-@keyframes scrollText {
-  0% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(calc(100% - 100vw));
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 500px) {
   .global-announcements {
     top: 67px;
   }
@@ -384,15 +353,12 @@ watch(isWelcomePage, updateAnnouncementHeight)
     padding: 10px 12px;
   }
 
-  .announcements-menu {
-    right: 8px;
-    left: 8px;
-    min-width: auto;
-    max-width: none;
+  .global-ann-content {
+    gap: 4px;
   }
 
-  .announcement-scroll-hint {
-    display: none;
+  .announcement-text {
+    font-size: 13px;
   }
 }
 </style>
