@@ -92,7 +92,7 @@ function colorFor(color) {
   font-size: 14px;
   text-align: center;
   transition: background-color 0.3s ease;
-  box-shadow: 0 10px 5px rgba(5, 5, 5, 0.2);
+  box-shadow: 0 8px 6px rgba(5, 5, 5, 0.2);
 }
 
 .global-ann-content {
