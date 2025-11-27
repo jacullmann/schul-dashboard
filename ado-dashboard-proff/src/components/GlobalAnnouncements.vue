@@ -5,14 +5,12 @@
         :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
     >
       <div class="global-ann-content" @click="nextAnnouncement">
-        <strong>{{ currentAnnouncement.title }}</strong>
         <span class="announcement-text">{{ currentAnnouncement.content }}</span>
         <span class="announcement-counter" v-if="announcements.length > 1">
           ({{ currentIndex + 1 }}/{{ announcements.length }})
         </span>
       </div>
 
-      <!-- NEU: Menu Button -->
       <button class="announcement-menu-btn" @click.stop="toggleMenu">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
@@ -181,7 +179,7 @@ function colorFor(color) {
   font-size: 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   box-shadow: 0 8px 6px rgba(5, 5, 5, 0.2);
   min-height: 45px;
 }

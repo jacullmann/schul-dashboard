@@ -133,7 +133,6 @@ function close() {
 }
 
 .popup-footer .btn {
-  background: var(--primary);
   color: white;
   border: none;
   padding: 10px 20px;
