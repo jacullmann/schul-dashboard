@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import csurf from '@dr.pogodin/csurf';
 import express from 'express';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
@@ -13,7 +14,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
 import sanitizeMiddleware from './middleware/sanitize.js';
-import { requireExternalAuth } from './middleware/dashboardAuth.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -61,6 +61,7 @@ app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.use(morgan('combined'));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
+app.use(csurf({ cookie: true, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' }));
 app.use(sanitizeMiddleware);
 app.use(rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false }));
 
@@ -73,6 +74,7 @@ const models = initModels(mongoose);
 await ensureSubjects(models.Subject);
 
 routes(app, {
+    csurf,
     mongoose,
     models,
     supabase,

@@ -6,7 +6,6 @@ import crypto from 'crypto';
 import dayjs from 'dayjs';
 import { buildThumbUrl, withThumb, timeLeftColor } from './models.js';
 import { sanitizeStrict, sanitizeModerate } from './lib/sanitize.js';
-import { requireExternalAuth} from "./middleware/dashboardAuth.js";
 
 export default function registerRoutes(app, deps) {
     const {
@@ -47,24 +46,20 @@ export default function registerRoutes(app, deps) {
     }
 
     function tryAuth(req, res, next) {
-        const header = req.headers.authorization;
-        if (header) {
-            const token = header.split(' ')[1];
-            if (token) {
-                try {
-                    const decoded = jwt.verify(token, jwtSecret);
-                    req.user = decoded;
-                } catch {
-                    req.user = null;
-                }
+        const token = req.cookies.token;
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, jwtSecret);
+                req.user = decoded;
+            } catch {
+                req.user = null;
             }
         }
         next();
     }
 
     function requireAuth(req, res, next) {
-        const hdr = req.headers.authorization || '';
-        const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+        const token = req.cookies.token;
         if (!token) return sendJSONError(res, 401, 'Unauthorized');
         try {
             const payload = jwt.verify(token, jwtSecret);
@@ -172,17 +167,6 @@ export default function registerRoutes(app, deps) {
         }
     );
 
-    app.get('/api/geschuetzte-daten',
-        requireExternalAuth,
-        async (req, res) => {
-            console.log('Auth-Typ:', req.authType);
-
-            res.json({
-                message: 'Zugriff gewährt',
-                authType: req.authType
-            });
-        }
-    );
 
     app.post('/api/activity/pageload',
         requireAuth,
@@ -241,9 +225,24 @@ export default function registerRoutes(app, deps) {
             if (isBanned) return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
             const token = jwt.sign({ sub: user._id, email: user.email }, jwtSecret, { expiresIn: '7d' });
             await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-            res.json({ token });
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
+            res.json({ ok: true });
         }
     );
+
+    app.post('/api/auth/logout', (req, res) => {
+        res.clearCookie('token');
+        res.json({ ok: true });
+    });
+
+    app.get('/api/csrf-token', (req, res) => {
+        res.json({ csrfToken: req.csrfToken() });
+    });
 
     app.get('/api/auth/me', requireAuth, async (req, res) => {
         const user = await User.findById(req.user.sub).lean();
@@ -338,7 +337,7 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    app.get('/api/subjects', requireExternalAuth, async (req, res) => {
+    app.get('/api/subjects', requireAuth, async (req, res) => {
         const list = await Subject.find({}).sort({ name: 1 }).lean();
         res.json(list.map(s => s.name));
     });
@@ -353,7 +352,7 @@ export default function registerRoutes(app, deps) {
         res.json({ ok: true });
     });
 
-    app.get('/api/announcements', requireExternalAuth, async (req, res) => {
+    app.get('/api/announcements', requireAuth, async (req, res) => {
         const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
         res.json(list);
     });
@@ -533,7 +532,7 @@ export default function registerRoutes(app, deps) {
     );
 
     app.get('/api/items',
-        requireExternalAuth,
+        requireAuth,
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
         validate,
@@ -1096,7 +1095,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
-    app.get('/api/countdowns', requireExternalAuth, async (req, res) => {
+    app.get('/api/countdowns', requireAuth, async (req, res) => {
         try {
             const { data, error } = await supabase
                 .from('countdowns')

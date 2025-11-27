@@ -1,17 +1,38 @@
 import axios from 'axios';
 
-const DASHBOARD_STORAGE_KEY = 'm38ct09qw3motw3uiholwiu5h4lvzwilizukrejhklgwh';
 const hw = axios.create({
     baseURL: import.meta.env.VITE_HW_API_BASE,
-    withCredentials: false
+    withCredentials: true
 });
 
-hw.interceptors.request.use((config) => {
-    if (!config.headers.Authorization) {
-        const dashboardToken = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+// Cache for the CSRF token
+let csrfToken: string | null = null;
 
-        if (dashboardToken) {
-            config.headers.Authorization = `Bearer ${dashboardToken}`;
+// Function to fetch the CSRF token from the API
+async function getCsrfToken() {
+    // If we already have a token, return it
+    if (csrfToken) return csrfToken;
+    try {
+        const { data } = await hw.get('/api/csrf-token');
+        csrfToken = data.csrfToken;
+        return csrfToken;
+    } catch (error) {
+        console.error('Failed to retrieve CSRF token:', error);
+        csrfToken = null; // Reset on failure
+        return null;
+    }
+}
+
+// Request interceptor to add CSRF token to relevant requests
+hw.interceptors.request.use(async (config) => {
+    const methodsToProtect = ['post', 'put', 'patch', 'delete'];
+    if (config.method && methodsToProtect.includes(config.method)) {
+        const token = await getCsrfToken();
+        if (token) {
+            config.headers['X-CSRF-Token'] = token;
+        } else {
+            // Block the request if the CSRF token is not available
+            return Promise.reject(new Error('CSRF token is not available. Request blocked.'));
         }
     }
     return config;
@@ -19,16 +40,14 @@ hw.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
-
+// Response interceptor to handle authentication errors (e.g., expired session)
 hw.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            const storedToken = localStorage.getItem('hw_token');
-            if (storedToken) {
-                console.warn('401. Ungültiges Token. Forciere Logout.');
-                setHwToken(null, null);
-            }
+            console.warn('401 Unauthorized. Session may have expired. Triggering auth-error.');
+            // Dispatch a global event that the auth store can listen to, to trigger a logout
+            window.dispatchEvent(new CustomEvent('auth-error'));
         }
         return Promise.reject(error);
     }
@@ -43,45 +62,27 @@ function umamiSetLoggedIn(status: boolean, userId?: string | null) {
     } catch {}
 }
 
-function logPageLoad(token: string) {
-    fetch(`${import.meta.env.VITE_HW_API_BASE}/api/activity/pageload`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    }).catch(() => {});
-}
+// This function is called from the auth store after a successful login
+export function onLoginSuccess(userId: string) {
+    umamiSetLoggedIn(true, userId);
+    window.dispatchEvent(new CustomEvent('user-logged-in'));
+    // Invalidate CSRF token after login to get a new one for the new session
+    csrfToken = null;
 
-export function setHwToken(token: string | null, userId?: string | null) {
-    if (token) {
-        hw.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        localStorage.setItem('hw_token', token);
-        if (userId) localStorage.setItem('hw_user_id', userId);
-        umamiSetLoggedIn(true, userId ?? localStorage.getItem('hw_user_id'));
-        window.dispatchEvent(new CustomEvent('user-logged-in'));
-        setTimeout(() => {
-            logPageLoad(token);
-        }, 1000);
-    } else {
-        delete hw.defaults.headers.common['Authorization'];
-        localStorage.removeItem('hw_token');
-        localStorage.removeItem('hw_user_id');
-        umamiSetLoggedIn(false);
-    }
-}
-
-
-const stored = localStorage.getItem('hw_token');
-const storedUserId = localStorage.getItem('hw_user_id');
-if (stored) {
-    hw.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
-    umamiSetLoggedIn(true, storedUserId);
+    // Log page load activity
     setTimeout(() => {
-        logPageLoad(stored);
+        hw.post('/api/activity/pageload').catch(() => {});
     }, 1000);
-} else {
-    umamiSetLoggedIn(false);
 }
+
+// This function is called from the auth store on logout
+export function onLogoutSuccess() {
+    umamiSetLoggedIn(false);
+    // Invalidate CSRF token on logout
+    csrfToken = null;
+}
+
+// Initialize Umami with logged-out state by default
+umamiSetLoggedIn(false);
 
 export default hw;
