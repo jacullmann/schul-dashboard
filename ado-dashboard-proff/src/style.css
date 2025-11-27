@@ -119,6 +119,24 @@ footer {
     z-index: -2;
     object-fit: cover;
 }
+
+.global-announcements {
+    user-select: none;
+}
+
+.announcement-content-text {
+    cursor: grab;
+}
+
+.announcement-content-text:active {
+    cursor: grabbing;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .announcement-content-text {
+        -webkit-overflow-scrolling: touch;
+    }
+}
 @media (max-width: 768px) {
 
     .svg-background {
