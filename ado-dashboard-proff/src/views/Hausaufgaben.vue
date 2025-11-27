@@ -33,6 +33,7 @@
         </button>
       </div>
 
+
       <div v-if="announcements.length && user?.isAdmin" class="ann-list">
         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
           <div class="ann-content">{{ a.content }}</div>
