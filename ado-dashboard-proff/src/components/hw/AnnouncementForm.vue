@@ -6,9 +6,6 @@
         <button data-umami-event="Ankündigung erstellen Menü schließen" class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
       </div>
       <div style="margin-top:8px;">
-        <input class="input" v-model="title" placeholder="Titel" />
-      </div>
-      <div style="margin-top:8px;">
         <textarea class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
       </div>
       <div style="margin-top:8px;">
@@ -18,7 +15,6 @@
           <option value="danger">Dringend</option>
         </select>
       </div>
-      <!-- NEU: Popup-Option -->
       <div style="margin-top:8px;">
         <label style="display:flex; align-items:center; gap:8px; color:var(--text);">
           <input type="checkbox" v-model="showAsPopup" />
@@ -59,10 +55,9 @@ async function submit() {
   isError.value = false;
   try {
     await hw.post('/api/announcements', {
-      title: title.value,
       content: content.value,
       color: color.value,
-      showAsPopup: showAsPopup.value, // NEU: Popup-Flag senden
+      showAsPopup: showAsPopup.value,
     });
     message.value = 'Ankündigung erfolgreich angelegt.';
     isError.value = false;

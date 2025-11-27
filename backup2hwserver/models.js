@@ -81,7 +81,6 @@ export function initModels(mongoose) {
     }, { timestamps: true });
 
     const AnnouncementSchema = new Schema({
-        title: String,
         content: String,
         color: { type: String, default: 'warn' },
         showAsPopup: { type: Boolean, default: false },

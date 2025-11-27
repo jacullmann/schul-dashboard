@@ -359,7 +359,6 @@ export default function registerRoutes(app, deps) {
     });
 
     app.post('/api/announcements', requireAuth,
-        body('title').isString().isLength({ min: 2 }),
         body('content').isString().isLength({ min: 2 }),
         body('color').optional().isIn(['info', 'warn', 'danger']),
         body('showAsPopup').optional().isBoolean(),
@@ -368,11 +367,9 @@ export default function registerRoutes(app, deps) {
             const user = await User.findById(req.user.sub);
             if (!user?.isAdmin) return sendJSONError(res, 403, 'Forbidden');
 
-            const sanitizedTitle = sanitizeStrict(req.body.title);
             const sanitizedContent = sanitizeModerate(req.body.content);
 
             const doc = await Announcement.create({
-                title: sanitizedTitle,
                 content: sanitizedContent,
                 color: req.body.color || 'warn',
                 showAsPopup: req.body.showAsPopup || false,
