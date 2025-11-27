@@ -84,7 +84,6 @@ function colorFor(color) {
   width: 100%;
   z-index: 1000;
   cursor: pointer;
-  box-shadow: 12px 12px 2px 1px rgba(5, 5, 5, 0.2);
 }
 
 .global-ann {
