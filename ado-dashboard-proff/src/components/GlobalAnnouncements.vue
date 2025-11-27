@@ -35,7 +35,6 @@
           >
             <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
             <div class="announcement-item-content">
-              <strong>{{ ann.title }}</strong>
               <span>{{ ann.content }}</span>
             </div>
           </div>

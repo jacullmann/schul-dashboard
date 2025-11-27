@@ -4,7 +4,6 @@
       <div class="popup-header">
         <div class="popup-title">
           <div class="popup-color-indicator" :style="{ backgroundColor: color }"></div>
-          <h3>{{ announcement.title }}</h3>
         </div>
         <button class="popup-close" @click="close">×</button>
       </div>
@@ -12,7 +11,7 @@
         {{ announcement.content }}
       </div>
       <div class="popup-footer">
-        <button class="btn" @click="close">Allles Klaro</button>
+        <button class="btn" @click="close">Alles klar</button>
       </div>
     </div>
   </div>
