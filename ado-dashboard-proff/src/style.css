@@ -12,6 +12,11 @@
     --sub: #aaaaaa;
     --announcement-height: 0px;
     --progress-height: 3px;
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --accent-glow: rgba(255, 255, 255, 0.05);
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
 }
 
 * { box-sizing: border-box; }
