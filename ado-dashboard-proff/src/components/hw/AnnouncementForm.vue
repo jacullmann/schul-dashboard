@@ -41,7 +41,6 @@ import hw from '../../hwApi';
 
 const emit = defineEmits(['close', 'success']);
 
-const title = ref('');
 const content = ref('');
 const color = ref('warn');
 const showAsPopup = ref(false); // NEU: Popup-Option
