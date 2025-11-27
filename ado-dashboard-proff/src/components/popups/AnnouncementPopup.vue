@@ -131,7 +131,7 @@ function close() {
   justify-content: flex-end;
 }
 
-.popup-footer .btn {
+.popup-footer{
   color: white;
   border: none;
   padding: 10px 20px;
