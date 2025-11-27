@@ -70,7 +70,7 @@ function colorFor(color) {
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
     'expired': '#4b5563',
-    'info': '#3b82f6',
+    'info': '#282828',
   }
   return map[color] || 'var(--muted)'
 }
