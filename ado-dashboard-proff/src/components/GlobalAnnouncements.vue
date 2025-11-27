@@ -194,9 +194,7 @@ function colorFor(color) {
 }
 
 .announcement-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: wrap;
   flex: 1;
   text-align: center;
 }

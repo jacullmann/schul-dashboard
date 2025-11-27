@@ -11,7 +11,7 @@
         {{ announcement.content }}
       </div>
       <div class="popup-footer">
-        <button class="btn ghost" @click="close">Alles klar</button>
+        <button class="btn" @click="close">Alles klar</button>
       </div>
     </div>
   </div>
@@ -142,6 +142,10 @@ function close() {
 
 .popup-footer .btn:hover {
   opacity: 0.9;
+}
+
+.btn {
+  color: black;
 }
 
 @media (max-width: 500px) {
