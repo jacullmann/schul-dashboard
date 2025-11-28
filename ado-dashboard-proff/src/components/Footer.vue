@@ -8,7 +8,7 @@
         </div>
 
         <div class="footer-section">
-          <h3>Links</h3>
+          <h3>Navigation</h3>
           <router-link to="/" class="footer-link">Dashboard</router-link>
           <router-link  to="/stundenplan" class="footer-link">Stundenplan</router-link>
           <router-link  to="/kuerzel" class="footer-link">Kürzelfinder</router-link>

@@ -4,24 +4,31 @@ import Logo from "../../components/hw/Logo.vue";
 
 <template>
   <header class="header">
-
-    <div class="logo-container">
+    <div class="header-content-wrapper"> <div class="logo-container">
       <Logo class="logo-img" aria-hidden="true" />
       <span class="logo-text">Schul-Dashboard</span>
     </div>
-
-    <nav class="nav-links">
-    </nav>
-
-  </header>
+      <nav class="nav-links">
+      </nav>
+    </div> </header>
 </template>
 
 <style scoped>
 .header {
   width: 100%;
   height: 70px;
-  background-color: #0f0f0f;
+  background-color: var(--bg);
   color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.header-content-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  height: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -63,6 +70,9 @@ import Logo from "../../components/hw/Logo.vue";
 
 @media (max-width: 768px) {
   .header {
+    padding: 0 1.5rem;
+  }
+  .header-content-wrapper {
     padding: 0 1.5rem;
   }
 }

@@ -7,9 +7,13 @@
     <div class="main-container">
         <WelcomeContent v-if="isWelcomeContent" :on-start-click="showAuthForm" key="welcome"/>
 
-        <div v-else class="auth-content content" key="auth-form">
+        <div v-if="!isWelcomeContent" class="auth-content content" key="auth-form">
           <AuthForm />
         </div>
+      <Sec  v-if="!isWelcomeContent && isSecurity" />
+
+
+
 
     </div>
 
@@ -27,6 +31,7 @@ import WelcomeHeader from "./welcome/WelcomeHeader.vue";
 import WelcomeFooter from "./welcome/WelcomeFooter.vue";
 import AuthForm from "./welcome/AuthForm.vue";
 import WelcomeContent from "./welcome/WelcomeContent.vue";
+import Sec from "./welcome/Sec.vue";
 
 const isWelcomeContent = ref<boolean>(true);
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import MehrErfahren from "./MehrErfahren.vue";
-import UseDashboard from "./UseDashboard.vue";
 import Special from "./Special.vue";
 import G from "./G.vue";
 import Line from './Line.vue'
@@ -40,7 +39,7 @@ defineProps<{
   height: 12px;
   width: 100%;
   position: absolute;
-  bottom: -10px;
+  bottom: -5px;
   left: 0;
 }
 .line-span {
@@ -51,7 +50,7 @@ defineProps<{
   display: flex;
   flex-direction: row;
   align-items: center;
-  max-width: 1200px;
+  max-width: 1400px;
   width: 90%;
   margin: 0 auto;
   min-height: calc(100vh - 70px - 50px - 2rem);
@@ -158,11 +157,11 @@ defineProps<{
 
   .text-content {
     max-width: 100%;
-    order: 1;
+    order: 2;
   }
 
   .visual-container {
-    order: 2;
+    order: 1;
   }
 
   .headline {
