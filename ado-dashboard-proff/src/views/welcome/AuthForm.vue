@@ -142,8 +142,7 @@ async function submit() {
   background: rgba(30, 30, 30, 0.6);
   border-radius: 24px;
   padding: 30px;
-  width: 100%;
-  max-width: 410px;
+  width: 410px;
   display: flex;
   flex-direction: column;
   gap: 24px;
