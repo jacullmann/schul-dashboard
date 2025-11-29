@@ -95,8 +95,6 @@ const handleClick = (event: MouseEvent) => {
 .ripple-button {
   position: relative;
   overflow: hidden;
-  padding: 10px 20px;
-  font-size: 18px;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;

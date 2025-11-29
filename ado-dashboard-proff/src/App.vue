@@ -15,8 +15,7 @@
     <main class="full-c">
       <div class="svg-background" v-if="deviceIsMobile"></div>
       <!--<img src="./utils/alt.svg" alt="Background" class="svg-background" v-else/>-->
-      <!--<div class="black-bg" v-else></div>-->
-      <BG class="svg-background" />
+      <div class="black-bg" v-else></div>
 
       <div :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
         <MainContent />
@@ -39,7 +38,6 @@ import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
 import { loadBadWords } from "./composables/useProfanity";
 import { useLoadingBar } from "./composables/loadingState";
-import BG from "./views/welcome/assets/BG.vue";
 
 const deviceIsMobile = ref(false);
 

@@ -73,7 +73,7 @@ import Logo from "../../components/hw/Logo.vue";
     padding: 0 1.5rem;
   }
   .header-content-wrapper {
-    padding: 0 1.5rem;
+    padding: 0 0.3rem;
   }
 }
 </style>

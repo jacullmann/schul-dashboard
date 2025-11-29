@@ -82,12 +82,19 @@ function showAuthForm() {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 15px;
   box-sizing: border-box;
 }
 
 .auth-content {
   text-align: center;
-  padding: 40px 0;
+  padding: 20px 0;
+}
+@media (max-width: 600px) {
+}
+.auth-content {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 </style>

@@ -25,7 +25,7 @@ defineProps<{
       <div class="action-buttons">
         <button class="action-btn secondary"> Mehr erfahren</button>
 
-        <G @click="onStartClick" >Jetzt loslegen</G>
+        <G @click="onStartClick" class="action-btn primary">Jetzt loslegen</G>
       </div>
     </div>
 
@@ -173,14 +173,17 @@ defineProps<{
   .headline {
     font-size: 2.5rem;
   }
-
   .action-buttons {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 5px;
   }
-
   .action-btn {
-    min-width: 100%;
+    padding: 0 0;
+    min-width: inherit;
+  }
+  .secondary, .primary {
+    padding: 12px 14px 12px 14px;
+    font-size: 0.9rem;
   }
 }
 </style>
