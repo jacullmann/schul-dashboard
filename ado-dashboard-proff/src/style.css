@@ -166,6 +166,7 @@ footer {
     .card {
         margin: 0 0 0 0;
         padding: 16px 16px 16px 16px;
+        border: none;
     }
 
     .container {
@@ -175,10 +176,13 @@ footer {
 
     }
     .btn:hover {
-        background-color: inherit;
+        background:#fff;
+        color:var(--jj);
     }
     .btn.ghost:hover {
-        background-color: inherit;
+        background:#282828;
+        border:1px solid #414141;
+        color:var(--text);
     }
 
 }
