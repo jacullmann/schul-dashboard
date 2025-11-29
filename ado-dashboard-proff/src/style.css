@@ -56,12 +56,31 @@ a { color: var(--primary); text-decoration: none; }
     background: #2a2a2a; color: var(--text); border: none;
 }
 .btn {
-    display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px;
-    background: #f1f1f1; color: var(--jj); border: none; border-radius: 5px; cursor: pointer; transition: 0.1s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 14px;
+    background:#fff;
+    color:var(--jj);
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    transition:.1s ease
 }
-.btn:hover { background-color: #D9D9D9}
-.btn.ghost:hover { background-color: #3F3F3F}
-.btn.ghost { background: #282828; color: var(--text); transition: 0.1s ease; }
+.btn:hover {
+    background-color:#f1f1f1
+}
+.btn.ghost {
+    background:#282828;
+    border:1px solid #414141;
+    color:var(--text);
+    transition: .1s ease
+}
+.btn.ghost:hover {
+    background-color:#fff;
+    border:1px solid transparent;
+    color:#0f0f0f;
+}
 .btn.danger { background: var(--danger); color: white; }
 .btn.warn { background: var(--warn); color: #1f1300; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; }
