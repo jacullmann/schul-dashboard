@@ -53,7 +53,7 @@
 
       <div class="action-area">
         <button
-            class="modern-btn"
+            class="btn ghost"
             @click="submit"
             :disabled="!accepted || isLoading"
         >
@@ -139,8 +139,8 @@ async function submit() {
 
 <style scoped>
 .login-card {
-  background: rgba(30, 30, 30, 0.6);
-  border-radius: 24px;
+  background: var(--bg);
+  border-radius: 12px;
   padding: 30px;
   width: 410px;
   display: flex;
@@ -148,6 +148,7 @@ async function submit() {
   gap: 24px;
   position: relative;
   overflow: hidden;
+  border: 1px solid var(--border);
 }
 
 
@@ -185,9 +186,9 @@ async function submit() {
 
 .modern-input {
   width: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: rgba(44, 44, 44, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
   padding: 14px 16px 14px 48px;
   color: #fff;
   font-size: 1rem;
@@ -196,8 +197,7 @@ async function submit() {
 
 .modern-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(0, 0, 0, 0.5);
+  border-color: #918f8f;
 }
 
 .modern-input:focus + .input-icon,
@@ -247,7 +247,7 @@ async function submit() {
 .check-icon {
   color: #000;
   opacity: 0;
-  transform: scale(0.5);
+  transform: scale(0.8);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -266,12 +266,8 @@ async function submit() {
   color: #a1a1aa;
 }
 
-.modern-btn {
+.btn {
   width: 100%;
-  background: #fff;
-  color: #000;
-  border: none;
-  border-radius: 10px;
   padding: 14px;
   font-size: 1rem;
   font-weight: 600;
@@ -283,11 +279,18 @@ async function submit() {
   transition: all 0.2s ease;
 }
 
-
-.modern-btn:disabled {
+.btn:hover {
+  background: var(--jj);
+  color: #fff;
+  border: 1px solid var(--border2);
+}
+.btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #52525b;
+  background: #75757e;
+}
+.btn:disabled:hover {
+  color: #fff;
 }
 
 .card-footer {
@@ -319,7 +322,7 @@ async function submit() {
   border: 1px solid rgba(239, 68, 68, 0.2);
   color: #fca5a5;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
@@ -329,8 +332,8 @@ async function submit() {
 .loading-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(0,0,0,0.1);
-  border-left-color: #000;
+  border: 2px solid var(--text);
+  border-left-color: var(--text);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

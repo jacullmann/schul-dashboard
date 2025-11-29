@@ -1,5 +1,7 @@
 <template>
+  <BGB class="bgb"/>
   <div class="outer-container">
+
     <div class="header-container">
       <WelcomeHeader @click="isWelcomeContent = true" />
     </div>
@@ -26,6 +28,7 @@
 
 <script setup lang="ts">
 import  { ref } from 'vue';
+import BGB from './welcome/assets/BG.vue'
 
 import WelcomeHeader from "./welcome/WelcomeHeader.vue";
 import WelcomeFooter from "./welcome/WelcomeFooter.vue";
@@ -42,11 +45,20 @@ function showAuthForm() {
 </script>
 
 <style scoped>
+.bgb {
+  z-index: -1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+}
 .outer-container {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background-color: #030303;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }

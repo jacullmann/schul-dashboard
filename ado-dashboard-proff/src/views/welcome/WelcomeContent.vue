@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import MehrErfahren from "./MehrErfahren.vue";
 import Special from "./Special.vue";
 import G from "./G.vue";
 import Line from './Line.vue'
@@ -24,7 +23,7 @@ defineProps<{
       </p>
 
       <div class="action-buttons">
-        <MehrErfahren class="action-btn secondary" />
+        <button class="action-btn secondary"> Mehr erfahren</button>
 
         <G @click="onStartClick" >Jetzt loslegen</G>
       </div>
@@ -127,26 +126,16 @@ defineProps<{
   min-width: 180px;
 }
 
-.primary {
-  background:linear-gradient(
-      to right,
-      #FFBC4C 0%,
-      #FFBC4C 7%,
-      #FF6683 40%,
-      #BF33FF 69%,
-      #7833FF 100%
-  );;
-}
-
-.primary:hover {
-}
 
 .secondary {
-  background: none;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--text);
 }
 
 .secondary:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--border2);
+
 }
 
 @media (max-width: 992px) {

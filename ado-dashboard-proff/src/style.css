@@ -174,5 +174,11 @@ footer {
         background: var(--bg);
 
     }
+    .btn:hover {
+        background-color: inherit;
+    }
+    .btn.ghost:hover {
+        background-color: inherit;
+    }
 
 }
