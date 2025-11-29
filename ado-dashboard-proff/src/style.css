@@ -76,10 +76,13 @@ a { color: var(--primary); text-decoration: none; }
     color:var(--text);
     transition: .1s ease
 }
-.btn.ghost:hover {
+/*.btn.ghost:hover {
     background-color:#fff;
     border:1px solid transparent;
     color:#0f0f0f;
+}*/
+.btn.ghost:hover {
+    background-color:#353535;
 }
 .btn.danger { background: var(--danger); color: white; }
 .btn.warn { background: var(--warn); color: #1f1300; }
