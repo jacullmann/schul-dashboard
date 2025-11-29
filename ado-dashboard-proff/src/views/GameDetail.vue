@@ -1,5 +1,5 @@
 <template>
-  <div class="game-detail">
+  <div class="game-detail card">
     <!-- Lade-Indikator, falls die Komponente noch nicht geladen ist -->
     <div v-if="!game">
       <h3 class="text-center">Spiel wird geladen...</h3>
@@ -89,7 +89,6 @@ watch(() => route.params.id, (newId) => {
   background-color: var(--bg);
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .game-title {

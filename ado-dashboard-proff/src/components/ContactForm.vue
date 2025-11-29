@@ -209,8 +209,6 @@ const clearAndHide = () => {
 
 .email-button:hover {
   background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.3);
-  transform: translateY(-1px);
 }
 
 .button-icon {

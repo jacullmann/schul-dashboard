@@ -107,6 +107,7 @@ defineProps<{
 
 .free {
   font-weight: 600;
+  color: #fff;
 }
 
 .action-buttons {

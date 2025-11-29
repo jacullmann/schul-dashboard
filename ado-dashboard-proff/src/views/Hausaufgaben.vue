@@ -757,7 +757,7 @@ const {
   pointer-events: none;
 }
 
-.empty { text-align:center; color:var(--muted); padding:24px; }
+.empty { text-align:center; color:var(--muted); padding:24px; border: none }
 
 .collapse-enter-active, .collapse-leave-active {
   transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),

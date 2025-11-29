@@ -7,7 +7,7 @@
     --primary: #3f93f8;
     --danger: #ef4444;
     --warn: #f59e0b;
-    --border: grey;
+    --border: #333;
     --jj: #282828;
     --sub: #aaaaaa;
     --announcement-height: 0px;
@@ -48,7 +48,7 @@ a { color: var(--primary); text-decoration: none; }
 .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .card {
     background: var(--bg);
-    /* border: px solid var(--border); */ border-radius: 12px; padding: 16px;;
+    border: 1px solid var(--border);  border-radius: 12px; padding: 16px;;
 }
 .input, select, textarea {
     width: 100%; padding: 10px 12px; border-radius: 5px;

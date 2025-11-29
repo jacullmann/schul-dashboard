@@ -171,7 +171,6 @@ onUnmounted(() => {
 
 <style scoped>
 .complaint-card {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   backdrop-filter: blur(8px);
 }
 

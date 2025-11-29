@@ -14,7 +14,8 @@
 
     <main class="full-c">
       <div class="svg-background" v-if="deviceIsMobile"></div>
-      <img src="./utils/alt.svg" alt="Background" class="svg-background" v-else/>
+      <!--<img src="./utils/alt.svg" alt="Background" class="svg-background" v-else/>-->
+      <div class="black-bg" v-else></div>
 
       <div :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
         <MainContent />
@@ -97,5 +98,15 @@ onMounted(() => {
 .main-content {
   margin-top: var(--announcement-height);
   transition: margin-top 0.3s ease;
+}
+
+.black-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg);
+  z-index: -2;
 }
 </style>
