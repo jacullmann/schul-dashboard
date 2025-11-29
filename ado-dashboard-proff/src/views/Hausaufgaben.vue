@@ -70,7 +70,7 @@
               title="Filtert Enrichment und WPU Kurse"
           >
             <a style="color: black" v-if="showPersonalized">Alle Einträge anzeigen</a>
-            <a style="color: var(--text)" v-else>Personalisierte Einträge anzeigen</a>
+            <a  v-else>Personalisierte Einträge anzeigen</a>
           </button>
         </div>
 
