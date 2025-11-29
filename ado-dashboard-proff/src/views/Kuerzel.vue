@@ -195,8 +195,8 @@ onMounted(() => {
   justify-content: center;
 }
 .switch-btn {
-  background: transparent;
-  border: none;
+  background: var(--llbg);
+  border: 1px solid var(--border);
   border-radius: 6px;
   width: 40px;
   height: 40px;
@@ -232,9 +232,13 @@ onMounted(() => {
   width: 100%;
   padding: 10px;
   border-radius: 6px;
-  background: #282828;
+  background: var(--llbg);
+  border: 1px solid var(--border);
   color: #f1f1f1;
   margin-top: 5px;
+}
+.input:focus {
+  border: 1px solid var(--border2);
 }
 .suggestion {
   margin-top: 8px;

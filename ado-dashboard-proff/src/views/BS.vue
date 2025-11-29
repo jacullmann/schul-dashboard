@@ -192,22 +192,17 @@ onUnmounted(() => {
   gap: 12px;
 }
 
-/* Input/Textarea Styling */
 .input {
-  border-radius: 6px;
-  background: var(--jj, #222);
+  background: var(--llbg);
   padding: 10px;
   color: var(--text);
   font-family: inherit;
   resize: vertical;
+  border: 1px solid var(--border);
 }
 
-/* WICHTIG: Entfernt den Fokus-Effekt */
 .input:focus {
-  outline: none;
-  border-color: var(--border, #444);
-  box-shadow: none;
-  transform: none;
+  border: 1px solid var(--border2);
 }
 
 /* Buttons */

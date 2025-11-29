@@ -13,9 +13,10 @@
               id="username"
               v-model="password1"
               placeholder="Name"
-              class="modern-input"
+              class="s-input"
               type="text"
               autocomplete="username"
+              :class="{ 'input-focus': password1 }"
           />
         </div>
       </div>
@@ -28,9 +29,10 @@
               id="access-code"
               v-model="password2"
               placeholder="Zugangscode"
-              class="modern-input"
+              class="s-input"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
+              :class="{ 'input-focus': password2 }"
           />
           <button
               type="button"
@@ -43,7 +45,7 @@
         </div>
       </div>
 
-      <label class="modern-checkbox">
+      <label class="s-checkbox">
         <input class="checkbox-input" type="checkbox" v-model="accepted" />
         <span class="checkbox-box">
           <component :is="Check" class="check-icon" :size="12" />
@@ -53,7 +55,7 @@
 
       <div class="action-area">
         <button
-            class="btn ghost"
+            class="s-btn btn ghost"
             @click="submit"
             :disabled="!accepted || isLoading"
         >
@@ -80,7 +82,7 @@
 
         Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden.
       </p>
-      <p style="cursor: pointer" v-else @click="showIt = true" class="disclaimer">
+      <p style="cursor: pointer" v-else @click="showIt = true" class="disclaimer link-subtle">
         Wichtiger rechtlicher Hinweis!
       </p>
     </div>
@@ -139,7 +141,7 @@ async function submit() {
 
 <style scoped>
 .login-card {
-  background: var(--bg);
+  background: var(--card);
   border-radius: 12px;
   padding: 30px;
   width: 410px;
@@ -154,17 +156,15 @@ async function submit() {
 
 .card-header {
   text-align: center;
-  margin-bottom: 10px;
 }
 
 .card-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #fff;
-  margin: 0 0 8px 0;
+  color: var(--text);
+  margin: 0;
   letter-spacing: -0.01em;
 }
-
 .input-group {
   margin-bottom: 16px;
 }
@@ -177,49 +177,57 @@ async function submit() {
 
 .input-icon {
   position: absolute;
-  left: 16px;
-  color: #71717a;
+  left: 14px;
+  color: var(--sub);
   z-index: 10;
   pointer-events: none;
   transition: color 0.2s;
 }
 
-.modern-input {
+.s-input {
   width: 100%;
-  background: rgba(44, 44, 44, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  padding: 14px 16px 14px 48px;
-  color: #fff;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 12px 16px 12px 42px;
+  color: var(--text);
   font-size: 1rem;
   transition: all 0.2s ease;
 }
 
-.modern-input:focus {
+.s-input:focus {
   outline: none;
-  border-color: #918f8f;
+  border-color: var(--sub);
 }
 
-.modern-input:focus + .input-icon,
+.s-input:focus + .input-icon,
 .input-wrapper:focus-within .input-icon {
-  color: #fff;
+  color: var(--sub);
 }
+.s-input.input-focus {
+  border-color: var(--border2);
+}
+.s-input.input-focus + .input-icon {
+  color: var(--sub);
+}
+
 
 .visibility-toggle {
   position: absolute;
-  right: 12px;
+  right: 8px;
   background: transparent;
   border: none;
-  color: #71717a;
+  color: var(--sub);
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   border-radius: 4px;
   display: flex;
   align-items: center;
 }
-.visibility-toggle:hover { color: #fff; }
+.visibility-toggle:hover { color: var(--text); }
 
-.modern-checkbox {
+
+.s-checkbox {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -235,40 +243,42 @@ async function submit() {
 .checkbox-box {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--border2);
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  background: rgba(0,0,0,0.2);
+  background: transparent;
 }
 
 .check-icon {
-  color: #000;
+  color: var(--card);
   opacity: 0;
   transform: scale(0.8);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .checkbox-input:checked + .checkbox-box {
-  background: #fff;
-  border-color: #fff;
+  background: var(--sub);
+  border-color: var(--sub);
 }
 
 .checkbox-input:checked + .checkbox-box .check-icon {
   opacity: 1;
   transform: scale(1);
+  color: var(--card);
 }
 
 .checkbox-text {
-  font-size: 0.85rem;
-  color: #a1a1aa;
+  font-size: 0.9rem;
+  color: var(--sub);
 }
 
-.btn {
+
+.s-btn {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -277,32 +287,30 @@ async function submit() {
   align-items: center;
   gap: 12px;
   transition: all 0.2s ease;
+  border: 1px solid #555555;
 }
 
-.btn:hover {
-  background: var(--jj);
-  color: #fff;
-  border: 1px solid var(--border2);
-}
-.btn:disabled {
-  opacity: 0.5;
+.s-btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
-  background: #75757e;
+  background: var(--border2);
+  border-color: var(--border);
 }
-.btn:disabled:hover {
-  color: #fff;
+.s-btn:disabled:hover {
+  background: var(--border2);
+  color: white;
 }
 
 .card-footer {
-  margin-top: 24px;
+  margin-top: 0;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border);
   text-align: center;
 }
 
 .status-line {
   font-size: 0.8rem;
-  color: #fff;
+  color: var(--text);
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -310,19 +318,25 @@ async function submit() {
 }
 
 .disclaimer {
-  font-size: 0.7rem;
-  color: #52525b;
+  font-size: 0.75rem;
+  color: var(--sub);
   margin: 0;
   line-height: 1.4;
 }
 
+.link-subtle:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+/* ERROR BANNER */
 .error-banner {
   margin-top: 16px;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.2);
   color: #fca5a5;
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
@@ -332,8 +346,8 @@ async function submit() {
 .loading-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--text);
-  border-left-color: var(--text);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: var(--text);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -354,6 +368,7 @@ async function submit() {
   border-width: 0;
 }
 
+/* TRANSITION */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;

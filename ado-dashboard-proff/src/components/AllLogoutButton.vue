@@ -2,18 +2,28 @@
   <div>
     <button class="btn ghost" @click="openPopup">Dieses Gerät abmelden</button>
 
-    <div v-if="showPopup" @click="closePopup" class="popup-overlay">
-      <div class="popup">
-        <div class="secure-icon">
-          <TabletSmartphone />
-          <h3>Dieses Gerät abmelden</h3>
-        </div>
-        <p class="small">Wenn du fortfährst, wird das Gerät bzw. der Browser, in dem du dich gerade befindest, abgemeldet. Dadurch wird nicht dein spezieller Account ausgeloggt, sondern nur die allgemeine Authentifizierung der Klasse.</p>
-        <div class="popup-content">
-        <button class="btn mas ma" @click="doLogout"><LogOut size="14px"/>Abmelden</button>
-        <button class="btn ghost ma" @click="closePopup">Abbrechen</button>
+    <div v-if="showPopup" @click.self="closePopup" class="popup-overlay">
+      <div class="popup-card">
+
+        <div class="header-icon-group">
+          <TabletSmartphone class="modal-icon" size="28" />
+          <h3 class="modal-title">Dieses Gerät abmelden</h3>
         </div>
 
+        <p class="description-text">
+          Wenn du fortfährst, wird das Gerät bzw. der Browser, in dem du dich gerade befindest, abgemeldet. Dadurch wird nicht dein spezieller Account ausgeloggt, sondern nur die allgemeine Authentifizierung der Klasse.
+        </p>
+
+        <div class="popup-actions">
+          <button class="btn ghost" @click="doLogout">
+            <LogOut size="16" />
+            Abmelden
+          </button>
+
+          <button class="btn ghost" @click="closePopup">
+            Abbrechen
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -41,61 +51,69 @@ function closePopup() {
 </script>
 
 <style scoped>
+
 .popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 5000;
 }
 
-.popup-content {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-
-}
-
-.popup {
-  border-radius: 14px;
-  border: none;
+.popup-card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
   background: var(--card);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-  padding: 1.2rem;
-  min-width: 200px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 24px;
+  min-width: 280px;
+  max-width: 420px;
   text-align: center;
   color: var(--text);
   z-index: 6000;
-  max-width: 400px;
-  margin: 1rem;
-}
-.ma {
-  margin: 0.3rem;
-}
-.small {
-  font-size: 0.75rem;
-  word-break: normal;
+  margin: 16px;
 }
 
-.secure-icon {
+.header-icon-group {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  margin-bottom: 16px;
   justify-content: center;
-  gap: 0.5rem;
-
+  gap: 8px;
 }
-.mas {
+.modal-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.description-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.popup-actions {
   display: flex;
-  align-items: center;
+  flex-direction: row;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 12px;
+}
 
-
+@media (max-width: 480px) {
+  .popup-card {
+    padding: 20px;
+  }
+  .popup-actions {
+    flex-direction: column;
+  }
 }
 </style>

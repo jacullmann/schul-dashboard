@@ -2,9 +2,12 @@
   <footer class="footer">
     <div class="footer-container container">
       <div class="footer-columns">
+
         <div class="footer-section">
           <h3>Hinweis</h3>
-          <p>Dies ist eine geschützte und private Applikation. Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird ausnahmslos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ib Daten tatsächlich erlangt wurde.</p>
+          <p class="text-sub">
+            Dies ist eine geschützte und private Applikation. Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird ausnahmslos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden.
+          </p>
         </div>
 
         <div class="footer-section">
@@ -13,19 +16,19 @@
           <!--<p class="footer-link">Rechtliches & Sicherheit</p>-->
         </div>
 
-        <!--<div class="footer-section">
+        <!-- Sektion: Kontakt
+        <div class="footer-section">
           <h3>Kontakt</h3>
           <p class="superjob">dashboardverifizierung@gmail.com</p>
-
-        </div>-->
+        </div>
+        -->
       </div>
     </div>
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p> Alle Rechte vorbehalten</p>
+        <p class="text-xs text-sub">© Alle Rechte vorbehalten</p>
       </div>
-
     </div>
 
 
@@ -38,12 +41,18 @@
 <style scoped>
 .footer {
   background-color: var(--bg);
-  color: #f1f1f1;
-  padding: 2rem 5px 5px;
+  padding: 2.5rem 0 0;
+  border-top: 1px solid var(--border);
 }
 
 .footer-container {
-  padding-bottom: 1rem;
+  padding: 0 5px 2rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .footer-columns {
@@ -59,53 +68,54 @@
 }
 
 .footer-section h3 {
-  color: #f1f1f1;
-  font-size: 1.2rem;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 600;
   margin-bottom: 1rem;
 }
 
 .footer-section p {
   font-size: 0.9rem;
   line-height: 1.6;
+  color: var(--sub);
+}
+
+.text-sub {
+  color: var(--sub);
 }
 
 .footer-link {
   display: block;
-  color: var(--text);
+  color: var(--sub);
   text-decoration: none;
   margin-bottom: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-.footer-link:hover {
-  color: #b0b0b0;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
 }
 
 .footer-bottom {
-  border-top: 1px solid #333;
-  padding: 0.1rem 1px;
-  font-size: 0.8rem;
-}
-
-.footer-bottom-content {
+  border-top: 1px solid var(--border2);
+  padding: 1rem 0;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
 }
 
+.footer-bottom-content {
+  text-align: right;
+}
+
+.footer-bottom-content p {
+  margin: 0;
+  line-height: 1;
+}
 @media (max-width: 768px) {
   .footer-columns {
-    flex-direction: column;
-    gap: 1.5rem;
-    text-align: left;
+    gap: 2rem;
   }
-  .footer-bottom-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  .footer {
-    padding: 2rem 16px 5px;
+  .footer-section {
+    flex-basis: 100%;
   }
 }
 </style>

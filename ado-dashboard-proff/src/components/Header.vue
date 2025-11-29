@@ -13,12 +13,10 @@
           v-if="!navOpen"
           data-umami-event="Mobile Menu öffnen"
       >
-        <div class="bar bar--1"></div>
-        <div class="bar bar--2"></div>
-        <div class="bar bar--3"></div>
+
+        <Menu style="color: #fff" size="25px"/>
       </button>
 
-      <!-- Overlay für Klick außerhalb -->
       <div
           v-if="navOpen"
           class="nav-overlay"
@@ -26,24 +24,17 @@
       ></div>
 
       <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
-        <!-- Schließen-Button im mobilen Menü -->
         <button
             @click="closeNav"
             class="nav-close-button"
             aria-label="Menü schließen"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <X />
         </button>
 
         <router-link  to="/" class="nav-item" @click="closeNav">
           Dashboard
         </router-link>
-        <!--
-        <router-link  to="/bewerten" class="nav-item" @click="closeNav">
-          Benoten
-        </router-link>-->
         <router-link  to="/stundenplan" class="nav-item" @click="closeNav">
           Stundenplan
         </router-link>
@@ -62,12 +53,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Logo from './hw/Logo.vue'
+import { X, Menu } from  'lucide-vue-next'
 
 const navOpen = ref(false);
-const route = useRoute();
 
 
 const toggleNav = () => {
@@ -117,7 +107,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   position: relative;
 }
 .logo-group {
@@ -128,7 +118,6 @@ onUnmounted(() => {
   color: #f1f1f1;
   flex: 0 1 auto;
   justify-content: center;
-  flex: 0 1 auto;
   margin-right: auto;
 }
 
@@ -143,48 +132,21 @@ onUnmounted(() => {
   font-size: 1.8rem;
   font-weight: bold;
   letter-spacing: 1px;
-  transition: color 0.3s ease;
+  transition: opacity 0.2s ease;
   line-height: 1;
 }
 
-.logo-group:hover .logo-text {
-  color: ghostwhite;
-}
 
 .hamburger-menu {
   display: none;
   flex-direction: column;
   justify-content: space-between;
-  width: 30px;
-  height: 21px;
   background: transparent;
   border: none;
   cursor: pointer;
   z-index: 1010;
   position: relative;
 }
-
-.bar {
-  width: 100%;
-  height: 3px;
-  background-color: #f0f0f0;
-  transition: all 0.3s cubic-bezier(0.68, -0.6, 0.32, 1.6);
-  transform-origin: center;
-}
-
-.hamburger-menu--open .bar--1 {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-
-.hamburger-menu--open .bar--2 {
-  opacity: 0;
-  transform: scaleX(0);
-}
-
-.hamburger-menu--open .bar--3 {
-  transform: rotate(-45deg) translate(6px, -6px);
-}
-
 .nav-overlay {
   position: fixed;
   top: 0;
@@ -203,53 +165,22 @@ onUnmounted(() => {
 
 .nav-links {
   display: flex;
-  gap: 1.5rem;
-  transition: all 0.8s cubic-bezier(0.22,0.61,0.36,1);
+  gap: 1.25rem;
+  transition: all 0.2s ease;
 }
 
 .nav-item {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   color: #f1f1f1;
   position: relative;
-  transition: color 0.8s cubic-bezier(0.22,0.61,0.36,1), transform 0.8s cubic-bezier(0.22,0.61,0.36,1);
+  transition: opacity 0.2s ease;
 }
 
 .nav-item:hover {
-  color: #f0f0f0;
+  opacity: 0.7;
 }
-
-.nav-item::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -5px;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, #fddd3e, #fd5172, #c138ff, #b546ff, #fdb53e);
-  background-size: 300% 100%;
-  animation: gradientFlow 4s linear infinite;
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
-  border-radius: 2px;
-}
-
-.nav-item:hover::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
-@keyframes gradientFlow {
-  0% {
-    background-position: 300% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
-}
-
 .nav-close-button {
   display: none;
   position: absolute;
@@ -287,7 +218,7 @@ onUnmounted(() => {
     right: 0;
     width: 280px;
     height: 100%;
-    background-color: #242424;
+    background-color: #1a1a1a;
     flex-direction: column;
     align-items: flex-start;
     padding: 4rem 2rem 2rem;
@@ -308,20 +239,16 @@ onUnmounted(() => {
     font-size: 1.2rem;
     width: 100%;
     padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .nav-item:last-child {
     border-bottom: none;
   }
-
-  .nav-item::after {
-    display: none;
-  }
-
   .nav-item:hover {
-    transform: translateX(5px);
+    opacity: 1;
   }
+
 }
 
 @media (max-width: 768px) and (max-height: 800px) {

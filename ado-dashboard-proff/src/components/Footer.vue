@@ -19,19 +19,16 @@
 
         <div class="footer-section">
           <h3>Kontakt</h3>
-          <p @click="toContact" class="superjob">dashboardverifizierung@gmail.com</p>
+          <p @click="toContact" class="contact-email">dashboardverifizierung@gmail.com</p>
           <router-link  to="/kontakt" class="footer-link">Kontakt</router-link>
-
         </div>
         <All  class="logoutDeviceMobile" />
       </div>
     </div>
 
-    <AnimatedGradientLine />
-
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p>© {{ year }} — Alle Rechte vorbehalten</p>
+        <p class="copyright-text">© {{ year }} — Alle Rechte vorbehalten</p>
         <All  class="logoutDeviceDesktop" />
 
       </div>
@@ -45,7 +42,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import router from "../router";
-import AnimatedGradientLine from "./animations/AnimatedGradientLine.vue";
+// import AnimatedGradientLine from "./animations/AnimatedGradientLine.vue";
 
 import All from './AllLogoutButton.vue'
 
@@ -65,11 +62,11 @@ function openCookieBanner() {
 }
 
 //async function logout() {
-  //try {
-    //await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
-  //} catch { /* ignore */ }
-  //window.dispatchEvent(new Event('site-logged-out'));
-  //router.push('/login');
+//try {
+//await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
+//} catch { /* ignore */ }
+//window.dispatchEvent(new Event('site-logged-out'));
+//router.push('/login');
 //}
 
 function toContact() {
@@ -101,32 +98,36 @@ function handleClick() {
 .footer {
   background-color: var(--bg);
   color: #f1f1f1;
-  padding: 2rem 5px 5px;
+  padding: 2.5rem 0 0;
   border-top: 1px solid var(--border);
 }
-.superjob {
+
+.contact-email {
   cursor: pointer;
   max-width: 185px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
 }
-.superjob:hover {
-  white-space: normal;
-  overflow: visible;
-  position: relative;
 
+.contact-email:hover {
+  color: #f1f1f1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer-container {
-  padding-bottom: 2rem;
+  padding-bottom: 2.5rem;
 }
 
 .footer-columns {
   display: flex;
   justify-content: flex-start;
-  gap: 4rem;
+  gap: 3rem;
   flex-wrap: wrap;
 }
 
@@ -137,31 +138,35 @@ function handleClick() {
 
 .footer-section h3 {
   color: #f1f1f1;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
 }
 
 .footer-section p {
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
 .footer-link {
   display: block;
-  color: var(--text);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
+  font-size: 0.9rem;
   margin-bottom: 0.5rem;
-  transition: color 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .footer-link:hover {
-  color: #b0b0b0;
+  opacity: 1;
+  color: rgba(255, 255, 255, 1);
 }
 
 .footer-bottom {
-  border-top: 1px solid #333;
-  padding: 2rem 1px;
-  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 0;
+  font-size: 0.85rem;
 }
 
 .footer-bottom-content {
@@ -170,13 +175,8 @@ function handleClick() {
   align-items: center;
 }
 
-.secret-btn {
-  background: none;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  font-size: 0.5rem;
-  transition: color 0.3s ease;
+.copyright-text {
+  color: rgba(255, 255, 255, 0.5);
 }
 .logoutDeviceMobile{
   display: none;
@@ -189,9 +189,9 @@ function handleClick() {
     gap: 1.5rem;
     text-align: left;
   }
-.logoutDeviceMobile {
-  display: inherit;
-}
+  .logoutDeviceMobile {
+    display: inherit;
+  }
   .logoutDeviceDesktop {
     display: none;
   }
@@ -202,6 +202,7 @@ function handleClick() {
     gap: 0.5rem;
   }
   .footer {
+    /* Padding anpassen, falls du den Container in Mobile benutzt */
     padding: 2rem 16px 5px;
   }
 }
