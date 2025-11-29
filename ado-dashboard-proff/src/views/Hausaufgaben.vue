@@ -590,7 +590,7 @@ const {
   border-radius: 12px;
   padding: 12px;
   background: var(--jj);
-  border: none;
+  border: 1ßx solid var(--border2);
   transition: transform 150ms ease;
   overflow: visible;
 }

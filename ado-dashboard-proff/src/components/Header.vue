@@ -110,7 +110,7 @@ onUnmounted(() => {
   top: 0;
   z-index: 1002;
   transition: background-color 0.3s ease;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border);
 }
 
 .header-container {

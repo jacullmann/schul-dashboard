@@ -102,7 +102,7 @@ function handleClick() {
   background-color: var(--bg);
   color: #f1f1f1;
   padding: 2rem 5px 5px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border);
 }
 .superjob {
   cursor: pointer;
