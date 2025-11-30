@@ -193,7 +193,7 @@
               Von: {{ rep.reporterEmail }}
             </div>
             <div class="rep-actions">
-              <button class="btn danger tiny" @click="deleteReport(rep._id)">Erledigt / Löschen</button>
+              <button class="btn danger tiny" @click="deleteReport(rep._id)">Komplett weg</button>
             </div>
           </div>
         </div>
