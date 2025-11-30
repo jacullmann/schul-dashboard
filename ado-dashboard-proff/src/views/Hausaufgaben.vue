@@ -587,9 +587,9 @@ const {
 
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card {
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 12px;
-  background: var(--jj);
+  background: var(--vlbg);
   border: 1px solid var(--border2);
   transition: transform 150ms ease;
   overflow: visible;
