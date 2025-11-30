@@ -86,7 +86,7 @@ a { color: var(--primary); text-decoration: none; }
     color:#0f0f0f;
 }*/
 .btn.ghost:hover {
-    background-color:#353535;
+    background-color:#323232;
 }
 .btn.danger { background: var(--danger); color: white; }
 .btn.warn { background: var(--warn); color: #1f1300; }
