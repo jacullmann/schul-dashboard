@@ -241,7 +241,7 @@
         <div class="card">
           <h3>Neue Ankündigung</h3>
           <div class="row mt-4">
-            <button class="btn" @click="showAnnouncementForm = true">Formular öffnen</button>
+            <button class="btn" @click="showAnnouncementForm = true">Öffnen</button>
           </div>
         </div>
       </div>
