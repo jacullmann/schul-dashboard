@@ -2,9 +2,11 @@
 import Special from "./Special.vue";
 import G from "./G.vue";
 import Line from './Line.vue'
+import { ArrowDown } from 'lucide-vue-next'
 
 defineProps<{
   onStartClick: () => void;
+  onMoreInfoClick: () => void;
 }>();
 </script>
 
@@ -23,7 +25,13 @@ defineProps<{
       </p>
 
       <div class="action-buttons">
-        <button class="action-btn secondary"> Mehr erfahren</button>
+        <button class="action-btn secondary arrow-hover-effect" @click="onMoreInfoClick">
+          <span class="arrow-wrapper">
+            Mehr erfahren
+            <ArrowDown class="arrow-icon original-arrow" :size="20"/>
+            <ArrowDown class="arrow-icon replacement-arrow" :size="20"/>
+          </span>
+        </button>
 
         <G @click="onStartClick" class="action-btn primary">Jetzt loslegen</G>
       </div>
@@ -124,6 +132,8 @@ defineProps<{
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 180px;
+  position: relative;
+  overflow: hidden;
 }
 
 
@@ -134,8 +144,43 @@ defineProps<{
 }
 
 .secondary:hover {
-  border: 2px solid var(--border2);
+}
+.arrow-hover-effect {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.arrow-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding-right: 25px;
+}
+
+.arrow-icon {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 0;
+  color: white;
+  top: 0;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
+}
+.replacement-arrow {
+  transform: translateY(calc(-50% - 100% - 10px));
+  opacity: 0;
+}
+
+.arrow-hover-effect:hover .original-arrow {
+  transform: translateY(calc(-50% + 100% + 10px));
+  opacity: 0;
+}
+
+.arrow-hover-effect:hover .replacement-arrow {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 @media (max-width: 992px) {
@@ -183,7 +228,14 @@ defineProps<{
   }
   .secondary, .primary {
     padding: 12px 14px 12px 14px;
-    font-size: 0.9rem;
+    font-size: 1rem;
+  }
+  .arrow-wrapper {
+    padding-right: 20px;
+  }
+  .arrow-icon {
+    width: 16px;
+    height: 16px;
   }
 }
 </style>

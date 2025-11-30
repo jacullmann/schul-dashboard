@@ -7,7 +7,8 @@
     </div>
 
     <div class="main-container">
-        <WelcomeContent v-if="isWelcomeContent" :on-start-click="showAuthForm" key="welcome"/>
+      <WelcomeContent v-if="isWelcomeContent" :on-start-click="showAuthForm" :on-more-info-click="scrollToSu" key="welcome"/>
+      <Su v-if="isWelcomeContent" ref="suComponentRef" />
 
         <div v-if="!isWelcomeContent" class="auth-content content" key="auth-form">
           <AuthForm />
@@ -35,11 +36,23 @@ import WelcomeFooter from "./welcome/WelcomeFooter.vue";
 import AuthForm from "./welcome/AuthForm.vue";
 import WelcomeContent from "./welcome/WelcomeContent.vue";
 import Sec from "./welcome/Sec.vue";
+import Su from "./welcome/components/Su.vue";
 
 const isWelcomeContent = ref<boolean>(true);
+const suComponentRef = ref<InstanceType<typeof Su> | null>(null);
 
 function showAuthForm() {
   isWelcomeContent.value = false;
+}
+function scrollToSu() {
+  const targetElement = suComponentRef.value?.$el;
+
+  if (targetElement) {
+    targetElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
 }
 
 </script>
@@ -84,6 +97,7 @@ function showAuthForm() {
   align-items: center;
   padding: 15px;
   box-sizing: border-box;
+  flex-direction: column;
 }
 
 .auth-content {
