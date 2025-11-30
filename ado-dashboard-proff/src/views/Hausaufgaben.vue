@@ -278,6 +278,21 @@ const {
 .select-subject { max-width: 30px; width: 100%; display: inline-block; box-sizing: border-box; }
 .select-subject { max-width: 160px; min-width: auto; width: auto; }
 .admin-creator-info { color: #aaa; }
+.row.item-badges {
+  transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
+  opacity: 1;
+  max-height: 50px;
+  margin-top: 4px;
+}
+
+.row.item-badges.collapsed {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+  overflow: hidden;
+}
 @media (max-width: 768px) {
   /* Anpassungen */
 }
