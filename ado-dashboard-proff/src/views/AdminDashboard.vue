@@ -4,7 +4,6 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <h2>Admin</h2>
-        <span class="badge admin-badge">Root</span>
       </div>
 
       <nav class="sidebar-nav">
@@ -56,7 +55,7 @@
 
       <div class="sidebar-footer">
         <router-link to="/" class="back-link">
-          <ArrowLeft :size="16" /> Zurück zur App
+          <ArrowLeft :size="16" /> Zurück zum Dashboard
         </router-link>
       </div>
     </aside>
@@ -94,7 +93,7 @@
         </div>
 
         <div class="chart-section card mt-4" v-if="stats">
-          <h3>Einträge nach Typ</h3>
+          <h3>Einträge nach Art</h3>
           <div class="bar-chart">
             <div v-for="type in stats.itemsByType" :key="type._id" class="bar-row">
               <span class="bar-label">{{ type._id }}</span>
@@ -140,7 +139,7 @@
                 <span v-if="!u.emailVerified" class="badge warn-badge ml-1">Unverifiziert</span>
               </td>
               <td class="small">
-                Enr: {{ u.enrKurs }} | WPU: {{ u.wpuKurs1 }}/{{ u.wpuKurs2 }}
+                Enr: {{ u.enrKurs }} | WPU: {{ u.wpuKurs1 }}/{{ u.wpuKurs2 }} | Theater: {{u.theater }}
               </td>
               <td class="small">{{ new Date(u.createdAt).toLocaleDateString() }}</td>
               <td align="right">
@@ -344,7 +343,7 @@ const tabTitles: Record<string, string> = {
 }
 
 .sidebar-header h2 { margin: 0; font-size: 1.2rem; }
-.admin-badge { background: var(--primary); color: white; font-size: 0.7rem; text-transform: uppercase; }
+.admin-badge { color: white; font-size: 0.7rem; text-transform: uppercase; }
 
 .sidebar-nav {
   display: flex;
@@ -367,7 +366,12 @@ const tabTitles: Record<string, string> = {
 }
 
 .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-.nav-item.active { background: rgba(63, 147, 248, 0.15); color: var(--primary); font-weight: 500; }
+
+.nav-item.active {
+  background:rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-weight: 500;
+}
 
 .counter {
   margin-left: auto;
@@ -441,7 +445,7 @@ const tabTitles: Record<string, string> = {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
-  z-index: 100;
+  z-index: 1000000000000000000000000000000000000000000000000000000000;
   display: flex;
   justify-content: flex-end;
 }
@@ -459,7 +463,7 @@ const tabTitles: Record<string, string> = {
 .log-list { list-style: none; padding: 0; }
 .log-list li { border-bottom: 1px solid #282828; padding: 10px 0; }
 .log-time { color: #666; font-size: 0.8rem; display: block; }
-.log-type { color: var(--primary); font-weight: 500; }
+.log-type {  font-weight: 500; }
 .log-meta { background: #111; padding: 5px; border-radius: 4px; font-size: 0.75rem; color: #aaa; margin-top: 4px; overflow-x: auto;}
 
 /* Reports & Sorgen */
@@ -473,7 +477,7 @@ const tabTitles: Record<string, string> = {
 .bar-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
 .bar-label { width: 100px; color: #aaa; }
 .bar-track { flex: 1; height: 8px; background: #222; border-radius: 4px; margin: 0 10px; overflow: hidden; }
-.bar-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+.bar-fill { height: 100%; background: var(--lp); border-radius: 4px; }
 .bar-val { width: 30px; text-align: right; font-weight: bold; }
 
 /* Misc */
