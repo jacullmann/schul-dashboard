@@ -209,7 +209,7 @@ onMounted(() => {
 }
 
 .switch-btn:hover {
-  background: #282828;
+  border: 1px solid var(--border2);
 }
 
 
