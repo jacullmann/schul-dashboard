@@ -309,7 +309,7 @@ const tabTitles: Record<string, string> = {
   users: 'Benutzerverwaltung',
   reports: 'Gemeldete Inhalte',
   sorgen: 'Sorgenbox',
-  security: 'Sicherheits-Center',
+  security: 'Sicherheit',
   announcements: 'Ankündigungen'
 };
 </script>
