@@ -86,7 +86,6 @@ watch(() => route.params.id, (newId) => {
 }
 
 .game-card {
-  background-color: var(--bg);
   padding: 30px;
   border-radius: 12px;
 }
