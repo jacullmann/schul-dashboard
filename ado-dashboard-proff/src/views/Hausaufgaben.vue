@@ -57,7 +57,6 @@
               class="btn"
               :class="{ 'ghost': !showPersonalized }"
               @click="showPersonalized = !showPersonalized"
-              style="height: 37px; min-width: 150px;"
               title="Filtert Enrichment und WPU Kurse"
           >
             <span style="color: black" v-if="showPersonalized">Alle Einträge anzeigen</span>
@@ -219,29 +218,32 @@ const {
 .ann-list { margin-top: 12px; }
 .ann { border-radius: 10px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); position: relative; overflow: hidden; }
 .ann + .ann { margin-top: 10px; }
-.ann-content { white-space: pre-wrap; margin-top: 6px; color: var(--text); }
-.ann-date { margin-top: 6px; color: var(--muted); }
+.ann-content { white-space: pre-wrap; color: var(--text); }
+.ann-date { color: var(--muted); }
 .ann-actions { margin-top: 8px; }
 .tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
-.select-subject { width:auto; min-width:160px; height: 37px }
+.select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 14px;}
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
-.item-card { border-radius: 8px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
+.item-card { border-radius: 12px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
 .item-title { margin:-2px 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height: 22px;}
 .collapse-checkbox { display:inline-flex; align-items:center; margin-right:2px; cursor:pointer; }
 .collapse-checkbox input { display:none; }
-.collapse-checkbox .vis-label { width:18px; height:18px; border-radius:4px; border: 2px solid #f1f1f1;; display:inline-block; background:transparent; position:relative; }
+.collapse-checkbox .vis-label { width:18px; height:18px; border-radius:4px; border: 2px solid #aaa;; display:inline-block; background:transparent; position:relative; }
 .collapse-checkbox input:checked + .vis-label { background: var(--primary); border-color: var(--primary); }
+.collapse-checkbox .vis-label:hover {
+  border-color: #f1f1f1;
+}
 .collapse-checkbox .vis-label::after { content: ''; position: absolute; width: 5px; height: 10px; border: solid #f1f1f1; border-width: 0 2px 2px 0; opacity: 0; left: 50%; top: 32%; transform: translate(-50%, -45%) rotate(45deg); }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
-.item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: none; border-radius: 5px; padding: 6px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+.item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: 1px solid var(--border2); border-radius: 5px; padding: 6px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .menu-btn { display: block; width: 100%; text-align: left; background: transparent; border: none; padding: 6px 9px; color: var(--text); border-radius: 8px; cursor: pointer; font-size: 16px; transition: background 0.2s ease; }
 .menu-btn .fixall { display: flex; align-items: center; gap: 9px; line-height: 1; }
@@ -284,7 +286,7 @@ const {
   margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
   opacity: 1;
   max-height: 50px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .row.item-badges.collapsed {

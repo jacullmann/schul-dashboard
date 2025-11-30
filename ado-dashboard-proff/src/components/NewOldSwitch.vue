@@ -8,7 +8,7 @@
       <component
           :is="activeIcon"
           :key="props.modelValue ? 'right' : 'left'"
-          :size="16"
+          :size="14"
           stroke-width="2.5"
           class="icon"
       />
@@ -86,8 +86,8 @@ function handleChange(value: boolean) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: none;
-  padding: 6px 16px;
+  border: 1px solid var(--border2);
+  padding: 10px 14px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
@@ -96,7 +96,6 @@ function handleChange(value: boolean) {
   background-color: #2a2a2a;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  height: 37px;
 }
 
 /* NEU: Stellt sicher, dass das Icon im Layout bleibt */
