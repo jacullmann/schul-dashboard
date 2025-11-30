@@ -25,14 +25,16 @@
                      'double-middle': course.doubleLessonPosition === 'middle',
                      'double-end': course.doubleLessonPosition === 'end'
                    }">
-                <div class="subject">{{ course.subject }}</div>
-                <div class="details">
-                  {{ course.room }} <span v-if="course.teacher">• {{ course.teacher }}</span>
-                </div>
-                <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
-                     class="double-lesson-badge">
-                  Doppelstunde
-                </div>
+                <template v-if="!course.isDoubleLesson || course.doubleLessonPosition === 'start'">
+                  <div class="subject">{{ course.subject }}</div>
+                  <div class="details">
+                    {{ course.room }} <span v-if="course.teacher">• {{ course.teacher }}</span>
+                  </div>
+                  <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
+                       class="double-lesson-badge">
+                    Doppelstunde
+                  </div>
+                </template>
               </div>
             </div>
             <div v-else-if="scheduleItem[day]" class="lesson-content">
@@ -92,6 +94,10 @@ const getCellClass = (lesson, day, time) => {
 .timetable-container {
   overflow-x: auto;
   margin: 20px 0;
+  /* Supabase-Stil: dunkler Hintergrund, subtile Schatten */
+  border: 1px solid #2d2d2d;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .timetable {
@@ -99,39 +105,45 @@ const getCellClass = (lesson, day, time) => {
   border-collapse: separate;
   border-spacing: 0;
   min-width: 800px;
-  background-color: #101010;
+  background-color: #1a1a1a; /* Haupt-Hintergrundfarbe */
 }
 
 .time-header, .day-header {
+  /* Supabase-Header-Stil: Dunkel, aber unterscheidbar */
   background-color: #101010;
   color: #f1f1f1;
-  padding: 10px 10px;
+  padding: 12px 10px;
   text-align: center;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 1px solid #aaaaaa;
+  border: 1px solid #2d2d2d; /* Dunkle Rahmenlinie */
+  border-bottom: 2px solid #2d2d2d; /* Akzentuierte Trennlinie unten */
 }
 
 .time-label {
-  background-color: #252525;
+  /* Stunde-Labels hervorheben */
+  background-color: #161616;
   color: #f1f1f1;
   font-weight: 600;
   padding: 12px 10px;
   text-align: right;
+  border-right: 1px solid #2d2d2d;
 }
 
 .lesson-cell {
   padding: 0;
-  border: 1px solid #aaaaaa;
+  border: 1px solid #2d2d2d;
   vertical-align: top;
   transition: background-color 0.3s;
-  background-color: #101010;
+  background-color: #1a1a1a; /* Zellen-Hintergrund */
 }
 
 /* Doppelstunden-Styling */
 .double-lesson-cell {
-  border-bottom: none;
+  /* Hier bleibt das Styling zur Entfernung der Trennlinie,
+     aber mit der neuen Rahmenfarbe */
+  border-bottom-color: #1a1a1a; /* Keine Trennung zwischen Doppelstunden */
 }
 
 .lesson-cell:has(.double-middle) {
@@ -148,10 +160,13 @@ const getCellClass = (lesson, day, time) => {
   height: 100%;
   min-height: 60px;
   padding: 8px 6px;
+  box-sizing: border-box; /* Wichtig für die korrekte Größenberechnung */
 }
 
 .lesson-content.double-lesson {
-  background-color: #1a365d;
+  /* Subtiler Blaustich für Doppelstunden (Supabase-Akzentfarbe) */
+  background-color: #1e2a3c;
+  color: #e2e8f0;
 }
 
 .lesson-content.double-start {
@@ -170,26 +185,28 @@ const getCellClass = (lesson, day, time) => {
 
 .double-lesson-badge {
   font-size: 0.7em;
-  color: #63b3ed;
+  color: #63b3ed; /* Supabase-Blau */
   margin-top: 4px;
   font-style: italic;
+  font-weight: 400;
 }
 
 .subject {
   font-weight: 700;
-  color: var(--text);
+  color: #e2e8f0; /* Hellere Schriftfarbe für guten Kontrast */
   font-size: 1.1em;
   margin-bottom: 4px;
 }
 
 .details {
   font-size: 0.85em;
-  color: #aaaaaa;
+  color: #a0a0a0; /* Gedämpfteres Grau */
 }
 
 .free-time {
-  color: #f1f1f1;
+  color: #505050;
   text-align: center;
   padding: 10px 0;
+  font-style: italic;
 }
 </style>

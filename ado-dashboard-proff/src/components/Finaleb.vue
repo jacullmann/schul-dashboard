@@ -26,14 +26,16 @@
                  'double-middle': course.doubleLessonPosition === 'middle',
                  'double-end': course.doubleLessonPosition === 'end'
                }">
-            <div class="subject-room">
-              <span class="subject-code">{{ course.code }}</span>
-              <span class="subject-name">{{ course.subject }}</span>
-              <span class="room">{{ course.room }}</span>
-            </div>
-            <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
-                 class="double-lesson-indicator">
-            </div>
+            <template v-if="!course.isDoubleLesson || course.doubleLessonPosition === 'start'">
+              <div class="subject-room">
+                <span class="subject-code">{{ course.code }}</span>
+                <span class="subject-name">{{ course.subject }}</span>
+                <span class="room">{{ course.room }}</span>
+              </div>
+              <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
+                   class="double-lesson-indicator">
+              </div>
+            </template>
           </div>
         </div>
       </template>
@@ -225,26 +227,33 @@ onMounted(() => {
 
 <style scoped>
 .card {
-  padding: 20px;
+  padding: 24px;
   border-radius: 12px;
+  background-color: #1e1e1e;
+  border: 1px solid #2d2d2d;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .lesson-group {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 0; /* Kein Gap für Doppelstunden */
+  gap: 0;
 }
 
 .course-item {
-  background-color: #101010;
+  color: #e2e8f0;
   border-radius: 4px;
-  padding: 4px 6px;
+  padding: 6px 8px;
   font-size: 0.85em;
-  line-height: 1.2;
+  line-height: 1.3;
   height: 100%;
+  box-sizing: border-box;
+  margin-bottom: 1px;
 }
-
+.course-item.double-lesson {
+  margin-bottom: 0;
+}
 
 .course-item.double-start {
   border-top-left-radius: 6px;
@@ -260,38 +269,45 @@ onMounted(() => {
 .course-item.double-end {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
+  margin-bottom: 0;
 }
 
 .double-lesson-indicator {
-  font-size: 0.7em;
-  color: #63b3ed;
-  margin-top: 2px;
+  height: 4px;
+  width: 100%;
+  border-radius: 2px;
+  margin-top: 4px;
 }
 
 .subject-room {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .subject-code {
-  font-weight: 600;
-  color: #f1f1f1;
-  margin-right: 4px;
+  font-weight: 700;
+  margin-right: 6px;
+  text-transform: uppercase;
 }
 
 .subject-name {
   flex-grow: 1;
   font-weight: 500;
-  color: var(--text);
+  color: #e2e8f0;
+  line-height: 1;
 }
 
 .room {
   font-weight: 400;
   color: #cbd5e1;
-  background-color: #282828;
-  padding: 1px 4px;
-  border-radius: 3px;
+  background-color: #333333;
+  padding: 1px 6px;
+  border-radius: 12px;
+  font-size: 0.9em;
+  margin-left: 8px;
+  white-space: nowrap;
 }
 
 .course-item:has(.subject-name:only-child) .subject-name {
