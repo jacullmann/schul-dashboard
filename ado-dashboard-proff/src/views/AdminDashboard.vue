@@ -109,7 +109,7 @@
       <!-- Tab: Users -->
       <div v-if="activeTab === 'users'" class="tab-content fade-in">
         <div class="toolbar">
-          <button class="btn ghost" @click="loadAllUsers">Aktualisieren</button>
+          <button class="btn ghost margin-bottom" @click="loadAllUsers">Aktualisieren</button>
           <div class="search-wrap">
             <!-- Suchfeld könnte hier hin -->
           </div>
@@ -486,7 +486,9 @@ const tabTitles: Record<string, string> = {
 .status-message { padding: 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.2); color: #10b981; margin-bottom: 20px; }
 .status-message.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 .loader { color: #666; padding: 20px; text-align: center; }
-
+.margin-bottom {
+  margin-bottom: 10px;
+}
 @media (max-width: 768px) {
   .admin-layout { flex-direction: column; }
   .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #282828; padding: 15px; }
