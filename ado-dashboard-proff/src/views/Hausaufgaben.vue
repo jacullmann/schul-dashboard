@@ -20,30 +20,21 @@
       </div>
     </div>
 
-    <div class="announcements">
+    <!-- Ankündigungen: Nur Lesen hier, Erstellen im AdminDashboard -->
+    <div class="announcements" v-if="announcements.length">
       <div class="announcements-head">
-        <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
-        <button
-            v-if="user?.isAdmin"
-            data-umami-event="Dashboard Admin Ankündigung hinzufügen"
-            class="btn ghost small-btn"
-            @click="showAnnouncementForm = true"
-        >
-          Ankündigung hinzufügen
-        </button>
+        <h3>Wichtige Ankündigungen</h3>
       </div>
-
-
-      <div v-if="announcements.length && user?.isAdmin" class="ann-list">
+      <div class="ann-list">
         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
           <div class="ann-content">{{ a.content }}</div>
           <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
+          <!-- Admin kann hier löschen oder im Dashboard. Wir lassen es hier der Einfachheit halber drin -->
           <div v-if="canManage(a.createdBy)" class="ann-actions">
             <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
           </div>
         </div>
       </div>
-
     </div>
 
     <div class="tabs-row">
@@ -93,6 +84,7 @@
           class="item-card"
           :class="{ collapsed: isChecked(item.id) }"
       >
+        <!-- Item Content (unverändert) -->
         <div class="item-main">
           <div class="item-meta">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -106,74 +98,40 @@
 
             <div class="row item-badges" :class="{ collapsed: isChecked(item.id) }">
               <div class="badge subject-badge">{{ item.subject }}</div>
-              <div
-                  class="badge time-badge"
-                  :style="(() => { const s = colorStyles(item.timeColor); return { background: s.background, color: s.color }; })()"
-              >
+              <div class="badge time-badge" :style="colorStyles(item.timeColor)">
                 {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
               <div v-if="user?.isAdmin" class="admin-creator-info">
-                {{ item.createdByEmail || 'E-Mail nicht verfügbar' }}
+                {{ item.createdByEmail || 'Unbekannt' }}
               </div>
             </div>
           </div>
 
-          <div
-              class="item-menu-trigger"
-              role="button"
-              tabindex="0"
-              @click.stop="toggleMenu(item.id)"
-              @keydown.enter.prevent="toggleMenu(item.id)"
-              @keydown.space.prevent="toggleMenu(item.id)"
-              :aria-expanded="openMenuId === item.id ? 'true' : 'false'"
-          >
+          <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(item.id)">
             <Ellipsis />
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-            <button data-umami-event="Dashboard Bilder verwalten Button" class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
-              <div class="fixall">
-                <Images />
-                Bilder
-              </div>
+            <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
+              <div class="fixall"><Images /> Bilder</div>
             </button>
-            <button data-umami-event="Dashboard bearbeiten Button" class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
-              <div class="fixall">
-                <Pencil />
-                Bearbeiten
-              </div>
+            <button class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
+              <div class="fixall"><Pencil /> Bearbeiten</div>
             </button>
-            <button data-umami-event="Dashboard Eintrag melden Button" class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
-              <div class="fixall">
-                <Flag />
-                Melden
-              </div>
+            <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
+              <div class="fixall"><Flag /> Melden</div>
             </button>
-            <button data-umami-event="Dashboard Eintrag löschen Button" class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
-              <div class="fixall">
-                <Trash2 />
-                Löschen
-              </div>
+            <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
+              <div class="fixall"><Trash2 /> Löschen</div>
             </button>
           </div>
         </div>
 
         <transition name="collapse">
           <div v-show="!isChecked(item.id)" class="item-body">
-            <span v-if="!isExpanded(item.id)">
-              {{ item.description.slice(0, 200) }}
-              <span v-if="item.description.length > 200">…</span>
-            </span>
-            <span v-else>
-              {{ item.description }}
-            </span>
-            <button
-                v-if="item.description.length > 200"
-                class="btn tiny ghost"
-                @click="toggleDescription(item.id)"
-                data-umami-event="Dashboard mehr anzeigen/weniger anzeigen"
-                style="margin-left:8px;"
-            >
+            <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
+            <span v-else>{{ item.description }}</span>
+            <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
               {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
             </button>
           </div>
@@ -181,283 +139,52 @@
 
         <transition name="collapse">
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
+            <!-- Images rendering logic retained -->
             <div class="images-title">Bilder</div>
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div
-                    v-for="(img, idx) in item.images.slice(0, 2)"
-                    :key="img.publicId"
-                    class="thumb thumb-with-overlay-wrapper"
-                >
-                  <a :href="img.url" target="_blank" rel="noopener">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-                  </a>
-
-                  <button
-                      v-if="idx === 1 && item.images.length > 2"
-                      class="img-overlay"
-                      @click.stop.prevent="revealImages(item.id)"
-                      aria-label="Weitere Bilder anzeigen"
-                      title="Weitere Bilder anzeigen"
-                  >
-                    <div class="overlay-blur"></div>
-                    <div class="overlay-content">+{{ item.images.length - 1 }}</div>
+                <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper">
+                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
+                  <button v-if="idx === 1 && item.images.length > 2" class="img-overlay" @click.stop.prevent="revealImages(item.id)">
+                    <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
                   </button>
                 </div>
               </template>
-
               <template v-else>
-                <div
-                    v-for="img in item.images"
-                    :key="img.publicId"
-                    class="thumb"
-                >
-                  <a :href="img.url" target="_blank" rel="noopener">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" :alt="item.title" loading="lazy" decoding="async" />
-                  </a>
+                <div v-for="img in item.images" :key="img.publicId" class="thumb">
+                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
                 </div>
               </template>
             </div>
           </div>
         </transition>
       </div>
-      <div v-if="tab === 'PRIVATE'" class="private-entries-container">
-        <TodoApp />
-      </div>
 
-      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">
-        Keine Einträge in der aktuellen Ansicht.
-      </div>
-      <div v-if="!loading && !filteredItems.length" class="card empty">
-        Keine Einträge gefunden.
-      </div>
+      <div v-if="tab === 'PRIVATE'" class="private-entries-container"><TodoApp /></div>
+      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">Keine Einträge in der aktuellen Ansicht.</div>
+      <div v-if="!loading && !filteredItems.length" class="card empty">Keine Einträge gefunden.</div>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
-        <button
-            v-if="visibleCount < filteredItems.length"
-            class="btn ghost shm"
-            @click="showMore"
-        >
-          Mehr anzeigen
-        </button>
-        <button
-            v-if="visibleCount > 5"
-            class="btn ghost shm"
-            @click="showLess"
-        >
-          Weniger anzeigen
-        </button>
+        <button v-if="visibleCount < filteredItems.length" class="btn ghost shm" @click="showMore">Mehr anzeigen</button>
+        <button v-if="visibleCount > 5" class="btn ghost shm" @click="showLess">Weniger anzeigen</button>
       </div>
 
-      <div v-if="user?.isAdmin && reports.length" class="reports-section">
-        <h3>Gemeldete Einträge</h3>
-        <div class="reports-list">
-          <div v-for="report in reports" :key="report._id" class="report-card">
-            <div class="report-header">
-              <strong>{{ report.itemTitle }}</strong>
-              <span class="report-date">{{ new Date(report.reportedAt).toLocaleString() }}</span>
-            </div>
-            <div class="report-meta">
-              <span>Eintrag ID: {{ report.itemId }}</span>
-              <span v-if="report.reporterEmail !== 'anonymous'">Gemeldet von: {{ report.reporterEmail }}</span>
-              <span v-else>Anonym gemeldet</span>
-            </div>
-            <div v-if="report.reason" class="report-reason">
-              <strong>Grund:</strong> {{ report.reason }}
-            </div>
-            <div class="report-actions">
-              <button
-                  class="btn danger tiny"
-                  @click="deleteReport(report._id)"
-                  data-umami-event="Meldung löschen"
-                  title="Meldung löschen"
-              >
-                Löschen
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- ADMIN SECTIONS REMOVED HERE -->
 
-      <div v-if="user?.isAdmin" class="reports-section">
-
-        <h3>Sicherheits-Analyse</h3>
-        <p style="color: var(--muted); margin-bottom: 16px;">
-
-        </p>
-
-        <button class="btn" @click="generateSecurityReport" :disabled="isGeneratingReport">
-          <div v-if="isGeneratingReport" class="row" style="gap: 8px; align-items: center;">
-            <LoadingSpinner color="#fff" size="1.2em" />
-            <span>Bericht wird generiert...</span>
-          </div>
-          <span v-else>Neuen Sicherheitsbericht erstellen</span>
-        </button>
-
-        <div v-if="reportError" class="message error" style="margin-top: 16px;">
-          {{ reportError }}
-        </div>
-
-        <div v-if="securityReport" class="report-display-container">
-          <button
-              class="btn ghost tiny"
-              @click="copyReportToClipboard"
-              style="float: right; margin-bottom: 8px;"
-          >
-            Kopieren
-          </button>
-
-          <div class="report-content" v-html="reportHtml"></div>
-        </div>
-
-        <h3>Sorgen</h3>
-        <div class="reports-list">
-          <ul class="listsorgen">
-            <li v-for="(item, i) in entriessorgen" :key="item._id" class="sorge-item">
-              <div class="sorge-content">
-                {{ item.message }}
-                <span class="sorge-date">{{ new Date(item.createdAt).toLocaleString() }}</span>
-              </div>
-              <button
-                  class="btn danger tiny"
-                  @click="deleteSorge(item._id)"
-                  data-umami-event="Sorgen Eintrag löschen"
-                  title="Sorgen-Eintrag löschen"
-              >
-                Löschen
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div v-if="user?.isAdmin" class="users-section">
-        <h3>Benutzerverwaltung</h3>
-
-        <button class="btn" @click="loadAllUsers" :disabled="loadingUsers">
-          {{ loadingUsers ? 'Lade...' : 'Alle Benutzer laden' }}
-        </button>
-
-        <div v-if="allUsers.length" class="users-list">
-          <div v-for="u in allUsers" :key="u.id" class="user-card">
-            <div class="user-header">
-              <div class="user-email">{{ u.email }}</div>
-              <div class="user-badges">
-                <span v-if="u.isAdmin" class="badge admin-badge">Admin</span>
-                <span v-if="!u.emailVerified" class="badge warn-badge">Nicht verifiziert</span>
-                <span v-if="!u.doneSetup" class="badge danger-badge">Setup nicht abgeschlossen</span>
-              </div>
-            </div>
-
-            <div class="user-details">
-              <div class="user-info">
-                <div><strong>Kurse:</strong> Enr{{ u.enrKurs }}, WPU1:{{ u.wpuKurs1 }}, WPU2:{{ u.wpuKurs2 }}, Theater:{{ u.theater }}</div>
-                <div><strong>Erstellt:</strong> {{ new Date(u.createdAt).toLocaleString() }}</div>
-                <div><strong>Letzter Login:</strong> {{ u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Nie' }}</div>
-              </div>
-
-              <div class="user-actions">
-                <button
-                    class="btn ghost small"
-                    @click="toggleUserActivity(u.id)"
-                    :disabled="loadingActivities[u.id]"
-                >
-                  {{ showActivityFor === u.id ? 'Logs verbergen' : 'Logs laden' }}
-                </button>
-
-                <button
-                    v-if="!u.isAdmin"
-                    class="btn small"
-                    :class="{ 'danger': !u.isBanned, 'ghost': u.isBanned }"
-                    @click="toggleBan(u)"
-                    :disabled="togglingBan[u.id] || deletingUsers[u.id]"
-                >
-                  <span v-if="togglingBan[u.id]">...</span>
-                  <span v-else-if="u.isBanned">Account entsperren</span>
-                  <span v-else>Account sperren</span>
-                </button>
-
-                <button
-                    v-if="!u.isAdmin"
-                    class="btn danger small"
-                    @click="deleteUser(u.id)"
-                    :disabled="deletingUsers[u.id]"
-                >
-                  {{ deletingUsers[u.id] ? 'Löscht...' : 'Löschen' }}
-                </button>
-              </div>
-            </div>
-
-            <div v-if="showActivityFor === u.id" class="user-activity">
-              <div v-if="loadingActivities[u.id]" class="loader">Lade Aktivitäten...</div>
-              <div v-else-if="userActivities[u.id]?.length" class="activity-list">
-                <div v-for="(activity, index) in userActivities[u.id]" :key="index" class="activity-item">
-                  <div class="activity-time">{{ new Date(activity.at).toLocaleString() }}</div>
-                  <div class="activity-type">{{ activity.type }}</div>
-                  <div v-if="activity.meta" class="activity-meta">{{ JSON.stringify(activity.meta) }}</div>
-                </div>
-              </div>
-              <div v-else class="no-activity">Keine Aktivitäten gefunden</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
+    <!-- Modals -->
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
-    <ItemForm
-        v-if="showItemForm"
-        :key="itemFormKey"
-        :type="tab"
-        :subjects="subjects"
-        :initial="itemToEdit"
-        :max-title-length="MAX_TITLE_LENGTH"
-        :max-subject-length="MAX_SUBJECT_LENGTH"
-        @close="showItemForm=false"
-        @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
-        @error="onItemFormError"
-    />
-    <AnnouncementForm
-        v-if="showAnnouncementForm"
-        @close="showAnnouncementForm=false"
-        @success="handleSuccess('Ankündigung wurde erfolgreich erstellt.')"
-    />
-    <ImageForm
-        v-if="showImageFormFor"
-        :item="showImageFormFor"
-        @close="showImageFormFor=null"
-        @success="handleSuccess('Bilder wurden erfolgreich aktualisiert.')"
-    />
-
-    <ConfirmDialog
-        :show="showReportConfirm"
-        message="Diesen Eintrag melden?"
-        :show-reason-input="true"
-        v-model:reason="reportReason"
-        @confirm="doReport"
-        @cancel="cancelReport"
-    />
-    <CompleteSetup
-        v-if="user"
-        :visible="showSetupModal"
-        :is-setup="user && !user.doneSetup"
-        :initial-data="{
-            enrKurs: user.enrKurs || 0,
-            wpuKurs1: user.wpuKurs1 || 0,
-            wpuKurs2: user.wpuKurs2 || 0,
-            theater: user.theater || 0
-        }"
-        @close="showSetupModal = false"
-        @success="onSetupSuccess"
-        @update:user="onSetupSuccess"
-    />
+    <ItemForm v-if="showItemForm" :key="itemFormKey" :type="tab" :subjects="subjects" :initial="itemToEdit" :max-title-length="MAX_TITLE_LENGTH" :max-subject-length="MAX_SUBJECT_LENGTH" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" @error="onItemFormError" />
+    <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder aktualisiert.')" />
+    <ConfirmDialog :show="showReportConfirm" message="Diesen Eintrag melden?" :show-reason-input="true" v-model:reason="reportReason" @confirm="doReport" @cancel="cancelReport" />
+    <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
-// Komponenten importieren
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
-import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -466,759 +193,96 @@ import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import { Flag, Pencil, Images, Trash2, Ellipsis } from 'lucide-vue-next'
-
-// Die neue Logik-Composable importieren
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 
-// Alle Variablen und Funktionen aus der Composable entpacken
 const {
-  MAX_TITLE_LENGTH,
-  MAX_SUBJECT_LENGTH,
-  entriessorgen,
-  showAuth,
-  showItemForm,
-  showAnnouncementForm,
-  showImageFormFor,
-  itemToEdit,
-  user,
-  subjects,
-  announcements,
-  items,
-  loading,
-  subjectFilter,
-  showPersonalized,
-  allUsers,
-  loadingUsers,
-  showActivityFor,
-  userActivities,
-  loadingActivities,
-  deletingUsers,
-  togglingBan,
-  showOldEntries,
-  showSetupModal,
-  reports,
-  securityReport,
-  isGeneratingReport,
-  reportError,
-  reportHtml,
-  message,
-  isError,
-  itemFormKey,
-  visibleCount,
-  limitedItems,
-  filteredItems,
-  showReportConfirm,
-  reportReason,
-  tab,
-  openMenuId,
-  isExpanded,
-  toggleDescription,
-  showMore,
-  showLess,
-  colorFor,
-  colorStyles,
-  toggleMenu,
-  onMenuAction,
-  onAccountDeleted,
-  onAccountDeleteError,
-  openSetupModal,
-  logout,
-  onLoggedIn,
-  handleSuccess,
-  onItemFormError,
-  openCreateForm,
-  canManage,
-  deleteAnnouncement,
-  deleteReport,
-  generateSecurityReport,
-  copyReportToClipboard,
-  deleteSorge,
-  loadAllUsers,
-  toggleUserActivity,
-  toggleBan,
-  deleteUser,
-  goTab,
-  isChecked,
-  toggleCheck,
-  makeThumb,
-  isRevealed,
-  revealImages,
-  onSetupSuccess,
-  doReport,
-  cancelReport,
-  onDocumentClick
+  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showAuth, showItemForm, showImageFormFor,
+  itemToEdit, user, subjects, announcements, items, loading, subjectFilter, showPersonalized,
+  showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
+  filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
+  showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
+  onAccountDeleteError, openSetupModal, logout, onLoggedIn, handleSuccess, onItemFormError,
+  openCreateForm, canManage, deleteAnnouncement, goTab, isChecked, toggleCheck, makeThumb,
+  isRevealed, revealImages, onSetupSuccess, doReport, cancelReport
 } = useHausaufgaben();
 </script>
 
 <style scoped>
-.hw-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  flex-direction: column;
-  text-align: left;
-}
+/* Behalte hier die existierenden Styles für die Cards, Header und Items.
+   Entferne Styles, die nur für die Admin-Sektionen (User List, Reports Table) nötig waren,
+   um CSS zu sparen, oder lass sie drin, falls sie nicht stören. */
+.hw-header { display: flex; justify-content: space-between; gap: 12px; flex-direction: column; text-align: left; }
 .hw-header h2 { margin: 0 0 2px 0}
 .header-actions { align-items: center; display: flex; flex-direction: row; flex-wrap: wrap}
-
 .announcements { margin-top: 18px; }
 .announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
 .ann-list { margin-top: 12px; }
-.ann {
-  border-radius: 10px;
-  padding: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
+.ann { border-radius: 10px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); position: relative; overflow: hidden; }
 .ann + .ann { margin-top: 10px; }
-.ann-title { font-weight: 700; }
 .ann-content { white-space: pre-wrap; margin-top: 6px; color: var(--text); }
 .ann-date { margin-top: 6px; color: var(--muted); }
 .ann-actions { margin-top: 8px; }
-
 .tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
-
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject { width:auto; min-width:160px; height: 37px }
-.small-btn { padding:6px 8px; font-size:13px; }
-
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
-.item-card {
-  border-radius: 8px;
-  padding: 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  transition: transform 150ms ease;
-  overflow: visible;
-}
-
-.item-card.collapsed {
-  transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-
+.item-card { border-radius: 8px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
+.item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
 .item-title { margin:-2px 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height: 22px;}
-
-.collapse-checkbox {
-  display:inline-flex;
-  align-items:center;
-  margin-right:2px;
-  cursor:pointer;
-}
+.collapse-checkbox { display:inline-flex; align-items:center; margin-right:2px; cursor:pointer; }
 .collapse-checkbox input { display:none; }
-.collapse-checkbox .vis-label {
-  width:18px; height:18px; border-radius:4px; border: 2px solid #f1f1f1;;
-  display:inline-block; background:transparent; position:relative;
-}
-.collapse-checkbox input:checked + .vis-label {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-.collapse-checkbox .vis-label::after {
-  content: '';
-  position: absolute;
-  width: 5px;
-  height: 10px;
-  border: solid #f1f1f1;
-  border-width: 0 2px 2px 0;
-  opacity: 0;
-  left: 50%;
-  top: 32%;
-  transform: translate(-50%, -45%) rotate(45deg);
-}
+.collapse-checkbox .vis-label { width:18px; height:18px; border-radius:4px; border: 2px solid #f1f1f1;; display:inline-block; background:transparent; position:relative; }
+.collapse-checkbox input:checked + .vis-label { background: var(--primary); border-color: var(--primary); }
+.collapse-checkbox .vis-label::after { content: ''; position: absolute; width: 5px; height: 10px; border: solid #f1f1f1; border-width: 0 2px 2px 0; opacity: 0; left: 50%; top: 32%; transform: translate(-50%, -45%) rotate(45deg); }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
-
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
-
-.item-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  min-width: 105px;
-  background: #282828;
-  border: none;
-  border-radius: 5px;
-  padding: 6px;
-  display: none;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 5px;
-  z-index: 1000;
-  opacity: 0;
-  transform: translateY(-6px) scale(0.98);
-  pointer-events: none;
-  transition: opacity 160ms ease, transform 160ms ease;
-  margin-bottom: 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.item-menu.open {
-  display: flex;
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.menu-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 6px 9px;
-  color: var(--text);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s ease;
-}
-.menu-btn .fixall {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  line-height: 1;
-}
-
-.menu-btn .fixall svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-.menu-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.menu-btn.danger {
-  color: #f65252;
-  fill: #f65252;
-}
-.menu-btn.danger:hover {
-  background:rgba(246, 82, 82, 0.1);
-}
-
-
-.item-body {
-  margin-top:10px;
-  color: var(--text);
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  hyphens: auto;
-}
+.item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: none; border-radius: 5px; padding: 6px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+.item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.menu-btn { display: block; width: 100%; text-align: left; background: transparent; border: none; padding: 6px 9px; color: var(--text); border-radius: 8px; cursor: pointer; font-size: 16px; transition: background 0.2s ease; }
+.menu-btn .fixall { display: flex; align-items: center; gap: 9px; line-height: 1; }
+.menu-btn .fixall svg { width: 18px; height: 18px; flex-shrink: 0; }
+.menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.menu-btn.danger { color: #f65252; fill: #f65252; }
+.menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }
+.item-body { margin-top:10px; color: var(--text); word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
 .item-images { margin-top:12px; }
 .images-title { font-weight:600; margin-bottom:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
-.thumb {
-  width:120px; height:120px; border-radius:8px; overflow:hidden;
-  border:none;
-  display:flex; align-items:center; justify-content:center;
-  background: rgba(0,0,0,0.12);
-  position:relative;
-}
+.thumb { width:120px; height:120px; border-radius:8px; overflow:hidden; border:none; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.12); position:relative; }
 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-
 .thumb-with-overlay-wrapper { position: relative; }
-
-.img-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  background: transparent;
-  z-index: 10;
-}
-.img-overlay .overlay-blur {
-  position: absolute;
-  inset: 0;
-  background: rgba(60,60,60,0.6);
-  backdrop-filter:  saturate(90%);
-  -webkit-backdrop-filter: saturate(90%);
-  border-radius: 8px;
-}
-.img-overlay .overlay-content {
-  position: relative;
-  color: white;
-  font-weight: 700;
-  font-size: 18px;
-  z-index: 11;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.4);
-  pointer-events: none;
-}
-
+.img-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; padding: 0; margin: 0; cursor: pointer; background: transparent; z-index: 10; }
+.img-overlay .overlay-blur { position: absolute; inset: 0; background: rgba(60,60,60,0.6); backdrop-filter:  saturate(90%); -webkit-backdrop-filter: saturate(90%); border-radius: 8px; }
+.img-overlay .overlay-content { position: relative; color: white; font-weight: 700; font-size: 18px; z-index: 11; text-shadow: 0 1px 0 rgba(0,0,0,0.4); pointer-events: none; }
 .empty { text-align:center; color:var(--muted); padding:24px; border: none }
-
-.collapse-enter-active, .collapse-leave-active {
-  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-.collapse-enter-from, .collapse-leave-to {
-  max-height: 0;
-  opacity: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.collapse-enter-to, .collapse-leave-from {
-  max-height: 800px;
-  opacity: 1;
-}
-
+.collapse-enter-active, .collapse-leave-active { transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1); }
+.collapse-enter-from, .collapse-leave-to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
+.collapse-enter-to, .collapse-leave-from { max-height: 800px; opacity: 1; }
 .message { font-weight:600; white-space: normal; overflow-wrap: break-word; word-break: break-all; }
 .message.error { color: var(--danger); }
-
 .tiny { padding:4px 8px; font-size:12px; }
-
-.item-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 24px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #aaaaaa;
-  transition: background 120ms ease, color 120ms ease;
-  margin: -3px -2px;
-}
-.item-menu-trigger:hover {
-  background: #414141;
-  color: #f1f1f1;
-}
-
-.pagination-actions {
-  margin-top: 16px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
+.item-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 24px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #aaaaaa; transition: background 120ms ease, color 120ms ease; margin: -3px -2px; }
+.item-menu-trigger:hover { background: #414141; color: #f1f1f1; }
+.pagination-actions { margin-top: 16px; display: flex; gap: 12px; justify-content: center; }
 .shm:hover{ background-color:inherit }
-
-
-.loader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-}
-.row-two {
-  max-height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: row;
-  gap: 8px;
-  position: relative;
-
-}
-.rei {
-
-
-}
-.finishsetup {
-  position: absolute;
-  z-index: 100000;
-  width: 100%;
-  height: 100%;
-  margin: 2px;
-
-}
-
-
-.reports-section {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.reports-section h3 {
-  margin-bottom: 16px;
-  color: var(--danger);
-}
-
-.reports-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.report-card {
-  background: rgba(255, 0, 0, 0.05);
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.report-header strong {
-  color: var(--text);
-  flex: 1;
-  margin-right: 12px;
-}
-
-.report-date {
-  color: var(--muted);
-  font-size: 0.85em;
-  white-space: nowrap;
-}
-
-.report-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
-  font-size: 0.9em;
-  color: var(--muted);
-  flex-wrap: wrap;
-}
-
-.report-reason {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: var(--text);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  word-break: break-all;
-}
-
-.listsorgen {
-  display: flex;
-  gap: 12px;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-li {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
-
-.sorge-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.sorge-content {
-  flex: 1;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  word-break: break-all;
-}
-
-.sorge-date {
-  display: block;
-  font-size: 0.8em;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.listsorgen {
-  display: flex;
-  gap: 12px;
-  flex-direction: column;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-
-.report-display-container {
-  margin-top: 16px;
-  background: rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  clear: both;
-}
-
-.report-content {
-  word-wrap: break-word;
-}
-
-.report-content :deep(h1),
-.report-content :deep(h2),
-.report-content :deep(h3) {
-  margin-top: 1.2em;
-  margin-bottom: 0.6em;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
-}
-.report-content :deep(h1) { font-size: 1.6rem; }
-.report-content :deep(h2) { font-size: 1.4rem; }
-.report-content :deep(h3) { font-size: 1.2rem; }
-
-.report-content :deep(ul),
-.report-content :deep(ol) {
-  padding-left: 24px;
-  margin: 0.5em 0;
-}
-.report-content :deep(li) {
-  margin-bottom: 0.3em;
-}
-
-.report-content :deep(code) {
-  background: #404040;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.report-content :deep(p) {
-  line-height: 1.6;
-}
-
-.users-section {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.users-section h3 {
-  margin-bottom: 16px;
-  color: var(--warn);
-}
-
-.users-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.user-card {
-  background: #353535;
-  border-radius: 8px;
-  padding: 16px;
-  border: none;
-}
-
-.user-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.user-email {
-  font-weight: 600;
-  font-size: 1.1em;
-  color: white;
-}
-
-.user-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.user-badges .badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8em;
-  font-weight: 600;
-}
-
-.admin-badge {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-}
-
-.warn-badge {
-  background: var(--warn);
-  color: black;
-}
-
-.danger-badge {
-  background: var(--danger);
-  color: white;
-}
-
-.user-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.user-info {
-  flex: 1;
-  font-size: 0.9em;
-  color: white;
-}
-
-.user-info div {
-  margin-bottom: 4px;
-}
-
-.user-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.user-activity {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.activity-item {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-}
-
-.activity-time {
-  color: var(--muted);
-  font-size: 0.8em;
-  margin-bottom: 4px;
-}
-
-.activity-type {
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.activity-meta {
-  color: var(--muted);
-  font-family: monospace;
-  word-break: break-all;
-}
-
-.no-activity {
-  text-align: center;
-  color: var(--muted);
-  font-style: italic;
-  padding: 16px;
-}
-.row.item-badges {
-  transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
-  opacity: 1;
-  max-height: 50px;
-  margin-top: 14px;
-}
-
-.row.item-badges.collapsed {
-  opacity: 0;
-  max-height: 0;
-  margin-top: 0;
-  pointer-events: none;
-}
-.report-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
-
-.private-entries-container {
-  margin-top: 1rem;
-}
-
-.private-entries-container .card {
-  margin: 0;
-  box-shadow: none;
-  background: transparent;
-}
-
-.private-entries-container .hw-header {
-  padding: 0;
-  background: transparent;
-}
-
-.private-entries-container .todo-list {
-  margin-top: 1rem;
-}
-
-.select-subject {
-  max-width: 30px;
-  width: 100%;
-  display: inline-block;
-  box-sizing: border-box;
-}
-
-.select-subject {
-  max-width: 160px;
-  min-width: auto;
-  width: auto;
-}
-
-.admin-creator-info {
-  color: #aaa;
-}
-
+.loader { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.row-two { max-height: 80px; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
+.private-entries-container { margin-top: 1rem; }
+.private-entries-container .card { margin: 0; box-shadow: none; background: transparent; }
+.private-entries-container .hw-header { padding: 0; background: transparent; }
+.select-subject { max-width: 30px; width: 100%; display: inline-block; box-sizing: border-box; }
+.select-subject { max-width: 160px; min-width: auto; width: auto; }
+.admin-creator-info { color: #aaa; }
 @media (max-width: 768px) {
-  .user-details {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .user-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
+  /* Anpassungen */
 }
-
-
 @media (max-width: 500px ) {
-  .row-two {
-    flex-direction: column;
-    align-items: flex-start;
-    margin-top: 15px;
-    margin-bottom: 30px;
-  }
-  .rei {
-
-
-  }
-
-  .mg {
-    margin-top: 20px;
-  }
-
+  .row-two { flex-direction: column; align-items: flex-start; margin-top: 15px; margin-bottom: 30px; }
+  .mg { margin-top: 20px; }
 }
 </style>

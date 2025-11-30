@@ -220,6 +220,32 @@ export default function registerRoutes(app, deps) {
             res.json({ ok: true });
         }
     );
+    app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+        try {
+            const userCount = await User.countDocuments({});
+            const itemCount = await Item.countDocuments({});
+            const reportCount = await Report.countDocuments({});
+            const bannedCount = await BannedUser.countDocuments({});
+            const sorgeCount = await Sorgen.countDocuments({});
+
+            // Verteilung der Items nach Typ
+            const itemsByType = await Item.aggregate([
+                { $group: { _id: "$type", count: { $sum: 1 } } }
+            ]);
+
+            res.json({
+                userCount,
+                itemCount,
+                reportCount,
+                bannedCount,
+                sorgeCount,
+                itemsByType
+            });
+        } catch (err) {
+            console.error('GET /api/admin/stats error', err);
+            sendJSONError(res, 500, 'Serverfehler beim Laden der Statistiken');
+        }
+    });
 
 
     app.get('/api/serverstatus', async (req, res) => {
