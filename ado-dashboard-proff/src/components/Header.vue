@@ -47,6 +47,9 @@
         <router-link  to="/countdown" class="nav-item" @click="closeNav">
           Countdowns
         </router-link>
+        <router-link v-if="user?.isAdmin" to="/admin-dashboard" class="nav-item" @click="closeNav">
+          Admin-Dashboard
+        </router-link>
       </nav>
     </div>
   </header>

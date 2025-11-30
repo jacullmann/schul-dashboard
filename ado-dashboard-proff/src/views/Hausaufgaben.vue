@@ -23,27 +23,13 @@
     <div class="announcements">
       <div class="announcements-head">
         <h3 v-if="announcements.length">Wichtige Ankündigungen</h3>
-        <button
-            v-if="user?.isAdmin"
-            data-umami-event="Dashboard Admin Ankündigung hinzufügen"
-            class="btn ghost small-btn"
-            @click="showAnnouncementForm = true"
-        >
-          Ankündigung hinzufügen
-        </button>
       </div>
-
-
-      <div v-if="announcements.length && user?.isAdmin" class="ann-list">
+      <div v-if="announcements.length" class="ann-list">
         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
           <div class="ann-content">{{ a.content }}</div>
           <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-          <div v-if="canManage(a.createdBy)" class="ann-actions">
-            <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
-          </div>
         </div>
       </div>
-
     </div>
 
     <div class="tabs-row">
@@ -111,9 +97,6 @@
                   :style="(() => { const s = colorStyles(item.timeColor); return { background: s.background, color: s.color }; })()"
               >
                 {{ new Date(item.dueDate).toLocaleDateString() }}
-              </div>
-              <div v-if="user?.isAdmin" class="admin-creator-info">
-                {{ item.createdByEmail || 'E-Mail nicht verfügbar' }}
               </div>
             </div>
           </div>
@@ -248,159 +231,6 @@
           Weniger anzeigen
         </button>
       </div>
-
-      <div v-if="user?.isAdmin && reports.length" class="reports-section">
-        <h3>Gemeldete Einträge</h3>
-        <div class="reports-list">
-          <div v-for="report in reports" :key="report._id" class="report-card">
-            <div class="report-header">
-              <strong>{{ report.itemTitle }}</strong>
-              <span class="report-date">{{ new Date(report.reportedAt).toLocaleString() }}</span>
-            </div>
-            <div class="report-meta">
-              <span>Eintrag ID: {{ report.itemId }}</span>
-              <span v-if="report.reporterEmail !== 'anonymous'">Gemeldet von: {{ report.reporterEmail }}</span>
-              <span v-else>Anonym gemeldet</span>
-            </div>
-            <div v-if="report.reason" class="report-reason">
-              <strong>Grund:</strong> {{ report.reason }}
-            </div>
-            <div class="report-actions">
-              <button
-                  class="btn danger tiny"
-                  @click="deleteReport(report._id)"
-                  data-umami-event="Meldung löschen"
-                  title="Meldung löschen"
-              >
-                Löschen
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="user?.isAdmin" class="reports-section">
-
-        <h3>Sicherheits-Analyse</h3>
-        <p style="color: var(--muted); margin-bottom: 16px;">
-
-        </p>
-
-        <button class="btn" @click="generateSecurityReport" :disabled="isGeneratingReport">
-          <div v-if="isGeneratingReport" class="row" style="gap: 8px; align-items: center;">
-            <LoadingSpinner color="#fff" size="1.2em" />
-            <span>Bericht wird generiert...</span>
-          </div>
-          <span v-else>Neuen Sicherheitsbericht erstellen</span>
-        </button>
-
-        <div v-if="reportError" class="message error" style="margin-top: 16px;">
-          {{ reportError }}
-        </div>
-
-        <div v-if="securityReport" class="report-display-container">
-          <button
-              class="btn ghost tiny"
-              @click="copyReportToClipboard"
-              style="float: right; margin-bottom: 8px;"
-          >
-            Kopieren
-          </button>
-
-          <div class="report-content" v-html="reportHtml"></div>
-        </div>
-
-        <h3>Sorgen</h3>
-        <div class="reports-list">
-          <ul class="listsorgen">
-            <li v-for="(item, i) in entriessorgen" :key="item._id" class="sorge-item">
-              <div class="sorge-content">
-                {{ item.message }}
-                <span class="sorge-date">{{ new Date(item.createdAt).toLocaleString() }}</span>
-              </div>
-              <button
-                  class="btn danger tiny"
-                  @click="deleteSorge(item._id)"
-                  data-umami-event="Sorgen Eintrag löschen"
-                  title="Sorgen-Eintrag löschen"
-              >
-                Löschen
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div v-if="user?.isAdmin" class="users-section">
-        <h3>Benutzerverwaltung</h3>
-
-        <button class="btn" @click="loadAllUsers" :disabled="loadingUsers">
-          {{ loadingUsers ? 'Lade...' : 'Alle Benutzer laden' }}
-        </button>
-
-        <div v-if="allUsers.length" class="users-list">
-          <div v-for="u in allUsers" :key="u.id" class="user-card">
-            <div class="user-header">
-              <div class="user-email">{{ u.email }}</div>
-              <div class="user-badges">
-                <span v-if="u.isAdmin" class="badge admin-badge">Admin</span>
-                <span v-if="!u.emailVerified" class="badge warn-badge">Nicht verifiziert</span>
-                <span v-if="!u.doneSetup" class="badge danger-badge">Setup nicht abgeschlossen</span>
-              </div>
-            </div>
-
-            <div class="user-details">
-              <div class="user-info">
-                <div><strong>Kurse:</strong> Enr{{ u.enrKurs }}, WPU1:{{ u.wpuKurs1 }}, WPU2:{{ u.wpuKurs2 }}, Theater:{{ u.theater }}</div>
-                <div><strong>Erstellt:</strong> {{ new Date(u.createdAt).toLocaleString() }}</div>
-                <div><strong>Letzter Login:</strong> {{ u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Nie' }}</div>
-              </div>
-
-              <div class="user-actions">
-                <button
-                    class="btn ghost small"
-                    @click="toggleUserActivity(u.id)"
-                    :disabled="loadingActivities[u.id]"
-                >
-                  {{ showActivityFor === u.id ? 'Logs verbergen' : 'Logs laden' }}
-                </button>
-
-                <button
-                    v-if="!u.isAdmin"
-                    class="btn small"
-                    :class="{ 'danger': !u.isBanned, 'ghost': u.isBanned }"
-                    @click="toggleBan(u)"
-                    :disabled="togglingBan[u.id] || deletingUsers[u.id]"
-                >
-                  <span v-if="togglingBan[u.id]">...</span>
-                  <span v-else-if="u.isBanned">Account entsperren</span>
-                  <span v-else>Account sperren</span>
-                </button>
-
-                <button
-                    v-if="!u.isAdmin"
-                    class="btn danger small"
-                    @click="deleteUser(u.id)"
-                    :disabled="deletingUsers[u.id]"
-                >
-                  {{ deletingUsers[u.id] ? 'Löscht...' : 'Löschen' }}
-                </button>
-              </div>
-            </div>
-
-            <div v-if="showActivityFor === u.id" class="user-activity">
-              <div v-if="loadingActivities[u.id]" class="loader">Lade Aktivitäten...</div>
-              <div v-else-if="userActivities[u.id]?.length" class="activity-list">
-                <div v-for="(activity, index) in userActivities[u.id]" :key="index" class="activity-item">
-                  <div class="activity-time">{{ new Date(activity.at).toLocaleString() }}</div>
-                  <div class="activity-type">{{ activity.type }}</div>
-                  <div v-if="activity.meta" class="activity-meta">{{ JSON.stringify(activity.meta) }}</div>
-                </div>
-              </div>
-              <div v-else class="no-activity">Keine Aktivitäten gefunden</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
@@ -474,7 +304,6 @@ import { useHausaufgaben } from '../composables/useHausaufgaben';
 const {
   MAX_TITLE_LENGTH,
   MAX_SUBJECT_LENGTH,
-  entriessorgen,
   showAuth,
   showItemForm,
   showAnnouncementForm,
@@ -487,20 +316,8 @@ const {
   loading,
   subjectFilter,
   showPersonalized,
-  allUsers,
-  loadingUsers,
-  showActivityFor,
-  userActivities,
-  loadingActivities,
-  deletingUsers,
-  togglingBan,
   showOldEntries,
   showSetupModal,
-  reports,
-  securityReport,
-  isGeneratingReport,
-  reportError,
-  reportHtml,
   message,
   isError,
   itemFormKey,
@@ -528,15 +345,6 @@ const {
   onItemFormError,
   openCreateForm,
   canManage,
-  deleteAnnouncement,
-  deleteReport,
-  generateSecurityReport,
-  copyReportToClipboard,
-  deleteSorge,
-  loadAllUsers,
-  toggleUserActivity,
-  toggleBan,
-  deleteUser,
   goTab,
   isChecked,
   toggleCheck,
@@ -835,324 +643,6 @@ const {
   height: 100%;
   margin: 2px;
 
-}
-
-
-.reports-section {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.reports-section h3 {
-  margin-bottom: 16px;
-  color: var(--danger);
-}
-
-.reports-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.report-card {
-  background: rgba(255, 0, 0, 0.05);
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.report-header strong {
-  color: var(--text);
-  flex: 1;
-  margin-right: 12px;
-}
-
-.report-date {
-  color: var(--muted);
-  font-size: 0.85em;
-  white-space: nowrap;
-}
-
-.report-meta {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 8px;
-  font-size: 0.9em;
-  color: var(--muted);
-  flex-wrap: wrap;
-}
-
-.report-reason {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.9em;
-  color: var(--text);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  word-break: break-all;
-}
-
-.listsorgen {
-  display: flex;
-  gap: 12px;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-li {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
-
-.sorge-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  margin-bottom: 8px;
-}
-
-.sorge-content {
-  flex: 1;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  word-break: break-all;
-}
-
-.sorge-date {
-  display: block;
-  font-size: 0.8em;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.listsorgen {
-  display: flex;
-  gap: 12px;
-  flex-direction: column;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-
-.report-display-container {
-  margin-top: 16px;
-  background: rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  clear: both;
-}
-
-.report-content {
-  word-wrap: break-word;
-}
-
-.report-content :deep(h1),
-.report-content :deep(h2),
-.report-content :deep(h3) {
-  margin-top: 1.2em;
-  margin-bottom: 0.6em;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
-}
-.report-content :deep(h1) { font-size: 1.6rem; }
-.report-content :deep(h2) { font-size: 1.4rem; }
-.report-content :deep(h3) { font-size: 1.2rem; }
-
-.report-content :deep(ul),
-.report-content :deep(ol) {
-  padding-left: 24px;
-  margin: 0.5em 0;
-}
-.report-content :deep(li) {
-  margin-bottom: 0.3em;
-}
-
-.report-content :deep(code) {
-  background: #404040;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.report-content :deep(p) {
-  line-height: 1.6;
-}
-
-.users-section {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.users-section h3 {
-  margin-bottom: 16px;
-  color: var(--warn);
-}
-
-.users-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.user-card {
-  background: #353535;
-  border-radius: 8px;
-  padding: 16px;
-  border: none;
-}
-
-.user-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.user-email {
-  font-weight: 600;
-  font-size: 1.1em;
-  color: white;
-}
-
-.user-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.user-badges .badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8em;
-  font-weight: 600;
-}
-
-.admin-badge {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
-}
-
-.warn-badge {
-  background: var(--warn);
-  color: black;
-}
-
-.danger-badge {
-  background: var(--danger);
-  color: white;
-}
-
-.user-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.user-info {
-  flex: 1;
-  font-size: 0.9em;
-  color: white;
-}
-
-.user-info div {
-  margin-bottom: 4px;
-}
-
-.user-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.user-activity {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.activity-item {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-}
-
-.activity-time {
-  color: var(--muted);
-  font-size: 0.8em;
-  margin-bottom: 4px;
-}
-
-.activity-type {
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.activity-meta {
-  color: var(--muted);
-  font-family: monospace;
-  word-break: break-all;
-}
-
-.no-activity {
-  text-align: center;
-  color: var(--muted);
-  font-style: italic;
-  padding: 16px;
-}
-.row.item-badges {
-  transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
-  opacity: 1;
-  max-height: 50px;
-  margin-top: 14px;
-}
-
-.row.item-badges.collapsed {
-  opacity: 0;
-  max-height: 0;
-  margin-top: 0;
-  pointer-events: none;
-}
-.report-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
 }
 
 .private-entries-container {

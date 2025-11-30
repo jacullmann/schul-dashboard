@@ -15,10 +15,12 @@ const GameDetail = () => import('./views/GameDetail.vue')
 //const News = () => import('./views/News.vue')
 const Finales = () => import('./components/Finaleb.vue')
 const Countdown = () => import('./views/Countdown.vue')
+const AdminDashboard = () => import('./views/AdminDashboard.vue');
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
     { path: '/welcome', name: 'Auth', component: AuthPage, meta: { title: 'Anmeldung' } },
+    { path: '/admin-dashboard', name: 'AdminDashboard', component: AdminDashboard, meta: { title: 'Admin Dashboard', requiresAdmin: true } },
     { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true, meta: { title: 'Hausaufgaben' } },
     { path: '/hausaufgaben/verify', redirect: '/verify' },
     { path: '/verify', component: VerifyEmail, meta: { title: 'E-Mail Verifizierung' } },
@@ -75,7 +77,7 @@ router.afterEach(() => {
     finish();
 });
 
-const { isAuthenticated, isAuthReady, initAuth } = useAuth();
+const { isAuthenticated, isAuthReady, initAuth, user } = useAuth();
 
 router.beforeEach(async (to, from, next) => {
     if (to.path === '/welcome') return next();
@@ -87,6 +89,10 @@ router.beforeEach(async (to, from, next) => {
     if (!isAuthenticated.value) {
         finish();
         return next({ path: '/welcome' });
+    }
+
+    if (to.meta.requiresAdmin && !user.value?.isAdmin) {
+        return next({ path: '/items/HAUSAUFGABE' });
     }
 
     return next();
