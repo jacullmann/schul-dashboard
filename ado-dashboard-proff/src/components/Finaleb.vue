@@ -560,6 +560,10 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
 </template>
 
 <style scoped>
+.card {
+  padding: 10px;
+  overflow-x: scroll;
+}
 
 .timetable-grid {
   display: grid;
