@@ -1,316 +1,647 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+// --- Types ---
+interface Lesson {
+  id: number;
+  day: string;
+  slot: number;
+  duration: number;
+  subject: string;
+  teacher: string | null;
+  room: string | null;
+}
+
+interface TimeSlot {
+  slot: number;
+  time: string;
+}
+
+// --- Configuration ---
+const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+const totalSlots = 9;
+const lessonDurationMins = 45;
+const startTimeHour = 8;
+const startTimeMinute = 0;
+
+const breaks: Record<number, number> = {
+  2: 25,
+  3: 5,
+  5: 40,
+  7: 10
+};
+
+// --- Mock Data ---
+const jsonData: Lesson[] = [
+  {
+    "id": 1,
+    "day": "Montag",
+    "slot": 1,
+    "duration": 1,
+    "room": "A005",
+    "teacher": "Fr. Ellsiepen",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 2,
+    "day": "Montag",
+    "slot": 1,
+    "duration": 1,
+    "room": "A106",
+    "teacher": "Hr. Weber",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 3,
+    "day": "Montag",
+    "slot": 1,
+    "duration": 1,
+    "room": "A310",
+    "teacher": "Fr. Glier",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 4,
+    "day": "Montag",
+    "slot": 1,
+    "duration": 1,
+    "room": "A311",
+    "teacher": "Hr. Müller",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 5,
+    "day": "Montag",
+    "slot": 2,
+    "duration": 1,
+    "room": "A106",
+    "teacher": "Fr. Prey",
+    "subject": "Mathe",
+    "subject_abbr": "MA"
+  },
+  {
+    "id": 6,
+    "day": "Montag",
+    "slot": 3,
+    "duration": 1,
+    "room": null,
+    "teacher": null,
+    "subject": "Dalton",
+    "subject_abbr": "DAL"
+  },
+  {
+    "id": 7,
+    "day": "Montag",
+    "slot": 4,
+    "duration": 2,
+    "room": "A203",
+    "teacher": "Hr. Luxen",
+    "subject": "Biologie",
+    "subject_abbr": "BI"
+  },
+  {
+    "id": 8,
+    "day": "Montag",
+    "slot": 6,
+    "duration": 1,
+    "room": "A307",
+    "teacher": "Fr. Glier",
+    "subject": "Deutsch",
+    "subject_abbr": "DE"
+  },
+  {
+    "id": 9,
+    "day": "Montag",
+    "slot": 7,
+    "duration": 1,
+    "room": "A307",
+    "teacher": "Hr. Austerfield",
+    "subject": "Englisch",
+    "subject_abbr": "ENG"
+  },
+  {
+    "id": 10,
+    "day": "Dienstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A-115",
+    "teacher": "Hr. Schlüter",
+    "subject": "Informatik",
+    "subject_abbr": "INF"
+  },
+  {
+    "id": 11,
+    "day": "Dienstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A004",
+    "teacher": "Fr. Blanke",
+    "subject": "Englisch",
+    "subject_abbr": "ENG"
+  },
+  {
+    "id": 12,
+    "day": "Dienstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A104",
+    "teacher": "Fr. Eckers",
+    "subject": "Biologie",
+    "subject_abbr": "BI"
+  },
+  {
+    "id": 13,
+    "day": "Dienstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A309",
+    "teacher": "Fr. Sonnemann",
+    "subject": "Latein",
+    "subject_abbr": "LA"
+  },
+  {
+    "id": 14,
+    "day": "Dienstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A311",
+    "teacher": "Hr. Peukert",
+    "subject": "GeWi",
+    "subject_abbr": "GEWI"
+  },
+  {
+    "id": 15,
+    "day": "Dienstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A313",
+    "teacher": "Hr. Preuß",
+    "subject": "Deutsch",
+    "subject_abbr": "DE"
+  },
+  {
+    "id": 16,
+    "day": "Dienstag",
+    "slot": 3,
+    "duration": 1,
+    "room": null,
+    "teacher": null,
+    "subject": "Dalton",
+    "subject_abbr": "DAL"
+  },
+  {
+    "id": 17,
+    "day": "Dienstag",
+    "slot": 3,
+    "duration": 1,
+    "room": "A-115",
+    "teacher": "Hr. Schlüter",
+    "subject": "Informatik",
+    "subject_abbr": "INF"
+  },
+  {
+    "id": 18,
+    "day": "Dienstag",
+    "slot": 4,
+    "duration": 2,
+    "room": "A303",
+    "teacher": "Hr. Zimmermann",
+    "subject": "Erdkunde",
+    "subject_abbr": "EK"
+  },
+  {
+    "id": 19,
+    "day": "Dienstag",
+    "slot": 6,
+    "duration": 2,
+    "room": "TH2",
+    "teacher": "Fr. Haupt",
+    "subject": "Sport",
+    "subject_abbr": "SP"
+  },
+  {
+    "id": 20,
+    "day": "Dienstag",
+    "slot": 8,
+    "duration": 2,
+    "room": "A102",
+    "teacher": "Hr. Magnus",
+    "subject": "Theater",
+    "subject_abbr": "TH"
+  },
+  {
+    "id": 21,
+    "day": "Mittwoch",
+    "slot": 1,
+    "duration": 2,
+    "room": "A104",
+    "teacher": "Fr. Prey",
+    "subject": "Physik",
+    "subject_abbr": "PH"
+  },
+  {
+    "id": 22,
+    "day": "Mittwoch",
+    "slot": 3,
+    "duration": 1,
+    "room": null,
+    "teacher": null,
+    "subject": "Dalton",
+    "subject_abbr": "DAL"
+  },
+  {
+    "id": 23,
+    "day": "Mittwoch",
+    "slot": 4,
+    "duration": 2,
+    "room": "A301",
+    "teacher": "Fr. Rehlinghaus",
+    "subject": "Musik",
+    "subject_abbr": "MU"
+  },
+  {
+    "id": 24,
+    "day": "Mittwoch",
+    "slot": 6,
+    "duration": 1,
+    "room": "A307",
+    "teacher": "Fr. Glier",
+    "subject": "Klassenstunde",
+    "subject_abbr": "KSTD"
+  },
+  {
+    "id": 25,
+    "day": "Mittwoch",
+    "slot": 7,
+    "duration": 1,
+    "room": "A307",
+    "teacher": "Fr. Glier",
+    "subject": "Französisch",
+    "subject_abbr": "FRZ"
+  },
+  {
+    "id": 26,
+    "day": "Donnerstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A005",
+    "teacher": "Hr. Herrmann",
+    "subject": "Mathe",
+    "subject_abbr": "MA"
+  },
+  {
+    "id": 27,
+    "day": "Donnerstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A104",
+    "teacher": "Hr. Moresmau",
+    "subject": "GeWi",
+    "subject_abbr": "GEWI"
+  },
+  {
+    "id": 28,
+    "day": "Donnerstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A206",
+    "teacher": "Hr. Chahine",
+    "subject": "Englisch",
+    "subject_abbr": "ENG"
+  },
+  {
+    "id": 29,
+    "day": "Donnerstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A207",
+    "teacher": "Fr. Eckers",
+    "subject": "Biologie",
+    "subject_abbr": "BI"
+  },
+  {
+    "id": 30,
+    "day": "Donnerstag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A301",
+    "teacher": "Fr. Klein",
+    "subject": "Musik",
+    "subject_abbr": "MU"
+  },
+  {
+    "id": 31,
+    "day": "Donnerstag",
+    "slot": 3,
+    "duration": 1,
+    "room": null,
+    "teacher": null,
+    "subject": "Dalton",
+    "subject_abbr": "DAL"
+  },
+  {
+    "id": 32,
+    "day": "Donnerstag",
+    "slot": 4,
+    "duration": 2,
+    "room": "A307",
+    "teacher": "Fr. Glier",
+    "subject": "Deutsch",
+    "subject_abbr": "DE"
+  },
+  {
+    "id": 33,
+    "day": "Donnerstag",
+    "slot": 6,
+    "duration": 2,
+    "room": "A307",
+    "teacher": "Hr. Kröse",
+    "subject": "Ethik",
+    "subject_abbr": "ETH"
+  },
+  {
+    "id": 34,
+    "day": "Freitag",
+    "slot": 1,
+    "duration": 2,
+    "room": "A110",
+    "teacher": "Fr. Prey",
+    "subject": "Mathe",
+    "subject_abbr": "MA"
+  },
+  {
+    "id": 35,
+    "day": "Freitag",
+    "slot": 3,
+    "duration": 1,
+    "room": null,
+    "teacher": null,
+    "subject": "Dalton",
+    "subject_abbr": "DAL"
+  },
+  {
+    "id": 36,
+    "day": "Freitag",
+    "slot": 4,
+    "duration": 1,
+    "room": "A307",
+    "teacher": "Hr. Austerfield",
+    "subject": "Englisch",
+    "subject_abbr": "ENG"
+  },
+  {
+    "id": 37,
+    "day": "Freitag",
+    "slot": 5,
+    "duration": 1,
+    "room": "A307",
+    "teacher": "Fr. Glier",
+    "subject": "Französisch",
+    "subject_abbr": "FRZ"
+  },
+  {
+    "id": 38,
+    "day": "Freitag",
+    "slot": 6,
+    "duration": 2,
+    "room": "A008",
+    "teacher": "Hr. Müller",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 39,
+    "day": "Freitag",
+    "slot": 6,
+    "duration": 2,
+    "room": "A104",
+    "teacher": "Hr. Weber",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 40,
+    "day": "Freitag",
+    "slot": 6,
+    "duration": 2,
+    "room": "A310",
+    "teacher": "Fr. Glier",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 41,
+    "day": "Freitag",
+    "slot": 6,
+    "duration": 2,
+    "room": "A313",
+    "teacher": "Fr. Ellsiepen",
+    "subject": "Enrichment",
+    "subject_abbr": "ENR"
+  },
+  {
+    "id": 42,
+    "day": "Freitag",
+    "slot": 8,
+    "duration": 1,
+    "room": "A203",
+    "teacher": "Hr. Luxen",
+    "subject": "Biologie",
+    "subject_abbr": "BI"
+  }
+];
+
+const lessons = ref<Lesson[]>(jsonData);
+
+// --- Logic ---
+
+const formatTime = (totalMinutes: number): string => {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const timeSlots = computed<TimeSlot[]>(() => {
+  const slots: TimeSlot[] = [];
+  let currentMetrics = (startTimeHour * 60) + startTimeMinute;
+
+  for (let i = 1; i <= totalSlots; i++) {
+    const startStr = formatTime(currentMetrics);
+    const endMetrics = currentMetrics + lessonDurationMins;
+    const endStr = formatTime(endMetrics);
+
+    slots.push({ slot: i, time: `${startStr} - ${endStr}` });
+
+    const breakTime = breaks[i] || 0;
+    currentMetrics = endMetrics + breakTime;
+  }
+  return slots;
+});
+
+// Group lessons by "Day-Slot" coordinate
+const groupedLessons = computed(() => {
+  const groups: Record<string, Lesson[]> = {};
+
+  lessons.value.forEach(lesson => {
+    const key = `${lesson.day}-${lesson.slot}`;
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(lesson);
+  });
+
+  return groups;
+});
+
+// Calculate style for the Container (Group)
+const getGroupStyle = (groupLessons: Lesson[]) => {
+  if (!groupLessons.length) return {};
+
+  const firstLesson = groupLessons[0];
+  const maxDuration = Math.max(...groupLessons.map(l => l.duration));
+
+  const dayIndex = days.indexOf(firstLesson.day);
+  const colStart = dayIndex + 2;
+  const rowStart = firstLesson.slot + 1;
+
+  return {
+    gridColumn: `${colStart} / ${colStart + 1}`,
+    gridRow: `${rowStart} / span ${maxDuration}`
+  };
+};
+</script>
+
 <template>
   <div class="card">
-    <n-switch
-        size="large"
-        v-model:value="isPersonalized"
-        @update:value="handleSwitch"
-        :checked="isPersonalized"
-        :checked-value="true"
-        :unchecked-value="false"
-    >
-      <template #checked>Personalisierter Stundenplan</template>
-      <template #unchecked>Normaler Stundenplan</template>
-    </n-switch>
-    <Timetable
-        :data="scheduleData"
-        :days="days"
-        :lesson-definitions="lessonHours"
-    >
-      <template v-for="day in days" :key="day" #[`cell-${day}`]="{ lesson, hour }">
-        <div v-if="lesson && lesson.length > 0" class="lesson-group">
-          <div v-for="(course, index) in lesson" :key="index"
-               class="course-item"
-               :class="{
-                 'double-lesson': course.isDoubleLesson,
-                 'double-start': course.doubleLessonPosition === 'start',
-                 'double-middle': course.doubleLessonPosition === 'middle',
-                 'double-end': course.doubleLessonPosition === 'end'
-               }">
-            <template v-if="!course.isDoubleLesson || course.doubleLessonPosition === 'start'">
-              <div class="subject-room">
-                <span class="subject-code">{{ course.code }}</span>
-                <span class="subject-name">{{ course.subject }}</span>
-                <span class="room">{{ course.room }}</span>
-              </div>
-              <div v-if="course.isDoubleLesson && course.doubleLessonPosition === 'start'"
-                   class="double-lesson-indicator">
-              </div>
-            </template>
+    <div class="timetable-grid">
+
+      <div class="header-cell time-header">Stunde</div>
+      <div v-for="day in days" :key="day" class="header-cell day-header">
+        {{ day }}
+      </div>
+
+      <div
+          v-for="ts in timeSlots"
+          :key="ts.slot"
+          class="time-slot-label"
+          :style="{ gridRow: ts.slot + 1 }"
+      >
+        <span class="slot-number">{{ ts.slot }}</span>
+        <span class="slot-time">{{ ts.time }}</span>
+      </div>
+
+      <div
+          v-for="(group, key) in groupedLessons"
+          :key="key"
+          class="lesson-group-container"
+          :style="getGroupStyle(group)"
+      >
+        <div
+            v-for="(lesson, index) in group"
+            :key="lesson.id"
+            class="sub-lesson-item"
+            :class="{ 'has-border': index < group.length - 1 }"
+        >
+          <div class="lesson-subject">{{ lesson.subject }}</div>
+          <div class="lesson-details" v-if="lesson.teacher || lesson.room">
+            <span class="lesson-room">{{ lesson.room }}</span>
+            <span class="lesson-teacher">{{ lesson.teacher }}</span>
           </div>
         </div>
-      </template>
-    </Timetable>
+
+      </div>
+
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from "vue";
-import Timetable from './StundenplanSQL.vue';
-import { supabase } from '../composables/Datatable';
-
-const isPersonalized = ref(false);
-const lessonHours = ref([])
-const days = ref([])
-const scheduleData = ref([])
-const doubleLessons = ref([])
-
-// Doppelstunden abrufen
-const fetchDoubleLessons = async () => {
-  const { data, error } = await supabase
-      .from('double_lessons')
-      .select('*')
-      .order('day_name, start_time');
-
-  if (error) {
-    console.error('Fehler beim Laden der Doppelstunden:', error);
-    return [];
-  }
-  return data || [];
-}
-
-// Prüfen, ob eine Stunde Teil einer Doppelstunde ist
-// In Finaleb.vue - angepasste Funktion für dein Zeitformat
-const getDoubleLessonInfo = (day, time, doubleLessonsList) => {
-  for (const doubleLesson of doubleLessonsList) {
-    if (doubleLesson.day_name === day) {
-      const lessonTimes = lessonHours.value.map(h => h.time);
-      const startIndex = lessonTimes.indexOf(doubleLesson.start_time);
-      const endIndex = lessonTimes.indexOf(doubleLesson.end_time);
-      const currentIndex = lessonTimes.indexOf(time);
-
-      if (startIndex !== -1 && endIndex !== -1 && currentIndex >= startIndex && currentIndex <= endIndex) {
-        return {
-          isDoubleLesson: true,
-          doubleLessonPosition:
-              currentIndex === startIndex ? 'start' :
-                  currentIndex === endIndex ? 'end' : 'middle',
-          doubleLessonData: doubleLesson
-        };
-      }
-    }
-  }
-  return { isDoubleLesson: false, doubleLessonPosition: null, doubleLessonData: null };
-};
-
-const buildScheduleData = (lessons, hours, doubleLessonsList) => {
-  const dataMap = hours.map(hour => {
-    const scheduleItem = { time: hour.time, Mo: null, Di: null, Mi: null, Do: null, Fr: null };
-    return scheduleItem;
-  });
-
-  // Zuerst Doppelstunden verarbeiten
-  doubleLessonsList.forEach(doubleLesson => {
-    const lessonTimes = hours.map(h => h.time);
-    const startIndex = lessonTimes.indexOf(doubleLesson.start_time);
-    const endIndex = lessonTimes.indexOf(doubleLesson.end_time);
-
-    if (startIndex !== -1 && endIndex !== -1) {
-      const dayKey = doubleLesson.day_name;
-
-      // Für jede Stunde der Doppelstunde
-      for (let i = startIndex; i <= endIndex; i++) {
-        if (!dataMap[i][dayKey]) {
-          dataMap[i][dayKey] = [];
-        }
-
-        const doubleInfo = getDoubleLessonInfo(dayKey, dataMap[i].time, doubleLessonsList);
-        const course = {
-          code: doubleLesson.code,
-          subject: doubleLesson.subject,
-          room: doubleLesson.room,
-          isDoubleLesson: true,
-          doubleLessonPosition: doubleInfo.doubleLessonPosition,
-          doubleLessonId: doubleLesson.id
-        };
-
-        // Nur hinzufügen, wenn nicht bereits vorhanden
-        const exists = dataMap[i][dayKey].some(item =>
-            item.doubleLessonId === doubleLesson.id
-        );
-
-        if (!exists) {
-          dataMap[i][dayKey].push(course);
-        }
-      }
-    }
-  });
-
-  // Dann normale Einzelstunden verarbeiten (überschreiben keine Doppelstunden)
-  lessons.forEach(lesson => {
-    const timeSlot = dataMap.find(item => item.time === lesson.lesson_hours.time);
-
-    if (timeSlot) {
-      const dayKey = lesson.day_name;
-      const doubleInfo = getDoubleLessonInfo(dayKey, timeSlot.time, doubleLessonsList);
-
-      // Nur hinzufügen, wenn dieser Slot nicht Teil einer Doppelstunde ist
-      if (!doubleInfo.isDoubleLesson) {
-        if (!timeSlot[dayKey]) {
-          timeSlot[dayKey] = [];
-        }
-
-        const course = {
-          code: lesson.code,
-          subject: lesson.subject || null,
-          room: lesson.room,
-          isDoubleLesson: false,
-          doubleLessonPosition: null
-        };
-
-        if (lesson.code === 'DALTON') {
-          timeSlot[dayKey] = [{ ...course, code: 'DALTON', room: '' }];
-        } else if (lesson.code !== 'DALTON') {
-          if(timeSlot[dayKey].length > 0 && timeSlot[dayKey][0].code === 'DALTON') {
-          } else {
-            timeSlot[dayKey].push(course);
-          }
-        }
-      }
-    }
-  });
-
-  return dataMap;
-};
-
-const fetchData = async () => {
-  // 1. lesson_hours abrufen
-  const { data: hoursData, error: hoursError } = await supabase
-      .from('lesson_hours')
-      .select('*')
-      .order('id')
-  if (hoursError) {
-    console.error('Fehler beim Laden der Stunden-Definitionen:', hoursError);
-    return;
-  }
-  lessonHours.value = hoursData;
-
-  // 2. days abrufen
-  const {data: daysData, error: daysError} = await supabase
-      .from('days')
-      .select('name')
-      .order('id')
-  if (daysError) {
-    console.error('Fehler beim Laden der Tage:', daysError);
-    return;
-  }
-  days.value = daysData.map(d => d.name);
-
-  // 3. Doppelstunden abrufen
-  doubleLessons.value = await fetchDoubleLessons();
-
-  // 4. schedule_entries abrufen
-  const { data: scheduleEntries, error: entriesError } = await supabase
-      .from('schedule_entries')
-      .select(`*, lesson_hours (time)`);
-
-  if (entriesError) {
-    console.error('Fehler beim Laden der Stundenplaneinträge:', entriesError);
-    return;
-  }
-
-  // 5. Daten transformieren mit Doppelstunden-Information
-  scheduleData.value = buildScheduleData(scheduleEntries, hoursData, doubleLessons.value);
-}
-
-function handleSwitch(newValue) {
-  if (newValue) {
-    console.log("Der Stundenplan ist nun personalisiert:", isPersonalized)
-  } else {
-    console.log("Der Stundenplan ist nun personalisiert:", isPersonalized)
-  }
-}
-
-onMounted(() => {
-  fetchData()
-})
-</script>
-
 <style scoped>
-.card {
-  padding: 24px;
-  border-radius: 12px;
-  background-color: #1e1e1e;
-  border: 1px solid #2d2d2d;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+
+.timetable-grid {
+  display: grid;
+  grid-template-columns: 110px repeat(5, 1fr);
+  grid-template-rows: auto repeat(9, auto);
+  gap: 8px;
+  align-items: stretch;
 }
 
-.lesson-group {
+.header-cell {
+  background-color:#282828; /* Header background */
+  color: #F1F1F1; /* Header text */
+  padding: 12px;
+  border:1px solid #414141;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.time-header { grid-column: 1; grid-row: 1; }
+.day-header { grid-row: 1; }
+
+.time-slot-label {
+  grid-column: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  gap: 0;
-}
-
-.course-item {
-  color: #e2e8f0;
-  border-radius: 4px;
-  padding: 6px 8px;
-  font-size: 0.85em;
-  line-height: 1.3;
-  height: 100%;
-  box-sizing: border-box;
-  margin-bottom: 1px;
-}
-.course-item.double-lesson {
-  margin-bottom: 0;
-}
-
-.course-item.double-start {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  border-bottom: none;
-}
-
-.course-item.double-middle {
-  border-radius: 0;
-  border-bottom: none;
-}
-
-.course-item.double-end {
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-  margin-bottom: 0;
-}
-
-.double-lesson-indicator {
-  height: 4px;
-  width: 100%;
-  border-radius: 2px;
-  margin-top: 4px;
-}
-
-.subject-room {
-  display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
-}
-
-.subject-code {
-  font-weight: 700;
-  margin-right: 6px;
-  text-transform: uppercase;
-}
-
-.subject-name {
-  flex-grow: 1;
-  font-weight: 500;
-  color: #e2e8f0;
-  line-height: 1;
-}
-
-.room {
-  font-weight: 400;
-  color: #cbd5e1;
-  background-color: #333333;
-  padding: 1px 6px;
-  border-radius: 12px;
-  font-size: 0.9em;
-  margin-left: 8px;
+  background-color:transparent; /* Label background */
+  font-size: 0.85rem;
+  color: #AAAAAA; /* Secondary text color */
   white-space: nowrap;
 }
 
-.course-item:has(.subject-name:only-child) .subject-name {
-  margin-right: 0;
+.slot-number {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #F1F1F1; /* Primary text color */
+}
+
+.slot-time { font-size: 0.75rem; }
+
+/* GROUP CONTAINER */
+.lesson-group-container {
+  background-color: #282828; /* Lesson background */
+  border-radius: 4px;
+  border:1px solid #414141;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 2;
+}
+
+/* SUB LESSON ITEM */
+.sub-lesson-item {
+  /* FIX: Removed flex: 1 and min-height: 0.
+     Added flex-shrink: 0 to prevent items from crushing each other. */
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6px 8px; /* Increased padding slightly for better spacing */
+}
+
+.sub-lesson-item.has-border {
+  border-bottom: 1px solid #414141; /* Separator border */
+}
+
+.lesson-subject {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #F1F1F1; /* Subject color */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lesson-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #AAAAAA; /* Details color */
+  margin-top: 2px;
 }
 </style>
