@@ -217,7 +217,6 @@
       <div v-if="activeTab === 'security'" class="tab-content fade-in">
         <div class="security-tools card">
           <h3>KI Sicherheits-Analyse</h3>
-          <p class="small text-muted">Generiert einen Bericht basierend auf den letzten Auth-Logs via Gemini AI.</p>
           <div class="row mt-4">
             <button class="btn primary" @click="generateSecurityReport" :disabled="isGeneratingReport">
               <span v-if="isGeneratingReport">Analysiere...</span>
@@ -244,7 +243,6 @@
           <div class="row mt-4">
             <button class="btn" @click="showAnnouncementForm = true">Formular öffnen</button>
           </div>
-          <!-- Hier könnte man eine Liste der aktiven Ankündigungen anzeigen -->
         </div>
       </div>
 
@@ -457,6 +455,7 @@ const tabTitles: Record<string, string> = {
   height: 100%;
   overflow-y: auto;
   animation: slideIn 0.3s ease;
+  border-radius: 0;
 }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
