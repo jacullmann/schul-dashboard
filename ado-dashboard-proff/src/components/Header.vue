@@ -116,8 +116,6 @@ onUnmounted(() => {
 .nav-item { font-size: 1rem; font-weight: 600; text-decoration: none; color: #f1f1f1; position: relative; transition: opacity 0.2s ease; }
 .nav-item:hover { opacity: 0.7; }
 
-/* Admin Link Styling */
-.admin-link { color: var(--primary); }
 
 .nav-close-button { display: none; position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #f0f0f0; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background-color 0.3s ease; z-index: 1002; }
 .nav-close-button:hover { background-color: rgba(255, 255, 255, 0.1); }
