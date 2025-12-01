@@ -195,8 +195,8 @@ onMounted(() => {
   justify-content: center;
 }
 .switch-btn {
-  background: var(--llbg);
-  border: 1px solid var(--border);
+  background: var(--jj);
+  border: 1px solid var(--border2);
   border-radius: 6px;
   width: 40px;
   height: 40px;
@@ -228,18 +228,6 @@ onMounted(() => {
   transform: rotate(180deg);
 }
 
-.input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  background: var(--llbg);
-  border: 1px solid var(--border);
-  color: #f1f1f1;
-  margin-top: 5px;
-}
-.input:focus {
-  border: 1px solid var(--border2);
-}
 .suggestion {
   margin-top: 8px;
   color: var(--danger);

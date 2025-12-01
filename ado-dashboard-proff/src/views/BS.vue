@@ -192,18 +192,6 @@ onUnmounted(() => {
   gap: 12px;
 }
 
-.input {
-  background: var(--llbg);
-  padding: 10px;
-  color: var(--text);
-  font-family: inherit;
-  resize: vertical;
-  border: 1px solid var(--border);
-}
-
-.input:focus {
-  border: 1px solid var(--border2);
-}
 
 /* Buttons */
 .btn {
