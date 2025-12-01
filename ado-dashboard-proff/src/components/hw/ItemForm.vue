@@ -479,13 +479,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .glass-modal {
   width: 100%;
   max-width: 720px;
-  border-radius: 14px;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-  padding: 22px;
+  padding: 16px;
   color: #1a1a1a;
   max-height: calc(100vh - 40px);
   overflow-y: scroll;

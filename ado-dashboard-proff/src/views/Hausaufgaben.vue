@@ -139,7 +139,6 @@
         <transition name="collapse">
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <!-- Images rendering logic retained -->
-            <div class="images-title">Bilder</div>
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
                 <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper">
@@ -220,7 +219,7 @@ const {
 .tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
-.select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 14px;}
+.select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 14px; background: #282828;}
 .items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
 .item-card { border-radius: 12px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
@@ -239,7 +238,7 @@ const {
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
-.item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: 1px solid var(--border2); border-radius: 5px; padding: 6px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+.item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: 1px solid var(--border2); border-radius: 5px; padding: 12px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .menu-btn { display: block; width: 100%; text-align: left; background: transparent; border: none; padding: 6px 9px; color: var(--text); border-radius: 8px; cursor: pointer; font-size: 16px; transition: background 0.2s ease; }
 .menu-btn .fixall { display: flex; align-items: center; gap: 9px; line-height: 1; }

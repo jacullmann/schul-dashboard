@@ -198,44 +198,12 @@ async function submit() {
 
 <style scoped>
 .styl {
-  border-radius: 14px;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--bg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
-/* --- Button Styles --- */
-.btn {
-  background: transparent;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* Aktiver Button (ohne .ghost) */
-.btn:not(.ghost) {
-  background: white;
-  color: #333;
-}
-
-/* Hover-Effekt für inaktive Buttons */
-.btn.ghost:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-/* Hover-Effekt für aktive Buttons */
-.btn:not(.ghost):hover {
-  background: #f0f0f0;
-  color: #111;
-}
-
-/* --- Checkbox Styles --- */
 .checkbox-row {
   margin-top: 12px;
   display: flex;
@@ -276,20 +244,6 @@ async function submit() {
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
-}
-
-/* Input basics to fit the look */
-.input {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  color: white;
-  outline: none;
-}
-.input::placeholder {
-  color: rgba(255,255,255,0.7);
 }
 
 /* small text */

@@ -235,14 +235,11 @@ async function removeImg(publicId: string) {
 .modal {
   width: 100%;
   max-width: 640px;
-  padding: 20px;
-  border-radius: 14px;
-  border:none;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px) saturate(105%) brightness(105%);
-  -webkit-backdrop-filter: blur(20px) saturate(105%) brightness(105%);
+  padding: 16px;
+  border-radius: 16px;
+  border:1px solid var(--border);
+  background: var(--bg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-  color: white;
 }
 
 /* Confirm modal variant */
