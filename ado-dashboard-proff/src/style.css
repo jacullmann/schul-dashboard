@@ -176,6 +176,7 @@ footer {
         margin: 0 0 0 0;
         padding: 16px 16px 16px 16px;
         border: none;
+        border-radius: 0;
     }
 
     .container {

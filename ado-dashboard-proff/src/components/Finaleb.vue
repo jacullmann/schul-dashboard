@@ -561,7 +561,7 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
 
 <style scoped>
 .card {
-  padding: 10px;
+  padding: 20px;
   overflow-x: scroll;
 }
 
@@ -584,7 +584,7 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
 }
 
 .time-header { grid-column: 1; grid-row: 1; }
-.day-header { grid-row: 1; }
+.day-header { grid-row: 1; min-width: 150px;}
 
 .time-slot-label {
   grid-column: 1;
@@ -647,5 +647,13 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
   font-size: 0.75rem;
   color: #AAAAAA; /* Details color */
   margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    border-radius: 0;
+    padding: 16px;
+  }
+
 }
 </style>
