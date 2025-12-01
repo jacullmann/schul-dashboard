@@ -1,10 +1,9 @@
 <template>
   <button
-      class="toggle-btn btn"
+      class="btn ghost"
       :class="{ 'is-showing-old': props.modelValue }"
       @click="toggleState"
   >
-    <transition name="fade" mode="out-in">
       <component
           :is="activeIcon"
           :key="props.modelValue ? 'right' : 'left'"
@@ -12,13 +11,10 @@
           stroke-width="2.5"
           class="icon"
       />
-    </transition>
 
-    <transition name="fade" mode="out-in">
       <span :key="buttonText">
         {{ buttonText }}
       </span>
-    </transition>
   </button>
 </template>
 
@@ -32,30 +28,20 @@ import { ChevronsRight, ChevronsLeft } from 'lucide-vue-next'
 const message = useMessage()
 
 const props = defineProps<{
-  modelValue: boolean // false = Neue, true = Alte
+  modelValue: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
 }>()
 
-// Diese Logik war bereits korrekt
 const buttonText = computed(() => {
   if (props.modelValue) {
-    // Aktuell werden ALTE angezeigt -> Button bietet NEUE an
     return 'Aktuelle Einträge anzeigen'
   } else {
-    // Aktuell werden NEUE angezeigt -> Button bietet ALTE an
     return 'Alte Einträge anzeigen'
   }
 })
-
-/**
- * NEU: Computed Property für das Icon.
- * Basierend auf deiner Anfrage:
- * - "Aktuelle Einträge anzeigen" (modelValue=true) -> ChevronsRight
- * - "Alte Einträge anzeigen" (modelValue=false) -> ChevronsLeft
- */
 const activeIcon = computed(() => {
   if (props.modelValue) {
     return ChevronsRight
@@ -64,12 +50,10 @@ const activeIcon = computed(() => {
   }
 })
 
-// Diese Logik war bereits korrekt
 function toggleState() {
   handleChange(!props.modelValue)
 }
 
-// Diese Logik war bereits korrekt
 function handleChange(value: boolean) {
   emit('update:modelValue', value)
   if (value) {
@@ -81,50 +65,11 @@ function handleChange(value: boolean) {
 </script>
 
 <style scoped>
-.toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px solid var(--border2);
-  padding: 10px 14px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  min-width: 210px;
-  text-align: center;
-  background-color: #2a2a2a;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.btn {
 }
 
-/* NEU: Stellt sicher, dass das Icon im Layout bleibt */
 .icon {
   display: block;
-  line-height: 1; /* Verhindert seltsame Abstände */
-}
-
-.toggle-btn:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #3e3e3e;
-}
-
-.toggle-btn.is-showing-old {
-  background-color: #2a2a2a;
-}
-.toggle-btn.is-showing-old:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #3e3e3e;
-}
-
-/* Transitions sind unverändert */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.1s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  line-height: 1;
 }
 </style>

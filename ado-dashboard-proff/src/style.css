@@ -68,7 +68,7 @@ a { color: var(--primary); text-decoration: none; }
     padding:10px 14px;
     background:#fff;
     color:var(--jj);
-    border:none;
+    border:1px solid transparent;
     border-radius:5px;
     cursor:pointer;
     transition:.1s ease

@@ -168,7 +168,6 @@
         <button v-if="visibleCount > 5" class="btn ghost shm" @click="showLess">Weniger anzeigen</button>
       </div>
 
-      <!-- ADMIN SECTIONS REMOVED HERE -->
 
     </div>
 
@@ -207,9 +206,6 @@ const {
 </script>
 
 <style scoped>
-/* Behalte hier die existierenden Styles für die Cards, Header und Items.
-   Entferne Styles, die nur für die Admin-Sektionen (User List, Reports Table) nötig waren,
-   um CSS zu sparen, oder lass sie drin, falls sie nicht stören. */
 .hw-header { display: flex; justify-content: space-between; gap: 12px; flex-direction: column; text-align: left; }
 .hw-header h2 { margin: 0 0 2px 0}
 .header-actions { align-items: center; display: flex; flex-direction: row; flex-wrap: wrap}
