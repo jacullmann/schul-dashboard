@@ -481,7 +481,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   max-width: 720px;
   border-radius: 16px;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--lbg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
   padding: 16px;
   color: #1a1a1a;

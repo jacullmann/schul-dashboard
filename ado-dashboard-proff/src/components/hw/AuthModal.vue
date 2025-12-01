@@ -200,7 +200,7 @@ async function submit() {
 .styl {
   border-radius: 16px;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--lbg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
