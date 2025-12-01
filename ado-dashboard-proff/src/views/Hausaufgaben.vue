@@ -16,7 +16,7 @@
             @open-setup="openSetupModal"
             @logout="logout"
         />
-        <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+        <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn ghost" v-else @click="showAuth = true">Anmelden/Registrieren</button>
       </div>
     </div>
 
@@ -64,7 +64,7 @@
           </button>
         </div>
 
-        <button v-if="user && tab !== 'PRIVATE'" class="btn mg" @click="openCreateForm">Eintrag anlegen</button>
+        <button v-if="user && tab !== 'PRIVATE'" class="btn mg ghost" @click="openCreateForm">Eintrag anlegen</button>
 
         <div v-if="loading && tab !== 'PRIVATE'" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />

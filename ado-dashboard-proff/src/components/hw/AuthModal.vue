@@ -62,7 +62,7 @@
 
       <!-- Submit -->
       <div class="row" style="margin-top:12px; align-items:center;">
-        <button data-umami-event="Anmelden/Registrieren Button" class="btn" @click="submit">
+        <button data-umami-event="Anmelden/Registrieren Button" class="btn ghost" @click="submit">
           <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
           {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
         </button>

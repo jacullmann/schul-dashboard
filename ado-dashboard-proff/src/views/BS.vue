@@ -21,7 +21,7 @@
 
       <div class="row actions">
         <button
-            class="btn"
+            class="btn ghost"
             type="submit"
             :disabled="submitting || !message.trim()"
             data-umami-event="Sorgenbox absenden Button"
