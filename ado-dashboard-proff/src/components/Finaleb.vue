@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 // --- Types ---
 interface Lesson {
@@ -33,431 +33,53 @@ const breaks: Record<number, number> = {
 
 // --- Mock Data ---
 const jsonData: Lesson[] = [
-  {
-    "id": 1,
-    "day": "Montag",
-    "slot": 1,
-    "duration": 1,
-    "room": "A005",
-    "teacher": "Fr. Ellsiepen",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 2,
-    "day": "Montag",
-    "slot": 1,
-    "duration": 1,
-    "room": "A106",
-    "teacher": "Hr. Weber",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 3,
-    "day": "Montag",
-    "slot": 1,
-    "duration": 1,
-    "room": "A310",
-    "teacher": "Fr. Glier",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 4,
-    "day": "Montag",
-    "slot": 1,
-    "duration": 1,
-    "room": "A311",
-    "teacher": "Hr. Müller",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 5,
-    "day": "Montag",
-    "slot": 2,
-    "duration": 1,
-    "room": "A106",
-    "teacher": "Fr. Prey",
-    "subject": "Mathe",
-    "subject_abbr": "MA"
-  },
-  {
-    "id": 6,
-    "day": "Montag",
-    "slot": 3,
-    "duration": 1,
-    "room": null,
-    "teacher": null,
-    "subject": "Dalton",
-    "subject_abbr": "DAL"
-  },
-  {
-    "id": 7,
-    "day": "Montag",
-    "slot": 4,
-    "duration": 2,
-    "room": "A203",
-    "teacher": "Hr. Luxen",
-    "subject": "Biologie",
-    "subject_abbr": "BI"
-  },
-  {
-    "id": 8,
-    "day": "Montag",
-    "slot": 6,
-    "duration": 1,
-    "room": "A307",
-    "teacher": "Fr. Glier",
-    "subject": "Deutsch",
-    "subject_abbr": "DE"
-  },
-  {
-    "id": 9,
-    "day": "Montag",
-    "slot": 7,
-    "duration": 1,
-    "room": "A307",
-    "teacher": "Hr. Austerfield",
-    "subject": "Englisch",
-    "subject_abbr": "ENG"
-  },
-  {
-    "id": 10,
-    "day": "Dienstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A-115",
-    "teacher": "Hr. Schlüter",
-    "subject": "Informatik",
-    "subject_abbr": "INF"
-  },
-  {
-    "id": 11,
-    "day": "Dienstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A004",
-    "teacher": "Fr. Blanke",
-    "subject": "Englisch",
-    "subject_abbr": "ENG"
-  },
-  {
-    "id": 12,
-    "day": "Dienstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A104",
-    "teacher": "Fr. Eckers",
-    "subject": "Biologie",
-    "subject_abbr": "BI"
-  },
-  {
-    "id": 13,
-    "day": "Dienstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A309",
-    "teacher": "Fr. Sonnemann",
-    "subject": "Latein",
-    "subject_abbr": "LA"
-  },
-  {
-    "id": 14,
-    "day": "Dienstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A311",
-    "teacher": "Hr. Peukert",
-    "subject": "GeWi",
-    "subject_abbr": "GEWI"
-  },
-  {
-    "id": 15,
-    "day": "Dienstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A313",
-    "teacher": "Hr. Preuß",
-    "subject": "Deutsch",
-    "subject_abbr": "DE"
-  },
-  {
-    "id": 16,
-    "day": "Dienstag",
-    "slot": 3,
-    "duration": 1,
-    "room": null,
-    "teacher": null,
-    "subject": "Dalton",
-    "subject_abbr": "DAL"
-  },
-  {
-    "id": 17,
-    "day": "Dienstag",
-    "slot": 3,
-    "duration": 1,
-    "room": "A-115",
-    "teacher": "Hr. Schlüter",
-    "subject": "Informatik",
-    "subject_abbr": "INF"
-  },
-  {
-    "id": 18,
-    "day": "Dienstag",
-    "slot": 4,
-    "duration": 2,
-    "room": "A303",
-    "teacher": "Hr. Zimmermann",
-    "subject": "Erdkunde",
-    "subject_abbr": "EK"
-  },
-  {
-    "id": 19,
-    "day": "Dienstag",
-    "slot": 6,
-    "duration": 2,
-    "room": "TH2",
-    "teacher": "Fr. Haupt",
-    "subject": "Sport",
-    "subject_abbr": "SP"
-  },
-  {
-    "id": 20,
-    "day": "Dienstag",
-    "slot": 8,
-    "duration": 2,
-    "room": "A102",
-    "teacher": "Hr. Magnus",
-    "subject": "Theater",
-    "subject_abbr": "TH"
-  },
-  {
-    "id": 21,
-    "day": "Mittwoch",
-    "slot": 1,
-    "duration": 2,
-    "room": "A104",
-    "teacher": "Fr. Prey",
-    "subject": "Physik",
-    "subject_abbr": "PH"
-  },
-  {
-    "id": 22,
-    "day": "Mittwoch",
-    "slot": 3,
-    "duration": 1,
-    "room": null,
-    "teacher": null,
-    "subject": "Dalton",
-    "subject_abbr": "DAL"
-  },
-  {
-    "id": 23,
-    "day": "Mittwoch",
-    "slot": 4,
-    "duration": 2,
-    "room": "A301",
-    "teacher": "Fr. Rehlinghaus",
-    "subject": "Musik",
-    "subject_abbr": "MU"
-  },
-  {
-    "id": 24,
-    "day": "Mittwoch",
-    "slot": 6,
-    "duration": 1,
-    "room": "A307",
-    "teacher": "Fr. Glier",
-    "subject": "Klassenstunde",
-    "subject_abbr": "KSTD"
-  },
-  {
-    "id": 25,
-    "day": "Mittwoch",
-    "slot": 7,
-    "duration": 1,
-    "room": "A307",
-    "teacher": "Fr. Glier",
-    "subject": "Französisch",
-    "subject_abbr": "FRZ"
-  },
-  {
-    "id": 26,
-    "day": "Donnerstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A005",
-    "teacher": "Hr. Herrmann",
-    "subject": "Mathe",
-    "subject_abbr": "MA"
-  },
-  {
-    "id": 27,
-    "day": "Donnerstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A104",
-    "teacher": "Hr. Moresmau",
-    "subject": "GeWi",
-    "subject_abbr": "GEWI"
-  },
-  {
-    "id": 28,
-    "day": "Donnerstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A206",
-    "teacher": "Hr. Chahine",
-    "subject": "Englisch",
-    "subject_abbr": "ENG"
-  },
-  {
-    "id": 29,
-    "day": "Donnerstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A207",
-    "teacher": "Fr. Eckers",
-    "subject": "Biologie",
-    "subject_abbr": "BI"
-  },
-  {
-    "id": 30,
-    "day": "Donnerstag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A301",
-    "teacher": "Fr. Klein",
-    "subject": "Musik",
-    "subject_abbr": "MU"
-  },
-  {
-    "id": 31,
-    "day": "Donnerstag",
-    "slot": 3,
-    "duration": 1,
-    "room": null,
-    "teacher": null,
-    "subject": "Dalton",
-    "subject_abbr": "DAL"
-  },
-  {
-    "id": 32,
-    "day": "Donnerstag",
-    "slot": 4,
-    "duration": 2,
-    "room": "A307",
-    "teacher": "Fr. Glier",
-    "subject": "Deutsch",
-    "subject_abbr": "DE"
-  },
-  {
-    "id": 33,
-    "day": "Donnerstag",
-    "slot": 6,
-    "duration": 2,
-    "room": "A307",
-    "teacher": "Hr. Kröse",
-    "subject": "Ethik",
-    "subject_abbr": "ETH"
-  },
-  {
-    "id": 34,
-    "day": "Freitag",
-    "slot": 1,
-    "duration": 2,
-    "room": "A110",
-    "teacher": "Fr. Prey",
-    "subject": "Mathe",
-    "subject_abbr": "MA"
-  },
-  {
-    "id": 35,
-    "day": "Freitag",
-    "slot": 3,
-    "duration": 1,
-    "room": null,
-    "teacher": null,
-    "subject": "Dalton",
-    "subject_abbr": "DAL"
-  },
-  {
-    "id": 36,
-    "day": "Freitag",
-    "slot": 4,
-    "duration": 1,
-    "room": "A307",
-    "teacher": "Hr. Austerfield",
-    "subject": "Englisch",
-    "subject_abbr": "ENG"
-  },
-  {
-    "id": 37,
-    "day": "Freitag",
-    "slot": 5,
-    "duration": 1,
-    "room": "A307",
-    "teacher": "Fr. Glier",
-    "subject": "Französisch",
-    "subject_abbr": "FRZ"
-  },
-  {
-    "id": 38,
-    "day": "Freitag",
-    "slot": 6,
-    "duration": 2,
-    "room": "A008",
-    "teacher": "Hr. Müller",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 39,
-    "day": "Freitag",
-    "slot": 6,
-    "duration": 2,
-    "room": "A104",
-    "teacher": "Hr. Weber",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 40,
-    "day": "Freitag",
-    "slot": 6,
-    "duration": 2,
-    "room": "A310",
-    "teacher": "Fr. Glier",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 41,
-    "day": "Freitag",
-    "slot": 6,
-    "duration": 2,
-    "room": "A313",
-    "teacher": "Fr. Ellsiepen",
-    "subject": "Enrichment",
-    "subject_abbr": "ENR"
-  },
-  {
-    "id": 42,
-    "day": "Freitag",
-    "slot": 8,
-    "duration": 1,
-    "room": "A203",
-    "teacher": "Hr. Luxen",
-    "subject": "Biologie",
-    "subject_abbr": "BI"
-  }
+  { "id": 1, "day": "Montag", "slot": 1, "duration": 1, "room": "A005", "teacher": "Fr. Ellsiepen", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 2, "day": "Montag", "slot": 1, "duration": 1, "room": "A106", "teacher": "Hr. Weber", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 3, "day": "Montag", "slot": 1, "duration": 1, "room": "A310", "teacher": "Fr. Glier", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 4, "day": "Montag", "slot": 1, "duration": 1, "room": "A311", "teacher": "Hr. Müller", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 5, "day": "Montag", "slot": 2, "duration": 1, "room": "A106", "teacher": "Fr. Prey", "subject": "Mathe", "subject_abbr": "MA" },
+  { "id": 6, "day": "Montag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
+  { "id": 7, "day": "Montag", "slot": 4, "duration": 2, "room": "A203", "teacher": "Hr. Luxen", "subject": "Biologie", "subject_abbr": "BI" },
+  { "id": 8, "day": "Montag", "slot": 6, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Deutsch", "subject_abbr": "DE" },
+  { "id": 9, "day": "Montag", "slot": 7, "duration": 1, "room": "A307", "teacher": "Hr. Austerfield", "subject": "Englisch", "subject_abbr": "ENG" },
+  { "id": 10, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A-115", "teacher": "Hr. Schlüter", "subject": "Informatik", "subject_abbr": "INF" },
+  { "id": 11, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A004", "teacher": "Fr. Blanke", "subject": "Englisch", "subject_abbr": "ENG" },
+  { "id": 12, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A104", "teacher": "Fr. Eckers", "subject": "Biologie", "subject_abbr": "BI" },
+  { "id": 13, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A309", "teacher": "Fr. Sonnemann", "subject": "Latein", "subject_abbr": "LA" },
+  { "id": 14, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A311", "teacher": "Hr. Peukert", "subject": "GeWi", "subject_abbr": "GEWI" },
+  { "id": 15, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A313", "teacher": "Hr. Preuß", "subject": "Deutsch", "subject_abbr": "DE" },
+  { "id": 16, "day": "Dienstag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
+  { "id": 17, "day": "Dienstag", "slot": 3, "duration": 1, "room": "A-115", "teacher": "Hr. Schlüter", "subject": "Informatik", "subject_abbr": "INF" },
+  { "id": 18, "day": "Dienstag", "slot": 4, "duration": 2, "room": "A303", "teacher": "Hr. Zimmermann", "subject": "Erdkunde", "subject_abbr": "EK" },
+  { "id": 19, "day": "Dienstag", "slot": 6, "duration": 2, "room": "TH2", "teacher": "Fr. Haupt", "subject": "Sport", "subject_abbr": "SP" },
+  { "id": 20, "day": "Dienstag", "slot": 8, "duration": 2, "room": "A102", "teacher": "Hr. Magnus", "subject": "Theater", "subject_abbr": "TH" },
+  { "id": 21, "day": "Mittwoch", "slot": 1, "duration": 2, "room": "A104", "teacher": "Fr. Prey", "subject": "Physik", "subject_abbr": "PH" },
+  { "id": 22, "day": "Mittwoch", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
+  { "id": 23, "day": "Mittwoch", "slot": 4, "duration": 2, "room": "A301", "teacher": "Fr. Rehlinghaus", "subject": "Musik", "subject_abbr": "MU" },
+  { "id": 24, "day": "Mittwoch", "slot": 6, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Klassenstunde", "subject_abbr": "KSTD" },
+  { "id": 25, "day": "Mittwoch", "slot": 7, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Französisch", "subject_abbr": "FRZ" },
+  { "id": 26, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A005", "teacher": "Hr. Herrmann", "subject": "Mathe", "subject_abbr": "MA" },
+  { "id": 27, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A104", "teacher": "Hr. Moresmau", "subject": "GeWi", "subject_abbr": "GEWI" },
+  { "id": 28, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A206", "teacher": "Hr. Chahine", "subject": "Englisch", "subject_abbr": "ENG" },
+  { "id": 29, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A207", "teacher": "Fr. Eckers", "subject": "Biologie", "subject_abbr": "BI" },
+  { "id": 30, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A301", "teacher": "Fr. Klein", "subject": "Musik", "subject_abbr": "MU" },
+  { "id": 31, "day": "Donnerstag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
+  { "id": 32, "day": "Donnerstag", "slot": 4, "duration": 2, "room": "A307", "teacher": "Fr. Glier", "subject": "Deutsch", "subject_abbr": "DE" },
+  { "id": 33, "day": "Donnerstag", "slot": 6, "duration": 2, "room": "A307", "teacher": "Hr. Kröse", "subject": "Ethik", "subject_abbr": "ETH" },
+  { "id": 34, "day": "Freitag", "slot": 1, "duration": 2, "room": "A110", "teacher": "Fr. Prey", "subject": "Mathe", "subject_abbr": "MA" },
+  { "id": 35, "day": "Freitag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
+  { "id": 36, "day": "Freitag", "slot": 4, "duration": 1, "room": "A307", "teacher": "Hr. Austerfield", "subject": "Englisch", "subject_abbr": "ENG" },
+  { "id": 37, "day": "Freitag", "slot": 5, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Französisch", "subject_abbr": "FRZ" },
+  { "id": 38, "day": "Freitag", "slot": 6, "duration": 2, "room": "A008", "teacher": "Hr. Müller", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 39, "day": "Freitag", "slot": 6, "duration": 2, "room": "A104", "teacher": "Hr. Weber", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 40, "day": "Freitag", "slot": 6, "duration": 2, "room": "A310", "teacher": "Fr. Glier", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 41, "day": "Freitag", "slot": 6, "duration": 2, "room": "A313", "teacher": "Fr. Ellsiepen", "subject": "Enrichment", "subject_abbr": "ENR" },
+  { "id": 42, "day": "Freitag", "slot": 8, "duration": 1, "room": "A203", "teacher": "Hr. Luxen", "subject": "Biologie", "subject_abbr": "BI" }
 ];
 
 const lessons = ref<Lesson[]>(jsonData);
 
-// --- Logic ---
+// --- Time Logic ---
 
 const formatTime = (totalMinutes: number): string => {
   const hours = Math.floor(totalMinutes / 60);
@@ -465,54 +87,139 @@ const formatTime = (totalMinutes: number): string => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
+// Calculate start minutes for every slot (e.g. Slot 1 = 480 mins)
+const slotStartMinutes = computed(() => {
+  const map: Record<number, number> = {};
+  let currentMetrics = (startTimeHour * 60) + startTimeMinute;
+  for (let i = 1; i <= totalSlots; i++) {
+    map[i] = currentMetrics;
+    const breakTime = breaks[i] || 0;
+    currentMetrics += lessonDurationMins + breakTime;
+  }
+  return map;
+});
+
 const timeSlots = computed<TimeSlot[]>(() => {
   const slots: TimeSlot[] = [];
-  let currentMetrics = (startTimeHour * 60) + startTimeMinute;
-
   for (let i = 1; i <= totalSlots; i++) {
-    const startStr = formatTime(currentMetrics);
-    const endMetrics = currentMetrics + lessonDurationMins;
-    const endStr = formatTime(endMetrics);
-
-    slots.push({ slot: i, time: `${startStr} - ${endStr}` });
-
-    const breakTime = breaks[i] || 0;
-    currentMetrics = endMetrics + breakTime;
+    const startMins = slotStartMinutes.value[i];
+    const endMins = startMins + lessonDurationMins;
+    slots.push({ slot: i, time: `${formatTime(startMins)} - ${formatTime(endMins)}` });
   }
   return slots;
 });
 
-// Group lessons by "Day-Slot" coordinate
+// Group lessons
 const groupedLessons = computed(() => {
   const groups: Record<string, Lesson[]> = {};
-
   lessons.value.forEach(lesson => {
     const key = `${lesson.day}-${lesson.slot}`;
-    if (!groups[key]) {
-      groups[key] = [];
-    }
+    if (!groups[key]) groups[key] = [];
     groups[key].push(lesson);
   });
-
   return groups;
 });
 
-// Calculate style for the Container (Group)
+// Container Style
 const getGroupStyle = (groupLessons: Lesson[]) => {
   if (!groupLessons.length) return {};
-
   const firstLesson = groupLessons[0];
   const maxDuration = Math.max(...groupLessons.map(l => l.duration));
-
   const dayIndex = days.indexOf(firstLesson.day);
   const colStart = dayIndex + 2;
   const rowStart = firstLesson.slot + 1;
-
   return {
     gridColumn: `${colStart} / ${colStart + 1}`,
     gridRow: `${rowStart} / span ${maxDuration}`
   };
 };
+
+// --- Active / Highlight Logic ---
+
+const now = ref(new Date());
+
+const updateTime = () => {
+  now.value = new Date();
+};
+
+let timer: number | undefined;
+onMounted(() => {
+  timer = window.setInterval(updateTime, 1000 * 60); // Update every minute
+});
+onUnmounted(() => {
+  clearInterval(timer);
+});
+
+// Map of Day String to index (Monday=0, ... Friday=4)
+const dayMap: Record<string, number> = {
+  'Montag': 0, 'Dienstag': 1, 'Mittwoch': 2, 'Donnerstag': 3, 'Freitag': 4
+};
+
+// Returns the key (e.g., "Montag-1") of the lesson group to highlight
+const activeOrNextGroupKey = computed<string | null>(() => {
+  const currentDayIndex = (now.value.getDay() + 6) % 7; // Mon=0, Sun=6
+  // FIX: Access .value.getMinutes()
+  const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
+
+  // Total minutes from start of the week (Monday 00:00)
+  const currentTotalWeekMinutes = (currentDayIndex * 24 * 60) + currentMinutes;
+
+  // Flatten groups into checkable time blocks
+  const timeBlocks = Object.entries(groupedLessons.value).map(([key, group]) => {
+    const first = group[0];
+    const dayIdx = dayMap[first.day] ?? -1;
+    if (dayIdx === -1) return null; // Invalid day
+
+    const maxDuration = Math.max(...group.map(l => l.duration));
+    const startMinsOfDay = slotStartMinutes.value[first.slot];
+
+    // Calculate end time loop
+    let endMinsOfDay = startMinsOfDay;
+    for(let d = 0; d < maxDuration; d++) {
+      endMinsOfDay += lessonDurationMins;
+      if(d < maxDuration - 1) {
+        endMinsOfDay += (breaks[first.slot + d] || 0);
+      }
+    }
+
+    const startTotal = (dayIdx * 24 * 60) + startMinsOfDay;
+    const endTotal = (dayIdx * 24 * 60) + endMinsOfDay;
+
+    return { key, startTotal, endTotal };
+  }).filter(block => block !== null) as { key: string, startTotal: number, endTotal: number }[];
+
+  // 1. Check if ACTIVE (Now is inside start/end)
+  const activeBlock = timeBlocks.find(b => currentTotalWeekMinutes >= b.startTotal && currentTotalWeekMinutes < b.endTotal);
+  if (activeBlock) return activeBlock.key;
+
+  // 2. Determine PAST and FUTURE blocks
+  const pastBlocks = timeBlocks.filter(b => b.endTotal <= currentTotalWeekMinutes);
+  const futureBlocks = timeBlocks.filter(b => b.startTotal > currentTotalWeekMinutes);
+
+  // Sort future blocks by start time ascending (closest next)
+  futureBlocks.sort((a, b) => a.startTotal - b.startTotal);
+  const nextBlock = futureBlocks[0];
+
+  if (!nextBlock) return null; // No more lessons this week
+
+  // Sort past blocks by end time descending (most recently finished)
+  pastBlocks.sort((a, b) => b.endTotal - a.endTotal);
+  const lastFinishedBlock = pastBlocks[0];
+
+  // 3. Apply "Gap" Rule
+  // "10 minutes after a lesson is done, if no other lesson is about to happen for more than 2 hours highlight none"
+  if (lastFinishedBlock) {
+    const minutesSinceFinish = currentTotalWeekMinutes - lastFinishedBlock.endTotal;
+    const minutesUntilNext = nextBlock.startTotal - currentTotalWeekMinutes;
+
+    if (minutesSinceFinish > 10 && minutesUntilNext > 120) {
+      return null;
+    }
+  }
+
+  return nextBlock.key;
+});
+
 </script>
 
 <template>
@@ -538,6 +245,7 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
           v-for="(group, key) in groupedLessons"
           :key="key"
           class="lesson-group-container"
+          :class="{ 'highlight-active': key === activeOrNextGroupKey }"
           :style="getGroupStyle(group)"
       >
         <div
@@ -574,8 +282,8 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
 }
 
 .header-cell {
-  background-color:#282828; /* Header background */
-  color: #F1F1F1; /* Header text */
+  background-color:#282828;
+  color: #F1F1F1;
   padding: 12px;
   border:1px solid #414141;
   text-align: center;
@@ -592,50 +300,55 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color:transparent; /* Label background */
+  background-color:transparent;
   font-size: 0.85rem;
-  color: #AAAAAA; /* Secondary text color */
+  color: #AAAAAA;
   white-space: nowrap;
 }
 
 .slot-number {
   font-weight: bold;
   font-size: 1.1rem;
-  color: #F1F1F1; /* Primary text color */
+  color: #F1F1F1;
 }
 
 .slot-time { font-size: 0.75rem; }
 
 /* GROUP CONTAINER */
 .lesson-group-container {
-  background-color: #282828; /* Lesson background */
+  background-color: #282828;
   border-radius: 4px;
   border:1px solid #414141;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 2;
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+/* --- HIGHLIGHT LOGIC --- */
+.lesson-group-container.highlight-active {
+  background-color: #f1f1f1 !important; /* Force override */
+  border-color: #f1f1f1;
 }
 
 /* SUB LESSON ITEM */
 .sub-lesson-item {
-  /* FIX: Removed flex: 1 and min-height: 0.
-     Added flex-shrink: 0 to prevent items from crushing each other. */
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 6px 8px; /* Increased padding slightly for better spacing */
+  padding: 6px 8px;
 }
 
 .sub-lesson-item.has-border {
-  border-bottom: 1px solid #414141; /* Separator border */
+  border-bottom: 1px solid #414141;
 }
 
 .lesson-subject {
   font-weight: bold;
   font-size: 0.9rem;
-  color: #F1F1F1; /* Subject color */
+  color: #F1F1F1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -645,8 +358,20 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #AAAAAA; /* Details color */
+  color: #AAAAAA;
   margin-top: 2px;
+}
+
+/* Override text colors when highlighted */
+.lesson-group-container.highlight-active .lesson-subject {
+  color: #0f0f0f;
+}
+
+.lesson-group-container.highlight-active .lesson-details {
+  color: #414141;
+}
+.lesson-group-container.highlight-active .sub-lesson-item.has-border {
+  border-bottom: 1px solid #cccccc;
 }
 
 @media (max-width: 768px) {
@@ -654,6 +379,5 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
     border-radius: 0;
     padding: 16px;
   }
-
 }
 </style>
