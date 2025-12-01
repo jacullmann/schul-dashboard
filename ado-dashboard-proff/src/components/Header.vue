@@ -38,7 +38,6 @@
         <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
         <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzel-Finder</router-link>
         <router-link to="/sorgenbox" class="nav-item" @click="closeNav">Sorgenbox</router-link>
-        <router-link to="/countdown" class="nav-item" @click="closeNav">Countdowns</router-link>
         <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">Daltonraum-Finder</router-link>
       </nav>
     </div>
