@@ -274,6 +274,10 @@ const {
 .private-entries-container .hw-header { padding: 0; background: transparent; }
 .select-subject { max-width: 30px; width: 100%; display: inline-block; box-sizing: border-box; }
 .select-subject { max-width: 160px; min-width: auto; width: auto; }
+.select-subject:hover {
+  background: var(--s-hover);
+  cursor: pointer;
+}
 .admin-creator-info { color: #aaa; }
 .row.item-badges {
   transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
