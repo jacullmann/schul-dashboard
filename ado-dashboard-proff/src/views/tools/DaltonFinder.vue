@@ -114,7 +114,7 @@ const teachers: Teacher[] = [
 const scheduleData: ScheduleRow[] = [
   { room: "A-109 (Kunst)", schedule: { mo: 54, di: 1, mi: 43, do: 1, fr: 60 } },
   { room: "A-115 Computerraum", schedule: { mo: 56, di: null, mi: 56, do: 70, fr: null } },
-  { room: "A003", schedule: { mo: null, di: 18, mi: 13, do: 56, fr: 20 } },
+  { room: "A003", schedule: { mo: 76, di: 18, mi: 13, do: 56, fr: 20 } },
   { room: "A004", schedule: { mo: 5, di: 11, mi: 18, do: 37, fr: 41 } },
   { room: "A005", schedule: { mo: 42, di: 12, mi: 12, do: 30, fr: 71 } },
   { room: "A007 Gruppenarbeitsraum", schedule: { mo: 33, di: 5, mi: 5, do: 43, fr: 31 } },
@@ -133,14 +133,14 @@ const scheduleData: ScheduleRow[] = [
   { room: "A210 (Kunst)", schedule: { mo: 73, di: 64, mi: 1, do: 60, fr: 17 } },
   { room: "A301 (Musik) Gruppenarbeitsraum", schedule: { mo: 22, di: 22, mi: null, do: 52, fr: 73 } },
   { room: "A303 (Erdkunde) Stillarbeitsraum", schedule: { mo: 72, di: 77, mi: 72, do: 48, fr: 48 } },
-  { room: "A305", schedule: { mo: 61, di: 48, mi: 16, do: 10, fr: 10 } },
+  { room: "A305", schedule: { mo: 61, di: 48, mi: null, do: 16, fr: 10 } },
   { room: "A306", schedule: { mo: 67, di: 76, mi: 64, do: 40, fr: 76 } },
   { room: "A307 (Deutsch)", schedule: { mo: 8, di: 32, mi: null, do: 23, fr: 32 } },
   { room: "A309 (Trainingsraum)", schedule: { mo: 52, di: 52, mi: 51, do: 50, fr: 50 } },
   { room: "A310 (Mathematik intensiv)", schedule: { mo: 66, di: 68, mi: 68, do: 68, fr: 46 } },
-  { room: "A311 (Französisch)", schedule: { mo: 40, di: 40, mi: 41, do: 41, fr: 23 } },
+  { room: "A311 (Französisch)", schedule: { mo: 40, di: 40, mi: null, do: 41, fr: 23 } },
   { room: "A312 Stillarbeitsraum", schedule: { mo: null, di: 58, mi: 67, do: 10, fr: 49 } },
-  { room: "B204 (Dalton +)", schedule: { mo: null, di: null, mi: null, do: 47, fr: null } }
+  { room: "B204 (Dalton +)", schedule: { mo: null, di: null, mi: null, do: null, fr: 47} }
 ];
 
 // --- 3. Logic & Composition ---
