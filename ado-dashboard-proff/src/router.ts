@@ -5,7 +5,7 @@ import { useLoadingBar } from './composables/loadingState';
 import hw from './hwApi';
 
 const VerifyEmail = () => import('./views/VerifyEmail.vue');
-const Kuerzel = () => import('./views/Kuerzel.vue');
+const Kuerzel = () => import('./views/tools/Kuerzel.vue');
 const Ye = () => import('./views/Ye.vue');
 const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
@@ -16,6 +16,7 @@ const GameDetail = () => import('./views/GameDetail.vue')
 const Finales = () => import('./components/Finaleb.vue')
 const Countdown = () => import('./views/Countdown.vue')
 const AdminDashboard = () => import('./views/AdminDashboard.vue');
+const DaltonFinder = () => import('./views/tools/DaltonFinder.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -38,6 +39,7 @@ const routes = [
     { path: '/kontakt', component: Kontakt, meta: { title: 'Kontakt' } },
     { path: '/spiele', component: Games, meta: { title: 'Spiel Übersicht' } },
     { path: '/stundenplan', component: Finales, meta: { title: 'Stundenplan' } },
+    { path: '/daltonraumfinder', component: DaltonFinder, meta: { title: 'Daltonraum-Finder' } },
     { path: '/countdown', component: Countdown, meta: { title: 'Countdown' } },
     {
         path: '/spiele/:id',

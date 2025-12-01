@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import { supabase} from "../composables/Datatable";
+import { supabase} from "../../composables/Datatable";
 import { ArrowLeftRight} from "lucide-vue-next";
 
 const persons = ref([])

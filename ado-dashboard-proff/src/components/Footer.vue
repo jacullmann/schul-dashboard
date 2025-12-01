@@ -15,6 +15,7 @@
           <router-link  to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
           <router-link  to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
           <router-link  to="/countdown" class="footer-link">Countdowns</router-link>
+          <router-link  to="/daltonraumfinder" class="footer-link">Daltonraum-Finder</router-link>
         </div>
 
         <div class="footer-section">
