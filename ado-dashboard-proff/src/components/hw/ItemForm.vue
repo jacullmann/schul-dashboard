@@ -505,23 +505,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   font-weight: 600;
   color: rgba(244, 244, 244);
 }
-
-/* Layout */
-.row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.col {
-  flex: 1;
-  min-width: 240px;
-}
 .section {
   margin-top: 10px;
 }
 
-/* Labels & Inputs (nutzen globale Variablen, aber lokale Verfeinerung) */
 .label {
   display: block;
   font-size: 13px;
@@ -531,20 +518,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .label.bold {
   font-weight: 600;
   color: rgba(234, 234, 234);
-}
-
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(128, 128, 128, 0.35);
-  background: rgba(26, 26, 26, 0.6);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-.input:focus {
-  background: rgba(26, 26, 26, 0.7);
 }
 
 /* Bilderbereich */
@@ -579,16 +552,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   font-size: 12px;
 }
 
-/* Buttons: nutzen globale .btn, aber kleine Ergänzungen */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn.ghost {
-  backdrop-filter: none;
-}
-
 /* Spinner */
 .spinner {
   animation: spin 1s linear infinite;
@@ -618,12 +581,5 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 }
 .msg-error {
   color: var(--danger);
-}
-
-/* Fallback, falls backdrop-filter nicht unterstützt wird */
-@supports not ((backdrop-filter: blur(10px))) {
-  .glass-modal {
-    background: rgba(26, 26, 26, 0.75);
-  }
 }
 </style>
