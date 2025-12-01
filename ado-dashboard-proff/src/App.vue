@@ -18,7 +18,9 @@
       <div class="black-bg" v-else></div>
 
       <div :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
-        <MainContent />
+        <router-view v-slot="{ Component }">
+          <component :is="Component" />
+        </router-view>
       </div>
     </main>
 
@@ -33,7 +35,6 @@ import { ref, onMounted } from 'vue';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
-import MainContent from './MainContent.vue';
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
 import { loadBadWords } from "./composables/useProfanity";

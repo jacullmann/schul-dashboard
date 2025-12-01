@@ -14,7 +14,6 @@
 </template>
 
 <script setup lang="ts">
-import { withDefaults } from 'vue'; // 'computed' ist nicht mehr nötig
 
 // Definiere die Props mit Standardwerten
 const props = withDefaults(defineProps<{

@@ -35,9 +35,9 @@
               <div class="game-tags">
 
                <!-- <span v-for="tag in game.tags" :key="tag" class="badge game-tag">{{ tag }}</span> -->
-                <n-tag v-for="tag in game.tags" :key="tag" class="game-tag"  type="success">
+                <div v-for="tag in game.tags" :key="tag" class="game-tag"  type="success">
                   {{ tag }}
-                </n-tag>
+                </div>
 
               </div>
             </div>

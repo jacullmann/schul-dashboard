@@ -4,28 +4,23 @@
       :class="{ 'is-showing-old': props.modelValue }"
       @click="toggleState"
   >
-      <component
-          :is="activeIcon"
-          :key="props.modelValue ? 'right' : 'left'"
-          :size="14"
-          stroke-width="2.5"
-          class="icon"
-      />
+    <component
+        :is="activeIcon"
+        :key="props.modelValue ? 'right' : 'left'"
+        :size="14"
+        stroke-width="2.5"
+        class="icon"
+    />
 
-      <span :key="buttonText">
+    <span :key="buttonText">
         {{ buttonText }}
       </span>
   </button>
 </template>
 
-
-
 <script setup lang="ts">
-import { useMessage } from 'naive-ui'
 import { computed } from 'vue'
 import { ChevronsRight, ChevronsLeft } from 'lucide-vue-next'
-
-const message = useMessage()
 
 const props = defineProps<{
   modelValue: boolean
@@ -42,6 +37,7 @@ const buttonText = computed(() => {
     return 'Alte Einträge anzeigen'
   }
 })
+
 const activeIcon = computed(() => {
   if (props.modelValue) {
     return ChevronsRight
@@ -56,17 +52,10 @@ function toggleState() {
 
 function handleChange(value: boolean) {
   emit('update:modelValue', value)
-  if (value) {
-    message.info('Lade Einträge, die seit mehr als 48 Stunden abgelaufen sind.')
-  } else if (!value) {
-    message.info(`Lade Einträge, die noch nicht oder seit höchstens 48 Stunden abgelaufen sind.`)
-  }
 }
 </script>
 
 <style scoped>
-.btn {
-}
 
 .icon {
   display: block;
