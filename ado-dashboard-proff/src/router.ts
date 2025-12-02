@@ -6,7 +6,7 @@ import hw from './hwApi';
 
 const VerifyEmail = () => import('./views/VerifyEmail.vue');
 const Kuerzel = () => import('./views/tools/Kuerzel.vue');
-const Ye = () => import('./views/Ye.vue');
+const Ye = () => import('./views/kanye/Ye.vue');
 const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
@@ -17,6 +17,7 @@ const Finales = () => import('./components/Finaleb.vue')
 const Countdown = () => import('./views/Countdown.vue')
 const AdminDashboard = () => import('./views/AdminDashboard.vue');
 const DaltonFinder = () => import('./views/tools/DaltonFinder.vue')
+const Devide = () => import('./views/devider/Devide.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -53,6 +54,15 @@ const routes = [
             hideNavigation: true
         }
     },
+    {
+        path: '/devide',
+        component: Devide,
+        meta: {
+            title: 'Devided',
+            fullWidth: true,
+            hideNavigation: false
+        }
+    },
 
     {
         path: '/hausaufgaben/verify',
@@ -82,7 +92,7 @@ const routes = [
         meta: {
             title: 'Kanye',
             fullWidth: true,
-            hideNavigation: false
+            hideNavigation: true
         }
     },
     {
