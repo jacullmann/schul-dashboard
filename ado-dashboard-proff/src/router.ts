@@ -55,7 +55,7 @@ const routes = [
         }
     },
     {
-        path: '/devide',
+        path: '/divide',
         component: Devide,
         meta: {
             title: 'Devided',
