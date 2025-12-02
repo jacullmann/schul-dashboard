@@ -13,7 +13,7 @@
     --border: #282828;
     --border2: #414141;
     --jj: #282828;
-    --sub: #aaaaaa;
+    --sub: #aaa;
     --announcement-height: 0px;
     --progress-height: 3px;
     --glass-bg: rgba(20, 20, 20, 0.6);
@@ -25,6 +25,7 @@
     --sub2: #8a8a8a;
     --lp: #C44DFF;
     --s-hover: #323232;
+    --f-white: #aaa;
 }
 
 * { box-sizing: border-box; }

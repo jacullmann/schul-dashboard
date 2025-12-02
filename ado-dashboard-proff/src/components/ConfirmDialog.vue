@@ -2,13 +2,14 @@
   <div v-if="show" class="confirm-backdrop" @click.stop="$emit('cancel')">
     <div class="confirm-box" @click.stop>
       <h4 style="margin-top: 0">Diesen Eintrag melden?</h4>
+      <p>Wähle den Grund aus:</p>
       <div class="category-tabs">
         <button
             class="btn"
             :class="{ ghost: category !== 'illegal' }"
             @click="category = 'illegal'"
         >
-          Illegaler Inhalt
+          Unangebrachte/Illegale Inhalte
         </button>
         <button
             class="btn"
@@ -82,7 +83,7 @@ watch(() => props.show, (newVal) => {
   background: var(--lbg);
   padding: 16px;
   border-radius: 16px;
-  max-width: 400px;
+  max-width: 420px;
   width: 90%;
   text-align: left;
   border: 1px solid var(--border);
@@ -94,6 +95,7 @@ watch(() => props.show, (newVal) => {
   gap: 8px;
   margin-bottom: 16px;
   padding-bottom: 8px;
+  flex-direction: row;
 }
 
 .confirm-box p {
@@ -129,5 +131,10 @@ watch(() => props.show, (newVal) => {
 
 .btn.danger:disabled:hover {
   background: var(--danger);
+}
+@media (max-width: 500px) {
+  .category-tabs{
+    flex-direction: column;
+  }
 }
 </style>

@@ -501,9 +501,9 @@ onUnmounted(() => {
 
 .todo-item {
   background: var(--jj);
-  border-radius: 8px;
-  padding: 1.5rem;
-  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
   transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
@@ -588,12 +588,12 @@ onUnmounted(() => {
 
 .todo-item.completed .todo-title {
   text-decoration: line-through;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .todo-description {
   margin: 0 0 0.75rem 0;
-  color: var(--muted);
+  color: var(--text);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -605,7 +605,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
@@ -620,7 +620,7 @@ onUnmounted(() => {
 
 .todo-meta {
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .todo-actions {
