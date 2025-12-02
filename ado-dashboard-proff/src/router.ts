@@ -20,33 +20,144 @@ const DaltonFinder = () => import('./views/tools/DaltonFinder.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
-    { path: '/welcome', name: 'Auth', component: AuthPage, meta: { title: 'Anmeldung' } },
-    { path: '/items/:type?', name: 'ItemsByType', component: Hausaufgaben, props: true, meta: { title: 'Hausaufgaben' } },
+    {
+        path: '/welcome',
+        name: 'Auth',
+        component: AuthPage,
+        meta: {
+            title: 'Anmeldung',
+            fullWidth: true,
+            hideNavigation: true
+        }
+    },
+    {
+        path: '/items/:type?',
+        name: 'ItemsByType',
+        component: Hausaufgaben,
+        props: true,
+        meta: {
+            title: 'Hausaufgaben',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
 
     {
         path: '/admin-dashboard',
         name: 'AdminDashboard',
         component: AdminDashboard,
-        meta: { title: 'Admin Dashboard', requiresAdmin: true }
+        meta: {
+            title: 'Admin Dashboard',
+            requiresAdmin: true,
+            fullWidth: true,
+            hideNavigation: true
+        }
     },
 
-    { path: '/hausaufgaben/verify', redirect: '/verify' },
-    { path: '/verify', component: VerifyEmail, meta: { title: 'E-Mail Verifizierung' } },
-    { path: '/kuerzel', component: Kuerzel, meta: { title: 'Kürzel-Finder' } },
-    { path: '/kanye', component: Ye, meta: { title: 'Kanye' } },
-    { path: '/ai-detector', component: Aidetector, meta: { title: 'AI Detektor' } },
-    { path: '/sorgenbox', component: BS, meta: { title: 'Sorgenbox' } },
-    { path: '/kontakt', component: Kontakt, meta: { title: 'Kontakt' } },
-    { path: '/spiele', component: Games, meta: { title: 'Spiel Übersicht' } },
-    { path: '/stundenplan', component: Finales, meta: { title: 'Stundenplan' } },
-    { path: '/daltonraumfinder', component: DaltonFinder, meta: { title: 'Daltonraum-Finder' } },
-    { path: '/countdown', component: Countdown, meta: { title: 'Countdown' } },
+    {
+        path: '/hausaufgaben/verify',
+        redirect: '/verify'
+    },
+    {
+        path: '/verify',
+        component: VerifyEmail,
+        meta: {
+            title: 'E-Mail Verifizierung',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/kuerzel',
+        component: Kuerzel,
+        meta: {
+            title: 'Kürzel-Finder',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/kanye',
+        component: Ye,
+        meta: {
+            title: 'Kanye',
+            fullWidth: true,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/ai-detector',
+        component: Aidetector,
+        meta: {
+            title: 'AI Detektor',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/sorgenbox',
+        component: BS,
+        meta: {
+            title: 'Sorgenbox',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/kontakt',
+        component: Kontakt,
+        meta: {
+            title: 'Kontakt',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/spiele',
+        component: Games,
+        meta: {
+            title: 'Spiel Übersicht',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/stundenplan',
+        component: Finales,
+        meta: {
+            title: 'Stundenplan',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/daltonraumfinder',
+        component: DaltonFinder,
+        meta: {
+            title: 'Daltonraum-Finder',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/countdown',
+        component: Countdown,
+        meta: {
+            title: 'Countdown',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
     {
         path: '/spiele/:id',
         name: 'GameDetail',
         component: GameDetail,
         props: true,
-        meta: { title: 'Spiel' }
+        meta: {
+            title: 'Spiel',
+            fullWidth: false,
+            hideNavigation: false
+        }
     },
     { path: '/goat', redirect: '/kanye' },
 
@@ -54,11 +165,35 @@ const routes = [
         path: '/impressum-&-datenschutz',
         component: () => import('./views/legal/LegalLayout.vue'),
         children: [
-            { path: 'impressum', component: () => import('./views/legal/ImpressumPage.vue'), meta: { title: 'Impressum' } },
-            { path: 'datenschutzerklaerung', component: () => import('./views/legal/DatenschutzPage.vue'), meta: { title: 'Datenschutzerklärung' } }
+            { path: 'impressum',
+                component: () => import('./views/legal/ImpressumPage.vue'),
+                meta: {
+                title: 'Impressum',
+                fullWidth: false,
+                hideNavigation: false
+            }
+            },
+            {
+                path: 'datenschutzerklaerung',
+                component: () => import('./views/legal/DatenschutzPage.vue'),
+                meta: {
+                    title: 'Datenschutzerklärung',
+                    fullWidth: false,
+                    hideNavigation: false
+                }
+            }
         ]
     },
-    { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('./views/NotFound.vue'), meta: { title: '404' } }
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('./views/NotFound.vue'),
+        meta: {
+            title: '404',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    }
 ];
 
 const router = createRouter({
@@ -91,12 +226,8 @@ router.beforeEach(async (to, from, next) => {
         document.title = 'Dashboard';
     }
 
-    // 5. Admin Guard für die neue Route
     if (to.meta.requiresAdmin) {
         try {
-            // Wir müssen sicherstellen, dass wir wissen, ob der User Admin ist.
-            // Da useAuth nur Token prüft, machen wir einen schnellen Check oder laden 'me'
-            // Idealerweise cached useAuth den User, aber wir nutzen hier hwApi direkt.
             const { data } = await hw.get('/api/auth/me');
             if (data && data.isAdmin) {
                 return next();

@@ -1,13 +1,10 @@
 <template>
   <div class="full">
-    <Header v-if="$route.path !== '/welcome'"/>
+    <Header v-if="!$route.meta.hideNavigation"/>
     <GlobalAnnouncements />
 
     <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
-      <div
-          class="progress-bar"
-          :style="{ width: progress + '%' }"
-      >
+      <div class="progress-bar" :style="{ width: progress + '%' }">
         <div class="peg"></div>
       </div>
     </div>
@@ -17,16 +14,21 @@
       <!--<img src="./utils/alt.svg" alt="Background" class="svg-background" v-else/>-->
       <div class="black-bg" v-else></div>
 
-      <div :class="{ 'container': $route.path !== '/welcome' }" key="content" class="main-content">
+      <div
+          :class="{ 'container': !$route.meta.fullWidth }"
+          class="main-content"
+          key="content"
+      >
         <router-view v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
       </div>
     </main>
 
-    <Footer v-if="$route.path !== '/welcome'"/>
+    <Footer v-if="!$route.meta.hideNavigation"/>
+
     <CookieBanner />
-    <AccountPromoPopup v-if="$route.path !== '/welcome'" />
+    <AccountPromoPopup v-if="!$route.meta.hideNavigation" />
   </div>
 </template>
 
@@ -99,6 +101,7 @@ onMounted(() => {
 .main-content {
   margin-top: var(--announcement-height);
   transition: margin-top 0.3s ease;
+  width: 100%;
 }
 
 .black-bg {

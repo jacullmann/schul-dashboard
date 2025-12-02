@@ -1,1043 +1,464 @@
 <template>
-  <div class="suround">
-    <div v-if="!isAuthenticated" class="login-wrapper">
-      <div class="card p-6 login-card glass">
+  <div class="kanye-archive">
 
-        <div class="login-body">
+    <div class="hero-section">
+      <div class="hero-overlay"></div>
+      <div class="hero-content container">
+        <span class="hero-badge">THE ARCHIVE</span>
+        <h1 class="hero-title">YE</h1>
+        <p class="hero-subtitle">
+          Visualizing the trajectory of a cultural icon. <br>
+          Music. Fashion. Architecture.
+        </p>
+      </div>
+      <div class="hero-bg-art"></div>
+    </div>
 
-          <div class="logogo">
-          <input
-              type="password"
-              v-model="loginPassword"
-              @keyup.enter="login"
-              placeholder="Passwort eingeben"
-              class="input enhanced"
-              autocomplete="current-password"
-          />
-          <button data-umami-event="Kanye Seite anmelden Button" @click="login" class="btn btnb primary w-full login-button"><LogIn /></button>
-          </div>
-        </div>
-
+    <div class="sticky-nav">
+      <div class="container nav-row">
+        <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="currentTab = tab.id"
+            :class="['nav-item', { active: currentTab === tab.id }]"
+        >
+          {{ tab.label }}
+        </button>
       </div>
     </div>
 
-    <div
-        v-else
-        class="kanye-page full"
-        :style="{ '--bg-image': `url(${heroImageUrl})` }"
-    >
-      <nav class="kanye-nav-fixed card nav-elevate">
-        <div class="container row items-center justify-between nav-content">
-          <div class="brand row items-center gap-4">
-            <div class="brand-text">
-              <h2 class="text-xl font-bold">Kanye West</h2>
-            </div>
+    <div class="container content-wrapper">
+
+      <transition name="fade" mode="out-in">
+        <section v-if="currentTab === 'music'" key="music" class="tab-section">
+          <div class="section-header">
+            <h2 class="section-title">Sonic Evolution</h2>
+            <p class="section-desc">Eine chronologische Reise durch die Studioalben.</p>
           </div>
 
-          <button
-              class="mobile-menu-toggle"
-              @click="mobileMenuOpen = !mobileMenuOpen"
-              :aria-expanded="mobileMenuOpen ? 'true' : 'false'"
-              aria-label="Menü umschalten"
-          >
-            <span class="bar" :class="{ open: mobileMenuOpen }"></span>
-            <span class="bar" :class="{ open: mobileMenuOpen }"></span>
-            <span class="bar" :class="{ open: mobileMenuOpen }"></span>
-          </button>
-
-          <div :class="['nav-links row gap-4', { open: mobileMenuOpen }]">
-            <button
-                @click="() => { scrollTo('biography'); mobileMenuOpen = false }"
-                class="btn ghost nav-link"
-            >
-              Biografie
-            </button>
-            <button
-                @click="() => { scrollTo('discography'); mobileMenuOpen = false }"
-                class="btn ghost nav-link"
-            >
-              Diskografie
-            </button>
-            <button
-                @click="() => { scrollTo('controversies'); mobileMenuOpen = false }"
-                class="btn ghost nav-link"
-            >
-              Kontroversen
-            </button>
-            <button
-                @click="() => { scrollTo('gallery'); mobileMenuOpen = false }"
-                class="btn ghost nav-link"
-            >
-              Galerie
-            </button>
+          <div class="album-grid">
+            <div v-for="album in albums" :key="album.title" class="album-card">
+              <div class="album-visual" :style="{ background: album.color }">
+                <span class="vinyl-groove"></span>
+                <div class="album-overlay">
+                  <button class="btn ghost btn-sm">Details</button>
+                </div>
+              </div>
+              <div class="album-info">
+                <span class="album-year">{{ album.year }}</span>
+                <h3 class="album-title">{{ album.title }}</h3>
+                <span class="album-genre">{{ album.genre }}</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </nav>
+        </section>
 
-      <header class="kanye-hero full-c flex items-center justify-center text-center">
-        <div class="kanye-hero-content">
-          <h1 class="title-xl font-extrabold mb-4 animate-fade-in-up">
-            KANYE WEST
-          </h1>
-          <p class="subtitle text-muted animate-fade-in-up delay-200">
-            KANYE WEST
-          </p>
+        <section v-else-if="currentTab === 'vision'" key="vision" class="tab-section">
+          <div class="section-header">
+            <h2 class="section-title">Aesthetic Language</h2>
+            <p class="section-desc">Visuelle Konzepte, Bühnendesign und Mode.</p>
+          </div>
 
-        </div>
-        <div class="hero-overlay"></div>
-      </header>
-
-
-      <main class="full-c bg-bg">
-        <div class="container py-12">
-
-          <section id="biography" class="row gap-8 mb-12 section-block">
-            <div class="col-main">
-              <div class="section-header">
-                <h2 class="section-title animate-fade-in" v-animate-on-scroll>Biografie</h2>
-                <div class="section-accent"></div>
-              </div>
-
-              <div class="card p-6 mb-6 animate-fade-in glass" v-animate-on-scroll>
-                <p class="mb-4 text-lg">
-                  Kanye Omari West (* 8. Juni 1977 in Atlanta, Georgia) ist ein US-amerikanischer
-                  Rapper, Sänger, Songwriter, Musikproduzent, Modedesigner und Unternehmer.
-                  Er zählt zu den einflussreichsten und umstrittensten Künstlern seiner Generation.
-                  Bekannt für seine musikalische Innovation, seinen grenzüberschreitenden Stil und
-                  seine oft provokanten Äußerungen, hat West die Popkultur nachhaltig geprägt.
-                  Seine Karriere begann als Produzent für Roc-A-Fella Records, bevor er mit seinem
-                  Debütalbum "The College Dropout" 2004 als Rapper durchstartete.
-                </p>
-                <p class="text-lg">
-                  Über die Jahre entwickelte er sich zu einer Ikone, die nicht nur musikalische
-                  Grenzen sprengte, sondern auch in der Modebranche mit Yeezy und in zahlreichen
-                  Projekten Maßstäbe setzte. Seine Diskografie ist gespickt mit Alben, die soziale
-                  Statements, Experimentierfreude und autobiografische Tiefe vereinen. Kontroversen
-                  hielten ihn permanent im Fokus.
-                </p>
-              </div>
-
-              <div class="card p-6 animate-fade-in glass" v-animate-on-scroll>
-                <h3 class="text-2xl font-bold mb-4">Frühes Leben und Anfänge</h3>
-                <p class="mb-4">
-                  Aufgewachsen in Chicago, geprägt von der alleinerziehenden Mutter Dr. Donda West,
-                  zeigte Kanye bereits in der Schule Interesse an Kunst und Musik. Beat-Produktionen
-                  und Raptexte entstanden früh, das College brach er ab – Inspiration für den
-                  Albumtitel "The College Dropout".
-                </p>
-                <p>
-                  Erste Erfolge als Produzent für Jay-Z, Alicia Keys und Ludacris öffneten ihm die
-                  Türen, doch sein Traum war immer die eigene Rapkarriere.
-                </p>
+          <div class="gallery-masonry">
+            <div class="gallery-item large item-1">
+              <div class="gallery-content">
+                <h3>Yeezy Season</h3>
+                <p>Minimalismus und Erdtöne.</p>
               </div>
             </div>
-
-            <div class="col-sidebar">
-              <div class="kanye-infobox card animate-fade-in glass" v-animate-on-scroll>
-                <h3 class="text-2xl font-bold mb-4">Steckbrief</h3>
-                <ul class="info-list">
-                  <li><strong>Voller Name:</strong> Kanye Omari West</li>
-                  <li><strong>Geburtstag:</strong> 8. Juni 1977</li>
-                  <li><strong>Geburtsort:</strong> Atlanta, Georgia, USA</li>
-                  <li><strong>Nationalität:</strong> US-amerikanisch</li>
-                  <li>
-                    <strong>Berufe:</strong> Rapper, Sänger, Produzent, Songwriter,
-                    Modedesigner, Unternehmer
-                  </li>
-                  <li><strong>Genre:</strong> Hip-Hop, Soul, R&B, Gospel, Electronic</li>
-                  <li><strong>Aktive Jahre:</strong> 1996–heute</li>
-                  <li><strong>Auszeichnungen:</strong> 24 Grammy Awards (Stand 2024)</li>
-                  <li><strong>Ehemalige Ehepartnerin:</strong> Kim Kardashian (2014–2022)</li>
-                  <li><strong>Kinder:</strong> North, Saint, Chicago, Psalm</li>
-                </ul>
-                <img
-                    :src="profileImageUrl"
-                    alt="Kanye West Profilbild"
-                    class="mt-4 rounded-lg shadow-lg profile-img"
-                    loading="lazy"
-                />
+            <div class="gallery-item item-2">
+              <div class="gallery-content">
+                <h3>Donda Live</h3>
               </div>
             </div>
-          </section>
-
-          <!-- Diskografie -->
-          <section id="discography" class="mb-12 section-block">
-            <div class="section-header">
-              <h2 class="section-title animate-fade-in" v-animate-on-scroll>Diskografie</h2>
-              <div class="section-accent"></div>
-            </div>
-
-            <div class="card p-6 animate-fade-in glass" v-animate-on-scroll>
-              <div class="tabs mb-4 albums-filter row gap-4">
-                <button
-                    v-for="year in albumYears"
-                    :key="year"
-                    @click="activeAlbumYear = year"
-                    :class="['chip', { active: activeAlbumYear === year }]"
-                >
-                  {{ year }}
-                </button>
-                <div class="spacer"></div>
-                <button
-                    class="chip ghost"
-                    @click="activeAlbumYear = null"
-                    :class="{ active: activeAlbumYear === null }"
-                >
-                  Alle Jahre
-                </button>
-              </div>
-
-
-              <div class="albums-grid">
-                <template v-if="activeAlbumYear === null">
-                  <div
-                      v-for="album in albums"
-                      :key="album.title"
-                      class="album-card animate-fade-in-up"
-                      v-animate-on-scroll
-                  >
-                    <img
-                        :src="album.cover"
-                        :alt="album.title + ' Cover'"
-                        class="album-cover-img"
-                        loading="lazy"
-                    />
-                    <div class="album-meta">
-                      <div class="album-title-row">
-                        <h3 class="album-title">{{ album.title }}</h3>
-                        <span class="badge">{{ album.year }}</span>
-                      </div>
-                      <p class="album-desc text-muted">{{ album.description }}</p>
-                      <a :href="album.link" target="_blank" class="small">Mehr erfahren »</a>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else>
-                  <div
-                      v-for="album in albumsByYear[activeAlbumYear]"
-                      :key="album.title"
-                      class="album-card animate-fade-in-up"
-                      v-animate-on-scroll
-                  >
-                    <img
-                        :src="album.cover"
-                        :alt="album.title + ' Cover'"
-                        class="album-cover-img"
-                        loading="lazy"
-                    />
-                    <div class="album-meta">
-                      <div class="album-title-row">
-                        <h3 class="album-title">{{ album.title }}</h3>
-                        <span class="badge">{{ album.year }}</span>
-                      </div>
-                      <p class="album-desc text-muted">{{ album.description }}</p>
-                      <a :href="album.link" target="_blank" class="small">Mehr erfahren »</a>
-                    </div>
-                  </div>
-                </template>
+            <div class="gallery-item item-3">
+              <div class="gallery-content">
+                <h3>Sunday Service</h3>
               </div>
             </div>
-          </section>
-
-
-          <section id="controversies" class="mb-12 section-block">
-            <div class="section-header">
-              <h2 class="section-title animate-fade-in" v-animate-on-scroll>Kontroversen</h2>
-              <div class="section-accent warn"></div>
+            <div class="gallery-item wide item-4">
+              <div class="gallery-content">
+                <h3>Architecture</h3>
+                <p>Yeezy Home concepts.</p>
+              </div>
             </div>
+          </div>
+        </section>
 
-            <div class="card p-6 animate-fade-in glass" v-animate-on-scroll>
-              <h3 class="text-2xl font-bold mb-4">Eine Geschichte der Kontroversen</h3>
-              <p class="mb-4 text-lg">
-                Seine provokanten Äußerungen – von spontanen Bühnenunterbrechungen bis zu politischen
-                Statements – machen Kanye zur polarisierendsten Figur im Pop.
+        <section v-else-if="currentTab === 'philosophy'" key="philosophy" class="tab-section">
+          <div class="reading-layout">
+            <div class="card text-card">
+              <h2 class="card-title-lg">The "Free Thought" Era</h2>
+              <hr class="section-divider" />
+              <p class="text-body">
+                Ye's Philosophie basiert auf der vollständigen Beseitigung von Selbstzweifeln.
+                Seine Rhetorik, oft kontrovers, zielt darauf ab, gesellschaftliche Barrieren
+                zu durchbrechen, die Kreativität einschränken.
               </p>
-              <ul class="list-disc pl-6 text-lg controversies-list">
-                <li class="mb-2">
-                  <strong>MTV VMAs 2009:</strong> Unterbrach Taylor Swifts Rede.
-                </li>
-                <li class="mb-2">
-                  <strong>George W. Bush (2005):</strong> "George Bush cares nothing about black people."
-                </li>
-                <li class="mb-2">
-                  <strong>Präsidentschaft 2020:</strong> Kurzlebige Kampagne, Diskussionen über Eignung und psychische Gesundheit.
-                </li>
-                <li class="mb-2">
-                  <strong>Sklaverei & Politik:</strong> Heftige Debatten um kontroverse Kommentare.
-                </li>
-                <li class="mb-2">
-                  <strong>Antisemitische Äußerungen 2022:</strong> Partnerschafts- und Image-Verlust.
-                </li>
-              </ul>
-              <p class="mt-4 text-lg">
-                Kaum ein Künstler seiner Generation zieht so viel Aufmerksamkeit mit Worten auf sich wie mit Musik.
-              </p>
-            </div>
-          </section>
 
-
-          <section id="gallery" class="mb-12 section-block">
-            <div class="section-header">
-              <h2 class="section-title animate-fade-in" v-animate-on-scroll>Bildergalerie</h2>
-              <div class="section-accent"></div>
-            </div>
-
-            <div class="image-grid">
-              <div
-                  v-for="(image, index) in galleryImages"
-                  :key="index"
-                  class="image-item animate-fade-in-up"
-                  v-animate-on-scroll
-                  @click="openLightbox(index)"
-              >
-                <img :src="image.thumbnail" :alt="image.alt" loading="lazy" />
-                <div class="image-overlay">
-                  <span class="small">{{ image.alt }}</span>
+              <div class="quote-list">
+                <div class="quote-item">
+                  <p>"I feel like I'm too busy writing history to read it."</p>
+                  <span class="quote-meta">— Interview, 2009</span>
+                </div>
+                <div class="quote-item">
+                  <p>"Believe in your flyness, conquer your shyness."</p>
+                  <span class="quote-meta">— Twitter</span>
+                </div>
+                <div class="quote-item highlight">
+                  <p>"Name one genius that ain't crazy."</p>
+                  <span class="quote-meta">— Life of Pablo</span>
                 </div>
               </div>
             </div>
-          </section>
-        </div>
-      </main>
 
-
-      <Transition name="fade">
-        <div v-if="lightboxOpen" class="lightbox" @click="closeLightbox">
-          <button class="lightbox-close btn ghost" @click.stop="closeLightbox">✕</button>
-          <button class="lightbox-nav prev btn ghost" @click.stop="navigateLightbox(-1)">‹</button>
-          <img
-              :src="galleryImages[currentImageIndex].full"
-              :alt="galleryImages[currentImageIndex].alt"
-              class="lightbox-image"
-          />
-          <button class="lightbox-nav next btn ghost" @click.stop="navigateLightbox(1)">›</button>
-          <div class="lightbox-caption text-muted small mt-2">
-            {{ galleryImages[currentImageIndex].alt }}
+            <div class="card stat-sidebar">
+              <h3 class="card-title-sm">Impact Data</h3>
+              <ul class="clean-list">
+                <li><span class="label">Grammys:</span> <span class="val">24</span></li>
+                <li><span class="label">Spotify Streams:</span> <span class="val">Billions</span></li>
+                <li><span class="label">Net Worth Peak:</span> <span class="val">$6.6B</span></li>
+              </ul>
+            </div>
           </div>
-        </div>
-      </Transition>
+        </section>
+      </transition>
 
-      <footer class="kanye-footer text-center py-8">
-        <div class="container">
-          <p @click="logoutit" class="small ci">Logout</p>
-        </div>
-      </footer>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
-import { LogIn } from 'lucide-vue-next'
+<script setup lang="ts">
+import { ref } from 'vue';
 
-interface Album {
-  title: string;
-  year: number;
-  cover: string;
-  description: string;
-  link: string;
-}
+// --- STATE MANAGEMENT ---
+const currentTab = ref('music');
 
-interface GalleryImage {
-  thumbnail: string;
-  full: string;
-  alt: string;
-}
+const tabs = [
+  { id: 'music', label: 'Discography' },
+  { id: 'vision', label: 'Visuals & Art' },
+  { id: 'philosophy', label: 'Philosophy' },
+];
 
-export default defineComponent({
-  name: "KanyeInfoProtected",
-  components: {
-    LogIn
-  },
-  directives: {
-    "animate-on-scroll": {
-      mounted(el: HTMLElement) {
-        const obs = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((e) => {
-                if (e.isIntersecting) {
-                  e.target.classList.add("is-visible");
-                  obs.unobserve(e.target);
-                }
-              });
-            },
-            { threshold: 0.1 }
-        );
-        obs.observe(el);
-      },
-    },
-  },
-  setup() {
+// --- REAL DATA (Keine Fake Daten) ---
+// Hinweis: 'color' simuliert das Albumcover. Du kannst später ein 'image' feld hinzufügen.
+const albums = [
+  { title: 'The College Dropout', year: '2004', genre: 'Soul / Hip Hop', color: '#6b3616' },
+  { title: 'Late Registration', year: '2005', genre: 'Orchestral Rap', color: '#4a2c22' },
+  { title: 'Graduation', year: '2007', genre: 'Stadium Music', color: '#8a2be2' },
+  { title: '808s & Heartbreak', year: '2008', genre: 'Electropop', color: '#a0aec0' },
+  { title: 'MBDTF', year: '2010', genre: 'Maximalism', color: '#ef4444' },
+  { title: 'Yeezus', year: '2013', genre: 'Industrial', color: '#ff335a' }, // Dein Ladebalken-Rot
+  { title: 'The Life of Pablo', year: '2016', genre: 'Gospel / Trap', color: '#f97316' },
+  { title: 'Ye', year: '2018', genre: 'Psychedelic', color: '#10b981' },
+  { title: 'Jesus Is King', year: '2019', genre: 'Gospel', color: '#3b82f6' },
+  { title: 'Donda', year: '2021', genre: 'Avant-Garde', color: '#000000' },
+  { title: 'Vultures 1', year: '2024', genre: 'Collaborative', color: '#333' },
+];
 
-    const correctPassword = "hash891219!";
-    const loginPassword = ref("");
-    const isAuthenticated = ref(false);
-    function login() {
-      if (loginPassword.value === correctPassword) {
-        isAuthenticated.value = true;
-        loginPassword.value = "";
-      } else {
-      }
-    }
-    function logoutit() {
-      isAuthenticated.value = false;
-    }
-
-
-    const mobileMenuOpen = ref(false);
-
-
-    const heroImageUrl =
-        "https://preview.redd.it/kanye-west-graduation-3840x2160-v0-kjektcn4myv91.png?width=640&crop=smart&auto=webp&s=fa4b58c81acb3ec38c640cca6ef11d66d01c3cf3";
-    const profileImageUrl =
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg/250px-Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg";
-
-
-    const albums: Album[] = [
-      { title: "The College Dropout", year: 2004, cover: "https://media.pitchfork.com/photos/5929aa8c5e6ef959693215e8/16:9/w_1280,c_limit/7b1099ec.jpg?mbid=social_retweet", description: "Sein wegweisendes Debüt, das ihn als Rapper und Produzent etablierte.", link: "https://de.wikipedia.org/wiki/The_College_Dropout" },
-      { title: "Late Registration", year: 2005, cover: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Late_registration_cd_cover.jpg/250px-Late_registration_cd_cover.jpg", description: "Baute auf dem Erfolg des Debüts auf, mit orchestralen Elementen.", link: "https://de.wikipedia.org/wiki/Late_Registration" },
-      { title: "Graduation", year: 2007, cover: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Graduation_Cover_1500x1500.jpg", description: "Ein stilistischer Wandel hin zu Arena-Hip-Hop und elektronischen Klängen.", link: "https://de.wikipedia.org/wiki/Graduation_(Album)" },
-      { title: "808s & Heartbreak", year: 2008, cover: "https://i.scdn.co/image/ab67616d0000b273346d77e155d854735410ed18", description: "Ein experimentelles Album mit Auto-Tune und melancholischen Themen.", link: "https://de.wikipedia.org/wiki/808s_%26_Heartbreak" },
-      { title: "My Beautiful Dark Twisted Fantasy", year: 2010, cover: "https://i.scdn.co/image/ab67616d0000b2733fb24570c0d5422b29ac394e", description: "Oft als sein Meisterwerk bezeichnet, opulent und vielschichtig.", link: "https://de.wikipedia.org/wiki/My_Beautiful_Dark_Twisted_Fantasy" },
-      { title: "Yeezus", year: 2013, cover: "https://upload.wikimedia.org/wikipedia/en/0/03/Yeezus_album_cover.png", description: "Ein aggressives, minimalistisches und industriell klingendes Album.", link: "https://de.wikipedia.org/wiki/Yeezus" },
-      { title: "The Life of Pablo", year: 2016, cover: "https://i.scdn.co/image/ab67616d0000b2732a7db835b912dc5014bd37f4", description: "Ein lebendiges, sich ständig weiterentwickelndes \"Living Album\".", link: "https://de.wikipedia.org/wiki/The_Life_of_Pablo" },
-      { title: "Ye", year: 2018, cover: "https://upload.wikimedia.org/wikipedia/en/thumb/7/74/Ye_album_cover.jpg/250px-Ye_album_cover.jpg", description: "Ein kurzes, introspektives Album, das persönliche Kämpfe thematisiert.", link: "https://de.wikipedia.org/wiki/Ye_(Album)" },
-      { title: "Kids See Ghosts", year: 2018, cover: "https://atwoodmagazine.com/wp-content/uploads/2018/06/uaNIo6X.jpg", description: "Kollaborationsalbum mit Kid Cudi unter Kids See Ghosts.", link: "https://de.wikipedia.org/wiki/Kids_See_Ghosts" },
-      { title: "Jesus Is King", year: 2019, cover: "https://thinkchristian-website.imgix.net/articleImages/2019/jesus-is-king-craft.png?crop=focalpoint&fit=crop&fp-x=0.5&fp-y=0.5&h=500&ixlib=php-1.1.0&q=80&w=800&s=0b59e8ef62f71d7347d66ab11432c8d9", description: "Sein erstes Gospel-Album, neue musikalische Richtung.", link: "https://de.wikipedia.org/wiki/Jesus_Is_King" },
-      { title: "Donda", year: 2021, cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjshGbXgjo0umSQJACQcIsTv-B4NrFeLOQUw&s", description: "Ein umfangreiches Album, seiner verstorbenen Mutter gewidmet.", link: "https://de.wikipedia.org/wiki/Donda_(Album)" },
-      { title: "Vultures 1", year: 2024, cover: "https://preview.redd.it/vultures-1-released-1-year-ago-today-v0-bj488dv0z3ie1.png?width=828&format=png&auto=webp&s=a72860bb238c14a59c4a7ba66e8c571072ebc135", description: "Kollaboration mit Ty Dolla Sign unter ¥$.", link: "https://de.wikipedia.org/wiki/Vultures_1" },
-    ];
-
-    const albumYears = computed<number[]>(() =>
-        Array.from(new Set(albums.map((a) => a.year))).sort((a, b) => b - a)
-    );
-
-
-    const activeAlbumYear = ref<number | null>(null);
-
-    const albumsByYear = computed<Record<number, Album[]>>(() => {
-      return albums.reduce((acc, a) => {
-        if (!acc[a.year]) acc[a.year] = [];
-        acc[a.year].push(a);
-        return acc;
-      }, {} as Record<number, Album[]>);
-    });
-
-
-    const galleryImages: GalleryImage[] = [
-      {
-        thumbnail:
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhySvY0ku51SBdWFf4CkglcdWLWc8bQMHORNw4rAQ52c35CHcX2v_EaVUYpFWHdKGLbxs&usqp=CAU",
-        full:
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhySvY0ku51SBdWFf4CkglcdWLWc8bQMHORNw4rAQ52c35CHcX2v_EaVUYpFWHdKGLbxs&usqp=CAU",
-        alt: "Kanye West vor weißer Wand",
-      },
-      {
-        thumbnail: "https://thepolitic.org/wp-content/uploads/2022/10/161118111655-kanye-west.jpg",
-        full: "https://thepolitic.org/wp-content/uploads/2022/10/161118111655-kanye-west.jpg",
-        alt: "Kanye West auf der Bühne",
-      },
-      {
-        thumbnail:
-            "https://www.rollingstone.com/wp-content/uploads/2018/06/rs-188588-109561363.jpg?w=1581&h=1054&crop=1",
-        full:
-            "https://www.rollingstone.com/wp-content/uploads/2018/06/rs-188588-109561363.jpg?w=1581&h=1054&crop=1",
-        alt: "Kanye West im TV",
-      },
-      {
-        thumbnail:
-            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
-        full:
-            "https://media.gq.com/photos/5ad93798ceb93861adb912d8/16:9/w_2560%2Cc_limit/kanye-west-0814-GQ-FEKW01.01.jpg",
-        alt: "Kanye West beim Foto-Shooting",
-      },
-      {
-        thumbnail:
-            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
-        full:
-            "https://images.tagesschau.de/image/ca2c1af8-77f2-4b32-9a50-955ebf723c71/AAABlg1p7qo/AAABmKJiwCE/4x3/kanye-west-115.jpg?width=1280",
-        alt: "Kanye West mit Fans",
-      },
-      {
-        thumbnail: "https://img.zeit.de/kultur/musik/2016-02/kanye-west/wide__1000x562",
-        full: "https://img.zeit.de/kultur/musik/2016-02/kanye-west/wide__1000x562",
-        alt: "Kanye West vor Menschen",
-      },
-    ];
-
-
-    const lightboxOpen = ref(false);
-    const currentImageIndex = ref(0);
-    function openLightbox(i: number) {
-      currentImageIndex.value = i;
-      lightboxOpen.value = true;
-      document.body.style.overflow = "hidden";
-    }
-    function closeLightbox() {
-      lightboxOpen.value = false;
-      document.body.style.overflow = "";
-    }
-    function navigateLightbox(dir: -1 | 1) {
-      let idx = currentImageIndex.value + dir;
-      if (idx < 0) idx = galleryImages.length - 1;
-      if (idx >= galleryImages.length) idx = 0;
-      currentImageIndex.value = idx;
-    }
-    function handleKeydown(e: KeyboardEvent) {
-      if (!lightboxOpen.value) return;
-      if (e.key === "ArrowLeft") navigateLightbox(-1);
-      if (e.key === "ArrowRight") navigateLightbox(1);
-      if (e.key === "Escape") closeLightbox();
-    }
-
-
-    function scrollTo(id: string) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const top = el.getBoundingClientRect().top + window.scrollY - 72; // nav height offset
-      window.scrollTo({ top, behavior: "smooth" });
-    }
-
-    onMounted(() => {
-      window.addEventListener("keydown", handleKeydown);
-    });
-    onUnmounted(() => {
-      window.removeEventListener("keydown", handleKeydown);
-    });
-
-    return {
-
-      loginPassword,
-      isAuthenticated,
-      login,
-      logoutit,
-
-      mobileMenuOpen,
-
-      heroImageUrl,
-      profileImageUrl,
-
-      albums,
-      albumYears,
-      activeAlbumYear,
-      albumsByYear,
-
-      galleryImages,
-
-      lightboxOpen,
-      currentImageIndex,
-      openLightbox,
-      closeLightbox,
-      navigateLightbox,
-
-      scrollTo,
-    };
-  },
-});
 </script>
 
 <style scoped>
+/* --- 1. HERO SECTION --- */
 
-.suround {
-  padding: 2.5rem;
-  gap: 2.5rem;
-  border-radius: 5px;
-}
-
-
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.gap-4 { gap: 1rem; }
-.flex { display: flex; }
-
-
-.login-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.kanye-archive {
   min-height: 100vh;
-  border-radius: 14px;
-  border: none;
-  background: black;
+  padding-bottom: 60px;
 }
-.login-card {
-  max-width: 420px;
-  width: 100%;
+
+.hero-section {
   position: relative;
+  height: 400px;
+  display: flex;
+  align-items: center;
   overflow: hidden;
-  border-radius: 14px;
-  border: none;
-  background: transparent;
-  justify-content: center;
-  text-align: center;
-}
-
-.login-header {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.login-body {
-  display: grid;
-  gap: 10px;
-}
-.input.enhanced {
-  border: none;
-  background: rgba(50, 50, 50, 0.8);
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.1s ease, border-radius 0.2s ease-out;
-  border-radius: 25px;
-  height: 40px;
-}
-.input.enhanced:focus {
-  border: none;
-  border-radius: 5px;
-  outline: none;
-
-  transition: border-color 0.1s ease, border-radius 0.2s ease-out;
-}
-.login-button {
-}
-.error-text {
-  margin-top: 6px;
-}
-
-
-.kanye-page {
-  background-color: var(--bg);
-  min-height: 100vh;
-  position: relative;
-}
-.kanye-hero {
-  position: relative;
-  height: 62vh;
-  background-image: var(--bg-image);
-  background-attachment: fixed;
-  background-size: cover;
-  background-position: top;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: -60px;
-}
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background:
-      radial-gradient(800px 300px at 20% 20%, rgba(34,197,94,0.15), transparent 60%),
-      linear-gradient(180deg, rgba(17,24,39,0.6), rgba(17,24,39,0.8));
-}
-.kanye-hero-content {
-  position: relative;
-  z-index: 1;
-  max-width: 900px;
-  padding: 0 16px;
-}
-.title-xl {
-  font-size: clamp(3rem, 7vw, 5rem);
-  letter-spacing: 0.15em;
-  text-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-}
-.subtitle {
-  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
-}
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-
-.kanye-nav-fixed {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  z-index: 1001;
-  padding: 10px 0;
-}
-.nav-elevate {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.30);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.nav-content {
-  position: relative;
-}
-.brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--primary) 0%, #16a34a 100%);
-  color: #0b1220;
-  font-weight: 800;
-  cursor: pointer;
-}
-.nav-link {
-  transition: transform 0.15s ease, color 0.2s ease, border-color 0.2s ease;
-}
-.nav-link:hover {
-}
-.mobile-menu-toggle {
-  display: none;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-}
-.mobile-menu-toggle .bar {
-  display: block;
-  width: 25px;
-  height: 3px;
-  background: var(--text);
-  margin: 4px 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-.mobile-menu-toggle .bar.open:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-.mobile-menu-toggle .bar.open:nth-child(2) {
-  opacity: 0;
-}
-.mobile-menu-toggle .bar.open:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-.nav-links { display: flex; }
-.nav-links.open { display: flex; }
-
-
-.section-block {
-  scroll-margin-top: 84px;
-}
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-.section-title {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-.section-accent {
-  height: 2px;
-  flex: 1;
-  background: linear-gradient(90deg, rgba(34,197,94,0.25), transparent);
-}
-.section-accent.warn {
-  background: linear-gradient(90deg, rgba(245,158,11,0.35), transparent);
-}
-
-
-.col-main { flex: 3; min-width: 300px; }
-.col-sidebar { flex: 1; min-width: 280px; }
-
-
-.kanye-infobox {
-  padding: 20px;
-  border: none;
-  background: rgba(255, 255, 255, 0.05);
-}
-.kanye-infobox img.profile-img {
-  width: 100%;
-  object-fit: cover;
-  margin-top: 15px;
-  border: none;
-  transition: transform 0.3s ease;
-}
-.kanye-infobox img.profile-img:hover {
-  transform: scale(1.02);
-}
-.info-list {
-  list-style: none;
-  padding: 0;
-  margin-top: 15px;
-}
-.info-list li {
-  margin-bottom: 8px;
-  border-bottom:none;
-  padding-bottom: 8px;
-}
-.info-list li:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-.info-list strong {
-  color: var(--primary);
-  margin-right: 5px;
-}
-
-
-.albums-filter {
-  align-items: center;
-  margin-bottom: 20px;
-}
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border:none;
-  background: rgba(46, 46, 46, 0.9);
-  color: var(--text);
-  cursor: pointer;
-  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
-}
-.chip:hover {
-  transform: translateY(-1px);
-  background: rgba(66, 66, 66, 0.9);
-}
-.chip.active {
-
-  background: rgba(66, 66, 66, 0.9);
-}
-.chip.ghost {
-  background: rgba(66, 66, 66, 0.9);
-}
-.spacer {
-  flex: 1;
-}
-
-.albums-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-}
-.album-card {
-  border: none;
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #141922, #1a1a1a);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.20);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-.album-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
-}
-.album-cover-img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  display: block;
+  background-color: #000;
   border-bottom: 1px solid var(--border);
 }
-.album-meta {
-  padding: 12px;
-  display: grid;
-  gap: 8px;
-}
-.album-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.album-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-.album-desc {
-  min-height: 48px;
+
+.hero-bg-art {
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, var(--lp) 0%, transparent 70%);
+  opacity: 0.15;
+  filter: blur(80px);
+  z-index: 0;
 }
 
-
-.controversies-list {
-  border-left: 2px solid rgba(245,158,11,0.35);
-  padding-left: 12px;
-}
-
-
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-.image-item {
+.hero-content {
   position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  cursor: pointer;
+  z-index: 2;
+}
+
+.hero-badge {
+  font-size: 0.8rem;
+  letter-spacing: 3px;
+  color: var(--lp);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.hero-title {
+  font-size: 6rem;
+  margin: 10px 0;
+  color: var(--text-primary);
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--sub);
+  max-width: 500px;
+  line-height: 1.6;
+}
+
+/* --- 2. STICKY NAV (Supabase Style) --- */
+.sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 15, 15, 0.8); /* var(--lbg) with alpha */
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.nav-row {
+  display: flex;
+  gap: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.nav-item {
+  background: none;
   border: none;
-  background: #0b1220;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.2s ease;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.20);
+  padding: 20px 0;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
 }
-.image-item:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
-  border-color: var(--primary);
+
+.nav-item:hover {
+  color: var(--text);
 }
-.image-item img {
+
+.nav-item.active {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; /* Align with border */
+  left: 0;
   width: 100%;
-  height: 220px;
-  object-fit: cover;
-  display: block;
-}
-.image-overlay {
-  position: absolute;
-  inset: auto 0 0 0;
-  padding: 8px 12px;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.65));
-  color: #e5e7eb;
+  height: 2px;
+  background: var(--lp);
+  box-shadow: 0 -2px 10px var(--lp);
 }
 
-
-.lightbox {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.92);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(8px);
+/* --- 3. SECTIONS & LAYOUT --- */
+.content-wrapper {
+  min-height: 500px;
 }
-.lightbox-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
+
+.section-header {
+  margin-bottom: 40px;
+}
+
+.section-title {
   font-size: 2rem;
-  color: white;
-  background: transparent;
-  border: none;
+  color: var(--text);
+  margin: 0 0 10px 0;
 }
-.lightbox-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 3rem;
-  color: white;
-  padding: 10px;
-  cursor: pointer;
-  z-index: 2001;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  height: 60px;
-  width: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s;
-}
-.lightbox-nav:hover { background: rgba(0, 0, 0, 0.6); }
-.lightbox-nav.prev { left: 20px; }
-.lightbox-nav.next { right: 20px; }
-.lightbox-image {
-  max-width: min(92%, 1100px);
-  max-height: 80%;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-  animation: lightbox-fade-in 0.3s ease-out;
-}
-.lightbox-caption {
-  margin-top: 15px;
-  color: white;
+
+.section-desc {
+  color: var(--sub);
   font-size: 1.1rem;
 }
 
-
-.kanye-footer {
-  background-color: var(--card);
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.9rem;
+/* --- VIEW: DISCOGRAPHY --- */
+.album-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
 }
 
-
-.ci {
-  cursor: pointer;
+.album-card {
+  group: hover;
+  transition: transform 0.2s ease;
 }
 
-
-@keyframes fadeIn {
-  from { opacity: 0; } to { opacity: 1; }
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes lightbox-fade-in {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-.animate-fade-in { opacity: 0; transition: opacity 0.6s ease-out; }
-.animate-fade-in.is-visible { opacity: 1; }
-.animate-fade-in-up {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-.animate-fade-in-up.is-visible {
-  opacity: 1; transform: translateY(0);
-}
-.animate-fade-in-up.delay-200 { transition-delay: 0.2s; }
-.animate-fade-in-up.delay-400 { transition-delay: 0.4s; }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-.btnb{
-
-  background: rgba(50, 50, 50, 0.8);
-  color: var(--text);
-  border: none;
-  height: 40px;
-  border-radius: 30px;
-  width: 40px;
-
+.album-card:hover {
+  transform: translateY(-5px);
 }
 
-.btnb:hover {
-
-  background:  rgba(75, 75, 75, 0.8);
+.album-visual {
+  aspect-ratio: 1/1;
+  border-radius: 4px; /* Slight rounded corners */
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  border: 1px solid var(--border2);
+  /* Vinyl Effect */
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
 }
-.logogo {
+
+.album-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
-  flex-direction: row;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.album-visual:hover .album-overlay {
+  opacity: 1;
+}
+
+.album-year {
+  font-size: 0.8rem;
+  color: var(--lp);
+  font-weight: bold;
+  display: block;
+}
+
+.album-title {
+  font-size: 1rem;
+  color: var(--text);
+  margin: 4px 0;
+  font-weight: 600;
+}
+
+.album-genre {
+  font-size: 0.85rem;
+  color: var(--sub2);
+}
+
+/* --- VIEW: GALLERY (Masonry Feel) --- */
+.gallery-masonry {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 200px;
   gap: 16px;
 }
 
+.gallery-item {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.gallery-item:hover {
+  border-color: var(--lp);
+}
+
+/* Platzhalter-Hintergründe für die Galerie */
+.item-1 { grid-column: span 2; grid-row: span 2; background: linear-gradient(45deg, #2b2b2b, #1a1a1a); }
+.item-2 { grid-column: span 1; background: linear-gradient(to bottom, #3f3f3f, #1a1a1a); }
+.item-3 { grid-column: span 1; background: radial-gradient(circle at center, #5a2e2e, #1a1a1a); }
+.item-4 { grid-column: span 2; background: linear-gradient(to right, #2a2a4a, #1a1a1a); }
+
+.gallery-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 20px;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+.gallery-content h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.2rem;
+}
+
+/* --- VIEW: PHILOSOPHY --- */
+.reading-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+}
+
+.text-card {
+  padding: 40px;
+}
+
+.text-body {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.quote-list {
+  margin-top: 40px;
+}
+
+.quote-item {
+  margin-bottom: 25px;
+  padding-left: 20px;
+  border-left: 2px solid var(--border2);
+}
+
+.quote-item.highlight {
+  border-left-color: var(--lp);
+  background: rgba(196, 77, 255, 0.03); /* Subtle purple tint */
+  padding: 15px 20px;
+  border-radius: 0 8px 8px 0;
+}
+
+.quote-item p {
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--text);
+  margin: 0 0 8px 0;
+}
+
+.quote-meta {
+  font-size: 0.9rem;
+  color: var(--sub);
+}
+
+/* --- ANIMATIONS --- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* --- MOBILE --- */
 @media (max-width: 768px) {
-  .mobile-menu-toggle { display: block; }
-  .nav-links {
-    display: none;
-  }
-  .nav-links.open {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: var(--card);
-    border-top: 1px solid var(--border);
-    padding: 8px 0;
-  }
-  .nav-links.open .btn {
-    width: 100%;
-    text-align: left;
-    padding: 12px 16px;
-  }
-  .kanye-nav-fixed { z-index: 1000; }
-
-  .title-xl { font-size: 2.6rem; letter-spacing: 0.08em; }
-  .subtitle { font-size: 1.2rem; }
-  .hero-actions { flex-wrap: wrap; }
-
-  .col-main, .col-sidebar { flex: 1 1 100%; min-width: unset; }
-  .image-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-  .lightbox-nav { font-size: 2rem; height: 40px; width: 40px; }
-  .interr { display: block; }
+  .hero-title { font-size: 4rem; }
+  .reading-layout { grid-template-columns: 1fr; }
+  .gallery-masonry { grid-template-columns: 1fr; grid-auto-rows: 250px; }
+  .item-1, .item-4 { grid-column: span 1; grid-row: span 1; }
+  .sticky-nav { top: -1px; } /* Fix iOS Safari gap */
+  .nav-row { gap: 15px; overflow-x: auto; }
 }
 </style>
