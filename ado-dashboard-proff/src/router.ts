@@ -200,7 +200,7 @@ const routes = [
         component: () => import('./views/NotFound.vue'),
         meta: {
             title: '404',
-            fullWidth: false,
+            fullWidth: true,
             hideNavigation: false
         }
     }
