@@ -3,6 +3,7 @@ import Special from "./Special.vue";
 import G from "./G.vue";
 import Line from './Line.vue'
 import { ArrowDown } from 'lucide-vue-next'
+import NewMainButton from "./NewMainButton.vue";
 
 defineProps<{
   onStartClick: () => void;
@@ -25,7 +26,7 @@ defineProps<{
       </p>
 
       <div class="action-buttons">
-        <button class="action-btn secondary arrow-hover-effect" @click="onMoreInfoClick">
+        <button class="action-btn secondary arrow-hover-effect border" @click="onMoreInfoClick">
           <span class="arrow-wrapper">
             Mehr erfahren
             <ArrowDown class="arrow-icon original-arrow" :size="20"/>
@@ -33,7 +34,7 @@ defineProps<{
           </span>
         </button>
 
-        <G @click="onStartClick" class="action-btn primary">Jetzt loslegen</G>
+        <NewMainButton @click="onStartClick" class="border" />
       </div>
     </div>
 
@@ -237,5 +238,8 @@ defineProps<{
     width: 16px;
     height: 16px;
   }
+}
+.border {
+  /*border: 1px solid red;*/
 }
 </style>

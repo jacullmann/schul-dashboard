@@ -101,10 +101,15 @@ import { Zap, Compass, Palette, ScanEye, Layers, Tablet, MessageCircle } from 'l
   border: 1px solid var(--border);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 350px;
+  cursor: pointer;
+
 }
 
 .grid-item:hover {
   border: 1px solid var(--border2);
+}
+.grid-item:active {
+  border: 1px solid var(--lp);
 }
 
 .item-title {
