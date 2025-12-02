@@ -1,23 +1,45 @@
 <template>
   <div v-if="show" class="confirm-backdrop" @click.stop="$emit('cancel')">
     <div class="confirm-box" @click.stop>
-      <div style="text-align: left; justify-content: left; align-items: flex-start">
-        <p>{{ message }}</p>
+      <h4 style="margin-top: 0">Diesen Eintrag melden?</h4>
+      <div class="category-tabs">
+        <button
+            class="btn"
+            :class="{ ghost: category !== 'illegal' }"
+            @click="category = 'illegal'"
+        >
+          Illegaler Inhalt
+        </button>
+        <button
+            class="btn"
+            :class="{ ghost: category !== 'falschinfo' }"
+            @click="category = 'falschinfo'"
+        >
+          Falschinformation
+        </button>
       </div>
 
-
-      <div v-if="showReasonInput" class="reason-input">
-        <label for="reportReason">Was genau ist das Problem? (optional)</label>
+      <div class="reason-input">
+        <label for="reportReason">
+          {{ category === 'falschinfo' ? 'Begründung (erforderlich)' : 'Was genau ist das Problem? (optional)' }}
+        </label>
         <textarea
             id="reportReason"
             :value="reason"
             @input="$emit('update:reason', ($event.target as HTMLTextAreaElement).value)"
-            placeholder="Beschreibung..."
+            :placeholder="category === 'falschinfo' ? 'Begründung...' : 'Beschreibung...'"
+            :required="category === 'falschinfo'"
         ></textarea>
       </div>
 
-      <div class="actions">
-        <button class="btn danger" @click="$emit('confirm')">Eintrag melden</button>
+      <div class="row">
+        <button
+            class="btn danger"
+            @click="$emit('confirm', category)"
+            :disabled="category === 'falschinfo' && !reason?.trim()"
+        >
+          Eintrag melden
+        </button>
         <button class="btn ghost" @click="$emit('cancel')">Abbrechen</button>
       </div>
     </div>
@@ -25,16 +47,24 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { ref, watch } from 'vue'
+
+const props = defineProps<{
   show: boolean
   message: string
-  // NEU: Props für das Textfeld
   showReasonInput?: boolean
   reason?: string
 }>()
 
-// NEU: 'update:reason' emit
-defineEmits(['confirm', 'cancel', 'update:reason'])
+const emit = defineEmits(['confirm', 'cancel', 'update:reason'])
+
+const category = ref<'illegal' | 'falschinfo'>('illegal')
+
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    category.value = 'illegal'
+  }
+})
 </script>
 
 <style scoped>
@@ -47,46 +77,57 @@ defineEmits(['confirm', 'cancel', 'update:reason'])
   justify-content: center;
   z-index: 2000;
 }
+
 .confirm-box {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 8px;
-  max-width: 400px; /* Etwas breiter für das Textfeld */
+  background: var(--lbg);
+  padding: 16px;
+  border-radius: 16px;
+  max-width: 400px;
   width: 90%;
-  text-align: left; /* Besser für Label + Textarea */
+  text-align: left;
+  border: 1px solid var(--border);
+
 }
+
+.category-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+}
+
 .confirm-box p {
   text-align: left;
   margin-bottom: 16px;
   font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
 }
 
-/* NEU: Styles für das Textfeld */
 .reason-input {
   margin-bottom: 16px;
 }
+
 .reason-input label {
   display: block;
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 6px;
-}
-.reason-input textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--jj); /* Passend zum App-Hintergrund */
   color: var(--text);
-  font-size: 14px;
-  resize: vertical;
 }
 
-.actions {
-  margin-top: 16px;
+.row {
   display: flex;
-  gap: 12px;
-  justify-content: left;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.btn.danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.danger:disabled:hover {
+  background: var(--danger);
 }
 </style>

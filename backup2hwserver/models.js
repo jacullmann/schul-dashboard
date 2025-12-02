@@ -112,6 +112,11 @@ export function initModels(mongoose) {
     const ReportSchema = new Schema({
         itemId: { type: Schema.Types.ObjectId, index: true, required: true },
         itemTitle: { type: String, required: true },
+        category: {
+            type: String,
+            enum: ['illegal', 'falschinfo'],
+            default: 'illegal'
+        },
         reason: { type: String },
         reporterId: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true, default: null },
         reporterEmail: { type: String, default: 'anonymous' },

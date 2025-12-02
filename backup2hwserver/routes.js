@@ -933,24 +933,47 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         tryAuth,
         body('itemId').isMongoId(),
         body('itemTitle').isString().isLength({ min: 1, max: 200 }),
+        body('category').isIn(['illegal', 'falschinfo']),
         body('reason').optional().isString().isLength({ max: 1000 }),
         validate,
         async (req, res) => {
             try {
-                const { itemId, itemTitle, reason } = req.body;
+                const { itemId, itemTitle, category, reason } = req.body;
+
+                if (category === 'falschinfo' && (!reason || reason.trim().length === 0)) {
+                    return sendJSONError(res, 400, 'Bitte füge einen Grund hinzu.');
+                }
+
                 const reportData = {
                     itemId,
                     itemTitle,
-                    reason: reason || '',
+                    category,
+                    reason: reason ? reason.trim() : null,
                     reportedAt: new Date(),
                     reporterId: req.user ? req.user.sub : null,
                     reporterEmail: req.user ? req.user.email : 'anonymous'
                 };
                 await Report.create(reportData);
+
                 if (req.user) {
-                    await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:report', meta: { itemId, reason: !!reason } } } });
+                    await User.findByIdAndUpdate(req.user.sub, {
+                        $push: {
+                            activity: {
+                                at: new Date(),
+                                type: 'item:report',
+                                meta: {
+                                    itemId,
+                                    category,
+                                    hasReason: !!reason
+                                }
+                            }
+                        }
+                    });
                 }
-                res.status(201).json({ ok: true, message: 'Eintrag erfolgreich gemeldet.' });
+                res.status(201).json({
+                    ok: true,
+                    message: 'Eintrag erfolgreich gemeldet.'
+                });
             } catch (err) {
                 console.error('POST /api/reports error', err);
                 sendJSONError(res, 500, 'Server error');

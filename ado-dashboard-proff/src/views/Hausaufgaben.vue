@@ -174,7 +174,14 @@
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
     <ItemForm v-if="showItemForm" :key="itemFormKey" :type="tab" :subjects="subjects" :initial="itemToEdit" :max-title-length="MAX_TITLE_LENGTH" :max-subject-length="MAX_SUBJECT_LENGTH" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" @error="onItemFormError" />
     <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder aktualisiert.')" />
-    <ConfirmDialog :show="showReportConfirm" message="Diesen Eintrag melden?" :show-reason-input="true" v-model:reason="reportReason" @confirm="doReport" @cancel="cancelReport" />
+    <ConfirmDialog
+        :show="showReportConfirm"
+        message=""
+        :show-reason-input="true"
+        v-model:reason="reportReason"
+        @confirm="doReport"
+        @cancel="cancelReport"
+    />
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>

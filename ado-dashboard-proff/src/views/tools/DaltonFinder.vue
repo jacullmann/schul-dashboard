@@ -235,10 +235,10 @@ const filteredResults = computed<SearchResult[]>(() => {
 
     <div class="controls">
       <div class="mode-switch">
-        <button :class="{ active: searchMode === 'room' }" @click="searchMode = 'room'; searchQuery = ''">
+        <button :class="{ ghost: searchMode !== 'room' }" class="btn" @click="searchMode = 'room'; searchQuery = ''">
           Suche nach Raum
         </button>
-        <button :class="{ active: searchMode === 'teacher' }" @click="searchMode = 'teacher'; searchQuery = ''">
+        <button :class="{ ghost: searchMode !== 'teacher' }" class="btn" @click="searchMode = 'teacher'; searchQuery = ''">
           Suche nach Lehrer:in
         </button>
       </div>
@@ -246,7 +246,7 @@ const filteredResults = computed<SearchResult[]>(() => {
           v-model="searchQuery"
           type="text"
           :placeholder="searchMode === 'room' ? 'Raum suchen...' : 'Lehrer suchen...'"
-          class="search-input"
+          class="input"
       />
     </div>
 
@@ -329,44 +329,10 @@ const filteredResults = computed<SearchResult[]>(() => {
 
 .mode-switch { display: flex; gap: 10px; }
 
-.mode-switch button {
-  padding: 10px 20px;
-  border: 1px solid var(--border2);
-  background: var(--jj);
-  color: #AAAAAA;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: 0.2s;
-  font-family: inherit;
-}
-
-.mode-switch button:hover {
-  background: #333;
-  color: #F1F1F1;
-}
-
-.mode-switch button.active {
-  background: #f1f1f1;
-  color: #0f0f0f;
-  border-color: #f1f1f1;
-}
-
-.search-input {
-  padding: 12px;
-  width: 100%;
+.input {
   max-width: 400px;
-  font-size: 16px;
-  background-color: var(--jj);
-  border: 1px solid var(--border2);
-  color: #F1F1F1;
-  border-radius: 6px;
+  width: 100%;
 }
-
-.search-input::placeholder {
-  color: #666;
-}
-
-/* TABLE STYLES */
 .table-wrapper {
   overflow-x: auto;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);

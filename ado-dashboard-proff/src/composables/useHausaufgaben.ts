@@ -331,7 +331,7 @@ export function useHausaufgaben() {
     }
 
     // Report
-    async function doReport() {
+    async function doReport(category: 'illegal' | 'falschinfo') {
         if (!reportTarget) return;
         const item = reportTarget;
         const reason = reportReason.value;
@@ -340,14 +340,22 @@ export function useHausaufgaben() {
         isError.value = false;
 
         try {
-            await hw.post('/api/reports', { itemId: item.id, itemTitle: item.title, reason: reason });
+            await hw.post('/api/reports', {
+                itemId: item.id,
+                itemTitle: item.title,
+                category,
+                reason: reason
+            });
             message.value = 'Eintrag gemeldet.';
             isError.value = false;
         } catch (e: any) {
             message.value = 'Fehler beim Melden: ' + (e.response?.data?.error || '');
             isError.value = true;
         } finally {
-            setTimeout(() => { message.value = ''; isError.value = false }, 7000);
+            setTimeout(() => {
+                message.value = '';
+                isError.value = false
+            }, 7000);
         }
     }
 

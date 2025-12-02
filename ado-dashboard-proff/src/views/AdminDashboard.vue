@@ -187,6 +187,11 @@
               <strong>{{ rep.itemTitle }}</strong>
               <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
             </div>
+            <div class="rep-category">
+    <span class="badge" :class="rep.category === 'illegal' ? 'danger-badge' : 'warn-badge'">
+        {{ rep.category === 'illegal' ? 'Illegal' : 'Falschinfo' }}
+    </span>
+            </div>
             <div class="rep-reason">"{{ rep.reason }}"</div>
             <div class="rep-meta small">
               Item ID: {{ rep.itemId }} <br>
