@@ -503,7 +503,7 @@ onUnmounted(() => {
   background: var(--jj);
   border-radius: 12px;
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border2);
   transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
