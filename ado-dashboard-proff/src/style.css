@@ -26,6 +26,7 @@
     --lp: #C44DFF;
     --s-hover: #323232;
     --f-white: #aaa;
+    --admin-header-height: 60px;
 }
 
 * { box-sizing: border-box; }
