@@ -441,7 +441,17 @@ export default function registerRoutes(app, deps) {
             if (!message || message.trim().length === 0) {
                 return res.status(400).json({ error: 'Message fehlt' });
             }
-            const sanitizedMessage = sanitizeModerate(message.trim());
+
+            const trimmedMessage = message.trim();
+            const MAX_LENGTH = 5000;
+
+            if (trimmedMessage.length > MAX_LENGTH) {
+                return res.status(400).json({
+                    error: `Nachricht zu lang (maximal ${MAX_LENGTH} Zeichen)`
+                });
+            }
+
+            const sanitizedMessage = sanitizeModerate(trimmedMessage);
 
             await Sorgen.create({
                 message: sanitizedMessage,
@@ -934,7 +944,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         body('itemId').isMongoId(),
         body('itemTitle').isString().isLength({ min: 1, max: 200 }),
         body('category').isIn(['illegal', 'falschinfo']),
-        body('reason').optional().isString().isLength({ max: 1000 }),
+        body('reason').optional().isString().isLength({ max: 5000 }),
         validate,
         async (req, res) => {
             try {

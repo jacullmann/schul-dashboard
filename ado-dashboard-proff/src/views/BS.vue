@@ -10,20 +10,28 @@
     </div>
 
     <form @submit.prevent="onSubmit" class="form">
-      <textarea
-          id="message"
-          class="input message-input"
-          rows="8"
-          v-model="message"
-          placeholder="Du kanst über alles schreiben..."
-          required
-      ></textarea>
+      <div class="textarea-container">
+        <textarea
+            id="message"
+            class="input message-input"
+            rows="8"
+            v-model="message"
+            placeholder="Du kanst über alles schreiben..."
+            required
+            @input="onTextInput"
+            :maxlength="MAX_LENGTH"
+        ></textarea>
+
+        <div class="counter" :class="charCounterClass">
+          {{ charCount }} / {{ MAX_LENGTH }}
+        </div>
+      </div>
 
       <div class="row actions">
         <button
             class="btn ghost"
             type="submit"
-            :disabled="submitting || !message.trim()"
+            :disabled="submitting || !message.trim() || isCooldown || charCount > MAX_LENGTH"
             data-umami-event="Sorgenbox absenden Button"
         >
           <span v-if="!submitting && !isCooldown">Anonym absenden</span>
@@ -36,6 +44,9 @@
       <p v-if="isCooldown" class="small cooldown-info">
         Bitte warte {{ cooldownSeconds }} Sekunden, bevor du eine neue Nachricht sendest.
       </p>
+      <p v-if="charCount > MAX_LENGTH" class="small err">
+        Nachricht zu lang (maximal {{ MAX_LENGTH }} Zeichen)
+      </p>
     </form>
   </div>
 </template>
@@ -46,6 +57,7 @@ import LoadingSpinner from '../components/LoadingSpinner.vue'
 import hw from "../hwApi"
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
+const MAX_LENGTH = 5000;
 
 const message = ref('');
 const submitting = ref(false);
@@ -54,26 +66,34 @@ const feedbackClass = ref('');
 const cooldownEndTime = ref<number | null>(null);
 const cooldownInterval = ref<NodeJS.Timeout | null>(null);
 
-// localStorage Keys
 const COOLDOWN_KEY = 'sorgenbox_cooldown_end';
 
-// Cooldown beim Laden der Komponente aus localStorage wiederherstellen
+const charCount = computed(() => message.value.length);
+
+const charCounterClass = computed(() => {
+  if (charCount.value > MAX_LENGTH) return 'error';
+  return 'normal';
+});
+
+const onTextInput = () => {
+  if (charCount.value > MAX_LENGTH) {
+    message.value = message.value.substring(0, MAX_LENGTH);
+  }
+};
+
 onMounted(() => {
   const savedCooldown = localStorage.getItem(COOLDOWN_KEY);
   if (savedCooldown) {
     const endTime = parseInt(savedCooldown);
-    // Nur wiederherstellen, wenn Cooldown noch nicht abgelaufen ist
     if (endTime > Date.now()) {
       cooldownEndTime.value = endTime;
       startCooldownTimer();
     } else {
-      // Abgelaufenen Cooldown bereinigen
       localStorage.removeItem(COOLDOWN_KEY);
     }
   }
 });
 
-// Computed properties für Cooldown
 const isCooldown = computed(() => {
   if (!cooldownEndTime.value) return false;
   return Date.now() < cooldownEndTime.value;
@@ -85,26 +105,21 @@ const cooldownSeconds = computed(() => {
   return Math.max(0, remaining);
 });
 
-// Cooldown in localStorage speichern
 function saveCooldownToStorage() {
   if (cooldownEndTime.value) {
     localStorage.setItem(COOLDOWN_KEY, cooldownEndTime.value.toString());
   }
 }
 
-// Cooldown aus localStorage entfernen
 function removeCooldownFromStorage() {
   localStorage.removeItem(COOLDOWN_KEY);
 }
 
-// Cooldown-Timer starten für Live-Anzeige
 function startCooldownTimer() {
-  // Altes Interval bereinigen
   if (cooldownInterval.value) {
     clearInterval(cooldownInterval.value);
   }
 
-  // Neues Interval setzen
   cooldownInterval.value = setInterval(() => {
     if (!cooldownEndTime.value || Date.now() >= cooldownEndTime.value) {
       stopCooldown();
@@ -112,14 +127,12 @@ function startCooldownTimer() {
   }, 1000);
 }
 
-// Cooldown starten
 function startCooldown() {
-  cooldownEndTime.value = Date.now() + 30000; // 30 Sekunden
+  cooldownEndTime.value = Date.now() + 30000;
   saveCooldownToStorage();
   startCooldownTimer();
 }
 
-// Cooldown stoppen und cleanup
 function stopCooldown() {
   if (cooldownInterval.value) {
     clearInterval(cooldownInterval.value);
@@ -130,7 +143,7 @@ function stopCooldown() {
 }
 
 async function onSubmit() {
-  if (!message.value.trim() || isCooldown.value) return;
+  if (!message.value.trim() || isCooldown.value || charCount.value > MAX_LENGTH) return;
 
   submitting.value = true;
   feedback.value = '';
@@ -145,10 +158,13 @@ async function onSubmit() {
     feedbackClass.value = 'ok';
     message.value = '';
 
-    // Cooldown starten nach erfolgreichem Senden
     startCooldown();
-  } catch (e) {
-    feedback.value = 'Übertragung fehlgeschlagen. Versuche es nochmal.';
+  } catch (e: any) {
+    if (e.response?.data?.error?.includes('maximal 5000 Zeichen')) {
+      feedback.value = 'Die Nachricht ist zu lang.';
+    } else {
+      feedback.value = 'Übertragung fehlgeschlagen.';
+    }
     feedbackClass.value = 'err';
   } finally {
     submitting.value = false;
@@ -161,7 +177,6 @@ function reset() {
   feedbackClass.value = '';
 }
 
-// Cleanup beim Zerstören der Komponente
 onUnmounted(() => {
   if (cooldownInterval.value) {
     clearInterval(cooldownInterval.value);
@@ -174,7 +189,6 @@ onUnmounted(() => {
   backdrop-filter: blur(8px);
 }
 
-/* Header */
 .header {
   display: flex;
   align-items: center;
@@ -186,14 +200,33 @@ onUnmounted(() => {
   color: var(--text);
 }
 
-/* Form */
 .form {
   display: grid;
   gap: 12px;
 }
 
+.textarea-container {
+  position: relative;
+}
 
-/* Buttons */
+.counter {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  user-select: none;
+}
+
+.counter.normal {
+  color: var(--sub);
+}
+
+.counter.error {
+  color: var(--danger);
+  background: rgba(220, 53, 69, 0.1);
+}
+
 .btn {
   transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
@@ -214,17 +247,13 @@ onUnmounted(() => {
   color: var(--text);
 }
 
-/* Feedback */
 .small.err { color: var(--danger); }
 .small.ok { color: var(--text); }
 
-/* Cooldown Info */
 .cooldown-info {
   color: var(--sub);
   font-style: italic;
 }
-
-/* Cooldown Button Styling */
 .btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;

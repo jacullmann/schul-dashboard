@@ -272,7 +272,7 @@ async function startAnalysis(): Promise<void> {
     <div style="margin-top: 16px; text-align: right;">
       <button
           id="analyzeBtn"
-          class="btn"
+          class="btn ghost"
           @click="startAnalysis"
           :disabled="isAnalyzing || textInput.trim().length === 0"
           data-umami-event="Ai-Detector fake analysieren button"

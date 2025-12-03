@@ -30,7 +30,10 @@
             @input="$emit('update:reason', ($event.target as HTMLTextAreaElement).value)"
             :placeholder="category === 'falschinfo' ? 'Begründung...' : 'Beschreibung...'"
             :required="category === 'falschinfo'"
-        ></textarea>
+            :maxlength="MAX_LENGTH"  ></textarea>
+        <div class="counter">
+          <p class="count-small">{{ reasonLength }} / {{ MAX_LENGTH }}</p>
+        </div>
       </div>
 
       <div class="row">
@@ -48,7 +51,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+
+const MAX_LENGTH = 5000;
+
+const reasonLength = computed(() => {
+  return props.reason?.length || 0
+})
 
 const props = defineProps<{
   show: boolean
@@ -108,6 +117,7 @@ watch(() => props.show, (newVal) => {
 
 .reason-input {
   margin-bottom: 16px;
+  position: relative;
 }
 
 .reason-input label {
@@ -131,6 +141,25 @@ watch(() => props.show, (newVal) => {
 
 .btn.danger:disabled:hover {
   background: var(--danger);
+}
+.counter {
+  position: absolute;
+  bottom: -5px;
+  right: 12px;
+  z-index: 1;
+  pointer-events: none;
+}
+.count-small {
+  font-size: 12px;
+  color: var(--sub);
+  opacity: 0.8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin: 0;
+}
+textarea {
+  min-height: 100px;
+  padding-bottom: 20px;
 }
 @media (max-width: 500px) {
   .category-tabs{
