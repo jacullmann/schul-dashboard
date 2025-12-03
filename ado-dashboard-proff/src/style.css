@@ -32,6 +32,8 @@
     --sup-base-hover: #287150;
     --sup-border-hover: #3ecf8e;
     --sup-text-hover: #e1eae6;
+    --display-font: 'Satoshi';
+    --normal-font: 'Inter';
 }
 
 * { box-sizing: border-box; }
@@ -40,14 +42,14 @@ html, body, #app { height: 100%; }
 body {
     margin: 0;
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--normal-font), sans-serif;
     position: relative;
 }
 button,
 input,
 select,
 textarea {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--normal-font), sans-serif;
 }
 a, button {
     -webkit-tap-highlight-color: transparent;
@@ -55,7 +57,7 @@ a, button {
 }
 a { color: var(--primary); text-decoration: none; }
 h1, h2, h3, h4, h5 {
-    font-family: 'Bricolage Grotesk', sans-serif;
+    font-family: var(--display-font), sans-serif;
 }
 
 @tailwind base;

@@ -84,6 +84,7 @@ onUnmounted(() => {
   z-index: 1002;
   transition: background-color 0.3s ease;
   border-bottom: 1px solid var(--border);
+  font-family: 'Satoshi', sans-serif;
 }
 
 .header-container {
@@ -105,7 +106,7 @@ onUnmounted(() => {
 }
 
 .logo-img { width: auto; height: 35px; }
-.logo-text { font-size: 1.8rem; font-weight: bold; letter-spacing: 1px; transition: opacity 0.2s ease; line-height: 1; }
+.logo-text { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; transition: opacity 0.2s ease; line-height: 1; }
 
 .hamburger-menu { display: none; flex-direction: column; justify-content: space-between; background: transparent; border: none; cursor: pointer; z-index: 1010; position: relative; }
 .nav-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 998; animation: fadeIn 0.3s ease-out; }
