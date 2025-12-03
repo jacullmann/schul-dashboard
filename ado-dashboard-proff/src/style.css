@@ -26,6 +26,12 @@
     --s-hover: #323232;
     --f-white: #aaa;
     --admin-header-height: 60px;
+    --sup-base: #006239;
+    --sup-text: #fafafa;
+    --sup-border: #138352;
+    --sup-base-hover: #287150;
+    --sup-border-hover: #3ecf8e;
+    --sup-text-hover: #e1eae6;
 }
 
 * { box-sizing: border-box; }
@@ -34,14 +40,14 @@ html, body, #app { height: 100%; }
 body {
     margin: 0;
     color: var(--text);
-    font-family: 'Roboto Slab', serif;
+    font-family: 'Inter', sans-serif;
     position: relative;
 }
 button,
 input,
 select,
 textarea {
-    font-family: 'Roboto Slab', serif !important;
+    font-family: 'Inter', sans-serif;
 }
 a, button {
     -webkit-tap-highlight-color: transparent;
@@ -88,13 +94,24 @@ a { color: var(--primary); text-decoration: none; }
     .btn.ghost:hover {
         background-color:#323232;
     }
+    .btn.main {
+        background: var(--sup-base);
+        color: var(--sup-text);
+        border: 1px solid var(--sup-border);
+    }
+    .btn.main:hover {
+        background: var(--sup-base-hover);
+        border-color: var(--sup-border-hover);
+        color: var(--sup-text-hover);
+
+    }
     .btn.danger { background: var(--danger); color: white; }
     .btn.warn { background: var(--warn); color: #1f1300; }
 
-    /* .badge { 
-        padding: 4px 8px; 
-        border-radius: 5px; 
-        color: var(--sub); 
+    /* .badge {
+        padding: 4px 8px;
+        border-radius: 5px;
+        color: var(--sub);
     }
     .badge:hover { color: white} */
 }

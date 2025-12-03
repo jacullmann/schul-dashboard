@@ -112,7 +112,7 @@ onUnmounted(() => {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .nav-links { display: flex; gap: 1.25rem; transition: all 0.2s ease; }
-.nav-item { font-size: 1rem; font-weight: 600; text-decoration: none; color: #f1f1f1; position: relative; transition: opacity 0.2s ease; }
+.nav-item { font-size: 0.95rem; font-weight: 600; text-decoration: none; color: #f1f1f1; position: relative; transition: opacity 0.2s ease; }
 .nav-item:hover { opacity: 0.7; }
 
 
