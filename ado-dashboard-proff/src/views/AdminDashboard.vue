@@ -315,7 +315,7 @@ const tabTitles: Record<string, string> = {
 .data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #282828; }
 .data-table th { background: #202020; color: #aaa; font-weight: 500; font-size: 0.85rem; }
 .u-email { font-weight: 500; }
-.u-id { color: #555; font-size: 0.7rem; }
+.u-id { color: var(--sub); font-size: 0.7rem; }
 .actions { display: flex; gap: 4px; justify-content: flex-end; }
 .icon-only { padding: 6px; background: transparent; color: #888; }
 .icon-only:hover { color: white; background: rgba(255,255,255,0.1); }
