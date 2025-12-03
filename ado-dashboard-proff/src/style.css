@@ -54,6 +54,9 @@ a, button {
     touch-action: manipulation;
 }
 a { color: var(--primary); text-decoration: none; }
+h1, h2, h3, h4, h5 {
+    font-family: 'Bricolage Grotesk', sans-serif;
+}
 
 @tailwind base;
 @tailwind components;
