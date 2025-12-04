@@ -1,5 +1,6 @@
 <template>
-  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+  <div class="blurit">
+  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; z-index:100;">
     <div class="card styl" style="width:100%; max-width:420px;">
       <!-- Header -->
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -75,6 +76,7 @@
         @close="showReset=false"
         @success="onResetSuccess"
     />
+  </div>
   </div>
 </template>
 
