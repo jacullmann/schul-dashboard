@@ -106,7 +106,7 @@ export function useHausaufgaben() {
         if (timeColor === 'danger') return { background: 'var(--danger)', color: 'white' };
         if (timeColor === 'warn') return { background: 'var(--warn)', color: 'black' };
         if (timeColor === 'info') return { background: '#3b82f6', color: 'white' };
-        return { background: 'var(--jj)', color: 'white' };
+        return { background: 'var(--gg)', color: 'white' };
     };
 
     const filteredItems = computed(() => {
