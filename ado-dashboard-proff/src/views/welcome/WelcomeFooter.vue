@@ -27,7 +27,7 @@
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p class="text-xs text-sub">© Alle Rechte vorbehalten</p>
+        <p class="text-xs text-sub">Alle Rechte vorbehalten</p>
       </div>
     </div>
 
@@ -100,10 +100,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
-
-.footer-bottom-content {
-  text-align: right;
 }
 
 .footer-bottom-content p {

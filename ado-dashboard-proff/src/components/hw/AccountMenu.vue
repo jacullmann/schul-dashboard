@@ -292,8 +292,8 @@ onBeforeUnmount(() => {
 }
 
 .popup-inner {
-  background: #282828;
-  border: none;
+  background: var(--jj);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px;
   display: flex;

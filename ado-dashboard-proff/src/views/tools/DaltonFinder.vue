@@ -228,10 +228,9 @@ const filteredResults = computed<SearchResult[]>(() => {
 
 <template>
   <div class="card">
-    <header>
-      <h1>Dalton-Raumplan</h1>
-      <p class="subtitle">Schuljahr 2025/26 (Aktualisiert)</p>
-    </header>
+    <div>
+      <h2 style="margin-top: 0" >Daltonraumfinder</h2>
+    </div>
 
     <div class="controls">
       <div class="mode-switch">

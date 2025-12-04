@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Impressum</h1>
+    <h2>Impressum</h2>
     <h3>Angaben gemäß § 5 TMG</h3>
     <p>
       Max Mustermann<br />

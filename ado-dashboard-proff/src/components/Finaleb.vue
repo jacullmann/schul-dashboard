@@ -224,6 +224,9 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 <template>
   <div class="card">
+    <div>
+      <h2 style="margin-top: 0">Stundenplan</h2>
+    </div>
     <div class="timetable-grid">
 
       <div class="header-cell time-header">Stunde</div>
@@ -269,7 +272,6 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 <style scoped>
 .card {
-  padding: 20px;
   overflow-x: scroll;
 }
 

@@ -15,12 +15,11 @@
           <router-link  to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
           <router-link  to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
           <router-link  to="/countdown" class="footer-link">Countdowns</router-link>
-          <router-link  to="/daltonraumfinder" class="footer-link">Daltonraum-Finder</router-link>
+          <router-link  to="/daltonraumfinder" class="footer-link">Daltonraumfinder</router-link>
         </div>
 
         <div class="footer-section">
           <h3>Kontakt</h3>
-          <p @click="toContact" class="contact-email">dashboardverifizierung@gmail.com</p>
           <router-link  to="/kontakt" class="footer-link">Kontakt</router-link>
         </div>
         <All  class="logoutDeviceMobile" />
@@ -69,30 +68,6 @@ function openCookieBanner() {
 //window.dispatchEvent(new Event('site-logged-out'));
 //router.push('/login');
 //}
-
-function toContact() {
-  router.push('/kontakt')
-}
-
-function handleClick() {
-  clickCount.value++;
-
-  if (!timer) {
-    timer = window.setTimeout(() => {
-      clickCount.value = 0;
-      timer = null;
-    }, 2000);
-  }
-
-  if (clickCount.value >= 5) {
-    showOverlay.value = true;
-    clickCount.value = 0;
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-  }
-}
 </script>
 
 <style scoped>
@@ -101,24 +76,7 @@ function handleClick() {
   color: #f1f1f1;
   padding: 2.5rem 0 0;
   border-top: 1px solid var(--border);
-}
-
-.contact-email {
-  cursor: pointer;
-  max-width: 185px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  transition: color 0.2s ease;
-}
-
-.contact-email:hover {
-  color: #f1f1f1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-family: var(--display-font), sans-serif;
 }
 
 .footer-container {
@@ -140,13 +98,13 @@ function handleClick() {
 .footer-section h3 {
   color: #f1f1f1;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 1.2rem;
 }
 
 .footer-section p {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
@@ -154,13 +112,12 @@ function handleClick() {
   display: block;
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   margin-bottom: 0.5rem;
-  transition: opacity 0.2s ease;
-}
+  transition:  0.2s;
+  font-weight: 500 }
 
 .footer-link:hover {
-  opacity: 1;
   color: rgba(255, 255, 255, 1);
 }
 

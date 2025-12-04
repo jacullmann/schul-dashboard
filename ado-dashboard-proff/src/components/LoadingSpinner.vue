@@ -4,9 +4,9 @@
       :style="{
         width: size,
         height: size,
-        borderWidth: borderThickness, /* Verwendet die Prop direkt */
-        borderColor: `#666666`, /* Behält den transparenten weißen Track */
-        borderTopColor: color, /* Die übergebene Farbe für den sich drehenden Teil */
+        borderWidth: '2px', /* Verwendet die Prop direkt */
+        borderColor: 'var(--not-spinning)', /* Behält den transparenten weißen Track */
+        borderTopColor: 'var(--spinning)', /* Die übergebene Farbe für den sich drehenden Teil */
       }"
       role="status"
       aria-label="Wird geladen..."

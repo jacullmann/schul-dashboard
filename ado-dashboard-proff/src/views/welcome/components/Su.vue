@@ -93,6 +93,7 @@ import { Zap, Compass, Palette, ScanEye, Layers, Tablet, MessageCircle } from 'l
     minmax(280px, 1fr)
   );
   grid-auto-rows: minmax(100px, auto);
+  user-select: none;
 }
 .grid-item {
   background-color: var(--llbg);

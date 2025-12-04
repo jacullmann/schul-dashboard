@@ -35,6 +35,8 @@
     --sup-text-hover: #e1eae6;
     --display-font: 'Satoshi';
     --normal-font: 'Inter';
+    --not-spinning: #666;
+    --spinning: #f1f1f1;
 }
 
 * { box-sizing: border-box; }
