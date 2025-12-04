@@ -34,7 +34,7 @@ defineProps<{
           </span>
         </button>
 
-        <NewMainButton @click="onStartClick" class="border" />
+        <NewMainButton @click="onStartClick" class="border overflow-gg" />
       </div>
     </div>
 
@@ -237,6 +237,9 @@ defineProps<{
   .arrow-icon {
     width: 16px;
     height: 16px;
+  }
+  .overflow-gg {
+    overflow: hidden;
   }
 }
 .border {

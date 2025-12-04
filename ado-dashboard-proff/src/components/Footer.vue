@@ -83,6 +83,10 @@ function openCookieBanner() {
   padding-bottom: 2.5rem;
 }
 
+.container{
+  max-width: 1300px;
+}
+
 .footer-columns {
   display: flex;
   justify-content: flex-start;
