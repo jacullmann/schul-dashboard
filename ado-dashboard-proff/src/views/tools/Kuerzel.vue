@@ -198,14 +198,14 @@ onMounted(() => {
   background: var(--jj);
   border: 1px solid var(--border2);
   border-radius: 6px;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.1s ease;
-  margin: 16px 0 -10px 0;
+  margin: 16px 0 -8px 0;
 }
 
 .switch-btn:hover {

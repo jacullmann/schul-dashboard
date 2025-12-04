@@ -93,7 +93,54 @@ const routes = [
             title: 'Kanye',
             fullWidth: true,
             hideNavigation: true
-        }
+        },
+        children: [
+            {
+                path: 'graduation',
+                component: () => import('./views/kanye/routes/Graduation.vue'),
+                meta: {
+                    title: 'Graduation',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'late-registration',
+                component: () => import('./views/kanye/routes/LateRegistration.vue'),
+                meta: {
+                    title: 'Late Registration',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'twisted-fantasy',
+                component: () => import('./views/kanye/routes/TwistedFantasy.vue'),
+                meta: {
+                    title: 'Twisted Fantasy',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'ye',
+                component: () => import('./views/kanye/routes/Ye.vue'),
+                meta: {
+                    title: 'Ye',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'yeezus',
+                component: () => import('./views/kanye/routes/Yeezus.vue'),
+                meta: {
+                    title: 'Yeezus',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            }
+        ]
     },
     {
         path: '/ai-detector',
