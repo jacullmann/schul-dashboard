@@ -2,7 +2,7 @@
   <div>
     <button class="btn ghost" @click="openPopup">Dieses Gerät abmelden</button>
 
-    <div v-if="showPopup" @click.self="closePopup" class="popup-overlay">
+    <div v-if="showPopup" @click.self="closePopup" class="blurit">
       <div class="popup-card">
 
         <div class="header-icon-group">

@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay">
+  <div class="blurit">
     <div class="modal card">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
@@ -217,18 +217,8 @@ async function removeImg(publicId: string) {
 </script>
 
 <style scoped>
-/* Overlay & modal positioning (keeps original layout) */
-.overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  background: rgba(0,0,0,0.5);
-}
 
-/* nested overlay for confirmation keeps higher z-index */
+
 .overlay.confirm { z-index: 200; }
 
 /* Modal card styling (keeps visual style local) */

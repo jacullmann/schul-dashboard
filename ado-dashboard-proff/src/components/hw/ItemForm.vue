@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')" aria-hidden="true">
+  <div class="blurit" @click.self="$emit('close')" aria-hidden="true">
     <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
       <div class="modal-header">
         <h3 class="modal-title">
@@ -463,17 +463,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <style scoped>
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100000;
-  padding: 24px;
-}
 
 
 .glass-modal {

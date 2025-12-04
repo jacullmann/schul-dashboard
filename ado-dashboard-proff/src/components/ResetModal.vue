@@ -1,5 +1,5 @@
 <template>
-  <div class="card overlay">
+  <div class="blurit">
     <div class="card modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort zurücksetzen</h3>
@@ -128,15 +128,6 @@ async function onPrimary() {
 </script>
 
 <style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:120;
-  background: rgba(0,0,0,0.28);
-}
 .modal {
   width: 100%;
   max-width: 420px;
