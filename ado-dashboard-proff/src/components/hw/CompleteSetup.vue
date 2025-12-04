@@ -1,6 +1,6 @@
 <template>
   <div v-if="visible" class="blurit">
-    <div class="card modal-content" style="max-width: 480px; width: 90%; top: 5px;">
+    <div class="card modal-content" style="max-width: 480px; width: 90%; top: 5px; padding: 16px; border: 1px solid var(--border); border-radius: 16px;">
       <h2 class="title">{{ isSetup ? 'Willkommen! Vervollständige dein Profil' : 'Kurse bearbeiten' }}</h2>
       <p class="small" style="color: var(--sub)">{{ isSetup ? 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen. Du kannst deine Auswahl jederzeit in deinen Account-Einstellungen ändern.' : 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.' }}</p>
 
@@ -170,18 +170,8 @@ async function skip() {
   z-index: 10000000000000000;
   position: relative;
 }
-.input {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  border-radius: 10px;
-  border: none;
-  background: #282828;
-  color: var(--text);
-  outline: none;
-}
 label {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: block;
 }
 </style>
