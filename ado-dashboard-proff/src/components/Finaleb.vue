@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-
+import hw from "../hwApi";
 // --- Types ---
 
 interface Lesson {
