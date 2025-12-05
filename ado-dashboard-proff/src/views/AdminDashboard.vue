@@ -350,15 +350,9 @@ const tabTitles: Record<string, string> = {
   transform: translateX(100%);
 }
 
-.drawer-slide-enter-active .drawer-content {
-}
-
 .drawer-slide-enter-to .drawer-content {
   transform: translateX(0);
 }
-.drawer-slide-leave-active .drawer-content {
-}
-
 .drawer-slide-leave-to .drawer-content {
   transform: translateX(100%);
 }
