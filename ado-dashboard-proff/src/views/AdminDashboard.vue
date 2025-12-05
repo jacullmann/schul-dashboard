@@ -349,12 +349,20 @@ const tabTitles: Record<string, string> = {
 .drawer-slide-enter-from .drawer-content {
   transform: translateX(100%);
 }
-
-.drawer-slide-enter-to .drawer-content {
-  transform: translateX(0);
-}
 .drawer-slide-leave-to .drawer-content {
   transform: translateX(100%);
+}
+.drawer-slide-enter-active {
+  transition: opacity 0.3s ease;
+}
+.drawer-slide-enter-from {
+  opacity: 0;
+}
+.drawer-slide-leave-active {
+  transition: opacity 0.3s ease;
+}
+.drawer-slide-leave-to {
+  opacity: 0;
 }
 
 .log-list { list-style: none; padding: 0; }
