@@ -359,7 +359,7 @@ const tabTitles: Record<string, string> = {
   opacity: 0;
 }
 .drawer-slide-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 1s;
 }
 .drawer-slide-leave-to {
   opacity: 0;
