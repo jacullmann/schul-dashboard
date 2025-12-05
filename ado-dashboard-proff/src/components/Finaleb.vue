@@ -2,14 +2,33 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 // --- Types ---
+
 interface Lesson {
   id: number;
   day: string;
   slot: number;
   duration: number;
   subject: string;
+  subject_abbr?: string;
   teacher: string | null;
   room: string | null;
+  // Internal for logic
+  _original?: Lesson;
+  cancelled?: boolean;
+}
+
+// Substitution now mirrors Lesson properties to allow full movement/changes
+interface Substitution {
+  lessonId: number;
+  day?: string;
+  slot?: number;
+  duration?: number;
+  subject?: string;
+  subject_abbr?: string;
+  teacher?: string | null;
+  room?: string | null;
+  cancelled?: boolean;
+  hide?: boolean;
 }
 
 interface TimeSlot {
@@ -31,7 +50,7 @@ const breaks: Record<number, number> = {
   7: 10
 };
 
-// --- Mock Data ---
+// --- Mock Data: Lessons ---
 const jsonData: Lesson[] = [
   { "id": 1, "day": "Montag", "slot": 1, "duration": 1, "room": "A005", "teacher": "Fr. Ellsiepen", "subject": "Enrichment", "subject_abbr": "ENR" },
   { "id": 2, "day": "Montag", "slot": 1, "duration": 1, "room": "A106", "teacher": "Hr. Weber", "subject": "Enrichment", "subject_abbr": "ENR" },
@@ -56,8 +75,8 @@ const jsonData: Lesson[] = [
   { "id": 21, "day": "Mittwoch", "slot": 1, "duration": 2, "room": "A104", "teacher": "Fr. Prey", "subject": "Physik", "subject_abbr": "PH" },
   { "id": 22, "day": "Mittwoch", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
   { "id": 23, "day": "Mittwoch", "slot": 4, "duration": 2, "room": "A301", "teacher": "Fr. Rehlinghaus", "subject": "Musik", "subject_abbr": "MU" },
-  { "id": 24, "day": "Mittwoch", "slot": 6, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Klassenstunde", "subject_abbr": "KSTD" },
-  { "id": 25, "day": "Mittwoch", "slot": 7, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Französisch", "subject_abbr": "FRZ" },
+  { "id": 24, "day": "Mittwoch", "slot": 6, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Französisch", "subject_abbr": "FRZ" },
+  { "id": 25, "day": "Mittwoch", "slot": 7, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Klassenstunde", "subject_abbr": "KSTD" },
   { "id": 26, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A005", "teacher": "Hr. Herrmann", "subject": "Mathe", "subject_abbr": "MA" },
   { "id": 27, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A104", "teacher": "Hr. Moresmau", "subject": "GeWi", "subject_abbr": "GEWI" },
   { "id": 28, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A206", "teacher": "Hr. Chahine", "subject": "Englisch", "subject_abbr": "ENG" },
@@ -77,7 +96,64 @@ const jsonData: Lesson[] = [
   { "id": 42, "day": "Freitag", "slot": 8, "duration": 1, "room": "A203", "teacher": "Hr. Luxen", "subject": "Biologie", "subject_abbr": "BI" }
 ];
 
+const substitutionsData: Substitution[] = [];
+
+const loadingSubs = ref(true);
+
+async function loadSubstitutions() {
+  try {
+    const { data } = await hw.get('/api/timetable/subs');
+    substitutions.value = data;
+  } catch (error) {
+    console.error('Fehler beim Laden der Substitutions:', error);
+    substitutions.value = [];
+  } finally {
+    loadingSubs.value = false;
+  }
+}
+
 const lessons = ref<Lesson[]>(jsonData);
+const substitutions = ref<Substitution[]>(substitutionsData);
+
+// --- Logic: Processing Lessons with Substitutions ---
+
+const effectiveLessons = computed<Lesson[]>(() => {
+  const result: Lesson[] = [];
+
+  // Group substitutions by lessonId
+  const subMap = new Map<number, Substitution[]>();
+  substitutions.value.forEach(sub => {
+    if (!subMap.has(sub.lessonId)) subMap.set(sub.lessonId, []);
+    subMap.get(sub.lessonId)!.push(sub);
+  });
+
+  lessons.value.forEach(original => {
+    const subs = subMap.get(original.id);
+
+    // If no substitutions exist, push original
+    if (!subs || subs.length === 0) {
+      result.push({ ...original, _original: original }); // Self-reference for simple comparison logic
+      return;
+    }
+
+    // If substitutions exist, iterate them (Creates clones if > 1 sub per ID)
+    subs.forEach(sub => {
+      // Logic: "hide" acts as if lesson wasn't in table
+      if (sub.hide) return;
+
+      // Merge original with substitution overrides
+      const merged: Lesson = {
+        ...original,
+        ...sub, // Overwrite properties (day, slot, room, cancelled, etc.)
+        _original: original // Keep reference to original for diffing in template
+      };
+
+      result.push(merged);
+    });
+  });
+
+  return result;
+});
 
 // --- Time Logic ---
 
@@ -87,7 +163,6 @@ const formatTime = (totalMinutes: number): string => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
-// Calculate start minutes for every slot (e.g. Slot 1 = 480 mins)
 const slotStartMinutes = computed(() => {
   const map: Record<number, number> = {};
   let currentMetrics = (startTimeHour * 60) + startTimeMinute;
@@ -109,10 +184,11 @@ const timeSlots = computed<TimeSlot[]>(() => {
   return slots;
 });
 
-// Group lessons
+// Group lessons based on Effective Lessons (Post-substitution)
 const groupedLessons = computed(() => {
   const groups: Record<string, Lesson[]> = {};
-  lessons.value.forEach(lesson => {
+  effectiveLessons.value.forEach(lesson => {
+    // Key is based on the *current* (possibly modified) day/slot
     const key = `${lesson.day}-${lesson.slot}`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(lesson);
@@ -144,36 +220,30 @@ const updateTime = () => {
 
 let timer: number | undefined;
 onMounted(() => {
-  timer = window.setInterval(updateTime, 1000 * 60); // Update every minute
+  timer = window.setInterval(updateTime, 1000 * 60);
+  loadSubstitutions();
 });
 onUnmounted(() => {
   clearInterval(timer);
 });
 
-// Map of Day String to index (Monday=0, ... Friday=4)
 const dayMap: Record<string, number> = {
   'Montag': 0, 'Dienstag': 1, 'Mittwoch': 2, 'Donnerstag': 3, 'Freitag': 4
 };
 
-// Returns the key (e.g., "Montag-1") of the lesson group to highlight
 const activeOrNextGroupKey = computed<string | null>(() => {
-  const currentDayIndex = (now.value.getDay() + 6) % 7; // Mon=0, Sun=6
-  // FIX: Access .value.getMinutes()
+  const currentDayIndex = (now.value.getDay() + 6) % 7;
   const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
-
-  // Total minutes from start of the week (Monday 00:00)
   const currentTotalWeekMinutes = (currentDayIndex * 24 * 60) + currentMinutes;
 
-  // Flatten groups into checkable time blocks
   const timeBlocks = Object.entries(groupedLessons.value).map(([key, group]) => {
     const first = group[0];
     const dayIdx = dayMap[first.day] ?? -1;
-    if (dayIdx === -1) return null; // Invalid day
+    if (dayIdx === -1) return null;
 
     const maxDuration = Math.max(...group.map(l => l.duration));
     const startMinsOfDay = slotStartMinutes.value[first.slot];
 
-    // Calculate end time loop
     let endMinsOfDay = startMinsOfDay;
     for(let d = 0; d < maxDuration; d++) {
       endMinsOfDay += lessonDurationMins;
@@ -188,26 +258,20 @@ const activeOrNextGroupKey = computed<string | null>(() => {
     return { key, startTotal, endTotal };
   }).filter(block => block !== null) as { key: string, startTotal: number, endTotal: number }[];
 
-  // 1. Check if ACTIVE (Now is inside start/end)
   const activeBlock = timeBlocks.find(b => currentTotalWeekMinutes >= b.startTotal && currentTotalWeekMinutes < b.endTotal);
   if (activeBlock) return activeBlock.key;
 
-  // 2. Determine PAST and FUTURE blocks
   const pastBlocks = timeBlocks.filter(b => b.endTotal <= currentTotalWeekMinutes);
   const futureBlocks = timeBlocks.filter(b => b.startTotal > currentTotalWeekMinutes);
 
-  // Sort future blocks by start time ascending (closest next)
   futureBlocks.sort((a, b) => a.startTotal - b.startTotal);
   const nextBlock = futureBlocks[0];
 
-  if (!nextBlock) return null; // No more lessons this week
+  if (!nextBlock) return null;
 
-  // Sort past blocks by end time descending (most recently finished)
   pastBlocks.sort((a, b) => b.endTotal - a.endTotal);
   const lastFinishedBlock = pastBlocks[0];
 
-  // 3. Apply "Gap" Rule
-  // "10 minutes after a lesson is done, if no other lesson is about to happen for more than 2 hours highlight none"
   if (lastFinishedBlock) {
     const minutesSinceFinish = currentTotalWeekMinutes - lastFinishedBlock.endTotal;
     const minutesUntilNext = nextBlock.startTotal - currentTotalWeekMinutes;
@@ -219,13 +283,13 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
   return nextBlock.key;
 });
-
 </script>
 
 <template>
   <div class="card">
     <div>
       <h2 style="margin-top: 0">Stundenplan</h2>
+      <div v-if="loadingSubs" class="small">Lade Änderungen...</div>
     </div>
     <div class="timetable-grid">
 
@@ -253,15 +317,52 @@ const activeOrNextGroupKey = computed<string | null>(() => {
       >
         <div
             v-for="(lesson, index) in group"
-            :key="lesson.id"
+            :key="index"
             class="sub-lesson-item"
-            :class="{ 'has-border': index < group.length - 1 }"
+            :class="{
+              'has-border': index < group.length - 1,
+            }"
         >
-          <div class="lesson-subject">{{ lesson.subject }}</div>
-          <div class="lesson-details" v-if="lesson.teacher || lesson.room">
-            <span class="lesson-room">{{ lesson.room }}</span>
-            <span class="lesson-teacher">{{ lesson.teacher }}</span>
+          <div v-if="lesson.cancelled">
+            <div class="lesson-subject crossed">{{ lesson.subject }}</div>
+            <div class="ausfall-label">Ausfall</div>
+            <div class="lesson-details">
+              <span class="crossed">{{ lesson.room }}</span>
+              <span class="crossed">{{ lesson.teacher }}</span>
+            </div>
           </div>
+
+          <div v-else>
+            <div class="lesson-subject">
+              <span v-if="lesson.subject !== lesson._original?.subject" class="crossed">
+                {{ lesson._original?.subject }}
+              </span>
+              <span :class="{ 'new-val': lesson.subject !== lesson._original?.subject }">
+                {{ lesson.subject }}
+              </span>
+            </div>
+
+            <div class="lesson-details">
+              <span class="detail-group">
+                <span v-if="lesson.room !== lesson._original?.room" class="crossed">
+                   {{ lesson._original?.room }}
+                </span>
+                <span :class="{ 'new-val': lesson.room !== lesson._original?.room }">
+                   {{ lesson.room }}
+                </span>
+              </span>
+
+              <span class="detail-group">
+                <span v-if="lesson.teacher !== lesson._original?.teacher" class="crossed">
+                   {{ lesson._original?.teacher }}
+                </span>
+                <span :class="{ 'new-val': lesson.teacher !== lesson._original?.teacher }">
+                  {{ lesson.teacher }}
+                </span>
+              </span>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -325,12 +426,12 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   flex-direction: column;
   overflow: hidden;
   z-index: 2;
-  transition: background-color 0.3s ease; /* Smooth transition */
+  transition: background-color 0.3s ease;
 }
 
 /* --- HIGHLIGHT LOGIC --- */
 .lesson-group-container.highlight-active {
-  background-color: #f1f1f1 !important; /* Force override */
+  background-color: #f1f1f1 !important;
   border-color: #f1f1f1;
 }
 
@@ -345,6 +446,12 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 .sub-lesson-item.has-border {
   border-bottom: 1px solid #414141;
+}
+
+.ausfall-label {
+  color: var(--danger);
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .lesson-subject {
@@ -364,7 +471,19 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   margin-top: 2px;
 }
 
-/* Override text colors when highlighted */
+/* CHANGE STYLES */
+.crossed {
+  text-decoration: line-through;
+  color: #777;
+  margin-right: 6px;
+  font-weight: normal;
+}
+.new-val {
+  font-weight: bold;
+  color: #f1f1f1;
+}
+
+/* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
 .lesson-group-container.highlight-active .lesson-subject {
   color: #0f0f0f;
 }
@@ -372,8 +491,22 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 .lesson-group-container.highlight-active .lesson-details {
   color: #414141;
 }
+
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
   border-bottom: 1px solid #cccccc;
+}
+
+/* Active State: Cross outs need to be visible against white */
+.lesson-group-container.highlight-active .crossed {
+  color: #999;
+}
+/* Active State: New values need to match the dark text theme but stand out */
+.lesson-group-container.highlight-active .new-val {
+  color: #0f0f0f;
+}
+/* Active State: Ausfall text */
+.lesson-group-container.highlight-active .ausfall-label {
+  color: #0f0f0f;
 }
 
 @media (max-width: 768px) {

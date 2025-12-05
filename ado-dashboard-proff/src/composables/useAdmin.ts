@@ -19,6 +19,11 @@ export function useAdmin() {
     const deletingUsers = ref<Record<string, boolean>>({});
     const togglingBan = ref<Record<string, boolean>>({});
 
+    const timetableSubs = ref<any[]>([]);
+    const loadingSubs = ref(false);
+    const savingSub = ref(false);
+    const deletingSubs = ref<Record<string, boolean>>({});
+
     // Reports & Sorgen
     const reports = ref<any[]>([]);
     const entriessorgen = ref<any[]>([]);
@@ -44,6 +49,47 @@ export function useAdmin() {
         message.value = msg;
         isError.value = true;
         setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+    }
+
+    async function loadTimetableSubs() {
+        loadingSubs.value = true;
+        try {
+            const { data } = await hw.get('/api/admin/timetable/subs');
+            timetableSubs.value = data;
+        } catch (e: any) {
+            handleError('Fehler beim Laden der Substitutions');
+        } finally {
+            loadingSubs.value = false;
+        }
+    }
+
+    async function saveTimetableSub(subData: any) {
+        savingSub.value = true;
+        try {
+            const { data } = await hw.post('/api/admin/timetable/subs', subData);
+            await loadTimetableSubs();
+            handleSuccess('Substitution gespeichert');
+            return data;
+        } catch (e: any) {
+            handleError('Fehler beim Speichern der Substitution');
+            throw e;
+        } finally {
+            savingSub.value = false;
+        }
+    }
+
+    async function deleteTimetableSub(id: string) {
+        if (!confirm('Substitution wirklich löschen?')) return;
+        deletingSubs.value[id] = true;
+        try {
+            await hw.delete(`/api/admin/timetable/subs/${id}`);
+            await loadTimetableSubs();
+            handleSuccess('Substitution gelöscht');
+        } catch (e: any) {
+            handleError('Fehler beim Löschen der Substitution');
+        } finally {
+            deletingSubs.value[id] = false;
+        }
     }
 
     // Stats
@@ -191,6 +237,7 @@ export function useAdmin() {
         loadAllUsers();
         loadReports();
         loadSorgen();
+        loadTimetableSubs()
     });
 
     return {
@@ -222,6 +269,13 @@ export function useAdmin() {
         deleteReport,
         deleteSorge,
         generateSecurityReport,
-        copyReportToClipboard
+        copyReportToClipboard,
+        timetableSubs,
+        loadingSubs,
+        savingSub,
+        deletingSubs,
+        loadTimetableSubs,
+        saveTimetableSub,
+        deleteTimetableSub
     };
 }

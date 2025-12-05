@@ -123,6 +123,22 @@ export function initModels(mongoose) {
         reportedAt: { type: Date, default: Date.now }
     }, { timestamps: true });
 
+    const TimetableSubSchema = new Schema({
+        lessonId: { type: Number, required: true, index: true },
+        day: { type: String },
+        slot: { type: Number },
+        duration: { type: Number },
+        subject: { type: String },
+        subject_abbr: { type: String },
+        teacher: { type: String },
+        room: { type: String },
+        cancelled: { type: Boolean, default: false },
+        hide: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now }
+    }, { timestamps: true });
+
+    const TimetableSub = mongoose.model('HwTimetableSub', TimetableSubSchema);
+
     const SorgenSchema = new Schema({
         message: { type: String, required: true },
         createdAt: { type: Date, default: Date.now }
@@ -158,7 +174,8 @@ export function initModels(mongoose) {
         Report,
         Sorgen,
         PasswordReset,
-        EncryptedTodo
+        EncryptedTodo,
+        TimetableSub
     };
 }
 

@@ -33,7 +33,8 @@ export default function registerRoutes(app, deps) {
         Report,
         Sorgen,
         PasswordReset,
-        EncryptedTodo
+        EncryptedTodo,
+        TimetableSub
     } = models;
 
     function sendJSONError(res, status, msg, errors) {
@@ -285,6 +286,94 @@ export default function registerRoutes(app, deps) {
             theater: user.theater,
             doneSetup: !!user?.doneSetup
         });
+    });
+
+    app.get('/api/admin/timetable/subs', requireAdmin, async (req, res) => {
+        try {
+            const subs = await TimetableSub.find({}).sort({ createdAt: -1 }).lean();
+            res.json(subs);
+        } catch (err) {
+            console.error('GET /api/admin/timetable/subs error', err);
+            sendJSONError(res, 500, 'Serverfehler beim Laden der Substitutions');
+        }
+    });
+
+    app.post('/api/admin/timetable/subs', requireAdmin,
+        [
+            body('lessonId').isInt(),
+            body('day').optional().isString(),
+            body('slot').optional().isInt(),
+            body('duration').optional().isInt(),
+            body('subject').optional().isString(),
+            body('subject_abbr').optional().isString(),
+            body('teacher').optional().isString(),
+            body('room').optional().isString(),
+            body('cancelled').optional().isBoolean(),
+            body('hide').optional().isBoolean()
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const subData = req.body;
+                const newSub = await TimetableSub.create(subData);
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'timetable:sub:create',
+                            meta: { lessonId: subData.lessonId }
+                        }
+                    }
+                });
+
+                res.status(201).json(newSub);
+            } catch (err) {
+                console.error('POST /api/admin/timetable/subs error', err);
+                sendJSONError(res, 500, 'Serverfehler beim Speichern der Substitution');
+            }
+        }
+    );
+
+    app.delete('/api/admin/timetable/subs/:id', requireAdmin,
+        param('id').isMongoId(),
+        validate,
+        async (req, res) => {
+            try {
+                const { id } = req.params;
+                const deletedSub = await TimetableSub.findByIdAndDelete(id);
+
+                if (!deletedSub) {
+                    return sendJSONError(res, 404, 'Substitution nicht gefunden');
+                }
+
+                // Activity logging
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'timetable:sub:delete',
+                            meta: { lessonId: deletedSub.lessonId }
+                        }
+                    }
+                });
+
+                res.json({ ok: true, message: 'Substitution gelöscht' });
+            } catch (err) {
+                console.error('DELETE /api/admin/timetable/subs/:id error', err);
+                sendJSONError(res, 500, 'Serverfehler beim Löschen der Substitution');
+            }
+        }
+    );
+
+    app.get('/api/timetable/subs', requireExternalAuth, async (req, res) => {
+        try {
+            const subs = await TimetableSub.find({}).lean();
+            res.json(subs);
+        } catch (err) {
+            console.error('GET /api/timetable/subs error', err);
+            sendJSONError(res, 500, 'Serverfehler beim Laden der Substitutions');
+        }
     });
 
     app.patch('/api/user/setup',

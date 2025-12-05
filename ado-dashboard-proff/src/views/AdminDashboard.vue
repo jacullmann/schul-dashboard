@@ -193,6 +193,75 @@
           </div>
         </div>
 
+        <div v-if="activeTab === 'timetable'" class="tab-content fade-in">
+          <div class="timetable-admin-grid">
+            <!-- Linke Seite: EditModal -->
+            <div class="timetable-edit-section card">
+              <h2>Neue Substitution erstellen</h2>
+              <EditModal />
+            </div>
+
+            <div class="timetable-list-section card">
+              <div class="section-header">
+                <h2>Gespeicherte Substitutions</h2>
+                <button
+                    class="btn ghost tiny"
+                    @click="loadTimetableSubs"
+                    :disabled="loadingSubs"
+                >
+                  {{ loadingSubs ? 'Lädt...' : 'Aktualisieren' }}
+                </button>
+              </div>
+
+              <div v-if="loadingSubs" class="loader">Lade Substitutions...</div>
+
+              <div v-else-if="!timetableSubs.length" class="empty-state">
+                Keine Substitutions gespeicher
+              </div>
+
+              <div v-else class="subs-list">
+                <div v-for="sub in timetableSubs" :key="sub._id" class="sub-item">
+                  <div class="sub-info">
+                    <div class="sub-header">
+                      <strong>Lesson ID: {{ sub.lessonId }}</strong>
+                      <span class="badge" :class="{
+                                    'danger-badge': sub.cancelled,
+                                    'warn-badge': sub.hide
+                                }">
+                                    {{ sub.cancelled ? 'Ausfall' : sub.hide ? 'Versteckt' : 'Änderung' }}
+                                </span>
+                    </div>
+
+                    <div class="sub-details">
+                                <span v-if="sub.subject">
+                                    Fach: {{ sub.subject }}{{ sub.subject_abbr ? ` (${sub.subject_abbr})` : '' }}
+                                </span>
+                      <span v-if="sub.teacher">Lehrer: {{ sub.teacher }}</span>
+                      <span v-if="sub.room">Raum: {{ sub.room }}</span>
+                      <span v-if="sub.slot">Stunde: {{ sub.slot }}</span>
+                      <span v-if="sub.day">Tag: {{ sub.day }}</span>
+                    </div>
+
+                    <div class="sub-meta small">
+                      {{ new Date(sub.createdAt).toLocaleString() }}
+                    </div>
+                  </div>
+
+                  <div class="sub-actions">
+                    <button
+                        class="btn icon-only danger"
+                        @click="deleteTimetableSub(sub._id)"
+                        :disabled="deletingSubs[sub._id]"
+                        :title="deletingSubs[sub._id] ? 'Löscht...' : 'Löschen'"
+                    >
+                      <Trash2 :size="16"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
 
@@ -217,6 +286,7 @@ import {
   Unlock,
   Trash2
 } from 'lucide-vue-next';
+import EditModal from "../components/stundenplan-admin/EditModal.vue";
 
 const {
   activeTab,
@@ -241,7 +311,12 @@ const {
   copyReportToClipboard,
   message,
   isError,
-  handleSuccess
+  handleSuccess,
+  timetableSubs,
+  loadingSubs,
+  loadTimetableSubs,
+  deleteTimetableSub,
+  deletingSubs
 } = useAdmin();
 
 const showAnnouncementForm = ref(false);
@@ -252,7 +327,8 @@ const tabTitles: Record<string, string> = {
   reports: 'Gemeldete Inhalte',
   sorgen: 'Sorgenbox',
   security: 'Sicherheit',
-  announcements: 'Ankündigungen'
+  announcements: 'Ankündigungen',
+  timetable: 'Stundenplan'
 };
 </script>
 
@@ -402,6 +478,90 @@ const tabTitles: Record<string, string> = {
   }
   .content-area {
     padding: 20px;
+  }
+}
+.timetable-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.timetable-edit-section {
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.timetable-list-section {
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.subs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sub-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--vlbg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.sub-item:hover {
+  background: var(--s-hover);
+}
+
+.sub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sub-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: var(--sub);
+}
+
+.sub-details span {
+  display: inline-block;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+}
+
+.sub-details span:last-child {
+  border-right: none;
+}
+
+.sub-meta {
+  color: var(--sub2);
+}
+
+.sub-actions {
+  display: flex;
+  gap: 4px;
+}
+
+@media (max-width: 1024px) {
+  .timetable-admin-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

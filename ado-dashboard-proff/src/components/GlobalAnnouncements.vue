@@ -63,8 +63,8 @@ const showMenu = ref(false) // NEU: Menu State
 const showPopup = ref(false) // NEU: Popup State
 const currentPopupAnnouncement = ref(null) // NEU: Current Popup
 const route = useRoute()
-
-const isWelcomePage = computed(() => route.path === '/welcome')
+const welcomePaths = ['/welcome', '/admin']
+const isWelcomePage = computed(() => welcomePaths.includes(route.path))
 
 const currentAnnouncement = computed(() => {
   return announcements.value[currentIndex.value] || {}
