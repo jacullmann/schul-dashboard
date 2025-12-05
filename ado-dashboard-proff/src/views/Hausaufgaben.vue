@@ -163,8 +163,8 @@
       <div v-if="!loading && !filteredItems.length" class="card empty">Keine Einträge gefunden.</div>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
-        <button v-if="visibleCount < filteredItems.length" class="btn ghost shm" @click="showMore">Mehr anzeigen</button>
-        <button v-if="visibleCount > 5" class="btn ghost shm" @click="showLess">Weniger anzeigen</button>
+        <button v-if="visibleCount < filteredItems.length" class="btn ghost" @click="showMore">Mehr anzeigen</button>
+        <button v-if="visibleCount > 5" class="btn ghost" @click="showLess">Weniger anzeigen</button>
       </div>
 
 
@@ -273,7 +273,6 @@ const {
 .item-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 24px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #aaaaaa; transition: background 120ms ease, color 120ms ease; margin: -3px -2px; }
 .item-menu-trigger:hover { background: #414141; color: #f1f1f1; }
 .pagination-actions { margin-top: 16px; display: flex; gap: 12px; justify-content: center; }
-.shm:hover{ background-color:inherit }
 .loader { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 .row-two { max-height: 80px; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
 .private-entries-container { margin-top: 1rem; }
