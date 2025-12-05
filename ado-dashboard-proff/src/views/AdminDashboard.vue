@@ -106,6 +106,7 @@
             </table>
           </div>
 
+          <Transition name="drawer-slide">
           <div v-if="showActivityFor" class="activity-drawer" @click.self="showActivityFor = null">
             <div class="drawer-content card">
               <h3>Aktivitätsprotokoll</h3>
@@ -120,6 +121,7 @@
               <button class="btn ghost mt-4" @click="showActivityFor = null">Schließen</button>
             </div>
           </div>
+          </Transition>
         </div>
 
         <div v-if="activeTab === 'reports'" class="tab-content fade-in">
@@ -341,10 +343,25 @@ const tabTitles: Record<string, string> = {
   padding: 20px;
   height: 100%;
   overflow-y: auto;
-  animation: slideIn 0.3s ease;
   border-radius: 0;
+  transition: transform 0.3s ease;
 }
-@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.drawer-slide-enter-from .drawer-content {
+  transform: translateX(100%);
+}
+
+.drawer-slide-enter-active .drawer-content {
+}
+
+.drawer-slide-enter-to .drawer-content {
+  transform: translateX(0);
+}
+.drawer-slide-leave-active .drawer-content {
+}
+
+.drawer-slide-leave-to .drawer-content {
+  transform: translateX(100%);
+}
 
 .log-list { list-style: none; padding: 0; }
 .log-list li { border-bottom: 1px solid #282828; padding: 10px 0; }
