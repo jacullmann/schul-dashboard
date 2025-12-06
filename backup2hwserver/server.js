@@ -16,7 +16,7 @@ import sanitizeMiddleware from './middleware/sanitize.js';
 import { requireExternalAuth } from './middleware/dashboardAuth.js';
 
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', 3);
 const PORT = process.env.PORT || 3000;
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboard.com';
 
