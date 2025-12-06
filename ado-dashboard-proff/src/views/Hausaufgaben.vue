@@ -306,5 +306,6 @@ const {
 @media (max-width: 500px ) {
   .row-two { flex-direction: column; align-items: flex-start; margin-top: 15px; margin-bottom: 30px; }
   .mg { margin-top: 20px; }
+  .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }
 }
 </style>
