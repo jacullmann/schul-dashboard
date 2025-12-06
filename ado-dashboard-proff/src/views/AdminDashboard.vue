@@ -487,12 +487,12 @@ const tabTitles: Record<string, string> = {
 }
 
 .timetable-edit-section {
-  max-height: 800px;
+  max-height: 1000px;
   overflow-y: auto;
 }
 
 .timetable-list-section {
-  max-height: 800px;
+  max-height: 1000px;
   overflow-y: auto;
 }
 
