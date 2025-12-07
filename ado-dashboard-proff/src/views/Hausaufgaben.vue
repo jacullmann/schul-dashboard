@@ -261,8 +261,20 @@ const {
 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
 .thumb-with-overlay-wrapper { position: relative; }
 .img-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; padding: 0; margin: 0; cursor: pointer; background: transparent; z-index: 10; }
-.img-overlay .overlay-blur { position: absolute; inset: 0; background: rgba(60,60,60,0.6); backdrop-filter:  saturate(90%); -webkit-backdrop-filter: saturate(90%); border-radius: 8px; }
-.img-overlay .overlay-content { position: relative; color: white; font-weight: 700; font-size: 18px; z-index: 11; text-shadow: 0 1px 0 rgba(0,0,0,0.4); pointer-events: none; }
+.img-overlay .overlay-blur {
+  position: absolute;
+  inset: 0;
+  background: #282828aa;
+  border-radius: 8px;
+}
+.img-overlay .overlay-content {
+  position: relative;
+  color: var(--text);
+  font-weight: 400;
+  font-size: 32px;
+  z-index: 11;
+  pointer-events: none;
+}
 .empty { text-align:center; color:var(--muted); padding:24px; border: none }
 .collapse-enter-active, .collapse-leave-active { transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .collapse-enter-from, .collapse-leave-to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }

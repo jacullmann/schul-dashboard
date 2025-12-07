@@ -294,8 +294,8 @@ onBeforeUnmount(() => {
 .popup-inner {
   background: var(--jj);
   border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 8px;
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -303,10 +303,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* User Section */
-.user-section {
-  padding: 8px 4px;
-}
 
 .user-email {
   font-weight: 600;
@@ -336,11 +332,11 @@ onBeforeUnmount(() => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 6px 10px;
+  padding: 6px;
   color: var(--text);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   transition: background 0.2s ease;
 }
 
@@ -518,10 +514,6 @@ onBeforeUnmount(() => {
   .popup {
     top: 20% !important;
     width: calc(100vw - 24px) !important;
-  }
-
-  .popup-inner {
-    padding: 10px;
   }
 }
 @media (max-width: 480px) {

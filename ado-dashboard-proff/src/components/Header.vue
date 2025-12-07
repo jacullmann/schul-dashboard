@@ -168,27 +168,27 @@ onUnmounted(() => {
     position: fixed;
     top: 0;
     right: 0;
-    width: 280px;
+    width: 240px;
     height: 100%;
-    background-color: #1a1a1a;
+    background-color: var(--lbg);
     flex-direction: column;
     align-items: flex-start;
-    padding: 4rem 2rem 2rem;
+    padding: 32px;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
     overflow-y: auto;
+    border-left: 1px solid var(--border);
   }
 
   .nav-links-open { transform: translateX(0); }
 
   .nav-item {
-    margin: 1rem 0;
     font-size: 1.2rem;
     width: 100%;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
   }
   .nav-item:last-child { border-bottom: none; }
   .nav-item:hover { opacity: 1; }
