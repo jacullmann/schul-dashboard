@@ -257,11 +257,11 @@ const {
   color: var(--text);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   transition: background 0.2s ease;
 }
-.menu-btn .fixall { display: flex; align-items: center; gap: 9px; line-height: 1; }
-.menu-btn .fixall svg { width: 18px; height: 18px; flex-shrink: 0; }
+.menu-btn .fixall { display: flex; align-items: center; gap: 8px; line-height: 1; }
+.menu-btn .fixall svg { width: 16px; height: 16px; flex-shrink: 0; }
 .menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
 .menu-btn.danger { color: #f65252; fill: #f65252; }
 .menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }

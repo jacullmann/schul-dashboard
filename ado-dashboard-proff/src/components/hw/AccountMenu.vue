@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
   color: var(--text);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   transition: background 0.2s ease;
 }
 
@@ -350,13 +350,13 @@ onBeforeUnmount(() => {
 .menu-btn-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   line-height: 1;
 }
 
 .menu-btn-content svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
