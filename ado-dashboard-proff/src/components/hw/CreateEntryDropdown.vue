@@ -5,7 +5,7 @@
         @click="toggleMenu"
         ref="buttonRef"
     >
-      Eintrag anlegen
+      <Plus size="18px" />
     </button>
 
     <div
@@ -19,7 +19,7 @@
           data-umami-event="Dropdown - Hausaufgabe erstellen"
       >
         <div class="fixall">
-          <BookOpen :size="16" />
+          <FileText :size="16" />
           Hausaufgabe
         </div>
       </button>
@@ -29,7 +29,7 @@
           data-umami-event="Dropdown - Dalton erstellen"
       >
         <div class="fixall">
-          <Clipboard :size="16" />
+          <BookOpenText :size="16" />
           Dalton
         </div>
       </button>
@@ -39,7 +39,7 @@
           data-umami-event="Dropdown - Prüfung erstellen"
       >
         <div class="fixall">
-          <FileText :size="16" />
+          <NotebookText :size="16" />
           Prüfung
         </div>
       </button>
@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
-import { BookOpen, Clipboard, FileText, Lock } from 'lucide-vue-next';
+import { NotebookText, FileText, Lock, BookOpenText, Plus } from 'lucide-vue-next';
 
 type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
 
