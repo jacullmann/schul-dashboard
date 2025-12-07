@@ -296,7 +296,7 @@ const {
 .tiny { padding:4px 8px; font-size:12px; }
 .item-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 24px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #aaaaaa; transition: background 120ms ease, color 120ms ease; margin: -3px -2px; }
 .item-menu-trigger:hover { background: #414141; color: #f1f1f1; }
-.pagination-actions { margin-top: 16px; display: flex; gap: 12px; justify-content: center; }
+.pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
 .loader { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 .row-two { max-height: 80px; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
 .private-entries-container { margin-top: 1rem; }
@@ -329,7 +329,6 @@ const {
 }
 @media (max-width: 500px ) {
   .row-two { flex-direction: column; align-items: flex-start; margin-top: 15px; margin-bottom: 30px; }
-  .mg { margin-top: 20px; }
   .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }
 }
 </style>
