@@ -5,7 +5,7 @@
         @click="toggleMenu"
         ref="buttonRef"
     >
-      <Plus size="18px" />
+      <Plus size="16px" />
     </button>
 
     <div
@@ -29,7 +29,7 @@
           data-umami-event="Dropdown - Dalton erstellen"
       >
         <div class="fixall">
-          <BookOpenText :size="16" />
+          <NotebookText :size="16" />
           Dalton
         </div>
       </button>
@@ -39,7 +39,7 @@
           data-umami-event="Dropdown - Prüfung erstellen"
       >
         <div class="fixall">
-          <NotebookText :size="16" />
+          <BookOpenText :size="16" />
           Prüfung
         </div>
       </button>

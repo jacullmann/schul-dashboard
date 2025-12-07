@@ -81,7 +81,7 @@ const routes = [
         path: '/kuerzel',
         component: Kuerzel,
         meta: {
-            title: 'Kürzel-Finder',
+            title: 'Kürzelfinder',
             fullWidth: false,
             hideNavigation: false
         }
@@ -191,7 +191,7 @@ const routes = [
         path: '/daltonraumfinder',
         component: DaltonFinder,
         meta: {
-            title: 'Daltonraum-Finder',
+            title: 'Daltonraumfinder',
             fullWidth: false,
             hideNavigation: false
         }

@@ -11,7 +11,6 @@
         <div class="popup-inner" role="menu" aria-label="Account menu" ref="popupInner">
           <div class="user-section">
             <div class="user-email" :title="email">{{ email }}</div>
-            <div class="user-sub">Eingeloggt</div>
           </div>
 
           <div class="menu-divider"></div>
@@ -23,7 +22,7 @@
                 @click="openSetup"
             >
               <div class="menu-btn-content">
-                <FileText size="18px"/>
+                <LucideGraduationCap size="18px"/>
                 Kurse bearbeiten
               </div>
             </button>
@@ -99,7 +98,7 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
-import { Trash2, LogOut, FileText} from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap} from "lucide-vue-next";
 
 const props = defineProps<{
   email: string;
@@ -308,11 +307,6 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.user-sub {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 2px;
-}
 
 /* Menu Actions */
 .menu-actions {

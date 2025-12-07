@@ -130,8 +130,8 @@ const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
 const labelFor = (type: string) => {
   const map = {
     'HAUSAUFGABE': 'Hausaufgabe',
-    'DALTON': 'Dalton-Auftrag',
-    'PRUEFUNG': 'Klassenarbeit',
+    'DALTON': 'Daltonauftrag',
+    'PRUEFUNG': 'Prüfung',
   } as const;
   return map[type];
 };
