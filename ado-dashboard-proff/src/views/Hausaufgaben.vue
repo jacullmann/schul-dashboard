@@ -247,7 +247,19 @@ const {
 .time-badge { padding:4px 8px; border-radius:6px; }
 .item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-.menu-btn { display: block; width: 100%; text-align: left; background: transparent; border: none; padding: 6px 9px; color: var(--text); border-radius: 8px; cursor: pointer; font-size: 16px; transition: background 0.2s ease; }
+.menu-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s ease;
+}
 .menu-btn .fixall { display: flex; align-items: center; gap: 9px; line-height: 1; }
 .menu-btn .fixall svg { width: 18px; height: 18px; flex-shrink: 0; }
 .menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
