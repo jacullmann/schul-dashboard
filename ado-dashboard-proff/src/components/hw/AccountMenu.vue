@@ -23,9 +23,7 @@
                 @click="openSetup"
             >
               <div class="menu-btn-content">
-                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="#e3e3e3">
-                  <path d="M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/>
-                </svg>
+                <FileText size="18px"/>
                 Kurse bearbeiten
               </div>
             </button>
@@ -35,9 +33,7 @@
                 @click="handleLogout"
             >
               <div class="menu-btn-content">
-                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="#e3e3e3">
-                  <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/>
-                </svg>
+                <LogOut size="18px"/>
                 Ausloggen
               </div>
             </button>
@@ -52,9 +48,7 @@
                 @click="startDelete"
             >
               <div class="menu-btn-content">
-                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="#f65252">
-                  <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
-                </svg>
+                <Trash2  size="18px"/>
                 Account löschen
               </div>
             </button>
@@ -105,6 +99,7 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
+import { Trash2, LogOut, FileText} from "lucide-vue-next";
 
 const props = defineProps<{
   email: string;
