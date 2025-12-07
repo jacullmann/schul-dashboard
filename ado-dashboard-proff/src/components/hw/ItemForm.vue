@@ -120,7 +120,11 @@ import { containsProfanity } from '../../composables/useProfanity';
 import { processImageBeforeUpload} from "../../composables/useConvertImage";
 
 
-const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
+const props = defineProps<{
+  type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+  initial?: HwItem;
+  subjects: string[]
+}>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
 
 const labelFor = (type: string) => {

@@ -6,7 +6,7 @@ import { marked } from 'marked';
 // Interface Definition exportieren
 export interface HwItem {
     id: string;
-    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
+    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
     title: string;
     subject: string;
     description: string;
@@ -47,6 +47,8 @@ export function useHausaufgaben() {
     const MAX_TITLE_LENGTH = 50;
     const MAX_SUBJECT_LENGTH = 30;
 
+    const itemFormType = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
+
     // --- State ---
     const showAuth = ref(false);
     const showItemForm = ref(false);
@@ -62,6 +64,9 @@ export function useHausaufgaben() {
     const showPersonalized = ref(false);
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
+
+    const showTodoForm = ref(false);
+    const todoToEdit = ref<any>(null);
 
     // UI Messages
     const message = ref('');
@@ -173,6 +178,26 @@ export function useHausaufgaben() {
         showReportConfirm.value = true;
     }
 
+    function openCreateFormByType(type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE') {
+        if (type === 'PRIVATE') {
+            todoToEdit.value = null;
+            showTodoForm.value = true;
+        } else {
+            itemToEdit.value = null;
+            itemFormType.value = type;
+            showItemForm.value = true;
+        }
+    }
+
+    function handleTodoSuccess(msg: string) {
+        message.value = msg;
+        isError.value = false;
+        showTodoForm.value = false;
+        setTimeout(() => message.value = '', 5000);
+        if (tab.value === 'PRIVATE') {
+        }
+    }
+
     function onDocumentClick(e: MouseEvent) {
         if (!openMenuId.value) return;
         openMenuId.value = null;
@@ -226,6 +251,15 @@ export function useHausaufgaben() {
     }
 
     async function reload() {
+        if (tab.value === 'PRIVATE') {
+            loading.value = false;
+            items.value = [];
+            expandedDescriptions.value = new Set();
+            revealedImages.value = new Set();
+            visibleCount.value = 5;
+            return;
+        }
+
         loading.value = true;
         const params: Record<string, any> = { type: tab.value };
         if (showOldEntries.value) params.filter = 'old';
@@ -295,11 +329,7 @@ export function useHausaufgaben() {
 
     function editItem(item: HwItem) {
         itemToEdit.value = item;
-        showItemForm.value = true;
-    }
-
-    function openCreateForm() {
-        itemToEdit.value = null;
+        itemFormType.value = item.type;
         showItemForm.value = true;
     }
 
@@ -473,7 +503,6 @@ export function useHausaufgaben() {
         onLoggedIn,
         handleSuccess,
         onItemFormError,
-        openCreateForm,
         canManage,
         deleteAnnouncement,
         goTab,
@@ -485,6 +514,11 @@ export function useHausaufgaben() {
         onSetupSuccess,
         doReport,
         cancelReport,
-        onDocumentClick
+        onDocumentClick,
+        showTodoForm,
+        todoToEdit,
+        openCreateFormByType,
+        handleTodoSuccess,
+        itemFormType
     };
 }

@@ -64,7 +64,10 @@
           </button>
         </div>
 
-        <button v-if="user && tab !== 'PRIVATE'" class="btn mg ghost" @click="openCreateForm">Eintrag anlegen</button>
+        <CreateEntryDropdown
+            v-if="user"
+            @select="openCreateFormByType"
+        />
 
         <div v-if="loading && tab !== 'PRIVATE'" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />
@@ -172,7 +175,25 @@
 
     <!-- Modals -->
     <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
-    <ItemForm v-if="showItemForm" :key="itemFormKey" :type="tab" :subjects="subjects" :initial="itemToEdit" :max-title-length="MAX_TITLE_LENGTH" :max-subject-length="MAX_SUBJECT_LENGTH" @close="showItemForm=false" @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')" @error="onItemFormError" />
+    <ItemForm
+        v-if="showItemForm"
+        :key="itemFormKey"
+        :type="itemFormType"
+        :subjects="subjects"
+        :initial="itemToEdit"
+        :max-title-length="MAX_TITLE_LENGTH"
+        :max-subject-length="MAX_SUBJECT_LENGTH"
+        @close="showItemForm=false"
+        @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
+        @error="onItemFormError"
+    />
+    <TodoForm
+        v-if="showTodoForm"
+        :initial="todoToEdit"
+        @close="showTodoForm=false"
+        @success="handleTodoSuccess('Privater Eintrag erfolgreich erstellt.')"
+        @error="onItemFormError"
+    />
     <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder aktualisiert.')" />
     <ConfirmDialog
         :show="showReportConfirm"
@@ -198,6 +219,8 @@ import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import { Flag, Pencil, Images, Trash2, Ellipsis } from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
+import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
+import TodoForm from '../components/hw/TodoForm.vue';
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showAuth, showItemForm, showImageFormFor,
@@ -207,7 +230,11 @@ const {
   showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
   onAccountDeleteError, openSetupModal, logout, onLoggedIn, handleSuccess, onItemFormError,
   openCreateForm, canManage, deleteAnnouncement, goTab, isChecked, toggleCheck, makeThumb,
-  isRevealed, revealImages, onSetupSuccess, doReport, cancelReport
+  isRevealed, revealImages, onSetupSuccess, doReport, cancelReport,
+  showTodoForm,
+  todoToEdit,
+  openCreateFormByType,
+  handleTodoSuccess, itemFormType
 } = useHausaufgaben();
 </script>
 
