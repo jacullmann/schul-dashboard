@@ -117,6 +117,7 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import hw from '../../hwApi';
 import type { HwItem } from './Hausaufgaben.vue';
 import { containsProfanity } from '../../composables/useProfanity';
+import { processImageBeforeUpload} from "../../composables/useConvertImage";
 
 
 const props = defineProps<{ type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'; initial?: HwItem; subjects: string[] }>();
@@ -270,10 +271,16 @@ async function uploadImage() {
     }
 
     for (const file of files) {
+      if (!file.type.startsWith('image/')) {
+        console.warn(`Datei ${file.name} ist kein Bild und wird übersprungen.`);
+        continue;
+      }
+
       try {
+        const processedFile = await processImageBeforeUpload(file);
         const { data: sign } = await hw.post('/api/uploads/sign');
         const form = new FormData();
-        form.set('file', file);
+        form.set('file', processedFile);
         form.set('api_key', sign.apiKey);
         form.set('timestamp', String(sign.timestamp));
         form.set('signature', sign.signature);

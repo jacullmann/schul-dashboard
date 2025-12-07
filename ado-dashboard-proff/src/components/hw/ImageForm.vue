@@ -61,6 +61,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
 import hw from '../../hwApi';
+import { processImageBeforeUpload} from "../../composables/useConvertImage";
 
 const props = defineProps({
   item: {
@@ -150,9 +151,11 @@ async function uploadImg() {
 
     for (const file of files) {
       try {
+        const processedFile = await processImageBeforeUpload(file);
+
         const { data: sign } = await hw.post('/api/uploads/sign');
         const form = new FormData();
-        form.append('file', file);
+        form.append('file', processedFile);
         form.append('api_key', sign.apiKey);
         form.append('timestamp', String(sign.timestamp));
         form.append('signature', sign.signature);
