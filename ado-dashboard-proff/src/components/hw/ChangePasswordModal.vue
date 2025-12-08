@@ -257,7 +257,7 @@ async function submit() {
 .password-toggle {
   position: absolute;
   right: 12px;
-  top: 50%;
+  top: 70%;
   transform: translateY(-50%);
   background: none;
   border: none;
