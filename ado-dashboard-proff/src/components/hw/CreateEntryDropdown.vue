@@ -5,7 +5,7 @@
         @click="toggleMenu"
         ref="buttonRef"
     >
-      <Plus size="16px" />
+      <Plus size="32px" />
     </button>
 
     <div
@@ -174,5 +174,10 @@ onBeforeUnmount(() => {
 
 .menu-btn:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+.mg {
+  height: 60px;
+  width: 60px;
+
 }
 </style>

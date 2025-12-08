@@ -3,7 +3,7 @@
     <div class="hw-header">
       <div>
         <h2>Dashboard</h2>
-        <div style="color: #f1f1f1" class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
+        <div class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
       </div>
 
       <div class="row header-actions">
@@ -62,12 +62,12 @@
             <span style="color: black" v-if="showPersonalized">Alle Einträge anzeigen</span>
             <span v-else>Personalisierte Einträge anzeigen</span>
           </button>
+          <CreateEntryDropdown
+              @select="openCreateFormByType"
+          />
         </div>
 
-        <CreateEntryDropdown
-            v-if="user"
-            @select="openCreateFormByType"
-        />
+
 
         <div v-if="loading && tab !== 'PRIVATE'" class="loader">
           <LoadingSpinner color="#fff" size="1.2em" />

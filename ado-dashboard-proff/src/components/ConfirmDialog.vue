@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="confirm-backdrop" @click.stop="$emit('cancel')">
+  <div v-if="show" class="blurit" @click.stop="$emit('cancel')">
     <div class="confirm-box" @click.stop>
       <h4 style="margin-top: 0">Diesen Eintrag melden?</h4>
       <p>Wähle den Grund aus:</p>
