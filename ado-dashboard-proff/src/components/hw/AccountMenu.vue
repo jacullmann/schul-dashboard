@@ -28,6 +28,17 @@
             </button>
 
             <button
+                data-umami-event="Passwort ändern Button"
+                class="menu-btn"
+                @click="openChangePassword"
+            >
+              <div class="menu-btn-content">
+                <LucideKeyRound size="18px"/>
+                Passwort ändern
+              </div>
+            </button>
+
+            <button
                 class="menu-btn"
                 @click="handleLogout"
             >
@@ -53,7 +64,6 @@
             </button>
           </div>
 
-
           <div v-if="confirming" class="confirm-section">
             <div class="confirm-warning">
               <strong>Account unwiderruflich löschen?</strong>
@@ -62,7 +72,6 @@
                 Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladenen Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account geschlossen wird.
 
                 Du kannst jederzeit einen neuen Account erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Account verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
-
               </div>
               <label class="checkbox-label">
                 <input
@@ -92,13 +101,21 @@
         </div>
       </div>
     </transition>
+
+    <!-- Change Password Modal -->
+    <ChangePasswordModal
+        v-if="showChangePassword"
+        @close="showChangePassword = false"
+        @success="onPasswordChanged"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
-import { Trash2, LogOut, LucideGraduationCap} from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound } from "lucide-vue-next";
+import ChangePasswordModal from './ChangePasswordModal.vue';
 
 const props = defineProps<{
   email: string;
@@ -118,6 +135,7 @@ const submitting = ref(false);
 const errorMsg = ref('');
 const successMsg = ref('');
 const understoodChecked = ref(false);
+const showChangePassword = ref(false);
 
 const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
@@ -131,6 +149,18 @@ function handleLogout() {
 function openSetup() {
   emit('openSetup');
   close();
+}
+
+function openChangePassword() {
+  showChangePassword.value = true;
+  close();
+}
+
+function onPasswordChanged() {
+  successMsg.value = 'Passwort erfolgreich geändert!';
+  setTimeout(() => {
+    successMsg.value = '';
+  }, 3000);
 }
 
 function toggle() {
@@ -185,12 +215,10 @@ async function positionPopup() {
   let left = btnRect.left;
   let top = btnRect.top + btnRect.height + 8;
 
-  // Prüfen ob das Popup über den rechten Rand hinausragt
   if (left + popupRect.width > vw - 8) {
     left = Math.max(8, vw - popupRect.width - 8);
   }
 
-  // Prüfen ob das Popup über den unteren Rand hinausragt
   if (top + popupRect.height > vh - 8) {
     top = Math.max(8, btnRect.top - popupRect.height - 8);
   }
@@ -257,7 +285,6 @@ onBeforeUnmount(() => {
   display: inline-block;
 }
 
-/* Icon Button */
 .icon-btn {
   width: 42px;
   height: 42px;
@@ -281,8 +308,6 @@ onBeforeUnmount(() => {
   z-index: 1400;
   position: fixed;
   pointer-events: auto;
-
-
 }
 
 .popup-inner {
@@ -297,7 +322,6 @@ onBeforeUnmount(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-
 .user-email {
   font-weight: 600;
   font-size: 14px;
@@ -307,8 +331,6 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-
-/* Menu Actions */
 .menu-actions {
   display: flex;
   flex-direction: column;
@@ -354,19 +376,16 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-/* Divider */
 .menu-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.1);
   margin: 4px 0;
 }
 
-/* Danger Section */
 .danger-section {
   margin-top: 4px;
 }
 
-/* Confirm Section */
 .confirm-section {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
@@ -396,7 +415,7 @@ onBeforeUnmount(() => {
   font-size: 11px;
   color: var(--muted);
   line-height: 1.4;
-  max-height: 110px ;
+  max-height: 110px;
   overflow-y: scroll;
 }
 
@@ -411,7 +430,6 @@ onBeforeUnmount(() => {
   font-size: 12px;
 }
 
-/* Messages */
 .message {
   font-size: 12px;
   padding: 8px;
@@ -431,7 +449,7 @@ onBeforeUnmount(() => {
 
 .pop-enter-active, .pop-leave-active {
   transition: transform 120ms cubic-bezier(.2,.9,.2,1), opacity 120ms ease;
-  transform-origin: top left; /* Von top-left statt top-right */
+  transform-origin: top left;
 }
 
 .pop-enter-from {
@@ -453,9 +471,6 @@ onBeforeUnmount(() => {
   transform: translateY(-8px) scale(0.98);
   opacity: 0;
 }
-
-/* Für mobile Ansicht weiterhin zentriert */
-
 
 .checkbox-label {
   display: flex;
@@ -498,14 +513,12 @@ onBeforeUnmount(() => {
   border-color: #888;
 }
 
-/* Responsive */
 @media (max-width: 480px) {
   .popup {
     top: 20% !important;
     width: calc(100vw - 24px) !important;
   }
-}
-@media (max-width: 480px) {
+
   .pop-enter-active, .pop-leave-active {
     transform-origin: top center;
   }

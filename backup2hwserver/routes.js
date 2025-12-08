@@ -1158,6 +1158,47 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
+    app.post('/api/auth/change-password',
+        requireAuth,
+        [
+            body('currentPassword').isString().isLength({ min: 8 }),
+            body('newPassword').isString().isLength({ min: 8 })
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const { currentPassword, newPassword } = req.body;
+                const userId = req.user.sub;
+
+                const user = await User.findById(userId);
+                if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+
+                const isCorrect = await bcrypt.compare(currentPassword, user.passwordHash);
+                if (!isCorrect) {
+                    return sendJSONError(res, 401, 'Aktuelles Passwort ist falsch');
+                }
+
+                const newPasswordHash = await bcrypt.hash(newPassword, 12);
+                await User.findByIdAndUpdate(userId, { $set: { passwordHash: newPasswordHash } });
+
+                await User.findByIdAndUpdate(userId, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'account:password_change',
+                            meta: { by: 'self' }
+                        }
+                    }
+                });
+
+                res.json({ ok: true, message: 'Passwort erfolgreich geändert.' });
+            } catch (err) {
+                console.error('POST /api/auth/change-password error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
+        }
+    );
+
     app.get('/api/verifyall', (req, res) => {
         const header = req.headers.authorization;
         if (!header) return sendJSONError(res, 401, 'Kein Token');
