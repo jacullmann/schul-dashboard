@@ -337,7 +337,7 @@ const {
 .item-menu-trigger:hover { background: #414141; color: #f1f1f1; }
 .pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
 .loader { display: flex; align-items: center; gap: 8px; color: var(--muted); }
-.row-two { max-height: 80px; display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
+.row-two { display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
 .private-entries-container { margin-top: 1rem; }
 .private-entries-container .card { margin: 0; box-shadow: none; background: transparent; }
 .private-entries-container .hw-header { padding: 0; background: transparent; }

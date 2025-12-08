@@ -222,7 +222,16 @@ async function removeImg(publicId: string) {
 <style scoped>
 
 
-.overlay.confirm { z-index: 200; }
+.overlay.confirm {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+}
 
 /* Modal card styling (keeps visual style local) */
 .modal {
