@@ -63,6 +63,7 @@
             <span v-else>Personalisierte Einträge anzeigen</span>
           </button>
           <CreateEntryDropdown
+              v-if="user"
               @select="openCreateFormByType"
           />
         </div>

@@ -5,7 +5,7 @@
         @click="toggleMenu"
         ref="buttonRef"
     >
-      <Plus size="32px" />
+      <Plus size="26px" />
     </button>
 
     <div
@@ -176,8 +176,7 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.1);
 }
 .mg {
-  height: 60px;
-  width: 60px;
+  padding: 6px;
 
 }
 </style>
