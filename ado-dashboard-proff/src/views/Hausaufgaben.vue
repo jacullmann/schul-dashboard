@@ -67,6 +67,10 @@
               @select="openCreateFormByType"
           />
         </div>
+        <CreateEntryDropdown
+            v-if="user && tab === 'PRIVATE'"
+            @select="openCreateFormByType"
+        />
 
 
 
