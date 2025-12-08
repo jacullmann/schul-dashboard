@@ -279,7 +279,7 @@ const {
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
-.item-menu { position: absolute; top: 100%; right: 0; min-width: 105px; background: #282828; border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+.item-menu { position: absolute; top: 100%; right: 0; min-width: 150px; background: #282828; border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .menu-btn {
   display: block;
