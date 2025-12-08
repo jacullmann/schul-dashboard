@@ -65,8 +65,11 @@ export function useHausaufgaben() {
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
 
+    // Todo State
     const showTodoForm = ref(false);
     const todoToEdit = ref<any>(null);
+    // Ref für die TodoApp Komponente, um reload zu triggern
+    const todoAppRef = ref<any>(null);
 
     // UI Messages
     const message = ref('');
@@ -180,7 +183,7 @@ export function useHausaufgaben() {
 
     function openCreateFormByType(type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE') {
         if (type === 'PRIVATE') {
-            todoToEdit.value = null;
+            todoToEdit.value = null; // Reset für neuen Eintrag
             showTodoForm.value = true;
         } else {
             itemToEdit.value = null;
@@ -189,13 +192,22 @@ export function useHausaufgaben() {
         }
     }
 
+    function openEditTodo(todo: any) {
+        todoToEdit.value = todo;
+        showTodoForm.value = true;
+    }
+
     function handleTodoSuccess(msg: string) {
         message.value = msg;
         isError.value = false;
         showTodoForm.value = false;
-        setTimeout(() => message.value = '', 5000);
-        if (tab.value === 'PRIVATE') {
+
+        // Liste in TodoApp neu laden
+        if (todoAppRef.value && todoAppRef.value.loadTodos) {
+            todoAppRef.value.loadTodos();
         }
+
+        setTimeout(() => message.value = '', 5000);
     }
 
     function onDocumentClick(e: MouseEvent) {
@@ -519,6 +531,8 @@ export function useHausaufgaben() {
         todoToEdit,
         openCreateFormByType,
         handleTodoSuccess,
-        itemFormType
+        itemFormType,
+        openEditTodo,
+        todoAppRef
     };
 }

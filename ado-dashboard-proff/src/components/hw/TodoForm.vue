@@ -10,17 +10,17 @@
 
       <div class="section">
         <label class="label">Titel</label>
-        <input class="input" v-model="title" placeholder="z.B. Mathe-Übungen machen" />
+        <input class="input" v-model="title" placeholder="z.B. Mathe-Übungen machen" maxlength="100" />
       </div>
 
       <div class="section">
         <label class="label">Beschreibung (optional)</label>
-        <textarea class="input" rows="4" v-model="content" placeholder="Details zu diesem Eintrag..."></textarea>
+        <textarea class="input" rows="4" v-model="content" placeholder="Details zu diesem Eintrag..." maxlength="5000"></textarea>
       </div>
 
       <div class="section">
-        <label class="label">Fälligkeitsdatum (optional)</label>
-        <input class="input" type="date" v-model="dueLocal" />
+        <label class="label">Fälligkeitsdatum & Uhrzeit (optional)</label>
+        <input class="input" type="datetime-local" v-model="dueLocal" />
       </div>
 
       <div class="row actions">
@@ -54,7 +54,18 @@ const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; (e: 'error'
 
 const title = ref(props.initial?.title || '');
 const content = ref(props.initial?.content || '');
-const dueLocal = ref(props.initial?.dueDate ? new Date(props.initial.dueDate).toISOString().slice(0, 10) : '');
+
+// Helper für datetime-local Format (YYYY-MM-DDTHH:mm) unter Berücksichtigung der lokalen Zeitzone
+const formatForInput = (isoString?: string | null) => {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  // Wir müssen die Zeitzonenverschiebung korrigieren, damit datetime-local die richtige lokale Zeit anzeigt
+  // und nicht UTC
+  const local = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+  return local.toISOString().slice(0, 16);
+};
+
+const dueLocal = ref(formatForInput(props.initial?.dueDate));
 
 const submitting = ref(false);
 const message = ref('');
@@ -67,49 +78,40 @@ async function submit() {
 
   try {
     if (containsProfanity(title.value) || containsProfanity(content.value)) {
-      throw new Error('Unangemessene Inhalte erkannt. Bitte drücke dich in angemessener Sprache aus.');
+      throw new Error('Unangemessene Inhalte erkannt.');
     }
 
-    if (!title.value.trim()) {
-      throw new Error('Du musst einen Titel hinzufügen');
-    }
-    if (title.value.trim().length < 1 || title.value.trim().length > 100) {
-      throw new Error('Der Titel muss zwischen 1 und 100 Zeichen lang sein');
-    }
-    if (content.value.trim().length > 5000) {
-      throw new Error('Die Beschreibung ist zu lang (max. 5000 Zeichen)');
-    }
+    if (!title.value.trim()) throw new Error('Titel fehlt.');
+    if (title.value.trim().length > 100) throw new Error('Titel zu lang (max 100).');
+    if (content.value.trim().length > 5000) throw new Error('Beschreibung zu lang.');
 
     const payload: any = {
       title: title.value.trim(),
       content: content.value.trim(),
     };
 
+    // Datum korrekt als ISO string senden
     if (dueLocal.value) {
-      const selected = new Date(dueLocal.value);
-      selected.setHours(23, 59, 0, 0);
-      payload.dueDate = selected.toISOString();
+      // Datumswert aus dem Input ist lokale Zeit ohne Zeitzoneninfo (z.B. "2023-10-27T14:00")
+      // new Date("...") nimmt lokale Zeit an, toISOString() wandelt es in UTC um. Korrekt für DB.
+      payload.dueDate = new Date(dueLocal.value).toISOString();
+    } else {
+      payload.dueDate = null; // Löschen erlauben
     }
 
     if (props.initial) {
       await hw.put(`/api/todos/${props.initial.id}`, payload);
-      message.value = 'Eintrag erfolgreich aktualisiert.';
+      message.value = 'Aktualisiert.';
     } else {
       await hw.post('/api/todos', payload);
-      message.value = 'Eintrag erfolgreich angelegt.';
+      message.value = 'Erstellt.';
     }
 
     isError.value = false;
     emit('success');
 
   } catch (e: any) {
-    if (e.response?.status === 400) {
-      message.value = e.response.data.error || 'Bitte überprüfe deine Eingaben.';
-    } else if (e.message) {
-      message.value = e.message;
-    } else {
-      message.value = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
-    }
+    message.value = e.response?.data?.error || e.message || 'Fehler.';
     isError.value = true;
     emit('error', message.value);
   } finally {
@@ -121,69 +123,28 @@ async function submit() {
 <style scoped>
 .glass-modal {
   width: 100%;
-  max-width: 720px;
+  max-width: 500px;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--lbg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  padding: 24px;
   color: #1a1a1a;
-  max-height: calc(100vh - 40px);
-  overflow-y: scroll;
+  max-height: 90vh;
+  overflow-y: auto;
   position: fixed;
   z-index: 100001;
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: rgba(244, 244, 244);
-}
-
-.section {
-  margin-top: 10px;
-}
-
-.label {
-  display: block;
-  font-size: 13px;
-  color: rgba(244, 244, 244);
-  margin-bottom: 6px;
-}
-
-.actions {
-  margin-top: 16px;
-  align-items: center;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-  height: 20px;
-  width: 20px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.small {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.msg-ok {
-  color: var(--primary);
-}
-
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { margin: 0; font-size: 20px; font-weight: 600; color: #f1f1f1; }
+.section { margin-top: 16px; }
+.label { display: block; font-size: 14px; color: #ccc; margin-bottom: 8px; }
+.actions { margin-top: 24px; display: flex; gap: 12px; align-items: center; }
+.spinner { animation: spin 1s linear infinite; height: 20px; width: 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.small { font-size: 13px; margin-left: auto; }
+.msg-ok { color: var(--primary); }
 .msg-error {
   color: var(--danger);
 }

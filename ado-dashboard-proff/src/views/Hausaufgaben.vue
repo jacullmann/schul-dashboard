@@ -161,9 +161,16 @@
         </transition>
       </div>
 
-      <div v-if="tab === 'PRIVATE'" class="private-entries-container"><TodoApp /></div>
-      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">Keine Einträge in der aktuellen Ansicht.</div>
-      <div v-if="!loading && !filteredItems.length" class="card empty">Keine Einträge gefunden.</div>
+      <div v-if="tab === 'PRIVATE'" class="private-entries-container">
+        <TodoApp
+            ref="todoAppRef"
+            @create="openCreateFormByType('PRIVATE')"
+            @edit="openEditTodo"
+        />
+      </div>
+
+      <div v-if="!loading && !limitedItems.length && filteredItems.length && tab !== 'PRIVATE'" class="card empty">Keine Einträge in der aktuellen Ansicht.</div>
+      <div v-if="!loading && !filteredItems.length && tab !== 'PRIVATE'" class="card empty">Keine Einträge gefunden.</div>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
         <button v-if="visibleCount < filteredItems.length" class="btn ghost" @click="showMore">Mehr anzeigen</button>
@@ -191,7 +198,7 @@
         v-if="showTodoForm"
         :initial="todoToEdit"
         @close="showTodoForm=false"
-        @success="handleTodoSuccess('Privater Eintrag erfolgreich erstellt.')"
+        @success="handleTodoSuccess(todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.')"
         @error="onItemFormError"
     />
     <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder aktualisiert.')" />
@@ -234,7 +241,7 @@ const {
   showTodoForm,
   todoToEdit,
   openCreateFormByType,
-  handleTodoSuccess, itemFormType
+  handleTodoSuccess, itemFormType, openEditTodo, todoAppRef
 } = useHausaufgaben();
 </script>
 
