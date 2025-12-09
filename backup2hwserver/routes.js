@@ -1175,7 +1175,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
                 const isCorrect = await bcrypt.compare(currentPassword, user.passwordHash);
                 if (!isCorrect) {
-                    return sendJSONError(res, 401, 'Aktuelles Passwort ist falsch');
+                    return sendJSONError(res, 403, 'Aktuelles Passwort ist falsch');
                 }
 
                 const newPasswordHash = await bcrypt.hash(newPassword, 12);
