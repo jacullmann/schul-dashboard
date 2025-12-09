@@ -1199,6 +1199,39 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     );
 
+    app.delete('/api/admin/users/:id/activity/prune',
+        requireAdmin,
+        param('id').isMongoId(),
+        validate,
+        async (req, res) => {
+            try {
+                const userId = req.params.id;
+                const limitDate = dayjs().subtract(30, 'day').toDate();
+
+                const result = await User.findByIdAndUpdate(userId, {
+                    $pull: { activity: { at: { $lt: limitDate } } }
+                });
+
+                if (!result) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'admin:prune_logs',
+                            meta: { targetUserId: userId }
+                        }
+                    }
+                });
+
+                res.json({ ok: true, message: 'Logs bereinigt.' });
+            } catch (err) {
+                console.error('Prune logs error', err);
+                sendJSONError(res, 500, 'Fehler beim Bereinigen');
+            }
+        }
+    );
+
     app.get('/api/verifyall', (req, res) => {
         const header = req.headers.authorization;
         if (!header) return sendJSONError(res, 401, 'Kein Token');

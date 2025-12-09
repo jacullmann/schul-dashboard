@@ -96,6 +96,13 @@
                       <Lock v-if="!u.isBanned" :size="16"/>
                       <Unlock v-else :size="16"/>
                     </button>
+                    <button
+                        class="btn icon-only"
+                        title="Logs älter als 30 Tage löschen"
+                        @click="pruneOldLogs(u)"
+                    >
+                      <Eraser size="16" />
+                    </button>
                     <button v-if="!u.isAdmin" class="btn icon-only danger" @click="deleteUser(u.id)" title="Löschen">
                       <Trash2 :size="16"/>
                     </button>
@@ -284,7 +291,8 @@ import {
   FileText,
   Lock,
   Unlock,
-  Trash2
+  Trash2,
+  Eraser
 } from 'lucide-vue-next';
 import EditModal from "../components/stundenplan-admin/EditModal.vue";
 
@@ -316,7 +324,8 @@ const {
   loadingSubs,
   loadTimetableSubs,
   deleteTimetableSub,
-  deletingSubs
+  deletingSubs,
+  pruneOldLogs
 } = useAdmin();
 
 const showAnnouncementForm = ref(false);

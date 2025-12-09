@@ -223,6 +223,23 @@ export function useAdmin() {
         }
     }
 
+    async function pruneOldLogs(user: any) {
+        if (!confirm(`Möchtest du wirklich alle Logs von ${user.email} löschen, die älter als 30 Tage sind?`)) {
+            return;
+        }
+
+        try {
+            const { data } = await hw.delete(`/api/admin/users/${user.id}/activity/prune`);
+            if (data.ok) {
+                handleSuccess('Alte Logs erfolgreich gelöscht.');
+                loadAllUsers();
+            }
+        } catch (e: any) {
+            console.error(e);
+            alert(e.response?.data?.error || 'Fehler beim Löschen der Logs.');
+        }
+    }
+
     function copyReportToClipboard() {
         if (!securityReport.value) return;
         navigator.clipboard.writeText(securityReport.value)
@@ -276,6 +293,7 @@ export function useAdmin() {
         deletingSubs,
         loadTimetableSubs,
         saveTimetableSub,
-        deleteTimetableSub
+        deleteTimetableSub,
+        pruneOldLogs
     };
 }
