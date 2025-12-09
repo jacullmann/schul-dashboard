@@ -129,8 +129,24 @@ export default function registerRoutes(app, deps) {
         const msg = {
             to,
             from: sendgridFrom,
-            subject: 'Bitte E-Mail bestätigen',
-            html: `<p>Hallo,</p><p>Bitte bestätige deine E-Mail durch Klick auf diesen Link:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Der Link ist 48 Stunden gültig.</p>`
+            subject: 'Schul Dashboard – Bitte bestätige deine E-Mail-Adresse',
+            html:
+                `<p>Willkommen beim Schul Dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
+<br>
+<p>Klicke auf den Link unten und melde dich mit deinem neuen Account an. </p>
+<br>
+<p>
+<a href="${verifyUrl}">
+Email bestätigen
+</a>
+</p>
+<p>Der Link ist für 48 Stunden gültig.</p>
+<br>
+<p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
+<br>
+<p>Danke, dass du dich für uns entschieden hast.</p>
+<p>Das Schul Dashboard-Team</p>
+`
         };
         return sgClient.send(msg);
     }
@@ -140,8 +156,8 @@ export default function registerRoutes(app, deps) {
         const msg = {
             to,
             from: sendgridFrom,
-            subject: 'Passwort zurücksetzen — Dein Bestätigungscode',
-            html: `<p>Hallo,</p><p>Dein Passwort-Zurücksetz-Code: <strong>${code}</strong></p><p>Dieser Code ist 30 Minuten gültig.</p>`
+            subject: 'Schul-Dashboard – Passwort zurücksetzen',
+            html: `<p>Hallo,</p><p>Dein Passwort-Zurücksetz-Code lautet <strong>${code}</strong></p><p>Dieser Code ist für 30 Minuten gültig.</p>`
         };
         return sgClient.send(msg);
     }
@@ -1143,7 +1159,8 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             const EXPECTED_PASSWORD2 = process.env.DASHBOARD_PASSWORD2;
             const EXPECTED_COMBINED = EXPECTED_PASSWORD1 + "|||" + EXPECTED_PASSWORD2;
 
-            const attemptHash = crypto.createHash('sha256').update(password).digest('hex');
+            /*const attemptHash = crypto.createHash('sha256').update(password).digest('hex');*/
+            const attemptHash = 'Vorrübergehend wegen Sicherheitsbedenken ausgesetzt'
             let status = 'failure';
 
             if (password === EXPECTED_COMBINED) {
