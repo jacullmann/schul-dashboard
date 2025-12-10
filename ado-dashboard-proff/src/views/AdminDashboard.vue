@@ -299,6 +299,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useAdmin } from '../composables/useAdmin';
+import { useHausaufgaben} from "../composables/useHausaufgaben";
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import AdminHeader from '../components/admin-components/AdminHeader.vue';
 import AdminSidebar from '../components/admin-components//AdminSidebar.vue';
@@ -342,11 +343,14 @@ const {
   deleteTimetableSub,
   deletingSubs,
   pruneOldLogs,
+} = useAdmin();
+
+const {
   announcements,
   canManage,
   deleteAnnouncement,
   colorFor
-} = useAdmin();
+} = useHausaufgaben();
 
 const showAnnouncementForm = ref(false);
 
