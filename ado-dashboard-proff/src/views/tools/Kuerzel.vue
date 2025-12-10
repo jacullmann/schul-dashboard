@@ -4,23 +4,14 @@
       <h2 style="margin-top:0" class="title-inf">
         Kürzelfinder
         <InfoPop tooltip="Kürzelfinder Info" title="Kürzelfinder">
-          <p>
-            Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt
-            oder wer welches Kürzel hat.
-          </p>
+          <p>Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
 
-          <h4>Kürzelübersetzer</h4>
-          <p>
-            Gib ein unbekanntes Kürzel in das Textfeld ein und erhalte sofort
-            den zugehörigen Namen.
-          </p>
+          <h3>Kürzelübersetzer</h3>
+          <p>Gib das unbekannte Kürzel in das Textfeld ein und erhalte den zugehörigen Namen.</p>
 
-          <h4>Kürzelfinder</h4>
-          <p>
-            Klicke auf das Tauschsymbol, um den Modus zu wechseln.
-            Anschließend kannst du einen Namen eingeben und bekommst
-            das passende Kürzel angezeigt.
-          </p>
+          <h3>Kürzelfinder</h3>
+          <p>Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel.</p>
+
 
         </InfoPop>
       </h2>

@@ -5,20 +5,8 @@
         <h2 style="margin-top: 0" class=" title-inf">
           Sorgenbox
           <InfoPop tooltip="Sorgenbox Info" title="Sorgenbox">
-            <p>
-              Hier kannst du anonym Beschwerden oder Anliegen teilen, die dich belasten.
-              Alle Themen sind erlaubt und werden ernst genommen.
-            </p>
+            <p>Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest.</p>
 
-            <p>
-              Es wird nicht gespeichert, wer du bist. Deine Anonymität bleibt vollständig
-              gewahrt.
-            </p>
-
-            <p>
-              Wenn du möchtest, kannst du freiwillig Kontaktinformationen angeben,
-              damit du eine Rückmeldung erhältst. Diese Entscheidung liegt ganz bei dir.
-            </p>
           </InfoPop>
         </h2>
       </div>

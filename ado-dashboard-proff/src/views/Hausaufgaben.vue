@@ -7,71 +7,27 @@
             tooltip="Übersicht und Funktionen des Dashboards"
             title="Dashboard"
         >
-          <p>
-            Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.
-          </p>
+          <p>Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</p>
+          <h3>Einträge</h3>
+          <p>Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> — alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
 
-          <h4>Einträge</h4>
-          <p>
-            Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob Hausaufgabe,
-            Daltonauftrag oder Prüfung – alles, was du für die Schule im Überblick haben
-            musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit
-            einsehbar, sodass du gemeinsam mit anderen den Fortschritt verfolgen kannst.
-          </p>
+          <h3>Eintrag hinzufügen</h3>
+          <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Arbeitsblätter, Seiten aus dem Buch, Notizen, Lernzettel o. ä.</p>
 
-          <p>
-            Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den
-            passenden Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer
-            öffentlich. Private Einträge sind verschlüsselt und nur für dich sichtbar.
-            Fülle anschließend das Formular aus und wähle Fach sowie Abgabedatum.
-          </p>
+          <h3>Bilder verwalten</h3>
+          <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder</strong> aus und klicke auf das <strong>+</strong>. Um eigene Bilder zu entfernen, öffne erneut das Bilder-Menü und klicke auf das <strong>X</strong> in der Ecke des Bildes.</p>
 
-          <p>
-            Optional können Bilder hochgeladen werden, zum Beispiel Arbeitsblätter,
-            Buchseiten, Notizen oder Lernzettel.
-          </p>
+          <h3>Falschinformationen melden</h3>
+          <p>Das Dashboard sollte immer richtig sein, aber falls du bei einem fremden Eintrag falsche Informationen siehst, kannst du unter dem <strong>3-Punkte-Menü</strong> auf <strong>Melden</strong> klicken und unter <strong>Falschinformationen</strong> eine Korrektur abschicken. Ein Admin kann dann den ursprünglichen Eintrag berichtigen.</p>
 
-          <p>
-            Bilder können auch bei fremden Einträgen ergänzt werden, sofern sie passend
-            sind. Klicke dazu auf das 3-Punkte-Menü, wähle den Bereich „Bilder“ aus und
-            füge sie über das <strong>+</strong> hinzu. Eigene Bilder kannst du entfernen,
-            indem du im Bilder-Menü auf das <strong>X</strong> in der Ecke des Bildes klickst.
-          </p>
+          <h3>Abgeschlossene Aufgaben tracken</h3>
+          <p>Wenn du einen Account hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
 
-          <p>
-            Das Dashboard sollte immer korrekt sein. Falls dir bei einem fremden Eintrag
-            dennoch falsche Informationen auffallen, kannst du über das 3-Punkte-Menü
-            auf <em>Melden</em> klicken und unter <em>Falschinformationen</em> eine Korrektur
-            einreichen. Ein Admin überprüft den Hinweis und berichtigt gegebenenfalls
-            den ursprünglichen Eintrag.
-          </p>
+          <h3>Personalisierte Kurse</h3>
+          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
 
-          <h4>Abgeschlossene Aufgaben tracken</h4>
-          <p>
-            Mit einem Account kannst du erledigte Einträge per Checkbox abhaken.
-            Dein Fortschritt wird in der Cloud gespeichert und der Eintrag wird
-            verkleinert dargestellt, um Platz für offene Aufgaben zu schaffen.
-            So siehst du auf einen Blick, was noch zu tun ist.
-          </p>
-
-          <h4>Personalisierte Kurse</h4>
-          <p>
-            Wenn du in deinem Account hinterlegt hast, welche Kurse oder Wahlfächer du
-            belegst, kannst du automatisch Einträge aus anderen Fächern ausblenden lassen.
-            Diese Auswahl lässt sich jederzeit in den Accounteinstellungen anpassen.
-          </p>
-
-          <p>
-            Möchtest du trotzdem alle Einträge sehen, kannst du diese Personalisierung
-            ebenfalls in den Accounteinstellungen deaktivieren.
-          </p>
-
-          <h4>Eintragarchiv</h4>
-          <p>
-            Einträge, die älter als 48 Stunden sind, werden automatisch ausgeblendet,
-            um die Übersicht zu bewahren. Über den Eintragarchiv-Button kannst du
-            ältere Einträge einsehen, die bis zu 30 Tage zurückliegen.
-          </p>
+          <h3>Eintragarchiv</h3>
+          <p>Einträge, die älter als <strong>48 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv Button</strong> klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
 
         </InfoPop>
 

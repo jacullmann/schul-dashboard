@@ -101,7 +101,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
 
 .popover-content {
   font-size: 0.95em;
-  color: var(--sub);
+  color: var(--text);
   line-height: 1.6;
   max-height: 80vh;
   overflow: scroll;

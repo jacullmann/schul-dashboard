@@ -292,28 +292,14 @@ const activeOrNextGroupKey = computed<string | null>(() => {
       <h2 style="margin-top: 0" class="title-inf">
         Stundenplan
         <InfoPop tooltip="Stundenplan Info" title="Stundenplan">
-          <p>
-            Die digitale Version des Stundenplans.
-          </p>
+          <h3>Die digitale Version vom Programm.</h3>
 
-          <h4>Personalisierte Kurse</h4>
-          <p>
-            Wenn du in deinem Account hinterlegt hast, welche Kurse oder Wahlfächer du belegst,
-            kannst du automatisch alle Stunden ausblenden lassen, die dich nicht betreffen.
-            So bleibt dein Stundenplan übersichtlich und auf das Wesentliche reduziert.
-          </p>
+          <h3>Personalisierte Kurse</h3>
+          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du unter deinen Accounteinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
 
-          <p>
-            Deine Auswahl kannst du jederzeit in den Accounteinstellungen anpassen.
-            Möchtest du alle Stunden sehen, lässt sich diese Option dort ebenfalls deaktivieren.
-          </p>
+          <h3>Live-Änderungen</h3>
+          <p>Vertretung, Ausfall, Raumänderungen usw. werden vom Admin-Team zeitnah übertragen und gleich im digitalen Stundenplan angezeigt.</p>
 
-          <h4>Live-Änderungen</h4>
-          <p>
-            Vertretungen, Ausfälle, Raumänderungen und ähnliche Anpassungen werden vom
-            Admin-Team zeitnah eingepflegt und sofort im digitalen Stundenplan angezeigt.
-            So bleibst du auch bei kurzfristigen Änderungen immer auf dem aktuellen Stand.
-          </p>
 
         </InfoPop>
       </h2>
