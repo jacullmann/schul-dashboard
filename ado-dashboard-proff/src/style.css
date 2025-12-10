@@ -82,7 +82,7 @@ h1, h2, h3, h4, h5 {
         display:inline-flex;
         align-items:center;
         gap:8px;
-        padding:10px 14px;
+        padding:10px 12px;
         background:#fff;
         color:var(--jj);
         border:1px solid transparent;
