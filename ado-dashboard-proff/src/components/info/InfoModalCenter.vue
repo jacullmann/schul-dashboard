@@ -103,7 +103,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
   font-size: 0.95em;
   color: var(--text);
   line-height: 1.6;
-  max-height: 80vh;
+  max-height: 70vh;
   overflow: scroll;
 }
 
