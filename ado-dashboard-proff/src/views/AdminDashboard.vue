@@ -198,6 +198,22 @@
               <button class="btn" @click="showAnnouncementForm = true">Öffnen</button>
             </div>
           </div>
+          <div class="card">
+            <div class="announcements" v-if="announcements.length">
+              <div class="announcements-head">
+                <h3>Ankündigungen</h3>
+              </div>
+              <div class="ann-list">
+                <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
+                  <div class="ann-content">{{ a.content }}</div>
+                  <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
+                  <div v-if="canManage(a.createdBy)" class="ann-actions">
+                    <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div v-if="activeTab === 'timetable'" class="tab-content fade-in">
@@ -325,7 +341,11 @@ const {
   loadTimetableSubs,
   deleteTimetableSub,
   deletingSubs,
-  pruneOldLogs
+  pruneOldLogs,
+  announcements,
+  canManage,
+  deleteAnnouncement,
+  colorFor
 } = useAdmin();
 
 const showAnnouncementForm = ref(false);

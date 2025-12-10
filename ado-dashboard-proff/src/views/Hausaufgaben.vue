@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <!-- Ankündigungen: Nur Lesen hier, Erstellen im AdminDashboard -->
+    <!-- Ankündigungen: Nur Lesen hier, Erstellen im AdminDashboard
     <div class="announcements" v-if="announcements.length">
       <div class="announcements-head">
         <h3>Wichtige Ankündigungen</h3>
@@ -43,13 +43,13 @@
         <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
           <div class="ann-content">{{ a.content }}</div>
           <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-          <!-- Admin kann hier löschen oder im Dashboard. Wir lassen es hier der Einfachheit halber drin -->
+          Admin kann hier löschen oder im Dashboard. Wir lassen es hier der Einfachheit halber drin
           <div v-if="canManage(a.createdBy)" class="ann-actions">
             <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
           </div>
         </div>
       </div>
-    </div>
+    </div>-->
 
     <div class="tabs-row">
       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
@@ -285,7 +285,7 @@ const {
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 14px; background: #282828;}
-.items { margin-top: 18px; display:flex; flex-direction:column; gap:12px; }
+.items { margin-top: 16px; display:flex; flex-direction:column; gap:12px; }
 .item-card { border-radius: 12px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }

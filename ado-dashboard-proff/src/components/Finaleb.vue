@@ -392,7 +392,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 .timetable-grid {
   display: grid;
-  grid-template-columns: 110px repeat(5, 1fr);
+  grid-template-columns: 90px repeat(5, 1fr);
   grid-template-rows: auto repeat(9, auto);
   gap: 8px;
   align-items: stretch;
@@ -401,7 +401,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 .header-cell {
   background-color:#282828;
   color: #F1F1F1;
-  padding: 12px;
+  padding: 10px;
   border:1px solid #414141;
   text-align: center;
   font-weight: bold;
