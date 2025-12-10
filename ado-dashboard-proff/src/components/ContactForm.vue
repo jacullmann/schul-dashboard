@@ -1,11 +1,9 @@
 <template>
   <div class="card">
-    <div class="contact-content">
-      <header class="contact-header">
-        <h2>Kontakt</h2>
-        <p>Teile deine Erfahrungen mit uns oder kontaktiere uns direkt.</p>
-      </header>
-
+    <div>
+    <h2 style="margin-top: 0">Kontakt</h2>
+    <p>Teile deine Erfahrungen mit uns oder kontaktiere uns direkt.</p>
+    </div>
       <div class="contact-sections">
         <div class="contact-section">
           <div class="section-header">
@@ -45,7 +43,6 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">

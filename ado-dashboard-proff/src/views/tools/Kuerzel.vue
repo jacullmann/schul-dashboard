@@ -1,8 +1,29 @@
 <template>
   <div class="card">
     <div class="card-top">
-      <h2 style="margin-top:0; margin-bottom: 5px">Kürzelfinder</h2>
-      <p style="margin-top: 2px" class="small">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
+      <h2 style="margin-top:0" class="title-inf">
+        Kürzelfinder
+        <InfoPop tooltip="Kürzelfinder Info" title="Kürzelfinder">
+          <p>
+            Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt
+            oder wer welches Kürzel hat.
+          </p>
+
+          <h4>Kürzelübersetzer</h4>
+          <p>
+            Gib ein unbekanntes Kürzel in das Textfeld ein und erhalte sofort
+            den zugehörigen Namen.
+          </p>
+
+          <h4>Kürzelfinder</h4>
+          <p>
+            Klicke auf das Tauschsymbol, um den Modus zu wechseln.
+            Anschließend kannst du einen Namen eingeben und bekommst
+            das passende Kürzel angezeigt.
+          </p>
+
+        </InfoPop>
+      </h2>
     </div>
 
     <div class="row">
@@ -57,6 +78,7 @@
 import {ref, computed, onMounted} from 'vue'
 import { supabase} from "../../composables/Datatable";
 import { ArrowLeftRight} from "lucide-vue-next";
+import InfoPop from '../../components/info/InfoModalCenter.vue'
 
 const persons = ref([])
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import hw from "../hwApi";
+import InfoPop from '../components/info/InfoModalCenter.vue'
 // --- Types ---
 
 interface Lesson {
@@ -288,7 +289,34 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 <template>
   <div class="card">
     <div>
-      <h2 style="margin-top: 0">Stundenplan</h2>
+      <h2 style="margin-top: 0" class="title-inf">
+        Stundenplan
+        <InfoPop tooltip="Stundenplan Info" title="Stundenplan">
+          <p>
+            Die digitale Version des Stundenplans.
+          </p>
+
+          <h4>Personalisierte Kurse</h4>
+          <p>
+            Wenn du in deinem Account hinterlegt hast, welche Kurse oder Wahlfächer du belegst,
+            kannst du automatisch alle Stunden ausblenden lassen, die dich nicht betreffen.
+            So bleibt dein Stundenplan übersichtlich und auf das Wesentliche reduziert.
+          </p>
+
+          <p>
+            Deine Auswahl kannst du jederzeit in den Accounteinstellungen anpassen.
+            Möchtest du alle Stunden sehen, lässt sich diese Option dort ebenfalls deaktivieren.
+          </p>
+
+          <h4>Live-Änderungen</h4>
+          <p>
+            Vertretungen, Ausfälle, Raumänderungen und ähnliche Anpassungen werden vom
+            Admin-Team zeitnah eingepflegt und sofort im digitalen Stundenplan angezeigt.
+            So bleibst du auch bei kurzfristigen Änderungen immer auf dem aktuellen Stand.
+          </p>
+
+        </InfoPop>
+      </h2>
       <div v-if="loadingSubs" class="small">Lade Änderungen...</div>
     </div>
     <div class="timetable-grid">

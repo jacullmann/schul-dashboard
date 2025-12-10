@@ -11,7 +11,6 @@
     <div
         v-if="isOpen"
         class="entry-menu"
-        :style="menuStyle"
     >
       <button
           class="menu-btn"
@@ -43,6 +42,9 @@
           Prüfung
         </div>
       </button>
+      <div class="last-of-three">
+
+      </div>
       <button
           class="menu-btn"
           @click="selectType('PRIVATE')"
@@ -58,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount} from 'vue';
 import { NotebookText, FileText, Lock, BookOpenText, Plus } from 'lucide-vue-next';
 
 type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
@@ -69,21 +71,9 @@ const emit = defineEmits<{
 
 const isOpen = ref(false);
 const buttonRef = ref<HTMLButtonElement | null>(null);
-const menuPosition = ref({ top: 0, left: 0 });
 
-const menuStyle = computed(() => ({
-  top: `${menuPosition.value.top}px`,
-  left: `${menuPosition.value.left}px`,
-}));
 
 function toggleMenu() {
-  if (!isOpen.value && buttonRef.value) {
-    const rect = buttonRef.value.getBoundingClientRect();
-    menuPosition.value = {
-      top: rect.bottom + window.scrollY + 4,
-      left: rect.left + window.scrollX,
-    };
-  }
   isOpen.value = !isOpen.value;
 }
 
@@ -119,9 +109,9 @@ onBeforeUnmount(() => {
 }
 
 .entry-menu {
-  position: fixed;
+  position: absolute;
   min-width: 180px;
-  background: #282828;
+  background: var(--jj);
   border: 1px solid var(--border2);
   border-radius: 12px;
   padding: 8px;
@@ -132,6 +122,7 @@ onBeforeUnmount(() => {
   z-index: 1000;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   animation: menuFadeIn 160ms ease;
+  margin-top: 4px;
 }
 
 @keyframes menuFadeIn {
@@ -178,5 +169,8 @@ onBeforeUnmount(() => {
 .mg {
   padding: 6px;
 
+}
+.last-of-three {
+  border-bottom: 1px solid var(--border2);
 }
 </style>

@@ -2,10 +2,25 @@
   <div class="card complaint-card">
     <div class="header">
       <div>
-        <h2 class="title">Sorgenbox</h2>
-        <p class="small" style="color: var(--sub)">
-          Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest.
-        </p>
+        <h2 style="margin-top: 0" class=" title-inf">
+          Sorgenbox
+          <InfoPop tooltip="Sorgenbox Info" title="Sorgenbox">
+            <p>
+              Hier kannst du anonym Beschwerden oder Anliegen teilen, die dich belasten.
+              Alle Themen sind erlaubt und werden ernst genommen.
+            </p>
+
+            <p>
+              Es wird nicht gespeichert, wer du bist. Deine Anonymität bleibt vollständig
+              gewahrt.
+            </p>
+
+            <p>
+              Wenn du möchtest, kannst du freiwillig Kontaktinformationen angeben,
+              damit du eine Rückmeldung erhältst. Diese Entscheidung liegt ganz bei dir.
+            </p>
+          </InfoPop>
+        </h2>
       </div>
     </div>
 
@@ -55,6 +70,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import hw from "../hwApi"
+import InfoPop from '../components/info/InfoModalCenter.vue'
 
 const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 const MAX_LENGTH = 5000;
@@ -194,10 +210,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   margin-bottom: 12px;
-}
-.title {
-  margin: 0 0 4px 0;
-  color: var(--text);
 }
 
 .form {

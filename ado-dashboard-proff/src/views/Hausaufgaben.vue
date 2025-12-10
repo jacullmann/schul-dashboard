@@ -1,14 +1,80 @@
 <template>
   <div class="card">
     <div class="hw-header">
-      <div>
+      <div style="gap: 4px" class="flex items-center ">
         <h2>Dashboard</h2>
-        <div class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
-      </div>
-      <div class="row header-actions" v-if="user">
-        <span class="small" style="color: var(--sub);">
-    Angemeldet als {{ user.email }}
-  </span>
+        <InfoPop
+            tooltip="Übersicht und Funktionen des Dashboards"
+            title="Dashboard"
+        >
+          <p>
+            Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.
+          </p>
+
+          <h4>Einträge</h4>
+          <p>
+            Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob Hausaufgabe,
+            Daltonauftrag oder Prüfung – alles, was du für die Schule im Überblick haben
+            musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit
+            einsehbar, sodass du gemeinsam mit anderen den Fortschritt verfolgen kannst.
+          </p>
+
+          <p>
+            Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den
+            passenden Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer
+            öffentlich. Private Einträge sind verschlüsselt und nur für dich sichtbar.
+            Fülle anschließend das Formular aus und wähle Fach sowie Abgabedatum.
+          </p>
+
+          <p>
+            Optional können Bilder hochgeladen werden, zum Beispiel Arbeitsblätter,
+            Buchseiten, Notizen oder Lernzettel.
+          </p>
+
+          <p>
+            Bilder können auch bei fremden Einträgen ergänzt werden, sofern sie passend
+            sind. Klicke dazu auf das 3-Punkte-Menü, wähle den Bereich „Bilder“ aus und
+            füge sie über das <strong>+</strong> hinzu. Eigene Bilder kannst du entfernen,
+            indem du im Bilder-Menü auf das <strong>X</strong> in der Ecke des Bildes klickst.
+          </p>
+
+          <p>
+            Das Dashboard sollte immer korrekt sein. Falls dir bei einem fremden Eintrag
+            dennoch falsche Informationen auffallen, kannst du über das 3-Punkte-Menü
+            auf <em>Melden</em> klicken und unter <em>Falschinformationen</em> eine Korrektur
+            einreichen. Ein Admin überprüft den Hinweis und berichtigt gegebenenfalls
+            den ursprünglichen Eintrag.
+          </p>
+
+          <h4>Abgeschlossene Aufgaben tracken</h4>
+          <p>
+            Mit einem Account kannst du erledigte Einträge per Checkbox abhaken.
+            Dein Fortschritt wird in der Cloud gespeichert und der Eintrag wird
+            verkleinert dargestellt, um Platz für offene Aufgaben zu schaffen.
+            So siehst du auf einen Blick, was noch zu tun ist.
+          </p>
+
+          <h4>Personalisierte Kurse</h4>
+          <p>
+            Wenn du in deinem Account hinterlegt hast, welche Kurse oder Wahlfächer du
+            belegst, kannst du automatisch Einträge aus anderen Fächern ausblenden lassen.
+            Diese Auswahl lässt sich jederzeit in den Accounteinstellungen anpassen.
+          </p>
+
+          <p>
+            Möchtest du trotzdem alle Einträge sehen, kannst du diese Personalisierung
+            ebenfalls in den Accounteinstellungen deaktivieren.
+          </p>
+
+          <h4>Eintragarchiv</h4>
+          <p>
+            Einträge, die älter als 48 Stunden sind, werden automatisch ausgeblendet,
+            um die Übersicht zu bewahren. Über den Eintragarchiv-Button kannst du
+            ältere Einträge einsehen, die bis zu 30 Tage zurückliegen.
+          </p>
+
+        </InfoPop>
+
       </div>
     </div>
 
@@ -58,6 +124,10 @@
               v-if="user"
               @select="openCreateFormByType"
           />
+          <CreateEntryDropdownPseudo
+              v-if="!user"
+          />
+
         </div>
         <CreateEntryDropdown
             v-if="user && tab === 'PRIVATE'"
@@ -220,10 +290,12 @@ import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
-import { Flag, Pencil, Images, Trash2, Ellipsis } from 'lucide-vue-next'
+import { Flag, Pencil, Images, Trash2, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
 import TodoForm from '../components/hw/TodoForm.vue';
+import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
+import InfoPop from '../components/info/InfoModalCenter.vue'
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showAuth, showItemForm, showImageFormFor,

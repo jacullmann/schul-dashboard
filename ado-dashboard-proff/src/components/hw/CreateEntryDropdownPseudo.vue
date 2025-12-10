@@ -1,0 +1,123 @@
+<template>
+  <div class="create-entry-wrapper">
+    <button
+        class="btn mg ghost"
+        @click="toggleMenu"
+        ref="buttonRef"
+    >
+      <Plus size="26px" />
+    </button>
+
+    <div
+        v-if="isOpen"
+        class="entry-menu entry-menu-pseudo"
+    >
+      <div class="pseudo-content">
+        <Lock :size="20" class="lock-icon" />
+        <p>
+          Bitte melde dich an,
+          um selbst neue Einträge zu erstellen.
+        </p>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { Plus, Lock } from 'lucide-vue-next';
+
+const isOpen = ref(false);
+const buttonRef = ref<HTMLButtonElement | null>(null);
+
+function toggleMenu() {
+  isOpen.value = !isOpen.value;
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (!isOpen.value) return;
+
+  const target = event.target as HTMLElement;
+  const wrapper = buttonRef.value?.closest('.create-entry-wrapper');
+  if (wrapper && !wrapper.contains(target)) {
+    isOpen.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
+</script>
+
+<style scoped>
+.create-entry-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.entry-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+
+  min-width: 220px;
+  max-width: 300px;
+  background: var(--jj);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  z-index: 1000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: menuFadeIn 160ms ease;
+}
+
+.entry-menu-pseudo {
+  padding: 12px 16px;
+  align-items: center;
+}
+
+.pseudo-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.pseudo-content p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.pseudo-content strong {
+  color: var(--text);
+}
+
+.lock-icon {
+  margin-bottom: 4px;
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mg {
+  padding: 6px;
+}
+</style>

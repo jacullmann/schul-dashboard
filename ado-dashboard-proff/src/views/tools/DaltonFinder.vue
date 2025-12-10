@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import InfoPop from '../../components/info/InfoModalCenter.vue'
 
 // --- 1. Types & Interfaces ---
 
@@ -228,8 +229,39 @@ const filteredResults = computed<SearchResult[]>(() => {
 
 <template>
   <div class="card">
-    <div>
-      <h2 style="margin-top: 0" >Daltonraumfinder</h2>
+    <div class="flex align-center">
+      <h2 style="margin-top: 0;"
+          class="title-inf"
+      >
+        Daltonraumfinder
+        <InfoPop
+            tooltip="Daltonraumfinder Info"
+            title="Daltonraumfinder"
+        >
+          <p>
+            Finde den passenden Raum in wenigen Sekunden.
+          </p>
+
+          <h4>Raumsuche</h4>
+          <p>
+            Sieh für jeden Raum, an welchen Tagen welcher Lehrer dort unterrichtet.
+            So erkennst du auf einen Blick, wie ein Raum genutzt wird und wann er belegt ist.
+          </p>
+
+          <h4>Lehrersuche</h4>
+          <p>
+            Suche gezielt nach einem bestimmten Lehrer und lasse dir anzeigen, wann
+            und in welchen Räumen dieser unterrichtet.
+          </p>
+
+          <p>
+            Alternativ kannst du ein Fach eingeben, für das du Hilfe brauchst, und erhältst
+            eine Übersicht aller zugehörigen Fachlehrer sowie der Räume, in denen sie
+            eingesetzt sind.
+          </p>
+
+        </InfoPop>
+      </h2>
     </div>
 
     <div class="controls">
