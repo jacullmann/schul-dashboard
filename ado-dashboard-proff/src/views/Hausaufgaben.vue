@@ -5,18 +5,10 @@
         <h2>Dashboard</h2>
         <div class="small">Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</div>
       </div>
-
-      <div class="row header-actions">
-        <AccountMenu
-            v-if="user"
-            :email="user.email"
-            :user-data="user"
-            @deleted="onAccountDeleted"
-            @error="onAccountDeleteError"
-            @open-setup="openSetupModal"
-            @logout="logout"
-        />
-        <button data-umami-event="Dashboard Anmelden/Registrieren Button" class="btn ghost" v-else @click="showAuth = true">Anmelden/Registrieren</button>
+      <div class="row header-actions" v-if="user">
+        <span class="small" style="color: var(--sub);">
+    Angemeldet als {{ user.email }}
+  </span>
       </div>
     </div>
 
@@ -223,7 +215,6 @@
 import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
-import AccountMenu from '../components/hw/AccountMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
