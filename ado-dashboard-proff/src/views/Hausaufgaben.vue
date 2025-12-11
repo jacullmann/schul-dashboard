@@ -66,16 +66,6 @@
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
           </select>
           <OldNewSwitch v-model="showOldEntries" />
-          <button
-              v-if="user && user.doneSetup"
-              class="btn"
-              :class="{ 'ghost': !showPersonalized }"
-              @click="showPersonalized = !showPersonalized"
-              title="Filtert Enrichment und WPU Kurse"
-          >
-            <span style="color: black" v-if="showPersonalized">Alle Einträge anzeigen</span>
-            <span v-else>Personalisierte Einträge anzeigen</span>
-          </button>
           <CreateEntryDropdown
               v-if="user"
               @select="openCreateFormByType"
@@ -255,7 +245,7 @@ import InfoPop from '../components/info/InfoModalCenter.vue'
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showAuth, showItemForm, showImageFormFor,
-  itemToEdit, user, subjects, announcements, items, loading, subjectFilter, showPersonalized,
+  itemToEdit, user, subjects, announcements, items, loading, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
   showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,

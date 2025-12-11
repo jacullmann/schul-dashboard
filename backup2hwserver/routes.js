@@ -288,6 +288,44 @@ Email bestätigen
         }
     );
 
+    app.patch('/api/user/personalization',
+        requireAuth,
+        body('personalized').isBoolean(),
+        validate,
+        async (req, res) => {
+            try {
+                const { personalized } = req.body;
+                const userId = req.user.sub;
+
+                const updatedUser = await User.findByIdAndUpdate(
+                    userId,
+                    { $set: { personalized } },
+                    { new: true, fields: 'personalized email isAdmin' }
+                );
+
+                if (!updatedUser) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+
+                await User.findByIdAndUpdate(userId, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'profile:personalization:update',
+                            meta: { personalized }
+                        }
+                    }
+                });
+
+                res.json({
+                    ok: true,
+                    personalized: updatedUser.personalized
+                });
+            } catch (err) {
+                console.error('PATCH /api/user/personalization error', err);
+                sendJSONError(res, 500, 'Serverfehler beim Aktualisieren');
+            }
+        }
+    );
+
     app.get('/api/auth/me', requireAuth, async (req, res) => {
         const user = await User.findById(req.user.sub).lean();
         if (!user) return sendJSONError(res, 404, 'Ungültiges Token.');
@@ -300,7 +338,8 @@ Email bestätigen
             wpuKurs1: user.wpuKurs1,
             wpuKurs2: user.wpuKurs2,
             theater: user.theater,
-            doneSetup: !!user?.doneSetup
+            doneSetup: !!user?.doneSetup,
+            personalized: user.personalized !== false
         });
     });
 

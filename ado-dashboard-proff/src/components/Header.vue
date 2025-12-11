@@ -43,6 +43,7 @@
             @error="onAccountDeleteError"
             @open-setup="openSetupModal"
             @logout="logout"
+            @personalization-changed="onPersonalizationChanged"
         />
 
         <!-- Jetzt loslegen Button wenn nicht angemeldet -->
@@ -120,6 +121,15 @@ const closeNav = () => {
   navOpen.value = false;
   document.body.style.overflow = '';
 };
+
+function onPersonalizationChanged(value: boolean) {
+  if (user.value) {
+    user.value.personalized = value;
+    window.dispatchEvent(new CustomEvent('personalization-changed', {
+      detail: { personalized: value }
+    }));
+  }
+}
 
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && navOpen.value) closeNav();

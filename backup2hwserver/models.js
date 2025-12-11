@@ -58,6 +58,7 @@ export function initModels(mongoose) {
         wpuKurs2: { type: Number, default: 0 },
         theater: { type: Number, default: 0 },
         doneSetup: { type: Boolean, default: false },
+        personalized: { type: Boolean, default: true },
         activity: [{
             at: { type: Date, default: Date.now },
             type: { type: String },

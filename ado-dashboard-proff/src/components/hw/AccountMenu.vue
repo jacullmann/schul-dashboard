@@ -1,6 +1,9 @@
 <template>
   <div class="account-menu" ref="root">
     <button class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
+      <div class="personalization-indicator" v-if="userData?.personalized">
+        <Filter size="12" />
+      </div>
       <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#e3e3e3">
         <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z"/>
       </svg>
@@ -14,6 +17,13 @@
           </div>
 
           <div class="menu-divider"></div>
+
+          <PersonalizationDropdown
+              v-model="personalizationSetting"
+              @change="onPersonalizationChange"
+          />
+          <div class="menu-divider"></div>
+
 
           <div class="menu-actions">
             <button
@@ -112,10 +122,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
 import hw from '../../hwApi';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Filter } from "lucide-vue-next";
 import ChangePasswordModal from './ChangePasswordModal.vue';
+import PersonalizationDropdown from './PersonalizationDropdown.vue';
 
 const props = defineProps<{
   email: string;
@@ -127,7 +138,17 @@ const emit = defineEmits<{
   (e: 'error', msg: string): void;
   (e: 'openSetup'): void;
   (e: 'logout'): void;
+  (e: 'personalizationChanged', value: boolean): void;
 }>();
+
+const personalizationSetting = computed({
+  get: () => props.userData?.personalized ?? true,
+  set: () => {}
+});
+
+function onPersonalizationChange(value: boolean) {
+  emit('personalizationChanged', value);
+}
 
 const open = ref(false);
 const confirming = ref(false);
@@ -383,7 +404,6 @@ onBeforeUnmount(() => {
 }
 
 .danger-section {
-  margin-top: 4px;
 }
 
 .confirm-section {
@@ -511,6 +531,21 @@ onBeforeUnmount(() => {
 
 .checkbox-label:hover .checkbox-custom {
   border-color: #888;
+}
+
+.personalization-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: var(--sup-base);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 2px solid var(--jj);
 }
 
 @media (max-width: 480px) {

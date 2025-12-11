@@ -61,7 +61,7 @@ export function useHausaufgaben() {
     const items = ref<HwItem[]>([]);
     const loading = ref(true);
     const subjectFilter = ref('');
-    const showPersonalized = ref(false);
+    const showPersonalized = computed(() => user.value?.personalized ?? false);
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
 
@@ -237,6 +237,12 @@ export function useHausaufgaben() {
         } catch {
             user.value = null;
             checkedItems.value = new Set();
+        }
+    }
+    function onPersonalizationChanged(value: boolean) {
+        if (user.value) {
+            user.value.personalized = value;
+            reload();
         }
     }
 
@@ -419,6 +425,13 @@ export function useHausaufgaben() {
         } catch { return url; }
     }
 
+    function handlePersonalizationChange(event: CustomEvent) {
+        if (user.value && event.detail?.personalized !== undefined) {
+            user.value.personalized = event.detail.personalized;
+            reload();
+        }
+    }
+
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
     function isChecked(itemId: string) { return checkedItems.value.has(itemId); }
@@ -466,11 +479,13 @@ export function useHausaufgaben() {
         loadAnnouncements();
         reload();
         window.addEventListener('show-auth-modal', handleShowAuthModal);
+        window.addEventListener('personalization-changed', handlePersonalizationChange as EventListener);
     });
 
     onBeforeUnmount(() => {
         document.removeEventListener('click', onDocumentClick);
         window.removeEventListener('show-auth-modal', handleShowAuthModal);
+        window.removeEventListener('personalization-changed', handlePersonalizationChange as EventListener);
     });
 
     return {
@@ -488,6 +503,7 @@ export function useHausaufgaben() {
         loading,
         subjectFilter,
         showPersonalized,
+        onPersonalizationChanged,
         showOldEntries,
         showSetupModal,
         message,

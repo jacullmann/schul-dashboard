@@ -73,7 +73,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
   color: var(--text);
 }
 .info-modal-content {
-  max-width: 500px;
+  max-width: 640px;
   width: 100%;
   padding: 20px;
   border-radius: 16px;
@@ -93,7 +93,6 @@ const handleBackgroundClick = (event: MouseEvent) => {
 }
 
 .popover-title {
-  font-size: 1.125em;
   font-weight: 600;
   margin: 0;
   color: var(--text);
@@ -126,7 +125,9 @@ const handleBackgroundClick = (event: MouseEvent) => {
 }
 .fade-scale-enter-active,
 .fade-scale-leave-active {
-  transition: 0.3s ;
+  transition: 0.2s ;
+  opacity: 1;
+  transform: scale(1);
 }
 
 .fade-scale-enter-from,
@@ -136,7 +137,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
 
 .fade-scale-enter-active .info-modal-content,
 .fade-scale-leave-active .info-modal-content {
-  transition: all 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease-out;
 }
 
 .fade-scale-enter-from .info-modal-content,
