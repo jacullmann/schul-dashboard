@@ -15,12 +15,6 @@
 
           <div class="menu-divider"></div>
 
-          <PersonalizationDropdown
-              v-model="personalizationSetting"
-              @change="onPersonalizationChange"
-          />
-          <div class="menu-divider"></div>
-
 
           <div class="menu-actions">
             <button
@@ -33,6 +27,12 @@
                 Kurse bearbeiten
               </div>
             </button>
+
+            <PersonalizationDropdown
+                v-model="personalizationSetting"
+                @change="onPersonalizationChange"
+            />
+            <div class="menu-divider"></div>
 
             <button
                 data-umami-event="Passwort ändern Button"
@@ -54,9 +54,9 @@
                 Ausloggen
               </div>
             </button>
-          </div>
+            <div class="menu-divider"></div>
 
-          <div class="menu-divider"></div>
+          </div>
 
           <div class="danger-section">
             <button
