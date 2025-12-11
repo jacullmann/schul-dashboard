@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   background: transparent;
   border: none;
-  color: #aaaaaa;
+  color: var(--text);
   cursor: pointer;
 }
 
