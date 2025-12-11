@@ -432,6 +432,17 @@ export function useHausaufgaben() {
         }
     }
 
+    function handleUserLoggedIn() {
+        loadMe();
+        reload();
+    }
+
+    function handleUserLoggedOut() {
+        user.value = null;
+        checkedItems.value = new Set();
+        reload();
+    }
+
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
     function isChecked(itemId: string) { return checkedItems.value.has(itemId); }
@@ -478,12 +489,16 @@ export function useHausaufgaben() {
         loadSubjects();
         loadAnnouncements();
         reload();
+        window.addEventListener('user-logged-in', handleUserLoggedIn);
+        window.addEventListener('user-logged-out', handleUserLoggedOut);
         window.addEventListener('show-auth-modal', handleShowAuthModal);
         window.addEventListener('personalization-changed', handlePersonalizationChange as EventListener);
     });
 
     onBeforeUnmount(() => {
         document.removeEventListener('click', onDocumentClick);
+        window.removeEventListener('user-logged-in', handleUserLoggedIn);
+        window.removeEventListener('user-logged-out', handleUserLoggedOut);
         window.removeEventListener('show-auth-modal', handleShowAuthModal);
         window.removeEventListener('personalization-changed', handlePersonalizationChange as EventListener);
     });

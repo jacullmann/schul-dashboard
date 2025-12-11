@@ -38,7 +38,7 @@
           </div>
           <div class="coming-soon">
             <Clock class="clock-icon" />
-            <span>Unsere Telefon-Hotline ist bald verfügbar.</span>
+            <span>Wir bieten aktuell keine Telefonhotline an.</span>
           </div>
         </div>
       </div>

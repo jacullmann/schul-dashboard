@@ -68,6 +68,7 @@ export function setHwToken(token: string | null, userId?: string | null) {
         localStorage.removeItem('hw_token');
         localStorage.removeItem('hw_user_id');
         umamiSetLoggedIn(false);
+        window.dispatchEvent(new CustomEvent('user-logged-out'));
     }
 }
 

@@ -13,11 +13,15 @@
         class="entry-menu entry-menu-pseudo"
     >
       <div class="pseudo-content">
-        <Lock :size="20" class="lock-icon" />
         <p>
-          Bitte melde dich an,
-          um selbst neue Einträge zu erstellen.
+          Möchtest du einen Eintrag erstellen?<br>
+          Melde dich an, um Einträge zu erstellen.
         </p>
+        <div class="">
+          <button class="btn main smaller">
+            Jetzt anmelden
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -64,48 +68,21 @@ onBeforeUnmount(() => {
   top: 100%;
   left: 0;
   margin-top: 4px;
-
-  min-width: 220px;
-  max-width: 300px;
+  min-width: 280px;
   background: var(--jj);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding: 8px;
+  padding: 12px;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
   gap: 5px;
   z-index: 1000;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   animation: menuFadeIn 160ms ease;
 }
 
-.entry-menu-pseudo {
-  padding: 12px 16px;
-  align-items: center;
-}
-
-.pseudo-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 8px;
-}
-
 .pseudo-content p {
-  margin: 0;
   font-size: 14px;
 }
-
-.pseudo-content strong {
-  color: var(--text);
-}
-
-.lock-icon {
-  margin-bottom: 4px;
-}
-
 @keyframes menuFadeIn {
   from {
     opacity: 0;

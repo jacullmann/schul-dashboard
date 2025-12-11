@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="hw-header">
-      <div style="gap: 4px" class="flex items-center ">
+      <div class="title-inf">
         <h2>Dashboard</h2>
         <InfoPop
             tooltip="Übersicht und Funktionen des Dashboards"

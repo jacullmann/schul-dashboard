@@ -18,6 +18,7 @@ const Countdown = () => import('./views/Countdown.vue')
 const AdminDashboard = () => import('./views/AdminDashboard.vue');
 const DaltonFinder = () => import('./views/tools/DaltonFinder.vue')
 const Devide = () => import('./views/devider/Devide.vue')
+const PatchInfo = () => import('./views/updates/Info.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -168,6 +169,15 @@ const routes = [
             fullWidth: false,
             hideNavigation: false
         }
+    },
+    {
+      path: '/update-history',
+      component: PatchInfo,
+      meta: {
+          title: 'Update Hostory',
+          fullWidth: true,
+          hideNavigation: false
+      }
     },
     {
         path: '/spiele',
