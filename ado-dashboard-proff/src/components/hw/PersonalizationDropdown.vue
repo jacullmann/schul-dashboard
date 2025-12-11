@@ -8,7 +8,7 @@
     >
       <div class="menu-btn-content">
         <component :is="currentPersonalized ? Filter : FilterX" size="18px" />
-        <span>Personalisierung</span>
+        <span>Personalisierte Kurse</span>
         <ChevronDown size="16px" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </div>
     </button>
@@ -26,7 +26,7 @@
       >
         <Check v-if="currentPersonalized" size="16px" class="check-icon" />
         <span class="spacer" v-else></span>
-        Personalisiert
+        Ja
       </button>
 
       <button
@@ -37,7 +37,7 @@
       >
         <Check v-if="!currentPersonalized" size="16px" class="check-icon" />
         <span class="spacer" v-else></span>
-        Nicht personalisiert
+        Nein
       </button>
     </div>
 

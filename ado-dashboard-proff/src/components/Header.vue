@@ -53,7 +53,7 @@
             @click="showAuth = true"
             data-umami-event="Header Jetzt loslegen Button"
         >
-          Jetzt loslegen
+          Anmelden
         </button>
 
         <button
@@ -63,7 +63,7 @@
             v-if="!navOpen"
             data-umami-event="Mobile Menu öffnen"
         >
-          <Menu style="color: #fff" size="25px"/>
+          <Menu style="color: #fff" size="26px"/>
         </button>
       </div>
 

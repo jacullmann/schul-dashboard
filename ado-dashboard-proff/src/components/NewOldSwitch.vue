@@ -34,7 +34,7 @@ const buttonText = computed(() => {
   if (props.modelValue) {
     return 'Aktuelle Einträge anzeigen'
   } else {
-    return 'Alte Einträge anzeigen'
+    return 'Eintragsarchiv anzeigen'
   }
 })
 

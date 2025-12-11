@@ -65,7 +65,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--muted);
+  color: var(--sub);
   transition: color 0.15s ease;
 }
 
@@ -75,7 +75,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
 .info-modal-content {
   max-width: 640px;
   width: 100%;
-  padding: 20px;
+  padding: 16px;
   border-radius: 16px;
   background: var(--lbg);
   color: var(--text);

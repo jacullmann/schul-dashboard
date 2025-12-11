@@ -1,8 +1,8 @@
 <template>
   <div class="account-menu" ref="root">
-    <button class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
-      <CircleUserRound size="28px"/>
-    </button>
+    <div class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
+      <CircleUserRound size="26px"/>
+    </div>
 
     <transition name="pop">
       <div v-if="open" class="popup" :style="popupStyle" @click.stop>
