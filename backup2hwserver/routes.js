@@ -97,6 +97,13 @@ export default function registerRoutes(app, deps) {
         statusCode: 429,
     });
 
+    const authLimiter = rateLimit({
+        windowMs: 5 * 60 * 1000,
+        max: 50,
+        standardHeaders: true,
+        message: { error: 'Zu viele Anfragen. Bitte warte kurz.' }
+    });
+
     function validateItemCreation(req, res, next) {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -163,6 +170,7 @@ Email bestätigen
     }
 
     app.post('/api/auth/register',
+        authLimiter,
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
@@ -270,6 +278,7 @@ Email bestätigen
     });
 
     app.post('/api/auth/login',
+        authLimiter,
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
@@ -957,12 +966,12 @@ Email bestätigen
         }
     });
 
-    app.post('/api/auth/forgot', body('email').isEmail(), validate,  async (req, res) => {
+    app.post('/api/auth/forgot', authLimiter, body('email').isEmail(), validate,  async (req, res) => {
         try {
             const email = req.body.email.toLowerCase();
             const user = await User.findOne({ email });
             if (!user) return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
-            const code = String(Math.floor(100000 + Math.random() * 900000));
+            const code = crypto.randomBytes(3).toString('hex').toUpperCase();
             const expiresAt = dayjs().add(30, 'minute').toDate();
             await PasswordReset.updateMany({ email }, { $set: { used: true } });
             await PasswordReset.create({ email, code, expiresAt, used: false });
