@@ -37,7 +37,7 @@
       >
         <Check v-if="!currentPersonalized" size="16px" class="check-icon" />
         <span class="spacer" v-else></span>
-        Alle Einträge
+        Nicht personalisiert
       </button>
     </div>
 
