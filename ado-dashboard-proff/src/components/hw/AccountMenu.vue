@@ -299,6 +299,7 @@ onBeforeUnmount(() => {
 .account-menu {
   position: relative;
   display: inline-block;
+  height: 26px;
 }
 
 .icon-btn {

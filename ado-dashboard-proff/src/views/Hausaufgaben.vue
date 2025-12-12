@@ -55,7 +55,7 @@
       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
       <button data-umami-event="Dashboard Dalton Reiter" class="btn rei" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
       <button data-umami-event="Dashboard Prüfung Reiter" class="btn rei" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
-      <button data-umami-event="Dashboard Private Einträge Reiter" class="btn rei" :class="{ ghost: tab !== 'PRIVATE' }" @click="goTab('PRIVATE')">Private Einträge</button>
+      <button data-umami-event="Dashboard Private Einträge Reiter" class="btn rei" :class="{ ghost: tab !== 'PRIVATE' }" @click="goTab('PRIVATE')">Privat</button>
     </div>
 
     <div class="controls">
@@ -223,6 +223,11 @@
         @confirm="doReport"
         @cancel="cancelReport"
     />
+    <DeleteEntryModal
+        :show="showDeleteConfirm"
+        @confirm="confirmDelete"
+        @cancel="cancelDelete"
+    />
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
@@ -242,6 +247,7 @@ import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
 import TodoForm from '../components/hw/TodoForm.vue';
 import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
 import InfoPop from '../components/info/InfoModalCenter.vue'
+import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showAuth, showItemForm, showImageFormFor,
@@ -255,7 +261,9 @@ const {
   showTodoForm,
   todoToEdit,
   openCreateFormByType,
-  handleTodoSuccess, itemFormType, openEditTodo, todoAppRef
+  handleTodoSuccess, itemFormType, openEditTodo, todoAppRef, showDeleteConfirm,
+  confirmDelete,
+  cancelDelete,
 } = useHausaufgaben();
 </script>
 
@@ -293,7 +301,7 @@ const {
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
 .subject-badge { background:#414141; color:white; padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
-.item-menu { position: absolute; top: 100%; right: 0; min-width: 150px; background: #282828; border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
+.item-menu { position: absolute; margin-top: 24px; right: 0; min-width: 150px; background: #282828; border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .menu-btn {
   display: block;
@@ -313,8 +321,8 @@ const {
 .menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
 .menu-btn.danger { color: #f65252; fill: #f65252; }
 .menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }
-.item-body { margin-top:10px; color: var(--text); word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
-.item-images { margin-top:12px; }
+.item-body { margin-top:8px; color: var(--text); word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
+.item-images { margin-top:8px; }
 .images-title { font-weight:600; margin-bottom:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
 .thumb { width:120px; height:120px; border-radius:8px; overflow:hidden; border:none; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.12); position:relative; }
@@ -376,7 +384,7 @@ const {
   /* Anpassungen */
 }
 @media (max-width: 500px ) {
-  .row-two { flex-direction: column; align-items: flex-start; margin-top: 15px; margin-bottom: 30px; }
+  .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; }
   .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }
 }
 </style>

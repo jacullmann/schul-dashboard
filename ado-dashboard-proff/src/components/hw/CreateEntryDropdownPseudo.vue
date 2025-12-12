@@ -5,7 +5,7 @@
         @click="toggleMenu"
         ref="buttonRef"
     >
-      <Plus size="26px" />
+      <Plus size="28px" />
     </button>
 
     <div
@@ -18,7 +18,7 @@
           Melde dich an, um Einträge zu erstellen.
         </p>
         <div class="">
-          <button class="btn main smaller">
+          <button class="btn main smaller" @click="openAuthModal">
             Jetzt anmelden
           </button>
         </div>
@@ -29,13 +29,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Plus, Lock } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 
 const isOpen = ref(false);
 const buttonRef = ref<HTMLButtonElement | null>(null);
 
 function toggleMenu() {
   isOpen.value = !isOpen.value;
+}
+
+function openAuthModal() {
+  isOpen.value = false;
+  window.dispatchEvent(new CustomEvent('show-auth-modal'));
 }
 
 function handleClickOutside(event: MouseEvent) {
@@ -95,6 +100,6 @@ onBeforeUnmount(() => {
 }
 
 .mg {
-  padding: 6px;
+  padding: 4px;
 }
 </style>

@@ -299,6 +299,10 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
           <h3>Live-Änderungen</h3>
           <p>Vertretung, Ausfall, Raumänderungen usw. werden vom Admin-Team zeitnah übertragen und gleich im digitalen Stundenplan angezeigt.</p>
+          <div class="info-img-container">
+            <img alt="Bild" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474359/Stundenplan_Ausfall_Grafik_b34pcq.webp" class="info-img"/>
+
+          </div>
 
 
         </InfoPop>

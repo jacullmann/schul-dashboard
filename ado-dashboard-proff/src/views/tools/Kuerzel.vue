@@ -11,6 +11,9 @@
 
           <h3>Kürzelfinder</h3>
           <p>Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel.</p>
+          <div class="info-img-container">
+          <img alt="Bild" class="info-img border-normal" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
+          </div>
 
 
         </InfoPop>
@@ -144,11 +147,11 @@ const outputValue = computed(() => {
     return match ? `${match.title} ${match.name}` : ''
   } else {
     const match = persons.value.find(p => normalize(p.title + p.name) === q)
-    if (match) return match.short
+    if (match) return match.short.toUpperCase()
 
     const matchesByName = persons.value.filter(p => normalize(p.name) === q)
     if (matchesByName.length === 1) {
-      return matchesByName[0].short
+      return matchesByName[0].short.toUpperCase()
     }
     if (matchesByName.length > 1) {
       suggestions.value = matchesByName

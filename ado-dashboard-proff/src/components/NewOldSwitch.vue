@@ -4,14 +4,6 @@
       :class="{ 'is-showing-old': props.modelValue }"
       @click="toggleState"
   >
-    <component
-        :is="activeIcon"
-        :key="props.modelValue ? 'right' : 'left'"
-        :size="14"
-        stroke-width="2.5"
-        class="icon"
-    />
-
     <span :key="buttonText">
         {{ buttonText }}
       </span>
@@ -20,7 +12,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChevronsRight, ChevronsLeft } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: boolean
@@ -32,17 +23,9 @@ const emit = defineEmits<{
 
 const buttonText = computed(() => {
   if (props.modelValue) {
-    return 'Aktuelle Einträge anzeigen'
+    return 'Eintragarchiv verlassen'
   } else {
     return 'Eintragsarchiv anzeigen'
-  }
-})
-
-const activeIcon = computed(() => {
-  if (props.modelValue) {
-    return ChevronsRight
-  } else {
-    return ChevronsLeft
   }
 })
 
@@ -56,9 +39,4 @@ function handleChange(value: boolean) {
 </script>
 
 <style scoped>
-
-.icon {
-  display: block;
-  line-height: 1;
-}
 </style>

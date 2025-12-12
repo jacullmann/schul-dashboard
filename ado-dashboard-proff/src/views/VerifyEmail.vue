@@ -5,7 +5,8 @@
     <div v-else-if="ok" style="color:var(--primary)">Erfolg! Du kannst dich jetzt anmelden.</div>
     <div v-else style="color:var(--danger)">Token ungültig oder abgelaufen.</div>
     <div style="margin-top:12px;">
-      <router-link data-umami-event="Email verifiziert -> Zurück zu Hausaufgaben" class="btn" to="/">Zurück zu Hausaufgaben</router-link>
+      <p>Du kannst diesen Tab jetzt schließen</p>
+      <!--<router-link data-umami-event="Email verifiziert -> Zurück zu Hausaufgaben" class="btn" to="/">Du kannst diesen Tab jetzt sch</router-link>-->
     </div>
   </div>
 </template>

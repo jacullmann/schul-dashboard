@@ -22,8 +22,40 @@
 
         <div v-else-if="step === 3">
           <p>Gib dein neues Passwort ein (mind. 8 Zeichen) und bestätige es.</p>
-          <input class="input" type="password" v-model="password" placeholder="Neues Passwort" />
-          <input class="input" type="password" v-model="password2" placeholder="Neues Passwort wiederholen" style="margin-top:8px;" />
+
+          <div style="position: relative;">
+            <input
+                class="input"
+                :type="showPassword ? 'text' : 'password'"
+                v-model="password"
+                placeholder="Neues Passwort"
+            />
+            <button
+                type="button"
+                @click="showPassword = !showPassword"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text);"
+                aria-label="Toggle password visibility"
+            >
+              <component :is="showPassword ? EyeOff : Eye" size="20" />
+            </button>
+          </div>
+
+          <div style="margin-top:8px; position: relative;">
+            <input
+                class="input"
+                :type="showPassword ? 'text' : 'password'"
+                v-model="password2"
+                placeholder="Neues Passwort wiederholen"
+            />
+            <button
+                type="button"
+                @click="showPassword = !showPassword"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text);"
+                aria-label="Anzeigen/Nicht anzeigen"
+            >
+              <component :is="showPassword ? EyeOff : Eye" size="20" />
+            </button>
+          </div>
         </div>
 
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)' : 'var(--primary)' }" style="margin-top:8px;">{{ message }}</div>
@@ -43,6 +75,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import hw from '../hwApi';
+import { Eye, EyeOff } from 'lucide-vue-next';
 
 const emit = defineEmits(['close', 'success']);
 
@@ -54,7 +87,8 @@ const password2 = ref('');
 const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
-let savedResetToken = ''; // holds resetToken from verify endpoint
+const showPassword = ref(false);
+let savedResetToken = '';
 
 function setMessage(txt: string, error = false) {
   message.value = txt;

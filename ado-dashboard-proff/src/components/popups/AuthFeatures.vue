@@ -39,7 +39,7 @@
             <div class="action-buttons">
               <button class="btn" @click="registerNow">
                 <UserPlusIcon class="showing" size="18" />
-                Jetzt registrieren
+                Anmelden
               </button>
             </div>
           </div>

@@ -65,6 +65,10 @@ export function useHausaufgaben() {
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
 
+
+    const showDeleteConfirm = ref(false);
+    let itemToDelete: string | null = null;
+
     // Todo State
     const showTodoForm = ref(false);
     const todoToEdit = ref<any>(null);
@@ -231,9 +235,7 @@ export function useHausaufgaben() {
             const { data } = await hw.get('/api/auth/me');
             user.value = data;
             await loadCheckedForMe();
-            if (user.value && !user.value.doneSetup) {
-                showSetupModal.value = true;
-            }
+
         } catch {
             user.value = null;
             checkedItems.value = new Set();
@@ -351,18 +353,30 @@ export function useHausaufgaben() {
         showItemForm.value = true;
     }
 
-    async function deleteItem(id: string) {
-        if (confirm('Eintrag löschen?')) {
-            loading.value = true;
-            try {
-                await hw.delete(`/api/items/${id}`);
-                handleSuccess('Eintrag gelöscht.');
-            } catch (e: any) {
-                message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-                isError.value = true;
-            } finally {
-                loading.value = false;
-            }
+    function deleteItem(id: string) {
+        itemToDelete = id;
+        showDeleteConfirm.value = true;
+    }
+    function cancelDelete() {
+        showDeleteConfirm.value = false;
+        itemToDelete = null;
+    }
+    async function confirmDelete() {
+        if (!itemToDelete) return;
+
+        const id = itemToDelete;
+        showDeleteConfirm.value = false;
+        itemToDelete = null;
+
+        loading.value = true;
+        try {
+            await hw.delete(`/api/items/${id}`);
+            handleSuccess('Eintrag gelöscht.');
+        } catch (e: any) {
+            message.value = e.response?.data?.error || 'Fehler beim Löschen.';
+            isError.value = true;
+        } finally {
+            loading.value = false;
         }
     }
 
@@ -564,6 +578,9 @@ export function useHausaufgaben() {
         handleTodoSuccess,
         itemFormType,
         openEditTodo,
-        todoAppRef
+        todoAppRef,
+        showDeleteConfirm,
+        confirmDelete,
+        cancelDelete,
     };
 }

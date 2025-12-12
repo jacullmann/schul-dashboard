@@ -49,7 +49,7 @@
         <!-- Jetzt loslegen Button wenn nicht angemeldet -->
         <button
             v-else
-            class="btn main cta-button"
+            class="btn ghost cta-button"
             @click="showAuth = true"
             data-umami-event="Header Jetzt loslegen Button"
         >
@@ -111,6 +111,7 @@ const showAuth = ref(false);
 const showSetupModal = ref(false);
 const user = ref<any>(null);
 const loading = ref(true);
+const hasShownSetup = ref(false);
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;
@@ -140,9 +141,9 @@ async function loadMe() {
   try {
     const { data } = await hw.get('/api/auth/me');
     user.value = data;
-
-    if (user.value && !user.value.doneSetup) {
+    if (user.value && !user.value.doneSetup && !hasShownSetup.value) {
       showSetupModal.value = true;
+      hasShownSetup.value = true;
     }
   } catch {
     user.value = null;
@@ -160,6 +161,7 @@ function onLoggedIn(token: string) {
 function logout() {
   setHwToken(null);
   user.value = null;
+  hasShownSetup.value = false;
 }
 
 function onAccountDeleted() {
@@ -186,6 +188,7 @@ function handleShowAuthModal() {
 }
 
 function handleUserLoggedIn() {
+  hasShownSetup.value = false;
   loadMe();
 }
 
