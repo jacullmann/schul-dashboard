@@ -728,7 +728,7 @@ Email bestätigen
         validate,
         async (req, res) => {
             try {
-                const cutOffDate = dayjs().subtract(48, 'hour').toDate();
+                const cutOffDate = dayjs().subtract(24, 'hour').toDate();
                 let dateQuery = {};
                 if (req.query.filter === 'old') dateQuery = { dueDate: { $lt: cutOffDate } };
                 else dateQuery = { dueDate: { $gte: cutOffDate } };
