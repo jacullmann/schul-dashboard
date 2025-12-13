@@ -6,7 +6,7 @@
       </div>
 
       <div class="cookie-actions">
-        <button data-umami-event="Cookies ablehnen" class="btn btn-ghost" @click="revoke">Ablehnen</button>
+        <!--<button data-umami-event="Cookies ablehnen" class="btn btn-ghost" @click="revoke">Ablehnen</button>-->
         <button data-umami-event="Cookies akzepieren" class="btn btn-primary" @click="accept">Verstanden</button>
       </div>
     </div>
@@ -28,7 +28,7 @@ function accept() {
   visible.value = false;
 }
 function toData(){
-  router.push('/impressum-&-datenschutz/datenschutzerklaerung');
+  router.push('/impressum-&-datenschutz/datenschutz');
 }
 function revoke() {
   localStorage.removeItem('cookie_consent');

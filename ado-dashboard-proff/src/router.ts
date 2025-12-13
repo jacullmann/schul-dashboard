@@ -241,14 +241,24 @@ const routes = [
             }
             },
             {
-                path: 'datenschutzerklaerung',
+                path: 'datenschutz',
                 component: () => import('./views/legal/DatenschutzPage.vue'),
                 meta: {
                     title: 'Datenschutzerklärung',
                     fullWidth: false,
                     hideNavigation: false
                 }
+            },
+            {
+                path: 'agb',
+                component: () => import('./views/legal/AGB.vue'),
+                meta: {
+                    title: 'AGB',
+                    fullWidth: false,
+                    hideNavigation: false
+                }
             }
+
         ]
     },
     {

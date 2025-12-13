@@ -3,21 +3,14 @@
     <div class="confirm-box" @click.stop>
       <h4 style="margin-top: 0">Diesen Eintrag melden?</h4>
       <p>Wähle den Grund aus:</p>
-      <div class="category-tabs">
-        <button
-            class="btn"
-            :class="{ ghost: category !== 'illegal' }"
-            @click="category = 'illegal'"
-        >
-          Unangebrachte/Illegale Inhalte
-        </button>
-        <button
-            class="btn"
-            :class="{ ghost: category !== 'falschinfo' }"
-            @click="category = 'falschinfo'"
-        >
-          Falschinformation
-        </button>
+
+      <!-- TabSwitcher Navigation -->
+      <div class="tab-navigation">
+        <TabSwitcher
+            :items="tabItems"
+            :active-id="category"
+            @change="handleTabChange"
+        />
       </div>
 
       <div class="reason-input">
@@ -52,6 +45,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import TabSwitcher from './TabSwitcher.vue'
 
 const MAX_LENGTH = 5000;
 
@@ -70,6 +64,16 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason'])
 
 const category = ref<'illegal' | 'falschinfo'>('illegal')
 
+// TabSwitcher Items
+const tabItems = [
+  { id: 'illegal', label: 'Unangebrachte/Illegale Inhalte' },
+  { id: 'falschinfo', label: 'Falschinformation' }
+]
+
+const handleTabChange = (id: string) => {
+  category.value = id as 'illegal' | 'falschinfo'
+}
+
 watch(() => props.show, (newVal) => {
   if (newVal) {
     category.value = 'illegal'
@@ -78,33 +82,32 @@ watch(() => props.show, (newVal) => {
 </script>
 
 <style scoped>
-.confirm-backdrop {
+.blurit {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 0;
+  border: none;
 }
 
 .confirm-box {
   background: var(--lbg);
-  padding: 16px;
+  padding: 24px;
   border-radius: 16px;
-  max-width: 420px;
+  max-width: 480px;
   width: 90%;
   text-align: left;
   border: 1px solid var(--border);
-
 }
 
-.category-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  flex-direction: row;
+.tab-navigation {
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .confirm-box p {
@@ -116,7 +119,7 @@ watch(() => props.show, (newVal) => {
 }
 
 .reason-input {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   position: relative;
 }
 
@@ -124,13 +127,27 @@ watch(() => props.show, (newVal) => {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: var(--text);
+}
+
+.reason-input textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--jj);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  outline: none;
+  min-height: 120px;
+  resize: vertical;
+  font-family: var(--normal-font), sans-serif;
+  box-sizing: border-box;
 }
 
 .row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: flex-start;
 }
 
@@ -142,6 +159,7 @@ watch(() => props.show, (newVal) => {
 .btn.danger:disabled:hover {
   background: var(--danger);
 }
+
 .counter {
   position: absolute;
   bottom: -5px;
@@ -149,6 +167,7 @@ watch(() => props.show, (newVal) => {
   z-index: 1;
   pointer-events: none;
 }
+
 .count-small {
   font-size: 12px;
   color: var(--sub);
@@ -157,13 +176,20 @@ watch(() => props.show, (newVal) => {
   border-radius: 4px;
   margin: 0;
 }
-textarea {
-  min-height: 100px;
-  padding-bottom: 20px;
-}
+
 @media (max-width: 500px) {
-  .category-tabs{
+  .confirm-box {
+    padding: 20px 16px;
+    width: 95%;
+  }
+
+  .row {
     flex-direction: column;
+    gap: 8px;
+  }
+
+  .row button {
+    width: 100%;
   }
 }
 </style>

@@ -3,14 +3,14 @@
   <div class="outer-container">
 
     <div class="header-container">
-      <WelcomeHeader @click="isWelcomeContent = true" />
+      <WelcomeHeader @click="isWelcomeContent = true; isSecurity = false" />
     </div>
 
     <div class="main-container">
       <WelcomeContent v-if="isWelcomeContent" :on-start-click="showAuthForm" :on-more-info-click="scrollToSu" key="welcome"/>
       <Su v-if="isWelcomeContent" ref="suComponentRef" />
 
-        <div v-if="!isWelcomeContent" class="auth-content content" key="auth-form">
+        <div v-if="!isWelcomeContent && !isSecurity" class="auth-content content" key="auth-form">
           <AuthForm />
         </div>
       <Sec  v-if="!isWelcomeContent && isSecurity" />
@@ -21,7 +21,7 @@
     </div>
 
     <div class="footer-container">
-      <WelcomeFooter />
+      <WelcomeFooter @goToSec="toggleSec"/>
     </div>
 
   </div>
@@ -38,8 +38,15 @@ import WelcomeContent from "./welcome/WelcomeContent.vue";
 import Sec from "./welcome/Sec.vue";
 import Su from "./welcome/components/Su.vue";
 
+const isSecurity = ref(false);
+
 const isWelcomeContent = ref<boolean>(true);
 const suComponentRef = ref<InstanceType<typeof Su> | null>(null);
+
+function toggleSec() {
+  isSecurity.value = true;
+  isWelcomeContent.value = false;
+}
 
 function showAuthForm() {
   isWelcomeContent.value = false;

@@ -1,6 +1,8 @@
+
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import InfoPop from '../../components/info/InfoModalCenter.vue'
+import InfoPop from '../../components/info/InfoModalCenter.vue';
+import TabSwitcher from '../../components/TabSwitcher.vue';
 
 // --- 1. Types & Interfaces ---
 
@@ -113,35 +115,34 @@ const teachers: Teacher[] = [
 ];
 
 const scheduleData: ScheduleRow[] = [
-  { room: "A-109 (Kunst)", schedule: { mo: 54, di: 1, mi: 43, do: 1, fr: 60 } },
-  { room: "A-115 Computerraum", schedule: { mo: 56, di: null, mi: 56, do: 70, fr: null } },
+  { room: "A-109", schedule: { mo: 54, di: 1, mi: 43, do: 1, fr: 60 } },
+  { room: "A-115", schedule: { mo: 56, di: null, mi: 56, do: 70, fr: null } },
   { room: "A003", schedule: { mo: 76, di: 18, mi: 13, do: 56, fr: 20 } },
   { room: "A004", schedule: { mo: 5, di: 11, mi: 18, do: 37, fr: 41 } },
   { room: "A005", schedule: { mo: 42, di: 12, mi: 12, do: 30, fr: 71 } },
-  { room: "A007 Gruppenarbeitsraum", schedule: { mo: 33, di: 5, mi: 5, do: 43, fr: 31 } },
+  { room: "A007", schedule: { mo: 33, di: 5, mi: 5, do: 43, fr: 31 } },
   { room: "A008", schedule: { mo: 70, di: 39, mi: 42, do: 31, fr: 11 } },
-  { room: "A009 Gruppenarbeitsraum", schedule: { mo: 62, di: 17, mi: 50, do: 11, fr: 68 } },
-  { room: "A104 (Physik) Tabletraum", schedule: { mo: 21, di: 74, mi: 77, do: 39, fr: 75 } },
-  { room: "A106 (Physik/NaWi)", schedule: { mo: 51, di: 29, mi: 29, do: 29, fr: 51 } },
-  { room: "A108 (Chemie)", schedule: { mo: 26, di: 26, mi: 75, do: 54, fr: 61 } },
-  { room: "A110 (Chemie)", schedule: { mo: 65, di: 36, mi: 49, do: 36, fr: 57 } },
-  { room: "A111 (Mathematik)", schedule: { mo: 29, di: 20, mi: 10, do: 66, fr: 45 } },
-  { room: "A202 Gruppenarbeitsraum", schedule: { mo: 41, di: 61, mi: 11, do: 62, fr: 62 } },
-  { room: "A203 (Biologie)", schedule: { mo: 64, di: 70, mi: 64, do: 14, fr: 14 } },
+  { room: "A009", schedule: { mo: 62, di: 17, mi: 50, do: 11, fr: 68 } },
+  { room: "A104", schedule: { mo: 21, di: 74, mi: 77, do: 39, fr: 75 } },
+  { room: "A106", schedule: { mo: 51, di: 29, mi: 29, do: 29, fr: 51 } },
+  { room: "A108", schedule: { mo: 26, di: 26, mi: 75, do: 54, fr: 61 } },
+  { room: "A110", schedule: { mo: 65, di: 36, mi: 49, do: 36, fr: 57 } },
+  { room: "A111", schedule: { mo: 29, di: 20, mi: 10, do: 66, fr: 45 } },
+  { room: "A202", schedule: { mo: 41, di: 61, mi: 11, do: 62, fr: 62 } },
+  { room: "A203", schedule: { mo: 64, di: 70, mi: 64, do: 14, fr: 14 } },
   { room: "A204", schedule: { mo: 28, di: 75, mi: 47, do: 8, fr: 67 } },
-  { room: "A206 Computerraum", schedule: { mo: 10, di: 21, mi: 3, do: 13, fr: 3 } },
-  { room: "A207 (Biologie)", schedule: { mo: 14, di: 9, mi: 14, do: 20, fr: 9 } },
-  { room: "A210 (Kunst)", schedule: { mo: 73, di: 64, mi: 1, do: 60, fr: 17 } },
-  { room: "A301 (Musik) Gruppenarbeitsraum", schedule: { mo: 22, di: 22, mi: null, do: 52, fr: 73 } },
-  { room: "A303 (Erdkunde) Stillarbeitsraum", schedule: { mo: 72, di: 77, mi: 72, do: 48, fr: 48 } },
+  { room: "A206", schedule: { mo: 10, di: 21, mi: 3, do: 13, fr: 3 } },
+  { room: "A207", schedule: { mo: 14, di: 9, mi: 14, do: 20, fr: 9 } },
+  { room: "A210", schedule: { mo: 73, di: 64, mi: 1, do: 60, fr: 17 } },
+  { room: "A301", schedule: { mo: 22, di: 22, mi: null, do: 52, fr: 73 } },
+  { room: "A303", schedule: { mo: 72, di: 77, mi: 72, do: 48, fr: 48 } },
   { room: "A305", schedule: { mo: 61, di: 48, mi: null, do: 16, fr: 10 } },
   { room: "A306", schedule: { mo: 67, di: 76, mi: 64, do: 40, fr: 76 } },
-  { room: "A307 (Deutsch)", schedule: { mo: 8, di: 32, mi: null, do: 23, fr: 32 } },
-  { room: "A309 (Trainingsraum)", schedule: { mo: 52, di: 52, mi: 51, do: 50, fr: 50 } },
-  { room: "A310 (Mathematik intensiv)", schedule: { mo: 66, di: 68, mi: 68, do: 68, fr: 46 } },
-  { room: "A311 (Französisch)", schedule: { mo: 40, di: 40, mi: null, do: 41, fr: 23 } },
-  { room: "A312 Stillarbeitsraum", schedule: { mo: null, di: 58, mi: 67, do: 10, fr: 49 } },
-  { room: "B204 (Dalton +)", schedule: { mo: null, di: null, mi: null, do: null, fr: 47} }
+  { room: "A307", schedule: { mo: 8, di: 32, mi: null, do: 23, fr: 32 } },
+  { room: "A309", schedule: { mo: 52, di: 52, mi: 51, do: 50, fr: 50 } },
+  { room: "A310", schedule: { mo: 66, di: 68, mi: 68, do: 68, fr: 46 } },
+  { room: "A311", schedule: { mo: 40, di: 40, mi: null, do: 41, fr: 23 } },
+  { room: "A312", schedule: { mo: null, di: 58, mi: 67, do: 10, fr: 49 } },
 ];
 
 // --- 3. Logic & Composition ---
@@ -150,16 +151,32 @@ const searchMode = ref<'room' | 'teacher'>('room');
 const searchQuery = ref('');
 const currentDay = new Date().getDay();
 
-// Helper: Resolve ID to formatted name with subjects
-const getTeacherDisplay = (id: number | null): string => {
-  if (!id) return '-';
+// TabSwitcher Items
+const tabItems = [
+  { id: 'room', label: 'Raumsuche' },
+  { id: 'teacher', label: 'Lehrer*innensuche' }
+];
+
+const handleTabChange = (id: string) => {
+  searchMode.value = id as 'room' | 'teacher';
+  searchQuery.value = ''; // Clear search when switching tabs
+};
+
+// Helper: Returns object instead of string for better styling control
+const getTeacherDisplay = (id: number | null) => {
+  if (!id) return { name: '-', subjects: '' };
+
   const t = teachers.find(teacher => teacher.id === id);
-  if (!t) return 'Unbekannt';
+  if (!t) return { name: 'Unbekannt', subjects: '' };
 
   const titleAbbr = t.title === 'Frau' ? 'Fr.' : 'Hr.';
+  // Join subjects with a comma, no parentheses
   const subs = [t.subject1, t.subject2, t.subject3, t.subject4].filter(s => s).join(', ');
 
-  return `${titleAbbr} ${t.surname} (${subs})`;
+  return {
+    name: `${titleAbbr} ${t.surname}`,
+    subjects: subs
+  };
 };
 
 // Computed property with simplified Types and better "Default" logic
@@ -240,26 +257,26 @@ const filteredResults = computed<SearchResult[]>(() => {
         >
           <p>Finde den passenden Raum in wenigen Sekunden.</p>
 
-         <h3>Raumsuche</h3>
+          <h3>Raumsuche</h3>
           <p>Sieh für jeden Raum, an welchem Tag welcher Lehrer hier ist.</p>
 
           <h3>Lehrersuche</h3>
           <p>Suche nach bestimmten Lehrern und lasse dir anzeigen, wann sie in welchen Räumen sind oder gib ein Fach ein, für das du Hilfe brauchst, und finde jeden zugehörigen Fachlehrer und die Räume, die sie belegen.</p>
-
-
         </InfoPop>
       </h2>
     </div>
 
-    <div class="controls">
-      <div class="mode-switch">
-        <button :class="{ ghost: searchMode !== 'room' }" class="btn" @click="searchMode = 'room'; searchQuery = ''">
-          Raumsuche
-        </button>
-        <button :class="{ ghost: searchMode !== 'teacher' }" class="btn" @click="searchMode = 'teacher'; searchQuery = ''">
-          Lehrer*innensuche
-        </button>
-      </div>
+    <!-- TabSwitcher Navigation -->
+    <div class="tab-navigation">
+      <TabSwitcher
+          :items="tabItems"
+          :active-id="searchMode"
+          @change="handleTabChange"
+      />
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-input">
       <input
           v-model="searchQuery"
           type="text"
@@ -269,7 +286,7 @@ const filteredResults = computed<SearchResult[]>(() => {
     </div>
 
     <div class="results">
-
+      <!-- Room Search Results -->
       <div v-if="searchMode === 'room'">
         <div v-if="filteredResults.length > 0">
           <div class="table-wrapper">
@@ -277,17 +294,51 @@ const filteredResults = computed<SearchResult[]>(() => {
               <thead>
               <tr>
                 <th class="col-room">Raum</th>
-                <th>MO</th><th>DI</th><th>MI</th><th>DO</th><th>FR</th>
+                <th :class="{ 'is-today': currentDay === 1 }">MO</th>
+                <th :class="{ 'is-today': currentDay === 2 }">DI</th>
+                <th :class="{ 'is-today': currentDay === 3 }">MI</th>
+                <th :class="{ 'is-today': currentDay === 4 }">DO</th>
+                <th :class="{ 'is-today': currentDay === 5 }">FR</th>
               </tr>
               </thead>
               <tbody>
               <tr v-for="(item, index) in (filteredResults as ScheduleRow[])" :key="index">
                 <td class="room-cell"><strong>{{ item.room }}</strong></td>
-                <td :class="{ 'is-today': currentDay === 1 }">{{ getTeacherDisplay(item.schedule.mo) }}</td>
-                <td :class="{ 'is-today': currentDay === 2 }">{{ getTeacherDisplay(item.schedule.di) }}</td>
-                <td :class="{ 'is-today': currentDay === 3 }">{{ getTeacherDisplay(item.schedule.mi) }}</td>
-                <td :class="{ 'is-today': currentDay === 4 }">{{ getTeacherDisplay(item.schedule.do) }}</td>
-                <td :class="{ 'is-today': currentDay === 5 }">{{ getTeacherDisplay(item.schedule.fr) }}</td>
+
+                <td :class="{ 'is-today': currentDay === 1 }">
+                  <div class="t-name">{{ getTeacherDisplay(item.schedule.mo).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.mo).subjects" class="t-sub">
+                    {{ getTeacherDisplay(item.schedule.mo).subjects }}
+                  </div>
+                </td>
+
+                <td :class="{ 'is-today': currentDay === 2 }">
+                  <div class="t-name">{{ getTeacherDisplay(item.schedule.di).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.di).subjects" class="t-sub">
+                    {{ getTeacherDisplay(item.schedule.di).subjects }}
+                  </div>
+                </td>
+
+                <td :class="{ 'is-today': currentDay === 3 }">
+                  <div class="t-name">{{ getTeacherDisplay(item.schedule.mi).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.mi).subjects" class="t-sub">
+                    {{ getTeacherDisplay(item.schedule.mi).subjects }}
+                  </div>
+                </td>
+
+                <td :class="{ 'is-today': currentDay === 4 }">
+                  <div class="t-name">{{ getTeacherDisplay(item.schedule.do).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.do).subjects" class="t-sub">
+                    {{ getTeacherDisplay(item.schedule.do).subjects }}
+                  </div>
+                </td>
+
+                <td :class="{ 'is-today': currentDay === 5 }">
+                  <div class="t-name">{{ getTeacherDisplay(item.schedule.fr).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.fr).subjects" class="t-sub">
+                    {{ getTeacherDisplay(item.schedule.fr).subjects }}
+                  </div>
+                </td>
               </tr>
               </tbody>
             </table>
@@ -296,6 +347,7 @@ const filteredResults = computed<SearchResult[]>(() => {
         <div v-else class="no-results">Keine Räume gefunden.</div>
       </div>
 
+      <!-- Teacher Search Results -->
       <div v-else-if="searchMode === 'teacher'">
         <div v-if="filteredResults.length > 0">
           <div v-for="(res, index) in (filteredResults as TeacherScheduleCard[])" :key="index" class="teacher-card">
@@ -331,118 +383,159 @@ const filteredResults = computed<SearchResult[]>(() => {
           {{ searchQuery ? 'Keine Lehrer gefunden.' : 'Bitte Lehrername eingeben.' }}
         </div>
       </div>
-
     </div>
   </div>
 </template>
 
 <style scoped>
-.controls {
+.card {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 16px;
 }
 
-.mode-switch { display: flex; gap: 10px; }
+.tab-navigation {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.search-input {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
 
 .input {
   max-width: 400px;
   width: 100%;
 }
+
 .table-wrapper {
   overflow-x: auto;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  border-radius: 8px;
-  border: 1px solid var(--border2);
+  border-radius: 6px;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
-  background: #0f0f0f;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  background: transparent;
   min-width: 800px;
 }
 
-th, td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border2);
-  text-align: left;
-  vertical-align: top;
-  background:#282828;
-}
-
 th {
-  background: #282828;
-  color: #F1F1F1;
+  padding: 10px 12px;
+  text-align: center;
+  background: var(--vlbg);
+  color: var(--text);
   font-weight: bold;
+  border-top: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
   border-right: 1px solid var(--border2);
 }
 
+th:first-child {
+  border-left: 1px solid var(--border2);
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+th:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+td {
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  background: #282828;
+  border-top: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2);
+  border-right: 1px solid var(--border2);
+}
+
+tr td:first-child {
+  border-left: 1px solid var(--border2);
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+tr td:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.t-name {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.t-sub {
+  color: var(--sub);
+  font-size: 14px;
+  margin-top: 2px;
+  line-height: 1.2;
+  display: block;
+}
+
 .room-cell {
-  background: #0f0f0f;
+  background: var(--vlbg);
   color: #F1F1F1;
-  font-weight: bold;
-  border: 1px solid var(--border2);
+  font-weight: 500;
   white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .is-today {
-  background-color: #f1f1f1;
-  color:#0f0f0f;
+  background-color: var(--gg);
 }
 
 /* TEACHER CARD STYLES */
 .teacher-card {
   background: var(--jj);
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 12px;
+  margin-bottom: 12px;
   border: 1px solid var(--border2);
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border-radius: 12px;
 }
 
 .card-header {
-  border-bottom: 1px solid var(--border2);
-  padding-bottom: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .card-header h3 {
-  margin: 0 0 5px 0;
-  color: #F1F1F1;
+  margin: 0 0 4px 0;
+  color: var(--text);
 }
 
 .subjects {
-  color: #AAAAAA;
-  font-style: italic;
+  color: var(--sub);
   font-size: 0.95em;
 }
 
 .teacher-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 360px) {
   .teacher-grid { grid-template-columns: 1fr; }
 }
 
 .day-col {
-  background: #1a1a1a;
-  padding: 10px;
+  background: var(--gg);
+  padding: 10px 12px;
   border-radius: 6px;
-  border: 1px solid var(--border2);
 }
 
 .day-col h4 {
   text-align: center;
-  border-bottom: 1px solid var(--border2);
-  margin: 0 0 10px 0;
   padding-bottom: 5px;
-  color: #F1F1F1;
+  color: var(--text);
+  margin: 0px;
 }
 
 .day-col ul {
@@ -452,25 +545,20 @@ th {
 }
 
 .day-col li {
-  background: var(--jj);
-  padding: 6px;
-  margin-bottom: 5px;
-  border-radius: 4px;
+  padding: 0;
   font-size: 0.9em;
   text-align: center;
-  border: 1px solid var(--border2);
-  color: #F1F1F1;
+  color: var(--text);
 }
 
 .day-col li.empty {
-  background: transparent;
-  color: #555;
-  border: 1px dashed var(--border2);
+  color: var(--sub);
 }
 
 .no-results, .placeholder {
   text-align: center;
-  color: #AAAAAA;
-  margin-top: 30px;
+  color: var(--sub);
+  margin-top: 16px;
 }
 </style>
+[file content end]

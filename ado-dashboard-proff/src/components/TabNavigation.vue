@@ -235,7 +235,6 @@ onBeforeUnmount(() => {
   cursor: pointer;
   padding: 10px 12px;
   font-size: 14px;
-  font-weight: 500;
   border-radius: 6px;
   color: var(--sub);
   white-space: nowrap; /* Prevent text wrapping */
