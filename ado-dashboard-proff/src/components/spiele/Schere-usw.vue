@@ -119,7 +119,6 @@ const resetGame = () => {
   flex-direction: column;
   align-items: center;
   padding: 30px;
-  background-color: var(--bg);
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -207,7 +206,7 @@ const resetGame = () => {
   cursor: pointer;
   font-weight: bold;
   font-size: 1.1em;
-  background-color: #9b59b6; /* Lila */
+  background-color: #9b59b6;
   color: white;
   transition: background-color 0.2s, transform 0.1s;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);

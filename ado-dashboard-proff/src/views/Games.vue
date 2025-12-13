@@ -1,23 +1,16 @@
 <template>
-  <div class="games card">
-    <div class="container-game-grid">
-      <div class="games-hero">
-        <div class="games-hero__title">
-          <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; bottom: 0">
-            <Gamepad2 size="35px"/>
-            <h2 >Spiele</h2>
+  <div class="card">
+      <div>
+        <h2 style="margin-top: 0" class="title-inf" >Spiele</h2>
 
-          </div>
-
-          <p class="subtitle">Eine Auswahl an verschiedenen Spielen</p>
-        </div>
       </div>
+    <div class="container-game-grid">
 
       <div class="search-bar">
         <input
             v-model="searchTag"
             placeholder="Suchen"
-            class="search-input"
+            class="input"
         />
       </div>
       <div class="game-grid">
@@ -84,54 +77,14 @@ const filteredGames = computed(() => {
 </script>
 
 <style scoped>
-.container-game-grid {
-  padding: 20px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.games-hero {
-  margin-bottom: 20px;
-  padding: 20px 0;
-}
-.games-hero__title h2 {
-  font-size: 2.5em;
-  margin: 0;
-  color: white;
-}
-.subtitle {
-  color: white;
-  font-size: 1.1em;
-}
-
 .search-bar {
   margin-bottom: 30px;
-  max-width: 400px;
+  max-width: 380px;
   left: 0;
 }
 
-.search-input {
-  width: 100%;
-  padding: 12px 15px;
-  font-size: 1.1em;
-  border: 2px solid var(--jj);
-  border-radius: 8px;
-  background-color: var(--card);
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.2s;
-}
-
-.search-input::placeholder {
-  color: var(--sub);
-}
-
-.search-input:focus {
-  border-color: #51514d;
-  outline: none;
-}
-
 .no-results {
-  color: var(--muted);
+  color: var(--sub);
   text-align: center;
   font-size: 1.2em;
   margin-top: 40px;
@@ -161,6 +114,7 @@ const filteredGames = computed(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border);
 }
 
 .game-card-link:hover .game-card {
@@ -187,7 +141,7 @@ const filteredGames = computed(() => {
 }
 
 .game-description {
-  color: var(--muted);
+  color: var(--sub);
   font-size: 0.9em;
   margin-bottom: 15px;
   flex-grow: 1;

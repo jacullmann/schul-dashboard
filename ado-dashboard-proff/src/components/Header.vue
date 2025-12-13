@@ -28,13 +28,12 @@
           <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">Daltonraumfinder</router-link>
         </nav>
       </div>
-      <!-- Im Template von Header.vue, ersetze die header-right section: -->
+
       <div class="header-right">
         <div v-if="loading" class="loading-placeholder">
           <LoadingSpinner />
         </div>
 
-        <!-- Account Menu wenn angemeldet -->
         <AccountMenu
             v-else-if="user"
             :email="user.email"
@@ -46,11 +45,10 @@
             @personalization-changed="onPersonalizationChanged"
         />
 
-        <!-- Jetzt loslegen Button wenn nicht angemeldet -->
         <button
             v-else
             class="btn ghost cta-button"
-            @click="showAuth = true"
+            @click="openAuthModal"
             data-umami-event="Header Jetzt loslegen Button"
         >
           Anmelden
@@ -70,14 +68,6 @@
       <div v-if="navOpen" class="nav-overlay" @click="closeNav"></div>
     </div>
 
-    <!-- Auth Modal -->
-    <AuthModal
-        v-if="showAuth"
-        @close="showAuth = false"
-        @logged-in="onLoggedIn"
-    />
-
-    <!-- Setup Modal -->
     <CompleteSetup
         v-if="user && showSetupModal"
         :visible="showSetupModal"
@@ -99,19 +89,20 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import Logo from './hw/Logo.vue';
 import AccountMenu from './hw/AccountMenu.vue';
-import AuthModal from './hw/AuthModal.vue';
 import CompleteSetup from './hw/CompleteSetup.vue';
 import { X, Menu } from 'lucide-vue-next';
 import { setHwToken } from '../hwApi';
 import hw from '../hwApi';
 import LoadingSpinner from "./LoadingSpinner.vue";
+import { useGlobalAuthModal } from '../composables/useGlobalAuthModal';
 
 const navOpen = ref(false);
-const showAuth = ref(false);
 const showSetupModal = ref(false);
 const user = ref<any>(null);
 const loading = ref(true);
 const hasShownSetup = ref(false);
+
+const { openAuthModal } = useGlobalAuthModal();
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;
@@ -154,7 +145,6 @@ async function loadMe() {
 
 function onLoggedIn(token: string) {
   setHwToken(token);
-  showAuth.value = false;
   loadMe();
 }
 
@@ -184,7 +174,7 @@ function onSetupSuccess(updatedUser: any) {
 
 // Event Listener für Login aus anderen Komponenten
 function handleShowAuthModal() {
-  showAuth.value = true;
+  openAuthModal();
 }
 
 function handleUserLoggedIn() {

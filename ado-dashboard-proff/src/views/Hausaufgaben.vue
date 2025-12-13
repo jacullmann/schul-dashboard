@@ -194,7 +194,6 @@
     </div>
 
     <!-- Modals -->
-    <AuthModal v-if="showAuth" @close="showAuth=false" @logged-in="onLoggedIn" />
     <ItemForm
         v-if="showItemForm"
         :key="itemFormKey"
@@ -233,7 +232,6 @@
 </template>
 
 <script setup lang="ts">
-import AuthModal from '../components/hw/AuthModal.vue';
 import ItemForm from '../components/hw/ItemForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -250,7 +248,7 @@ import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
 const {
-  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showAuth, showItemForm, showImageFormFor,
+  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
   itemToEdit, user, subjects, announcements, items, loading, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,

@@ -1,5 +1,6 @@
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useGlobalAuthModal } from './useGlobalAuthModal';
 import hw, { setHwToken } from '../hwApi';
 import { marked } from 'marked';
 
@@ -20,6 +21,7 @@ export interface HwItem {
 export function useHausaufgaben() {
     const route = useRoute();
     const router = useRouter();
+    const { openAuthModal } = useGlobalAuthModal();
 
     // --- Konstanten ---
     const enrKurse = [
@@ -50,7 +52,6 @@ export function useHausaufgaben() {
     const itemFormType = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
 
     // --- State ---
-    const showAuth = ref(false);
     const showItemForm = ref(false);
     const showAnnouncementForm = ref(false);
     const showImageFormFor = ref<any>(null);
@@ -316,7 +317,6 @@ export function useHausaufgaben() {
 
     function onLoggedIn(token: string) {
         setHwToken(token);
-        showAuth.value = false;
         loadMe();
         reload();
     }
@@ -327,7 +327,9 @@ export function useHausaufgaben() {
         checkedItems.value = new Set();
     }
 
-    const handleShowAuthModal = () => { showAuth.value = true; };
+    const handleShowAuthModal = () => {
+        openAuthModal();
+    };
 
     // Item Management
     function handleSuccess(msg: string) {
@@ -487,9 +489,9 @@ export function useHausaufgaben() {
     function goTab(t: ItemType) { router.push({ name: 'ItemsByType', params: { type: t } }); }
 
     // --- Watchers ---
-    watch(() => route.params.type, (v) => {
+    watch(() => route.params.type, async (v) => {
         tab.value = isValidType(v) ? v : 'HAUSAUFGABE';
-        loadMe();
+        await loadMe();
         reload();
     });
     watch(showOldEntries, reload);
@@ -520,7 +522,6 @@ export function useHausaufgaben() {
     return {
         MAX_TITLE_LENGTH,
         MAX_SUBJECT_LENGTH,
-        showAuth,
         showItemForm,
         showAnnouncementForm,
         showImageFormFor,

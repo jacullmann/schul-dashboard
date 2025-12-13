@@ -26,6 +26,11 @@
     </main>
 
     <Footer v-if="!$route.meta.hideNavigation"/>
+    <AuthModal
+        v-if="isAuthModalOpen"
+        @close="closeAuthModal"
+        @logged-in="onAuthSuccess"
+    />
 
     <CookieBanner />
     <AccountPromoPopup v-if="!$route.meta.hideNavigation" />
@@ -33,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue"
@@ -41,6 +46,11 @@ import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
 import AccountPromoPopup from './components/popups/AuthFeatures.vue'
 import { loadBadWords } from "./composables/useProfanity";
 import { useLoadingBar } from "./composables/loadingState";
+import AuthModal from './components/hw/AuthModal.vue';
+import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
+import { setHwToken } from './hwApi';
+
+const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
 
 const deviceIsMobile = ref(false);
 
@@ -55,11 +65,24 @@ const checkIfMobile = () => {
   deviceIsMobile.value = isMobileUserAgent || (isSmallScreen && isTouchDevice);
 };
 
+function handleShowAuthModal() {
+  openAuthModal().catch(() => {
+  });
+}
+function onAuthSuccess(token: string) {
+  setHwToken(token);
+  handleAuthSuccess(token);
+}
+
 onMounted(() => {
   checkIfMobile();
   (async () => {
     await loadBadWords();
   })();
+  window.addEventListener('show-auth-modal', handleShowAuthModal);
+});
+onUnmounted(() => {
+  window.removeEventListener('show-auth-modal', handleShowAuthModal);
 });
 </script>
 

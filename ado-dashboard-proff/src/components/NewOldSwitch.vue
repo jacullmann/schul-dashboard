@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 const buttonText = computed(() => {
   if (props.modelValue) {
-    return 'Eintragarchiv verlassen'
+    return 'Eintragsarchiv verlassen'
   } else {
     return 'Eintragsarchiv anzeigen'
   }

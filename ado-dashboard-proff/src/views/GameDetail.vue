@@ -1,6 +1,5 @@
 <template>
-  <div class="game-detail card">
-    <!-- Lade-Indikator, falls die Komponente noch nicht geladen ist -->
+  <div class="card">
     <div v-if="!game">
       <h3 class="text-center">Spiel wird geladen...</h3>
     </div>
@@ -11,7 +10,6 @@
         Zurück zur Spiele-Übersicht
       </router-link>
 
-      <!-- Der Wrapper für das Spiel selbst -->
       <div class="game-card">
         <h1 class="game-title">{{ game.name }}</h1>
         <p class="game-description">{{ game.description }}</p>
@@ -58,14 +56,6 @@ watch(() => route.params.id, (newId) => {
 </script>
 
 <style scoped>
-.game-detail {
-  padding: 20px;
-}
-
-.game-container {
-  max-width: 900px;
-  margin: 0 auto;
-}
 
 .back-link {
   display: inline-flex;
@@ -98,7 +88,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .game-description {
-  color: var(--muted);
+  color: var(--sub);
   font-size: 1.1em;
   margin-bottom: 20px;
 }

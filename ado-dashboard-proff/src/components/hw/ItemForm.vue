@@ -322,7 +322,7 @@ async function uploadImage() {
         uploading.value = false;
       }
     }
-  }, 1000);
+  }, 3000);
 
   input.click();
 }
@@ -390,11 +390,6 @@ async function submit() {
       // Es ist ein einfaches Fach (z.B. "Mathe", "Deutsch")
       subject = mainSubject;
     }
-    // --- ENDE DER NEUEN FACH-LOGIK ---
-
-
-    // Frontend-Validierung vor dem Senden
-    // const subject = ... (Diese Zeile wird durch die obige Logik ersetzt)
 
     // Titel-Validierung
     if (!title.value.trim()) {
