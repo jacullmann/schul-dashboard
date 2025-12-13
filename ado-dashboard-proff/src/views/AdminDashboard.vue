@@ -39,7 +39,7 @@
             </div>
           </div>
 
-          <div class="chart-section card mt-4" v-if="stats">
+          <div class="chart-section card rlc mt-4" v-if="stats">
             <h3>Einträge nach Art</h3>
             <div class="bar-chart">
               <div v-for="type in stats.itemsByType" :key="type._id" class="bar-row">
@@ -60,7 +60,7 @@
             </div>
           </div>
 
-          <div class="table-container card">
+          <div class="table-container card rlc">
             <table class="data-table">
               <thead>
               <tr>
@@ -115,7 +115,7 @@
 
           <Transition name="drawer-slide">
           <div v-if="showActivityFor" class="activity-drawer" @click.self="showActivityFor = null">
-            <div class="drawer-content card">
+            <div class="drawer-content card rlc">
               <h3>Aktivitätsprotokoll</h3>
               <div v-if="loadingActivities[showActivityFor]" class="loader">Lade...</div>
               <ul v-else class="log-list">
@@ -134,7 +134,7 @@
         <div v-if="activeTab === 'reports'" class="tab-content fade-in">
           <div v-if="!reports.length" class="empty-state">Keine Meldungen vorhanden.</div>
           <div class="report-grid">
-            <div v-for="rep in reports" :key="rep._id" class="report-card card">
+            <div v-for="rep in reports" :key="rep._id" class="report-card card rlc">
               <div class="rep-header">
                 <strong>{{ rep.itemTitle }}</strong>
                 <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
@@ -159,7 +159,7 @@
         <div v-if="activeTab === 'sorgen'" class="tab-content fade-in">
           <div v-if="!entriessorgen.length" class="empty-state">Der Kasten ist leer.</div>
           <div class="sorgen-list">
-            <div v-for="s in entriessorgen" :key="s._id" class="sorge-card card">
+            <div v-for="s in entriessorgen" :key="s._id" class="sorge-card rlc card">
               <div class="sorge-body">{{ s.message }}</div>
               <div class="sorge-footer">
                 <span class="small">{{ new Date(s.createdAt).toLocaleString() }}</span>
@@ -170,7 +170,7 @@
         </div>
 
         <div v-if="activeTab === 'security'" class="tab-content fade-in">
-          <div class="security-tools card">
+          <div class="security-tools card rlc">
             <h3>KI Sicherheits-Analyse</h3>
             <div class="row mt-4">
               <button class="btn primary" @click="generateSecurityReport" :disabled="isGeneratingReport">
@@ -182,7 +182,7 @@
 
           <div v-if="reportError" class="message error mt-4">{{ reportError }}</div>
 
-          <div v-if="securityReport" class="report-result card mt-4">
+          <div v-if="securityReport" class="report-result card  rlc mt-4">
             <div class="report-toolbar">
               <h4>Ergebnis</h4>
               <button class="btn ghost tiny" @click="copyReportToClipboard">Kopieren</button>
@@ -192,13 +192,13 @@
         </div>
 
         <div v-if="activeTab === 'announcements'" class="tab-content fade-in">
-          <div class="card">
+          <div class="card rlc">
             <h3>Neue Ankündigung</h3>
             <div class="row mt-4">
               <button class="btn" @click="showAnnouncementForm = true">Öffnen</button>
             </div>
           </div>
-          <div class="card">
+          <div class="card rlc">
             <div class="announcements" v-if="announcements.length">
               <div class="announcements-head">
                 <h3>Ankündigungen</h3>
@@ -219,12 +219,12 @@
         <div v-if="activeTab === 'timetable'" class="tab-content fade-in">
           <div class="timetable-admin-grid">
             <!-- Linke Seite: EditModal -->
-            <div class="timetable-edit-section card">
+            <div class="timetable-edit-section card rlc">
               <h2>Neue Substitution erstellen</h2>
               <EditModal />
             </div>
 
-            <div class="timetable-list-section card">
+            <div class="timetable-list-section card rlc">
               <div class="section-header">
                 <h2>Gespeicherte Substitutions</h2>
                 <button

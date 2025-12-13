@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card rlc">
     <h3>Cookie-Einstellungen</h3>
     <p>
       Aktueller Status:

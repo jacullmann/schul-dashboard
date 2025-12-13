@@ -1,7 +1,7 @@
 <template>
   <div class="blurit">
-    <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; z-index:100;">
-      <div class="card styl" style="width:100%; max-width:420px;">
+    <div class="card rlc" style="position:fixed; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; z-index:100;">
+      <div class="card rlc styl" style="width:100%; max-width:420px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
           <button data-umami-event="AuthModal schlißen" class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>

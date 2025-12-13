@@ -1,6 +1,6 @@
 <template>
     <!-- Admin Controls -->
-    <div v-if="user?.isAdmin" class="card">
+    <div v-if="user?.isAdmin" class="card rlc">
       <h3>Adminbereich</h3>
       <div class="row">
         <div class="col">
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Countdown List -->
-    <div class="card" v-for="countdown in countdowns" :key="countdown.id">
+    <div class="card rlc" v-for="countdown in countdowns" :key="countdown.id">
       <div class="row">
         <div class="col">
           <h3>{{ countdown.name }}</h3>
@@ -110,25 +110,25 @@
       </div>
     </div>
 
-    <div v-if="loading" class="card">
+    <div v-if="loading" class="card rlc">
       <div class="loader">
         <LoadingSpinner color="#fff" size="1.2em" />
         <div style="color: #aaaaaa">Lade Countdowns...</div>
       </div>
     </div>
 
-    <div v-if="error" class="card">
+    <div v-if="error" class="card rlc">
       <p style="color: var(--danger); text-align: center;">{{ error }}</p>
     </div>
 
-    <div v-if="countdowns.length === 0 && !loading" class="card">
+    <div v-if="countdowns.length === 0 && !loading" class="card rlc">
       <p style="text-align: center; color: var(--muted);">
         Noch keine Countdowns vorhanden.
         <span v-if="user?.isAdmin">Erstelle einen Countdown! Für Dorisx!</span>
       </p>
     </div>
 
-    <div v-if="successMessage" class="card" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3);">
+    <div v-if="successMessage" class="card rlc" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3);">
       <p style="color: #22c55e; text-align: center; margin: 0;">{{ successMessage }}</p>
     </div>
 </template>

@@ -1,6 +1,6 @@
 <template>
   <div class="blurit">
-    <div class="card modal">
+    <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort ändern</h3>
         <button

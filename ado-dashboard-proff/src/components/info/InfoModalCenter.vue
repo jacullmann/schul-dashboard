@@ -31,7 +31,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
   <Teleport to="body">
     <Transition name="fade-scale">
       <div v-if="isModalOpen" class="blurit" @click="handleBackgroundClick">
-        <div class="card info-modal-content">
+        <div class="card rlc info-modal-content">
           <div class="modal-header">
             <h3 v-if="props.title" class="popover-title">{{ props.title }}</h3>
             <div v-else></div>

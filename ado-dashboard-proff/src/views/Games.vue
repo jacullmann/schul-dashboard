@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card rlc">
       <div>
         <h2 style="margin-top: 0" class="title-inf" >Spiele</h2>
 

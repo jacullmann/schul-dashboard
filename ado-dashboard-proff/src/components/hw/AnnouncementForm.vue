@@ -1,6 +1,6 @@
 <template>
-  <div class="card" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-    <div class="card" style="width:100%; max-width:520px;">
+  <div class="card rlc" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+    <div class="card rlc" style="width:100%; max-width:520px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Neue Ankündigung</h3>
         <button data-umami-event="Ankündigung erstellen Menü schließen" class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>

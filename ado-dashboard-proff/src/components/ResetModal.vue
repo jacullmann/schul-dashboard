@@ -1,6 +1,6 @@
 <template>
   <div class="blurit">
-    <div class="card modal">
+    <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort zurücksetzen</h3>
         <button data-umami-event="Passwort zurücksetzen Abbruch" class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>

@@ -35,7 +35,7 @@ onUnmounted(() => {
     </div>
 
     <transition name="pop-fade">
-      <div v-if="isOpen" class="info-popover card">
+      <div v-if="isOpen" class="info-popover card rlc">
         <h4 v-if="props.title" class="popover-title">{{ props.title }}</h4>
         <div class="popover-content" v-html="props.content"></div>
       </div>

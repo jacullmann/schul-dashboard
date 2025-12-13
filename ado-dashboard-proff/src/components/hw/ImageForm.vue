@@ -1,6 +1,6 @@
 <template>
   <div class="blurit">
-    <div class="modal card">
+    <div class="modal card rlc">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
         <button data-umami-event="ImageForm Menü schlißen" style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
@@ -45,7 +45,7 @@
     </div>
 
     <div v-if="showConfirmRemovalModal" class="overlay confirm">
-      <div class="modal card confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
+      <div class="modal card rlc confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
         <h4>Dieses Bild unwiderruflich löschen?</h4>
         <p>Wenn du dieses Bild löschst, gibt es keinen Weg, es wiederherzustellen.</p>
 
