@@ -1,5 +1,5 @@
 :root {
-    --bg: #050505;
+    --bg: #0f0f0f;
     --lbg: #0f0f0f;
     --llbg: #191919;
     --card: #1a1a1a;
@@ -126,10 +126,10 @@ h1, h2, h3, h4, h5 {
 @tailwind utilities;
 
 .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-.card {
+/*.card {
     background: var(--lbg);
     border: 1px solid var(--border);  border-radius: 24px; padding: 16px;;
-}
+}*/
 hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .col { flex: 1; min-width: 240px; }
