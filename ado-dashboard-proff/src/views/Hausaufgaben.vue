@@ -9,7 +9,7 @@
         >
           <p>Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</p>
           <h3>Einträge</h3>
-          <p>Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> — alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
+          <p>Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
 
           <h3>Eintrag hinzufügen</h3>
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Arbeitsblätter, Seiten aus dem Buch, Notizen, Lernzettel o. ä.</p>
@@ -34,23 +34,6 @@
       </div>
     </div>
 
-    <!-- Ankündigungen: Nur Lesen hier, Erstellen im AdminDashboard
-    <div class="announcements" v-if="announcements.length">
-      <div class="announcements-head">
-        <h3>Wichtige Ankündigungen</h3>
-      </div>
-      <div class="ann-list">
-        <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
-          <div class="ann-content">{{ a.content }}</div>
-          <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-          Admin kann hier löschen oder im Dashboard. Wir lassen es hier der Einfachheit halber drin
-          <div v-if="canManage(a.createdBy)" class="ann-actions">
-            <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
-          </div>
-        </div>
-      </div>
-    </div>-->
-
     <div class="tabs-row">
       <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
       <button data-umami-event="Dashboard Dalton Reiter" class="btn rei" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
@@ -73,33 +56,28 @@
           <CreateEntryDropdownPseudo
               v-if="!user"
           />
-
         </div>
         <CreateEntryDropdown
             v-if="user && tab === 'PRIVATE'"
             @select="openCreateFormByType"
         />
-
-
-
-        <div v-if="loading && tab !== 'PRIVATE'" class="loader">
-          <LoadingSpinner color="#fff" size="1.2em" />
-          <div style="color: #aaaaaa">Lade...</div>
-        </div>
       </div>
 
       <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
     </div>
 
     <div class="items">
+      <!-- Skeleton Loading -->
+      <ItemSkeleton v-if="loading && tab !== 'PRIVATE'" :count="5" :image-count="2" />
+
+      <!-- Actual Items -->
       <div
-          v-if="tab !== 'PRIVATE'"
+          v-else-if="tab !== 'PRIVATE'"
           v-for="item in limitedItems"
           :key="item.id"
           class="item-card"
           :class="{ collapsed: isChecked(item.id) }"
       >
-        <!-- Item Content (unverändert) -->
         <div class="item-main">
           <div class="item-meta">
             <div style="display:flex; align-items:center; gap:8px;">
@@ -154,7 +132,6 @@
 
         <transition name="collapse">
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
-            <!-- Images rendering logic retained -->
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
                 <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper">
@@ -189,8 +166,6 @@
         <button v-if="visibleCount < filteredItems.length" class="btn ghost" @click="showMore">Mehr anzeigen</button>
         <button v-if="visibleCount > 5" class="btn ghost" @click="showLess">Weniger anzeigen</button>
       </div>
-
-
     </div>
 
     <!-- Modals -->
@@ -235,10 +210,10 @@
 import ItemForm from '../components/hw/ItemForm.vue';
 import ImageForm from '../components/hw/ImageForm.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import LoadingSpinner from "../components/LoadingSpinner.vue";
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
+import ItemSkeleton from '../components/ItemSkeleton.vue';
 import { Flag, Pencil, Images, Trash2, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
@@ -382,7 +357,7 @@ const {
   /* Anpassungen */
 }
 @media (max-width: 500px ) {
-  .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; }
+  .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; flex-wrap: wrap; justify-content: left; }
   .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }
 }
 </style>
