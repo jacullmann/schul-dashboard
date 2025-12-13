@@ -34,12 +34,10 @@
       </div>
     </div>
 
-    <div class="tabs-row">
-      <button data-umami-event="Dashboard Hausaufgaben Reiter" class="btn rei" :class="{ ghost: tab !== 'HAUSAUFGABE' }" @click="goTab('HAUSAUFGABE')">Hausaufgaben</button>
-      <button data-umami-event="Dashboard Dalton Reiter" class="btn rei" :class="{ ghost: tab !== 'DALTON' }" @click="goTab('DALTON')">Dalton</button>
-      <button data-umami-event="Dashboard Prüfung Reiter" class="btn rei" :class="{ ghost: tab !== 'PRUEFUNG' }" @click="goTab('PRUEFUNG')">Prüfungen</button>
-      <button data-umami-event="Dashboard Private Einträge Reiter" class="btn rei" :class="{ ghost: tab !== 'PRIVATE' }" @click="goTab('PRIVATE')">Privat</button>
-    </div>
+    <TabNavigation
+        :active-tab="tab"
+        @change="goTab"
+    />
 
     <div class="controls">
       <div class="left">
@@ -214,6 +212,7 @@ import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import ItemSkeleton from '../components/ItemSkeleton.vue';
+import TabNavigation from '../components/TabNavigation.vue';
 import { Flag, Pencil, Images, Trash2, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
@@ -224,7 +223,7 @@ import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
-  itemToEdit, user, subjects, announcements, items, loading, subjectFilter, showPersonalized, onPersonalizationChanged,
+  itemToEdit, user, subjects, announcements, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
   showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
@@ -237,7 +236,6 @@ const {
   handleTodoSuccess, itemFormType, openEditTodo, todoAppRef, showDeleteConfirm,
   confirmDelete,
   cancelDelete,
-  initialLoad
 } = useHausaufgaben();
 </script>
 
@@ -253,7 +251,12 @@ const {
 .ann-content { white-space: pre-wrap; color: var(--text); }
 .ann-date { color: var(--muted); }
 .ann-actions { margin-top: 8px; }
-.tabs-row { display:flex; gap:8px; margin: 16px 0;  flex-wrap: wrap;flex-direction: row }
+
+/* Tab Navigation Spacing */
+:deep(.nav-bar) {
+  margin: 16px 0;
+}
+
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 14px; background: #282828;}
