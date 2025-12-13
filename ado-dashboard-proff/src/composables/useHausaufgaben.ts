@@ -61,6 +61,7 @@ export function useHausaufgaben() {
     const announcements = ref<any[]>([]);
     const items = ref<HwItem[]>([]);
     const loading = ref(true);
+    const initialLoad = ref(true);
     const subjectFilter = ref('');
     const showPersonalized = computed(() => user.value?.personalized ?? false);
     const showOldEntries = ref(false);
@@ -294,6 +295,7 @@ export function useHausaufgaben() {
             console.error('Failed to load items:', e);
         } finally {
             loading.value = false;
+            initialLoad.value = false;
             visibleCount.value = Math.min(5, filteredItems.value.length || 5);
         }
     }
@@ -583,5 +585,6 @@ export function useHausaufgaben() {
         showDeleteConfirm,
         confirmDelete,
         cancelDelete,
+        initialLoad
     };
 }

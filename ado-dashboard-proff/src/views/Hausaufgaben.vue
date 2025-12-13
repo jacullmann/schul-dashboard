@@ -68,7 +68,7 @@
 
     <div class="items">
       <!-- Skeleton Loading -->
-      <ItemSkeleton v-if="loading && tab !== 'PRIVATE'" :count="5" :image-count="2" />
+      <ItemSkeleton v-if="loading && initialLoad && tab !== 'PRIVATE'" :count="5" :image-count="2" />
 
       <!-- Actual Items -->
       <div
@@ -237,6 +237,7 @@ const {
   handleTodoSuccess, itemFormType, openEditTodo, todoAppRef, showDeleteConfirm,
   confirmDelete,
   cancelDelete,
+  initialLoad
 } = useHausaufgaben();
 </script>
 
