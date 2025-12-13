@@ -36,6 +36,7 @@ const updates: ChangeLogItem[] = [
 // --- State ---
 const searchQuery = ref('');
 const selectedVersion = ref<string>(updates[0].version);
+const showMobileList = ref(true); // Steuert die Ansicht auf Mobile
 
 // --- Computed ---
 const filteredUpdates = computed(() => {
@@ -55,13 +56,19 @@ const currentUpdate = computed(() => {
 // --- Actions ---
 const selectUpdate = (version: string) => {
   selectedVersion.value = version;
+  // Auf Mobile zur Detailansicht wechseln
+  showMobileList.value = false;
+};
+
+const backToList = () => {
+  showMobileList.value = true;
 };
 </script>
 
 <template>
   <div class="update-history-container">
 
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'hidden-mobile': !showMobileList }">
       <div class="search-wrapper">
         <div class="search-input-container">
           <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -95,7 +102,13 @@ const selectUpdate = (version: string) => {
       </div>
     </aside>
 
-    <main class="content-area">
+    <main class="content-area" :class="{ 'hidden-mobile': showMobileList }">
+
+      <button class="mobile-back-btn" @click="backToList">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Zurück zur Übersicht
+      </button>
+
       <div class="content-card">
         <div class="content-header">
           <div>
@@ -128,22 +141,24 @@ const selectUpdate = (version: string) => {
 .update-history-container {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh; /* Fixed height container to allow internal scrolling */
+  overflow: hidden;
 }
 
 /* --- Sidebar --- */
 .sidebar {
   width: 300px;
-  background-color: #0F0F0F;
-  border-right: 1px solid var(--border2);
+  background-color: var(--lbg); /* Fallback color added */
+  border-right: 1px solid var(--border2, #333);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  height: 100%;
 }
 
 .search-wrapper {
   padding: 16px;
-  border-bottom: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border2, #333);
 }
 
 .search-input-container {
@@ -162,9 +177,9 @@ const selectUpdate = (version: string) => {
 
 .search-input {
   width: 100%;
-  background-color: #282828;
-  border: 1px solid #414141;
-  color: #F1F1F1;
+  background-color: var(--jj);
+  border: 1px solid var(--border2);
+  color: var(--text);
   padding: 10px 12px 10px 36px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -182,19 +197,19 @@ const selectUpdate = (version: string) => {
   width: 6px;
 }
 .version-list::-webkit-scrollbar-thumb {
-  background-color: #282828;
+  background-color: var(--jj);
   border-radius: 3px;
 }
 
 .version-item {
   padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #282828;
-  color:#f1f1f1;
+  border-bottom: 1px solid var(--border);
+  color:var(--text);
 }
 
 .version-item:hover {
-  background-color: #282828;
+  background-color: var(--jj);
 }
 
 .version-item.active {
@@ -238,19 +253,23 @@ const selectUpdate = (version: string) => {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
-  max-width:1100px;
+  height: 100%;
 }
 
 .content-card {
   border-radius: 16px;
   padding: 16px;
   border: 1px solid var(--border2);
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .content-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .main-title {
@@ -273,6 +292,7 @@ const selectUpdate = (version: string) => {
   background-color: #414141;
   padding: 4px 8px;
   border-radius: 6px;
+  white-space: nowrap;
 }
 
 .divider {
@@ -315,5 +335,61 @@ const selectUpdate = (version: string) => {
   font-weight: bold;
   position: absolute;
   left: 0;
+}
+
+/* --- Mobile Specifics --- */
+.mobile-back-btn {
+  display: none; /* Hidden on desktop */
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-size: 1rem;
+  margin-bottom: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* --- RESPONSIVE MEDIA QUERIES --- */
+@media (max-width: 768px) {
+  .update-history-container {
+    flex-direction: column;
+    height: 100vh; /* Use dynamic viewport height if possible, else 100vh */
+  }
+
+  /* Hide elements based on state */
+  .sidebar.hidden-mobile,
+  .content-area.hidden-mobile {
+    display: none;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+  }
+
+  .content-area {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .mobile-back-btn {
+    display: flex;
+  }
+
+  .content-card {
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .main-title {
+    font-size: 1.5rem;
+  }
+
+  .header-date {
+    font-size: 0.8rem;
+  }
 }
 </style>

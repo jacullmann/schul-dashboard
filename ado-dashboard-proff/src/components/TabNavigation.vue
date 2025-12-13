@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 
 // -- Types --
 interface NavItem {
@@ -29,24 +29,28 @@ const items: NavItem[] = [
 
 const itemRefs = ref<(HTMLElement | null)[]>([]);
 const navBarRef = ref<HTMLElement | null>(null);
-const navBarWidth = ref(0);
+const navBarScrollWidth = ref(0);
+const resizeObserver = ref<ResizeObserver | null>(null);
 
-// Finde den Index basierend auf activeTab
+// Find index based on activeTab
 const selectedIndex = ref(
     items.findIndex(item => item.id === props.activeTab)
 );
 
-// Watch für externe Tab-Änderungen (z.B. durch Route)
+// Watch for external tab changes
 watch(() => props.activeTab, (newTab) => {
   const index = items.findIndex(item => item.id === newTab);
   if (index !== -1) {
     selectedIndex.value = index;
+    nextTick(() => {
+      scrollToActive();
+    });
   }
 });
 
 // -- Computed Styles --
 
-// 1. The Pill Geometry (Moves to the selected item)
+// 1. The Pill Geometry
 const pillStyle = computed(() => {
   const targetElement = itemRefs.value[selectedIndex.value];
   if (!targetElement) return { opacity: 0 };
@@ -58,31 +62,58 @@ const pillStyle = computed(() => {
   };
 });
 
-// 2. The Inner List Geometry (Moves opposite to the pill to appear stationary)
+// 2. The Inner List Geometry
 const innerListStyle = computed(() => {
   const targetElement = itemRefs.value[selectedIndex.value];
   if (!targetElement) return {};
 
   return {
-    width: `${navBarWidth.value}px`, // Must match total width of parent
+    width: `${navBarScrollWidth.value}px`, // Matches the full SCROLL width
     transform: `translateX(-${targetElement.offsetLeft}px)`, // Inverse movement
   };
 });
 
 // -- Methods --
+const updateMetrics = () => {
+  if (navBarRef.value) {
+    // We use scrollWidth to capture the full width of content, not just visible area
+    navBarScrollWidth.value = navBarRef.value.scrollWidth;
+  }
+};
+
 const selectItem = (index: number) => {
   selectedIndex.value = index;
   emit('change', items[index].id);
 };
 
+const scrollToActive = () => {
+  const target = itemRefs.value[selectedIndex.value];
+  if (target && navBarRef.value) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+};
+
 // -- Lifecycle --
 onMounted(() => {
-  nextTick(() => {
-    // Capture the total width of the nav bar to ensure inner list aligns
-    if (navBarRef.value) {
-      navBarWidth.value = navBarRef.value.offsetWidth;
-    }
-  });
+  // Initial calculation
+  updateMetrics();
+
+  // Observer for responsive resizing
+  if (navBarRef.value) {
+    resizeObserver.value = new ResizeObserver(() => {
+      updateMetrics();
+    });
+    resizeObserver.value.observe(navBarRef.value);
+  }
+
+  // Update on font load or delayed rendering
+  setTimeout(updateMetrics, 100);
+});
+
+onBeforeUnmount(() => {
+  if (resizeObserver.value) {
+    resizeObserver.value.disconnect();
+  }
 });
 </script>
 
@@ -138,14 +169,23 @@ onMounted(() => {
 /* -- The Bar Container -- */
 .nav-bar {
   position: relative;
-  background-color: #282828;
-  border: 1px solid #414141;
+  background-color: var(--vlbg);
+  border: 1px solid var(--border2);
   padding: 0;
   border-radius: 6px;
   display: flex;
   isolation: isolate;
-  min-height: 40px;
-  width: fit-content;
+  /* Scroll behavior */
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* Hide Scrollbar for Chrome/Safari */
+.nav-bar::-webkit-scrollbar {
+  display: none;
 }
 
 /* -- Shared Layer Styles -- */
@@ -153,6 +193,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   height: 100%;
+  /* Ensure layers don't wrap or shrink */
+  width: max-content;
 }
 
 /* Background Layer: Static, holds the clickable buttons */
@@ -167,8 +209,9 @@ onMounted(() => {
   top: 0;
   left: 0;
   height: 100%;
-  pointer-events: none; /* Let clicks pass through to background */
-  transition: transform 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+  pointer-events: none;
+  /* Transition must match pill transition to look 'locked' */
+  transition: transform .4s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 /* -- The Sliding Pill (Mask) -- */
@@ -177,12 +220,12 @@ onMounted(() => {
   top: 0;
   bottom: 0;
   left: 0;
-  background-color: #F1F1F1;
-  border-radius: 6px;
+  background-color: var(--text);
+  border-radius: 5px;
   z-index: 2;
-  overflow: hidden; /* This acts as the mask/cutout */
-  pointer-events: none; /* Let clicks pass through to background buttons */
-  transition: all 0.5s cubic-bezier(0.075, 0.82, 0.165, 1);
+  overflow: hidden;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 /* -- The Buttons -- */
@@ -194,32 +237,18 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   border-radius: 6px;
-  /* Default Color (Background Layer) */
-  color: #AAA;
-  white-space: nowrap;
+  color: var(--sub);
+  white-space: nowrap; /* Prevent text wrapping */
+  flex-shrink: 0; /* Prevent items from squishing */
   transition: color 0.2s ease;
 }
 
 .nav-item:hover {
-  color: #f1f1f1;
+  color: var(--text);
 }
 
 /* -- The Text Inside the Pill -- */
 .nav-item.active-text {
-  color: #0F0F0F; /* Black text strictly inside the pill */
-}
-
-/* -- Mobile Responsive -- */
-@media (max-width: 500px) {
-  .nav-bar {
-    width: 100%;
-  }
-
-  .nav-item {
-    flex: 1;
-    text-align: center;
-    padding: 10px 8px;
-    font-size: 13px;
-  }
+  color: var(--lbg);
 }
 </style>

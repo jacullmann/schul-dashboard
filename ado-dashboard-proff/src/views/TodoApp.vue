@@ -68,7 +68,7 @@
                   {{ formatDateTime(todo.dueDate) }}
                   <span v-if="isOverdue(todo.dueDate, todo.completed)" class="overdue-badge">Überfällig</span>
                 </div>
-                <div class="todo-meta">Erstellt: {{ formatDate(todo.createdAt) }}</div>
+                <!--<div class="tod-o-meta">Erstellt: {{ formatDate(tod-o.createdAt) }}</div>-->
               </div>
             </div>
 

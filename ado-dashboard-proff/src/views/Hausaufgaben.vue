@@ -259,7 +259,7 @@ const {
 
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
-.select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 14px; background: #282828;}
+.select-subject { width:auto; min-width:160px; border: 1px solid var(--border2); padding: 10px 12px; background: #282828;}
 .items { margin-top: 16px; display:flex; flex-direction:column; gap:12px; }
 .item-card { border-radius: 12px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }

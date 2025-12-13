@@ -254,10 +254,10 @@ const filteredResults = computed<SearchResult[]>(() => {
     <div class="controls">
       <div class="mode-switch">
         <button :class="{ ghost: searchMode !== 'room' }" class="btn" @click="searchMode = 'room'; searchQuery = ''">
-          Suche nach Raum
+          Raumsuche
         </button>
         <button :class="{ ghost: searchMode !== 'teacher' }" class="btn" @click="searchMode = 'teacher'; searchQuery = ''">
-          Suche nach Lehrer:in
+          Lehrer*innensuche
         </button>
       </div>
       <input
