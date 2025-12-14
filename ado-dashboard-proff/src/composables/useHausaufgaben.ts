@@ -116,7 +116,7 @@ export function useHausaufgaben() {
     };
 
     const colorStyles = (timeColor: string) => {
-        if (timeColor === 'expired') return { background: 'var(--jj)', color: 'var(--text)' };
+        if (timeColor === 'expired') return { background: 'var(--gg)', color: 'var(--text)' };
         if (timeColor === 'danger') return { background: 'var(--danger)', color: 'var(--text)' };
         if (timeColor === 'warn') return { background: 'var(--warn)', color: 'var(--card)' };
         if (timeColor === 'info') return { background: 'var(--primary)', color: 'var(--text)' };

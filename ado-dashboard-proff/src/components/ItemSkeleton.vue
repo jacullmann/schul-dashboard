@@ -91,6 +91,7 @@ withDefaults(defineProps<{
   );
   background-size: 600px;
   animation: shimmer 1.5s infinite;
+  margin-bottom: 8px;
 }
 
 .skeleton-badge {
@@ -104,6 +105,7 @@ withDefaults(defineProps<{
   );
   background-size: 600px;
   animation: shimmer 1.5s infinite;
+  margin-bottom: 8px;
 }
 
 .skeleton-subject {
