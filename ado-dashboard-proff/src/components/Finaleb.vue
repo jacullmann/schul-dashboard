@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import hw from "../hwApi";
 import InfoPop from '../components/info/InfoModalCenter.vue'
-// --- Types ---
 
 interface Lesson {
   id: number;
@@ -13,12 +12,10 @@ interface Lesson {
   subject_abbr?: string;
   teacher: string | null;
   room: string | null;
-  // Internal for logic
   _original?: Lesson;
   cancelled?: boolean;
 }
 
-// Substitution now mirrors Lesson properties to allow full movement/changes
 interface Substitution {
   lessonId: number;
   day?: string;
@@ -37,7 +34,6 @@ interface TimeSlot {
   time: string;
 }
 
-// --- Configuration ---
 const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 const totalSlots = 9;
 const lessonDurationMins = 45;
@@ -51,7 +47,6 @@ const breaks: Record<number, number> = {
   7: 10
 };
 
-// --- Mock Data: Lessons ---
 const jsonData: Lesson[] = [
   { "id": 1, "day": "Montag", "slot": 1, "duration": 1, "room": "A005", "teacher": "Fr. Ellsiepen", "subject": "Enrichment", "subject_abbr": "ENR" },
   { "id": 2, "day": "Montag", "slot": 1, "duration": 1, "room": "A106", "teacher": "Hr. Weber", "subject": "Enrichment", "subject_abbr": "ENR" },
@@ -116,12 +111,10 @@ async function loadSubstitutions() {
 const lessons = ref<Lesson[]>(jsonData);
 const substitutions = ref<Substitution[]>(substitutionsData);
 
-// --- Logic: Processing Lessons with Substitutions ---
 
 const effectiveLessons = computed<Lesson[]>(() => {
   const result: Lesson[] = [];
 
-  // Group substitutions by lessonId
   const subMap = new Map<number, Substitution[]>();
   substitutions.value.forEach(sub => {
     if (!subMap.has(sub.lessonId)) subMap.set(sub.lessonId, []);
@@ -131,22 +124,18 @@ const effectiveLessons = computed<Lesson[]>(() => {
   lessons.value.forEach(original => {
     const subs = subMap.get(original.id);
 
-    // If no substitutions exist, push original
     if (!subs || subs.length === 0) {
-      result.push({ ...original, _original: original }); // Self-reference for simple comparison logic
+      result.push({ ...original, _original: original });
       return;
     }
 
-    // If substitutions exist, iterate them (Creates clones if > 1 sub per ID)
     subs.forEach(sub => {
-      // Logic: "hide" acts as if lesson wasn't in table
       if (sub.hide) return;
 
-      // Merge original with substitution overrides
       const merged: Lesson = {
         ...original,
-        ...sub, // Overwrite properties (day, slot, room, cancelled, etc.)
-        _original: original // Keep reference to original for diffing in template
+        ...sub,
+        _original: original
       };
 
       result.push(merged);
@@ -156,7 +145,6 @@ const effectiveLessons = computed<Lesson[]>(() => {
   return result;
 });
 
-// --- Time Logic ---
 
 const formatTime = (totalMinutes: number): string => {
   const hours = Math.floor(totalMinutes / 60);
@@ -185,11 +173,9 @@ const timeSlots = computed<TimeSlot[]>(() => {
   return slots;
 });
 
-// Group lessons based on Effective Lessons (Post-substitution)
 const groupedLessons = computed(() => {
   const groups: Record<string, Lesson[]> = {};
   effectiveLessons.value.forEach(lesson => {
-    // Key is based on the *current* (possibly modified) day/slot
     const key = `${lesson.day}-${lesson.slot}`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(lesson);
@@ -197,7 +183,6 @@ const groupedLessons = computed(() => {
   return groups;
 });
 
-// Container Style
 const getGroupStyle = (groupLessons: Lesson[]) => {
   if (!groupLessons.length) return {};
   const firstLesson = groupLessons[0];
@@ -210,8 +195,6 @@ const getGroupStyle = (groupLessons: Lesson[]) => {
     gridRow: `${rowStart} / span ${maxDuration}`
   };
 };
-
-// --- Active / Highlight Logic ---
 
 const now = ref(new Date());
 
@@ -231,6 +214,17 @@ onUnmounted(() => {
 const dayMap: Record<string, number> = {
   'Montag': 0, 'Dienstag': 1, 'Mittwoch': 2, 'Donnerstag': 3, 'Freitag': 4
 };
+// --- Start of new code to add ---
+
+// New computed property to get the name of the current day
+const currentDayName = computed(() => {
+  const dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0, Sunday = 6
+  // Check if it's a weekday (Monday to Friday, 0 to 4)
+  if (dayIndex >= 0 && dayIndex < days.length) {
+    return days[dayIndex];
+  }
+  return null; // Not a standard school day in this context (e.g., weekend)
+});
 
 const activeOrNextGroupKey = computed<string | null>(() => {
   const currentDayIndex = (now.value.getDay() + 6) % 7;
@@ -312,7 +306,12 @@ const activeOrNextGroupKey = computed<string | null>(() => {
     <div class="timetable-grid">
 
       <div class="header-cell time-header">Stunde</div>
-      <div v-for="day in days" :key="day" class="header-cell day-header">
+      <div
+          v-for="day in days"
+          :key="day"
+          class="header-cell day-header"
+          :class="{'current-day-header': day === currentDayName}"
+      >
         {{ day }}
       </div>
 
@@ -330,7 +329,10 @@ const activeOrNextGroupKey = computed<string | null>(() => {
           v-for="(group, key) in groupedLessons"
           :key="key"
           class="lesson-group-container"
-          :class="{ 'highlight-active': key === activeOrNextGroupKey }"
+          :class="{
+            'highlight-active': key === activeOrNextGroupKey,
+            'current-day': group[0].day === currentDayName
+            }"
           :style="getGroupStyle(group)"
       >
         <div
@@ -396,20 +398,25 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 .timetable-grid {
   display: grid;
-  grid-template-columns: 90px repeat(5, 1fr);
+  grid-template-columns: 80px repeat(5, 1fr);
   grid-template-rows: auto repeat(9, auto);
   gap: 8px;
   align-items: stretch;
 }
 
 .header-cell {
-  background-color:#282828;
-  color: #F1F1F1;
-  padding: 10px;
-  border:1px solid #414141;
+  background-color:var(--vlbg);
+  color: var(--text);
+  padding: 10px 12px;
+  border:1px solid var(--border2);
   text-align: center;
   font-weight: bold;
-  border-radius: 4px;
+  border-radius: 6px;
+}
+
+.header-cell.current-day-header {
+  background-color: var(--gg);
+  border-color: var(--not-spinning);
 }
 
 .time-header { grid-column: 1; grid-row: 1; }
@@ -423,28 +430,33 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   align-items: center;
   background-color:transparent;
   font-size: 0.85rem;
-  color: #AAAAAA;
+  color: var(--sub);
   white-space: nowrap;
 }
 
 .slot-number {
   font-weight: bold;
   font-size: 1.1rem;
-  color: #F1F1F1;
+  color: var(--text);
 }
 
 .slot-time { font-size: 0.75rem; }
 
 /* GROUP CONTAINER */
 .lesson-group-container {
-  background-color: #282828;
-  border-radius: 4px;
-  border:1px solid #414141;
+  background-color: var(--vlbg);
+  border-radius: 6px;
+  border:1px solid var(--border2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 2;
   transition: background-color 0.3s ease;
+}
+
+.lesson-group-container.current-day {
+  background-color: var(--gg);
+  border-color: var(--not-spinning);
 }
 
 /* --- HIGHLIGHT LOGIC --- */
@@ -463,7 +475,11 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 
 .sub-lesson-item.has-border {
-  border-bottom: 1px solid #414141;
+  border-bottom: 1px solid var(--border2);
+}
+
+.lesson-group-container.current-day .sub-lesson-item.has-border {
+  border-bottom: 1px solid var(--not-spinning); /* #414141 */
 }
 
 .ausfall-label {
@@ -485,20 +501,20 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #AAAAAA;
+  color: var(--sub);
   margin-top: 2px;
 }
 
 /* CHANGE STYLES */
 .crossed {
   text-decoration: line-through;
-  color: #777;
+  color: var(--not-spinning);
   margin-right: 6px;
   font-weight: normal;
 }
 .new-val {
   font-weight: bold;
-  color: #f1f1f1;
+  color: var(--text);
 }
 
 /* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
@@ -511,12 +527,12 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
-  border-bottom: 1px solid #cccccc;
+  border-bottom: 1px solid #ccc;
 }
 
 /* Active State: Cross outs need to be visible against white */
 .lesson-group-container.highlight-active .crossed {
-  color: #999;
+  color: var(--not-spinning);
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {
@@ -524,7 +540,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {
-  color: #0f0f0f;
+  color: var(--danger);
 }
 
 @media (max-width: 768px) {
