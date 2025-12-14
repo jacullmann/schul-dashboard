@@ -2,6 +2,13 @@
   <div>
     <h1>Impressum</h1>
 
+    <p>Juan Jorge Carlos<br />
+      Hermannstra&szlig;e 42<br />
+      12345 Berlin</p>
+
+    <h2>Kontakt</h2>
+    <p>E-Mail: kontakt@schul-dashboard.com</p>
+
     <p><strong>Angaben gemäß § 5 Telemediengesetz (TMG) und Dienstleistungs-Informationspflichten-Verordnung (DL-InfoV)</strong></p>
 
     <h2>Verantwortliche Betreiber und Projektleitung</h2>
