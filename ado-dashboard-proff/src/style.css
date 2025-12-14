@@ -48,6 +48,24 @@
     --ghost--hover: #323232;
     --opacity--hover: rgba(255, 255, 255, 0.1);
 }
+:root.light  {
+    --bg: #eee;
+    --lbg: #fff;
+    --text: #000;
+    --border: #ccc;
+    --border2: #ddd;
+    --gg: #eee;
+    --jj: #fff;
+    --sub: #414141;
+    --vlbg: #fff;
+    --ghost--hover: #f5f5f5;
+    --start--bg: #0f0f0f;
+    --start--text: #f1f1f1;
+    --start--sub: #aaa;
+    --start--border: #282828;
+    --start--border2: #414141;
+    --start--llbg: #191919;
+}
 
 * { box-sizing: border-box; }
 

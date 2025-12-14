@@ -72,7 +72,7 @@ import {
 
 .contact-header p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text);
 }
 
 .contact-sections {
@@ -96,7 +96,7 @@ import {
 .section-icon {
   width: 20px;
   height: 20px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text);
 }
 
 .contact-section h3 {
@@ -135,7 +135,7 @@ import {
 
 .region-text {
   margin: 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text);
   line-height: 1.5;
   padding-left: 32px;
 }
@@ -144,7 +144,7 @@ import {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text);
   font-style: italic;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.05);

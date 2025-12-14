@@ -58,7 +58,7 @@ function closePopup() {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--lbg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,7 +68,7 @@ function closePopup() {
 .popup-card {
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--card);
+  background: var(--lbg);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   padding: 24px;
   min-width: 280px;
@@ -96,7 +96,7 @@ function closePopup() {
 
 .description-text {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--sub);
   line-height: 1.5;
   margin-bottom: 20px;
 }

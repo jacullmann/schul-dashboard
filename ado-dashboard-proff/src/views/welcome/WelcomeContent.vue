@@ -141,7 +141,7 @@ defineProps<{
 .secondary {
   border: 2px solid transparent;
   background: transparent;
-  color: var(--text);
+  color: var(--start--text);
 }
 
 .secondary:hover {

@@ -229,7 +229,6 @@ async function submit() {
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--lbg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
 .checkbox-row {
@@ -266,10 +265,10 @@ async function submit() {
 .checkbox-container input:checked ~ .checkmark::after {
   display: block;
   left: 4px;
-  top: 0px;
+  top: 0;
   width: 5px;
   height: 10px;
-  border: solid white;
+  border: solid var(--text);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }

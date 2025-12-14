@@ -23,6 +23,19 @@
           <h3>Kontakt</h3>
           <router-link  to="/kontakt" class="footer-link">Kontakt</router-link>
         </div>
+        <div class="footer-section">
+          <h3>Theme</h3>
+          <select
+              :value="selectedThemeMode"
+              @change="handleThemeChange"
+              class="theme-select"
+          >
+            <option value="system">System</option>
+            <option value="light">Heller Modus</option>
+            <option value="dark">Dunkeler Modus</option>
+          </select>
+          <p class="theme-hint">Wählt dein bevorzugtes Farbschema für das Schul-Dashboard aus.</p>
+        </div>
         <All  class="logoutDeviceMobile" />
       </div>
     </div>
@@ -42,14 +55,19 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useTheme, ThemeMode } from '../composables/useTheme';
 import router from "../router";
 // import AnimatedGradientLine from "./animations/AnimatedGradientLine.vue";
 
 import All from './AllLogoutButton.vue'
 
 const year = new Date().getFullYear();
+const { selectedThemeMode, applyTheme } = useTheme();
 
-
+function handleThemeChange(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  applyTheme(target.value as ThemeMode);
+}
 const clickCount = ref(0);
 const showOverlay = ref(false);
 

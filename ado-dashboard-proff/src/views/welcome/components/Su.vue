@@ -70,6 +70,7 @@ import { Zap, Compass, Palette, ScanEye, Layers, Tablet, MessageCircle } from 'l
   align-items: center;
   flex-direction: row;
   gap: 10px;
+  color: var(--start--text);
 }
 .flex1 {
   display: flex;
@@ -96,10 +97,10 @@ import { Zap, Compass, Palette, ScanEye, Layers, Tablet, MessageCircle } from 'l
   user-select: none;
 }
 .grid-item {
-  background-color: var(--llbg);
+  background-color: var(--start--llbg);
   border-radius: 16px;
   padding: 1.75rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--start--border);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 350px;
   cursor: pointer;
@@ -107,7 +108,7 @@ import { Zap, Compass, Palette, ScanEye, Layers, Tablet, MessageCircle } from 'l
 }
 
 .grid-item:hover {
-  border: 1px solid var(--border2);
+  border: 1px solid var(--start--border2);
 }
 .grid-item:active {
   border: 1px solid var(--lp);

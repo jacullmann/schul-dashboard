@@ -44,9 +44,9 @@ function gotosec() {
 
 <style scoped>
 .footer {
-  background-color: var(--bg);
+  background-color: var(--start--bg);
   padding: 2.5rem 0 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--start--border);
 }
 
 .footer-container {
@@ -72,7 +72,7 @@ function gotosec() {
 }
 
 .footer-section h3 {
-  color: var(--text);
+  color: var(--start--text);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -81,16 +81,16 @@ function gotosec() {
 .footer-section p {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: var(--sub);
+  color: var(--start--sub);
 }
 
 .text-sub {
-  color: var(--sub);
+  color: var(--start--sub);
 }
 
 .footer-link {
   display: block;
-  color: var(--sub);
+  color: var(--start--sub);
   text-decoration: none;
   margin-bottom: 0.5rem;
   transition: color 0.2s ease, opacity 0.2s ease;
@@ -98,7 +98,7 @@ function gotosec() {
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--border2);
+  border-top: 1px solid var(--start--border2);
   padding: 1rem 0;
   display: flex;
   flex-direction: column;

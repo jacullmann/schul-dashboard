@@ -17,7 +17,7 @@ import Logo from "../../components/hw/Logo.vue";
 .header {
   width: 100%;
   height: 70px;
-  background-color: var(--bg);
+  background-color: var(--start--bg);
   color: white;
   display: flex;
   justify-content: center;
