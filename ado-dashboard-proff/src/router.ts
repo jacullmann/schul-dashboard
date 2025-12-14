@@ -290,8 +290,9 @@ router.beforeEach(async (to, from, next) => {
         await initAuth();
     }
 
-    // 3. Globaler Auth Check (außer Welcome)
-    if (to.path !== '/welcome' && !isAuthenticated.value) {
+    // 3. Globaler Auth Check
+    const publicPaths = ['/welcome', '/verify'];
+    if (!publicPaths.includes(to.path) && !isAuthenticated.value) {
         finish();
         return next({ path: '/welcome' });
     }
