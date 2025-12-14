@@ -75,7 +75,7 @@ const routes = [
         meta: {
             title: 'E-Mail Verifizierung',
             fullWidth: false,
-            hideNavigation: false
+            hideNavigation: true
         }
     },
     {
