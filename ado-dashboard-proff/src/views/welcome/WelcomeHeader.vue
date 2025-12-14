@@ -6,7 +6,7 @@ import Logo from "../../components/hw/Logo.vue";
   <header class="header">
     <div class="header-content-wrapper"> <div class="logo-container">
       <Logo class="logo-img" aria-hidden="true" />
-      <span class="logo-text">Schul-Dashboard</span>
+      <span class="logo-text">Dashboard</span>
     </div>
       <nav class="nav-links">
       </nav>

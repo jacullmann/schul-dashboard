@@ -32,7 +32,7 @@
           >
             <option value="system">System</option>
             <option value="light">Heller Modus</option>
-            <option value="dark">Dunkeler Modus</option>
+            <option value="dark">Dunkler Modus</option>
           </select>
           <p class="theme-hint">Wählt dein bevorzugtes Farbschema für das Schul-Dashboard aus.</p>
         </div>
