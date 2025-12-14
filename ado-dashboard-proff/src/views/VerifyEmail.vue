@@ -2,10 +2,9 @@
   <div class="card">
     <h2 style="margin-top:0;">E-Mail bestätigen</h2>
     <div v-if="loading">Prüfe Token...</div>
-    <div v-else-if="ok" style="color:var(--primary)">Erfolg! Du kannst dich jetzt anmelden.</div>
+    <div v-else-if="ok" style="color:var(--primary)">Erfolg! Du kannst diesen Tab nun schließen und dich jetzt anmelden.</div>
     <div v-else style="color:var(--danger)">Token ungültig oder abgelaufen.</div>
     <div style="margin-top:12px;">
-      <p>Du kannst diesen Tab jetzt schließen</p>
       <!--<router-link data-umami-event="Email verifiziert -> Zurück zu Hausaufgaben" class="btn" to="/">Du kannst diesen Tab jetzt sch</router-link>-->
     </div>
   </div>

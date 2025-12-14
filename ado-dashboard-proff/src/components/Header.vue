@@ -206,7 +206,7 @@ onUnmounted(() => {
 <style scoped>
 .header {
   background-color: var(--bg);
-  color: #f1f1f1;
+  color: var(--text);
   padding: 0.1rem 0;
   position: sticky;
   top: 0;
@@ -239,7 +239,7 @@ onUnmounted(() => {
   align-items: center;
   text-decoration: none;
   gap: 0.6rem;
-  color: #f1f1f1;
+  color: var(--text);
   flex: 0 1 auto;
   line-height: 1;
 }
@@ -267,7 +267,7 @@ onUnmounted(() => {
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
-  color: #f1f1f1;
+  color: var(--text);
   position: relative;
   transition: opacity 0.2s ease;
   white-space: nowrap;
@@ -323,7 +323,7 @@ onUnmounted(() => {
   right: 1rem;
   background: none;
   border: none;
-  color: #f0f0f0;
+  color: var(--text);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 4px;

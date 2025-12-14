@@ -129,7 +129,6 @@ async function submit() {
   background: var(--lbg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   padding: 24px;
-  color: #1a1a1a;
   max-height: 90vh;
   overflow-y: auto;
   position: fixed;
@@ -137,9 +136,9 @@ async function submit() {
 }
 
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-title { margin: 0; font-size: 20px; font-weight: 600; color: #f1f1f1; }
+.modal-title { margin: 0; font-size: 20px; font-weight: 600; color: var(--text); }
 .section { margin-top: 16px; }
-.label { display: block; font-size: 14px; color: #ccc; margin-bottom: 8px; }
+.label { display: block; font-size: 14px; color: var(--text); margin-bottom: 8px; }
 .actions { margin-top: 24px; display: flex; gap: 12px; align-items: center; }
 .spinner { animation: spin 1s linear infinite; height: 20px; width: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }

@@ -7,7 +7,7 @@
       </div>
 
       <div class="section">
-        <div style="color: white;" class="section-title">Bilder</div>
+        <div  class="section-title">Bilder</div>
 
         <div class="images-row row">
           <div
@@ -260,8 +260,15 @@ async function removeImg(publicId: string) {
 .modal-head h3 { margin: 0; font-size: 1.05rem; }
 
 /* Section */
-.section { margin-top: 16px; }
-.section-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
+.section {
+  margin-top: 16px;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
 
 /* Images grid row */
 .images-row {
@@ -317,7 +324,7 @@ async function removeImg(publicId: string) {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* message states */
-.small { font-size: 12px; color: var(--muted); }
+.small { font-size: 12px; color: var(--sub); }
 .msg-ok { color: var(--primary); font-weight: 600; }
 .msg-error { color: var(--danger); font-weight: 600; }
 

@@ -74,7 +74,7 @@ function openCookieBanner() {
 <style scoped>
 .footer {
   background-color: var(--bg);
-  color: #f1f1f1;
+  color: var(--text);
   padding: 2.5rem 0 0;
   border-top: 1px solid var(--border);
   font-family: var(--display-font), sans-serif;
@@ -101,21 +101,21 @@ function openCookieBanner() {
 }
 
 .footer-section h3 {
-  color: #f1f1f1;
+  color: var(--text);
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 1.2rem;
 }
 
 .footer-section p {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--sub);
   font-size: 1rem;
   line-height: 1.6;
 }
 
 .footer-link {
   display: block;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--sub);
   text-decoration: none;
   font-size: 0.95rem;
   margin-bottom: 0.5rem;
@@ -123,7 +123,7 @@ function openCookieBanner() {
   font-weight: 500 }
 
 .footer-link:hover {
-  color: rgba(255, 255, 255, 1);
+  color: var(--text);
 }
 
 .footer-bottom {
@@ -139,7 +139,7 @@ function openCookieBanner() {
 }
 
 .copyright-text {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--sub);
 }
 .logoutDeviceMobile{
   display: none;
@@ -165,7 +165,6 @@ function openCookieBanner() {
     gap: 0.5rem;
   }
   .footer {
-    /* Padding anpassen, falls du den Container in Mobile benutzt */
     padding: 2rem 16px 5px;
   }
 }

@@ -62,7 +62,7 @@ function toggleConsent() {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: var(--muted);
+  background-color: var(--sub);
   transition: .4s;
   border-radius: 26px;
 }

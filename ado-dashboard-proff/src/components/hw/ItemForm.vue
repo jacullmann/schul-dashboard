@@ -479,7 +479,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   background: var(--lbg);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
   padding: 16px;
-  color: #1a1a1a;
   max-height: calc(100vh - 40px);
   overflow-y: scroll;
   position: fixed;
@@ -498,7 +497,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: rgba(244, 244, 244);
+  color: var(--text);
 }
 .section {
   margin-top: 10px;
@@ -507,12 +506,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .label {
   display: block;
   font-size: 13px;
-  color: rgba(244, 244, 244);
+  color: var(--text);
   margin-bottom: 6px;
 }
 .label.bold {
   font-weight: 600;
-  color: rgba(234, 234, 234);
+  color: var(--text);
 }
 
 /* Bilderbereich */
@@ -524,7 +523,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   position: relative;
   width: 120px;
   height: 120px;
-  border: 1px solid rgba(128, 128, 128, 0.35);
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
   background: rgba(26, 26, 26, 0.5);
@@ -566,7 +565,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 /* Meldungen */
 .small {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--sub);
 }
 .error {
   color: var(--danger);

@@ -103,6 +103,6 @@ hr {
 
 .text-center {
   text-align: center;
-  color: var(--muted);
+  color: var(--sub);
 }
 </style>

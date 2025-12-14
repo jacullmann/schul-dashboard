@@ -109,18 +109,18 @@ export function useHausaufgaben() {
             'ok': 'var(--primary)',
             'warn': 'var(--warn)',
             'danger': 'var(--danger)',
-            'expired': '#4b5563',
-            'info': '#3b82f6',
+            'expired': 'var(--gg)',
+            'info': 'var(--primary)',
         };
-        return map[color] || 'var(--muted)';
+        return map[color] || 'var(--sub)';
     };
 
     const colorStyles = (timeColor: string) => {
-        if (timeColor === 'expired') return { background: '#414141', color: 'white' };
-        if (timeColor === 'danger') return { background: 'var(--danger)', color: 'white' };
-        if (timeColor === 'warn') return { background: 'var(--warn)', color: 'black' };
-        if (timeColor === 'info') return { background: '#3b82f6', color: 'white' };
-        return { background: 'var(--gg)', color: 'white' };
+        if (timeColor === 'expired') return { background: 'var(--jj)', color: 'var(--text)' };
+        if (timeColor === 'danger') return { background: 'var(--danger)', color: 'var(--text)' };
+        if (timeColor === 'warn') return { background: 'var(--warn)', color: 'var(--card)' };
+        if (timeColor === 'info') return { background: 'var(--primary)', color: 'var(--text)' };
+        return { background: 'var(--gg)', color: 'var(--text)' };
     };
 
     const filteredItems = computed(() => {

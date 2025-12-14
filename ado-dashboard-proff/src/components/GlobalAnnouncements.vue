@@ -156,10 +156,10 @@ function colorFor(color) {
     'ok': 'var(--primary)',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
-    'expired': '#4b5563',
-    'info': '#282828',
+    'expired': 'var(--gg)',
+    'info': 'var(--jj)',
   }
-  return map[color] || 'var(--muted)'
+  return map[color] || 'var(--sub)'
 }
 </script>
 

@@ -198,7 +198,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted);
+  color: var(--sub);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -226,7 +226,7 @@ onUnmounted(() => {
 }
 
 .text-content p {
-  color: var(--muted);
+  color: var(--sub);
   margin-bottom: 20px;
   line-height: 1.5;
   font-size: 0.95rem;

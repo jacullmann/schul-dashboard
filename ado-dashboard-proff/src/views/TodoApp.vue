@@ -211,11 +211,10 @@ function showMessage(msg: string, error = false) {
 </script>
 
 <style scoped>
-/* Hier wurden die CSS-Klassen für das Modal entfernt (.todo-form-modal, .modal-content, etc.) */
 .todo-app-integrated {}
 .login-prompt { text-align: center; padding: 2rem; }
 .todo-list { margin-top: 2rem; }
-.empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+.empty-state { text-align: center; padding: 3rem; color: var(--sub); }
 .todo-filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .todo-filters .btn.active { background-color: #D9D9D9; color: var(--jj); }
 .todos-list { display: flex; flex-direction: column; gap: 1rem; }

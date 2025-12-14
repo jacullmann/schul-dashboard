@@ -52,7 +52,7 @@
         <div class="col">
           <h3>{{ countdown.name }}</h3>
           <p class="small">{{ countdown.description }}</p>
-          <p class="small" style="color: var(--muted); margin-top: 4px;">
+          <p class="small" style="color: var(--sub); margin-top: 4px;">
             {{ new Date(countdown.target_date).toLocaleString('de-DE') }}
           </p>
         </div>
@@ -122,7 +122,7 @@
     </div>
 
     <div v-if="countdowns.length === 0 && !loading" class="card rlc">
-      <p style="text-align: center; color: var(--muted);">
+      <p style="text-align: center; color: var(--sub);">
         Noch keine Countdowns vorhanden.
         <span v-if="user?.isAdmin">Erstelle einen Countdown! Für Dorisx!</span>
       </p>
@@ -405,7 +405,7 @@ input[type="datetime-local"] {
   align-items: center;
   gap: 8px;
   justify-content: center;
-  color: var(--muted);
+  color: var(--sub);
 }
 
 /* Responsive Anpassungen */

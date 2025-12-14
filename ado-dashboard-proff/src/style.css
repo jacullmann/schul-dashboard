@@ -3,7 +3,6 @@
     --lbg: #0f0f0f;
     --llbg: #191919;
     --card: #1a1a1a;
-    --muted: #94a3b8;
     --text: #f1f1f1;
     --primary: #3f93f8;
     --p-green: #6aed8b;
@@ -37,6 +36,17 @@
     --normal-font: 'Inter';
     --not-spinning: #666;
     --spinning: #f1f1f1;
+    --ccc: #ccc;
+    --text--gg: #414141;
+    --text--bg: #0f0f0f;
+    --special--red: #f65252;
+    --special--green: #4caf50;
+    --special--red--background: rgba(246, 82, 82, 0.1);
+    --special--green--background: rgba(76, 175, 80, 0.1);
+    --pure--white: #fff;
+    --pure--white--hover: #f1f1f1;
+    --ghost--hover: #323232;
+    --opacity--hover: rgba(255, 255, 255, 0.1);
 }
 
 * { box-sizing: border-box; }
@@ -83,7 +93,7 @@ h1, h2, h3, h4, h5 {
         align-items:center;
         gap:8px;
         padding:10px 12px;
-        background:#fff;
+        background:var(--pure--white);
         color:var(--jj);
         border:1px solid transparent;
         border-radius:6px;
@@ -91,16 +101,16 @@ h1, h2, h3, h4, h5 {
         transition:.1s ease
     }
     .btn:hover {
-        background-color:#f1f1f1
+        background-color: var(--pure--white--hover);
     }
     .btn.ghost {
-        background:#282828;
-        border:1px solid #414141;
+        background:var(--jj);
+        border:1px solid var(--border2);
         color:var(--text);
         transition: .1s ease
     }
     .btn.ghost:hover {
-        background-color:#323232;
+        background-color:var(--ghost--hover);
     }
     .btn.main {
         background: var(--sup-base);
@@ -113,7 +123,7 @@ h1, h2, h3, h4, h5 {
         color: var(--sup-text-hover);
 
     }
-    .btn.danger { background: var(--danger); color: white; }
+    .btn.danger { background: var(--danger); color: var(--text); }
     .btn.warn { background: var(--warn); color: #1f1300; }
 
     /* .badge {
@@ -159,7 +169,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .border-normal {
     border: 1px solid var(--border);
 }
-footer { color: var(--muted); font-size: 14px; }
+footer { color: var(--sub); font-size: 14px; }
 
 
 .blurit {
@@ -245,12 +255,12 @@ footer {
 
     }
     .btn:hover {
-        background:#fff;
+        background:var(--pure--white);
         color:var(--jj);
     }
     .btn.ghost:hover {
-        background:#282828;
-        border:1px solid #414141;
+        background:var(--jj);
+        border:1px solid var(--border2);
         color:var(--text);
     }
 

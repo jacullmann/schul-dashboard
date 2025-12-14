@@ -7,8 +7,7 @@
     >
       <div class="item-main">
         <div class="item-meta">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <div class="skeleton-checkbox"></div>
+          <div>
             <div class="skeleton-title"></div>
           </div>
 
@@ -18,7 +17,6 @@
           </div>
         </div>
 
-        <div class="skeleton-menu-trigger"></div>
       </div>
 
       <div class="item-body">
@@ -54,7 +52,8 @@ withDefaults(defineProps<{
 .skeleton-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 36px;
+  padding: 12px;
 }
 
 .skeleton-item {
@@ -79,22 +78,9 @@ withDefaults(defineProps<{
   }
 }
 
-.skeleton-checkbox {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: linear-gradient(
-      90deg,
-      #2a2a2a 0px,
-      #333333 40px,
-      #2a2a2a 80px
-  );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite;
-}
 
 .skeleton-title {
-  height: 22px;
+  height: 18px;
   width: 200px;
   border-radius: 6px;
   background: linear-gradient(
@@ -128,19 +114,7 @@ withDefaults(defineProps<{
   width: 100px;
 }
 
-.skeleton-menu-trigger {
-  width: 36px;
-  height: 24px;
-  border-radius: 6px;
-  background: linear-gradient(
-      90deg,
-      #2a2a2a 0px,
-      #333333 40px,
-      #2a2a2a 80px
-  );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite;
-}
+
 
 .skeleton-text {
   height: 16px;
@@ -161,7 +135,7 @@ withDefaults(defineProps<{
 }
 
 .skeleton-line-2 {
-  width: 95%;
+  width: 100%;
 }
 
 .skeleton-line-3 {

@@ -449,7 +449,7 @@ td {
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
-  background: #282828;
+  background: var(--jj);
   border-top: 1px solid var(--border2);
   border-bottom: 1px solid var(--border2);
   border-right: 1px solid var(--border2);
@@ -481,7 +481,7 @@ tr td:last-child {
 
 .room-cell {
   background: var(--vlbg);
-  color: #F1F1F1;
+  color: var(--text);
   font-weight: 500;
   white-space: nowrap;
   text-align: center;
@@ -535,7 +535,7 @@ tr td:last-child {
   text-align: center;
   padding-bottom: 5px;
   color: var(--text);
-  margin: 0px;
+  margin: 0;
 }
 
 .day-col ul {
@@ -561,4 +561,3 @@ tr td:last-child {
   margin-top: 16px;
 }
 </style>
-[file content end]

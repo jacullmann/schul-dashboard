@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
 .user-email {
   font-weight: 600;
   font-size: 14px;
-  color: #f1f1f1;
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -402,25 +402,25 @@ onBeforeUnmount(() => {
 
 .confirm-warning {
   font-size: 13px;
-  color: #f1f1f1;
+  color: var(--text);
   margin-bottom: 12px;
 }
 
 .confirm-warning strong {
-  color: #f65252;
+  color: var(--special--red);
   display: block;
   margin-bottom: 6px;
 }
 
 .confirm-text {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--sub);
   margin-bottom: 8px;
 }
 
 .confirm-note {
   font-size: 11px;
-  color: var(--muted);
+  color: var(--sub);
   line-height: 1.4;
   max-height: 110px;
   overflow-y: scroll;
@@ -445,13 +445,13 @@ onBeforeUnmount(() => {
 }
 
 .message.error {
-  background: rgba(246, 82, 82, 0.1);
-  color: #f65252;
+  background: var(--special--red--background);
+  color: var(--special--red);
 }
 
 .message.success {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
+  background: var(--special--green--background);
+  color: var(--special--green);
 }
 
 .pop-enter-active, .pop-leave-active {
@@ -484,7 +484,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--sub);
   cursor: pointer;
   margin-top: 8px;
   padding: 4px 0;
@@ -497,7 +497,7 @@ onBeforeUnmount(() => {
 .checkbox-custom {
   width: 16px;
   height: 16px;
-  border: 1px solid #666;
+  border: 1px solid var(--gg);
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -512,12 +512,12 @@ onBeforeUnmount(() => {
 
 .checkbox-input:checked + .checkbox-custom::after {
   content: '✓';
-  color: white;
+  color: var(--text);
   font-size: 12px;
 }
 
 .checkbox-label:hover .checkbox-custom {
-  border-color: #888;
+  border-color: var(--sub);
 }
 
 .personalization-indicator {
@@ -531,7 +531,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--text);
   border: 2px solid var(--jj);
 }
 

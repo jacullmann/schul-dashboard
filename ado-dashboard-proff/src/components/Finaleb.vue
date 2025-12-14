@@ -461,8 +461,8 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 /* --- HIGHLIGHT LOGIC --- */
 .lesson-group-container.highlight-active {
-  background-color: #f1f1f1 !important;
-  border-color: #f1f1f1;
+  background-color: var(--text) !important;
+  border-color: var(--text);
 }
 
 /* SUB LESSON ITEM */
@@ -491,7 +491,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 .lesson-subject {
   font-weight: bold;
   font-size: 0.9rem;
-  color: #F1F1F1;
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -519,24 +519,23 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 /* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
 .lesson-group-container.highlight-active .lesson-subject {
-  color: #0f0f0f;
+  color: var(--text--bg);
 }
 
 .lesson-group-container.highlight-active .lesson-details {
-  color: #414141;
+  color: var(--text--gg);
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--ccc);
 }
-
 /* Active State: Cross outs need to be visible against white */
 .lesson-group-container.highlight-active .crossed {
   color: var(--not-spinning);
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {
-  color: #0f0f0f;
+  color: var(--text--bg);
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {
