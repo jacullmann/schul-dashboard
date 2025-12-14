@@ -62,7 +62,7 @@ defineProps<{
   width: 90%;
   margin: 0 auto;
   min-height: calc(100vh - 70px - 50px - 2rem);
-  gap: 40px;
+  gap: 0;
   padding: 40px 0;
 }
 
@@ -78,14 +78,14 @@ defineProps<{
   width: 100%;
   max-width: 600px;
   height: auto;
-  min-height: 400px;
+  min-height: 300px;
   border-radius: 20px;
   color: white;
   font-size: 1.5rem;
   font-weight: bold;
   display: flex;
   justify-content: center;
-  align-items: center;;
+  align-items: center;
 }
 
 .text-content {
@@ -188,7 +188,7 @@ defineProps<{
   .welcome-section {
     flex-direction: column;
     text-align: center;
-    padding: 20px 0;
+    padding: 0 0;
   }
 
   .text-content {
@@ -217,7 +217,8 @@ defineProps<{
 
 @media (max-width: 576px) {
   .headline {
-    font-size: 2.5rem;
+    margin-top:0;
+    font-size:4rem
   }
   .action-buttons {
     flex-direction: row;

@@ -102,7 +102,7 @@ function scrollToSu() {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 15px;
+  padding:0 16px;
   box-sizing: border-box;
   flex-direction: column;
 }

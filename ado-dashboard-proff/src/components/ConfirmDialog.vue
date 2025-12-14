@@ -177,7 +177,7 @@ watch(() => props.show, (newVal) => {
   margin: 0;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 444px) {
   .confirm-box {
     padding: 20px 16px;
     width: 95%;

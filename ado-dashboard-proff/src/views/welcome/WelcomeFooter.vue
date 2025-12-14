@@ -27,7 +27,7 @@
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p class="text-xs text-sub">Alle Rechte vorbehalten</p>
+        <p class="text-xs text-sub">Privates Schulprojekt von Schülern einer Berliner Schule</p>
       </div>
     </div>
 
