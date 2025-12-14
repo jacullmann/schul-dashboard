@@ -276,7 +276,7 @@ const {
 .collapse-checkbox .vis-label::after { content: ''; position: absolute; width: 5px; height: 10px; border: solid #f1f1f1; border-width: 0 2px 2px 0; opacity: 0; left: 50%; top: 32%; transform: translate(-50%, -45%) rotate(45deg); }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
-.subject-badge { background:var(--gg); color:white; padding:4px 8px; border-radius:6px; }
+.subject-badge { background:var(--gg); color:var(--text); padding:4px 8px; border-radius:6px; }
 .time-badge { padding:4px 8px; border-radius:6px; }
 .item-menu { position: absolute; margin-top: 24px; right: 0; min-width: 150px; background: var(--jj); border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
