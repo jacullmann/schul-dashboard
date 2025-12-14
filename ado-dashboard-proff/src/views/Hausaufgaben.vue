@@ -49,10 +49,11 @@
           </select>
           <OldNewSwitch v-model="showOldEntries" />
           <CreateEntryDropdown
+              v-if="user"
               @select="openCreateFormByType"
           />
           <CreateEntryDropdownPseudo
-              v-if="user"
+              v-if="!user"
           />
         </div>
         <CreateEntryDropdown
