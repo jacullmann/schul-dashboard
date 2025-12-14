@@ -42,17 +42,17 @@
     <div class="controls">
       <div class="left">
         <div v-if="tab !== 'PRIVATE'" class="row-two">
+
           <select class="input select-subject" v-model="subjectFilter">
             <option value="">Alle Fächer</option>
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
           </select>
           <OldNewSwitch v-model="showOldEntries" />
           <CreateEntryDropdown
-              v-if="user"
               @select="openCreateFormByType"
           />
           <CreateEntryDropdownPseudo
-              v-if="!user"
+              v-if="user"
           />
         </div>
         <CreateEntryDropdown

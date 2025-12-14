@@ -89,11 +89,11 @@ export default function registerRoutes(app, deps) {
     }
 
     const dashboardLimiter = rateLimit({
-        windowMs: 30 * 60 * 1000,
-        max: 15,
+        windowMs: 60 * 1000,
+        max: 10,
         standardHeaders: true,
         legacyHeaders: false,
-        message: { ok: false, error: 'Zu viele Versuche - IP gesperrt. Versuch es in 30 Minuten wieder.' },
+        message: { ok: false, error: 'Zu viele Versuche - IP gesperrt. Versuch es in 1 Minuten wieder.' },
         statusCode: 429,
     });
 

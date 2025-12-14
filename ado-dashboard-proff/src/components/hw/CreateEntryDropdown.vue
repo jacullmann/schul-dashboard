@@ -110,6 +110,8 @@ onBeforeUnmount(() => {
 
 .entry-menu {
   position: absolute;
+  left: 0;
+  top: 100%;
   min-width: 180px;
   background: var(--jj);
   border: 1px solid var(--border2);
@@ -172,5 +174,25 @@ onBeforeUnmount(() => {
 }
 .last-of-three {
   border-bottom: 1px solid var(--border2);
+}
+
+@media (max-width: 500px) {
+  .entry-menu {
+    left: auto;
+    right: 0;
+  }
+}
+@media (max-width: 379px) {
+  .entry-menu {
+    left: 0;
+    right: auto;
+  }
+
+}
+@media (max-width: 330px) {
+  .entry-menu {
+    left: auto;
+    right: 0;
+  }
 }
 </style>
