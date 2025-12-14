@@ -47,6 +47,12 @@
     --pure--white--hover: #f1f1f1;
     --ghost--hover: #323232;
     --opacity--hover: rgba(255, 255, 255, 0.1);
+    --start--bg: #0f0f0f;
+    --start--text: #f1f1f1;
+    --start--sub: #aaa;
+    --start--border: #282828;
+    --start--border2: #414141;
+    --start--llbg: #191919;
 }
 :root.light  {
     --bg: #eee;
