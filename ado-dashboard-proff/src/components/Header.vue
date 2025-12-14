@@ -61,7 +61,7 @@
             v-if="!navOpen"
             data-umami-event="Mobile Menu öffnen"
         >
-          <Menu style="color: #fff" size="26px"/>
+          <Menu style="color: var(--text)" size="26px"/>
         </button>
       </div>
 
