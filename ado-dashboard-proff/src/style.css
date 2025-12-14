@@ -53,6 +53,7 @@
     --start--border: #282828;
     --start--border2: #414141;
     --start--llbg: #191919;
+    --legal--bg: transparent;
 }
 :root.light  {
     --bg: #eee;
@@ -71,6 +72,7 @@
     --start--border: #282828;
     --start--border2: #414141;
     --start--llbg: #191919;
+    --legal--bg: #fff;
 }
 
 * { box-sizing: border-box; }

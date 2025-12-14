@@ -31,7 +31,7 @@ import ImpressumPage from "../legal/ImpressumPage.vue";
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #fff;
+  background-color: var(--legal--bg);
 }
 .down {
   border-bottom: 2px solid white;
