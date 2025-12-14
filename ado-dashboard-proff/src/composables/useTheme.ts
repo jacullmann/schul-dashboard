@@ -2,7 +2,7 @@ import { ref, watch, onMounted } from 'vue';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
-const LOCAL_STORAGE_KEY = 'theme-preference';
+const LOCAL_STORAGE_KEY = 'theme-preference2gl';
 
 const selectedThemeMode = ref<ThemeMode>('system');
 const appliedThemeClass = ref<'light' | 'dark'>('dark');
@@ -35,8 +35,8 @@ function initializeTheme() {
     if (storedPreference && ['system', 'light', 'dark'].includes(storedPreference)) {
         selectedThemeMode.value = storedPreference;
     } else {
-        selectedThemeMode.value = 'system';
-        localStorage.setItem(LOCAL_STORAGE_KEY, 'system');
+        selectedThemeMode.value = 'dark';
+        localStorage.setItem(LOCAL_STORAGE_KEY, 'dark');
     }
 
     applyTheme(selectedThemeMode.value);
