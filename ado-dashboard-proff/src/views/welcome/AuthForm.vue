@@ -121,7 +121,7 @@ async function submit() {
   error.value = null;
 
   try {
-    const combinedPassword = password1.value.trim() + "|||" + password2.value.trim();
+    const combinedPassword = password1.value.trim() + password2.value.trim();
     const res = await auth.loginWithCode(combinedPassword);
 
     if (res.ok) {

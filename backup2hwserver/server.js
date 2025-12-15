@@ -62,7 +62,7 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
 app.use(sanitizeMiddleware);
-app.use(rateLimit({ windowMs: 60_000, max: 500, standardHeaders: true, legacyHeaders: false }));
+app.use(rateLimit({ windowMs: 60_000, max: 200, standardHeaders: true, legacyHeaders: false }));
 
 if (!process.env.MONGODB_URI) {
     console.error('MONGODB_URI nicht gesetzt. Beenden.');
@@ -82,7 +82,6 @@ routes(app, {
     sendgridConfigured: !!SENDGRID_API_KEY,
     sendgridFrom: SENDGRID_FROM,
     jwtSecret: process.env.JWT_SECRET,
-    dashboardSecret: process.env.DASHBOARD_SECRETJ || null
 });
 
 app.get('/health', (req, res) => res.json({ ok: true }));

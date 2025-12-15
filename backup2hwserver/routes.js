@@ -18,8 +18,7 @@ export default function registerRoutes(app, deps) {
         geminiModel,
         sendgridConfigured,
         sendgridFrom,
-        jwtSecret,
-        dashboardSecret
+        jwtSecret
     } = deps;
 
     const {
@@ -1203,15 +1202,15 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             const ua = req.get('User-Agent') || 'unknown';
             const { password } = req.body;
 
-            const EXPECTED_PASSWORD1 = process.env.DASHBOARD_PASSWORD1;
-            const EXPECTED_PASSWORD2 = process.env.DASHBOARD_PASSWORD2;
-            const EXPECTED_COMBINED = EXPECTED_PASSWORD1 + "|||" + EXPECTED_PASSWORD2;
 
             /*const attemptHash = crypto.createHash('sha256').update(password).digest('hex');*/
             const attemptHash = 'Vorrübergehend wegen Sicherheitsbedenken ausgesetzt'
             let status = 'failure';
+            const DASHBOARD_CHECK_PASSWORD_HASH = process.env.DASHBOARD_CHECK_PASSWORD_HASH;
 
-            if (password === EXPECTED_COMBINED) {
+            const isValid = await bcrypt.compare(password, DASHBOARD_CHECK_PASSWORD_HASH);
+
+            if (isValid) {
                 status = 'success';
                 const token = jwt.sign({ role: 'admin' }, jwtSecret, { expiresIn: '30d' });
                 await supabase.from('auth_logs').insert({ ip, status, attempt_hash: attemptHash, user_agent: ua });
