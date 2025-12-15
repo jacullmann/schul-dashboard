@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Allgemeine Nutzungsbedingungen des Schul-Dashboards</h1>
+    <h1>Nutzungsbedingungen des Schul-Dashboards</h1>
 
     <h2>Präambel und Geltungsbereich</h2>
     <p>

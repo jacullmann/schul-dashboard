@@ -33,7 +33,7 @@ const router = useRouter();
 const tabs: NavItem[] = [
   { id: 'impressum', label: 'Impressum', routePath: 'impressum' },
   { id: 'datenschutz', label: 'Datenschutz', routePath: 'datenschutz' },
-  { id: 'agb', label: 'AGB', routePath: 'agb' },
+  { id: 'nutzung', label: 'Nutzungsbedingungen', routePath: 'nutzung' },
 ];
 
 // 2. Bestimmen der aktiven ID basierend auf der aktuellen Route
@@ -46,8 +46,8 @@ const activeTabId = computed(() => {
   if (route.path.endsWith('/datenschutz')) {
     return 'datenschutzerklaerung';
   }
-  if (route.path.endsWith('/agb')) {
-    return 'agb';
+  if (route.path.endsWith('/nutzung')) {
+    return 'nutzung';
   }
 
   if (route.path.endsWith('/legal/')) {

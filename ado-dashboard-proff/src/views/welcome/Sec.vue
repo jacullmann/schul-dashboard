@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import AGB from "../legal/AGB.vue";
+import Nutzungsbedingungen from "../legal/Nutzungsbedingungen.vue";
 import DatenschutzPage from "../legal/DatenschutzPage.vue";
 import ImpressumPage from "../legal/ImpressumPage.vue";
 </script>
@@ -12,7 +12,7 @@ import ImpressumPage from "../legal/ImpressumPage.vue";
     </div>
     <div class="card-body">
       <div class="down">
-      <AGB />
+      <Nutzungsbedingungen />
       </div>
       <div class="down">
       <DatenschutzPage />

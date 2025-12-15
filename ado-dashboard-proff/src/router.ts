@@ -250,10 +250,10 @@ const routes = [
                 }
             },
             {
-                path: 'agb',
-                component: () => import('./views/legal/AGB.vue'),
+                path: 'nutzung',
+                component: () => import('./views/legal/Nutzungsbedingungen.vue'),
                 meta: {
-                    title: 'AGB',
+                    title: 'Nutzungsbedingungen',
                     fullWidth: false,
                     hideNavigation: false
                 }
