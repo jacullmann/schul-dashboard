@@ -341,7 +341,7 @@ function colorFor(color) {
 
 @media (max-width: 500px) {
   .global-announcements {
-    top: 67px;
+    top: 50px;
   }
 
   .global-ann {
