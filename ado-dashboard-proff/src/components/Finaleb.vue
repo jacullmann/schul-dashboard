@@ -519,7 +519,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
 /* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
 .lesson-group-container.highlight-active .lesson-subject {
-  color: var(--text--bg);
+  color: var(--lbg);
 }
 
 .lesson-group-container.highlight-active .lesson-details {
@@ -535,7 +535,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {
-  color: var(--text--bg);
+  color: var(--lbg);
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {

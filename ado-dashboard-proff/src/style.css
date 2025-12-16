@@ -73,6 +73,7 @@
     --start--border2: #414141;
     --start--llbg: #191919;
     --legal--bg: #fff;
+    --not-spinning: #bbb;
 }
 
 * { box-sizing: border-box; }
