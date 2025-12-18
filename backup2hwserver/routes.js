@@ -33,8 +33,7 @@ export default function registerRoutes(app, deps) {
         Sorgen,
         PasswordReset,
         EncryptedTodo,
-        TimetableSub,
-        Timetable
+        TimetableSub
     } = models;
 
     function sendJSONError(res, status, msg, errors) {
@@ -1293,56 +1292,6 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             } catch (err) {
                 console.error('Prune logs error', err);
                 sendJSONError(res, 500, 'Fehler beim Bereinigen');
-            }
-        }
-    );
-
-    app.get('/api/timetable', requireExternalAuth, async (req, res) => {
-        try {
-            // Finde den als 'active' markierten Plan, oder einfach den neuesten
-            const plan = await Timetable.findOne({ active: true }).sort({ updatedAt: -1 }).lean();
-
-            // Wenn kein Plan in der DB ist, leeres Array zurückgeben
-            if (!plan) return res.json([]);
-
-            res.json(plan.lessons);
-        } catch (err) {
-            console.error('GET /api/timetable error', err);
-            sendJSONError(res, 500, 'Fehler beim Laden des Stundenplans');
-        }
-    });
-
-    app.post('/api/admin/timetable', requireAdmin,
-        body('lessons').isArray(),
-        validate,
-        async (req, res) => {
-            try {
-                const { lessons } = req.body;
-                await Timetable.findOneAndUpdate(
-                    { active: true },
-                    {
-                        $set: {
-                            lessons: lessons,
-                            name: 'Standard'
-                        }
-                    },
-                    { upsert: true, new: true }
-                );
-
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'timetable:update',
-                            meta: { count: lessons.length }
-                        }
-                    }
-                });
-
-                res.json({ ok: true, message: 'Stundenplan erfolgreich gespeichert.' });
-            } catch (err) {
-                console.error('POST /api/admin/timetable error', err);
-                sendJSONError(res, 500, 'Fehler beim Speichern des Stundenplans');
             }
         }
     );

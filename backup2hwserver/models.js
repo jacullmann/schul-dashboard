@@ -66,25 +66,6 @@ export function initModels(mongoose) {
         }]
     }, { timestamps: true });
 
-    const LessonSchema = new Schema({
-        id: { type: Number, required: true },
-        day: { type: String, required: true },
-        slot: { type: Number, required: true },
-        duration: { type: Number, default: 1 },
-        room: { type: String, default: null },
-        teacher: { type: String, default: null },
-        subject: { type: String, required: true },
-        subject_abbr: { type: String }
-    }, { _id: false });
-
-    const TimetableSchema = new Schema({
-        name: { type: String, default: 'Standard' },
-        active: { type: Boolean, default: true },
-        lessons: [LessonSchema]
-    }, { timestamps: true });
-
-    const Timetable = mongoose.model('HwTimetable', TimetableSchema);
-
     const BannedUserSchema = new Schema({
         userId: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true, unique: true, required: true },
         bannedAt: { type: Date, default: Date.now }
@@ -195,8 +176,7 @@ export function initModels(mongoose) {
         Sorgen,
         PasswordReset,
         EncryptedTodo,
-        TimetableSub,
-        Timetable
+        TimetableSub
     };
 }
 
