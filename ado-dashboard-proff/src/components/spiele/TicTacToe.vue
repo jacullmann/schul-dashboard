@@ -112,7 +112,7 @@ const resetGame = () => {
   grid-template-rows: repeat(3, 80px);
   gap: 5px;
   margin-bottom: 20px;
-  background-color: var(--jj);
+  background-color: var(--vlbg);
   padding: 5px;
   border-radius: 8px;
 }

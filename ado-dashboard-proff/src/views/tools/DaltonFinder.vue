@@ -449,7 +449,7 @@ td {
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
-  background: var(--jj);
+  background: var(--vlbg);
   border-top: 1px solid var(--border2);
   border-bottom: 1px solid var(--border2);
   border-right: 1px solid var(--border2);
@@ -494,7 +494,7 @@ tr td:last-child {
 
 /* TEACHER CARD STYLES */
 .teacher-card {
-  background: var(--jj);
+  background: var(--vlbg);
   padding: 12px;
   margin-bottom: 12px;
   border: 1px solid var(--border2);

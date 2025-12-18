@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   margin-top: 4px;
-  background: var(--jj);
+  background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 8px;
   padding: 4px;

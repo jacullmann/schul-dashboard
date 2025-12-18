@@ -155,7 +155,7 @@ const resetGame = () => {
   justify-content: center;
   align-items: center;
   font-size: 4em;
-  background-color: var(--jj);
+  background-color: var(--vlbg);
   border-radius: 10px;
   transition: background-color 0.5s;
 }

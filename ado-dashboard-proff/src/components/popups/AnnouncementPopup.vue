@@ -114,7 +114,7 @@ function close() {
 }
 
 .popup-close:hover {
-  background: var(--jj);
+  background: var(--vlbg);
 }
 
 .popup-content {

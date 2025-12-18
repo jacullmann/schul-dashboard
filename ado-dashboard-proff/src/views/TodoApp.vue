@@ -216,9 +216,9 @@ function showMessage(msg: string, error = false) {
 .todo-list { margin-top: 2rem; }
 .empty-state { text-align: center; padding: 3rem; color: var(--sub); }
 .todo-filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.todo-filters .btn.active { background-color: #D9D9D9; color: var(--jj); }
+.todo-filters .btn.active { background-color: #D9D9D9; color: var(--vlbg); }
 .todos-list { display: flex; flex-direction: column; gap: 1rem; }
-.todo-item { background: var(--jj); border-radius: 12px; padding: 12px; border: 1px solid var(--border2); transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.todo-item { background: var(--vlbg); border-radius: 12px; padding: 12px; border: 1px solid var(--border2); transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .todo-item.completed { opacity: 0.7; background: rgba(255, 255, 255, 0.05); }
 .todo-item.overdue { border-color: var(--danger); }
 .todo-main { display: flex; gap: 1rem; flex: 1; }

@@ -177,7 +177,7 @@ const backToList = () => {
 
 .search-input {
   width: 100%;
-  background-color: var(--jj);
+  background-color: var(--vlbg);
   border: 1px solid var(--border2);
   color: var(--text);
   padding: 10px 12px 10px 36px;
@@ -197,7 +197,7 @@ const backToList = () => {
   width: 6px;
 }
 .version-list::-webkit-scrollbar-thumb {
-  background-color: var(--jj);
+  background-color: var(--vlbg);
   border-radius: 3px;
 }
 
@@ -209,7 +209,7 @@ const backToList = () => {
 }
 
 .version-item:hover {
-  background-color: var(--jj);
+  background-color: var(--vlbg);
 }
 
 .version-item.active {

@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
 }
 
 .popup-inner {
-  background: var(--jj);
+  background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
   padding: 12px;
@@ -532,7 +532,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   color: var(--text);
-  border: 2px solid var(--jj);
+  border: 2px solid var(--vlbg);
 }
 
 @media (max-width: 480px) {

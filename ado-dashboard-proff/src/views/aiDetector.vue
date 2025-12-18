@@ -321,7 +321,7 @@ async function startAnalysis(): Promise<void> {
           type="password"
           v-model="password"
           placeholder="Passwort eingeben"
-          style="padding:8px 10px; border-radius:6px; border:1px solid var(--jj);"
+          style="padding:8px 10px; border-radius:6px; border:1px solid var(--vlbg);"
           :aria-label="'Passwort'"
       />
       <div style="font-size:0.9rem; color: var(--sub);">
@@ -349,7 +349,7 @@ async function startAnalysis(): Promise<void> {
   margin: 0;
 }
 .status-box {
-  background-color: var(--jj);
+  background-color: var(--vlbg);
   border-radius: 8px;
   padding: 12px 16px;
   margin-top: 20px;
@@ -387,12 +387,12 @@ async function startAnalysis(): Promise<void> {
   position: absolute;
   width: 300px;
   height: 300px;
-  border: 20px solid var(--jj);
+  border: 20px solid var(--vlbg);
   border-radius: 50%;
   clip: rect(0, 300px, 150px, 0);
 }
 .gauge-track {
-  border-color: var(--jj);
+  border-color: var(--vlbg);
 }
 .gauge-fill {
   border-bottom-color: transparent;

@@ -100,7 +100,7 @@ const resetGame = () => {
   margin-bottom: 30px;
   padding: 10px 20px;
   border-radius: 8px;
-  background-color: var(--jj);
+  background-color: var(--vlbg);
   color: var(--text);
   min-width: 320px;
   text-align: center;

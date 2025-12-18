@@ -157,7 +157,7 @@ function colorFor(color) {
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
     'expired': 'var(--gg)',
-    'info': 'var(--jj)',
+    'info': 'var(--vlbg)',
   }
   return map[color] || 'var(--sub)'
 }
@@ -281,7 +281,7 @@ function colorFor(color) {
 }
 
 .close-btn:hover {
-  background: var(--jj);
+  background: var(--vlbg);
 }
 
 .announcement-list {
@@ -301,7 +301,7 @@ function colorFor(color) {
 }
 
 .announcement-item:hover {
-  background: var(--jj);
+  background: var(--vlbg);
 }
 
 .announcement-item.active {

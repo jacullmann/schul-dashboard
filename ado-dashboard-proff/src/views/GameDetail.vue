@@ -94,7 +94,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 hr {
-  border-top: 1px solid var(--jj);
+  border-top: 1px solid var(--vlbg);
 }
 
 .game-component-instance {

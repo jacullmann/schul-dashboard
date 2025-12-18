@@ -196,7 +196,7 @@ onUnmounted(() => {
 /* Stil für das einzelne Widget-Fenster */
 .widget-window {
   position: absolute;
-  background: var(--jj);
+  background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 8px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);

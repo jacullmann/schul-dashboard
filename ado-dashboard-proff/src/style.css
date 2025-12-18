@@ -11,12 +11,9 @@
     --border: #282828;
     --border2: #414141;
     --gg: #414141;
-    --jj: #282828;
     --sub: #aaa;
     --announcement-height: 0px;
     --progress-height: 3px;
-    --glass-bg: rgba(20, 20, 20, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
     --accent-glow: rgba(255, 255, 255, 0.05);
     --text-primary: #ffffff;
     --text-secondary: #a1a1aa;
@@ -24,7 +21,6 @@
     --sub2: #8a8a8a;
     --lp: #C44DFF;
     --s-hover: #323232;
-    --f-white: #aaa;
     --admin-header-height: 60px;
     --sup-base: #006239;
     --sup-text: #fafafa;
@@ -69,7 +65,6 @@
     --border: #ccc;
     --border2: #ddd;
     --gg: #eee;
-    --jj: #fff;
     --sub: #414141;
     --vlbg: #fff;
     --ghost--hover: #f5f5f5;
@@ -118,7 +113,7 @@ h1, h2, h3, h4, h5 {
         width: 100%;
         padding: 10px 12px;
         border-radius: 6px;
-        background: var(--jj);
+        background: var(--vlbg);
         color: var(--text);
         border: 1px solid var(--border2);
         outline: none;
@@ -130,7 +125,7 @@ h1, h2, h3, h4, h5 {
         gap:8px;
         padding:10px 12px;
         background:var(--pure--white);
-        color:var(--jj);
+        color:var(--vlbg);
         border:1px solid transparent;
         border-radius:6px;
         cursor:pointer;
@@ -140,7 +135,7 @@ h1, h2, h3, h4, h5 {
         background-color: var(--pure--white--hover);
     }
     .btn.ghost {
-        background:var(--jj);
+        background:var(--vlbg);
         border:1px solid var(--border2);
         color:var(--text);
         transition: .1s ease
@@ -292,10 +287,10 @@ footer {
     }
     .btn:hover {
         background:var(--pure--white);
-        color:var(--jj);
+        color:var(--vlbg);
     }
     .btn.ghost:hover {
-        background:var(--jj);
+        background:var(--vlbg);
         border:1px solid var(--border2);
         color:var(--text);
     }

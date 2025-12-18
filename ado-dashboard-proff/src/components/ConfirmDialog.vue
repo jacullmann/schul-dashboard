@@ -135,7 +135,7 @@ watch(() => props.show, (newVal) => {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  background: var(--jj);
+  background: var(--vlbg);
   color: var(--text);
   border: 1px solid var(--border2);
   outline: none;

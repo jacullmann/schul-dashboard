@@ -211,7 +211,7 @@ onMounted(() => {
   justify-content: center;
 }
 .switch-btn {
-  background: var(--jj);
+  background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 6px;
   width: 38px;
