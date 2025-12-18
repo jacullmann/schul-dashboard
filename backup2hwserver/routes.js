@@ -33,7 +33,8 @@ export default function registerRoutes(app, deps) {
         Sorgen,
         PasswordReset,
         EncryptedTodo,
-        TimetableSub
+        TimetableSub,
+        Timetable
     } = models;
 
     function sendJSONError(res, status, msg, errors) {
@@ -397,6 +398,23 @@ Email bestätigen
             }
         }
     );
+
+    app.get('/api/timetable', requireExternalAuth, async (req, res) => {
+        try {
+            const timetable = await Timetable.findOne()
+                .sort({ updatedAt: -1 })
+                .lean();
+
+            if (!timetable) {
+                return sendJSONError(res, 404, 'Kein Stundenplan gefunden');
+            }
+
+            res.json(timetable.lessons);
+        } catch (err) {
+            console.error('GET /api/timetable error', err);
+            sendJSONError(res, 500, 'Fehler beim Laden des Stundenplans');
+        }
+    });
 
     app.delete('/api/admin/timetable/subs/:id', requireAdmin,
         param('id').isMongoId(),

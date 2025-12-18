@@ -153,6 +153,22 @@ export function initModels(mongoose) {
     }, { timestamps: true });
     PasswordResetSchema.index({ email: 1, code: 1 });
 
+    const TimetableSchema = new Schema({
+        lessons: [{
+            id: { type: Number, required: true },
+            day: { type: String, required: true },
+            slot: { type: Number, required: true },
+            duration: { type: Number, required: true },
+            room: { type: String, default: null },
+            teacher: { type: String, default: null },
+            subject: { type: String, required: true },
+            subject_abbr: { type: String }
+        }],
+        updatedAt: { type: Date, default: Date.now }
+    }, { timestamps: true });
+
+    const Timetable = mongoose.model('HwTimetable', TimetableSchema);
+
     const User = mongoose.model('HwUser', UserSchema);
     const BannedUser = mongoose.model('HwBannedUser', BannedUserSchema);
     const Verification = mongoose.model('HwVerification', VerificationSchema);
@@ -176,7 +192,8 @@ export function initModels(mongoose) {
         Sorgen,
         PasswordReset,
         EncryptedTodo,
-        TimetableSub
+        TimetableSub,
+        Timetable
     };
 }
 

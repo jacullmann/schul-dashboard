@@ -34,6 +34,11 @@ interface TimeSlot {
   time: string;
 }
 
+const lessons = ref<Lesson[]>([]);
+const substitutions = ref<Substitution[]>([]);
+const loadingSubs = ref(true);
+const loadingLessons = ref(true);
+
 const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
 const totalSlots = 9;
 const lessonDurationMins = 45;
@@ -47,54 +52,10 @@ const breaks: Record<number, number> = {
   7: 10
 };
 
-const jsonData: Lesson[] = [
-  { "id": 1, "day": "Montag", "slot": 1, "duration": 1, "room": "A005", "teacher": "Fr. Ellsiepen", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 2, "day": "Montag", "slot": 1, "duration": 1, "room": "A106", "teacher": "Hr. Weber", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 3, "day": "Montag", "slot": 1, "duration": 1, "room": "A310", "teacher": "Fr. Glier", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 4, "day": "Montag", "slot": 1, "duration": 1, "room": "A311", "teacher": "Hr. Müller", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 5, "day": "Montag", "slot": 2, "duration": 1, "room": "A106", "teacher": "Fr. Prey", "subject": "Mathe", "subject_abbr": "MA" },
-  { "id": 6, "day": "Montag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
-  { "id": 7, "day": "Montag", "slot": 4, "duration": 2, "room": "A203", "teacher": "Hr. Luxen", "subject": "Biologie", "subject_abbr": "BI" },
-  { "id": 8, "day": "Montag", "slot": 6, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Deutsch", "subject_abbr": "DE" },
-  { "id": 9, "day": "Montag", "slot": 7, "duration": 1, "room": "A307", "teacher": "Hr. Austerfield", "subject": "Englisch", "subject_abbr": "ENG" },
-  { "id": 10, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A-115", "teacher": "Hr. Schlüter", "subject": "Informatik", "subject_abbr": "INF" },
-  { "id": 11, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A004", "teacher": "Fr. Blanke", "subject": "Englisch", "subject_abbr": "ENG" },
-  { "id": 12, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A104", "teacher": "Fr. Eckers", "subject": "Biologie", "subject_abbr": "BI" },
-  { "id": 13, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A309", "teacher": "Fr. Sonnemann", "subject": "Latein", "subject_abbr": "LA" },
-  { "id": 14, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A311", "teacher": "Hr. Peukert", "subject": "GeWi", "subject_abbr": "GEWI" },
-  { "id": 15, "day": "Dienstag", "slot": 1, "duration": 2, "room": "A313", "teacher": "Hr. Preuß", "subject": "Deutsch", "subject_abbr": "DE" },
-  { "id": 16, "day": "Dienstag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
-  { "id": 17, "day": "Dienstag", "slot": 3, "duration": 1, "room": "A-115", "teacher": "Hr. Schlüter", "subject": "Informatik", "subject_abbr": "INF" },
-  { "id": 18, "day": "Dienstag", "slot": 4, "duration": 2, "room": "A303", "teacher": "Hr. Zimmermann", "subject": "Erdkunde", "subject_abbr": "EK" },
-  { "id": 19, "day": "Dienstag", "slot": 6, "duration": 2, "room": "TH2", "teacher": "Fr. Haupt", "subject": "Sport", "subject_abbr": "SP" },
-  { "id": 20, "day": "Dienstag", "slot": 8, "duration": 2, "room": "A102", "teacher": "Hr. Magnus", "subject": "Theater", "subject_abbr": "TH" },
-  { "id": 21, "day": "Mittwoch", "slot": 1, "duration": 2, "room": "A104", "teacher": "Fr. Prey", "subject": "Physik", "subject_abbr": "PH" },
-  { "id": 22, "day": "Mittwoch", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
-  { "id": 23, "day": "Mittwoch", "slot": 4, "duration": 2, "room": "A301", "teacher": "Fr. Rehlinghaus", "subject": "Musik", "subject_abbr": "MU" },
-  { "id": 24, "day": "Mittwoch", "slot": 6, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Französisch", "subject_abbr": "FRZ" },
-  { "id": 25, "day": "Mittwoch", "slot": 7, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Klassenstunde", "subject_abbr": "KSTD" },
-  { "id": 26, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A005", "teacher": "Hr. Herrmann", "subject": "Mathe", "subject_abbr": "MA" },
-  { "id": 27, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A104", "teacher": "Hr. Moresmau", "subject": "GeWi", "subject_abbr": "GEWI" },
-  { "id": 28, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A206", "teacher": "Hr. Chahine", "subject": "Englisch", "subject_abbr": "ENG" },
-  { "id": 29, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A207", "teacher": "Fr. Eckers", "subject": "Biologie", "subject_abbr": "BI" },
-  { "id": 30, "day": "Donnerstag", "slot": 1, "duration": 2, "room": "A301", "teacher": "Fr. Klein", "subject": "Musik", "subject_abbr": "MU" },
-  { "id": 31, "day": "Donnerstag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
-  { "id": 32, "day": "Donnerstag", "slot": 4, "duration": 2, "room": "A307", "teacher": "Fr. Glier", "subject": "Deutsch", "subject_abbr": "DE" },
-  { "id": 33, "day": "Donnerstag", "slot": 6, "duration": 2, "room": "A307", "teacher": "Hr. Kröse", "subject": "Ethik", "subject_abbr": "ETH" },
-  { "id": 34, "day": "Freitag", "slot": 1, "duration": 2, "room": "A110", "teacher": "Fr. Prey", "subject": "Mathe", "subject_abbr": "MA" },
-  { "id": 35, "day": "Freitag", "slot": 3, "duration": 1, "room": null, "teacher": null, "subject": "Dalton", "subject_abbr": "DAL" },
-  { "id": 36, "day": "Freitag", "slot": 4, "duration": 1, "room": "A307", "teacher": "Hr. Austerfield", "subject": "Englisch", "subject_abbr": "ENG" },
-  { "id": 37, "day": "Freitag", "slot": 5, "duration": 1, "room": "A307", "teacher": "Fr. Glier", "subject": "Französisch", "subject_abbr": "FRZ" },
-  { "id": 38, "day": "Freitag", "slot": 6, "duration": 2, "room": "A008", "teacher": "Hr. Müller", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 39, "day": "Freitag", "slot": 6, "duration": 2, "room": "A104", "teacher": "Hr. Weber", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 40, "day": "Freitag", "slot": 6, "duration": 2, "room": "A310", "teacher": "Fr. Glier", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 41, "day": "Freitag", "slot": 6, "duration": 2, "room": "A313", "teacher": "Fr. Ellsiepen", "subject": "Enrichment", "subject_abbr": "ENR" },
-  { "id": 42, "day": "Freitag", "slot": 8, "duration": 1, "room": "A203", "teacher": "Hr. Luxen", "subject": "Biologie", "subject_abbr": "BI" }
-];
+
 
 const substitutionsData: Substitution[] = [];
 
-const loadingSubs = ref(true);
 
 async function loadSubstitutions() {
   try {
@@ -108,8 +69,17 @@ async function loadSubstitutions() {
   }
 }
 
-const lessons = ref<Lesson[]>(jsonData);
-const substitutions = ref<Substitution[]>(substitutionsData);
+async function loadTimetable() {
+  try {
+    const { data } = await hw.get('/api/timetable');
+    lessons.value = data;
+  } catch (error) {
+    console.error('Fehler beim Laden des Stundenplans:', error);
+    lessons.value = [];
+  } finally {
+    loadingLessons.value = false;
+  }
+}
 
 
 const effectiveLessons = computed<Lesson[]>(() => {
@@ -205,6 +175,7 @@ const updateTime = () => {
 let timer: number | undefined;
 onMounted(() => {
   timer = window.setInterval(updateTime, 1000 * 60);
+  loadTimetable();
   loadSubstitutions();
 });
 onUnmounted(() => {
