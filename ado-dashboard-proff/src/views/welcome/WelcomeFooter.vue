@@ -47,7 +47,7 @@ function gotomain() {
   emit('goToMain')
 }
 function goToStatus() {
-  window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank');
+  window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank', 'noopener,noreferrer');
 }
 </script>
 
