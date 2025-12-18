@@ -3,11 +3,11 @@
     <div class="modal card rlc">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-        <button data-umami-event="ImageForm Menü schließen" style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="ImageForm Menü schlißen" style="color: white;" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="section">
-        <div class="section-title">Bilder</div>
+        <div  class="section-title">Bilder</div>
 
         <div class="images-row row">
           <div
@@ -26,19 +26,14 @@
             </a>
 
             <div class="thumb-actions">
-              <button data-umami-event="Bild löschen Button -> Menu öffnen" class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
+              <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
             </div>
           </div>
         </div>
       </div>
 
       <div class="controls row" style="margin-top:16px; align-items:center;">
-        <button
-            data-umami-event="Bilder hochladen Button"
-            class="btn ghost"
-            @click="uploadImg"
-            :disabled="uploading"
-        >
+        <button data-umami-event="Bilder hochladen Button" class="btn ghost" @click="uploadImg" :disabled="uploading">
           <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -60,17 +55,13 @@
         </div>
       </div>
     </div>
-
-    <!-- Upload Progress Component -->
-    <ImageUploadProgress ref="uploadProgressRef" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
 import hw from '../../hwApi';
-import { processImageBeforeUpload } from "../../composables/useConvertImage";
-import ImageUploadProgress from './ImageUploadProgress.vue';
+import { processImageBeforeUpload} from "../../composables/useConvertImage";
 
 const props = defineProps({
   item: {
@@ -84,7 +75,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['close', 'success']);
 
-const uploadProgressRef = ref<InstanceType<typeof ImageUploadProgress> | null>(null);
 const uploading = ref(false);
 const message = ref('');
 const isError = ref(false);
@@ -127,6 +117,7 @@ async function uploadImg() {
   input.accept = 'image/*';
   input.multiple = true;
 
+  // Reset uploading state if user cancels
   input.oncancel = () => {
     uploading.value = false;
   };
@@ -145,14 +136,12 @@ async function uploadImg() {
     const existingCount = (currentImages.value || []).length;
     const MAX_IMAGES = 12;
     const remaining = MAX_IMAGES - existingCount;
-
     if (remaining <= 0) {
       message.value = 'Die maximale Anzahl an Bilder wurde für diesen Eintrag (12) bereits erreicht.';
       isError.value = true;
       uploading.value = false;
       return;
     }
-
     if (files.length > remaining) {
       message.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Maximale Anzahl ${MAX_IMAGES} Bilder (gesamt).`;
       isError.value = true;
@@ -161,17 +150,10 @@ async function uploadImg() {
     }
 
     for (const file of files) {
-      const uploadId = uploadProgressRef.value?.addUpload(file);
-
       try {
-        uploadProgressRef.value?.updateProgress(uploadId, 10);
-
         const processedFile = await processImageBeforeUpload(file);
-        uploadProgressRef.value?.updateProgress(uploadId, 30);
 
         const { data: sign } = await hw.post('/api/uploads/sign');
-        uploadProgressRef.value?.updateProgress(uploadId, 50);
-
         const form = new FormData();
         form.append('file', processedFile);
         form.append('api_key', sign.apiKey);
@@ -179,33 +161,22 @@ async function uploadImg() {
         form.append('signature', sign.signature);
         form.set('folder', sign.folder);
 
-        uploadProgressRef.value?.updateProgress(uploadId, 70);
-
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, {
-          method: 'POST',
-          body: form
-        });
-
-        uploadProgressRef.value?.updateProgress(uploadId, 90);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
         const json = await res.json();
 
         if (json.secure_url && json.public_id) {
+          // informiere Backend über das neue Bild und erweitere die Liste
           const { data } = await hw.post(`/api/items/${props.item.id}/images`, {
             image: { url: json.secure_url, publicId: json.public_id }
           });
-
           currentImages.value = [...currentImages.value, data.image];
-
-          uploadProgressRef.value?.updateProgress(uploadId, 100);
-          uploadProgressRef.value?.setComplete(uploadId);
           emit('success');
         } else {
-          uploadProgressRef.value?.setError(uploadId, 'Upload fehlgeschlagen');
           message.value = 'Mindestens ein Bild-Upload fehlgeschlagen.';
           isError.value = true;
+          console.error('Cloudinary responded with error', json);
         }
       } catch (e: any) {
-        uploadProgressRef.value?.setError(uploadId, e?.response?.data?.error || 'Upload fehlgeschlagen');
         message.value = e?.response?.data?.error || 'Fehler beim Hochladen.';
         isError.value = true;
         console.error('uploadImg error', e);
@@ -215,14 +186,19 @@ async function uploadImg() {
     uploading.value = false;
   };
 
+  // Setze einen Timeout als Fallback
   setTimeout(() => {
-    if (uploading.value && !document.body.contains(input)) {
-      uploading.value = false;
+    if (uploading.value) {
+      if (!document.body.contains(input)) {
+        uploading.value = false;
+      }
     }
   }, 1000);
 
   input.click();
 }
+
+
 
 async function removeImg(publicId: string) {
   showConfirmRemovalModal.value = false;
@@ -244,6 +220,8 @@ async function removeImg(publicId: string) {
 </script>
 
 <style scoped>
+
+
 .overlay.confirm {
   position: fixed;
   inset: 0;
@@ -255,6 +233,7 @@ async function removeImg(publicId: string) {
   background: rgba(0, 0, 0, 0.4);
 }
 
+/* Modal card styling (keeps visual style local) */
 .modal {
   width: 100%;
   max-width: 640px;
@@ -265,23 +244,22 @@ async function removeImg(publicId: string) {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
+/* Confirm modal variant */
 .confirm-card {
   max-width: 420px;
   text-align: center;
 }
 
+/* Header */
 .modal-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
+.modal-head h3 { margin: 0; font-size: 1.05rem; }
 
-.modal-head h3 {
-  margin: 0;
-  font-size: 1.05rem;
-}
-
+/* Section */
 .section {
   margin-top: 16px;
 }
@@ -292,6 +270,7 @@ async function removeImg(publicId: string) {
   color: var(--text);
 }
 
+/* Images grid row */
 .images-row {
   gap: 8px;
   display: flex;
@@ -299,6 +278,7 @@ async function removeImg(publicId: string) {
   align-items: flex-start;
 }
 
+/* Thumbnail wrapper: fixed square using aspect-ratio */
 .img-thumb {
   width: 120px;
   aspect-ratio: 1 / 1;
@@ -313,12 +293,10 @@ async function removeImg(publicId: string) {
   flex: 0 0 120px;
 }
 
-.img-link {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
+/* link fills wrapper */
+.img-link { display: block; width: 100%; height: 100%; }
 
+/* image fills and is cropped */
 .img {
   width: 100%;
   height: 100%;
@@ -327,6 +305,7 @@ async function removeImg(publicId: string) {
   display: block;
 }
 
+/* action button in corner */
 .thumb-actions {
   position: absolute;
   top: 6px;
@@ -334,50 +313,24 @@ async function removeImg(publicId: string) {
   z-index: 4;
 }
 
-.btn.small {
-  padding: 4px 8px;
-  font-size: 12px;
-}
+/* small button variant */
+.btn.small { padding: 4px 8px; font-size: 12px; }
 
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* controls and message */
+.controls { display: flex; align-items: center; gap: 12px; }
 
-.spinner {
-  width: 18px;
-  height: 18px;
-  animation: spin 1s linear infinite;
-}
+/* spinner */
+.spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+/* message states */
+.small { font-size: 12px; color: var(--sub); }
+.msg-ok { color: var(--primary); font-weight: 600; }
+.msg-error { color: var(--danger); font-weight: 600; }
 
-.small {
-  font-size: 12px;
-  color: var(--sub);
-}
-
-.msg-ok {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.msg-error {
-  color: var(--danger);
-  font-weight: 600;
-}
-
+/* responsive */
 @media (max-width: 480px) {
-  .img-thumb {
-    width: 88px;
-    flex: 0 0 88px;
-    aspect-ratio: 1 / 1;
-  }
-  .modal {
-    padding: 16px;
-  }
+  .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
+  .modal { padding: 16px; }
 }
 </style>
