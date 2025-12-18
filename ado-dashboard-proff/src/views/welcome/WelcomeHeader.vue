@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import Logo from "../../components/hw/Logo.vue";
+const emit = defineEmits(['goToMain2'])
 </script>
 
 <template>
   <header class="header">
-    <div class="header-content-wrapper"> <div class="logo-container">
-      <Logo class="logo-img" aria-hidden="true" />
-      <span class="logo-text">Dashboard</span>
+    <div class="header-content-wrapper">
+      <div @click="emit('goToMain2')" class="logo-container">
+        <Logo class="logo-img" aria-hidden="true" />
+        <span class="logo-text">Dashboard</span>
+      </div>
     </div>
-      <nav class="nav-links">
-      </nav>
-    </div> </header>
+  </header>
 </template>
 
 <style scoped>
@@ -40,6 +41,7 @@ import Logo from "../../components/hw/Logo.vue";
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
 }
 
 .logo-img {

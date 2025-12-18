@@ -8,17 +8,16 @@ import ImpressumPage from "../legal/ImpressumPage.vue";
 <template>
   <div class="card container">
     <div class="card-header">
-      <h1>Rechtliches</h1>
     </div>
     <div class="card-body">
       <div class="down">
+        <ImpressumPage />
+      </div>
+      <div class="down">
       <Nutzungsbedingungen />
       </div>
-      <div class="down">
+      <div>
       <DatenschutzPage />
-      </div>
-      <div class="down">
-      <ImpressumPage />
       </div>
     </div>
 

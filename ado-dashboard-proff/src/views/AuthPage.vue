@@ -3,7 +3,7 @@
   <div class="outer-container">
 
     <div class="header-container">
-      <WelcomeHeader @click="isWelcomeContent = true; isSecurity = false" />
+      <WelcomeHeader @goToMain2="isWelcomeContent = true; isSecurity = false" />
     </div>
 
     <div class="main-container">
@@ -21,7 +21,7 @@
     </div>
 
     <div class="footer-container">
-      <WelcomeFooter @goToSec="toggleSec"/>
+      <WelcomeFooter @goToMain="isWelcomeContent = true; isSecurity = false" @goToSec="toggleSec"/>
     </div>
 
   </div>

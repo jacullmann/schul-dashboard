@@ -12,8 +12,8 @@
 
         <div class="footer-section">
           <h3>Navigation</h3>
-          <p class="footer-link">Startseite</p>
-          <p @click="gotosec" class="footer-link">Rechtliches & Sicherheit</p>
+          <p @click="gotomain" class="footer-link">Startseite</p>
+          <p @click="gotosec" class="footer-link">Impressum</p>
         </div>
 
         <!-- Sektion: Kontakt
@@ -36,9 +36,12 @@
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits(['goToSec'])
+const emit = defineEmits(['goToSec', 'goToMain'])
 function gotosec() {
   emit('goToSec')
+}
+function gotomain() {
+  emit('goToMain')
 }
 </script>
 

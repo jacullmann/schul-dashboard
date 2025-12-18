@@ -5,7 +5,7 @@
         <h3 class="modal-title">
           {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
         </h3>
-        <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="Eintrag erstellen/bearbeiten Menü schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="row">
@@ -60,7 +60,6 @@
         <div class="col">
           <label class="label">Abgabedatum</label>
           <input class="input" type="date" v-model="dueLocal" />
-
         </div>
       </div>
 
@@ -86,7 +85,12 @@
             </div>
           </div>
 
-          <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="uploadImage" :disabled="uploading">
+          <button
+              data-umami-event="Bild zu Eintrag hinzufügen Button"
+              class="btn ghost"
+              @click="uploadImage"
+              :disabled="uploading"
+          >
             <svg v-if="uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -94,7 +98,6 @@
             Bild hochladen
           </button>
         </div>
-        <div v-if="uploading" class="small">Lade Bild hoch...</div>
         <div v-if="uploadError" class="small error">{{ uploadError }}</div>
       </div>
 
@@ -109,6 +112,9 @@
         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
       </div>
     </div>
+
+    <!-- Upload Progress Component -->
+    <ImageUploadProgress ref="uploadProgressRef" />
   </div>
 </template>
 
@@ -117,8 +123,8 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import hw from '../../hwApi';
 import type { HwItem } from './Hausaufgaben.vue';
 import { containsProfanity } from '../../composables/useProfanity';
-import { processImageBeforeUpload} from "../../composables/useConvertImage";
-
+import { processImageBeforeUpload } from "../../composables/useConvertImage";
+import ImageUploadProgress from './ImageUploadProgress.vue';
 
 const props = defineProps<{
   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
@@ -126,6 +132,8 @@ const props = defineProps<{
   subjects: string[]
 }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
+
+const uploadProgressRef = ref<InstanceType<typeof ImageUploadProgress> | null>(null);
 
 const labelFor = (type: string) => {
   const map = {
@@ -135,6 +143,7 @@ const labelFor = (type: string) => {
   } as const;
   return map[type];
 };
+
 const enrKurse = [
   { id: '1', name: 'Herr Müller' },
   { id: '2', name: 'Herr Weber' },
@@ -186,7 +195,6 @@ const wpuDiKursSel = ref(initialParts.main === 'WPU (Di)' ? initialParts.course 
 const wpuDoKursSel = ref(initialParts.main === 'WPU (Do)' ? initialParts.course : '');
 
 watch(subjectSel, (newVal) => {
-  // Setzt die Kursauswahl zurück, wenn das Hauptfach gewechselt wird
   if (newVal !== 'Enrichment') enrKursSel.value = '';
   if (newVal !== 'WPU (Di)') wpuDiKursSel.value = '';
   if (newVal !== 'WPU (Do)') wpuDoKursSel.value = '';
@@ -214,7 +222,6 @@ function isoDateOnlyFromIso(iso: string) {
 const dueLocal = ref(
     props.initial?.dueDate ? isoDateOnlyFromIso(props.initial.dueDate) : new Date().toISOString().slice(0,10)
 );
-
 
 const submitting = ref(false);
 const message = ref('');
@@ -246,7 +253,6 @@ async function uploadImage() {
   input.accept = 'image/*';
   input.multiple = true;
 
-  // Reset uploading state if user cancels
   input.oncancel = () => {
     uploading.value = false;
   };
@@ -263,26 +269,38 @@ async function uploadImage() {
     const MAX_IMAGES = props.initial ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
     const existingCount = (images.value || []).length;
     const remaining = MAX_IMAGES - existingCount;
+
     if (remaining <= 0) {
-      uploadError.value = `Die maximale Anzahl an Bilder (${MAX_IMAGES})  ${props.initial ? '(gesamt)' : '(für neuen Eintrag)'} für diesen Eintrag wurden erreicht.`;
+      uploadError.value = `Die maximale Anzahl an Bilder (${MAX_IMAGES}) ${props.initial ? '(gesamt)' : '(für neuen Eintrag)'} für diesen Eintrag wurden erreicht.`;
       uploading.value = false;
       return;
     }
+
     if (files.length > remaining) {
       uploadError.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Dein Limit: ${MAX_IMAGES} Bilder.`;
       uploading.value = false;
       return;
     }
 
+    // Upload files mit Progress Tracking
     for (const file of files) {
       if (!file.type.startsWith('image/')) {
         console.warn(`Datei ${file.name} ist kein Bild und wird übersprungen.`);
         continue;
       }
 
+      const uploadId = uploadProgressRef.value?.addUpload(file);
+
       try {
+        // Simuliere Progress während Verarbeitung
+        uploadProgressRef.value?.updateProgress(uploadId, 10);
+
         const processedFile = await processImageBeforeUpload(file);
+        uploadProgressRef.value?.updateProgress(uploadId, 30);
+
         const { data: sign } = await hw.post('/api/uploads/sign');
+        uploadProgressRef.value?.updateProgress(uploadId, 50);
+
         const form = new FormData();
         form.set('file', processedFile);
         form.set('api_key', sign.apiKey);
@@ -290,7 +308,14 @@ async function uploadImage() {
         form.set('signature', sign.signature);
         form.set('folder', sign.folder);
 
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+        uploadProgressRef.value?.updateProgress(uploadId, 70);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, {
+          method: 'POST',
+          body: form
+        });
+
+        uploadProgressRef.value?.updateProgress(uploadId, 90);
         const json = await res.json();
 
         if (json.secure_url && json.public_id) {
@@ -300,12 +325,16 @@ async function uploadImage() {
             publicId: json.public_id,
             createdBy: ''
           });
+
+          uploadProgressRef.value?.updateProgress(uploadId, 100);
+          uploadProgressRef.value?.setComplete(uploadId);
           uploadError.value = '';
         } else {
+          uploadProgressRef.value?.setError(uploadId, 'Upload fehlgeschlagen');
           uploadError.value = 'Einige Uploads konnten nicht durchgeführt werden.';
-          console.error('Upload failed for file', file, json);
         }
       } catch (e: any) {
+        uploadProgressRef.value?.setError(uploadId, e.message || 'Upload fehlgeschlagen');
         uploadError.value = 'Upload fehlgeschlagen für mindestens eine Datei.';
         console.error('uploadImage error', e);
       }
@@ -314,34 +343,22 @@ async function uploadImage() {
     uploading.value = false;
   };
 
-  // Setze einen Timeout als Fallback für den Fall, dass oncancel nicht funktioniert
   setTimeout(() => {
-    if (uploading.value) {
-      // Prüfe ob das input Element noch im DOM ist (Dialog noch offen)
-      if (!document.body.contains(input)) {
-        uploading.value = false;
-      }
+    if (uploading.value && !document.body.contains(input)) {
+      uploading.value = false;
     }
   }, 3000);
 
   input.click();
 }
 
-
-
 async function removeImg(img: { url: string; publicId: string }) {
   if (props.initial?.id) {
     try {
-      // encode publicId so slashes are safe in the URL
       await hw.delete(`/api/items/${props.initial.id}/images/${encodeURIComponent(img.publicId)}`);
-
-      // remove locally
       images.value = images.value.filter(i => i.publicId !== img.publicId);
-
-      console.log('Bild erfolgreich gelöscht:', img.publicId);
       uploadError.value = 'Bild erfolgreich gelöscht.';
       setTimeout(() => uploadError.value = '', 3000);
-
     } catch (e: any) {
       console.error('Fehler beim Löschen des Bildes:', e);
       uploadError.value = 'Fehler beim Löschen des Bildes.';
@@ -365,7 +382,7 @@ async function submit() {
     ) {
       throw new Error('Unangemessene Inhalte erkannt. Bitte drücke dich in angemessener Sprache aus.');
     }
-    // --- NEUE LOGIK ZUM ERSTELLEN DES 'subject'-STRINGS ---
+
     let subject = '';
     const mainSubject = subjectSel.value;
 
@@ -387,11 +404,9 @@ async function submit() {
       }
       subject = `WPU (Do) - ${wpuDoKursSel.value}`;
     } else {
-      // Es ist ein einfaches Fach (z.B. "Mathe", "Deutsch")
       subject = mainSubject;
     }
 
-    // Titel-Validierung
     if (!title.value.trim()) {
       throw new Error('Du musst einen Titel hinzufügen');
     }
@@ -399,18 +414,13 @@ async function submit() {
       throw new Error('Passe den Titel an (2-60 Zeichen)');
     }
 
-    // Fach-Validierung (verwendet jetzt die neue 'subject' Variable)
     if (!subject) {
       throw new Error('Du musst ein Fach auswählen');
     }
-    // Die 40-Zeichen-Validierung aus routes.js
     if (subject.length < 2 || subject.length > 40) {
-      // z.B. "Enrichment - Frau Ellsiepen" = 27 Zeichen. Passt.
-      // z.B. "WPU (Di) - Informatik" = 22 Zeichen. Passt.
       throw new Error('Passe das Fach an (2-40 Zeichen)');
     }
 
-    // Beschreibungs-Validierung
     if (description.value.trim().length > 1000) {
       throw new Error('Die Beschreibung ist zu lang');
     }
@@ -459,18 +469,15 @@ async function submit() {
   }
 }
 
-
-
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('close');
 }
+
 onMounted(() => window.addEventListener('keydown', onKeyDown));
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <style scoped>
-
-
 .glass-modal {
   width: 100%;
   max-width: 720px;
@@ -485,7 +492,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   z-index: 100001;
 }
 
-
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -493,12 +499,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   gap: 12px;
   margin-bottom: 12px;
 }
+
 .modal-title {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: var(--text);
 }
+
 .section {
   margin-top: 10px;
 }
@@ -509,16 +517,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   color: var(--text);
   margin-bottom: 6px;
 }
+
 .label.bold {
   font-weight: 600;
   color: var(--text);
 }
 
-/* Bilderbereich */
 .images {
   gap: 8px;
   margin-top: 6px;
 }
+
 .image-item {
   position: relative;
   width: 120px;
@@ -530,49 +539,53 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   backdrop-filter: blur(8px) brightness(95%);
   -webkit-backdrop-filter: blur(8px) brightness(95%);
 }
+
 .thumb {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .image-actions {
   position: absolute;
   top: 4px;
   right: 4px;
 }
+
 .image-remove {
   padding: 4px 8px;
   font-size: 12px;
 }
 
-/* Spinner */
 .spinner {
   animation: spin 1s linear infinite;
   height: 20px;
   width: 20px;
 }
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Aktionen unten */
 .actions {
   margin-top: 16px;
   align-items: center;
 }
 
-/* Meldungen */
 .small {
   font-size: 12px;
   color: var(--sub);
 }
+
 .error {
   color: var(--danger);
 }
+
 .msg-ok {
   color: var(--primary);
 }
+
 .msg-error {
   color: var(--danger);
 }
