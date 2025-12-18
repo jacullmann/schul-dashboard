@@ -14,6 +14,7 @@
           <h3>Navigation</h3>
           <p @click="gotomain" class="footer-link">Startseite</p>
           <p @click="gotosec" class="footer-link">Impressum</p>
+          <p class="footer-link" @click="goToStatus" >Status<ExternalLink size="14px"/></p>
         </div>
 
         <!-- Sektion: Kontakt
@@ -36,12 +37,17 @@
 </template>
 
 <script setup lang="ts">
+import { ExternalLink} from "lucide-vue-next";
+
 const emit = defineEmits(['goToSec', 'goToMain'])
 function gotosec() {
   emit('goToSec')
 }
 function gotomain() {
   emit('goToMain')
+}
+function goToStatus() {
+  window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank');
 }
 </script>
 
@@ -92,12 +98,15 @@ function gotomain() {
 }
 
 .footer-link {
-  display: block;
   color: var(--start--sub);
   text-decoration: none;
   margin-bottom: 0.5rem;
   transition: color 0.2s ease, opacity 0.2s ease;
   cursor: pointer;
+  gap: 4px;
+  display: flex;
+  align-items: center;
+
 }
 
 .footer-bottom {
