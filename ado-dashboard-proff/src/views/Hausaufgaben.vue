@@ -299,7 +299,14 @@ const {
 .menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
 .menu-btn.danger { color: #f65252; fill: #f65252; }
 .menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }
-.item-body { margin-top:8px; color: var(--text); word-break: break-word; overflow-wrap: anywhere; hyphens: auto; }
+.item-body {
+  margin-top:8px;
+  color: var(--text);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  white-space: pre-wrap;
+}
 .item-images { margin-top:8px; }
 .images-title { font-weight:600; margin-bottom:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
