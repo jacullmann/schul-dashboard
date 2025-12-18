@@ -34,7 +34,7 @@
             <option value="light">Heller Modus</option>
             <option value="dark">Dunkler Modus</option>
           </select>
-          <p class="theme-hint">Wählt dein bevorzugtes Farbschema für das Schul-Dashboard aus.</p>
+          <p class="theme-hint">Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.</p>
         </div>
         <All  class="logoutDeviceMobile" />
       </div>

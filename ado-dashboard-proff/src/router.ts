@@ -10,15 +10,15 @@ const Ye = () => import('./views/kanye/Ye.vue');
 const BS = () => import('./views/BS.vue');
 const Kontakt = () => import('./components/ContactForm.vue');
 const AuthPage = () => import('./views/AuthPage.vue');
-const Aidetector = () => import('./views/aiDetector.vue')
-const Games = () => import('./views/Games.vue')
-const GameDetail = () => import('./views/GameDetail.vue')
-const Finales = () => import('./components/Finaleb.vue')
-const Countdown = () => import('./views/Countdown.vue')
+const Aidetector = () => import('./views/aiDetector.vue');
+const Games = () => import('./views/Games.vue');
+const GameDetail = () => import('./views/GameDetail.vue');
+const Finales = () => import('./components/Finaleb.vue');
+const Countdown = () => import('./views/Countdown.vue');
 const AdminDashboard = () => import('./views/AdminDashboard.vue');
-const DaltonFinder = () => import('./views/tools/DaltonFinder.vue')
-const Devide = () => import('./views/devider/Devide.vue')
-const PatchInfo = () => import('./views/updates/Info.vue')
+const DaltonFinder = () => import('./views/tools/DaltonFinder.vue');
+const Devide = () => import('./views/devider/Devide.vue');
+const PatchInfo = () => import('./views/updates/Info.vue');
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },

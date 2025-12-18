@@ -34,19 +34,16 @@
         <button
             class="btn ghost"
             type="submit"
-            :disabled="submitting || !message.trim() || isCooldown || charCount > MAX_LENGTH"
+            :disabled="submitting || !message.trim() || charCount > MAX_LENGTH"
             data-umami-event="Sorgenbox absenden Button"
         >
-          <span v-if="!submitting && !isCooldown">Anonym absenden</span>
-          <span v-else-if="isCooldown">Cooldown: {{ cooldownSeconds }}s</span>
+          <span v-if="!submitting">Anonym absenden</span>
           <LoadingSpinner v-else color="black" size="1.2em" />
         </button>
       </div>
 
-      <p v-if="feedback && !isCooldown" class="small" :class="feedbackClass">{{ feedback }}</p>
-      <p v-if="isCooldown" class="small cooldown-info">
-        Bitte warte {{ cooldownSeconds }} Sekunden, bevor du eine neue Nachricht sendest.
-      </p>
+      <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>
+
       <p v-if="charCount > MAX_LENGTH" class="small err">
         Nachricht zu lang (maximal {{ MAX_LENGTH }} Zeichen)
       </p>
@@ -103,11 +100,12 @@ const isCooldown = computed(() => {
   return Date.now() < cooldownEndTime.value;
 });
 
-const cooldownSeconds = computed(() => {
+// Berechnet die verbleibenden Sekunden für die Anzeige
+const getRemainingSeconds = () => {
   if (!cooldownEndTime.value) return 0;
   const remaining = Math.ceil((cooldownEndTime.value - Date.now()) / 1000);
   return Math.max(0, remaining);
-});
+};
 
 function saveCooldownToStorage() {
   if (cooldownEndTime.value) {
@@ -132,7 +130,7 @@ function startCooldownTimer() {
 }
 
 function startCooldown() {
-  cooldownEndTime.value = Date.now() + 30000;
+  cooldownEndTime.value = Date.now() + 30000; // 30 Sekunden
   saveCooldownToStorage();
   startCooldownTimer();
 }
@@ -147,7 +145,16 @@ function stopCooldown() {
 }
 
 async function onSubmit() {
-  if (!message.value.trim() || isCooldown.value || charCount.value > MAX_LENGTH) return;
+  // Validierung
+  if (!message.value.trim() || charCount.value > MAX_LENGTH) return;
+
+  // Cooldown Check
+  if (isCooldown.value) {
+    const remaining = getRemainingSeconds();
+    feedback.value = `Bitte warte ${remaining} Sekunden, bevor du eine neue Nachricht sendest.`;
+    feedbackClass.value = 'cooldown-info';
+    return;
+  }
 
   submitting.value = true;
   feedback.value = '';
@@ -253,6 +260,7 @@ onUnmounted(() => {
 .cooldown-info {
   color: var(--sub);
   font-style: italic;
+  font-size: 12px;
 }
 .btn:disabled {
   opacity: 0.7;
