@@ -9,10 +9,10 @@
   >
     <defs>
       <linearGradient id="linearGradient1-1">
-        <stop style="stop-color:#ffa91a;stop-opacity:1;" offset="0.07171854" />
-        <stop style="stop-color:#ff335a;stop-opacity:1;" offset="0.40121785" />
-        <stop style="stop-color:#af00ff;stop-opacity:1;" offset="0.69113672" />
-        <stop style="stop-color:#5600ff;stop-opacity:1;" offset="1" />
+        <stop style="stop-color:var(--primary--step1);stop-opacity:1;" offset="0.07171854" />
+        <stop style="stop-color:var(--primary--step2);stop-opacity:1;" offset="0.40121785" />
+        <stop style="stop-color:var(--primary--step3);stop-opacity:1;" offset="0.69113672" />
+        <stop style="stop-color:var(--primary--step4);stop-opacity:1;" offset="1" />
       </linearGradient>
       <linearGradient xlink:href="#linearGradient1-1" id="linearGradient2"
                       x1="46.99826" y1="-101.90965" x2="1054.62" y2="375.45285"
@@ -20,9 +20,9 @@
       <mask id="mask-powermask-path-effect11" maskUnits="userSpaceOnUse">
         <path id="mask-powermask-path-effect11_box" style="fill:#ffffff;fill-opacity:1"
               d="M 65.816826,65.816826 H 958.18322 V 958.18316 H 65.816826 Z" />
-        <g id="g11" style="fill:#000000;fill-opacity:1">
-          <rect id="rect10" style="fill:#000000" height="277.78479" x="192" y="165.10788" ry="48" width="96" />
-          <rect id="rect11" style="fill:#000000" height="277.78479" x="736" y="165.10788" ry="48" width="96" />
+        <g id="g11" style="fill:var(--color--red);fill-opacity:1">
+          <rect id="rect10" style="fill:var(--color--red)" height="277.78479" x="192" y="165.10788" ry="48" width="96" />
+          <rect id="rect11" style="fill:var(--color--red)" height="277.78479" x="736" y="165.10788" ry="48" width="96" />
           <text xml:space="preserve"
                 :style="textStyle"
                 x="511.48108"
@@ -35,14 +35,14 @@
     </defs>
 
     <g id="g1">
-      <g id="g13" :mask="'url(#mask-powermask-path-effect11)'" style="fill:#ffffff;fill-opacity:1"
+      <g id="g13" :mask="'url(#mask-powermask-path-effect11)'" style="fill:var(--color--white);fill-opacity:1"
          transform="matrix(1.1475934,0,0,1.1475934,-75.604709,-75.604715)">
-        <path id="rect2" style="display:inline;fill:#ffffff;fill-opacity:1"
+        <path id="rect2" style="display:inline;fill:var(--color--white);fill-opacity:1"
               d="m 957.18322,352 v 477.18316 c 0,70.912 -57.088,128 -128,128 H 194.81683 c -70.912,0 -128.000025,-57.088 -128.000004,-128 L 66.81698,352 Z" />
         <path id="path2" style="display:inline;fill:url(#linearGradient2)"
               d="m 194.81683,66.816826 h 634.36639 c 70.912,0 128,57.088004 128,128.000004 V 256 H 66.817 v -61.18317 c 0,-70.912 57.08783,-128.000004 127.99983,-128.000004 z" />
       </g>
-      <path id="mask-powermask-path-effect15_box" style="display:none;fill:#ffffff;fill-opacity:1"
+      <path id="mask-powermask-path-effect15_box" style="display:none;fill:var(--color--white);fill-opacity:1"
             d="M 65.816826,65.816826 H 958.18322 V 958.18316 H 65.816826 Z" />
     </g>
   </svg>
