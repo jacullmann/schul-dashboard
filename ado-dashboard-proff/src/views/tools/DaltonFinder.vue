@@ -412,7 +412,7 @@ const filteredResults = computed<SearchResult[]>(() => {
 
 .table-wrapper {
   overflow-x: auto;
-  border-radius: 6px;
+  border-radius: var(--border-4);
 }
 
 table {

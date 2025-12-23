@@ -382,7 +382,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   border:1px solid var(--border2);
   text-align: center;
   font-weight: bold;
-  border-radius: 6px;
+  border-radius: var(--border-4);
 }
 
 .header-cell.current-day-header {
@@ -416,7 +416,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 /* GROUP CONTAINER */
 .lesson-group-container {
   background-color: var(--vlbg);
-  border-radius: 6px;
+  border-radius: var(--border-4);
   border:1px solid var(--border2);
   display: flex;
   flex-direction: column;

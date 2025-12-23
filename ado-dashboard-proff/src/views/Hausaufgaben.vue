@@ -262,7 +262,7 @@ const {
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject {  max-width: 160px; min-width: auto; width: auto; border: 1px solid var(--border2); padding: 10px 12px; background: var(--vlbg);}
 .items { margin-top: 16px; display:flex; flex-direction:column; gap:12px; }
-.item-card { border-radius: 12px; padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
+.item-card { border-radius: var(--border-7); padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
@@ -277,8 +277,8 @@ const {
 .collapse-checkbox .vis-label::after { content: ''; position: absolute; width: 5px; height: 10px; border: solid #f1f1f1; border-width: 0 2px 2px 0; opacity: 0; left: 50%; top: 32%; transform: translate(-50%, -45%) rotate(45deg); }
 .collapse-checkbox input:checked + .vis-label::after { opacity:1; }
 .item-badges { margin-top:4px; gap:8px; align-items:center; }
-.subject-badge { background:var(--gg); color:var(--text); padding:4px 8px; border-radius:6px; }
-.time-badge { padding:4px 8px; border-radius:6px; }
+.subject-badge { background:var(--gg); color:var(--text); padding:4px 8px; border-radius: var(--border-4); }
+.time-badge { padding:4px 8px; border-radius: var(--border-4); }
 .item-menu { position: absolute; margin-top: 24px; right: 0; min-width: 150px; background: var(--vlbg); border: 1px solid var(--border2); border-radius: 12px; padding:8px; display: none; flex-direction: column; align-items: stretch; gap: 5px; z-index: 1000; opacity: 0; transform: translateY(-6px) scale(0.98); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease; margin-bottom: 0; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .menu-btn {
