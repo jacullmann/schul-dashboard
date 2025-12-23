@@ -239,7 +239,7 @@
               <div v-if="loadingSubs" class="loader">Lade Substitutions...</div>
 
               <div v-else-if="!timetableSubs.length" class="empty-state">
-                Keine Substitutions gespeicher
+                Keine Substitutions gespeichert
               </div>
 
               <div v-else class="subs-list">
