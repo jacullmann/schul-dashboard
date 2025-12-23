@@ -94,6 +94,9 @@
           </div>
 
           <div class="form-actions">
+            <div v-if="message" class="message field-error" :class="{ error: isError }">
+              {{ message }}
+            </div>
             <button
                 type="submit"
                 data-umami-event="Anmelden/Registrieren Button"
@@ -113,10 +116,6 @@
             >
               Passwort vergessen?
             </button>
-          </div>
-
-          <div v-if="message" class="message" :class="{ error: isError }">
-            {{ message }}
           </div>
         </form>
       </div>
@@ -458,19 +457,11 @@ async function submit() {
 }
 
 .message {
-  padding: 12px;
-  border-radius: var(--border-4);
-  font-size: 14px;
-  text-align: center;
-  background: var(--vlbg);
   color: var(--primary);
-  border: 1px solid var(--primary);
 }
 
 .message.error {
   color: var(--danger);
-  border-color: var(--danger);
-  background: var(--special--red--background);
 }
 
 @media (max-width: 768px) {
