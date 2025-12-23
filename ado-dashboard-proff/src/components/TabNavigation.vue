@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
   padding: 0;
-  border-radius: 6px;
+  border-radius: var(--border-4);
   display: flex;
   isolation: isolate;
   /* Scroll behavior */
@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   background-color: var(--text);
-  border-radius: 5px;
+  border-radius: var(--border-4);
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   padding: 10px 12px;
   font-size: 14px;
-  border-radius: 6px;
+  border-radius: var(--border-4);
   color: var(--sub);
   white-space: nowrap; /* Prevent text wrapping */
   flex-shrink: 0; /* Prevent items from squishing */

@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
   background-color: var(--vlbg); /* Nutzt exakt die Dashboard-Farbe */
   border: 1px solid var(--border2);
   padding: 0;
-  border-radius: 6px;
+  border-radius: var(--border-4);
   display: flex;
   isolation: isolate;
   max-width: 100%;
@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   background-color: var(--text);
-  border-radius: 5px;
+  border-radius: var(--border-4);
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   padding: 10px 12px;
   font-size: 14px;
-  border-radius: 6px;
+  border-radius: var(--border-4);
   color: var(--sub);
   white-space: nowrap;
   flex-shrink: 0;
