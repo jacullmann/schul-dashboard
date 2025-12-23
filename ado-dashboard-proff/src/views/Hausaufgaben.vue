@@ -76,6 +76,8 @@
           :key="item.id"
           class="item-card"
           :class="{ collapsed: isChecked(item.id) }"
+          @contextmenu.prevent="handleContextMenu(item.id)"
+          v-long-press="() => handleLongPress(item.id)"
       >
         <div class="item-main">
           <div class="item-meta">
@@ -222,6 +224,54 @@ import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseud
 import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
+const vLongPress = {
+  mounted(el: HTMLElement, binding: any) {
+    let pressTimer: any = null;
+
+    const start = (e: Event) => {
+      if (e.type === 'mousedown' && (e as MouseEvent).button !== 0) return;
+
+      if (pressTimer === null) {
+        pressTimer = setTimeout(() => {
+          binding.value(e);
+          pressTimer = null;
+        }, 500);
+      }
+    };
+
+    const cancel = () => {
+      if (pressTimer !== null) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchstart', start, { passive: true });
+
+    el.addEventListener('click', cancel);
+    el.addEventListener('mouseout', cancel);
+    el.addEventListener('touchend', cancel);
+    el.addEventListener('touchcancel', cancel);
+    el.addEventListener('touchmove', cancel);
+  },
+  unmounted(el: HTMLElement) {
+  }
+};
+
+const handleContextMenu = (itemId: string) => {
+  if (openMenuId.value !== itemId) {
+    toggleMenu(itemId);
+  }
+};
+
+const handleLongPress = (itemId: string) => {
+  if (navigator.vibrate) navigator.vibrate(50);
+  if (openMenuId.value !== itemId) {
+    toggleMenu(itemId);
+  }
+};
+
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
   itemToEdit, user, subjects, announcements, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
@@ -262,7 +312,17 @@ const {
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject {  max-width: 160px; min-width: auto; width: auto; border: 1px solid var(--border2); padding: 10px 12px; background: var(--vlbg);}
 .items { margin-top: 16px; display:flex; flex-direction:column; gap:12px; }
-.item-card { border-radius: var(--border-7); padding: 12px; background: var(--vlbg); border: 1px solid var(--border2); transition: transform 150ms ease; overflow: visible; }
+.item-card {
+  border-radius: var(--border-7);
+  padding: 12px;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  transition: transform 150ms ease;
+  overflow: visible;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
