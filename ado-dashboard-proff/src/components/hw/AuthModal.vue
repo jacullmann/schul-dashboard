@@ -100,22 +100,22 @@
             <button
                 type="submit"
                 data-umami-event="Anmelden/Registrieren Button"
-                class="btn main submit-btn"
+                class="btn ghost submit-btn"
                 :disabled="submitting"
             >
               <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
               <span v-else>{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</span>
             </button>
 
-            <button
+            <p
                 v-if="mode === 'login'"
                 type="button"
                 data-umami-event="Passwort vergessen Button"
-                class="btn ghost reset-btn"
+                class="reset-btn"
                 @click="openReset"
             >
               Passwort vergessen?
-            </button>
+            </p>
           </div>
         </form>
       </div>
@@ -441,7 +441,6 @@ async function submit() {
 .submit-btn {
   width: 100%;
   justify-content: center;
-  min-height: 44px;
   font-weight: 600;
 }
 
@@ -453,7 +452,13 @@ async function submit() {
 .reset-btn {
   width: 100%;
   justify-content: center;
-  color: var(--text);
+  color: var(--sub);
+  text-align: center;
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  margin: 0;
+}
+.reset-btn:hover {
 }
 
 .message {

@@ -71,6 +71,7 @@
     --border-12: 26px;
     --border-13: 28px;
     --border-14: 230px;
+    --font-size-small: 14px;
 }
 :root.light  {
     --bg: #eee;
