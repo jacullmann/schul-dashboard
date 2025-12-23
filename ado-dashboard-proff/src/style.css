@@ -7,7 +7,7 @@
     --primary: #3f93f8;
     --p-green: #6aed8b;
     --danger: #ef4444;
-    --warn: #db8e00;
+    --warn: #eab308;
     --border: #282828;
     --border2: #414141;
     --gg: #414141;
@@ -155,7 +155,7 @@ h1, h2, h3, h4, h5 {
 
     }
     .btn.danger { background: var(--danger); color: var(--text); }
-    .btn.warn { background: var(--warn); color: #1f1300; }
+    .btn.warn { background: var(--warn); color: #1a1205; }
 
     /* .badge {
         padding: 4px 8px;

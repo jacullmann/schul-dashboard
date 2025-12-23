@@ -44,7 +44,7 @@ const activeTabId = computed(() => {
     return 'impressum';
   }
   if (route.path.endsWith('/datenschutz')) {
-    return 'datenschutzerklaerung';
+    return 'datenschutz';
   }
   if (route.path.endsWith('/nutzung')) {
     return 'nutzung';
