@@ -1,93 +1,129 @@
 <template>
   <div class="blurit">
-    <div class="card rlc" style="position:fixed; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; z-index:100;">
-      <div class="card rlc styl" style="width:100%; max-width:420px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3 style="margin:0; color:white;">{{ mode==='login' ? 'Anmelden' : 'Registrieren' }}</h3>
-          <button data-umami-event="AuthModal schlißen" class="btn ghost" style="color:white;" @click="$emit('close')">Schließen</button>
-        </div>
-
-        <div class="row" style="margin-top:12px;">
-          <button data-umami-event="Login Reiter" class="btn" :class="{ ghost: mode!=='login' }" @click="switchMode('login')">Login</button>
-          <button data-umami-event="Registrieren Reiter" class="btn" :class="{ ghost: mode!=='register' }" @click="switchMode('register')">Registrieren</button>
-        </div>
-
-        <div style="margin-top:12px;">
-          <input
-              class="input"
-              v-model="email"
-              placeholder="E-Mail"
-              @input="clearFieldError('email')"
-          />
-          <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
-        </div>
-
-        <div style="margin-top:8px; position: relative;">
-          <input
-              class="input"
-              :type="showPassword ? 'text' : 'password'"
-              v-model="password"
-              placeholder="Passwort (min. 8 Zeichen)"
-              @input="clearFieldError('password')"
-          />
+    <div class="modal-wrapper">
+      <div class="card rlc modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</h3>
           <button
-              type="button"
-              @click="showPassword = !showPassword"
-              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: white;"
-              aria-label="Anzeigen/Nicht anzeigen"
+              data-umami-event="AuthModal schließen"
+              class="btn ghost close-btn"
+              @click="$emit('close')"
           >
-            <component :is="showPassword ? EyeOff : Eye" size="20" />
+            Schließen
           </button>
-          <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
         </div>
 
-        <div v-if="mode === 'register'" style="margin-top:8px; position: relative;">
-          <input
-              class="input"
-              :type="showPassword ? 'text' : 'password'"
-              v-model="passwordConfirm"
-              placeholder="Passwort bestätigen"
-              @input="clearFieldError('passwordConfirm')"
+        <div class="tab-wrapper">
+          <TabSwitcher
+              :items="tabs"
+              :active-id="mode"
+              @change="handleTabChange"
           />
-          <button
-              type="button"
-              @click="showPassword = !showPassword"
-              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: white;"
-              aria-label="Anzeigen/Nicht anzeigen"
-          >
-            <component :is="showPassword ? EyeOff : Eye" size="20" />
-          </button>
-          <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
         </div>
 
+        <form @submit.prevent="submit" class="form-content">
+          <div class="form-group">
+            <input
+                class="input"
+                v-model="email"
+                placeholder="E-Mail"
+                type="email"
+                autocomplete="email"
+                @input="clearFieldError('email')"
+            />
+            <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
+          </div>
 
-        <div v-if="mode==='register'" class="checkbox-row">
-          <label class="checkbox-container">
-            <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-            <span class="checkmark"></span>
-            <span style="color:white; font-size:14px;">
-            Ich stimme der
-            <a href="/impressum-&-datenschutz/impressum" target="_blank" style="color:#3f93f8; text-decoration:underline;">
-              Datenschutzerklärung und AGB
-            </a>
-            zu
-          </span>
-          </label>
-          <div v-if="errors.privacy" class="field-error" style="margin-left:36px;">{{ errors.privacy }}</div>
-        </div>
+          <div class="form-group">
+            <div class="password-wrapper">
+              <input
+                  class="input"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  placeholder="Passwort (min. 8 Zeichen)"
+                  autocomplete="current-password"
+                  @input="clearFieldError('password')"
+              />
+              <button
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="password-toggle"
+                  aria-label="Passwort anzeigen/verstecken"
+              >
+                <component :is="showPassword ? EyeOff : Eye" size="20" />
+              </button>
+            </div>
+            <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
+          </div>
 
-        <div class="row" style="margin-top:12px; align-items:center;">
-          <button data-umami-event="Anmelden/Registrieren Button" class="btn ghost" @click="submit">
-            <LoadingSpinner v-if="submitting" color="black" size="1.2em" />
-            {{ mode==='login' ? 'Anmelden' : 'Registrieren' }}
-          </button>
-          <button data-umami-event="Passwort vergessen Button" class="btn ghost" @click="openReset" style="margin-right:8px;">Passwort vergessen?</button>
-          <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-        </div>
+          <div v-if="mode === 'register'" class="form-group">
+            <div class="password-wrapper">
+              <input
+                  class="input"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="passwordConfirm"
+                  placeholder="Passwort bestätigen"
+                  autocomplete="new-password"
+                  @input="clearFieldError('passwordConfirm')"
+              />
+              <button
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="password-toggle"
+                  aria-label="Passwort anzeigen/verstecken"
+              >
+                <component :is="showPassword ? EyeOff : Eye" size="20" />
+              </button>
+            </div>
+            <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
+          </div>
+
+          <div v-if="mode === 'register'" class="form-group">
+            <label class="checkbox-container">
+              <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
+              <span class="checkmark"></span>
+              <span class="checkbox-label">
+                Ich stimme der
+                <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
+                  Datenschutzerklärung und AGB
+                </a>
+                zu
+              </span>
+            </label>
+            <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
+          </div>
+
+          <div class="form-actions">
+            <button
+                type="submit"
+                data-umami-event="Anmelden/Registrieren Button"
+                class="btn main submit-btn"
+                :disabled="submitting"
+            >
+              <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
+              <span v-else>{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</span>
+            </button>
+
+            <button
+                v-if="mode === 'login'"
+                type="button"
+                data-umami-event="Passwort vergessen Button"
+                class="btn ghost reset-btn"
+                @click="openReset"
+            >
+              Passwort vergessen?
+            </button>
+          </div>
+
+          <div v-if="message" class="message" :class="{ error: isError }">
+            {{ message }}
+          </div>
+        </form>
       </div>
+
       <ResetModal
           v-if="showReset"
-          @close="showReset=false"
+          @close="showReset = false"
           @success="onResetSuccess"
       />
     </div>
@@ -95,18 +131,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
+import TabSwitcher from "../TabSwitcher.vue";
+import ResetModal from "../ResetModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 
-import ResetModal from "../ResetModal.vue";
-const showReset = ref(false);
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'logged-in', token: string): void
+}>();
 
-function openReset() { showReset.value = true; }
+// Tab Configuration
+const tabs = [
+  { id: 'login', label: 'Anmelden', routePath: '' },
+  { id: 'register', label: 'Registrieren', routePath: '' }
+];
 
-const emit = defineEmits<{ (e: 'close'): void; (e: 'logged-in', token: string): void }>();
-
+// State
 const mode = ref<'login' | 'register'>('login');
 const email = ref('');
 const password = ref('');
@@ -116,23 +159,35 @@ const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
 const showPassword = ref(false);
+const showReset = ref(false);
 
-// field-level errors shown after submit attempt
-const errors = reactive<{ email?: string; password?: string; passwordConfirm?: string; privacy?: string }>({});
+const errors = reactive<{
+  email?: string;
+  password?: string;
+  passwordConfirm?: string;
+  privacy?: string
+}>({});
 
-function switchMode(newMode: 'login' | 'register') {
-  mode.value = newMode;
+// Methods
+function handleTabChange(newId: string) {
+  mode.value = newId as 'login' | 'register';
   clearAllErrors();
   message.value = '';
   isError.value = false;
   passwordConfirm.value = '';
+  acceptedPrivacy.value = false;
 }
+
+function openReset() {
+  showReset.value = true;
+}
+
 function onResetSuccess() {
   message.value = 'Passwort erfolgreich zurückgesetzt. Bitte einloggen.';
   isError.value = false;
   showReset.value = false;
+  mode.value = 'login';
 }
-
 
 function clearAllErrors() {
   errors.email = undefined;
@@ -151,12 +206,11 @@ function validateBeforeSubmit(): boolean {
   clearAllErrors();
   let ok = true;
 
-  // basic email presence check
+  // Email validation
   if (!email.value || !email.value.trim()) {
     errors.email = 'Bitte E-Mail angeben.';
     ok = false;
   } else {
-    // minimal email format check
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRe.test(email.value.trim())) {
       errors.email = 'Bitte gültige E-Mail-Adresse eingeben.';
@@ -164,7 +218,7 @@ function validateBeforeSubmit(): boolean {
     }
   }
 
-  // password length check
+  // Password validation
   if (!password.value) {
     errors.password = 'Bitte Passwort angeben.';
     ok = false;
@@ -172,6 +226,8 @@ function validateBeforeSubmit(): boolean {
     errors.password = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
     ok = false;
   }
+
+  // Password confirmation (register only)
   if (mode.value === 'register') {
     if (!passwordConfirm.value) {
       errors.passwordConfirm = 'Bitte Passwort bestätigen.';
@@ -180,26 +236,23 @@ function validateBeforeSubmit(): boolean {
       errors.passwordConfirm = 'Die Passwörter stimmen nicht überein.';
       ok = false;
     }
-  }
 
-  // privacy checkbox only for registration
-  if (mode.value === 'register' && !acceptedPrivacy.value) {
-    errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
-    ok = false;
+    // Privacy checkbox
+    if (!acceptedPrivacy.value) {
+      errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
+      ok = false;
+    }
   }
 
   return ok;
 }
 
 async function submit() {
-  // Always allow the button to be clickable; we handle validation here
   message.value = '';
   isError.value = false;
 
   const valid = validateBeforeSubmit();
-
   if (!valid) {
-
     message.value = 'Bitte die Fehler im Formular korrigieren.';
     isError.value = true;
     return;
@@ -208,11 +261,17 @@ async function submit() {
   submitting.value = true;
   try {
     if (mode.value === 'register') {
-      await hw.post('/api/auth/register', { email: email.value, password: password.value });
+      await hw.post('/api/auth/register', {
+        email: email.value,
+        password: password.value
+      });
       message.value = 'Registriert. Überprüfe dein E-Mail-Postfach und klicke auf den Bestätigungslink. Prüfe auch deinen Spam-Ordner.';
       isError.value = false;
     } else {
-      const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
+      const { data } = await hw.post('/api/auth/login', {
+        email: email.value,
+        password: password.value
+      });
       emit('logged-in', data.token);
     }
   } catch (e: any) {
@@ -225,45 +284,115 @@ async function submit() {
 </script>
 
 <style scoped>
-.styl {
+.modal-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--lbg);
+  padding: 24px;
 }
 
-.checkbox-row {
-  margin-top: 12px;
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  color: var(--text);
+  padding: 8px 12px;
+}
+
+.tab-wrapper {
+  margin-bottom: 24px;
+}
+
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.password-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
 }
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.password-toggle:hover {
+  opacity: 0.7;
+}
+
 .checkbox-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   cursor: pointer;
   user-select: none;
+  gap: 8px;
 }
+
 .checkbox-container input {
   display: none;
 }
+
 .checkmark {
+  min-width: 18px;
   height: 18px;
-  width: 18px;
-  border: 2px solid white;
+  border: 2px solid var(--text);
   border-radius: 4px;
-  margin-right: 8px;
   position: relative;
+  margin-top: 2px;
+  transition: all 0.2s ease;
 }
+
 .checkbox-container input:checked ~ .checkmark {
-  background-color: #3f93f8;
-  border-color: #3f93f8;
+  background-color: var(--primary);
+  border-color: var(--primary);
 }
+
 .checkmark::after {
   content: "";
   position: absolute;
   display: none;
-}
-.checkbox-container input:checked ~ .checkmark::after {
-  display: block;
   left: 4px;
   top: 0;
   width: 5px;
@@ -273,16 +402,85 @@ async function submit() {
   transform: rotate(45deg);
 }
 
-/* small text */
-.small {
-  margin-left: 12px;
-  font-size: 13px;
+.checkbox-container input:checked ~ .checkmark::after {
+  display: block;
 }
 
-/* field-level error style */
+.checkbox-label {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.privacy-link {
+  color: var(--primary);
+  text-decoration: underline;
+  transition: opacity 0.2s ease;
+}
+
+.privacy-link:hover {
+  opacity: 0.8;
+}
+
 .field-error {
-  color: #ff7777;
+  color: var(--danger);
   font-size: 13px;
-  margin-top: 6px;
+  margin-top: 4px;
+}
+
+.privacy-error {
+  margin-left: 26px;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.submit-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reset-btn {
+  width: 100%;
+  justify-content: center;
+  color: var(--text);
+}
+
+.message {
+  padding: 12px;
+  border-radius: var(--border-4);
+  font-size: 14px;
+  text-align: center;
+  background: var(--vlbg);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.message.error {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--special--red--background);
+}
+
+@media (max-width: 768px) {
+  .modal-card {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+  }
 }
 </style>
