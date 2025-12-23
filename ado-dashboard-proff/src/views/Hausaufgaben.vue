@@ -223,41 +223,7 @@ import TodoForm from '../components/hw/TodoForm.vue';
 import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
 import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
-
-const vLongPress = {
-  mounted(el: HTMLElement, binding: any) {
-    let pressTimer: any = null;
-
-    const start = (e: Event) => {
-      if (e.type === 'mousedown' && (e as MouseEvent).button !== 0) return;
-
-      if (pressTimer === null) {
-        pressTimer = setTimeout(() => {
-          binding.value(e);
-          pressTimer = null;
-        }, 500);
-      }
-    };
-
-    const cancel = () => {
-      if (pressTimer !== null) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-      }
-    };
-
-    el.addEventListener('mousedown', start);
-    el.addEventListener('touchstart', start, { passive: true });
-
-    el.addEventListener('click', cancel);
-    el.addEventListener('mouseout', cancel);
-    el.addEventListener('touchend', cancel);
-    el.addEventListener('touchcancel', cancel);
-    el.addEventListener('touchmove', cancel);
-  },
-  unmounted(el: HTMLElement) {
-  }
-};
+import { vLongPress } from '../directives/vLongPress';
 
 const handleContextMenu = (itemId: string) => {
   if (openMenuId.value !== itemId) {
@@ -266,7 +232,6 @@ const handleContextMenu = (itemId: string) => {
 };
 
 const handleLongPress = (itemId: string) => {
-  if (navigator.vibrate) navigator.vibrate(50);
   if (openMenuId.value !== itemId) {
     toggleMenu(itemId);
   }
