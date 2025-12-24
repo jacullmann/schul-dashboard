@@ -46,7 +46,7 @@
 
     <div v-if="showConfirmRemovalModal" class="overlay confirm">
       <div class="modal card rlc confirm-card" role="dialog" aria-modal="true" aria-label="Bild löschen?">
-        <h4>Dieses Bild unwiderruflich löschen?</h4>
+        <h4 style="margin-top: 0;">Dieses Bild unwiderruflich löschen?</h4>
         <p>Wenn du dieses Bild löschst, gibt es keinen Weg, es wiederherzustellen.</p>
 
         <div class="row" >
