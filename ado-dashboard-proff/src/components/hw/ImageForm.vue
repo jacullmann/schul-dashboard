@@ -49,7 +49,7 @@
         <h4>Dieses Bild unwiderruflich löschen?</h4>
         <p>Wenn du dieses Bild löschst, gibt es keinen Weg, es wiederherzustellen.</p>
 
-        <div class="row" style="justify-content:center; gap:12px; margin-top:16px;">
+        <div class="row" >
           <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Bild löschen</button>
           <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
         </div>
@@ -246,10 +246,20 @@ async function removeImg(publicId: string) {
 
 /* Confirm modal variant */
 .confirm-card {
+  background: var(--lbg);
+  padding: 16px;
+  border-radius: 16px;
   max-width: 420px;
-  text-align: center;
+  width: 90%;
+  text-align: left;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
-
+.row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
 /* Header */
 .modal-head {
   display: flex;
