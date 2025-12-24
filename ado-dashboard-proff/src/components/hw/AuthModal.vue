@@ -35,22 +35,33 @@
           </div>
 
           <div class="form-group">
-            <div class="password-wrapper">
-              <input
-                  class="input"
-                  :type="showPassword ? 'text' : 'password'"
-                  v-model="password"
-                  placeholder="Passwort (min. 8 Zeichen)"
-                  autocomplete="current-password"
-                  @input="clearFieldError('password')"
-              />
+            <div class="password-field-wrapper">
+              <div class="password-wrapper">
+                <input
+                    class="input"
+                    :type="showPassword ? 'text' : 'password'"
+                    v-model="password"
+                    placeholder="Passwort (min. 8 Zeichen)"
+                    autocomplete="current-password"
+                    @input="clearFieldError('password')"
+                />
+                <button
+                    type="button"
+                    @click="showPassword = !showPassword"
+                    class="password-toggle"
+                    aria-label="Passwort anzeigen/verstecken"
+                >
+                  <component :is="showPassword ? EyeOff : Eye" size="20" />
+                </button>
+              </div>
               <button
+                  v-if="mode === 'login'"
                   type="button"
-                  @click="showPassword = !showPassword"
-                  class="password-toggle"
-                  aria-label="Passwort anzeigen/verstecken"
+                  data-umami-event="Passwort vergessen Button"
+                  class="forgot-password-link"
+                  @click="openReset"
               >
-                <component :is="showPassword ? EyeOff : Eye" size="20" />
+                Passwort vergessen?
               </button>
             </div>
             <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
@@ -93,10 +104,11 @@
             <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
           </div>
 
+          <div v-if="message" class="message" :class="{ error: isError }">
+            {{ message }}
+          </div>
+
           <div class="form-actions">
-            <div v-if="message" class="message field-error" :class="{ error: isError }">
-              {{ message }}
-            </div>
             <button
                 type="submit"
                 data-umami-event="Anmelden/Registrieren Button"
@@ -106,16 +118,6 @@
               <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
               <span v-else>{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</span>
             </button>
-
-            <p
-                v-if="mode === 'login'"
-                type="button"
-                data-umami-event="Passwort vergessen Button"
-                class="reset-btn"
-                @click="openReset"
-            >
-              Passwort vergessen?
-            </p>
           </div>
         </form>
       </div>
@@ -130,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive } from 'vue';
 import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
 import TabSwitcher from "../TabSwitcher.vue";
@@ -337,6 +339,12 @@ async function submit() {
   gap: 6px;
 }
 
+.password-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .password-wrapper {
   position: relative;
   display: flex;
@@ -359,6 +367,21 @@ async function submit() {
 
 .password-toggle:hover {
   opacity: 0.7;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--sub);
+  cursor: pointer;
+  text-align: right;
+  align-self: flex-end;
+  font-size: var(--font-size-small);
+}
+
+.forgot-password-link:hover {
+  color: var(--text);
 }
 
 .checkbox-container {
@@ -431,6 +454,15 @@ async function submit() {
   margin-left: 26px;
 }
 
+.message {
+  color: var(--primary);
+  font-size: var(--font-size-small);
+}
+
+.message.error {
+  color: var(--danger);
+}
+
 .form-actions {
   display: flex;
   flex-direction: column;
@@ -441,32 +473,13 @@ async function submit() {
 .submit-btn {
   width: 100%;
   justify-content: center;
+  min-height: 44px;
   font-weight: 600;
 }
 
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.reset-btn {
-  width: 100%;
-  justify-content: center;
-  color: var(--sub);
-  text-align: center;
-  font-size: var(--font-size-small);
-  cursor: pointer;
-  margin: 0;
-}
-.reset-btn:hover {
-}
-
-.message {
-  color: var(--primary);
-}
-
-.message.error {
-  color: var(--danger);
 }
 
 @media (max-width: 768px) {
