@@ -473,7 +473,6 @@ async function submit() {
 .submit-btn {
   width: 100%;
   justify-content: center;
-  min-height: 44px;
   font-weight: 600;
 }
 
