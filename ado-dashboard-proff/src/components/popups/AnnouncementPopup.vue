@@ -59,7 +59,7 @@ function close() {
 }
 
 .announcement-popup {
-  background: var(--card);
+  background: var(--vlbg);
   border-radius: 12px;
   padding: 0;
   width: 100%;
@@ -144,9 +144,6 @@ function close() {
   opacity: 0.9;
 }
 
-.btn {
-  color: black;
-}
 
 @media (max-width: 500px) {
   .popup-overlay {
