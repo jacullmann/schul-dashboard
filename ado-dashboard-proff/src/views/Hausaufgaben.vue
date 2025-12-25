@@ -259,6 +259,10 @@ const {
 .hw-header { display: flex; justify-content: space-between; gap: 12px; flex-direction: column; text-align: left; }
 .hw-header h2 { margin: 0 0 2px 0}
 
+:deep(.nav-bar) {
+  margin: 16px 0;
+}
+
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
 .select-subject {  max-width: 160px; min-width: auto; width: auto; border: 1px solid var(--border2); padding: 10px 12px; background: var(--vlbg);}
