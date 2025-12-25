@@ -258,6 +258,7 @@ function colorFor(color) {
   align-items: center;
   padding: 16px;
   border-bottom: 1px solid var(--border);
+  background: var(--vlbg);
 }
 
 .announcement-menu-header h4 {
@@ -288,6 +289,7 @@ function colorFor(color) {
   max-height: 60vh;
   overflow-y: auto;
   padding: 8px;
+  background: var(--vlbg);
 }
 
 .announcement-item {
