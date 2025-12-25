@@ -76,6 +76,7 @@
     --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     --skeleton-base: #2a2a2a;
     --skeleton-highlight: #333333;
+    --nav-hover: #b3b3b3;
 }
 :root.light  {
     --bg: #eee;
@@ -101,6 +102,7 @@
     --shadow-l: none;
     --skeleton-base: #e0e0e0;
     --skeleton-highlight: #f5f5f5;
+    --nav-hover: #555555;
 }
 
 * { box-sizing: border-box; }

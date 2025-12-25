@@ -1,40 +1,57 @@
 <template>
   <footer class="footer">
     <div class="footer-container container">
-      <div class="footer-columns">
-        <div class="footer-section">
-          <h3>Feedback</h3>
-          <p>Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.</p>
+      <div class="footer-grid">
+        <div class="footer-section footer-brand">
+          <div class="brand-header">
+            <Logo class="footer-logo" aria-hidden="true" />
+            <span class="brand-text">Dashboard</span>
+          </div>
+          <p class="brand-description">
+            Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
+          </p>
         </div>
 
         <div class="footer-section">
           <h3>Navigation</h3>
           <router-link to="/" class="footer-link">Dashboard</router-link>
-          <router-link  to="/stundenplan" class="footer-link">Stundenplan</router-link>
-          <router-link  to="/kuerzel" class="footer-link">Kürzelfinder</router-link>
-          <router-link  to="/impressum-&-datenschutz/impressum" class="footer-link">Datenschutz & Impressum</router-link>
-          <router-link  to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
-          <router-link  to="/countdown" class="footer-link">Countdowns</router-link>
-          <router-link  to="/daltonraumfinder" class="footer-link">Daltonraumfinder</router-link>
+          <router-link to="/stundenplan" class="footer-link">Stundenplan</router-link>
+          <router-link to="/kuerzel" class="footer-link">Kürzelfinder</router-link>
+          <router-link to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
+          <router-link to="/countdown" class="footer-link">Countdowns</router-link>
+          <router-link to="/daltonraumfinder" class="footer-link">Daltonraumfinder</router-link>
           <router-link to="/update-history" class="footer-link">Update History</router-link>
         </div>
 
         <div class="footer-section">
-          <h3>Kontakt</h3>
-          <router-link  to="/kontakt" class="footer-link">Kontakt</router-link>
+          <h3>Rechtliches</h3>
+          <router-link to="/impressum-&-datenschutz/impressum" class="footer-link">Impressum</router-link>
+          <router-link to="/impressum-&-datenschutz/datenschutz" class="footer-link">Datenschutz</router-link>
+          <router-link to="/impressum-&-datenschutz/nutzung" class="footer-link">Nutzungsbedingungen</router-link>
         </div>
         <div class="footer-section">
-          <h3>Theme</h3>
-          <select
-              :value="selectedThemeMode"
-              @change="handleThemeChange"
-              class="theme-select"
-          >
-            <option value="system">System</option>
-            <option value="light">Heller Modus</option>
-            <option value="dark">Dunkler Modus</option>
-          </select>
-          <p class="theme-hint">Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.</p>
+          <h3>Kontakt</h3>
+          <router-link to="/kontakt" class="footer-link">Kontakt</router-link>
+        </div>
+        <div class="footer-section">
+          <h3>Einstellungen</h3>
+          <div class="theme-selector">
+            <label for="theme-select" class="theme-label">Theme</label>
+            <select
+                id="theme-select"
+                :value="selectedThemeMode"
+                @change="handleThemeChange"
+                class="theme-select"
+            >
+              <option value="system">System</option>
+              <option value="light">Heller Modus</option>
+              <option value="dark">Dunkler Modus</option>
+            </select>
+          </div>
+          <p class="brand-description">
+            Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.
+          </p>
+
         </div>
         <All  class="logoutDeviceMobile" />
       </div>
@@ -42,7 +59,7 @@
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p class="copyright-text">© {{ year }} — Alle Rechte vorbehalten</p>
+        <p class="copyright-text">© {{ year }} Schul-Dashboard</p>
         <All  class="logoutDeviceDesktop" />
 
       </div>
@@ -56,10 +73,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useTheme, ThemeMode } from '../composables/useTheme';
-import router from "../router";
-// import AnimatedGradientLine from "./animations/AnimatedGradientLine.vue";
-
-import All from './AllLogoutButton.vue'
+import All from './AllLogoutButton.vue';
+import Logo from './hw/Logo.vue';
 
 const year = new Date().getFullYear();
 const { selectedThemeMode, applyTheme } = useTheme();
@@ -68,32 +83,17 @@ function handleThemeChange(event: Event) {
   const target = event.target as HTMLSelectElement;
   applyTheme(target.value as ThemeMode);
 }
-const clickCount = ref(0);
-const showOverlay = ref(false);
-
-
-const videoId = "HAfFfqiYLp0";
-
-let timer: number | null = null;
 
 function openCookieBanner() {
   window.dispatchEvent(new CustomEvent('open-cookie-banner'))
 }
-
-//async function logout() {
-//try {
-//await fetch('/api/auth/access/logout', { method: 'POST', credentials: 'include' });
-//} catch { /* ignore */ }
-//window.dispatchEvent(new Event('site-logged-out'));
-//router.push('/login');
-//}
 </script>
 
 <style scoped>
 .footer {
   background-color: var(--bg);
   color: var(--text);
-  padding: 2.5rem 0 0;
+  padding: 3rem 0 0;
   border-top: 1px solid var(--border);
   font-family: var(--display-font), sans-serif;
 }
@@ -106,29 +106,52 @@ function openCookieBanner() {
   max-width: 1300px;
 }
 
-.footer-columns {
-  display: flex;
-  justify-content: flex-start;
-  gap: 3rem;
-  flex-wrap: wrap;
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  gap: 18px;
 }
 
 .footer-section {
-  flex-basis: 200px;
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Brand Section */
+.footer-brand {
+  gap: 1rem;
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.footer-logo {
+  width: auto;
+  height: 28px;
+}
+
+.brand-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.brand-description {
+  color: var(--sub);
+  margin: 0;
+  font-size: 1rem;
 }
 
 .footer-section h3 {
   color: var(--text);
   font-size: 1rem;
   font-weight: 700;
-  margin-bottom: 1.2rem;
-}
-
-.footer-section p {
-  color: var(--sub);
-  font-size: 1rem;
-  line-height: 1.6;
+  margin: 0 0 0.5rem 0;
 }
 
 .footer-link {
@@ -136,14 +159,45 @@ function openCookieBanner() {
   color: var(--sub);
   text-decoration: none;
   font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-  transition:  0.2s;
-  font-weight: 500 }
+  transition: color 0.2s;
+  font-weight: 500;
+}
 
 .footer-link:hover {
   color: var(--text);
 }
 
+.theme-selector {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.theme-label {
+  font-size: 0.95rem;
+  color: var(--sub);
+  font-weight: 600;
+}
+
+.theme-select {
+  padding: 8px 10px;
+  border-radius: var(--border-4);
+  background: var(--vlbg);
+  color: var(--text);
+  border: 1px solid var(--border2);
+  outline: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  max-width: 180px;
+}
+
+.theme-select:hover {
+  background: var(--ghost--hover);
+}
+
+/* Footer Bottom */
 .footer-bottom {
   border-top: 1px solid var(--border);
   padding: 1.5rem 0;
@@ -158,32 +212,69 @@ function openCookieBanner() {
 
 .copyright-text {
   color: var(--sub);
+  margin: 0;
 }
-.logoutDeviceMobile{
+.logoutDeviceMobile {
   display: none;
 }
+.logoutDeviceDesktop {
+  display: block;
+}
 
+/* Responsive */
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
 
 @media (max-width: 768px) {
-  .footer-columns {
-    flex-direction: column;
-    gap: 1.5rem;
-    text-align: left;
+  .footer {
+    padding: 2rem 16px 5px;
   }
-  .logoutDeviceMobile {
-    display: inherit;
+
+  .footer-container {
+    padding-bottom: 2rem;
   }
-  .logoutDeviceDesktop {
-    display: none;
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .footer-brand {
+    grid-column: auto;
   }
 
   .footer-bottom-content {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
-  .footer {
-    padding: 2rem 16px 5px;
+
+  .theme-select {
+    max-width: 100%;
+  }
+  .logoutDeviceMobile {
+    display: block;
+  }
+  .logoutDeviceDesktop {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-text {
+    font-size: 1.3rem;
+  }
+
+  .brand-description {
+    font-size: 0.875rem;
   }
 }
 </style>

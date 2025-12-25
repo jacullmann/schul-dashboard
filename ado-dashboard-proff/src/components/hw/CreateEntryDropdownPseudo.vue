@@ -18,7 +18,7 @@
           Melde dich an, um Einträge zu erstellen.
         </p>
         <div class="">
-          <button class="btn main smaller" @click="openAuthModal">
+          <button class="btn ghost smaller" @click="openAuthModal">
             Jetzt anmelden
           </button>
         </div>

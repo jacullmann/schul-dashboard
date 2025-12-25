@@ -172,7 +172,6 @@ function onSetupSuccess(updatedUser: any) {
   showSetupModal.value = false;
 }
 
-// Event Listener für Login aus anderen Komponenten
 function handleShowAuthModal() {
   openAuthModal();
 }
@@ -182,7 +181,6 @@ function handleUserLoggedIn() {
   loadMe();
 }
 
-// In Header.vue onMounted:
 onMounted(() => {
   document.addEventListener('keydown', handleEscape);
   window.addEventListener('show-auth-modal', handleShowAuthModal);
@@ -269,12 +267,12 @@ onUnmounted(() => {
   text-decoration: none;
   color: var(--text);
   position: relative;
-  transition: opacity 0.2s ease;
+  transition: color 0.18s ease;
   white-space: nowrap;
 }
 
 .nav-item:hover {
-  opacity: 0.7;
+  color: var(--nav-hover);
 }
 
 .header-right {
@@ -366,8 +364,7 @@ onUnmounted(() => {
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
-    overflow-y: auto;
+    box-shadow: var(--shadow-s);
     border-left: 1px solid var(--border);
   }
 

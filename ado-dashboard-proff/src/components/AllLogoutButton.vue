@@ -99,8 +99,5 @@ function closePopup() {
   .popup-card {
     padding: 20px;
   }
-  .popup-actions {
-    flex-direction: column;
-  }
 }
 </style>
