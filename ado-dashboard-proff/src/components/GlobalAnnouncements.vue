@@ -179,7 +179,7 @@ function colorFor(color) {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 6px rgba(5, 5, 5, 0.2);
+  box-shadow: var(--shadow-s);
   min-height: 45px;
 }
 
@@ -249,7 +249,7 @@ function colorFor(color) {
   max-width: 500px;
   max-height: 80vh;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-l);
 }
 
 .announcement-menu-header {

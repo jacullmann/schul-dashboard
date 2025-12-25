@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 4px;
   min-width: 320px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-s);
 }
 
 .user-email {

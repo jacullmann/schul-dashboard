@@ -199,7 +199,7 @@ onUnmounted(() => {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 8px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-s);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -212,7 +212,7 @@ onUnmounted(() => {
   height: 32px;
   padding: 0 15px;
   background: var(--border2);
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--border);
   cursor: grab;
   display: flex;
   align-items: center;
@@ -223,7 +223,7 @@ onUnmounted(() => {
 .widget-header h3 {
   margin: 0;
   font-size: 0.9rem;
-  color: #fff;
+  color: var(--text);
 }
 
 /* Inhalt des Widgets */
@@ -280,8 +280,8 @@ onUnmounted(() => {
   cursor: se-resize;
   width: 15px;
   height: 15px;
-  border-bottom: 3px solid #f1f1f1;
-  border-right: 3px solid #f1f1f1;
+  border-bottom: 3px solid var(--text);
+  border-right: 3px solid var(--text);
   opacity: 0.7;
 }
 </style>

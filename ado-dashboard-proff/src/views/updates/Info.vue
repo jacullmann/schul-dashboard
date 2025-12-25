@@ -149,7 +149,7 @@ const backToList = () => {
 .sidebar {
   width: 300px;
   background-color: var(--lbg); /* Fallback color added */
-  border-right: 1px solid var(--border2, #333);
+  border-right: 1px solid var(--border2);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -158,7 +158,7 @@ const backToList = () => {
 
 .search-wrapper {
   padding: 16px;
-  border-bottom: 1px solid var(--border2, #333);
+  border-bottom: 1px solid var(--border2);
 }
 
 .search-input-container {
@@ -172,7 +172,7 @@ const backToList = () => {
   left: 12px;
   width: 16px;
   height: 16px;
-  color: #AAA;
+  color: var(--sub);
 }
 
 .search-input {
@@ -213,8 +213,8 @@ const backToList = () => {
 }
 
 .version-item.active {
-  background-color: #f1f1f1;
-  color:#0f0f0f;
+  background-color: var(--text);
+  color:var(--bg);
 }
 
 .version-header {
@@ -244,7 +244,7 @@ const backToList = () => {
 .no-results {
   padding: 20px;
   text-align: center;
-  color: #AAA;
+  color: var(--sub);
   font-size: 0.9rem;
 }
 
@@ -276,20 +276,20 @@ const backToList = () => {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #F1F1F1;
+  color: var(--text);
 }
 
 .sub-title {
   margin: 4px 0 0 0;
   font-size: 1.1rem;
   font-weight: 400;
-  color: #AAA;
+  color: var(--sub);
 }
 
 .header-date {
   font-size: 0.9rem;
-  color: #F1F1F1;
-  background-color: #414141;
+  color: var(--text);
+  background-color: var(--gg);
   padding: 4px 8px;
   border-radius: 6px;
   white-space: nowrap;
@@ -297,13 +297,13 @@ const backToList = () => {
 
 .divider {
   height: 1px;
-  background-color: #414141;
+  background-color: var(--gg);
   margin: 16px 0;
 }
 
 .description {
   line-height: 1.6;
-  color: #F1F1F1;
+  color: var(--text);
   margin-bottom: 24px;
 }
 
@@ -311,7 +311,7 @@ const backToList = () => {
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #AAA;
+  color: var(--sub);
   margin-bottom: 12px;
 }
 
@@ -326,12 +326,12 @@ const backToList = () => {
   padding-left: 20px;
   margin-bottom: 8px;
   line-height: 1.5;
-  color: #F1F1F1;
+  color: var(--text);
 }
 
 .changes-list li::before {
   content: "•";
-  color: #AAA;
+  color: var(--sub);
   font-weight: bold;
   position: absolute;
   left: 0;

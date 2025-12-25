@@ -108,7 +108,7 @@ const filteredGames = computed(() => {
 }
 
 .game-card {
-  background: var(--card);
+  background: var(--bg);
   border-radius: 8px;
   overflow: hidden;
   height: 100%;
@@ -134,7 +134,7 @@ const filteredGames = computed(() => {
 }
 
 .game-name {
-  color: white;
+  color: var(--text);
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 1.5em;

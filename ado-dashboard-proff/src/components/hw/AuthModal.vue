@@ -302,6 +302,7 @@ async function submit() {
   border: 1px solid var(--border);
   background: var(--lbg);
   padding: 24px;
+  box-shadow: var(--shadow-l);
 }
 
 .modal-header {

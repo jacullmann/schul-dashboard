@@ -258,20 +258,6 @@ const {
 <style scoped>
 .hw-header { display: flex; justify-content: space-between; gap: 12px; flex-direction: column; text-align: left; }
 .hw-header h2 { margin: 0 0 2px 0}
-.header-actions { align-items: center; display: flex; flex-direction: row; flex-wrap: wrap}
-.announcements { margin-top: 18px; }
-.announcements-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-.ann-list { margin-top: 12px; }
-.ann { border-radius: 10px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); position: relative; overflow: hidden; }
-.ann + .ann { margin-top: 10px; }
-.ann-content { white-space: pre-wrap; color: var(--text); }
-.ann-date { color: var(--sub); }
-.ann-actions { margin-top: 8px; }
-
-/* Tab Navigation Spacing */
-:deep(.nav-bar) {
-  margin: 16px 0;
-}
 
 .controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 .controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
@@ -333,7 +319,6 @@ const {
   white-space: pre-wrap;
 }
 .item-images { margin-top:8px; }
-.images-title { font-weight:600; margin-bottom:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
 .thumb { width:120px; height:120px; border-radius:8px; overflow:hidden; border:none; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.12); position:relative; }
 .thumb img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -363,7 +348,6 @@ const {
 .item-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 24px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #aaaaaa; transition: background 120ms ease, color 120ms ease; margin: -3px -2px; }
 .item-menu-trigger:hover { background: #414141; color: #f1f1f1; }
 .pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
-.loader { display: flex; align-items: center; gap: 8px; color: var(--sub); }
 .row-two { display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
 .private-entries-container { margin-top: 1rem; }
 .private-entries-container .card { margin: 0; box-shadow: none; background: transparent; }

@@ -241,7 +241,7 @@ async function submit() {
   background: var(--lbg);
   color: var(--text);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  box-shadow: var(--shadow-l);
 }
 
 .small {

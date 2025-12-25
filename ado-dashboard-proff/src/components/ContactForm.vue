@@ -56,15 +56,6 @@ import {
 </script>
 
 <style scoped>
-
-.contact-content {
-  padding: 8px;
-}
-
-.contact-header {
-  margin-bottom: 32px;
-}
-
 .contact-header h2 {
   margin: 0 0 0 0;
   color: var(--text);
@@ -110,20 +101,20 @@ import {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lbg);
   color: var(--text);
   padding: 10px 14px;
   border-radius: 6px;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   transition: all 0.2s ease;
   font-weight: 500;
   font-size: 14px;
 }
 
 .email-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--vlbg);
+  border-color: var(--border);
 }
 
 .button-icon {
@@ -147,18 +138,20 @@ import {
   color: var(--text);
   font-style: italic;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lbg);
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   width: auto;
   max-width: 390px;
+  cursor: not-allowed;
+  user-select: none;
 }
 
 .clock-icon {
   width: 16px;
   height: 16px;
   opacity: 0.7;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text);
 }
 
 hr {
@@ -169,9 +162,6 @@ hr {
 }
 
 @media (max-width: 500px) {
-  .contact-content {
-    padding: 4px;
-  }
 
   .section-header {
     gap: 10px;

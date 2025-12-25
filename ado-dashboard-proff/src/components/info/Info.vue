@@ -70,7 +70,7 @@ onUnmounted(() => {
   border-radius: 10px;
   padding: 12px;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-l);
 }
 
 .popover-title {

@@ -67,7 +67,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .back-link:hover {
-  color: white;
+  color:var(--text);
 }
 
 .back-link svg {

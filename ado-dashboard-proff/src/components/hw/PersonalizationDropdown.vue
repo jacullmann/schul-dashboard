@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 2px;
   z-index: 1100;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-s);
   animation: menuFadeIn 160ms ease;
 }
 

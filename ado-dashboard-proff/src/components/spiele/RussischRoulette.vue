@@ -107,12 +107,12 @@ const resetGame = () => {
 }
 
 .game-status.won {
-  color: white;
+  color: var(--text);
   font-weight: bold;
 }
 
 .game-status.lost {
-  color: white;
+  color: var(--text);
   font-weight: bold;
 }
 
@@ -126,21 +126,21 @@ const resetGame = () => {
 }
 
 .btn-trigger {
-  background-color: #3f51b5;
-  color: white;
+  background-color: var(--primary);
+  color: var(--text);
   font-size: 1.5em;
   padding: 15px 30px;
 }
 
 .btn-trigger:disabled {
-  background-color: #555;
+  background-color: var(--sub);
   cursor: not-allowed;
   opacity: 0.7;
 }
 
 .btn-reset {
-  background-color: #9e9e9e;
-  color: black;
+  background-color: var(--sub);
+  color: var(--bg);
 }
 
 @media (max-width: 700px) {

@@ -66,7 +66,7 @@ function close() {
   max-width: 500px;
   max-height: 80vh;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-l);
 }
 
 .popup-header {

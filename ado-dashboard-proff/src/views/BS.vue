@@ -225,43 +225,20 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.counter.normal {
-  color: var(--sub);
-}
-
-.counter.error {
-  color: var(--danger);
-  background: rgba(220, 53, 69, 0.1);
-}
 
 .btn {
   transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 .btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: var(--shadow-s);
 }
 .btn:active:not(:disabled) {
   transform: translateY(1px);
 }
-.btn-special{
-  background-color: black;
-  color: var(--text);
-}
-
-.btn-special:hover {
-  background-color:#3F3F3F;
-  color: var(--text);
-}
 
 .small.err { color: var(--danger); }
-.small.ok { color: var(--text); }
 
-.cooldown-info {
-  color: var(--sub);
-  font-style: italic;
-  font-size: 12px;
-}
 .btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;

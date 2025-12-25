@@ -135,7 +135,7 @@ const resetGame = () => {
 
 
 .winning-cell {
-  background-color: darkgray !important;
+  background-color: var(--sub) !important;
 }
 
 

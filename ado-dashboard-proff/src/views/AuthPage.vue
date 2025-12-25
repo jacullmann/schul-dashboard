@@ -85,7 +85,7 @@ function scrollToSu() {
 
 .header-container {
   width: 100%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-s);
   position: sticky;
   top: 0;
   z-index: 100;

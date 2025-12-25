@@ -241,7 +241,7 @@ async function removeImg(publicId: string) {
   border-radius: 16px;
   border:1px solid var(--border);
   background: var(--lbg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  box-shadow: var(--shadow-l);
 }
 
 /* Confirm modal variant */
@@ -253,7 +253,7 @@ async function removeImg(publicId: string) {
   width: 90%;
   text-align: left;
   border: 1px solid var(--border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  box-shadow: var(--shadow-l);
 }
 .row {
   display: flex;

@@ -176,6 +176,7 @@ async function skip() {
   border: 1px solid var(--border);
   border-radius: 16px;
   color: var(--text);
+  box-shadow: var(--shadow-l);
 }
 label {
   margin-bottom: 8px;

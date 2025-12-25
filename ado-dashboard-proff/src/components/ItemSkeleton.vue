@@ -85,9 +85,9 @@ withDefaults(defineProps<{
   border-radius: 6px;
   background: linear-gradient(
       90deg,
-      #2a2a2a 0px,
-      #333333 40px,
-      #2a2a2a 80px
+      var(--skeleton-base) 0px,
+      var(--skeleton-highlight) 40px,
+      var(--skeleton-base) 80px
   );
   background-size: 600px;
   animation: shimmer 1.5s infinite;
@@ -99,9 +99,9 @@ withDefaults(defineProps<{
   border-radius: 6px;
   background: linear-gradient(
       90deg,
-      #2a2a2a 0px,
-      #333333 40px,
-      #2a2a2a 80px
+      var(--skeleton-base) 0px,
+      var(--skeleton-highlight) 40px,
+      var(--skeleton-base) 80px
   );
   background-size: 600px;
   animation: shimmer 1.5s infinite;
@@ -123,9 +123,9 @@ withDefaults(defineProps<{
   border-radius: 4px;
   background: linear-gradient(
       90deg,
-      #2a2a2a 0px,
-      #333333 40px,
-      #2a2a2a 80px
+      var(--skeleton-base) 0px,
+      var(--skeleton-highlight) 40px,
+      var(--skeleton-base) 80px
   );
   background-size: 600px;
   animation: shimmer 1.5s infinite;
@@ -147,12 +147,11 @@ withDefaults(defineProps<{
 .skeleton-image {
   width: 120px;
   height: 120px;
-  border-radius: 8px;
   background: linear-gradient(
       90deg,
-      #2a2a2a 0px,
-      #333333 40px,
-      #2a2a2a 80px
+      var(--skeleton-base) 0px,
+      var(--skeleton-highlight) 40px,
+      var(--skeleton-base) 80px
   );
   background-size: 600px;
   animation: shimmer 1.5s infinite;

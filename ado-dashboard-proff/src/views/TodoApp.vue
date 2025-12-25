@@ -234,7 +234,6 @@ function showMessage(msg: string, error = false) {
 .todo-description { margin: 0 0 0.75rem 0; color: var(--text); line-height: 1.5; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; }
 .todo-due-date { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text); margin-bottom: 0.5rem; }
 .overdue-badge { background: var(--danger); color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
-.todo-meta { font-size: 0.8rem; color: var(--text); }
 .todo-actions { display: flex; gap: 0.5rem; z-index: 5; position: relative; }
 .message { margin-top: 1rem; padding: 1rem; border-radius: 6px; background: rgba(63, 147, 248, 0.1); border: none; }
 .message.error { background: rgba(239, 68, 68, 0.1); border-color: var(--danger); border: none; }

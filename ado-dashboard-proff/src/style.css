@@ -72,6 +72,10 @@
     --border-13: 28px;
     --border-14: 230px;
     --font-size-small: 14px;
+    --shadow-s: 0 4px 20px rgba(0, 0, 0, 0.5);
+    --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    --skeleton-base: #2a2a2a;
+    --skeleton-highlight: #333333;
 }
 :root.light  {
     --bg: #eee;
@@ -93,6 +97,10 @@
     --not-spinning: #bbb;
     --color--white: #000000;
     --color--black: #ffffff;
+    --shadow-s: none;
+    --shadow-l: none;
+    --skeleton-base: #e0e0e0;
+    --skeleton-highlight: #f5f5f5;
 }
 
 * { box-sizing: border-box; }

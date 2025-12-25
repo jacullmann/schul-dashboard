@@ -183,7 +183,7 @@ onUnmounted(() => {
   max-width: 420px;
   width: 100%;
   border: none;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-l);
 }
 
 .close-btn {

@@ -170,6 +170,7 @@ async function onPrimary() {
   background: var(--lbg);
   color: var(--text);
   border: 1px solid var(--border);
+  box-shadow: var(--shadow-l);
 }
 
 .small { font-size:13px; }

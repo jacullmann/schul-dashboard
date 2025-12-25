@@ -321,7 +321,8 @@ async function startAnalysis(): Promise<void> {
           type="password"
           v-model="password"
           placeholder="Passwort eingeben"
-          style="padding:8px 10px; border-radius:6px; border:1px solid var(--vlbg);"
+          class="input"
+          style="max-width: 220px;"
           :aria-label="'Passwort'"
       />
       <div style="font-size:0.9rem; color: var(--sub);">
