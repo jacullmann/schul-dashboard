@@ -386,7 +386,7 @@ onBeforeUnmount(() => {
 
 .menu-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--gg);
   margin: 4px 0;
 }
 
