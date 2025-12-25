@@ -268,7 +268,7 @@ async function saveSub() {
 <style scoped>
 header {
   margin-bottom: 2rem;
-  border-bottom: 1px solid #282828;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
 }
 
@@ -276,15 +276,10 @@ h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #F1F1F1;
+  color: var(--text);
 }
 .actions {
   margin-top: 1rem;
-}
-.subtitle {
-  margin: 0.5rem 0 0 0;
-  color: #AAA;
-  font-size: 0.9rem;
 }
 .form-grid {
   display: grid;
@@ -303,7 +298,7 @@ h2 {
 }
 
 label {
-  color: #AAA;
+  color: var(--sub);
   font-size: 0.85rem;
   font-weight: 500;
 }
@@ -312,9 +307,9 @@ label {
 input[type="text"],
 input[type="number"],
 select {
-  background-color: #282828;
-  border: 1px solid #414141;
-  color: #F1F1F1;
+  background-color: var(--vlbg);
+  border: 1px solid var(--border2);
+  color: var(--text);
   padding: 12px;
   border-radius: 6px;
   font-size: 1rem;
@@ -339,8 +334,8 @@ input.disabled {
   gap: 2rem;
   margin-top: 0.5rem;
   padding: 10px 0;
-  border-top: 1px solid #282828;
-  border-bottom: 1px solid #282828;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .checkbox-container {
@@ -362,8 +357,8 @@ input.disabled {
 .checkmark {
   height: 20px;
   width: 20px;
-  background-color: #282828;
-  border: 1px solid #414141;
+  background-color: var(--vlbg);
+  border: 1px solid var(--border2);
   border-radius: 4px;
   margin-right: 10px;
   position: relative;
@@ -374,8 +369,8 @@ input.disabled {
 }
 
 .checkbox-container input:checked ~ .checkmark {
-  background-color: #F1F1F1;
-  border-color: #F1F1F1;
+  background-color: var(--text);
+  border-color: var(--text);
 }
 
 .checkbox-container input:checked ~ .checkmark:after {
@@ -386,7 +381,7 @@ input.disabled {
   top: 2px;
   width: 5px;
   height: 10px;
-  border: solid #0F0F0F;
+  border: solid var(--bg);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -409,8 +404,8 @@ input.disabled {
 
 .copy-btn {
   background: transparent;
-  border: 1px solid #414141;
-  color: #AAA;
+  border: 1px solid var(--border2);
+  color: var(--sub);
   padding: 4px 10px;
   font-size: 0.8rem;
   border-radius: 4px;
@@ -419,14 +414,14 @@ input.disabled {
 }
 
 .copy-btn:hover {
-  background: #282828;
-  color: #F1F1F1;
+  background: var(--vlbg);
+  color: var(--text);
 }
 
 pre {
-  background-color: #282828;
-  border: 1px solid #414141;
-  color: #F1F1F1;
+  background-color: var(--vlbg);
+  border: 1px solid var(--border2);
+  color: var(--text);
   padding: 1.5rem;
   border-radius: 6px;
   overflow-x: auto;

@@ -80,7 +80,7 @@ watch(() => props.sorgenCount, (newCount) => {
   top: var(--admin-header-height);
   left: 0;
   height: calc(100vh - var(--admin-header-height));
-  background: #141414;
+  background: var(--lbg);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -111,18 +111,21 @@ watch(() => props.sorgenCount, (newCount) => {
   margin: 0 10px;
   border-radius: 6px;
   background: transparent;
-  color: #aaaaaa;
+  color: var(--sub);
   text-align: left;
   font-size: 0.95rem;
   border: none;
   cursor: pointer;
   white-space: nowrap;
 }
-.nav-item:hover { background: rgba(255, 255, 255, 0.05); color: white; }
+.nav-item:hover {
+  background: var(--ghost--hover);
+  color: var(--text);
+}
 
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f1f1f1;
+  background: var(--opacity--hover);
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -149,47 +152,15 @@ watch(() => props.sorgenCount, (newCount) => {
 }
 .counter.danger { background: var(--danger); }
 
-.sidebar-footer {
-  margin-top: auto;
-  border-top: 1px solid #282828;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  padding-left: 25px;
-  padding-right: 25px;
-}
-.sidebar-expanded .sidebar-footer {
-  padding-left: 25px;
-  padding-right: 25px;
-}
-
-.back-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #666;
-  font-size: 0.9rem;
-  transition: 0.2s;
-  text-decoration: none;
-}
-.back-link:hover { color: white; }
-
 @media (max-width: 1024px) {
   .sidebar {
     position: static;
     width: 100%;
     height: auto;
     border-right: none;
-    border-bottom: 1px solid #282828;
+    border-bottom: 1px solid var(--border);
     padding: 0;
   }
-
-  .sidebar-collapsed, .sidebar-expanded {
-    width: 100%;
-    padding: 0;
-  }
-
-  .sidebar-header { display: none; }
-
   .sidebar-nav {
     flex-direction: row;
     overflow-x: auto;
@@ -208,6 +179,5 @@ watch(() => props.sorgenCount, (newCount) => {
   }
   .nav-text { opacity: 1; }
   .counter { display: none; }
-  .sidebar-footer { display: none; }
 }
 </style>

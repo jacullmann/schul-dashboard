@@ -12,9 +12,9 @@
 .admin-header {
   height: var(--admin-header-height);
   padding: 0 40px;
-  background: #141414;
-  color: #f1f1f1;
-  border-bottom: 1px solid #282828;
+  background: var(--lbg);
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   flex-shrink: 0;

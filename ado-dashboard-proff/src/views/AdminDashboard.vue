@@ -370,8 +370,8 @@ const tabTitles: Record<string, string> = {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #0f0f0f;
-  color: #f1f1f1;
+  background:var(--bg);
+  color:var(--text);
 }
 
 .admin-header-sticky-wrapper {
@@ -409,8 +409,8 @@ const tabTitles: Record<string, string> = {
 }
 
 .stat-card {
-  background: #1a1a1a;
-  border: 1px solid #282828;
+  background: var(--card);
+  border: 1px solid var(--border);
   padding: 20px;
   border-radius: 8px;
   text-align: center;
@@ -423,8 +423,17 @@ const tabTitles: Record<string, string> = {
 
 .table-container { overflow-x: auto; padding: 0; }
 .data-table { width: 100%; border-collapse: collapse; }
-.data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #282828; }
-.data-table th { background: #202020; color: #aaa; font-weight: 500; font-size: 0.85rem; }
+.data-table th, .data-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table th {
+  background: var(--llbg);
+  color: var(--sub);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
 .u-email { font-weight: 500; }
 .u-id { color: var(--sub); font-size: 0.7rem; }
 .actions { display: flex; gap: 4px; justify-content: flex-end; }
@@ -447,8 +456,8 @@ const tabTitles: Record<string, string> = {
 }
 .drawer-content {
   width: 400px;
-  background: #1a1a1a;
-  border-left: 1px solid #333;
+  background: var(--lbg);
+  border-left: 1px solid var(--border);
   padding: 20px;
   height: 100%;
   overflow-y: auto;
@@ -478,7 +487,15 @@ const tabTitles: Record<string, string> = {
 .log-list li { border-bottom: 1px solid #282828; padding: 10px 0; }
 .log-time { color: #666; font-size: 0.8rem; display: block; }
 .log-type {  font-weight: 500; }
-.log-meta { background: #111; padding: 5px; border-radius: 4px; font-size: 0.75rem; color: #aaa; margin-top: 4px; overflow-x: auto;}
+.log-meta {
+  background: var(--vlbg);
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: var(--sub);
+  margin-top: 4px;
+  overflow-x: auto;
+}
 
 .report-grid, .sorgen-list { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .sorge-card, .report-card { display: flex; flex-direction: column; height: 100%; }
