@@ -305,7 +305,7 @@ function colorFor(color) {
 }
 
 .announcement-item.active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--gg);
   color: var(--text);
 }
 
