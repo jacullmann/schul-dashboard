@@ -144,11 +144,11 @@ watch(() => props.sorgenCount, (newCount) => {
 
 .counter {
   margin-left: auto;
-  background: #333;
+  background: var(--gg);
+  color: var(--text);
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 0.75rem;
-  color: white;
 }
 .counter.danger { background: var(--danger); }
 

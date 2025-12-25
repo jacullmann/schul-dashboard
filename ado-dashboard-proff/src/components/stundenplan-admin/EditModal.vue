@@ -319,7 +319,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: #666;
+  border-color: var(--sub);
 }
 
 input.disabled {

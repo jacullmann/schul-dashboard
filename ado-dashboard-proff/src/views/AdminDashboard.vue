@@ -437,8 +437,8 @@ const tabTitles: Record<string, string> = {
 .u-email { font-weight: 500; }
 .u-id { color: var(--sub); font-size: 0.7rem; }
 .actions { display: flex; gap: 4px; justify-content: flex-end; }
-.icon-only { padding: 6px; background: transparent; color: #888; }
-.icon-only:hover { color: white; background: rgba(255,255,255,0.1); }
+.icon-only { padding: 6px; background: transparent; color: var(--sub); }
+.icon-only:hover { color: var(--text); background: var(--gg); }
 .icon-only.danger:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
 
 .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
@@ -484,8 +484,8 @@ const tabTitles: Record<string, string> = {
 }
 
 .log-list { list-style: none; padding: 0; }
-.log-list li { border-bottom: 1px solid #282828; padding: 10px 0; }
-.log-time { color: #666; font-size: 0.8rem; display: block; }
+.log-list li { border-bottom: 1px solid var(--border); padding: 10px 0; }
+.log-time { color: var(--sub); font-size: 0.8rem; display: block; }
 .log-type {  font-weight: 500; }
 .log-meta {
   background: var(--vlbg);
@@ -499,13 +499,13 @@ const tabTitles: Record<string, string> = {
 
 .report-grid, .sorgen-list { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .sorge-card, .report-card { display: flex; flex-direction: column; height: 100%; }
-.sorge-body, .rep-reason { flex: 1; margin-bottom: 10px; line-height: 1.5; color: #ddd; }
-.sorge-footer, .rep-meta { border-top: 1px solid #282828; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; color: #666; font-size: 0.8rem; }
-.rep-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #282828; padding-bottom: 5px; }
+.sorge-body, .rep-reason { flex: 1; margin-bottom: 10px; line-height: 1.5; color: var(--text); } /* WICHTIG: var(--text) statt #ddd */
+.sorge-footer, .rep-meta { border-top: 1px solid var(--border); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 0.8rem; }
+.rep-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
 
 .bar-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
-.bar-label { width: 100px; color: #aaa; }
-.bar-track { flex: 1; height: 8px; background: #222; border-radius: 4px; margin: 0 10px; overflow: hidden; }
+.bar-label { width: 100px; color: var(--sub); }
+.bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; margin: 0 10px; overflow: hidden; }
 .bar-fill { height: 100%; background: var(--lp); border-radius: 4px; }
 .bar-val { width: 30px; text-align: right; font-weight: bold; }
 
