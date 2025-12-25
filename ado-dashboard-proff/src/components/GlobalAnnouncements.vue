@@ -182,6 +182,9 @@ function colorFor(color) {
   box-shadow: var(--shadow-s);
   min-height: 45px;
 }
+.global-ann.light {
+  border-bottom: 1px solid var(--border);
+}
 
 .global-ann-content {
   flex: 1;
