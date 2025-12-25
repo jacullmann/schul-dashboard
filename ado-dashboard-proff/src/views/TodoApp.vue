@@ -366,6 +366,7 @@ function showMessage(msg: string, error = false) {
   gap: 0.5rem;
   align-items: center;
   margin-top: 0;
+  color: var(--text);
 }
 .spannn {
   cursor: pointer;
