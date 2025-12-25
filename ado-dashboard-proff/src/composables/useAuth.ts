@@ -1,4 +1,5 @@
 // src/composables/useAuth.ts
+// Version: Production
 import { ref } from 'vue';
 
 const BACKEND_BASE_URL = 'https://api.schul-dashboard.com';

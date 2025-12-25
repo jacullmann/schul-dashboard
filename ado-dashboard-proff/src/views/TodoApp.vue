@@ -396,7 +396,7 @@ function showMessage(msg: string, error = false) {
   right: 0;
   min-width: 140px;
   background: var(--vlbg);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px;
   display: none;
