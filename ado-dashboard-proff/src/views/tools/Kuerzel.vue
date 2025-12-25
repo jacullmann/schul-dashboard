@@ -213,7 +213,7 @@ onMounted(() => {
 .switch-btn {
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 6px;
+  border-radius: var(--border-4);
   width: 38px;
   height: 38px;
   cursor: pointer;
@@ -232,12 +232,12 @@ onMounted(() => {
 .switch-icon {
   width: 22px;
   height: 22px;
-  color: #aaa;
+  color: var(--sub);
   transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .switch-btn:hover .switch-icon {
-  color: #f1f1f1;
+  color: var(--text);
 }
 
 .switch-btn.rotated .switch-icon {

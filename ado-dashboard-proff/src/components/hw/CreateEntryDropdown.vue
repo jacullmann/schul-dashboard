@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
 }
 
 .menu-btn:hover {
-  background: var(--opacity--hover);
+  background: var(--gg);
 }
 .mg {
   padding: 4px;

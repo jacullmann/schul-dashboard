@@ -321,7 +321,7 @@ const {
 }
 .menu-btn .fixall { display: flex; align-items: center; gap: 8px; line-height: 1; }
 .menu-btn .fixall svg { width: 16px; height: 16px; flex-shrink: 0; }
-.menu-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.menu-btn:hover { background: var(--gg); }
 .menu-btn.danger { color: #f65252; fill: #f65252; }
 .menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }
 .item-body {

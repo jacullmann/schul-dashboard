@@ -174,7 +174,7 @@ function colorFor(color) {
 
 .global-ann {
   padding: 12px 16px;
-  color: white;
+  color: var(--text);
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -209,7 +209,7 @@ function colorFor(color) {
 .announcement-menu-btn {
   background: none;
   border: none;
-  color: white;
+  color: var(--text);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -224,7 +224,7 @@ function colorFor(color) {
 
 .announcement-menu-btn:hover {
   opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--gg);
 }
 
 /* NEU: Menu Overlay Styles */
@@ -306,7 +306,7 @@ function colorFor(color) {
 
 .announcement-item.active {
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--text);
 }
 
 .announcement-item-color {
