@@ -86,21 +86,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '../stores/userStore';
 import Logo from './hw/Logo.vue';
 import AccountMenu from './hw/AccountMenu.vue';
 import CompleteSetup from './hw/CompleteSetup.vue';
 import { X, Menu } from 'lucide-vue-next';
-import { setHwToken } from '../hwApi';
 import hw from '../hwApi';
 import LoadingSpinner from "./LoadingSpinner.vue";
 import { useGlobalAuthModal } from '../composables/useGlobalAuthModal';
 
+const userStore = useUserStore();
+const { user, loading, needsSetup, hasShownSetup } = storeToRefs(userStore);
+
 const navOpen = ref(false);
 const showSetupModal = ref(false);
-const user = ref<any>(null);
-const loading = ref(true);
-const hasShownSetup = ref(false);
 
 const { openAuthModal } = useGlobalAuthModal();
 
@@ -115,12 +116,7 @@ const closeNav = () => {
 };
 
 function onPersonalizationChanged(value: boolean) {
-  if (user.value) {
-    user.value.personalized = value;
-    window.dispatchEvent(new CustomEvent('personalization-changed', {
-      detail: { personalized: value }
-    }));
-  }
+  userStore.updateUser({ personalized: value });
 }
 
 const handleEscape = (event: KeyboardEvent) => {
@@ -128,35 +124,19 @@ const handleEscape = (event: KeyboardEvent) => {
 };
 
 // Auth Funktionen
-async function loadMe() {
+async function logout() {
   try {
-    const { data } = await hw.get('/api/auth/me');
-    user.value = data;
-    if (user.value && !user.value.doneSetup && !hasShownSetup.value) {
-      showSetupModal.value = true;
-      hasShownSetup.value = true;
-    }
-  } catch {
-    user.value = null;
+    await hw.post('/api/auth/logout');
+  } catch (err) {
+    console.error('Logout failed:', err);
   } finally {
-    loading.value = false;
+    userStore.clearUser();
   }
 }
 
-function onLoggedIn(token: string) {
-  setHwToken(token);
-  loadMe();
-}
-
-function logout() {
-  setHwToken(null);
-  user.value = null;
-  hasShownSetup.value = false;
-}
 
 function onAccountDeleted() {
-  setHwToken(null);
-  user.value = null;
+  userStore.clearUser();
 }
 
 function onAccountDeleteError(msg: string) {
@@ -168,35 +148,24 @@ function openSetupModal() {
 }
 
 function onSetupSuccess(updatedUser: any) {
-  user.value = { ...user.value, ...updatedUser };
+  userStore.updateUser(updatedUser);
   showSetupModal.value = false;
-}
-
-function handleShowAuthModal() {
-  openAuthModal();
-}
-
-function handleUserLoggedIn() {
-  hasShownSetup.value = false;
-  loadMe();
 }
 
 onMounted(() => {
   document.addEventListener('keydown', handleEscape);
-  window.addEventListener('show-auth-modal', handleShowAuthModal);
-  window.addEventListener('user-logged-in', handleUserLoggedIn);
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'hw_token' && !e.newValue) {
-      user.value = null;
-    }
-  });
-  loadMe();
+  userStore.fetchUser();
+});
+
+watch(needsSetup, (needs) => {
+  if (needs && !hasShownSetup.value) {
+    showSetupModal.value = true;
+    userStore.markSetupShown();
+  }
 });
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscape);
-  window.removeEventListener('show-auth-modal', handleShowAuthModal);
-  window.removeEventListener('user-logged-in', handleUserLoggedIn);
   document.body.style.overflow = '';
 });
 </script>

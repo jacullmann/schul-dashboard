@@ -141,7 +141,7 @@ import { Eye, EyeOff } from 'lucide-vue-next';
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'logged-in', token: string): void
+  (e: 'logged-in'): void
 }>();
 
 // Tab Configuration
@@ -266,14 +266,17 @@ async function submit() {
         email: email.value,
         password: password.value
       });
-      message.value = 'Registriert. Überprüfe dein E-Mail-Postfach und klicke auf den Bestätigungslink. Prüfe auch deinen Spam-Ordner.';
+      message.value = 'Registriert. Überprüfe dein E-Mail-Postfach...';
       isError.value = false;
     } else {
       const { data } = await hw.post('/api/auth/login', {
         email: email.value,
         password: password.value
       });
-      emit('logged-in', data.token);
+
+      if (data.ok) {
+        emit('logged-in');
+      }
     }
   } catch (e: any) {
     message.value = e.response?.data?.error || 'Unbekannter Fehler';

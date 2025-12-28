@@ -1,8 +1,9 @@
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '../stores/userStore';
 import { useGlobalAuthModal } from './useGlobalAuthModal';
-import hw, { setHwToken } from '../hwApi';
-import { marked } from 'marked';
+import hw from '../hwApi';
 
 // Interface Definition exportieren
 export interface HwItem {
@@ -22,6 +23,8 @@ export function useHausaufgaben() {
     const route = useRoute();
     const router = useRouter();
     const { openAuthModal } = useGlobalAuthModal();
+    const userStore = useUserStore();
+    const { user } = storeToRefs(userStore);
 
     // --- Konstanten ---
     const enrKurse = [
@@ -56,7 +59,6 @@ export function useHausaufgaben() {
     const showAnnouncementForm = ref(false);
     const showImageFormFor = ref<any>(null);
     const itemToEdit = ref<HwItem | null>(null);
-    const user = ref<any>(null);
     const subjects = ref<string[]>([]);
     const announcements = ref<any[]>([]);
     const items = ref<HwItem[]>([]);
@@ -224,30 +226,13 @@ export function useHausaufgaben() {
     function onSetupSuccess(updatedUser: any) {
         user.value = { ...user.value, ...updatedUser };
         showSetupModal.value = false;
-        handleSuccess('Kurseinstellungen erfolgreich gespeichert.');
     }
 
     function openSetupModal() {
         if (user.value) showSetupModal.value = true;
     }
-
-    // General Data Loading
-    async function loadMe() {
-        try {
-            const { data } = await hw.get('/api/auth/me');
-            user.value = data;
-            await loadCheckedForMe();
-
-        } catch {
-            user.value = null;
-            checkedItems.value = new Set();
-        }
-    }
     function onPersonalizationChanged(value: boolean) {
-        if (user.value) {
-            user.value.personalized = value;
-            reload();
-        }
+        userStore.updateUser({ personalized: value });
     }
 
     async function loadCheckedForMe() {
@@ -302,31 +287,27 @@ export function useHausaufgaben() {
 
     // Auth & Account
     function onAccountDeleted() {
-        setHwToken(null);
-        user.value = null;
-        checkedItems.value = new Set();
-        message.value = 'Account erfolgreich gelöscht.';
-        isError.value = false;
-        reload();
-        setTimeout(() => { message.value = ''; }, 5000);
+        userStore.clearUser();
     }
 
     function onAccountDeleteError(msg: string) {
-        message.value = msg;
-        isError.value = true;
-        setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+        console.error('Account delete error:', msg);
     }
 
-    function onLoggedIn(token: string) {
-        setHwToken(token);
-        loadMe();
+    async function onLoggedIn() {
+        await userStore.fetchUser();
+        await loadCheckedForMe();
         reload();
     }
 
-    function logout() {
-        setHwToken(null);
-        user.value = null;
-        checkedItems.value = new Set();
+    async function logout() {
+        try {
+            await hw.post('/api/auth/logout');
+        } catch (err) {
+            console.error('Logout failed:', err);
+        } finally {
+            userStore.clearUser();
+        }
     }
 
     const handleShowAuthModal = () => {
@@ -443,24 +424,6 @@ export function useHausaufgaben() {
         } catch { return url; }
     }
 
-    function handlePersonalizationChange(event: CustomEvent) {
-        if (user.value && event.detail?.personalized !== undefined) {
-            user.value.personalized = event.detail.personalized;
-            reload();
-        }
-    }
-
-    function handleUserLoggedIn() {
-        loadMe();
-        reload();
-    }
-
-    function handleUserLoggedOut() {
-        user.value = null;
-        checkedItems.value = new Set();
-        reload();
-    }
-
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
     function isChecked(itemId: string) { return checkedItems.value.has(itemId); }
@@ -493,7 +456,6 @@ export function useHausaufgaben() {
     // --- Watchers ---
     watch(() => route.params.type, async (v) => {
         tab.value = isValidType(v) ? v : 'HAUSAUFGABE';
-        await loadMe();
         reload();
     });
     watch(showOldEntries, reload);
@@ -503,22 +465,25 @@ export function useHausaufgaben() {
 
     onMounted(() => {
         document.addEventListener('click', onDocumentClick);
-        loadMe();
         loadSubjects();
         loadAnnouncements();
         reload();
-        window.addEventListener('user-logged-in', handleUserLoggedIn);
-        window.addEventListener('user-logged-out', handleUserLoggedOut);
-        window.addEventListener('show-auth-modal', handleShowAuthModal);
-        window.addEventListener('personalization-changed', handlePersonalizationChange as EventListener);
+        loadCheckedForMe();
     });
+
+    watch(user, async (newUser, oldUser) => {
+        if (newUser && !oldUser) {
+            await loadCheckedForMe();
+            reload();
+        }
+        if (!newUser && oldUser) {
+            checkedItems.value = new Set();
+            reload();
+        }
+    }, { deep: true });
 
     onBeforeUnmount(() => {
         document.removeEventListener('click', onDocumentClick);
-        window.removeEventListener('user-logged-in', handleUserLoggedIn);
-        window.removeEventListener('user-logged-out', handleUserLoggedOut);
-        window.removeEventListener('show-auth-modal', handleShowAuthModal);
-        window.removeEventListener('personalization-changed', handlePersonalizationChange as EventListener);
     });
 
     return {
@@ -537,7 +502,6 @@ export function useHausaufgaben() {
         showPersonalized,
         onPersonalizationChanged,
         showOldEntries,
-        showSetupModal,
         message,
         isError,
         itemFormKey,

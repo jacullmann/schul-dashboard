@@ -12,11 +12,10 @@ import sgClient from '@sendgrid/mail';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
-import sanitizeMiddleware from './middleware/sanitize.js';
-import { requireExternalAuth } from './middleware/dashboardAuth.js';
+import { setCsrfCookie } from './middleware/csrf.js';
 
 const app = express();
-app.set('trust proxy', 3);
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboard.com';
 
@@ -57,15 +56,35 @@ cloudinary.config({
 });
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+app.use(cors({
+    origin: CLIENT_ORIGIN,
+    credentials: true
+}));
 app.use(morgan('combined'));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
-app.use(sanitizeMiddleware);
-app.use(rateLimit({ windowMs: 60_000, max: 200, standardHeaders: true, legacyHeaders: false }));
+app.use(setCsrfCookie(process.env.CSRF_SECRET));
+app.use(rateLimit({
+    windowMs: 60_000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false
+}));
 
 if (!process.env.MONGODB_URI) {
     console.error('MONGODB_URI nicht gesetzt. Beenden.');
+    process.exit(1);
+}
+if (!process.env.APP_GATE_JWT_SECRET || !process.env.USER_JWT_SECRET || !process.env.CSRF_SECRET || !process.env.PASSWORD_RESET_SECRET) {
+    console.error('FEHLER: APP_GATE_JWT_SECRET, USER_JWT_SECRET, CSRF_SECRET und PASSWORD_RESET_SECRET müssen gesetzt sein!');
+    process.exit(1);
+}
+if (!process.env.ENCRYPTION_KEY) {
+    console.error('FEHLER: ENCRYPTION_KEY muss gesetzt sein!');
+    process.exit(1);
+}
+if (!process.env.DASHBOARD_CHECK_PASSWORD_HASH) {
+    console.error('FEHLER: DASHBOARD_CHECK_PASSWORD_HASH muss gesetzt sein!');
     process.exit(1);
 }
 await mongoose.connect(process.env.MONGODB_URI);
@@ -81,7 +100,10 @@ routes(app, {
     geminiModel,
     sendgridConfigured: !!SENDGRID_API_KEY,
     sendgridFrom: SENDGRID_FROM,
-    jwtSecret: process.env.JWT_SECRET,
+    appGateSecret: process.env.APP_GATE_JWT_SECRET,
+    userSecret: process.env.USER_JWT_SECRET,
+    csrfSecret: process.env.CSRF_SECRET,
+    passwordResetSecret: process.env.PASSWORD_RESET_SECRET
 });
 
 app.get('/health', (req, res) => res.json({ ok: true }));

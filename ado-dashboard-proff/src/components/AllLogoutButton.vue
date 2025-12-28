@@ -31,11 +31,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAuth } from '../composables/useAuth';
+import { useAppAuth } from '../composables/useAppAuth';
 import { TabletSmartphone, LogOut } from "lucide-vue-next";
 
 const showPopup = ref(false)
-const auth = useAuth();
+const auth = useAppAuth();
 
 function openPopup() {
   showPopup.value = true

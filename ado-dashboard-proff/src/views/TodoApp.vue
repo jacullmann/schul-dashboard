@@ -92,11 +92,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '../stores/userStore';
 import { useRouter } from 'vue-router';
 import hw from '../hwApi';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
-import { Pencil, Trash2, Ellipsis } from 'lucide-vue-next'
+import { Pencil, Trash2, Ellipsis } from 'lucide-vue-next';
 
 interface Todo {
   id: string;
@@ -115,7 +117,8 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
-const user = ref<any>(null);
+const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
 const todos = ref<Todo[]>([]);
 const loading = ref(false);
 const filter = ref<'all' | 'pending' | 'completed'>('all');
@@ -150,21 +153,22 @@ function toggleMenu(id: string) {
 const closeMenu = () => { openMenuId.value = null; }
 
 onMounted(() => {
-  loadUser();
   document.addEventListener('click', closeMenu);
+  if (user.value) {
+    loadTodos();
+  }
 });
-
+watch(user, (newUser) => {
+  if (newUser) {
+    loadTodos();
+  } else {
+    todos.value = [];
+  }
+}, { immediate: true });
 onUnmounted(() => {
   document.removeEventListener('click', closeMenu);
 });
 
-async function loadUser() {
-  try {
-    const { data } = await hw.get('/api/auth/me');
-    user.value = data;
-    if (user.value) loadTodos();
-  } catch { user.value = null; }
-}
 
 async function loadTodos() {
   if (!user.value) return;
@@ -174,7 +178,9 @@ async function loadTodos() {
     todos.value = data;
   } catch (error) {
     showMessage('Fehler beim Laden der To-Dos', true);
-  } finally { loading.value = false; }
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function toggleTodoCompletion(todo: Todo) {

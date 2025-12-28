@@ -20,10 +20,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useAuth } from '../composables/useAuth';
+import { useAppAuth } from '../composables/useAppAuth';
 import { useRouter } from 'vue-router';
 
-const auth = useAuth();
+const auth = useAppAuth();
 const visible = ref(false);
 const router = useRouter();
 

@@ -1,18 +1,24 @@
 import axios from 'axios';
 
-const DASHBOARD_STORAGE_KEY = 'm38ct09qw3motw3uiholwiu5h4lvzwilizukrejhklgwh';
+function getCookie(name: string): string | null {
+    if (typeof document === 'undefined') return null;
+    const pattern = name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const match = document.cookie.match(
+        new RegExp('(?:^|; )' + pattern + '=([^;]*)')
+    );
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 const hw = axios.create({
     baseURL: import.meta.env.VITE_HW_API_BASE,
-    withCredentials: false
+    withCredentials: true
 });
 
 hw.interceptors.request.use((config) => {
-    if (!config.headers.Authorization) {
-        const dashboardToken = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+    const csrfToken = getCookie('csrf_token');
 
-        if (dashboardToken) {
-            config.headers.Authorization = `Bearer ${dashboardToken}`;
-        }
+    if (csrfToken) {
+        config.headers['x-csrf-token'] = csrfToken;
     }
     return config;
 }, (error) => {
@@ -24,65 +30,24 @@ hw.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            const storedToken = localStorage.getItem('hw_token');
-            if (storedToken) {
-                console.warn('401. Ungültiges Token. Forciere Logout.');
-                setHwToken(null, null);
+            const errorData = error.response.data;
+            if (errorData?.requiresAppGate) {
+                console.warn('App-Gate Cookie abgelaufen');
+                window.dispatchEvent(new CustomEvent('app-gate-expired'));
+            }
+            if (errorData?.requiresLogin) {
+                console.warn('User-Token abgelaufen');
+                window.dispatchEvent(new CustomEvent('user-token-expired'));
             }
         }
         return Promise.reject(error);
     }
 );
 
-function umamiSetLoggedIn(status: boolean, userId?: string | null) {
-    try {
-        const u = (window as any).umami;
-        if (!u) return;
-        if (userId) u.identify(userId, { logged_in: status });
-        else u.identify({ logged_in: status });
-    } catch {}
+function logPageLoad() {
+    hw.post('/api/activity/pageload').catch(() => {});
 }
 
-function logPageLoad(token: string) {
-    fetch(`${import.meta.env.VITE_HW_API_BASE}/api/activity/pageload`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    }).catch(() => {});
-}
-
-export function setHwToken(token: string | null, userId?: string | null) {
-    if (token) {
-        hw.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        localStorage.setItem('hw_token', token);
-        if (userId) localStorage.setItem('hw_user_id', userId);
-        umamiSetLoggedIn(true, userId ?? localStorage.getItem('hw_user_id'));
-        window.dispatchEvent(new CustomEvent('user-logged-in'));
-        setTimeout(() => {
-            logPageLoad(token);
-        }, 1000);
-    } else {
-        delete hw.defaults.headers.common['Authorization'];
-        localStorage.removeItem('hw_token');
-        localStorage.removeItem('hw_user_id');
-        umamiSetLoggedIn(false);
-        window.dispatchEvent(new CustomEvent('user-logged-out'));
-    }
-}
-
-
-const stored = localStorage.getItem('hw_token');
-const storedUserId = localStorage.getItem('hw_user_id');
-if (stored) {
-    hw.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
-    umamiSetLoggedIn(true, storedUserId);
-    setTimeout(() => {
-        logPageLoad(stored);
-    }, 1000);
-} else {
-    umamiSetLoggedIn(false);
-}
+logPageLoad();
 
 export default hw;

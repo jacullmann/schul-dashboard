@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Hausaufgaben from './views/Hausaufgaben.vue';
-import { useAuth } from './composables/useAuth';
+import { useAppAuth } from './composables/useAppAuth';
 import { useLoadingBar } from './composables/loadingState';
-import hw from './hwApi';
+import { useUserStore } from './stores/userStore';
 
 const VerifyEmail = () => import('./views/VerifyEmail.vue');
 const Kuerzel = () => import('./views/tools/Kuerzel.vue');
@@ -279,25 +279,21 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isAuthenticated, isAuthReady, initAuth } = useAuth();
+const { isAuthenticated, isAuthReady, initAuth } = useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
-    // 1. Loading Bar starten
     if (to.path !== from.path) start();
 
-    // 2. Auth initialisieren falls nötig
     if (!isAuthReady.value) {
         await initAuth();
     }
 
-    // 3. Globaler Auth Check
     const publicPaths = ['/welcome', '/verify'];
     if (!publicPaths.includes(to.path) && !isAuthenticated.value) {
         finish();
         return next({ path: '/welcome' });
     }
 
-    // 4. Titel setzen
     if (to.meta.title) {
         document.title = to.meta.title + ' | Dashboard';
     } else {
@@ -305,16 +301,15 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (to.meta.requiresAdmin) {
-        try {
-            const { data } = await hw.get('/api/auth/me');
-            if (data && data.isAdmin) {
-                return next();
-            } else {
-                console.warn('Zugriff verweigert: Kein Admin');
-                return next({ path: '/items/HAUSAUFGABE' });
-            }
-        } catch (e) {
-            console.error('Admin Check fehlgeschlagen', e);
+        const userStore = useUserStore();
+
+        if (!userStore.initialized) {
+            await userStore.fetchUser();
+        }
+
+        if (!userStore.isAdmin) {
+            console.warn('Zugriff verweigert: Kein Admin');
+            finish();
             return next({ path: '/items/HAUSAUFGABE' });
         }
     }

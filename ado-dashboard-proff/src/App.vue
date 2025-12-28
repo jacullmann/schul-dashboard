@@ -39,20 +39,25 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useUserStore } from './stores/userStore';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
-import CookieBanner from "./components/CookieBanner.vue"
+import CookieBanner from "./components/CookieBanner.vue";
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
-import AccountPromoPopup from './components/popups/AuthFeatures.vue'
+import AccountPromoPopup from './components/popups/AuthFeatures.vue';
 import { loadBadWords } from "./composables/useProfanity";
 import { useLoadingBar } from "./composables/loadingState";
 import AuthModal from './components/hw/AuthModal.vue';
 import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
-import { setHwToken } from './hwApi';
+import { useAppAuth } from './composables/useAppAuth';
+
+const userStore = useUserStore();
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
+const { isAuthenticated, checkAuthStatus } = useAppAuth();
 
 const deviceIsMobile = ref(false);
+let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 
 const { loading, progress, opacity } = useLoadingBar();
 
@@ -69,20 +74,37 @@ function handleShowAuthModal() {
   openAuthModal().catch(() => {
   });
 }
-function onAuthSuccess(token: string) {
-  setHwToken(token);
-  handleAuthSuccess(token);
+async function onAuthSuccess() {
+  await userStore.fetchUser();
+  handleAuthSuccess('');
+}
+function handleUserTokenExpired() {
+  userStore.clearUser();
+  openAuthModal().catch(() => {});
 }
 
 onMounted(() => {
   checkIfMobile();
-  (async () => {
-    await loadBadWords();
-  })();
+  loadBadWords();
+
   window.addEventListener('show-auth-modal', handleShowAuthModal);
+  window.addEventListener('user-token-expired', handleUserTokenExpired);
+
+  authCheckInterval = setInterval(() => {
+    if (isAuthenticated.value) {
+      checkAuthStatus();
+    }
+  }, 5 * 60 * 1000);
 });
+
 onUnmounted(() => {
   window.removeEventListener('show-auth-modal', handleShowAuthModal);
+  window.removeEventListener('user-token-expired', handleUserTokenExpired);
+
+  if (authCheckInterval) {
+    clearInterval(authCheckInterval);
+    authCheckInterval = null;
+  }
 });
 </script>
 

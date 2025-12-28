@@ -92,7 +92,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuth } from '../../composables/useAuth';
+import { useAppAuth } from '../../composables/useAppAuth';
 import GetStatushwb2 from "./GetStatushwb2.vue";
 import {
   Eye,
@@ -105,7 +105,7 @@ import {
 } from 'lucide-vue-next'
 
 const router = useRouter();
-const auth = useAuth();
+const auth = useAppAuth();
 const password1 = ref('');
 const password2 = ref('');
 const error = ref<string | null>(null);
@@ -125,7 +125,6 @@ async function submit() {
     const res = await auth.loginWithCode(combinedPassword);
 
     if (res.ok) {
-      auth.refreshExpiry();
       umami.track('Welcome Page Login erfolgreich');
       await  router.push('/items/HAUSAUFGABE');
     } else {

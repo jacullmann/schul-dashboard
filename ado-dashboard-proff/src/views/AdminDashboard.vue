@@ -429,7 +429,7 @@ const tabTitles: Record<string, string> = {
   border-bottom: 1px solid var(--border);
 }
 .data-table th {
-  background: var(--llbg);
+  background: var(--lbg);
   color: var(--sub);
   font-weight: 500;
   font-size: 0.85rem;
