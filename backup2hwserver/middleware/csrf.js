@@ -32,13 +32,15 @@ export function setCsrfCookie(csrfSecret) {
     return (req, res, next) => {
         if (!req.cookies[CSRF_COOKIE_NAME]) {
             const token = generateCsrfToken(csrfSecret);
-            res.cookie(CSRF_COOKIE_NAME, token, {
-                httpOnly: false,
-                secure: true,
-                sameSite: 'none',
-                domain: '.schul-dashboard.com',
-                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
-            });
+            res.setHeader('Set-Cookie',
+                `${CSRF_COOKIE_NAME}=${token}; ` +
+                `Domain=.schul-dashboard.com; ` +
+                `Path=/; ` +
+                `Max-Age=${30 * 24 * 60 * 60}; ` +
+                `Secure; ` +
+                `SameSite=None; ` +
+                `Partitioned`
+            );
         }
         next();
     };
@@ -79,22 +81,27 @@ export function validateCsrf(csrfSecret) {
 }
 
 export function clearCsrfCookie(res) {
-    res.clearCookie(CSRF_COOKIE_NAME, {
-        httpOnly: false,
-        secure: true,
-        sameSite: 'none',
-        domain: '.schul-dashboard.com',
-    });
+    res.setHeader('Set-Cookie',
+        `${CSRF_COOKIE_NAME}=; ` +
+        `Domain=.schul-dashboard.com; ` +
+        `Path=/; ` +
+        `Max-Age=0; ` +
+        `Secure; ` +
+        `SameSite=None; ` +
+        `Partitioned`
+    );
 }
 
 export function rotateCsrfToken(res, csrfSecret) {
     const token = generateCsrfToken(csrfSecret);
-    res.cookie(CSRF_COOKIE_NAME, token, {
-        httpOnly: false,
-        secure: true,
-        sameSite: 'none',
-        domain: '.schul-dashboard.com',
-        maxAge: 30 * 24 * 60 * 60 * 1000
-    });
+    res.setHeader('Set-Cookie',
+        `${CSRF_COOKIE_NAME}=${token}; ` +
+        `Domain=.schul-dashboard.com; ` +
+        `Path=/; ` +
+        `Max-Age=${30 * 24 * 60 * 60}; ` +
+        `Secure; ` +
+        `SameSite=None; ` +
+        `Partitioned`
+    );
     return token;
 }
