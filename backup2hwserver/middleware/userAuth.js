@@ -12,16 +12,13 @@ export function setUserToken(res, userId, email, secret) {
         { expiresIn: '7d' }
     );
 
-    res.setHeader('Set-Cookie',
-        `${COOKIE_NAME}=${token}; ` +
-        `Domain=.schul-dashboard.com; ` +
-        `Path=/; ` +
-        `Max-Age=${7 * 24 * 60 * 60}; ` +
-        `HttpOnly; ` +
-        `Secure; ` +
-        `SameSite=None; ` +
-        `Partitioned`
-    );
+    res.cookie(COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.schul-dashboard.com',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
     return token;
 }
@@ -68,16 +65,12 @@ export function requireUser(secret, BannedUserModel, UserModel) {
 }
 
 export function clearUserToken(res) {
-    res.setHeader('Set-Cookie',
-        `${COOKIE_NAME}=; ` +
-        `Domain=.schul-dashboard.com; ` +
-        `Path=/; ` +
-        `Max-Age=0; ` +
-        `HttpOnly; ` +
-        `Secure; ` +
-        `SameSite=None; ` +
-        `Partitioned`
-    );
+    res.clearCookie(COOKIE_NAME, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.schul-dashboard.com',
+    });
 }
 
 export function checkUser(secret, UserModel) {

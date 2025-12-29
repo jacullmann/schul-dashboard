@@ -9,16 +9,13 @@ export function setAppGateToken(res, secret) {
         { expiresIn: '30d' }
     );
 
-    res.setHeader('Set-Cookie',
-        `${COOKIE_NAME}=${token}; ` +
-        `Domain=.schul-dashboard.com; ` +
-        `Path=/; ` +
-        `Max-Age=${30 * 24 * 60 * 60}; ` +
-        `HttpOnly; ` +
-        `Secure; ` +
-        `SameSite=None; ` +
-        `Partitioned`
-    );
+    res.cookie(COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.schul-dashboard.com',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
+    });
 
     return token;
 }
@@ -56,16 +53,12 @@ export function requireAppGate(secret) {
 }
 
 export function clearAppGateToken(res) {
-    res.setHeader('Set-Cookie',
-        `${COOKIE_NAME}=; ` +
-        `Domain=.schul-dashboard.com; ` +
-        `Path=/; ` +
-        `Max-Age=0; ` +
-        `HttpOnly; ` +
-        `Secure; ` +
-        `SameSite=None; ` +
-        `Partitioned`
-    );
+    res.clearCookie(COOKIE_NAME, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: '.schul-dashboard.com',
+    });
 }
 
 export function checkAppGate(secret) {
