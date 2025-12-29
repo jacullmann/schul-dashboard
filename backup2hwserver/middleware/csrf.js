@@ -36,6 +36,7 @@ export function setCsrfCookie(csrfSecret) {
                 httpOnly: false,
                 secure: true,
                 sameSite: 'none',
+                domain: '.schul-dashboard.com',
                 maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
             });
         }
@@ -81,7 +82,8 @@ export function clearCsrfCookie(res) {
     res.clearCookie(CSRF_COOKIE_NAME, {
         httpOnly: false,
         secure: true,
-        sameSite: 'none'
+        sameSite: 'none',
+        domain: '.schul-dashboard.com',
     });
 }
 
@@ -91,6 +93,7 @@ export function rotateCsrfToken(res, csrfSecret) {
         httpOnly: false,
         secure: true,
         sameSite: 'none',
+        domain: '.schul-dashboard.com',
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
     return token;

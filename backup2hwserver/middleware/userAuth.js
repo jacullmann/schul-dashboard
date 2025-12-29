@@ -16,6 +16,7 @@ export function setUserToken(res, userId, email, secret) {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        domain: '.schul-dashboard.com',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -67,7 +68,8 @@ export function clearUserToken(res) {
     res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
         secure: true,
-        sameSite: 'none'
+        sameSite: 'none',
+        domain: '.schul-dashboard.com',
     });
 }
 
