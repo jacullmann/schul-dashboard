@@ -44,10 +44,4 @@ hw.interceptors.response.use(
     }
 );
 
-function logPageLoad() {
-    hw.post('/api/activity/pageload').catch(() => {});
-}
-
-logPageLoad();
-
 export default hw;

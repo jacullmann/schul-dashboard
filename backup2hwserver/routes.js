@@ -20,7 +20,7 @@ import {
     checkUser
 } from './middleware/userAuth.js';
 
-import { validateCsrf, clearCsrfCookie, rotateCsrfToken } from './middleware/csrf.js';
+import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken } from './middleware/csrf.js';
 
 export default function registerRoutes(app, deps) {
     const {
@@ -268,6 +268,19 @@ Email bestätigen
             }
         }
     );
+    // In routes.js oder server.js
+    app.get('/api/csrf/init', (req, res) => {
+        if (!req.cookies['csrf_token']) {
+            const token = generateCsrfToken(csrfSecret);
+            res.cookie('csrf_token', token, {
+                httpOnly: false,
+                secure: true,
+                sameSite: 'lax',
+                maxAge: 30 * 24 * 60 * 60 * 1000
+            });
+        }
+        res.json({ ok: true });
+    });
 
     app.get('/api/app-gate/status',
         checkAppGate(appGateSecret),

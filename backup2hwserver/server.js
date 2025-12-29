@@ -12,7 +12,6 @@ import sgClient from '@sendgrid/mail';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
-import { setCsrfCookie } from './middleware/csrf.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -70,7 +69,6 @@ app.options('*', cors({
 app.use(morgan('combined'));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
-app.use(setCsrfCookie(process.env.CSRF_SECRET));
 app.use(rateLimit({
     windowMs: 60_000,
     max: 200,

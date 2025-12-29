@@ -92,6 +92,10 @@ onMounted(() => {
   checkIfMobile();
   loadBadWords();
 
+  if (isAuthenticated.value) {
+    hw.post('/api/activity/pageload').catch(() => {});
+  }
+
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('user-token-expired', handleUserTokenExpired);
   window.addEventListener('app-gate-expired', handleAppGateExpired);

@@ -29,6 +29,11 @@ export function useAppAuth() {
         if (initPromise) return initPromise;
 
         initPromise = (async () => {
+            try {
+                await hw.get('/api/csrf/init');
+            } catch (e) {
+                console.warn('CSRF init failed:', e);
+            }
             await checkAuthStatus();
             isAuthReady.value = true;
 
