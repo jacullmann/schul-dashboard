@@ -12,8 +12,8 @@ export function setAppGateToken(res, secret) {
     res.cookie(COOKIE_NAME, token, {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
-        domain: 'schul-dashboard.com',
+        sameSite: 'None',
+        domain: 'api.schul-dashboard.com',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
     });
 
@@ -56,8 +56,8 @@ export function clearAppGateToken(res) {
     res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
         secure: true,
-        domain: 'schul-dashboard.com',
-        sameSite: 'lax',
+        sameSite: 'None',
+        domain: 'api.schul-dashboard.com',
     });
 }
 

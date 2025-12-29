@@ -268,14 +268,15 @@ Email bestätigen
             }
         }
     );
-    // In routes.js oder server.js
+
     app.get('/api/csrf/init', (req, res) => {
         if (!req.cookies['csrf_token']) {
             const token = generateCsrfToken(csrfSecret);
             res.cookie('csrf_token', token, {
                 httpOnly: false,
                 secure: true,
-                sameSite: 'lax',
+                sameSite: 'None',
+                domain: 'api.schul-dashboard.com',
                 maxAge: 30 * 24 * 60 * 60 * 1000
             });
         }
