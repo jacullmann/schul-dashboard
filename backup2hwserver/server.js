@@ -58,6 +58,13 @@ cloudinary.config({
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
     origin: CLIENT_ORIGIN,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Cookie'],
+    exposedHeaders: ['Set-Cookie', 'X-CSRF-Token']
+}));
+app.options('*', cors({
+    origin: CLIENT_ORIGIN,
     credentials: true
 }));
 app.use(morgan('combined'));
