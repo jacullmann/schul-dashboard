@@ -150,6 +150,18 @@ function updateAnnouncementHeight() {
 
 watch(announcements, updateAnnouncementHeight)
 watch(isWelcomePage, updateAnnouncementHeight)
+watch(isWelcomePage, async (newValue, oldValue) => {
+  if (oldValue === true && newValue === false) {
+    try {
+      const { data } = await hw.get('/api/announcements');
+      announcements.value = data;
+      updateAnnouncementHeight();
+      checkForNewPopups(data);
+    } catch (error) {
+      console.error('Fehler beim Laden der globalen Ankündigungen', error);
+    }
+  }
+}, { immediate: false });
 
 function colorFor(color) {
   const map = {

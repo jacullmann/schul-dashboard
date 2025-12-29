@@ -154,7 +154,9 @@ function onSetupSuccess(updatedUser: any) {
 
 onMounted(() => {
   document.addEventListener('keydown', handleEscape);
-  userStore.fetchUser();
+  if (!userStore.initialized) {
+    userStore.fetchUser();
+  }
 });
 
 watch(needsSetup, (needs) => {

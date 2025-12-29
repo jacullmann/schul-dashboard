@@ -50,6 +50,8 @@ import { useLoadingBar } from "./composables/loadingState";
 import AuthModal from './components/hw/AuthModal.vue';
 import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
 import { useAppAuth } from './composables/useAppAuth';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 const userStore = useUserStore();
 
@@ -74,6 +76,9 @@ function handleShowAuthModal() {
   openAuthModal().catch(() => {
   });
 }
+function handleAppGateExpired() {
+  router.push('/welcome');
+}
 async function onAuthSuccess() {
   await userStore.fetchUser();
   handleAuthSuccess('');
@@ -89,6 +94,7 @@ onMounted(() => {
 
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('user-token-expired', handleUserTokenExpired);
+  window.addEventListener('app-gate-expired', handleAppGateExpired);
 
   authCheckInterval = setInterval(() => {
     if (isAuthenticated.value) {
@@ -100,6 +106,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('show-auth-modal', handleShowAuthModal);
   window.removeEventListener('user-token-expired', handleUserTokenExpired);
+  window.removeEventListener('app-gate-expired', handleAppGateExpired);
 
   if (authCheckInterval) {
     clearInterval(authCheckInterval);

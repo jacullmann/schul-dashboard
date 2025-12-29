@@ -360,6 +360,7 @@ Email bestätigen
         validateCsrf(csrfSecret),
         (req, res) => {
             clearUserToken(res);
+            rotateCsrfToken(res, csrfSecret);
             res.json({ ok: true });
         }
     );
@@ -425,30 +426,31 @@ Email bestätigen
         requireAppGate(appGateSecret),
         checkUser(userSecret, User),
         async (req, res) => {
-            if (!req.user) {
-                return res.json({
-                    authenticated: false
+            try {
+                if (!req.user) {
+                    return res.json({ authenticated: false });
+                }
+                const user = await User.findById(req.user.sub).lean();
+                if (!user) {
+                    return res.json({ authenticated: false });
+                }
+                res.json({
+                    authenticated: true,
+                    id: user._id,
+                    email: user.email,
+                    isAdmin: !!user?.isAdmin,
+                    emailVerified: !!user?.emailVerified,
+                    enrKurs: user.enrKurs,
+                    wpuKurs1: user.wpuKurs1,
+                    wpuKurs2: user.wpuKurs2,
+                    theater: user.theater,
+                    doneSetup: !!user?.doneSetup,
+                    personalized: user.personalized !== false
                 });
+            } catch (err) {
+                console.error('GET /api/auth/me error', err);
+                res.status(500).json({ error: 'Serverfehler', authenticated: false });
             }
-            const user = await User.findById(req.user.sub).lean();
-            if (!user) {
-                return res.json({
-                    authenticated: false
-                });
-            }
-            res.json({
-                authenticated: true,
-                id: user._id,
-                email: user.email,
-                isAdmin: !!user?.isAdmin,
-                emailVerified: !!user?.emailVerified,
-                enrKurs: user.enrKurs,
-                wpuKurs1: user.wpuKurs1,
-                wpuKurs2: user.wpuKurs2,
-                theater: user.theater,
-                doneSetup: !!user?.doneSetup,
-                personalized: user.personalized !== false
-            });
         }
     );
 
@@ -896,6 +898,8 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireUser(userSecret, BannedUser, User),
         requireAdmin,
         validateCsrf(csrfSecret),
+        param('id').isMongoId(),
+        validate,
         async (req, res) => {
             const targetUser = await User.findById(req.params.id);
             if (targetUser?.isAdmin) return sendJSONError(res, 403, 'Admins können nicht gelöscht werden');

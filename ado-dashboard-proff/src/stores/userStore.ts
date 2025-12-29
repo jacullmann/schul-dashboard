@@ -57,6 +57,7 @@ export const useUserStore = defineStore('user', () => {
     function clearUser(): void {
         user.value = null;
         hasShownSetup.value = false;
+        initialized.value = false;
     }
 
     function updateUser(updates: Partial<UserData>): void {

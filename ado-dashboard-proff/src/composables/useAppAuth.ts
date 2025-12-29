@@ -9,6 +9,7 @@ const STATUS_ENDPOINT = '/api/app-gate/status';
 const isAuthenticated = ref(false);
 const isAuthReady = ref(false);
 let initPromise: Promise<void> | null = null;
+let eventListenerRegistered = false;
 
 export function useAppAuth() {
     async function checkAuthStatus() {
@@ -31,9 +32,12 @@ export function useAppAuth() {
             await checkAuthStatus();
             isAuthReady.value = true;
 
-            window.addEventListener('app-gate-expired', () => {
-                isAuthenticated.value = false;
-            });
+            if (!eventListenerRegistered) {
+                window.addEventListener('app-gate-expired', () => {
+                    isAuthenticated.value = false;
+                });
+                eventListenerRegistered = true;
+            }
         })();
 
         await initPromise;
@@ -64,6 +68,8 @@ export function useAppAuth() {
             console.error('Logout-Request fehlgeschlagen:', err);
         } finally {
             isAuthenticated.value = false;
+            isAuthReady.value = false;
+            initPromise = null;
         }
     }
 

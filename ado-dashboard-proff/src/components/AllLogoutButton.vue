@@ -33,6 +33,9 @@
 import { ref } from 'vue'
 import { useAppAuth } from '../composables/useAppAuth';
 import { TabletSmartphone, LogOut } from "lucide-vue-next";
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const showPopup = ref(false)
 const auth = useAppAuth();
@@ -40,9 +43,9 @@ const auth = useAppAuth();
 function openPopup() {
   showPopup.value = true
 }
-function doLogout() {
-  auth.logout();
-  window.location.replace('https://schul-dashboard.com')
+async function doLogout() {
+  await auth.logout();
+  await router.push('/welcome');
 }
 
 function closePopup() {
