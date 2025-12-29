@@ -16,12 +16,15 @@ const hw = axios.create({
 
 hw.interceptors.request.use((config) => {
     const csrfToken = getCookie('csrf_token');
+    console.log('Der Inhalt des CSRF-Token-Cookies:', csrfToken);
 
     if (csrfToken) {
         config.headers['x-csrf-token'] = csrfToken;
+        console.log('Die Config-Headers lauten:', config.headers);
     }
     return config;
 }, (error) => {
+    console.log('Es ist ein Fehler aufgetreten:', error);
     return Promise.reject(error);
 });
 
