@@ -30,16 +30,15 @@ export function verifyCsrfToken(token, secret) {
 
 export function setCsrfCookie(csrfSecret) {
     return (req, res, next) => {
-        if (!req.cookies[CSRF_COOKIE_NAME]) {
-            const token = generateCsrfToken(csrfSecret);
-            res.cookie(CSRF_COOKIE_NAME, token, {
-                httpOnly: false,
-                secure: true,
-                sameSite: 'lax',
-                domain: 'schul-dashboard.com',
-                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
-            });
-        }
+        const token = req.cookies[CSRF_COOKIE_NAME] || generateCsrfToken(csrfSecret);
+        res.cookie(CSRF_COOKIE_NAME, token, {
+            httpOnly: false,
+            secure: true,
+            sameSite: 'lax',
+            domain: 'schul-dashboard.com',
+            maxAge: 30 * 24 * 60 * 60 * 1000
+        });
+
         next();
     };
 }
@@ -56,9 +55,14 @@ export function validateCsrf(csrfSecret) {
         const cookieToken = req.cookies[CSRF_COOKIE_NAME];
         const headerToken = req.headers[CSRF_HEADER_NAME];
 
-        if (!cookieToken || !headerToken) {
+        if (!cookieToken) {
             return res.status(403).json({
-                error: 'CSRF-Token fehlt'
+                error: 'CSRF-Token-Cookie fehlt'
+            });
+        }
+        if (!headerToken) {
+            return res.status(403).json({
+                error: 'CSRF-Token-Header fehlt'
             });
         }
 

@@ -56,11 +56,10 @@ cloudinary.config({
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
-    origin: CLIENT_ORIGIN,
+    origin: 'https://schul-dashboard.com',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Cookie'],
-    exposedHeaders: ['Set-Cookie', 'X-CSRF-Token']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
 app.options('*', cors({
     origin: CLIENT_ORIGIN,
