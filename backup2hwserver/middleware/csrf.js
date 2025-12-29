@@ -35,7 +35,7 @@ export function setCsrfCookie(csrfSecret) {
             res.cookie(CSRF_COOKIE_NAME, token, {
                 httpOnly: false,
                 secure: true,
-                sameSite: 'none',
+                sameSite: 'lax',
                 maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
             });
         }
@@ -81,7 +81,7 @@ export function clearCsrfCookie(res) {
     res.clearCookie(CSRF_COOKIE_NAME, {
         httpOnly: false,
         secure: true,
-        sameSite: 'none',
+        sameSite: 'lax',
     });
 }
 
@@ -90,7 +90,7 @@ export function rotateCsrfToken(res, csrfSecret) {
     res.cookie(CSRF_COOKIE_NAME, token, {
         httpOnly: false,
         secure: true,
-        sameSite: 'none',
+        sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
     return token;

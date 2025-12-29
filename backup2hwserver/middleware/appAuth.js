@@ -12,7 +12,7 @@ export function setAppGateToken(res, secret) {
     res.cookie(COOKIE_NAME, token, {
         httpOnly: true,
         secure: true,
-        sameSite: 'none',
+        sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
     });
 
@@ -55,7 +55,7 @@ export function clearAppGateToken(res) {
     res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
         secure: true,
-        sameSite: 'none',
+        sameSite: 'lax',
     });
 }
 
