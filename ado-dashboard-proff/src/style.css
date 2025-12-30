@@ -127,6 +127,7 @@ a, button {
 a { color: var(--primary); text-decoration: none; }
 h1, h2, h3, h4, h5 {
     font-family: var(--display-font), sans-serif;
+    margin-top: 0;
 }
 
 @tailwind base;

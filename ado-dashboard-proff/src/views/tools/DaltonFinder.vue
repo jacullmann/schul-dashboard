@@ -498,7 +498,7 @@ tr td:last-child {
   padding: 12px;
   margin-bottom: 12px;
   border: 1px solid var(--border2);
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .card-header {
@@ -527,8 +527,8 @@ tr td:last-child {
 
 .day-col {
   background: var(--gg);
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
 }
 
 .day-col h4 {

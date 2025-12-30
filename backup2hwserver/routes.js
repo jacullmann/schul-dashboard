@@ -177,7 +177,7 @@ export default function registerRoutes(app, deps) {
         const msg = {
             to,
             from: sendgridFrom,
-            subject: 'Schul Dashboard – Bitte bestätige deine E-Mail-Adresse',
+            subject: 'Bitte bestätige deine E-Mail-Adresse',
             html:
                 `<p>Willkommen beim Schul Dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
 <br>
@@ -188,6 +188,7 @@ export default function registerRoutes(app, deps) {
 Email bestätigen
 </a>
 </p>
+<br>
 <p>Der Link ist für 48 Stunden gültig.</p>
 <br>
 <p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
@@ -204,7 +205,7 @@ Email bestätigen
         const msg = {
             to,
             from: sendgridFrom,
-            subject: 'Schul-Dashboard – Passwort zurücksetzen',
+            subject: 'Passwort zurücksetzen',
             html: `<p>Hallo,</p><p>Dein Passwort-Zurücksetz-Code lautet <strong>${code}</strong></p><p>Dieser Code ist für 30 Minuten gültig.</p>`
         };
         return sgClient.send(msg);

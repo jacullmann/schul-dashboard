@@ -2,7 +2,7 @@
   <div v-if="show" class="blurit" @click.stop="$emit('cancel')">
     <div class="delete-box" @click.stop>
       <h4 style="margin-top: 0">Diesen Eintrag löschen?</h4>
-      <p>Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder gelöscht.</p>
+      <p>Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.</p>
 
       <div class="row">
         <button

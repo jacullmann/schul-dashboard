@@ -500,7 +500,7 @@ const tabTitles: Record<string, string> = {
 .report-grid, .sorgen-list { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .sorge-card, .report-card { display: flex; flex-direction: column; height: 100%; }
 .sorge-body, .rep-reason { flex: 1; margin-bottom: 10px; line-height: 1.5; color: var(--text); } /* WICHTIG: var(--text) statt #ddd */
-.sorge-footer, .rep-meta { border-top: 1px solid var(--border); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 0.8rem; }
+.sorge-footer, .rep-meta { border-top: 1px solid var(--border2); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 0.8rem; }
 .rep-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
 
 .bar-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }

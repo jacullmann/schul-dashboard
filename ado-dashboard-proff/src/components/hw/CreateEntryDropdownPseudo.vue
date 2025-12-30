@@ -13,10 +13,9 @@
         class="entry-menu entry-menu-pseudo"
     >
       <div class="pseudo-content">
-        <p>
-          Möchtest du einen Eintrag erstellen?<br>
-          Melde dich an, um Einträge zu erstellen.
-        </p>
+        <h4>
+          Du möchtest einen Eintrag erstellen?
+        </h4>
         <div class="">
           <button class="btn ghost smaller" @click="openAuthModal">
             Jetzt anmelden
@@ -101,5 +100,17 @@ onBeforeUnmount(() => {
 
 .mg {
   padding: 4px;
+}
+@media (max-width: 613px) {
+  .entry-menu {
+    left: auto;
+    right: 0;
+  }
+}
+@media (max-width: 379px) {
+  .entry-menu {
+    right: auto;
+    left: 0;
+  }
 }
 </style>

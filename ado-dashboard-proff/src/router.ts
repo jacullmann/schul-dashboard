@@ -289,9 +289,14 @@ router.beforeEach(async (to, from, next) => {
     }
 
     const publicPaths = ['/welcome', '/verify'];
-    if (!publicPaths.includes(to.path) && !isAuthenticated.value) {
+    const isPublicRoute = publicPaths.includes(to.path);
+    if (!isPublicRoute && !isAuthenticated.value) {
         finish();
-        return next({ path: '/welcome' });
+        return next({ path: '/welcome', replace: true });
+    }
+    if (to.path === '/welcome' && isAuthenticated.value) {
+        finish();
+        return next({ path: '/items/HAUSAUFGABE', replace: true });
     }
 
     if (to.meta.title) {
@@ -310,7 +315,7 @@ router.beforeEach(async (to, from, next) => {
         if (!userStore.isAdmin) {
             console.warn('Zugriff verweigert: Kein Admin');
             finish();
-            return next({ path: '/items/HAUSAUFGABE' });
+            return next({ path: '/items/HAUSAUFGABE', replace: true });
         }
     }
 

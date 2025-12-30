@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h1>Datenschutzerklärung</h1>
+    <h2>Datenschutzerklärung</h2>
 
-    <h2>Präambel und Verantwortlichkeit</h2>
+    <h3>Präambel und Verantwortlichkeit</h3>
     <p>
       <strong>Hinweis:</strong><br>
       Bei dieser Anwendung handelt es sich um ein rein privates, nicht-kommerzielles Schülerprojekt.<br>
@@ -11,7 +11,7 @@
       Die Betreiber dieses Schul-Dashboards nehmen den Schutz personenbezogenen Daten sehr ernst. Die vorliegende Datenschutzerklärung informiert Sie über Art, Umfang und Zweck der von uns verarbeiteten personenbezogenen Daten (im Folgenden "Daten").
     </p>
 
-    <h2>1. Zweck und Rechtsgrundlage der Datenverarbeitung</h2>
+    <h3>1. Zweck und Rechtsgrundlage der Datenverarbeitung</h3>
     <p>
       Die Verarbeitung Ihrer Daten erfolgt ausschließlich zu den nachfolgend definierten, legitimen Zwecken:
     </p>
@@ -27,7 +27,7 @@
       </li>
     </ul>
 
-    <h2>2. Kategorien der verarbeiteten Daten</h2>
+    <h3>2. Kategorien der verarbeiteten Daten</h3>
     <p>
       Im Rahmen des Betriebs der Plattform werden verschiedene Kategorien von personenbezogenen Daten verarbeitet, wobei deren Umfang auf das technisch Notwendige minimiert ist:
     </p>
@@ -43,12 +43,12 @@
       </li>
     </ul>
 
-    <h2>3. Datenerhebung durch Analyse-Tools (Umami Analytics)</h2>
+    <h3>3. Datenerhebung durch Analyse-Tools (Umami Analytics)</h3>
     <p>
       Zur kontinuierlichen Verbesserung der Benutzererfahrung und zur statistischen Auswertung der Nutzung implementieren wir das datenschutzkonforme Analysetool Umami Analytics. Dieses Tool ist so konfiguriert, dass es keine Cookies verwendet, keine Fingerprinting-Techniken einsetzt und IP-Adressen vor der Speicherung anonymisiert oder hascht. Die gesammelten Daten sind aggregiert und erlauben keine Rückschlüsse auf individuelle Nutzer.
     </p>
 
-    <h2>4. Speicherdauer und Löschkonzept</h2>
+    <h3>4. Speicherdauer und Löschkonzept</h3>
     <p>
       Die Speicherung der personenbezogenen Daten erfolgt nur solange, wie dies zur Erfüllung der vorgenannten Zwecke oder zur Einhaltung gesetzlicher Aufbewahrungspflichten erforderlich ist.
     </p>
@@ -60,8 +60,15 @@
         <strong>Sicherheitsrelevante Log-Daten:</strong> Zur Gewährleistung der IT-Sicherheit und zur Nachvollziehbarkeit von Sicherheitsvorfällen können diese Daten über den aktiven Nutzungszeitraum hinaus gespeichert werden, solange ein berechtigtes Interesse an der forensischen Analyse besteht.
       </li>
     </ul>
+    <h3>5. Versand von E-Mails (SendGrid)</h3>
 
-    <h2>5. Rechte der betroffenen Person:</h2>
+    <p>Für den Versand von Verifizierungs- und System-E-Mails nutzen wir SendGrid (Twilio Inc.). Dabei wird deine E-Mail-Adresse an SendGrid übermittelt..</p>
+
+    <h3>6. Bildverwaltung (Cloudinary)</h3>
+
+    <p>Hochgeladene Bilder werden bei Cloudinary (Cloudinary Ltd.) gespeichert und optimiert. Dabei können technische Metadaten und die Bilddateien selbst an Server des Anbieters übertragen werden.</p>
+
+    <h3>6. Rechte der betroffenen Person:</h3>
     <p>
       Sie haben als betroffene Person jederzeit das Recht, von dem Verantwortlichen die nachfolgenden Rechte geltend zu machen. Bitte richten Sie Ihre Anfragen an die oben genannte E-Mail-Adresse.
     </p>

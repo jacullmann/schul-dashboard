@@ -1,39 +1,45 @@
 <template>
   <div class="full">
-    <Header v-if="!$route.meta.hideNavigation"/>
-    <GlobalAnnouncements />
-
-    <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
-      <div class="progress-bar" :style="{ width: progress + '%' }">
-        <div class="peg"></div>
+    <template v-if="!isAuthReady">
+      <div class="auth-loading-screen">
+        <div class="auth-loading-spinner"></div>
       </div>
-    </div>
+    </template>
+    <template v-else>
+      <Header v-if="!$route.meta.hideNavigation"/>
+      <GlobalAnnouncements />
 
-    <main class="full-c">
-      <div class="svg-background" v-if="deviceIsMobile"></div>
-      <!--<img src="./utils/alt.svg" alt="Background" class="svg-background" v-else/>-->
-      <div class="black-bg" v-else></div>
-
-      <div
-          :class="{ 'container': !$route.meta.fullWidth }"
-          class="main-content"
-          key="content"
-      >
-        <router-view v-slot="{ Component }">
-          <component :is="Component" />
-        </router-view>
+      <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
+        <div class="progress-bar" :style="{ width: progress + '%' }">
+          <div class="peg"></div>
+        </div>
       </div>
-    </main>
 
-    <Footer v-if="!$route.meta.hideNavigation"/>
-    <AuthModal
-        v-if="isAuthModalOpen"
-        @close="closeAuthModal"
-        @logged-in="onAuthSuccess"
-    />
+      <main class="full-c">
+        <div class="svg-background" v-if="deviceIsMobile"></div>
+        <div class="black-bg" v-else></div>
 
-    <CookieBanner />
-    <AccountPromoPopup v-if="!$route.meta.hideNavigation" />
+        <div
+            :class="{ 'container': !$route.meta.fullWidth }"
+            class="main-content"
+            key="content"
+        >
+          <router-view v-slot="{ Component }">
+            <component :is="Component" />
+          </router-view>
+        </div>
+      </main>
+
+      <Footer v-if="!$route.meta.hideNavigation"/>
+      <AuthModal
+          v-if="isAuthModalOpen"
+          @close="closeAuthModal"
+          @logged-in="onAuthSuccess"
+      />
+
+      <CookieBanner />
+      <AccountPromoPopup v-if="!$route.meta.hideNavigation" />
+    </template>
   </div>
 </template>
 
@@ -58,7 +64,7 @@ const route = useRoute();
 const userStore = useUserStore();
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
-const { isAuthenticated, checkAuthStatus } = useAppAuth();
+const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 
 const deviceIsMobile = ref(false);
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
@@ -125,7 +131,6 @@ onUnmounted(() => {
   }
 });
 </script>
-
 <style scoped>
 .progress-container {
   position: fixed;
@@ -176,4 +181,27 @@ onUnmounted(() => {
   background-color: var(--bg);
   z-index: -2;
 }
+.auth-loading-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  z-index: 10000;
+}
+
+.auth-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 </style>
+

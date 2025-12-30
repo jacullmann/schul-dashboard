@@ -321,6 +321,9 @@ const {
   overflow-wrap: anywhere;
   hyphens: auto;
   white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
 }
 .item-images { margin-top:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
@@ -377,7 +380,11 @@ const {
   overflow: hidden;
 }
 @media (max-width: 768px) {
-  /* Anpassungen */
+  .item-body {
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: inherit;
+  }
 }
 @media (max-width: 500px ) {
   .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; flex-wrap: wrap; justify-content: left; }

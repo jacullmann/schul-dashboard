@@ -7,12 +7,16 @@
         </h3>
       </div>
       <div class="cookie-text">
-        <p>Diese Seite verwendet das datenschutzfreundliche und cookie-freie Analyse-Tool Umami, um die Nutzung der Seite zu analysieren. Dabei werden die Daten anonym gespeichert, sodass eine genaue Zuordnung zu bestimmten Besuchern nicht möglich ist. Die Analyse hilft uns, damit wir uns stetig verbessern können. Lies unsere <a @click="toData" class="data-link" style="cursor: pointer">Datenschutzerklärung</a> für weitere Details.</p>
+        <p>Wir nutzen Cookies, um grundlegende Funktionen wie Anmeldung, Sicherheit und den Betrieb des Schul-Dashboards zuverlässig bereitzustellen.
+
+          Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten.
+
+          Mehr dazu findest du in unserer <a @click="toData" class="data-link" style="cursor: pointer">Datenschutzerklärung</a>.</p>
       </div>
 
       <div class="cookie-actions">
         <!--<button data-umami-event="Cookies ablehnen" class="btn btn-ghost" @click="revoke">Ablehnen</button>-->
-        <button data-umami-event="Cookies akzepieren" class="btn ghost" @click="accept">Verstanden</button>
+        <button data-umami-event="Cookies-Hinweis bestätigt" class="btn ghost" @click="accept">Verstanden</button>
       </div>
     </div>
   </div>
@@ -101,6 +105,7 @@ onBeforeUnmount(() => {
 .data-link {
   color: var(--sub);
   transition: color 0.1s ease;
+  text-decoration: underline;
 }
 
 .data-link:hover {
@@ -115,24 +120,18 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
-
 @media (max-width: 500px) {
   .cookie-banner {
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-width: 100%;
-    border-radius: 0;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    bottom: 20px;
     box-shadow: var(--shadow-l);
   }
 
   .cookie-actions {
-    flex-direction: column;
-    justify-content: center;
-    gap: 12px;
-  }
-  .btn {
-    width: 100%;
+    justify-content: left;
   }
 }
 </style>
