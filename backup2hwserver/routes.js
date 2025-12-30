@@ -275,8 +275,9 @@ Email bestätigen
             res.cookie('csrf_token', token, {
                 httpOnly: false,
                 secure: true,
+                path: '/',
                 sameSite: 'None',
-                domain: 'api.schul-dashboard.com',
+                domain: '.schul-dashboard.com',
                 maxAge: 30 * 24 * 60 * 60 * 1000
             });
         }
