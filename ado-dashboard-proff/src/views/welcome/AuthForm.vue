@@ -94,6 +94,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '../../composables/useAppAuth';
 import GetStatushwb2 from "./GetStatushwb2.vue";
+import { syncCsrfFromCookie } from '../../hwApi';
 import {
   Eye,
   EyeOff,
@@ -125,8 +126,9 @@ async function submit() {
     const res = await auth.loginWithCode(combinedPassword);
 
     if (res.ok) {
+      syncCsrfFromCookie();
       umami?.track('Welcome Page Login erfolgreich');
-      await  router.push('/items/HAUSAUFGABE');
+      await router.push('/items/HAUSAUFGABE');
     } else {
       error.value = res.error || 'Zugriff verweigert. Code prüfen.';
     }

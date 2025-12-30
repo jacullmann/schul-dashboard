@@ -10,6 +10,8 @@ const isAuthenticated = ref(false);
 const isAuthReady = ref(false);
 let initPromise: Promise<void> | null = null;
 let eventListenerRegistered = false;
+const MAX_CSRF_RETRIES = 3;
+const CSRF_RETRY_DELAY = 1000;
 
 export function useAppAuth() {
     async function checkAuthStatus() {
@@ -29,13 +31,25 @@ export function useAppAuth() {
         if (initPromise) return initPromise;
 
         initPromise = (async () => {
-            try {
-                const { data } = await hw.get('/api/csrf/init');
-                if (data.csrfToken) {
-                    setCsrfToken(data.csrfToken);
+            let csrfInitialized = false;
+            for (let attempt = 1; attempt <= MAX_CSRF_RETRIES; attempt++) {
+                try {
+                    const { data } = await hw.get('/api/csrf/init');
+                    if (data.csrfToken) {
+                        setCsrfToken(data.csrfToken);
+                        csrfInitialized = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`CSRF init attempt ${attempt}/${MAX_CSRF_RETRIES} failed:`, e);
+                    if (attempt < MAX_CSRF_RETRIES) {
+                        await new Promise(resolve => setTimeout(resolve, CSRF_RETRY_DELAY));
+                    }
                 }
-            } catch (e) {
-                console.warn('CSRF init failed:', e);
+            }
+            if (!csrfInitialized) {
+                console.error('CSRF initialization failed after all retries');
+                window.dispatchEvent(new CustomEvent('csrf-init-failed'));
             }
             await checkAuthStatus();
             isAuthReady.value = true;

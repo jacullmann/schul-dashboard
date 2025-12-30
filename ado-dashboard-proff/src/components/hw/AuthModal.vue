@@ -138,6 +138,7 @@ import LoadingSpinner from "../LoadingSpinner.vue";
 import TabSwitcher from "../TabSwitcher.vue";
 import ResetModal from "../ResetModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
+import { syncCsrfFromCookie } from '../../hwApi';
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -275,6 +276,7 @@ async function submit() {
       });
 
       if (data.ok) {
+        syncCsrfFromCookie();
         emit('logged-in');
       }
     }

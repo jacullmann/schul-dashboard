@@ -50,8 +50,10 @@ import { useLoadingBar } from "./composables/loadingState";
 import AuthModal from './components/hw/AuthModal.vue';
 import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
 import { useAppAuth } from './composables/useAppAuth';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import hw from './hwApi';
 const router = useRouter();
+const route = useRoute();
 
 const userStore = useUserStore();
 
@@ -87,7 +89,10 @@ function handleUserTokenExpired() {
   userStore.clearUser();
   openAuthModal().catch(() => {});
 }
-
+function handleCsrfRefreshFailed() {
+  console.error('CSRF refresh failed - redirecting to welcome');
+  router.push('/welcome');
+}
 onMounted(() => {
   checkIfMobile();
   loadBadWords();
@@ -99,6 +104,7 @@ onMounted(() => {
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('user-token-expired', handleUserTokenExpired);
   window.addEventListener('app-gate-expired', handleAppGateExpired);
+  window.addEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
 
   authCheckInterval = setInterval(() => {
     if (isAuthenticated.value) {
@@ -111,6 +117,7 @@ onUnmounted(() => {
   window.removeEventListener('show-auth-modal', handleShowAuthModal);
   window.removeEventListener('user-token-expired', handleUserTokenExpired);
   window.removeEventListener('app-gate-expired', handleAppGateExpired);
+  window.removeEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
 
   if (authCheckInterval) {
     clearInterval(authCheckInterval);
