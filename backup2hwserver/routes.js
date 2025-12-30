@@ -133,6 +133,17 @@ export default function registerRoutes(app, deps) {
         next();
     }
 
+    function isValidCloudinaryUrl(url) {
+        if (!url || typeof url !== 'string') return false;
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === 'https:' &&
+                parsed.hostname === 'res.cloudinary.com';
+        } catch {
+            return false;
+        }
+    }
+
 
     function validateItemCreation(req, res, next) {
         const errors = validationResult(req);
@@ -347,7 +358,7 @@ Email bestätigen
 
     app.get('/api/serverstatus',
         async (req, res) => {
-        res.status(200).json({ status: 'Läuft!' });
+        res.status(200).json({ status: 'good' });
     });
 
     app.delete('/api/auth/me',
@@ -1739,6 +1750,9 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             if (userImageCount >= PER_USER_MAX_IMAGES) {
                 return sendJSONError(res, 400, `Du hast dein Limit von ${PER_USER_MAX_IMAGES} Bildern für diesen Eintrag erreicht.`);
             }
+            if (!isValidCloudinaryUrl(req.body.image.url)) {
+                return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+            }
             const newImage = {
                 url: req.body.image.url,
                 thumbUrl: buildThumbUrl(req.body.image.url),
@@ -1841,7 +1855,13 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 const Subject = req.body.subject.trim();
                 const Description = (req.body.description || '').trim();
 
-                const images = (req.body.images || []).map(img => ({
+                const rawImages = req.body.images || [];
+                for (const img of rawImages) {
+                    if (!isValidCloudinaryUrl(img.url)) {
+                        return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                    }
+                }
+                const images = rawImages.map(img => ({
                     url: img.url,
                     thumbUrl: buildThumbUrl(img.url),
                     publicId: img.publicId,
@@ -1916,6 +1936,11 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 if (req.body[k] !== undefined) update[k] = req.body[k];
             }
             if (update.images) {
+                for (const img of update.images) {
+                    if (!isValidCloudinaryUrl(img.url)) {
+                        return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                    }
+                }
                 update.images = update.images.map(img => ({
                     url: img.url,
                     thumbUrl: buildThumbUrl(img.url),
