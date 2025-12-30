@@ -125,7 +125,7 @@ async function submit() {
     const res = await auth.loginWithCode(combinedPassword);
 
     if (res.ok) {
-      umami.track('Welcome Page Login erfolgreich');
+      umami?.track('Welcome Page Login erfolgreich');
       await  router.push('/items/HAUSAUFGABE');
     } else {
       error.value = res.error || 'Zugriff verweigert. Code prüfen.';

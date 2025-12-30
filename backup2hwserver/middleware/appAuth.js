@@ -14,7 +14,6 @@ export function setAppGateToken(res, secret) {
         secure: true,
         path: '/',
         sameSite: 'None',
-        domain: '.schul-dashboard.com',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
     });
 
@@ -59,7 +58,6 @@ export function clearAppGateToken(res) {
         secure: true,
         path: '/',
         sameSite: 'None',
-        domain: '.schul-dashboard.com',
     });
 }
 

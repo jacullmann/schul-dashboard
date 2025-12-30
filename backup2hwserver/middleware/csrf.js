@@ -36,7 +36,6 @@ export function setCsrfCookie(csrfSecret) {
             secure: true,
             path: '/',
             sameSite: 'None',
-            domain: '.schul-dashboard.com',
             maxAge: 30 * 24 * 60 * 60 * 1000
         });
 
@@ -89,7 +88,6 @@ export function clearCsrfCookie(res) {
         secure: true,
         path: '/',
         sameSite: 'None',
-        domain: '.schul-dashboard.com',
     });
 }
 
@@ -100,7 +98,6 @@ export function rotateCsrfToken(res, csrfSecret) {
         secure: true,
         path: '/',
         sameSite: 'None',
-        domain: '.schul-dashboard.com',
         maxAge: 30 * 24 * 60 * 60 * 1000
     });
     return token;

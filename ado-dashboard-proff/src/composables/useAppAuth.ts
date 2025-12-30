@@ -1,7 +1,7 @@
 // src/composables/useAppAuth.ts
 
 import { ref } from 'vue';
-import hw from '../hwApi';
+import hw, { setCsrfToken } from '../hwApi';
 
 const API_ENDPOINT = '/api/app-gate/login';
 const STATUS_ENDPOINT = '/api/app-gate/status';
@@ -30,7 +30,10 @@ export function useAppAuth() {
 
         initPromise = (async () => {
             try {
-                await hw.get('/api/csrf/init');
+                const { data } = await hw.get('/api/csrf/init');
+                if (data.csrfToken) {
+                    setCsrfToken(data.csrfToken);
+                }
             } catch (e) {
                 console.warn('CSRF init failed:', e);
             }

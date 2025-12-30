@@ -20,7 +20,7 @@ import {
     checkUser
 } from './middleware/userAuth.js';
 
-import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken } from './middleware/csrf.js';
+import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken, verifyCsrfToken } from './middleware/csrf.js';
 
 export default function registerRoutes(app, deps) {
     const {
@@ -270,18 +270,18 @@ Email bestätigen
     );
 
     app.get('/api/csrf/init', (req, res) => {
-        if (!req.cookies['csrf_token']) {
-            const token = generateCsrfToken(csrfSecret);
-            res.cookie('csrf_token', token, {
-                httpOnly: false,
-                secure: true,
-                path: '/',
-                sameSite: 'None',
-                domain: '.schul-dashboard.com',
-                maxAge: 30 * 24 * 60 * 60 * 1000
-            });
+        let token = req.cookies['csrf_token'];
+        if (!token || !verifyCsrfToken(token, csrfSecret)) {
+            token = generateCsrfToken(csrfSecret);
         }
-        res.json({ ok: true });
+        res.cookie('csrf_token', token, {
+            httpOnly: false,
+            secure: true,
+            path: '/',
+            sameSite: 'None',
+            maxAge: 30 * 24 * 60 * 60 * 1000
+        });
+        res.json({ ok: true, csrfToken: token });
     });
 
     app.get('/api/app-gate/status',
