@@ -44,7 +44,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
@@ -58,16 +59,19 @@ import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
 import { useAppAuth } from './composables/useAppAuth';
 import { useRouter, useRoute } from 'vue-router';
 import hw from './hwApi';
+
 const router = useRouter();
 const route = useRoute();
 
 const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 
 const deviceIsMobile = ref(false);
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
+let pageloadLogged = false;
 
 const { loading, progress, opacity } = useLoadingBar();
 
@@ -80,9 +84,16 @@ const checkIfMobile = () => {
   deviceIsMobile.value = isMobileUserAgent || (isSmallScreen && isTouchDevice);
 };
 
-function handleShowAuthModal() {
-  openAuthModal().catch(() => {
+function logPageload() {
+  if (pageloadLogged || !user.value) return;
+  pageloadLogged = true;
+  hw.post('/api/activity/pageload').catch(() => {
+    pageloadLogged = false;
   });
+}
+
+function handleShowAuthModal() {
+  openAuthModal().catch(() => {});
 }
 function handleAppGateExpired() {
   router.push('/welcome');
@@ -99,13 +110,17 @@ function handleCsrfRefreshFailed() {
   console.error('CSRF refresh failed - redirecting to welcome');
   router.push('/welcome');
 }
+
+watch(user, (newUser, oldUser) => {
+  if (newUser && !oldUser) {
+    logPageload();
+  }
+});
+
 onMounted(() => {
   checkIfMobile();
   loadBadWords();
-
-  if (isAuthenticated.value) {
-    hw.post('/api/activity/pageload').catch(() => {});
-  }
+  logPageload();
 
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('user-token-expired', handleUserTokenExpired);
