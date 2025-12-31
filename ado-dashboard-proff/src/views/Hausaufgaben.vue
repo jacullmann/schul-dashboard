@@ -293,7 +293,7 @@ const {
   background:transparent;
   position:relative;
 }
-.collapse-checkbox input:checked + .vis-label { background: var(--primary); border-color: var(--primary); }
+.collapse-checkbox input:checked + .vis-label { background: var(--text); border-color: var(--text); }
 .collapse-checkbox .vis-label:hover {
   border-color: var(--text);
 }
@@ -302,7 +302,7 @@ const {
   position: absolute;
   width: 5px;
   height: 10px;
-  border: solid var(--text);
+  border: solid var(--lbg);
   border-width: 0 2px 2px 0;
   opacity: 0;
   left: 50%;
