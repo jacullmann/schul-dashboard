@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -51,19 +51,17 @@ function applyTheme(newMode: ThemeMode) {
 }
 
 function setupSystemModeListener() {
+    if (typeof window === 'undefined') return;
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const handler = (e: MediaQueryListEvent) => {
         if (selectedThemeMode.value === 'system') {
-            const modeToApply = e.matches ? 'dark' : 'light';
-            applyThemeClass(modeToApply);
+            applyThemeClass(e.matches ? 'dark' : 'light');
         }
     };
 
-    onMounted(() => {
-        mediaQuery.addEventListener('change', handler);
-    });
-
+    mediaQuery.addEventListener('change', handler);
 }
 
 watch(selectedThemeMode, (newMode) => {

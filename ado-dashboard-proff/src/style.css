@@ -105,6 +105,28 @@
     --nav-hover: #555555;
 }
 
+::selection {
+    color: var(--lbg);
+    background-color: var(--text);
+}
+
+::-moz-selection {
+    color: var(--lbg);
+    background-color: var(--text);
+}
+
+input::selection,
+textarea::selection {
+    color: var(--lbg);
+    background-color: var(--text);
+}
+
+input::-moz-selection,
+textarea::-moz-selection {
+    color: var(--lbg);
+    background-color: var(--text);
+}
+
 * { box-sizing: border-box; }
 
 html, body, #app { height: 100%; }
