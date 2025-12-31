@@ -305,9 +305,15 @@ router.beforeEach(async (to, from, next) => {
         document.title = 'Dashboard';
     }
 
-    if (to.meta.requiresAdmin) {
-        const userStore = useUserStore();
+    const userStore = useUserStore();
 
+    if (isAuthenticated.value && !isPublicRoute) {
+        if (!userStore.initialized && !userStore.loading) {
+            await userStore.fetchUser();
+        }
+    }
+
+    if (to.meta.requiresAdmin) {
         if (!userStore.initialized) {
             await userStore.fetchUser();
         }

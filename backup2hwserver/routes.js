@@ -260,6 +260,7 @@ Email bestätigen
                 status = 'success';
 
                 setAppGateToken(res, appGateSecret);
+                const newCsrfToken = rotateCsrfToken(res, csrfSecret);
 
                 await supabase.from('auth_logs').insert({
                     ip,
@@ -268,7 +269,7 @@ Email bestätigen
                     user_agent: ua
                 });
 
-                return res.json({ ok: true });
+                return res.json({ ok: true, csrfToken: newCsrfToken });
             } else {
                 await supabase.from('auth_logs').insert({
                     ip,

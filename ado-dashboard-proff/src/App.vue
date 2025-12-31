@@ -72,6 +72,7 @@ const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const deviceIsMobile = ref(false);
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 let pageloadLogged = false;
+let csrfRedirectInProgress = false;
 
 const { loading, progress, opacity } = useLoadingBar();
 
@@ -102,13 +103,30 @@ async function onAuthSuccess() {
   await userStore.fetchUser();
   handleAuthSuccess('');
 }
-function handleUserTokenExpired() {
+async function handleUserTokenExpired() {
   userStore.clearUser();
-  openAuthModal().catch(() => {});
+
+  const stillAuthenticated = await checkAuthStatus();
+
+  if (stillAuthenticated) {
+    openAuthModal().catch(() => {});
+  } else {
+    await router.push('/welcome');
+  }
 }
 function handleCsrfRefreshFailed() {
+  if (csrfRedirectInProgress) return;
+  csrfRedirectInProgress = true;
+
   console.error('CSRF refresh failed - redirecting to welcome');
-  router.push('/welcome');
+
+  setTimeout(() => {
+    router.push('/welcome').finally(() => {
+      setTimeout(() => {
+        csrfRedirectInProgress = false;
+      }, 1000);
+    });
+  }, 100);
 }
 
 watch(user, (newUser, oldUser) => {

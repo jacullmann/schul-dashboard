@@ -73,7 +73,7 @@ export function useAppAuth() {
 
             if (response.status === 200 && response.data.ok) {
                 isAuthenticated.value = true;
-                return { ok: true };
+                return { ok: true, csrfToken: response.data.csrfToken || null };
             }
 
             return { ok: false, error: 'Login fehlgeschlagen' };
