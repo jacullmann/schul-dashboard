@@ -15,7 +15,7 @@
         </div>
         <div class="col">
           <label class="label">Fach</label>
-          <select class="input" v-model="subjectSel">
+          <select class="input hover" v-model="subjectSel">
             <option disabled value="">Bitte wählen</option>
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
             <option value="__OTHER__">Anderes...</option>
@@ -24,7 +24,7 @@
 
         <div class="col" v-if="subjectSel === 'Enrichment'">
           <label class="label">Kurs</label>
-          <select class="input" v-model="enrKursSel">
+          <select class="input hover" v-model="enrKursSel">
             <option disabled value="">Bitte Kurs wählen</option>
             <option v-for="k in enrKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
@@ -32,7 +32,7 @@
 
         <div class="col" v-if="subjectSel === 'WPU (Di)'">
           <label class="label">Kurs</label>
-          <select class="input" v-model="wpuDiKursSel">
+          <select class="input hover" v-model="wpuDiKursSel">
             <option disabled value="">Bitte Kurs wählen</option>
             <option v-for="k in wpuDiKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
@@ -40,7 +40,7 @@
 
         <div class="col" v-if="subjectSel === 'WPU (Do)'">
           <label class="label">Kurs</label>
-          <select class="input" v-model="wpuDoKursSel">
+          <select class="input hover" v-model="wpuDoKursSel">
             <option disabled value="">Bitte Kurs wählen</option>
             <option v-for="k in wpuDoKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
@@ -59,7 +59,7 @@
       <div class="row section">
         <div class="col">
           <label class="label">Abgabedatum</label>
-          <input class="input" type="date" v-model="dueLocal" />
+          <input class="input hover" type="date" v-model="dueLocal" />
 
         </div>
       </div>

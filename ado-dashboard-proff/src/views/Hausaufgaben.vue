@@ -43,7 +43,7 @@
       <div class="left">
         <div v-if="tab !== 'PRIVATE'" class="row-two">
 
-          <select class="input select-subject" v-model="subjectFilter">
+          <select class="input select-subject hover" v-model="subjectFilter">
             <option value="">Alle Fächer</option>
             <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
           </select>
