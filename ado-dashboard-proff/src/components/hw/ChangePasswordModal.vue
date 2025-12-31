@@ -99,7 +99,7 @@
         <div style="margin-top:16px;">
           <button
               data-umami-event="Neues Passwort festlegen Button"
-              class="btn main"
+              class="btn action"
               @click="submit"
               :disabled="submitting"
               style="width: 100%;"

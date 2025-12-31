@@ -1,6 +1,7 @@
 // src/composables/useAppAuth.ts
 
 import { ref } from 'vue';
+import axios from 'axios';
 import hw, { setCsrfToken } from '../hwApi';
 
 const API_ENDPOINT = '/api/app-gate/login';
@@ -34,7 +35,10 @@ export function useAppAuth() {
             let csrfInitialized = false;
             for (let attempt = 1; attempt <= MAX_CSRF_RETRIES; attempt++) {
                 try {
-                    const { data } = await hw.get('/api/csrf/init');
+                    const { data } = await axios.get(
+                        `${import.meta.env.VITE_HW_API_BASE}/api/csrf/init`,
+                        { withCredentials: true }
+                    );
                     if (data.csrfToken) {
                         setCsrfToken(data.csrfToken);
                         csrfInitialized = true;

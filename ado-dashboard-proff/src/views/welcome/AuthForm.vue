@@ -131,6 +131,7 @@ async function submit() {
       } else {
         syncCsrfFromCookie();
       }
+      await auth.checkAuthStatus();
       umami?.track('Welcome Page Login erfolgreich');
       await router.push('/items/HAUSAUFGABE');
     } else {

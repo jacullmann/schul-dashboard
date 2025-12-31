@@ -41,7 +41,7 @@
                 id="theme-select"
                 :value="selectedThemeMode"
                 @change="handleThemeChange"
-                class="theme-select"
+                class="theme-select input hover"
             >
               <option value="system">System</option>
               <option value="light">Heller Modus</option>
@@ -181,20 +181,7 @@ function openCookieBanner() {
 }
 
 .theme-select {
-  padding: 8px 10px;
-  border-radius: var(--border-4);
-  background: var(--vlbg);
-  color: var(--text);
-  border: 1px solid var(--border2);
-  outline: none;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
   max-width: 180px;
-}
-
-.theme-select:hover {
-  background: var(--ghost--hover);
 }
 
 /* Footer Bottom */

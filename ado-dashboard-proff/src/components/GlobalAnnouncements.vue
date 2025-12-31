@@ -193,6 +193,7 @@ function colorFor(color) {
   justify-content: center;
   box-shadow: var(--shadow-s);
   border-bottom: 1px solid var(--border2);
+  border-top: 1px solid var(--border2);
   min-height: 45px;
 }
 

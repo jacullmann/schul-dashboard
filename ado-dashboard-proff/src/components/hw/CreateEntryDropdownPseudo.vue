@@ -1,7 +1,7 @@
 <template>
   <div class="create-entry-wrapper">
     <button
-        class="btn mg ghost"
+        class="btn mg action"
         @click="toggleMenu"
         ref="buttonRef"
     >

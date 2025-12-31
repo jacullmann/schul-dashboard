@@ -314,12 +314,17 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (to.meta.requiresAdmin) {
-        if (!userStore.initialized) {
+        if (!userStore.initialized || userStore.loading) {
             await userStore.fetchUser();
         }
 
+        if (!userStore.initialized) {
+            finish();
+            return next({ path: '/welcome', replace: true });
+        }
+
         if (!userStore.isAdmin) {
-            console.warn('Zugriff verweigert: Kein Admin');
+            console.warn('Autorisierung fehlgeschlagen: Kein Admin.');
             finish();
             return next({ path: '/items/HAUSAUFGABE', replace: true });
         }

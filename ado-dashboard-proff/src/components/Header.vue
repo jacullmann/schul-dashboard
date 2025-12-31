@@ -47,7 +47,7 @@
 
         <button
             v-else
-            class="btn ghost cta-button"
+            class="btn action cta-button"
             @click="openAuthModal"
             data-umami-event="Header Jetzt loslegen Button"
         >

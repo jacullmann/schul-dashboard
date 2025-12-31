@@ -195,6 +195,14 @@ h1, h2, h3, h4, h5 {
     .btn.ghost:hover {
         background-color:var(--ghost--hover);
     }
+    .btn.action {
+        background: var(--text);
+        color: var(--lbg);
+        border: 1px solid var(--text);
+    }
+    .btn.action:hover {
+        background: var(--sub);
+    }
     .btn.main {
         background: var(--sup-base);
         color: var(--sup-text);

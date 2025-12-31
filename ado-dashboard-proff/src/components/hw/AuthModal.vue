@@ -112,7 +112,7 @@
             <button
                 type="submit"
                 data-umami-event="Anmelden/Registrieren Button"
-                class="btn ghost submit-btn"
+                class="btn action submit-btn"
                 :disabled="submitting"
             >
               <LoadingSpinner v-if="submitting" color="white" size="1.2em" />

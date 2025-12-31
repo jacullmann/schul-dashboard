@@ -97,7 +97,7 @@ watch(() => props.show, (newVal) => {
 
 .confirm-box {
   background: var(--lbg);
-  padding: 24px;
+  padding: 16px;
   border-radius: 16px;
   max-width: 480px;
   width: 90%;

@@ -32,7 +32,7 @@
 
       <div class="row actions">
         <button
-            class="btn ghost"
+            class="btn action"
             type="submit"
             :disabled="submitting || !message.trim() || charCount > MAX_LENGTH"
             data-umami-event="Sorgenbox absenden Button"

@@ -185,7 +185,7 @@ export default function registerRoutes(app, deps) {
 <br>
 <p>
 <a href="${verifyUrl}">
-Email bestätigen
+E-Mail bestätigen
 </a>
 </p>
 <br>

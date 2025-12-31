@@ -37,7 +37,7 @@
             </div>
 
             <div class="action-buttons">
-              <button class="btn" @click="registerNow">
+              <button class="btn action" @click="registerNow">
                 <UserPlusIcon class="showing" size="18" />
                 Anmelden
               </button>
