@@ -307,7 +307,7 @@ const {
   opacity: 0;
   left: 50%;
   top: 32%;
-  transform:translate(-50%,-55%) rotate(70deg);
+  transform:translate(-50%,-30%) rotate(70deg);
   transition:width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1),  transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .collapse-checkbox input:checked + .vis-label::after {
