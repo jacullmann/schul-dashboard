@@ -214,7 +214,7 @@ export function useAdmin() {
         securityReport.value = null;
         reportError.value = null;
         try {
-            const { data } = await hw.post('/api/admin/security-report');
+            const { data } = await hw.post('/api/admin/security-report', {}, { timeout: 300000 });
             securityReport.value = data.report;
         } catch (e: any) {
             reportError.value = e.response?.data?.error || 'Fehler beim Generieren.';
