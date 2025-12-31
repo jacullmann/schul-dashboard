@@ -300,8 +300,8 @@ const {
 .collapse-checkbox .vis-label::after {
   content: '';
   position: absolute;
-  width: 5px;
-  height: 10px;
+  width: 0;
+  height: 0;
   border: solid var(--lbg);
   border-width: 0 2px 2px 0;
   opacity: 0;
