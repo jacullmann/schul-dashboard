@@ -337,8 +337,13 @@ const {
 .menu-btn .fixall { display: flex; align-items: center; gap: 8px; line-height: 1; }
 .menu-btn .fixall svg { width: 16px; height: 16px; flex-shrink: 0; }
 .menu-btn:hover { background: var(--gg); }
-.menu-btn.danger { color: #f65252; fill: #f65252; }
-.menu-btn.danger:hover { background:rgba(246, 82, 82, 0.1); }
+.menu-btn.danger {
+  color: var(--special--red);
+  fill:  var(--special--red);
+}
+.menu-btn.danger:hover {
+  background: var(--special--red--background);
+}
 .item-body {
   margin-top:8px;
   color: var(--text);
@@ -359,7 +364,8 @@ const {
 .img-overlay .overlay-blur {
   position: absolute;
   inset: 0;
-  background: #282828aa;
+  background: var(--vlbg);
+  opacity: 0.67;
   border-radius: 8px;
 }
 .img-overlay .overlay-content {
@@ -378,7 +384,7 @@ const {
 .message.error { color: var(--danger); }
 .tiny { padding:4px 8px; font-size:12px; }
 .item-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 24px; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #aaaaaa; transition: background 120ms ease, color 120ms ease; margin: -3px -2px; }
-.item-menu-trigger:hover { background: #414141; color: #f1f1f1; }
+.item-menu-trigger:hover { background: var(--gg); color: var(--text); }
 .pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
 .row-two { display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
 .private-entries-container { margin-top: 1rem; }
