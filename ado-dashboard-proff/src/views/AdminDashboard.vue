@@ -506,7 +506,7 @@ const tabTitles: Record<string, string> = {
 .bar-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 0.9rem; }
 .bar-label { width: 100px; color: var(--sub); }
 .bar-track { flex: 1; height: 8px; background: var(--border); border-radius: 4px; margin: 0 10px; overflow: hidden; }
-.bar-fill { height: 100%; background: var(--lp); border-radius: 4px; }
+.bar-fill { height: 100%; background: var(--text); border-radius: 4px; }
 .bar-val { width: 30px; text-align: right; font-weight: bold; }
 
 .mt-4 { margin-top: 1rem; }
