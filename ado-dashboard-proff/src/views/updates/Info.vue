@@ -13,24 +13,41 @@ interface ChangeLogItem {
 // --- Mock Data ---
 const updates: ChangeLogItem[] = [
   {
-    version: 'v1.0',
-    date: 'Voraussichtlich: 15. Dezember 2025 ',
-    title: 'Erste Vollständige Version vom Schul-Dashboard.',
-    description: 'Mit dieser Version ist die Seite voll funktionsfähig und benutzbar.',
-    changes: [
-      'Vollständiges Dashboard,',
-    ],
-  },
-  {
-    version: 'v0.5',
-    date: '11. Dezember 2025',
-    title: 'Testphase der Seite',
-    description: 'Diese Version ist der Grundbaustein für alle nachfolgenden Versionen. Es handelt sich um die Vorbereitung für den Release am 15. Dezember 2025.',
-    changes: [
-      'Grundlegende Funktionalität implentiert und Grundbausteine gelegt.',
-      'Vorbereitung auf den Release.',
-    ],
-  },
+    "version": "v1.0",
+    "date": "15. Dezember 2025",
+    "title": "Version 1.0: Offizieller Start des Schul-Dashboards",
+    "description": "Diese Version markiert den ersten stabilen und funktionsreichen Release des Schul-Dashboards. Der Fokus liegt auf einem robusten System zur Organisation des Schulalltags, umfassenden administrativen Werkzeugen und einer sicheren, nutzerfreundlichen Plattform. Alle hier genannten Funktionen sind vollständig implementiert und getestet.",
+    "changes": [
+      "**Kontoverwaltung & Sicherheit:**",
+      "  - Implementierung eines vollständigen Authentifizierungssystems: Nutzer können sich registrieren, anmelden, abmelden und ihr Passwort ändern.",
+      "  - Zur Erhöhung der Kontosicherheit ist eine E-Mail-Verifizierung nach der Registrierung zwingend erforderlich.",
+      "  - Die Funktion \"Passwort vergessen\" ermöglicht das sichere Zurücksetzen des Passworts via E-Mail.",
+      "  - Verbesserte Sicherheitsmaßnahmen zum Schutz vor unbefugten Aktionen (CSRF-Schutz) bei allen Formulareingaben.",
+      "  - Nutzer haben die Möglichkeit, sich von allen Geräten gleichzeitig abzumelden, um die Kontrolle über ihr Konto zu behalten.",
+      "",
+      "**Dashboard für Hausaufgaben, Klausuren & Infos:**",
+      "  - Eine zentrale, einheitliche Ansicht zur Anzeige und Verwaltung aller schulischen Einträge.",
+      "  - Nutzer können Einträge der Kategorien Hausaufgaben, Klausuren und Informationen erstellen, bearbeiten und löschen.",
+      "  - Einträge können mit Fälligkeitsdatum, Fach und einer detaillierten Beschreibung (unterstützt Markdown-Formatierung) versehen werden.",
+      "  - Eine Filterfunktion ermöglicht die gezielte Anzeige von Einträgen nach Fach, Status (erledigt/offen) oder Typ.",
+      "  - Alle von Nutzern erstellten Inhalte werden serverseitig bereinigt, um die Plattform vor Cross-Site-Scripting (XSS) zu schützen.",
+      "",
+      "**Persönliche Organisation & Benutzeroberfläche:**",
+      "  - Eine integrierte, private To-do-Liste erlaubt es Nutzern, persönliche Aufgaben unabhängig von den öffentlichen Einträgen zu verwalten.",
+      "  - Die gesamte Benutzeroberfläche ist in einem hellen und einem dunklen Design (Light/Dark Mode) verfügbar.",
+      "  - Ein Cookie-Banner klärt über die Verwendung von Cookies auf und holt die Zustimmung der Nutzer ein. Die Präferenzen können jederzeit angepasst werden.",
+      "  - Ein System für Benachrichtigungen gibt direktes Feedback über erfolgreiche Aktionen oder Fehler.",
+      "",
+      "**Administrative Werkzeuge:**",
+      "  - **Umfassende Benutzerverwaltung:** Administratoren können alle registrierten Nutzer auflisten, deren Status (aktiv, gesperrt) einsehen, Konten temporär sperren/entsperren und bei Bedarf permanent löschen.",
+      "  - **Aktivitätsprotokoll:** Detaillierte Einsicht in die letzten Aktivitäten einzelner Nutzer zur Nachverfolgung von Aktionen und zur Verbesserung der Sicherheit.",
+      "  - **Verwaltung von Stundenplan-Änderungen:** Ein dediziertes Werkzeug zur Erfassung und Anzeige von Vertretungen, Raumänderungen oder Stundenausfällen.",
+      "  - **System für gemeldete Inhalte:** Nutzer können unangemessene Einträge melden. Administratoren können diese Meldungen in einer separaten Ansicht prüfen und die entsprechenden Inhalte entfernen.",
+      "  - **Sorgenbox:** Eine vertrauliche Funktion, über die Nutzer Anliegen oder Probleme direkt an die Administration melden können.",
+      "  - **Globale Ankündigungen:** Administratoren können wichtige Mitteilungen erstellen, die prominent für alle Nutzer auf dem Dashboard angezeigt werden.",
+      "  - **Sicherheits-Reporting:** Möglichkeit zur Generierung eines automatisierten Berichts, der sicherheitsrelevante Systemstatistiken und Aktivitäten zusammenfasst."
+    ]
+  }
 ];
 
 // --- State ---
