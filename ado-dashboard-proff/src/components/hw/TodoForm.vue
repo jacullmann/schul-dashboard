@@ -15,11 +15,11 @@
 
       <div class="section">
         <label class="label">Beschreibung (optional)</label>
-        <textarea class="input" rows="4" v-model="content" placeholder="Details zu diesem Eintrag..." maxlength="5000"></textarea>
+        <textarea class="input" rows="4" v-model="content" placeholder="Details zu diesem privaten Eintrag..." maxlength="5000"></textarea>
       </div>
 
       <div class="section">
-        <label class="label">Fälligkeitsdatum & Uhrzeit (optional)</label>
+        <label class="label">Fälligkeitsdatum & Uhrzeit</label>
         <input class="input" type="datetime-local" v-model="dueLocal" />
       </div>
 

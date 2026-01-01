@@ -436,13 +436,13 @@ th {
 
 th:first-child {
   border-left: 1px solid var(--border2);
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
+  border-top-left-radius: var(--border-4);
+  border-bottom-left-radius: var(--border-4);
 }
 
 th:last-child {
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border-top-right-radius: var(--border-4);
+  border-bottom-right-radius: var(--border-4);
 }
 
 td {
@@ -457,13 +457,13 @@ td {
 
 tr td:first-child {
   border-left: 1px solid var(--border2);
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
+  border-top-left-radius: var(--border-4);
+  border-bottom-left-radius: var(--border-4);
 }
 
 tr td:last-child {
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  border-top-right-radius: var(--border-4);
+  border-bottom-right-radius: var(--border-4);
 }
 
 .t-name {

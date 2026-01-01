@@ -22,9 +22,6 @@
         </button>-->
         <div v-if="!user" class="login-prompt">
           <p>Du musst angemeldet sein, um private Einträge zu verwenden.</p>
-          <button class="btn" @click="$router.push('/items/HAUSAUFGABE')">
-            Anmelden/Registrieren
-          </button>
         </div>
       </div>
     </div>
