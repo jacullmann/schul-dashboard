@@ -8,7 +8,7 @@
     >
       <div class="menu-btn-content">
         <component :is="currentPersonalized ? Filter : FilterX" size="18px" />
-        <span>Personalisierte Kurse</span>
+        <span>Personalisierte Kurse: {{ currentPersonalized ? 'Ja' : 'Nein' }}</span>
         <ChevronDown size="16px" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </div>
     </button>

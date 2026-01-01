@@ -382,9 +382,8 @@ const {
 .pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
 .row-two { display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
 .private-entries-container { margin-top: 1rem; }
-.private-entries-container .card { margin: 0; box-shadow: none; background: transparent; }
 .private-entries-container .hw-header { padding: 0; background: transparent; }
-.admin-creator-info { color: #aaa; }
+.admin-creator-info { color: var(--sub); }
 .row.item-badges {
   transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),

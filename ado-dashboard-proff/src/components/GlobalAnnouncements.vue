@@ -185,7 +185,7 @@ function colorFor(color) {
 }
 
 .global-ann {
-  padding: 12px 16px;
+  padding: 10px 12px;
   color: var(--text);
   font-size: 14px;
   display: flex;
