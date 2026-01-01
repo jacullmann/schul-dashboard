@@ -77,6 +77,7 @@
     --skeleton-base: #2a2a2a;
     --skeleton-highlight: #333333;
     --nav-hover: #b3b3b3;
+    --danger-hover: #ff6666;
 }
 :root.light  {
     --bg: #eee;
@@ -215,7 +216,13 @@ h1, h2, h3, h4, h5 {
         color: var(--sup-text-hover);
 
     }
-    .btn.danger { background: var(--danger); color: var(--text); }
+    .btn.danger {
+        background: var(--danger);
+        color: var(--text);
+    }
+    .btn.danger:hover {
+        background: var(--danger-hover);
+    }
     .btn.warn { background: var(--warn); color: #1a1205; }
 
     /* .badge {
