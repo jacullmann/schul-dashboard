@@ -48,14 +48,14 @@
       <label class="s-checkbox">
         <input class="checkbox-input" type="checkbox" v-model="accepted" />
         <span class="checkbox-box">
-          <component :is="Check" class="check-icon" :size="12" />
+          <component :is="Check" class="check-icon" :size="18" />
         </span>
         <span class="checkbox-text">Nutzungsbedingungen akzeptieren</span>
       </label>
 
       <div class="action-area">
         <button
-            class="s-btn btn ghost"
+            class="s-btn"
             @click="submit"
             :disabled="!accepted || isLoading"
         >
@@ -147,16 +147,12 @@ async function submit() {
 
 <style scoped>
 .login-card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 30px;
-  width: 410px;
+  width: 480px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--start--border);
 }
 
 
@@ -192,18 +188,16 @@ async function submit() {
 
 .s-input {
   width: 100%;
-  background: var(--start--bg);
-  border: 1px solid var(--start--border2);
+  background: #282828;
+  border: 1px solid #414141;
   border-radius: 8px;
-  padding: 12px 16px 12px 42px;
-  color: var(--start--text);
+  padding: 10px 12px 10px 42px;
+  color: #fff;
   font-size: 1rem;
-  transition: all 0.2s ease;
 }
 
 .s-input:focus {
   outline: none;
-  border-color: var(--start--sub);
 }
 
 .s-input:focus + .input-icon,
@@ -236,9 +230,9 @@ async function submit() {
 .s-checkbox {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   cursor: pointer;
-  margin: 8px 0 24px 0;
+  margin: 8px 0 16px 0;
   user-select: none;
 }
 
@@ -247,27 +241,31 @@ async function submit() {
 }
 
 .checkbox-box {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--start--border2);
-  border-radius: 6px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #aaa;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: 0.1s;
   background: transparent;
 }
 
+.checkbox-box:hover {
+  border-color: #fff;
+}
+
 .check-icon {
-  color: var(--card);
+  color: #0f0f0f;
   opacity: 0;
   transform: scale(0.8);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .checkbox-input:checked + .checkbox-box {
-  background: var(--start--sub);
-  border-color: var(--start--sub);
+  background: #fff;
+  border-color: #fff;
 }
 
 .checkbox-input:checked + .checkbox-box .check-icon {
@@ -278,38 +276,40 @@ async function submit() {
 
 .checkbox-text {
   font-size: 0.9rem;
-  color: var(--start--sub);
+  color: #fff;
 }
 
 
 .s-btn {
   width: 100%;
-  padding: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   transition: all 0.2s ease;
-  border: 1px solid #555555;
+  color: #0f0f0f;
+  background: #fff;
+  border: 1px solid #fff;
+}
+
+.s-btn:hover {
+  background: #aaa;
+  border-color: #aaa;
 }
 
 .s-btn:disabled {
-  opacity: 0.4;
   cursor: not-allowed;
-  background: var(--start--border2);
-  border-color: var(--start--border);
-}
-.s-btn:disabled:hover {
-  background: var(--start--border2);
-  color: white;
+  background: #666;
+  border-color: #666;
 }
 
 .card-footer {
   margin-top: 0;
-  padding-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid var(--start--border);
   text-align: center;
 }
@@ -324,18 +324,17 @@ async function submit() {
 }
 
 .disclaimer {
-  font-size: 0.75rem;
-  color: var(--start--sub);
+  font-size: 0.8rem;
+  color: #aaa;
   margin: 0;
   line-height: 1.4;
 }
 
 .link-subtle:hover {
-  color: var(--start--text);
+  color: #fff;
   text-decoration: underline;
 }
 
-/* ERROR BANNER */
 .error-banner {
   margin-top: 16px;
   background: rgba(239, 68, 68, 0.15);
@@ -374,7 +373,6 @@ async function submit() {
   border-width: 0;
 }
 
-/* TRANSITION */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -383,12 +381,5 @@ async function submit() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-@media (max-width: 768px) {
-  .login-card {
-    padding: 20px;
-  }
-
 }
 </style>
