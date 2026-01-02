@@ -370,5 +370,9 @@ onUnmounted(() => {
   .logo-text {
     font-size: 1.4rem;
   }
+  .header-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }
 </style>
