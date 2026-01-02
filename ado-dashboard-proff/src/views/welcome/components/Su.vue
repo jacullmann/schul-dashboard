@@ -7,49 +7,49 @@
     </div>
     <div class="bonito-grid">
 
-      <div class="grid-item span-2-cols">
+      <div class="grid-item span-2-cols" draggable="true">
         <h3 class="item-title"><span class="title-f"><Compass size="18px" />Flexibilität</span></h3>
         <p class="item-text">
           Mit dem digitalen Dashboard hast du weniger Stress. Ob zuhause, in der U-Bahn, in der Schule oder im Urlaub, kurz bevor die Schule wieder anfängt – du weißt immer Bescheid.
         </p>
       </div>
 
-      <div class="grid-item">
+      <div class="grid-item"  draggable="true">
         <h3 class="item-title"><span class="title-f"><Zap size="18px" />Dein Lern-Gamechanger</span></h3>
         <p class="item-text">
           Verwandle deinen öden, ätzenden, stressigen Schulalltag: Weniger Stress, bessere Organisation. Du hast alles, was du brauchst, immer dabei!
         </p>
       </div>
 
-      <div class="grid-item">
+      <div class="grid-item"  draggable="true">
         <h3 class="item-title"><span class="title-f"><Palette size="18px" />Individuelle Anpassung</span></h3>
         <p class="item-text">
           Passe deine Benutzeroberfläche ganz nach deinen Wünschen an. Niemand hat dir vorzuschreiben, wie dein Dashboard aussehen soll.
         </p>
       </div>
 
-      <div class="grid-item">
+      <div class="grid-item"  draggable="true">
         <h3 class="item-title"><span class="title-f"><ScanEye size="18px" />Alles auf einen Blick</span></h3>
         <p class="item-text">
           Ein Blick auf das Handy, und du weißt schon, was du zu tun hast. Verliere nie wieder den Überblick!
         </p>
       </div>
 
-      <div class="grid-item">
+      <div class="grid-item"  draggable="true">
         <h3 class="item-title"><span class="title-f"><Layers size="18px" />Erweiterte Funktionen</span></h3>
         <p class="item-text">
           Es warten zahlreiche weitere Funktionen auf dich. Wir passen uns immer an die aktuellen Gegebenheiten an und entwickeln neue Lösungen!
         </p>
       </div>
 
-      <div class="grid-item">
+      <div class="grid-item"  draggable="true">
         <h3 class="item-title"><span class="title-f"><Tablet size="18px" />Modern</span></h3>
         <p class="item-text">
           Anstatt alles auf Papier festzuhalten, kannst du nun alles digital überblicken. Kein Papiermüll, keine verlorenen Zettel mehr!
         </p>
       </div>
 
-      <div class="grid-item">
+      <div class="grid-item"  draggable="true">
         <h3 class="item-title"><span class="title-f"><MessageCircle size="18px" />Support</span></h3>
         <p class="item-text">
           Bei Fragen, Unklarheiten oder Anmerkungen kannst du uns jederzeit kontaktieren. Wir nehmen jede Kritik gerne an und helfen gerne weiter.

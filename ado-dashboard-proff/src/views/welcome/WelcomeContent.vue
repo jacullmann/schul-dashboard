@@ -341,9 +341,10 @@ defineProps<{
 
 
 .secondary {
-  border: 2px solid transparent;
+  border: none;
   background: transparent;
   color: var(--text);
+  white-space: nowrap;
 }
 
 .secondary:hover {
