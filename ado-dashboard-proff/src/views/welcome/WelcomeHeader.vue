@@ -18,13 +18,13 @@ const emit = defineEmits(['goToMain2'])
 .header {
   width: 100%;
   padding: 12px;
-  background-color: #0f0f0f;
-  color: #fff;
+  background-color: var(--bg);
+  color: var(--text);
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  border-bottom: 1px solid #282828;
+  border-bottom: 1px solid var(--border);
 }
 
 .header-content-wrapper {

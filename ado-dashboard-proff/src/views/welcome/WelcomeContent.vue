@@ -137,15 +137,19 @@ defineProps<{
 
 .example-wrapper {
   flex-direction: column;
+  width: 100%;
+  max-width: 640px;
 }
 
 .example-announcement {
-  background: #282828;
-  border-block: 1px solid #414141;
+  background: var(--vlbg);
+  border-block: 1px solid var(--border2);
   padding: 10px 12px;
   border-radius: 0;
-  font-family: var(--normal-font);
+  font-family: var(--normal-font), sans-serif;
   font-size: 16px;
+  margin-inline: -16px;
+  text-align: center;
 }
 
 .example-dashboard {
@@ -154,16 +158,14 @@ defineProps<{
   display:flex;
   flex-direction: column;
   justify-content: left;
-  width: 100%;
-  max-width: 640px;
 }
 
 .example-card {
-  background: #282828;
-  border:1px solid #414141;
+  background: var(--vlbg);
+  border:1px solid var(--border2);
   border-radius: 16px;
   padding:12px;
-  color: #fff;
+  color: var(--text);
   width: 100%;
 }
 
@@ -194,13 +196,13 @@ defineProps<{
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  border: 2px solid #aaa;
+  border: 2px solid var(--sub);
   background: transparent;
   position: relative;
 }
 
 .example-checkbox:hover {
-  border-color: #fff;
+  border-color: var(--text);
 }
 
 .example-checkbox-ticked {
@@ -210,8 +212,8 @@ defineProps<{
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  border: 2px solid #fff;
-  background: #fff;
+  border: 2px solid var(--text);
+  background: var(--text);
   position: relative;
 }
 
@@ -220,7 +222,7 @@ defineProps<{
   position:absolute;
   width:5px;
   height:10px;
-  border:solid #0f0f0f;
+  border:solid var(--bg);
   border-width:0 2px 2px 0;
   opacity:1;
   left:50%;
@@ -235,23 +237,24 @@ defineProps<{
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 22px;
-  color: #fff;
-  font-family: var(--display-font);
+  color: var(--text);
+  font-family: var(--display-font), sans-serif;
 }
 
 .example-badge-row {
+  display: flex;
   margin-top: 8px;
   gap: 8px;
   align-items: center;
 }
 
 .example-badge {
-  background: #414141;
-  color: #fff;
+  background: var(--gg);
+  color: var(--text);
   border: none;
   padding: 4px 8px;
   border-radius: 8px;
-  font-family: var(--normal-font);
+  font-family: var(--normal-font), sans-serif;
   font-size: 16px;
 }
 
@@ -262,27 +265,27 @@ defineProps<{
   width: 36px;
   height: 24px;
   cursor: pointer;
-  color: #aaa;
+  color: var(--sub);
   transition: 0.1s;
   margin: -3px 0;
 }
 
 .example-menu-trigger:hover {
-  color: #fff;
+  color:var(--text);
 }
 
 .example-body {
   margin-top: 8px;
-  color: #fff;
+  color: var(--text);
   word-break: break-word;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  font-family: var(--normal-font);
+  font-family: var(--normal-font), sans-serif;
   font-size: 16px;
 }
 
 .example-card-vanishing {
-  background:linear-gradient(#282828, transparent) padding-box, linear-gradient(#414141, transparent) border-box;
+  background:linear-gradient(var(--vlbg), transparent) padding-box, linear-gradient(var(--gg), transparent) border-box;
   border:1px solid transparent;
   border-radius: 16px 16px 0 0;
   min-height: 50px;
@@ -290,7 +293,7 @@ defineProps<{
 
 .text-content {
   flex: 1;
-  color: #fff;
+  color: var(--text);
 }
 
 .headline {
@@ -306,7 +309,7 @@ defineProps<{
   font-size: 1.25rem;
   line-height: 1.6;
   margin-bottom: 32px;
-  color: #c0c0c0;
+  color: var(--sub);
   text-align: right;
 
 }
@@ -314,7 +317,7 @@ defineProps<{
 
 .free {
   font-weight: 600;
-  color: #fff;
+  color: var(--text);
 }
 
 .action-buttons {
@@ -340,7 +343,7 @@ defineProps<{
 .secondary {
   border: 2px solid transparent;
   background: transparent;
-  color: var(--start--text);
+  color: var(--text);
 }
 
 .secondary:hover {
@@ -363,7 +366,7 @@ defineProps<{
   height: 20px;
   position: absolute;
   right: 0;
-  color: #fff;
+  color: var(--text);
   top: 0;
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
 }

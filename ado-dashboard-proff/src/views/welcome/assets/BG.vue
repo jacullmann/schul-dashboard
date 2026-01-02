@@ -37,7 +37,7 @@
 
 <style scoped>
 .start-bg-black {
-  background: var(--start--bg);
+  background: var(--bg);
 }
 
 </style>

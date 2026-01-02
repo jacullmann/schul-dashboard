@@ -53,9 +53,9 @@ function goToStatus() {
 
 <style scoped>
 .footer {
-  background-color: var(--start--bg);
+  background-color: var(--bg);
   padding: 2.5rem 0 0;
-  border-top: 1px solid var(--start--border);
+  border-top: 1px solid var(--border);
 }
 
 .footer-container {
@@ -81,7 +81,7 @@ function goToStatus() {
 }
 
 .footer-section h3 {
-  color: var(--start--text);
+  color: var(--text);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -90,15 +90,15 @@ function goToStatus() {
 .footer-section p {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: var(--start--sub);
+  color: var(--sub);
 }
 
 .text-sub {
-  color: var(--start--sub);
+  color: var(--sub);
 }
 
 .footer-link {
-  color: var(--start--sub);
+  color: var(--sub);
   text-decoration: none;
   margin-bottom: 0.5rem;
   transition: color 0.2s ease, opacity 0.2s ease;
@@ -110,7 +110,7 @@ function goToStatus() {
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--start--border2);
+  border-top: 1px solid var(--border2);
   padding: 1rem 0;
   display: flex;
   flex-direction: column;

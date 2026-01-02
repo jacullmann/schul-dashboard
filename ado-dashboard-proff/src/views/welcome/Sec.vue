@@ -30,10 +30,10 @@ import ImpressumPage from "../legal/ImpressumPage.vue";
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--legal--bg);
+  background-color: var(--bg);
 }
 .down {
-  border-bottom: 2px solid white;
+  border-bottom: 2px solid var(--text);
   margin-bottom: 30px;
 }
 

@@ -60,7 +60,7 @@
             :disabled="!accepted || isLoading"
         >
           <span v-if="!isLoading">Anmelden</span>
-          <span v-else class="loading-spinner"></span>
+          <LoadingSpinner v-else color="white" size="1.2em" />
           <component v-if="!isLoading" :is="ArrowRight" :size="18" />
         </button>
       </div>
@@ -104,6 +104,7 @@ import {
   Check,
   AlertCircle
 } from 'lucide-vue-next'
+import LoadingSpinner from "../../components/LoadingSpinner.vue";
 
 const router = useRouter();
 const auth = useAppAuth();
@@ -163,7 +164,7 @@ async function submit() {
 .card-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--start--text);
+  color: var(--text);
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -180,7 +181,7 @@ async function submit() {
 .input-icon {
   position: absolute;
   left: 14px;
-  color: var(--start--sub);
+  color: var(--sub);
   z-index: 10;
   pointer-events: none;
   transition: color 0.2s;
@@ -188,11 +189,11 @@ async function submit() {
 
 .s-input {
   width: 100%;
-  background: #282828;
-  border: 1px solid #414141;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
   border-radius: 8px;
   padding: 10px 12px 10px 42px;
-  color: #fff;
+  color: var(--text);
   font-size: 1rem;
 }
 
@@ -202,13 +203,13 @@ async function submit() {
 
 .s-input:focus + .input-icon,
 .input-wrapper:focus-within .input-icon {
-  color: var(--start--sub);
+  color: var(--sub);
 }
 .s-input.input-focus {
-  border-color: var(--start--border2);
+  border-color: var(--border2);
 }
 .s-input.input-focus + .input-icon {
-  color: var(--start--sub);
+  color: var(--sub);
 }
 
 
@@ -217,14 +218,14 @@ async function submit() {
   right: 8px;
   background: transparent;
   border: none;
-  color: var(--start--sub);
+  color: var(--sub);
   cursor: pointer;
   padding: 6px;
   border-radius: 4px;
   display: flex;
   align-items: center;
 }
-.visibility-toggle:hover { color: var(--start--text); }
+.visibility-toggle:hover { color: var(--text); }
 
 
 .s-checkbox {
@@ -243,7 +244,7 @@ async function submit() {
 .checkbox-box {
   width: 18px;
   height: 18px;
-  border: 2px solid #aaa;
+  border: 2px solid var(--sub);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -253,19 +254,19 @@ async function submit() {
 }
 
 .checkbox-box:hover {
-  border-color: #fff;
+  border-color: var(--text);
 }
 
 .check-icon {
-  color: #0f0f0f;
+  color: var(--bg);
   opacity: 0;
   transform: scale(0.8);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .checkbox-input:checked + .checkbox-box {
-  background: #fff;
-  border-color: #fff;
+  background: var(--text);
+  border-color: var(--text);
 }
 
 .checkbox-input:checked + .checkbox-box .check-icon {
@@ -276,7 +277,7 @@ async function submit() {
 
 .checkbox-text {
   font-size: 0.9rem;
-  color: #fff;
+  color: var(--text);
 }
 
 
@@ -291,32 +292,32 @@ async function submit() {
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
-  color: #0f0f0f;
-  background: #fff;
-  border: 1px solid #fff;
+  color: var(--bg);
+  background: var(--text);
+  border: 1px solid var(--text);
 }
 
 .s-btn:hover {
-  background: #aaa;
-  border-color: #aaa;
+  background: var(--sub);
+  border-color: var(--sub);
 }
 
 .s-btn:disabled {
   cursor: not-allowed;
-  background: #666;
-  border-color: #666;
+  background: var(--sub);
+  border-color: var(--sub);
 }
 
 .card-footer {
   margin-top: 0;
   padding-top: 16px;
-  border-top: 1px solid var(--start--border);
+  border-top: 1px solid var(--border);
   text-align: center;
 }
 
 .status-line {
   font-size: 0.8rem;
-  color: var(--start--text);
+  color: var(--text);
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -325,40 +326,27 @@ async function submit() {
 
 .disclaimer {
   font-size: 0.8rem;
-  color: #aaa;
+  color: var(--sub);
   margin: 0;
   line-height: 1.4;
 }
 
 .link-subtle:hover {
-  color: #fff;
+  color: var(--text);
   text-decoration: underline;
 }
 
 .error-banner {
   margin-top: 16px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
+  background: var(--special--red--background);
+  border: 1px solid var(--special--red--background);
+  color: var(--special--red);
   padding: 12px;
   border-radius: 8px;
   font-size: 0.85rem;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: var(--start--text);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .sr-only {
