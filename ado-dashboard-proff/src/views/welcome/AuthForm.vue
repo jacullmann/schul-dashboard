@@ -272,7 +272,7 @@ async function submit() {
 .checkbox-input:checked + .checkbox-box .check-icon {
   opacity: 1;
   transform: scale(1);
-  color: var(--card);
+  color: var(--lbg);
 }
 
 .checkbox-text {
