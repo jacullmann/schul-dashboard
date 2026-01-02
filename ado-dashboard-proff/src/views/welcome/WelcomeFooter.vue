@@ -16,6 +16,24 @@
           <p @click="gotosec" class="footer-link">Impressum</p>
           <p class="footer-link" @click="goToStatus" >Status<ExternalLink size="14px"/></p>
         </div>
+        <div class="footer-section">
+          <h3>Theme</h3>
+          <div class="theme-selector">
+            <select
+                id="theme-select"
+                :value="selectedThemeMode"
+                @change="handleThemeChange"
+                class="theme-select input hover"
+            >
+              <option value="system">System</option>
+              <option value="light">Heller Modus</option>
+              <option value="dark">Dunkler Modus</option>
+            </select>
+          </div>
+          <p class="brand-description">
+            Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.
+          </p>
+        </div>
 
         <!-- Sektion: Kontakt
         <div class="footer-section">
@@ -38,7 +56,13 @@
 
 <script setup lang="ts">
 import { ExternalLink} from "lucide-vue-next";
+import { useTheme, ThemeMode } from '../../composables/useTheme';
+const { selectedThemeMode, applyTheme } = useTheme();
 
+function handleThemeChange(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  applyTheme(target.value as ThemeMode);
+}
 const emit = defineEmits(['goToSec', 'goToMain'])
 function gotosec() {
   emit('goToSec')

@@ -35,8 +35,8 @@ function initializeTheme() {
     if (storedPreference && ['system', 'light', 'dark'].includes(storedPreference)) {
         selectedThemeMode.value = storedPreference;
     } else {
-        selectedThemeMode.value = 'dark';
-        localStorage.setItem(LOCAL_STORAGE_KEY, 'dark');
+        selectedThemeMode.value = 'system';
+        localStorage.setItem(LOCAL_STORAGE_KEY, 'system');
     }
 
     applyTheme(selectedThemeMode.value);
