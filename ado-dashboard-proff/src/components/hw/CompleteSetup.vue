@@ -6,7 +6,7 @@
 
       <div class="form-group">
         <label for="enrKurs">Enrichment</label>
-        <select id="enrKurs" v-model="formData.enrKurs" class="input">
+        <select id="enrKurs" v-model="formData.enrKurs" class="input hover">
           <option value="0" disabled>Bitte auswählen...</option>
           <option value="1">Herr Müller</option>
           <option value="2">Herr Weber</option>
@@ -17,7 +17,7 @@
 
       <div class="form-group" style="margin-top: 12px;">
         <label for="wpuKurs1">WPU am Dienstag</label>
-        <select id="wpuKurs1" v-model="formData.wpuKurs1" class="input">
+        <select id="wpuKurs1" v-model="formData.wpuKurs1" class="input hover">
           <option value="0" disabled>Bitte auswählen...</option>
           <option value="1">Englisch</option>
           <option value="2">Deutsch</option>
@@ -30,7 +30,7 @@
 
       <div class="form-group" style="margin-top: 12px;">
         <label for="wpuKurs2">WPU am Donnerstag</label>
-        <select id="wpuKurs2" v-model="formData.wpuKurs2" class="input">
+        <select id="wpuKurs2" v-model="formData.wpuKurs2" class="input hover">
           <option value="0" disabled>Bitte auswählen...</option>
           <option value="1">Englisch</option>
           <option value="2">Biologie</option>
@@ -42,7 +42,7 @@
 
       <div class="form-group" style="margin-top: 12px;">
         <label for="theater">Theater</label>
-        <select id="theater" v-model="formData.theater" class="input">
+        <select id="theater" v-model="formData.theater" class="input hover">
           <option value="0" disabled>Bitte auswählen...</option>
           <option value="1">Ja</option>
           <option value="2">Nein</option>
