@@ -178,7 +178,7 @@ function colorFor(color) {
 <style scoped>
 .global-announcements {
   position: fixed;
-  top: 65px;
+  top: var(--header-height);
   left: 0;
   width: 100%;
   z-index: 1000;
@@ -356,10 +356,6 @@ function colorFor(color) {
 }
 
 @media (max-width: 500px) {
-  .global-announcements {
-    top: 50px;
-  }
-
   .global-ann {
     padding: 10px 12px;
   }

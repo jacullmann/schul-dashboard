@@ -14,11 +14,11 @@
     >
       <div class="pseudo-content">
         <h4>
-          Du möchtest einen Eintrag erstellen?
+          Möchtest du einen EIntrag erstellen?
         </h4>
         <div class="">
           <button class="btn ghost smaller" @click="openAuthModal">
-            Jetzt anmelden
+            Anmelden
           </button>
         </div>
       </div>

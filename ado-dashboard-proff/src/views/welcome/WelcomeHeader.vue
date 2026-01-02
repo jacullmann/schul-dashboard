@@ -7,8 +7,8 @@ const emit = defineEmits(['goToMain2'])
   <header class="header">
     <div class="header-content-wrapper">
       <div @click="emit('goToMain2')" class="logo-container">
-        <Logo class="logo-img" aria-hidden="true" />
-        <span class="logo-text">Dashboard</span>
+        <Logo class="logo-img" aria-label="Website Logo"/>
+        <span class="logo-text">Schul Dashboard</span>
       </div>
     </div>
   </header>
@@ -17,13 +17,14 @@ const emit = defineEmits(['goToMain2'])
 <style scoped>
 .header {
   width: 100%;
-  height: 70px;
-  background-color: var(--start--bg);
-  color: white;
+  padding: 12px;
+  background-color: #0f0f0f;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
+  border-bottom: 1px solid #282828;
 }
 
 .header-content-wrapper {
@@ -31,9 +32,9 @@ const emit = defineEmits(['goToMain2'])
   max-width: 1400px;
   height: 100%;
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
   align-items: center;
-  padding: 0 5rem;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -45,7 +46,7 @@ const emit = defineEmits(['goToMain2'])
 }
 
 .logo-img {
-  height: 38px;
+  height: 32px;
   width: auto;
 }
 
@@ -53,8 +54,9 @@ const emit = defineEmits(['goToMain2'])
   font-weight: bold;
   font-size: 1.6rem;
   white-space: nowrap;
+  line-height: 32px;
 }
-.nav-links {
+/*.nav-links {
   display: flex;
   gap: 24px;
 }
@@ -68,14 +70,5 @@ const emit = defineEmits(['goToMain2'])
 
 .nav-item:hover {
   color: #ffffff;
-}
-
-@media (max-width: 768px) {
-  .header {
-    padding: 0 1.5rem;
-  }
-  .header-content-wrapper {
-    padding: 0 0.3rem;
-  }
-}
+}*/
 </style>

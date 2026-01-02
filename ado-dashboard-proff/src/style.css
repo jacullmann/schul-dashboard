@@ -14,6 +14,8 @@
     --sub: #aaa;
     --announcement-height: 0px;
     --progress-height: 3px;
+    --header-height: 65px;
+    --header-padding-y: 0.1rem;
     --accent-glow: rgba(255, 255, 255, 0.05);
     --text-primary: #ffffff;
     --text-secondary: #a1a1aa;
@@ -338,11 +340,15 @@ footer {
         -webkit-overflow-scrolling: touch;
     }
 }
+@media (max-width: 1200px) {
+    :root {
+        --header-height: 50px;
+        --header-padding-y: 12px;
+    }
+}
 @media (max-width: 768px) {
-
     .svg-background {
         background: var(--bg);
-
     }
     .card {
         margin: 0 0 0 0;
@@ -355,7 +361,6 @@ footer {
         margin: 0 auto;
         padding: 0;
         background: var(--bg);
-
     }
     .btn:hover {
         background:var(--pure--white);
@@ -366,5 +371,10 @@ footer {
         border:1px solid var(--border2);
         color:var(--text);
     }
-
+}
+@media (max-width: 500px) {
+    :root {
+        --header-height: 50px;
+        --header-padding-y: 12px;
+    }
 }

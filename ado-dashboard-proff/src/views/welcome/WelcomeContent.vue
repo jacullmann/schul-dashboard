@@ -14,7 +14,12 @@ defineProps<{
 <template>
   <div class="welcome-section">
     <div class="visual-container">
-      <Special class="svg-placeholder" />
+      <div class="example-dashboard">
+        <div class="example-card">Test</div>
+        <div class="example-card">Test2</div>
+        <div class="example-card">Test3</div>
+        <div class="example-card-vanishing"></div>
+      </div>
     </div>
 
     <div class="text-content">
@@ -69,23 +74,32 @@ defineProps<{
 .visual-container {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 300px;
+  justify-content: left;
+  width:100%;
 }
 
-.svg-placeholder {
+.example-dashboard {
+  gap: 12px;
+  display:flex;
+  flex-direction: column;
+  justify-content: left;
   width: 100%;
-  max-width: 600px;
-  height: auto;
-  min-height: 300px;
-  border-radius: 20px;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+}
+
+.example-card {
+  background: #282828;
+  border:1px solid #414141;
+  border-radius: 16px;
+  padding:12px;
+  color: #fff;
+  width: 100%;
+}
+
+.example-card-vanishing {
+  background: #282828;
+  border:1px solid #414141;
+  border-radius: 16px;
+  min-height: 100px;
 }
 
 .text-content {
@@ -187,7 +201,6 @@ defineProps<{
 @media (max-width: 992px) {
   .welcome-section {
     flex-direction: column;
-    text-align: center;
     padding: 0 0;
   }
 

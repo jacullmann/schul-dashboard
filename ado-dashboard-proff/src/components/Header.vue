@@ -176,13 +176,16 @@ onUnmounted(() => {
 .header {
   background-color: var(--bg);
   color: var(--text);
-  padding: 0.1rem 0;
+  padding: var(--header-padding-y) 0;
+  height: var(--header-height);
   position: sticky;
   top: 0;
   z-index: 1002;
   transition: background-color 0.3s ease;
   border-bottom: 1px solid var(--border);
   font-family: 'Satoshi', sans-serif;
+  display: flex;
+  align-items: center;
 }
 
 .header-container {
@@ -191,12 +194,14 @@ onUnmounted(() => {
   align-items: center;
   gap: 1rem;
   position: relative;
+  height: 100%;
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 2.5rem;
+  height: 100%;
 }
 
 .container {
@@ -230,6 +235,7 @@ onUnmounted(() => {
   gap: 1.5rem;
   transition: all 0.2s ease;
   align-items: center;
+  height: 100%;
 }
 
 .nav-item {
@@ -240,6 +246,8 @@ onUnmounted(() => {
   position: relative;
   transition: color 0.18s ease;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 .nav-item:hover {
@@ -250,6 +258,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
+  height: 100%;
 }
 
 .cta-button {
@@ -305,10 +314,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1200px) {
-  .header {
-    padding: 12px 16px;
-  }
-
   .hamburger-menu {
     display: flex;
   }

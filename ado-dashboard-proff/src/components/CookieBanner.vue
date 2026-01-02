@@ -78,7 +78,7 @@ onBeforeUnmount(() => {
   right: 16px;
   max-width: 420px;
   border: 1px solid var(--border2);
-  border-radius: 8px;
+  border-radius: 16px;
   background: var(--lbg);
   box-shadow: var(--shadow-l);
   z-index: 1200;
