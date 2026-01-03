@@ -12,6 +12,9 @@ const emit = defineEmits(['goToMain2'])
       </div>
     </div>
   </header>
+  <div class="example-announcement">
+    <span>Chemie fällt morgen aus</span>
+  </div>
 </template>
 
 <style scoped>
@@ -56,6 +59,17 @@ const emit = defineEmits(['goToMain2'])
   white-space: nowrap;
   line-height: 32px;
 }
+
+.example-announcement {
+  background: var(--vlbg);
+  border-block: 1px solid var(--border2);
+  padding: 10px 12px;
+  border-radius: 0;
+  font-family: var(--normal-font), sans-serif;
+  font-size: 16px;
+  text-align: center;
+}
+
 /*.nav-links {
   display: flex;
   gap: 24px;

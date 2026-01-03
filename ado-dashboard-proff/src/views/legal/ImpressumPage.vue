@@ -1,7 +1,6 @@
 <template>
   <div>
     <h2>Impressum</h2>
-    <h3>Verantwortlicher:</h3>
     <p>Deniz Keskin</p>
     <p>12045 Berlin</p>
 

@@ -63,7 +63,7 @@ const showMenu = ref(false) // NEU: Menu State
 const showPopup = ref(false) // NEU: Popup State
 const currentPopupAnnouncement = ref(null) // NEU: Current Popup
 const route = useRoute()
-const welcomePaths = ['/welcome', '/admin-dashboard']
+const welcomePaths = ['/welcome', '/admin-dashboard', '/kanye', 'verify']
 const isWelcomePage = computed(() => welcomePaths.includes(route.path))
 
 const currentAnnouncement = computed(() => {
@@ -193,8 +193,6 @@ function colorFor(color) {
   justify-content: center;
   box-shadow: var(--shadow-s);
   border-bottom: 1px solid var(--border2);
-  border-top: 1px solid var(--border2);
-  min-height: 45px;
 }
 
 .global-ann-content {
@@ -223,22 +221,19 @@ function colorFor(color) {
 .announcement-menu-btn {
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--sub);
   cursor: pointer;
-  padding: 4px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.8;
   transition: opacity 0.2s;
   flex-shrink: 0;
   margin-left: 12px;
 }
 
 .announcement-menu-btn:hover {
-  opacity: 1;
-  background: var(--gg);
+  color: var(--text);
 }
 
 /* NEU: Menu Overlay Styles */

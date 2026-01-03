@@ -1,6 +1,6 @@
 <script setup lang="ts">
 //import Special from "./Special.vue";
-import G from "./G.vue";
+//import G from "./G.vue";
 import Line from './Line.vue'
 import { ArrowDown, Ellipsis } from 'lucide-vue-next'
 import NewMainButton from "./NewMainButton.vue";
@@ -15,9 +15,6 @@ defineProps<{
   <div class="welcome-section">
     <div class="visual-container">
       <div class="example-wrapper">
-        <div class="example-announcement">
-          <span>Chemie fällt morgen aus</span>
-        </div>
         <div class="example-dashboard">
           <div class="example-card">
             <div class="example-main">
@@ -34,7 +31,7 @@ defineProps<{
               </div>
             </div>
           </div>
-          <div class="example-card">
+          <div class="example-card only-desktop">
             <div class="example-main">
               <div class="example-meta">
                 <div class="example-top-row">
@@ -139,17 +136,6 @@ defineProps<{
   flex-direction: column;
   width: 100%;
   max-width: 640px;
-}
-
-.example-announcement {
-  background: var(--vlbg);
-  border-block: 1px solid var(--border2);
-  padding: 10px 12px;
-  border-radius: 0;
-  font-family: var(--normal-font), sans-serif;
-  font-size: 16px;
-  margin-inline: -16px;
-  text-align: center;
 }
 
 .example-dashboard {
@@ -288,7 +274,7 @@ defineProps<{
   background:linear-gradient(var(--vlbg), transparent) padding-box, linear-gradient(var(--gg), transparent) border-box;
   border:1px solid transparent;
   border-radius: 16px 16px 0 0;
-  min-height: 50px;
+  min-height: 30px;
 }
 
 .text-content {
@@ -300,8 +286,8 @@ defineProps<{
   font-size: 7rem;
   font-weight: 600;
   line-height: 1.1;
-  margin-bottom: 24px;
-  letter-spacing: -0.05em;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
   text-align: right;
 }
 
@@ -309,9 +295,9 @@ defineProps<{
   font-size: 1.25rem;
   line-height: 1.6;
   margin-bottom: 32px;
+  margin-top: 0;
   color: var(--sub);
   text-align: right;
-
 }
 
 
@@ -341,10 +327,9 @@ defineProps<{
 
 
 .secondary {
-  border: none;
+  border: 2px solid transparent;
   background: transparent;
   color: var(--text);
-  white-space: nowrap;
 }
 
 .secondary:hover {
@@ -419,8 +404,12 @@ defineProps<{
 
 /* Mobile Layout */
 @media (max-width: 576px) {
+  .only-desktop {
+    display: none;
+  }
+
   .headline {
-    margin-top: 16px;
+    margin-top: -24px;
     font-size: 75px;
   }
 

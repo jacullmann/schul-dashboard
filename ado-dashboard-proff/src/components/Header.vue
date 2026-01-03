@@ -313,7 +313,7 @@ onUnmounted(() => {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1000px) {
   .hamburger-menu {
     display: flex;
   }

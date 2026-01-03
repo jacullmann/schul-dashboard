@@ -16,8 +16,9 @@
         <h4>
           Möchtest du einen EIntrag erstellen?
         </h4>
-        <div class="">
-          <button class="btn ghost smaller" @click="openAuthModal">
+        <p>Melde dich an, um Einträge zu erstellen.</p>
+        <div>
+          <button class="btn action smaller" @click="openAuthModal">
             Anmelden
           </button>
         </div>

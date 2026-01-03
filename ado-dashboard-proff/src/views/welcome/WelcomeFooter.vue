@@ -31,24 +31,18 @@
             </select>
           </div>
           <p class="brand-description">
-            Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.
+            Wähle dein bevorzugtes Farbschema für das Schul Dashboard aus.
           </p>
         </div>
-
-        <!-- Sektion: Kontakt
-        <div class="footer-section">
-          <h3>Kontakt</h3>
-          <p class="superjob">dashboardverifizierung@gmail.com</p>
+      </div>
+      <div class="footer-bottom">
+        <div class="container footer-bottom-content">
+          <p class="text-xs text-sub">Dies ist ein privates Projekt von Schülern für Schüler</p>
         </div>
-        -->
       </div>
     </div>
 
-    <div class="footer-bottom">
-      <div class="container footer-bottom-content">
-        <p class="text-xs text-sub">Privates Schulprojekt von Schülern einer Berliner Schule</p>
-      </div>
-    </div>
+
 
 
   </footer>
@@ -78,24 +72,24 @@ function goToStatus() {
 <style scoped>
 .footer {
   background-color: var(--bg);
-  padding: 2.5rem 0 0;
+  padding: 16px 16px 0 16px;
   border-top: 1px solid var(--border);
 }
 
-.footer-container {
+/* .footer-container {
   padding: 0 5px 2rem;
-}
+} */
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0;
 }
 
 .footer-columns {
   display: flex;
   justify-content: flex-start;
-  gap: 4rem;
+  gap: 64px;
   flex-wrap: wrap;
 }
 
@@ -124,18 +118,20 @@ function goToStatus() {
 .footer-link {
   color: var(--sub);
   text-decoration: none;
-  margin-bottom: 0.5rem;
-  transition: color 0.2s ease, opacity 0.2s ease;
+  transition: color 0.1s ease, opacity 0.2s ease;
   cursor: pointer;
   gap: 4px;
   display: flex;
   align-items: center;
+}
 
+.footer-link:hover {
+  color: var(--text) !important;
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--border2);
-  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+  padding-block: 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -144,7 +140,6 @@ function goToStatus() {
 
 .footer-bottom-content p {
   margin: 0;
-  line-height: 1;
 }
 @media (max-width: 768px) {
   .footer-columns {

@@ -336,7 +336,7 @@ async function submit() {
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .form-group {
@@ -487,7 +487,7 @@ async function submit() {
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 500px) {
   .modal-card {
     max-width: 100%;
     margin: 0;

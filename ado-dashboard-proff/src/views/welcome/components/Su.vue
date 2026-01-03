@@ -111,7 +111,7 @@ import { Zap, Compass, Palette, ScanEye, Layers, Tablet, MessageCircle } from 'l
   border: 1px solid var(--border2);
 }
 .grid-item:active {
-  border: 1px solid var(--lp);
+  border: 1px solid var(--text);
 }
 
 .item-title {

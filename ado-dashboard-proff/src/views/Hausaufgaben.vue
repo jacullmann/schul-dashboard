@@ -274,15 +274,13 @@ const {
   border: 1px solid var(--border2);
   transition: transform 150ms ease;
   overflow: visible;
-  -webkit-user-select: none;
-  user-select: none;
   cursor: default;
 }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
 .item-main { position: relative; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .item-meta { flex:1; min-width: 0; }
-.item-title { margin:-2px 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height: 22px;}
-.collapse-checkbox { display:inline-flex; align-items:center; margin-right:2px; cursor:pointer; }
+.item-title { margin:-3px 0; font-size:1.125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height: 24px;}
+.collapse-checkbox { display:inline-flex; align-items:center; cursor:pointer; }
 .collapse-checkbox input { display:none; }
 .collapse-checkbox .vis-label {
   width:18px;

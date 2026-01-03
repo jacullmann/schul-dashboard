@@ -7,14 +7,11 @@
     <transition name="pop">
       <div v-if="open" class="popup" :style="popupStyle" @click.stop>
         <div class="popup-inner" role="menu" aria-label="Account menu" ref="popupInner">
-          <div class="user-section">
-            <div class="user-email" :title="email">{{ email }}</div>
-          </div>
-
-          <div class="menu-divider"></div>
-
-
           <div class="menu-actions">
+            <div class="user-section">
+              <div class="user-email" :title="email">{{ email }}</div>
+            </div>
+            <div class="menu-divider"></div>
             <button
                 data-umami-event="Kurse bearbeiten Button"
                 class="menu-btn"
@@ -53,20 +50,18 @@
               </div>
             </button>
             <div class="menu-divider"></div>
-
-          </div>
-
-          <div class="danger-section">
-            <button
-                data-umami-event="Account löschen Button"
-                class="menu-btn danger"
-                @click="startDelete"
-            >
-              <div class="menu-btn-content">
-                <Trash2  size="18px"/>
-                Account löschen
-              </div>
-            </button>
+            <div class="danger-section">
+              <button
+                  data-umami-event="Account löschen Button"
+                  class="menu-btn danger"
+                  @click="startDelete"
+              >
+                <div class="menu-btn-content">
+                  <Trash2  size="18px"/>
+                  Account löschen
+                </div>
+              </button>
+            </div>
           </div>
 
           <div v-if="confirming" class="confirm-section">
@@ -325,7 +320,6 @@ onBeforeUnmount(() => {
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   min-width: 320px;
   box-shadow: var(--shadow-s);
 }

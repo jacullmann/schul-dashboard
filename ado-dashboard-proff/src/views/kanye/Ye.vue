@@ -21,7 +21,7 @@ const albums: Album[] = [
     title: 'Late Registration',
     artist: 'Kanye West',
     year: 2005,
-    coverUrl: 'https://t2.genius.com/unsafe/1243x0/https%3A%2F%2Fimages.genius.com%2Ff950b7a07bb95fdd4d1499681c570348.1000x1000x1.png'
+    coverUrl: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767476511/late_registration_album_cover_zp9cv6.jpg'
   },
   {
     id: 2,
@@ -29,7 +29,7 @@ const albums: Album[] = [
     title: 'Graduation',
     artist: 'Kanye West',
     year: 2007,
-    coverUrl: 'https://t2.genius.com/unsafe/1243x0/https%3A%2F%2Fimages.genius.com%2Fb9d6cf24ceb76fa5d8ebf02569e16e2f.1000x1000x1.png'
+    coverUrl: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767476510/graduation_album_cover_grirt8.jpg'
   },
   {
     id: 3,
@@ -37,7 +37,7 @@ const albums: Album[] = [
     title: 'My Beautiful Dark Twisted Fantasy',
     artist: 'Kanye West',
     year: 2010,
-    coverUrl: 'https://t2.genius.com/unsafe/795x0/https%3A%2F%2Fimages.genius.com%2F52a86a50e0d807c9fe37429cdfaae8e9.888x888x1.png'
+    coverUrl: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767476511/my_beautiful_dark_twisted_fantasy_album_cover_s8o1tg.jpg'
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ const albums: Album[] = [
     title: 'Yeezus',
     artist: 'Kanye West',
     year: 2013,
-    coverUrl: 'https://t2.genius.com/unsafe/1243x0/https%3A%2F%2Fimages.genius.com%2Ff4daff29a000bf818c5e53355c12d672.1000x1000x1.png'
+    coverUrl: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767476511/yeezus_album_cover_npx8e1.jpg'
   },
   {
     id: 5,
@@ -53,7 +53,7 @@ const albums: Album[] = [
     title: 'ye',
     artist: 'Kanye West',
     year: 2018,
-    coverUrl: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fis1-ssl.mzstatic.com%2Fimage%2Fthumb%2FMusic125%2Fv4%2Ff8%2F92%2F62%2Ff892628e-bfd5-2437-c1f5-0ebbd366de09%2F00602577303098.rgb.jpg%2F1200x1200bf-60.jpg&f=1&nofb=1&ipt=1c3bd967f035772f04d500d59782f9d90233852aa34f3b744ca5882aa26a7b4e'
+    coverUrl: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767476510/ye_album_cover_s9vsut.jpg'
   }
 ];
 function kanyeRouter(album: Album) {
@@ -79,6 +79,7 @@ function kanyeRouter(album: Album) {
           <span class="album-year">{{ album.year }}</span>
         </div>
       </div>
+      <p style="font-size: 0.5rem; color: var(--sub)">Album art used for identification purposes only. Copyright belongs to the respective owners, labels, and artists.</p>
 
     </div>
   </div>
@@ -100,10 +101,6 @@ function kanyeRouter(album: Album) {
   overflow: hidden;
   transition: transform 0.2s ease;
   cursor: pointer;
-}
-
-.album-card:hover {
-  transform: translateY(-5px);
 }
 
 .image-wrapper {
