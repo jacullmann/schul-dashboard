@@ -79,9 +79,8 @@ function kanyeRouter(album: Album) {
           <span class="album-year">{{ album.year }}</span>
         </div>
       </div>
-      <p style="font-size: 0.5rem; color: var(--sub)">Album art used for identification purposes only. Copyright belongs to the respective owners, labels, and artists.</p>
-
     </div>
+    <p style="font-size: 0.5rem; color: var(--sub)">Album art used for identification purposes only. Copyright belongs to the respective owners, labels, and artists.</p>
   </div>
   <router-view />
 </template>
