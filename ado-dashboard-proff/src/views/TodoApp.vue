@@ -70,9 +70,7 @@
             </div>
 
             <div class="todo-actions">
-              <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)">
-                <Ellipsis />
-              </div>
+              <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)"><Ellipsis /></div>
               <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
                 <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
                   <div class="fixall"><Pencil :size="18" /> Bearbeiten</div>
@@ -380,10 +378,79 @@ function showMessage(msg: string, error = false) {
 .spannn:hover {
   transform: scale(1.02);
 }
+.item-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--sub);
+  transition: background 120ms ease, color 120ms ease;
+}
+.item-menu-trigger:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+.item-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 140px;
+  background: var(--vlbg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  box-shadow: var(--shadow-s);
+}
+.item-menu.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.menu-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 10px;
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+.menu-btn:hover {
+  background: var(--gg);
+}
+.menu-btn.danger {
+  color: var(--special--red);
+}
+.menu-btn.danger:hover {
+  background: var(--special--red--background);
+}
+.fixall {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1;
+}
 @media (max-width: 768px) {
   .todo-item {
     flex-direction: column;
-    gap: 0;
+    gap: 1rem;
   }
   .todo-actions {
     align-self: flex-end;
