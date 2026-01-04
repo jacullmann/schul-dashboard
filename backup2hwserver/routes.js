@@ -443,7 +443,7 @@ E-Mail bestätigen
             const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
             try {
                 await sendVerificationEmail(user.email, verifyUrl);
-                res.status(201).json({ ok: true, message: 'Registriert. Bitte E-Mail prüfen.' });
+                res.status(201).json({ ok: true, message: 'Registriert. Bitte überprüfe deine E-Mail sowie deinen Spamordner.' });
             } catch (mailErr) {
                 console.error('Failed to send verification email (SendGrid):', mailErr);
                 res.status(201).json({

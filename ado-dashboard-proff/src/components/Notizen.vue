@@ -114,7 +114,7 @@ const quotes: Quote[] = [
   { text: 'Fettarm und lang haltbar!' },
   { text: 'Zertifiziert freiwillige Kinderarbeit – Schul Dashboard' },
   { text: '100 Tage Geld-zurück-Garantie!' },
-  { text: 'Wenn das Leben dir Zitronen gibt, spritz den Saft in die Augen deiner Gegner. (Schul Dashboard™ haftet nicht für etwaige Schäden, die durch das beträufeln des Auges mit Saft, der aus einer Zitrusfrucht erhalten wurde, entstehen könnten. Das Befolgen der oben genannten Handlungen kann zu schweren Verletzungen und Nebenwirkungen führen und sollten nur unter der Aufsicht von trainierten Experten ausgeführt werden.)'},
+  { text: 'Wenn das Leben dir Zitronen gibt, spritz den Saft in die Augen deiner Gegner.'},
   { text: '100% Fairtrade Codezeilen aus zertifiziertem Anbau!'},
   { text: 'gleich /gleích/, Adverb: unbestimmer Zeitpunkt in der Zukunft, wahrscheinlich aber nie'},
 ];
