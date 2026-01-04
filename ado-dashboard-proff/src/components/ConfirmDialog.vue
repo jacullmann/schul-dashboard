@@ -146,12 +146,6 @@ watch(() => props.show, (newVal) => {
   box-sizing: border-box;
 }
 
-.row {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
 .btn.danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -176,13 +170,5 @@ watch(() => props.show, (newVal) => {
   padding: 2px 6px;
   border-radius: 4px;
   margin: 0;
-}
-
-@media (max-width: 444px) {
-  .row {
-    flex-direction: row;
-    gap: 8px;
-    justify-content: flex-end;
-  }
 }
 </style>

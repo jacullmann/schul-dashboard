@@ -141,9 +141,6 @@ async function submit() {
 .label { display: block; font-size: 14px; color: var(--text); margin-bottom: 8px; }
 .actions {
   margin-top: 24px;
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
 }
 .spinner { animation: spin 1s linear infinite; height: 20px; width: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }

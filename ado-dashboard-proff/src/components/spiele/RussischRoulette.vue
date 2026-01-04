@@ -3,7 +3,7 @@
   <div class="toub" >
 
     <img style="height: 200px"
-      src="https://www.brownells-deutschland.de/WebRoot/MediaDefinition/userdocs/skus/l_430105717_1.jpg?sig=4a04af136522f8c54be3edd9586d4ba25c8fe88c95dbb7b70b70f2cca9dc933d"
+      src="https://de.freepik.com/vektoren-kostenlos/hand-gezeichnete-retro-pistolen_4411660.htm#fromView=keyword&page=1&position=20&uuid=af87634f-2d91-467e-967b-ad76b351a282&query=Revolver"
   />
     <div class="simple-roulette-game">
       <div

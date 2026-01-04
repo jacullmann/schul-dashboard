@@ -60,7 +60,7 @@
 
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)' : 'var(--primary)' }" style="margin-top:8px;">{{ message }}</div>
 
-        <div style="margin-top:12px; display:flex; gap:8px;">
+        <div style="margin-top:12px;" class="row">
           <button data-umami-event="Passwort zurücksetzen weiter" class="btn ghost" @click="onPrimary" :disabled="submitting">
             <span v-if="submitting">Bitte warten…</span>
             <span v-else>{{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}</span>

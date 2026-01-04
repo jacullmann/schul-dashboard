@@ -90,7 +90,7 @@
               <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
             </div>
 
-            <div class="row item-badges" :class="{ collapsed: isChecked(item.id) }">
+            <div class="row-n item-badges" :class="{ collapsed: isChecked(item.id) }">
               <div class="badge subject-badge">{{ item.subject }}</div>
               <div class="badge time-badge" :style="colorStyles(item.timeColor)">
                 {{ new Date(item.dueDate).toLocaleDateString() }}
@@ -453,7 +453,7 @@ const {
 .private-entries-container { margin-top: 1rem; }
 .private-entries-container .hw-header { padding: 0; background: transparent; }
 .admin-creator-info { color: var(--sub); }
-.row.item-badges {
+.row-n.item-badges {
   transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
   margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
@@ -462,7 +462,7 @@ const {
   margin-top: 8px;
 }
 
-.row.item-badges.collapsed {
+.row-n.item-badges.collapsed {
   opacity: 0;
   max-height: 0;
   margin-top: 0;

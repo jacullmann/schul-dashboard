@@ -56,10 +56,4 @@ defineEmits(['confirm', 'cancel'])
   color: var(--text);
   line-height: 1.5;
 }
-
-.row {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
 </style>

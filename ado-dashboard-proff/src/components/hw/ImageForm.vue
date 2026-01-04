@@ -327,10 +327,7 @@ async function removeImg(publicId: string) {
 .msg-ok { color: var(--primary); font-weight: 600; }
 .msg-error { color: var(--danger); font-weight: 600; }
 .images-row {
-  gap: 8px;
-  display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
 }
 /* responsive */
 @media (max-width: 480px) {

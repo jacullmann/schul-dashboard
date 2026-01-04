@@ -104,11 +104,6 @@ onBeforeUnmount(() => {
 .mg {
   padding: 4px;
 }
-.row {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
 @media (max-width: 613px) {
   .entry-menu {
     left: auto;

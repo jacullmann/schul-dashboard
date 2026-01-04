@@ -37,7 +37,7 @@
         <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
         <div v-if="successMsg" class="message success">{{ successMsg }}</div>
 
-        <div class="action-buttons">
+        <div class="action-buttons row">
           <button
               class="btn ghost"
               @click="$emit('close')"
@@ -190,9 +190,6 @@ async function confirmDelete() {
 }
 
 .action-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
   margin-top: 20px;
 }
 

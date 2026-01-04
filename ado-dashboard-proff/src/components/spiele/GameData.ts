@@ -17,7 +17,7 @@ export const games: Game[] = [
         description: 'Wer drei in einer Reihe hat, gewinnt!',
         component: defineAsyncComponent(() => import('./TicTacToe.vue')),
         tags: ['Strategie', '2-Spieler', ],
-        previewImage: 'https://m.media-amazon.com/images/I/71ni4Z2dj-L.jpg'
+        previewImage: 'https://de.freepik.com/vektoren-kostenlos/haende-die-bleistifte-halten-um-tic-tac-toe-zu-spielen-leute-die-kreuze-und-nullen-im-einfachen-spiel-fuer-flache-vektorillustration-der-kinder-zeichnen-strategiekonzept-fuer-banner-website-design-oder-landing-webseite_27572532.htm#fromView=search&page=1&position=3&uuid=e6af000a-ae53-41a6-af38-9e50d8f66cd3&query=tik+tak+to'
     },
     {
         id: 'russisch-roulette',
@@ -25,7 +25,7 @@ export const games: Game[] = [
         description: 'Dies ist nur ein Spiel!',
         component: defineAsyncComponent(() => import('./RussischRoulette.vue')),
         tags: ['Strategie', 'Kein Glückspiel', 'Klassiker', 'Russisch'],
-        previewImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Rosyjska_ruletka.png/250px-Rosyjska_ruletka.png'
+        previewImage: 'https://de.freepik.com/vektoren-kostenlos/vektor-realistische-kasino-roulette-rad-draufsicht-lokalisiert-auf-gruenem-pokertisch_11062552.htm#fromView=search&page=1&position=2&uuid=05fcfc04-f997-48e9-8031-923f917d68b0&query=russian+roulette'
     },
     {
         id: 'rock-paper-scissors',
@@ -33,7 +33,7 @@ export const games: Game[] = [
         description: 'Spiele Schere-Stein-Papier gegen einen Computer.',
         component: defineAsyncComponent(() => import('./Schere-usw.vue')),
         tags: ['Klassiker', 'Duell', 'Solo'],
-        previewImage: 'https://ih1.redbubble.net/image.5225837738.6313/raf,360x360,075,t,fafafa:ca443f4786.jpg'
+        previewImage: 'https://de.freepik.com/vektoren-kostenlos/stein-papier-schere-banner_21002766.htm#fromView=search&page=1&position=1&uuid=86425b36-17a5-4ff8-b5d3-c968cadaf645&query=rock+paper+scissors'
     }
 ];
 
