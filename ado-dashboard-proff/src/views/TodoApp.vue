@@ -3,7 +3,7 @@
     <div class="todo-header">
       <div>
         <div class="secure">
-          <Lock class="icon-normal" size="24"/>
+          <Lock style="color: var(--text);" size="24"/>
           <h2 style="margin: 0;">Private Einträge</h2>
         </div>
         <div style="color: var(--text); margin-bottom: 0.4rem" class="small">
