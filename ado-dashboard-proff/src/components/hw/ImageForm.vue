@@ -9,7 +9,7 @@
       <div class="section">
         <div  class="section-title">Bilder</div>
 
-        <div class="images-row row">
+        <div class="images-row row-n">
           <div
               v-for="img in currentImages"
               :key="img.publicId"
@@ -254,11 +254,6 @@ async function removeImg(publicId: string) {
   text-align: left;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-l);
-}
-.row {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
 }
 /* Header */
 .modal-head {

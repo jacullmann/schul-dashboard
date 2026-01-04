@@ -56,7 +56,7 @@
         <textarea class="input" rows="4" v-model="description"></textarea>
       </div>
 
-      <div class="row section">
+      <div class="row-n section">
         <div class="col">
           <label class="label">Abgabedatum</label>
           <input class="input hover" type="date" v-model="dueLocal" />
@@ -66,7 +66,7 @@
 
       <div class="section">
         <div class="label bold">Bilder</div>
-        <div class="row images">
+        <div class="row-n images">
           <div
               v-for="img in images"
               :key="img.publicId"
