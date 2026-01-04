@@ -2,7 +2,7 @@
   <div class="blurit" @click.self="handleBackdropClick">
     <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0; color: var(--special--red);">Account löschen</h3>
+        <h3 style="margin:0;">Account löschen</h3>
         <button
             data-umami-event="Account löschen Modal schließen"
             class="btn ghost"
