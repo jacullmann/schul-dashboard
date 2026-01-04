@@ -105,6 +105,8 @@ import {
   AlertCircle
 } from 'lucide-vue-next'
 import LoadingSpinner from "../../components/LoadingSpinner.vue";
+import { useUserStore } from "../../stores/userStore";
+const userStore = useUserStore();
 
 const router = useRouter();
 const auth = useAppAuth();
@@ -133,6 +135,7 @@ async function submit() {
         syncCsrfFromCookie();
       }
       await auth.checkAuthStatus();
+      await userStore.fetchUser();
       umami?.track('Welcome Page Login erfolgreich');
       await router.push('/items/HAUSAUFGABE');
     } else {
