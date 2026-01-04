@@ -100,7 +100,8 @@ export function initModels(mongoose) {
             createdBy: { type: Schema.Types.ObjectId, ref: 'HwUser' }
         }],
         dueDate: { type: Date, index: true },
-        createdBy: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true }
+        createdBy: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true },
+        editorNote: { type: String, default: '' }
     }, { timestamps: true });
 
     const KeepCheckedSchema = new Schema({

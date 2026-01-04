@@ -26,7 +26,12 @@
             </a>
 
             <div class="thumb-actions">
-              <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
+              <button
+                  data-umami-event="Bild löschen Button -> Menu öffnen "
+                  v-if="canDeleteImage(item.createdBy, img.createdBy)"
+                  class="btn danger image-remove"
+                  @click="removeImg(img)"
+              >X</button>
             </div>
           </div>
         </div>
@@ -68,10 +73,15 @@ const props = defineProps({
     type: Object as () => {
       id: string,
       title: string,
-      images: Array<{ url: string, thumbUrl?: string, publicId: string }>
+      createdBy: string,
+      images: Array<{ url: string, thumbUrl?: string, publicId: string, createdBy: string }>
     },
     required: true
   },
+  canDeleteImage: {
+    type: Function as PropType<(itemCreatedBy: string, imageCreatedBy: string) => boolean>,
+    required: true
+  }
 });
 const emit = defineEmits(['close', 'success']);
 

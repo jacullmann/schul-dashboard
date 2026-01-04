@@ -17,6 +17,7 @@ export interface HwItem {
     createdBy: string;
     createdByEmail?: string;
     timeColor: string;
+    editorNote: string;
 }
 
 export function useHausaufgaben() {
@@ -93,6 +94,11 @@ export function useHausaufgaben() {
     const showReportConfirm = ref(false);
     const reportReason = ref('');
     let reportTarget: HwItem | null = null;
+
+    // State für Anmerkungsbearbeitung
+    const editingNoteForId = ref<string | null>(null);
+    const noteEditContent = ref('');
+    const savingNote = ref(false);
 
     // Tab Handling
     type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
@@ -446,9 +452,68 @@ export function useHausaufgaben() {
         }
     }
 
-    function canManage(createdBy: string) {
+    // Bearbeiten: Nur der Ersteller (Admins haben hier KEINE Sonderrechte)
+    function canEdit(createdBy: string) {
+        if (!user.value) return false;
+        return user.value.id === createdBy;
+    }
+
+// Löschen: Ersteller ODER Admin
+    function canDelete(createdBy: string) {
         if (!user.value) return false;
         return user.value.isAdmin || user.value.id === createdBy;
+    }
+
+// Bild löschen: Admin ODER Bild-Ersteller ODER Item-Ersteller
+    function canDeleteImage(itemCreatedBy: string, imageCreatedBy: string) {
+        if (!user.value) return false;
+        if (user.value.isAdmin) return true;
+        if (user.value.id === imageCreatedBy) return true;
+        if (user.value.id === itemCreatedBy) return true;
+        return false;
+    }
+
+// Admin-Anmerkung bearbeiten: Nur Admins
+    function canEditNote() {
+        return user.value?.isAdmin === true;
+    }
+
+    function startEditNote(item: HwItem) {
+        editingNoteForId.value = item.id;
+        noteEditContent.value = item.editorNote || '';
+    }
+
+    function cancelEditNote() {
+        editingNoteForId.value = null;
+        noteEditContent.value = '';
+    }
+
+    async function saveNote(itemId: string) {
+        if (savingNote.value) return;
+        savingNote.value = true;
+
+        try {
+            await hw.patch(`/api/items/${itemId}/note`, {
+                editorNote: noteEditContent.value
+            });
+
+            // Lokales Update
+            const item = items.value.find(i => i.id === itemId);
+            if (item) {
+                item.editorNote = noteEditContent.value;
+            }
+
+            message.value = 'Anmerkung gespeichert.';
+            isError.value = false;
+            editingNoteForId.value = null;
+            noteEditContent.value = '';
+        } catch (e: any) {
+            message.value = e.response?.data?.error || 'Fehler beim Speichern der Anmerkung.';
+            isError.value = true;
+        } finally {
+            savingNote.value = false;
+            setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+        }
     }
 
     function goTab(t: ItemType) { router.push({ name: 'ItemsByType', params: { type: t } }); }
@@ -527,7 +592,16 @@ export function useHausaufgaben() {
         onLoggedIn,
         handleSuccess,
         onItemFormError,
-        canManage,
+        canEdit,
+        canDelete,
+        canDeleteImage,
+        canEditNote,
+        editingNoteForId,
+        noteEditContent,
+        savingNote,
+        startEditNote,
+        cancelEditNote,
+        saveNote,
         deleteAnnouncement,
         goTab,
         isChecked,

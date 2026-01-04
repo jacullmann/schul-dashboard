@@ -1783,8 +1783,12 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             const imageIndex = item.images.findIndex(img => img.publicId === publicId);
             if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
             const image = item.images[imageIndex];
-            if (!req.user.isAdmin && image.createdBy.toString() !== req.user.sub) {
-                return sendJSONError(res, 403, 'Du kannst keine fremden Bilder löschen.');
+            const isAdmin = req.user.isAdmin;
+            const isImageOwner = image.createdBy && image.createdBy.toString() === req.user.sub;
+            const isItemOwner = item.createdBy.toString() === req.user.sub;
+            // Admin, Bild-Ersteller oder Eintrag-Ersteller können Bild löschen
+            if (!isAdmin && !isImageOwner && !isItemOwner) {
+                return sendJSONError(res, 403, 'Du kannst dieses Bild nicht löschen.');
             }
             try {
                 await cloudinary.uploader.destroy(image.publicId);
@@ -1827,7 +1831,8 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                         dueDate: i.dueDate,
                         createdBy: createdById,
                         createdByEmail: i.createdBy?.email || 'Unbekannt',
-                        timeColor: timeLeftColor(i.dueDate)
+                        timeColor: timeLeftColor(i.dueDate),
+                        editorNote: i.editorNote || ''
                     };
                 });
                 res.json(normalized);
@@ -1906,7 +1911,9 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         async (req, res) => {
             const item = await Item.findById(req.params.id);
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-            if (!req.user.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Nicht autorisiert.');
+            if (item.createdBy.toString() !== req.user.sub) {
+                return sendJSONError(res, 403, 'Nur der Ersteller kann diesen Eintrag bearbeiten.');
+            }
 
             const minDate = dayjs().subtract(2, 'day').startOf('day');
             const maxDate = dayjs().add(365, 'day').endOf('day');
@@ -1961,9 +1968,12 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireUser(userSecret, BannedUser, User),
         validateCsrf(csrfSecret),
         async (req, res) => {
-        const item = await Item.findById(req.params.id);
-        if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-        if (!req.user.isAdmin && item.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Nicht autorisiert.');
+            const item = await Item.findById(req.params.id);
+            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+            // Admins dürfen alle Einträge löschen (Moderation), Nutzer dürfen nur eigene Einträge löschen
+            if (!req.user.isAdmin && item.createdBy.toString() !== req.user.sub) {
+                return sendJSONError(res, 403, 'Nicht autorisiert.');
+            }
         if (item.images && item.images.length > 0) {
             const publicIds = item.images.map(img => img.publicId);
             try {
@@ -1977,6 +1987,47 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:delete', meta: { id: item._id } } } });
         res.json({ ok: true });
     });
+
+    // Anmerkung der Redaktion bearbeiten (nur Admins)
+    app.patch('/api/items/:id/note',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, BannedUser, User),
+        requireAdmin,
+        validateCsrf(csrfSecret),
+        param('id').isMongoId(),
+        body('editorNote').isString().isLength({ max: 2000 }),
+        validate,
+        async (req, res) => {
+            try {
+                const item = await Item.findById(req.params.id);
+                if (!item) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
+
+                const noteContent = req.body.editorNote.trim();
+
+                await Item.findByIdAndUpdate(item._id, {
+                    $set: { editorNote: noteContent }
+                });
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'item:note:update',
+                            meta: {
+                                itemId: item._id,
+                                noteLength: noteContent.length
+                            }
+                        }
+                    }
+                });
+
+                res.json({ ok: true, editorNote: noteContent });
+            } catch (error) {
+                console.error('PATCH /api/items/:id/note error:', error);
+                sendJSONError(res, 500, 'Fehler beim Speichern der Anmerkung');
+            }
+        }
+    );
 
     app.post('/api/reports',
         requireAppGate(appGateSecret),

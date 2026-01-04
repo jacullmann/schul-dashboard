@@ -109,13 +109,13 @@
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
               <div class="fixall"><Images /> Bilder</div>
             </button>
-            <button class="menu-btn" v-if="canManage(item.createdBy)" @click="onMenuAction('edit', item)">
+            <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall"><Pencil /> Bearbeiten</div>
             </button>
             <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
               <div class="fixall"><Flag /> Melden</div>
             </button>
-            <button class="menu-btn danger" v-if="canManage(item.createdBy)" @click="onMenuAction('delete', item)">
+            <button class="menu-btn danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
               <div class="fixall"><Trash2 /> Löschen</div>
             </button>
           </div>
@@ -147,6 +147,57 @@
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
                 </div>
               </template>
+            </div>
+          </div>
+        </transition>
+        <!-- Anmerkungen -->
+        <transition name="collapse">
+          <div
+              v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
+              class="editor-note-section"
+          >
+            <div class="editor-note-header">
+              <span class="editor-note-label">Anmerkung</span>
+              <button
+                  v-if="canEditNote()"
+                  class="btn ghost tiny"
+                  @click.stop="startEditNote(item)"
+              >
+                Bearbeiten
+              </button>
+            </div>
+
+            <!-- Anzeige-Modus -->
+            <div v-if="editingNoteForId !== item.id" class="editor-note-content">
+              <span v-if="item.editorNote">{{ item.editorNote }}</span>
+              <span v-else class="note-placeholder">Keine Anmerkung vorhanden</span>
+            </div>
+
+            <!-- Bearbeitungs-Modus -->
+            <div v-else class="editor-note-edit">
+      <textarea
+          class="input"
+          v-model="noteEditContent"
+          rows="3"
+          placeholder="Anmerkung eingeben..."
+          maxlength="2000"
+      ></textarea>
+              <div class="editor-note-actions">
+                <button
+                    class="btn action"
+                    @click.stop="saveNote(item.id)"
+                    :disabled="savingNote"
+                >
+                  {{ savingNote ? 'Speichern...' : 'Speichern' }}
+                </button>
+                <button
+                    class="btn ghost"
+                    @click.stop="cancelEditNote()"
+                    :disabled="savingNote"
+                >
+                  Abbrechen
+                </button>
+              </div>
             </div>
           </div>
         </transition>
@@ -189,7 +240,13 @@
         @success="handleTodoSuccess(todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.')"
         @error="onItemFormError"
     />
-    <ImageForm v-if="showImageFormFor" :item="showImageFormFor" @close="showImageFormFor=null" @success="handleSuccess('Bilder aktualisiert.')" />
+    <ImageForm
+        v-if="showImageFormFor"
+        :item="showImageFormFor"
+        :can-delete-image="canDeleteImage"
+        @close="showImageFormFor=null"
+        @success="handleSuccess('Bilder aktualisiert.')"
+    />
     <ConfirmDialog
         :show="showReportConfirm"
         message=""
@@ -244,7 +301,16 @@ const {
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
   showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
   onAccountDeleteError, openSetupModal, logout, onLoggedIn, handleSuccess, onItemFormError,
-  openCreateForm, canManage, deleteAnnouncement, goTab, isChecked, toggleCheck, makeThumb,
+  openCreateForm, canEdit,
+  canDelete,
+  canDeleteImage,
+  canEditNote,
+  editingNoteForId,
+  noteEditContent,
+  savingNote,
+  startEditNote,
+  cancelEditNote,
+  saveNote, deleteAnnouncement, goTab, isChecked, toggleCheck, makeThumb,
   isRevealed, revealImages, onSetupSuccess, doReport, cancelReport,
   showTodoForm,
   todoToEdit,
@@ -402,6 +468,48 @@ const {
   max-height: 0;
   margin-top: 0;
   overflow: hidden;
+}
+/* Anmerkungen */
+.editor-note-section {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--llbg);
+  border: 1px solid var(--border);
+  border-radius: var(--border-4);
+}
+
+.editor-note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.editor-note-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sub);
+}
+
+.editor-note-content {
+  font-size: 14px;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.note-placeholder {
+  color: var(--sub);
+  font-style: italic;
+}
+
+.editor-note-edit textarea {
+  margin-bottom: 8px;
+}
+
+.editor-note-actions {
+  display: flex;
+  gap: 8px;
 }
 @media (max-width: 768px) {
   .item-body {
