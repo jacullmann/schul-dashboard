@@ -8,7 +8,6 @@
             <span class="brand-text">Dashboard</span>
           </div>
           <Notizen />
-          <hr>
           <p class="brand-description">
             Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
           </p>
