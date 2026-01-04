@@ -50,8 +50,8 @@
         <p>Wenn du dieses Bild löschst, gibt es keinen Weg, es wiederherzustellen.</p>
 
         <div class="row" >
-          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Bild löschen</button>
           <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
+          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Bild löschen</button>
         </div>
       </div>
     </div>
