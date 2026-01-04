@@ -362,10 +362,6 @@ footer {
         padding: 0;
         background: var(--bg);
     }
-    .btn:hover {
-        background:var(--pure--white);
-        color:var(--vlbg);
-    }
     .btn.ghost:hover {
         background:var(--vlbg);
         border:1px solid var(--border2);
