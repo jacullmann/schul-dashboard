@@ -8,6 +8,7 @@
             <span class="brand-text">Dashboard</span>
           </div>
           <Notizen />
+          <hr>
           <p class="brand-description">
             Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
           </p>
@@ -145,7 +146,7 @@ function openCookieBanner() {
 
 .brand-description {
   color: var(--sub);
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-size: 0.95rem;
   font-weight: 500;
 }

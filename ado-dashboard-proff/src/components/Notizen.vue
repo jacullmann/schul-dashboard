@@ -117,11 +117,6 @@ const quotes: Quote[] = [
   { text: 'Wenn das Leben dir Zitronen gibt, spritz den Saft in die Augen deiner Gegner. (Schul Dashboard™ haftet nicht für etwaige Schäden, die durch das beträufeln des Auges mit Saft, der aus einer Zitrusfrucht erhalten wurde, entstehen könnten. Das Befolgen der oben genannten Handlungen kann zu schweren Verletzungen und Nebenwirkungen führen und sollten nur unter der Aufsicht von trainierten Experten ausgeführt werden.)'},
   { text: '100% Fairtrade Codezeilen aus zertifiziertem Anbau!'},
   { text: 'gleich /gleích/, Adverb: unbestimmer Zeitpunkt in der Zukunft, wahrscheinlich aber nie'},
-  { text: ''},
-  { text: ''},
-  { text: ''},
-  { text: ''},
-  { text: ''},
 ];
 
 /**
@@ -167,5 +162,6 @@ onMounted(() => {
   color: var(--sub);
   font-size: 0.95rem;
   font-style: italic;
+  font-weight: 500;
 }
 </style>
