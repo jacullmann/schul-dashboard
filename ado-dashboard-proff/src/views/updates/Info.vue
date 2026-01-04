@@ -7,19 +7,90 @@ interface ChangeLogItem {
   date: string;
   title: string;
   description: string;
-  changes: string[];
+  changes: string; // Changed to string to support HTML structure
 }
 
 // --- Mock Data ---
 const updates: ChangeLogItem[] = [
   {
-    "version": "v1.0",
-    "date": "voraussichtlich 5. Januar 2025",
-    "title": "Version 1.0: Offizieller Start des Schul-Dashboards",
-    "description": "Dies ist die erste offizielle Version des Schul-Dashboards. Der Fokus liegt auf einem robusten System zur Organisation des Schulalltags und einer sicheren, benutzerfreundlichen Plattform.",
-    "changes": [
-        "Wir stellen die Infos so bald wie möglich bereit."
-    ]
+    "version": "v1.0.0",
+    "date": "5. Januar 2025",
+    "title": "Release",
+    "description": "Offizieller Release für das Schul Dashboard.",
+    "changes": `
+      <h1>Features</h1>
+        <h2>Dashboard</h2>
+          <h3>Einträge</h3>
+            <p>Unter den Kategorien Hausaufgaben, Dalton und Prüfungen können schulische Aufgaben hochgeladen werden</p>
+            <p>Jeder mit einem Account kann beitragen</p>
+            <p>Alle Einträge sind für jeden Nutzer jederzeit einsehbar</p>
+            <p>Fach, (Abgabe-)Datum, und Beschreibung helfen alles zu organisieren</p>
+          <h3>Bilder</h3>
+            <p>Zu jedem Eintrag können Bilder hochgeladen werden</p>
+            <p>Jeder mit einem Account kann bei allen Einträgen Bilder hinterlegen</p>
+            <p>Notizen, Lernzettel, usw. können organisiert geteilt werden</p>
+          <h3>Fortschritt verfolgen</h3>
+            <p>Wer einen Account hat, kann erledigt Einträge abhaken</p>
+            <p>Fortschritt wird in der Cloud gespeichert</p>
+            <p>Abgeschlossene Einträge werden eingeklappt, um das Dashboard sauber zu halten</p>
+          <h3>Private Einträge</h3>
+            <p>Für private Todos, die nur dich angehen, können private Einträge erstellt werden</p>
+            <p>Diese sind sicher verschlüsselt und nur für deinen Account sichtbar</p>
+            <p>Auch diese können, nachdem sie erledigt sind, abgehakt werden</p>
+          <h3>Personalisierte Kurse</h3>
+            <p>Wer einen Account hat kann in den Einstellungen seine Kurse hinterlegen</p>
+            <p>Einträge, die als Fach einen nicht belegten Kurs haben, werden ausgeblendet</p>
+            <p>Die Option kann in Einstellungen deaktiviert werden</p>
+            <p>Die Kursauswahl kann dort ebenfalls bearbeitet werden</p>
+          <h3>Eintragsarchiv</h3>
+            <p>Einträge die älter als 24 Stunden sind werden ausgeblendet: aktuelle Aufgaben bleiben übersichtlich</p>
+            <p>Alte Einträge können 30 Tage lang im Eintragsarchiv eingesehen werden</p>
+            <p>Wer gefehlt hat kann herausfinden was nachgeholt werden muss</p>
+            <p>Prüfungsrelevante Aufträge bleiben auch für einen Test zu einem späteren Zeitpunkt erhalten</p>
+
+        <h2>Stundenplan</h2>
+          <h3>Digitale Version</h3>
+            <p>Papierstundenplan ist nicht mehr nötig</p>
+            <p>Infos sind innerhalb von wenigen Klicks einsehbar</p>
+          <h3>Live-Änderungen</h3>
+            <p>Vertretung, Ausfall, Raumänderungen usw. werden zeitnah übertragen</p>
+            <p>Änderungen sind sofort im digitalen Stundenplan sichtbar</p>
+            <p>Mehrere Ressourcen sind nicht mehr nötig</p>
+            <p>Auch z. B. Wandertage oder geplanter Unterrichtsentfall die nur mündlich angekündigt wurden können übersichtlich eingetragen werden</p>
+
+        <h2>Daltonraumfinder</h2>
+          <h3>Raumsuche</h3>
+            <p>Dank digitaler Version des Raumplans muss kein nerviger Zettel mehr mitgeführt werden</p>
+            <p>Suchfunktion erlaubt es in wenigen Sekunden hearuszufinden wer an welchem Tag im Wunschraum ist</p>
+            <p>Fächer der dort unterrichtenden Lehrer*innen werden praktisch angezeigt, um eine bessere Planung zu ermöglichen</p>
+          <h3>Lehrer*innensuche</h3>
+            <p>Bei dem Wunsch, eine/n spezifischen Lehrer*in zu finden kann über die Suchleiste der Raumplan nach dem Namen oder Fach gesucht werden</p>
+            <p>Jede/r Lehrer*in wird übersichtlich mit dem jeweiligen Raum für jeden Wochentag und ihren Fächern angezeigt</p>
+
+        <h2>Kürzelfinder</h2>
+          <h3>Kürzelübersetzer</h3>
+            <p>Unbekanntes Kürzel kann hier eingegeben werden</p>
+            <p>Kürzel wird übersetzt und der dazugehörige Name wird angezeigt</p>
+          <h3>Kürzelfinder</h3>
+            <p>Wenn das Kürzel zum Namen unbekannt ist kann der Modus gewechselt werden</p>
+            <p>Name wird in passendes Kürzel umgewandelt</p>
+
+        <h2>Sorgenbox</h2>
+          <p>Beschwerden oder Sachen die einen bedrücken können in das Textfeld eingetragen werden</p>
+          <p>Die Nachricht wird anonym an die Betreiber übermittelt</p>
+          <p>Wer etwas sagen will, aber seine Identität nicht preisgeben will, kann hier alles abgeben</p>
+          <p>Falls gewünscht, können die Betreiber die Person kontaktieren oder etwas gegen die Beschwerde unternehmen</p>
+
+        <h2>Verschiedenes</h2>
+          <h3>Countdown</h3>
+            <p>Countdown bis zu den Sommerferien</p>
+            <p>Einheit kann zu Millisekunden, Minuten, Wochen, etc. geändert werden</p>
+          <h3>Ankündigungen</h3>
+            <p>Wenn etwas wichtiges passiert, über das informiert werden muss, die Situation aber als Eintrag keinen Sinn ergibt können Admins seitenweite Ankündigungen erstellen0</p>
+            <p>Eine Leiste mit der Nachricht wird auf der ganzen Seite für alle angezeigt</p>
+            <p>bei mehreren Ankündigungen kann zwischen den Nachrichten gewechselt werden indem man auf die Leiste tippt</p>
+            <p>Durch Farbcodierung (etwa grau für eine kleine Erinnerung und rot für kurzfristigen Unterrichtsausfall) kann die Dringlichkeit ermittelt werden</p>
+    `
   }
 ];
 
@@ -65,7 +136,7 @@ const backToList = () => {
           <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search versions..."
+              placeholder="Versionen durchsuchen..."
               class="search-input"
           />
         </div>
@@ -87,7 +158,7 @@ const backToList = () => {
         </div>
 
         <div v-if="filteredUpdates.length === 0" class="no-results">
-          No updates found.
+          Keine Updates gefunden.
         </div>
       </div>
     </aside>
@@ -113,12 +184,8 @@ const backToList = () => {
         <div class="content-body">
           <p class="description">{{ currentUpdate.description }}</p>
 
-          <h3 class="changes-heading">Changelog</h3>
-          <ul class="changes-list">
-            <li v-for="(change, index) in currentUpdate.changes" :key="index">
-              {{ change }}
-            </li>
-          </ul>
+          <h3 class="changes-heading">Änderungen</h3>
+          <div class="changes-content" v-html="currentUpdate.changes"></div>
         </div>
       </div>
     </main>
@@ -305,21 +372,39 @@ const backToList = () => {
   margin-bottom: 12px;
 }
 
-.changes-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* --- Changes Content (Deep Styling) --- */
+/* Reset margin for the container */
+.changes-content {
+  color: var(--text);
 }
 
-.changes-list li {
+/* Style injected Headings */
+.changes-content :deep(h1),
+.changes-content :deep(h2),
+.changes-content :deep(h3),
+.changes-content :deep(h4) {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.changes-content :deep(h1) { font-size: 2rem; margin-block: 0.5rem; }
+.changes-content :deep(h2) { font-size: 1.5rem; margin-top: 2.5rem; }
+.changes-content :deep(h3) { font-size: 1.2rem; margin-top: 1rem; }
+
+/* Style injected Paragraphs as Bullet Points */
+.changes-content :deep(p) {
   position: relative;
   padding-left: 20px;
   margin-bottom: 8px;
+  margin-top: 0;
   line-height: 1.5;
   color: var(--text);
 }
 
-.changes-list li::before {
+.changes-content :deep(p)::before {
   content: "•";
   color: var(--sub);
   font-weight: bold;

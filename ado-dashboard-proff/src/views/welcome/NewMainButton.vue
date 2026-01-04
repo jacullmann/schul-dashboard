@@ -20,9 +20,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 32px;
+  padding: 10px 24px;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.25s ease;

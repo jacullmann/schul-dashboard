@@ -88,8 +88,9 @@ defineProps<{
         <button class="action-btn secondary arrow-hover-effect border" @click="onMoreInfoClick">
           <span class="arrow-wrapper">
             Mehr erfahren
+            <!--
             <ArrowDown class="arrow-icon original-arrow" :size="20"/>
-            <ArrowDown class="arrow-icon replacement-arrow" :size="20"/>
+            <ArrowDown class="arrow-icon replacement-arrow" :size="20"/>-->
           </span>
         </button>
 
@@ -322,13 +323,13 @@ defineProps<{
 
 .action-buttons {
   display: flex;
-  gap: 20px;
+  gap: 8px;
   margin-top: 30px;
   justify-content: flex-end;
 }
 
 .action-btn {
-  padding: 14px 30px;
+  padding: 10px 24px;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
@@ -344,6 +345,7 @@ defineProps<{
   border: 2px solid transparent;
   background: transparent;
   color: var(--text);
+  white-space: nowrap;
 }
 
 .secondary:hover {
@@ -355,10 +357,10 @@ defineProps<{
 }
 
 .arrow-wrapper {
-  display: inline-flex;
+  /*display: inline-flex;
   align-items: center;
   position: relative;
-  padding-right: 24px;
+  padding-right: 24px;*/
 }
 
 .arrow-icon {
