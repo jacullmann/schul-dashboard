@@ -52,104 +52,97 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import hw from '../hwApi'
-import AnnouncementPopup from './popups/AnnouncementPopup.vue' // NEU: Popup Component
+import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import hw from '../hwApi';
+import AnnouncementPopup from './popups/AnnouncementPopup.vue';
 
-const announcements = ref([])
-const currentIndex = ref(0)
-const showMenu = ref(false) // NEU: Menu State
-const showPopup = ref(false) // NEU: Popup State
-const currentPopupAnnouncement = ref(null) // NEU: Current Popup
-const route = useRoute()
-const welcomePaths = ['/welcome', '/admin-dashboard', '/kanye', 'verify']
-const isWelcomePage = computed(() => welcomePaths.includes(route.path))
+const announcements = ref([]);
+const currentIndex = ref(0);
+const showMenu = ref(false);
+const showPopup = ref(false);
+const currentPopupAnnouncement = ref(null);
+const route = useRoute();
+const welcomePaths = ['/welcome', '/admin-dashboard', '/kanye', '/verify'];
+const isWelcomePage = computed(() => welcomePaths.includes(route.path));
 
 const currentAnnouncement = computed(() => {
-  return announcements.value[currentIndex.value] || {}
-})
+  return announcements.value[currentIndex.value] || {};
+});
 
-// NEU: Local Storage für gesehene Popups
 const getSeenPopups = () => {
   try {
-    return JSON.parse(localStorage.getItem('seenAnnouncementPopups') || '[]')
+    return JSON.parse(localStorage.getItem('seenAnnouncementPopups') || '[]');
   } catch {
-    return []
+    return [];
   }
-}
+};
 
 const markPopupAsSeen = (announcementId) => {
-  const seen = getSeenPopups()
+  const seen = getSeenPopups();
   if (!seen.includes(announcementId)) {
-    seen.push(announcementId)
-    localStorage.setItem('seenAnnouncementPopups', JSON.stringify(seen))
+    seen.push(announcementId);
+    localStorage.setItem('seenAnnouncementPopups', JSON.stringify(seen));
   }
-}
+};
 
 onMounted(async () => {
   if (!isWelcomePage.value) {
     try {
-      const { data } = await hw.get('/api/announcements')
-      announcements.value = data
-      updateAnnouncementHeight()
-
-      // NEU: Popup für neue Ankündigungen anzeigen
-      checkForNewPopups(data)
+      const { data } = await hw.get('/api/announcements');
+      announcements.value = data;
+      updateAnnouncementHeight();
+      checkForNewPopups(data);
     } catch (error) {
-      console.error('Fehler beim Laden der globalen Ankündigungen', error)
+      console.error('Fehler beim Laden der globalen Ankündigungen', error);
     }
   }
-})
+});
 
-// NEU: Popup-Logik
 function checkForNewPopups(announcements) {
-  const seenPopups = getSeenPopups()
+  const seenPopups = getSeenPopups();
 
   for (const announcement of announcements) {
-    // Nur Popups anzeigen, die als Popup markiert sind und noch nicht gesehen wurden
     if (announcement.showAsPopup && !seenPopups.includes(announcement._id)) {
-      currentPopupAnnouncement.value = announcement
-      showPopup.value = true
-      markPopupAsSeen(announcement._id)
-      break // Nur ein Popup gleichzeitig anzeigen
+      currentPopupAnnouncement.value = announcement;
+      showPopup.value = true;
+      markPopupAsSeen(announcement._id);
+      break;
     }
   }
 }
 
-// NEU: Popup schließen
 function closePopup() {
-  showPopup.value = false
-  currentPopupAnnouncement.value = null
+  showPopup.value = false;
+  currentPopupAnnouncement.value = null;
 }
 
-// NEU: Menu Funktionen
 function toggleMenu() {
-  showMenu.value = !showMenu.value
+  showMenu.value = !showMenu.value;
 }
 
 function selectAnnouncement(index) {
-  currentIndex.value = index
-  showMenu.value = false
+  currentIndex.value = index;
+  showMenu.value = false;
 }
 
 function nextAnnouncement() {
   if (announcements.value.length > 1) {
-    currentIndex.value = (currentIndex.value + 1) % announcements.value.length
+    currentIndex.value = (currentIndex.value + 1) % announcements.value.length;
   }
 }
 
 function updateAnnouncementHeight() {
   if (announcements.value.length && !isWelcomePage.value) {
-    document.documentElement.style.setProperty('--announcement-height', '45px')
+    document.documentElement.style.setProperty('--announcement-height', '45px');
   } else {
-    document.documentElement.style.setProperty('--announcement-height', '0px')
+    document.documentElement.style.setProperty('--announcement-height', '0px');
   }
-  window.dispatchEvent(new CustomEvent('announcement-height-changed'))
+  window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
 
-watch(announcements, updateAnnouncementHeight)
-watch(isWelcomePage, updateAnnouncementHeight)
+watch(announcements, updateAnnouncementHeight);
+watch(isWelcomePage, updateAnnouncementHeight);
 watch(isWelcomePage, async (newValue, oldValue) => {
   if (oldValue === true && newValue === false) {
     try {
@@ -170,8 +163,8 @@ function colorFor(color) {
     'danger': 'var(--danger)',
     'expired': 'var(--gg)',
     'info': 'var(--vlbg)',
-  }
-  return map[color] || 'var(--sub)'
+  };
+  return map[color] || 'var(--sub)';
 }
 </script>
 
