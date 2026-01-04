@@ -10,8 +10,8 @@
             <Mail class="section-icon" />
             <h3>E-Mail</h3>
           </div>
-          <a href="mailto:dashboardverifizierung@gmail.com" class="email-button">
-            dashboardverifizierung@gmail.com
+          <a href="mailto:kontakt@schul-dashboard.com" class="email-button">
+            kontakt@schul-dashboard.com
             <ExternalLink class="button-icon" />
           </a>
         </div>
