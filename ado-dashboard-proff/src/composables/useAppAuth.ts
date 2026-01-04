@@ -76,8 +76,14 @@ export function useAppAuth() {
             });
 
             if (response.status === 200 && response.data.ok) {
+                if (response.data.csrfToken) {
+                    setCsrfToken(response.data.csrfToken);
+                } else {
+                    syncCsrfFromCookie();
+                }
                 isAuthenticated.value = true;
-                return { ok: true, csrfToken: response.data.csrfToken || null };
+                window.dispatchEvent(new CustomEvent('app-gate-authenticated'));
+                return { ok: true };
             }
 
             return { ok: false, error: 'Login fehlgeschlagen' };

@@ -12,7 +12,7 @@
           <p>Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
 
           <h3>Eintrag hinzufügen</h3>
-          <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Arbeitsblätter, Seiten aus dem Buch, Notizen, Lernzettel o. ä.</p>
+          <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
 
           <h3>Bilder verwalten</h3>
           <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder</strong> aus und klicke auf das <strong>+</strong>. Um eigene Bilder zu entfernen, öffne erneut das Bilder-Menü und klicke auf das <strong>X</strong> in der Ecke des Bildes.</p>
@@ -23,8 +23,8 @@
           <h3>Abgeschlossene Aufgaben tracken</h3>
           <p>Wenn du einen Account hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
 
-          <h3>Personalisierte Kurse</h3>
-          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
+          <!--<h3>Personalisierte Kurse</h3>
+          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>-->
 
           <h3>Eintragarchiv</h3>
           <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv Button</strong> klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
@@ -470,7 +470,7 @@ const {
 }
 /* Anmerkungen */
 .editor-note-section {
-  margin-top: 12px;
+  margin-top: 8px;
   padding: 10px 12px;
   background: var(--gg);
   border: 1px solid var(--border);

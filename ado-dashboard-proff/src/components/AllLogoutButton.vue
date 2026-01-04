@@ -16,13 +16,12 @@
         </div>
 
         <div class="popup-actions row">
+          <button class="btn ghost" @click="closePopup">
+            Abbrechen
+          </button>
           <button class="btn ghost" @click="doLogout">
             <LogOut size="16" />
             Abmelden
-          </button>
-
-          <button class="btn ghost" @click="closePopup">
-            Abbrechen
           </button>
         </div>
       </div>
@@ -74,7 +73,7 @@ function closePopup() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 16px;
+  margin: 0;
   gap: 8px;
   text-align: left;
 }
