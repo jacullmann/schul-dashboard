@@ -11,7 +11,7 @@
 
           Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten.
 
-          Mehr dazu findest du in unserer <a @click="toData" class="data-link" style="cursor: pointer">Datenschutzerklärung</a>.</p>
+          Mehr dazu findest du in unserer Datenschutzerklärung.</p>
       </div>
 
       <div class="cookie-actions">
