@@ -302,7 +302,7 @@ import { useAdmin } from '../composables/useAdmin';
 import { useHausaufgaben} from "../composables/useHausaufgaben";
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import AdminHeader from '../components/admin-components/AdminHeader.vue';
-import AdminSidebar from '../components/admin-components//AdminSidebar.vue';
+import AdminSidebar from '../components/admin-components/AdminSidebar.vue';
 import { marked } from 'marked';
 import {
   FileText,

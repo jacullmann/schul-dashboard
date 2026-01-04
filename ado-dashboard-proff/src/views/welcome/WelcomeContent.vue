@@ -271,10 +271,24 @@ defineProps<{
 }
 
 .example-card-vanishing {
-  background:linear-gradient(var(--vlbg), transparent) padding-box, linear-gradient(var(--gg), transparent) border-box;
-  border:1px solid transparent;
+  background:linear-gradient(var(--vlbg) 0%, transparent 100%);
   border-radius: 16px 16px 0 0;
   min-height: 30px;
+}
+
+.example-card-vanishing::before {
+  content: "";
+  border-radius: 16px 16px 0 0;
+  min-height: 30px;
+  display: flex;
+  border: 1px solid transparent;
+  background: linear-gradient(var(--gg) 0%, transparent 100%) border-box;
+  -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .text-content {

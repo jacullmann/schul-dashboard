@@ -471,8 +471,8 @@ const {
 /* Anmerkungen */
 .editor-note-section {
   margin-top: 12px;
-  padding: 12px;
-  background: var(--vlbg);
+  padding: 10px 12px;
+  background: var(--gg);
   border: 1px solid var(--border);
   border-radius: var(--border-4);
 }
@@ -481,7 +481,6 @@ const {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .editor-note-label {

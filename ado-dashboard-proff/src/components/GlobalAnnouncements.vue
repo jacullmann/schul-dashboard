@@ -141,8 +141,14 @@ function updateAnnouncementHeight() {
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
 
-watch(announcements, updateAnnouncementHeight);
-watch(isWelcomePage, updateAnnouncementHeight);
+watch(announcements, () => {
+  updateAnnouncementHeight();
+});
+
+watch(isWelcomePage, () => {
+  updateAnnouncementHeight();
+});
+
 watch(isWelcomePage, async (newValue, oldValue) => {
   if (oldValue === true && newValue === false) {
     try {
@@ -199,7 +205,7 @@ function colorFor(color) {
 }
 
 .announcement-text {
-  white-space: wrap;
+  white-space: normal;
   flex: 1;
   text-align: center;
 }
