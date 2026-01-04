@@ -409,7 +409,7 @@ const tabTitles: Record<string, string> = {
 }
 
 .stat-card {
-  background: var(--card);
+  background: var(--bg);
   border: 1px solid var(--border);
   padding: 20px;
   border-radius: 8px;

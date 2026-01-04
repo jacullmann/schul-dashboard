@@ -9,6 +9,9 @@
         <span class="highlight">Zukunft</span>
       </h3>
       <ImageComparison/>
+      <div class="small-print">
+        Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons
+      </div>
     </div>
 
     <div class="info-container">
@@ -60,6 +63,12 @@ import ImageComparison from "../ImageComparison.vue";
 
 .info-title .highlight{
   font-weight: 700;
+}
+
+.small-print {
+  font-size: 0.7rem;
+  color: var(--sub);
+  margin: 0;
 }
 
 .info-promises {
