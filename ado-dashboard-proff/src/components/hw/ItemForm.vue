@@ -8,7 +8,7 @@
         <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
-      <div class="row">
+      <div class="row-n">
         <div class="col">
           <label class="label">Titel</label>
           <input class="input" v-model="title" />
