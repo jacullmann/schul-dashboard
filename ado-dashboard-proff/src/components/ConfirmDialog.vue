@@ -149,7 +149,7 @@ watch(() => props.show, (newVal) => {
 .row {
   display: flex;
   gap: 12px;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 
 .btn.danger:disabled {
@@ -182,7 +182,7 @@ watch(() => props.show, (newVal) => {
   .row {
     flex-direction: row;
     gap: 8px;
-    justify-content: right;
+    justify-content: flex-end;
   }
 }
 </style>
