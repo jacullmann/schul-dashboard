@@ -9,7 +9,6 @@
     <div class="main-container">
       <WelcomeContent v-if="isWelcomeContent" :on-start-click="showAuthForm" :on-more-info-click="scrollToSu" key="welcome"/>
       <Su v-if="isWelcomeContent" ref="suComponentRef" />
-      <ImageComparison />
 
         <div v-if="!isWelcomeContent && !isSecurity" class="auth-content content" key="auth-form">
           <AuthForm />
@@ -38,7 +37,6 @@ import AuthForm from "./welcome/AuthForm.vue";
 import WelcomeContent from "./welcome/WelcomeContent.vue";
 import Sec from "./welcome/Sec.vue";
 import Su from "./welcome/components/Su.vue";
-import ImageComparison from "./welcome/ImageComparison.vue";
 
 const isSecurity = ref(false);
 
