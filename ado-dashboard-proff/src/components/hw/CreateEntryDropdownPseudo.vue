@@ -13,7 +13,7 @@
         class="entry-menu entry-menu-pseudo"
     >
       <div class="pseudo-content">
-        <h4>
+        <h4 style="margin: 0">
           Möchtest du einen Eintrag erstellen?
         </h4>
         <p>Melde dich an, um Einträge zu erstellen.</p>
