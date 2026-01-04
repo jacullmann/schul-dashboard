@@ -38,7 +38,6 @@
       />
 
       <CookieBanner />
-      <AccountPromoPopup v-if="!$route.meta.hideNavigation" />
     </template>
   </div>
 </template>
@@ -51,7 +50,6 @@ import Header from './components/Header.vue';
 import Footer from './components/Footer.vue';
 import CookieBanner from "./components/CookieBanner.vue";
 import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
-import AccountPromoPopup from './components/popups/AuthFeatures.vue';
 import { loadBadWords } from "./composables/useProfanity";
 import { useLoadingBar } from "./composables/loadingState";
 import AuthModal from './components/hw/AuthModal.vue';
