@@ -494,6 +494,7 @@ const {
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
+  background: var(--gg);
 }
 
 .note-placeholder {
