@@ -25,7 +25,6 @@
         Schüler, das heißt:
       </h3>
       <div class="info-promises">
-        <div><span class="highlight">0</span> unnötige Zettel</div>
         <div><span class="highlight">0</span> Euro</div>
         <div><span class="highlight">0</span> Werbung</div>
         <div><span class="highlight">0</span> verkaufte Daten</div>
