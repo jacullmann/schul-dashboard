@@ -17,7 +17,7 @@
           Möchtest du einen Eintrag erstellen?
         </h4>
         <p>Melde dich an, um Einträge zu erstellen.</p>
-        <div>
+        <div class="row">
           <button class="btn action smaller" @click="openAuthModal">
             Anmelden
           </button>
@@ -103,6 +103,11 @@ onBeforeUnmount(() => {
 
 .mg {
   padding: 4px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 @media (max-width: 613px) {
   .entry-menu {

@@ -6,18 +6,18 @@
 
       <div class="row">
         <button
-            class="btn danger"
-            @click="$emit('confirm')"
-            data-umami-event="Eintrag endgültig löschen bestätigen"
-        >
-          Eintrag löschen
-        </button>
-        <button
             class="btn ghost"
             @click="$emit('cancel')"
             data-umami-event="Eintrag löschen abbrechen"
         >
           Abbrechen
+        </button>
+        <button
+            class="btn danger"
+            @click="$emit('confirm')"
+            data-umami-event="Eintrag endgültig löschen bestätigen"
+        >
+          Eintrag löschen
         </button>
       </div>
     </div>
@@ -60,6 +60,6 @@ defineEmits(['confirm', 'cancel'])
 .row {
   display: flex;
   gap: 8px;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 </style>

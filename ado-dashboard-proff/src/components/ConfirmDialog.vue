@@ -179,18 +179,10 @@ watch(() => props.show, (newVal) => {
 }
 
 @media (max-width: 444px) {
-  .confirm-box {
-    padding: 20px 16px;
-    width: 95%;
-  }
-
   .row {
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
-  }
-
-  .row button {
-    width: 100%;
+    justify-content: right;
   }
 }
 </style>

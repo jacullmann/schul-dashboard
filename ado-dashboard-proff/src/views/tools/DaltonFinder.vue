@@ -498,7 +498,7 @@ tr td:last-child {
   padding: 12px;
   margin-bottom: 12px;
   border: 1px solid var(--border2);
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 .card-header {

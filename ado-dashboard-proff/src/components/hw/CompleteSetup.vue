@@ -54,11 +54,11 @@
       <div v-if="error" class="field-error" style="color:var(--danger); margin-top: 12px;">{{ error }}</div>
 
       <div class="row" style="justify-content: space-between; margin-top: 20px;">
-        <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
-          {{ submitting ? 'Speichere...' : 'Speichern' }}
-        </button>
         <button class="btn ghost" v-if="isSetup" @click="skip" :disabled="skipping || submitting">
           {{ skipping ? 'Überspringe...' : 'Überspringen' }}
+        </button>
+        <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
+          {{ submitting ? 'Speichere...' : 'Speichern' }}
         </button>
       </div>
     </div>

@@ -258,7 +258,7 @@ async function removeImg(publicId: string) {
 .row {
   display: flex;
   gap: 8px;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 /* Header */
 .modal-head {

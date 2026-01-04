@@ -558,8 +558,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 /* Aktionen unten */
 .actions {
-  margin-top: 16px;
-  align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
 
 /* Meldungen */

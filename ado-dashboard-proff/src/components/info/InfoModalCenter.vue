@@ -118,9 +118,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
 }
 @media (max-width: 540px) {
   .info-modal-content {
-    max-width: 90vw;
     margin: 16px;
-    border-radius: 8px;
   }
 }
 .fade-scale-enter-active,

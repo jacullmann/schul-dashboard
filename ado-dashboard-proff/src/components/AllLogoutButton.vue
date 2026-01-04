@@ -94,8 +94,8 @@ function closePopup() {
 .popup-actions {
   display: flex;
   flex-direction: row;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 @media (max-width: 480px) {
