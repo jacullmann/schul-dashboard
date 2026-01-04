@@ -30,6 +30,7 @@
       </div>
 
       <div class="row">
+        <button class="btn ghost" @click="$emit('cancel')">Abbrechen</button>
         <button
             class="btn danger"
             @click="$emit('confirm', category)"
@@ -37,7 +38,6 @@
         >
           Eintrag melden
         </button>
-        <button class="btn ghost" @click="$emit('cancel')">Abbrechen</button>
       </div>
     </div>
   </div>
