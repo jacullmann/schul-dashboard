@@ -96,7 +96,7 @@
         </div>
 
         <!-- Submit Button -->
-        <div style="margin-top:16px;">
+        <div class="row" style="margin-top:16px;">
           <button
               data-umami-event="Neues Passwort festlegen Button"
               class="btn action"
@@ -267,6 +267,7 @@ async function submit() {
   display: flex;
   align-items: center;
   transition: color 0.2s ease;
+  web
 }
 
 .password-toggle:hover {
