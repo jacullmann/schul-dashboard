@@ -367,6 +367,9 @@ footer {
         border:1px solid var(--border2);
         color:var(--text);
     }
+    .btn.danger:hover {
+        background: var(--danger);
+    }
 }
 @media (max-width: 500px) {
     :root {
