@@ -494,7 +494,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 
 .lesson-group-container.highlight-active .lesson-details {
-  color: var(--text--gg);
+  color: var(--gg);
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
