@@ -518,6 +518,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .images {
   gap: 8px;
   margin-top: 6px;
+  justify-content: flex-start;
 }
 .image-item {
   position: relative;

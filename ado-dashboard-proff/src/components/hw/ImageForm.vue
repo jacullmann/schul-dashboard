@@ -281,12 +281,6 @@ async function removeImg(publicId: string) {
 }
 
 /* Images grid row */
-.images-row {
-  gap: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-}
 
 /* Thumbnail wrapper: fixed square using aspect-ratio */
 .img-thumb {
@@ -337,7 +331,12 @@ async function removeImg(publicId: string) {
 .small { font-size: 12px; color: var(--sub); }
 .msg-ok { color: var(--primary); font-weight: 600; }
 .msg-error { color: var(--danger); font-weight: 600; }
-
+.images-row {
+  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
 /* responsive */
 @media (max-width: 480px) {
   .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
