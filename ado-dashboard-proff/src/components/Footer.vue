@@ -7,10 +7,10 @@
             <Logo class="footer-logo" aria-hidden="true" />
             <span class="brand-text">Dashboard</span>
           </div>
+          <Notizen />
           <p class="brand-description">
             Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
           </p>
-          <Notizen />
         </div>
 
         <div class="footer-section">
