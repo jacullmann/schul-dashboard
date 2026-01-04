@@ -122,7 +122,7 @@ function openCookieBanner() {
 
 /* Brand Section */
 .footer-brand {
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .brand-header {
@@ -145,7 +145,7 @@ function openCookieBanner() {
 
 .brand-description {
   color: var(--sub);
-  margin: 0;
+  margin-top: 1rem;
   font-size: 0.95rem;
   font-weight: 500;
 }
