@@ -144,7 +144,8 @@ function openCookieBanner() {
 .brand-description {
   color: var(--sub);
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .footer-section h3 {
