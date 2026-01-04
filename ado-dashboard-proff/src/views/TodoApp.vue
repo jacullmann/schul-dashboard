@@ -48,7 +48,7 @@
           <div
               v-for="todo in filteredTodos"
               :key="todo.id"
-              class="item-card"
+              class="todo-item"
               :class="{ 'completed': todo.completed, 'overdue': isOverdue(todo.dueDate, todo.completed) }"
           >
             <div class="todo-main">
@@ -58,7 +58,7 @@
               </div>
 
               <div class="todo-content">
-                <h4 class="item-title">{{ todo.title }}</h4>
+                <h4 class="todo-title">{{ todo.title }}</h4>
                 <p v-if="todo.content" class="todo-description">{{ todo.content }}</p>
                 <div v-if="todo.dueDate" class="todo-due-date">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
@@ -256,6 +256,8 @@ function showMessage(msg: string, error = false) {
   gap: 1rem;
 }
 .todo-item.completed {
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.05);
 }
 .todo-item.overdue {
   border-color: var(--danger);
