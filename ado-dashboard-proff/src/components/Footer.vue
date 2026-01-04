@@ -10,6 +10,7 @@
           <p class="brand-description">
             Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
           </p>
+          <Notizen />
         </div>
 
         <div class="footer-section">
@@ -75,6 +76,7 @@ import { ref } from "vue";
 import { useTheme, ThemeMode } from '../composables/useTheme';
 import All from './AllLogoutButton.vue';
 import Logo from './hw/Logo.vue';
+import Notizen from "./Notizen.vue";
 
 const year = new Date().getFullYear();
 const { selectedThemeMode, applyTheme } = useTheme();
