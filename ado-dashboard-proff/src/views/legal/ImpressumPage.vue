@@ -5,7 +5,7 @@
     <p>12045 Berlin</p>
 
     <h3>Kontakt</h3>
-    <p>E-Mail: dashboardverifizierung@gmail.com</p><br>
+    <p>E-Mail: kontakt@schul-dashboard.com</p><br>
 
     <p>Bei dieser Anwendung handelt es sich um ein rein privates, nicht-kommerzielles Schülerprojekt.</p>
   </div>
