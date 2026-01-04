@@ -61,7 +61,6 @@ export function useHausaufgaben() {
     const showImageFormFor = ref<any>(null);
     const itemToEdit = ref<HwItem | null>(null);
     const subjects = ref<string[]>([]);
-    const announcements = ref<any[]>([]);
     const items = ref<HwItem[]>([]);
     const loading = ref(true);
     const initialLoad = ref(true);
@@ -112,17 +111,6 @@ export function useHausaufgaben() {
     const revealedImages = ref(new Set<string>());
 
     // --- Computed ---
-    const colorFor = (color: string) => {
-        const map: Record<string, string> = {
-            'ok': 'var(--primary)',
-            'warn': 'var(--warn)',
-            'danger': 'var(--danger)',
-            'expired': 'var(--gg)',
-            'info': 'var(--primary)',
-        };
-        return map[color] || 'var(--sub)';
-    };
-
     const colorStyles = (timeColor: string) => {
         if (timeColor === 'expired') return { background: 'var(--gg)', color: 'var(--text)' };
         if (timeColor === 'danger') return { background: 'var(--danger)', color: 'var(--text)' };
@@ -256,13 +244,6 @@ export function useHausaufgaben() {
         } catch (e) {}
     }
 
-    async function loadAnnouncements() {
-        try {
-            const { data } = await hw.get('/api/announcements');
-            announcements.value = data;
-        } catch (e) {}
-    }
-
     async function reload() {
         if (tab.value === 'PRIVATE') {
             loading.value = false;
@@ -368,18 +349,6 @@ export function useHausaufgaben() {
             isError.value = true;
         } finally {
             loading.value = false;
-        }
-    }
-
-    async function deleteAnnouncement(id: string) {
-        if (confirm('Ankündigung löschen?')) {
-            try {
-                await hw.delete(`/api/announcements/${id}`);
-                handleSuccess('Ankündigung gelöscht.');
-            } catch (e: any) {
-                message.value = e.response?.data?.error || 'Fehler.';
-                isError.value = true;
-            }
         }
     }
 
@@ -531,7 +500,6 @@ export function useHausaufgaben() {
     onMounted(() => {
         document.addEventListener('click', onDocumentClick);
         loadSubjects();
-        loadAnnouncements();
         reload();
         loadCheckedForMe();
     });
@@ -560,7 +528,6 @@ export function useHausaufgaben() {
         itemToEdit,
         user,
         subjects,
-        announcements,
         items,
         loading,
         subjectFilter,
@@ -581,7 +548,6 @@ export function useHausaufgaben() {
         toggleDescription,
         showMore,
         showLess,
-        colorFor,
         colorStyles,
         toggleMenu,
         onMenuAction,
@@ -602,7 +568,6 @@ export function useHausaufgaben() {
         startEditNote,
         cancelEditNote,
         saveNote,
-        deleteAnnouncement,
         goTab,
         isChecked,
         toggleCheck,
