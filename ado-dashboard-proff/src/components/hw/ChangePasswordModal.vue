@@ -267,7 +267,6 @@ async function submit() {
   display: flex;
   align-items: center;
   transition: color 0.2s ease;
-  web
 }
 
 .password-toggle:hover {
