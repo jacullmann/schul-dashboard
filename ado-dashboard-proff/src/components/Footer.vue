@@ -263,9 +263,5 @@ function openCookieBanner() {
   .brand-text {
     font-size: 1.3rem;
   }
-
-  .brand-description {
-    font-size: 0.875rem;
-  }
 }
 </style>
