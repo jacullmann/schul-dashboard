@@ -80,7 +80,7 @@ function kanyeRouter(album: Album) {
         </div>
       </div>
     </div>
-    <p style="font-size: 0.5rem; color: var(--sub)">Album art used for identification purposes only. Copyright belongs to the respective owners, labels, and artists.</p>
+    <p style="font-size: 0.7rem; color: var(--sub)">Album art used for identification purposes only. Copyright belongs to the respective owners, labels, and artists.</p>
   </div>
   <router-view />
 </template>

@@ -14,7 +14,7 @@
     >
       <div class="pseudo-content">
         <h4>
-          Möchtest du einen EIntrag erstellen?
+          Möchtest du einen Eintrag erstellen?
         </h4>
         <p>Melde dich an, um Einträge zu erstellen.</p>
         <div>
@@ -72,11 +72,11 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 4px;
-  min-width: 280px;
+  margin-top: 8px;
+  min-width: 300px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 12px;
   display: flex;
   gap: 5px;
@@ -87,6 +87,8 @@ onBeforeUnmount(() => {
 
 .pseudo-content p {
   font-size: 14px;
+  margin-block: 4px 16px;
+  color: var(--sub);
 }
 @keyframes menuFadeIn {
   from {

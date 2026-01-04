@@ -212,11 +212,13 @@ function openCookieBanner() {
 @media (max-width: 1024px) {
   .footer-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 2.5rem;
   }
 
   .footer-brand {
     grid-column: 1 / -1;
+  }
+  .footer-section h3 {
+    margin: 2rem 0 0.25rem;
   }
 }
 
@@ -231,7 +233,6 @@ function openCookieBanner() {
 
   .footer-grid {
     grid-template-columns: 1fr;
-    gap: 2rem;
   }
 
   .footer-brand {

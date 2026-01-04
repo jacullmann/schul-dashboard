@@ -64,7 +64,9 @@ const showPopup = ref(false);
 const currentPopupAnnouncement = ref(null);
 const route = useRoute();
 const welcomePaths = ['/welcome', '/admin-dashboard', '/kanye', '/verify'];
-const isWelcomePage = computed(() => welcomePaths.includes(route.path));
+const isWelcomePage = computed(() =>
+    welcomePaths.some(path => route.path.startsWith(path))
+);
 
 const currentAnnouncement = computed(() => {
   return announcements.value[currentIndex.value] || {};

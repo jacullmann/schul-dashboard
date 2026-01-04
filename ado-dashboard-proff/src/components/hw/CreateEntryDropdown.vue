@@ -124,7 +124,7 @@ onBeforeUnmount(() => {
   z-index: 1000;
   box-shadow: var(--shadow-s);
   animation: menuFadeIn 160ms ease;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 @keyframes menuFadeIn {
@@ -176,13 +176,13 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid var(--border2);
 }
 
-@media (max-width: 500px) {
+@media (max-width: 510px) {
   .entry-menu {
     left: auto;
     right: 0;
   }
 }
-@media (max-width: 379px) {
+@media (max-width: 382px) {
   .entry-menu {
     left: 0;
     right: auto;

@@ -372,8 +372,12 @@ E-Mail bestätigen
                 const user = await User.findById(req.user.sub);
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
                 if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
-                await User.deleteOne({ _id: user._id });
+                const userId = user._id;
+                await KeepChecked.deleteMany({ userId });
+                await EncryptedTodo.deleteMany({ userId });
+                await User.deleteOne({ _id: userId });
                 clearUserToken(res);
+                rotateCsrfToken(res, csrfSecret);
                 res.json({ ok: true });
             } catch (err) {
                 console.error('DELETE /api/auth/me error', err);

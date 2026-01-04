@@ -1,6 +1,6 @@
 <template>
   <transition name="popup-overlay">
-    <div v-if="showPopup" class="popup-overlay" @click="closePopup">
+    <div v-if="showPopupNot" class="popup-overlay" @click="closePopup">
       <transition name="popup-content">
         <div class="popup-container" @click.stop>
           <button class="close-btn" @click="closePopup" aria-label="Popup schließen">
@@ -57,6 +57,7 @@ const router = useRouter()
 import { XIcon, UserPlusIcon, CheckCircleIcon } from 'lucide-vue-next'
 
 const showPopup = ref(false)
+const showPopupNot = ref(false)
 const POPUP_STORAGE_KEY = 'account_popup_last_shown'
 const POPUP_SHOULD_SHOW_KEY = 'account_popup_should_show'
 let popupTimeout: number | null = null

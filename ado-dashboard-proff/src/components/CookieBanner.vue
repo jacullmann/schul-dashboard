@@ -16,7 +16,7 @@
 
       <div class="cookie-actions">
         <!--<button data-umami-event="Cookies ablehnen" class="btn btn-ghost" @click="revoke">Ablehnen</button>-->
-        <button data-umami-event="Cookies-Hinweis bestätigt" class="btn ghost" @click="accept">Verstanden</button>
+        <button data-umami-event="Cookies-Hinweis bestätigt" class="btn action" @click="accept">Verstanden</button>
       </div>
     </div>
   </div>
@@ -79,7 +79,7 @@ onBeforeUnmount(() => {
   max-width: 420px;
   border: 1px solid var(--border2);
   border-radius: 16px;
-  background: var(--lbg);
+  background: var(--vlbg);
   box-shadow: var(--shadow-l);
   z-index: 1200;
   padding: 0;

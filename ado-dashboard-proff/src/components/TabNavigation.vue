@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: 0;
   background-color: var(--text);
-  border-radius: var(--border-4);
+  border-radius: calc(var(--border-4) - 1px);
   z-index: 2;
   overflow: hidden;
   pointer-events: none;

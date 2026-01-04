@@ -64,58 +64,34 @@
             </div>
           </div>
 
-          <div v-if="confirming" class="confirm-section">
-            <div class="confirm-warning">
-              <strong>Account unwiderruflich löschen?</strong>
-              <div class="confirm-text">E-Mail: {{ email }}</div>
-              <div class="confirm-note">
-                Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladenen Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account geschlossen wird.
-
-                Du kannst jederzeit einen neuen Account erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Account verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
-              </div>
-              <label class="checkbox-label">
-                <input
-                    type="checkbox"
-                    v-model="understoodChecked"
-                    class="checkbox-input"
-                >
-                <span class="checkbox-custom"></span>
-                Ich verstehe, dass ich hiermit meinen Account unwiderruflich lösche.
-              </label>
-            </div>
-
-            <div class="confirm-actions">
-              <button class="btn ghost small" @click="confirming = false">Abbrechen</button>
-              <button
-                  class="btn danger small"
-                  @click="confirmDelete"
-                  :disabled="submitting || !understoodChecked"
-              >
-                {{ submitting ? 'Löscht...' : 'Account Löschen' }}
-              </button>
-            </div>
-          </div>
-
           <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
           <div v-if="successMsg" class="message success">{{ successMsg }}</div>
         </div>
       </div>
     </transition>
 
-    <!-- Change Password Modal -->
+    <!-- Passwort ändern Modal -->
     <ChangePasswordModal
         v-if="showChangePassword"
         @close="showChangePassword = false"
         @success="onPasswordChanged"
+    />
+    <!-- Account löschen Modal -->
+    <DeleteAccountModal
+        v-if="showDeleteAccount"
+        :email="email"
+        @close="showDeleteAccount = false"
+        @deleted="onAccountDeleted"
+        @error="onDeleteError"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
-import hw from '../../hwApi';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Filter, CircleUserRound } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, CircleUserRound } from "lucide-vue-next";
 import ChangePasswordModal from './ChangePasswordModal.vue';
+import DeleteAccountModal from './DeleteAccountModal.vue';
 import PersonalizationDropdown from './PersonalizationDropdown.vue';
 
 const props = defineProps<{
@@ -141,12 +117,10 @@ function onPersonalizationChange(value: boolean) {
 }
 
 const open = ref(false);
-const confirming = ref(false);
-const submitting = ref(false);
 const errorMsg = ref('');
 const successMsg = ref('');
-const understoodChecked = ref(false);
 const showChangePassword = ref(false);
+const showDeleteAccount = ref(false);
 
 const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
@@ -177,20 +151,17 @@ function onPasswordChanged() {
 function toggle() {
   open.value = !open.value;
   if (open.value) positionPopup();
-  else confirming.value = false;
   clearMessages();
 }
 
 function close() {
   open.value = false;
-  confirming.value = false;
   clearMessages();
 }
 
 function startDelete() {
-  confirming.value = true;
-  understoodChecked.value = false;
-  clearMessages();
+  showDeleteAccount.value = true;
+  close();
 }
 
 function clearMessages() {
@@ -242,27 +213,12 @@ async function positionPopup() {
   };
 }
 
-async function confirmDelete() {
-  submitting.value = true;
-  errorMsg.value = '';
-  try {
-    const res = await hw.delete('/api/auth/me');
-    if (res?.data?.ok) {
-      successMsg.value = 'Account wurde gelöscht.';
-      emit('deleted');
-      setTimeout(() => { close(); }, 600);
-    } else {
-      const err = (res?.data?.error) || 'Unbekannter Fehler';
-      errorMsg.value = err;
-      emit('error', err);
-    }
-  } catch (e: any) {
-    const msg = e?.response?.data?.error || 'Fehler beim Löschen';
-    errorMsg.value = msg;
-    emit('error', msg);
-  } finally {
-    submitting.value = false;
-  }
+function onAccountDeleted() {
+  emit('deleted');
+}
+
+function onDeleteError(msg: string) {
+  emit('error', msg);
 }
 
 function onDocClick(e: MouseEvent) {
@@ -384,53 +340,6 @@ onBeforeUnmount(() => {
   margin: 4px 0;
 }
 
-.danger-section {
-}
-
-.confirm-section {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  padding: 12px;
-  margin-top: 8px;
-}
-
-.confirm-warning {
-  font-size: 13px;
-  color: var(--text);
-  margin-bottom: 12px;
-}
-
-.confirm-warning strong {
-  color: var(--special--red);
-  display: block;
-  margin-bottom: 6px;
-}
-
-.confirm-text {
-  font-size: 12px;
-  color: var(--sub);
-  margin-bottom: 8px;
-}
-
-.confirm-note {
-  font-size: 11px;
-  color: var(--sub);
-  line-height: 1.4;
-  max-height: 110px;
-  overflow-y: scroll;
-}
-
-.confirm-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.btn.small {
-  padding: 6px 12px;
-  font-size: 12px;
-}
-
 .message {
   font-size: 12px;
   padding: 8px;
@@ -471,62 +380,6 @@ onBeforeUnmount(() => {
 .pop-leave-to {
   transform: translateY(-8px) scale(0.98);
   opacity: 0;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  color: var(--sub);
-  cursor: pointer;
-  margin-top: 8px;
-  padding: 4px 0;
-}
-
-.checkbox-input {
-  display: none;
-}
-
-.checkbox-custom {
-  width: 16px;
-  height: 16px;
-  border: 1px solid var(--gg);
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.checkbox-input:checked + .checkbox-custom {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.checkbox-input:checked + .checkbox-custom::after {
-  content: '✓';
-  color: var(--text);
-  font-size: 12px;
-}
-
-.checkbox-label:hover .checkbox-custom {
-  border-color: var(--sub);
-}
-
-.personalization-indicator {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: var(--sup-base);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text);
-  border: 2px solid var(--vlbg);
 }
 
 @media (max-width: 480px) {

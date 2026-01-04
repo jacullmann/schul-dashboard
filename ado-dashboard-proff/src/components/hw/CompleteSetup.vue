@@ -165,6 +165,13 @@ async function skip() {
   margin-bottom: 2px;
   margin-top: 4px;
   display: block;
+  font-family: var(--display-font), sans-serif;
+}
+.small {
+  font-family: var(--normal-font), sans-serif;
+}
+.form-group {
+  font-family: var(--normal-font), sans-serif;
 }
 .modal-content {
   z-index: 10000000000000000;
