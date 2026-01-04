@@ -299,7 +299,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useAdmin } from '../composables/useAdmin';
-import { useHausaufgaben} from "../composables/useHausaufgaben";
+import { useAnnouncements } from "../composables/useAnnouncements";
 import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import AdminHeader from '../components/admin-components/AdminHeader.vue';
 import AdminSidebar from '../components/admin-components/AdminSidebar.vue';
@@ -350,7 +350,7 @@ const {
   canManage,
   deleteAnnouncement,
   colorFor
-} = useHausaufgaben();
+} = useAnnouncements();
 
 const showAnnouncementForm = ref(false);
 
