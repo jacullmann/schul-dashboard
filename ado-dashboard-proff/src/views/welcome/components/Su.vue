@@ -26,7 +26,7 @@
         <div><span class="highlight">0</span> Euro</div>
         <div><span class="highlight">0</span> Werbung</div>
         <div><span class="highlight">0</span> verkaufte Daten</div>
-        <div><span class="highlight">0</span> Liebe zum Detail</div>
+        <div><span class="highlight">100%</span> Liebe zum Detail</div>
       </div>
     </div>
   </section>
@@ -40,20 +40,22 @@ import ImageComparison from "../ImageComparison.vue";
 .info-section {
   display:flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 1000px;
+  gap: 64px;
+  max-width: 800px;
   padding-block: 5rem;
 }
 
 .info-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
 .info-title {
+  font-family: var(--normal-font), sans-serif;
   font-size: 1.4rem;
-  font-weight: 500;
+  font-weight: 400;
+  margin: 0;
 }
 
 .info-title .highlight{
@@ -61,7 +63,7 @@ import ImageComparison from "../ImageComparison.vue";
 }
 
 .info-promises {
-  font: var(--normal-font);
+  font-family: var(--display-font), sans-serif;
   font-size: 32px;
   line-height: 48px;
   color: var(--text);
