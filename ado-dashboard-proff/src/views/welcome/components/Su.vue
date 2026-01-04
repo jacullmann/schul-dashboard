@@ -22,11 +22,11 @@
         Schüler, das heißt:
       </h3>
       <div class="info-promises">
-        <span>0 unnötige Zettel</span>
-        <span>0 Euro</span>
-        <span>0 Werbung</span>
-        <span>0 verkaufte Daten</span>
-        <span>100% Liebe zum Detail</span>
+        <div><span class="highlight">0</span> unnötige Zettel</div>
+        <div><span class="highlight">0</span> Euro</div>
+        <div><span class="highlight">0</span> Werbung</div>
+        <div><span class="highlight">0</span> verkaufte Daten</div>
+        <div><span class="highlight">0</span> Liebe zum Detail</div>
       </div>
     </div>
   </section>
@@ -40,22 +40,24 @@ import ImageComparison from "../ImageComparison.vue";
 .info-section {
   display:flex;
   flex-direction: column;
+  gap: 32px;
   max-width: 1000px;
   padding-block: 5rem;
 }
 
 .info-container {
-  display:flex;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .info-title {
   font-size: 1.4rem;
-  font-weight: medium;
+  font-weight: 500;
 }
 
 .info-title .highlight{
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .info-promises {
@@ -63,6 +65,9 @@ import ImageComparison from "../ImageComparison.vue";
   font-size: 32px;
   line-height: 48px;
   color: var(--text);
-  font-weight:medium;
+  font-weight:500;
+}
+.info-promises .highlight {
+  font-weight: 700;
 }
 </style>
