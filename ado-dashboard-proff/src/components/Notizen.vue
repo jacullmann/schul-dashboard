@@ -165,5 +165,7 @@ onMounted(() => {
 
 .tagline-text {
   color: var(--sub);
+  font-size: 0.95rem;
+  font-style: italic;
 }
 </style>
