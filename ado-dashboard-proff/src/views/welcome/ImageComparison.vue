@@ -9,7 +9,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   initialPosition: 50,
-  beforeImage: 'https://images.unsplash.com/photo-1598928636135-d146006ff4be?q=80&w=2000&auto=format&fit=crop',
+  beforeImage: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767543949/comparison_files_nisd5i.webp',
   afterImage: 'https://res.cloudinary.com/dwysdpvcm/image/upload/v1767566360/Screenshot_2026-01-04_233906_olgjdv.png'
 });
 
