@@ -473,7 +473,7 @@ const {
 .editor-note-section {
   margin-top: 12px;
   padding: 12px;
-  background: var(--llbg);
+  background: var(--vlbg);
   border: 1px solid var(--border);
   border-radius: var(--border-4);
 }
