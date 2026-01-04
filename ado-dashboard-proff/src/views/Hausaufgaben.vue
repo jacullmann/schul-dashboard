@@ -243,7 +243,6 @@
     <ImageForm
         v-if="showImageFormFor"
         :item="showImageFormFor"
-        :can-delete-image="canDeleteImage"
         @close="showImageFormFor=null"
         @success="handleSuccess('Bilder aktualisiert.')"
     />
