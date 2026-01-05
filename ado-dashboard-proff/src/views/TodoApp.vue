@@ -156,6 +156,7 @@ async function loadTodos() {
   }
 }
 
+//Hier absichtlich displayTodos nicht aktualisieren, da die einträge sonst komisch springen
 async function toggleTodoCompletion(todo: Todo) {
   const previousState = todo.completed;
   todo.completed = !todo.completed;
