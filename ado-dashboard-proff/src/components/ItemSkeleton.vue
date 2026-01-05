@@ -11,7 +11,7 @@
             <div class="skeleton-title"></div>
           </div>
 
-          <div class="row item-badges">
+          <div class="row-n item-badges">
             <div class="skeleton-badge skeleton-subject"></div>
             <div class="skeleton-badge skeleton-date"></div>
           </div>

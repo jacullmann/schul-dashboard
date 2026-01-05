@@ -44,42 +44,47 @@
           <button class="btn ghost small" :class="{ 'active': filter === 'completed' }" @click="filter = 'completed'">Erledigt</button>
         </div>
 
-        <div class="todos-list">
+        <div class="todos">
           <div
               v-for="todo in filteredTodos"
               :key="todo.id"
-              class="todo-item"
-              :class="{ 'completed': todo.completed, 'overdue': isOverdue(todo.dueDate, todo.completed) }"
+              class="todo-card"
+              :class="{ 'completed': todo.completed }"
           >
             <div class="todo-main">
-              <div class="todo-checkbox">
-                <input type="checkbox" :checked="todo.completed" @change="toggleTodoCompletion(todo)" />
-                <span class="checkmark"></span>
-              </div>
-
-              <div class="todo-content">
-                <h4 class="todo-title">{{ todo.title }}</h4>
-                <p v-if="todo.content" class="todo-description">{{ todo.content }}</p>
-                <div v-if="todo.dueDate" class="todo-due-date">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
-                  {{ formatDateTime(todo.dueDate) }}
-                  <span v-if="isOverdue(todo.dueDate, todo.completed)" class="overdue-badge">Überfällig</span>
+              <div class="todo-meta">
+                <div class="todo-top-row">
+                  <div class="todo-checkbox">
+                    <input type="checkbox" :checked="todo.completed" @change="toggleTodoCompletion(todo)" />
+                    <span class="checkmark"></span>
+                  </div>
+                  <h3 class="todo-title">{{ todo.title }}</h3>
                 </div>
-                <!--<div class="tod-o-meta">Erstellt: {{ formatDate(tod-o.createdAt) }}</div>-->
+
+                <div class="todo-badge-row">
+                  <div v-if="todo.dueDate" class="todo-due-date">
+                    {{ formatDateTime(todo.dueDate) }}
+                    <span v-if="isOverdue(todo.dueDate, todo.completed)" class="overdue-badge">Überfällig</span>
+                  </div>
+                </div>
+
+                <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)"><Ellipsis /></div>
+                <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
+                  <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
+                    <div class="fixall"><Pencil :size="16" /> Bearbeiten</div>
+                  </button>
+                  <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
+                    <div class="fixall"><Trash2 :size="16" /> Löschen</div>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div class="todo-actions">
-              <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)"><Ellipsis /></div>
-              <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
-                <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
-                  <div class="fixall"><Pencil :size="18" /> Bearbeiten</div>
-                </button>
-                <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
-                  <div class="fixall"><Trash2 :size="18" /> Löschen</div>
-                </button>
-              </div>
+            <div class="todo-body">
+              <span v-if="todo.content">{{ todo.content }}</span>
             </div>
+
+
           </div>
         </div>
       </div>
@@ -174,7 +179,7 @@ async function loadTodos() {
     const { data } = await hw.get('/api/todos');
     todos.value = data;
   } catch (error) {
-    showMessage('Fehler beim Laden der To-Dos', true);
+    showMessage('Fehler beim Laden der privaten Einträge', true);
   } finally {
     loading.value = false;
   }
@@ -190,10 +195,10 @@ async function toggleTodoCompletion(todo: Todo) {
 }
 
 async function deleteTodo(id: string) {
-  if (!confirm('Möchtest du dieses To-Do wirklich löschen?')) return;
+  if (!confirm('Möchtest du diesen privaten Eintrag wirklich löschen?')) return;
   try {
     await hw.delete(`/api/todos/${id}`);
-    showMessage('To-Do erfolgreich gelöscht');
+    showMessage('Privater Eintrag erfolgreich gelöscht');
     await loadTodos();
   } catch (error: any) {
     showMessage(error.response?.data?.error || 'Fehler beim Löschen', true);
@@ -239,33 +244,40 @@ function showMessage(msg: string, error = false) {
   background-color: var(--text);
   color: var(--vlbg);
 }
-.todos-list {
+.todos {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-.todo-item {
-  background: var(--vlbg);
-  border-radius: 12px;
+.todo-card {
+  border-radius: var(--border-7);
   padding: 12px;
+  background: var(--vlbg);
   border: 1px solid var(--border2);
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-.todo-item.completed {
-  opacity: 0.7;
-  background: rgba(255, 255, 255, 0.05);
-}
-.todo-item.overdue {
-  border-color: var(--danger);
+  transition: transform 150ms ease;
+  overflow: visible;
+  cursor: default;
 }
 .todo-main {
+  position: relative;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+.todo-meta {
+  flex:1;
+  min-width: 0;
+}
+.todo-top-row {
   display: flex;
-  gap: 1rem;
-  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+.todo-badges-row {
+  opacity: 1;
+  max-height: 50px;
+  margin-top: 8px;
 }
 .todo-checkbox {
   position: relative;
@@ -312,23 +324,12 @@ function showMessage(msg: string, error = false) {
   flex: 1;
 }
 .todo-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-  color: var(--text);
-  word-break: break-word;
-  hyphens: auto;
-}
-.todo-item.completed .todo-title {
-  text-decoration: line-through;
-  color: var(--text);
-}
-.todo-description {
-  margin: 0 0 0.75rem 0;
-  color: var(--text);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  margin:-3px 0;
+  font-size:1.125rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  line-height: 24px;
 }
 .todo-due-date {
   display: flex;
@@ -345,12 +346,6 @@ function showMessage(msg: string, error = false) {
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 600;
-}
-.todo-actions {
-  display: flex;
-  gap: 0.5rem;
-  z-index: 5;
-  position: relative;
 }
 .message {
   margin-top: 1rem;
@@ -383,12 +378,13 @@ function showMessage(msg: string, error = false) {
   align-items: center;
   justify-content: center;
   width: 36px;
-  height: 36px;
-  padding: 6px;
-  border-radius: 6px;
+  height: 24px;
+  padding: 4px 8px;
+  border-radius: 8px;
   cursor: pointer;
   color: var(--sub);
   transition: background 120ms ease, color 120ms ease;
+  margin: -3px -3px;
 }
 .item-menu-trigger:hover {
   background: var(--gg);
@@ -396,22 +392,24 @@ function showMessage(msg: string, error = false) {
 }
 .item-menu {
   position: absolute;
-  top: 100%;
+  margin-top: 24px;
   right: 0;
-  min-width: 140px;
+  min-width: 150px;
   background: var(--vlbg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px;
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding:8px;
   display: none;
   flex-direction: column;
-  gap: 4px;
+  align-items: stretch;
+  gap: 5px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
-  box-shadow: var(--shadow-s);
+  margin-bottom: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 .item-menu.open {
   display: flex;
@@ -425,7 +423,7 @@ function showMessage(msg: string, error = false) {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 8px 10px;
+  padding: 6px;
   color: var(--text);
   border-radius: 6px;
   cursor: pointer;
@@ -437,6 +435,7 @@ function showMessage(msg: string, error = false) {
 }
 .menu-btn.danger {
   color: var(--special--red);
+  fill: var(--special--red);
 }
 .menu-btn.danger:hover {
   background: var(--special--red--background);
@@ -444,16 +443,24 @@ function showMessage(msg: string, error = false) {
 .fixall {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   line-height: 1;
 }
+.todo-body {
+  margin-top:8px;
+  color: var(--text);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
 @media (max-width: 768px) {
-  .todo-item {
+  .todo-card {
     flex-direction: column;
     gap: 1rem;
-  }
-  .todo-actions {
-    align-self: flex-end;
   }
 }
 </style>

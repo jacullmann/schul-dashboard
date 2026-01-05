@@ -50,7 +50,7 @@
         <span class="checkbox-box">
           <component :is="Check" class="check-icon" :size="18" />
         </span>
-        <span class="checkbox-text">Nutzungsbedingungen akzeptieren</span>
+        <span class="checkbox-text">Nutzungsbedingungen und Datenschutzerlärungen akzeptieren</span>
       </label>
 
       <div class="action-area">
