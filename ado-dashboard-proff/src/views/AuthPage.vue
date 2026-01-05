@@ -1,5 +1,4 @@
 <template>
-  <BGB class="bgb"/>
   <div class="outer-container">
 
     <div class="header-container">
@@ -8,12 +7,12 @@
 
     <div class="main-container">
       <WelcomeContent v-if="isWelcomeContent" :on-start-click="showAuthForm" :on-more-info-click="scrollToSu" key="welcome"/>
-      <Su v-if="isWelcomeContent" ref="suComponentRef" />
+      <WelcomeSection v-if="isWelcomeContent" ref="suComponentRef" />
 
         <div v-if="!isWelcomeContent && !isSecurity" class="auth-content content" key="auth-form">
           <AuthForm />
         </div>
-      <Sec  v-if="!isWelcomeContent && isSecurity" />
+      <WelcomeSecurityPage  v-if="!isWelcomeContent && isSecurity" />
 
 
 
@@ -29,14 +28,13 @@
 
 <script setup lang="ts">
 import  { ref } from 'vue';
-import BGB from './welcome/assets/BG.vue'
 
 import WelcomeHeader from "./welcome/WelcomeHeader.vue";
 import WelcomeFooter from "./welcome/WelcomeFooter.vue";
 import AuthForm from "./welcome/AuthForm.vue";
 import WelcomeContent from "./welcome/WelcomeContent.vue";
-import Sec from "./welcome/Sec.vue";
-import Su from "./welcome/components/Su.vue";
+import WelcomeSecurityPage from "./welcome/WelcomeSecurityPage.vue";
+import WelcomeSection from "./welcome/WelcomeSection.vue";
 
 const isSecurity = ref(false);
 
@@ -65,15 +63,6 @@ function scrollToSu() {
 </script>
 
 <style scoped>
-.bgb {
-  z-index: -1;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-}
 .outer-container {
   position: relative;
   min-height: 100vh;

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-//import Special from "./Special.vue";
-//import G from "./G.vue";
 import Line from './Line.vue'
-import { ArrowDown, Ellipsis } from 'lucide-vue-next'
-import NewMainButton from "./NewMainButton.vue";
+import { Ellipsis } from 'lucide-vue-next'
+import WelcomeButtonPrimary from "./WelcomeButtonPrimary.vue";
+import WelcomeButtonSecondary from "./WelcomeButtonSecondary.vue";
 
 defineProps<{
   onStartClick: () => void;
@@ -85,16 +84,8 @@ defineProps<{
       </p>
 
       <div class="action-buttons">
-        <button class="action-btn secondary arrow-hover-effect border" @click="onMoreInfoClick">
-          <span class="arrow-wrapper">
-            Mehr erfahren
-            <!--
-            <ArrowDown class="arrow-icon original-arrow" :size="20"/>
-            <ArrowDown class="arrow-icon replacement-arrow" :size="20"/>-->
-          </span>
-        </button>
-
-        <NewMainButton @click="onStartClick" class="border overflow-gg" />
+        <WelcomeButtonSecondary class="action-btn secondary" @click="onMoreInfoClick" />
+        <WelcomeButtonPrimary @click="onStartClick" class="action-btn primary"/>
       </div>
     </div>
 
@@ -334,7 +325,6 @@ defineProps<{
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
   min-width: 180px;
   position: relative;
   overflow: hidden;
@@ -342,52 +332,11 @@ defineProps<{
 
 
 .secondary {
-  border: 2px solid transparent;
-  background: transparent;
-  color: var(--text);
   white-space: nowrap;
 }
-
-.secondary:hover {
+.primary  {
+  white-space: nowrap;
 }
-.arrow-hover-effect {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.arrow-wrapper {
-  /*display: inline-flex;
-  align-items: center;
-  position: relative;
-  padding-right: 24px;*/
-}
-
-.arrow-icon {
-  width: 20px;
-  height: 20px;
-  position: absolute;
-  right: 0;
-  color: var(--text);
-  top: 0;
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
-}
-.replacement-arrow {
-  transform: translateY(calc(-50% - 100% - 10px));
-  opacity: 0;
-}
-
-.arrow-hover-effect:hover .original-arrow {
-  transform: translateY(calc(-50% + 100% + 10px));
-  opacity: 0;
-}
-
-.arrow-hover-effect:hover .replacement-arrow {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* Vertikales Layout */
 @media (max-width: 1200px) {
   .welcome-section {
     flex-direction: column;
@@ -418,7 +367,6 @@ defineProps<{
   }
 }
 
-/* Mobile Layout */
 @media (max-width: 576px) {
   .only-desktop {
     display: none;
@@ -443,22 +391,8 @@ defineProps<{
     padding: 12px 14px 12px 14px;
     font-size: 1rem;
   }
-
-  .arrow-wrapper {
-    padding-right: 20px;
-  }
-
-  .arrow-icon {
-    width: 16px;
-    height: 16px;
-  }
-
-  .overflow-gg {
-    overflow: hidden;
-  }
 }
 
-/* kleinerer Text für sehr schmale Displays */
 @media (max-width: 368px) {
   .headline {
     font-size: 65px;
@@ -477,7 +411,4 @@ defineProps<{
   }
 }
 
-.border {
-  /*border: 1px solid red;*/
-}
 </style>
