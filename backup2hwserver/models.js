@@ -19,21 +19,13 @@ export function initModels(mongoose) {
             },
             required: true
         },
-        encryptedContent: {
+        encryptedDescription: {
             type: {
                 iv: String,
                 data: String,
                 authTag: String
             },
             default: { iv: '', data: '', authTag: '' }
-        },
-        encryptedDueDate: {
-            type: {
-                iv: String,
-                data: String,
-                authTag: String
-            },
-            default: null
         },
         completed: {
             type: Boolean,

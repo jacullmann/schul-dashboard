@@ -115,18 +115,18 @@ function kanyeRouter(album: Album) {
 }
 
 .info-card {
-  background-color: #282828;
+  background-color: var(--vlbg);
   padding: 12px;
   display: flex;
   flex-direction: column;
-  border-radius:0px 0px 12px 12px;
-  border:1px solid #414141;
-  border-top:0px;
+  border-radius:0 0 12px 12px;
+  border:1px solid var(--border2);
+  border-top:0;
   gap:8px;
 }
 
 .album-title {
-  color: #f1f1f1;
+  color: var(--text);
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
@@ -139,7 +139,7 @@ function kanyeRouter(album: Album) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #aaa;
+  color: var(--sub);
   font-size: 0.9rem;
 }
 </style>

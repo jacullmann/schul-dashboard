@@ -1225,28 +1225,28 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireAppGate(appGateSecret),
         requireUser(userSecret, BannedUser, User),
         async (req, res) => {
-        try {
-            const todos = await EncryptedTodo.find({ userId: req.user.sub })
-                .sort({ createdAt: -1 })
-                .lean();
+            try {
+                const todos = await EncryptedTodo.find({ userId: req.user.sub })
+                    .sort({ createdAt: -1 })
+                    .lean();
 
-            // Entschlüssle die Daten
-            const decryptedTodos = todos.map(todo => ({
-                id: todo._id,
-                title: decryptData(todo.encryptedTitle, req.user.sub),
-                content: decryptData(todo.encryptedContent, req.user.sub),
-                dueDate: todo.encryptedDueDate ? decryptData(todo.encryptedDueDate, req.user.sub) : null,
-                completed: todo.completed,
-                createdAt: todo.createdAt,
-                updatedAt: todo.updatedAt
-            }));
+                const decryptedTodos = todos.map(todo => ({
+                    id: todo._id,
+                    title: decryptData(todo.encryptedTitle, req.user.sub),
+                    description: todo.encryptedDescription?.data
+                        ? decryptData(todo.encryptedDescription, req.user.sub)
+                        : '',
+                    completed: todo.completed,
+                    createdAt: todo.createdAt,
+                    updatedAt: todo.updatedAt
+                }));
 
-            res.json(decryptedTodos);
-        } catch (error) {
-            console.error('Fehler beim Laden der To-Dos:', error);
-            sendJSONError(res, 500, 'Fehler beim Laden der To-Dos');
-        }
-    });
+                res.json(decryptedTodos);
+            } catch (error) {
+                console.error('Fehler beim Laden der privaten Einträge:', error);
+                sendJSONError(res, 500, 'Fehler beim Laden der privaten Einträge');
+            }
+        });
 
     app.post('/api/todos',
         requireAppGate(appGateSecret),
@@ -1254,19 +1254,17 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         validateCsrf(csrfSecret),
         [
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('content').optional().isString().isLength({ max: 5000 }),
-            body('dueDate').optional().isISO8601()
+            body('description').optional().isString().isLength({ max: 1000 })
         ],
         validate,
         async (req, res) => {
             try {
-                const { title, content, dueDate } = req.body;
+                const { title, description } = req.body;
 
                 const todo = await EncryptedTodo.create({
                     userId: req.user.sub,
-                    encryptedTitle: encryptData(title, req.user.sub),
-                    encryptedContent: encryptData(content || '', req.user.sub),
-                    encryptedDueDate: dueDate ? encryptData(dueDate, req.user.sub) : null,
+                    encryptedTitle: encryptData(title.trim(), req.user.sub),
+                    encryptedDescription: encryptData(description?.trim() || '', req.user.sub),
                     completed: false
                 });
 
@@ -1282,16 +1280,15 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
                 res.status(201).json({
                     id: todo._id,
-                    title,
-                    content: content || '',
-                    dueDate: dueDate || null,
+                    title: title.trim(),
+                    description: description?.trim() || '',
                     completed: false,
                     createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
                 });
             } catch (error) {
-                console.error('Fehler beim Erstellen des To-Dos:', error);
-                sendJSONError(res, 500, 'Fehler beim Erstellen des To-Dos');
+                console.error('Fehler beim Erstellen des privaten Eintrags:', error);
+                sendJSONError(res, 500, 'Fehler beim Erstellen des privaten Eintrags');
             }
         }
     );
@@ -1303,8 +1300,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         [
             param('id').isMongoId(),
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('content').optional().isString().isLength({ max: 5000 }),
-            body('dueDate').optional().isISO8601()
+            body('description').optional().isString().isLength({ max: 1000 })
         ],
         validate,
         async (req, res) => {
@@ -1315,15 +1311,13 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 });
 
                 if (!todo) {
-                    return sendJSONError(res, 404, 'To-Do nicht gefunden');
+                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
                 }
 
-                const { title, content, dueDate } = req.body;
+                const { title, description } = req.body;
 
-                // ✅ KORREKT: userId mit übergeben
-                todo.encryptedTitle = encryptData(title, req.user.sub);
-                todo.encryptedContent = encryptData(content || '', req.user.sub);
-                todo.encryptedDueDate = dueDate ? encryptData(dueDate, req.user.sub) : null;
+                todo.encryptedTitle = encryptData(title.trim(), req.user.sub);
+                todo.encryptedDescription = encryptData(description?.trim() || '', req.user.sub);
                 await todo.save();
 
                 await User.findByIdAndUpdate(req.user.sub, {
@@ -1338,16 +1332,15 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
                 res.json({
                     id: todo._id,
-                    title,
-                    content: content || '',
-                    dueDate: dueDate || null,
+                    title: title.trim(),
+                    description: description?.trim() || '',
                     completed: todo.completed,
                     createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
                 });
             } catch (error) {
-                console.error('Fehler beim Aktualisieren des To-Dos:', error);
-                sendJSONError(res, 500, 'Fehler beim Aktualisieren des To-Dos');
+                console.error('Fehler beim Aktualisieren des privaten Eintrags:', error);
+                sendJSONError(res, 500, 'Fehler beim Aktualisieren des privaten Eintrags');
             }
         }
     );
@@ -1366,13 +1359,12 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 });
 
                 if (!todo) {
-                    return sendJSONError(res, 404, 'To-Do nicht gefunden');
+                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
                 }
 
                 todo.completed = !todo.completed;
                 await todo.save();
 
-                // Activity logging
                 await User.findByIdAndUpdate(req.user.sub, {
                     $push: {
                         activity: {
@@ -1385,19 +1377,11 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                         }
                     }
                 });
-
-                // Vollständiges To-Do zurückgeben
-                const decryptedTodo = {
+                res.json({
                     id: todo._id,
-                    title: decryptData(todo.encryptedTitle, req.user.sub),
-                    content: decryptData(todo.encryptedContent, req.user.sub),
-                    dueDate: todo.encryptedDueDate ? decryptData(todo.encryptedDueDate, req.user.sub) : null,
                     completed: todo.completed,
-                    createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
-                };
-
-                res.json(decryptedTodo);
+                });
 
             } catch (error) {
                 console.error('Fehler beim Umschalten des privaten Eintrag-Statuses:', error);
@@ -1420,7 +1404,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                 });
 
                 if (!todo) {
-                    return sendJSONError(res, 404, 'Pivater Eintrag nicht gefunden');
+                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
                 }
 
                 await User.findByIdAndUpdate(req.user.sub, {

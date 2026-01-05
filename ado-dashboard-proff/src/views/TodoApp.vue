@@ -48,28 +48,30 @@
           <div
               v-for="todo in filteredTodos"
               :key="todo.id"
-              class="todo-card"
-              :class="{ 'completed': todo.completed }"
+              class="item-card"
+              :class="{ collapsed: todo.completed }"
           >
-            <div class="todo-main">
-              <div class="todo-meta">
-                <div class="todo-top-row">
-                  <div class="todo-checkbox">
+            <div class="item-main">
+              <div class="item-meta">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <label class="collapse-checkbox">
                     <input type="checkbox" :checked="todo.completed" @change="toggleTodoCompletion(todo)" />
-                    <span class="checkmark"></span>
-                  </div>
-                  <h3 class="todo-title">{{ todo.title }}</h3>
+                    <span class="vis-label"></span>
+                  </label>
+                  <h3 class="item-title" :title="todo.title">{{ todo.title }}</h3>
                 </div>
 
-                <div class="todo-badge-row">
-                  <div v-if="todo.dueDate" class="todo-due-date">
-                    {{ formatDateTime(todo.dueDate) }}
-                    <span v-if="isOverdue(todo.dueDate, todo.completed)" class="overdue-badge">Überfällig</span>
+                <div class="row-n item-badges" :class="{ collapsed: todo.completed }">
+                  <div class="badge private-badge">
+                    <Lock :size="12" /> Privat
                   </div>
                 </div>
               </div>
 
-              <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)"><Ellipsis /></div>
+              <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(todo.id)">
+                <Ellipsis />
+              </div>
+
               <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
                 <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
                   <div class="fixall"><Pencil :size="16" /> Bearbeiten</div>
@@ -80,11 +82,12 @@
               </div>
             </div>
 
-            <div class="todo-body">
-              <span v-if="todo.content">{{ todo.content }}</span>
-            </div>
-
-
+            <transition name="collapse">
+              <div v-show="!todo.completed" class="item-body">
+                <span v-if="todo.description">{{ todo.description }}</span>
+                <span v-else class="no-description">Keine Beschreibung</span>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -105,8 +108,7 @@ import { Pencil, Trash2, Ellipsis, Lock } from 'lucide-vue-next';
 interface Todo {
   id: string;
   title: string;
-  content: string;
-  dueDate: string | null;
+  description: string;
   completed: boolean;
   createdAt: string;
   updatedAt: string;
@@ -128,8 +130,17 @@ const message = ref('');
 const isError = ref(false);
 const openMenuId = ref<string | null>(null);
 
-// expose loadTodos so Parent can trigger reload after TodoForm saves
-defineExpose({ loadTodos });
+function addTodo(todo: Todo) {
+  todos.value.unshift(todo);
+}
+
+function updateTodo(updatedTodo: Todo) {
+  const index = todos.value.findIndex(t => t.id === updatedTodo.id);
+  if (index !== -1) {
+    todos.value[index] = { ...todos.value[index], ...updatedTodo };
+  }
+}
+defineExpose({ loadTodos, addTodo, updateTodo });
 
 const filteredTodos = computed(() => {
   return todos.value.filter(todo => {
@@ -138,12 +149,8 @@ const filteredTodos = computed(() => {
     if (filter.value === 'pending') return !todo.completed;
     return true;
   }).sort((a, b) => {
-    const aOverdue = isOverdue(a.dueDate, a.completed);
-    const bOverdue = isOverdue(b.dueDate, b.completed);
-    if (aOverdue && !bOverdue) return -1;
-    if (!aOverdue && bOverdue) return 1;
-    if (a.dueDate && b.dueDate) {
-      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
     }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
@@ -186,31 +193,32 @@ async function loadTodos() {
 }
 
 async function toggleTodoCompletion(todo: Todo) {
+  const previousState = todo.completed;
+  todo.completed = !todo.completed;
   try {
-    await hw.patch(`/api/todos/${todo.id}/toggle`);
-    await loadTodos();
+    const { data } = await hw.patch(`/api/todos/${todo.id}/toggle`);
+    todo.updatedAt = data.updatedAt;
   } catch (error: any) {
+    todo.completed = previousState;
     showMessage(error.response?.data?.error || 'Fehler beim Aktualisieren', true);
   }
 }
 
 async function deleteTodo(id: string) {
   if (!confirm('Möchtest du diesen privaten Eintrag wirklich löschen?')) return;
+  const todoIndex = todos.value.findIndex(t => t.id === id);
+  if (todoIndex === -1) return;
+  const deletedTodo = todos.value[todoIndex];
+  todos.value.splice(todoIndex, 1);
   try {
     await hw.delete(`/api/todos/${id}`);
     showMessage('Privater Eintrag erfolgreich gelöscht');
-    await loadTodos();
   } catch (error: any) {
+    todos.value.splice(todoIndex, 0, deletedTodo);
     showMessage(error.response?.data?.error || 'Fehler beim Löschen', true);
   }
 }
 
-function formatDate(dateString: string) { return new Date(dateString).toLocaleDateString('de-DE'); }
-function formatDateTime(dateString: string) { return new Date(dateString).toLocaleString('de-DE', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit', year:'numeric' }); }
-function isOverdue(dueDate: string | null, completed: boolean = false) {
-  if (!dueDate || completed) return false;
-  return new Date(dueDate) < new Date();
-}
 function showMessage(msg: string, error = false) {
   message.value = msg;
   isError.value = error;
@@ -219,37 +227,41 @@ function showMessage(msg: string, error = false) {
 </script>
 
 <style scoped>
-.todo-app-integrated {
+.todo-app-integrated { }
 
-}
 .login-prompt {
   text-align: center;
   padding: 2rem;
 }
+
 .todo-list {
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
+
 .empty-state {
   text-align: center;
   padding: 3rem;
   color: var(--sub);
 }
+
 .todo-filters {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
+
 .todo-filters .btn.active {
   background-color: var(--text);
   color: var(--vlbg);
 }
+
 .todos {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
 }
-.todo-card {
+.item-card {
   border-radius: var(--border-7);
   padding: 12px;
   background: var(--vlbg);
@@ -258,120 +270,123 @@ function showMessage(msg: string, error = false) {
   overflow: visible;
   cursor: default;
 }
-.todo-main {
-  position: relative;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
+
+.item-card.collapsed {
+  transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
-.todo-meta {
-  flex:1;
+
+.item-main {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.item-meta {
+  flex: 1;
   min-width: 0;
 }
-.todo-top-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+
+.item-title {
+  margin: -3px 0;
+  font-size: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 24px;
 }
-.todo-badges-row {
+
+.collapse-checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.collapse-checkbox input {
+  display: none;
+}
+
+.collapse-checkbox .vis-label {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid var(--sub);
+  display: inline-block;
+  background: transparent;
+  position: relative;
+}
+
+.collapse-checkbox input:checked + .vis-label {
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.collapse-checkbox .vis-label:hover {
+  border-color: var(--text);
+}
+
+.collapse-checkbox .vis-label::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: solid var(--lbg);
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  left: 50%;
+  top: 32%;
+  transform: translate(-50%, -30%) rotate(70deg);
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+  height 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+  transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.collapse-checkbox input:checked + .vis-label::after {
+  opacity: 1;
+  width: 5px;
+  height: 10px;
+  transform: translate(-50%, -45%) rotate(45deg);
+}
+
+.item-badges {
+  margin-top: 4px;
+  gap: 8px;
+  align-items: center;
+}
+
+.row-n.item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+  transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
   opacity: 1;
   max-height: 50px;
   margin-top: 8px;
 }
-.todo-checkbox {
-  position: relative;
-  z-index: 10;
-}
-.todo-checkbox input {
-  position: absolute;
+
+.row-n.item-badges.collapsed {
   opacity: 0;
-  cursor: pointer;
-  z-index: 20;
-  width: 20px;
-  height: 20px;
-}
-.checkmark {
-  display: block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--border2);
-  border-radius: 4px;
-  position: relative;
-  transition: all 0.3s ease;
-  z-index: 15;
-}
-.todo-checkbox:hover .checkmark {
-  transform: scale(1.1);
-}
-.todo-checkbox input:checked + .checkmark {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-.todo-checkbox input:checked + .checkmark::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
-  border: solid var(--text);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-.todo-content {
-  flex: 1;
-}
-.todo-title {
-  margin:-3px 0;
-  font-size:1.125rem;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  line-height: 24px;
-}
-.todo-due-date {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text);
-  margin-top: 8px;
-}
-.overdue-badge {
-  background: var(--danger);
-  color: white;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-.message {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 6px;
-  background: rgba(63, 147, 248, 0.1);
-  border: none;
-}
-.message.error {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--danger);
-  border: none;
-}
-.secure {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
+  max-height: 0;
   margin-top: 0;
+  overflow: hidden;
+}
+
+.private-badge {
+  background: var(--gg);
   color: var(--text);
+  padding: 4px 8px;
+  border-radius: var(--border-4);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
 }
-.spannn {
-  cursor: pointer;
-  transition: 0.1s ease-in;
-}
-.spannn:hover {
-  transform: scale(1.02);
-}
+
 .item-menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -385,10 +400,12 @@ function showMessage(msg: string, error = false) {
   transition: background 120ms ease, color 120ms ease;
   margin: -3px -3px;
 }
+
 .item-menu-trigger:hover {
   background: var(--gg);
   color: var(--text);
 }
+
 .item-menu {
   position: absolute;
   margin-top: 24px;
@@ -397,7 +414,7 @@ function showMessage(msg: string, error = false) {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding:8px;
+  padding: 8px;
   display: none;
   flex-direction: column;
   align-items: stretch;
@@ -410,12 +427,14 @@ function showMessage(msg: string, error = false) {
   margin-bottom: 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
+
 .item-menu.open {
   display: flex;
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
+
 .menu-btn {
   display: block;
   width: 100%;
@@ -429,24 +448,35 @@ function showMessage(msg: string, error = false) {
   font-size: 14px;
   transition: background 0.2s ease;
 }
-.menu-btn:hover {
-  background: var(--gg);
-}
-.menu-btn.danger {
-  color: var(--special--red);
-  fill: var(--special--red);
-}
-.menu-btn.danger:hover {
-  background: var(--special--red--background);
-}
-.fixall {
+
+.menu-btn .fixall {
   display: flex;
   align-items: center;
   gap: 8px;
   line-height: 1;
 }
-.todo-body {
-  margin-top:8px;
+
+.menu-btn .fixall svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.menu-btn:hover {
+  background: var(--gg);
+}
+
+.menu-btn.danger {
+  color: var(--special--red);
+  fill: var(--special--red);
+}
+
+.menu-btn.danger:hover {
+  background: var(--special--red--background);
+}
+
+.item-body {
+  margin-top: 8px;
   color: var(--text);
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -456,10 +486,78 @@ function showMessage(msg: string, error = false) {
   -webkit-user-select: text;
   cursor: text;
 }
+
+.no-description {
+  color: var(--sub);
+  font-style: italic;
+}
+
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
+  padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.collapse-enter-to,
+.collapse-leave-from {
+  max-height: 800px;
+  opacity: 1;
+}
+
+/* Messages */
+.message {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 6px;
+  background: rgba(63, 147, 248, 0.1);
+  border: none;
+}
+
+.message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+  border: none;
+}
+
+.secure {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0;
+  color: var(--text);
+}
+
+.spannn {
+  cursor: pointer;
+  transition: 0.1s ease-in;
+}
+
+.spannn:hover {
+  transform: scale(1.02);
+}
+
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 2rem;
+}
+
 @media (max-width: 768px) {
-  .todo-card {
-    flex-direction: column;
-    gap: 1rem;
+  .item-body {
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: inherit;
   }
 }
 </style>

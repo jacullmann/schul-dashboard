@@ -237,7 +237,10 @@
         v-if="showTodoForm"
         :initial="todoToEdit"
         @close="showTodoForm=false"
-        @success="handleTodoSuccess(todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.')"
+        @success="(data) => handleTodoSuccess(
+        todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.',
+        data
+    )"
         @error="onItemFormError"
     />
     <ImageForm
@@ -295,7 +298,7 @@ const handleLongPress = (itemId: string) => {
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
-  itemToEdit, user, subjects, announcements, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
+  itemToEdit, user, subjects, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
   showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
@@ -309,7 +312,7 @@ const {
   savingNote,
   startEditNote,
   cancelEditNote,
-  saveNote, deleteAnnouncement, goTab, isChecked, toggleCheck, makeThumb,
+  saveNote, goTab, isChecked, toggleCheck, makeThumb,
   isRevealed, revealImages, onSetupSuccess, doReport, cancelReport,
   showTodoForm,
   todoToEdit,

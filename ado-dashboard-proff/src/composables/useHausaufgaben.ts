@@ -199,18 +199,22 @@ export function useHausaufgaben() {
         showTodoForm.value = true;
     }
 
-    function handleTodoSuccess(msg: string) {
+    function handleTodoSuccess(msg: string, data?: any) {
         message.value = msg;
         isError.value = false;
         showTodoForm.value = false;
-
-        // Liste in TodoApp neu laden
-        if (todoAppRef.value && todoAppRef.value.loadTodos) {
-            todoAppRef.value.loadTodos();
+        if (todoAppRef.value && data) {
+            if (todoToEdit.value) {
+                todoAppRef.value.updateTodo(data);
+            } else {
+                todoAppRef.value.addTodo(data);
+            }
         }
 
+        todoToEdit.value = null;
         setTimeout(() => message.value = '', 5000);
     }
+
 
     function onDocumentClick(e: MouseEvent) {
         if (!openMenuId.value) return;

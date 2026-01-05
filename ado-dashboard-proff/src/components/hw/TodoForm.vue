@@ -15,12 +15,7 @@
 
       <div class="section">
         <label class="label">Beschreibung (optional)</label>
-        <textarea class="input" rows="4" v-model="content" placeholder="Details zu diesem privaten Eintrag..." maxlength="5000"></textarea>
-      </div>
-
-      <div class="section">
-        <label class="label">Fälligkeitsdatum & Uhrzeit</label>
-        <input class="input" type="datetime-local" v-model="dueLocal" />
+        <textarea class="input" rows="4" v-model="description" placeholder="Details zu diesem privaten Eintrag..." maxlength="1000"></textarea>
       </div>
 
       <div class="row actions">
@@ -45,27 +40,18 @@ import { containsProfanity } from '../../composables/useProfanity';
 interface TodoItem {
   id: string;
   title: string;
-  content: string;
-  dueDate: string | null;
+  description: string;
 }
 
 const props = defineProps<{ initial?: TodoItem }>();
-const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; (e: 'error', msg: string): void }>();
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'success', data: TodoItem): void;
+  (e: 'error', msg: string): void
+}>();
 
 const title = ref(props.initial?.title || '');
-const content = ref(props.initial?.content || '');
-
-// Helper für datetime-local Format (YYYY-MM-DDTHH:mm) unter Berücksichtigung der lokalen Zeitzone
-const formatForInput = (isoString?: string | null) => {
-  if (!isoString) return '';
-  const d = new Date(isoString);
-  // Wir müssen die Zeitzonenverschiebung korrigieren, damit datetime-local die richtige lokale Zeit anzeigt
-  // und nicht UTC
-  const local = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
-  return local.toISOString().slice(0, 16);
-};
-
-const dueLocal = ref(formatForInput(props.initial?.dueDate));
+const description = ref(props.initial?.description || '');
 
 const submitting = ref(false);
 const message = ref('');
@@ -77,38 +63,32 @@ async function submit() {
   isError.value = false;
 
   try {
-    if (containsProfanity(title.value) || containsProfanity(content.value)) {
+    if (containsProfanity(title.value) || containsProfanity(description.value)) {
       throw new Error('Unangemessene Inhalte erkannt.');
     }
 
     if (!title.value.trim()) throw new Error('Titel fehlt.');
     if (title.value.trim().length > 100) throw new Error('Titel zu lang (max 100).');
-    if (content.value.trim().length > 5000) throw new Error('Beschreibung zu lang.');
+    if (description.value.trim().length > 1000) throw new Error('Beschreibung zu lang (max 1000).');
 
-    const payload: any = {
+    const payload = {
       title: title.value.trim(),
-      content: content.value.trim(),
+      description: description.value.trim(),
     };
 
-    // Datum korrekt als ISO string senden
-    if (dueLocal.value) {
-      // Datumswert aus dem Input ist lokale Zeit ohne Zeitzoneninfo (z.B. "2023-10-27T14:00")
-      // new Date("...") nimmt lokale Zeit an, toISOString() wandelt es in UTC um. Korrekt für DB.
-      payload.dueDate = new Date(dueLocal.value).toISOString();
-    } else {
-      payload.dueDate = null; // Löschen erlauben
-    }
-
+    let responseData;
     if (props.initial) {
-      await hw.put(`/api/todos/${props.initial.id}`, payload);
+      const { data } = await hw.put(`/api/todos/${props.initial.id}`, payload);
+      responseData = data;
       message.value = 'Aktualisiert.';
     } else {
-      await hw.post('/api/todos', payload);
+      const { data } = await hw.post('/api/todos', payload);
+      responseData = data;
       message.value = 'Erstellt.';
     }
 
     isError.value = false;
-    emit('success');
+    emit('success', responseData);
 
   } catch (e: any) {
     message.value = e.response?.data?.error || e.message || 'Fehler.';
@@ -118,6 +98,7 @@ async function submit() {
     submitting.value = false;
   }
 }
+
 </script>
 
 <style scoped>
