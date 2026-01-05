@@ -336,7 +336,7 @@ function showMessage(msg: string, error = false) {
   gap: 0.5rem;
   font-size: 0.9rem;
   color: var(--text);
-  margin-bottom: 0.5rem;
+  margin-top: 8px;
 }
 .overdue-badge {
   background: var(--danger);
