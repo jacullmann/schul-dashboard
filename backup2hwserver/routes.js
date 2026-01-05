@@ -56,7 +56,7 @@ export default function registerRoutes(app, deps) {
 
     // Hilfsfunktionen
 
-    function encryptData(data, userId) {
+    async function encryptData(data, userId) {
         try {
             const algorithm = 'aes-256-gcm';
 
@@ -67,7 +67,12 @@ export default function registerRoutes(app, deps) {
             const salt = crypto.createHash('sha256')
                 .update(process.env.ENCRYPTION_KEY + userId)
                 .digest();
-            const key = crypto.scryptSync(keyMaterial, salt, 32);
+            const key = await new Promise((resolve, reject) => {
+                crypto.scrypt(keyMaterial, salt, 32, (err, derivedKey) => {
+                    if (err) reject(err);
+                    else resolve(derivedKey);
+                });
+            });
 
             const iv = crypto.randomBytes(16);
 
@@ -89,7 +94,7 @@ export default function registerRoutes(app, deps) {
         }
     }
 
-    function decryptData(encryptedData, userId) {
+    async function decryptData(encryptedData, userId) {
         try {
             const algorithm = 'aes-256-gcm';
 
@@ -100,7 +105,12 @@ export default function registerRoutes(app, deps) {
             const salt = crypto.createHash('sha256')
                 .update(process.env.ENCRYPTION_KEY + userId)
                 .digest();
-            const key = crypto.scryptSync(keyMaterial, salt, 32);
+            const key = await new Promise((resolve, reject) => {
+                crypto.scrypt(keyMaterial, salt, 32, (err, derivedKey) => {
+                    if (err) reject(err);
+                    else resolve(derivedKey);
+                });
+            });
             const iv = Buffer.from(encryptedData.iv, 'hex');
             const authTag = Buffer.from(encryptedData.authTag, 'hex');
 
@@ -1230,16 +1240,16 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
                     .sort({ createdAt: -1 })
                     .lean();
 
-                const decryptedTodos = todos.map(todo => ({
+                const decryptedTodos = await Promise.all(todos.map(async todo => ({
                     id: todo._id,
-                    title: decryptData(todo.encryptedTitle, req.user.sub),
+                    title: await decryptData(todo.encryptedTitle, req.user.sub),
                     description: todo.encryptedDescription?.data
-                        ? decryptData(todo.encryptedDescription, req.user.sub)
+                        ? await decryptData(todo.encryptedDescription, req.user.sub)
                         : '',
                     completed: todo.completed,
                     createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
-                }));
+                })));
 
                 res.json(decryptedTodos);
             } catch (error) {
@@ -1261,10 +1271,13 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             try {
                 const { title, description } = req.body;
 
+                const encryptedTitle = await encryptData(title.trim(), req.user.sub);
+                const encryptedDescription = await encryptData(description?.trim() || '', req.user.sub);
+
                 const todo = await EncryptedTodo.create({
                     userId: req.user.sub,
-                    encryptedTitle: encryptData(title.trim(), req.user.sub),
-                    encryptedDescription: encryptData(description?.trim() || '', req.user.sub),
+                    encryptedTitle,
+                    encryptedDescription,
                     completed: false
                 });
 
@@ -1316,8 +1329,8 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
                 const { title, description } = req.body;
 
-                todo.encryptedTitle = encryptData(title.trim(), req.user.sub);
-                todo.encryptedDescription = encryptData(description?.trim() || '', req.user.sub);
+                todo.encryptedTitle = await encryptData(title.trim(), req.user.sub);
+                todo.encryptedDescription = await encryptData(description?.trim() || '', req.user.sub);
                 await todo.save();
 
                 await User.findByIdAndUpdate(req.user.sub, {

@@ -1,34 +1,14 @@
 <template>
   <div class="todo-app-integrated">
     <div class="todo-header">
-      <div>
-        <div class="secure">
-          <Lock style="color: var(--text);" size="24"/>
-          <h2 style="margin: 0;">Private Einträge</h2>
-        </div>
-        <div style="color: var(--text); margin-bottom: 0.4rem" class="small">
-          Deine persönlichen privaten Einträge – immer dabei und nur für dich sichtbar.
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <!--<button
-            v-if="user"
-            class="btn"
-            @click="$emit('create')"
-            data-umami-event="Privater Eintrag erstellen Button"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="14px" fill="#000000"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>Neuer privater Eintrag
-        </button>-->
         <div v-if="!user" class="login-prompt">
           <p>Du musst angemeldet sein, um private Einträge zu verwenden.</p>
         </div>
-      </div>
     </div>
 
     <div v-if="user" class="todo-list">
       <div v-if="loading" class="loader">
-        <LoadingSpinner color="#fff" size="1.2em" />
+        <LoadingSpinner color="#fff" size="24px" />
         <div style="color: var(--sub)">Lade private Einträge...</div>
       </div>
 
@@ -38,15 +18,9 @@
       </div>
 
       <div v-else class="todos-container">
-        <div class="todo-filters">
-          <button class="btn ghost small" :class="{ 'active': filter === 'all' }" @click="filter = 'all'">Alle</button>
-          <button class="btn ghost small" :class="{ 'active': filter === 'pending' }" @click="filter = 'pending'">Ausstehend</button>
-          <button class="btn ghost small" :class="{ 'active': filter === 'completed' }" @click="filter = 'completed'">Erledigt</button>
-        </div>
-
         <div class="todos">
           <div
-              v-for="todo in filteredTodos"
+              v-for="todo in displayTodos"
               :key="todo.id"
               class="item-card"
               :class="{ collapsed: todo.completed }"
@@ -59,12 +33,6 @@
                     <span class="vis-label"></span>
                   </label>
                   <h3 class="item-title" :title="todo.title">{{ todo.title }}</h3>
-                </div>
-
-                <div class="row-n item-badges" :class="{ collapsed: todo.completed }">
-                  <div class="badge private-badge">
-                    <Lock :size="12" /> Privat
-                  </div>
                 </div>
               </div>
 
@@ -97,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/userStore';
 import { useRouter } from 'vue-router';
@@ -129,32 +97,27 @@ const filter = ref<'all' | 'pending' | 'completed'>('all');
 const message = ref('');
 const isError = ref(false);
 const openMenuId = ref<string | null>(null);
+const displayTodos = ref([]);
+const sortDisplayList = (data) => {
+  return [...data].sort((a, b) => {
+    if (a.completed !== b.completed) return a.completed ? 1 : -1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+};
 
 function addTodo(todo: Todo) {
   todos.value.unshift(todo);
+  displayTodos.value = sortDisplayList(todos.value);
 }
 
 function updateTodo(updatedTodo: Todo) {
   const index = todos.value.findIndex(t => t.id === updatedTodo.id);
   if (index !== -1) {
     todos.value[index] = { ...todos.value[index], ...updatedTodo };
+    displayTodos.value = sortDisplayList(todos.value);
   }
 }
 defineExpose({ loadTodos, addTodo, updateTodo });
-
-const filteredTodos = computed(() => {
-  return todos.value.filter(todo => {
-    if (filter.value === 'all') return true;
-    if (filter.value === 'completed') return todo.completed;
-    if (filter.value === 'pending') return !todo.completed;
-    return true;
-  }).sort((a, b) => {
-    if (a.completed !== b.completed) {
-      return a.completed ? 1 : -1;
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-});
 
 function toggleMenu(id: string) {
   openMenuId.value = openMenuId.value === id ? null : id;
@@ -185,6 +148,7 @@ async function loadTodos() {
   try {
     const { data } = await hw.get('/api/todos');
     todos.value = data;
+    displayTodos.value = sortDisplayList(data);
   } catch (error) {
     showMessage('Fehler beim Laden der privaten Einträge', true);
   } finally {
@@ -212,6 +176,7 @@ async function deleteTodo(id: string) {
   todos.value.splice(todoIndex, 1);
   try {
     await hw.delete(`/api/todos/${id}`);
+    displayTodos.value = sortDisplayList(todos.value);
     showMessage('Privater Eintrag erfolgreich gelöscht');
   } catch (error: any) {
     todos.value.splice(todoIndex, 0, deletedTodo);

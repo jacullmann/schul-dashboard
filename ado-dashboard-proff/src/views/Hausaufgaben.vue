@@ -29,6 +29,9 @@
           <h3>Eintragarchiv</h3>
           <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv Button</strong> klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
 
+          <h3>Private Einträge</h3>
+          <p>Anders als normale Einträge sind diese verschlüsselt und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-Dos tracken – alles mit einem Programm. Dank AES256 Verschlüsselung musst du dir keine Sorgen um die Sicherheit machen: nur jemand mit deinem Passwort kann auf deine privaten Einträge zugreifen. Achte also auf ein starkes Passwort! Dein Passwort kannst du jederzeit in den Accounteinstellungen ändern.</p>
+
         </InfoPop>
 
       </div>
@@ -506,7 +509,6 @@ const {
 .item-menu-trigger:hover { background: var(--gg); color: var(--text); }
 .pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
 .row-two { display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
-.private-entries-container { margin-top: 1rem; }
 .private-entries-container .hw-header { padding: 0; background: transparent; }
 .admin-creator-info { color: var(--sub); }
 .row-n.item-badges {
