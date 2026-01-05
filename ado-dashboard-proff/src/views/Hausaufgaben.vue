@@ -23,8 +23,8 @@
           <h3>Abgeschlossene Aufgaben tracken</h3>
           <p>Wenn du einen Account hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
 
-          <!--<h3>Personalisierte Kurse</h3>
-          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>-->
+          <h3>Personalisierte Kurse</h3>
+          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
 
           <h3>Eintragarchiv</h3>
           <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv Button</strong> klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
