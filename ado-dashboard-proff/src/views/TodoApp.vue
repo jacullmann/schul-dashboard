@@ -2,8 +2,8 @@
   <div class="todo-app-integrated">
     <div class="todo-header">
       <div class="secure">
-        <Lock fill="currentColor" :size="24"/>
-        <h2 style="margin: 0;">Nur für dich sichtbar</h2>
+        <Lock style="color: var(--text)" :size="24"/>
+        <h2 style="margin: 0; font-size: 1.4rem; line-height: 1.5rem;">Nur für dich sichtbar</h2>
         <InfoPop
             tooltip="Übersicht und Funktionen von privaten Einträgen"
             title="Private Einträge"
@@ -505,8 +505,6 @@ function showMessage(msg: string, error = false) {
   align-items: center;
   margin-block: 0 1rem;
   color: var(--text);
-  font-size: 1.4rem;
-  line-height: 1.5rem;;
 }
 
 .spannn {
