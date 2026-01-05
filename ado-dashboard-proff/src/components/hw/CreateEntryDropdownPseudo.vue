@@ -11,6 +11,8 @@
     <div
         v-if="isOpen"
         class="entry-menu entry-menu-pseudo"
+        :class="{ 'align-right': alignRight }"
+        ref="menuRef"
     >
       <div class="pseudo-content">
         <h4 style="margin: 0">
@@ -28,14 +30,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Plus } from 'lucide-vue-next';
 
 const isOpen = ref(false);
+const alignRight = ref(false);
 const buttonRef = ref<HTMLButtonElement | null>(null);
+const menuRef = ref<HTMLDivElement | null>(null);
 
-function toggleMenu() {
+async function toggleMenu() {
   isOpen.value = !isOpen.value;
+  if (isOpen.value) {
+    await nextTick();
+    updateMenuPosition();
+  }
+}
+
+function updateMenuPosition() {
+  if (!menuRef.value || !buttonRef.value) return;
+
+  const menu = menuRef.value;
+  const button = buttonRef.value;
+  const buttonRect = button.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth;
+  const viewportWidth = window.innerWidth;
+
+  // Check if menu would overflow on the right when left-aligned
+  const leftAlignedRight = buttonRect.left + menuWidth;
+  // Check if menu would overflow on the left when right-aligned
+  const rightAlignedLeft = buttonRect.right - menuWidth;
+
+  // Prefer left-align, but switch to right-align if it would overflow
+  if (leftAlignedRight > viewportWidth && rightAlignedLeft >= 0) {
+    alignRight.value = true;
+  } else {
+    alignRight.value = false;
+  }
 }
 
 function openAuthModal() {
@@ -53,12 +83,20 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
+function handleResize() {
+  if (isOpen.value) {
+    updateMenuPosition();
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  window.addEventListener('resize', handleResize);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -85,6 +123,11 @@ onBeforeUnmount(() => {
   animation: menuFadeIn 160ms ease;
 }
 
+.entry-menu.align-right {
+  left: auto;
+  right: 0;
+}
+
 .pseudo-content p {
   font-size: 14px;
   margin-block: 4px 16px;
@@ -103,17 +146,5 @@ onBeforeUnmount(() => {
 
 .mg {
   padding: 4px;
-}
-@media (max-width: 613px) {
-  .entry-menu {
-    left: auto;
-    right: 0;
-  }
-}
-@media (max-width: 379px) {
-  .entry-menu {
-    right: auto;
-    left: 0;
-  }
 }
 </style>

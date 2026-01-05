@@ -11,6 +11,8 @@
     <div
         v-if="isOpen"
         class="entry-menu"
+        :class="{ 'align-right': alignRight }"
+        ref="menuRef"
     >
       <button
           class="menu-btn"
@@ -60,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount} from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { NotebookText, FileText, Lock, BookOpenText, Plus } from 'lucide-vue-next';
 
 type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
@@ -70,11 +72,38 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = ref(false);
+const alignRight = ref(false);
 const buttonRef = ref<HTMLButtonElement | null>(null);
+const menuRef = ref<HTMLDivElement | null>(null);
 
-
-function toggleMenu() {
+async function toggleMenu() {
   isOpen.value = !isOpen.value;
+  if (isOpen.value) {
+    await nextTick();
+    updateMenuPosition();
+  }
+}
+
+function updateMenuPosition() {
+  if (!menuRef.value || !buttonRef.value) return;
+
+  const menu = menuRef.value;
+  const button = buttonRef.value;
+  const buttonRect = button.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth;
+  const viewportWidth = window.innerWidth;
+
+  // Check if menu would overflow on the right when left-aligned
+  const leftAlignedRight = buttonRect.left + menuWidth;
+  // Check if menu would overflow on the left when right-aligned
+  const rightAlignedLeft = buttonRect.right - menuWidth;
+
+  // Prefer left-align, but switch to right-align if it would overflow
+  if (leftAlignedRight > viewportWidth && rightAlignedLeft >= 0) {
+    alignRight.value = true;
+  } else {
+    alignRight.value = false;
+  }
 }
 
 function selectType(type: EntryType) {
@@ -93,12 +122,20 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
+function handleResize() {
+  if (isOpen.value) {
+    updateMenuPosition();
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  window.addEventListener('resize', handleResize);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
+  window.removeEventListener('resize', handleResize);
 });
 </script>
 
@@ -125,6 +162,11 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-s);
   animation: menuFadeIn 160ms ease;
   margin-top: 8px;
+}
+
+.entry-menu.align-right {
+  left: auto;
+  right: 0;
 }
 
 @keyframes menuFadeIn {
@@ -174,25 +216,5 @@ onBeforeUnmount(() => {
 }
 .last-of-three {
   border-bottom: 1px solid var(--border2);
-}
-
-@media (max-width: 510px) {
-  .entry-menu {
-    left: auto;
-    right: 0;
-  }
-}
-@media (max-width: 382px) {
-  .entry-menu {
-    left: 0;
-    right: auto;
-  }
-
-}
-@media (max-width: 330px) {
-  .entry-menu {
-    left: auto;
-    right: 0;
-  }
 }
 </style>
