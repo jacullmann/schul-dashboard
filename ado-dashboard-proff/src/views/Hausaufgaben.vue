@@ -342,7 +342,7 @@ const {
   cursor: default;
 }
 .item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
-.item-main {ich de
+.item-main {
   position: relative;
   display:flex;
   justify-content:space-between;
