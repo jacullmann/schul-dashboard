@@ -1,9 +1,21 @@
 <template>
   <div class="todo-app-integrated">
     <div class="todo-header">
-        <div v-if="!user" class="login-prompt">
-          <p>Du musst angemeldet sein, um private Einträge zu verwenden.</p>
-        </div>
+      <div class="secure">
+        <Lock fill="currentColor" :size="24"/>
+        <h2 style="margin: 0;">Nur für dich sichtbar</h2>
+        <InfoPop
+            tooltip="Übersicht und Funktionen von privaten Einträgen"
+            title="Private Einträge"
+        >
+          <p>Anders als normale Einträge sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>. Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um die Sicherheit machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen.</p>
+
+
+        </InfoPop>
+      </div>
+      <div v-if="!user" class="login-prompt">
+        <p>Du musst angemeldet sein, um private Einträge zu verwenden.</p>
+      </div>
     </div>
 
     <div v-if="user" class="todo-list">
@@ -13,8 +25,8 @@
       </div>
 
       <div v-else-if="todos.length === 0" class="empty-state">
-        <p>Noch keine privaten Einträge vorhanden.</p>
-        <p class="small"><span class="spannn" @click="$emit('create')" >Erstelle deinen ersten privaten Eintrag!</span></p>
+        <p>Keine privaten Einträge gefunden.</p>
+        <!--<p class="small"><span class="spannn" @click="$emit('create')" >Erstelle deinen ersten privaten Eintrag!</span></p>-->
       </div>
 
       <div v-else class="todos-container">
@@ -72,6 +84,7 @@ import { useRouter } from 'vue-router';
 import hw from '../hwApi';
 import LoadingSpinner from "../components/LoadingSpinner.vue";
 import { Pencil, Trash2, Ellipsis, Lock } from 'lucide-vue-next';
+import InfoPop from '../components/info/InfoModalCenter.vue'
 
 interface Todo {
   id: string;
@@ -193,15 +206,9 @@ function showMessage(msg: string, error = false) {
 </script>
 
 <style scoped>
-.todo-app-integrated { }
-
 .login-prompt {
   text-align: center;
   padding: 2rem;
-}
-
-.todo-list {
-  margin-top: 1rem;
 }
 
 .empty-state {
@@ -482,24 +489,24 @@ function showMessage(msg: string, error = false) {
 /* Messages */
 .message {
   margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 6px;
-  background: rgba(63, 147, 248, 0.1);
-  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
 }
 
 .message.error {
-  background: rgba(239, 68, 68, 0.1);
   border-color: var(--danger);
-  border: none;
 }
 
 .secure {
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  margin-top: 0;
+  margin-block: 0 1rem;
   color: var(--text);
+  font-size: 1.4rem;
+  line-height: 1.5rem;;
 }
 
 .spannn {
