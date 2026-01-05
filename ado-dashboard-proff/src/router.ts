@@ -308,7 +308,7 @@ router.beforeEach(async (to, from, next) => {
     const userStore = useUserStore();
 
     if (isAuthenticated.value && !isPublicRoute) {
-        if (!userStore.initialized && !userStore.loading) {
+        if (!userStore.initialized) {
             await userStore.fetchUser();
         }
     }

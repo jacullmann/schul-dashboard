@@ -3,7 +3,7 @@
     <div class="modal card rlc">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-        <button data-umami-event="ImageForm Menü schlißen"  class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="ImageForm Menü schließen"  class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="section">
