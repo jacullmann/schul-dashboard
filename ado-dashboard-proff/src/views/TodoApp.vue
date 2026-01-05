@@ -67,16 +67,16 @@
                     <span v-if="isOverdue(todo.dueDate, todo.completed)" class="overdue-badge">Überfällig</span>
                   </div>
                 </div>
+              </div>
 
-                <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)"><Ellipsis /></div>
-                <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
-                  <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
-                    <div class="fixall"><Pencil :size="16" /> Bearbeiten</div>
-                  </button>
-                  <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
-                    <div class="fixall"><Trash2 :size="16" /> Löschen</div>
-                  </button>
-                </div>
+              <div class="item-menu-trigger" @click.stop="toggleMenu(todo.id)"><Ellipsis /></div>
+              <div class="item-menu" :class="{ open: openMenuId === todo.id }" @click.stop>
+                <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
+                  <div class="fixall"><Pencil :size="16" /> Bearbeiten</div>
+                </button>
+                <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
+                  <div class="fixall"><Trash2 :size="16" /> Löschen</div>
+                </button>
               </div>
             </div>
 
@@ -281,7 +281,6 @@ function showMessage(msg: string, error = false) {
 }
 .todo-checkbox {
   position: relative;
-  margin-top: 0.25rem;
   z-index: 10;
 }
 .todo-checkbox input {
