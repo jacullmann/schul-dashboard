@@ -4,7 +4,7 @@
 
     <h3>Präambel und Geltungsbereich</h3>
     <p>
-      Die nachfolgenden Allgemeinen Nutzungsbedingungen regeln das vertragsähnliche Verhältnis zwischen den Betreibern des Schul-Dashboards (nachfolgend "Betreiber") und den registrierten Nutzern (nachfolgend "Nutzer"). Mit der Registrierung und/oder der aktiven Nutzung der Anwendung erklärt der Nutzer seine rechtsverbindliche Zustimmung zu diesen Bedingungen.
+      Die nachfolgenden Nutzungsbedingungen regeln das Nutzungsverhältnis zwischen den Betreibern des Schul-Dashboards und den Nutzern.
     </p>
 
     <h3>1. Definition und Zweck der Anwendung</h3>
@@ -41,6 +41,41 @@
         Massensendungen oder Spams an andere Nutzer zu versenden.
       </li>
     </ul>
+    <p>Nutzerinnen und Nutzer sind allein für die von ihnen erstellten und veröffentlichten Inhalte verantwortlich. Mit dem Erstellen eines Eintrags versichern sie, dass die Inhalte keine Rechte Dritter verletzen und nicht gegen geltendes Recht oder diese Nutzungsbedingungen verstoßen.</p>
+
+    <p>Insbesondere untersagt sind Inhalte, die:</p>
+
+    <ul>
+      <li>gegen geltendes Recht verstoßen, insbesondere Strafgesetze, Jugendschutz-, Datenschutz- oder Urheberrechtsvorschriften</li>
+
+      <li>beleidigend, verleumderisch, bedrohend oder herabwürdigend gegenüber Einzelpersonen oder Gruppen sind</li>
+
+      <li>diskriminierende, rassistische, extremistische, menschenverachtende oder gewaltverherrlichende Inhalte enthalten</li>
+
+      <li>pornografische, sexualisierte oder jugendgefährdende Inhalte darstellen</li>
+
+      <li>unwahre Tatsachenbehauptungen über Dritte enthalten</li>
+
+      <li>die Privatsphäre oder Persönlichkeitsrechte Dritter verletzen</li>
+
+      <li>Werbung, Spam oder irreführende Inhalte enthalten</li>
+
+      <li>Schadsoftware, betrügerische Inhalte oder Manipulationsversuche umfassen</li>
+
+      <li>geeignet sind, den ordnungsgemäßen Betrieb der Plattform zu beeinträchtigen</li>
+    </ul>
+
+    <p>Die Betreiber behalten sich vor, Einträge ganz oder teilweise zu entfernen, deren Veröffentlichung nach eigener Einschätzung gegen diese Nutzungsbedingungen verstößt oder rechtliche Risiken birgt.</p>
+
+    <p>Ein Anspruch auf Veröffentlichung oder Wiederherstellung gelöschter Inhalte besteht nicht.</p>
+
+    <p>Bei wiederholten oder schwerwiegenden Verstößen kann der jeweilige Nutzeraccount vorübergehend oder dauerhaft gesperrt werden.</p>
+    <p>Redaktionelle Hinweise oder Bemerkungen der Betreiber stellen keine inhaltliche Zustimmung oder Übernahme der jeweiligen Nutzereinträge dar und dienen ausschließlich der organisatorischen oder informativen Einordnung.</p>
+    <p>
+      Eine inhaltliche Vorabprüfung der von Nutzern erstellten Inhalte findet nicht statt.
+      Die Betreiber werden jedoch nach Kenntniserlangung von rechtswidrigen oder regelwidrigen Inhalten unverzüglich geeignete Maßnahmen ergreifen.
+    </p>
+
 
     <h3>4. Sanktionen bei Verstößen und Missbrauch</h3>
     <p>
@@ -66,7 +101,11 @@
       <strong>5.1. Projektstatus:</strong> Da es sich um ein nicht-kommerzielles Schulprojekt handelt, wird die Anwendung im Zustand "AS IS" und "AS AVAILABLE" bereitgestellt. Es besteht kein Anspruch auf eine permanente, fehlerfreie oder ununterbrochene Verfügbarkeit des Dienstes.
     </p>
     <p>
-      <strong>5.2. Haftungsausschluss:</strong> Die Haftung der Betreiber – gleich aus welchem Rechtsgrund – ist auf Vorsatz und grobe Fahrlässigkeit beschränkt. Die Haftung für leichte Fahrlässigkeit ist ausgeschlossen, sofern keine Verletzung von Leben, Körper oder Gesundheit vorliegt oder keine wesentliche Vertragspflicht (Kardinalpflicht) betroffen ist.
+      <strong>5.2. Haftungsausschluss:</strong>
+      Die Betreiber haften unbeschränkt bei Vorsatz und grober Fahrlässigkeit.
+      Bei einfacher Fahrlässigkeit haften die Betreiber nur bei Verletzung wesentlicher Vertragspflichten (Kardinalpflichten), wobei die Haftung auf den vorhersehbaren, typischerweise eintretenden Schaden begrenzt ist.
+      Die Haftung für Schäden aus der Verletzung von Leben, Körper oder Gesundheit bleibt unberührt.
+
     </p>
     <p>
       <strong>5.3. Datenverlust:</strong> Die Betreiber übernehmen keine Gewährleistung für die Vollständigkeit, Richtigkeit oder Aktualität der durch die Nutzer eingegebenen Daten und keine Haftung für Datenverluste, die durch technische Probleme, Wartungsarbeiten oder höhere Gewalt entstehen.

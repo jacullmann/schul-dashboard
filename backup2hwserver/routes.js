@@ -189,7 +189,8 @@ export default function registerRoutes(app, deps) {
             from: sendgridFrom,
             subject: 'Bitte bestätige deine E-Mail-Adresse',
             html:
-                `<p>Willkommen beim Schul Dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
+                `<p>Willkommen beim Schul Dashboard.</p>
+<p>Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
 <p>Klicke auf den Link unten und melde dich mit deinem neuen Account an. </p>
 <br>
 <p>
@@ -1261,7 +1262,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         validateCsrf(csrfSecret),
         [
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('description').optional().isString().isLength({ max: 1000 })
+            body('description').optional().isString().isLength({ max: 2000 })
         ],
         validate,
         async (req, res) => {

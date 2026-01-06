@@ -15,7 +15,7 @@
 
       <div class="section">
         <label class="label">Beschreibung (optional)</label>
-        <textarea class="input" rows="4" v-model="description" placeholder="Details zu diesem privaten Eintrag..." maxlength="1000"></textarea>
+        <textarea class="input" rows="4" v-model="description" placeholder="Details zu diesem privaten Eintrag..." maxlength="2000"></textarea>
       </div>
 
       <div class="row actions">

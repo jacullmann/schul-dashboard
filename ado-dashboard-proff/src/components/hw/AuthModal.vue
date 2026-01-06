@@ -90,9 +90,9 @@
           </div>
 
           <div v-if="mode === 'register'" class="form-group">
-            <label class="checkbox-container">
+            <label class="collapse-checkbox">
               <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-              <span class="checkmark"></span>
+              <span class="vis-label"></span>
               <span class="checkbox-label">
                 Ich stimme der
                 <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
@@ -390,48 +390,53 @@ async function submit() {
   color: var(--text);
 }
 
-.checkbox-container {
+.collapse-checkbox {
   display: flex;
   align-items: flex-start;
   cursor: pointer;
   user-select: none;
   gap: 8px;
+  position: relative;
 }
 
-.checkbox-container input {
+.collapse-checkbox input {
   display: none;
 }
 
-.checkmark {
+.collapse-checkbox .vis-label {
   min-width: 18px;
+  width: 18px;
   height: 18px;
   border: 2px solid var(--text);
   border-radius: 4px;
   position: relative;
   margin-top: 2px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
-.checkbox-container input:checked ~ .checkmark {
+.collapse-checkbox input:checked + .vis-label {
   background-color: var(--primary);
   border-color: var(--primary);
 }
 
-.checkmark::after {
+.collapse-checkbox .vis-label::after {
   content: "";
   position: absolute;
-  display: none;
-  left: 4px;
-  top: 0;
-  width: 5px;
-  height: 10px;
-  border: solid var(--text);
+  border: solid var(--lbg);
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+  opacity: 0;
+  left: 50%;
+  top: 32%;
+  transform: translate(-50%, -30%) rotate(70deg);
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.checkbox-container input:checked ~ .checkmark::after {
-  display: block;
+.collapse-checkbox input:checked + .vis-label::after {
+  opacity: 1;
+  width: 5px;
+  height: 10px;
+  transform: translate(-50%, -45%) rotate(45deg);
 }
 
 .checkbox-label {
@@ -441,13 +446,13 @@ async function submit() {
 }
 
 .privacy-link {
-  color: var(--primary);
+  color: var(--sub);
   text-decoration: underline;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .privacy-link:hover {
-  opacity: 0.8;
+  color: var(--text);
 }
 
 .field-error {

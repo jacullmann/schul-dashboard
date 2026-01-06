@@ -91,7 +91,31 @@ const updates: ChangeLogItem[] = [
             <p>bei mehreren Ankündigungen kann zwischen den Nachrichten gewechselt werden ,indem man auf die Leiste tippt</p>
             <p>Durch Farbcodierung (etwa grau für eine kleine Erinnerung und rot für kurzfristigen Unterrichtsausfall) kann die Dringlichkeit ermittelt werden</p>
     `
-  }
+  },
+  {
+    "version": "v1.0.1",
+    "date": "6. Januar 2025",
+    "title": "Post-Release Patches",
+    "description": "Private Einträge Redesign und einige Bugs behoben.",
+    "changes": `
+      <h2>Private Einträge</h2>
+        <h3>Redesign</h3>
+          <p>Übersichtlicheres Layout</p>
+          <p>Stil aktualisiert</p>
+          <p>Animation für Abhaken verbessert</p>
+        <h3>Funktionalität</h3>
+          <p>Ladezeiten drastisch reduziert</p>
+          <p>Fälligkeitsdatum entfernt</p>
+          <p>Abhaken verbessert</p>
+          <p>Zeichenlimit für Beschreibung auf 2000 erhöht</p>
+      <h2>Fixes</h2>
+        <h3>Bugs</h3>
+          <p>Anmeldestatus-Verwaltungs-Fehler behoben</p>
+          <p>Falsche Farbwerte im hellen Theme korrigiert</p>
+        <h3>Verbesserungen</h3>
+          <p>Infotexte verbessert und präzisiert</p>
+    `
+  },
 ];
 
 // --- State ---
@@ -316,8 +340,8 @@ const backToList = () => {
 .content-card {
   border-radius: 16px;
   padding: 16px;
-  border: 1px solid var(--border2);
-  max-width: 900px;
+  border: none;
+  max-width: 1000px;
   margin: 0 auto;
 }
 

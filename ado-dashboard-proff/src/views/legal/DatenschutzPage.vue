@@ -13,19 +13,14 @@
 
     <h3>1. Zweck und Rechtsgrundlage der Datenverarbeitung</h3>
     <p>
-      Die Verarbeitung Ihrer Daten erfolgt ausschließlich zu den nachfolgend definierten, legitimen Zwecken:
+      Die Verarbeitung personenbezogener Daten erfolgt auf Grundlage der folgenden Rechtsgrundlagen:
     </p>
     <ul>
-      <li>
-        <strong>Betrieb und Funktionalität: </strong> Bereitstellung, Betrieb, Verwaltung und Sicherstellung der Kernfunktionen der Anwendung, insbesondere die Gewährleistung des Zugangs zum geschlossenen Nutzerbereich.
-      </li>
-      <li>
-        <strong>Berechtigte Interessen:</strong> Die Gewährleistung der IT-Sicherheit, die Abwehr von unbefugten Zugriffen (Hacking) sowie die interne Fehleranalyse und Optimierung des Dienstes. Unser berechtigtes Interesse liegt in der Aufrechterhaltung der Betriebssicherheit und der Funktionsfähigkeit des Schulprojekts.
-      </li>
-      <li>
-        <strong>Spezifische Einwilligungen:</strong> Soweit für bestimmte Verarbeitungen eine explizite, widerrufbare Einwilligung von Ihnen eingeholt wird (z.B. für optionale Funktionen).
-      </li>
+      <li>Art. 6 Abs. 1 lit. b DSGVO (Erfüllung des Nutzungsverhältnisses)</li>
+      <li>Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Sicherheit, Stabilität und Fehleranalyse)</li>
+      <li>Art. 6 Abs. 1 lit. a DSGVO (Einwilligung, sofern erforderlich)</li>
     </ul>
+
 
     <h3>2. Kategorien der verarbeiteten Daten</h3>
     <p>
@@ -61,12 +56,18 @@
       </li>
     </ul>
     <h3>5. Versand von E-Mails (SendGrid)</h3>
-
-    <p>Für den Versand von Verifizierungs- und System-E-Mails nutzen wir SendGrid (Twilio Inc.). Dabei wird deine E-Mail-Adresse an SendGrid übermittelt..</p>
+    <p>
+      Für den Versand von Verifizierungs- und System-E-Mails nutzen wir den Dienst SendGrid (Twilio Inc., USA).
+      Hierbei wird Ihre E-Mail-Adresse an Server in den USA übermittelt.
+      Die Übermittlung erfolgt auf Grundlage geeigneter Garantien gemäß Art. 46 DSGVO, insbesondere durch den Abschluss von EU-Standardvertragsklauseln bzw. das EU-US Data Privacy Framework, sofern anwendbar.
+    </p>
 
     <h3>6. Bildverwaltung (Cloudinary)</h3>
-
-    <p>Hochgeladene Bilder werden bei Cloudinary (Cloudinary Ltd.) gespeichert und optimiert. Dabei können technische Metadaten und die Bilddateien selbst an Server des Anbieters übertragen werden.</p>
+    <p>
+      Hochgeladene Bilder werden über den Dienst Cloudinary (Cloudinary Ltd.) verarbeitet und gespeichert.
+      Dabei können Bilddateien und technische Metadaten an Server außerhalb der Europäischen Union, insbesondere in den USA, übertragen werden.
+      Die Datenübermittlung erfolgt auf Grundlage geeigneter Garantien gemäß Art. 46 DSGVO.
+    </p>
 
     <h3>6. Rechte der betroffenen Person:</h3>
     <p>
@@ -95,6 +96,13 @@
         <strong>Beschwerderecht bei der Aufsichtsbehörde:</strong> Unbeschadet eines anderweitigen verwaltungsrechtlichen oder gerichtlichen Rechtsbehelfs steht Ihnen das Recht auf Beschwerde bei einer Aufsichtsbehörde zu, insbesondere in dem Mitgliedstaat Ihres gewöhnlichen Aufenthaltsorts, Ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes, wenn Sie der Ansicht sind, dass die Verarbeitung der Sie betreffenden personenbezogenen Daten gegen die DSGVO verstößt.
       </li>
     </ul>
+    <h3>7. Verarbeitung von Daten Minderjähriger</h3>
+    <p>
+      Die Nutzung der Anwendung ist ausschließlich einem geschlossenen schulischen Nutzerkreis vorbehalten.
+      Personenbezogene Daten von Minderjährigen werden nur im für den Betrieb der Anwendung zwingend erforderlichen Umfang verarbeitet.
+      Eine weitergehende Verarbeitung oder Weitergabe erfolgt nicht.
+    </p>
+
   </div>
 </template>
 

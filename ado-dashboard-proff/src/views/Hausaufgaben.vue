@@ -18,7 +18,7 @@
           <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder</strong> aus und klicke auf das <strong>+</strong>. Um eigene Bilder zu entfernen, öffne erneut das Bilder-Menü und klicke auf das <strong>X</strong> in der Ecke des Bildes.</p>
 
           <h3>Falschinformationen melden</h3>
-          <p>Das Dashboard sollte immer richtig sein, aber falls du bei einem fremden Eintrag falsche Informationen siehst, kannst du unter dem <strong>3-Punkte-Menü</strong> auf <strong>Melden</strong> klicken und unter <strong>Falschinformationen</strong> eine Korrektur abschicken. Ein Admin kann dann den ursprünglichen Eintrag berichtigen.</p>
+          <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du unter dem 3-Punkte-Menü auf Melden klicken und unter Falschinformationen eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
 
           <h3>Abgeschlossene Aufgaben tracken</h3>
           <p>Wenn du einen Account hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
@@ -28,10 +28,6 @@
 
           <h3>Eintragarchiv</h3>
           <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv Button</strong> klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
-
-          <h3>Private Einträge</h3>
-          <p>Anders als normale Einträge sind diese verschlüsselt und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-Dos tracken – alles mit einem Programm. Dank AES256 Verschlüsselung musst du dir keine Sorgen um die Sicherheit machen: nur jemand mit deinem Passwort kann auf deine privaten Einträge zugreifen. Achte also auf ein starkes Passwort! Dein Passwort kannst du jederzeit in den Accounteinstellungen ändern.</p>
-
         </InfoPop>
 
       </div>
