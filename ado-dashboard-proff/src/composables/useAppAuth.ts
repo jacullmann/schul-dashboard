@@ -54,6 +54,9 @@ export function useAppAuth() {
             if (!csrfInitialized) {
                 console.error('CSRF initialization failed after all retries');
                 window.dispatchEvent(new CustomEvent('csrf-init-failed'));
+                isAuthReady.value = true;
+                isAuthenticated.value = false;
+                return;
             }
             await checkAuthStatus();
             isAuthReady.value = true;

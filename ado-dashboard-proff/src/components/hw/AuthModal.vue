@@ -278,6 +278,7 @@ async function submit() {
       });
 
       if (data.ok) {
+        await new Promise(resolve => setTimeout(resolve, 50));
         syncCsrfFromCookie();
         emit('logged-in');
       }

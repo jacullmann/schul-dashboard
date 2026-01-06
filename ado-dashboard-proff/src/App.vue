@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import Header from './components/Header.vue';
@@ -56,7 +56,7 @@ import AuthModal from './components/hw/AuthModal.vue';
 import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
 import { useAppAuth } from './composables/useAppAuth';
 import { useRouter, useRoute } from 'vue-router';
-import hw from './hwApi';
+import hw, { syncCsrfFromCookie } from './hwApi';
 
 const router = useRouter();
 const route = useRoute();
@@ -98,8 +98,10 @@ function handleAppGateExpired() {
   router.push('/welcome');
 }
 async function onAuthSuccess() {
+  syncCsrfFromCookie();
   await userStore.fetchUser();
   handleAuthSuccess('');
+  await nextTick();
 }
 async function handleUserTokenExpired() {
   userStore.clearUser();
@@ -127,6 +129,17 @@ function handleCsrfRefreshFailed() {
   }, 100);
 }
 
+function handleCsrfInitFailed() {
+  console.error('CSRF-Initialisierung fehlgeschlagen. Reload-Confirm anzeigen.');
+  const shouldReload = confirm(
+      'Die Verbindung zum Server konnte nicht sicher hergestellt werden. ' +
+      'Seite neu laden?'
+  );
+  if (shouldReload) {
+    window.location.reload();
+  }
+}
+
 watch(user, (newUser, oldUser) => {
   if (newUser && !oldUser) {
     logPageload();
@@ -142,6 +155,7 @@ onMounted(() => {
   window.addEventListener('user-token-expired', handleUserTokenExpired);
   window.addEventListener('app-gate-expired', handleAppGateExpired);
   window.addEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
+  window.addEventListener('csrf-init-failed', handleCsrfInitFailed);
 
   authCheckInterval = setInterval(() => {
     if (isAuthenticated.value) {
@@ -155,6 +169,7 @@ onUnmounted(() => {
   window.removeEventListener('user-token-expired', handleUserTokenExpired);
   window.removeEventListener('app-gate-expired', handleAppGateExpired);
   window.removeEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
+  window.removeEventListener('csrf-init-failed', handleCsrfInitFailed);
 
   if (authCheckInterval) {
     clearInterval(authCheckInterval);

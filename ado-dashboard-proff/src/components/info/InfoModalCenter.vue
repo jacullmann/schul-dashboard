@@ -75,7 +75,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
 .info-modal-content {
   max-width: 640px;
   width: 100%;
-  padding: 16px;
+  padding:16px 16px 0 16px;
   border-radius: 16px;
   background: var(--lbg);
   color: var(--text);
@@ -87,7 +87,6 @@ const handleBackgroundClick = (event: MouseEvent) => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
 }
