@@ -98,7 +98,11 @@
               <span class="checkbox-label">
                 Ich stimme der
                 <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
-                  Datenschutzerklärung und AGB
+                  Datenschutzerklärung
+                </a>
+                und den
+                <a href="/impressum-&-datenschutz/nutzung" target="_blank" class="privacy-link">
+                  Nutzungsbedingungen
                 </a>
                 zu
               </span>
@@ -243,7 +247,7 @@ function validateBeforeSubmit(): boolean {
 
     // Privacy checkbox
     if (!acceptedPrivacy.value) {
-      errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung zu.';
+      errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung und den Nutzungsbedingungen zu.';
       ok = false;
     }
   }
@@ -367,15 +371,15 @@ async function submit() {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--text);
+  color: var(--sub);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s ease;
+  transition: color 0.1s ease;
 }
 
 .password-toggle:hover {
-  opacity: 0.7;
+  color: var(--text);
 }
 
 .forgot-password-link {
