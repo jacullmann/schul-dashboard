@@ -90,9 +90,11 @@
           </div>
 
           <div v-if="mode === 'register'" class="form-group">
-            <label class="collapse-checkbox">
-              <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-              <span class="vis-label"></span>
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+              <label class="collapse-checkbox">
+                <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
+                <span class="vis-label"></span>
+              </label>
               <span class="checkbox-label">
                 Ich stimme der
                 <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
@@ -100,7 +102,7 @@
                 </a>
                 zu
               </span>
-            </label>
+            </div>
             <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
           </div>
 
@@ -391,12 +393,9 @@ async function submit() {
 }
 
 .collapse-checkbox {
-  display: flex;
-  align-items: flex-start;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
-  user-select: none;
-  gap: 8px;
-  position: relative;
 }
 
 .collapse-checkbox input {
@@ -404,25 +403,29 @@ async function submit() {
 }
 
 .collapse-checkbox .vis-label {
-  min-width: 18px;
   width: 18px;
   height: 18px;
-  border: 2px solid var(--text);
   border-radius: 4px;
+  border: 2px solid var(--sub);
+  display: inline-block;
+  background: transparent;
   position: relative;
-  margin-top: 2px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
 .collapse-checkbox input:checked + .vis-label {
-  background-color: var(--primary);
-  border-color: var(--primary);
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.collapse-checkbox .vis-label:hover {
+  border-color: var(--text);
 }
 
 .collapse-checkbox .vis-label::after {
-  content: "";
+  content: '';
   position: absolute;
+  width: 0;
+  height: 0;
   border: solid var(--lbg);
   border-width: 0 2px 2px 0;
   opacity: 0;
