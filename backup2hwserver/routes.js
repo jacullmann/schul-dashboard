@@ -190,7 +190,6 @@ export default function registerRoutes(app, deps) {
             subject: 'Bitte bestätige deine E-Mail-Adresse',
             html:
                 `<p>Willkommen beim Schul Dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
-<br>
 <p>Klicke auf den Link unten und melde dich mit deinem neuen Account an. </p>
 <br>
 <p>
@@ -200,9 +199,7 @@ E-Mail bestätigen
 </p>
 <br>
 <p>Der Link ist für 48 Stunden gültig.</p>
-<br>
 <p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
-<br>
 <p>Danke, dass du dich für uns entschieden hast.</p>
 <p>Das Schul Dashboard-Team</p>
 `
