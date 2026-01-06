@@ -2,7 +2,7 @@
   <div v-if="show" class="blurit" @click.stop="$emit('cancel')">
     <div class="confirm-box" @click.stop>
       <div class="report">
-        <h4 style="margin-top: 0">Diesen Eintrag melden?</h4>
+        <h4 style="margin: 0">Diesen Eintrag melden?</h4>
         <InfoModalCenter tooltip="Melden Info" title="Infos zum Melden von Einträgen">
           <h3>Falschinformationen</h3>
           Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt.
