@@ -57,7 +57,7 @@ const resultMessageText = computed(() => {
   } else if (finalResult.value < 100) {
     return `Der Text weist einige LLM-Merkmale auf. KI-Wahrscheinlichkeit: ${finalResult.value}%`;
   } else {
-    return `KRITISCHE WARNUNG: Der Großteil der 1500 Germanist*innen sind zu dem Schluss gekommen, dass der eingegebene Text eine hohe Anzahl an LLM-typischen Merkmalen aufweist. Die KI-Wahrscheinlichkeit beträgt  ${finalResult.value}.Eine mehrfache Validierung durch unabhängige Detektionsmodule wird nicht empfohlen, um Unsicherheiten zu vermeiden.`;
+    return `KRITISCHE WARNUNG: Der Großteil der 1500 Germanist*innen sind zu dem Schluss gekommen, dass der eingegebene Text eine hohe Anzahl an LLM-typischen Merkmalen aufweist. Die KI-Wahrscheinlichkeit beträgt  ${finalResult.value}%.Eine mehrfache Validierung durch unabhängige Detektionsmodule wird nicht empfohlen, um Unsicherheiten zu vermeiden.`;
   }
 });
 
