@@ -148,7 +148,7 @@ const routes = [
         component: Aidetector,
         meta: {
             title: 'AI Detektor',
-            fullWidth: false,
+            fullWidth: true,
             hideNavigation: false
         }
     },
