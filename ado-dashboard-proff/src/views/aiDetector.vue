@@ -336,8 +336,6 @@ async function startAnalysis(): Promise<void> {
 
 <style scoped>
 .detector-container {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 24px;
 }
 
