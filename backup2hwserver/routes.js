@@ -28,10 +28,10 @@ export default function registerRoutes(app, deps) {
         models,
         supabase,
         cloudinary,
-        sgClient,
+        resendClient,
         geminiModel,
-        sendgridConfigured,
-        sendgridFrom,
+        emailConfigured,
+        emailFrom,
         appGateSecret,
         userSecret,
         csrfSecret,
@@ -183,40 +183,57 @@ export default function registerRoutes(app, deps) {
     }
 
     async function sendVerificationEmail(to, verifyUrl) {
-        if (!sendgridConfigured) throw new Error('SendGrid nicht konfiguriert');
-        const msg = {
-            to,
-            from: sendgridFrom,
+        if (!emailConfigured) throw new Error('E-Mail-Service nicht konfiguriert');
+
+        const { data, error } = await resendClient.emails.send({
+            from: emailFrom,
+            to: [to],
             subject: 'Bitte bestätige deine E-Mail-Adresse',
-            html:
-                `<p>Willkommen beim Schul Dashboard.</p>
-<p>Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
-<p>Klicke auf den Link unten und melde dich mit deinem neuen Account an. </p>
-<br>
-<p>
-<a href="${verifyUrl}">
-E-Mail bestätigen
-</a>
-</p>
-<br>
-<p>Der Link ist für 48 Stunden gültig.</p>
-<p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
-<p>Danke, dass du dich für uns entschieden hast.</p>
-<p>Das Schul Dashboard-Team</p>
-`
-        };
-        return sgClient.send(msg);
+            html: `
+            <p>Willkommen beim Schul Dashboard.</p>
+            <p>Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
+            <p>Klicke auf den Link unten und melde dich mit deinem neuen Account an.</p>
+            <br>
+            <p><a href="${verifyUrl}">E-Mail bestätigen</a></p>
+            <br>
+            <p>Der Link ist für 48 Stunden gültig.</p>
+            <p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
+            <p>Danke, dass du dich für uns entschieden hast.</p>
+            <p>Das Schul Dashboard-Team</p>
+        `
+        });
+
+        if (error) {
+            console.error('Resend verification email error:', error);
+            throw new Error(`E-Mail-Versand fehlgeschlagen: ${error.message}`);
+        }
+        if (data?.id) {
+            console.log(`Verification email sent successfully. Resend ID: ${data.id}`);
+        }
+        return data;
     }
 
     async function sendPasswordResetEmail(to, code) {
-        if (!sendgridConfigured) throw new Error('SendGrid nicht konfiguriert');
-        const msg = {
-            to,
-            from: sendgridFrom,
+        if (!emailConfigured) throw new Error('E-Mail-Service nicht konfiguriert');
+
+        const { data, error } = await resendClient.emails.send({
+            from: emailFrom,
+            to: [to],
             subject: 'Passwort zurücksetzen',
-            html: `<p>Hallo,</p><p>Dein Passwort-Zurücksetz-Code lautet <strong>${code}</strong></p><p>Dieser Code ist für 30 Minuten gültig.</p>`
-        };
-        return sgClient.send(msg);
+            html: `
+            <p>Hallo,</p>
+            <p>Dein Passwort-Zurücksetz-Code lautet <strong>${code}</strong></p>
+            <p>Dieser Code ist für 30 Minuten gültig.</p>
+            <p>Falls du diesen Code nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
+        `
+        });
+
+        if (error) {
+            console.error('Resend password reset email error:', error);
+            throw new Error(`E-Mail-Versand fehlgeschlagen: ${error.message}`);
+        }
+
+        return data;
     }
 
     // Rate-Limit-Middlewares
@@ -453,7 +470,7 @@ E-Mail bestätigen
                 await sendVerificationEmail(user.email, verifyUrl);
                 res.status(201).json({ ok: true, message: 'Registriert. Bitte überprüfe deine E-Mail sowie deinen Spamordner.' });
             } catch (mailErr) {
-                console.error('Failed to send verification email (SendGrid):', mailErr);
+                console.error('Failed to send verification email:', mailErr);
                 res.status(201).json({
                     ok: true,
                     message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
@@ -551,7 +568,11 @@ E-Mail bestätigen
             const expiresAt = dayjs().add(30, 'minute').toDate();
             await PasswordReset.updateMany({ email }, { $set: { used: true } });
             await PasswordReset.create({ email, code, expiresAt, used: false });
-            try { await sendPasswordResetEmail(email, code); } catch (mailErr) { console.error('Senden der Reset-Email fehlgeschlagen:', mailErr?.response?.body || mailErr?.message || mailErr); }
+            try {
+                await sendPasswordResetEmail(email, code);
+            } catch (mailErr) {
+                console.error('Senden der Reset-Email fehlgeschlagen:', mailErr?.message || mailErr);
+            }
             res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
         } catch (err) {
             console.error('POST /api/auth/forgot error', err);

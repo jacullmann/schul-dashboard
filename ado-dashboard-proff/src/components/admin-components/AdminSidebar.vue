@@ -119,12 +119,12 @@ watch(() => props.sorgenCount, (newCount) => {
   white-space: nowrap;
 }
 .nav-item:hover {
-  background: var(--ghost--hover);
+  background: var(--opacity--hover);
   color: var(--text);
 }
 
 .nav-item.active {
-  background: var(--opacity--hover);
+  background: var(--ghost--hover);
   color: var(--text);
   font-weight: 500;
 }

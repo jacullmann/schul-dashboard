@@ -419,7 +419,7 @@ const {
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
   margin-bottom: 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-s);
 }
 .item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 .menu-btn {

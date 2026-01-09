@@ -19,6 +19,7 @@ const AdminDashboard = () => import('./views/AdminDashboard.vue');
 const DaltonFinder = () => import('./views/tools/DaltonFinder.vue');
 const Devide = () => import('./views/devider/Devide.vue');
 const PatchInfo = () => import('./views/updates/Info.vue');
+const InfoDashboard = () => import('./views/InfoDashboard/InfoDashboard.vue')
 
 const routes = [
     { path: '/', redirect: '/items/HAUSAUFGABE' },
@@ -203,6 +204,15 @@ const routes = [
         meta: {
             title: 'Daltonraumfinder',
             fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/info-dashboard',
+        component: InfoDashboard,
+        meta: {
+            title: 'Info Dashboard',
+            fullWidth: true,
             hideNavigation: false
         }
     },

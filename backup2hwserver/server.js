@@ -8,7 +8,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
-import sgClient from '@sendgrid/mail';
+import { Resend } from 'resend';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
@@ -23,20 +23,22 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
-const SENDGRID_FROM = process.env.SENDGRID_FROM || process.env.SMTP_FROM || 'no-reply@yourdomain.com';
-if (SENDGRID_API_KEY) {
-    sgClient.setApiKey(SENDGRID_API_KEY);
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'Schul Dashboard <noreply@schul-dashboard.com>';
+let resendClient = null;
+
+if (RESEND_API_KEY) {
+    resendClient = new Resend(RESEND_API_KEY);
     (async () => {
         try {
-            await sgClient.request({ method: 'GET', url: '/v3/user/profile' });
-            console.log('SendGrid API erreichbar und konfiguriert.');
+            await resendClient.domains.list();
+            console.log('Resend API erreichbar und konfiguriert.');
         } catch (err) {
-            console.error('SendGrid API Test fehlgeschlagen:', err?.response?.body || err?.message || err);
+            console.error('Resend API Test fehlgeschlagen:', err?.message || err);
         }
     })();
 } else {
-    console.error('WARN: SENDGRID_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
+    console.error('WARN: RESEND_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
 }
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
@@ -100,10 +102,10 @@ routes(app, {
     models,
     supabase,
     cloudinary,
-    sgClient,
+    resendClient,
     geminiModel,
-    sendgridConfigured: !!SENDGRID_API_KEY,
-    sendgridFrom: SENDGRID_FROM,
+    emailConfigured: !!RESEND_API_KEY,
+    emailFrom: EMAIL_FROM,
     appGateSecret: process.env.APP_GATE_JWT_SECRET,
     userSecret: process.env.USER_JWT_SECRET,
     csrfSecret: process.env.CSRF_SECRET,
