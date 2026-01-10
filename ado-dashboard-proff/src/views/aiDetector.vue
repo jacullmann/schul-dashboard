@@ -306,21 +306,6 @@ const wordCount = computed(() => {
               <div class="spinner"></div>
               <span>Analysiere LLM-Muster...</span>
             </div>
-
-            <div v-if="hasAnalyzed" class="result-info">
-              <div
-                  class="result-message"
-                  :class="{
-                  warning: warningLevel === 1,
-                  danger: warningLevel === 2,
-                  critical: warningLevel === 3
-                }"
-              >
-                <AlertTriangle v-if="warningLevel > 0" :size="20" />
-                <p>{{ resultText }}</p>
-              </div>
-            </div>
-
             <div v-if="!hasAnalyzed && !isAnalyzing" class="empty-state">
               <p>Geben Sie den kritischen Text ein und starten sie die LLM-Analyse</p>
             </div>
@@ -525,39 +510,6 @@ const wordCount = computed(() => {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
-.result-info {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.result-message {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--border-4);
-}
-
-.result-message.warning {
-  background: rgba(234, 179, 8, 0.1);
-  border-color: var(--warn);
-}
-
-.result-message.danger {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--danger);
-}
-
-.result-message.critical {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--danger);
-}
-
 
 .result-message p {
   margin: 0;
