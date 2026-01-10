@@ -7,9 +7,9 @@
             tooltip="Übersicht und Funktionen des Dashboards"
             title="Dashboard"
         >
-          <p>Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</p>
+          <h3>Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</h3>
           <h3>Einträge</h3>
-          <p>Jeder, der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
+          <p>Jede/r, die/der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
 
           <h3>Eintrag hinzufügen</h3>
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
@@ -27,7 +27,7 @@
           <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
 
           <h3>Eintragarchiv</h3>
-          <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv Button</strong> klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
+          <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv</strong> Button klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
         </InfoPop>
 
       </div>
