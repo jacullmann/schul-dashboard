@@ -200,40 +200,6 @@ async function startAnalysis() {
   requestAnimationFrame(animate);
 }
 
-const resultColor = computed(() => {
-  if (!hasAnalyzed.value) return 'var(--sub)';
-  if (aiProbability.value < 30) return 'var(--special--green)';
-  if (aiProbability.value < 70) return 'var(--warn)';
-  if (aiProbability.value < 150) return 'var(--danger)';
-  return 'var(--lp)';
-});
-
-const resultText = computed(() => {
-  if (!hasAnalyzed.value) return '';
-
-  if (aiProbability.value < 30) {
-    return 'Es konnten keine LLM-typschen Muster festgestellt werden.';
-  } else if (aiProbability.value < 70) {
-    return 'Es wurden einige LLM-typische Muster festgestellt.';
-  } else if (aiProbability.value < 150) {
-    return 'Der Text wurde höchstwahrscheinlich vollständig oder teilweise von einem LLM verfasst.';
-  } else if (aiProbability.value < 250) {
-    return 'ACHTUNG!!! Es wurde eine kritische Anzahl an LLM-typischen Mustern erkannt.  ';
-  } else if (aiProbability.value < 400) {
-    return 'KRITISCH: Die LLM-Wahrscheinlichkeit überschreitet alle bekannten Messwerte. Dringender Handlungsbedarf empfohlen!';
-  } else {
-    return 'SYSTEMFEHLER!!! ChatGPT hat vermutlich ChatGPT verwendet, um diesen Text zu schreiben.';
-  }
-});
-
-const warningLevel = computed(() => {
-  if (!hasAnalyzed.value) return 0;
-  if (aiProbability.value < 70) return 0;
-  if (aiProbability.value < 150) return 1;
-  if (aiProbability.value < 250) return 2;
-  return 3;
-});
-
 // Live-Update während Tippen (optional, aber witzig)
 watch(textInput, () => {
   if (hasAnalyzed.value) {
@@ -242,10 +208,6 @@ watch(textInput, () => {
   }
 });
 
-const wordCount = computed(() => {
-  const words = textInput.value.trim().split(/\s+/).filter(w => w.length > 0);
-  return words.length;
-});
 </script>
 
 <template>
@@ -296,7 +258,7 @@ const wordCount = computed(() => {
 
           <div class="result-display" :class="{ active: hasAnalyzed, analyzing: isAnalyzing }">
             <div class="probability-container">
-              <div class="probability-value" :style="{ color: resultColor }">
+              <div class="probability-value">
                 {{ aiProbability }}%
               </div>
               <div class="probability-label">LLM-Wahrscheinlichkeit</div>
@@ -481,6 +443,7 @@ const wordCount = computed(() => {
   line-height: 1;
   margin-bottom: 8px;
   transition: color 0.5s ease;
+  color: var(--text);
 }
 
 .probability-label {
