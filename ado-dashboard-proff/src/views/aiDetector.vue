@@ -332,8 +332,8 @@ async function startAnalysis(): Promise<void> {
       </div>
       <div>
         <p>
-          Unser revolutionäres Detektionssystem basiert auf jahrzehntelanger Forschung. Jeder Text wird in Echtzeit von 1500 Germanist*innen
-          analysiert, die rund um die Uhr in unseren globalen Analyse-Zentren arbeiten – völlig freiwillig und aus
+          Unser revolutionäres LLM-Detektionssystem basiert auf jahrzehntelanger Forschung. Jeder Text wird in innerhalb von Sekunden von 1500 Germanist*innen
+          weltweit analysiert, die rund um die Uhr in unseren globalen Analyse-Zentren arbeiten – völlig freiwillig und aus
           purer Liebe zur deutschen Sprache.
         </p>
       </div>
