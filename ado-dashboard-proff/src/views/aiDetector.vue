@@ -243,7 +243,7 @@ watch(textInput, () => {
           <button
               @click="startAnalysis"
               :disabled="isAnalyzing || textInput.trim().length === 0"
-              class="btn analyze-btn"
+              class="btn action analyze-btn"
           >
             <Zap :size="18" />
             {{ isAnalyzing ? 'Analysiere Muster...' : 'Text analysieren' }}
