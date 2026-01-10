@@ -391,10 +391,6 @@ watch(textInput, () => {
   transition: border-color 0.2s;
 }
 
-.text-input:focus {
-  outline: none;
-  border-color: var(--text);
-}
 
 .text-input:disabled {
   opacity: 0.6;
@@ -425,10 +421,6 @@ watch(textInput, () => {
   border-radius: var(--border-4);
   position: relative;
   transition: all 0.3s ease;
-}
-
-.result-display.analyzing {
-  border-color: var(--text);
 }
 
 .probability-container {
