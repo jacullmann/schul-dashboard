@@ -155,7 +155,8 @@ export function initModels(mongoose) {
             room: { type: String, default: null },
             teacher: { type: String, default: null },
             subject: { type: String, required: true },
-            subject_abbr: { type: String }
+            subject_abbr: { type: String },
+            courseId: { type: Number, default: null }
         }],
         updatedAt: { type: Date, default: Date.now }
     }, { timestamps: true });

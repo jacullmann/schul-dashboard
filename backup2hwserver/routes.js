@@ -190,16 +190,17 @@ export default function registerRoutes(app, deps) {
             to: [to],
             subject: 'Bitte bestätige deine E-Mail-Adresse',
             html: `
-            <p>Willkommen beim Schul Dashboard.</p>
-            <p>Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
+            <h3>Nur noch ein letzter Schritt</h3>
+            <p>Willkommen beim Schul Dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
             <p>Klicke auf den Link unten und melde dich mit deinem neuen Account an.</p>
-            <br>
             <p><a href="${verifyUrl}">E-Mail bestätigen</a></p>
-            <br>
             <p>Der Link ist für 48 Stunden gültig.</p>
             <p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
-            <p>Danke, dass du dich für uns entschieden hast.</p>
-            <p>Das Schul Dashboard-Team</p>
+            <p>
+              Danke, dass du dich für uns entschieden hast.
+              <br>
+              Das Schul Dashboard-Team
+            </p>
         `
         });
 
@@ -221,8 +222,9 @@ export default function registerRoutes(app, deps) {
             to: [to],
             subject: 'Passwort zurücksetzen',
             html: `
-            <p>Hallo,</p>
-            <p>Dein Passwort-Zurücksetz-Code lautet <strong>${code}</strong></p>
+            <h3>Bestätigungscode<h3>
+            <p>Um dein Passwort zurückzusetzen, gebe folgenden Code auf der Schul Dashboard Seite ein:</p>
+            <p><strong>${code}</strong></p>
             <p>Dieser Code ist für 30 Minuten gültig.</p>
             <p>Falls du diesen Code nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
         `
@@ -234,6 +236,38 @@ export default function registerRoutes(app, deps) {
         }
 
         return data;
+    }
+    // Stundenplan Hilfsfunktion
+    function filterLessonsForUser(lessons, user) {
+        // Mapping: subject -> user preference field
+        const courseMapping = {
+            'Enrichment': user.enrKurs,
+            'WPU (Di)': user.wpuKurs1,
+            'WPU (Do)': user.wpuKurs2,
+            'Theater': user.theater
+        };
+
+        return lessons.filter(lesson => {
+            const userCourseId = courseMapping[lesson.subject];
+
+            // Immer anzeigen wenn keine id
+            if (userCourseId === undefined) {
+                return true;
+            }
+
+            // keine anzeigen, wenn er übersprungen hat
+            if (userCourseId === 0) {
+                return false;
+            }
+
+            // alle kurse ohne ki anzeigen
+            if (lesson.courseId === null || lesson.courseId === undefined) {
+                return true;
+            }
+
+            // personalisierte kurse anzeigen
+            return lesson.courseId === userCourseId;
+        });
     }
 
     // Rate-Limit-Middlewares
@@ -1611,22 +1645,30 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
 
     app.get('/api/timetable',
         requireAppGate(appGateSecret),
+        checkUser(userSecret, User),
         async (req, res) => {
-        try {
-            const timetable = await Timetable.findOne()
-                .sort({ updatedAt: -1 })
-                .lean();
-
-            if (!timetable) {
-                return sendJSONError(res, 404, 'Kein Stundenplan gefunden');
+            try {
+                const timetable = await Timetable.findOne()
+                    .sort({ updatedAt: -1 })
+                    .lean();
+                if (!timetable) {
+                    return sendJSONError(res, 404, 'Kein Stundenplan gefunden');
+                }
+                let lessons = timetable.lessons;
+                if (req.user) {
+                    const user = await User.findById(req.user.sub)
+                        .select('personalized doneSetup enrKurs wpuKurs1 wpuKurs2 theater')
+                        .lean();
+                    if (user && user.personalized && user.doneSetup) {
+                        lessons = filterLessonsForUser(timetable.lessons, user);
+                    }
+                }
+                res.json(lessons);
+            } catch (err) {
+                console.error('GET /api/timetable error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden des Stundenplans');
             }
-
-            res.json(timetable.lessons);
-        } catch (err) {
-            console.error('GET /api/timetable error', err);
-            sendJSONError(res, 500, 'Fehler beim Laden des Stundenplans');
-        }
-    });
+        });
 
     app.get('/api/timetable/subs',
         requireAppGate(appGateSecret),

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from "../hwApi";
 import InfoPop from '../components/info/InfoModalCenter.vue'
+import { useUserStore } from '../stores/userStore';
+const userStore = useUserStore();
 
 interface Lesson {
   id: number;
@@ -12,9 +14,14 @@ interface Lesson {
   subject_abbr?: string;
   teacher: string | null;
   room: string | null;
+  courseId?: number | null;
   _original?: Lesson;
   cancelled?: boolean;
 }
+
+const isPersonalized = computed(() => {
+  return userStore.user?.personalized && userStore.user?.doneSetup;
+});
 
 interface Substitution {
   lessonId: number;
@@ -52,11 +59,6 @@ const breaks: Record<number, number> = {
   7: 10
 };
 
-
-
-const substitutionsData: Substitution[] = [];
-
-
 async function loadSubstitutions() {
   try {
     const { data } = await hw.get('/api/timetable/subs');
@@ -70,6 +72,7 @@ async function loadSubstitutions() {
 }
 
 async function loadTimetable() {
+  loadingLessons.value = true;
   try {
     const { data } = await hw.get('/api/timetable');
     lessons.value = data;
@@ -178,6 +181,21 @@ onMounted(() => {
   loadTimetable();
   loadSubstitutions();
 });
+watch(
+    () => [
+      userStore.user?.personalized,
+      userStore.user?.enrKurs,
+      userStore.user?.wpuKurs1,
+      userStore.user?.wpuKurs2,
+      userStore.user?.theater
+    ],
+    (newVal, oldVal) => {
+      if (oldVal !== undefined && JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+        loadTimetable();
+      }
+    },
+    { deep: false }
+);
 onUnmounted(() => {
   clearInterval(timer);
 });
@@ -272,7 +290,12 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 
         </InfoPop>
       </h2>
-      <div v-if="loadingSubs" class="small">Lade Änderungen...</div>
+      <div class="status-row">
+        <div v-if="loadingSubs || loadingLessons" class="small">Lade Stundenplan...</div>
+        <div v-else-if="isPersonalized" class="personalized-badge">
+          Personalisiert
+        </div>
+      </div>
     </div>
     <div class="timetable-grid">
 
@@ -518,5 +541,22 @@ const activeOrNextGroupKey = computed<string | null>(() => {
     border-radius: 0;
     padding: 16px;
   }
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.personalized-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background-color: var(--gg);
+  border: 1px solid var(--not-spinning);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: var(--text);
 }
 </style>
