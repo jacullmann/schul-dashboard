@@ -378,8 +378,7 @@ const wordCount = computed(() => {
   align-items: center;
 }
 
-.version-tag,
-.accuracy-tag {
+.version-tag {
   padding: 4px 10px;
   border-radius: var(--border-4);
   font-size: 0.75rem;
@@ -427,11 +426,6 @@ const wordCount = computed(() => {
   color: var(--text);
 }
 
-.word-counter {
-  font-size: 0.875rem;
-  color: var(--sub);
-  font-family: 'Courier New', monospace;
-}
 
 /* Input */
 .text-input {
@@ -560,34 +554,15 @@ const wordCount = computed(() => {
 }
 
 .result-message.critical {
-  background: rgba(196, 77, 255, 0.1);
-  border-color: var(--lp);
-  animation: pulse-glow 2s ease-in-out infinite;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 77, 255, 0.4); }
-  50% { box-shadow: 0 0 20px 5px rgba(196, 77, 255, 0.2); }
-}
 
 .result-message p {
   margin: 0;
   line-height: 1.6;
   color: var(--text);
-}
-
-.disclaimer {
-  padding: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--border-4);
-}
-
-.disclaimer-text {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--sub);
-  line-height: 1.5;
 }
 
 .empty-state {
