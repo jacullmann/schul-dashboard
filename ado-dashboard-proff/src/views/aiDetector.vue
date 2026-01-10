@@ -330,6 +330,13 @@ async function startAnalysis(): Promise<void> {
           <p>Geben Sie einen Text ein und starten Sie die Analyse, um Ergebnisse zu sehen.</p>
         </div>
       </div>
+      <div>
+        <p>
+          Unser revolutionäres Detektionssystem basiert auf jahrzehntelanger Forschung. Jeder Text wird in Echtzeit von 1500 Germanist*innen
+          analysiert, die rund um die Uhr in unseren globalen Analyse-Zentren arbeiten – völlig freiwillig und aus
+          purer Liebe zur deutschen Sprache.
+        </p>
+      </div>
     </div>
   </div>
 </template>
