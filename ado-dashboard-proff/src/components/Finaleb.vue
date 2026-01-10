@@ -58,7 +58,26 @@ const breaks: Record<number, number> = {
   5: 40,
   7: 10
 };
+const SUBJECT_ABBR_TO_NAME: Record<string, string> = {
+  'INF': 'Informatik',
+  'ENG': 'Englisch',
+  'BI': 'Biologie',
+  'LA': 'Latein',
+  'GEWI': 'Geschichte',
+  'DE': 'Deutsch',
+  'MA': 'Mathe',
+  'MU': 'Musik'
+};
 
+function getDisplayName(lesson: Lesson): string {
+  if (lesson.subject?.startsWith('WPU') && lesson.subject_abbr) {
+    const fachName = SUBJECT_ABBR_TO_NAME[lesson.subject_abbr];
+    if (fachName) {
+      return `${fachName} WPU`;
+    }
+  }
+  return lesson.subject;
+}
 async function loadSubstitutions() {
   try {
     const { data } = await hw.get('/api/timetable/subs');
@@ -338,7 +357,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
             }"
         >
           <div v-if="lesson.cancelled">
-            <div class="lesson-subject crossed">{{ lesson.subject }}</div>
+            <div class="lesson-subject crossed">{{ getDisplayName(lesson) }}</div>
             <div class="ausfall-label">Ausfall</div>
             <div class="lesson-details">
               <span class="crossed">{{ lesson.room }}</span>
@@ -349,10 +368,10 @@ const activeOrNextGroupKey = computed<string | null>(() => {
           <div v-else>
             <div class="lesson-subject">
               <span v-if="lesson.subject !== lesson._original?.subject" class="crossed">
-                {{ lesson._original?.subject }}
+                {{ getDisplayName(lesson._original!) }}
               </span>
               <span :class="{ 'new-val': lesson.subject !== lesson._original?.subject }">
-                {{ lesson.subject }}
+                {{ getDisplayName(lesson) }}
               </span>
             </div>
 
