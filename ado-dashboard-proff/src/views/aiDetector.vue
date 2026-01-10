@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { Zap, AlertTriangle } from 'https://esm.sh/lucide-vue-next';
+import { Zap, AlertTriangle } from 'lucide-vue-next';
 
 const textInput = ref('');
 const isAnalyzing = ref(false);
