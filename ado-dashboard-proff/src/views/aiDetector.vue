@@ -1,794 +1,659 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Activity, BarChart3, FileText, TrendingUp, Zap } from 'lucide-vue-next';
+import { ref, computed, watch } from 'vue';
+import { Zap, AlertTriangle } from 'https://esm.sh/lucide-vue-next';
 
 const textInput = ref('');
 const isAnalyzing = ref(false);
-const currentStatus = ref('Warten auf Analyse-Start...');
-const finalResult = ref(0);
-const currentGaugeValue = ref(0);
-const showAnalysisArea = ref(false);
+const aiProbability = ref(0);
+const hasAnalyzed = ref(false);
 
-const totalScans = ref(0);
-const wordCount = ref(0);
-const charCount = ref(0);
-const sentenceCount = ref(0);
+// Wörter, die die AI-Wahrscheinlichkeit beeinflussen
+const suspiciousWords = {
+  // Stark verdächtige Wörter (jedes +20%)
+  critical: ['jedoch', 'zudem', 'darüber hinaus', 'ferner', 'somit', 'folglich', 'diesbezüglich',
+    'demzufolge', 'infolgedessen', 'demgemäß', 'mithin', 'insofern', 'gewissermaßen',
+    'beispielsweise', 'insbesondere', 'grundsätzlich', 'prinzipiell', 'essenziell',
+    'substanziell', 'fundamental', 'integral', 'signifikant', 'evident', 'augenscheinlich',
+    'offenkundig', 'unverkennbar', 'zweifelsohne', 'fraglos', 'unbestritten', 'unleugbar'],
 
-const syntaxScore = ref(0);
-const semanticScore = ref(0);
-const coherenceScore = ref(0);
-const patternScore = ref(0);
+  // Mittelmäßig verdächtig (jedes +8%)
+  moderate: ['vielfältig', 'umfassend', 'ganzheitlich', 'nachhaltig', 'innovativ', 'dynamisch',
+    'transparent', 'effizient', 'optimal', 'relevant', 'signifikant', 'komplex',
+    'herausfordernd', 'spannend', 'interessant', 'wichtig', 'zentral', 'wesentlich',
+    'maßgeblich', 'entscheidend', 'fundamental', 'elementar', 'essentiell'],
 
-const MAX_GAUGE_VALUE = 500;
-const VISUAL_MAX_PERCENT = 100;
-const SATIRICAL_OVERFLOW_MAX_DEG = 220;
+  // Leicht verdächtig (jedes +4%)
+  mild: ['einerseits', 'andererseits', 'gewissermaßen', 'sozusagen',  'tendenziell',
+    'grundsätzlich', 'prinzipiell', 'theoretisch', 'praktisch', 'konkret', 'abstrakt',  'letztendlich', 'schlussendlich', 'durchaus', 'durchweg'],
 
-const gaugeRotation = computed(() => {
-  const value = currentGaugeValue.value;
-  let rotation: number;
-  if (value <= VISUAL_MAX_PERCENT) {
-    rotation = (value / VISUAL_MAX_PERCENT) * 180;
-  } else {
-    const overflowValue = value - VISUAL_MAX_PERCENT;
-    const maxOverflowValue = MAX_GAUGE_VALUE - VISUAL_MAX_PERCENT;
-    const overflowDegrees = SATIRICAL_OVERFLOW_MAX_DEG - 180;
-    rotation = 180 + (overflowValue / maxOverflowValue) * overflowDegrees;
-    rotation = Math.min(rotation, SATIRICAL_OVERFLOW_MAX_DEG);
-  }
-  return `rotate(${rotation}deg)`;
-});
+  // Menschliche Wörter (jedes -12%)
+  human: ['alter', 'krass', 'digga', 'lol', 'wtf', 'nice',  'mega', 'voll', 'halt',
+    'irgendwie', 'dings', 'ka', 'wallah',  'bro', ]
+};
 
-const gaugeColor = computed(() => {
-  if (isAnalyzing.value || finalResult.value === 0) {
-    return 'var(--text)';
-  } else if (finalResult.value < 50) {
-    return 'var(--text)';
-  } else if (finalResult.value < 100) {
-    return 'var(--sub)';
-  } else {
-    return 'var(--text)';
-  }
-});
+// Spezielle Textmuster
+const patterns = {
+  // Gedankenstriche und Sonderzeichen
+  longDash: /—/g,          // jeder +3%
+  mediumDash: /–/g,        // jeder +2%
+  ellipsis: /…|\.{3,}/g,   // jeder -5% (menschlicher)
+  exclamation: /!+/g,      // jeder -2% (emotional = menschlich)
+  question: /\?+/g,        // jeder -1%
 
-const resultMessageText = computed(() => {
-  if (finalResult.value === 0) return '';
-  if (finalResult.value < 50) {
-    return `Der analysierte Text zeigt menschliche Schreibmuster. KI-Wahrscheinlichkeit: ${finalResult.value}%`;
-  } else if (finalResult.value < 100) {
-    return `Der Text weist einige LLM-Merkmale auf. KI-Wahrscheinlichkeit: ${finalResult.value}%`;
-  } else {
-    return `KRITISCHE WARNUNG: Der Großteil der 1500 Germanist*innen sind zu dem Schluss gekommen, dass der eingegebene Text eine hohe Anzahl an LLM-typischen Merkmalen aufweist. Die KI-Wahrscheinlichkeit beträgt  ${finalResult.value}%.Eine mehrfache Validierung durch unabhängige Detektionsmodule wird nicht empfohlen, um Unsicherheiten zu vermeiden.`;
-  }
-});
+  // Satzstrukturen
+  veryLongSentence: /[^.!?]{200,}/g,  // jeder Satz >200 Zeichen +10%
+  shortSentence: /[^.!?]{1,20}\./g,   // jeder kurze Satz -3%
 
-function getWeightedResult(): number {
-  const r = Math.random();
-  let result: number;
-  if (r < 0.20) {
-    result = Math.floor(Math.random() * 50);
-  } else if (r < 0.70) {
-    result = Math.floor(Math.random() * 50) + 50;
-  } else {
-    result = Math.floor(Math.random() * 401) + 100;
-  }
-  return result;
-}
+  // Listen und Aufzählungen
+  bulletPoint: /^[\s]*[-•*]\s/gm,     // jede Bullet Point +6%
+  numbered: /^\d+\.\s/gm,             // jede Nummer +5%
 
-function calculateTextMetrics(text: string): void {
-  wordCount.value = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-  charCount.value = text.length;
-  sentenceCount.value = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
-}
+  // Klammern (AI liebt Klammern)
+  parentheses: /\([^)]+\)/g,          // jede +4%
 
-function animateMetrics(): void {
-  const duration = 2000;
-  let startTime: number | undefined;
+  // Caps Lock (menschlich wenn übertrieben)
+  allCaps: /\b[A-ZÄÖÜ]{4,}\b/g,       // jedes Wort -8%
 
-  const targetSyntax = Math.floor(Math.random() * 40) + 60;
-  const targetSemantic = Math.floor(Math.random() * 35) + 55;
-  const targetCoherence = Math.floor(Math.random() * 30) + 65;
-  const targetPattern = Math.floor(Math.random() * 45) + 50;
+  // Emojis (sehr menschlich)
+  emoji: /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, // jedes -15%
+};
 
-  const step = (timestamp: number) => {
-    if (!startTime) startTime = timestamp;
-    const progress = timestamp - startTime;
-    const percentage = Math.min(progress / duration, 1);
+function analyzeText(text: string): number {
+  if (!text.trim()) return 0;
 
-    syntaxScore.value = Math.floor(percentage * targetSyntax);
-    semanticScore.value = Math.floor(percentage * targetSemantic);
-    coherenceScore.value = Math.floor(percentage * targetCoherence);
-    patternScore.value = Math.floor(percentage * targetPattern);
+  let score = 0;
+  const lowerText = text.toLowerCase();
 
-    if (progress < duration) {
-      window.requestAnimationFrame(step);
-    } else {
-      syntaxScore.value = targetSyntax;
-      semanticScore.value = targetSemantic;
-      coherenceScore.value = targetCoherence;
-      patternScore.value = targetPattern;
+  // Wortanalyse
+  suspiciousWords.critical.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = text.match(regex);
+    if (matches) score += matches.length * 15;
+  });
+
+  suspiciousWords.moderate.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = text.match(regex);
+    if (matches) score += matches.length * 8;
+  });
+
+  suspiciousWords.mild.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = text.match(regex);
+    if (matches) score += matches.length * 4;
+  });
+
+  suspiciousWords.human.forEach(word => {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    const matches = text.match(regex);
+    if (matches) score -= matches.length * 12;
+  });
+
+  // Musteranalyse
+  const longDashes = text.match(patterns.longDash);
+  if (longDashes) score += longDashes.length * 3;
+
+  const mediumDashes = text.match(patterns.mediumDash);
+  if (mediumDashes) score += mediumDashes.length * 2;
+
+  const ellipses = text.match(patterns.ellipsis);
+  if (ellipses) score -= ellipses.length * 5;
+
+  const exclamations = text.match(patterns.exclamation);
+  if (exclamations) score -= exclamations.length * 2;
+
+  const questions = text.match(patterns.question);
+  if (questions) score -= questions.length * 1;
+
+  const veryLong = text.match(patterns.veryLongSentence);
+  if (veryLong) score += veryLong.length * 10;
+
+  const short = text.match(patterns.shortSentence);
+  if (short) score -= short.length * 3;
+
+  const bullets = text.match(patterns.bulletPoint);
+  if (bullets) score += bullets.length * 6;
+
+  const numbered = text.match(patterns.numbered);
+  if (numbered) score += numbered.length * 5;
+
+  const parens = text.match(patterns.parentheses);
+  if (parens) score += parens.length * 4;
+
+  const caps = text.match(patterns.allCaps);
+  if (caps) score -= caps.length * 8;
+
+  const emojis = text.match(patterns.emoji);
+  if (emojis) score -= emojis.length * 15;
+
+  // Wortwiederholungen (AI wiederholt sich oft)
+  const words = lowerText.match(/\b\w{5,}\b/g) || [];
+  const wordCounts = new Map<string, number>();
+  words.forEach(word => {
+    wordCounts.set(word, (wordCounts.get(word) || 0) + 1);
+  });
+
+  wordCounts.forEach((count, word) => {
+    if (count > 3) {
+      score += (count - 3) * 7; // jede Wiederholung nach der 3. +7%
+    }
+  });
+
+  // Durchschnittliche Wortlänge (AI neigt zu längeren Wörtern)
+  const allWords = text.match(/\b\w+\b/g) || [];
+  if (allWords.length > 0) {
+    const avgWordLength = allWords.reduce((sum, w) => sum + w.length, 0) / allWords.length;
+    if (avgWordLength > 6) {
+      score += (avgWordLength - 6) * 5;
+    } else if (avgWordLength < 4.5) {
+      score -= (4.5 - avgWordLength) * 8;
     }
   }
-  window.requestAnimationFrame(step);
-}
 
-function animateCounter(finalValue: number): void {
-  const duration = 1500;
-  let startTime: number | undefined;
-  const step = (timestamp: number) => {
-    if (!startTime) startTime = timestamp;
-    const progress = timestamp - startTime;
-    const percentage = Math.min(progress / duration, 1);
-    const nextValue = Math.floor(percentage * finalValue);
-    currentGaugeValue.value = nextValue;
-    if (progress < duration) {
-      window.requestAnimationFrame(step);
-    } else {
-      currentGaugeValue.value = finalValue;
-      finalizeAnalysis();
-    }
-  }
-  window.requestAnimationFrame(step);
-}
-
-function finalizeAnalysis(): void {
-  currentStatus.value = "Analyse abgeschlossen. Bericht wurde erfolgreich generiert.";
-  isAnalyzing.value = false;
-}
-
-async function startAnalysis(): Promise<void> {
-  if (isAnalyzing.value || textInput.value.trim() === "") {
-    return;
+  // Komma-Dichte (AI liebt Kommas)
+  const commas = (text.match(/,/g) || []).length;
+  const sentences = (text.match(/[.!?]+/g) || []).length || 1;
+  const commaPerSentence = commas / sentences;
+  if (commaPerSentence > 3) {
+    score += (commaPerSentence - 3) * 4;
   }
 
-  totalScans.value++;
-  calculateTextMetrics(textInput.value);
+  // Tippfehler reduzieren Score (Menschen machen Fehler)
+  const possibleTypos = text.match(/\b\w*[bcdfghjklmnpqrstvwxyz]{4,}\w*\b/gi) || [];
+  score -= possibleTypos.length * 2;
+
+  // Mindestens 0, aber kein Maximum!
+  return Math.max(0, Math.round(score));
+}
+
+async function startAnalysis() {
+  if (textInput.value.trim() === '' || isAnalyzing.value) return;
 
   isAnalyzing.value = true;
-  showAnalysisArea.value = true;
-  finalResult.value = 0;
-  currentGaugeValue.value = 0;
-  syntaxScore.value = 0;
-  semanticScore.value = 0;
-  coherenceScore.value = 0;
-  patternScore.value = 0;
+  aiProbability.value = 0;
+  hasAnalyzed.value = false;
 
-  const phases = [
-    { status: "Lade Text auf Server...", duration: 400 },
-    { status: "Verteile Text an die zuständigen Germanist*innen...", duration: 600 },
-    { status: "Syntax-Fingerprint-Analyse (Phase 1/4)...", duration: 650 },
-    { status: "Semantische Kohärenz-Prüfung (Phase 2/4)...", duration: 700 },
-    { status: "Bayesianische Wahrscheinlichkeitsberechnung (Phase 3/4)...", duration: 800 },
-    { status: "Analyse abgeschlossen. Überbringe Analysedaten an Server...", duration: 550 },
-  ];
+  // Fake Lade-Animation
+  await new Promise(resolve => setTimeout(resolve, 800));
 
-  const result = getWeightedResult();
-  finalResult.value = result;
+  const finalScore = analyzeText(textInput.value);
 
-  animateMetrics();
+  // Animiere zum Endergebnis
+  const duration = 1200;
+  const startTime = Date.now();
 
-  for (const phase of phases) {
-    currentStatus.value = phase.status;
-    await new Promise(resolve => setTimeout(resolve, phase.duration));
-  }
+  const animate = () => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / duration, 1);
 
-  currentStatus.value = "Lade Analyse...";
-  animateCounter(result);
+    aiProbability.value = Math.round(finalScore * progress);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      aiProbability.value = finalScore;
+      hasAnalyzed.value = true;
+      isAnalyzing.value = false;
+    }
+  };
+
+  requestAnimationFrame(animate);
 }
+
+const resultColor = computed(() => {
+  if (!hasAnalyzed.value) return 'var(--sub)';
+  if (aiProbability.value < 30) return 'var(--special--green)';
+  if (aiProbability.value < 70) return 'var(--warn)';
+  if (aiProbability.value < 150) return 'var(--danger)';
+  return 'var(--lp)';
+});
+
+const resultText = computed(() => {
+  if (!hasAnalyzed.value) return '';
+
+  if (aiProbability.value < 30) {
+    return 'Es konnten keine LLM-typschen Muster festgestellt werden.';
+  } else if (aiProbability.value < 70) {
+    return 'Es wurden einige LLM-typische Muster festgestellt.';
+  } else if (aiProbability.value < 150) {
+    return 'Der Text wurde höchstwahrscheinlich vollständig oder teilweise von einem LLM verfasst.';
+  } else if (aiProbability.value < 250) {
+    return 'ACHTUNG!!! Es wurde eine kritische Anzahl an LLM-typischen Mustern erkannt.  ';
+  } else if (aiProbability.value < 400) {
+    return 'KRITISCH: Die LLM-Wahrscheinlichkeit überschreitet alle bekannten Messwerte. Dringender Handlungsbedarf empfohlen!';
+  } else {
+    return 'SYSTEMFEHLER!!! ChatGPT hat vermutlich ChatGPT verwendet, um diesen Text zu schreiben.';
+  }
+});
+
+const warningLevel = computed(() => {
+  if (!hasAnalyzed.value) return 0;
+  if (aiProbability.value < 70) return 0;
+  if (aiProbability.value < 150) return 1;
+  if (aiProbability.value < 250) return 2;
+  return 3;
+});
+
+// Live-Update während Tippen (optional, aber witzig)
+watch(textInput, () => {
+  if (hasAnalyzed.value) {
+    hasAnalyzed.value = false;
+    aiProbability.value = 0;
+  }
+});
+
+const wordCount = computed(() => {
+  const words = textInput.value.trim().split(/\s+/).filter(w => w.length > 0);
+  return words.length;
+});
 </script>
 
 <template>
-  <div class="detector-container">
-    <div class="card detector-header">
-      <div class="header-content">
-        <div class="title-group">
-          <h1>Fortschrittlicher LLM-Detektor für Lehrer*innen</h1>
-          <span class="version-badge">v26.8 (Beta)</span>
+  <div class="detector-wrapper">
+    <div class="detector-container">
+      <!-- Header -->
+      <div class="header-section">
+        <div class="title-area">
+          <h1>Fortschrittlicher LLM-Detektor für Lehrer*innen™</h1>
+          <div class="badge-group">
+            <span class="version-tag">v26.8 (Beta)</span>
+          </div>
         </div>
         <p class="subtitle">Vollständige Analyse von Schülertexten – Erkennungsrate: 100%</p>
       </div>
-      <div class="stats-mini">
-        <div class="stat-mini">
-          <span class="stat-mini-val">{{ totalScans }}</span>
-          <span class="stat-mini-label">Analysen</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="main-grid">
-      <div class="input-panel card">
-        <div class="panel-header">
-          <div class="panel-title">
-            <FileText :size="18" />
-            <h3>Eingabe des Schülertextes</h3>
+      <!-- Main Content -->
+      <div class="content-grid">
+        <!-- Input Side -->
+        <div class="input-section">
+          <div class="section-header">
+            <h3>Eingabefeld für den kritischen Text</h3>
           </div>
-        </div>
-        <textarea
-            id="textInput"
-            class="input analysis-input"
-            rows="12"
-            placeholder="Geben Sie den kritischen Text hier ein. Bei jeder Prüfung analysieren 1500 Germanist*innen weltweit den Text in Sekunden, damit sie ein LLM-freies Erlebnis genießen können."
-            v-model="textInput"
-            :disabled="isAnalyzing"
-        ></textarea>
 
-        <div class="input-footer">
-          <div class="text-stats small">
-            <span>{{ charCount }} Zeichen</span>
-            <span>•</span>
-            <span>{{ wordCount }} Wörter</span>
-            <span>•</span>
-            <span>{{ sentenceCount }} Sätze</span>
-          </div>
+          <textarea
+              v-model="textInput"
+              :disabled="isAnalyzing"
+              class="text-input"
+              placeholder="Fügen Sie hier den kritischen Text ein. Ihr Text durchläuft dann in wenige Sekunden unsere fortschrittlichsten Tests zur Erkennung von LLM-Inhalten, um Ihnen ein LLM-freies Erlebnis zu zu garantieren."
+              rows="16"
+          ></textarea>
+
           <button
-              class="btn action"
               @click="startAnalysis"
               :disabled="isAnalyzing || textInput.trim().length === 0"
+              class="btn analyze-btn"
           >
-            <Zap :size="16" />
-            {{ isAnalyzing ? 'Analysiere...' : 'Analyse starten' }}
+            <Zap :size="18" />
+            {{ isAnalyzing ? 'Analysiere Muster...' : 'Text analysieren' }}
           </button>
         </div>
-      </div>
 
-      <div v-if="showAnalysisArea" class="results-panel card">
-        <div class="panel-header">
-          <div class="panel-title">
-            <Activity :size="18" />
-            <h3>Analyseergebnisse</h3>
-          </div>
-        </div>
-
-        <div class="status-display">
-          <div class="status-indicator">
-            <div class="dot" :class="{ analyzing: isAnalyzing }"></div>
-            <span class="status-text">{{ currentStatus }}</span>
-          </div>
-          <div v-if="isAnalyzing" class="progress-bar">
-            <div class="progress-fill"></div>
-          </div>
-        </div>
-
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">Syntax-Analyse</span>
-              <span class="metric-value">{{ syntaxScore }}%</span>
-            </div>
-            <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: syntaxScore + '%' }"></div>
-            </div>
+        <!-- Results Side -->
+        <div class="results-section">
+          <div class="section-header">
+            <h3>Analyseergebnis</h3>
           </div>
 
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">Semantische Kohärenz</span>
-              <span class="metric-value">{{ semanticScore }}%</span>
-            </div>
-            <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: semanticScore + '%' }"></div>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">Textfluss-Analyse</span>
-              <span class="metric-value">{{ coherenceScore }}%</span>
-            </div>
-            <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: coherenceScore + '%' }"></div>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-label">LLM-Muster-Erkennung</span>
-              <span class="metric-value">{{ patternScore }}%</span>
-            </div>
-            <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: patternScore + '%' }"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="detection-result">
-          <div class="gauge-section">
-            <div class="gauge-wrapper">
-              <div class="gauge">
-                <div class="gauge-track"></div>
-                <div
-                    class="gauge-fill"
-                    :style="{
-                    'transform': gaugeRotation,
-                    'border-color': gaugeColor,
-                    'transition': isAnalyzing ? 'none' : 'transform 1.5s ease-out'
-                  }"
-                ></div>
+          <div class="result-display" :class="{ active: hasAnalyzed, analyzing: isAnalyzing }">
+            <div class="probability-container">
+              <div class="probability-value" :style="{ color: resultColor }">
+                {{ aiProbability }}%
               </div>
-              <div class="gauge-center">
-                <div class="gauge-value">{{ currentGaugeValue }}%</div>
-                <div class="gauge-label">KI-Wahrscheinlichkeit</div>
+              <div class="probability-label">LLM-Wahrscheinlichkeit</div>
+            </div>
+
+            <div v-if="isAnalyzing" class="analyzing-indicator">
+              <div class="spinner"></div>
+              <span>Analysiere LLM-Muster...</span>
+            </div>
+
+            <div v-if="hasAnalyzed" class="result-info">
+              <div
+                  class="result-message"
+                  :class="{
+                  warning: warningLevel === 1,
+                  danger: warningLevel === 2,
+                  critical: warningLevel === 3
+                }"
+              >
+                <AlertTriangle v-if="warningLevel > 0" :size="20" />
+                <p>{{ resultText }}</p>
               </div>
             </div>
-          </div>
 
-          <div v-if="!isAnalyzing && finalResult > 0" class="result-summary">
-            <div class="summary-header">
-              <BarChart3 :size="20" />
-              <h4>Analysebericht</h4>
-            </div>
-            <div class="summary-content">
-              <p>{{ resultMessageText }}</p>
+            <div v-if="!hasAnalyzed && !isAnalyzing" class="empty-state">
+              <p>Geben Sie den kritischen Text ein und starten sie die LLM-Analyse</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-else class="placeholder-panel card">
-        <div class="placeholder-content">
-          <Activity :size="48" class="placeholder-icon" />
-          <h3>Keine aktive Analyse</h3>
-          <p>Geben Sie einen Text ein und starten Sie die Analyse, um Ergebnisse zu sehen.</p>
+      <!-- Footer Info -->
+      <div class="info-footer">
+        <div class="info-item">
+          Unser revolutionäres LLM-Detektionssystem basiert auf jahrzehntelanger Forschung. Jeder Text durchläuft innerhalb von Sekunden unsere modernsten und fortschrittlichsten Tests zur Erkennung von LLM-Inhalten. Unsere Motivation ist kein Geld, sondern anderen Menschen zu helfen. Wir sorgen rund um die Uhr dafür, dass der AI-Detector korrekt funktioniert – völlig freiwillig und aus purer Liebe zur deutschen Sprache.
         </div>
-      </div>
-      <div>
-        <p>
-          Unser revolutionäres LLM-Detektionssystem basiert auf jahrzehntelanger Forschung. Jeder Text wird in innerhalb von Sekunden von 1500 Germanist*innen
-          weltweit analysiert, die rund um die Uhr in unseren globalen Analyse-Zentren arbeiten – völlig freiwillig und aus
-          purer Liebe zur deutschen Sprache.
-        </p>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.detector-wrapper {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 24px;
+}
+
 .detector-container {
-  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.detector-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 24px;
-  gap: 24px;
+/* Header */
+.header-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
 }
 
-.header-content {
-  flex: 1;
-}
-
-.title-group {
+.title-area {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
-.title-group h1 {
-  font-size: 1.75rem;
+.title-area h1 {
+  font-size: 2rem;
   margin: 0;
-  font-weight: 600;
+  font-family: var(--display-font), sans-serif;
+  color: var(--text);
 }
 
-.version-badge {
-  padding: 4px 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border);
-  border-radius: var(--border-3);
+.badge-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.version-tag,
+.accuracy-tag {
+  padding: 4px 10px;
+  border-radius: var(--border-4);
   font-size: 0.75rem;
   font-weight: 500;
+  background: var(--vlbg);
+  border: 1px solid var(--border);
   color: var(--sub);
 }
 
 .subtitle {
-  font-size: 0.875rem;
-  color: var(--sub);
   margin: 0;
+  color: var(--sub);
+  font-size: 0.95rem;
 }
 
-.stats-mini {
-  display: flex;
+/* Main Grid */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
+  margin-bottom: 24px;
 }
 
-.stat-mini {
+.input-section,
+.results-section {
+  background: var(--lbg);
+  border: 1px solid var(--border);
+  border-radius: var(--border-5);
+  padding: 24px;
+}
+
+.section-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
 }
 
-.stat-mini-val {
-  font-size: 1.5rem;
+.section-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--text);
-  font-family: var(--display-font), sans-serif;
 }
 
-.stat-mini-label {
-  font-size: 0.75rem;
+.word-counter {
+  font-size: 0.875rem;
   color: var(--sub);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.main-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.input-panel,
-.results-panel,
-.placeholder-panel {
-  display: flex;
-  flex-direction: column;
-  height: fit-content;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
-}
-
-.panel-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.panel-title h3 {
-  font-size: 1rem;
-  margin: 0;
-  font-weight: 500;
-}
-
-
-.confidence-badge strong {
-  color: var(--text);
-  margin-left: 4px;
-}
-
-.analysis-input {
-  resize: vertical;
-  min-height: 200px;
   font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  line-height: 1.6;
 }
 
-.input-footer {
-  margin-top: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.text-stats {
-  display: flex;
-  gap: 8px;
-  color: var(--sub);
-}
-
-.status-display {
-  margin-bottom: 24px;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border);
-  border-radius: var(--border-4);
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--sub);
-  flex-shrink: 0;
-}
-
-.dot.analyzing {
-  background: var(--text);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}
-
-.status-text {
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  color: var(--text);
-}
-
-.progress-bar {
-  margin-top: 12px;
-  height: 3px;
-  background: var(--vlbg);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--text);
-  animation: progress 2s ease-in-out infinite;
-}
-
-@keyframes progress {
-  0% { width: 0%; transform: translateX(0); }
-  50% { width: 100%; transform: translateX(0); }
-  100% { width: 100%; transform: translateX(100%); }
-}
-
-/* Metrics Grid */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.metric-card {
+/* Input */
+.text-input {
+  width: 100%;
+  min-height: 400px;
   padding: 16px;
   background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: var(--border-4);
+  color: var(--text);
+  font-family: var(--normal-font), sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--text);
+}
+
+.text-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.analyze-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Results */
+.result-display {
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: var(--vlbg);
   border: 1px solid var(--border);
   border-radius: var(--border-4);
+  position: relative;
+  transition: all 0.3s ease;
 }
 
-.metric-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.result-display.analyzing {
+  border-color: var(--text);
+}
+
+.probability-container {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.probability-value {
+  font-size: 5rem;
+  font-weight: 700;
+  font-family: var(--display-font), sans-serif;
+  line-height: 1;
   margin-bottom: 8px;
+  transition: color 0.5s ease;
 }
 
-.metric-label {
+.probability-label {
   font-size: 0.875rem;
   color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.metric-value {
-  font-weight: 600;
-  color: var(--text);
-  font-size: 1rem;
-  font-family: var(--display-font), sans-serif;
-}
-
-.metric-bar {
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.metric-fill {
-  height: 100%;
-  background: var(--text);
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-.detection-result {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-}
-
-.gauge-section {
+.analyzing-indicator {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-}
-
-.gauge-wrapper {
-  position: relative;
-  width: 200px;
-  height: 120px;
-}
-
-.gauge {
-  width: 200px;
-  height: 100px;
-  position: relative;
-  overflow: hidden;
-}
-
-.gauge-track,
-.gauge-fill {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  border: 16px solid var(--border);
-  border-radius: 50%;
-  clip: rect(0, 200px, 100px, 0);
-}
-
-.gauge-track {
-  border-color: var(--border);
-}
-
-.gauge-fill {
-  border-bottom-color: transparent;
-  border-right-color: transparent;
-  transform-origin: 50% 50%;
-}
-
-.gauge-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.gauge-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1;
-  font-family: var(--display-font), sans-serif;
-}
-
-.gauge-label {
-  font-size: 0.75rem;
+  gap: 16px;
   color: var(--sub);
-  margin-top: 4px;
 }
 
-.result-summary {
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.result-info {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.summary-header {
+.result-message {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.summary-header h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.summary-content {
-  background: var(--vlbg);
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--border-4);
-  padding: 16px;
 }
 
-.summary-content p {
+.result-message.warning {
+  background: rgba(234, 179, 8, 0.1);
+  border-color: var(--warn);
+}
+
+.result-message.danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+}
+
+.result-message.critical {
+  background: rgba(196, 77, 255, 0.1);
+  border-color: var(--lp);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 77, 255, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(196, 77, 255, 0.2); }
+}
+
+.result-message p {
   margin: 0;
-  font-size: 0.9rem;
   line-height: 1.6;
   color: var(--text);
 }
 
-.summary-footer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.disclaimer {
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--border-4);
 }
 
-.footer-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
+.disclaimer-text {
+  margin: 0;
+  font-size: 0.8rem;
   color: var(--sub);
+  line-height: 1.5;
 }
 
-.footer-item strong {
-  color: var(--text);
-}
-
-.placeholder-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-}
-
-.placeholder-content {
+.empty-state {
   text-align: center;
   color: var(--sub);
 }
 
-.placeholder-icon {
-  margin: 0 auto 16px;
-  opacity: 0.3;
+.empty-state p {
+  margin: 0;
 }
 
-.placeholder-content h3 {
-  margin: 0 0 8px 0;
-  font-size: 1.125rem;
-  font-weight: 500;
+/* Footer */
+.info-footer {
+  padding: 16px;
+  background: var(--vlbg);
+  border: 1px solid var(--border);
+  border-radius: var(--border-4);
+  font-size: 0.875rem;
+  color: var(--sub);
+}
+
+.info-item {
+  line-height: 1.6;
+}
+
+.info-item strong {
   color: var(--text);
 }
 
-.placeholder-content p {
-  margin: 0;
-  font-size: 0.875rem;
-  max-width: 300px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* Responsive */
 @media (max-width: 1024px) {
-  .main-grid {
+  .content-grid {
     grid-template-columns: 1fr;
-  }
-
-  .detection-result {
-    grid-template-columns: 1fr;
-  }
-
-  .detector-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .stats-mini {
-    width: 100%;
-    justify-content: flex-start;
   }
 }
 
 @media (max-width: 768px) {
-  .detector-container {
+  .detector-wrapper {
     padding: 16px;
   }
 
-  .detector-header {
-    padding: 16px;
-  }
-
-  .title-group {
+  .title-area {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
   }
 
-  .metrics-grid {
-    grid-template-columns: 1fr;
+  .title-area h1 {
+    font-size: 1.5rem;
   }
 
-  .input-footer {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+  .probability-value {
+    font-size: 4rem;
   }
 
-  .text-stats {
-    justify-content: center;
+  .input-section,
+  .results-section {
+    padding: 16px;
+  }
+
+  .text-input {
+    min-height: 300px;
+  }
+
+  .result-display {
+    min-height: 350px;
+    padding: 24px 16px;
   }
 }
 </style>
