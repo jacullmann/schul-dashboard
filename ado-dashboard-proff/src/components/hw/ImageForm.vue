@@ -11,13 +11,13 @@
 
         <div class="images-row row-n">
           <div
-              v-for="img in imgStore.images"
+              v-for="img in store.images"
               :key="img.publicId"
               class="img-thumb"
           >
             <a :href="img.url" target="_blank" rel="noopener" class="img-link">
               <img
-                  :src="img.thumbUrl || imgStore.makeThumb(img.url)"
+                  :src="img.thumbUrl || store.makeThumb(img.url)"
                   alt="Vorschau"
                   class="img"
                   loading="lazy"
@@ -33,14 +33,21 @@
       </div>
 
       <div class="controls row" style="margin-top:16px; align-items:center;">
-        <button data-umami-event="Bilder hochladen Button" class="btn ghost" @click="handleUpload" :disabled="imgStore.uploading">
-          <svg v-if="imgStore.uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+        <button data-umami-event="Bilder hochladen Button" class="btn ghost" @click="uploadImg" :disabled="store.uploading">
+          <svg v-if="store.uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           Bild hochladen
         </button>
-        <div v-if="imgStore.uploadError" class="small msg-error" style="margin-left:12px;">{{ imgStore.uploadError }}</div>
+        <div
+            v-if="store.uploadError"
+            class="small"
+            :class="isSuccessMessage ? 'msg-ok' : 'msg-error'"
+            style="margin-left:12px;"
+        >
+          {{ store.uploadError }}
+        </div>
       </div>
     </div>
 
@@ -51,7 +58,7 @@
 
         <div class="row" >
           <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
-          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="handleRemove">Bild löschen</button>
+          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Bild löschen</button>
         </div>
       </div>
     </div>
@@ -59,8 +66,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { useImageUploadStore } from '../../stores/imageStore';
+import { ref, watch, computed } from 'vue';
+import { useImageUploadStore } from './imageStore'; // Adjust path if necessary (e.g. '../stores/imageStore')
 
 const props = defineProps({
   item: {
@@ -74,18 +81,24 @@ const props = defineProps({
 });
 const emit = defineEmits(['close', 'success']);
 
-const imgStore = useImageUploadStore();
+// Initialize Store
+const store = useImageUploadStore();
+
+// Watch for item changes to initialize the store with current images
+watch(() => props.item, (newItem) => {
+  if (newItem && newItem.images) {
+    store.init(newItem.images);
+  }
+}, { immediate: true, deep: true });
+
+// Local UI state for the confirmation modal
 const showConfirmRemovalModal = ref(false);
 const publicIdToRemove = ref('');
 
-onMounted(() => {
-  imgStore.init(props.item.images || []);
+// Helper to style the message based on store content
+const isSuccessMessage = computed(() => {
+  return store.uploadError && store.uploadError.includes('erfolgreich');
 });
-
-// Watch for changes in store images to emit success back to the parent
-watch(() => imgStore.images, () => {
-  emit('success');
-}, { deep: true });
 
 function confirmRemoval(publicId: string) {
   publicIdToRemove.value = publicId;
@@ -97,22 +110,30 @@ function cancelRemoval() {
   publicIdToRemove.value = '';
 }
 
-async function handleUpload() {
-  // Always true here as this component only manages existing items
-  await imgStore.uploadImage(true);
+function uploadImg() {
+  // Trigger upload in Edit Mode (true)
+  store.uploadImage(true);
 }
 
-async function handleRemove() {
-  const img = imgStore.images.find(i => i.publicId === publicIdToRemove.value);
-  if (img) {
-    await imgStore.removeImg(img, props.item.id);
-  }
+async function removeImg(publicId: string) {
   showConfirmRemovalModal.value = false;
-  publicIdToRemove.value = '';
+
+  // Find the full image object required by the store
+  const imgToRemove = store.images.find(i => i.publicId === publicId);
+
+  if (imgToRemove) {
+    await store.removeImg(imgToRemove, props.item.id);
+    // Determine success based on store state (optional, or rely on store's internal message)
+    if (!store.uploadError || isSuccessMessage.value) {
+      emit('success');
+    }
+  }
 }
 </script>
 
 <style scoped>
+
+
 .overlay.confirm {
   position: fixed;
   inset: 0;
@@ -124,6 +145,7 @@ async function handleRemove() {
   background: rgba(0, 0, 0, 0.4);
 }
 
+/* Modal card styling (keeps visual style local) */
 .modal {
   width: 100%;
   max-width: 640px;
@@ -134,6 +156,7 @@ async function handleRemove() {
   box-shadow: var(--shadow-l);
 }
 
+/* Confirm modal variant */
 .confirm-card {
   background: var(--lbg);
   padding: 16px;
@@ -144,6 +167,7 @@ async function handleRemove() {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-l);
 }
+/* Header */
 .modal-head {
   display: flex;
   justify-content: space-between;
@@ -152,6 +176,7 @@ async function handleRemove() {
 }
 .modal-head h3 { margin: 0; font-size: 1.05rem; }
 
+/* Section */
 .section {
   margin-top: 16px;
 }
@@ -162,6 +187,9 @@ async function handleRemove() {
   color: var(--text);
 }
 
+/* Images grid row */
+
+/* Thumbnail wrapper: fixed square using aspect-ratio */
 .img-thumb {
   width: 120px;
   aspect-ratio: 1 / 1;
@@ -176,8 +204,10 @@ async function handleRemove() {
   flex: 0 0 120px;
 }
 
+/* link fills wrapper */
 .img-link { display: block; width: 100%; height: 100%; }
 
+/* image fills and is cropped */
 .img {
   width: 100%;
   height: 100%;
@@ -186,6 +216,7 @@ async function handleRemove() {
   display: block;
 }
 
+/* action button in corner */
 .thumb-actions {
   position: absolute;
   top: 6px;
@@ -193,19 +224,24 @@ async function handleRemove() {
   z-index: 4;
 }
 
+/* small button variant */
 .btn.small { padding: 4px 8px; font-size: 12px; }
 
+/* controls and message */
 .controls { display: flex; align-items: center; gap: 12px; }
 
+/* spinner */
 .spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* message states */
 .small { font-size: 12px; color: var(--sub); }
+.msg-ok { color: var(--primary); font-weight: 600; }
 .msg-error { color: var(--danger); font-weight: 600; }
 .images-row {
   flex-wrap: wrap;
 }
-
+/* responsive */
 @media (max-width: 480px) {
   .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
   .modal { padding: 16px; }
