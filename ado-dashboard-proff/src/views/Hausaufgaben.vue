@@ -15,7 +15,7 @@
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
 
           <h3>Bilder verwalten</h3>
-          <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder</strong> aus und klicke auf das <strong>+</strong>. Um eigene Bilder zu entfernen, öffne erneut das Bilder-Menü und klicke auf das <strong>X</strong> in der Ecke des Bildes.</p>
+          <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus.</p>
 
           <h3>Falschinformationen melden</h3>
           <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du unter dem 3-Punkte-Menü auf Melden klicken und unter Falschinformationen eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
@@ -102,7 +102,7 @@
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
-              <div class="fixall"><Images /> Bilder</div>
+              <div class="fixall"><Upload /> Bilder hochladen</div>
             </button>
             <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall"><Pencil /> Bearbeiten</div>
@@ -130,16 +130,16 @@
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper">
-                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
+                <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper" @contextmenu.prevent="openImageMenu($event, item, img)">
+                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
                   <button v-if="idx === 1 && item.images.length > 2" class="img-overlay" @click.stop.prevent="revealImages(item.id)">
                     <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
                   </button>
                 </div>
               </template>
               <template v-else>
-                <div v-for="img in item.images" :key="img.publicId" class="thumb">
-                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
+                <div v-for="img in item.images" :key="img.publicId" class="thumb" @contextmenu.prevent="openImageMenu($event, item, img)">
+                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
                 </div>
               </template>
             </div>
@@ -228,17 +228,17 @@
         v-if="showTodoForm"
         :initial="todoToEdit"
         @close="showTodoForm=false"
-        @success="(data) => handleTodoSuccess(
-        todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.',
-        data
-    )"
+        @success="(data) => handleTodoSuccess(todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.', data)"
         @error="onItemFormError"
     />
-    <ImageForm
-        v-if="showImageFormFor"
-        :item="showImageFormFor"
-        @close="showImageFormFor=null"
-        @success="handleImageSuccess"
+    <ImageContextMenu
+        v-if="imageMenu.visible"
+        :x="imageMenu.x"
+        :y="imageMenu.y"
+        :can-delete="imageMenu.image && imageMenu.item ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy) : false"
+        @upload="triggerImageUpload"
+        @delete="triggerImageDelete"
+        @close="closeImageMenu"
     />
     <ConfirmDialog
         :show="showReportConfirm"
@@ -253,20 +253,26 @@
         @confirm="confirmDelete"
         @cancel="cancelDelete"
     />
+    <DeleteEntryModal
+        v-if="showImageDeleteConfirm"
+        :show="showImageDeleteConfirm"
+        @confirm="confirmImageDelete"
+        @cancel="cancelImageDelete"
+    />
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
 import ItemForm from '../components/hw/ItemForm.vue';
-import ImageForm from '../components/hw/ImageForm.vue';
+import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import ItemSkeleton from '../components/ItemSkeleton.vue';
 import TabNavigation from '../components/TabNavigation.vue';
-import { Flag, Pencil, Images, Trash2, Ellipsis} from 'lucide-vue-next'
+import { Flag, Pencil, Upload, Trash2, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
 import TodoForm from '../components/hw/TodoForm.vue';
@@ -299,6 +305,11 @@ const {
   confirmDelete,
   cancelDelete,
   refreshItem,
+  triggerImageUpload,
+  triggerImageDelete,
+  showImageDeleteConfirm,
+  confirmImageDelete,
+  cancelImageDelete,
 } = useHausaufgaben();
 
 // Update the handleSuccess function or create a specific one for images
@@ -457,8 +468,33 @@ async function handleImageSuccess(msg?: string) {
 }
 .item-images { margin-top:8px; }
 .images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
-.thumb { width:120px; height:120px; border-radius:8px; overflow:hidden; border:none; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.12); position:relative; }
-.thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.thumb {
+  width:120px;
+  height:120px;
+  border-radius:8px;
+  overflow:hidden;
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,0.12);
+  position:relative;
+  -webkit-touch-callout: none; /* Disables iOS system menu */
+  -webkit-user-select: none;   /* Safari / Chrome */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* Standard */
+}
+
+.thumb img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  -webkit-user-drag: none;
+}
+
 .thumb-with-overlay-wrapper { position: relative; }
 .img-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; padding: 0; margin: 0; cursor: pointer; background: transparent; z-index: 10; }
 .img-overlay .overlay-blur {
