@@ -1,180 +1,310 @@
 <template>
   <div class="card">
-    <div>
-    <h2 style="margin-top: 0">Kontakt</h2>
-    <p>Teile deine Erfahrungen mit uns oder kontaktiere uns direkt.</p>
+    <div class="contact-header">
+      <h2>Kontakt</h2>
+      <p class="header-description">Bei Fragen, Anregungen oder technischen Problemen erreichst du uns über die folgenden Kanäle.</p>
     </div>
-      <div class="contact-sections">
-        <div class="contact-section">
-          <div class="section-header">
-            <Mail class="section-icon" />
+
+    <div class="contact-sections">
+      <div class="contact-section primary-section">
+        <div class="section-header">
+          <div class="icon-wrapper primary">
+            <Mail size="20" />
+          </div>
+          <div class="header-content">
             <h3>E-Mail</h3>
+            <p class="section-desc">Primärer Kanal für Support und Feedback</p>
           </div>
-          <a href="mailto:kontakt@schul-dashboard.com" class="email-button">
-            kontakt@schul-dashboard.com
-            <ExternalLink class="button-icon" />
-          </a>
         </div>
+        <a href="mailto:kontakt@schul-dashboard.com" class="email-button">
+          <span>kontakt@schul-dashboard.com</span>
+          <ExternalLink size="16" />
+        </a>
+      </div>
 
-        <hr>
+      <hr>
 
-        <div class="contact-section">
-          <div class="section-header">
-            <MapPin class="section-icon" />
-            <h3>Region</h3>
+      <div class="contact-section">
+        <div class="section-header">
+          <div class="icon-wrapper">
+            <MapPin size="20" />
           </div>
-          <p class="region-text">
-            Berlin,<br>
-            Deutschland
-          </p>
+          <div class="header-content">
+            <h3>Standort</h3>
+            <p class="section-desc">Das Dashboard wurde entwickelt in</p>
+          </div>
         </div>
+        <div class="info-content">
+          <p class="location-text">Berlin, Deutschland</p>
+        </div>
+      </div>
 
-        <hr>
+      <hr>
 
-        <div class="contact-section phone-section">
-          <div class="section-header">
-            <Phone class="section-icon" />
-            <h3>Telefon</h3>
+      <div class="contact-section">
+        <div class="section-header">
+          <div class="icon-wrapper">
+            <MessageSquare size="20" />
           </div>
-          <div class="coming-soon">
-            <Clock class="clock-icon" />
-            <span>Wir bieten aktuell keine Telefonhotline an.</span>
+          <div class="header-content">
+            <h3>Feedback</h3>
+            <p class="section-desc">Verbesserungsvorschläge und Ideen</p>
           </div>
+        </div>
+        <div class="info-content">
+          <p class="feedback-text">Wir freuen uns über dein Feedback zur Verbesserung des Dashboards. Sende uns eine E-Mail mit deinen Anregungen.</p>
         </div>
       </div>
     </div>
+
+    <div class="additional-info">
+      <div class="info-card">
+        <Clock size="16" />
+        <span>Wir antworten in der Regel innerhalb von 48 Stunden.</span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import {
   Mail,
   MapPin,
-  Phone,
+  MessageSquare,
   ExternalLink,
   Clock
 } from 'lucide-vue-next';
 </script>
 
 <style scoped>
-.contact-header h2 {
-  margin: 0 0 0 0;
-  color: var(--text);
+.contact-header {
+  margin-bottom: 32px;
 }
 
-.contact-header p {
-  margin: 0;
+.contact-header h2 {
+  margin: 0 0 8px 0;
   color: var(--text);
+  font-family: var(--display-font), sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.header-description {
+  margin: 0;
+  color: var(--sub);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 600px;
 }
 
 .contact-sections {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .contact-section {
-  padding: 16px 0;
-  position: relative;
+  padding: 24px 0;
+}
+
+.contact-section.primary-section {
+  padding-top: 0;
 }
 
 .section-header {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-.section-icon {
-  width: 20px;
-  height: 20px;
+.icon-wrapper {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: var(--border-3);
   color: var(--text);
 }
 
-.contact-section h3 {
-  margin: 0;
+.icon-wrapper.primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-content h3 {
+  margin: 0 0 4px 0;
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
+  font-family: var(--display-font), sans-serif;
+}
+
+.section-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.4;
+}
+
+.info-content {
+  padding-left: 54px;
 }
 
 .email-button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: var(--lbg);
+  gap: 10px;
+  background: var(--vlbg);
   color: var(--text);
-  padding: 10px 14px;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border-radius: var(--border-4);
   text-decoration: none;
-  border: 1px solid var(--border);
-  transition: all 0.2s ease;
+  border: 1px solid var(--border2);
+  transition: all 0.15s ease;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 15px;
+  margin-left: 54px;
 }
 
 .email-button:hover {
-  background: var(--vlbg);
-  border-color: var(--border);
+  background: var(--ghost--hover);
+  border-color: var(--gg);
 }
 
-.button-icon {
-  width: 14px;
-  height: 14px;
-  opacity: 0.8;
-  color: var(--text);
+.email-button svg {
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
 }
 
-.region-text {
+.email-button:hover svg {
+  opacity: 1;
+}
+
+.location-text,
+.feedback-text {
   margin: 0;
   color: var(--text);
-  line-height: 1.5;
-  padding-left: 32px;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-.coming-soon {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text);
-  font-style: italic;
-  padding: 10px 14px;
-  background: var(--lbg);
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  width: auto;
-  max-width: 390px;
-  cursor: not-allowed;
-  user-select: none;
-}
-
-.clock-icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.7;
-  color: var(--text);
+.location-text {
+  font-weight: 500;
 }
 
 hr {
   border: none;
   border-top: 1px solid var(--border);
   margin: 0;
-  opacity: 1;
 }
 
-@media (max-width: 500px) {
+.additional-info {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
 
-  .section-header {
-    gap: 10px;
+.info-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: var(--border-4);
+  color: var(--sub);
+  font-size: 13px;
+}
+
+.info-card svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .contact-header h2 {
+    font-size: 24px;
   }
 
-  .email-button,
-  .coming-soon {
-    padding: 8px 12px;
+  .header-description {
     font-size: 14px;
   }
 
-  .region-text {
-    padding-left: 28px;
+  .contact-section {
+    padding: 20px 0;
+  }
+
+  .section-header {
+    gap: 12px;
+  }
+
+  .icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .info-content {
+    padding-left: 48px;
+  }
+
+  .email-button {
+    margin-left: 48px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 500px) {
+  .contact-header {
+    margin-bottom: 24px;
+  }
+
+  .contact-header h2 {
+    font-size: 22px;
+  }
+
+  .section-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .header-content h3 {
+    font-size: 15px;
+  }
+
+  .section-desc {
+    font-size: 12px;
+  }
+
+  .info-content {
+    padding-left: 0;
+    margin-top: 12px;
+  }
+
+  .email-button {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .additional-info {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+
+  .info-card {
+    width: 100%;
+    font-size: 12px;
   }
 }
 </style>

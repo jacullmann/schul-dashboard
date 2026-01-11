@@ -55,7 +55,7 @@
       <div class="action-section">
         <button @click="goBack" class="btn ghost">
          <ArrowLeft size="18"/>
-          Zurück zu letzten Seite
+          Zurück zur letzten Seite
         </button>
       </div>
     </div>
