@@ -133,10 +133,16 @@
                 <div v-for="(img, idx) in item.images.slice(0, 2)"
                      :key="img.publicId"
                      class="thumb thumb-with-overlay-wrapper"
-                     @contextmenu.prevent="openImageMenu($event, item, img)"
+                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
-                  <button v-if="idx === 1 && item.images.length > 2" class="img-overlay" @click.stop.prevent="revealImages(item.id)">
+
+                  <button
+                      v-if="idx === 1 && item.images.length > 2"
+                      class="img-overlay"
+                      @click.stop.prevent="revealImages(item.id)"
+                      @contextmenu.stop.prevent
+                  >
                     <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
                   </button>
                 </div>
@@ -145,7 +151,7 @@
                 <div v-for="img in item.images"
                      :key="img.publicId"
                      class="thumb"
-                     @contextmenu.prevent="openImageMenu($event, item, img)"
+                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
                 </div>
@@ -332,6 +338,15 @@ const {
   confirmImageDelete,
   cancelImageDelete
 } = useHausaufgaben();
+
+// New wrapper to handle vibration and opening the menu
+const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
+  // Check if the browser supports vibration (mostly mobile devices)
+  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+    navigator.vibrate(50); // Short 50ms vibration
+  }
+  openImageMenu(event, item, img);
+};
 </script>
 
 <style scoped>
@@ -518,6 +533,8 @@ const {
   font-size: 32px;
   z-index: 11;
   pointer-events: none;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
 }
 .empty { text-align:center; color:var(--sub); padding:24px; border: none }
 .collapse-enter-active, .collapse-leave-active { transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1); }
