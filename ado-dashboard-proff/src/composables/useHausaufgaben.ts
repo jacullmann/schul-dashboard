@@ -1,4 +1,4 @@
-import { ref, onMounted, onBeforeUnmount, watch, computed, reactive } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/userStore';
@@ -698,6 +698,14 @@ export function useHausaufgaben() {
         confirmDelete,
         cancelDelete,
         initialLoad,
-        refreshItem
+        refreshItem,
+        imageMenu,
+        openImageMenu,
+        closeImageMenu,
+        triggerImageUpload,
+        triggerImageDelete,
+        showImageDeleteConfirm,
+        confirmImageDelete,
+        cancelImageDelete
     };
 }
