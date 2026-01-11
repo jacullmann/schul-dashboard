@@ -167,13 +167,13 @@
             </div>
 
             <div v-else class="editor-note-edit">
-      <textarea
-          class="input"
-          v-model="noteEditContent"
-          rows="3"
-          placeholder="Anmerkung eingeben..."
-          maxlength="2000"
-      ></textarea>
+              <textarea
+                  class="input"
+                  v-model="noteEditContent"
+                  rows="3"
+                  placeholder="Anmerkung eingeben..."
+                  maxlength="2000"
+              ></textarea>
               <div class="editor-note-actions">
                 <button
                     class="btn action"
@@ -281,7 +281,7 @@ import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
 const {
-  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
+  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm,
   itemToEdit, user, subjects, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
@@ -311,20 +311,6 @@ const {
   confirmImageDelete,
   cancelImageDelete,
 } = useHausaufgaben();
-
-// Update the handleSuccess function or create a specific one for images
-async function handleImageSuccess(msg?: string) {
-  if (showImageFormFor.value) {
-    // 1. Refresh the specific item in the background
-    await refreshItem(showImageFormFor.value.id);
-
-    // 2. Show a small success message
-    message.value = msg || 'Bilder aktualisiert.';
-    setTimeout(() => message.value = '', 3000);
-
-    // Note: We do NOT close the form here, so the user can keep managing images.
-  }
-}
 </script>
 
 <style scoped>
