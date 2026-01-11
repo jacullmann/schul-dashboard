@@ -15,7 +15,7 @@
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
 
           <h3>Bilder verwalten</h3>
-          <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder</strong> aus und klicke auf das <strong>+</strong>. Um eigene Bilder zu entfernen, öffne erneut das Bilder-Menü und klicke auf das <strong>X</strong> in der Ecke des Bildes.</p>
+          <p>Um Bilder zu verwalten, halte ein Bild gedrückt (Mobile) oder klicke es mit rechts an (Desktop). Dort kannst du weitere Bilder hinzufügen oder das ausgewählte Bild löschen.</p>
 
           <h3>Falschinformationen melden</h3>
           <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du unter dem 3-Punkte-Menü auf Melden klicken und unter Falschinformationen eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
@@ -102,7 +102,7 @@
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
-              <div class="fixall"><Images /> Bilder</div>
+              <div class="fixall"><Images /> Bild hinzufügen</div>
             </button>
             <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall"><Pencil /> Bearbeiten</div>
@@ -130,7 +130,11 @@
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper">
+                <div v-for="(img, idx) in item.images.slice(0, 2)"
+                     :key="img.publicId"
+                     class="thumb thumb-with-overlay-wrapper"
+                     @contextmenu.prevent="openImageMenu($event, item, img)"
+                >
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
                   <button v-if="idx === 1 && item.images.length > 2" class="img-overlay" @click.stop.prevent="revealImages(item.id)">
                     <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
@@ -138,13 +142,18 @@
                 </div>
               </template>
               <template v-else>
-                <div v-for="img in item.images" :key="img.publicId" class="thumb">
+                <div v-for="img in item.images"
+                     :key="img.publicId"
+                     class="thumb"
+                     @contextmenu.prevent="openImageMenu($event, item, img)"
+                >
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
                 </div>
               </template>
             </div>
           </div>
         </transition>
+
         <transition name="collapse">
           <div
               v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
@@ -167,13 +176,13 @@
             </div>
 
             <div v-else class="editor-note-edit">
-      <textarea
-          class="input"
-          v-model="noteEditContent"
-          rows="3"
-          placeholder="Anmerkung eingeben..."
-          maxlength="2000"
-      ></textarea>
+              <textarea
+                  class="input"
+                  v-model="noteEditContent"
+                  rows="3"
+                  placeholder="Anmerkung eingeben..."
+                  maxlength="2000"
+              ></textarea>
               <div class="editor-note-actions">
                 <button
                     class="btn action"
@@ -234,12 +243,17 @@
     )"
         @error="onItemFormError"
     />
-    <ImageForm
-        v-if="showImageFormFor"
-        :item="showImageFormFor"
-        @close="showImageFormFor=null"
-        @success="handleImageSuccess"
+
+    <ImageContextMenu
+        v-if="imageMenu.visible"
+        :x="imageMenu.x"
+        :y="imageMenu.y"
+        :can-delete="imageMenu.image && imageMenu.item ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy) : false"
+        @upload="triggerImageUpload"
+        @delete="triggerImageDelete"
+        @close="closeImageMenu"
     />
+
     <ConfirmDialog
         :show="showReportConfirm"
         message=""
@@ -253,13 +267,24 @@
         @confirm="confirmDelete"
         @cancel="cancelDelete"
     />
+    <DeleteEntryModal
+        v-if="showImageDeleteConfirm"
+        :show="showImageDeleteConfirm"
+        @confirm="confirmImageDelete"
+        @cancel="cancelImageDelete"
+    >
+      <template #header>Bild löschen?</template>
+      <template #body>Möchtest du dieses Bild wirklich löschen? Dies kann nicht rückgängig gemacht werden.</template>
+    </DeleteEntryModal>
+
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
 import ItemForm from '../components/hw/ItemForm.vue';
-import ImageForm from '../components/hw/ImageForm.vue';
+// Removed ImageForm
+import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
@@ -275,7 +300,8 @@ import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
 const {
-  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
+  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm,
+  // showImageFormFor, // Removed
   itemToEdit, user, subjects, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
@@ -299,24 +325,20 @@ const {
   confirmDelete,
   cancelDelete,
   refreshItem,
+  // New imports for Menu
+  imageMenu,
+  openImageMenu,
+  closeImageMenu,
+  triggerImageUpload,
+  triggerImageDelete,
+  showImageDeleteConfirm,
+  confirmImageDelete,
+  cancelImageDelete
 } = useHausaufgaben();
-
-// Update the handleSuccess function or create a specific one for images
-async function handleImageSuccess(msg?: string) {
-  if (showImageFormFor.value) {
-    // 1. Refresh the specific item in the background
-    await refreshItem(showImageFormFor.value.id);
-
-    // 2. Show a small success message
-    message.value = msg || 'Bilder aktualisiert.';
-    setTimeout(() => message.value = '', 3000);
-
-    // Note: We do NOT close the form here, so the user can keep managing images.
-  }
-}
 </script>
 
 <style scoped>
+/* Existing styles ... */
 .hw-header { display: flex; justify-content: space-between; gap: 12px; flex-direction: column; text-align: left; }
 .hw-header h2 { margin: 0 0 2px 0}
 
