@@ -8,7 +8,7 @@
         </div>
       </button>
 
-      <button class="menu-btn danger" @click="emit('delete')">
+      <button v-if="canDelete" class="menu-btn danger" @click="emit('delete')">
         <div class="fixall">
           <Trash2 />
           Löschen

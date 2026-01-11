@@ -113,6 +113,9 @@ export function useHausaufgaben() {
     const noteEditContent = ref('');
     const savingNote = ref(false);
 
+    // Temp storage for the ID being uploaded to
+    const currentUploadItemId = ref<string | null>(null);
+
     // Tab Handling
     type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
     function isValidType(t: any): t is ItemType {
@@ -186,11 +189,6 @@ export function useHausaufgaben() {
     function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
         openMenuId.value = null;
         if (action === 'images') {
-            // Fallback logic if user clicks the button instead of right clicking image
-            // For now, we don't have a "target image" so we can't open context menu easily.
-            // You might want to remove the "Images" button from the main menu
-            // OR trigger an upload directly.
-            // Let's trigger upload directly for the item:
             triggerImageUpload(item);
             return;
         }
@@ -458,6 +456,10 @@ export function useHausaufgaben() {
         if(targetItem) {
             // Init store with current images to check limits
             imageStore.init(targetItem.images);
+
+            // Set the ID tracking ref so we know what to refresh later
+            currentUploadItemId.value = targetItem.id;
+
             // Trigger upload in store (true = editMode, item.id = immediate upload)
             imageStore.uploadImage(true, targetItem.id);
             closeImageMenu();
@@ -589,9 +591,10 @@ export function useHausaufgaben() {
     // Watch upload store to refresh item when uploading finishes
     watch(() => imageStore.uploading, async (val, oldVal) => {
         if(oldVal && !val && !imageStore.uploadError) {
-            // Upload finished successfully
-            if(imageMenu.item) {
-                await refreshItem(imageMenu.item.id);
+            // Check if we have a pending upload ID
+            if(currentUploadItemId.value) {
+                await refreshItem(currentUploadItemId.value);
+                currentUploadItemId.value = null; // Clear it
                 message.value = 'Bild erfolgreich hochgeladen.';
                 setTimeout(() => message.value = '', 3000);
             }
