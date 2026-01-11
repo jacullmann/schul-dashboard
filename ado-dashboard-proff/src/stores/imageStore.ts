@@ -46,10 +46,12 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
     }
 
     /**
-     * Handles the file input creation, validation, signing, and uploading to Cloudinary
+     * Handles the file input creation, validation, signing, and uploading to Cloudinary.
+     * If itemId is provided, it immediately updates the item in the database.
      * @param isEditMode - Boolean indicating if we are editing an existing entry (affects max limits)
+     * @param itemId - (Optional) The ID of the item. If present, the new images are saved to the backend immediately.
      */
-    async function uploadImage(isEditMode: boolean) {
+    async function uploadImage(isEditMode: boolean, itemId?: string) {
         uploading.value = true;
         uploadError.value = '';
 
@@ -72,7 +74,6 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
 
             const TOTAL_MAX_IMAGES = 12;
             const PER_USER_MAX_IMAGES = 8;
-            // Corresponds to: const MAX_IMAGES = props.initial ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
             const MAX_IMAGES = isEditMode ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
 
             const existingCount = (images.value || []).length;
@@ -88,6 +89,8 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
                 uploading.value = false;
                 return;
             }
+
+            let newImagesAdded = false;
 
             for (const file of files) {
                 if (!file.type.startsWith('image/')) {
@@ -115,6 +118,7 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
                             publicId: json.public_id,
                             createdBy: ''
                         });
+                        newImagesAdded = true;
                         uploadError.value = '';
                     } else {
                         uploadError.value = 'Einige Uploads konnten nicht durchgeführt werden.';
@@ -126,14 +130,27 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
                 }
             }
 
+            // NEW LOGIC: Save changes to backend if we have an ID
+            if (itemId && newImagesAdded) {
+                try {
+                    // Send the updated image list to the backend
+                    await hw.patch(`/api/items/${itemId}`, {
+                        images: images.value
+                    });
+                    // Optional: Indicate that saving was also successful
+                    // uploadError.value = 'Bilder gespeichert.';
+                } catch (e: any) {
+                    console.error('Failed to patch item images:', e);
+                    uploadError.value = 'Bilder hochgeladen, aber Speichern fehlgeschlagen.';
+                }
+            }
+
             uploading.value = false;
         };
 
         // Setze einen Timeout als Fallback für den Fall, dass oncancel nicht funktioniert
         setTimeout(() => {
             if (uploading.value) {
-                // Prüfe ob das input Element noch im DOM ist (Dialog noch offen) -
-                // Note: Logic simplified slightly as input isn't attached to DOM, but timeout logic remains for safety
                 if (!document.body.contains(input)) {
                     uploading.value = false;
                 }
