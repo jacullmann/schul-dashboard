@@ -15,7 +15,7 @@
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
 
           <h3>Bilder verwalten</h3>
-          <p>Du kannst Bilder direkt hochladen, indem du im Menü eines Eintrags auf <strong>Bilder</strong> klickst. Um Bilder zu verwalten oder zu löschen, mache einen <strong>Rechtsklick</strong> (oder langes Drücken auf dem Handy) direkt auf das entsprechende Bild.</p>
+          <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder</strong> aus und klicke auf das <strong>+</strong>. Um eigene Bilder zu entfernen, öffne erneut das Bilder-Menü und klicke auf das <strong>X</strong> in der Ecke des Bildes.</p>
 
           <h3>Falschinformationen melden</h3>
           <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du unter dem 3-Punkte-Menü auf Melden klicken und unter Falschinformationen eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
@@ -73,8 +73,6 @@
           :key="item.id"
           class="item-card"
           :class="{ collapsed: isChecked(item.id) }"
-          @contextmenu.prevent="handleContextMenu(item.id)"
-          v-long-press="() => handleLongPress(item.id)"
       >
         <div class="item-main">
           <div class="item-meta">
@@ -103,8 +101,8 @@
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
-            <button class="menu-btn" v-if="user" @click="onMenuAction('addImage', item)">
-              <div class="fixall"><Images /> Bilder hinzufügen</div>
+            <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
+              <div class="fixall"><Images /> Bilder</div>
             </button>
             <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall"><Pencil /> Bearbeiten</div>
@@ -132,12 +130,7 @@
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div
-                    v-for="(img, idx) in item.images.slice(0, 2)"
-                    :key="img.publicId"
-                    class="thumb thumb-with-overlay-wrapper"
-                    @contextmenu.prevent.stop="openImageMenu($event, img, item)"
-                >
+                <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper">
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
                   <button v-if="idx === 1 && item.images.length > 2" class="img-overlay" @click.stop.prevent="revealImages(item.id)">
                     <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
@@ -145,12 +138,7 @@
                 </div>
               </template>
               <template v-else>
-                <div
-                    v-for="img in item.images"
-                    :key="img.publicId"
-                    class="thumb"
-                    @contextmenu.prevent.stop="openImageMenu($event, img, item)"
-                >
+                <div v-for="img in item.images" :key="img.publicId" class="thumb">
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy"/></a>
                 </div>
               </template>
@@ -224,15 +212,6 @@
       </div>
     </div>
 
-    <ImageContextMenu
-        v-if="imgCtxMenu.show"
-        :x="imgCtxMenu.x"
-        :y="imgCtxMenu.y"
-        @close="closeImageMenu"
-        @add="handleCtxAdd"
-        @delete="handleCtxDelete"
-    />
-
     <ItemForm
         v-if="showItemForm"
         :key="itemFormKey"
@@ -255,7 +234,12 @@
     )"
         @error="onItemFormError"
     />
-
+    <ImageForm
+        v-if="showImageFormFor"
+        :item="showImageFormFor"
+        @close="showImageFormFor=null"
+        @success="handleImageSuccess"
+    />
     <ConfirmDialog
         :show="showReportConfirm"
         message=""
@@ -274,46 +258,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
 import ItemForm from '../components/hw/ItemForm.vue';
+import ImageForm from '../components/hw/ImageForm.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import ItemSkeleton from '../components/ItemSkeleton.vue';
 import TabNavigation from '../components/TabNavigation.vue';
-import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
 import { Flag, Pencil, Images, Trash2, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
-import { useImageUploadStore } from '../stores/imageStore';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
 import TodoForm from '../components/hw/TodoForm.vue';
 import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
 import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
-import { vLongPress } from '../directives/vLongPress';
-
-const handleContextMenu = (itemId: string) => {
-  if (openMenuId.value !== itemId) {
-    toggleMenu(itemId);
-  }
-};
-
-const handleLongPress = (itemId: string) => {
-  if (openMenuId.value !== itemId) {
-    toggleMenu(itemId);
-  }
-};
 
 const {
-  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm,
+  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
   itemToEdit, user, subjects, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
-  showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction: onMenuActionOriginal, onAccountDeleted,
+  showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
   onAccountDeleteError, openSetupModal, logout, onLoggedIn, handleSuccess, onItemFormError,
   openCreateForm, canEdit,
   canDelete,
+  canDeleteImage,
   canEditNote,
   editingNoteForId,
   noteEditContent,
@@ -331,104 +301,19 @@ const {
   refreshItem,
 } = useHausaufgaben();
 
-const imageStore = useImageUploadStore();
+// Update the handleSuccess function or create a specific one for images
+async function handleImageSuccess(msg?: string) {
+  if (showImageFormFor.value) {
+    // 1. Refresh the specific item in the background
+    await refreshItem(showImageFormFor.value.id);
 
-// --- Image Context Menu Logic ---
-const imgCtxMenu = reactive({
-  show: false,
-  x: 0,
-  y: 0,
-  img: null as any,
-  item: null as any
-});
+    // 2. Show a small success message
+    message.value = msg || 'Bilder aktualisiert.';
+    setTimeout(() => message.value = '', 3000);
 
-function openImageMenu(evt: MouseEvent, img: any, item: any) {
-  // Only allow if user is logged in
-  if (!user.value) return;
-
-  imgCtxMenu.show = true;
-  imgCtxMenu.x = evt.clientX;
-  imgCtxMenu.y = evt.clientY;
-  imgCtxMenu.img = img;
-  imgCtxMenu.item = item;
-}
-
-function closeImageMenu() {
-  imgCtxMenu.show = false;
-  imgCtxMenu.img = null;
-  imgCtxMenu.item = null;
-}
-
-function handleCtxAdd() {
-  if (imgCtxMenu.item) {
-    directAddImage(imgCtxMenu.item);
-  }
-  closeImageMenu();
-}
-
-async function handleCtxDelete() {
-  if (!imgCtxMenu.img || !imgCtxMenu.item) return;
-  const itemId = imgCtxMenu.item.id;
-
-  // Call Store to delete
-  await imageStore.removeImg(imgCtxMenu.img, itemId);
-
-  // Refresh Item to show changes
-  if (imageStore.uploadError && !imageStore.uploadError.includes('erfolgreich')) {
-    message.value = imageStore.uploadError;
-    isError.value = true;
-  } else {
-    message.value = 'Bild gelöscht.';
-    isError.value = false;
-    await refreshItem(itemId);
-  }
-  closeImageMenu();
-  setTimeout(() => message.value = '', 3000);
-}
-
-// Helper to trigger direct add
-function directAddImage(item: any) {
-  // Init store with current images so limit checking works
-  imageStore.init(item.images || []);
-  // Trigger upload
-  imageStore.uploadImage(true, item.id);
-  // We set a watcher below to refresh when uploading is done
-  activeUploadItemId.value = item.id;
-}
-
-// --- Modified Menu Action Handler ---
-// Wrap the original handler to intercept "addImage"
-function onMenuAction(action: string, item: any) {
-  if (action === 'addImage') {
-    openMenuId.value = null; // Close menu
-    directAddImage(item);
-  } else {
-    // Forward other actions to the composable
-    // NOTE: 'images' case is now 'addImage' in template, so this matches
-    onMenuActionOriginal(action as any, item);
+    // Note: We do NOT close the form here, so the user can keep managing images.
   }
 }
-
-// --- Watch for upload completion ---
-const activeUploadItemId = ref<string | null>(null);
-
-watch(() => imageStore.uploading, async (isUploading, wasUploading) => {
-  // If we just finished uploading
-  if (wasUploading && !isUploading) {
-    if (activeUploadItemId.value) {
-      if (!imageStore.uploadError) {
-        await refreshItem(activeUploadItemId.value);
-        message.value = 'Bilder erfolgreich hochgeladen.';
-        isError.value = false;
-      } else {
-        message.value = imageStore.uploadError;
-        isError.value = true;
-      }
-      setTimeout(() => message.value = '', 3000);
-      activeUploadItemId.value = null;
-    }
-  }
-});
 </script>
 
 <style scoped>
@@ -673,13 +558,7 @@ watch(() => imageStore.uploading, async (isUploading, wasUploading) => {
   display: flex;
   gap: 8px;
 }
-@media (max-width: 768px) {
-  .item-body {
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: inherit;
-  }
-}
+
 @media (max-width: 500px ) {
   .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; flex-wrap: wrap; justify-content: left; }
   .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }
