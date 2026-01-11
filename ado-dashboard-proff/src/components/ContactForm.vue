@@ -84,9 +84,6 @@ import {
 .contact-header h2 {
   margin: 0 0 8px 0;
   color: var(--text);
-  font-family: var(--display-font), sans-serif;
-  font-size: 28px;
-  font-weight: 600;
 }
 
 .header-description {
