@@ -2,13 +2,12 @@
   <div class="card">
     <div class="contact-header">
       <h2>Kontakt</h2>
-      <p class="header-description">Bei Fragen, Anregungen oder technischen Problemen erreichst du uns über die folgenden Kanäle.</p>
     </div>
 
     <div class="contact-sections">
       <div class="contact-section primary-section">
         <div class="section-header">
-          <div class="icon-wrapper primary">
+          <div class="icon-wrapper">
             <Mail size="20" />
           </div>
           <div class="header-content">
@@ -16,7 +15,7 @@
             <p class="section-desc">Primärer Kanal für Support und Feedback</p>
           </div>
         </div>
-        <a href="mailto:kontakt@schul-dashboard.com" class="email-button">
+        <a href="mailto:kontakt@schul-dashboard.com" class="email-button btn">
           <span>kontakt@schul-dashboard.com</span>
           <ExternalLink size="16" />
         </a>
@@ -85,15 +84,6 @@ import {
   margin: 0 0 8px 0;
   color: var(--text);
 }
-
-.header-description {
-  margin: 0;
-  color: var(--sub);
-  font-size: 15px;
-  line-height: 1.5;
-  max-width: 600px;
-}
-
 .contact-sections {
   display: flex;
   flex-direction: column;
@@ -128,12 +118,6 @@ import {
   color: var(--text);
 }
 
-.icon-wrapper.primary {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
-}
-
 .header-content {
   flex: 1;
 }
@@ -158,24 +142,10 @@ import {
 }
 
 .email-button {
-  display: inline-flex;
-  align-items: center;
   gap: 10px;
-  background: var(--vlbg);
-  color: var(--text);
-  padding: 12px 16px;
-  border-radius: var(--border-4);
   text-decoration: none;
   border: 1px solid var(--border2);
-  transition: all 0.15s ease;
-  font-weight: 500;
-  font-size: 15px;
   margin-left: 54px;
-}
-
-.email-button:hover {
-  background: var(--ghost--hover);
-  border-color: var(--gg);
 }
 
 .email-button svg {
