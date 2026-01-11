@@ -1,4 +1,4 @@
-import { ref, onMounted, onBeforeUnmount, watch, computed, reactive } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/userStore';
@@ -60,9 +60,7 @@ export function useHausaufgaben() {
     // --- State ---
     const showItemForm = ref(false);
     const showAnnouncementForm = ref(false);
-
-    // REMOVED: const showImageFormFor = ref<any>(null);
-
+    const showImageFormFor = ref<any>(null);
     const itemToEdit = ref<HwItem | null>(null);
     const subjects = ref<string[]>([]);
     const items = ref<HwItem[]>([]);
@@ -80,6 +78,7 @@ export function useHausaufgaben() {
     // Todo State
     const showTodoForm = ref(false);
     const todoToEdit = ref<any>(null);
+    // Ref für die TodoApp Komponente, um reload zu triggern
     const todoAppRef = ref<any>(null);
 
     // UI Messages
@@ -96,17 +95,6 @@ export function useHausaufgaben() {
     const showReportConfirm = ref(false);
     const reportReason = ref('');
     let reportTarget: HwItem | null = null;
-
-    // Image Context Menu State
-    const imageMenu = reactive({
-        visible: false,
-        x: 0,
-        y: 0,
-        item: null as HwItem | null,
-        image: null as any | null
-    });
-
-    const showImageDeleteConfirm = ref(false);
 
     // State für Anmerkungsbearbeitung
     const editingNoteForId = ref<string | null>(null);
@@ -185,15 +173,7 @@ export function useHausaufgaben() {
 
     function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
         openMenuId.value = null;
-        if (action === 'images') {
-            // Fallback logic if user clicks the button instead of right clicking image
-            // For now, we don't have a "target image" so we can't open context menu easily.
-            // You might want to remove the "Images" button from the main menu
-            // OR trigger an upload directly.
-            // Let's trigger upload directly for the item:
-            triggerImageUpload(item);
-            return;
-        }
+        if (action === 'images') return showImageForm(item);
         if (action === 'edit') return editItem(item);
         if (action === 'delete') return deleteItem(item.id);
         if (action === 'report') return reportItem(item);
@@ -298,16 +278,21 @@ export function useHausaufgaben() {
         }
     }
 
+// Find the refreshItem function and update it:
     async function refreshItem(itemId: string) {
         try {
+            // Fetch the specific item from the API (Now works because we added the route!)
             const { data } = await hw.get(`/api/items/${itemId}`);
+
+            // 1. Update list
             const index = items.value.findIndex(i => i.id === itemId);
             if (index !== -1) {
                 items.value[index] = data;
             }
-            // Update context menu item reference if open
-            if(imageMenu.item && imageMenu.item.id === itemId) {
-                imageMenu.item = data;
+
+            // 2. Update modal reference if open
+            if (showImageFormFor.value && showImageFormFor.value.id === itemId) {
+                showImageFormFor.value = data;
             }
         } catch (e) {
             console.error(`Failed to refresh item ${itemId}:`, e);
@@ -351,6 +336,7 @@ export function useHausaufgaben() {
         setTimeout(() => message.value = '', 5000);
         showItemForm.value = false;
         showAnnouncementForm.value = false;
+        showImageFormFor.value = null;
         reload();
     }
 
@@ -428,68 +414,11 @@ export function useHausaufgaben() {
         reportReason.value = '';
     }
 
-    // --- Image Context Menu Logic ---
+    // Image Handling
+    function showImageForm(item: HwItem) { showImageFormFor.value = item; }
 
-    // Use store helper
+    // Use store helper instead of local implementation
     const makeThumb = imageStore.makeThumb;
-
-    // Called on right click or long press
-    function openImageMenu(event: MouseEvent, item: HwItem, img: any) {
-        if(!user.value) return; // Only logged in users
-        imageMenu.item = item;
-        imageMenu.image = img;
-        imageMenu.x = event.clientX;
-        imageMenu.y = event.clientY;
-        imageMenu.visible = true;
-
-        // Initialize store so we have the array locally if needed (though we use item.images mostly)
-        imageStore.init(item.images);
-    }
-
-    function closeImageMenu() {
-        imageMenu.visible = false;
-        imageMenu.item = null;
-        imageMenu.image = null;
-    }
-
-    // Triggered from menu "Add Image"
-    function triggerImageUpload(item?: HwItem) {
-        const targetItem = item || imageMenu.item;
-        if(targetItem) {
-            // Init store with current images to check limits
-            imageStore.init(targetItem.images);
-            // Trigger upload in store (true = editMode, item.id = immediate upload)
-            imageStore.uploadImage(true, targetItem.id);
-            closeImageMenu();
-        }
-    }
-
-    // Triggered from menu "Delete Image"
-    function triggerImageDelete() {
-        // Just show confirmation, store state is already set in imageMenu
-        showImageDeleteConfirm.value = true;
-        // Keep menu open or close it? Close it.
-        imageMenu.visible = false;
-    }
-
-    async function confirmImageDelete() {
-        if (imageMenu.image && imageMenu.item) {
-            await imageStore.removeImg(imageMenu.image, imageMenu.item.id);
-            // Refresh item to show changes
-            await refreshItem(imageMenu.item.id);
-            message.value = 'Bild gelöscht.';
-            setTimeout(() => message.value = '', 3000);
-        }
-        showImageDeleteConfirm.value = false;
-        imageMenu.image = null;
-        imageMenu.item = null;
-    }
-
-    function cancelImageDelete() {
-        showImageDeleteConfirm.value = false;
-        imageMenu.image = null;
-        imageMenu.item = null;
-    }
 
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
@@ -513,17 +442,19 @@ export function useHausaufgaben() {
         }
     }
 
-    // Permissions
+    // Bearbeiten: Nur der Ersteller (Admins haben hier KEINE Sonderrechte)
     function canEdit(createdBy: string) {
         if (!user.value) return false;
         return user.value.id === createdBy;
     }
 
+// Löschen: Ersteller ODER Admin
     function canDelete(createdBy: string) {
         if (!user.value) return false;
         return user.value.isAdmin || user.value.id === createdBy;
     }
 
+// Bild löschen: Admin ODER Bild-Ersteller ODER Item-Ersteller
     function canDeleteImage(itemCreatedBy: string, imageCreatedBy: string) {
         if (!user.value) return false;
         if (user.value.isAdmin) return true;
@@ -532,6 +463,7 @@ export function useHausaufgaben() {
         return false;
     }
 
+// Admin-Anmerkung bearbeiten: Nur Admins
     function canEditNote() {
         return user.value?.isAdmin === true;
     }
@@ -586,18 +518,6 @@ export function useHausaufgaben() {
         visibleCount.value = Math.min(5, filteredItems.value.length || 5);
     });
 
-    // Watch upload store to refresh item when uploading finishes
-    watch(() => imageStore.uploading, async (val, oldVal) => {
-        if(oldVal && !val && !imageStore.uploadError) {
-            // Upload finished successfully
-            if(imageMenu.item) {
-                await refreshItem(imageMenu.item.id);
-                message.value = 'Bild erfolgreich hochgeladen.';
-                setTimeout(() => message.value = '', 3000);
-            }
-        }
-    });
-
     onMounted(() => {
         document.addEventListener('click', onDocumentClick);
         loadSubjects();
@@ -625,7 +545,7 @@ export function useHausaufgaben() {
         MAX_SUBJECT_LENGTH,
         showItemForm,
         showAnnouncementForm,
-        // showImageFormFor, REMOVED
+        showImageFormFor,
         itemToEdit,
         user,
         subjects,
@@ -690,15 +610,6 @@ export function useHausaufgaben() {
         confirmDelete,
         cancelDelete,
         initialLoad,
-        refreshItem,
-        // New exports for image menu
-        imageMenu,
-        openImageMenu,
-        closeImageMenu,
-        triggerImageUpload,
-        triggerImageDelete,
-        showImageDeleteConfirm,
-        confirmImageDelete,
-        cancelImageDelete
+        refreshItem
     };
 }
