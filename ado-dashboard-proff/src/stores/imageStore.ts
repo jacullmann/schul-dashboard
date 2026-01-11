@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import hw from '../../hwApi'; // Adjust this path based on your folder structure (e.g., '@/hwApi')
-import { processImageBeforeUpload } from '../../composables/useConvertImage'; // Adjust path as needed
+import hw from '../hwApi'; // Adjust this path based on your folder structure (e.g., '@/hwApi')
+import { processImageBeforeUpload } from '../composables/useConvertImage'; // Adjust path as needed
 
 export interface ImageItem {
     url: string;
