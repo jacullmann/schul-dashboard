@@ -60,6 +60,9 @@ export function useHausaufgaben() {
     // --- State ---
     const showItemForm = ref(false);
     const showAnnouncementForm = ref(false);
+
+    // REMOVED: const showImageFormFor = ref<any>(null);
+
     const itemToEdit = ref<HwItem | null>(null);
     const subjects = ref<string[]>([]);
     const items = ref<HwItem[]>([]);
@@ -77,7 +80,6 @@ export function useHausaufgaben() {
     // Todo State
     const showTodoForm = ref(false);
     const todoToEdit = ref<any>(null);
-    // Ref für die TodoApp Komponente, um reload zu triggern
     const todoAppRef = ref<any>(null);
 
     // UI Messages
@@ -296,21 +298,16 @@ export function useHausaufgaben() {
         }
     }
 
-// Find the refreshItem function and update it:
     async function refreshItem(itemId: string) {
         try {
-            // Fetch the specific item from the API (Now works because we added the route!)
             const { data } = await hw.get(`/api/items/${itemId}`);
-
-            // 1. Update list
             const index = items.value.findIndex(i => i.id === itemId);
             if (index !== -1) {
                 items.value[index] = data;
             }
-
-            // 2. Update modal reference if open
-            if (showImageFormFor.value && showImageFormFor.value.id === itemId) {
-                showImageFormFor.value = data;
+            // Update context menu item reference if open
+            if(imageMenu.item && imageMenu.item.id === itemId) {
+                imageMenu.item = data;
             }
         } catch (e) {
             console.error(`Failed to refresh item ${itemId}:`, e);
@@ -354,7 +351,6 @@ export function useHausaufgaben() {
         setTimeout(() => message.value = '', 5000);
         showItemForm.value = false;
         showAnnouncementForm.value = false;
-        showImageFormFor.value = null;
         reload();
     }
 
@@ -432,10 +428,9 @@ export function useHausaufgaben() {
         reportReason.value = '';
     }
 
-    // Image Handling
-    function showImageForm(item: HwItem) { showImageFormFor.value = item; }
+    // --- Image Context Menu Logic ---
 
-    // Use store helper instead of local implementation
+    // Use store helper
     const makeThumb = imageStore.makeThumb;
 
     // Called on right click or long press
@@ -518,19 +513,17 @@ export function useHausaufgaben() {
         }
     }
 
-    // Bearbeiten: Nur der Ersteller (Admins haben hier KEINE Sonderrechte)
+    // Permissions
     function canEdit(createdBy: string) {
         if (!user.value) return false;
         return user.value.id === createdBy;
     }
 
-// Löschen: Ersteller ODER Admin
     function canDelete(createdBy: string) {
         if (!user.value) return false;
         return user.value.isAdmin || user.value.id === createdBy;
     }
 
-// Bild löschen: Admin ODER Bild-Ersteller ODER Item-Ersteller
     function canDeleteImage(itemCreatedBy: string, imageCreatedBy: string) {
         if (!user.value) return false;
         if (user.value.isAdmin) return true;
@@ -539,7 +532,6 @@ export function useHausaufgaben() {
         return false;
     }
 
-// Admin-Anmerkung bearbeiten: Nur Admins
     function canEditNote() {
         return user.value?.isAdmin === true;
     }
@@ -633,7 +625,7 @@ export function useHausaufgaben() {
         MAX_SUBJECT_LENGTH,
         showItemForm,
         showAnnouncementForm,
-        showImageFormFor,
+        // showImageFormFor, REMOVED
         itemToEdit,
         user,
         subjects,
@@ -699,6 +691,7 @@ export function useHausaufgaben() {
         cancelDelete,
         initialLoad,
         refreshItem,
+        // New exports for image menu
         imageMenu,
         openImageMenu,
         closeImageMenu,
