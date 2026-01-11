@@ -146,6 +146,7 @@ import {
   text-decoration: none;
   border: 1px solid var(--border2);
   margin-left: 54px;
+  color: var(--text);
 }
 
 .email-button svg {
