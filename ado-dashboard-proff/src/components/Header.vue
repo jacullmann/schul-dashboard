@@ -26,6 +26,7 @@
           <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzelfinder</router-link>
           <router-link to="/sorgenbox" class="nav-item" @click="closeNav">Sorgenbox</router-link>
           <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">Daltonraumfinder</router-link>
+          <router-link to="/info-dashboard" class="nav-item" @click="closeNav">Infodashboard</router-link>
         </nav>
       </div>
 

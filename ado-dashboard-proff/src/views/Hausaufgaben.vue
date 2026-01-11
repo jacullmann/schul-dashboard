@@ -73,8 +73,6 @@
           :key="item.id"
           class="item-card"
           :class="{ collapsed: isChecked(item.id) }"
-          @contextmenu.prevent="handleContextMenu(item.id)"
-          v-long-press="() => handleLongPress(item.id)"
       >
         <div class="item-main">
           <div class="item-meta">
@@ -275,19 +273,6 @@ import TodoForm from '../components/hw/TodoForm.vue';
 import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
 import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
-import { vLongPress } from '../directives/vLongPress';
-
-const handleContextMenu = (itemId: string) => {
-  if (openMenuId.value !== itemId) {
-    toggleMenu(itemId);
-  }
-};
-
-const handleLongPress = (itemId: string) => {
-  if (openMenuId.value !== itemId) {
-    toggleMenu(itemId);
-  }
-};
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm, showImageFormFor,
@@ -573,13 +558,7 @@ async function handleImageSuccess(msg?: string) {
   display: flex;
   gap: 8px;
 }
-@media (max-width: 768px) {
-  .item-body {
-    user-select: none;
-    -webkit-user-select: none;
-    cursor: inherit;
-  }
-}
+
 @media (max-width: 500px ) {
   .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; flex-wrap: wrap; justify-content: left; }
   .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }

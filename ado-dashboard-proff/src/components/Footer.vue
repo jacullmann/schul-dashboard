@@ -22,6 +22,7 @@
           <router-link to="/countdown" class="footer-link">Countdowns</router-link>
           <router-link to="/daltonraumfinder" class="footer-link">Daltonraumfinder</router-link>
           <router-link to="/update-history" class="footer-link">Update History</router-link>
+          <router-link to="/info-dashboard" class="footer-link">Infodashboard</router-link>
         </div>
 
         <div class="footer-section">
