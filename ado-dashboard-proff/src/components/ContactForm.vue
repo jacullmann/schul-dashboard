@@ -15,7 +15,7 @@
             <p class="section-desc">Primärer Kanal für Support und Feedback</p>
           </div>
         </div>
-        <a href="mailto:kontakt@schul-dashboard.com" class="email-button btn">
+        <a href="mailto:kontakt@schul-dashboard.com" class="email-button btn ghost">
           <span>kontakt@schul-dashboard.com</span>
           <ExternalLink size="16" />
         </a>
