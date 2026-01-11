@@ -278,15 +278,21 @@ export function useHausaufgaben() {
         }
     }
 
+// Find the refreshItem function and update it:
     async function refreshItem(itemId: string) {
         try {
-            // Fetch the specific item from the API
+            // Fetch the specific item from the API (Now works because we added the route!)
             const { data } = await hw.get(`/api/items/${itemId}`);
 
-            // Find the item in the local list and update it
+            // 1. Update list
             const index = items.value.findIndex(i => i.id === itemId);
             if (index !== -1) {
                 items.value[index] = data;
+            }
+
+            // 2. Update modal reference if open
+            if (showImageFormFor.value && showImageFormFor.value.id === itemId) {
+                showImageFormFor.value = data;
             }
         } catch (e) {
             console.error(`Failed to refresh item ${itemId}:`, e);

@@ -51,6 +51,10 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
      * @param isEditMode - Boolean indicating if we are editing an existing entry (affects max limits)
      * @param itemId - (Optional) The ID of the item. If present, the new images are saved to the backend immediately.
      */
+    /**
+     * Handles the file input creation, validation, signing, and uploading to Cloudinary.
+     * If itemId is provided, it immediately pushes the image to the backend via POST.
+     */
     async function uploadImage(isEditMode: boolean, itemId?: string) {
         uploading.value = true;
         uploadError.value = '';
@@ -60,7 +64,6 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
         input.accept = 'image/*';
         input.multiple = true;
 
-        // Reset uploading state if user cancels
         input.oncancel = () => {
             uploading.value = false;
         };
@@ -80,25 +83,21 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
             const remaining = MAX_IMAGES - existingCount;
 
             if (remaining <= 0) {
-                uploadError.value = `Die maximale Anzahl an Bilder (${MAX_IMAGES}) ${isEditMode ? '(gesamt)' : '(für neuen Eintrag)'} für diesen Eintrag wurden erreicht.`;
+                uploadError.value = `Limit erreicht. Maximale Bilder: ${MAX_IMAGES}`;
                 uploading.value = false;
                 return;
             }
             if (files.length > remaining) {
-                uploadError.value = `Du kannst nur noch ${remaining} Bild(er) hochladen. Dein Limit: ${MAX_IMAGES} Bilder.`;
+                uploadError.value = `Zu viele Dateien ausgewählt. Du kannst noch ${remaining} Bild(er) hochladen.`;
                 uploading.value = false;
                 return;
             }
 
-            let newImagesAdded = false;
-
             for (const file of files) {
-                if (!file.type.startsWith('image/')) {
-                    console.warn(`Datei ${file.name} ist kein Bild und wird übersprungen.`);
-                    continue;
-                }
+                if (!file.type.startsWith('image/')) continue;
 
                 try {
+                    // 1. Prepare and Upload to Cloudinary
                     const processedFile = await processImageBeforeUpload(file);
                     const { data: sign } = await hw.post('/api/uploads/sign');
                     const form = new FormData();
@@ -112,52 +111,46 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
                     const json = await res.json();
 
                     if (json.secure_url && json.public_id) {
-                        const imgObj = {
+                        const imgPayload = {
                             url: json.secure_url,
-                            thumbUrl: makeThumb(json.secure_url),
                             publicId: json.public_id,
-                            createdBy: '' // Backend will likely handle this
+                            // Thumb/CreatedBy will be set by backend or helper
                         };
-                        images.value.push(imgObj);
-                        newImagesAdded = true;
-                        uploadError.value = '';
+
+                        // 2. NEW LOGIC: If we have an itemId, save to backend immediately using the correct POST route
+                        if (itemId) {
+                            try {
+                                const { data } = await hw.post(`/api/items/${itemId}/images`, {
+                                    image: imgPayload
+                                });
+                                // Add the returned image (with correct createdBy info) to local store
+                                images.value.push(data.image);
+                                uploadError.value = '';
+                            } catch (e: any) {
+                                console.error('Failed to save image to item:', e);
+                                // Try to cleanup the orphaned cloudinary image
+                                // (Optional implementation detail)
+                                uploadError.value = e.response?.data?.error || 'Speichern fehlgeschlagen.';
+                            }
+                        } else {
+                            // Creating a new item: just add to local state
+                            images.value.push({
+                                ...imgPayload,
+                                thumbUrl: makeThumb(json.secure_url),
+                                createdBy: '' // Will be set upon item creation
+                            });
+                        }
                     } else {
-                        uploadError.value = 'Einige Uploads konnten nicht durchgeführt werden.';
-                        console.error('Upload failed for file', file, json);
+                        console.error('Cloudinary Upload failed', json);
+                        uploadError.value = 'Upload zu Cloudinary fehlgeschlagen.';
                     }
                 } catch (e: any) {
-                    uploadError.value = 'Upload fehlgeschlagen für mindestens eine Datei.';
                     console.error('uploadImage error', e);
+                    uploadError.value = 'Fehler beim Upload.';
                 }
             }
-
-            // NEW LOGIC: Save changes to backend if we have an ID
-            if (itemId && newImagesAdded) {
-                try {
-                    // Send the updated image list to the backend
-                    await hw.patch(`/api/items/${itemId}`, {
-                        images: images.value
-                    });
-                    // uploadError.value = 'Bilder erfolgreich gespeichert.';
-                    // (We leave value empty or distinct so ImageForm knows it worked)
-                } catch (e: any) {
-                    console.error('Failed to patch item images:', e);
-                    uploadError.value = 'Bilder hochgeladen, aber Speichern fehlgeschlagen.';
-                }
-            }
-
             uploading.value = false;
         };
-
-        // Fallback timeout
-        setTimeout(() => {
-            if (uploading.value) {
-                // Simplified check
-                if (!document.body.contains(input)) {
-                    uploading.value = false;
-                }
-            }
-        }, 3000);
 
         input.click();
     }
