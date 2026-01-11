@@ -2,6 +2,7 @@ import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/userStore';
+import { useImageUploadStore } from '../stores/imageStore';
 import { useGlobalAuthModal } from './useGlobalAuthModal';
 import hw from '../hwApi';
 
@@ -25,6 +26,7 @@ export function useHausaufgaben() {
     const router = useRouter();
     const { openAuthModal } = useGlobalAuthModal();
     const userStore = useUserStore();
+    const imageStore = useImageUploadStore(); // Init Image Store
     const { user } = storeToRefs(userStore);
 
     // --- Konstanten ---
@@ -393,15 +395,9 @@ export function useHausaufgaben() {
 
     // Image Handling
     function showImageForm(item: HwItem) { showImageFormFor.value = item; }
-    function makeThumb(url: string) {
-        try {
-            const u = new URL(url);
-            if (u.pathname.includes('upload')) {
-                u.pathname = u.pathname.replace('upload', 'upload/f_webp,q_auto:best,w_120,h_120,c_fill');
-            }
-            return u.toString();
-        } catch { return url; }
-    }
+
+    // Use store helper instead of local implementation
+    const makeThumb = imageStore.makeThumb;
 
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
