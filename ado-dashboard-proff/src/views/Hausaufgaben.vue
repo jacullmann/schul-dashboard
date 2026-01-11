@@ -246,7 +246,7 @@
         v-if="showImageFormFor"
         :item="showImageFormFor"
         @close="showImageFormFor=null"
-        @success="handleSuccess('Bilder aktualisiert.')"
+        @success="handleImageSuccess('Bilder aktualisiert.')"
     />
     <ConfirmDialog
         :show="showReportConfirm"
@@ -319,7 +319,23 @@ const {
   handleTodoSuccess, itemFormType, openEditTodo, todoAppRef, showDeleteConfirm,
   confirmDelete,
   cancelDelete,
+  refreshItem,
 } = useHausaufgaben();
+
+// Update the handleSuccess function or create a specific one for images
+async function handleImageSuccess() {
+  if (showImageFormFor.value) {
+    // 1. Refresh the specific item in the background
+    await refreshItem(showImageFormFor.value.id);
+
+    // 2. Show a small success message (optional)
+    message.value = 'Bilder aktualisiert.';
+    setTimeout(() => message.value = '', 3000);
+
+    // Note: We do NOT close the form here, so the user can keep managing images.
+    // If you want to close it, add: showImageFormFor.value = null;
+  }
+}
 </script>
 
 <style scoped>

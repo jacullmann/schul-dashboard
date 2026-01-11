@@ -278,6 +278,21 @@ export function useHausaufgaben() {
         }
     }
 
+    async function refreshItem(itemId: string) {
+        try {
+            // Fetch the specific item from the API
+            const { data } = await hw.get(`/api/items/${itemId}`);
+
+            // Find the item in the local list and update it
+            const index = items.value.findIndex(i => i.id === itemId);
+            if (index !== -1) {
+                items.value[index] = data;
+            }
+        } catch (e) {
+            console.error(`Failed to refresh item ${itemId}:`, e);
+        }
+    }
+
     // Auth & Account
     function onAccountDeleted() {
         userStore.clearUser();
@@ -588,6 +603,7 @@ export function useHausaufgaben() {
         showDeleteConfirm,
         confirmDelete,
         cancelDelete,
-        initialLoad
+        initialLoad,
+        refreshItem
     };
 }

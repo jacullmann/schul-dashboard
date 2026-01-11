@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { useImageUploadStore } from '../../stores/imageStore'; // Adjust path if necessary (e.g. '../stores/imageStore')
+import { useImageUploadStore } from './imageStore'; // Adjust path if necessary (e.g. '../stores/imageStore')
 
 const props = defineProps({
   item: {
@@ -85,11 +85,11 @@ const emit = defineEmits(['close', 'success']);
 const store = useImageUploadStore();
 
 // Watch for item changes to initialize the store with current images
-watch(() => props.item, (newItem) => {
-  if (newItem && newItem.images) {
-    store.init(newItem.images);
+watch(() => store.images, (newVal, oldVal) => {
+  if (!store.uploading && oldVal && newVal.length !== oldVal.length) {
+    emit('success');
   }
-}, { immediate: true, deep: true });
+}, { deep: true });
 
 // Local UI state for the confirmation modal
 const showConfirmRemovalModal = ref(false);
@@ -112,7 +112,7 @@ function cancelRemoval() {
 
 function uploadImg() {
   // Trigger upload in Edit Mode (true)
-  store.uploadImage(true);
+  store.uploadImage(true, props.item.id);
 }
 
 async function removeImg(publicId: string) {
