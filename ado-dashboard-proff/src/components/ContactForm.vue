@@ -12,7 +12,6 @@
           </div>
           <div class="header-content">
             <h3>E-Mail</h3>
-            <p class="section-desc">Primärer Kanal für Support und Feedback</p>
           </div>
         </div>
         <a href="mailto:kontakt@schul-dashboard.com" class="email-button btn ghost">
@@ -30,7 +29,6 @@
           </div>
           <div class="header-content">
             <h3>Standort</h3>
-            <p class="section-desc">Das Dashboard wurde entwickelt in</p>
           </div>
         </div>
         <div class="info-content">
@@ -47,7 +45,6 @@
           </div>
           <div class="header-content">
             <h3>Feedback</h3>
-            <p class="section-desc">Verbesserungsvorschläge und Ideen</p>
           </div>
         </div>
         <div class="info-content">
@@ -130,12 +127,6 @@ import {
   font-family: var(--display-font), sans-serif;
 }
 
-.section-desc {
-  margin: 0;
-  font-size: 13px;
-  color: var(--sub);
-  line-height: 1.4;
-}
 
 .info-content {
   padding-left: 54px;
@@ -203,11 +194,6 @@ hr {
   .contact-header h2 {
     font-size: 24px;
   }
-
-  .header-description {
-    font-size: 14px;
-  }
-
   .contact-section {
     padding: 20px 0;
   }
@@ -249,11 +235,6 @@ hr {
   .header-content h3 {
     font-size: 15px;
   }
-
-  .section-desc {
-    font-size: 12px;
-  }
-
   .info-content {
     padding-left: 0;
     margin-top: 12px;
