@@ -1790,6 +1790,42 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         }
     });
 
+    app.get('/api/items/:id',
+        requireAppGate(appGateSecret),
+        param('id').isMongoId(),
+        validate,
+        async (req, res) => {
+            try {
+                const item = await Item.findById(req.params.id)
+                    .populate('createdBy', 'email')
+                    .lean();
+
+                if (!item) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
+                const imgs = (item.images || []).map(img => withThumb(img));
+                const createdById = item.createdBy?._id?.toString() || item.createdBy?.toString();
+
+                const normalized = {
+                    id: item._id.toString(),
+                    type: item.type,
+                    title: item.title,
+                    subject: item.subject,
+                    description: item.description,
+                    images: imgs,
+                    dueDate: item.dueDate,
+                    createdBy: createdById,
+                    createdByEmail: item.createdBy?.email || 'Unbekannt',
+                    timeColor: timeLeftColor(item.dueDate),
+                    editorNote: item.editorNote || ''
+                };
+
+                res.json(normalized);
+            } catch (error) {
+                console.error('Error fetching single item:', error);
+                sendJSONError(res, 500, 'Fehler beim Laden des Eintrags');
+            }
+        }
+    );
+
     app.post('/api/items/:id/images',
         requireAppGate(appGateSecret),
         requireUser(userSecret, BannedUser, User),
