@@ -29,7 +29,7 @@ export default function registerRoutes(app, deps) {
         supabase,
         cloudinary,
         resendClient,
-        geminiModel,
+        geminiClient,
         emailConfigured,
         emailFrom,
         appGateSecret,
@@ -737,13 +737,15 @@ Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ers
 Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äußere Authentifizierung einer Seite. Die Website ist also nur für bestimmte autorisierte Personen, die von den Administratoren das allgemeine Passwort erhalten haben. Es gibt also nicht mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zu kommen. Die Attempt Hashes sind dabei hashes der versuchten Passwörter. Und beachte: Sei weder zu lasch, noch sieh jede abfolge vonf alcshen  passwörtern udn fehlschlägen als angriff. Entscheide intelligent und hilfreich.
       `;
 
-            if (!geminiModel) {
+            if (!geminiClient) {
                 return sendJSONError(res, 500, 'Gemini API Key ist ungültig oder nicht initialisiert.');
             }
 
-            const result = await geminiModel.generateContent(prompt);
-            const response = result.response;
-            const reportText = response.text();
+            const response = await geminiClient.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt
+            });
+            const reportText = response.text;
             res.json({ ok: true, report: reportText });
 
         } catch (err) {

@@ -9,7 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
 import { Resend } from 'resend';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
 
@@ -42,12 +42,13 @@ if (RESEND_API_KEY) {
 }
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-let geminiModel = null;
+let geminiClient = null;
 try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    geminiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    if (GEMINI_API_KEY) {
+        geminiClient = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+    }
 } catch (e) {
-    console.warn('Warn: Gemini initialisierung fehlgeschlagen oder kein API Key vorhanden.');
+    console.warn('Warn: Gemini Initialisierung fehlgeschlagen oder kein API Key vorhanden.');
 }
 
 cloudinary.config({
@@ -103,7 +104,7 @@ routes(app, {
     supabase,
     cloudinary,
     resendClient,
-    geminiModel,
+    geminiClient,
     emailConfigured: !!RESEND_API_KEY,
     emailFrom: EMAIL_FROM,
     appGateSecret: process.env.APP_GATE_JWT_SECRET,
