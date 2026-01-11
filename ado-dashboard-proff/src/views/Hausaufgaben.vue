@@ -130,7 +130,11 @@
           <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div v-for="(img, idx) in item.images.slice(0, 2)" :key="img.publicId" class="thumb thumb-with-overlay-wrapper" @contextmenu.prevent="openImageMenu($event, item, img)">
+                <div v-for="(img, idx) in item.images.slice(0, 2)"
+                     :key="img.publicId"
+                     class="thumb thumb-with-overlay-wrapper"
+                     @contextmenu.prevent="openImageMenu($event, item, img)"
+                >
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
                   <button v-if="idx === 1 && item.images.length > 2" class="img-overlay" @click.stop.prevent="revealImages(item.id)">
                     <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
@@ -138,13 +142,18 @@
                 </div>
               </template>
               <template v-else>
-                <div v-for="img in item.images" :key="img.publicId" class="thumb" @contextmenu.prevent="openImageMenu($event, item, img)">
+                <div v-for="img in item.images"
+                     :key="img.publicId"
+                     class="thumb"
+                     @contextmenu.prevent="openImageMenu($event, item, img)"
+                >
                   <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
                 </div>
               </template>
             </div>
           </div>
         </transition>
+
         <transition name="collapse">
           <div
               v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
@@ -228,9 +237,13 @@
         v-if="showTodoForm"
         :initial="todoToEdit"
         @close="showTodoForm=false"
-        @success="(data) => handleTodoSuccess(todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.', data)"
+        @success="(data) => handleTodoSuccess(
+        todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.',
+        data
+    )"
         @error="onItemFormError"
     />
+
     <ImageContextMenu
         v-if="imageMenu.visible"
         :x="imageMenu.x"
@@ -240,6 +253,7 @@
         @delete="triggerImageDelete"
         @close="closeImageMenu"
     />
+
     <ConfirmDialog
         :show="showReportConfirm"
         message=""
@@ -259,12 +273,14 @@
         @confirm="confirmImageDelete"
         @cancel="cancelImageDelete"
     />
+
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
 import ItemForm from '../components/hw/ItemForm.vue';
+// Removed ImageForm
 import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import OldNewSwitch from "../components/NewOldSwitch.vue"
@@ -282,6 +298,7 @@ import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm,
+  // showImageFormFor, // Removed
   itemToEdit, user, subjects, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
   showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
   filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
@@ -305,11 +322,15 @@ const {
   confirmDelete,
   cancelDelete,
   refreshItem,
+  // New imports for Menu
+  imageMenu,
+  openImageMenu,
+  closeImageMenu,
   triggerImageUpload,
   triggerImageDelete,
   showImageDeleteConfirm,
   confirmImageDelete,
-  cancelImageDelete,
+  cancelImageDelete
 } = useHausaufgaben();
 </script>
 
