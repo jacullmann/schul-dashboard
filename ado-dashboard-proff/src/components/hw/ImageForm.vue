@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import { useImageUploadStore } from './imageStore'; // Adjust path if necessary (e.g. '../stores/imageStore')
+import { useImageUploadStore } from '../../stores/imageStore'; // Adjust path if necessary (e.g. '../stores/imageStore')
 
 const props = defineProps({
   item: {
