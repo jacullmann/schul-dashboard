@@ -1,13 +1,13 @@
 <template>
-  <div class="blurit">
+  <div class="blurit" @click.self="$emit('close')">
     <div class="modal card rlc">
       <div class="modal-head">
         <h3 style="color: white;">Bilder verwalten für: {{ item.title }}</h3>
-        <button data-umami-event="ImageForm Menü schließen"  class="btn ghost" @click="$emit('close')">Schließen</button>
+        <button data-umami-event="ImageForm Menü schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
       <div class="section">
-        <div  class="section-title">Bilder</div>
+        <div class="section-title">Bilder</div>
 
         <div class="images-row row-n">
           <div
@@ -26,17 +26,22 @@
             </a>
 
             <div class="thumb-actions">
-              <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small" @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X</button>
+              <button data-umami-event="Bild löschen Button -> Menu öffnen " class="btn danger small"
+                      @click="confirmRemoval(img.publicId)" aria-label="Bild löschen">X
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       <div class="controls row" style="margin-top:16px; align-items:center;">
-        <button data-umami-event="Bilder hochladen Button" class="btn ghost" @click="uploadImg" :disabled="store.uploading">
-          <svg v-if="store.uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+        <button data-umami-event="Bilder hochladen Button" class="btn ghost" @click="uploadImg"
+                :disabled="store.uploading">
+          <svg v-if="store.uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+               aria-hidden>
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           Bild hochladen
         </button>
@@ -56,9 +61,11 @@
         <h4 style="margin-top: 0;">Dieses Bild unwiderruflich löschen?</h4>
         <p>Wenn du dieses Bild löschst, gibt es keinen Weg, es wiederherzustellen.</p>
 
-        <div class="row" >
+        <div class="row">
           <button data-umami-event="Bild löschen Abbruch" class="btn ghost" @click="cancelRemoval()">Abbrechen</button>
-          <button data-umami-event="Bild engültig löschen Button" class="btn danger" @click="removeImg(publicIdToRemove)">Bild löschen</button>
+          <button data-umami-event="Bild engültig löschen Button" class="btn danger"
+                  @click="removeImg(publicIdToRemove)">Bild löschen
+          </button>
         </div>
       </div>
     </div>
@@ -66,8 +73,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import { useImageUploadStore } from '../../stores/imageStore'; // Adjust path if necessary (e.g. '../stores/imageStore')
+import { ref, watch, computed, onMounted } from 'vue';
+import { useImageUploadStore } from '../../stores/imageStore';
 
 const props = defineProps({
   item: {
@@ -84,12 +91,25 @@ const emit = defineEmits(['close', 'success']);
 // Initialize Store
 const store = useImageUploadStore();
 
-// Watch for item changes to initialize the store with current images
-watch(() => store.images, (newVal, oldVal) => {
-  if (!store.uploading && oldVal && newVal.length !== oldVal.length) {
-    emit('success');
+// Init store on mount
+onMounted(() => {
+  store.init(props.item.images || []);
+});
+
+// Watch for external item updates (from parent refresh) to keep store in sync
+watch(() => props.item, (newItem) => {
+  if (newItem && !store.uploading) {
+    store.init(newItem.images || []);
   }
 }, { deep: true });
+
+// Watch for upload completion to emit success
+watch(() => store.uploading, (isUploading, wasUploading) => {
+  // If we just finished uploading (was true -> is false) AND no error
+  if (wasUploading && !isUploading && !store.uploadError) {
+    emit('success');
+  }
+});
 
 // Local UI state for the confirmation modal
 const showConfirmRemovalModal = ref(false);
@@ -111,7 +131,7 @@ function cancelRemoval() {
 }
 
 function uploadImg() {
-  // Trigger upload in Edit Mode (true)
+  // Trigger upload in Edit Mode (true) with Item ID
   store.uploadImage(true, props.item.id);
 }
 
@@ -123,7 +143,7 @@ async function removeImg(publicId: string) {
 
   if (imgToRemove) {
     await store.removeImg(imgToRemove, props.item.id);
-    // Determine success based on store state (optional, or rely on store's internal message)
+    // Emit success immediately after successful removal
     if (!store.uploadError || isSuccessMessage.value) {
       emit('success');
     }
@@ -132,7 +152,16 @@ async function removeImg(publicId: string) {
 </script>
 
 <style scoped>
-
+.blurit {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .overlay.confirm {
   position: fixed;
@@ -145,15 +174,17 @@ async function removeImg(publicId: string) {
   background: rgba(0, 0, 0, 0.4);
 }
 
-/* Modal card styling (keeps visual style local) */
+/* Modal card styling */
 .modal {
   width: 100%;
   max-width: 640px;
   padding: 16px;
   border-radius: 16px;
-  border:1px solid var(--border);
+  border: 1px solid var(--border);
   background: var(--lbg);
   box-shadow: var(--shadow-l);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 /* Confirm modal variant */
@@ -167,6 +198,7 @@ async function removeImg(publicId: string) {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-l);
 }
+
 /* Header */
 .modal-head {
   display: flex;
@@ -174,7 +206,11 @@ async function removeImg(publicId: string) {
   align-items: center;
   gap: 12px;
 }
-.modal-head h3 { margin: 0; font-size: 1.05rem; }
+
+.modal-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
 
 /* Section */
 .section {
@@ -188,8 +224,12 @@ async function removeImg(publicId: string) {
 }
 
 /* Images grid row */
+.images-row {
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
-/* Thumbnail wrapper: fixed square using aspect-ratio */
+/* Thumbnail wrapper */
 .img-thumb {
   width: 120px;
   aspect-ratio: 1 / 1;
@@ -197,7 +237,7 @@ async function removeImg(publicId: string) {
   overflow: hidden;
   position: relative;
   border: 1px solid var(--border);
-  background: rgba(0,0,0,0.06);
+  background: rgba(0, 0, 0, 0.06);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -205,7 +245,11 @@ async function removeImg(publicId: string) {
 }
 
 /* link fills wrapper */
-.img-link { display: block; width: 100%; height: 100%; }
+.img-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /* image fills and is cropped */
 .img {
@@ -225,25 +269,57 @@ async function removeImg(publicId: string) {
 }
 
 /* small button variant */
-.btn.small { padding: 4px 8px; font-size: 12px; }
+.btn.small {
+  padding: 4px 8px;
+  font-size: 12px;
+}
 
 /* controls and message */
-.controls { display: flex; align-items: center; gap: 12px; }
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
 /* spinner */
-.spinner { width: 18px; height: 18px; animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* message states */
-.small { font-size: 12px; color: var(--sub); }
-.msg-ok { color: var(--primary); font-weight: 600; }
-.msg-error { color: var(--danger); font-weight: 600; }
-.images-row {
-  flex-wrap: wrap;
+.small {
+  font-size: 12px;
+  color: var(--sub);
 }
+
+.msg-ok {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.msg-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 /* responsive */
 @media (max-width: 480px) {
-  .img-thumb { width: 88px; flex: 0 0 88px; aspect-ratio: 1 / 1; }
-  .modal { padding: 16px; }
+  .img-thumb {
+    width: 88px;
+    flex: 0 0 88px;
+    aspect-ratio: 1 / 1;
+  }
+
+  .modal {
+    padding: 16px;
+  }
 }
 </style>

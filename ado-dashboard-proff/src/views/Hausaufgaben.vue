@@ -65,10 +65,8 @@
     </div>
 
     <div class="items">
-      <!-- Skeleton Loading -->
       <ItemSkeleton v-if="loading && initialLoad && tab !== 'PRIVATE'" :count="5" :image-count="2" />
 
-      <!-- Actual Items -->
       <div
           v-else-if="tab !== 'PRIVATE'"
           v-for="item in limitedItems"
@@ -149,7 +147,6 @@
             </div>
           </div>
         </transition>
-        <!-- Anmerkungen -->
         <transition name="collapse">
           <div
               v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
@@ -166,13 +163,11 @@
               </button>
             </div>
 
-            <!-- Anzeige-Modus -->
             <div v-if="editingNoteForId !== item.id" class="editor-note-content">
               <span v-if="item.editorNote">{{ item.editorNote }}</span>
               <span v-else class="note-placeholder">Keine Anmerkung vorhanden</span>
             </div>
 
-            <!-- Bearbeitungs-Modus -->
             <div v-else class="editor-note-edit">
       <textarea
           class="input"
@@ -219,7 +214,6 @@
       </div>
     </div>
 
-    <!-- Modals -->
     <ItemForm
         v-if="showItemForm"
         :key="itemFormKey"
@@ -246,7 +240,7 @@
         v-if="showImageFormFor"
         :item="showImageFormFor"
         @close="showImageFormFor=null"
-        @success="handleImageSuccess('Bilder aktualisiert.')"
+        @success="handleImageSuccess"
     />
     <ConfirmDialog
         :show="showReportConfirm"
@@ -323,17 +317,16 @@ const {
 } = useHausaufgaben();
 
 // Update the handleSuccess function or create a specific one for images
-async function handleImageSuccess() {
+async function handleImageSuccess(msg?: string) {
   if (showImageFormFor.value) {
     // 1. Refresh the specific item in the background
     await refreshItem(showImageFormFor.value.id);
 
-    // 2. Show a small success message (optional)
-    message.value = 'Bilder aktualisiert.';
+    // 2. Show a small success message
+    message.value = msg || 'Bilder aktualisiert.';
     setTimeout(() => message.value = '', 3000);
 
     // Note: We do NOT close the form here, so the user can keep managing images.
-    // If you want to close it, add: showImageFormFor.value = null;
   }
 }
 </script>

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import hw from '../hwApi'; // Adjust this path based on your folder structure (e.g., '@/hwApi')
-import { processImageBeforeUpload } from '../composables/useConvertImage'; // Adjust path as needed
+import hw from '../hwApi';
+import { processImageBeforeUpload } from '../composables/useConvertImage';
 
 export interface ImageItem {
     url: string;
@@ -80,7 +80,7 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
             const remaining = MAX_IMAGES - existingCount;
 
             if (remaining <= 0) {
-                uploadError.value = `Die maximale Anzahl an Bilder (${MAX_IMAGES})  ${isEditMode ? '(gesamt)' : '(für neuen Eintrag)'} für diesen Eintrag wurden erreicht.`;
+                uploadError.value = `Die maximale Anzahl an Bilder (${MAX_IMAGES}) ${isEditMode ? '(gesamt)' : '(für neuen Eintrag)'} für diesen Eintrag wurden erreicht.`;
                 uploading.value = false;
                 return;
             }
@@ -112,12 +112,13 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
                     const json = await res.json();
 
                     if (json.secure_url && json.public_id) {
-                        images.value.push({
+                        const imgObj = {
                             url: json.secure_url,
                             thumbUrl: makeThumb(json.secure_url),
                             publicId: json.public_id,
-                            createdBy: ''
-                        });
+                            createdBy: '' // Backend will likely handle this
+                        };
+                        images.value.push(imgObj);
                         newImagesAdded = true;
                         uploadError.value = '';
                     } else {
@@ -137,8 +138,8 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
                     await hw.patch(`/api/items/${itemId}`, {
                         images: images.value
                     });
-                    // Optional: Indicate that saving was also successful
-                    // uploadError.value = 'Bilder gespeichert.';
+                    // uploadError.value = 'Bilder erfolgreich gespeichert.';
+                    // (We leave value empty or distinct so ImageForm knows it worked)
                 } catch (e: any) {
                     console.error('Failed to patch item images:', e);
                     uploadError.value = 'Bilder hochgeladen, aber Speichern fehlgeschlagen.';
@@ -148,9 +149,10 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
             uploading.value = false;
         };
 
-        // Setze einen Timeout als Fallback für den Fall, dass oncancel nicht funktioniert
+        // Fallback timeout
         setTimeout(() => {
             if (uploading.value) {
+                // Simplified check
                 if (!document.body.contains(input)) {
                     uploading.value = false;
                 }
