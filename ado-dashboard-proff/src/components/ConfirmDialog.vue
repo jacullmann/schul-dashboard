@@ -5,12 +5,12 @@
         <h4 style="margin: 0">Diesen Eintrag melden?</h4>
         <InfoModalCenter tooltip="Melden Info" title="Infos zum Melden von Einträgen">
           <h3>Falschinformationen</h3>
-          Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt.
+          <p>Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt.</p>
           <h3>Unangebrachte/Illegale Inhalte</h3>
-          Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst.
+          <p>Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst.</p>
         </InfoModalCenter>
       </div>
-      <p>Wähle den Grund aus:</p>
+      <p style="margin: 0">Wähle den Grund aus:</p>
 
       <!-- TabSwitcher Navigation -->
       <div class="tab-navigation">
@@ -117,7 +117,7 @@ watch(() => props.show, (newVal) => {
 
 .tab-navigation {
   width: 100%;
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 .confirm-box p {
@@ -181,10 +181,10 @@ watch(() => props.show, (newVal) => {
   margin: 0;
 }
 .report {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    margin-block: 0 1rem;
-    color: var(--text);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-block: 0 1rem;
+  color: var(--text);
 }
 </style>

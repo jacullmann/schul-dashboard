@@ -35,17 +35,17 @@ const emit = defineEmits(['close', 'upload', 'delete']);
 .img-menu-wrapper {
   position: fixed;
   z-index: 10001;
-  min-width: 150px;
+  min-width: 180px;
 }
 
 .img-menu {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding:8px;
+  padding:4px;
   flex-direction: column;
   display: flex;
-  gap: 5px;
+  gap: 4px;
   box-shadow: var(--shadow-s);
 }
 
@@ -55,9 +55,9 @@ const emit = defineEmits(['close', 'upload', 'delete']);
   text-align: left;
   background: transparent;
   border: none;
-  padding: 6px;
+  padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;

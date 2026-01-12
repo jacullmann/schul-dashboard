@@ -431,15 +431,15 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   position: absolute;
   margin-top: 24px;
   right: 0;
-  min-width: 150px;
+  min-width: 180px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding:8px;
+  padding:4px;
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 5px;
+  gap: 4px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
@@ -455,9 +455,9 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 6px;
+  padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;
@@ -522,9 +522,11 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 .img-overlay .overlay-blur {
   position: absolute;
   inset: 0;
-  background: var(--vlbg);
-  opacity: 0.67;
+  background: #8883;
+  opacity: 1;
   border-radius: 8px;
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
 }
 .img-overlay .overlay-content {
   position: relative;
@@ -533,8 +535,6 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   font-size: 32px;
   z-index: 11;
   pointer-events: none;
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
 }
 .empty { text-align:center; color:var(--sub); padding:24px; border: none }
 .collapse-enter-active, .collapse-leave-active { transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1); }

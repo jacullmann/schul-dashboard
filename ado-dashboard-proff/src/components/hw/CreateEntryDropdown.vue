@@ -153,11 +153,11 @@ onBeforeUnmount(() => {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding: 8px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 5px;
+  gap: 4px;
   z-index: 1000;
   box-shadow: var(--shadow-s);
   animation: menuFadeIn 160ms ease;
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
   border: none;
   padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;
@@ -216,5 +216,6 @@ onBeforeUnmount(() => {
 }
 .last-of-three {
   border-bottom: 1px solid var(--border2);
+  margin-inline: 4px;
 }
 </style>
