@@ -114,7 +114,10 @@ export function initModels(mongoose) {
         reason: { type: String },
         reporterId: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true, default: null },
         reporterEmail: { type: String, default: 'anonymous' },
-        reportedAt: { type: Date, default: Date.now }
+        reportedAt: { type: Date, default: Date.now },
+        processed: { type: Boolean, default: false, index: true },
+        processedAt: { type: Date, default: null },
+        processedBy: { type: Schema.Types.ObjectId, ref: 'HwUser', default: null }
     }, { timestamps: true });
 
     const TimetableSubSchema = new Schema({
@@ -135,7 +138,10 @@ export function initModels(mongoose) {
 
     const SorgenSchema = new Schema({
         message: { type: String, required: true },
-        createdAt: { type: Date, default: Date.now }
+        createdAt: { type: Date, default: Date.now },
+        processed: { type: Boolean, default: false, index: true },
+        processedAt: { type: Date, default: null },
+        processedBy: { type: Schema.Types.ObjectId, ref: 'HwUser', default: null }
     });
 
     const PasswordResetSchema = new Schema({

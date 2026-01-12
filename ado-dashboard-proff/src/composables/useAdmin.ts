@@ -1,13 +1,33 @@
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import hw from '../hwApi';
 import { marked } from 'marked';
 
+export interface AdminStats {
+    userCount: number;
+    itemCount: number;
+    reportCount: number;
+    reportCountTotal: number;
+    reportCountProcessed: number;
+    bannedCount: number;
+    sorgeCount: number;
+    sorgeCountTotal: number;
+    sorgeCountProcessed: number;
+    itemsByType: { _id: string; count: number }[];
+    verifiedUsers: number;
+    unverifiedUsers: number;
+    adminCount: number;
+    oldItemsCount: number;
+    newUsersThisWeek: number;
+    newItemsThisWeek: number;
+    topCreators: { _id: string; count: number; email?: string }[];
+}
+
 export function useAdmin() {
     // --- State ---
-    const activeTab = ref<'overview' | 'users' | 'reports' | 'security' | 'sorgen' | 'announcements'>('overview');
+    const activeTab = ref<'overview' | 'users' | 'reports' | 'security' | 'sorgen' | 'announcements' | 'timetable'>('overview');
 
     // Stats
-    const stats = ref<any>(null);
+    const stats = ref<AdminStats | null>(null);
     const loadingStats = ref(false);
 
     // Users
@@ -28,6 +48,13 @@ export function useAdmin() {
     const reports = ref<any[]>([]);
     const entriessorgen = ref<any[]>([]);
 
+    // Processing states
+    const togglingReportProcessed = ref<Record<string, boolean>>({});
+    const togglingSorgeProcessed = ref<Record<string, boolean>>({});
+
+    // Cleanup
+    const isCleaningUp = ref(false);
+
     // Security
     const securityReport = ref<string | null>(null);
     const isGeneratingReport = ref(false);
@@ -36,6 +63,22 @@ export function useAdmin() {
     // UI Feedback
     const message = ref('');
     const isError = ref(false);
+
+    // Computed: Getrennte Listen für Reports
+    const unprocessedReports = computed(() =>
+        reports.value.filter(r => !r.processed)
+    );
+    const processedReports = computed(() =>
+        reports.value.filter(r => r.processed)
+    );
+
+    // Computed: Getrennte Listen für Sorgen
+    const unprocessedSorgen = computed(() =>
+        entriessorgen.value.filter(s => !s.processed)
+    );
+    const processedSorgen = computed(() =>
+        entriessorgen.value.filter(s => s.processed)
+    );
 
     // --- Actions ---
 
@@ -148,7 +191,7 @@ export function useAdmin() {
                 targetUser.isBanned = true;
                 handleSuccess('Benutzer gesperrt.');
             }
-            loadStats(); // Refresh stats
+            loadStats();
         } catch (e: any) {
             handleError('Fehler beim Ändern des Status.');
         } finally {
@@ -183,10 +226,31 @@ export function useAdmin() {
         if (!confirm('Meldung löschen?')) return;
         try {
             await hw.delete(`/api/admin/reports/${id}`);
-            await loadReports();
+            // Optimistic update
+            reports.value = reports.value.filter(r => r._id !== id);
             handleSuccess('Meldung gelöscht.');
             loadStats();
         } catch (e) { handleError('Fehler beim Löschen.'); }
+    }
+
+    async function toggleReportProcessed(id: string, currentProcessed: boolean) {
+        togglingReportProcessed.value[id] = true;
+        const newProcessed = !currentProcessed;
+        try {
+            await hw.patch(`/api/admin/reports/${id}/processed`, { processed: newProcessed });
+            // Optimistic update
+            const report = reports.value.find(r => r._id === id);
+            if (report) {
+                report.processed = newProcessed;
+                report.processedAt = newProcessed ? new Date().toISOString() : null;
+            }
+            handleSuccess(newProcessed ? 'Als bearbeitet markiert.' : 'Als nicht bearbeitet markiert.');
+            loadStats(); // Stats neu laden für Counter
+        } catch (e: any) {
+            handleError('Fehler beim Ändern des Status.');
+        } finally {
+            togglingReportProcessed.value[id] = false;
+        }
     }
 
     // Sorgen
@@ -201,10 +265,46 @@ export function useAdmin() {
         if (!confirm('Sorgen-Eintrag löschen?')) return;
         try {
             await hw.delete(`/anon/sorgenfind/${id}`);
-            await loadSorgen();
+            // Optimistic update
+            entriessorgen.value = entriessorgen.value.filter(s => s._id !== id);
             handleSuccess('Eintrag gelöscht.');
             loadStats();
         } catch (e) { handleError('Fehler beim Löschen.'); }
+    }
+
+    async function toggleSorgeProcessed(id: string, currentProcessed: boolean) {
+        togglingSorgeProcessed.value[id] = true;
+        const newProcessed = !currentProcessed;
+        try {
+            await hw.patch(`/anon/sorgenfind/${id}/processed`, { processed: newProcessed });
+            // Optimistic update
+            const sorge = entriessorgen.value.find(s => s._id === id);
+            if (sorge) {
+                sorge.processed = newProcessed;
+                sorge.processedAt = newProcessed ? new Date().toISOString() : null;
+            }
+            handleSuccess(newProcessed ? 'Als bearbeitet markiert.' : 'Als nicht bearbeitet markiert.');
+            loadStats();
+        } catch (e: any) {
+            handleError('Fehler beim Ändern des Status.');
+        } finally {
+            togglingSorgeProcessed.value[id] = false;
+        }
+    }
+
+    // Cleanup
+    async function cleanupOldItems() {
+        if (!confirm('Wirklich alle Einträge löschen, die älter als 90 Tage sind? Dies kann nicht rückgängig gemacht werden!')) return;
+        isCleaningUp.value = true;
+        try {
+            const { data } = await hw.delete('/api/admin/cleanup/old-items');
+            handleSuccess(data.message || `${data.deletedItems} Einträge gelöscht.`);
+            loadStats();
+        } catch (e: any) {
+            handleError(e.response?.data?.error || 'Fehler beim Bereinigen.');
+        } finally {
+            isCleaningUp.value = false;
+        }
     }
 
     // Security
@@ -250,11 +350,10 @@ export function useAdmin() {
     // Init
     onMounted(() => {
         loadStats();
-        // Lazy load others based on tab or initially
         loadAllUsers();
         loadReports();
         loadSorgen();
-        loadTimetableSubs()
+        loadTimetableSubs();
     });
 
     return {
@@ -270,10 +369,24 @@ export function useAdmin() {
         togglingBan,
         reports,
         entriessorgen,
+        // Neue computed properties
+        unprocessedReports,
+        processedReports,
+        unprocessedSorgen,
+        processedSorgen,
+        // Processing toggles
+        togglingReportProcessed,
+        togglingSorgeProcessed,
+        toggleReportProcessed,
+        toggleSorgeProcessed,
+        // Cleanup
+        isCleaningUp,
+        cleanupOldItems,
+        // Rest
         securityReport,
         isGeneratingReport,
         reportError,
-        reportHtml: securityReport, // Rohdaten oder computed property im Component nutzen
+        reportHtml: securityReport,
         message,
         isError,
         handleSuccess,
@@ -294,6 +407,8 @@ export function useAdmin() {
         loadTimetableSubs,
         saveTimetableSub,
         deleteTimetableSub,
-        pruneOldLogs
+        pruneOldLogs,
+        loadReports,
+        loadSorgen
     };
 }

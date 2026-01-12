@@ -7,8 +7,8 @@
       <AdminSidebar
           :activeTab="activeTab"
           @update:activeTab="activeTab = $event"
-          :reportsCount="reports.length"
-          :sorgenCount="entriessorgen.length"
+          :reportsCount="unprocessedReports.length"
+          :sorgenCount="unprocessedSorgen.length"
       />
       <main class="content-area">
         <div class="content-header">
@@ -20,44 +20,126 @@
 
         <div v-if="activeTab === 'overview'" class="tab-content fade-in">
           <div v-if="loadingStats" class="loader">Lade Statistik...</div>
-          <div v-else-if="stats" class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-val">{{ stats.userCount }}</div>
-              <div class="stat-label">Registrierte Nutzer</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-val">{{ stats.itemCount }}</div>
-              <div class="stat-label">Aktive Einträge</div>
-            </div>
-            <div class="stat-card danger" v-if="stats.reportCount > 0">
-              <div class="stat-val">{{ stats.reportCount }}</div>
-              <div class="stat-label">Offene Meldungen</div>
-            </div>
-            <div class="stat-card warn" v-if="stats.bannedCount > 0">
-              <div class="stat-val">{{ stats.bannedCount }}</div>
-              <div class="stat-label">Gesperrte Nutzer</div>
-            </div>
-          </div>
-
-          <div class="chart-section card rlc mt-4" v-if="stats">
-            <h3>Einträge nach Art</h3>
-            <div class="bar-chart">
-              <div v-for="type in stats.itemsByType" :key="type._id" class="bar-row">
-                <span class="bar-label">{{ type._id }}</span>
-                <div class="bar-track">
-                  <div class="bar-fill" :style="{ width: (type.count / stats.itemCount * 100) + '%' }"></div>
-                </div>
-                <span class="bar-val">{{ type.count }}</span>
+          <div v-else-if="stats">
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-val">{{ stats.userCount }}</div>
+                <div class="stat-label">Registrierte Nutzer</div>
               </div>
+              <div class="stat-card">
+                <div class="stat-val">{{ stats.itemCount }}</div>
+                <div class="stat-label">Aktive Einträge</div>
+              </div>
+              <div class="stat-card danger" v-if="stats.reportCount > 0">
+                <div class="stat-val">{{ stats.reportCount }}</div>
+                <div class="stat-label">Offene Meldungen</div>
+              </div>
+              <div class="stat-card warn" v-if="stats.sorgeCount > 0">
+                <div class="stat-val">{{ stats.sorgeCount }}</div>
+                <div class="stat-label">Offene Sorgen</div>
+              </div>
+              <div class="stat-card warn" v-if="stats.bannedCount > 0">
+                <div class="stat-val">{{ stats.bannedCount }}</div>
+                <div class="stat-label">Gesperrte Nutzer</div>
+              </div>
+            </div>
+
+            <div class="stats-section mt-4">
+              <h3 class="section-title">Nutzerstatistiken</h3>
+              <div class="stats-grid secondary">
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.verifiedUsers }}</div>
+                  <div class="stat-label">Verifiziert</div>
+                </div>
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.unverifiedUsers }}</div>
+                  <div class="stat-label">Unverifiziert</div>
+                </div>
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.adminCount }}</div>
+                  <div class="stat-label">Admins</div>
+                </div>
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.newUsersThisWeek }}</div>
+                  <div class="stat-label">Neu registriert (letzte 7 Tage)</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="stats-section mt-4">
+              <h3 class="section-title">Aktivität (letzte 7 Tage)</h3>
+              <div class="stats-grid secondary">
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.newItemsThisWeek }}</div>
+                  <div class="stat-label">Neue Einträge</div>
+                </div>
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.reportCountTotal }}</div>
+                  <div class="stat-label">Meldungen gesamt</div>
+                </div>
+                <div class="stat-card small">
+                  <div class="stat-val">{{ stats.reportCountProcessed }}</div>
+                  <div class="stat-label">Bearbeitet</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-section card rlc mt-4">
+              <h3>Einträge nach Art</h3>
+              <div class="bar-chart">
+                <div v-for="type in stats.itemsByType" :key="type._id" class="bar-row">
+                  <span class="bar-label">{{ type._id }}</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" :style="{ width: (type.count / stats.itemCount * 100) + '%' }"></div>
+                  </div>
+                  <span class="bar-val">{{ type.count }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Ersteller -->
+            <div class="chart-section card rlc mt-4" v-if="stats.topCreators?.length">
+              <h3>Top Eintrag Ersteller</h3>
+              <div class="top-list">
+                <div v-for="(creator, index) in stats.topCreators" :key="creator._id" class="top-item">
+                  <span class="top-rank">{{ index + 1 }}.</span>
+                  <span class="top-email">{{ creator.email || 'Unbekannt' }}</span>
+                  <span class="top-count">{{ creator.count }} Einträge</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cleanup Section -->
+            <div class="cleanup-section card rlc mt-4">
+              <div class="cleanup-header">
+                <h3>Cleanup</h3>
+                <span class="cleanup-info" v-if="stats.oldItemsCount > 0">
+                  {{ stats.oldItemsCount }} Einträge älter als 90 Tage
+                </span>
+                <span class="cleanup-info ok" v-else>
+                  Keine alten Einträge vorhanden
+                </span>
+              </div>
+              <p class="cleanup-desc">
+                Löscht alle Hausaufgaben, Dalton-Einträge und Prüfungen, die älter als 90 Tage sind
+              </p>
+              <button
+                  class="btn danger"
+                  @click="cleanupOldItems"
+                  :disabled="isCleaningUp || stats.oldItemsCount === 0"
+              >
+                <Trash2 :size="16" v-if="!isCleaningUp" />
+                <span v-if="isCleaningUp">Wird gelöscht...</span>
+                <span v-else>Alte Einträge löschen ({{ stats.oldItemsCount }})</span>
+              </button>
             </div>
           </div>
         </div>
 
+        <!-- USERS TAB -->
         <div v-if="activeTab === 'users'" class="tab-content fade-in">
           <div class="toolbar">
             <button class="btn ghost margin-bottom" @click="loadAllUsers">Aktualisieren</button>
-            <div class="search-wrap">
-            </div>
           </div>
 
           <div class="table-container card rlc">
@@ -133,40 +215,144 @@
 
         <div v-if="activeTab === 'reports'" class="tab-content fade-in">
           <div v-if="!reports.length" class="empty-state">Keine Meldungen vorhanden.</div>
-          <div class="report-grid">
-            <div v-for="rep in reports" :key="rep._id" class="report-card card rlc">
-              <div class="rep-header">
-                <strong>{{ rep.itemTitle }}</strong>
-                <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
-              </div>
-              <div class="rep-category">
-      <span class="badge" :class="rep.category === 'illegal' ? 'danger-badge' : 'warn-badge'">
-          {{ rep.category === 'illegal' ? 'Illegal' : 'Falschinfo' }}
-      </span>
-              </div>
-              <div class="rep-reason">"{{ rep.reason }}"</div>
-              <div class="rep-meta small">
-                Item ID: {{ rep.itemId }} <br>
-                Von: {{ rep.reporterEmail }}
-              </div>
-              <div class="rep-actions">
-                <button class="btn danger tiny" @click="deleteReport(rep._id)">Komplett weg</button>
+
+          <template v-else>
+            <div class="reports-section" v-if="unprocessedReports.length">
+              <h3 class="section-subtitle">Nicht bearbeitet</h3>
+              <div class="report-grid">
+                <div v-for="rep in unprocessedReports" :key="rep._id" class="report-card card rlc">
+                  <div class="rep-header">
+                    <strong>{{ rep.itemTitle }}</strong>
+                    <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
+                  </div>
+                  <div class="rep-category">
+                    <span class="badge" :class="rep.category === 'illegal' ? 'danger-badge' : 'warn-badge'">
+                      {{ rep.category === 'illegal' ? 'Illegal' : 'Falschinfo' }}
+                    </span>
+                  </div>
+                  <div class="rep-reason">"{{ rep.reason }}"</div>
+                  <div class="rep-meta small">
+                    Item ID: {{ rep.itemId }} <br>
+                    Von: {{ rep.reporterEmail }}
+                  </div>
+                  <div class="rep-actions">
+                    <button
+                        class="btn tiny"
+                        @click="toggleReportProcessed(rep._id, rep.processed)"
+                        :disabled="togglingReportProcessed[rep._id]"
+                    >
+                      <Check :size="14" />
+                      <span>{{ togglingReportProcessed[rep._id] ? '...' : 'Bearbeitet' }}</span>
+                    </button>
+                    <button class="btn danger tiny" @click="deleteReport(rep._id)">
+                      <Trash2 :size="14" />
+                      <span>Löschen</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+
+            <div class="section-divider" v-if="unprocessedReports.length && processedReports.length"></div>
+
+            <div class="reports-section" v-if="processedReports.length">
+              <h3 class="section-subtitle muted">Bearbeitet</h3>
+              <div class="report-grid">
+                <div v-for="rep in processedReports" :key="rep._id" class="report-card card rlc processed">
+                  <div class="rep-header">
+                    <strong>{{ rep.itemTitle }}</strong>
+                    <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
+                  </div>
+                  <div class="rep-category">
+                    <span class="badge" :class="rep.category === 'illegal' ? 'danger-badge' : 'warn-badge'">
+                      {{ rep.category === 'illegal' ? 'Illegal' : 'Falschinfo' }}
+                    </span>
+                    <span class="badge ok-badge ml-1">✓ Bearbeitet</span>
+                  </div>
+                  <div class="rep-reason">"{{ rep.reason }}"</div>
+                  <div class="rep-meta small">
+                    Item ID: {{ rep.itemId }} <br>
+                    Von: {{ rep.reporterEmail }}
+                    <template v-if="rep.processedAt">
+                      <br>Bearbeitet: {{ new Date(rep.processedAt).toLocaleString() }}
+                    </template>
+                  </div>
+                  <div class="rep-actions">
+                    <button
+                        class="btn tiny ghost"
+                        @click="toggleReportProcessed(rep._id, rep.processed)"
+                        :disabled="togglingReportProcessed[rep._id]"
+                    >
+                      <RotateCcw :size="14" />
+                      <span>{{ togglingReportProcessed[rep._id] ? '...' : 'Zurücksetzen' }}</span>
+                    </button>
+                    <button class="btn danger tiny" @click="deleteReport(rep._id)">
+                      <Trash2 :size="14" />
+                      <span>Löschen</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
 
         <div v-if="activeTab === 'sorgen'" class="tab-content fade-in">
           <div v-if="!entriessorgen.length" class="empty-state">Der Kasten ist leer.</div>
-          <div class="sorgen-list">
-            <div v-for="s in entriessorgen" :key="s._id" class="sorge-card rlc card">
-              <div class="sorge-body">{{ s.message }}</div>
-              <div class="sorge-footer">
-                <span class="small">{{ new Date(s.createdAt).toLocaleString() }}</span>
-                <button class="btn danger tiny" @click="deleteSorge(s._id)">Löschen</button>
+
+          <template v-else>
+            <div class="sorgen-section" v-if="unprocessedSorgen.length">
+              <h3 class="section-subtitle">Noch nicht bearbeitet</h3>
+              <div class="sorgen-list">
+                <div v-for="s in unprocessedSorgen" :key="s._id" class="sorge-card rlc card">
+                  <div class="sorge-body">{{ s.message }}</div>
+                  <div class="sorge-footer">
+                    <span class="small">{{ new Date(s.createdAt).toLocaleString() }}</span>
+                    <div class="sorge-actions">
+                      <button
+                          class="btn tiny"
+                          @click="toggleSorgeProcessed(s._id, s.processed)"
+                          :disabled="togglingSorgeProcessed[s._id]"
+                      >
+                        <Check :size="14" />
+                        <span>{{ togglingSorgeProcessed[s._id] ? '...' : 'Bearbeitet' }}</span>
+                      </button>
+                      <button class="btn danger tiny" @click="deleteSorge(s._id)">Löschen</button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+
+            <div class="section-divider" v-if="unprocessedSorgen.length && processedSorgen.length"></div>
+
+            <div class="sorgen-section" v-if="processedSorgen.length">
+              <h3 class="section-subtitle muted">Bearbeitet</h3>
+              <div class="sorgen-list">
+                <div v-for="s in processedSorgen" :key="s._id" class="sorge-card rlc card processed">
+                  <div class="sorge-header-processed">
+                    <span class="badge ok-badge small">✓ Bearbeitet</span>
+                    <span class="small" v-if="s.processedAt">{{ new Date(s.processedAt).toLocaleString() }}</span>
+                  </div>
+                  <div class="sorge-body">{{ s.message }}</div>
+                  <div class="sorge-footer">
+                    <span class="small">Erstellt: {{ new Date(s.createdAt).toLocaleString() }}</span>
+                    <div class="sorge-actions">
+                      <button
+                          class="btn tiny ghost"
+                          @click="toggleSorgeProcessed(s._id, s.processed)"
+                          :disabled="togglingSorgeProcessed[s._id]"
+                      >
+                        <RotateCcw :size="14" />
+                        <span>{{ togglingSorgeProcessed[s._id] ? '...' : 'Zurücksetzen' }}</span>
+                      </button>
+                      <button class="btn danger tiny" @click="deleteSorge(s._id)">Löschen</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
 
         <div v-if="activeTab === 'security'" class="tab-content fade-in">
@@ -182,7 +368,7 @@
 
           <div v-if="reportError" class="message error mt-4">{{ reportError }}</div>
 
-          <div v-if="securityReport" class="report-result card  rlc mt-4">
+          <div v-if="securityReport" class="report-result card rlc mt-4">
             <div class="report-toolbar">
               <h4>Ergebnis</h4>
               <button class="btn ghost tiny" @click="copyReportToClipboard">Kopieren</button>
@@ -218,7 +404,6 @@
 
         <div v-if="activeTab === 'timetable'" class="tab-content fade-in">
           <div class="timetable-admin-grid">
-            <!-- Linke Seite: EditModal -->
             <div class="timetable-edit-section card rlc">
               <h2>Neue Substitution erstellen</h2>
               <EditModal />
@@ -248,17 +433,17 @@
                     <div class="sub-header">
                       <strong>Lesson ID: {{ sub.lessonId }}</strong>
                       <span class="badge" :class="{
-                                    'danger-badge': sub.cancelled,
-                                    'warn-badge': sub.hide
-                                }">
-                                    {{ sub.cancelled ? 'Ausfall' : sub.hide ? 'Versteckt' : 'Änderung' }}
-                                </span>
+                        'danger-badge': sub.cancelled,
+                        'warn-badge': sub.hide
+                      }">
+                        {{ sub.cancelled ? 'Ausfall' : sub.hide ? 'Versteckt' : 'Änderung' }}
+                      </span>
                     </div>
 
                     <div class="sub-details">
-                                <span v-if="sub.subject">
-                                    Fach: {{ sub.subject }}{{ sub.subject_abbr ? ` (${sub.subject_abbr})` : '' }}
-                                </span>
+                      <span v-if="sub.subject">
+                        Fach: {{ sub.subject }}{{ sub.subject_abbr ? ` (${sub.subject_abbr})` : '' }}
+                      </span>
                       <span v-if="sub.teacher">Lehrer: {{ sub.teacher }}</span>
                       <span v-if="sub.room">Raum: {{ sub.room }}</span>
                       <span v-if="sub.slot">Stunde: {{ sub.slot }}</span>
@@ -309,7 +494,9 @@ import {
   Lock,
   Unlock,
   Trash2,
-  Eraser
+  Eraser,
+  Check,
+  RotateCcw
 } from 'lucide-vue-next';
 import EditModal from "../components/stundenplan-admin/EditModal.vue";
 
@@ -343,6 +530,17 @@ const {
   deleteTimetableSub,
   deletingSubs,
   pruneOldLogs,
+  // Neue Funktionen
+  unprocessedReports,
+  processedReports,
+  unprocessedSorgen,
+  processedSorgen,
+  toggleReportProcessed,
+  toggleSorgeProcessed,
+  togglingReportProcessed,
+  togglingSorgeProcessed,
+  isCleaningUp,
+  cleanupOldItems,
 } = useAdmin();
 
 const {
@@ -614,7 +812,178 @@ const tabTitles: Record<string, string> = {
   display: flex;
   gap: 4px;
 }
+.stats-section {
+  margin-top: 1.5rem;
+}
 
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--sub);
+  margin-bottom: 0.75rem;
+}
+
+.stats-grid.secondary {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.stat-card.small {
+  padding: 12px 16px;
+}
+
+.stat-card.small .stat-val {
+  font-size: 1.5rem;
+}
+
+.stat-card.small .stat-label {
+  font-size: 0.8rem;
+}
+
+.top-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--vlbg);
+  border-radius: 6px;
+}
+
+.top-rank {
+  font-weight: 700;
+  color: var(--sub);
+  width: 24px;
+}
+
+.top-email {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-count {
+  color: var(--sub);
+  font-size: 0.85rem;
+}
+
+.cleanup-section {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.cleanup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cleanup-info {
+  font-size: 0.85rem;
+  color: var(--warn);
+  font-weight: 500;
+}
+
+.cleanup-info.ok {
+  color: var(--primary);
+}
+
+.cleanup-desc {
+  color: var(--sub);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.cleanup-section .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 2rem 0;
+  opacity: 0.5;
+}
+
+.section-subtitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle.muted {
+  color: var(--sub);
+}
+
+.reports-section,
+.sorgen-section {
+  margin-bottom: 1rem;
+}
+
+.report-card.processed,
+.sorge-card.processed {
+  opacity: 0.7;
+  border-color: var(--border);
+}
+
+.report-card.processed:hover,
+.sorge-card.processed:hover {
+  opacity: 1;
+}
+
+.rep-actions,
+.sorge-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.rep-actions .btn,
+.sorge-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sorge-header-processed {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-badge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+}
+
+.btn.tiny {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn.tiny.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.btn.tiny.ghost:hover {
+  background: var(--vlbg);
+}
 @media (max-width: 1024px) {
   .timetable-admin-grid {
     grid-template-columns: 1fr;

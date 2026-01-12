@@ -687,6 +687,70 @@ export default function registerRoutes(app, deps) {
 
     // Admin-Routen
 
+    app.delete('/api/admin/cleanup/old-items',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, BannedUser, User),
+        requireAdmin,
+        validateCsrf(csrfSecret),
+        async (req, res) => {
+            try {
+                const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+
+                const oldItems = await Item.find({
+                    createdAt: { $lt: ninetyDaysAgo }
+                }).select('images _id').lean();
+
+                const publicIdsToDelete = [];
+                const itemIdsToDelete = oldItems.map(item => {
+                    if (item.images && item.images.length > 0) {
+                        item.images.forEach(img => {
+                            if (img.publicId) publicIdsToDelete.push(img.publicId);
+                        });
+                    }
+                    return item._id;
+                });
+
+                if (publicIdsToDelete.length > 0) {
+                    const batchSize = 100;
+                    for (let i = 0; i < publicIdsToDelete.length; i += batchSize) {
+                        const batch = publicIdsToDelete.slice(i, i + batchSize);
+                        try {
+                            await cloudinary.api.delete_resources(batch);
+                        } catch (cloudErr) {
+                            console.error('Cloudinary batch delete error:', cloudErr);
+                        }
+                    }
+                }
+
+                await KeepChecked.deleteMany({ itemId: { $in: itemIdsToDelete } });
+
+                const result = await Item.deleteMany({ createdAt: { $lt: ninetyDaysAgo } });
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'admin:cleanup:old_items',
+                            meta: {
+                                deletedCount: result.deletedCount,
+                                imagesDeleted: publicIdsToDelete.length
+                            }
+                        }
+                    }
+                });
+
+                res.json({
+                    ok: true,
+                    deletedItems: result.deletedCount,
+                    deletedImages: publicIdsToDelete.length,
+                    message: `${result.deletedCount} Einträge und ${publicIdsToDelete.length} Bilder gelöscht.`
+                });
+            } catch (err) {
+                console.error('DELETE /api/admin/cleanup/old-items error', err);
+                sendJSONError(res, 500, 'Fehler beim Bereinigen alter Einträge');
+            }
+        });
+
     app.post('/api/admin/security-report',
         requireAppGate(appGateSecret),
         requireUser(userSecret, BannedUser, User),
@@ -762,14 +826,16 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireUser(userSecret, BannedUser, User),
         requireAdmin,
         async (req, res) => {
-        try {
-            const sorgen = await Sorgen.find({}).sort({ createdAt: -1 }).limit(100);
-            res.json(sorgen);
-        } catch (err) {
-            console.error('GET /anon/sorgenfind error', err);
-            sendJSONError(res, 500, 'Server error');
-        }
-    });
+            try {
+                const sorgen = await Sorgen.find({})
+                    .sort({ processed: 1, createdAt: -1 })
+                    .limit(100);
+                res.json(sorgen);
+            } catch (err) {
+                console.error('GET /anon/sorgenfind error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
+        });
 
     app.delete('/anon/sorgenfind/:id',
         requireAppGate(appGateSecret),
@@ -789,6 +855,54 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             sendJSONError(res, 500, 'Serverfehler');
         }
     });
+
+    app.patch('/anon/sorgenfind/:id/processed',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, BannedUser, User),
+        requireAdmin,
+        validateCsrf(csrfSecret),
+        param('id').isMongoId(),
+        body('processed').isBoolean(),
+        validate,
+        async (req, res) => {
+            try {
+                const { id } = req.params;
+                const { processed } = req.body;
+
+                const updateData = {
+                    processed,
+                    processedAt: processed ? new Date() : null,
+                    processedBy: processed ? req.user.sub : null
+                };
+
+                const sorge = await Sorgen.findByIdAndUpdate(
+                    id,
+                    { $set: updateData },
+                    { new: true }
+                );
+
+                if (!sorge) return sendJSONError(res, 404, 'Sorgen-Eintrag nicht gefunden');
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: processed ? 'admin:sorge:mark_processed' : 'admin:sorge:mark_unprocessed',
+                            meta: { sorgeId: id }
+                        }
+                    }
+                });
+
+                res.json({
+                    ok: true,
+                    processed: sorge.processed,
+                    processedAt: sorge.processedAt
+                });
+            } catch (err) {
+                console.error('PATCH /anon/sorgenfind/:id/processed error', err);
+                sendJSONError(res, 500, 'Serverfehler');
+            }
+        });
 
     app.delete('/api/admin/users/:id/activity/prune',
         requireAppGate(appGateSecret),
@@ -831,31 +945,71 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireUser(userSecret, BannedUser, User),
         requireAdmin,
         async (req, res) => {
-        try {
-            const userCount = await User.countDocuments({});
-            const itemCount = await Item.countDocuments({});
-            const reportCount = await Report.countDocuments({});
-            const bannedCount = await BannedUser.countDocuments({});
-            const sorgeCount = await Sorgen.countDocuments({});
+            try {
+                const userCount = await User.countDocuments({});
+                const itemCount = await Item.countDocuments({});
+                const bannedCount = await BannedUser.countDocuments({});
 
-            // Verteilung der Items nach Typ
-            const itemsByType = await Item.aggregate([
-                { $group: { _id: "$type", count: { $sum: 1 } } }
-            ]);
+                const reportCountUnprocessed = await Report.countDocuments({ processed: { $ne: true } });
+                const reportCountTotal = await Report.countDocuments({});
+                const sorgeCountUnprocessed = await Sorgen.countDocuments({ processed: { $ne: true } });
+                const sorgeCountTotal = await Sorgen.countDocuments({});
 
-            res.json({
-                userCount,
-                itemCount,
-                reportCount,
-                bannedCount,
-                sorgeCount,
-                itemsByType
-            });
-        } catch (err) {
-            console.error('GET /api/admin/stats error', err);
-            sendJSONError(res, 500, 'Serverfehler beim Laden der Statistiken');
-        }
-    });
+                const itemsByType = await Item.aggregate([
+                    { $group: { _id: "$type", count: { $sum: 1 } } }
+                ]);
+
+                const verifiedUsers = await User.countDocuments({ emailVerified: true });
+                const unverifiedUsers = userCount - verifiedUsers;
+                const adminCount = await User.countDocuments({ isAdmin: true });
+
+                const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+                const oldItemsCount = await Item.countDocuments({ createdAt: { $lt: ninetyDaysAgo } });
+
+                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                const newUsersThisWeek = await User.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+                const newItemsThisWeek = await Item.countDocuments({ createdAt: { $gte: sevenDaysAgo } });
+
+                const topCreators = await Item.aggregate([
+                    { $group: { _id: "$createdBy", count: { $sum: 1 } } },
+                    { $sort: { count: -1 } },
+                    { $limit: 5 },
+                    {
+                        $lookup: {
+                            from: 'hwusers',
+                            localField: '_id',
+                            foreignField: '_id',
+                            as: 'user'
+                        }
+                    },
+                    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                    { $project: { count: 1, email: '$user.email' } }
+                ]);
+
+                res.json({
+                    userCount,
+                    itemCount,
+                    reportCount: reportCountUnprocessed,
+                    reportCountTotal,
+                    reportCountProcessed: reportCountTotal - reportCountUnprocessed,
+                    bannedCount,
+                    sorgeCount: sorgeCountUnprocessed,
+                    sorgeCountTotal,
+                    sorgeCountProcessed: sorgeCountTotal - sorgeCountUnprocessed,
+                    itemsByType,
+                    verifiedUsers,
+                    unverifiedUsers,
+                    adminCount,
+                    oldItemsCount,
+                    newUsersThisWeek,
+                    newItemsThisWeek,
+                    topCreators
+                });
+            } catch (err) {
+                console.error('GET /api/admin/stats error', err);
+                sendJSONError(res, 500, 'Serverfehler beim Laden der Statistiken');
+            }
+        });
 
     app.get('/api/admin/timetable/subs',
         requireAppGate(appGateSecret),
@@ -946,6 +1100,54 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             }
         }
     );
+
+    app.patch('/api/admin/reports/:id/processed',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, BannedUser, User),
+        requireAdmin,
+        validateCsrf(csrfSecret),
+        param('id').isMongoId(),
+        body('processed').isBoolean(),
+        validate,
+        async (req, res) => {
+            try {
+                const { id } = req.params;
+                const { processed } = req.body;
+
+                const updateData = {
+                    processed,
+                    processedAt: processed ? new Date() : null,
+                    processedBy: processed ? req.user.sub : null
+                };
+
+                const report = await Report.findByIdAndUpdate(
+                    id,
+                    { $set: updateData },
+                    { new: true }
+                );
+
+                if (!report) return sendJSONError(res, 404, 'Meldung nicht gefunden');
+
+                await User.findByIdAndUpdate(req.user.sub, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: processed ? 'admin:report:mark_processed' : 'admin:report:mark_unprocessed',
+                            meta: { reportId: id }
+                        }
+                    }
+                });
+
+                res.json({
+                    ok: true,
+                    processed: report.processed,
+                    processedAt: report.processedAt
+                });
+            } catch (err) {
+                console.error('PATCH /api/admin/reports/:id/processed error', err);
+                sendJSONError(res, 500, 'Serverfehler');
+            }
+        });
 
     app.get('/api/admin/users',
         requireAppGate(appGateSecret),
@@ -1134,14 +1336,17 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
         requireUser(userSecret, BannedUser, User),
         requireAdmin,
         async (req, res) => {
-        try {
-            const reports = await Report.find({}).sort({ reportedAt: -1 }).limit(100).lean();
-            res.json(reports);
-        } catch (err) {
-            console.error('GET /api/admin/reports error', err);
-            sendJSONError(res, 500, 'Server error');
-        }
-    });
+            try {
+                const reports = await Report.find({})
+                    .sort({ processed: 1, reportedAt: -1 })
+                    .limit(100)
+                    .lean();
+                res.json(reports);
+            } catch (err) {
+                console.error('GET /api/admin/reports error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
+        });
 
     app.post('/api/admin/countdowns',
         requireAppGate(appGateSecret),
