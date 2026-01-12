@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding: 12px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   min-width: 320px;
@@ -287,12 +287,13 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 4px 8px;
 }
 
 .menu-actions {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .menu-btn {
@@ -301,9 +302,9 @@ onBeforeUnmount(() => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 6px;
+  padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;
@@ -337,7 +338,7 @@ onBeforeUnmount(() => {
 .menu-divider {
   height: 1px;
   background: var(--border2);
-  margin: 4px 0;
+  margin-inline: 4px;
 }
 
 .message {

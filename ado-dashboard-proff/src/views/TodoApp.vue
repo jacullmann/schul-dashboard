@@ -387,11 +387,11 @@ function showMessage(msg: string, error = false) {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
-  padding: 8px;
+  padding: 4px;
   display: none;
   flex-direction: column;
   align-items: stretch;
-  gap: 5px;
+  gap: 4px;
   z-index: 1000;
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
@@ -414,9 +414,9 @@ function showMessage(msg: string, error = false) {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 6px;
+  padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;

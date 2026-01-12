@@ -145,9 +145,9 @@ onBeforeUnmount(() => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 6px;
+  padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;
@@ -190,11 +190,11 @@ onBeforeUnmount(() => {
   margin-top: 4px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   z-index: 1100;
   box-shadow: var(--shadow-s);
   animation: menuFadeIn 160ms ease;
@@ -208,9 +208,9 @@ onBeforeUnmount(() => {
   text-align: left;
   background: transparent;
   border: none;
-  padding: 8px 10px;
+  padding: 8px;
   color: var(--text);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   transition: background 0.2s ease;
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
 }
 
 .check-icon {
-  color: var(--primary);
+  color: var(--text);
   flex-shrink: 0;
 }
 
@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   font-size: 12px;
   background: rgba(63, 147, 248, 0.1);
-  color: var(--primary);
+  color: var(--text);
   border: 1px solid rgba(63, 147, 248, 0.2);
   animation: messageSlideIn 200ms ease;
   z-index: 1000;

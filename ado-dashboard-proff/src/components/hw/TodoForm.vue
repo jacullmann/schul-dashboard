@@ -1,6 +1,6 @@
 <template>
   <div class="blurit" @click.self="$emit('close')" aria-hidden="true">
-    <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Privaten Eintrag hinzufügen">
+    <div class="todo-modal" role="dialog" aria-modal="true" aria-label="Privaten Eintrag hinzufügen">
       <div class="modal-header">
         <h3 class="modal-title">
           {{ initial ? 'Privaten Eintrag bearbeiten' : 'Neuer privater Eintrag' }}
@@ -102,14 +102,14 @@ async function submit() {
 </script>
 
 <style scoped>
-.glass-modal {
+.todo-modal {
   width: 100%;
   max-width: 500px;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--lbg);
   box-shadow: var(--shadow-l);
-  padding: 24px;
+  padding: 16px;
   max-height: 90vh;
   overflow-y: auto;
   position: fixed;
