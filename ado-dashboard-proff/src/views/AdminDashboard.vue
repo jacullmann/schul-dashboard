@@ -114,20 +114,20 @@
           </div>
 
           <Transition name="drawer-slide">
-          <div v-if="showActivityFor" class="activity-drawer" @click.self="showActivityFor = null">
-            <div class="drawer-content card rlc">
-              <h3>Aktivitätsprotokoll</h3>
-              <div v-if="loadingActivities[showActivityFor]" class="loader">Lade...</div>
-              <ul v-else class="log-list">
-                <li v-for="(act, i) in userActivities[showActivityFor]" :key="i">
-                  <span class="log-time">{{ new Date(act.at).toLocaleString() }}</span>
-                  <span class="log-type">{{ act.type }}</span>
-                  <pre class="log-meta">{{ JSON.stringify(act.meta, null, 2) }}</pre>
-                </li>
-              </ul>
-              <button class="btn ghost mt-4" @click="showActivityFor = null">Schließen</button>
+            <div v-if="showActivityFor" class="activity-drawer" @click.self="showActivityFor = null">
+              <div class="drawer-content card rlc">
+                <h3>Aktivitätsprotokoll</h3>
+                <div v-if="loadingActivities[showActivityFor]" class="loader">Lade...</div>
+                <ul v-else class="log-list">
+                  <li v-for="(act, i) in userActivities[showActivityFor]" :key="i">
+                    <span class="log-time">{{ new Date(act.at).toLocaleString() }}</span>
+                    <span class="log-type">{{ act.type }}</span>
+                    <pre class="log-meta">{{ JSON.stringify(act.meta, null, 2) }}</pre>
+                  </li>
+                </ul>
+                <button class="btn ghost mt-4" @click="showActivityFor = null">Schließen</button>
+              </div>
             </div>
-          </div>
           </Transition>
         </div>
 
@@ -539,11 +539,17 @@ const tabTitles: Record<string, string> = {
 .timetable-edit-section {
   max-height: 1000px;
   overflow-y: auto;
+  padding: 0;
+  border-radius: 0;
+  border: none;
 }
 
 .timetable-list-section {
   max-height: 1000px;
   overflow-y: auto;
+  padding: 0;
+  border-radius: 0;
+  border: none;
 }
 
 .section-header {

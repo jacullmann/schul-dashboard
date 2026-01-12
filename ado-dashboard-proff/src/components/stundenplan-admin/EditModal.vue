@@ -29,23 +29,24 @@ interface SubjectMapping {
 // --- Constants ---
 const SUBJECTS: SubjectMapping[] = [
   { name: 'Biologie', abbr: 'BI' },
-  { name: 'Chemie', abbr: 'CH' },
   { name: 'Deutsch', abbr: 'DE' },
   { name: 'Englisch', abbr: 'ENG' },
-  { name: 'Enrichment', abbr: 'ENR' },
   { name: 'Erdkunde', abbr: 'EK' },
   { name: 'Ethik', abbr: 'ETH' },
   { name: 'Französisch', abbr: 'FRZ' },
-  { name: 'Geschichte', abbr: 'GE' },
   { name: 'Mathe', abbr: 'MA' },
   { name: 'Musik', abbr: 'MU' },
   { name: 'Physik', abbr: 'PH' },
-  { name: 'Politik', abbr: 'PB' },
   { name: 'Sport', abbr: 'SP' },
   { name: 'Theater', abbr: 'TH' },
-  { name: 'WPU', abbr: 'WPU' },
   { name: 'Klassenstunde', abbr: 'KSTD' },
+  { name: 'WPU', abbr: 'WPU' },
+  { name: 'Enrichment', abbr: 'ENR' },
   { name: 'Dalton', abbr: 'DAL' },
+  { name: 'Geschichte', abbr: 'GE' },
+  { name: 'Chemie', abbr: 'CH' },
+  { name: 'Politik', abbr: 'PB' },
+  { name: 'Kunst', abbr: 'KU' },
 ];
 
 const SPECIAL_OPT_NO_CHANGES = 'NO_CHANGES';
@@ -53,13 +54,13 @@ const SPECIAL_OPT_CUSTOM = 'CUSTOM';
 
 // --- State ---
 const form = ref({
-  lessonId: 21,
-  selectedSubjectMode: 'Sport', // Default to Sport as per example
+  lessonId: null,
+  selectedSubjectMode: 'NO_CHANGES', // Default to Sport as per example
   customSubject: '',
   slot: null as number | null,
   duration: null as number | null,
-  teacher: 'Hr. Schmidt',
-  room: 'TH2',
+  teacher: null,
+  room: null,
   isCancelled: false,
   isHidden: false,
 });
@@ -130,13 +131,13 @@ async function saveSub() {
   try {
     await saveTimetableSub(generatedJson.value);
     form.value = {
-      lessonId: 21,
-      selectedSubjectMode: 'Sport',
+      lessonId: null,
+      selectedSubjectMode: 'NO_CHANGES',
       customSubject: '',
       slot: null,
       duration: null,
-      teacher: 'Hr. Schmidt',
-      room: 'TH2',
+      teacher: null,
+      room: null,
       isCancelled: false,
       isHidden: false,
     };
@@ -148,111 +149,111 @@ async function saveSub() {
 
 <template>
 
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label for="lessonId">Lesson ID</label>
-          <input
-              id="lessonId"
-              type="number"
-              v-model="form.lessonId"
-              placeholder="e.g. 21"
-          />
-        </div>
+  <div class="form-grid">
+    <div class="form-group full-width">
+      <label for="lessonId">Lesson ID</label>
+      <input
+          id="lessonId"
+          type="number"
+          v-model="form.lessonId"
+          placeholder="e.g. 21"
+      />
+    </div>
 
-        <div class="form-group full-width">
-          <label for="subjectSelect">Subject</label>
-          <select id="subjectSelect" v-model="form.selectedSubjectMode">
-            <option :value="SPECIAL_OPT_NO_CHANGES">No Changes</option>
-            <option disabled>---</option>
-            <option v-for="sub in SUBJECTS" :key="sub.abbr" :value="sub.name">
-              {{ sub.name }} ({{ sub.abbr }})
-            </option>
-            <option disabled>---</option>
-            <option :value="SPECIAL_OPT_CUSTOM">Custom Subject</option>
-          </select>
-        </div>
+    <div class="form-group full-width">
+      <label for="subjectSelect">Subject</label>
+      <select id="subjectSelect" v-model="form.selectedSubjectMode">
+        <option :value="SPECIAL_OPT_NO_CHANGES">No Changes</option>
+        <option disabled>---</option>
+        <option v-for="sub in SUBJECTS" :key="sub.abbr" :value="sub.name">
+          {{ sub.name }} ({{ sub.abbr }})
+        </option>
+        <option disabled>---</option>
+        <option :value="SPECIAL_OPT_CUSTOM">Custom Subject</option>
+      </select>
+    </div>
 
-        <div
-            v-if="form.selectedSubjectMode === SPECIAL_OPT_CUSTOM"
-            class="form-group full-width fade-in"
-        >
-          <label for="customSubject">Custom Subject Name</label>
-          <input
-              id="customSubject"
-              type="text"
-              v-model="form.customSubject"
-              placeholder="Enter subject name"
-          />
-        </div>
+    <div
+        v-if="form.selectedSubjectMode === SPECIAL_OPT_CUSTOM"
+        class="form-group full-width fade-in"
+    >
+      <label for="customSubject">Custom Subject Name</label>
+      <input
+          id="customSubject"
+          type="text"
+          v-model="form.customSubject"
+          placeholder="Enter subject name"
+      />
+    </div>
 
-        <div class="form-group">
-          <label for="teacher">Teacher</label>
-          <input
-              id="teacher"
-              type="text"
-              v-model="form.teacher"
-              placeholder="e.g. Hr. Schmidt"
-              :disabled="form.isCancelled || form.isHidden"
-              :class="{ disabled: form.isCancelled || form.isHidden }"
-          />
-        </div>
+    <div class="form-group">
+      <label for="teacher">Teacher</label>
+      <input
+          id="teacher"
+          type="text"
+          v-model="form.teacher"
+          placeholder="e.g. Hr. Schmidt"
+          :disabled="form.isCancelled || form.isHidden"
+          :class="{ disabled: form.isCancelled || form.isHidden }"
+      />
+    </div>
 
-        <div class="form-group">
-          <label for="room">Room</label>
-          <input
-              id="room"
-              type="text"
-              v-model="form.room"
-              placeholder="e.g. TH2"
-              :disabled="form.isCancelled || form.isHidden"
-              :class="{ disabled: form.isCancelled || form.isHidden }"
-          />
-        </div>
+    <div class="form-group">
+      <label for="room">Room</label>
+      <input
+          id="room"
+          type="text"
+          v-model="form.room"
+          placeholder="e.g. TH2"
+          :disabled="form.isCancelled || form.isHidden"
+          :class="{ disabled: form.isCancelled || form.isHidden }"
+      />
+    </div>
 
-        <div class="form-group">
-          <label for="slot">Custom Slot</label>
-          <input
-              id="slot"
-              type="number"
-              v-model="form.slot"
-              placeholder="Optional"
-              :disabled="form.isHidden"
-          />
-        </div>
+    <div class="form-group">
+      <label for="slot">Custom Slot</label>
+      <input
+          id="slot"
+          type="number"
+          v-model="form.slot"
+          placeholder="Optional"
+          :disabled="form.isHidden"
+      />
+    </div>
 
-        <div class="form-group">
-          <label for="duration">Duration</label>
-          <input
-              id="duration"
-              type="number"
-              v-model="form.duration"
-              placeholder="Optional"
-              :disabled="form.isHidden"
-          />
-        </div>
+    <div class="form-group">
+      <label for="duration">Duration</label>
+      <input
+          id="duration"
+          type="number"
+          v-model="form.duration"
+          placeholder="Optional"
+          :disabled="form.isHidden"
+      />
+    </div>
 
-        <div class="checkbox-group full-width">
-          <label class="checkbox-container">
-            <input type="checkbox" v-model="form.isCancelled">
-            <span class="checkmark"></span>
-            <span class="label-text">Cancelled</span>
-          </label>
+    <div class="checkbox-group full-width">
+      <label class="checkbox-container">
+        <input type="checkbox" v-model="form.isCancelled">
+        <span class="checkmark"></span>
+        <span class="label-text">Cancelled</span>
+      </label>
 
-          <label class="checkbox-container">
-            <input type="checkbox" v-model="form.isHidden">
-            <span class="checkmark"></span>
-            <span class="label-text">Hide (Overrules Cancel)</span>
-          </label>
-        </div>
-      </div>
+      <label class="checkbox-container">
+        <input type="checkbox" v-model="form.isHidden">
+        <span class="checkmark"></span>
+        <span class="label-text">Hide (Overrules Cancel)</span>
+      </label>
+    </div>
+  </div>
 
-      <div class="output-section">
-        <div class="output-header">
-          <span class="label">Generated JSON</span>
-          <button @click="copyToClipboard" class="copy-btn">Copy</button>
-        </div>
-        <pre>{{ jsonString }}</pre>
-      </div>
+  <div class="output-section">
+    <div class="output-header">
+      <span class="label">Generated JSON</span>
+      <button @click="copyToClipboard" class="copy-btn">Copy</button>
+    </div>
+    <pre>{{ jsonString }}</pre>
+  </div>
   <div class="actions">
     <button
         @click="saveSub"
@@ -310,8 +311,8 @@ select {
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
   color: var(--text);
-  padding: 12px;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -319,7 +320,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: var(--sub);
+  border-color: var(--text);
 }
 
 input.disabled {
@@ -333,8 +334,7 @@ input.disabled {
   display: flex;
   gap: 2rem;
   margin-top: 0.5rem;
-  padding: 10px 0;
-  border-top: 1px solid var(--border);
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -392,7 +392,7 @@ input.disabled {
 
 /* --- Output --- */
 .output-section {
-  margin-top: 2rem;
+  margin-top: 16px;
 }
 
 .output-header {
@@ -422,8 +422,8 @@ pre {
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
   color: var(--text);
-  padding: 1.5rem;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
   overflow-x: auto;
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.9rem;
