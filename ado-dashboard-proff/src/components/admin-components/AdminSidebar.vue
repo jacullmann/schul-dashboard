@@ -54,12 +54,12 @@ interface NavItem {
 
 const navItems = ref<NavItem[]>([
   { key: 'overview', label: 'Übersicht', icon: LayoutDashboard, counter: 0 },
+  { key: 'timetable', label: 'Stundenplan', icon: CalendarDays, counter: 0 },
+  { key: 'announcements', label: 'Ankündigungen', icon: Megaphone, counter: 0 },
   { key: 'users', label: 'Benutzer', icon: Users, counter: 0 },
   { key: 'reports', label: 'Meldungen', icon: Flag, counter: props.reportsCount },
   { key: 'sorgen', label: 'Sorgenbox', icon: Inbox, counter: props.sorgenCount },
   { key: 'security', label: 'Sicherheit', icon: ShieldAlert, counter: 0 },
-  { key: 'announcements', label: 'Ankündigungen', icon: Megaphone, counter: 0 },
-  { key: 'timetable', label: 'Stundenplan', icon: CalendarDays, counter: 0 }
 ]);
 
 watch(() => props.reportsCount, (newCount) => {
