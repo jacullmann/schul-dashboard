@@ -73,6 +73,11 @@ export function useHausaufgaben() {
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
 
+    // --- Image Viewer State ---
+    const showImageViewer = ref(false);
+    const viewerImages = ref<any[]>([]);
+    const viewerStartIndex = ref(0);
+
 
     const showDeleteConfirm = ref(false);
     let itemToDelete: string | null = null;
@@ -176,6 +181,21 @@ export function useHausaufgaben() {
     const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
 
     // --- Actions ---
+
+    function openImageViewer(item: HwItem, index: number) {
+        viewerImages.value = item.images;
+        viewerStartIndex.value = index;
+        showImageViewer.value = true;
+    }
+
+    function closeImageViewer() {
+        showImageViewer.value = false;
+        // Delay clearing images slightly so fade-out animation still shows the image
+        setTimeout(() => {
+            viewerImages.value = [];
+            viewerStartIndex.value = 0;
+        }, 300);
+    }
 
     function isExpanded(id: string) { return expandedDescriptions.value.has(id); }
     function toggleDescription(id: string) {
@@ -702,6 +722,12 @@ export function useHausaufgaben() {
         triggerImageDelete,
         showImageDeleteConfirm,
         confirmImageDelete,
-        cancelImageDelete
+        cancelImageDelete,
+        // Image Viewer exports
+        showImageViewer,
+        viewerImages,
+        viewerStartIndex,
+        openImageViewer,
+        closeImageViewer,
     };
 }

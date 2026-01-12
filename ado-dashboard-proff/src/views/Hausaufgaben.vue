@@ -135,7 +135,9 @@
                      class="thumb thumb-with-overlay-wrapper"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
-                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
+                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                  </div>
 
                   <button
                       v-if="idx === 1 && item.images.length > 2"
@@ -147,13 +149,16 @@
                   </button>
                 </div>
               </template>
+
               <template v-else>
-                <div v-for="img in item.images"
+                <div v-for="(img, idx) in item.images"
                      :key="img.publicId"
                      class="thumb"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
-                  <a :href="img.url" target="_blank"><img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" /></a>
+                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                  </div>
                 </div>
               </template>
             </div>
@@ -239,6 +244,7 @@
         @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
         @error="onItemFormError"
     />
+
     <TodoForm
         v-if="showTodoForm"
         :initial="todoToEdit"
@@ -268,16 +274,25 @@
         @confirm="doReport"
         @cancel="cancelReport"
     />
+
     <DeleteEntryModal
         :show="showDeleteConfirm"
         @confirm="confirmDelete"
         @cancel="cancelDelete"
     />
+
     <DeleteEntryModal
         v-if="showImageDeleteConfirm"
         :show="showImageDeleteConfirm"
         @confirm="confirmImageDelete"
         @cancel="cancelImageDelete"
+    />
+
+    <ImageViewer
+        :visible="showImageViewer"
+        :images="viewerImages"
+        :initial-index="viewerStartIndex"
+        @close="closeImageViewer"
     />
 
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
@@ -288,6 +303,7 @@
 import ItemForm from '../components/hw/ItemForm.vue';
 // Removed ImageForm
 import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
+import ImageViewer from '../components/ImageViewer.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import OldNewSwitch from "../components/NewOldSwitch.vue"
 import CompleteSetup from "../components/hw/CompleteSetup.vue";
@@ -336,7 +352,13 @@ const {
   triggerImageDelete,
   showImageDeleteConfirm,
   confirmImageDelete,
-  cancelImageDelete
+  cancelImageDelete,
+  // New imports for Image Viewer
+  showImageViewer,
+  viewerImages,
+  viewerStartIndex,
+  openImageViewer,
+  closeImageViewer,
 } = useHausaufgaben();
 
 // New wrapper to handle vibration and opening the menu
@@ -350,17 +372,51 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 </script>
 
 <style scoped>
-.hw-header { display: flex; justify-content: space-between; gap: 12px; flex-direction: column; text-align: left; }
-.hw-header h2 { margin: 0 0 2px 0}
+.hw-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-direction: column;
+  text-align: left;
+}
+
+.hw-header h2 {
+  margin: 0 0 2px 0;
+}
 
 :deep(.nav-bar) {
   margin: 16px 0;
 }
 
-.controls { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-.controls .left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; height: 100% }
-.select-subject { max-width: 160px; min-width: auto; width: auto; }
-.items { margin-top: 16px; display:flex; flex-direction:column; gap:12px; }
+.controls {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.controls .left {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  height: 100%
+}
+
+.select-subject {
+  max-width: 160px;
+  min-width: auto;
+  width: auto;
+}
+
+.items {
+  margin-top: 16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
 .item-card {
   border-radius: var(--border-7);
   padding: 12px;
@@ -370,7 +426,11 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   overflow: visible;
   cursor: default;
 }
-.item-card.collapsed { transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1); }
+
+.item-card.collapsed {
+  transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
+}
+
 .item-main {
   position: relative;
   display:flex;
@@ -378,10 +438,12 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   align-items:flex-start;
   gap:12px;
 }
+
 .item-meta {
   flex:1;
   min-width: 0;
 }
+
 .item-title {
   margin:-3px 0;
   font-size:1.125rem;
@@ -390,8 +452,17 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   white-space:nowrap;
   line-height: 24px;
 }
-.collapse-checkbox { display:inline-flex; align-items:center; cursor:pointer; }
-.collapse-checkbox input { display:none; }
+
+.collapse-checkbox {
+  display:inline-flex;
+  align-items:center;
+  cursor:pointer;
+}
+
+.collapse-checkbox input {
+  display:none;
+}
+
 .collapse-checkbox .vis-label {
   width:18px;
   height:18px;
@@ -401,10 +472,16 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   background:transparent;
   position:relative;
 }
-.collapse-checkbox input:checked + .vis-label { background: var(--text); border-color: var(--text); }
+
+.collapse-checkbox input:checked + .vis-label {
+  background: var(--text);
+  border-color: var(--text);
+}
+
 .collapse-checkbox .vis-label:hover {
   border-color: var(--text);
 }
+
 .collapse-checkbox .vis-label::after {
   content: '';
   position: absolute;
@@ -418,15 +495,32 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   transform:translate(-50%,-30%) rotate(70deg);
   transition:width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1),  transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
+
 .collapse-checkbox input:checked + .vis-label::after {
   opacity:1;
   width:5px;
   height:10px;
   transform:translate(-50%,-45%) rotate(45deg);
 }
-.item-badges { margin-top:4px; gap:8px; align-items:center; }
-.subject-badge { background:var(--gg); color:var(--text); padding:4px 8px; border-radius: var(--border-4); }
-.time-badge { padding:4px 8px; border-radius: var(--border-4); }
+
+.item-badges {
+  margin-top:4px;
+  gap:8px;
+  align-items:center;
+}
+
+.subject-badge {
+  background:var(--gg);
+  color:var(--text);
+  padding:4px 8px;
+  border-radius: var(--border-4);
+}
+
+.time-badge {
+  padding:4px 8px;
+  border-radius: var(--border-4);
+}
+
 .item-menu {
   position: absolute;
   margin-top: 24px;
@@ -448,7 +542,14 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   margin-bottom: 0;
   box-shadow: var(--shadow-s);
 }
-.item-menu.open { display: flex; opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+.item-menu.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
 .menu-btn {
   display: block;
   width: 100%;
@@ -462,21 +563,33 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   font-size: 14px;
   transition: background 0.2s ease;
 }
+
 .menu-btn .fixall {
   display: flex;
   align-items: center;
   gap: 8px;
   line-height: 1;
 }
-.menu-btn .fixall svg { width: 16px; height: 16px; flex-shrink: 0; }
-.menu-btn:hover { background: var(--gg); }
+
+.menu-btn .fixall svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.menu-btn:hover {
+  background: var(--gg)
+}
+
 .menu-btn.danger {
   color: var(--special--red);
   fill:  var(--special--red);
 }
+
 .menu-btn.danger:hover {
   background: var(--special--red--background);
 }
+
 .item-body {
   margin-top:8px;
   color: var(--text);
@@ -488,8 +601,18 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   -webkit-user-select: text;
   cursor: text;
 }
-.item-images { margin-top:8px; }
-.images-row { display:flex; flex-wrap:wrap; gap:8px; position:relative; }
+
+.item-images {
+  margin-top:8px;
+
+}
+
+.images-row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  position:relative;
+}
 
 .thumb {
   width:120px;
@@ -517,8 +640,25 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   -webkit-user-drag: none;
 }
 
-.thumb-with-overlay-wrapper { position: relative; }
-.img-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; padding: 0; margin: 0; cursor: pointer; background: transparent; z-index: 10; }
+.thumb-with-overlay-wrapper {
+  position: relative;
+}
+
+.img-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  background: transparent;
+  z-index: 10;
+}
+
 .img-overlay .overlay-blur {
   position: absolute;
   inset: 0;
@@ -528,6 +668,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   backdrop-filter:blur(4px);
   -webkit-backdrop-filter:blur(4px);
 }
+
 .img-overlay .overlay-content {
   position: relative;
   color: var(--text);
@@ -536,13 +677,58 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   z-index: 11;
   pointer-events: none;
 }
-.empty { text-align:center; color:var(--sub); padding:24px; border: none }
-.collapse-enter-active, .collapse-leave-active { transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1); }
-.collapse-enter-from, .collapse-leave-to { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; }
-.collapse-enter-to, .collapse-leave-from { max-height: 800px; opacity: 1; }
-.message { font-weight:600; white-space: normal; overflow-wrap: break-word; word-break: break-all; }
-.message.error { color: var(--danger); }
-.tiny { padding:4px 8px; font-size:12px; }
+
+.img-clickable {
+  width: 100%;
+  height: 100%;
+  cursor: zoom-in;
+}
+
+.img-clickable img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.empty {
+  text-align:center;
+  color:var(--sub);
+  padding:24px;
+  border: none
+}
+
+.collapse-enter-active, .collapse-leave-active {
+  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
+}
+
+.collapse-enter-from, .collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.collapse-enter-to, .collapse-leave-from {
+  max-height: 800px;
+  opacity: 1;
+}
+
+.message {
+  font-weight:600;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+.message.error {
+  color: var(--danger);
+}
+
+.tiny {
+  padding:4px 8px;
+  font-size:12px;
+}
+
 .item-menu-trigger {
   display: inline-flex;
   align-items: center;
@@ -556,11 +742,37 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   transition: background 120ms ease, color 120ms ease;
   margin: -3px -3px;
 }
-.item-menu-trigger:hover { background: var(--gg); color: var(--text); }
-.pagination-actions { margin-top: 4px; display: flex; gap: 12px; justify-content: center; }
-.row-two { display: flex; align-items: center; justify-content: center; flex-direction: row; gap: 8px; position: relative; }
-.private-entries-container .hw-header { padding: 0; background: transparent; }
-.admin-creator-info { color: var(--sub); }
+
+.item-menu-trigger:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+
+.pagination-actions {
+  margin-top: 4px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.row-two {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 8px;
+  position: relative;
+}
+
+.private-entries-container .hw-header {
+  padding: 0;
+  background: transparent;
+}
+
+.admin-creator-info {
+  color: var(--sub);
+}
+
 .row-n.item-badges {
   transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
   max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
@@ -576,6 +788,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   margin-top: 0;
   overflow: hidden;
 }
+
 /* Anmerkungen */
 .editor-note-section {
   margin-top: 8px;
@@ -620,7 +833,23 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 }
 
 @media (max-width: 500px ) {
-  .row-two { flex-direction: row; align-items: flex-start; margin-top: 0; margin-bottom: 0; flex-wrap: wrap; justify-content: left; }
-  .thumb { aspect-ratio: 1 / 1; width: calc(50% - 4px); border-radius: 8px; overflow: hidden; position: relative; height: auto; display: block; }
+  .row-two {
+    flex-direction: row;
+    align-items: flex-start;
+    margin-top: 0;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    justify-content: left;
+  }
+
+  .thumb {
+    aspect-ratio: 1 / 1;
+    width: calc(50% - 4px);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    height: auto;
+    display: block;
+  }
 }
 </style>
