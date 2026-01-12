@@ -2,17 +2,18 @@
   <transition name="fade">
     <div
         v-if="visible"
-        class="viewer-overlay"
+        class="blurit viewer-overlay"
         @mousemove="onActivity"
-        @click="close"
+        @click.self="close"
         @touchstart="onActivity"
         tabindex="0"
         @keydown="handleKeydown"
         ref="overlayRef"
     >
-      <div class="image-wrapper">
+      <div class="image-wrapper" @click.self="close">
         <img
-            :src="currentImage?.url"
+            v-if="currentImage"
+            :src="currentImage.url"
             class="viewer-img"
             draggable="false"
             @click.stop
@@ -52,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
 import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -83,11 +84,19 @@ const hasNext = computed(() => currentIndex.value < props.images.length - 1);
 const hasPrev = computed(() => currentIndex.value > 0);
 
 function next() {
-  if (hasNext.value) currentIndex.value++;
+  if (hasNext.value) {
+    currentIndex.value++;
+    // Re-focus overlay to ensure keyboard navigation keeps working
+    // even if the button that was clicked disappears or loses focus.
+    nextTick(() => overlayRef.value?.focus());
+  }
 }
 
 function prev() {
-  if (hasPrev.value) currentIndex.value--;
+  if (hasPrev.value) {
+    currentIndex.value--;
+    nextTick(() => overlayRef.value?.focus());
+  }
 }
 
 function close() {
@@ -106,10 +115,10 @@ function showControls() {
   controlsVisible.value = true;
   if (hideTimeout) clearTimeout(hideTimeout);
 
-  // Hide after 1 second of inactivity
+  // Hide after 2 seconds of inactivity
   hideTimeout = setTimeout(() => {
     controlsVisible.value = false;
-  }, 1000);
+  }, 2000);
 }
 
 function onActivity() {
@@ -123,20 +132,22 @@ onBeforeUnmount(() => {
 // Disables Scrolling while viewing Image
 watch(() => props.visible, (val) => {
   if (val) {
-    document.body.style.overflow = 'hidden'; // Stop scrolling
-    // ... existing logic
+    document.body.style.overflow = 'hidden';
   } else {
-    document.body.style.overflow = ''; // Re-enable scrolling
+    document.body.style.overflow = '';
   }
 });
 </script>
 
 <style scoped>
+/* We use 'blurit' from global styles for the background/backdrop.
+   We keep viewer-overlay for layout but remove the hardcoded background.
+*/
 .viewer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.95);
-  z-index: 9999;
+  /* background: rgba(0, 0, 0, 0.95);  <-- Removed to let blurit handle it */
+  z-index: 100002; /* Higher than ItemForm (100001) */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,6 +169,7 @@ watch(() => props.visible, (val) => {
   max-height: 100%;
   object-fit: contain;
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
 }
 
 .controls-ui {
@@ -178,17 +190,16 @@ watch(() => props.visible, (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s;
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .control-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-.control-btn:active {
-  transform: scale(0.95);
-}
+/* Removed the transform/scale animation on active */
 
 /* Positioning */
 .close-btn {
@@ -203,8 +214,13 @@ watch(() => props.visible, (val) => {
   transform: translateY(-50%);
 }
 
-.prev { left: 20px; }
-.next { right: 20px; }
+.prev {
+  left: 20px;
+}
+
+.next {
+  right: 20px;
+}
 
 .counter {
   position: absolute;
@@ -219,9 +235,19 @@ watch(() => props.visible, (val) => {
 }
 
 /* Transitions */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
 
-.fade-controls-enter-active, .fade-controls-leave-active { transition: opacity 0.3s ease; }
-.fade-controls-enter-from, .fade-controls-leave-to { opacity: 0; }
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-controls-enter-active, .fade-controls-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-controls-enter-from, .fade-controls-leave-to {
+  opacity: 0;
+}
 </style>

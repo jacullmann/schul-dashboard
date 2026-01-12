@@ -53,7 +53,7 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
      */
     /**
      * Handles the file input creation, validation, signing, and uploading to Cloudinary.
-     * If itemId is provided, it immediately pushes the image to the backend via POST.
+     * If itemId is provided, it immediately pushes the backend via POST.
      */
     async function uploadImage(isEditMode: boolean, itemId?: string) {
         uploading.value = true;
@@ -89,6 +89,12 @@ export const useImageUploadStore = defineStore('imageUpload', () => {
             }
             if (files.length > remaining) {
                 uploadError.value = `Zu viele Dateien ausgewählt. Du kannst noch ${remaining} Bild(er) hochladen.`;
+                uploading.value = false;
+                return;
+            }
+            // Enforce per-upload limit to prevent backend rejection if batch > user limit
+            if (files.length > PER_USER_MAX_IMAGES) {
+                uploadError.value = `Maximal ${PER_USER_MAX_IMAGES} Bilder pro Upload erlaubt.`;
                 uploading.value = false;
                 return;
             }

@@ -681,7 +681,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 .img-clickable {
   width: 100%;
   height: 100%;
-  cursor: zoom-in;
+  cursor: pointer;
 }
 
 .img-clickable img {
