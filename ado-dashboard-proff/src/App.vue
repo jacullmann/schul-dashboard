@@ -86,7 +86,7 @@ const checkIfMobile = () => {
 function logPageload() {
   if (pageloadLogged || !user.value) return;
   pageloadLogged = true;
-  hw.post('/api/activity/pageload').catch(() => {
+  hw.post('/api/user/activity/pageload').catch(() => {
     pageloadLogged = false;
   });
 }

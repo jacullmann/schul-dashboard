@@ -256,7 +256,7 @@ export function useAdmin() {
     // Sorgen
     async function loadSorgen() {
         try {
-            const { data } = await hw.get('/anon/sorgenfind');
+            const { data } = await hw.get('/api/admin/sorgen');
             entriessorgen.value = data;
         } catch (e) { console.error(e); }
     }
@@ -264,7 +264,7 @@ export function useAdmin() {
     async function deleteSorge(id: string) {
         if (!confirm('Sorgen-Eintrag löschen?')) return;
         try {
-            await hw.delete(`/anon/sorgenfind/${id}`);
+            await hw.delete(`/api/admin/sorgen/${id}`);
             // Optimistic update
             entriessorgen.value = entriessorgen.value.filter(s => s._id !== id);
             handleSuccess('Eintrag gelöscht.');
@@ -276,7 +276,7 @@ export function useAdmin() {
         togglingSorgeProcessed.value[id] = true;
         const newProcessed = !currentProcessed;
         try {
-            await hw.patch(`/anon/sorgenfind/${id}/processed`, { processed: newProcessed });
+            await hw.patch(`/api/admin/sorgen/${id}/processed`, { processed: newProcessed });
             // Optimistic update
             const sorge = entriessorgen.value.find(s => s._id === id);
             if (sorge) {

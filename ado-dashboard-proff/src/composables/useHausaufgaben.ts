@@ -276,7 +276,7 @@ export function useHausaufgaben() {
     async function loadCheckedForMe() {
         if (!user.value) { checkedItems.value = new Set(); return; }
         try {
-            const { data } = await hw.get('/api/checks/me');
+            const { data } = await hw.get('/api/user/checks');
             checkedItems.value = new Set(data.itemIds || []);
         } catch (e) { checkedItems.value = new Set(); }
     }
@@ -421,7 +421,7 @@ export function useHausaufgaben() {
         isError.value = false;
 
         try {
-            await hw.post('/api/reports', {
+            await hw.post('/api/items/reports', {
                 itemId: item.id,
                 itemTitle: item.title,
                 category,
@@ -522,10 +522,10 @@ export function useHausaufgaben() {
         const id = item.id;
         try {
             if (isChecked(id)) {
-                await hw.delete(`/api/items/${id}/check`);
+                await hw.delete(`/api/user/items/${id}/check`);
                 checkedItems.value.delete(id);
             } else {
-                await hw.post(`/api/items/${id}/check`);
+                await hw.post(`/api/user/items/${id}/check`);
                 checkedItems.value.add(id);
             }
         } catch (e: any) {
