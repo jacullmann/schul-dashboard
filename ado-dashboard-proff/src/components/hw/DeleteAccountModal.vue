@@ -13,9 +13,9 @@
         </button>
       </div>
 
-      <div style="margin-top:16px;">
+      <div style="margin-top:16px; font-family: var(--normal-font), sans-serif;">
         <div class="warning-box">
-          <strong>Account unwiderruflich löschen?</strong>
+          <strong style="font-family: var(--normal-font), sans-serif;">Account unwiderruflich löschen?</strong>
           <div class="user-email">E-Mail: {{ email }}</div>
           <div class="warning-text">
             Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account geschlossen wird.
@@ -123,8 +123,8 @@ async function confirmDelete() {
 .warning-box {
   background: rgba(246, 82, 82, 0.08);
   border: 1px solid rgba(246, 82, 82, 0.3);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px;
 }
 
 .warning-box strong {
@@ -136,13 +136,13 @@ async function confirmDelete() {
 
 .user-email {
   font-size: 13px;
-  color: var(--sub);
+  color: var(--text);
   margin-bottom: 12px;
 }
 
 .warning-text {
   font-size: 13px;
-  color: var(--sub);
+  color: var(--text);
   line-height: 1.5;
 }
 

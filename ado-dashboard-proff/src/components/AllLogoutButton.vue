@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button class="btn ghost" @click="openPopup">Dieses Gerät abmelden</button>
+    <button style="margin: 0;" class="btn ghost" @click="openPopup">Dieses Gerät abmelden</button>
 
     <div v-if="showPopup" @click.self="closePopup" class="blurit">
       <div class="popup-card">
