@@ -235,6 +235,8 @@ export default function createItemsRoutes(deps) {
         requireAppGate(appGateSecret),
         requireUser(userSecret, BannedUser, User),
         validateCsrf(csrfSecret),
+        param('id').isMongoId(),
+        validate,
         async (req, res) => {
             const item = await Item.findById(req.params.id);
             if (!item) return sendJSONError(res, 404, 'Nicht gefunden');

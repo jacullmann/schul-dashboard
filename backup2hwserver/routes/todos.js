@@ -105,7 +105,7 @@ export default function createTodosRoutes(deps) {
         [
             param('id').isMongoId(),
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('description').optional().isString().isLength({ max: 1000 })
+            body('description').optional().isString().isLength({ max: 2000 })
         ],
         validate,
         async (req, res) => {

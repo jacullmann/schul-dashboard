@@ -20,7 +20,7 @@ export default function createAdminRoutes(deps) {
         requireAdmin
     } = deps;
 
-    const { User, BannedUser, Item, KeepChecked, Report, Sorgen, Subject, TimetableSub } = models;
+    const { User, BannedUser, Item, KeepChecked, Report, Sorgen, Subject, TimetableSub, EncryptedTodo } = models;
 
     // Hilfsfunktion für Admin-Middleware-Kette
     const adminAuth = [
@@ -422,6 +422,7 @@ Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit 
             const targetUser = await User.findById(req.params.id);
             if (targetUser?.isAdmin) return sendJSONError(res, 403, 'Admins können nicht gelöscht werden');
             await KeepChecked.deleteMany({ userId: req.params.id });
+            await EncryptedTodo.deleteMany({ userId: req.params.id });
             await User.deleteOne({ _id: req.params.id });
             await Item.deleteMany({ createdBy: req.params.id });
             res.json({ ok: true });
