@@ -473,7 +473,7 @@ tr td:last-child {
 
 .t-sub {
   color: var(--sub);
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   margin-top: 2px;
   line-height: 1.2;
   display: block;
@@ -506,13 +506,15 @@ tr td:last-child {
 }
 
 .card-header h3 {
+  font-size: var(--font-size-h3);
+  line-height: 1;
   margin: 0 0 4px 0;
   color: var(--text);
 }
 
 .subjects {
   color: var(--sub);
-  font-size: 0.95em;
+  font-size: var(--font-size-body);
 }
 
 .teacher-grid {
@@ -533,9 +535,11 @@ tr td:last-child {
 
 .day-col h4 {
   text-align: center;
-  padding-bottom: 5px;
+  padding-bottom: 4px;
   color: var(--text);
   margin: 0;
+  font-size: var(--font-size-body);
+  font-family: var(--normal-font), sans-serif;
 }
 
 .day-col ul {
@@ -546,7 +550,7 @@ tr td:last-child {
 
 .day-col li {
   padding: 0;
-  font-size: 0.9em;
+  font-size: var(--font-size-body);
   text-align: center;
   color: var(--text);
 }

@@ -296,7 +296,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
         <InfoPop tooltip="Stundenplan Info" title="Stundenplan">
           <h3>Die digitale Version vom Programm.</h3>
 
-          <!--<h3>Personalisierte Kurse</h3>
+          <h3>Personalisierte Kurse</h3>
           <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du unter deinen Accounteinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>-->
 
           <h3>Live-Änderungen</h3>
@@ -425,6 +425,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   text-align: center;
   font-weight: bold;
   border-radius: var(--border-4);
+  font-size: var(--font-size-body);
 }
 
 .header-cell.current-day-header {
@@ -442,18 +443,18 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   justify-content: center;
   align-items: center;
   background-color:transparent;
-  font-size: 0.85rem;
+  font-size: var(--font-size-sub);
   color: var(--sub);
   white-space: nowrap;
 }
 
 .slot-number {
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: var(--font-size-title);
   color: var(--text);
 }
 
-.slot-time { font-size: 0.75rem; }
+.slot-time { font-size: var(--font-size-footnote); }
 
 /* GROUP CONTAINER */
 .lesson-group-container {
@@ -498,12 +499,12 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 .ausfall-label {
   color: var(--danger);
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sub);
 }
 
 .lesson-subject {
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: var(--font-size-body);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -513,7 +514,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 .lesson-details {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  font-size: var(--font-size-sub);
   color: var(--sub);
   margin-top: 2px;
 }
@@ -570,12 +571,11 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 .personalized-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background-color: var(--gg);
-  border: 1px solid var(--not-spinning);
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 4px 8px;
+  background-color: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-size: var(--font-size-body);
   color: var(--text);
 }
 </style>

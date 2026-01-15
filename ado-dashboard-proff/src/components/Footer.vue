@@ -139,7 +139,7 @@ function openCookieBanner() {
 }
 
 .brand-text {
-  font-size: 24px;
+  font-size: var(--font-size-h2);
   font-weight: 700;
   color: var(--text);
 }
@@ -147,13 +147,13 @@ function openCookieBanner() {
 .brand-description {
   color: var(--sub);
   margin-top: 0.5rem;
-  font-size: 0.95rem;
+  font-size: var(--font-size-body);
   font-weight: 500;
 }
 
 .footer-section h3 {
   color: var(--text);
-  font-size: 1rem;
+  font-size: var(--font-size-title);
   font-weight: 700;
   margin: 0 0 0.5rem 0;
 }
@@ -162,7 +162,7 @@ function openCookieBanner() {
   display: block;
   color: var(--sub);
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: var(--font-size-body);
   transition: color 0.2s;
   font-weight: 500;
 }
@@ -179,7 +179,7 @@ function openCookieBanner() {
 }
 
 .theme-label {
-  font-size: 0.95rem;
+  font-size: var(--font-size-body);
   color: var(--sub);
   font-weight: 600;
 }
@@ -192,7 +192,7 @@ function openCookieBanner() {
 .footer-bottom {
   border-top: 1px solid var(--border);
   padding: 1.5rem 0;
-  font-size: 0.85rem;
+  font-size: var(--font-size-sub);
 }
 
 .footer-bottom-content {
@@ -257,12 +257,6 @@ function openCookieBanner() {
   }
   .logoutDeviceDesktop {
     display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .brand-text {
-    font-size: 1.3rem;
   }
 }
 </style>
