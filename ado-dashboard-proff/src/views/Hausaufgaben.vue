@@ -542,7 +542,10 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   margin-bottom: 0;
   box-shadow: var(--shadow-s);
 }
-
+.tiny {
+  padding:4px 8px;
+  font-size:12px;
+}
 .item-menu.open {
   display: flex;
   opacity: 1;
