@@ -119,7 +119,7 @@
         <transition name="collapse">
           <div v-show="!isChecked(item.id)" class="item-body">
             <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
-            <span v-else>{{ item.description }}</span>
+            <span v-else-if="item.description.length">{{ item.description }}</span>
             <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
               {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
             </button>
@@ -445,11 +445,11 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 }
 
 .item-title {
-  margin:-3px 0;
-  font-size:1.125rem;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  margin: -3px 0;
+  font-size: var(--font-size-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   line-height: 24px;
 }
 
@@ -560,7 +560,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   transition: background 0.2s ease;
 }
 
@@ -673,7 +673,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   position: relative;
   color: var(--text);
   font-weight: 400;
-  font-size: 32px;
+  font-size: var(--font-size-h1);
   z-index: 11;
   pointer-events: none;
 }
@@ -722,11 +722,6 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 
 .message.error {
   color: var(--danger);
-}
-
-.tiny {
-  padding:4px 8px;
-  font-size:12px;
 }
 
 .item-menu-trigger {
@@ -805,13 +800,13 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 }
 
 .editor-note-label {
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   font-weight: 600;
   color: var(--sub);
 }
 
 .editor-note-content {
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;

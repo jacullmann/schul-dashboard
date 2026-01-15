@@ -112,7 +112,7 @@ onMounted(async () => {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   transition: background 0.2s ease;
 }
 

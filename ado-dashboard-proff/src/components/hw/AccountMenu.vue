@@ -46,7 +46,7 @@
             >
               <div class="menu-btn-content">
                 <LogOut size="18px"/>
-                Ausloggen
+                Abmelden
               </div>
             </button>
             <div class="menu-divider"></div>
@@ -58,7 +58,7 @@
               >
                 <div class="menu-btn-content">
                   <Trash2  size="18px"/>
-                  Account löschen
+                  Konto löschen
                 </div>
               </button>
             </div>
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 
 .user-email {
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   transition: background 0.2s ease;
 }
 
@@ -342,7 +342,7 @@ onBeforeUnmount(() => {
 }
 
 .message {
-  font-size: 12px;
+  font-size: var(--font-size-sub);
   padding: 8px;
   border-radius: 4px;
   text-align: center;

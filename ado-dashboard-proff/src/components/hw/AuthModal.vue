@@ -327,7 +327,7 @@ async function submit() {
 .modal-title {
   margin: 0;
   color: var(--text);
-  font-size: 1.5rem;
+  font-size: var(--font-size-h2);
   font-weight: 700;
 }
 
@@ -390,7 +390,7 @@ async function submit() {
   cursor: pointer;
   text-align: right;
   align-self: flex-end;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-sub);
 }
 
 .forgot-password-link:hover {
@@ -449,7 +449,7 @@ async function submit() {
 
 .checkbox-label {
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   line-height: 1.5;
 }
 
@@ -465,7 +465,7 @@ async function submit() {
 
 .field-error {
   color: var(--danger);
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   margin-top: 4px;
 }
 
@@ -475,7 +475,7 @@ async function submit() {
 
 .message {
   color: var(--primary);
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-sub);
 }
 
 .message.error {
@@ -507,7 +507,7 @@ async function submit() {
   }
 
   .modal-title {
-    font-size: 1.25rem;
+    font-size: var(--font-size-h3);
   }
 }
 </style>

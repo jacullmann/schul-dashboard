@@ -89,6 +89,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
   align-items: flex-start;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
+  margin-bottom: 8px
 }
 
 .popover-title {
@@ -98,7 +99,7 @@ const handleBackgroundClick = (event: MouseEvent) => {
 }
 
 .popover-content {
-  font-size: 0.95em;
+  font-size: var(--font-size-body);
   color: var(--text);
   line-height: 1.6;
   max-height: 70vh;

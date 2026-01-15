@@ -3,7 +3,7 @@
     <div class="todo-header">
       <div class="secure">
         <Lock style="color: var(--text)" :size="24"/>
-        <h2 style="margin: 0; font-size: 1.4rem; line-height: 1.5rem;">Nur für dich sichtbar</h2>
+        <h2 style="margin: 0; font-size: var(--font-size-h2); line-height: 24px;">Nur für dich sichtbar</h2>
         <InfoPop
             tooltip="Übersicht und Funktionen von privaten Einträgen"
             title="Private Einträge"
@@ -65,7 +65,7 @@
             <transition name="collapse">
               <div v-show="!todo.completed" class="item-body">
                 <span v-if="todo.description">{{ todo.description }}</span>
-                <span v-else class="no-description">Keine Beschreibung</span>
+                <!--<span v-else class="no-description">Keine Beschreibung</span>-->
               </div>
             </transition>
           </div>
@@ -264,7 +264,7 @@ function showMessage(msg: string, error = false) {
 
 .item-title {
   margin: -3px 0;
-  font-size: 1.125rem;
+  font-size: var(--font-size-title);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -349,7 +349,7 @@ function showMessage(msg: string, error = false) {
   overflow: hidden;
 }
 
-.private-badge {
+/*.private-badge {
   background: var(--gg);
   color: var(--text);
   padding: 4px 8px;
@@ -358,7 +358,7 @@ function showMessage(msg: string, error = false) {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-}
+}*/
 
 .item-menu-trigger {
   display: inline-flex;
@@ -418,7 +418,7 @@ function showMessage(msg: string, error = false) {
   color: var(--text);
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   transition: background 0.2s ease;
 }
 

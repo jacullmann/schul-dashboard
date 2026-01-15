@@ -93,7 +93,7 @@ async function setPersonalization(value: boolean) {
     if (data.ok) {
       emit('update:modelValue', data.personalized);
       emit('change', data.personalized);
-      message.value = value ? 'Personalisiert aktiviert' : 'Alle Einträge werden angezeigt';
+      message.value = value ? 'Personalisierte Kurse aktiviert' : 'Personalisierte Kurse deaktiviert';
       isError.value = false;
 
       setTimeout(() => {
@@ -249,9 +249,9 @@ onBeforeUnmount(() => {
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
-  background: rgba(63, 147, 248, 0.1);
+  background: var(--gg);
   color: var(--text);
-  border: 1px solid rgba(63, 147, 248, 0.2);
+  border: 1px solid var(--border);
   animation: messageSlideIn 200ms ease;
   z-index: 1000;
 }
