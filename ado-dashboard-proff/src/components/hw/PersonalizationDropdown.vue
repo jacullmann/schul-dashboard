@@ -251,15 +251,15 @@ onBeforeUnmount(() => {
   font-size: 12px;
   background: var(--gg);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border2);
   animation: messageSlideIn 200ms ease;
   z-index: 1000;
 }
 
 .message.error {
-  background: rgba(246, 82, 82, 0.1);
-  color: #f65252;
-  border-color: rgba(246, 82, 82, 0.2);
+  background: var(--gg);
+  color: var(--text);
+  border: 1px solid var(--danger);
 }
 
 @keyframes menuFadeIn {
