@@ -50,7 +50,7 @@
         </div>
 
         <div class="action-section">
-          <router-link to="/" class="btn ghost">
+          <router-link to="/" class="btn ghost white-text">
             <ArrowLeft :size="18" />
             Zurück zum Start
           </router-link>
@@ -210,6 +210,9 @@ onMounted(async () => {
 
 .action-section {
   margin-top: 8px;
+}
+.white-text {
+  color: var(--text);
 }
 
 @media (max-width: 768px) {
