@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
 
 @keyframes messageSlideIn {
   from {
-    opacity: 0;
+    opacity: 1;
     transform: translateY(-8px);
   }
   to {
