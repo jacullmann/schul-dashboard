@@ -373,7 +373,7 @@
               <h4>Ergebnis</h4>
               <button class="btn ghost tiny" @click="copyReportToClipboard">Kopieren</button>
             </div>
-            <div class="markdown-body" v-html="marked.parse(securityReport)"></div>
+            <div class="markdown-body" v-html="DOMPurify.sanitize(marked.parse(securityReport))"></div>
           </div>
         </div>
 
@@ -489,6 +489,7 @@ import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
 import AdminHeader from '../components/admin-components/AdminHeader.vue';
 import AdminSidebar from '../components/admin-components/AdminSidebar.vue';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import {
   FileText,
   Lock,
