@@ -8,7 +8,7 @@
         <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
       </div>
 
-      <div class="row-n">
+      <div class="row-n top">
         <div class="col">
           <label class="label">Titel</label>
           <input class="input" v-model="title" />
@@ -354,7 +354,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 .modal-title {
   margin: 0;
@@ -362,12 +362,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   color: var(--text);
 }
 .section {
-  margin-top: 8px;
+  margin-top: 16px;
+}
+.top {
+  gap: 16px;
 }
 
 .label {
   display: block;
-  font-size: 13px;
+  font-size: var(--font-size-button);
   color: var(--text);
   margin-bottom: 6px;
 }
@@ -415,6 +418,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+  margin-top: 16px;
 }
 
 .small {
