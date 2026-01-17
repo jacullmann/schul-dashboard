@@ -9,7 +9,7 @@
         >
           <h3>Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</h3>
           <h3>Einträge</h3>
-          <p>Jede/r, die/der einen Account hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
+          <p>Jede/r, die/der ein Konto hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
 
           <h3>Eintrag hinzufügen</h3>
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
@@ -18,13 +18,13 @@
           <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus.</p>
 
           <h3>Falschinformationen melden</h3>
-          <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du unter dem 3-Punkte-Menü auf "Melden" klicken und unter "Falschinformationen" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
+          <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du im 3-Punkte-Menü auf "Melden" klicken und unter "Falschinformationen" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
 
           <h3>Abgeschlossene Aufgaben tracken</h3>
-          <p>Wenn du einen Account hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
+          <p>Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
 
           <h3>Personalisierte Kurse</h3>
-          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du unter deinen <strong>Accounteinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
+          <p>Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in deinen <strong>Kontoeinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren.</p>
 
           <h3>Eintragarchiv</h3>
           <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv</strong> Button klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
@@ -281,7 +281,7 @@
         @cancel="cancelDelete"
     />
 
-    <DeleteEntryModal
+    <DeleteImageModal
         v-if="showImageDeleteConfirm"
         :show="showImageDeleteConfirm"
         @confirm="confirmImageDelete"
@@ -317,6 +317,7 @@ import TodoForm from '../components/hw/TodoForm.vue';
 import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
 import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
+import DeleteImageModal from '../components/hw/DeleteImageModal.vue'
 
 const {
   MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm,
@@ -561,7 +562,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   border: none;
   padding: 8px;
   color: var(--text);
-  border-radius: 8px;
+  border-radius: var(--border-4);
   cursor: pointer;
   font-size: var(--font-size-sub);
   transition: background 0.2s ease;
@@ -653,7 +654,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--border-4);
   border: none;
   padding: 0;
   margin: 0;
@@ -667,7 +668,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   inset: 0;
   background: #8883;
   opacity: 1;
-  border-radius: 8px;
+  border-radius: var(--border-4);
   backdrop-filter:blur(4px);
   -webkit-backdrop-filter:blur(4px);
 }
@@ -734,7 +735,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   width: 36px;
   height: 24px;
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: var(--border-4);
   cursor: pointer;
   color: var(--sub);
   transition: background 120ms ease, color 120ms ease;
@@ -843,7 +844,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   .thumb {
     aspect-ratio: 1 / 1;
     width: calc(50% - 4px);
-    border-radius: 8px;
+    border-radius: var(--border-4);
     overflow: hidden;
     position: relative;
     height: auto;

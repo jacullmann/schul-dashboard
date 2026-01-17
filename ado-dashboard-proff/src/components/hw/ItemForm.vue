@@ -25,7 +25,7 @@
         <div class="col" v-if="subjectSel === 'Enrichment'">
           <label class="label">Kurs</label>
           <select class="input hover" v-model="enrKursSel">
-            <option disabled value="">Bitte Kurs wählen</option>
+            <option disabled value="">Bitte wählen</option>
             <option v-for="k in enrKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
         </div>
@@ -33,7 +33,7 @@
         <div class="col" v-if="subjectSel === 'WPU (Di)'">
           <label class="label">Kurs</label>
           <select class="input hover" v-model="wpuDiKursSel">
-            <option disabled value="">Bitte Kurs wählen</option>
+            <option disabled value="">Bitte wählen</option>
             <option v-for="k in wpuDiKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
         </div>
@@ -41,14 +41,15 @@
         <div class="col" v-if="subjectSel === 'WPU (Do)'">
           <label class="label">Kurs</label>
           <select class="input hover" v-model="wpuDoKursSel">
-            <option disabled value="">Bitte Kurs wählen</option>
+            <option disabled value="">Bitte wählen</option>
             <option v-for="k in wpuDoKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
           </select>
         </div>
       </div>
 
       <div v-if="subjectSel==='__OTHER__'" class="section">
-        <input class="input" v-model="subjectOther" placeholder="Eigenes Fach..." />
+        <label class="label">Benutzerdefiniertes Fach</label>
+        <input class="input" v-model="subjectOther"/>
       </div>
 
       <div class="section">
@@ -58,14 +59,14 @@
 
       <div class="row-n section">
         <div class="col">
-          <label class="label">Abgabedatum</label>
+          <label class="label">Datum</label>
           <input class="input hover" type="date" v-model="dueLocal" />
 
         </div>
       </div>
 
       <div class="section">
-        <div class="label bold">Bilder</div>
+        <div class="label">Bilder</div>
         <div class="row-n images">
           <div
               v-for="img in imgStore.images"
@@ -91,7 +92,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Bild hochladen
+            Bilder hochladen
           </button>
         </div>
         <div v-if="imgStore.uploading" class="small">Lade Bild hoch...</div>
@@ -99,14 +100,14 @@
       </div>
 
       <div class="row actions">
+        <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
         <button data-umami-event="Eintrag speichern/anlegen" class="btn action" @click="submit" :disabled="submitting">
           <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          {{ initial ? 'Speichern' : 'Anlegen' }}
+          {{ initial ? 'Speichern' : 'Erstellen' }}
         </button>
-        <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
       </div>
     </div>
   </div>
@@ -231,7 +232,7 @@ async function submit() {
         containsProfanity(subjectOther.value) ||
         containsProfanity(description.value)
     ) {
-      throw new Error('Unangemessene Inhalte erkannt. Bitte drücke dich in angemessener Sprache aus.');
+      throw new Error('Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.');
     }
 
     let subject = '';
@@ -241,17 +242,17 @@ async function submit() {
       subject = subjectOther.value.trim();
     } else if (mainSubject === 'Enrichment') {
       if (!enrKursSel.value) {
-        throw new Error('Bitte einen Enrichment-Kurs auswählen');
+        throw new Error('Du musst einen Enrichment-Kurs auswählen.');
       }
       subject = `Enrichment - ${enrKursSel.value}`;
     } else if (mainSubject === 'WPU (Di)') {
       if (!wpuDiKursSel.value) {
-        throw new Error('Bitte einen WPU (Di) Kurs auswählen');
+        throw new Error('Du musst einen WPU-Kurs auswählen.');
       }
       subject = `WPU (Di) - ${wpuDiKursSel.value}`;
     } else if (mainSubject === 'WPU (Do)') {
       if (!wpuDoKursSel.value) {
-        throw new Error('Bitte einen WPU (Do) Kurs auswählen');
+        throw new Error('Du musst einen WPU-Kurs auswählen.');
       }
       subject = `WPU (Do) - ${wpuDoKursSel.value}`;
     } else {
@@ -259,21 +260,24 @@ async function submit() {
     }
 
     if (!title.value.trim()) {
-      throw new Error('Du musst einen Titel hinzufügen');
+      throw new Error('Du musst einen Titel hinzufügen.');
     }
-    if (title.value.trim().length < 2 || title.value.trim().length > 60) {
-      throw new Error('Passe den Titel an (2-60 Zeichen)');
+    if (title.value.trim().length > 60) {
+      throw new Error('Der Titel ist zu lang (max. 60 Zeichen).');
     }
 
     if (!subject) {
-      throw new Error('Du musst ein Fach auswählen');
+      throw new Error('Du musst ein Fach auswählen.');
     }
-    if (subject.length < 2 || subject.length > 40) {
-      throw new Error('Passe das Fach an (2-40 Zeichen)');
+    if (subject.length > 40) {
+      throw new Error('Das benutzerdefinierte Fach ist zu lang (max. 40 Zeichen).');
+    }
+    if (!subject.length) {
+      throw new Error('Du musst ein benutzerdefiniertes Fach eintragen.');
     }
 
     if (description.value.trim().length > 1000) {
-      throw new Error('Die Beschreibung ist zu lang');
+      throw new Error('Die Beschreibung ist zu lang (max. 1000 Zeichen).');
     }
 
     const payload = {
@@ -289,18 +293,18 @@ async function submit() {
     payload.dueDate = selected.toISOString();
 
     if (selected < minDate) {
-      throw new Error('Das Datum liegt zu weit in der Vergangenheit');
+      throw new Error('Das Datum liegt zu weit in der Vergangenheit.');
     }
     if (selected > maxDate) {
-      throw new Error('Das Datum liegt zu weit in der Zukunft');
+      throw new Error('Das Datum liegt zu weit in der Zukunft.');
     }
 
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
-      message.value = 'Eintrag erfolgreich aktualisiert.';
+      message.value = 'Eintrag erfolgreich bearbeitet.';
     } else {
       await hw.post('/api/items', payload);
-      message.value = 'Eintrag erfolgreich angelegt.';
+      message.value = 'Eintrag erfolgreich erstellt.';
     }
 
     isError.value = false;
@@ -349,18 +353,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .modal-title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--font-size-h3);
   color: var(--text);
 }
 .section {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .label {
@@ -369,22 +371,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   color: var(--text);
   margin-bottom: 6px;
 }
-.label.bold {
-  font-weight: 600;
-  color: var(--text);
-}
 
 .images {
   gap: 8px;
-  margin-top: 6px;
   justify-content: flex-start;
 }
 .image-item {
   position: relative;
   width: 120px;
   height: 120px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--border-4);
   overflow: hidden;
   background: rgba(26, 26, 26, 0.5);
   backdrop-filter: blur(8px) brightness(95%);
@@ -408,8 +404,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 .spinner {
   animation: spin 1s linear infinite;
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -422,8 +418,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 }
 
 .small {
-  font-size: 12px;
+  font-size: var(--font-size-sub);
   color: var(--sub);
+  align-self: center;
 }
 .error {
   color: var(--danger);

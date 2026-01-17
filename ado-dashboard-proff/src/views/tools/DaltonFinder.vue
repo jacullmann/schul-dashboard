@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import InfoPop from '../../components/info/InfoModalCenter.vue';
@@ -255,13 +254,13 @@ const filteredResults = computed<SearchResult[]>(() => {
             tooltip="Daltonraumfinder Info"
             title="Daltonraumfinder"
         >
-          <p>Finde den passenden Raum in wenigen Sekunden.</p>
+          <h3>Finde den passenden Raum in wenigen Sekunden.</h3>
 
           <h3>Raumsuche</h3>
-          <p>Sieh für jeden Raum, an welchem Tag welcher Lehrer hier ist.</p>
+          <p>Sehe für jeden Raum ein, an welchem Tag welche/r Lehrer*in dort ist.</p>
 
           <h3>Lehrersuche</h3>
-          <p>Suche nach bestimmten Lehrern und lasse dir anzeigen, wann sie in welchen Räumen sind oder gib ein Fach ein, für das du Hilfe brauchst, und finde jeden zugehörigen Fachlehrer und die Räume, die sie belegen.</p>
+          <p>Suche nach bestimmten Lehrer*innen und lasse dir anzeigen, wann sie in welchen Räumen sind oder gib ein Fach ein, für das du Hilfe brauchst, und finde jede/n zugehörige/n Fachlehrer*in und die Räume, die sie belegen.</p>
         </InfoPop>
       </h2>
     </div>
@@ -530,7 +529,7 @@ tr td:last-child {
 .day-col {
   background: var(--gg);
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: var(--border-4);
 }
 
 .day-col h4 {

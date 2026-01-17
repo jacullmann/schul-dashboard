@@ -115,8 +115,8 @@ export default function createItemsRoutes(deps) {
         validateCsrf(csrfSecret),
         [
             body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']).withMessage('type'),
-            body('title').isString().isLength({ min: 2, max: 60 }).withMessage('title'),
-            body('subject').isString().isLength({ min: 2, max: 40 }).withMessage('subject'),
+            body('title').isString().isLength({ min: 1, max: 60 }).withMessage('title'),
+            body('subject').isString().isLength({ min: 1, max: 40 }).withMessage('subject'),
             body('description').optional().isString().isLength({ max: 1000 }).withMessage('description'),
             body('images').optional().isArray({ max: 8 }).withMessage('images'),
             body('dueDate').isISO8601().toDate().withMessage('dueDate')

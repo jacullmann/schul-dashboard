@@ -4,7 +4,7 @@
       <h2 style="margin-top:0" class="title-inf">
         Kürzelfinder
         <InfoPop tooltip="Kürzelfinder Info" title="Kürzelfinder">
-          <p>Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
+          <p style="margin-top: 0;">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
 
           <h3>Kürzelübersetzer</h3>
           <p>Gib das unbekannte Kürzel in das Textfeld ein und erhalte den zugehörigen Namen.</p>
@@ -12,7 +12,7 @@
           <h3>Kürzelfinder</h3>
           <p>Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel.</p>
           <div class="info-img-container">
-          <img alt="Bild" class="info-img border-normal" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
+            <img alt="Bild" class="info-img" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
           </div>
 
 
@@ -26,7 +26,7 @@
         <input
             v-model="inputValue"
             class="input"
-            :placeholder="mode==='shortToName' ? 'z. B. AY...' : 'z. B. Frau Aydem...'"
+            :placeholder="currentPlaceholder"
         />
         <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
           Meintest du vielleicht
@@ -51,9 +51,6 @@
         >
           <ArrowLeftRight class="switch-icon" />
         </button>
-        <!--<div class="mode-label">
-          {{ mode==='shortToName' ? 'Kürzel → Name' : 'Name → Kürzel' }}
-        </div>-->
       </div>
 
       <div class="col">
@@ -96,6 +93,21 @@ const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
 const inputValue = ref('')
 const suggestions = ref<any[]>([])
 const isRotated = ref(false)
+const currentPlaceholder = ref('')
+
+// Placeholder Data Lists
+const shortExamples = ['HO', 'FS', 'AY', 'SM', 'AN']
+const nameExamples = ['Frau Hoffmann', 'Herr Fischer', 'Frau Aydem', 'Frau Simsek', 'Herr Al-Najjar']
+
+function setRandomPlaceholder() {
+  if (mode.value === 'shortToName') {
+    const randomShort = shortExamples[Math.floor(Math.random() * shortExamples.length)]
+    currentPlaceholder.value = `z. B. ${randomShort}...`
+  } else {
+    const randomName = nameExamples[Math.floor(Math.random() * nameExamples.length)]
+    currentPlaceholder.value = `z. B. ${randomName}...`
+  }
+}
 
 function normalize(str: string) {
   return str
@@ -182,11 +194,13 @@ function toggleMode() {
   mode.value = mode.value === 'shortToName' ? 'nameToShort' : 'shortToName'
   inputValue.value = ''
   suggestions.value = []
+  setRandomPlaceholder()
 }
 
 
 onMounted(() => {
   loadPeople();
+  setRandomPlaceholder();
 })
 </script>
 
@@ -267,8 +281,3 @@ onMounted(() => {
   }
 }
 </style>
-
-
-
-
-

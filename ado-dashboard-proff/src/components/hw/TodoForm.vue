@@ -69,7 +69,7 @@ async function submit() {
 
     if (!title.value.trim()) throw new Error('Titel fehlt.');
     if (title.value.trim().length > 100) throw new Error('Titel zu lang (max 100).');
-    if (description.value.trim().length > 1000) throw new Error('Beschreibung zu lang (max 1000).');
+    if (description.value.trim().length > 2000) throw new Error('Beschreibung zu lang (max 2000).');
 
     const payload = {
       title: title.value.trim(),

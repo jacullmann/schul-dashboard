@@ -297,7 +297,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
           <h3>Die digitale Version vom Programm.</h3>
 
           <h3>Personalisierte Kurse</h3>
-          <p>Wenn du bei deinem Account hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du unter deinen Accounteinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls unter deinen Accounteinstellungen deaktivieren.</p>
+          <p>Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du in deinen Kontoeinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren.</p>
 
           <h3>Live-Änderungen</h3>
           <p>Vertretung, Ausfall, Raumänderungen usw. werden vom Admin-Team zeitnah übertragen und gleich im digitalen Stundenplan angezeigt.</p>
