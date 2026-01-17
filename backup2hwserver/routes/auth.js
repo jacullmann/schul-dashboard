@@ -47,9 +47,9 @@ export default function createAuthRoutes(deps) {
             const isBanned = await BannedUser.findOne({ userId: user._id }).lean();
             if (isBanned) return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
             setUserToken(res, user._id, user.email, userSecret);
-            rotateCsrfToken(res, csrfSecret);
+            const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-            res.json({ ok: true });
+            res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
 
@@ -95,8 +95,8 @@ export default function createAuthRoutes(deps) {
         validateCsrf(csrfSecret),
         (req, res) => {
             clearUserToken(res);
-            rotateCsrfToken(res, csrfSecret);
-            res.json({ ok: true });
+            const newCsrfToken = rotateCsrfToken(res, csrfSecret);
+            res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
 
