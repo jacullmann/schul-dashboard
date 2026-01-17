@@ -23,7 +23,7 @@ const isEarlyWeekday = (): boolean => {
   const hour = now.getHours();
   const day = now.getDay(); // 0 = Sun, 6 = Sat
   // Weekday (1-5) AND before 8 AM
-  return day >= 1 && day <= 5 && hour < 8;
+  return day >= 1 && day <= 5 && hour > 4 && hour < 8;
 };
 
 // Helper: Check if date is between Dec 1 and Dec 26
@@ -40,16 +40,14 @@ const getDaysToBerlinBreak = (): number | null => {
   const now = new Date();
   // Valid Berlin Holiday Starts (2025-2027) - Update this list as needed
   const holidays = [
-    new Date('2025-01-27'), // Winterferien 2025 start
-    new Date('2025-04-14'), // Osterferien
-    new Date('2025-07-24'), // Sommerferien
-    new Date('2025-10-20'), // Herbstferien
-    new Date('2025-12-22'), // Weihnachtsferien
-    new Date('2026-02-02'), // Winterferien 2026
-    new Date('2026-03-30'), // Osterferien
+    new Date('2026-01-31'), // Winterferien 2026
+    new Date('2026-03-28'), // Osterferien
     new Date('2026-07-09'), // Sommerferien
-    new Date('2026-10-19'), // Herbstferien
+    new Date('2026-10-17'), // Herbstferien
     new Date('2026-12-23'), // Weihnachtsferien
+    new Date('2026-01-29'), // Winterferien 2027
+    new Date('2026-03-20'), // Osterferien
+    new Date('2026-07-01'), // Sommerferien
   ];
 
   // Find the first holiday that is in the future
@@ -117,6 +115,25 @@ const quotes: Quote[] = [
   { text: 'Wenn das Leben dir Zitronen gibt, spritz den Saft in die Augen deiner Gegner.'},
   { text: '100% Fairtrade Codezeilen aus zertifiziertem Anbau!'},
   { text: 'gleich /gleích/, Adverb: unbestimmer Zeitpunkt in der Zukunft, wahrscheinlich aber nie'},
+  { text: 'Wenn ich 5 Minuten vor der Abgabe anfange, brauche ich nur 5 Minuten.'},
+  { text: '42'},
+  { text: 'When the Revolution Comes...'},
+  { text: 'I can see dead people'},
+  { text: 'Who will survive in America?'},
+  { text: 'Alles, was man verbietet, macht man interessant.'},
+  { text: 'Der Kuchen ist eine Lüge.'},
+  { text: 'Hast du es schon aus- und wieder eingeschaltet?'},
+  { text: 'Kann Spuren von Nüssen enthalten.'},
+  { text: 'Renn, Forrest, renn!'},
+  { text: 'Wir schaffen das!'},
+  { text: 'Das Internet ist für uns alle Neuland.'},
+  { text: 'Schmeckt besser, als es aussieht.'},
+  { text: 'Fragt nicht, was euer Land für euch tun kann – geht in den Krieg und sterbt.'},
+  { text: 'Ich lerne, also bin ich.'},
+  { text: 'Alle wollen die Welt verändern, aber keiner sich selbst.'},
+  { text: 'Dashboard benutzen oder Dashboard nicht benutzen, das ist hier die Frage.'},
+  { text: "I'm going to make him an offer he can't refuse"},
+  { text: 'Ein kleiner Schritt für die Menschheit, ein großer für einen Schüler – Dashboard'},
 ];
 
 /**
@@ -160,7 +177,8 @@ onMounted(() => {
 
 .tagline-text {
   color: var(--sub);
-  font-size: 0.95rem;
+  font-size: var(--font-size-body);
+  font-family: var(--normal-font), sans-serif;
   font-style: italic;
   font-weight: 500;
 }
