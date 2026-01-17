@@ -2,10 +2,10 @@
   <div class="card complaint-card">
     <div class="header">
       <div>
-        <h2 style="margin-top: 0" class=" title-inf">
+        <h2 style="margin: 0" class=" title-inf">
           Sorgenbox
           <InfoPop tooltip="Sorgenbox Info" title="Sorgenbox">
-            <p>Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest.</p>
+            <p style="margin-top: 0">Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest.</p>
 
           </InfoPop>
         </h2>
@@ -203,13 +203,12 @@ onUnmounted(() => {
 .header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .form {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .textarea-container {
@@ -217,12 +216,13 @@ onUnmounted(() => {
 }
 
 .counter {
-  position: absolute;
-  bottom: 8px;
-  right: 12px;
-  font-size: 0.8rem;
-  padding: 2px 6px;
-  user-select: none;
+  position:absolute;
+  bottom:8px;
+  right:12px;
+  font-size:var(--font-size-footnote);
+  margin:2px 2px;
+  -webkit-user-select:none;
+  user-select:none
 }
 
 
