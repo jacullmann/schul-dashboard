@@ -28,33 +28,28 @@ export default function createAppGateRoutes(deps) {
             const ua = req.get('User-Agent') || 'unknown';
             const { password } = req.body;
 
-            const attemptHash = 'Vorübergehend wegen Sicherheitsbedenken ausgesetzt';
-            let status = 'failure';
             const DASHBOARD_CHECK_PASSWORD_HASH = process.env.DASHBOARD_CHECK_PASSWORD_HASH;
-
             const isValid = await bcrypt.compare(password, DASHBOARD_CHECK_PASSWORD_HASH);
 
-            if (isValid) {
-                status = 'success';
+            const logEntry = {
+                event_type: 'app_gate_login',
+                event_status: isValid ? 'success' : 'failure',
+                ip_address: ip,
+                user_agent: ua,
+                metadata: {}
+            };
 
+            try {
+                await supabase.from('security_events').insert(logEntry);
+            } catch (logError) {
+                console.error('Failed to log security event:', logError);
+            }
+
+            if (isValid) {
                 setAppGateToken(res, appGateSecret);
                 const newCsrfToken = rotateCsrfToken(res, csrfSecret);
-
-                await supabase.from('auth_logs').insert({
-                    ip,
-                    status,
-                    attempt_hash: attemptHash,
-                    user_agent: ua
-                });
-
                 return res.json({ ok: true, csrfToken: newCsrfToken });
             } else {
-                await supabase.from('auth_logs').insert({
-                    ip,
-                    status,
-                    attempt_hash: attemptHash,
-                    user_agent: ua
-                });
                 return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
             }
         }
@@ -74,7 +69,23 @@ export default function createAppGateRoutes(deps) {
     router.post('/logout',
         requireAppGate(appGateSecret),
         validateCsrf(csrfSecret),
-        (req, res) => {
+        async (req, res) => {
+            const ip = req.ip;
+            const ua = req.get('User-Agent') || 'unknown';
+
+            // Logout-Event loggen
+            try {
+                await supabase.from('security_events').insert({
+                    event_type: 'app_gate_logout',
+                    event_status: 'success',
+                    ip_address: ip,
+                    user_agent: ua,
+                    metadata: {}
+                });
+            } catch (logError) {
+                console.error('Failed to log logout event:', logError);
+            }
+
             clearAppGateToken(res);
             clearCsrfCookie(res);
             res.json({ ok: true });

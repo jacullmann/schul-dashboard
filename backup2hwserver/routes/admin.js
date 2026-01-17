@@ -100,16 +100,16 @@ export default function createAdminRoutes(deps) {
         async (req, res) => {
             try {
                 const { data, error: dbError } = await supabase
-                    .from('auth_logs')
+                    .from('security_events')
                     .select('*')
-                    .order('timestamp', { ascending: false })
+                    .order('created_at', { ascending: false })
                     .limit(500);
 
                 if (dbError) {
                     console.error('Supabase DB Error:', dbError);
                     return sendJSONError(res, 500, 'Fehler beim Abrufen der Logs von Supabase.');
                 }
-                if (!data || data.length === 0) return sendJSONError(res, 404, 'Keine Auth-Logs gefunden.');
+                if (!data || data.length === 0) return sendJSONError(res, 404, 'Keine Security-Events gefunden.');
 
                 const logsJsonString = JSON.stringify(data, null, 2);
                 const truncatedLogs = logsJsonString.length > 50000
@@ -118,9 +118,19 @@ export default function createAdminRoutes(deps) {
 
                 const prompt = `
 Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
-Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden Authentifizierungs- und Logoutlogs (Tabelle 'auth_logs') zu erstellen.
-Die Logs enthalten Felder wie 'ip', 'status' (success/failure/logout), 'attempt_hash'(dies ist ein Hash des eingegebenen passworts), 'user_agent' und 'timestamp'.
-success und failure stehen für authentifizierungsversuche, und logout ist ein logout eines irgendwann schon authentifizierten nutzers, Attemphash ist nur bei success und faile zu beachten. Bei logouts wird das feld attempt hash nämlich nur mit beipielinhalt gefüllt.
+Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden Security-Events (Tabelle 'security_events') zu erstellen.
+
+Die Logs enthalten folgende Felder:
+- 'event_type': Art des Events (z.B. 'app_gate_login', 'app_gate_logout')
+- 'event_status': Status des Events ('success', 'failure')
+- 'ip_address': IP-Adresse des Clients
+- 'user_agent': Browser/Client Information
+- 'metadata': Zusätzliche Event-spezifische Daten (JSON)
+- 'created_at': Zeitstempel des Events
+
+Event-Typen:
+- 'app_gate_login': Authentifizierungsversuch am App-Gate (success = erfolgreich, failure = fehlgeschlagen)
+- 'app_gate_logout': Logout eines authentifizierten Nutzers (normalerweise immer success)
 
 Hier sind die Rohdaten (möglicherweise gekürzt):
 ${truncatedLogs}
@@ -130,16 +140,17 @@ AUFGABE:
 Erstelle einen detaillierten, aber prägnanten Sicherheitsbericht auf Deutsch.
 Struktur:
 1.  **Zusammenfassung:** Kurze Übersicht (z.B. "Sicherheitslage stabil", "Auffälligkeiten erkannt").
-2.  **Trendanalyse:** Gibt es Muster? (z.B. Uhrzeiten von Angriffen, Zunahme von 'failure'-Logs, auffällige User-Agents).
+2.  **Trendanalyse:** Gibt es Muster? (z.B. Uhrzeiten von Angriffen, Zunahme von 'failure'-Events, auffällige User-Agents).
 3.  **Auffällige Aktivitäten & IPs:** Identifiziere spezifische Bedrohungen.
-    * Gibt es IPs mit extrem vielen 'failure'-Logs (Brute-Force-Versuche)? Liste die Top 3 verdächtigsten IPs auf.
+    * Gibt es IPs mit extrem vielen 'failure'-Events bei 'app_gate_login' (Brute-Force-Versuche)? Liste die Top 3 verdächtigsten IPs auf.
     * Gibt es IPs mit vielen verschiedenen User-Agents?
-    * Gibt es verdächtige 'success'-Logs nach vielen 'failure'-Logs von derselben IP (möglicher erfolgreicher Einbruch)?
-4.  **Empfohlene Maßnahmen:** Konkrete, priorisierte Tipps. (z.B. "IP 1.2.3.4 auf Firewall blockieren", "Rate-Limiting für Login-Endpunkt /api/dashboard-check verschärfen").
+    * Gibt es verdächtige 'success'-Events nach vielen 'failure'-Events von derselben IP (möglicher erfolgreicher Einbruch)?
+4.  **Empfohlene Maßnahmen:** Konkrete, priorisierte Tipps. (z.B. "IP X.X.X.X auf Firewall blockieren", "Rate-Limiting verschärfen").
 5.  **Sicherheitswarnungen:** (Nur falls akute, offensichtliche Bedrohungen wie ein erfolgreicher Einbruch klar erkennbar sind).
 
 Formatiere die gesamte Ausgabe als sauberes Markdown. Beginne direkt mit der ersten Überschrift (z.B. "## Zusammenfassung").
-Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten o. Ä., sondern um eine äußere Authentifizierung einer Seite. Die Website ist also nur für bestimmte autorisierte Personen, die von den Administratoren das allgemeine Passwort erhalten haben. Es gibt also nicht mehrere Accounts, sondern nur ein Passwort, das eingegeben werden muss, um durch die Authentifizierung zu kommen. Die Attempt Hashes sind dabei hashes der versuchten Passwörter. Und beachte: Sei weder zu lasch, noch sieh jede abfolge vonf alcshen  passwörtern udn fehlschlägen als angriff. Entscheide intelligent und hilfreich.
+Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten, sondern um eine äußere Authentifizierung. Die Website ist nur für autorisierte Personen zugänglich, die das allgemeine Passwort kennen. Es gibt keine individuellen Accounts.
+Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff. Entscheide intelligent und hilfreich.
       `;
 
                 if (!geminiClient) {
