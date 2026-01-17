@@ -17,7 +17,7 @@
             @click="$emit('confirm')"
             data-umami-event="Bild endgültig löschen bestätigen"
         >
-          Eintrag löschen
+          Bild löschen
         </button>
       </div>
     </div>
