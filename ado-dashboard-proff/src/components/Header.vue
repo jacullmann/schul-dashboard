@@ -6,6 +6,7 @@
           <Logo class="logo-img" aria-hidden="true" />
           <span class="logo-text">Dashboard</span>
         </router-link>
+
         <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
           <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
             <X />
@@ -25,6 +26,7 @@
           <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
           <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">Daltonraumfinder</router-link>
           <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzelfinder</router-link>
+
         </nav>
       </div>
 
@@ -32,7 +34,6 @@
         <div v-if="loading" class="loading-placeholder">
           <LoadingSpinner />
         </div>
-
         <AccountMenu
             v-else-if="user"
             :email="user.email"
@@ -223,9 +224,8 @@ onUnmounted(() => {
 }
 
 .logo-text {
-  font-size: 1.8rem;
+  font-size: var(--font-size-h1);
   font-weight: 700;
-  letter-spacing: 1px;
   transition: opacity 0.2s ease;
 }
 
@@ -238,8 +238,8 @@ onUnmounted(() => {
 }
 
 .nav-item {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: var(--font-size-body);
+  font-weight: 500;
   text-decoration: none;
   color: var(--text);
   position: relative;
@@ -256,13 +256,12 @@ onUnmounted(() => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   height: 100%;
 }
 
 .cta-button {
-  font-weight: 600;
-  font-size: 0.7rem;
+  font-size: var(--font-size-footnote);
 }
 
 .hamburger-menu {
@@ -303,7 +302,7 @@ onUnmounted(() => {
   color: var(--text);
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--border-4);
   transition: background-color 0.3s ease;
   z-index: 1002;
 }
@@ -313,17 +312,16 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1000px) {
+  .header-right {
+    gap: 1rem;
+  }
+
   .hamburger-menu {
     display: flex;
   }
 
   .nav-close-button {
     display: block;
-  }
-
-  .cta-button {
-    padding: 8px 12px;
-    font-size: 0.685rem;
   }
 
   .nav-links {
@@ -335,12 +333,13 @@ onUnmounted(() => {
     background-color: var(--lbg);
     flex-direction: column;
     align-items: flex-start;
-    padding: 32px;
+    padding-inline: 32px;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
     box-shadow: var(--shadow-s);
     border-left: 1px solid var(--border);
+    gap: 0;
   }
 
   .nav-links-open {
@@ -348,9 +347,9 @@ onUnmounted(() => {
   }
 
   .nav-item {
-    font-size: 1.2rem;
+    font-size: var(--font-size-h3);
     width: 100%;
-    padding: 12px 0;
+    padding-block: 32px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -367,7 +366,7 @@ onUnmounted(() => {
   }
 
   .logo-text {
-    font-size: 1.4rem;
+    font-size: var(--font-size-h2);
   }
   .header-container {
     padding-left: 16px;
