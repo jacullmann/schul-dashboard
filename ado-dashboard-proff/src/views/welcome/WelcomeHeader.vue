@@ -39,7 +39,6 @@ const announcementStyle = computed(() => {
   return {
     position: 'sticky',
     top: '0',
-    zIndex: '99',
     transform: `translateY(-${offset}px)`
   };
 });
@@ -113,7 +112,7 @@ const announcementStyle = computed(() => {
   font-family: var(--normal-font), sans-serif;
   font-size: 16px;
   text-align: center;
-  z-index: 100;
+  z-index: 90;
 }
 
 /*.nav-links {
