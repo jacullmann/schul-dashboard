@@ -39,7 +39,9 @@ const announcementStyle = computed(() => {
   return {
     position: 'sticky',
     top: '0',
-    transform: `translateY(-${offset}px)`
+    zIndex: '100',
+    // CHANGED: Use marginTop instead of transform to remove the "footprint"
+    marginTop: `-${offset}px`
   };
 });
 // -----------------------------
@@ -70,7 +72,9 @@ const announcementStyle = computed(() => {
   align-items: center;
   box-sizing: border-box;
   border-bottom: 1px solid var(--border);
-  z-index: 100;
+  /* CHANGED: Added position and z-index to stay above the announcement */
+  position: relative;
+  z-index: 101;
 }
 
 .header-content-wrapper {
@@ -112,7 +116,6 @@ const announcementStyle = computed(() => {
   font-family: var(--normal-font), sans-serif;
   font-size: 16px;
   text-align: center;
-  z-index: 90;
 }
 
 /*.nav-links {
