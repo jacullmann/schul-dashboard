@@ -191,7 +191,8 @@ h1, h2, h3, h4, h5 {
         border:1px solid transparent;
         border-radius: var(--border-4);
         cursor:pointer;
-        transition:.1s ease
+        transition:.1s ease;
+        white-space: nowrap;
     }
     .btn:hover {
         background-color: var(--pure--white--hover);
@@ -227,7 +228,7 @@ h1, h2, h3, h4, h5 {
     }
     .btn.danger {
         background: var(--danger);
-        color: var(--text);
+        color: #fff;
     }
     .btn.danger:hover {
         background: var(--danger-hover);
