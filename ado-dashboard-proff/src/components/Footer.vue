@@ -5,7 +5,7 @@
         <div class="footer-section footer-brand">
           <div class="brand-header">
             <Logo class="footer-logo" aria-hidden="true" />
-            <span class="brand-text">Dashboard</span>
+            <span class="brand-text">schul-dashboard</span>
           </div>
           <Notizen />
           <p class="brand-description">
@@ -142,6 +142,8 @@ function openCookieBanner() {
   font-size: var(--font-size-h2);
   font-weight: 700;
   color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
 .brand-description {
@@ -149,6 +151,7 @@ function openCookieBanner() {
   margin-top: 0.5rem;
   font-size: var(--font-size-body);
   font-weight: 500;
+  display: none;
 }
 
 .footer-section h3 {
@@ -228,7 +231,7 @@ function openCookieBanner() {
 
 @media (max-width: 768px) {
   .footer {
-    padding: 2rem 16px 5px;
+    padding: 16px 16px 0;
   }
 
   .footer-container {
