@@ -223,8 +223,9 @@ onUnmounted(() => {
 }
 
 .logo-text {
-  font-size: var(--font-size-h1);
+  font-size: 1.8rem;
   font-weight: 700;
+  letter-spacing: 1px;
   transition: opacity 0.2s ease;
 }
 
@@ -237,7 +238,7 @@ onUnmounted(() => {
 }
 
 .nav-item {
-  font-size: var(--font-size-body);
+  font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
   color: var(--text);
@@ -255,13 +256,13 @@ onUnmounted(() => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   height: 100%;
 }
 
 .cta-button {
   font-weight: 600;
-  font-size: var(--font-size-button);
+  font-size: 0.7rem;
 }
 
 .hamburger-menu {
@@ -302,7 +303,7 @@ onUnmounted(() => {
   color: var(--text);
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: var(--border-4);
+  border-radius: 4px;
   transition: background-color 0.3s ease;
   z-index: 1002;
 }
@@ -321,7 +322,8 @@ onUnmounted(() => {
   }
 
   .cta-button {
-    padding: 4px 8px;
+    padding: 8px 12px;
+    font-size: 0.685rem;
   }
 
   .nav-links {
@@ -333,7 +335,7 @@ onUnmounted(() => {
     background-color: var(--lbg);
     flex-direction: column;
     align-items: flex-start;
-    padding-inline: 32px;
+    padding: 32px;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
@@ -346,7 +348,7 @@ onUnmounted(() => {
   }
 
   .nav-item {
-    font-size: var(--font-size-h3);
+    font-size: 1.2rem;
     width: 100%;
     padding: 12px 0;
     border-bottom: 1px solid var(--border);
@@ -365,7 +367,7 @@ onUnmounted(() => {
   }
 
   .logo-text {
-    font-size: var(--font-size-h2);
+    font-size: 1.4rem;
   }
   .header-container {
     padding-left: 16px;
