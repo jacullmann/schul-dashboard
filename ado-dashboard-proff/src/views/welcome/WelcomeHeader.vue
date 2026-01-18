@@ -39,7 +39,7 @@ const announcementStyle = computed(() => {
   return {
     position: 'sticky',
     top: '0',
-    zIndex: '100',
+    zIndex: '99',
     transform: `translateY(-${offset}px)`
   };
 });
@@ -71,6 +71,7 @@ const announcementStyle = computed(() => {
   align-items: center;
   box-sizing: border-box;
   border-bottom: 1px solid var(--border);
+  z-index: 100;
 }
 
 .header-content-wrapper {
@@ -112,6 +113,7 @@ const announcementStyle = computed(() => {
   font-family: var(--normal-font), sans-serif;
   font-size: 16px;
   text-align: center;
+  z-index: 100;
 }
 
 /*.nav-links {
