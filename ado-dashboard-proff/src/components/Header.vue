@@ -4,7 +4,7 @@
       <div class="header-left">
         <router-link to="/" class="logo-group" @click="closeNav">
           <Logo class="logo-img" aria-hidden="true" />
-          <span class="logo-text">Dashboard</span>
+          <span class="logo-text">schul-dashboard</span>
         </router-link>
 
         <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
@@ -200,7 +200,7 @@ onUnmounted(() => {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 2.5rem;
+  gap: 2rem;
   height: 100%;
 }
 
@@ -262,6 +262,7 @@ onUnmounted(() => {
 
 .cta-button {
   font-size: var(--font-size-footnote);
+  padding: 8px;
 }
 
 .hamburger-menu {
@@ -368,9 +369,28 @@ onUnmounted(() => {
   .logo-text {
     font-size: var(--font-size-h2);
   }
+
   .header-container {
     padding-left: 16px;
     padding-right: 16px;
+  }
+}
+
+@media (max-width: 386px) {
+  .logo-text {
+    font-size: var(--font-size-h3);
+  }
+}
+
+@media (max-width: 356px) {
+  .logo-text {
+    font-size: var(--font-size-title);
+  }
+}
+
+@media (max-width: 340px) {
+  .logo-text {
+    display:none;
   }
 }
 </style>
