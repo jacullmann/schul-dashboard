@@ -24,14 +24,13 @@
           </div>
         </div>
 
-        <label class="checkbox-label">
+        <label class="collapse-checkbox">
           <input
               type="checkbox"
               v-model="understoodChecked"
-              class="checkbox-input"
           >
-          <span class="checkbox-custom"></span>
-          Ich verstehe, dass ich hiermit meinen Account unwiderruflich lösche.
+          <span class="vis-label"></span>
+          <span class="checkbox-text">Ich verstehe, dass ich hiermit meinen Account unwiderruflich lösche.</span>
         </label>
 
         <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
@@ -146,47 +145,65 @@ async function confirmDelete() {
   line-height: 1.5;
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--text);
+.collapse-checkbox {
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
   margin-top: 16px;
   padding: 8px 0;
+  gap: 10px;
 }
 
-.checkbox-input {
+.collapse-checkbox input {
   display: none;
 }
 
-.checkbox-custom {
+.collapse-checkbox .vis-label {
   width: 18px;
   height: 18px;
   min-width: 18px;
-  border: 1px solid var(--border2);
   border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  margin-top: 1px;
+  border: 2px solid var(--sub);
+  display: inline-block;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
 }
 
-.checkbox-input:checked + .checkbox-custom {
-  background: var(--special--red);
-  border-color: var(--special--red);
+.collapse-checkbox input:checked + .vis-label {
+  background: var(--text);
+  border-color: var(--text);
 }
 
-.checkbox-input:checked + .checkbox-custom::after {
-  content: '✓';
-  color: #fff;
-  font-size: 12px;
+.collapse-checkbox .vis-label:hover {
+  border-color: var(--text);
 }
 
-.checkbox-label:hover .checkbox-custom {
-  border-color: var(--sub);
+.collapse-checkbox .vis-label::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: solid var(--lbg);
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  left: 50%;
+  top: 32%;
+  transform: translate(-50%, -30%) rotate(70deg);
+  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.collapse-checkbox input:checked + .vis-label::after {
+  opacity: 1;
+  width: 5px;
+  height: 10px;
+  transform: translate(-50%, -45%) rotate(45deg);
+}
+
+.checkbox-text {
+  font-size: 13px;
+  color: var(--text);
+  user-select: none;
 }
 
 .action-buttons {
