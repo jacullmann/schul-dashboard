@@ -18,14 +18,20 @@ export function verifyCsrfToken(token, secret) {
     if (parts.length !== 2) return false;
 
     const [randomValue, signature] = parts;
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(randomValue);
-    const expectedSignature = hmac.digest('hex');
-
-    return crypto.timingSafeEqual(
-        Buffer.from(signature, 'hex'),
-        Buffer.from(expectedSignature, 'hex')
-    );
+    if (!/^[a-f0-9]{64}$/i.test(randomValue) || !/^[a-f0-9]{64}$/i.test(signature)) {
+        return false;
+    }
+    try {
+        const hmac = crypto.createHmac('sha256', secret);
+        hmac.update(randomValue);
+        const expectedSignature = hmac.digest('hex');
+        return crypto.timingSafeEqual(
+            Buffer.from(signature, 'hex'),
+            Buffer.from(expectedSignature, 'hex')
+        );
+    } catch {
+        return false;
+    }
 }
 
 export function setCsrfCookie(csrfSecret) {
