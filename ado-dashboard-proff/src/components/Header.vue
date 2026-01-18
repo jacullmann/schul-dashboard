@@ -224,7 +224,7 @@ onUnmounted(() => {
 }
 
 .logo-text {
-  font-size: var(--font-size-h1);
+  font-size: var(--font-size-h2);
   font-weight: 700;
   transition: opacity 0.2s ease;
 }
