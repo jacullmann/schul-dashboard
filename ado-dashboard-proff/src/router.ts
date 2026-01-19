@@ -319,7 +319,10 @@ router.beforeEach(async (to, from, next) => {
 
     if (isAuthenticated.value && !isPublicRoute) {
         if (!userStore.initialized) {
-            await userStore.fetchUser();
+            try {
+                await userStore.fetchUser();
+            } catch {
+            }
         }
     }
 

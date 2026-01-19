@@ -138,7 +138,10 @@ async function submit() {
         await userStore.fetchUser();
       } catch {
       }
-      umami?.track('Welcome Page Login erfolgreich');
+      try {
+        umami?.track('Welcome Page Login erfolgreich');
+      } catch {
+      }
       await router.push('/items/HAUSAUFGABE');
     } else {
       error.value = res.error || 'Zugriff verweigert. Code prüfen.';

@@ -67,7 +67,7 @@ export default function createAppGateRoutes(deps) {
 
     // POST /api/app-gate/logout
     router.post('/logout',
-        checkAppGate(appGateSecret),
+        requireAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         async (req, res) => {
             const ip = req.ip;
