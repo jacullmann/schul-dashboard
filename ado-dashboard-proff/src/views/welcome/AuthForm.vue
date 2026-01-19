@@ -134,15 +134,23 @@ async function submit() {
       } else {
         syncCsrfFromCookie();
       }
-      await auth.checkAuthStatus();
-      await userStore.fetchUser();
+      try {
+        await userStore.fetchUser();
+      } catch {
+      }
       umami?.track('Welcome Page Login erfolgreich');
       await router.push('/items/HAUSAUFGABE');
     } else {
       error.value = res.error || 'Zugriff verweigert. Code prüfen.';
     }
-  } catch (e) {
-    error.value = "Verbindungsfehler.";
+  } catch (e: any) {
+    if (e.response?.data?.error) {
+      error.value = e.response.data.error;
+    } else if (e.name === 'NavigationDuplicated') {
+      return;
+    } else {
+      error.value = "Verbindungsfehler. Bitte erneut versuchen.";
+    }
   } finally {
     isLoading.value = false;
   }

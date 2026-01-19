@@ -80,6 +80,7 @@ export function useAppAuth() {
 
             if (response.status === 200 && response.data.ok) {
                 isAuthenticated.value = true;
+                isAuthReady.value = true;
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
 
