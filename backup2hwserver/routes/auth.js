@@ -142,7 +142,7 @@ export default function createAuthRoutes(deps) {
             try {
                 const user = await User.findById(req.user.sub);
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                if (user.isAdmin) return sendJSONError(res, 403, 'Admins können ihren Account nicht löschen');
+                if (user.isAdmin) return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
                 const userId = user._id;
                 await KeepChecked.deleteMany({ userId });
                 await EncryptedTodo.deleteMany({ userId });
