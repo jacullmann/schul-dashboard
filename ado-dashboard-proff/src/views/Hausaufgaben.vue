@@ -86,10 +86,7 @@
             </div>
 
             <div class="row-n item-badges" :class="{ collapsed: isChecked(item.id) }">
-              <div class="badge subject-badge">{{ formatSubjectDisplay(item.subject) }}</div>
-              <div class="badge time-badge" :style="colorStyles(item.timeColor)">
-                {{ new Date(item.dueDate).toLocaleDateString() }}
-              </div>
+              <div class="badge subject-badge">{{ formatSubjectDisplay(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
               <div v-if="user?.isAdmin" class="admin-creator-info">
                 {{ item.createdByEmail || 'Unbekannt' }}
               </div>
@@ -545,15 +542,9 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 }
 
 .subject-badge {
-  background:var(--gg);
-  color:var(--text);
-  padding:4px 8px;
-  border-radius: var(--border-4);
-}
-
-.time-badge {
-  padding:4px 8px;
-  border-radius: var(--border-4);
+  color:var(--sub);
+  padding: 0;
+  font-size: var(--font-size-body);
 }
 
 .item-menu {
