@@ -29,7 +29,7 @@
             :placeholder="currentPlaceholder"
         />
 
-        <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue && windowWidth < 600" class="suggestion">
+        <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion mobile">
           Meintest du vielleicht
           <span
               v-for="(s, idx) in suggestions"
@@ -65,7 +65,7 @@
       </div>
     </div>
 
-    <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue && windowWidth >= 600" class="suggestion">
+    <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion desktop">
       Meintest du vielleicht
       <span
           v-for="(s, idx) in suggestions"
@@ -81,16 +81,12 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted, onUnmounted} from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { supabase} from "../../composables/Datatable";
 import { ArrowLeftRight} from "lucide-vue-next";
 import InfoPop from '../../components/info/InfoModalCenter.vue'
 
-const windowWidth = ref(window.innerWidth)
 
-const updateWidth = () => {
-  windowWidth.value = window.innerWidth
-}
 
 const persons = ref([])
 
@@ -228,11 +224,6 @@ function toggleMode() {
 onMounted(() => {
   loadPeople();
   setRandomPlaceholder();
-  window.addEventListener('resize', updateWidth)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateWidth)
 })
 </script>
 
@@ -305,7 +296,23 @@ onUnmounted(() => {
   font-weight: bold;
 }
 
+.desktop {
+  display: block;
+}
+
+.mobile {
+  display: none;
+}
+
 @media (max-width: 600px) {
+  .desktop {
+    display: none;
+  }
+
+  .mobile {
+    display: block;
+  }
+
   .row {
     flex-direction: column;
     align-items: stretch;
