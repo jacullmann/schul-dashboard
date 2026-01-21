@@ -47,21 +47,22 @@
             class="input"
             :value="outputValue"
             readonly
+            :placeholder="otherPlaceholder"
         />
       </div>
+    </div>
 
-      <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
-        Meintest du vielleicht
-        <span
-            v-for="(s, idx) in suggestions"
-            :key="idx"
-            @click="applySuggestion(s)"
-            class="suggestion-link"
-        >
-            {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
-          </span>
-        ?
-      </div>
+    <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
+      Meintest du vielleicht
+      <span
+          v-for="(s, idx) in suggestions"
+          :key="idx"
+          @click="applySuggestion(s)"
+          class="suggestion-link"
+      >
+          {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
+        </span>
+      ?
     </div>
   </div>
 </template>
@@ -95,6 +96,7 @@ const inputValue = ref('')
 const suggestions = ref<any[]>([])
 const isRotated = ref(false)
 const currentPlaceholder = ref('')
+const otherPlaceholder = ref('')
 
 // Placeholder Data Lists
 const shortExamples = ['HO', 'FS', 'AY', 'SM', 'AN']
@@ -103,10 +105,14 @@ const nameExamples = ['Frau Hoffmann', 'Herr Fischer', 'Frau Aydem', 'Frau Simse
 function setRandomPlaceholder() {
   if (mode.value === 'shortToName') {
     const randomShort = shortExamples[Math.floor(Math.random() * shortExamples.length)]
-    currentPlaceholder.value = `z. B. ${randomShort}...`
+    currentPlaceholder.value = `${randomShort}...`
+    const randomName = nameExamples[Math.floor(Math.random() * nameExamples.length)]
+    otherPlaceholder.value = `${randomName}`
   } else {
     const randomName = nameExamples[Math.floor(Math.random() * nameExamples.length)]
-    currentPlaceholder.value = `z. B. ${randomName}...`
+    currentPlaceholder.value = `${randomName}...`
+    const randomShort = shortExamples[Math.floor(Math.random() * shortExamples.length)]
+    otherPlaceholder.value = `${randomShort}`
   }
 }
 
@@ -210,15 +216,17 @@ onMounted(() => {
 .input {
   margin-top: 6px;
 }
+
 .row {
   display: flex;
-  gap: 0 8px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
 }
+
 .col {
   flex: 1;
 }
+
 .switch-col {
   display: flex;
   flex-direction: column;
@@ -236,7 +244,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   transition: background 0.1s ease;
-  margin: 16px 0 -8px 0;
+  margin: 0;
 }
 
 .switch-btn:hover {
@@ -265,6 +273,7 @@ onMounted(() => {
   font-style: italic;
   font-size: var(--font-size-sub);
 }
+
 .suggestion-link {
   cursor: pointer;
   color: var(--text);
@@ -276,9 +285,14 @@ onMounted(() => {
     flex-direction: column;
     align-items: stretch;
   }
+
   .col {
     width: 100%;
     padding: 0;
+  }
+
+  .switch-btn {
+    margin: 16px 0 -8px 0;
   }
 }
 </style>
