@@ -12,7 +12,7 @@
           <h3>Kürzelfinder</h3>
           <p>Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel.</p>
           <div class="info-img-container">
-            <img alt="Bild" class="info-img" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
+            <img style="margin-bottom: 16px;" alt="Bild" class="info-img" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
           </div>
 
 
@@ -28,6 +28,19 @@
             class="input"
             :placeholder="currentPlaceholder"
         />
+
+        <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue && windowWidth < 600" class="suggestion">
+          Meintest du vielleicht
+          <span
+              v-for="(s, idx) in suggestions"
+              :key="idx"
+              @click="applySuggestion(s)"
+              class="suggestion-link"
+          >
+              {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
+            </span>
+          ?
+        </div>
       </div>
 
       <div class="switch-col">
@@ -47,12 +60,12 @@
             class="input"
             :value="outputValue"
             readonly
-            :placeholder="otherPlaceholder"
+            :placeholder="inputValue ? '' : otherPlaceholder"
         />
       </div>
     </div>
 
-    <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
+    <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue && windowWidth >= 600" class="suggestion">
       Meintest du vielleicht
       <span
           v-for="(s, idx) in suggestions"
@@ -68,10 +81,16 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted} from 'vue'
+import {ref, computed, onMounted, onUnmounted} from 'vue'
 import { supabase} from "../../composables/Datatable";
 import { ArrowLeftRight} from "lucide-vue-next";
 import InfoPop from '../../components/info/InfoModalCenter.vue'
+
+const windowWidth = ref(window.innerWidth)
+
+const updateWidth = () => {
+  windowWidth.value = window.innerWidth
+}
 
 const persons = ref([])
 
@@ -103,16 +122,17 @@ const shortExamples = ['HO', 'FS', 'AY', 'SM', 'AN']
 const nameExamples = ['Frau Hoffmann', 'Herr Fischer', 'Frau Aydem', 'Frau Simsek', 'Herr Al-Najjar']
 
 function setRandomPlaceholder() {
+  const randomIndex = Math.floor(Math.random() * shortExamples.length);
+
+  const randomShort = shortExamples[randomIndex];
+  const randomName = nameExamples[randomIndex];
+
   if (mode.value === 'shortToName') {
-    const randomShort = shortExamples[Math.floor(Math.random() * shortExamples.length)]
-    currentPlaceholder.value = `${randomShort}...`
-    const randomName = nameExamples[Math.floor(Math.random() * nameExamples.length)]
-    otherPlaceholder.value = `${randomName}`
+    currentPlaceholder.value = `${randomShort}...`;
+    otherPlaceholder.value = randomName;
   } else {
-    const randomName = nameExamples[Math.floor(Math.random() * nameExamples.length)]
-    currentPlaceholder.value = `${randomName}...`
-    const randomShort = shortExamples[Math.floor(Math.random() * shortExamples.length)]
-    otherPlaceholder.value = `${randomShort}`
+    currentPlaceholder.value = `${randomName}...`;
+    otherPlaceholder.value = randomShort;
   }
 }
 
@@ -208,6 +228,11 @@ function toggleMode() {
 onMounted(() => {
   loadPeople();
   setRandomPlaceholder();
+  window.addEventListener('resize', updateWidth)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateWidth)
 })
 </script>
 
