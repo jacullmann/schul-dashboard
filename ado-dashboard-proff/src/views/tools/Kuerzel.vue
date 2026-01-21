@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="card-top">
-      <h2 style="margin-top:0" class="title-inf">
+      <h2 style="margin-bottom: 16px" class="title-inf">
         Kürzelfinder
         <InfoPop tooltip="Kürzelfinder Info" title="Kürzelfinder">
           <p style="margin-top: 0;">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
@@ -28,18 +28,6 @@
             class="input"
             :placeholder="currentPlaceholder"
         />
-        <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
-          Meintest du vielleicht
-          <span
-              v-for="(s, idx) in suggestions"
-              :key="idx"
-              @click="applySuggestion(s)"
-              class="suggestion-link"
-          >
-            {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
-          </span>
-          ?
-        </div>
       </div>
 
       <div class="switch-col">
@@ -60,6 +48,19 @@
             :value="outputValue"
             readonly
         />
+      </div>
+
+      <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion">
+        Meintest du vielleicht
+        <span
+            v-for="(s, idx) in suggestions"
+            :key="idx"
+            @click="applySuggestion(s)"
+            class="suggestion-link"
+        >
+            {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
+          </span>
+        ?
       </div>
     </div>
   </div>
@@ -207,7 +208,7 @@ onMounted(() => {
 <style scoped>
 
 .input {
-  margin-top: 5px;
+  margin-top: 6px;
 }
 .row {
   display: flex;
@@ -247,7 +248,7 @@ onMounted(() => {
   width: 22px;
   height: 22px;
   color: var(--sub);
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition: color 0.3s ease, transform 0.2s cubic-bezier(0.66, 0, 0.34, 1);
 }
 
 .switch-btn:hover .switch-icon {
@@ -260,14 +261,14 @@ onMounted(() => {
 
 .suggestion {
   margin-top: 8px;
-  color: var(--danger);
+  color: var(--sub);
   font-style: italic;
+  font-size: var(--font-size-sub);
 }
 .suggestion-link {
   cursor: pointer;
-  color: var(--primary);
+  color: var(--text);
   font-weight: bold;
-  margin-left: 4px;
 }
 
 @media (max-width: 600px) {

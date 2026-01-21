@@ -44,7 +44,7 @@
 
           <select class="input select-subject hover" v-model="subjectFilter">
             <option value="">Alle Fächer</option>
-            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
+            <option v-for="s in subjects" :key="s" :value="s">{{ formatSubjectDisplay(s) }}</option>
           </select>
           <OldNewSwitch v-model="showOldEntries" />
           <CreateEntryDropdown
@@ -86,7 +86,7 @@
             </div>
 
             <div class="row-n item-badges" :class="{ collapsed: isChecked(item.id) }">
-              <div class="badge subject-badge">{{ item.subject }}</div>
+              <div class="badge subject-badge">{{ formatSubjectDisplay(item.subject) }}</div>
               <div class="badge time-badge" :style="colorStyles(item.timeColor)">
                 {{ new Date(item.dueDate).toLocaleDateString() }}
               </div>
@@ -117,7 +117,7 @@
         </div>
 
         <transition name="collapse">
-          <div v-show="!isChecked(item.id)" class="item-body">
+          <div v-show="!isChecked(item.id) && item.description.length" class="item-body">
             <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
             <span v-else-if="item.description.length">{{ item.description }}</span>
             <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
@@ -318,16 +318,41 @@ import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseud
 import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 import DeleteImageModal from '../components/hw/DeleteImageModal.vue'
+import { formatSubjectDisplay } from '../composables/useSubjectFormatter';
 
 const {
-  MAX_TITLE_LENGTH, MAX_SUBJECT_LENGTH, showItemForm,
-  // showImageFormFor, // Removed
-  itemToEdit, user, subjects, items, loading, initialLoad, subjectFilter, showPersonalized, onPersonalizationChanged,
-  showOldEntries, showSetupModal, message, isError, itemFormKey, visibleCount, limitedItems,
-  filteredItems, showReportConfirm, reportReason, tab, openMenuId, isExpanded, toggleDescription,
-  showMore, showLess, colorFor, colorStyles, toggleMenu, onMenuAction, onAccountDeleted,
-  onAccountDeleteError, openSetupModal, logout, onLoggedIn, handleSuccess, onItemFormError,
-  openCreateForm, canEdit,
+  MAX_TITLE_LENGTH,
+  MAX_SUBJECT_LENGTH,
+  showItemForm,
+  itemToEdit,
+  user,
+  subjects,
+  items,
+  loading,
+  initialLoad,
+  subjectFilter,
+  showOldEntries,
+  showSetupModal,
+  message, isError,
+  itemFormKey,
+  visibleCount,
+  limitedItems,
+  filteredItems,
+  showReportConfirm,
+  reportReason,
+  tab,
+  openMenuId,
+  isExpanded,
+  toggleDescription,
+  showMore,
+  showLess,
+  colorStyles,
+  toggleMenu,
+  onMenuAction,
+  logout,
+  handleSuccess,
+  onItemFormError,
+  canEdit,
   canDelete,
   canDeleteImage,
   canEditNote,
@@ -336,16 +361,26 @@ const {
   savingNote,
   startEditNote,
   cancelEditNote,
-  saveNote, goTab, isChecked, toggleCheck, makeThumb,
-  isRevealed, revealImages, onSetupSuccess, doReport, cancelReport,
+  saveNote,
+  goTab,
+  isChecked,
+  toggleCheck,
+  makeThumb,
+  isRevealed,
+  revealImages,
+  onSetupSuccess,
+  doReport,
+  cancelReport,
   showTodoForm,
   todoToEdit,
   openCreateFormByType,
-  handleTodoSuccess, itemFormType, openEditTodo, todoAppRef, showDeleteConfirm,
+  handleTodoSuccess,
+  itemFormType,
+  openEditTodo,
+  todoAppRef,
+  showDeleteConfirm,
   confirmDelete,
   cancelDelete,
-  refreshItem,
-  // New imports for Menu
   imageMenu,
   openImageMenu,
   closeImageMenu,
@@ -354,7 +389,6 @@ const {
   showImageDeleteConfirm,
   confirmImageDelete,
   cancelImageDelete,
-  // New imports for Image Viewer
   showImageViewer,
   viewerImages,
   viewerStartIndex,

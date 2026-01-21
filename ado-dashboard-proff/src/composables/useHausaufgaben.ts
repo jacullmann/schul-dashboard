@@ -648,7 +648,6 @@ export function useHausaufgaben() {
         MAX_SUBJECT_LENGTH,
         showItemForm,
         showAnnouncementForm,
-        // showImageFormFor, REMOVED
         itemToEdit,
         user,
         subjects,
@@ -656,7 +655,6 @@ export function useHausaufgaben() {
         loading,
         subjectFilter,
         showPersonalized,
-        onPersonalizationChanged,
         showOldEntries,
         message,
         isError,
@@ -675,11 +673,7 @@ export function useHausaufgaben() {
         colorStyles,
         toggleMenu,
         onMenuAction,
-        onAccountDeleted,
-        onAccountDeleteError,
-        openSetupModal,
         logout,
-        onLoggedIn,
         handleSuccess,
         onItemFormError,
         canEdit,
@@ -701,7 +695,6 @@ export function useHausaufgaben() {
         onSetupSuccess,
         doReport,
         cancelReport,
-        onDocumentClick,
         showTodoForm,
         todoToEdit,
         openCreateFormByType,
@@ -713,8 +706,6 @@ export function useHausaufgaben() {
         confirmDelete,
         cancelDelete,
         initialLoad,
-        refreshItem,
-        // New exports for image menu
         imageMenu,
         openImageMenu,
         closeImageMenu,
@@ -723,11 +714,11 @@ export function useHausaufgaben() {
         showImageDeleteConfirm,
         confirmImageDelete,
         cancelImageDelete,
-        // Image Viewer exports
         showImageViewer,
         viewerImages,
         viewerStartIndex,
         openImageViewer,
         closeImageViewer,
+        showSetupModal
     };
 }

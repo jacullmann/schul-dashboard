@@ -116,7 +116,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import hw from '../../hwApi';
-import type { HwItem } from './Hausaufgaben.vue';
+import type { HwItem } from '../../composables/useHausaufgaben';
 import { containsProfanity } from '../../composables/useProfanity';
 import { useImageUploadStore } from '../../stores/imageStore';
 
