@@ -10,10 +10,6 @@
           <div class="menu-actions">
             <div class="user-section">
               <div class="user-email" :title="email">{{ email }}</div>
-              <div v-if="userData?.mfaEnabled" class="mfa-badge">
-                <ShieldCheck :size="12" />
-                2FA
-              </div>
             </div>
             <div class="menu-divider"></div>
             <button
@@ -38,7 +34,8 @@
                 @click="openSecurity"
             >
               <div class="menu-btn-content">
-                <Shield size="18px"/>
+                <ShieldCheck v-if="userData?.mfaEnabled" size="18px"/>
+                <Shield v-else size="18px"/>
                 Sicherheit
               </div>
             </button>
@@ -330,19 +327,6 @@ onBeforeUnmount(() => {
   flex: 1;
 }
 
-.mfa-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  background: var(--special--green--background);
-  color: var(--special--green);
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
 .menu-actions {
   display: flex;
   flex-direction: column;
@@ -438,8 +422,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 480px) {
   .popup {
-    top: 20% !important;
-    width: calc(100vw - 24px) !important;
+    width: calc(100vw - 32px) !important;
   }
 
   .pop-enter-active, .pop-leave-active {
