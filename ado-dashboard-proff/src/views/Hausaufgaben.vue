@@ -580,6 +580,8 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 .tiny:hover {
   background: transparent;
   color: var(--text);
+  border: none;
+  padding: 0;
 }
 .item-menu.open {
   display: flex;
