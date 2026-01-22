@@ -20,8 +20,7 @@
           @click="startSetup"
           :disabled="loading"
       >
-        <Shield :size="18" />
-        MFA aktivieren
+        2FA aktivieren
       </button>
     </div>
 
@@ -65,7 +64,7 @@
         </div>
 
         <div class="timer-info" v-if="expiresAt">
-          <Clock :size="14" />
+          <Clock :size="16" />
           <span>Gültig für {{ remainingTime }}</span>
         </div>
 
@@ -79,7 +78,7 @@
       <div v-if="setupStep === 2" class="verify-section">
         <p class="instruction">
           Gib den 6-stelligen Code aus deiner Authenticator-App ein,
-          um das Setup abzuschließen.
+          um die Einrichtung abzuschließen.
         </p>
 
         <div class="code-input-wrapper">
@@ -124,7 +123,7 @@
           @click="startDeactivate"
       >
         <ShieldOff :size="18" />
-        MFA deaktivieren
+        2FA deaktivieren
       </button>
     </div>
 
@@ -405,7 +404,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 12px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 12px;
@@ -422,7 +421,7 @@ onUnmounted(() => {
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--gg);
   color: var(--sub);
 }
@@ -458,6 +457,7 @@ onUnmounted(() => {
   color: var(--sub);
   line-height: 1.5;
   margin: 0;
+  font-family: var(--normal-font), sans-serif;
 }
 
 .action-section {
@@ -548,13 +548,14 @@ onUnmounted(() => {
   line-height: 1.5;
   margin: 0;
   text-align: center;
+  font-family: var(--normal-font), sans-serif;;
 }
 
 .qr-container {
   display: flex;
   justify-content: center;
-  padding: 16px;
-  background: white;
+  padding: 8px;
+  background: #fff;
   border-radius: 12px;
   margin: 0 auto;
 }
@@ -581,7 +582,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 4px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 8px;
@@ -591,19 +592,21 @@ onUnmounted(() => {
   font-family: 'SF Mono', Monaco, monospace;
   font-size: var(--font-size-sub);
   color: var(--text);
-  letter-spacing: 0.5px;
+  letter-spacing: 4px;
+  padding-left: 8px;
+  padding-block: 6px;
 }
 
 .copy-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 8px;
   background: none;
   border: none;
   color: var(--sub);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   transition: all 0.2s;
 }
 
@@ -619,6 +622,7 @@ onUnmounted(() => {
   gap: 6px;
   font-size: var(--font-size-sub);
   color: var(--sub);
+  font-family: var(--normal-font), sans-serif;
 }
 
 .step-actions {
@@ -635,13 +639,13 @@ onUnmounted(() => {
 
 .code-input {
   width: 180px;
-  padding: 12px 16px;
+  padding: 12px;
   font-size: 24px;
   font-family: 'SF Mono', Monaco, monospace;
   letter-spacing: 8px;
   text-align: center;
   background: var(--vlbg);
-  border: 2px solid var(--border2);
+  border: 1px solid var(--border2);
   border-radius: 12px;
   color: var(--text);
   transition: border-color 0.2s;
@@ -710,7 +714,7 @@ onUnmounted(() => {
 .btn.danger {
   background: var(--danger);
   border-color: var(--danger);
-  color: white;
+  color: #fff;
 }
 
 .btn.danger:hover {
