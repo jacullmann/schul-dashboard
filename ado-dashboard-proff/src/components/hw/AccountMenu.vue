@@ -422,9 +422,13 @@ onBeforeUnmount(() => {
 
 @media (max-width: 480px) {
   .popup-inner {
-    width: calc(100vw - 32px) !important;
+    min-width: 100%;
   }
-
+  .popup {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
   .pop-enter-active, .pop-leave-active {
     transform-origin: top center;
   }
