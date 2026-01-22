@@ -16,8 +16,8 @@
       <div style="margin-top:16px; font-family: var(--normal-font), sans-serif;">
         <div class="warning-box">
           <strong style="font-family: var(--normal-font), sans-serif; font-size: var(--font-size-title)">Account unwiderruflich löschen?</strong>
-          <br>
           <div class="user-email">E-Mail: {{ email }}</div>
+          <br>
           <div class="warning-text">
             Wenn du dein Konto löschst, wird dieses mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Konto geschlossen wird.
             <br><br>
