@@ -421,7 +421,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 480px) {
-  .popup {
+  .popup-inner {
     width: calc(100vw - 32px) !important;
   }
 
