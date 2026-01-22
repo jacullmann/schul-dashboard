@@ -85,18 +85,18 @@ const quotes: Quote[] = [
     condition: isEarlyWeekday
   },
   { text: 'Schneller als deutsche Bürokratie (immerhin)' },
-  { text: 'Das Schweizer Taschenmesser für die Schule.' },
+  { text: 'Das Schweizer Taschenmesser für die Schule' },
   { text: 'Wake Up Mr. West!' },
   { text: 'listen to the kids' },
   { text: 'und dann?' },
   { text: 'Wer ist der King of Rap?' },
   { text: 'Ich bin ein Berliner!' },
   { text: 'Niemand hat die Absicht eine Mauer zu errichten.' },
-  { text: 'I have a dream.' },
+  { text: 'I have a dream' },
   { text: 'Weil Menschen Fehler machen.' },
   { text: 'Lade dein Chaos in die Cloud hoch!' },
   { text: 'Verbring mehr Zeit mit deiner Familie – Schul Dashboard' },
-  { text: 'Nie ohne Seife waschen.' },
+  { text: 'Nie ohne Seife waschen' },
   { text: 'Jetzt im Kino!' },
   {
     text: 'Ho ho ho!',
@@ -134,6 +134,7 @@ const quotes: Quote[] = [
   { text: 'Dashboard benutzen oder Dashboard nicht benutzen, das ist hier die Frage.'},
   { text: "I'm going to make him an offer he can't refuse"},
   { text: 'Ein kleiner Schritt für die Menschheit, ein großer für einen Schüler – Dashboard'},
+  { text: 'ähm... sozusagen'},
 ];
 
 /**
