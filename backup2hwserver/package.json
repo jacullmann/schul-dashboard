@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@google/genai": "^1.35.0",
+    "@otplib/preset-v11": "^13.1.1",
     "@supabase/supabase-js": "^2.76.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.8.0",
@@ -23,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
     "morgan": "^1.10.0",
+    "qrcode": "^1.5.4",
     "resend": "^6.6.0",
     "sanitize-html": "^2.17.0",
     "socket.io": "^4.8.1"

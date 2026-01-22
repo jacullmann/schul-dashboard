@@ -10,6 +10,10 @@
           <div class="menu-actions">
             <div class="user-section">
               <div class="user-email" :title="email">{{ email }}</div>
+              <div v-if="userData?.mfaEnabled" class="mfa-badge">
+                <ShieldCheck :size="12" />
+                2FA
+              </div>
             </div>
             <div class="menu-divider"></div>
             <button
@@ -28,6 +32,16 @@
                 @change="onPersonalizationChange"
             />
             <div class="menu-divider"></div>
+            <button
+                data-umami-event="Sicherheit Button"
+                class="menu-btn"
+                @click="openSecurity"
+            >
+              <div class="menu-btn-content">
+                <Shield size="18px"/>
+                Sicherheit
+              </div>
+            </button>
 
             <button
                 data-umami-event="Passwort ändern Button"
@@ -76,6 +90,13 @@
         @close="showChangePassword = false"
         @success="onPasswordChanged"
     />
+    <!-- Sicherheits-Modal -->
+    <SecurityModal
+        v-if="showSecurity"
+        :initial-mfa-enabled="userData?.mfaEnabled"
+        @close="showSecurity = false"
+        @mfa-changed="onMfaChanged"
+    />
     <!-- Account löschen Modal -->
     <DeleteAccountModal
         v-if="showDeleteAccount"
@@ -89,10 +110,11 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, CircleUserRound } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, CircleUserRound, Shield, ShieldCheck } from "lucide-vue-next";
 import ChangePasswordModal from './ChangePasswordModal.vue';
 import DeleteAccountModal from './DeleteAccountModal.vue';
 import PersonalizationDropdown from './PersonalizationDropdown.vue';
+import SecurityModal from './SecurityModal.vue';
 
 const props = defineProps<{
   email: string;
@@ -105,6 +127,7 @@ const emit = defineEmits<{
   (e: 'openSetup'): void;
   (e: 'logout'): void;
   (e: 'personalizationChanged', value: boolean): void;
+  (e: 'mfaChanged', value: boolean): void;
 }>();
 
 const personalizationSetting = computed({
@@ -121,6 +144,7 @@ const errorMsg = ref('');
 const successMsg = ref('');
 const showChangePassword = ref(false);
 const showDeleteAccount = ref(false);
+const showSecurity = ref(false);
 
 const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
@@ -139,6 +163,15 @@ function openSetup() {
 function openChangePassword() {
   showChangePassword.value = true;
   close();
+}
+
+function openSecurity() {
+  showSecurity.value = true;
+  close();
+}
+
+function onMfaChanged(enabled: boolean) {
+  emit('mfaChanged', enabled);
 }
 
 function onPasswordChanged() {
@@ -280,6 +313,13 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-s);
 }
 
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+}
+
 .user-email {
   font-weight: 600;
   font-size: var(--font-size-sub);
@@ -287,7 +327,20 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 4px 8px;
+  flex: 1;
+}
+
+.mfa-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: var(--special--green--background);
+  color: var(--special--green);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .menu-actions {

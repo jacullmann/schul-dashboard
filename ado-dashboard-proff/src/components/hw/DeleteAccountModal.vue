@@ -15,12 +15,13 @@
 
       <div style="margin-top:16px; font-family: var(--normal-font), sans-serif;">
         <div class="warning-box">
-          <strong style="font-family: var(--normal-font), sans-serif;">Account unwiderruflich löschen?</strong>
+          <strong style="font-family: var(--normal-font), sans-serif; font-size: var(--font-size-title)">Account unwiderruflich löschen?</strong>
+          <br>
           <div class="user-email">E-Mail: {{ email }}</div>
           <div class="warning-text">
-            Wenn du deinen Account löschst, wird dieser mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Account geschlossen wird.
+            Wenn du dein Konto löschst, wird dieses mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Konto geschlossen wird.
             <br><br>
-            Du kannst jederzeit einen neuen Account erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Account verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
+            Du kannst jederzeit einneues Konto erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Konto verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
           </div>
         </div>
 
@@ -30,7 +31,7 @@
               v-model="understoodChecked"
           >
           <span class="vis-label"></span>
-          <span class="checkbox-text">Ich verstehe, dass ich hiermit meinen Account unwiderruflich lösche.</span>
+          <span class="checkbox-text">Ich verstehe, dass ich hiermit mein Konto unwiderruflich lösche.</span>
         </label>
 
         <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
@@ -111,7 +112,7 @@ async function confirmDelete() {
 .modal {
   width: 100%;
   max-width: 480px;
-  padding: 20px;
+  padding: 16px;
   border-radius: 16px;
   background: var(--lbg);
   color: var(--text);
@@ -130,17 +131,16 @@ async function confirmDelete() {
   color: var(--special--red);
   display: block;
   margin-bottom: 8px;
-  font-size: 15px;
 }
 
 .user-email {
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   color: var(--text);
-  margin-bottom: 12px;
+  font-weight: 700;
 }
 
 .warning-text {
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   color: var(--text);
   line-height: 1.5;
 }
@@ -150,7 +150,6 @@ async function confirmDelete() {
   align-items: center;
   cursor: pointer;
   margin-top: 16px;
-  padding: 8px 0;
   gap: 10px;
 }
 
@@ -201,19 +200,19 @@ async function confirmDelete() {
 }
 
 .checkbox-text {
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   color: var(--text);
   user-select: none;
 }
 
 .action-buttons {
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .message {
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: var(--border-4);
   text-align: center;
   margin-top: 16px;
 }
@@ -232,15 +231,6 @@ async function confirmDelete() {
   .modal {
     max-width: 92vw;
     padding: 16px;
-  }
-
-  .action-buttons {
-    flex-direction: column-reverse;
-  }
-
-  .action-buttons .btn {
-    width: 100%;
-    justify-content: center;
   }
 }
 </style>

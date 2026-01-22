@@ -21,3 +21,16 @@ export const passwordResetLimiter = rateLimit({
     max: 10,
     message: { error: 'Zu viele Anfragen. Bitte warte kurz.' }
 });
+
+export const mfaVerifyLimiter = rateLimit({
+    windowMs: 60_000, // 1 Minute
+    max: 5, // 5 Versuche
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        error: 'Zu viele Versuche. Bitte warte kurz.'
+    },
+    keyGenerator: (req) => {
+        return req.ip || 'unknown';
+    }
+});

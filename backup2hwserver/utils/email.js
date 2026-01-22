@@ -56,8 +56,32 @@ export function createEmailService({ resendClient, emailConfigured, emailFrom })
         return data;
     }
 
+    async function sendSecurityEmail(to) {
+        if (!emailConfigured) throw new Error('E-Mail-Service nicht konfiguriert');
+
+        const { data, error } = await resendClient.emails.send({
+            from: emailFrom,
+            to: [to],
+            subject: 'Dein Passwort wurde zurückgesetzt',
+            html: `
+            <h3>Wichtige Sicherheitsmeldung<h3>
+            <p>Soeben wurde ein erfolgreiches Passwortreset deines Kontos durchgeführt. Wenn die Zwei-Faktor-Authentifizierung für dein Konto aktiviert war, ist es dies nun NICHT mehr.</p>
+            <p>Wenn du die Zwei-Faktor-Authentifizierung wieder aktivieren willst, kannst du dies jederzeit manuell in den Accounteinstellungen tun.</p>
+            <p>Falls du den Passwortreset nicht veranlasst hast, kontaktiere sofort den Support.</p>
+        `
+        });
+
+        if (error) {
+            console.error('Security email error:', error);
+            throw new Error(`E-Mail-Versand fehlgeschlagen: ${error.message}`);
+        }
+
+        return data;
+    }
+
     return {
         sendVerificationEmail,
-        sendPasswordResetEmail
+        sendPasswordResetEmail,
+        sendSecurityEmail
     };
 }

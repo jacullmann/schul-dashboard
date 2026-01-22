@@ -150,8 +150,10 @@ async function onPrimary() {
     }
     submitting.value = true;
     try {
-      await hw.post('/api/auth/reset', { resetToken: savedResetToken, password: password.value });
-      setMessage('Passwort erfolgreich geändert. Du kannst dich nun einloggen.', false);
+      const { data } = await hw.post('/api/auth/reset', { resetToken: savedResetToken, password: password.value });
+      // MFA wurde deaktiviert
+      const msg = data.message || 'Passwort erfolgreich geändert. Du kannst dich nun einloggen.';
+      setMessage(msg, false);
       emit('success');
       setTimeout(() => emit('close'), 800);
     } catch (e:any) {

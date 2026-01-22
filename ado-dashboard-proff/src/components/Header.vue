@@ -43,6 +43,7 @@
             @open-setup="openSetupModal"
             @logout="logout"
             @personalization-changed="onPersonalizationChanged"
+            @mfa-changed="onMfaChanged"
         />
 
         <button
@@ -96,6 +97,8 @@ import { X, Menu } from 'lucide-vue-next';
 import hw from '../hwApi';
 import LoadingSpinner from "./LoadingSpinner.vue";
 import { useGlobalAuthModal } from '../composables/useGlobalAuthModal';
+import { useMfa } from '../composables/useMfa';
+const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
 const { user, loading, needsSetup, hasShownSetup } = storeToRefs(userStore);
@@ -119,6 +122,10 @@ function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
 }
 
+function onMfaChanged(enabled: boolean) {
+  userStore.setMfaEnabled(enabled);
+}
+
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && navOpen.value) closeNav();
 };
@@ -131,6 +138,7 @@ async function logout() {
     console.error('Logout failed:', err);
   } finally {
     userStore.clearUser();
+    resetMfaState();
   }
 }
 

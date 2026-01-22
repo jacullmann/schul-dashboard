@@ -14,6 +14,7 @@ import { sendJSONError, validate, requireAdmin, isValidCloudinaryUrl, validateIt
 import { encryptData, decryptData } from './utils/encryption.js';
 import { createEmailService } from './utils/email.js';
 import { filterLessonsForUser } from './utils/helpers.js';
+import { configureOtplib } from './middleware/mfaAuth.js';
 
 import createAppGateRoutes from './routes/appGate.js';
 import createSystemRoutes from './routes/system.js';
@@ -23,6 +24,7 @@ import createTodosRoutes from './routes/todos.js';
 import createUserRoutes from './routes/user.js';
 import createItemsRoutes from './routes/items.js';
 import createPublicRoutes from './routes/public.js';
+import createMfaRoutes from './routes/mfa.js';
 
 export default function registerRoutes(app, deps) {
     const {
@@ -39,6 +41,9 @@ export default function registerRoutes(app, deps) {
         csrfSecret,
         passwordResetSecret
     } = deps;
+
+    // OTPlib konfigurieren
+    configureOtplib();
 
     // E-Mail-Service initialisieren
     const emailService = createEmailService({
@@ -93,5 +98,6 @@ export default function registerRoutes(app, deps) {
     app.use('/api/todos', createTodosRoutes(routeDeps));
     app.use('/api/user', createUserRoutes(routeDeps));
     app.use('/api/items', createItemsRoutes(routeDeps));
+    app.use('/api/mfa', createMfaRoutes(routeDeps));
     app.use('/', createPublicRoutes(routeDeps));
 }

@@ -51,12 +51,46 @@ export function initModels(mongoose) {
         theater: { type: Number, default: 0 },
         doneSetup: { type: Boolean, default: false },
         personalized: { type: Boolean, default: true },
+        mfaEnabled: { type: Boolean, default: false },
+        mfaSecret: {
+            type: {
+                iv: String,
+                data: String,
+                authTag: String
+            },
+            default: null
+        },
         activity: [{
             at: { type: Date, default: Date.now },
             type: { type: String },
             meta: { type: Schema.Types.Mixed }
         }]
     }, { timestamps: true });
+
+    const MfaPendingSecretSchema = new Schema({
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'HwUser',
+            required: true,
+            unique: true,
+            index: true
+        },
+        encryptedSecret: {
+            type: {
+                iv: String,
+                data: String,
+                authTag: String
+            },
+            required: true
+        },
+        expiresAt: {
+            type: Date,
+            required: true,
+            index: true
+        }
+    }, { timestamps: true }); // SEHR WICHTIG: ES muss nochmal rübergechaut werden, wie das mit dem automatischen löschen alter dokumente läuft. am besten ohne komplexe ttl indexe sondern direkt im code
+    MfaPendingSecretSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    const MfaPendingSecret = mongoose.model('HwMfaPendingSecret', MfaPendingSecretSchema);
 
     const BannedUserSchema = new Schema({
         userId: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true, unique: true, required: true },
@@ -193,7 +227,8 @@ export function initModels(mongoose) {
         PasswordReset,
         EncryptedTodo,
         TimetableSub,
-        Timetable
+        Timetable,
+        MfaPendingSecret // NEU: MFA Pending Secret Model
     };
 }
 

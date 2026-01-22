@@ -4,6 +4,13 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import dayjs from 'dayjs';
+import { authenticator } from '@otplib/preset-v11';
+import { mfaVerifyLimiter } from '../middleware/rateLimiters.js'
+import {
+    generateMfaPendingToken,
+    clearMfaPendingToken,
+    verifyMfaPendingToken
+} from '../middleware/mfaAuth.js';
 
 export default function createAuthRoutes(deps) {
     const router = Router();
@@ -24,12 +31,13 @@ export default function createAuthRoutes(deps) {
         authLimiter,
         passwordResetLimiter,
         sendJSONError,
-        validate
+        validate,
+        decryptData
     } = deps;
 
-    const { User, BannedUser, Verification, PasswordReset, KeepChecked, EncryptedTodo } = models;
+    const { User, BannedUser, Verification, PasswordReset, KeepChecked, EncryptedTodo, MfaPendingSecret } = models;
 
-    // POST /api/auth/login
+    // POST /api/auth/login mit MFA
     router.post('/login',
         authLimiter,
         requireAppGate(appGateSecret),
@@ -39,17 +47,112 @@ export default function createAuthRoutes(deps) {
         validate,
         async (req, res) => {
             const { email, password } = req.body;
-            const user = await User.findOne({ email: email.toLowerCase() });
+            const user = await User.findOne({ email: email.toLowerCase() })
+                .select('passwordHash emailVerified mfaEnabled mfaSecret email');
+
             if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
             const ok = await bcrypt.compare(password, user.passwordHash);
             if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
             if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
             const isBanned = await BannedUser.findOne({ userId: user._id }).lean();
             if (isBanned) return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
+
+            // MFA-Check
+            if (user.mfaEnabled && user.mfaSecret) {
+                // Wenn MFA aktiviert ist Pending-Token setzen, aber noch kein User-Token
+                generateMfaPendingToken(res, user._id, email, passwordResetSecret);
+
+                return res.json({
+                    ok: true,
+                    requiresMfa: true,
+                    message: 'MFA-Verifizierung erforderlich'
+                });
+            }
+            // Normal einloggen
+            // Normal einloggen
             setUserToken(res, user._id, user.email, userSecret);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
+            await MfaPendingSecret.deleteMany({ userId: user._id });
             res.json({ ok: true, csrfToken: newCsrfToken });
+        }
+    );
+
+    // POST /api/auth/mfa/verify – MFA-Code verifizieren beim Login
+    router.post('/mfa/verify',
+        mfaVerifyLimiter,
+        requireAppGate(appGateSecret),
+        validateCsrf(csrfSecret),
+        verifyMfaPendingToken(passwordResetSecret),
+        body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
+        validate,
+        async (req, res) => {
+            try {
+                const { code } = req.body;
+                const userId = req.mfaPending.sub;
+                const email = req.mfaPending.email;
+
+                // User laden
+                const user = await User.findById(userId)
+                    .select('mfaEnabled mfaSecret');
+
+                if (!user || !user.mfaEnabled || !user.mfaSecret) {
+                    clearMfaPendingToken(res);
+                    await new Promise(r => setTimeout(r, 100 + Math.random() * 100));
+                    return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
+                }
+                const secret = await decryptData(user.mfaSecret, userId);
+                const isValid = authenticator.check(code, secret);
+
+                if (!isValid) {
+                    await User.findByIdAndUpdate(userId, {
+                        $push: {
+                            activity: {
+                                at: new Date(),
+                                type: 'auth:mfa_login_failed',
+                                meta: { ip: req.ip }
+                            }
+                        }
+                    });
+                    await new Promise(r => setTimeout(r, 100 + Math.random() * 100));
+                    return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
+                }
+
+                // Wenn isvalid true ist Pending-Token löschen und User-Token setzen
+                clearMfaPendingToken(res);
+                setUserToken(res, userId, email, userSecret);
+                const newCsrfToken = rotateCsrfToken(res, csrfSecret);
+
+                // LastLogin aktualisieren und MfaPendingSecret bereinigen
+                await User.findByIdAndUpdate(userId, { $set: { lastLoginAt: new Date() } });
+                await MfaPendingSecret.deleteMany({ userId });
+
+                // loggen
+                await User.findByIdAndUpdate(userId, {
+                    $push: {
+                        activity: {
+                            at: new Date(),
+                            type: 'auth:mfa_login',
+                            meta: {}
+                        }
+                    }
+                });
+
+                res.json({ ok: true, csrfToken: newCsrfToken });
+            } catch (err) {
+                console.error('POST /api/auth/mfa/verify error', err);
+                sendJSONError(res, 500, 'Serverfehler');
+            }
+        }
+    );
+
+    // POST /api/auth/mfa/cancel - MFA-Login abbrechen
+    router.post('/mfa/cancel',
+        requireAppGate(appGateSecret),
+        validateCsrf(csrfSecret),
+        (req, res) => {
+            clearMfaPendingToken(res);
+            res.json({ ok: true });
         }
     );
 
@@ -95,6 +198,7 @@ export default function createAuthRoutes(deps) {
         validateCsrf(csrfSecret),
         (req, res) => {
             clearUserToken(res);
+            clearMfaPendingToken(res); // MFA-Pending-Token löschen
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
@@ -124,7 +228,8 @@ export default function createAuthRoutes(deps) {
                     wpuKurs2: user.wpuKurs2,
                     theater: user.theater,
                     doneSetup: !!user?.doneSetup,
-                    personalized: user.personalized !== false
+                    personalized: user.personalized !== false,
+                    mfaEnabled: !!user.mfaEnabled // MFA-Status zurückgeben
                 });
             } catch (err) {
                 console.error('GET /api/auth/me error', err);
@@ -144,10 +249,13 @@ export default function createAuthRoutes(deps) {
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
                 if (user.isAdmin) return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
                 const userId = user._id;
+                const { MfaPendingSecret } = models;
                 await KeepChecked.deleteMany({ userId });
                 await EncryptedTodo.deleteMany({ userId });
+                await MfaPendingSecret.deleteMany({ userId });
                 await User.deleteOne({ _id: userId });
                 clearUserToken(res);
+                clearMfaPendingToken(res); // Bereinigen
                 rotateCsrfToken(res, csrfSecret);
                 res.json({ ok: true });
             } catch (err) {
@@ -204,6 +312,7 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/reset/verify
     router.post('/reset/verify',
+        passwordResetLimiter,
         requireAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
@@ -236,6 +345,7 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/reset
     router.post('/reset',
+        passwordResetLimiter,
         requireAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('resetToken').isString(),
@@ -257,17 +367,29 @@ export default function createAuthRoutes(deps) {
                 const user = await User.findOne({ email });
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
                 const passwordHash = await bcrypt.hash(password, 12);
-                await User.findByIdAndUpdate(user._id, { $set: { passwordHash } });
+                await User.findByIdAndUpdate(user._id, {
+                    $set: {
+                        passwordHash,
+                        mfaEnabled: false
+                    },
+                    $unset: { mfaSecret: 1 }
+                });
                 await User.findByIdAndUpdate(user._id, {
                     $push: {
                         activity: {
                             at: new Date(),
                             type: 'account:password_reset',
-                            meta: { by: 'self' }
+                            meta: { by: 'self', mfaWasEnabled: !!user.mfaEnabled, mfaDisabled: true }
                         }
                     }
                 });
-                res.json({ ok: true, message: 'Passwort wurde geändert.' });
+                // Info email an den user, um über das passwort reset und seine wirkung, dass mfa deaktiviert wird, zu informieren (NOCHMAL ÜBERPRÜFEN OB ALLES KORREKT IMPLEMENTIERT IST)
+                try {
+                    await emailService.sendSecurityEmail(user.email)
+                } catch (e) {
+                    console.error('Security alert email failed.', e);
+                }
+                res.json({ ok: true, message: 'Passwort wurde geändert. MFA wurde deaktiviert.' });
             } catch (err) {
                 console.error('POST /api/auth/reset error', err);
                 sendJSONError(res, 500, 'Server error');
@@ -277,6 +399,7 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/change-password
     router.post('/change-password',
+        authLimiter,
         requireAppGate(appGateSecret),
         requireUser(userSecret, BannedUser, User),
         validateCsrf(csrfSecret),

@@ -13,6 +13,7 @@ interface UserData {
     theater: number;
     doneSetup: boolean;
     personalized: boolean;
+    mfaEnabled: boolean;
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -24,6 +25,7 @@ export const useUserStore = defineStore('user', () => {
     const isLoggedIn = computed(() => user.value !== null);
     const isAdmin = computed(() => user.value?.isAdmin === true);
     const needsSetup = computed(() => user.value !== null && !user.value.doneSetup);
+    const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
 
     async function fetchUser(): Promise<void> {
         if (loading.value) return;
@@ -41,7 +43,8 @@ export const useUserStore = defineStore('user', () => {
                     wpuKurs2: data.wpuKurs2,
                     theater: data.theater,
                     doneSetup: data.doneSetup,
-                    personalized: data.personalized
+                    personalized: data.personalized,
+                    mfaEnabled: data.mfaEnabled ?? false
                 };
             } else {
                 user.value = null;
@@ -70,6 +73,11 @@ export const useUserStore = defineStore('user', () => {
         hasShownSetup.value = true;
     }
 
+    function setMfaEnabled(enabled: boolean): void {
+        if (user.value) {
+            user.value.mfaEnabled = enabled;
+        }
+    }
     return {
         user,
         loading,
@@ -78,9 +86,11 @@ export const useUserStore = defineStore('user', () => {
         isLoggedIn,
         isAdmin,
         needsSetup,
+        mfaEnabled,
         fetchUser,
         clearUser,
         updateUser,
-        markSetupShown
+        markSetupShown,
+        setMfaEnabled
     };
 });

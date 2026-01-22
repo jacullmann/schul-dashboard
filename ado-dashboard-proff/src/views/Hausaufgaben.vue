@@ -118,7 +118,7 @@
             <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
             <span v-else-if="item.description.length">{{ item.description }}</span>
             <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
-              {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'Alles anzeigen' }}
+              {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
             </button>
           </div>
         </transition>
@@ -440,6 +440,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   max-width: 160px;
   min-width: auto;
   width: auto;
+  flex-shrink: 0;
 }
 
 .items {
@@ -569,8 +570,16 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   box-shadow: var(--shadow-s);
 }
 .tiny {
-  padding:4px 8px;
-  font-size:12px;
+  padding: 0;
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  color: var(--sub);
+  background: transparent;
+  border: none;
+}
+.tiny:hover {
+  background: transparent;
+  color: var(--text);
 }
 .item-menu.open {
   display: flex;

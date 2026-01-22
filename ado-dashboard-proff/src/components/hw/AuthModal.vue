@@ -1,7 +1,8 @@
 <template>
   <div class="blurit">
     <div class="modal-wrapper">
-      <div class="card rlc modal-card">
+      <!-- Normales Login/Register Modal -->
+      <div v-if="!showMfaVerify" class="card rlc modal-card">
         <div class="modal-header">
           <h3 class="modal-title">{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</h3>
           <button
@@ -128,6 +129,12 @@
         </form>
       </div>
 
+      <!-- MFA Verifizierungs-Modal -->
+      <MfaVerifyModal
+          v-if="showMfaVerify"
+          @verified="onMfaVerified"
+          @cancelled="onMfaCancelled"
+      />
       <ResetModal
           v-if="showReset"
           @close="showReset = false"
@@ -143,8 +150,10 @@ import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
 import TabSwitcher from "../TabSwitcher.vue";
 import ResetModal from "../ResetModal.vue";
+import MfaVerifyModal from "./MfaVerifyModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
-import { syncCsrfFromCookie } from '../../hwApi';
+import { syncCsrfFromCookie, setCsrfToken } from '../../hwApi';
+import { useMfa } from '../../composables/useMfa';
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -168,6 +177,8 @@ const message = ref('');
 const isError = ref(false);
 const showPassword = ref(false);
 const showReset = ref(false);
+const showMfaVerify = ref(false);
+const { cancelMfaLogin, resetMfaState } = useMfa();
 
 const errors = reactive<{
   email?: string;
@@ -184,6 +195,10 @@ function handleTabChange(newId: string) {
   isError.value = false;
   passwordConfirm.value = '';
   acceptedPrivacy.value = false;
+  if (showMfaVerify.value) {
+    cancelMfaLogin();
+    showMfaVerify.value = false;
+  }
 }
 
 function openReset() {
@@ -282,9 +297,17 @@ async function submit() {
       });
 
       if (data.ok) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        syncCsrfFromCookie();
-        emit('logged-in');
+        // MFA-Check
+        if (data.requiresMfa) {
+          showMfaVerify.value = true;
+        } else {
+          if (data.csrfToken) {
+            setCsrfToken(data.csrfToken);
+          } else {
+            syncCsrfFromCookie();
+          }
+          emit('logged-in');
+        }
       }
     }
   } catch (e: any) {
@@ -293,6 +316,26 @@ async function submit() {
   } finally {
     submitting.value = false;
   }
+}
+
+// MFA erfolgreich verifiziert
+function onMfaVerified(csrfToken: string) {
+  showMfaVerify.value = false;
+  if (csrfToken) {
+    setCsrfToken(csrfToken);
+  } else {
+    syncCsrfFromCookie();
+  }
+  resetMfaState(); // MFA-State zurücksetzen
+  emit('logged-in');
+}
+
+// MFA abgebrochen
+function onMfaCancelled() {
+  showMfaVerify.value = false;
+  resetMfaState();
+  message.value = 'Anmeldung abgebrochen.';
+  isError.value = true;
 }
 </script>
 
