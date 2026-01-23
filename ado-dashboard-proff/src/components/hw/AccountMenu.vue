@@ -12,6 +12,8 @@
               <div class="user-email" :title="email">{{ email }}</div>
             </div>
             <div class="menu-divider"></div>
+            <ThemeDropdown/>
+
             <button
                 data-umami-event="Kurse bearbeiten Button"
                 class="menu-btn"
@@ -111,6 +113,7 @@ import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, CircleUserRound, S
 import ChangePasswordModal from './ChangePasswordModal.vue';
 import DeleteAccountModal from './DeleteAccountModal.vue';
 import PersonalizationDropdown from './PersonalizationDropdown.vue';
+import ThemeDropdown from './ThemeDropdown.vue';
 import SecurityModal from './SecurityModal.vue';
 
 const props = defineProps<{

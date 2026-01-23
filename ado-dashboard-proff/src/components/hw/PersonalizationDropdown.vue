@@ -7,7 +7,7 @@
         :disabled="updating"
     >
       <div class="menu-btn-content">
-        <component :is="currentPersonalized ? Filter : FilterX" size="18px" />
+        <component :is="currentPersonalized ? Filter : FilterX" size="16px" />
         <span>Personalisierte Kurse: {{ currentPersonalized ? 'Ja' : 'Nein' }}</span>
         <ChevronDown size="16px" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </div>
@@ -147,9 +147,9 @@ onBeforeUnmount(() => {
   border: none;
   padding: 8px;
   color: var(--text);
-  border-radius: 8px;
+  border-radius: var(--border-4);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   transition: background 0.2s ease;
 }
 
@@ -185,12 +185,11 @@ onBeforeUnmount(() => {
 .dropdown-menu {
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  min-width: 100%;
   margin-top: 4px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 12px;
+  border-radius: var(--border-5);
   padding: 4px;
   display: flex;
   flex-direction: column;
@@ -210,9 +209,9 @@ onBeforeUnmount(() => {
   border: none;
   padding: 8px;
   color: var(--text);
-  border-radius: 8px;
+  border-radius: var(--border-4);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   transition: background 0.2s ease;
   white-space: nowrap;
 }
@@ -246,9 +245,9 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   margin-top: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: var(--border-4);
+  font-size: var(--font-size-sub);
   background: var(--gg);
   color: var(--text);
   border: 1px solid var(--border2);
