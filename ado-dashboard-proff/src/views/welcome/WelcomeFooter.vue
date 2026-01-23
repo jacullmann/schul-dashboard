@@ -17,7 +17,7 @@
           <p class="footer-link" @click="goToStatus" >Status<ExternalLink size="14px"/></p>
         </div>
         <div class="footer-section">
-          <h3>Theme</h3>
+          <h3>Design</h3>
           <div class="theme-selector">
             <ThemeDropdown />
           </div>

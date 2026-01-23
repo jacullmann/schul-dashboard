@@ -36,7 +36,7 @@
           <router-link to="/kontakt" class="footer-link">Kontakt</router-link>
         </div>
         <div class="footer-section">
-          <h3>Einstellungen</h3>
+          <h3>Design</h3>
           <div class="theme-selector">
             <ThemeDropdown />
           </div>
