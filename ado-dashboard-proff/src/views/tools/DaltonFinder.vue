@@ -279,7 +279,7 @@ const filteredResults = computed<SearchResult[]>(() => {
       <input
           v-model="searchQuery"
           type="text"
-          :placeholder="searchMode === 'room' ? 'Raum suchen...' : 'Lehrer suchen...'"
+          :placeholder="searchMode === 'room' ? 'Raum suchen...' : 'Lehrer*in suchen...'"
           class="input"
       />
     </div>
@@ -305,36 +305,36 @@ const filteredResults = computed<SearchResult[]>(() => {
                 <td class="room-cell"><strong>{{ item.room }}</strong></td>
 
                 <td :class="{ 'is-today': currentDay === 1 }">
-                  <div class="t-name">{{ getTeacherDisplay(item.schedule.mo).name }}</div>
-                  <div v-if="getTeacherDisplay(item.schedule.mo).subjects" class="t-sub">
+                  <div class="t-name" :class="{ 'is-today': currentDay === 1 }">{{ getTeacherDisplay(item.schedule.mo).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.mo).subjects" class="t-sub" :class="{ 'is-today': currentDay === 1 }">
                     {{ getTeacherDisplay(item.schedule.mo).subjects }}
                   </div>
                 </td>
 
                 <td :class="{ 'is-today': currentDay === 2 }">
-                  <div class="t-name">{{ getTeacherDisplay(item.schedule.di).name }}</div>
-                  <div v-if="getTeacherDisplay(item.schedule.di).subjects" class="t-sub">
+                  <div class="t-name" :class="{ 'is-today': currentDay === 2 }">{{ getTeacherDisplay(item.schedule.di).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.di).subjects" class="t-sub" :class="{ 'is-today': currentDay === 2 }">
                     {{ getTeacherDisplay(item.schedule.di).subjects }}
                   </div>
                 </td>
 
                 <td :class="{ 'is-today': currentDay === 3 }">
-                  <div class="t-name">{{ getTeacherDisplay(item.schedule.mi).name }}</div>
-                  <div v-if="getTeacherDisplay(item.schedule.mi).subjects" class="t-sub">
+                  <div class="t-name" :class="{ 'is-today': currentDay === 3 }">{{ getTeacherDisplay(item.schedule.mi).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.mi).subjects" class="t-sub" :class="{ 'is-today': currentDay === 3 }">
                     {{ getTeacherDisplay(item.schedule.mi).subjects }}
                   </div>
                 </td>
 
                 <td :class="{ 'is-today': currentDay === 4 }">
-                  <div class="t-name">{{ getTeacherDisplay(item.schedule.do).name }}</div>
-                  <div v-if="getTeacherDisplay(item.schedule.do).subjects" class="t-sub">
+                  <div class="t-name" :class="{ 'is-today': currentDay === 4 }">{{ getTeacherDisplay(item.schedule.do).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.do).subjects" class="t-sub" :class="{ 'is-today': currentDay === 4 }">
                     {{ getTeacherDisplay(item.schedule.do).subjects }}
                   </div>
                 </td>
 
                 <td :class="{ 'is-today': currentDay === 5 }">
-                  <div class="t-name">{{ getTeacherDisplay(item.schedule.fr).name }}</div>
-                  <div v-if="getTeacherDisplay(item.schedule.fr).subjects" class="t-sub">
+                  <div class="t-name" :class="{ 'is-today': currentDay === 5 }">{{ getTeacherDisplay(item.schedule.fr).name }}</div>
+                  <div v-if="getTeacherDisplay(item.schedule.fr).subjects" class="t-sub" :class="{ 'is-today': currentDay === 5 }">
                     {{ getTeacherDisplay(item.schedule.fr).subjects }}
                   </div>
                 </td>
@@ -379,7 +379,7 @@ const filteredResults = computed<SearchResult[]>(() => {
           </div>
         </div>
         <div v-else class="placeholder">
-          {{ searchQuery ? 'Keine Lehrer gefunden.' : 'Bitte Lehrername eingeben.' }}
+          {{ searchQuery ? 'Keine Lehrer gefunden.' : 'Bitte Lehrer*innenname eingeben.' }}
         </div>
       </div>
     </div>
@@ -433,6 +433,10 @@ th {
   border-right: 1px solid var(--border2);
 }
 
+th.is-today {
+  background: var(--text);
+}
+
 th:first-child {
   border-left: 1px solid var(--border2);
   border-top-left-radius: var(--border-4);
@@ -454,6 +458,10 @@ td {
   border-right: 1px solid var(--border2);
 }
 
+td.is-today {
+  background-color: var(--text);
+}
+
 tr td:first-child {
   border-left: 1px solid var(--border2);
   border-top-left-radius: var(--border-4);
@@ -470,12 +478,20 @@ tr td:last-child {
   color: var(--text);
 }
 
+.t-name.is-today {
+  color: var(--bg);
+}
+
 .t-sub {
   color: var(--sub);
   font-size: var(--font-size-sub);
   margin-top: 2px;
   line-height: 1.2;
   display: block;
+}
+
+.t-sub.is-today {
+  color: var(--gg);
 }
 
 .room-cell {
@@ -485,10 +501,6 @@ tr td:last-child {
   white-space: nowrap;
   text-align: center;
   vertical-align: middle;
-}
-
-.is-today {
-  background-color: var(--gg);
 }
 
 /* TEACHER CARD STYLES */
@@ -519,17 +531,35 @@ tr td:last-child {
 .teacher-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
 }
 
 @media (max-width: 360px) {
-  .teacher-grid { grid-template-columns: 1fr; }
+  .teacher-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .day-col {
+    padding: 8px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .day-col:last-child {
+    padding-bottom: 0;
+    border: none;
+  }
+
+  .day-col:first-child {
+    padding-top: 0;
+  }
 }
 
 .day-col {
-  background: var(--gg);
-  padding: 4px 8px;
-  border-radius: var(--border-4);
+  padding: 8px;
+  border-right: 1px solid var(--border2);
+}
+
+.day-col:last-child {
+  border: none;
 }
 
 .day-col h4 {
