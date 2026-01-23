@@ -18,7 +18,7 @@
                 @click="openSetup"
             >
               <div class="menu-btn-content">
-                <LucideGraduationCap size="18px"/>
+                <LucideGraduationCap size="16px"/>
                 Kurse bearbeiten
               </div>
             </button>
@@ -34,8 +34,8 @@
                 @click="openSecurity"
             >
               <div class="menu-btn-content">
-                <ShieldCheck v-if="userData?.mfaEnabled" size="18px"/>
-                <Shield v-else size="18px"/>
+                <ShieldCheck v-if="userData?.mfaEnabled" size="16px"/>
+                <Shield v-else size="16px"/>
                 Sicherheit
               </div>
             </button>
@@ -46,7 +46,7 @@
                 @click="openChangePassword"
             >
               <div class="menu-btn-content">
-                <LucideKeyRound size="18px"/>
+                <LucideKeyRound size="16px"/>
                 Passwort ändern
               </div>
             </button>
@@ -56,7 +56,7 @@
                 @click="handleLogout"
             >
               <div class="menu-btn-content">
-                <LogOut size="18px"/>
+                <LogOut size="16px"/>
                 Abmelden
               </div>
             </button>
@@ -68,7 +68,7 @@
                   @click="startDelete"
               >
                 <div class="menu-btn-content">
-                  <Trash2  size="18px"/>
+                  <Trash2  size="16px"/>
                   Konto löschen
                 </div>
               </button>
