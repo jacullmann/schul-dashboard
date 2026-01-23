@@ -502,5 +502,8 @@ onBeforeUnmount(() => {
     height: 26px;
     font-size: 12px;
   }
+  .account-menu {
+    height: 26px;
+  }
 }
 </style>
