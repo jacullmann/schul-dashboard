@@ -346,14 +346,14 @@ onBeforeUnmount(() => {
 }
 
 .avatar-circle {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: #fff;
   user-select: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
