@@ -41,7 +41,7 @@
             <ThemeDropdown />
           </div>
           <p class="brand-description">
-            Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.
+            Wähle dein bevorzugtes Design für das Schul-Dashboard aus.
           </p>
 
         </div>
@@ -155,19 +155,6 @@ const year = new Date().getFullYear();
 
 .theme-selector {
   margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.theme-label {
-  font-size: var(--font-size-body);
-  color: var(--sub);
-  font-weight: 600;
-}
-
-.theme-select {
-  max-width: 180px;
 }
 
 /* Footer Bottom */
@@ -229,10 +216,6 @@ const year = new Date().getFullYear();
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
-  }
-
-  .theme-select {
-    max-width: 100%;
   }
   .logoutDeviceMobile {
     display: block;

@@ -9,7 +9,7 @@
     >
       <div class="menu-btn-content">
         <component :is="themeIcons[selectedThemeMode]" size="16px" />
-        <span>Theme: {{ themeLabels[selectedThemeMode] }}</span>
+        <span>Design: {{ themeLabels[selectedThemeMode] }}</span>
         <ChevronDown size="16px" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </div>
     </button>
@@ -43,15 +43,15 @@ import { useTheme, type ThemeMode } from '../../composables/useTheme';
 // ich definiere die werte und den text der dropdown optionen
 const themeOptions: { val: ThemeMode, label: string }[] = [
   { val: 'system', label: 'System' },
-  { val: 'light', label: 'Heller Modus' },
-  { val: 'dark', label: 'Dunkler Modus' }
+  { val: 'light', label: 'Hell' },
+  { val: 'dark', label: 'Dunkel' }
 ];
 
 // ich definiere den passenden text für alle werte
 const themeLabels: Record<ThemeMode, string> = {
   system: 'System',
-  light: 'Heller Modus',
-  dark: 'Dunkler Modus'
+  light: 'Hell',
+  dark: 'Dunkel'
 };
 
 // ich definiere die passenden lucide icons für jede option

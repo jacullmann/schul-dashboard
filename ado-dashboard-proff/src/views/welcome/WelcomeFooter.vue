@@ -22,7 +22,7 @@
             <ThemeDropdown />
           </div>
           <p class="brand-description">
-            Wähle dein bevorzugtes Farbschema für das Schul Dashboard aus.
+            Wähle dein bevorzugtes Design für das Schul Dashboard aus.
           </p>
         </div>
       </div>
