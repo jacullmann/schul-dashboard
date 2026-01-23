@@ -130,40 +130,31 @@ const emit = defineEmits<{
   (e: 'mfaChanged', value: boolean): void;
 }>();
 
-// Liste der 20 Farben
+// Liste der 11 Google Farben
 const AVATAR_COLORS = [
-  '#FF6B6B', // Rot
-  '#4ECDC4', // Türkis
-  '#45B7D1', // Hellblau
-  '#FFA07A', // Lachs
-  '#98D8C8', // Mint
-  '#F7DC6F', // Gelb
-  '#BB8FCE', // Lila
-  '#85C1E2', // Skyblue
-  '#F8B739', // Orange
-  '#52B788', // Grün
-  '#E056FD', // Magenta
-  '#26C6DA', // Cyan
-  '#FF7979', // Korallenrot
-  '#686DE0', // Indigo
-  '#BADC58', // Lime
-  '#FF6348', // Tomatenrot
-  '#00D2D3', // Aqua
-  '#FDA7DF', // Pink
-  '#FFA502', // Goldorange
-  '#5F27CD', // Violett
+  '#AA47BD',
+  '#7B1FA2',
+  '#77919D',
+  '#455A65',
+  '#EC417A',
+  '#C1175C',
+  '#0388D2',
+  '#0098A7',
+  '#004D40',
+  '#EF6C00',
+  '#F6511E',
 ];
 
 function getColorIndexFromEmail(email: string): number {
   if (!email || email.length < 2) {
-    return 0; // wenn emails sehr kurz ist
+    return 0; // wenn email sehr kurz ist
   }
 
   const secondChar = email[1];
 
   const charCode = secondChar.charCodeAt(0);
 
-  return charCode % 20;
+  return charCode % AVATAR_COLORS.length;
 }
 
 // hilfsfunktion für buchstaben zurückgeben
