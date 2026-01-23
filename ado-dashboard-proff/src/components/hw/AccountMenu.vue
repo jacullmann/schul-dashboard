@@ -1,7 +1,7 @@
 <template>
   <div class="account-menu" ref="root">
     <div class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
-      <CircleUserRound size="26px"/>
+      <Settings size="26px"/>
     </div>
 
     <transition name="pop">
@@ -12,7 +12,6 @@
               <div class="user-email" :title="email">{{ email }}</div>
             </div>
             <div class="menu-divider"></div>
-            <ThemeDropdown/>
 
             <button
                 data-umami-event="Kurse bearbeiten Button"
@@ -109,11 +108,10 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, CircleUserRound, Shield, ShieldCheck } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Settings, Shield, ShieldCheck } from "lucide-vue-next";
 import ChangePasswordModal from './ChangePasswordModal.vue';
 import DeleteAccountModal from './DeleteAccountModal.vue';
 import PersonalizationDropdown from './PersonalizationDropdown.vue';
-import ThemeDropdown from './ThemeDropdown.vue';
 import SecurityModal from './SecurityModal.vue';
 
 const props = defineProps<{

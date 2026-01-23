@@ -38,17 +38,7 @@
         <div class="footer-section">
           <h3>Einstellungen</h3>
           <div class="theme-selector">
-            <label for="theme-select" class="theme-label">Theme</label>
-            <select
-                id="theme-select"
-                :value="selectedThemeMode"
-                @change="handleThemeChange"
-                class="theme-select input hover"
-            >
-              <option value="system">System</option>
-              <option value="light">Heller Modus</option>
-              <option value="dark">Dunkler Modus</option>
-            </select>
+            <ThemeDropdown />
           </div>
           <p class="brand-description">
             Wähle dein bevorzugtes Farbschema für das Schul-Dashboard aus.
@@ -73,23 +63,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useTheme, ThemeMode } from '../composables/useTheme';
 import All from './AllLogoutButton.vue';
 import Logo from './hw/Logo.vue';
 import Notizen from "./Notizen.vue";
+import ThemeDropdown from "./hw/ThemeDropdown.vue";
 
 const year = new Date().getFullYear();
-const { selectedThemeMode, applyTheme } = useTheme();
-
-function handleThemeChange(event: Event) {
-  const target = event.target as HTMLSelectElement;
-  applyTheme(target.value as ThemeMode);
-}
-
-function openCookieBanner() {
-  window.dispatchEvent(new CustomEvent('open-cookie-banner'))
-}
 </script>
 
 <style scoped>
