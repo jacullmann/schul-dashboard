@@ -1,7 +1,9 @@
 <template>
   <div class="account-menu" ref="root">
     <div class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
-      <Settings size="26px"/>
+      <div class="avatar-circle" :style="{ backgroundColor: avatarColor }">
+        {{ avatarLetter }}
+      </div>
     </div>
 
     <transition name="pop">
@@ -108,7 +110,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Settings, Shield, ShieldCheck } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Shield, ShieldCheck } from "lucide-vue-next";
 import ChangePasswordModal from './ChangePasswordModal.vue';
 import DeleteAccountModal from './DeleteAccountModal.vue';
 import PersonalizationDropdown from './PersonalizationDropdown.vue';
@@ -127,6 +129,55 @@ const emit = defineEmits<{
   (e: 'personalizationChanged', value: boolean): void;
   (e: 'mfaChanged', value: boolean): void;
 }>();
+
+// Liste der 20 Farben
+const AVATAR_COLORS = [
+  '#FF6B6B', // Rot
+  '#4ECDC4', // Türkis
+  '#45B7D1', // Hellblau
+  '#FFA07A', // Lachs
+  '#98D8C8', // Mint
+  '#F7DC6F', // Gelb
+  '#BB8FCE', // Lila
+  '#85C1E2', // Skyblue
+  '#F8B739', // Orange
+  '#52B788', // Grün
+  '#E056FD', // Magenta
+  '#26C6DA', // Cyan
+  '#FF7979', // Korallenrot
+  '#686DE0', // Indigo
+  '#BADC58', // Lime
+  '#FF6348', // Tomatenrot
+  '#00D2D3', // Aqua
+  '#FDA7DF', // Pink
+  '#FFA502', // Goldorange
+  '#5F27CD', // Violett
+];
+
+function getColorIndexFromEmail(email: string): number {
+  if (!email || email.length < 2) {
+    return 0; // wenn emails sehr kurz ist
+  }
+
+  const secondChar = email[1];
+
+  const charCode = secondChar.charCodeAt(0);
+
+  return charCode % 20;
+}
+
+// hilfsfunktion für buchstaben zurückgeben
+const avatarLetter = computed(() => {
+  return props.email && props.email.length > 0
+      ? props.email[0].toUpperCase()
+      : '?';
+});
+
+// deterministische farbe zurückgeben
+const avatarColor = computed(() => {
+  const index = getColorIndexFromEmail(props.email);
+  return AVATAR_COLORS[index];
+});
 
 const personalizationSetting = computed({
   get: () => props.userData?.personalized ?? true,
@@ -292,6 +343,25 @@ onBeforeUnmount(() => {
   border: none;
   color: var(--text);
   cursor: pointer;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.icon-btn:hover .avatar-circle {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-s);
 }
 
 .popup {
