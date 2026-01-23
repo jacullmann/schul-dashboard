@@ -359,11 +359,6 @@ onBeforeUnmount(() => {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.icon-btn:hover .avatar-circle {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-s);
-}
-
 .popup {
   z-index: 1400;
   position: fixed;
