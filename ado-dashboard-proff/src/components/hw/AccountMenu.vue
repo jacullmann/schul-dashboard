@@ -332,7 +332,7 @@ onBeforeUnmount(() => {
 .account-menu {
   position: relative;
   display: inline-block;
-  height: 26px;
+  height: 32px;
 }
 
 .icon-btn {
@@ -346,17 +346,16 @@ onBeforeUnmount(() => {
 }
 
 .avatar-circle {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 16px;
   color: #fff;
   user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .popup {
@@ -497,6 +496,11 @@ onBeforeUnmount(() => {
   }
   .pop-enter-active, .pop-leave-active {
     transform-origin: top center;
+  }
+  .avatar-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
   }
 }
 </style>
