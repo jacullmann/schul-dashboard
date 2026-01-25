@@ -55,61 +55,67 @@
                   <component :is="showPassword ? EyeOff : Eye" size="20" />
                 </button>
               </div>
-              <button
-                  v-if="mode === 'login'"
-                  type="button"
-                  data-umami-event="Passwort vergessen Button"
-                  class="forgot-password-link"
-                  @click="openReset"
-              >
-                Passwort vergessen?
-              </button>
+              <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
+                <button
+                    v-if="mode === 'login'"
+                    type="button"
+                    data-umami-event="Passwort vergessen Button"
+                    class="forgot-password-link"
+                    @click="openReset"
+                >
+                  Passwort vergessen?
+                </button>
+              </Transition>
             </div>
             <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
           </div>
 
-          <div v-if="mode === 'register'" class="form-group">
-            <div class="password-wrapper">
-              <input
-                  class="input"
-                  :type="showPassword ? 'text' : 'password'"
-                  v-model="passwordConfirm"
-                  placeholder="Passwort bestätigen"
-                  autocomplete="new-password"
-                  @input="clearFieldError('passwordConfirm')"
-              />
-              <button
-                  type="button"
-                  @click="showPassword = !showPassword"
-                  class="password-toggle"
-                  aria-label="Passwort anzeigen/verstecken"
-              >
-                <component :is="showPassword ? EyeOff : Eye" size="20" />
-              </button>
-            </div>
-            <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
-          </div>
+          <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
+            <div v-if="mode === 'register'" class="register-fields-wrapper">
+              <div class="form-group">
+                <div class="password-wrapper">
+                  <input
+                      class="input"
+                      :type="showPassword ? 'text' : 'password'"
+                      v-model="passwordConfirm"
+                      placeholder="Passwort bestätigen"
+                      autocomplete="new-password"
+                      @input="clearFieldError('passwordConfirm')"
+                  />
+                  <button
+                      type="button"
+                      @click="showPassword = !showPassword"
+                      class="password-toggle"
+                      aria-label="Passwort anzeigen/verstecken"
+                  >
+                    <component :is="showPassword ? EyeOff : Eye" size="20" />
+                  </button>
+                </div>
+                <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
+              </div>
 
-          <div v-if="mode === 'register'" class="form-group">
-            <div style="display: flex; align-items: flex-start; gap: 8px;">
-              <label class="collapse-checkbox">
-                <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-                <span class="vis-label"></span>
-              </label>
-              <span class="checkbox-label">
-                Ich stimme der
-                <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
-                  Datenschutzerklärung
-                </a>
-                und den
-                <a href="/impressum-&-datenschutz/nutzung" target="_blank" class="privacy-link">
-                  Nutzungsbedingungen
-                </a>
-                zu
-              </span>
+              <div class="form-group">
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                  <label class="collapse-checkbox">
+                    <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
+                    <span class="vis-label"></span>
+                  </label>
+                  <span class="checkbox-label">
+                    Ich stimme der
+                    <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
+                      Datenschutzerklärung
+                    </a>
+                    und den
+                    <a href="/impressum-&-datenschutz/nutzung" target="_blank" class="privacy-link">
+                      Nutzungsbedingungen
+                    </a>
+                    zu
+                  </span>
+                </div>
+                <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
+              </div>
             </div>
-            <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
-          </div>
+          </Transition>
 
           <div v-if="message" class="message" :class="{ error: isError }">
             {{ message }}
@@ -337,6 +343,44 @@ function onMfaCancelled() {
   message.value = 'Anmeldung abgebrochen.';
   isError.value = true;
 }
+
+// Transition Hooks
+const enter = (el: Element) => {
+  const element = el as HTMLElement;
+  const height = element.scrollHeight;
+  element.style.height = '0';
+  element.style.opacity = '0';
+  element.style.marginTop = '0';
+  element.style.marginBottom = '0';
+  element.style.overflow = 'hidden';
+
+  element.offsetHeight; // Force reflow
+
+  element.style.transition = 'height 0.3s cubic-bezier(0.78, 0, 0.22, 1), opacity 0.3s cubic-bezier(0.78, 0, 0.22, 1), margin 0.3s cubic-bezier(0.78, 0, 0.22, 1)';
+  element.style.height = height + 'px';
+  element.style.opacity = '1';
+  element.style.marginTop = '';
+  element.style.marginBottom = '';
+};
+
+const afterEnter = (el: Element) => {
+  const element = el as HTMLElement;
+  element.style.height = 'auto';
+  element.style.overflow = '';
+  element.style.transition = '';
+};
+
+const leave = (el: Element) => {
+  const element = el as HTMLElement;
+  element.style.height = element.scrollHeight + 'px';
+  element.style.overflow = 'hidden';
+  element.offsetHeight; // Force reflow
+  element.style.transition = 'height 0.3s cubic-bezier(0.78, 0, 0.22, 1), opacity 0.3s cubic-bezier(0.78, 0, 0.22, 1), margin 0.3s cubic-bezier(0.78, 0, 0.22, 1)';
+  element.style.height = '0';
+  element.style.opacity = '0';
+  element.style.marginTop = '0';
+  element.style.marginBottom = '0';
+};
 </script>
 
 <style scoped>
@@ -386,19 +430,20 @@ function onMfaCancelled() {
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  /* gap removed for smooth transition */
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 12px;
 }
 
 .password-field-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  /* gap removed */
 }
 
 .password-wrapper {
@@ -434,6 +479,7 @@ function onMfaCancelled() {
   text-align: right;
   align-self: flex-end;
   font-size: var(--font-size-sub);
+  margin-top: 8px;
 }
 
 .forgot-password-link:hover {
@@ -529,7 +575,6 @@ function onMfaCancelled() {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 8px;
 }
 
 .submit-btn {
