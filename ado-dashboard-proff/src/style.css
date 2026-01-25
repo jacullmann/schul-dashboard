@@ -88,31 +88,31 @@
     --nav-hover: #b3b3b3;
     --danger-hover: #ff6666;
 }
-:root.light  {
-    --bg: #fff;
-    --lbg: #eee;
-    --text: #000;
-    --border: #ddd;
-    --border2: #ccc;
-    --gg: #fff;
-    --sub: #414141;
-    --vlbg: #eee;
-    --ghost--hover: #e4e4e4;
-    --start--bg: #0f0f0f;
-    --start--text: #f1f1f1;
-    --start--sub: #aaa;
-    --start--border: #282828;
-    --start--border2: #414141;
-    --start--llbg: #191919;
-    --legal--bg: #fff;
-    --not-spinning: #bbb;
-    --color--white: #000000;
-    --color--black: #ffffff;
-    --shadow-s: none;
-    --shadow-l: none;
-    --skeleton-base: #e0e0e0;
-    --skeleton-highlight: #f5f5f5;
-    --nav-hover: #555555;
+:root.light {
+    --bg:#fff;
+    --lbg:#fff;
+    --text:#000;
+    --border:#ddd;
+    --border2:#ddd;
+    --gg:#eee;
+    --sub:#414141;
+    --vlbg:#fff;
+    --ghost--hover:#f5f5f5;
+    --start--bg:#0f0f0f;
+    --start--text:#fff;
+    --start--sub:#aaa;
+    --start--border:#282828;
+    --start--border2:#414141;
+    --start--llbg:#191919;
+    --legal--bg:#fff;
+    --not-spinning:#bbb;
+    --color--white:#000;
+    --color--black:#fff;
+    --shadow-s:none;
+    --shadow-l:none;
+    --skeleton-base:#e0e0e0;
+    --skeleton-highlight:#f5f5f5;
+    --nav-hover:#555
 }
 
 ::selection {
