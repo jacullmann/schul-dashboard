@@ -150,7 +150,7 @@ async function saveSub() {
 <template>
 
   <div class="form-grid">
-    <div class="form-group full-width">
+    <div class="form-group">
       <label for="lessonId">Lesson ID</label>
       <input
           id="lessonId"
@@ -160,7 +160,7 @@ async function saveSub() {
       />
     </div>
 
-    <div class="form-group full-width">
+    <div class="form-group">
       <label for="subjectSelect">Subject</label>
       <select id="subjectSelect" v-model="form.selectedSubjectMode">
         <option :value="SPECIAL_OPT_NO_CHANGES">No Changes</option>
@@ -242,7 +242,7 @@ async function saveSub() {
       <label class="checkbox-container">
         <input type="checkbox" v-model="form.isHidden">
         <span class="checkmark"></span>
-        <span class="label-text">Hide (Overrules Cancel)</span>
+        <span class="label-text">Hide</span>
       </label>
     </div>
   </div>
@@ -332,7 +332,7 @@ input.disabled {
 /* --- Checkboxes --- */
 .checkbox-group {
   display: flex;
-  gap: 2rem;
+  gap: 16px;
   margin-top: 0.5rem;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
@@ -438,5 +438,15 @@ pre {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 500px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
 }
 </style>

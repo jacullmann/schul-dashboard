@@ -181,6 +181,7 @@ onBeforeUnmount(() => {
   overflow-y: hidden;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
+  box-shadow: var(--input-shadow);
 }
 
 /* Hide Scrollbar for Chrome/Safari */

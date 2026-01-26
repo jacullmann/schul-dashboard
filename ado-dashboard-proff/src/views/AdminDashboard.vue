@@ -112,7 +112,7 @@
             <!-- Cleanup Section -->
             <div class="cleanup-section card rlc mt-4">
               <div class="cleanup-header">
-                <h3>Cleanup</h3>
+                <h3 style="margin: 0;">Cleanup</h3>
                 <span class="cleanup-info" v-if="stats.oldItemsCount > 0">
                   {{ stats.oldItemsCount }} Einträge älter als 90 Tage
                 </span>
@@ -302,7 +302,7 @@
 
           <template v-else>
             <div class="sorgen-section" v-if="unprocessedSorgen.length">
-              <h3 class="section-subtitle">Noch nicht bearbeitet</h3>
+              <h3 class="section-subtitle">Nicht bearbeitet</h3>
               <div class="sorgen-list">
                 <div v-for="s in unprocessedSorgen" :key="s._id" class="sorge-card rlc card">
                   <div class="sorge-body">{{ s.message }}</div>
@@ -356,14 +356,12 @@
         </div>
 
         <div v-if="activeTab === 'security'" class="tab-content fade-in">
-          <div class="security-tools card rlc">
-            <h3>KI Sicherheits-Analyse</h3>
-            <div class="row mt-4">
-              <button class="btn primary" @click="generateSecurityReport" :disabled="isGeneratingReport">
-                <span v-if="isGeneratingReport">Analysiere...</span>
-                <span v-else>Bericht generieren</span>
-              </button>
-            </div>
+          <h3>KI Sicherheits-Analyse</h3>
+          <div class="row mt-4">
+            <button class="btn primary" @click="generateSecurityReport" :disabled="isGeneratingReport">
+              <span v-if="isGeneratingReport">Analysiere...</span>
+              <span v-else>Bericht generieren</span>
+            </button>
           </div>
 
           <div v-if="reportError" class="message error mt-4">{{ reportError }}</div>
@@ -378,24 +376,15 @@
         </div>
 
         <div v-if="activeTab === 'announcements'" class="tab-content fade-in">
-          <div class="card rlc">
-            <h3>Neue Ankündigung</h3>
-            <div class="row mt-4">
-              <button class="btn" @click="showAnnouncementForm = true">Öffnen</button>
-            </div>
-          </div>
-          <div class="card rlc">
-            <div class="announcements" v-if="announcements.length">
-              <div class="announcements-head">
-                <h3>Ankündigungen</h3>
-              </div>
-              <div class="ann-list">
-                <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
-                  <div class="ann-content">{{ a.content }}</div>
-                  <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-                  <div v-if="canManage(a.createdBy)" class="ann-actions">
-                    <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
-                  </div>
+          <div class="announcements" v-if="announcements.length">
+            <div class="ann-list">
+              <button class="btn" @click="showAnnouncementForm = true">Neue Ankündigung</button>
+
+              <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
+                <div class="ann-content">{{ a.content }}</div>
+                <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
+                <div v-if="canManage(a.createdBy)" class="ann-actions">
+                  <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
                 </div>
               </div>
             </div>
@@ -608,20 +597,39 @@ const tabTitles: Record<string, string> = {
 }
 
 .stat-card {
-  background: var(--lbg);
-  border: 1px solid var(--border);
-  padding: 20px;
-  border-radius: 8px;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  padding: 16px;
+  border-radius: var(--border-7);
   text-align: center;
 }
-.stat-card.danger { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); }
-.stat-card.warn { border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.05); }
+.stat-card.danger {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+.stat-card.warn {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+}
 
-.stat-val { font-size: 2.5rem; font-weight: 700; margin-bottom: 5px; }
-.stat-label { color: #888; font-size: 0.9rem; }
+.stat-val {
+  font-size: var(--font-size-h1);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.stat-label {
+  color: var(--sub);
+  font-size: var(--font-size-sub);
+}
 
-.table-container { overflow-x: auto; padding: 0; }
-.data-table { width: 100%; border-collapse: collapse; }
+.table-container {
+  overflow-x: auto;
+  padding: 0;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 .data-table th, .data-table td {
   padding: 12px 16px;
   text-align: left;
@@ -696,8 +704,26 @@ const tabTitles: Record<string, string> = {
   overflow-x: auto;
 }
 
-.report-grid, .sorgen-list { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.sorge-card, .report-card { display: flex; flex-direction: column; height: 100%; }
+.report-grid, .sorgen-list, .ann-list {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+.sorge-card, .report-card, .ann {
+  display: flex;
+  flex-direction: column;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  height: 100%;
+  padding: 12px;
+  border-radius: var(--border-7);
+}
+.ann {
+  gap: 8px;
+}
+.ann-actions {
+  display: flex;
+  justify-content: flex-end;
+}
 .sorge-body, .rep-reason { flex: 1; margin-bottom: 10px; line-height: 1.5; color: var(--text); } /* WICHTIG: var(--text) statt #ddd */
 .sorge-footer, .rep-meta { border-top: 1px solid var(--border2); padding-top: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--sub); font-size: 0.8rem; }
 .rep-header { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
@@ -708,7 +734,11 @@ const tabTitles: Record<string, string> = {
 .bar-fill { height: 100%; background: var(--text); border-radius: 4px; }
 .bar-val { width: 30px; text-align: right; font-weight: bold; }
 
-.mt-4 { margin-top: 1rem; }
+.mt-4 {
+  margin-top: 2rem;
+  padding: 0;
+  border: none;
+}
 .ml-1 { margin-left: 0.25rem; }
 .status-message { padding: 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.2); color: #10b981; margin-bottom: 20px; }
 .status-message.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
@@ -726,7 +756,7 @@ const tabTitles: Record<string, string> = {
     margin-left: 0;
   }
   .content-area {
-    padding: 20px;
+    padding: 16px;
   }
 }
 .timetable-admin-grid {
@@ -737,7 +767,7 @@ const tabTitles: Record<string, string> = {
 
 .timetable-edit-section {
   max-height: 1000px;
-  overflow-y: auto;
+  overflow: auto;
   padding: 0;
   border-radius: 0;
   border: none;
@@ -770,8 +800,8 @@ const tabTitles: Record<string, string> = {
   align-items: flex-start;
   padding: 12px;
   background: var(--vlbg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--border2);
+  border-radius: var(--border-7);
   transition: background 0.2s;
 }
 
@@ -818,9 +848,7 @@ const tabTitles: Record<string, string> = {
 }
 
 .section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--sub);
+  font-size: var(--font-size-h3);
   margin-bottom: 0.75rem;
 }
 
@@ -829,15 +857,17 @@ const tabTitles: Record<string, string> = {
 }
 
 .stat-card.small {
-  padding: 12px 16px;
+  padding: 10px 12px;
+  border-radius: var(--border-4);
 }
 
 .stat-card.small .stat-val {
-  font-size: 1.5rem;
+  font-size: var(--font-size-h2);
+  color: var(--text)
 }
 
 .stat-card.small .stat-label {
-  font-size: 0.8rem;
+  font-size: var(--font-size-sub);
 }
 
 .top-list {
@@ -849,15 +879,14 @@ const tabTitles: Record<string, string> = {
 .top-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: var(--vlbg);
-  border-radius: 6px;
+  border-radius: var(--border-4);
+  border: 1px solid var(--border2);
 }
 
 .top-rank {
   font-weight: 700;
-  color: var(--sub);
   width: 24px;
 }
 
@@ -870,7 +899,7 @@ const tabTitles: Record<string, string> = {
 
 .top-count {
   color: var(--sub);
-  font-size: 0.85rem;
+  font-size: var(--font-size-sub);
 }
 
 .cleanup-section {
@@ -881,23 +910,22 @@ const tabTitles: Record<string, string> = {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .cleanup-info {
-  font-size: 0.85rem;
+  font-size: var(--font-size-sub);
   color: var(--warn);
   font-weight: 500;
 }
 
 .cleanup-info.ok {
-  color: var(--primary);
+  color: var(--text);
 }
 
 .cleanup-desc {
   color: var(--sub);
-  font-size: 0.9rem;
-  margin-bottom: 16px;
+  font-size: var(--font-size-sub);
+  margin-block: 16px;
   line-height: 1.5;
 }
 
@@ -933,7 +961,7 @@ const tabTitles: Record<string, string> = {
 .report-card.processed,
 .sorge-card.processed {
   opacity: 0.7;
-  border-color: var(--border);
+  transition: 0.2s ease;
 }
 
 .report-card.processed:hover,

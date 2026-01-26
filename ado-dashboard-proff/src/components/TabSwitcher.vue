@@ -164,6 +164,7 @@ onBeforeUnmount(() => {
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+  box-shadow: var(--input-shadow);
 }
 
 .nav-bar::-webkit-scrollbar {

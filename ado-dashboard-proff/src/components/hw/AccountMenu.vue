@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-width: 320px;
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--menu-shadow);
 }
 
 .user-section {

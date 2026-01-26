@@ -242,6 +242,7 @@ function showMessage(msg: string, error = false) {
   transition: transform 150ms ease;
   overflow: visible;
   cursor: default;
+  box-shadow: var(--input-shadow);
 }
 
 .item-card.collapsed {
@@ -399,6 +400,7 @@ function showMessage(msg: string, error = false) {
   transition: opacity 160ms ease, transform 160ms ease;
   margin-bottom: 0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--menu-shadow);
 }
 
 .item-menu.open {

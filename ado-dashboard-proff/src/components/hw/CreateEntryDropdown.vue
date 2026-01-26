@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
   align-items: stretch;
   gap: 4px;
   z-index: 1000;
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--menu-shadow);
   animation: menuFadeIn 160ms ease;
   margin-top: 8px;
 }

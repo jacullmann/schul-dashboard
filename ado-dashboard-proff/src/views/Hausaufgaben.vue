@@ -441,6 +441,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   min-width: auto;
   width: auto;
   flex-shrink: 0;
+  box-shadow: var(--input-shadow);
 }
 
 .items {
@@ -458,6 +459,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   transition: transform 150ms ease;
   overflow: visible;
   cursor: default;
+  box-shadow: var(--input-shadow);
 }
 
 .item-card.collapsed {
@@ -567,7 +569,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   pointer-events: none;
   transition: opacity 160ms ease, transform 160ms ease;
   margin-bottom: 0;
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--menu-shadow);
 }
 .tiny {
   padding: 0;

@@ -83,6 +83,8 @@
     --font-size-h1: 2rem;
     --shadow-s: 0 4px 20px rgba(0, 0, 0, 0.5);
     --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    --input-shadow: none;
+    --menu-shadow: none;
     --skeleton-base: #2a2a2a;
     --skeleton-highlight: #333333;
     --nav-hover: #b3b3b3;
@@ -112,7 +114,9 @@
     --shadow-l:none;
     --skeleton-base:#e0e0e0;
     --skeleton-highlight:#f5f5f5;
-    --nav-hover:#555
+    --nav-hover:#555;
+    --input-shadow: 0 1px 2px 0 #0000000d;
+    --menu-shadow: 0 4px 6px -1px #0000001a;
 }
 
 ::selection {
@@ -175,6 +179,7 @@ h1, h2, h3, h4, h5 {
         color: var(--text);
         border: 1px solid var(--border2);
         outline: none;
+        box-shadow: var(--input-shadow);
     }
     .input.hover:hover {
         background: var(--ghost--hover);
@@ -186,7 +191,7 @@ h1, h2, h3, h4, h5 {
         align-items:center;
         gap:8px;
         padding:10px 12px;
-        background:var(--pure--white);
+        background:var(--text);
         color:var(--vlbg);
         border:1px solid transparent;
         border-radius: var(--border-4);
@@ -201,7 +206,8 @@ h1, h2, h3, h4, h5 {
         background:var(--vlbg);
         border:1px solid var(--border2);
         color:var(--text);
-        transition: .1s ease
+        transition: .1s ease;
+        box-shadow: var(--input-shadow);
     }
     .btn.ghost:hover {
         background-color:var(--ghost--hover);
