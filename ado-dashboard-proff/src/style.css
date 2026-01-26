@@ -84,7 +84,7 @@
     --shadow-s: 0 4px 20px rgba(0, 0, 0, 0.5);
     --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     --input-shadow: none;
-    --menu-shadow: none;
+    --menu-shadow: 0 4px 6px -1px #0000001a;
     --skeleton-base: #2a2a2a;
     --skeleton-highlight: #333333;
     --nav-hover: #b3b3b3;
