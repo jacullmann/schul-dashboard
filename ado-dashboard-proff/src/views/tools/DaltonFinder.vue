@@ -435,6 +435,7 @@ th {
 
 th.is-today {
   background: var(--text);
+  color: var(--bg);
 }
 
 th:first-child {
@@ -456,6 +457,7 @@ td {
   border-top: 1px solid var(--border2);
   border-bottom: 1px solid var(--border2);
   border-right: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
 }
 
 td.is-today {
@@ -510,6 +512,7 @@ tr td:last-child {
   margin-bottom: 12px;
   border: 1px solid var(--border2);
   border-radius: 16px;
+  box-shadow: var(--input-shadow);
 }
 
 .card-header {
@@ -541,15 +544,17 @@ tr td:last-child {
   .day-col {
     padding: 8px;
     border-bottom: 1px solid var(--border2);
+    border-right: none !important;
   }
 
   .day-col:last-child {
-    padding-bottom: 0;
-    border: none;
+    padding-bottom: 0 !important;
+    border: none !important;
   }
 
   .day-col:first-child {
-    padding-top: 0;
+    padding-top: 0 !important;
+    border-right: none !important;
   }
 }
 
