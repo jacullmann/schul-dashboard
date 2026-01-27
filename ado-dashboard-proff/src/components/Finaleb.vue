@@ -369,6 +369,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
             <div class="lesson-subject">
               <span v-if="lesson.subject !== lesson._original?.subject" class="crossed">
                 {{ getDisplayName(lesson._original!) }}
+                <!---{{ lesson._original?.subject_abbr || getDisplayName(lesson._original!) }}--->
               </span>
               <span :class="{ 'new-val': lesson.subject !== lesson._original?.subject }">
                 {{ getDisplayName(lesson) }}
@@ -426,6 +427,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   font-weight: bold;
   border-radius: var(--border-4);
   font-size: var(--font-size-body);
+  box-shadow: var(--input-shadow);
 }
 
 .header-cell.current-day-header {
@@ -466,6 +468,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
   overflow: hidden;
   z-index: 2;
   transition: background-color 0.3s ease;
+  box-shadow: var(--input-shadow);
 }
 
 .lesson-group-container.current-day {
@@ -493,13 +496,13 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 
 .lesson-group-container.current-day .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--not-spinning); /* #414141 */
+  border-bottom: 1px solid var(--not-spinning);
 }
 
 .ausfall-label {
   color: var(--danger);
   font-weight: bold;
-  font-size: var(--font-size-sub);
+  font-size: var(--font-size-body);
 }
 
 .lesson-subject {
@@ -522,8 +525,8 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 /* CHANGE STYLES */
 .crossed {
   text-decoration: line-through;
-  color: var(--not-spinning);
-  margin-right: 6px;
+  color: var(--sub);
+  margin-right: 4px;
   font-weight: normal;
 }
 .new-val {
@@ -553,29 +556,25 @@ const activeOrNextGroupKey = computed<string | null>(() => {
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {
-  color: var(--danger);
+  color: var(--danger) !important;
 }
 
-@media (max-width: 768px) {
-  .card {
-    border-radius: 0;
-    padding: 16px;
-  }
-}
 .status-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
+
 .personalized-badge {
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 8px;
+  border-radius: var(--border-4);
   font-size: var(--font-size-body);
   color: var(--text);
+  box-shadow: var(--input-shadow);
 }
 </style>
