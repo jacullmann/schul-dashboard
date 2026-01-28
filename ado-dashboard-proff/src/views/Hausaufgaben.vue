@@ -71,8 +71,10 @@
           v-else-if="tab !== 'PRIVATE'"
           v-for="item in limitedItems"
           :key="item.id"
+          :id="'item-' + item.id"
           class="item-card"
-          :class="{ collapsed: isChecked(item.id) }"
+          :class="{ collapsed: isChecked(item.id), highlighted: highlightedItemId === item.id }"
+          @dblclick="user ? toggleCheck(item) : null"
       >
         <div class="item-main">
           <div class="item-meta">
@@ -101,12 +103,23 @@
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
               <div class="fixall"><Upload /> Bilder hochladen</div>
             </button>
+
             <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
               <div class="fixall"><Pencil /> Bearbeiten</div>
             </button>
+
+            <div class="menu-divider" v-if="canEdit(item.createdBy) || user"></div>
+
+            <button class="menu-btn" @click="shareItem(item)">
+              <div class="fixall"><Send /> Teilen</div>
+            </button>
+
             <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
               <div class="fixall"><Flag /> Melden</div>
             </button>
+
+            <div class="menu-divider" v-if="canDelete(item.createdBy)"></div>
+
             <button class="menu-btn danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
               <div class="fixall"><Trash2 /> Löschen</div>
             </button>
@@ -307,7 +320,7 @@ import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import ItemSkeleton from '../components/ItemSkeleton.vue';
 import TabNavigation from '../components/TabNavigation.vue';
-import { Flag, Pencil, Upload, Trash2, Ellipsis} from 'lucide-vue-next'
+import { Upload, Pencil, Send, Flag, Trash2, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
 import TodoForm from '../components/hw/TodoForm.vue';
@@ -391,6 +404,8 @@ const {
   viewerStartIndex,
   openImageViewer,
   closeImageViewer,
+  shareItem,
+  highlightedItemId,
 } = useHausaufgaben();
 
 // New wrapper to handle vibration and opening the menu
@@ -466,12 +481,23 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
 }
 
+.item-card.highlighted {
+  border: 1px solid transparent;
+  background:
+      linear-gradient(var(--vlbg), var(--vlbg)),
+      linear-gradient(125deg, #FFA91A 0%, #FF335A 38%, #AF00FF 75%, #5600FF 110%);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+}
+
 .item-main {
   position: relative;
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
   gap:12px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .item-meta {
@@ -630,6 +656,11 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 
 .menu-btn.danger:hover {
   background: var(--special--red--background);
+}
+
+.menu-divider {
+  border-bottom: 1px solid var(--border2);
+  margin-inline: 4px;
 }
 
 .item-body {

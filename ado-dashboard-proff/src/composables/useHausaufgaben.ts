@@ -1,4 +1,4 @@
-import { ref, onMounted, onBeforeUnmount, watch, computed, reactive } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/userStore';
@@ -72,6 +72,9 @@ export function useHausaufgaben() {
     const showPersonalized = computed(() => user.value?.personalized ?? false);
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
+
+    // Deep Linking State
+    const highlightedItemId = ref<string | null>(null);
 
     // --- Image Viewer State ---
     const showImageViewer = ref(false);
@@ -181,6 +184,59 @@ export function useHausaufgaben() {
     const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
 
     // --- Actions ---
+
+    // Deep Linking Handler
+    async function checkAndScrollToItem() {
+        const targetId = route.params.itemId as string;
+
+        // Exit if no target ID
+        if (!targetId) {
+            highlightedItemId.value = null;
+            return;
+        }
+
+        // 1. Check if item exists in the currently loaded raw items
+        const existsInRaw = items.value.find(i => i.id === targetId);
+
+        if (!existsInRaw) {
+            // Item not found. If we are not showing old entries, enable them and reload.
+            // The reload will trigger this function again via the reload's finally block or watcher.
+            if (!showOldEntries.value) {
+                showOldEntries.value = true;
+                return;
+            }
+            // If already showing old entries and still not found, it doesn't exist.
+            return;
+        }
+
+        // 2. Item exists. Find its index in the filtered view.
+        let index = filteredItems.value.findIndex(i => i.id === targetId);
+
+        // If item exists in raw data but not in filtered (e.g. subject filter active), clear filter
+        if (index === -1) {
+            if (subjectFilter.value) {
+                subjectFilter.value = '';
+                await nextTick();
+                index = filteredItems.value.findIndex(i => i.id === targetId);
+            }
+        }
+
+        if (index !== -1) {
+            highlightedItemId.value = targetId;
+
+            // 3. Auto "Show More" if item is hidden by pagination
+            if (index >= visibleCount.value) {
+                visibleCount.value = index + 5;
+            }
+
+            // 4. Scroll to item
+            await nextTick();
+            const element = document.getElementById(targetId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }
 
     function openImageViewer(item: HwItem, index: number) {
         viewerImages.value = item.images;
@@ -312,7 +368,14 @@ export function useHausaufgaben() {
         } finally {
             loading.value = false;
             initialLoad.value = false;
-            visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+
+            // Only reset visible count if we aren't deep linking
+            if (!route.params.itemId) {
+                visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+            }
+
+            // Check for deep link
+            await checkAndScrollToItem();
         }
     }
 
@@ -596,6 +659,37 @@ export function useHausaufgaben() {
         }
     }
 
+    async function shareItem(item: HwItem) {
+        // Dynamische URL basierend auf dem aktuellen Domainnamen und den Item-Daten
+        const shareUrl = `${window.location.origin}/items/${item.type}/${item.id}`;
+
+        // Prüfen, ob die Web Share API verfügbar ist
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: item.title,
+                    text: `Schau dir diesen Eintrag an: ${item.title}`,
+                    url: shareUrl,
+                });
+            } catch (err) {
+                // Falls der Nutzer abbricht oder ein Fehler auftritt
+                console.error('Teilen abgebrochen oder fehlgeschlagen:', err);
+            }
+        } else {
+            // Fallback: Link in die Zwischenablage kopieren
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                message.value = 'Link in die Zwischenablage kopiert!';
+                isError.value = false;
+            } catch (err) {
+                message.value = 'Teilen fehlgeschlagen.';
+                isError.value = true;
+            }
+            // Nachricht nach 3 Sekunden ausblenden
+            setTimeout(() => { message.value = ''; isError.value = false; }, 3000);
+        }
+    }
+
     function goTab(t: ItemType) { router.push({ name: 'ItemsByType', params: { type: t } }); }
 
     // --- Watchers ---
@@ -603,9 +697,20 @@ export function useHausaufgaben() {
         tab.value = isValidType(v) ? v : 'HAUSAUFGABE';
         reload();
     });
+
+    // Watch for deep linking itemId changes (e.g. navigation within page)
+    watch(() => route.params.itemId, async (newId) => {
+        if (newId) {
+            await checkAndScrollToItem();
+        }
+    });
+
     watch(showOldEntries, reload);
     watch([subjectFilter, tab, items], () => {
-        visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+        // Only reset visibleCount if we are NOT currently focused on a specific deep-linked item
+        if (!route.params.itemId) {
+            visibleCount.value = Math.min(5, filteredItems.value.length || 5);
+        }
     });
 
     // Watch upload store to refresh item when uploading finishes
@@ -719,6 +824,8 @@ export function useHausaufgaben() {
         viewerStartIndex,
         openImageViewer,
         closeImageViewer,
-        showSetupModal
+        showSetupModal,
+        shareItem,
+        highlightedItemId,
     };
 }

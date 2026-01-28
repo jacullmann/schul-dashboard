@@ -17,6 +17,7 @@ const Finales = () => import('./components/Finaleb.vue');
 const Countdown = () => import('./views/Countdown.vue');
 const AdminDashboard = () => import('./views/AdminDashboard.vue');
 const DaltonFinder = () => import('./views/tools/DaltonFinder.vue');
+const ImageTool = () => import('./views/tools/ImageTool.vue');
 const Devide = () => import('./views/devider/Devide.vue');
 const PatchInfo = () => import('./views/updates/Info.vue');
 const InfoDashboard = () => import('./views/InfoDashboard/InfoDashboard.vue')
@@ -34,7 +35,7 @@ const routes = [
         }
     },
     {
-        path: '/items/:type?',
+        path: '/items/:type?/:itemId?',
         name: 'ItemsByType',
         component: Hausaufgaben,
         props: true,
@@ -172,13 +173,13 @@ const routes = [
         }
     },
     {
-      path: '/update-history',
-      component: PatchInfo,
-      meta: {
-          title: 'Update Hostory',
-          fullWidth: true,
-          hideNavigation: false
-      }
+        path: '/update-history',
+        component: PatchInfo,
+        meta: {
+            title: 'Update Hostory',
+            fullWidth: true,
+            hideNavigation: false
+        }
     },
     {
         path: '/spiele',
@@ -203,6 +204,15 @@ const routes = [
         component: DaltonFinder,
         meta: {
             title: 'Daltonraumfinder',
+            fullWidth: false,
+            hideNavigation: false
+        }
+    },
+    {
+        path: '/imagetool',
+        component: ImageTool,
+        meta: {
+            title: 'Bildbearbeitung',
             fullWidth: false,
             hideNavigation: false
         }
@@ -245,10 +255,10 @@ const routes = [
             { path: 'impressum',
                 component: () => import('./views/legal/ImpressumPage.vue'),
                 meta: {
-                title: 'Impressum',
-                fullWidth: false,
-                hideNavigation: false
-            }
+                    title: 'Impressum',
+                    fullWidth: false,
+                    hideNavigation: false
+                }
             },
             {
                 path: 'datenschutz',
@@ -309,7 +319,14 @@ router.beforeEach(async (to, from, next) => {
         return next({ path: '/items/HAUSAUFGABE', replace: true });
     }
 
-    if (to.meta.title) {
+    if (to.name === 'ItemsByType') {
+        const type = to.params.type;
+        let title = 'Hausaufgaben';
+        if (type === 'DALTON') title = 'Dalton';
+        else if (type === 'PRUEFUNG') title = 'Prüfungen';
+        else if (type === 'PRIVATE') title = 'Privat';
+        document.title = title + ' | Dashboard';
+    } else if (to.meta.title) {
         document.title = to.meta.title + ' | Dashboard';
     } else {
         document.title = 'Dashboard';
