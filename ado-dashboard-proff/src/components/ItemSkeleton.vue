@@ -12,8 +12,7 @@
           </div>
 
           <div class="row-n item-badges">
-            <div class="skeleton-badge skeleton-subject"></div>
-            <div class="skeleton-badge skeleton-date"></div>
+            <div class="skeleton-text skeleton-info"></div>
           </div>
         </div>
 
@@ -57,79 +56,29 @@ withDefaults(defineProps<{
 }
 
 .skeleton-item {
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: var(--animate-pulse);
 }
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -468px 0;
-  }
-  100% {
-    background-position: 468px 0;
-  }
-}
-
 
 .skeleton-title {
-  height: 18px;
-  width: 200px;
-  border-radius: 6px;
-  background: linear-gradient(
-      90deg,
-      var(--skeleton-base) 0px,
-      var(--skeleton-highlight) 40px,
-      var(--skeleton-base) 80px
-  );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite;
-  margin-bottom: 8px;
+  height: 20px;
+  width: 240px;
+  border-radius: 999px;
+  background: var(--skeleton-base);
+  animation: var(--animate-pulse);
+  margin-bottom: 12px;
 }
-
-.skeleton-badge {
-  height: 28px;
-  border-radius: 6px;
-  background: linear-gradient(
-      90deg,
-      var(--skeleton-base) 0px,
-      var(--skeleton-highlight) 40px,
-      var(--skeleton-base) 80px
-  );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite;
-  margin-bottom: 8px;
-}
-
-.skeleton-subject {
-  width: 80px;
-}
-
-.skeleton-date {
-  width: 100px;
-}
-
-
 
 .skeleton-text {
   height: 16px;
-  border-radius: 4px;
-  background: linear-gradient(
-      90deg,
-      var(--skeleton-base) 0px,
-      var(--skeleton-highlight) 40px,
-      var(--skeleton-base) 80px
-  );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite;
+  border-radius: 999px;
+  background: var(--skeleton-base);
+  animation: var(--animate-pulse);
   margin-bottom: 8px;
+}
+
+.skeleton-info {
+  width: 160px;
+  margin-bottom: 12px;
 }
 
 .skeleton-line-1 {
@@ -147,14 +96,9 @@ withDefaults(defineProps<{
 .skeleton-image {
   width: 120px;
   height: 120px;
-  background: linear-gradient(
-      90deg,
-      var(--skeleton-base) 0px,
-      var(--skeleton-highlight) 40px,
-      var(--skeleton-base) 80px
-  );
-  background-size: 600px;
-  animation: shimmer 1.5s infinite;
+  border-radius: var(--border-5);
+  background: var(--skeleton-base);
+  animation: var(--animate-pulse);
 }
 
 .item-images {
@@ -168,10 +112,6 @@ withDefaults(defineProps<{
 }
 
 @media (max-width: 500px) {
-  .skeleton-title {
-    width: 150px;
-  }
-
   .skeleton-image {
     width: calc(50% - 4px);
     aspect-ratio: 1 / 1;

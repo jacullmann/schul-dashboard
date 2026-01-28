@@ -85,8 +85,8 @@
     --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     --input-shadow: none;
     --menu-shadow: 0 4px 6px -1px #0000001a;
-    --skeleton-base: #2a2a2a;
-    --skeleton-highlight: #333333;
+    --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1) infinite;
+    --skeleton-base: #282828;
     --nav-hover: #b3b3b3;
     --danger-hover: #ff6666;
 }
@@ -112,8 +112,7 @@
     --color--black:#fff;
     --shadow-s:none;
     --shadow-l:none;
-    --skeleton-base:#e0e0e0;
-    --skeleton-highlight:#f5f5f5;
+    --skeleton-base:#eee;
     --nav-hover:#555;
     --input-shadow: 0 1px 2px 0 #0000000d;
     --menu-shadow: 0 4px 6px -1px #0000001a;
@@ -419,5 +418,11 @@ footer {
     :root {
         --header-height: 50px;
         --header-padding-y: 12px;
+    }
+}
+
+@keyframes pulse {
+    50% {
+        opacity: .5;
     }
 }
