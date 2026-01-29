@@ -228,22 +228,10 @@ export function useHausaufgaben() {
             }
 
             // Robust Retry Mechanism
-            const tryScroll = (attempts: number) => {
-                const element = document.getElementById(targetId);
-                if (element) {
-                    // Small delay to ensure layout is stable
-                    setTimeout(() => {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 50);
-                } else if (attempts > 0) {
-                    // Item not found in DOM yet (e.g. still rendering).
-                    // Retry every 200ms, up to 'attempts' times.
-                    setTimeout(() => tryScroll(attempts - 1), 200);
-                }
-            };
-
-            // Try for up to 2 seconds (10 * 200ms)
-            tryScroll(10);
+            const el = document.getElementById(`item-${id}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 
