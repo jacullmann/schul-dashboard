@@ -199,17 +199,20 @@ export function useHausaufgaben() {
         if (!existsInRaw) {
             if (!showOldEntries.value) {
                 showOldEntries.value = true;
+                // Watching showOldEntries will trigger reload(), which calls this function again
                 return;
             }
             return;
         }
 
+        // Handle filtering: check if it's hidden by a filter
         let index = filteredItems.value.findIndex(i => i.id === targetId);
 
         if (index === -1) {
             if (subjectFilter.value) {
                 subjectFilter.value = '';
                 await nextTick();
+                // Re-calculate index after clearing filter
                 index = filteredItems.value.findIndex(i => i.id === targetId);
             }
         }
@@ -217,24 +220,30 @@ export function useHausaufgaben() {
         if (index !== -1) {
             highlightedItemId.value = targetId;
 
+            // Expand pagination if needed
             if (index >= visibleCount.value) {
                 visibleCount.value = index + 5;
+                // Important: Wait for DOM to update after expanding the list
+                await nextTick();
             }
 
-            await nextTick();
-
-            // Retry mechanism to ensure DOM is ready before scrolling
+            // Robust Retry Mechanism
             const tryScroll = (attempts: number) => {
                 const element = document.getElementById(targetId);
                 if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Small delay to ensure layout is stable
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50);
                 } else if (attempts > 0) {
-                    setTimeout(() => tryScroll(attempts - 1), 100);
+                    // Item not found in DOM yet (e.g. still rendering).
+                    // Retry every 200ms, up to 'attempts' times.
+                    setTimeout(() => tryScroll(attempts - 1), 200);
                 }
             };
 
-            // Try up to 5 times with 100ms delay
-            tryScroll(5);
+            // Try for up to 2 seconds (10 * 200ms)
+            tryScroll(10);
         }
     }
 
