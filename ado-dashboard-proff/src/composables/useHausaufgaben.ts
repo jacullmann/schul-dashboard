@@ -229,12 +229,27 @@ export function useHausaufgaben() {
                 visibleCount.value = index + 5;
             }
 
-            // 4. Scroll to item
+            // 4. Scroll to item & Remove URL ID
             await nextTick();
-            const element = document.getElementById(targetId);
+            // Note: Template uses ID format "item-[id]"
+            const element = document.getElementById('item-' + targetId);
             if (element) {
+                // Initial scroll
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Ensure scroll happens after full render
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
             }
+
+            // 5. Remove ID from URL to prevent "stuck" state when toggling filters later
+            router.replace({
+                name: 'ItemsByType',
+                params: {
+                    ...route.params,
+                    itemId: '' // Clear the itemId param
+                }
+            });
         }
     }
 
