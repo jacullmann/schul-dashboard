@@ -222,10 +222,21 @@ export function useHausaufgaben() {
             }
 
             await nextTick();
-            const element = document.getElementById(targetId);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+
+            // Retry scrolling mechanism to handle DOM rendering delays
+            const attemptScroll = (retries: number) => {
+                const element = document.getElementById(targetId);
+                if (element) {
+                    // Small delay to ensure layout is stable
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                } else if (retries > 0) {
+                    setTimeout(() => attemptScroll(retries - 1), 100);
+                }
+            };
+
+            attemptScroll(5); // Try for approx 500ms
         }
     }
 
