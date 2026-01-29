@@ -228,7 +228,7 @@ export function useHausaufgaben() {
             }
 
             // Robust Retry Mechanism
-            const el = document.getElementById(`item-${id}`);
+            const el = document.getElementById(`item-${targetId}`);
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
