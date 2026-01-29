@@ -189,30 +189,23 @@ export function useHausaufgaben() {
     async function checkAndScrollToItem() {
         const targetId = route.params.itemId as string;
 
-        // Exit if no target ID
         if (!targetId) {
             highlightedItemId.value = null;
             return;
         }
 
-        // 1. Check if item exists in the currently loaded raw items
         const existsInRaw = items.value.find(i => i.id === targetId);
 
         if (!existsInRaw) {
-            // Item not found. If we are not showing old entries, enable them and reload.
-            // The reload will trigger this function again via the reload's finally block or watcher.
             if (!showOldEntries.value) {
                 showOldEntries.value = true;
                 return;
             }
-            // If already showing old entries and still not found, it doesn't exist.
             return;
         }
 
-        // 2. Item exists. Find its index in the filtered view.
         let index = filteredItems.value.findIndex(i => i.id === targetId);
 
-        // If item exists in raw data but not in filtered (e.g. subject filter active), clear filter
         if (index === -1) {
             if (subjectFilter.value) {
                 subjectFilter.value = '';
@@ -224,32 +217,15 @@ export function useHausaufgaben() {
         if (index !== -1) {
             highlightedItemId.value = targetId;
 
-            // 3. Auto "Show More" if item is hidden by pagination
             if (index >= visibleCount.value) {
                 visibleCount.value = index + 5;
             }
 
-            // 4. Scroll to item & Remove URL ID
             await nextTick();
-            // Note: Template uses ID format "item-[id]"
-            const element = document.getElementById('item-' + targetId);
+            const element = document.getElementById(targetId);
             if (element) {
-                // Initial scroll
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Ensure scroll happens after full render
-                setTimeout(() => {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
             }
-
-            // 5. Remove ID from URL to prevent "stuck" state when toggling filters later
-            router.replace({
-                name: 'ItemsByType',
-                params: {
-                    ...route.params,
-                    itemId: '' // Clear the itemId param
-                }
-            });
         }
     }
 
@@ -707,22 +683,51 @@ export function useHausaufgaben() {
 
     function goTab(t: ItemType) { router.push({ name: 'ItemsByType', params: { type: t } }); }
 
-    // --- Watchers ---
+// --- Watchers ---
     watch(() => route.params.type, async (v) => {
         tab.value = isValidType(v) ? v : 'HAUSAUFGABE';
         reload();
     });
 
-    // Watch for deep linking itemId changes (e.g. navigation within page)
     watch(() => route.params.itemId, async (newId) => {
         if (newId) {
             await checkAndScrollToItem();
         }
     });
 
-    watch(showOldEntries, reload);
+    // Clear itemId when toggling old entries
+    watch(showOldEntries, () => {
+        // FIX: Do not clear the ID if we just turned this on to find that specific ID
+        // We check if we are currently looking for an item that isn't in the current list
+        const targetId = route.params.itemId as string;
+        const exists = items.value.find(i => i.id === targetId);
+
+        // Only clear URL param if we are interacting manually (not deep linking flow)
+        if (targetId && !exists && showOldEntries.value) {
+            // We are likely in the middle of the deep link flow, don't clear the ID
+            return;
+        }
+
+        if (highlightedItemId.value && route.params.itemId) {
+            router.replace({
+                name: 'ItemsByType',
+                params: { ...route.params, itemId: '' }
+            });
+        }
+        reload();
+    });
+
+    // Clear itemId when changing the subject filter
+    watch(subjectFilter, () => {
+        if (highlightedItemId.value && route.params.itemId) {
+            router.replace({
+                name: 'ItemsByType',
+                params: { ...route.params, itemId: '' }
+            });
+        }
+    });
+
     watch([subjectFilter, tab, items], () => {
-        // Only reset visibleCount if we are NOT currently focused on a specific deep-linked item
         if (!route.params.itemId) {
             visibleCount.value = Math.min(5, filteredItems.value.length || 5);
         }
