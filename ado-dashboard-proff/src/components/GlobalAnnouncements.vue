@@ -19,11 +19,13 @@
     </div>
 
     <!-- NEU: Menu Overlay -->
-    <div class="announcement-menu-overlay" v-if="showMenu" @click="showMenu = false">
+    <div class="blurit" v-if="showMenu" @click="showMenu = false">
       <div class="announcement-menu" @click.stop>
         <div class="announcement-menu-header">
-          <h4>Alle Ankündigungen</h4>
-          <button class="close-btn" @click="showMenu = false">×</button>
+          <h3>Alle Ankündigungen</h3>
+          <button class="close-btn" @click="showMenu = false">
+            <X :size="20" />
+          </button>
         </div>
         <div class="announcement-list">
           <div
@@ -56,6 +58,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import hw from '../hwApi';
 import AnnouncementPopup from './popups/AnnouncementPopup.vue';
+import { X } from 'lucide-vue-next';
 
 const announcements = ref([]);
 const currentIndex = ref(0);
@@ -188,11 +191,11 @@ function colorFor(color) {
 .global-ann {
   padding: 10px 12px;
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--font-size-sub);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--menu-shadow);
   border-bottom: 1px solid var(--border2);
 }
 
@@ -224,11 +227,9 @@ function colorFor(color) {
   border: none;
   color: var(--sub);
   cursor: pointer;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s;
   flex-shrink: 0;
   margin-left: 12px;
 }
@@ -237,42 +238,28 @@ function colorFor(color) {
   color: var(--text);
 }
 
-/* NEU: Menu Overlay Styles */
-.announcement-menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .announcement-menu {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 0;
+  background: var(--lbg);
+  border: 1px solid var(--border);
+  border-radius: var(--border-7);
+  padding: 16px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   overflow: hidden;
-  box-shadow: var(--shadow-l);
+  box-shadow: var(--menu-shadow);
 }
 
 .announcement-menu-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--vlbg);
+  align-items: start;
+  margin-bottom: 16px;
 }
 
-.announcement-menu-header h4 {
+.announcement-menu-header h3 {
   margin: 0;
+  font-size: var(--font-size-h3);
   color: var(--text);
 }
 
@@ -280,15 +267,13 @@ function colorFor(color) {
   background: none;
   border: none;
   color: var(--text);
-  font-size: 24px;
   cursor: pointer;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
+  padding: 8px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--border-4);
+  margin: -6px;
 }
 
 .close-btn:hover {
@@ -298,27 +283,32 @@ function colorFor(color) {
 .announcement-list {
   max-height: 60vh;
   overflow-y: auto;
-  padding: 8px;
-  background: var(--vlbg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .announcement-item {
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
   display: flex;
   align-items: center;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--border-4);
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 12px;
+  box-shadow: var(--input-shadow)
 }
 
 .announcement-item:hover {
-  background: var(--vlbg);
+  background: var(--gg);
 }
 
 .announcement-item.active {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
 }
 
 .announcement-item-color {
