@@ -223,20 +223,18 @@ export function useHausaufgaben() {
 
             await nextTick();
 
-            // Retry scrolling mechanism to handle DOM rendering delays
-            const attemptScroll = (retries: number) => {
+            // Retry mechanism to ensure DOM is ready before scrolling
+            const tryScroll = (attempts: number) => {
                 const element = document.getElementById(targetId);
                 if (element) {
-                    // Small delay to ensure layout is stable
-                    setTimeout(() => {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100);
-                } else if (retries > 0) {
-                    setTimeout(() => attemptScroll(retries - 1), 100);
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (attempts > 0) {
+                    setTimeout(() => tryScroll(attempts - 1), 100);
                 }
             };
 
-            attemptScroll(5); // Try for approx 500ms
+            // Try up to 5 times with 100ms delay
+            tryScroll(5);
         }
     }
 
