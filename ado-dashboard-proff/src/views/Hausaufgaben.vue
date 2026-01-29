@@ -95,6 +95,10 @@
             </div>
           </div>
 
+          <div v-if="isPinned(item.id)" class="unpin-trigger" role="button" @click.stop="togglePin(item)">
+            <Pin :size="18" fill="currentColor" class="pinned" />
+          </div>
+
           <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(item.id)">
             <Ellipsis />
           </div>
@@ -109,6 +113,10 @@
             </button>
 
             <div class="menu-divider" v-if="canEdit(item.createdBy) || user"></div>
+
+            <button class="menu-btn" v-if="user" @click="togglePin(item)">
+              <div class="fixall"><Pin v-if="!isPinned(item.id)" class="unpinned" /><Pin fill="currentColor" v-else class="pinned" /> {{ isPinned(item.id) ? 'Lösen' : 'Anheften'}}</div>
+            </button>
 
             <button class="menu-btn" @click="shareItem(item)">
               <div class="fixall"><Send /> Teilen</div>
@@ -320,7 +328,7 @@ import CompleteSetup from "../components/hw/CompleteSetup.vue";
 import TodoApp from "./TodoApp.vue";
 import ItemSkeleton from '../components/ItemSkeleton.vue';
 import TabNavigation from '../components/TabNavigation.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Ellipsis} from 'lucide-vue-next'
+import { Upload, Pencil, Send, Flag, Trash2, Pin, Ellipsis} from 'lucide-vue-next'
 import { useHausaufgaben } from '../composables/useHausaufgaben';
 import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
 import TodoForm from '../components/hw/TodoForm.vue';
@@ -375,6 +383,8 @@ const {
   goTab,
   isChecked,
   toggleCheck,
+  isPinned,
+  togglePin,
   makeThumb,
   isRevealed,
   revealImages,
@@ -482,7 +492,7 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 }
 
 .item-card.highlighted {
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   background:
       linear-gradient(var(--vlbg), var(--vlbg)),
       linear-gradient(125deg, #FFA91A 0%, #FF335A 38%, #AF00FF 75%, #5600FF 110%);
@@ -663,6 +673,97 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   margin-inline: 4px;
 }
 
+.lucide-pin {
+  overflow: visible !important;
+}
+
+.pinned :deep(path:last-child),
+.unpinned :deep(path:last-child),
+.unpinned :deep(path:first-child) {
+  transform: translateY(0) scaleY(1);
+  transition: 0.1s ease;
+  transform-origin: bottom;
+}
+
+.menu-btn:hover .pinned :deep(path:last-child),
+.unpin-trigger:hover .pinned :deep(path:last-child) {
+  transform: translateY(-8%) scaleY(1);
+}
+
+.menu-btn:hover .unpinned :deep(path:last-child) {
+  transform: translateY(8%) scaleY(1);
+}
+
+.menu-btn:hover .unpinned :deep(path:first-child) {
+  transform: translateY(0) scaleY(0.7);
+}
+
+.lucide-send {
+  overflow: visible !important;
+  transform: translateY(0);
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-send {
+  transform: translate(1px, -1px);
+
+}
+
+.lucide-upload {
+  overflow: visible !important;
+}
+
+.lucide-upload :deep(path:first-child),
+.lucide-upload :deep(path:nth-child(2)) {
+  transform: translateY(0);
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-upload :deep(path:first-child),
+.menu-btn:hover .lucide-upload :deep(path:nth-child(2)) {
+  transform: translateY(-2px);
+}
+
+.lucide-pencil {
+  overflow: visible !important;
+  transform: translateY(0) rotate(0);
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-pencil {
+  transform: translateY(-1px) rotate(5deg);
+}
+
+.lucide-flag {
+  transform: rotate(0);
+  transition: 0.1s ease;
+  transform-origin: 15% 90%;
+}
+
+.menu-btn:hover .lucide-flag {
+  transform: rotate(-5deg);
+}
+
+.lucide-trash-2 {
+  overflow: visible !important;
+}
+
+.lucide-trash-2 :deep(path:nth-child(3)) {
+  height: 6px;
+}
+
+.lucide-trash-2 :deep(path:nth-child(4)),
+.lucide-trash-2 :deep(path:nth-child(5)) {
+  transform: translateY(0) translateX(0) rotate(0);
+  transition: 0.1s ease;
+  transform-origin: 80% 30%;
+}
+
+.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(4)),
+.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(5)) {
+  transform: translateY(-1px) translateX(1px) rotate(10deg);
+}
+
 .item-body {
   margin-top:8px;
   color: var(--text);
@@ -795,6 +896,21 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 
 .message.error {
   color: var(--danger);
+}
+
+.unpin-trigger {
+  background: transparent;
+  color: var(--sub);
+  padding: 8px;
+  border-radius: var(--border-4);
+  display: inline-flex;
+  margin: -8px;
+  transition: 0.15s ease;
+}
+
+.unpin-trigger:hover {
+  background: var(--gg);
+  color: var(--text);
 }
 
 .item-menu-trigger {

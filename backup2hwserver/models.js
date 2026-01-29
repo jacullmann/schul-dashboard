@@ -137,6 +137,14 @@ export function initModels(mongoose) {
     }, { timestamps: false });
     KeepCheckedSchema.index({ itemId: 1, userId: 1 }, { unique: true });
 
+    // NEU: PinnedItem Schema (Kopie der Logik von KeepChecked)
+    const PinnedItemSchema = new Schema({
+        itemId: { type: Schema.Types.ObjectId, ref: 'HwItem', index: true, required: true },
+        userId: { type: Schema.Types.ObjectId, ref: 'HwUser', index: true, required: true },
+        pinnedAt: { type: Date, default: Date.now }
+    }, { timestamps: false });
+    PinnedItemSchema.index({ itemId: 1, userId: 1 }, { unique: true });
+
     const ReportSchema = new Schema({
         itemId: { type: Schema.Types.ObjectId, index: true, required: true },
         itemTitle: { type: String, required: true },
@@ -210,6 +218,7 @@ export function initModels(mongoose) {
     const Announcement = mongoose.model('HwAnnouncement', AnnouncementSchema);
     const Item = mongoose.model('HwItem', ItemSchema);
     const KeepChecked = mongoose.model('HwKeepChecked', KeepCheckedSchema);
+    const PinnedItem = mongoose.model('HwPinnedItem', PinnedItemSchema); // NEU: Registrieren
     const Report = mongoose.model('HwReport', ReportSchema);
     const Sorgen = mongoose.model('Sorgen', SorgenSchema);
     const PasswordReset = mongoose.model('HwPasswordReset', PasswordResetSchema);
@@ -222,6 +231,7 @@ export function initModels(mongoose) {
         Announcement,
         Item,
         KeepChecked,
+        PinnedItem, // NEU: Exportieren
         Report,
         Sorgen,
         PasswordReset,

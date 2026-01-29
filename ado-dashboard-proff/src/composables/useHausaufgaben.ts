@@ -97,6 +97,7 @@ export function useHausaufgaben() {
 
     // Checked items & Expansion & Pagination
     const checkedItems = ref(new Set<string>());
+    const pinnedItems = ref(new Set<string>());
     const expandedDescriptions = ref<Set<string>>(new Set());
     const visibleCount = ref(5);
 
@@ -145,7 +146,24 @@ export function useHausaufgaben() {
     };
 
     const filteredItems = computed(() => {
-        let list = items.value;
+        const allItems = items.value;
+        const pins = pinnedItems.value;
+
+        // Separate pinned and unpinned items
+        // Pinned items will be displayed at the top regardless of filters
+        const pinnedList: HwItem[] = [];
+        const unpinnedList: HwItem[] = [];
+
+        for (const item of allItems) {
+            if (pins.has(item.id)) {
+                pinnedList.push(item);
+            } else {
+                unpinnedList.push(item);
+            }
+        }
+
+        // Apply filters ONLY to unpinned items
+        let list = unpinnedList;
         const filter = subjectFilter.value;
 
         if (filter) {
@@ -178,7 +196,8 @@ export function useHausaufgaben() {
             });
         }
 
-        return list;
+        // Return combined list: Pinned items first, then filtered normal items
+        return [...pinnedList, ...list];
     });
 
     const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
@@ -334,6 +353,14 @@ export function useHausaufgaben() {
         } catch (e) { checkedItems.value = new Set(); }
     }
 
+    async function loadPinnedForMe() {
+        if (!user.value) { pinnedItems.value = new Set(); return; }
+        try {
+            const { data } = await hw.get('/api/user/pins');
+            pinnedItems.value = new Set(data.itemIds || []);
+        } catch (e) { pinnedItems.value = new Set(); }
+    }
+
     async function loadSubjects() {
         try {
             const { data } = await hw.get('/api/subjects');
@@ -404,6 +431,7 @@ export function useHausaufgaben() {
     async function onLoggedIn() {
         await userStore.fetchUser();
         await loadCheckedForMe();
+        await loadPinnedForMe();
         reload();
     }
 
@@ -576,6 +604,7 @@ export function useHausaufgaben() {
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
     function isChecked(itemId: string) { return checkedItems.value.has(itemId); }
+    function isPinned(itemId: string) { return pinnedItems.value.has(itemId); }
 
     async function toggleCheck(item: HwItem) {
         if (!user.value) return;
@@ -588,6 +617,26 @@ export function useHausaufgaben() {
                 await hw.post(`/api/user/items/${id}/check`);
                 checkedItems.value.add(id);
             }
+        } catch (e: any) {
+            message.value = 'Fehler beim Setzen des Status.';
+            isError.value = true;
+            setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+        }
+    }
+
+    async function togglePin(item: HwItem) {
+        if (!user.value) return;
+        const id = item.id;
+        try {
+            const newPins = new Set(pinnedItems.value);
+            if (newPins.has(id)) {
+                await hw.delete(`/api/user/items/${id}/pin`);
+                newPins.delete(id);
+            } else {
+                await hw.post(`/api/user/items/${id}/pin`);
+                newPins.add(id);
+            }
+            pinnedItems.value = newPins;
         } catch (e: any) {
             message.value = 'Fehler beim Setzen des Status.';
             isError.value = true;
@@ -757,15 +806,18 @@ export function useHausaufgaben() {
         loadSubjects();
         reload();
         loadCheckedForMe();
+        loadPinnedForMe();
     });
 
     watch(user, async (newUser, oldUser) => {
         if (newUser && !oldUser) {
             await loadCheckedForMe();
+            await loadPinnedForMe();
             reload();
         }
         if (!newUser && oldUser) {
             checkedItems.value = new Set();
+            pinnedItems.value = new Set();
             reload();
         }
     }, { deep: true });
@@ -820,6 +872,9 @@ export function useHausaufgaben() {
         goTab,
         isChecked,
         toggleCheck,
+        isPinned,
+        togglePin,
+        pinnedItems,
         makeThumb,
         isRevealed,
         revealImages,
