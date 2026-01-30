@@ -376,11 +376,11 @@
         </div>
 
         <div v-if="activeTab === 'announcements'" class="tab-content fade-in">
-          <div class="announcements" v-if="announcements.length">
+          <div class="announcements">
             <div class="ann-list">
               <button class="btn" @click="showAnnouncementForm = true">Neue Ankündigung</button>
 
-              <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }">
+              <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }" v-if="announcements.length">
                 <div class="ann-content">{{ a.content }}</div>
                 <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
                 <div v-if="canManage(a.createdBy)" class="ann-actions">
