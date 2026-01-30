@@ -2,19 +2,19 @@
   <div class="card">
     <div class="hw-header">
       <div class="title-inf">
-        <h2>Dashboard</h2>
+        <h2>Aufgaben</h2>
         <InfoPop
-            tooltip="Übersicht und Funktionen des Dashboards"
-            title="Dashboard"
+            tooltip="Übersicht und Funktionen für Aufgaben"
+            title="Aufgaben"
         >
-          <h3>Arbeite kollaborativ mit anderen und behalte alle Aufgaben im Blick.</h3>
+          <h3>Arbeite kollaborativ mit anderen und behalte alles im Blick.</h3>
           <h3>Einträge</h3>
           <p>Jede/r, die/der ein Konto hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
 
-          <h3>Eintrag hinzufügen</h3>
+          <h3>Einträge hinzufügen</h3>
           <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
 
-          <h3>Bilder verwalten</h3>
+          <h3>Bilder hochladen</h3>
           <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus.</p>
 
           <h3>Falschinformationen melden</h3>
@@ -100,7 +100,7 @@
           </div>
 
           <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(item.id)">
-            <Ellipsis />
+            <Ellipsis :size="18" />
           </div>
 
           <div class="item-menu" :class="{ open: openMenuId === item.id }" @click.stop>
@@ -502,10 +502,10 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 
 .item-main {
   position: relative;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -902,9 +902,10 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   background: transparent;
   color: var(--sub);
   padding: 8px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-5);
   display: inline-flex;
   margin: -8px;
+  margin-right: 4px;
   transition: 0.15s ease;
 }
 
@@ -917,14 +918,12 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 24px;
-  padding: 4px 8px;
-  border-radius: var(--border-4);
+  padding: 8px;
+  border-radius: var(--border-5);
   cursor: pointer;
   color: var(--sub);
   transition: background 120ms ease, color 120ms ease;
-  margin: -3px -3px;
+  margin: -8px;
 }
 
 .item-menu-trigger:hover {

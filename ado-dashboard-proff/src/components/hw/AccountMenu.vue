@@ -21,7 +21,7 @@
                 @click="openSetup"
             >
               <div class="menu-btn-content">
-                <LucideGraduationCap size="16px"/>
+                <LucideGraduationCap :size="16"/>
                 Kurse bearbeiten
               </div>
             </button>
@@ -37,8 +37,7 @@
                 @click="openSecurity"
             >
               <div class="menu-btn-content">
-                <ShieldCheck v-if="userData?.mfaEnabled" size="16px"/>
-                <Shield v-else size="16px"/>
+                <ShieldCheck :size="16"/>
                 Sicherheit
               </div>
             </button>
@@ -49,7 +48,7 @@
                 @click="openChangePassword"
             >
               <div class="menu-btn-content">
-                <LucideKeyRound size="16px"/>
+                <LucideKeyRound :size="16"/>
                 Passwort ändern
               </div>
             </button>
@@ -59,7 +58,7 @@
                 @click="handleLogout"
             >
               <div class="menu-btn-content">
-                <LogOut size="16px"/>
+                <LogOut :size="16"/>
                 Abmelden
               </div>
             </button>
@@ -71,7 +70,7 @@
                   @click="startDelete"
               >
                 <div class="menu-btn-content">
-                  <Trash2  size="16px"/>
+                  <Trash2 :size="16"/>
                   Konto löschen
                 </div>
               </button>
@@ -110,7 +109,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Shield, ShieldCheck } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from "lucide-vue-next";
 import ChangePasswordModal from './ChangePasswordModal.vue';
 import DeleteAccountModal from './DeleteAccountModal.vue';
 import PersonalizationDropdown from './PersonalizationDropdown.vue';
@@ -426,6 +425,73 @@ onBeforeUnmount(() => {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  overflow: visible !important;
+}
+
+.lucide-graduation-cap {
+  transform: rotate(0);
+  transition: 0.1s ease;
+  transform-origin: 80% 70%;
+}
+
+.menu-btn:hover .lucide-graduation-cap {
+  transform: rotate(10deg);
+}
+
+.lucide-graduation-cap :deep(path:nth-child(2)) {
+  transform: rotate(0) translateX(0) translateY(0);
+  transform-origin: inherit !important;
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-graduation-cap :deep(path:nth-child(2)) {
+  transform: rotate(-10deg) translateX(0.7px) translateY(0.5px);
+}
+
+.lucide-shield-check :deep(path:last-child) {
+  stroke-dasharray: 9;
+  stroke-dashoffset: 9;
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-shield-check :deep(path:last-child) {
+  stroke-dashoffset: 0;
+}
+
+.lucide-key-round {
+  transform: translate(0);
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-key-round {
+  transform: translate(-1px, 1px);
+}
+
+.lucide-log-out :deep(path:first-child),
+.lucide-log-out :deep(path:nth-child(2)) {
+  transform: translateX(0);
+  transition: 0.1s ease;
+}
+
+.menu-btn:hover .lucide-log-out :deep(path:first-child),
+.menu-btn:hover .lucide-log-out :deep(path:nth-child(2)) {
+  transform: translateX(2px);
+}
+
+.lucide-trash-2 :deep(path:nth-child(3)) {
+  height: 6px;
+}
+
+.lucide-trash-2 :deep(path:nth-child(4)),
+.lucide-trash-2 :deep(path:nth-child(5)) {
+  transform: translateY(0) translateX(0) rotate(0);
+  transition: 0.1s ease;
+  transform-origin: 80% 30%;
+}
+
+.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(4)),
+.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(5)) {
+  transform: translateY(-1px) translateX(1px) rotate(10deg);
 }
 
 .menu-divider {

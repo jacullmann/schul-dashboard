@@ -161,14 +161,13 @@ watch(() => props.visible, (val) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
 }
 
 .viewer-img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: var(--menu-shadow);
   transition: transform 0.2s ease;
 }
 
@@ -181,11 +180,11 @@ watch(() => props.visible, (val) => {
 /* Button Reset & Base Styles */
 .control-btn {
   pointer-events: auto; /* Re-enable clicks for buttons */
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   border: none;
   color: white;
   cursor: pointer;
-  padding: 12px;
+  padding: 8px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -196,7 +195,7 @@ watch(() => props.visible, (val) => {
 }
 
 .control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
 }
 
 /* Removed the transform/scale animation on active */
@@ -204,8 +203,8 @@ watch(() => props.visible, (val) => {
 /* Positioning */
 .close-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
 }
 
 .nav-btn {
@@ -215,23 +214,25 @@ watch(() => props.visible, (val) => {
 }
 
 .prev {
-  left: 20px;
+  left: 16px;
 }
 
 .next {
-  right: 20px;
+  right: 16px;
 }
 
 .counter {
   position: absolute;
-  bottom: 20px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   color: #fff;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.6);
   padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 999px;
+  font-size: var(--font-size-sub);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 /* Transitions */
