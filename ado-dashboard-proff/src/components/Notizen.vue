@@ -135,6 +135,13 @@ const quotes: Quote[] = [
   { text: "I'm going to make him an offer he can't refuse"},
   { text: 'Ein kleiner Schritt für die Menschheit, ein großer für einen Schüler – Dashboard'},
   { text: 'ähm... sozusagen'},
+  { text: "Can't tell me nothing"},
+  { text: "This is family business and this is for the family that can't be with us"},
+  { text: 'Little was known of Sierra Leone and how it connects to the diamonds we own'},
+  { text: "What's going on"},
+  { text: 'I never sleep, cause sleep is the cousin of death'},
+  { text: 'Keep Ya Head Up'},
+  { text: 'Just remember ALL CAPS when you spell the man name'},
 ];
 
 /**
