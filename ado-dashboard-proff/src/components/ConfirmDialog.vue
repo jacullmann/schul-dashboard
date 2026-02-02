@@ -46,9 +46,10 @@
       <button
           class="btn danger"
           @click="$emit('confirm', category)"
-          :disabled="category === 'falschinfo' && !reason?.trim()"
+          :disabled="loading || (category === 'falschinfo' && !reason?.trim())"
       >
-        Eintrag melden
+        <LoadingSpinner v-if="loading" size="1.1em" />
+        <span v-else>Eintrag melden</span>
       </button>
     </template>
   </Modal>
@@ -59,18 +60,20 @@ import { ref, watch, computed } from 'vue';
 import TabSwitcher from './TabSwitcher.vue';
 import InfoModalCenter from './info/InfoModalCenter.vue';
 import Modal from './hw/Modal.vue';
+import LoadingSpinner from './LoadingSpinner.vue';
 
 const MAX_LENGTH = 5000;
 
 const reasonLength = computed(() => {
   return props.reason?.length || 0
 })
-
+// Überprüfen: Wird loading wirklich korrekt übergeben? auch in anderen dateien prüfen.
 const props = defineProps<{
   show: boolean
   message: string
   showReasonInput?: boolean
   reason?: string
+  loading?: boolean
 }>()
 
 const emit = defineEmits(['confirm', 'cancel', 'update:reason'])

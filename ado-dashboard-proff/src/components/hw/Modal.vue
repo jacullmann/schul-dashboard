@@ -1,9 +1,9 @@
 <template>
   <div class="blurit" @click.self="$emit('cancel')" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-label="">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-header">
         <div class="modal-title">
-          <h3 class="modal-title-text">
+          <h3 id="modal-title" class="modal-title-text">
             <slot name="title" />
           </h3>
 
@@ -37,7 +37,24 @@
 </template>
 
 <script setup lang="ts">
+// Überprüfen: Ist es schlimm wenn sowohl basis modal als auch die speziellen modale die escape handler haben? hat das unerwünschte effekte, oder ist es problemlos machbar?
+import { onMounted, onBeforeUnmount } from 'vue';
+
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    emit('cancel');
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
 </script>
 
 <style scoped>

@@ -8,7 +8,7 @@
       <div class="row-n top">
         <div class="col">
           <label class="label">Titel</label>
-          <input class="input" v-model="title" />
+          <input ref="titleInputRef" class="input" v-model="title" />
         </div>
 
         <div class="col">
@@ -85,11 +85,8 @@
           </div>
 
           <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="imgStore.uploadImage(!!initial)" :disabled="imgStore.uploading">
-            <svg v-if="imgStore.uploading" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Bilder hochladen
+            <LoadingSpinner v-if="imgStore.uploading" size="1.1em" />
+            <span v-else>Bilder hochladen</span>
           </button>
         </div>
         <div v-if="imgStore.uploading" class="small">Lade Bild hoch...</div>
@@ -106,11 +103,8 @@
         </button>
 
         <button class="btn action" @click="submit" :disabled="submitting">
-          <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          {{ initial ? 'Speichern' : 'Erstellen' }}
+          <LoadingSpinner v-if="submitting" size="1.1em" />
+          <span v-else>{{ initial ? 'Speichern' : 'Erstellen' }}</span>
         </button>
       </div>
     </template>
@@ -120,6 +114,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '../../hwApi';
+import LoadingSpinner from '../LoadingSpinner.vue';
 import type { HwItem } from '../../composables/useHausaufgaben';
 import { containsProfanity } from '../../composables/useProfanity';
 import { useImageUploadStore } from '../../stores/imageStore';
@@ -352,19 +347,17 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('cancel');
 }
 
+const titleInputRef = ref<HTMLInputElement | null>(null);
+
 onMounted(() => {
   imgStore.init(props.initial?.images || []);
   window.addEventListener('keydown', onKeyDown);
+  titleInputRef.value?.focus();
 });
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <style scoped>
-.modal-title {
-  margin: 0;
-  font-size: var(--font-size-h3);
-  color: var(--text);
-}
 .section {
   margin-top: 16px;
 }
@@ -407,15 +400,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .image-remove {
   padding: 4px 8px;
   font-size: 12px;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-  height: 18px;
-  width: 18px;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .actions {

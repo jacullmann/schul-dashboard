@@ -16,12 +16,15 @@
         </div>
 
         <div class="popup-actions row">
-          <button class="btn ghost" @click="closePopup">
+          <button class="btn ghost" @click="closePopup" :disabled="loggingOut">
             Abbrechen
           </button>
-          <button class="btn ghost" @click="doLogout">
-            <LogOut size="16" />
-            Abmelden
+          <button class="btn ghost" @click="doLogout" :disabled="loggingOut">
+            <LoadingSpinner v-if="loggingOut" size="1em" />
+            <template v-else>
+              <LogOut size="16" />
+              Abmelden
+            </template>
           </button>
         </div>
       </div>
@@ -30,27 +33,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { useAppAuth } from '../composables/useAppAuth';
 import { TabletSmartphone, LogOut } from "lucide-vue-next";
 import { useRouter } from 'vue-router';
+import LoadingSpinner from './LoadingSpinner.vue';
 
 const router = useRouter();
 
 const showPopup = ref(false)
+const loggingOut = ref(false)
 const auth = useAppAuth();
 
 function openPopup() {
   showPopup.value = true
 }
+
 async function doLogout() {
-  await auth.logout();
-  await router.push('/welcome');
+  loggingOut.value = true
+  try {
+    await auth.logout();
+    await router.push('/welcome');
+  } finally {
+    loggingOut.value = false
+  }
 }
 
 function closePopup() {
-  showPopup.value = false
+  if (!loggingOut.value) {
+    showPopup.value = false
+  }
 }
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && showPopup.value && !loggingOut.value) {
+    closePopup()
+  }
+}
+
+watch(showPopup, (newVal) => {
+  if (newVal) {
+    window.addEventListener('keydown', onKeyDown)
+  } else {
+    window.removeEventListener('keydown', onKeyDown)
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown)
+})
 </script>
 
 <style scoped>

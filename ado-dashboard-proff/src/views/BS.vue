@@ -22,6 +22,8 @@
             placeholder="Du kanst über alles schreiben..."
             required
             @input="onTextInput"
+            @keydown.ctrl.enter="onSubmit"
+            @keydown.meta.enter="onSubmit"
             :maxlength="MAX_LENGTH"
         ></textarea>
 

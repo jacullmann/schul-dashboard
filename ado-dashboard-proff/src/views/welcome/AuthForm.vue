@@ -10,6 +10,7 @@
         <div class="input-wrapper">
           <component :is="User" class="input-icon" :size="18" />
           <input
+              ref="usernameInputRef"
               id="username"
               v-model="password1"
               placeholder="Name"
@@ -90,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '../../composables/useAppAuth';
 import GetStatushwb2 from "./GetStatushwb2.vue";
@@ -117,6 +118,22 @@ const accepted = ref(false)
 const showPassword = ref(false);
 const isLoading = ref(false);
 const showIt = ref(false);
+const usernameInputRef = ref<HTMLInputElement | null>(null);
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && accepted.value && !isLoading.value) {
+    submit();
+  }
+}
+
+onMounted(() => {
+  usernameInputRef.value?.focus();
+  window.addEventListener('keydown', onKeyDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
 
 async function submit() {
   if (!accepted.value) return;

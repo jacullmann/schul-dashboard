@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Upload, Trash2 } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -45,8 +45,14 @@ const styleObject = reactive({
   opacity: '0',
 });
 
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    emit('close');
+  }
+}
+
 onMounted(async () => {
-  // Wait for DOM render so we can get dimensions
+  window.addEventListener('keydown', onKeyDown);
   await nextTick();
 
   if (!menuRef.value) return;
@@ -81,6 +87,10 @@ onMounted(async () => {
   styleObject.left = `${newX}px`;
   styleObject.top = `${newY}px`;
   styleObject.opacity = '1';
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
 });
 </script>
 

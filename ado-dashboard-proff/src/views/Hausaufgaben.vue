@@ -219,7 +219,8 @@
                     @click.stop="saveNote(item.id)"
                     :disabled="savingNote"
                 >
-                  {{ savingNote ? 'Speichern...' : 'Speichern' }}
+                  <LoadingSpinner v-if="savingNote" size="1.1em" />
+                  <span v-else>Speichern</span>
                 </button>
                 <button
                     class="btn ghost"
@@ -296,6 +297,7 @@
 
     <DeleteEntryModal
         :show="showDeleteConfirm"
+        :loading="deletingEntry"
         @confirm="confirmDelete"
         @cancel="cancelDelete"
     />
@@ -303,6 +305,7 @@
     <DeleteImageModal
         v-if="showImageDeleteConfirm"
         :show="showImageDeleteConfirm"
+        :loading="deletingImage"
         @confirm="confirmImageDelete"
         @cancel="cancelImageDelete"
     />
@@ -320,7 +323,7 @@
 
 <script setup lang="ts">
 import ItemForm from '../components/hw/ItemForm.vue';
-// Removed ImageForm
+import LoadingSpinner from '../components/LoadingSpinner.vue';
 import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
 import ImageViewer from '../components/ImageViewer.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -419,6 +422,8 @@ const {
   closeImageViewer,
   shareItem,
   highlightedItemId,
+  deletingImage,
+  deletingEntry
 } = useHausaufgaben();
 
 // New wrapper to handle vibration and opening the menu

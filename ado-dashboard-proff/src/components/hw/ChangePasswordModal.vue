@@ -24,6 +24,7 @@
             Aktuelles Passwort
           </label>
           <input
+              ref="currentPasswordRef"
               id="currentPassword"
               class="input"
               :type="showCurrentPassword ? 'text' : 'password'"
@@ -104,7 +105,7 @@
               :disabled="submitting"
               style="width: 100%;"
           >
-            <span v-if="submitting">Speichere…</span>
+            <LoadingSpinner v-if="submitting" size="1.1em" />
             <span v-else>Neues Passwort festlegen</span>
           </button>
         </div>
@@ -114,9 +115,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
 import { Eye, EyeOff } from 'lucide-vue-next';
+import LoadingSpinner from '../LoadingSpinner.vue';
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -133,6 +135,26 @@ const isError = ref(false);
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showNewPassword2 = ref(false);
+
+const currentPasswordRef = ref<HTMLInputElement | null>(null);
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && !submitting.value) {
+    emit('close');
+  }
+  if (e.key === 'Enter' && !submitting.value) {
+    submit();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+  currentPasswordRef.value?.focus();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
 
 const errors = reactive<{
   current?: string;

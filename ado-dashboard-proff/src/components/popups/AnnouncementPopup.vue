@@ -11,14 +11,14 @@
         {{ announcement.content }}
       </div>
       <div class="popup-footer">
-        <button class="btn" @click="close">Alles klar</button>
+        <button ref="confirmBtnRef" class="btn" @click="close">Alles klar</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   announcement: {
@@ -28,6 +28,23 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+const confirmBtnRef = ref(null)
+
+function onKeyDown(e) {
+  if (e.key === 'Escape' || e.key === 'Enter') {
+    close()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown)
+  confirmBtnRef.value?.focus()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown)
+})
 
 const color = computed(() => {
   const map = {

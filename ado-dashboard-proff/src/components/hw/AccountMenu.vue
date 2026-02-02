@@ -16,7 +16,7 @@
             <div class="menu-divider"></div>
 
             <button
-                data-umami-event="Kurse bearbeiten Button"
+                ref="firstMenuBtnRef"
                 class="menu-btn"
                 @click="openSetup"
             >
@@ -220,9 +220,15 @@ function onPasswordChanged() {
   }, 3000);
 }
 
-function toggle() {
+const firstMenuBtnRef = ref<HTMLButtonElement | null>(null);
+
+async function toggle() {
   open.value = !open.value;
-  if (open.value) positionPopup();
+  if (open.value) {
+    await positionPopup();
+    await nextTick();
+    firstMenuBtnRef.value?.focus();
+  }
   clearMessages();
 }
 

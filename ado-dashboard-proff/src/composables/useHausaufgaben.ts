@@ -116,6 +116,8 @@ export function useHausaufgaben() {
     });
 
     const showImageDeleteConfirm = ref(false);
+    const deletingEntry = ref(false);
+    const deletingImage = ref(false);
 
     // State für Anmerkungsbearbeitung
     const editingNoteForId = ref<string | null>(null);
@@ -481,21 +483,21 @@ export function useHausaufgaben() {
         itemToDelete = null;
     }
     async function confirmDelete() {
-        if (!itemToDelete) return;
+        if (!itemToDelete || deletingEntry.value) return;
 
+        deletingEntry.value = true;
         const id = itemToDelete;
-        showDeleteConfirm.value = false;
-        itemToDelete = null;
 
-        loading.value = true;
         try {
             await hw.delete(`/api/items/${id}`);
+            showDeleteConfirm.value = false;
+            itemToDelete = null;
             handleSuccess('Eintrag gelöscht.');
         } catch (e: any) {
             message.value = e.response?.data?.error || 'Fehler beim Löschen.';
             isError.value = true;
         } finally {
-            loading.value = false;
+            deletingEntry.value = false;
         }
     }
 
@@ -583,16 +585,24 @@ export function useHausaufgaben() {
     }
 
     async function confirmImageDelete() {
-        if (imageMenu.image && imageMenu.item) {
+        if (!imageMenu.image || !imageMenu.item || deletingImage.value) return;
+
+        deletingImage.value = true;
+        try {
             await imageStore.removeImg(imageMenu.image, imageMenu.item.id);
-            // Refresh item to show changes
             await refreshItem(imageMenu.item.id);
             message.value = 'Bild gelöscht.';
             setTimeout(() => message.value = '', 3000);
+            showImageDeleteConfirm.value = false;
+            imageMenu.image = null;
+            imageMenu.item = null;
+        } catch (e: any) {
+            message.value = 'Fehler beim Löschen des Bildes.';
+            isError.value = true;
+            setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+        } finally {
+            deletingImage.value = false;
         }
-        showImageDeleteConfirm.value = false;
-        imageMenu.image = null;
-        imageMenu.item = null;
     }
 
     function cancelImageDelete() {
@@ -908,5 +918,7 @@ export function useHausaufgaben() {
         showSetupModal,
         shareItem,
         highlightedItemId,
+        deletingImage,
+        deletingEntry
     };
 }

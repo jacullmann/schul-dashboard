@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { Info, X } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -18,6 +18,24 @@ const handleBackgroundClick = (event: MouseEvent) => {
     closeModal()
   }
 }
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isModalOpen.value) {
+    closeModal()
+  }
+}
+
+watch(isModalOpen, (newVal) => {
+  if (newVal) {
+    window.addEventListener('keydown', onKeyDown)
+  } else {
+    window.removeEventListener('keydown', onKeyDown)
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown)
+})
 </script>
 
 

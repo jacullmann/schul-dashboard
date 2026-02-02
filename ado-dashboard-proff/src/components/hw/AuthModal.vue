@@ -25,6 +25,7 @@
         <form @submit.prevent="submit" class="form-content">
           <div class="form-group">
             <input
+                ref="emailInputRef"
                 class="input"
                 v-model="email"
                 placeholder="E-Mail"
@@ -151,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
 import LoadingSpinner from "../LoadingSpinner.vue";
 import TabSwitcher from "../TabSwitcher.vue";
@@ -185,6 +186,23 @@ const showPassword = ref(false);
 const showReset = ref(false);
 const showMfaVerify = ref(false);
 const { cancelMfaLogin, resetMfaState } = useMfa();
+
+const emailInputRef = ref<HTMLInputElement | null>(null);
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && !submitting.value && !showMfaVerify.value && !showReset.value) {
+    emit('close');
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+  emailInputRef.value?.focus();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
 
 const errors = reactive<{
   email?: string;

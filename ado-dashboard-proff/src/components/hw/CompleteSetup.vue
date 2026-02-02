@@ -43,7 +43,8 @@
 
       <div class="row" style="margin-top: 16px;">
         <button class="btn ghost" v-if="isSetup" @click="skip" :disabled="skipping || submitting">
-          {{ skipping ? 'Überspringe...' : 'Überspringen' }}
+          <LoadingSpinner v-if="skipping" size="1.1em" />
+          <span v-else>Überspringen</span>
         </button>
 
         <button class="btn ghost" v-else @click="$emit('close')">
@@ -51,7 +52,8 @@
         </button>
 
         <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
-          {{ submitting ? 'Speichere...' : 'Speichern' }}
+          <LoadingSpinner v-if="submitting" size="1.1em" />
+          <span v-else>Speichern</span>
         </button>
       </div>
     </template>
@@ -63,6 +65,7 @@ import { ref, reactive, computed, watch, defineProps, defineEmits } from 'vue';
 import hw from '../../hwApi';
 import Modal from './Modal.vue';
 import SelectDropdown from './SelectDropdown.vue';
+import LoadingSpinner from '../LoadingSpinner.vue';
 
 // Option Definitions
 const enrichmentOptions = [

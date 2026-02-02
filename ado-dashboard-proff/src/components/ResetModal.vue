@@ -9,13 +9,13 @@
       <div style="margin-top:12px;">
         <div v-if="step === 1">
           <p>Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code.</p>
-          <input class="input" v-model="email" placeholder="E-Mail" />
+          <input ref="emailInputRef" class="input" v-model="email" placeholder="E-Mail" />
         </div>
 
         <div v-else-if="step === 2">
           <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
           <div style="display:flex; gap:8px;">
-            <input class="input" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
+            <input ref="codeInputRef" class="input" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
             <button class="btn ghost" @click="onBack" :disabled="submitting" style="margin-top:8px;">Zurück</button>
           </div>
         </div>
@@ -25,6 +25,7 @@
 
           <div style="position: relative;">
             <input
+                ref="passwordInputRef"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="password"
@@ -61,11 +62,10 @@
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)' : 'var(--primary)' }" style="margin-top:8px;">{{ message }}</div>
 
         <div style="margin-top:12px;" class="row">
-          <button data-umami-event="Passwort zurücksetzen weiter" class="btn ghost" @click="onPrimary" :disabled="submitting">
-            <span v-if="submitting">Bitte warten…</span>
+          <button class="btn ghost" @click="onPrimary" :disabled="submitting">
+            <LoadingSpinner v-if="submitting" size="1.1em" />
             <span v-else>{{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}</span>
           </button>
-
         </div>
       </div>
     </div>
@@ -73,9 +73,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import hw from '../hwApi';
 import { Eye, EyeOff } from 'lucide-vue-next';
+import LoadingSpinner from './LoadingSpinner.vue';
 
 const emit = defineEmits(['close', 'success']);
 
@@ -89,6 +90,35 @@ const message = ref('');
 const isError = ref(false);
 const showPassword = ref(false);
 let savedResetToken = '';
+
+const emailInputRef = ref<HTMLInputElement | null>(null);
+const codeInputRef = ref<HTMLInputElement | null>(null);
+const passwordInputRef = ref<HTMLInputElement | null>(null);
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && !submitting.value) {
+    emit('close');
+  }
+  if (e.key === 'Enter' && !submitting.value) {
+    onPrimary();
+  }
+}
+
+watch(step, async () => {
+  await nextTick();
+  if (step.value === 1) emailInputRef.value?.focus();
+  if (step.value === 2) codeInputRef.value?.focus();
+  if (step.value === 3) passwordInputRef.value?.focus();
+});
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+  emailInputRef.value?.focus();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
 
 function setMessage(txt: string, error = false) {
   message.value = txt;

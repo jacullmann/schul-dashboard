@@ -51,7 +51,8 @@
               @click="confirmDelete"
               :disabled="submitting || !understoodChecked"
           >
-            {{ submitting ? 'Löscht...' : 'Account Löschen' }}
+            <LoadingSpinner v-if="submitting" size="1.1em" />
+            <span v-else>Account Löschen</span>
           </button>
         </div>
       </div>
@@ -60,8 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import hw from '../../hwApi';
+import LoadingSpinner from '../LoadingSpinner.vue';
 
 const props = defineProps<{
   email: string;
@@ -83,6 +85,20 @@ function handleBackdropClick() {
     emit('close');
   }
 }
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && !submitting.value) {
+    emit('close');
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
 
 async function confirmDelete() {
   submitting.value = true;
