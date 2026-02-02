@@ -98,7 +98,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
 .chevron {
   margin-left: auto;
-  transition: transform 0.5s ease;
+  transition: transform 0.3s ease;
 }
 
 .chevron-open {
