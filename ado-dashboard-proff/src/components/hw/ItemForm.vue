@@ -1,5 +1,5 @@
 <template>
-  <Modal @close="emit('close')">
+  <Modal @cancel="emit('cancel')">
     <template #title>
       {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
     </template>
@@ -101,7 +101,7 @@
       <div class="row actions">
         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
 
-        <button class="btn ghost" @click="emit('close')">
+        <button class="btn ghost" @click="emit('cancel')">
           Abbrechen
         </button>
 
@@ -131,7 +131,7 @@ const props = defineProps<{
   initial?: HwItem;
   subjects: string[]
 }>();
-const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
+const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 
 const imgStore = useImageUploadStore();
 
@@ -349,7 +349,7 @@ async function submit() {
 }
 
 function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') emit('close');
+  if (e.key === 'Escape') emit('cancel');
 }
 
 onMounted(() => {

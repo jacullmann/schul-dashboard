@@ -1,5 +1,5 @@
 <template>
-  <div class="blurit" @click.self="$emit('close')" aria-hidden="true">
+  <div class="blurit" @click.self="$emit('cancel')" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-label="">
       <div class="modal-header">
         <div class="modal-title">
@@ -10,7 +10,7 @@
           <slot name="title-infopop" />
         </div>
 
-        <button class="btn ghost" @click="$emit('close')">
+        <button class="btn ghost" @click="$emit('cancel')">
           Schließen
         </button>
       </div>
@@ -21,7 +21,7 @@
 
       <div class="row">
         <slot name="actions">
-          <button class="btn ghost" @click="$emit('close')">
+          <button class="btn ghost" @click="$emit('cancel')">
             Abbrechen
           </button>
 
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
+const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 </script>
 
 <style scoped>
