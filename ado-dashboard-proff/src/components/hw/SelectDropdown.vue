@@ -102,7 +102,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 }
 
 .chevron-open {
-  transform: rotate(540deg);
+  transform: rotate(180deg);
 }
 
 .dropdown-menu {
@@ -118,9 +118,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   display: flex;
   flex-direction: column;
   overflow-y: scroll;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  -ms-overflow-style: none;
   gap: 4px;
   z-index: 999;
   box-shadow: var(--menu-shadow);

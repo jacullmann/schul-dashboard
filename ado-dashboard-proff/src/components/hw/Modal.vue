@@ -60,6 +60,7 @@ const emit = defineEmits<{ (e: 'close'): void; (e: 'success'): void; }>();
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 16px;
+  align-items: flex-start;
 }
 
 .modal-title {
