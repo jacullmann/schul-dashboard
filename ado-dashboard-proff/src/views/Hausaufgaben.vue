@@ -267,7 +267,7 @@
     <TodoForm
         v-if="showTodoForm"
         :initial="todoToEdit"
-        @close="showTodoForm=false"
+        @cancel="showTodoForm=false"
         @success="(data) => handleTodoSuccess(
         todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.',
         data
