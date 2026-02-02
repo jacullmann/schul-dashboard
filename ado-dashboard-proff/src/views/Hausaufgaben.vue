@@ -259,7 +259,7 @@
         :initial="itemToEdit"
         :max-title-length="MAX_TITLE_LENGTH"
         :max-subject-length="MAX_SUBJECT_LENGTH"
-        @close="showItemForm=false"
+        @cancel="showItemForm=false"
         @success="handleSuccess('Eintrag wurde erfolgreich erstellt.')"
         @error="onItemFormError"
     />
