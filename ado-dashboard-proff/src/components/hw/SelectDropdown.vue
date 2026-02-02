@@ -86,8 +86,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   width: 100%;
 }
 
-
-
 .btn-content {
   display: flex;
   align-items: center;
@@ -98,7 +96,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
 .chevron {
   margin-left: auto;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .chevron-open {

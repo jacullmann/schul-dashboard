@@ -1,73 +1,98 @@
 <template>
-  <div v-if="visible" class="blurit">
-    <div class="card rlc modal-content">
-      <h2 class="title">{{ isSetup ? 'Willkommen! Vervollständige dein Profil' : 'Kurse bearbeiten' }}</h2>
+  <Modal v-if="visible" @cancel="$emit('close')">
+    <template #title>{{ isSetup ? 'Willkommen! Vervollständige dein Profil' : 'Kurse bearbeiten' }}</template>
+
+    <template #content>
       <p class="small" style="color: var(--sub)">{{ isSetup ? 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen. Du kannst deine Auswahl jederzeit in deinen Account-Einstellungen ändern.' : 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.' }}</p>
 
       <div class="form-group">
-        <label for="enrKurs">Enrichment</label>
-        <select id="enrKurs" v-model="formData.enrKurs" class="input hover">
-          <option value="0" disabled>Bitte auswählen...</option>
-          <option value="1">Herr Müller</option>
-          <option value="2">Herr Weber</option>
-          <option value="3">Frau Glier</option>
-          <option value="4">Frau Ellsiepen</option>
-        </select>
+        <label class="label-text">Enrichment</label>
+        <SelectDropdown
+            v-model="formData.enrKurs"
+            :options="enrichmentOptions"
+        />
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label for="wpuKurs1">WPU am Dienstag</label>
-        <select id="wpuKurs1" v-model="formData.wpuKurs1" class="input hover">
-          <option value="0" disabled>Bitte auswählen...</option>
-          <option value="1">Englisch</option>
-          <option value="2">Deutsch</option>
-          <option value="3">Biologie</option>
-          <option value="4">Geschichte</option>
-          <option value="5">Informatik</option>
-          <option value="6">Latein</option>
-        </select>
+        <label class="label-text">WPU am Dienstag</label>
+        <SelectDropdown
+            v-model="formData.wpuKurs1"
+            :options="wpu1Options"
+        />
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label for="wpuKurs2">WPU am Donnerstag</label>
-        <select id="wpuKurs2" v-model="formData.wpuKurs2" class="input hover">
-          <option value="0" disabled>Bitte auswählen...</option>
-          <option value="1">Englisch</option>
-          <option value="2">Biologie</option>
-          <option value="3">Mathe</option>
-          <option value="4">Geschichte</option>
-          <option value="5">Musik</option>
-        </select>
+        <label class="label-text">WPU am Donnerstag</label>
+        <SelectDropdown
+            v-model="formData.wpuKurs2"
+            :options="wpu2Options"
+        />
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label for="theater">Theater</label>
-        <select id="theater" v-model="formData.theater" class="input hover">
-          <option value="0" disabled>Bitte auswählen...</option>
-          <option value="1">Ja</option>
-          <option value="2">Nein</option>
-        </select>
+        <label class="label-text">Theater</label>
+        <SelectDropdown
+            v-model="formData.theater"
+            :options="theaterOptions"
+        />
       </div>
+    </template>
 
-
-
+    <template #actions>
       <div v-if="error" class="field-error" style="color:var(--danger); margin-top: 12px;">{{ error }}</div>
 
-      <div class="row" style="margin-top: 20px;">
+      <div class="row" style="margin-top: 16px;">
         <button class="btn ghost" v-if="isSetup" @click="skip" :disabled="skipping || submitting">
           {{ skipping ? 'Überspringe...' : 'Überspringen' }}
         </button>
+
+        <button class="btn ghost" v-else @click="$emit('close')">
+          Abbrechen
+        </button>
+
         <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
           {{ submitting ? 'Speichere...' : 'Speichern' }}
         </button>
       </div>
-    </div>
-  </div>
+    </template>
+  </Modal>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, defineProps, defineEmits } from 'vue';
 import hw from '../../hwApi';
+import Modal from './Modal.vue';
+import SelectDropdown from './SelectDropdown.vue';
+
+// Option Definitions
+const enrichmentOptions = [
+  { label: 'Herr Müller', value: '1' },
+  { label: 'Herr Weber', value: '2' },
+  { label: 'Frau Glier', value: '3' },
+  { label: 'Frau Ellsiepen', value: '4' },
+];
+
+const wpu1Options = [
+  { label: 'Englisch', value: '1' },
+  { label: 'Deutsch', value: '2' },
+  { label: 'Biologie', value: '3' },
+  { label: 'Geschichte', value: '4' },
+  { label: 'Informatik', value: '5' },
+  { label: 'Latein', value: '6' },
+];
+
+const wpu2Options = [
+  { label: 'Englisch', value: '1' },
+  { label: 'Biologie', value: '2' },
+  { label: 'Mathe', value: '3' },
+  { label: 'Geschichte', value: '4' },
+  { label: 'Musik', value: '5' },
+];
+
+const theaterOptions = [
+  { label: 'Ja', value: '1' },
+  { label: 'Nein', value: '2' },
+];
 
 const props = defineProps<{
   visible: boolean; // Steuert die Anzeige der Komponente
@@ -160,33 +185,17 @@ async function skip() {
 </script>
 
 <style scoped>
-
-.title {
-  margin-bottom: 2px;
-  margin-top: 4px;
-  display: block;
-  font-family: var(--display-font), sans-serif;
-}
 .small {
+  font-size: var(--font-size-sub);
   font-family: var(--normal-font), sans-serif;
 }
+
 .form-group {
   font-family: var(--normal-font), sans-serif;
 }
-.modal-content {
-  z-index: 10000000000000000;
-  position: relative;
-  max-width: 480px;
-  width: 90%;
-  top: 5px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  color: var(--text);
-  box-shadow: var(--shadow-l);
-}
+
 label {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: block;
 }
 </style>

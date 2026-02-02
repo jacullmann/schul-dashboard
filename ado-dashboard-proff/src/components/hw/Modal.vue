@@ -66,6 +66,8 @@ const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 .modal-title {
   gap: 6px;
   align-items: center;
+  display: flex;
+  justify-content: left;
 }
 
 .modal-title-text {
