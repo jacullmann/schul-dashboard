@@ -1,49 +1,46 @@
 <template>
-  <div class="blurit" @click.self="$emit('close')" aria-hidden="true">
-    <div class="glass-modal" role="dialog" aria-modal="true" aria-label="Eintrag hinzufügen">
-      <div class="modal-header">
-        <h3 class="modal-title">
-          {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
-        </h3>
-        <button data-umami-event="Eintrag erstellen/bearbeiten Menu schließen" class="btn ghost" @click="$emit('close')">Schließen</button>
-      </div>
+  <Modal @close="emit('close')">
+    <template #title>
+      {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
+    </template>
 
+    <template #content>
       <div class="row-n top">
         <div class="col">
           <label class="label">Titel</label>
           <input class="input" v-model="title" />
         </div>
+
         <div class="col">
           <label class="label">Fach</label>
-          <select class="input hover" v-model="subjectSel">
-            <option disabled value="">Bitte wählen</option>
-            <option v-for="s in subjects" :key="s" :value="s">{{ s }}</option>
-            <option value="__OTHER__">Anderes...</option>
-          </select>
+          <SelectDropdown
+              v-model="subjectSel"
+              :options="subjectOptions"
+          />
         </div>
 
         <div class="col" v-if="subjectSel === 'Enrichment'">
           <label class="label">Kurs</label>
-          <select class="input hover" v-model="enrKursSel">
-            <option disabled value="">Bitte wählen</option>
-            <option v-for="k in enrKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
-          </select>
+          <SelectDropdown
+              v-model="enrKursSel"
+              :options="enrOptions"
+          />
         </div>
 
         <div class="col" v-if="subjectSel === 'WPU (Di)'">
           <label class="label">Kurs</label>
-          <select class="input hover" v-model="wpuDiKursSel">
-            <option disabled value="">Bitte wählen</option>
-            <option v-for="k in wpuDiKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
-          </select>
+          <SelectDropdown
+              v-model="wpuDiKursSel"
+              :options="wpuDiOptions"
+          />
         </div>
 
         <div class="col" v-if="subjectSel === 'WPU (Do)'">
           <label class="label">Kurs</label>
-          <select class="input hover" v-model="wpuDoKursSel">
-            <option disabled value="">Bitte wählen</option>
-            <option v-for="k in wpuDoKurse" :key="k.id" :value="k.name">{{ k.name }}</option>
-          </select>
+          <SelectDropdown
+              v-model="wpuDoKursSel"
+              :options="wpuDoOptions"
+          />
         </div>
       </div>
 
@@ -98,10 +95,17 @@
         <div v-if="imgStore.uploading" class="small">Lade Bild hoch...</div>
         <div v-if="imgStore.uploadError" class="small error">{{ imgStore.uploadError }}</div>
       </div>
+    </template>
 
+    <template #actions>
       <div class="row actions">
         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
-        <button data-umami-event="Eintrag speichern/anlegen" class="btn action" @click="submit" :disabled="submitting">
+
+        <button class="btn ghost" @click="emit('close')">
+          Abbrechen
+        </button>
+
+        <button class="btn action" @click="submit" :disabled="submitting">
           <svg v-if="submitting" class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -109,16 +113,18 @@
           {{ initial ? 'Speichern' : 'Erstellen' }}
         </button>
       </div>
-    </div>
-  </div>
+    </template>
+  </Modal>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
+import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '../../hwApi';
 import type { HwItem } from '../../composables/useHausaufgaben';
 import { containsProfanity } from '../../composables/useProfanity';
 import { useImageUploadStore } from '../../stores/imageStore';
+import Modal from './Modal.vue';
+import SelectDropdown from './SelectDropdown.vue';
 
 const props = defineProps<{
   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
@@ -220,84 +226,104 @@ const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
 
+const subjectOptions = computed(() => {
+  const opts = props.subjects.map(s => ({ label: s, value: s }));
+
+  const specials = ['Enrichment', 'WPU (Di)', 'WPU (Do)'];
+
+  specials.forEach(special => {
+    if (!opts.some(o => o.value === special)) {
+      opts.push({ label: special, value: special });
+    }
+  });
+
+  opts.push({ label: 'Anderes...', value: '__OTHER__' });
+
+  return opts;
+});
+
+const enrOptions = enrKurse.map(k => ({ label: k.name, value: k.name }));
+const wpuDiOptions = wpuDiKurse.map(k => ({ label: k.name, value: k.name }));
+const wpuDoOptions = wpuDoKurse.map(k => ({ label: k.name, value: k.name }));
+
 async function submit() {
   submitting.value = true;
   message.value = '';
   isError.value = false;
 
+  const resolveSubject = () => {
+    const main = subjectSel.value;
+
+    if (main === '__OTHER__') {
+      return subjectOther.value.trim();
+    }
+
+    if (main === 'Enrichment') {
+      if (!enrKursSel.value) throw new Error('Du musst einen Enrichment-Kurs auswählen.');
+      return `Enrichment - ${enrKursSel.value}`;
+    }
+
+    if (main === 'WPU (Di)') {
+      if (!wpuDiKursSel.value) throw new Error('Du musst einen WPU-Kurs auswählen.');
+      return `WPU (Di) - ${wpuDiKursSel.value}`;
+    }
+
+    if (main === 'WPU (Do)') {
+      if (!wpuDoKursSel.value) throw new Error('Du musst einen WPU-Kurs auswählen.');
+      return `WPU (Do) - ${wpuDoKursSel.value}`;
+    }
+
+    return main;
+  };
+
   try {
-    if (
-        containsProfanity(title.value) ||
-        containsProfanity(subjectSel.value) ||
-        containsProfanity(subjectOther.value) ||
-        containsProfanity(description.value)
-    ) {
+    const hasProfanity = [
+      title.value,
+      subjectSel.value,
+      subjectOther.value,
+      description.value
+    ].some(text => containsProfanity(text));
+
+    if (hasProfanity) {
       throw new Error('Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.');
     }
 
-    let subject = '';
-    const mainSubject = subjectSel.value;
+    const subject = resolveSubject();
 
-    if (mainSubject === '__OTHER__') {
-      subject = subjectOther.value.trim();
-    } else if (mainSubject === 'Enrichment') {
-      if (!enrKursSel.value) {
-        throw new Error('Du musst einen Enrichment-Kurs auswählen.');
-      }
-      subject = `Enrichment - ${enrKursSel.value}`;
-    } else if (mainSubject === 'WPU (Di)') {
-      if (!wpuDiKursSel.value) {
-        throw new Error('Du musst einen WPU-Kurs auswählen.');
-      }
-      subject = `WPU (Di) - ${wpuDiKursSel.value}`;
-    } else if (mainSubject === 'WPU (Do)') {
-      if (!wpuDoKursSel.value) {
-        throw new Error('Du musst einen WPU-Kurs auswählen.');
-      }
-      subject = `WPU (Do) - ${wpuDoKursSel.value}`;
-    } else {
-      subject = mainSubject;
-    }
-
-    if (!title.value.trim()) {
-      throw new Error('Du musst einen Titel hinzufügen.');
-    }
-    if (title.value.trim().length > 60) {
-      throw new Error('Der Titel ist zu lang (max. 60 Zeichen).');
-    }
-
-    if (!subject) {
-      throw new Error('Du musst ein Fach auswählen.');
+    if (!subject || !subject.length) {
+      throw new Error('Du musst ein benutzerdefiniertes Fach eintragen.');
     }
     if (subject.length > 40) {
       throw new Error('Das benutzerdefinierte Fach ist zu lang (max. 40 Zeichen).');
     }
-    if (!subject.length) {
-      throw new Error('Du musst ein benutzerdefiniertes Fach eintragen.');
-    }
 
-    if (description.value.trim().length > 1000) {
+    const cleanTitle = title.value.trim();
+    const cleanDesc = description.value.trim();
+
+    if (!cleanTitle) {
+      throw new Error('Du musst einen Titel hinzufügen.');
+    }
+    if (cleanTitle.length > 60) {
+      throw new Error('Der Titel ist zu lang (max. 60 Zeichen).');
+    }
+    if (cleanDesc.length > 1000) {
       throw new Error('Die Beschreibung ist zu lang (max. 1000 Zeichen).');
     }
 
+    const selectedDate = new Date(dueLocal.value);
+    selectedDate.setHours(23, 59, 0, 0);
+
+    if (selectedDate < minDate) throw new Error('Das Datum liegt zu weit in der Vergangenheit.');
+    if (selectedDate > maxDate) throw new Error('Das Datum liegt zu weit in der Zukunft.');
+
     const payload = {
       type: props.type,
-      title: title.value.trim(),
+      title: cleanTitle,
       subject,
-      description: description.value.trim(),
-      images: imgStore.images
+      description: cleanDesc,
+      images: imgStore.images,
+      dueDate: selectedDate.toISOString()
     };
-
-    const selected = new Date(dueLocal.value);
-    selected.setHours(23, 59, 0, 0);
-    payload.dueDate = selected.toISOString();
-
-    if (selected < minDate) {
-      throw new Error('Das Datum liegt zu weit in der Vergangenheit.');
-    }
-    if (selected > maxDate) {
-      throw new Error('Das Datum liegt zu weit in der Zukunft.');
-    }
 
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
@@ -307,18 +333,16 @@ async function submit() {
       message.value = 'Eintrag erfolgreich erstellt.';
     }
 
-    isError.value = false;
     emit('success');
 
   } catch (e: any) {
+    isError.value = true;
+
     if (e.response?.status === 400) {
       message.value = e.response.data.error || 'Bitte überprüfe deine Eingaben.';
-    } else if (e.message) {
-      message.value = e.message;
     } else {
-      message.value = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
+      message.value = e.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
     }
-    isError.value = true;
   } finally {
     submitting.value = false;
   }
@@ -336,26 +360,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <style scoped>
-.glass-modal {
-  width: 100%;
-  max-width: 720px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--lbg);
-  box-shadow: var(--shadow-l);
-  padding: 16px;
-  max-height: calc(100vh - 40px);
-  overflow-y: scroll;
-  position: fixed;
-  z-index: 100001;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
 .modal-title {
   margin: 0;
   font-size: var(--font-size-h3);

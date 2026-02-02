@@ -42,10 +42,11 @@
       <div class="left">
         <div v-if="tab !== 'PRIVATE'" class="row-two">
 
-          <select class="input select-subject hover" v-model="subjectFilter">
-            <option value="">Alle Fächer</option>
-            <option v-for="s in subjects" :key="s" :value="s">{{ formatSubjectDisplay(s) }}</option>
-          </select>
+          <SelectDropdown
+              v-model="subjectFilter"
+              :options="subjectOptions"
+              extraClass="select-subject"
+          />
           <OldNewSwitch v-model="showOldEntries" />
           <CreateEntryDropdown
               v-if="user"
@@ -337,6 +338,8 @@ import InfoPop from '../components/info/InfoModalCenter.vue'
 import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
 import DeleteImageModal from '../components/hw/DeleteImageModal.vue'
 import { formatSubjectDisplay } from '../composables/useSubjectFormatter';
+import SelectDropdown from '../components/hw/SelectDropdown.vue';
+import { ref, computed} from 'vue';
 
 const {
   MAX_TITLE_LENGTH,
@@ -426,6 +429,17 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
   }
   openImageMenu(event, item, img);
 };
+
+const subjectOptions = computed(() => {
+  const defaultOption = { label: 'Alle Fächer', value: '' };
+
+  const dynamicOptions = subjects.value.map((s) => ({
+    label: formatSubjectDisplay(s),
+    value: s,
+  }));
+
+  return [defaultOption, ...dynamicOptions];
+});
 </script>
 
 <style scoped>
