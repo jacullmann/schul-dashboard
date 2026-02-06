@@ -72,7 +72,7 @@ const enrichmentOptions = [
   { label: 'Herr Müller', value: '1' },
   { label: 'Herr Weber', value: '2' },
   { label: 'Frau Glier', value: '3' },
-  { label: 'Frau Ellsiepen', value: '4' },
+  { label: 'Frau Thamm', value: '4' },
 ];
 
 const wpu1Options = [

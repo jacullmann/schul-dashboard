@@ -34,7 +34,7 @@ export function useHausaufgaben() {
         { id: '1', name: 'Herr Müller' },
         { id: '2', name: 'Herr Weber' },
         { id: '3', name: 'Frau Glier' },
-        { id: '4', name: 'Frau Ellsiepen' },
+        { id: '4', name: 'Frau Thamm' },
     ];
     const wpuDiKurse = [
         { id: '1', name: 'Englisch' },
