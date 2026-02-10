@@ -8,7 +8,7 @@
       <div class="contact-section primary-section">
         <div class="section-header">
           <div class="icon-wrapper">
-            <Mail size="20" />
+            <Mail :size="24" />
           </div>
           <div class="header-content">
             <h3>E-Mail</h3>
@@ -17,7 +17,7 @@
         </div>
         <a href="mailto:kontakt@schul-dashboard.com" class="email-button btn ghost">
           <span>kontakt@schul-dashboard.com</span>
-          <ExternalLink size="16" />
+          <ExternalLink :size="16" />
         </a>
       </div>
 
@@ -26,7 +26,7 @@
       <div class="contact-section">
         <div class="section-header">
           <div class="icon-wrapper">
-            <MapPin size="20" />
+            <MapPin :size="24" />
           </div>
           <div class="header-content">
             <h3>Standort</h3>
@@ -43,7 +43,7 @@
       <div class="contact-section">
         <div class="section-header">
           <div class="icon-wrapper">
-            <MessageSquare size="20" />
+            <MessageSquare :size="24" />
           </div>
           <div class="header-content">
             <h3>Feedback</h3>
@@ -58,7 +58,7 @@
 
     <div class="additional-info">
       <div class="info-card">
-        <Clock size="16" />
+        <Info :size="16" />
         <span>Wir antworten in der Regel innerhalb von 48 Stunden.</span>
       </div>
     </div>
@@ -71,18 +71,18 @@ import {
   MapPin,
   MessageSquare,
   ExternalLink,
-  Clock
+  Info
 } from 'lucide-vue-next';
 </script>
 
 <style scoped>
 .contact-header {
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 }
 
 .contact-header h2 {
-  margin: 0 0 8px 0;
   color: var(--text);
+  margin: 0;
 }
 .contact-sections {
   display: flex;
@@ -107,14 +107,14 @@ import {
 
 .icon-wrapper {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: var(--border-3);
+  border-radius: var(--border-4);
   color: var(--text);
 }
 
@@ -124,7 +124,7 @@ import {
 
 .header-content h3 {
   margin: 0 0 4px 0;
-  font-size: 16px;
+  font-size: var(--font-size-title);
   font-weight: 600;
   color: var(--text);
   font-family: var(--display-font), sans-serif;
@@ -132,37 +132,52 @@ import {
 
 .section-desc {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--font-size-sub);
   color: var(--sub);
   line-height: 1.4;
 }
 
 .info-content {
-  padding-left: 54px;
+  margin-left: 62px;
 }
 
 .email-button {
-  gap: 10px;
-  text-decoration: none;
-  border: 1px solid var(--border2);
-  margin-left: 54px;
+  margin-left: 62px;
+  color: var(--text);
+  font-size: var(--font-size-button);
+}
+
+.lucide-external-link {
+  overflow: visible !important;
+  color: var(--sub);
+  transition: all 0.1s ease;
+}
+
+.email-button:hover .lucide-external-link {
   color: var(--text);
 }
 
-.email-button svg {
-  opacity: 0.7;
-  transition: opacity 0.15s ease;
+.lucide-external-link :deep(path:first-child),
+.lucide-external-link :deep(path:nth-child(2)) {
+  transform: translate(0, 0);
+  transition: all 0.1s ease;
 }
 
-.email-button:hover svg {
-  opacity: 1;
+
+.email-button:hover .lucide-external-link :deep(path:first-child),
+.email-button:hover .lucide-external-link :deep(path:nth-child(2)) {
+  transform: translate(2px, -2px);
+}
+
+svg {
+  flex-shrink: 0;
 }
 
 .location-text,
 .feedback-text {
   margin: 0;
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--font-size-body);
   line-height: 1.6;
 }
 
@@ -177,7 +192,6 @@ hr {
 }
 
 .additional-info {
-  margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
 }
@@ -185,31 +199,19 @@ hr {
 .info-card {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: var(--border-4);
+  gap: 8px;
   color: var(--sub);
-  font-size: 13px;
-}
-
-.info-card svg {
-  flex-shrink: 0;
-  opacity: 0.7;
+  font-size: var(--font-size-body);
 }
 
 @media (max-width: 768px) {
-  .contact-header h2 {
-    font-size: 24px;
-  }
-
-  .contact-section {
-    padding: 20px 0;
-  }
-
   .section-header {
     gap: 12px;
+  }
+
+  .section-header h3 {
+    font-size: var(--font-size-body);
+    margin: 0;
   }
 
   .icon-wrapper {
@@ -217,58 +219,34 @@ hr {
     height: 36px;
   }
 
+  .icon-wrapper svg {
+    width: 20px;
+    height: 20px;
+  }
+
   .info-content {
-    padding-left: 48px;
+    margin-left: 48px;
   }
 
   .email-button {
     margin-left: 48px;
-    padding: 10px 14px;
-    font-size: 14px;
   }
 }
 
 @media (max-width: 500px) {
-  .contact-header {
-    margin-bottom: 24px;
-  }
-
-  .contact-header h2 {
-    font-size: 22px;
-  }
-
   .section-header {
     flex-direction: row;
     align-items: flex-start;
   }
 
-  .header-content h3 {
-    font-size: 15px;
-  }
-
-  .section-desc {
-    font-size: 12px;
-  }
-
   .info-content {
-    padding-left: 0;
-    margin-top: 12px;
+    margin-left: 0;
   }
 
   .email-button {
     margin-left: 0;
     width: 100%;
     justify-content: space-between;
-  }
-
-  .additional-info {
-    margin-top: 24px;
-    padding-top: 20px;
-  }
-
-  .info-card {
-    width: 100%;
-    font-size: 12px;
   }
 }
 </style>

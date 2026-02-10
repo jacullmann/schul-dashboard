@@ -93,7 +93,7 @@
     <SecurityModal
         v-if="showSecurity"
         :initial-mfa-enabled="userData?.mfaEnabled"
-        @close="showSecurity = false"
+        @cancel="showSecurity = false"
         @mfa-changed="onMfaChanged"
     />
     <!-- Account löschen Modal -->
