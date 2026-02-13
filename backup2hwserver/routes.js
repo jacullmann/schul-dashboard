@@ -25,6 +25,7 @@ import createUserRoutes from './routes/user.js';
 import createItemsRoutes from './routes/items.js';
 import createPublicRoutes from './routes/public.js';
 import createMfaRoutes from './routes/mfa.js';
+import createDocRoutes from './routes/doc.js';
 
 export default function registerRoutes(app, deps) {
     const {
@@ -99,5 +100,6 @@ export default function registerRoutes(app, deps) {
     app.use('/api/user', createUserRoutes(routeDeps));
     app.use('/api/items', createItemsRoutes(routeDeps));
     app.use('/api/mfa', createMfaRoutes(routeDeps));
+    app.use('/api/doc', createDocRoutes(routeDeps));
     app.use('/', createPublicRoutes(routeDeps));
 }

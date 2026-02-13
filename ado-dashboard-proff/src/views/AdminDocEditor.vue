@@ -1,0 +1,896 @@
+<template>
+  <div class="doc-editor-page">
+
+    <!-- Status Leiste-->
+    <div class="doc-statusbar">
+      <div class="status-left">
+        <!-- Verbindungsindikator -->
+        <div class="connection-badge" :class="connectionState">
+          <span class="dot"></span>
+          <span class="label">
+            {{ connectionLabels[connectionState] }}
+          </span>
+        </div>
+
+        <!-- Online-Admins -->
+        <div v-if="isConnected && onlineAdmins.length > 0" class="online-admins">
+          <span class="online-label">Online:</span>
+          <span
+              v-for="email in onlineAdmins"
+              :key="email"
+              class="admin-chip"
+              :title="email"
+          >
+            {{ emailToInitials(email) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="status-right">
+        <!-- Letzte Bearbeitung -->
+        <span v-if="lastEditedBy" class="last-edit">
+          Zuletzt von <strong>{{ lastEditedBy }}</strong>
+          <template v-if="lastEditedAt">
+            &nbsp;· {{ formatTime(lastEditedAt) }}
+          </template>
+        </span>
+
+        <!-- Version -->
+        <span class="version-badge" title="Dokument-Version">
+          v{{ docVersion }}
+        </span>
+
+        <!-- Manuell speichern -->
+        <button
+            class="save-btn"
+            @click="saveNow"
+            :disabled="isSaving || !isConnected"
+            :title="isSaving ? 'Wird gespeichert…' : 'Jetzt speichern'"
+        >
+          <Save :size="14" />
+          {{ isSaving ? 'Speichern…' : 'Speichern' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Konflikt-Banner -->
+    <Transition name="banner">
+      <div v-if="conflictDetected" class="conflict-banner">
+        <AlertTriangle :size="14" />
+        Deine Version scheint veraltet zu sein. Wir haben sie mit dem neuen Stand aktualisiert.
+      </div>
+    </Transition>
+
+    <!-- Fehler-Banner -->
+    <Transition name="banner">
+      <div v-if="saveError" class="error-banner">
+        <AlertCircle :size="14" />
+        {{ saveError }}
+      </div>
+    </Transition>
+
+    <!-- Editor Layout -->
+    <div class="editor-layout">
+
+      <!-- Sidebar -->
+      <aside class="outline-sidebar">
+        <div class="outline-header">
+          <h3>Menü</h3>
+          <button class="reset-btn" @click="confirmReset">
+            <RotateCcw :size="13" />
+          </button>
+        </div>
+        <div class="outline-body">
+          <div v-if="toc.length === 0" class="toc-empty">
+            Füge Überschriften hinzu, um die Gliederung zu sehen.
+          </div>
+          <div
+              v-for="item in toc"
+              :key="item.id"
+              class="toc-item"
+              :class="`level-${item.level}`"
+              @click="scrollToBlock(item.id)"
+          >
+            <span class="toc-badge">{{ ['H1','H2','H3','H4'][item.level - 1] }}</span>
+            <span class="toc-text">{{ item.text || '(Ohne Titel)' }}</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Hauptbereich -->
+      <main class="editor-main">
+
+        <!-- Toolbar -->
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <span class="toolbar-label">Block hinzufügen</span>
+            <button @click="addBlock('h1')" title="Überschrift 1">
+              <Heading1 :size="15" />
+            </button>
+            <button @click="addBlock('h2')" title="Überschrift 2">
+              <Heading2 :size="15" />
+            </button>
+            <button @click="addBlock('p')" title="Absatz">
+              <Type :size="15" />
+            </button>
+            <button @click="addBlock('ul')" title="Aufzählungsliste">
+              <List :size="15" />
+            </button>
+            <button @click="addBlock('cl')" title="Checkliste">
+              <CheckSquare :size="15" />
+            </button>
+          </div>
+          <div class="toolbar-right">
+            <span class="toolbar-hint">Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span>
+          </div>
+        </div>
+
+        <!-- Blocks -->
+        <div class="document-scroll-area" id="doc-scroll-area">
+          <div class="document-inner">
+
+            <VueDraggableNext
+                v-model="blocks"
+                handle=".drag-handle"
+                animation="180"
+                ghost-class="ghost-block"
+                @end="onDragEnd"
+            >
+              <TransitionGroup name="block-list" tag="div">
+                <PlanBlock
+                    v-for="(block, index) in visibleBlocks"
+                    :key="block.id"
+                    :block="block"
+                    @update:content="(c) => updateBlockContent(block, c)"
+                    @update:checked="(c) => updateBlockChecked(block, c)"
+                    @toggle-collapse="toggleCollapse(block)"
+                    @keydown-enter="handleEnter(index, $event)"
+                    @keydown-backspace="handleBackspace(index, $event)"
+                    @indent="handleIndent(block, 1)"
+                    @outdent="handleIndent(block, -1)"
+                    @delete="removeBlock(block.id)"
+                    @focus="currentFocusId = block.id"
+                    @change-type="(t) => changeBlockType(block, t)"
+                />
+              </TransitionGroup>
+            </VueDraggableNext>
+
+            <!-- Leerer State -->
+            <div
+                v-if="blocks.length === 0"
+                class="empty-doc"
+                @click="addBlock('h1')"
+            >
+              <FileText :size="32" class="empty-icon" />
+              <span>Klicke hier, um mit dem Schreiben zu beginnen</span>
+            </div>
+
+            <div class="doc-spacer"></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, nextTick, watch, onMounted } from 'vue';
+import { VueDraggableNext } from 'vue-draggable-next';
+import {
+  Heading1, Heading2, Type, List, CheckSquare,
+  Save, AlertTriangle, AlertCircle, RotateCcw, FileText
+} from 'lucide-vue-next';
+import PlanBlock from '../components/PlanBlock.vue';
+import { useDocEditor } from '../composables/useDocEditor';
+
+// Block-Typen
+type BlockType = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'ul' | 'cl';
+
+interface Block {
+  id: string;
+  type: BlockType;
+  content: string;
+  checked?: boolean;
+  isCollapsed?: boolean;
+  indentLevel: number;
+}
+
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+// DocEditor Composable
+const {
+  connectionState,
+  docContent,
+  docVersion,
+  lastEditedBy,
+  lastEditedAt,
+  onlineAdmins,
+  isSaving,
+  saveError,
+  conflictDetected,
+  isConnected,
+  isConnecting,
+  connect,
+  onContentChange,
+  saveNow,
+  loadDoc,
+} = useDocEditor();
+
+// Lokaler Block-State
+const blocks = ref<Block[]>([]);
+const currentFocusId = ref<string | null>(null);
+
+// Flag: wir selbst serialisieren gerade → kein Re-Parse nötig
+let isSelfUpdate = false;
+
+// Serialisierung
+function serializeBlocks(blocks: Block[]): string {
+  return blocks.map(b => {
+    const indent = b.indentLevel ? ` data-indent="${b.indentLevel}"` : '';
+    const collapsed = b.isCollapsed ? ` data-collapsed="true"` : '';
+    const blockId = ` data-bid="${b.id}"`;
+    const type = ` data-type="${b.type}"`;
+
+    switch (b.type) {
+      case 'h1': return `<h1${blockId}${type}${indent}${collapsed}>${b.content}</h1>`;
+      case 'h2': return `<h2${blockId}${type}${indent}${collapsed}>${b.content}</h2>`;
+      case 'h3': return `<h3${blockId}${type}${indent}${collapsed}>${b.content}</h3>`;
+      case 'h4': return `<h4${blockId}${type}${indent}${collapsed}>${b.content}</h4>`;
+      case 'ul': return `<ul${blockId}${type}${indent}><li>${b.content}</li></ul>`;
+      case 'cl': {
+        const checked = b.checked ? ` data-checked="true"` : '';
+        return `<div class="cl-block"${blockId}${type}${indent}${checked}>${b.content}</div>`;
+      }
+      default:   return `<p${blockId}${type}${indent}>${b.content}</p>`;
+    }
+  }).join('\n');
+}
+
+// Deserialisierung
+function deserializeBlocks(html: string): Block[] {
+  if (!html.trim()) return [];
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
+  const root = doc.querySelector('div')!;
+
+  const result: Block[] = [];
+
+  for (const el of Array.from(root.children)) {
+    const tag = el.tagName.toLowerCase();
+    const bid = el.getAttribute('data-bid') || genId();
+    const dataType = el.getAttribute('data-type');
+    const indent = parseInt(el.getAttribute('data-indent') || '0', 10);
+    const collapsed = el.getAttribute('data-collapsed') === 'true';
+
+    // Typ aus data-type ableiten (Rückwärtskompatibilität)
+    let type: BlockType = 'p';
+    if (dataType && ['h1','h2','h3','h4','p','ul','cl'].includes(dataType)) {
+      type = dataType as BlockType;
+    } else if (['h1','h2','h3','h4'].includes(tag)) {
+      type = tag as BlockType;
+    } else if (tag === 'ul') {
+      type = 'ul';
+    } else if (el.classList.contains('cl-block')) {
+      type = 'cl';
+    }
+
+    // Content extrahieren
+    let content = '';
+    if (type === 'ul') {
+      const li = el.querySelector('li');
+      content = li ? li.innerHTML : el.innerHTML;
+    } else {
+      content = el.innerHTML;
+    }
+
+    result.push({
+      id: bid,
+      type,
+      content,
+      checked: el.getAttribute('data-checked') === 'true',
+      isCollapsed: collapsed,
+      indentLevel: isNaN(indent) ? 0 : indent,
+    });
+  }
+
+  return result;
+}
+
+// Sync: docContent (vom Server) → blocks
+watch(docContent, (newHtml) => {
+  if (isSelfUpdate) return; // Eigene Änderung → nicht re-parsen
+
+  const parsed = deserializeBlocks(newHtml);
+
+  // Leeres Dokument → Startzustand
+  if (parsed.length === 0) {
+    blocks.value = [];
+  } else {
+    blocks.value = parsed;
+  }
+}, { immediate: false });
+
+// Sync: blocks → docContent (nach lokalem Edit)
+function pushBlocksToServer() {
+  isSelfUpdate = true;
+  const html = serializeBlocks(blocks.value);
+  onContentChange(html);
+  nextTick(() => { isSelfUpdate = false; });
+}
+
+// Hilfsfunktionen
+function genId(): string {
+  return Math.random().toString(36).slice(2, 11);
+}
+
+function getLevel(type: string): number {
+  return { h1: 1, h2: 2, h3: 3, h4: 4 }[type] ?? 10;
+}
+
+function isHeader(type: string): boolean {
+  return ['h1','h2','h3','h4'].includes(type);
+}
+
+// Collapse-Logik
+const visibleBlocks = computed<Block[]>(() => {
+  const result: Block[] = [];
+  let hideLevel = 999;
+  for (const block of blocks.value) {
+    const level = getLevel(block.type);
+    if (level < 999 && level <= hideLevel) hideLevel = 999;
+    if (hideLevel === 999) {
+      result.push(block);
+      if (isHeader(block.type) && block.isCollapsed) {
+        hideLevel = level;
+      }
+    }
+  }
+  return result;
+});
+
+// Inhaltsverzeichnis
+const toc = computed<TocItem[]>(() => {
+  return blocks.value
+      .filter(b => isHeader(b.type))
+      .map(b => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = b.content;
+        return {
+          id: b.id,
+          text: tmp.textContent?.trim() || '',
+          level: getLevel(b.type),
+        };
+      });
+});
+
+// Block Aktionen
+function addBlock(type: BlockType = 'p') {
+  const block: Block = {
+    id: genId(),
+    type,
+    content: '',
+    checked: false,
+    isCollapsed: false,
+    indentLevel: 0,
+  };
+  blocks.value.push(block);
+  pushBlocksToServer();
+  focusBlock(block.id);
+}
+
+function removeBlock(id: string) {
+  const idx = blocks.value.findIndex(b => b.id === id);
+  if (idx === -1) return;
+  if (idx > 0) focusBlock(blocks.value[idx - 1].id);
+  blocks.value.splice(idx, 1);
+  pushBlocksToServer();
+}
+
+function updateBlockContent(block: Block, content: string) {
+  block.content = content;
+  pushBlocksToServer();
+}
+
+function updateBlockChecked(block: Block, checked: boolean) {
+  block.checked = checked;
+  pushBlocksToServer();
+}
+
+function changeBlockType(block: Block, type: string) {
+  block.type = type as BlockType;
+  pushBlocksToServer();
+}
+
+function toggleCollapse(block: Block) {
+  block.isCollapsed = !block.isCollapsed;
+  pushBlocksToServer();
+}
+
+function handleIndent(block: Block, delta: number) {
+  const next = block.indentLevel + delta;
+  if (next >= 0 && next <= 8) {
+    block.indentLevel = next;
+    pushBlocksToServer();
+  }
+}
+
+function handleEnter(visibleIndex: number, e: KeyboardEvent) {
+  e.preventDefault();
+  const block = visibleBlocks.value[visibleIndex];
+  const mainIdx = blocks.value.findIndex(b => b.id === block.id);
+
+  let nextType: BlockType = 'p';
+  if (block.type === 'ul') nextType = 'ul';
+  if (block.type === 'cl') nextType = 'cl';
+
+  const newBlock: Block = {
+    id: genId(),
+    type: nextType,
+    content: '',
+    checked: false,
+    indentLevel: block.indentLevel,
+  };
+
+  blocks.value.splice(mainIdx + 1, 0, newBlock);
+  pushBlocksToServer();
+  nextTick(() => focusBlock(newBlock.id));
+}
+
+function handleBackspace(visibleIndex: number, e: KeyboardEvent) {
+  const block = visibleBlocks.value[visibleIndex];
+  if (block.content === '' && blocks.value.length > 1) {
+    e.preventDefault();
+    removeBlock(block.id);
+  }
+}
+
+function onDragEnd() {
+  pushBlocksToServer();
+}
+
+function focusBlock(id: string) {
+  nextTick(() => {
+    const el = document.getElementById(`block-input-${id}`);
+    if (!el) return;
+    el.focus();
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  });
+}
+
+function scrollToBlock(id: string) {
+  document.getElementById(`block-wrapper-${id}`)?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  });
+}
+
+function confirmReset() {
+  if (confirm('Dokument wirklich leeren? Der aktuelle Inhalt wird für alle gelöscht.')) {
+    blocks.value = [];
+    pushBlocksToServer();
+  }
+}
+
+// Ui-Helper
+const connectionLabels: Record<string, string> = {
+  connecting: 'Verbinde…',
+  connected: 'Live verbunden',
+  disconnected: 'Getrennt',
+  error: 'Auth-Fehler',
+};
+
+function emailToInitials(email: string): string {
+  const local = email.split('@')[0];
+  const parts = local.split(/[._-]/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return local.slice(0, 2).toUpperCase();
+}
+
+function formatTime(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(iso));
+  } catch {
+    return '';
+  }
+}
+
+// Lifecycle
+onMounted(async () => {
+  // Zuerst per REST laden (sofortiger Inhalt, auch ohne Socket)
+  await loadDoc();
+
+  // Dann initiales Parsen
+  if (docContent.value) {
+    blocks.value = deserializeBlocks(docContent.value);
+  }
+
+  // Socket verbinden
+  connect();
+});
+</script>
+
+<style scoped>
+.doc-editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.doc-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--lbg);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.status-left, .status-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.connection-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-footnote);
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--gg);
+}
+
+.connection-badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connection-badge.connected { background: rgba(56, 142, 60, 0.15); color: #388e3c; }
+.connection-badge.connected .dot { background: #388e3c; box-shadow: 0 0 0 2px rgba(56,142,60,.3); }
+
+.connection-badge.connecting { background: rgba(245, 124, 0, 0.12); color: #f57c00; }
+.connection-badge.connecting .dot { background: #f57c00; animation: pulse 1s infinite; }
+
+.connection-badge.disconnected { background: var(--gg); color: var(--sub); }
+.connection-badge.disconnected .dot { background: var(--sub); }
+
+.connection-badge.error { background: rgba(211, 47, 47, 0.12); color: #d32f2f; }
+.connection-badge.error .dot { background: #d32f2f; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.online-admins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.online-label {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ghost--hover);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  border: 2px solid var(--bg);
+  cursor: default;
+}
+
+.last-edit {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+}
+
+.version-badge {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+  background: var(--gg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--border-4);
+  border: 1px solid var(--border);
+  background: var(--lbg);
+  color: var(--text);
+  font-size: var(--font-size-footnote);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.save-btn:hover:not(:disabled) {
+  background: var(--ghost--hover);
+}
+.save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.conflict-banner,
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: var(--font-size-sub);
+  flex-shrink: 0;
+}
+
+.conflict-banner {
+  background: rgba(245, 124, 0, 0.1);
+  color: #f57c00;
+  border-bottom: 1px solid rgba(245, 124, 0, 0.2);
+}
+
+.error-banner {
+  background: rgba(211, 47, 47, 0.1);
+  color: #d32f2f;
+  border-bottom: 1px solid rgba(211, 47, 47, 0.2);
+}
+
+.banner-enter-active, .banner-leave-active {
+  transition: all 0.25s ease;
+}
+.banner-enter-from, .banner-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.outline-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--vlbg);
+  border-right: 1px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.outline-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.outline-header h3 {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.reset-btn {
+  background: none;
+  border: none;
+  color: var(--sub);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+}
+.reset-btn:hover {
+  color: var(--danger);
+  background: rgba(246, 82, 82, 0.08);
+}
+
+.outline-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.toc-empty {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+  font-style: italic;
+  padding: 10px;
+}
+
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: var(--font-size-sub);
+  color: var(--text);
+  transition: background 0.15s;
+  margin-bottom: 1px;
+}
+.toc-item:hover { background: var(--gg); }
+
+.toc-badge {
+  font-size: 9px;
+  font-weight: 700;
+  opacity: 0.5;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.toc-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.level-1 { padding-left: 8px; font-weight: 600; }
+.level-2 { padding-left: 20px; }
+.level-3 { padding-left: 32px; }
+.level-4 { padding-left: 44px; }
+
+.editor-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Toolbar */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--vlbg);
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-label {
+  font-size: var(--font-size-footnote);
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-right: 8px;
+}
+
+.toolbar-left button {
+  background: none;
+  border: none;
+  padding: 7px;
+  border-radius: var(--border-4);
+  cursor: pointer;
+  color: var(--sub);
+  display: flex;
+  align-items: center;
+}
+.toolbar-left button:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+
+.toolbar-hint {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+}
+
+/* Scroll-Bereich */
+.document-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+.document-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  min-height: 500px;
+  position: relative;
+}
+
+/* Ghost-Klasse beim Dragging */
+:deep(.ghost-block) {
+  opacity: 0.35;
+  background: var(--gg) !important;
+}
+
+/* Block-Transition */
+.block-list-move,
+.block-list-enter-active,
+.block-list-leave-active {
+  transition: all 0.18s ease;
+}
+.block-list-enter-from,
+.block-list-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+/* Leerer State */
+.empty-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 200px;
+  border: 2px dashed var(--border2);
+  border-radius: 8px;
+  color: var(--sub);
+  cursor: pointer;
+  margin-top: 24px;
+  font-size: var(--font-size-body);
+  transition: border-color 0.2s, color 0.2s;
+}
+.empty-doc:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+.empty-icon { opacity: 0.4; }
+
+.doc-spacer { height: 200px; }
+
+@media (max-width: 900px) {
+  .outline-sidebar {
+    display: none;
+  }
+  .document-scroll-area {
+    padding: 24px 20px;
+  }
+}
+</style>

@@ -17,9 +17,10 @@
     "lucide-vue-next": "^0.546.0",
     "marked": "^16.4.1",
     "pinia": "^2.1.7",
-    "socket.io-client": "^4.8.1",
+    "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.1.14",
     "vue": "^3.4.29",
+    "vue-draggable-next": "^2.3.0",
     "vue-router": "^4.3.3"
   },
   "devDependencies": {

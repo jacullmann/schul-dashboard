@@ -12,8 +12,18 @@ import { Resend } from 'resend';
 import { GoogleGenAI } from "@google/genai";
 import routes from './routes.js';
 import { initModels, ensureSubjects } from './models.js';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import { registerDocSocket } from './routes/doc.js';
 
 const app = express();
+const httpServer = createServer(app);
+const io = new SocketIOServer(httpServer, {
+    cors: {
+        origin: process.env.CORS_ORIGIN || 'https://schul-dashboard.com',
+        credentials: true,
+    }
+});
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboard.com';
@@ -113,6 +123,11 @@ routes(app, {
     passwordResetSecret: process.env.PASSWORD_RESET_SECRET
 });
 
+registerDocSocket(io, supabase, {
+    userSecret: process.env.USER_JWT_SECRET,
+    models,
+});
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-app.listen(PORT, () => console.log(`Backend läuft nun auf:${PORT}`));
+httpServer.listen(PORT, () => console.log(`Backend läuft nun auf: ${PORT}`));

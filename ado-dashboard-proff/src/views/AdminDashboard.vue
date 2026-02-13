@@ -11,7 +11,7 @@
           :sorgenCount="unprocessedSorgen.length"
       />
       <main class="content-area">
-        <div class="content-header">
+        <div class="content-header" v-show="activeTab !== 'doc'">
           <h1>{{ tabTitles[activeTab] }}</h1>
           <div v-if="message" class="status-message" :class="{ error: isError }">
             {{ message }}
@@ -459,6 +459,12 @@
             </div>
           </div>
         </div>
+
+        <!--Doc-->
+        <div v-if="activeTab === 'doc'" class="tab-content tab-content--doc fade-in">
+          <AdminDocEditor />
+        </div>
+
       </main>
     </div>
 
@@ -489,6 +495,7 @@ import {
   RotateCcw
 } from 'lucide-vue-next';
 import EditModal from "../components/stundenplan-admin/EditModal.vue";
+import AdminDocEditor from './AdminDocEditor.vue';
 
 const {
   activeTab,
@@ -549,7 +556,8 @@ const tabTitles: Record<string, string> = {
   sorgen: 'Sorgenbox',
   security: 'Sicherheit',
   announcements: 'Ankündigungen',
-  timetable: 'Stundenplan'
+  timetable: 'Stundenplan',
+  doc: 'Doc',
 };
 </script>
 
@@ -557,7 +565,7 @@ const tabTitles: Record<string, string> = {
 .admin-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   background:var(--bg);
   color:var(--text);
 }
@@ -574,6 +582,7 @@ const tabTitles: Record<string, string> = {
   display: flex;
   flex: 1;
   margin-left: 80px;
+  min-height: 0;
 }
 
 .content-area {
@@ -581,6 +590,23 @@ const tabTitles: Record<string, string> = {
   padding: 30px 40px;
   overflow-y: auto;
 }
+
+/* Der Doc-Editor braucht die volle Fläche ohne Padding */
+.content-area:has(.tab-content--doc) {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content--doc {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 
 .content-header {
   display: flex;

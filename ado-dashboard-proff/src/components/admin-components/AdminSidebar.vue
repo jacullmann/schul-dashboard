@@ -32,7 +32,8 @@ import {
   Inbox,
   ShieldAlert,
   Megaphone,
-  CalendarDays
+  CalendarDays,
+  FileText
 } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -60,6 +61,7 @@ const navItems = ref<NavItem[]>([
   { key: 'reports', label: 'Meldungen', icon: Flag, counter: props.reportsCount },
   { key: 'sorgen', label: 'Sorgenbox', icon: Inbox, counter: props.sorgenCount },
   { key: 'security', label: 'Sicherheit', icon: ShieldAlert, counter: 0 },
+  { key: 'doc', label: 'Doc', icon: FileText, counter: 0 },
 ]);
 
 watch(() => props.reportsCount, (newCount) => {
