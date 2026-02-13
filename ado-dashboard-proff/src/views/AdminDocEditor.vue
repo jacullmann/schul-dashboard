@@ -119,6 +119,39 @@
             <button @click="addBlock('cl')" title="Checkliste">
               <CheckSquare :size="15" />
             </button>
+            <div class="tb-separator"></div>
+
+            <!-- Fett -->
+            <button @click="execOnFocused('bold')" title="Fett (Strg+B)" :disabled="!currentFocusId">
+              <Bold :size="15" />
+            </button>
+
+            <!-- Textfarbe Dropdown -->
+            <div class="color-menu-wrapper" :class="{ disabled: !currentFocusId }">
+              <button class="color-menu-btn" title="Textfarbe">
+                <Palette :size="15" />
+                <ChevronDown :size="11" />
+              </button>
+              <div class="color-menu-dropdown">
+                <div v-for="c in TOOLBAR_COLORS" :key="c" class="color-dot"
+                     :style="{ backgroundColor: c }" @click="execOnFocused('foreColor', c)"></div>
+                <label class="color-dot custom" title="Eigene Farbe">
+                  <input type="color" @input="(e: any) => execOnFocused('foreColor', e.target.value)" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Block-Typ Dropdown -->
+            <select class="type-select" :disabled="!currentFocusId"
+                    :value="currentBlockType"
+                    @change="changeCurrentBlockType(($event.target as HTMLSelectElement).value)">
+              <option value="p">Text</option>
+              <option value="h1">Überschrift 1</option>
+              <option value="h2">Überschrift 2</option>
+              <option value="h3">Überschrift 3</option>
+              <option value="ul">Liste</option>
+              <option value="cl">Checkliste</option>
+            </select>
           </div>
           <div class="toolbar-right">
             <span class="toolbar-hint">Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span>
@@ -176,14 +209,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, watch, onMounted } from 'vue';
-import { VueDraggableNext } from 'vue-draggable-next';
+import { ref, computed, watch, onMounted } from 'vue';
 import {
-  Heading1, Heading2, Type, List, CheckSquare,
-  Save, AlertTriangle, AlertCircle, RotateCcw, FileText
+  GripVertical, Trash2,
+  ChevronDown, ChevronRight,
+  Bold, Palette
 } from 'lucide-vue-next';
+const inputEl = ref<HTMLElement | null>(null);
 import PlanBlock from '../components/PlanBlock.vue';
 import { useDocEditor } from '../composables/useDocEditor';
+const TOOLBAR_COLORS = ['#000000','#ffffff','#d32f2f','#f57c00','#388e3c','#1976d2','#7b1fa2'];
 
 // Block-Typen
 type BlockType = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'ul' | 'cl';
@@ -222,9 +257,29 @@ const {
   loadDoc,
 } = useDocEditor();
 
+const currentBlockType = computed(() => {
+  if (!currentFocusId.value) return 'p';
+  return blocks.value.find(b => b.id === currentFocusId.value)?.type ?? 'p';
+});
+function execOnFocused(command: string, value?: string) {
+  const el = document.getElementById(`block-input-${currentFocusId.value}`);
+  if (!el) return;
+  el.focus();
+  document.execCommand(command, false, value);
+  const block = blocks.value.find(b => b.id === currentFocusId.value);
+  if (block) { block.content = el.innerHTML; pushBlocksToServer(); }
+}
+
+function changeCurrentBlockType(type: string) {
+  const block = blocks.value.find(b => b.id === currentFocusId.value);
+  if (block) changeBlockType(block, type);
+}
+
+
 // Lokaler Block-State
 const blocks = ref<Block[]>([]);
 const currentFocusId = ref<string | null>(null);
+let selfUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Flag: wir selbst serialisieren gerade → kein Re-Parse nötig
 let isSelfUpdate = false;
@@ -322,7 +377,8 @@ function pushBlocksToServer() {
   isSelfUpdate = true;
   const html = serializeBlocks(blocks.value);
   onContentChange(html);
-  nextTick(() => { isSelfUpdate = false; });
+  clearTimeout(selfUpdateTimer);
+  selfUpdateTimer = setTimeout(() => { isSelfUpdate = false; }, 600);
 }
 
 // Hilfsfunktionen
@@ -884,7 +940,115 @@ onMounted(async () => {
 .empty-icon { opacity: 0.4; }
 
 .doc-spacer { height: 200px; }
+/* ── Neue Toolbar-Elemente ── */
+.tb-separator {
+  width: 1px;
+  height: 18px;
+  background: var(--border2, #ddd);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
 
+.toolbar-left button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.color-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.color-menu-wrapper.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.color-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 6px 7px;
+  border-radius: var(--border-4, 4px);
+  cursor: pointer;
+  color: var(--sub);
+}
+.color-menu-btn:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+
+.color-menu-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--lbg, #fff);
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  padding: 8px;
+  gap: 5px;
+  flex-wrap: wrap;
+  width: 128px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  z-index: 500;
+}
+.color-menu-wrapper:hover .color-menu-dropdown {
+  display: flex;
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  flex-shrink: 0;
+}
+.color-dot:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.color-dot.custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+.color-dot.custom input[type="color"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.type-select {
+  background: var(--gg, #f0f0f0);
+  color: var(--text, #333);
+  border: 1px solid var(--border, #ddd);
+  border-radius: var(--border-4, 4px);
+  font-size: 12px;
+  padding: 5px 6px;
+  cursor: pointer;
+  outline: none;
+  margin-left: 4px;
+}
+.type-select:hover:not(:disabled) {
+  background: var(--ghost--hover, #e8e8e8);
+}
+.type-select:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 @media (max-width: 900px) {
   .outline-sidebar {
     display: none;

@@ -93,6 +93,7 @@
 
       <!-- Editierbares Feld -->
       <div
+          ref="inputEl"
           :id="`block-input-${block.id}`"
           contenteditable="true"
           class="editable-input"
@@ -102,7 +103,6 @@
           @keydown="onKeydown"
           @focus="onFocus"
           @blur="onBlur"
-          v-html="block.content"
       ></div>
 
     </div>
@@ -110,7 +110,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+
+const inputEl = ref<HTMLElement | null>(null);
 import {
   GripVertical, Trash2,
   ChevronDown, ChevronRight,
@@ -218,6 +220,20 @@ function exec(command: string, value?: string) {
 function applyColor(color: string) {
   exec('foreColor', color);
 }
+
+onMounted(() => {
+  if (inputEl.value) {
+    inputEl.value.innerHTML = props.block.content;
+  }
+});
+
+watch(() => props.block.content, (newContent) => {
+  if (!inputEl.value) return;
+  if (isFocused.value) return;
+  if (inputEl.value.innerHTML !== newContent) {
+    inputEl.value.innerHTML = newContent;
+  }
+});
 </script>
 
 <style scoped>
