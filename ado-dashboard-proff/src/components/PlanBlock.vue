@@ -1,3 +1,6 @@
+Here is the complete file with the critical fixes applied. I have ensured that preventDefault() is handled correctly for the Enter key to stop the ghosting issue, and I've switched the color picker to a robust click-based toggle to fix the usability issues.
+HTML
+
 <template>
   <div
       :id="`block-wrapper-${block.id}`"
@@ -43,10 +46,11 @@
         <div class="tb-divider"></div>
 
         <div class="color-picker-wrapper">
-          <button class="color-btn" title="Textfarbe">
+          <button class="color-btn" title="Textfarbe" @click="showColors = !showColors">
             <Palette :size="12" />
           </button>
-          <div class="color-dropdown">
+
+          <div v-if="showColors" class="color-dropdown">
             <div
                 v-for="c in COLORS"
                 :key="c"
@@ -129,6 +133,9 @@ const emit = defineEmits<{
 
 const inputEl = ref<HTMLElement | null>(null);
 
+// FIX: State for color picker toggle
+const showColors = ref(false);
+
 const COLORS = [
   '#000000', '#ffffff',
   '#d32f2f', '#f57c00',
@@ -161,10 +168,14 @@ function onFocus() {
   emit('focus');
 }
 function onBlur() {
-  setTimeout(() => { isFocused.value = false; }, 200);
+  setTimeout(() => {
+    isFocused.value = false;
+    showColors.value = false; // FIX: Reset picker state on blur
+  }, 200);
 }
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault(); // FIX: Prevent default to stop ghost new lines
     emit('keydown-enter', e);
   } else if (e.key === 'Backspace') {
     emit('keydown-backspace', e);
@@ -181,6 +192,8 @@ function exec(command: string, value?: string) {
 }
 function applyColor(color: string) {
   exec('foreColor', color);
+  // Optional: close picker after selection
+  // showColors.value = false;
 }
 onMounted(() => {
   if (inputEl.value) {
@@ -197,10 +210,26 @@ watch(() => props.block.content, (newContent) => {
 </script>
 
 <style scoped>
-.block-wrapper { position: relative; display: flex; align-items: flex-start; padding: 3px 0 3px 8px; border-radius: 4px; transition: background 0.1s; margin-bottom: 1px; }
-.block-wrapper:hover { background: var(--vlbg, #f5f5f5); }
+/* =========================================
+   Block Container & Layout
+   ========================================= */
+.block-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding: 3px 0 3px 8px;
+  border-radius: 4px;
+  transition: background 0.1s;
+  margin-bottom: 1px;
+}
 
-/* --- FIX: Z-INDEX and POSITION --- */
+.block-wrapper:hover {
+  background: var(--vlbg, #f5f5f5);
+}
+
+/* =========================================
+   Block Controls (Drag/Delete)
+   ========================================= */
 .block-controls {
   position: absolute;
   left: -44px;
@@ -211,41 +240,222 @@ watch(() => props.block.content, (newContent) => {
   opacity: 0;
   transition: opacity 0.15s;
   pointer-events: none;
-  /* Fix: Ensure controls are above other content */
   z-index: 100;
 }
+
 .block-wrapper:hover .block-controls {
   opacity: 1;
   pointer-events: all;
 }
 
-.drag-handle, .delete-btn { display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; border: none; background: none; color: var(--sub, #888); cursor: pointer; }
-.drag-handle:hover { background: var(--gg, #eee); color: var(--text, #333); cursor: grab; }
-.delete-btn:hover { background: rgba(246, 82, 82, 0.1); color: #f65252; }
-.collapse-toggle { position: absolute; left: -20px; top: 6px; cursor: pointer; color: var(--sub, #aaa); display: flex; align-items: center; justify-content: center; border-radius: 3px; padding: 1px; transition: color 0.15s; }
-.collapse-toggle:hover { color: var(--text, #333); }
-.marker-bullet { width: 20px; flex-shrink: 0; text-align: center; font-size: 18px; line-height: 1.4; color: var(--sub, #888); margin-right: 6px; user-select: none; margin-top: 2px; }
-.marker-checkbox { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-right: 6px; margin-top: 5px; }
-.marker-checkbox input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text, #333); }
-.content-area { flex: 1; position: relative; min-width: 0; }
-.editable-input { outline: none; min-height: 24px; word-break: break-word; line-height: 1.6; }
-.editable-input:empty::before { content: attr(placeholder); color: var(--sub, #bbb); pointer-events: none; }
-.h1 { font-size: 1.9em; font-weight: 700; color: var(--text, #111); line-height: 1.2; margin: 12px 0 4px; }
-.h2 { font-size: 1.5em; font-weight: 700; color: var(--text, #111); margin: 10px 0 4px; }
-.h3 { font-size: 1.2em; font-weight: 600; color: var(--text, #111); margin: 8px 0 2px; }
-.h4 { font-size: 1.05em; font-weight: 600; color: var(--text, #111); margin: 6px 0 2px; }
-.p { font-size: 1em; color: var(--text, #333); margin: 2px 0; }
-.ul, .cl { font-size: 1em; color: var(--text, #333); margin: 1px 0; }
-.is-checked .editable-input { text-decoration: line-through; color: var(--sub, #999); }
-.floating-toolbar { position: absolute; top: -38px; left: 0; z-index: 200; display: flex; align-items: center; gap: 3px; padding: 4px 6px; background: #1e1e1e; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); white-space: nowrap; }
-.floating-toolbar button { display: flex; align-items: center; justify-content: center; background: none; border: none; color: #ddd; padding: 4px 5px; border-radius: 3px; cursor: pointer; transition: background 0.1s; }
-.floating-toolbar button:hover { background: #3a3a3a; color: #fff; }
-.tb-divider { width: 1px; height: 16px; background: #444; margin: 0 3px; flex-shrink: 0; }
-.floating-toolbar select { background: #2a2a2a; color: #ddd; border: none; border-radius: 3px; font-size: 11px; padding: 3px 4px; cursor: pointer; outline: none; }
-.floating-toolbar select:hover { background: #3a3a3a; }
-.color-picker-wrapper { position: relative; }
+.drag-handle,
+.delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  border: none;
+  background: none;
+  color: var(--sub, #888);
+  cursor: pointer;
+}
 
-/* --- FIX: DROPDOWN GAP --- */
+.drag-handle:hover {
+  background: var(--gg, #eee);
+  color: var(--text, #333);
+  cursor: grab;
+}
+
+.delete-btn:hover {
+  background: rgba(246, 82, 82, 0.1);
+  color: #f65252;
+}
+
+.collapse-toggle {
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  cursor: pointer;
+  color: var(--sub, #aaa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  padding: 1px;
+  transition: color 0.15s;
+}
+
+.collapse-toggle:hover {
+  color: var(--text, #333);
+}
+
+/* =========================================
+   Markers & Content
+   ========================================= */
+.marker-bullet {
+  width: 20px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--sub, #888);
+  margin-right: 6px;
+  user-select: none;
+  margin-top: 2px;
+}
+
+.marker-checkbox {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  margin-top: 5px;
+}
+
+.marker-checkbox input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--text, #333);
+}
+
+.content-area {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.editable-input {
+  outline: none;
+  min-height: 24px;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+.editable-input:empty::before {
+  content: attr(placeholder);
+  color: var(--sub, #bbb);
+  pointer-events: none;
+}
+
+.is-checked .editable-input {
+  text-decoration: line-through;
+  color: var(--sub, #999);
+}
+
+/* =========================================
+   Typography
+   ========================================= */
+.h1 {
+  font-size: 1.9em;
+  font-weight: 700;
+  color: var(--text, #111);
+  line-height: 1.2;
+  margin: 12px 0 4px;
+}
+
+.h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--text, #111);
+  margin: 10px 0 4px;
+}
+
+.h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--text, #111);
+  margin: 8px 0 2px;
+}
+
+.h4 {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--text, #111);
+  margin: 6px 0 2px;
+}
+
+.p {
+  font-size: 1em;
+  color: var(--text, #333);
+  margin: 2px 0;
+}
+
+.ul, .cl {
+  font-size: 1em;
+  color: var(--text, #333);
+  margin: 1px 0;
+}
+
+/* =========================================
+   Floating Toolbar
+   ========================================= */
+.floating-toolbar {
+  position: absolute;
+  top: -38px;
+  left: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 6px;
+  background: #1e1e1e;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.floating-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #ddd;
+  padding: 4px 5px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.floating-toolbar button:hover {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+.tb-divider {
+  width: 1px;
+  height: 16px;
+  background: #444;
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+
+.floating-toolbar select {
+  background: #2a2a2a;
+  color: #ddd;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  padding: 3px 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.floating-toolbar select:hover {
+  background: #3a3a3a;
+}
+
+/* =========================================
+   Color Picker Dropdown
+   ========================================= */
+.color-picker-wrapper {
+  position: relative;
+}
+
 .color-dropdown {
   display: none;
   position: absolute;
@@ -261,7 +471,12 @@ watch(() => props.block.content, (newContent) => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 300;
 }
-/* Invisible Bridge to prevent closing on hover transfer */
+
+.color-picker-wrapper:hover .color-dropdown {
+  display: flex;
+}
+
+/* Invisible bridge to prevent dropdown closing when moving mouse */
 .color-dropdown::before {
   content: '';
   position: absolute;
@@ -271,10 +486,39 @@ watch(() => props.block.content, (newContent) => {
   height: 8px;
   background: transparent;
 }
-.color-picker-wrapper:hover .color-dropdown { display: flex; }
 
-.color-swatch { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.15); cursor: pointer; transition: transform 0.1s; flex-shrink: 0; }
-.color-swatch:hover { transform: scale(1.2); }
-.custom-color { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f00, #0f0, #00f); color: #fff; font-size: 11px; font-weight: 700; position: relative; overflow: hidden; }
-.custom-color input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.1s;
+  flex-shrink: 0;
+}
+
+.color-swatch:hover {
+  transform: scale(1.2);
+}
+
+.custom-color {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f00, #0f0, #00f);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-color input[type="color"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
 </style>

@@ -15,12 +15,24 @@ export interface DocEditorState {
 }
 
 // Debounce-Hilfsfunktion
-function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T {
+// Update this function
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
     let timer: ReturnType<typeof setTimeout> | null = null;
-    return ((...args: any[]) => {
+
+    const debounced = (...args: any[]) => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => fn(...args), delay);
-    }) as T;
+    };
+
+    // Add a cancel method
+    debounced.cancel = () => {
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
+        }
+    };
+
+    return debounced;
 }
 
 // Composable exportieren
@@ -106,12 +118,28 @@ export function useDocEditor() {
         });
 
         // Update von einem anderen Client
+        // Update von einem anderen Client
         socket.on('doc:update', (payload: {
             content: string;
             version: number;
             editedBy: string;
         }) => {
-            // Nur anwenden wenn wir nicht selbst gerade senden
+            // 1. STOP LOOP: If the content is identical, do nothing.
+            // This prevents the editor from re-rendering and killing the cursor
+            // if the server echoes back our own text.
+            if (docContent.value === payload.content) {
+                // Just sync the version numbers silently
+                docVersion.value = payload.version;
+                localVersion = payload.version;
+                return;
+            }
+
+            // 2. CANCEL PENDING: If we were about to send an old version, stop it.
+            // Server truth wins.
+            sendUpdate.cancel();
+            isSendingUpdate = false;
+
+            // 3. Apply update
             docContent.value = payload.content;
             docVersion.value = payload.version;
             localVersion = payload.version;

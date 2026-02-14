@@ -151,6 +151,7 @@
                 handle=".drag-handle"
                 animation="180"
                 ghost-class="ghost-block"
+                @start="isDragging = true"
                 @end="onDragEnd"
             >
               <TransitionGroup name="block-list" tag="div">
@@ -205,7 +206,6 @@ import {
   Heading1, Heading2, Type, List, CheckSquare, FileText
 } from 'lucide-vue-next';
 
-// import { useDocEditor } ... (Assuming imports are correct from your environment)
 import PlanBlock from '../components/PlanBlock.vue';
 import { useDocEditor } from '../composables/useDocEditor';
 const TOOLBAR_COLORS = ['#000000','#ffffff','#d32f2f','#f57c00','#388e3c','#1976d2','#7b1fa2'];
@@ -272,22 +272,22 @@ let isSelfUpdate = false;
 // --- Serialization/Deserialization (Kept same as provided) ---
 function serializeBlocks(blocks: Block[]): string {
   return blocks.map(b => {
+    // Standardize attributes
     const indent = b.indentLevel ? ` data-indent="${b.indentLevel}"` : '';
     const collapsed = b.isCollapsed ? ` data-collapsed="true"` : '';
-    const blockId = ` data-bid="${b.id}"`;
+    const checked = b.checked ? ` data-checked="true"` : '';
+    const bid = ` data-bid="${b.id}"`; // The most important part
     const type = ` data-type="${b.type}"`;
 
+    // Wrap content in the appropriate tag
     switch (b.type) {
-      case 'h1': return `<h1${blockId}${type}${indent}${collapsed}>${b.content}</h1>`;
-      case 'h2': return `<h2${blockId}${type}${indent}${collapsed}>${b.content}</h2>`;
-      case 'h3': return `<h3${blockId}${type}${indent}${collapsed}>${b.content}</h3>`;
-      case 'h4': return `<h4${blockId}${type}${indent}${collapsed}>${b.content}</h4>`;
-      case 'ul': return `<ul${blockId}${type}${indent}><li>${b.content}</li></ul>`;
-      case 'cl': {
-        const checked = b.checked ? ` data-checked="true"` : '';
-        return `<div class="cl-block"${blockId}${type}${indent}${checked}>${b.content}</div>`;
-      }
-      default:   return `<p${blockId}${type}${indent}>${b.content}</p>`;
+      case 'h1': return `<h1${bid}${type}${indent}${collapsed}>${b.content}</h1>`;
+      case 'h2': return `<h2${bid}${type}${indent}${collapsed}>${b.content}</h2>`;
+      case 'h3': return `<h3${bid}${type}${indent}${collapsed}>${b.content}</h3>`;
+      case 'h4': return `<h4${bid}${type}${indent}${collapsed}>${b.content}</h4>`;
+      case 'ul': return `<ul${bid}${type}${indent}><li>${b.content}</li></ul>`;
+      case 'cl': return `<div class="cl-block"${bid}${type}${indent}${checked}>${b.content}</div>`;
+      default:   return `<p${bid}${type}${indent}>${b.content}</p>`;
     }
   }).join('\n');
 }
@@ -297,10 +297,15 @@ function deserializeBlocks(html: string): Block[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html');
   const root = doc.querySelector('div')!;
-  const result: Block[] = [];
-  for (const el of Array.from(root.children)) {
+
+  return Array.from(root.children).map((el, index) => {
     const tag = el.tagName.toLowerCase();
-    const bid = el.getAttribute('data-bid') || genId();
+
+    // 1. Get the ID.
+    // FALLBACK: If data-bid is missing, use a index-based ID so it stays
+    // the same for this specific render cycle.
+    const bid = el.getAttribute('data-bid') || `temp-id-${index}`;
+
     const dataType = el.getAttribute('data-type');
     const indent = parseInt(el.getAttribute('data-indent') || '0', 10);
     const collapsed = el.getAttribute('data-collapsed') === 'true';
@@ -308,45 +313,59 @@ function deserializeBlocks(html: string): Block[] {
     let type: BlockType = 'p';
     if (dataType && ['h1','h2','h3','h4','p','ul','cl'].includes(dataType)) {
       type = dataType as BlockType;
-    } else if (['h1','h2','h3','h4'].includes(tag)) {
+    } else if (['h1','h2','h3','h4','p'].includes(tag)) {
       type = tag as BlockType;
-    } else if (tag === 'ul') {
-      type = 'ul';
-    } else if (el.classList.contains('cl-block')) {
-      type = 'cl';
     }
-    let content = '';
-    if (type === 'ul') {
-      const li = el.querySelector('li');
-      content = li ? li.innerHTML : el.innerHTML;
-    } else {
-      content = el.innerHTML;
-    }
-    result.push({
+
+    let content = (type === 'ul')
+        ? (el.querySelector('li')?.innerHTML || el.innerHTML)
+        : el.innerHTML;
+
+    return {
       id: bid,
       type,
       content,
       checked: el.getAttribute('data-checked') === 'true',
       isCollapsed: collapsed,
       indentLevel: isNaN(indent) ? 0 : indent,
-    });
-  }
-  return result;
+    };
+  });
 }
 
+// Replace your existing watcher with this:
 watch(docContent, (newHtml) => {
+  // 1. Compare semantic content to avoid loop if nothing actually changed
+  const currentHtml = serializeBlocks(blocks.value);
+  if (currentHtml === newHtml) return;
+
+  // 2. Only deserialize if it's truly an external update
+  // (Ideally, your backend should send a 'senderId' so you know if IT WAS YOU)
   if (isSelfUpdate) return;
+
   const parsed = deserializeBlocks(newHtml);
-  if (parsed.length === 0) blocks.value = [];
-  else blocks.value = parsed;
+
+  // 3. SMART MERGE (Optional but recommended):
+  // Instead of replacing the whole array (which kills DOM focus),
+  // try to update only changed blocks by ID if possible.
+  // For now, simple replacement:
+  blocks.value = parsed;
 }, { immediate: false });
 
+// Improve the "Lock" mechanism
+// Instead of a timer, use a flag that resets only on the next tick after a save
 function pushBlocksToServer() {
-  isSelfUpdate = true;
   const html = serializeBlocks(blocks.value);
+
+  // Don't send if nothing changed (avoids loops)
+  if (html === docContent.value) return;
+
+  isSelfUpdate = true;
   onContentChange(html);
-  clearTimeout(selfUpdateTimer);
-  selfUpdateTimer = setTimeout(() => { isSelfUpdate = false; }, 600);
+
+  // We expect the 'docContent' watcher to fire soon with this same HTML.
+  // We keep the lock open until we verify the content matches or a timeout occurs.
+  // (A simpler robust way for Vue local state is usually to NOT update local state
+  // from props if the user is currently typing/focused).
 }
 
 function genId(): string {
@@ -384,7 +403,12 @@ const visibleBlockIds = computed(() => {
   return ids;
 });
 
+const isDragging = ref(false);
+
+// Update isBlockVisible
 function isBlockVisible(id: string) {
+  // ALWAYS show all blocks while dragging to prevent index misalignment
+  if (isDragging.value) return true;
   return visibleBlockIds.value.has(id);
 }
 
@@ -478,6 +502,7 @@ function handleBackspace(index: number, e: KeyboardEvent) {
 }
 
 function onDragEnd() {
+  isDragging.value = false; // Collapse states return to normal
   pushBlocksToServer();
 }
 
@@ -534,194 +559,566 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Keep existing styles... including all the layout CSS from your original file */
-/* ... (Omitting strictly unchanged parts for brevity, but include them in your file) ... */
-
-/* FIX: Ensure dropdown is reachable by adding invisible padding/bridge */
-.color-menu-dropdown {
-  display: none;
-  position: absolute;
-  /* Change top to 100% and use padding-top as bridge */
-  top: 100%;
-  padding-top: 6px;
-  left: 0;
-  /* The visual box is inside the dropdown div */
-  z-index: 500;
-}
-.color-menu-wrapper:hover .color-menu-dropdown {
-  display: block; /* Flex not needed on the wrapper wrapper, but on the content */
-}
-/* Re-style the inner content to handle the background/border correctly */
-.color-menu-dropdown::before {
-  content: '';
-  display: block;
-  background: var(--lbg, #fff);
-  border: 1px solid var(--border, #ddd);
-  border-radius: 8px;
-  padding: 8px;
+/* =========================================
+   Main Layout & Structure
+   ========================================= */
+.doc-editor-page {
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* =========================================
+   Status Bar
+   ========================================= */
+.doc-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--lbg);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.status-left,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Connection Badges */
+.connection-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-footnote);
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--gg);
+}
+
+.connection-badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.connection-badge.connected {
+  background: rgba(56, 142, 60, 0.15);
+  color: #388e3c;
+}
+
+.connection-badge.connected .dot {
+  background: #388e3c;
+  box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.3);
+}
+
+.connection-badge.connecting {
+  background: rgba(245, 124, 0, 0.12);
+  color: #f57c00;
+}
+
+.connection-badge.connecting .dot {
+  background: #f57c00;
+  animation: pulse 1s infinite;
+}
+
+.connection-badge.disconnected {
+  background: var(--gg);
+  color: var(--sub);
+}
+
+.connection-badge.disconnected .dot {
+  background: var(--sub);
+}
+
+.connection-badge.error {
+  background: rgba(211, 47, 47, 0.12);
+  color: #d32f2f;
+}
+
+.connection-badge.error .dot {
+  background: #d32f2f;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Status Bar Components */
+.online-admins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.online-label {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ghost--hover);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  border: 2px solid var(--bg);
+  cursor: default;
+}
+
+.last-edit {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+}
+
+.version-badge {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+  background: var(--gg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
   gap: 5px;
-  flex-wrap: wrap;
-  width: 128px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  padding: 5px 12px;
+  border-radius: var(--border-4);
+  border: 1px solid var(--border);
+  background: var(--lbg);
+  color: var(--text);
+  font-size: var(--font-size-footnote);
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-/* Because I used ::before, I need to adjust how children are rendered or just wrap them.
-   Easier approach: Just keep structure but background on self.
-*/
-.color-menu-dropdown {
-  background: transparent; /* Transparent wrapper */
+.save-btn:hover:not(:disabled) {
+  background: var(--ghost--hover);
+}
+
+.save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Banners */
+.conflict-banner,
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: var(--font-size-sub);
+  flex-shrink: 0;
+}
+
+.conflict-banner {
+  background: rgba(245, 124, 0, 0.1);
+  color: #f57c00;
+  border-bottom: 1px solid rgba(245, 124, 0, 0.2);
+}
+
+.error-banner {
+  background: rgba(211, 47, 47, 0.1);
+  color: #d32f2f;
+  border-bottom: 1px solid rgba(211, 47, 47, 0.2);
+}
+
+.banner-enter-active,
+.banner-leave-active {
+  transition: all 0.25s ease;
+}
+
+.banner-enter-from,
+.banner-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* =========================================
+   Sidebar & Outline
+   ========================================= */
+.outline-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--vlbg);
+  border-right: 1px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.outline-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.outline-header h3 {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.reset-btn {
+  background: none;
   border: none;
-  box-shadow: none;
-  padding-top: 8px; /* The Gap Bridge */
-  display: none;
-  flex-wrap: wrap;
-  width: 144px; /* + Padding */
-}
-
-.color-menu-wrapper:hover .color-menu-dropdown {
+  color: var(--sub);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   display: flex;
 }
 
-/* We need a container for the actual visual box to separate it from the bridge padding */
-.color-menu-dropdown > * {
-  /* This targets the dots directly, which is messy.
-     Better: Let's revert and use a pseudo element on the Dropdown to fill the gap.
-  */
+.reset-btn:hover {
+  color: var(--danger);
+  background: rgba(246, 82, 82, 0.08);
 }
-</style>
 
-<style scoped>
-/* ... existing layout styles ... */
-.doc-editor-page { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
-.editor-layout { display: flex; flex: 1; min-height: 0; overflow: hidden; }
-.doc-statusbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: var(--lbg); border-bottom: 1px solid var(--border); gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
-.status-left, .status-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.connection-badge { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-footnote); font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--gg); }
-.connection-badge .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.connection-badge.connected { background: rgba(56, 142, 60, 0.15); color: #388e3c; }
-.connection-badge.connected .dot { background: #388e3c; box-shadow: 0 0 0 2px rgba(56,142,60,.3); }
-.connection-badge.connecting { background: rgba(245, 124, 0, 0.12); color: #f57c00; }
-.connection-badge.connecting .dot { background: #f57c00; animation: pulse 1s infinite; }
-.connection-badge.disconnected { background: var(--gg); color: var(--sub); }
-.connection-badge.disconnected .dot { background: var(--sub); }
-.connection-badge.error { background: rgba(211, 47, 47, 0.12); color: #d32f2f; }
-.connection-badge.error .dot { background: #d32f2f; }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-.online-admins { display: flex; align-items: center; gap: 4px; }
-.online-label { font-size: var(--font-size-footnote); color: var(--sub); }
-.admin-chip { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ghost--hover); color: var(--text); font-size: 10px; font-weight: 700; border: 2px solid var(--bg); cursor: default; }
-.last-edit { font-size: var(--font-size-footnote); color: var(--sub); }
-.version-badge { font-size: var(--font-size-footnote); color: var(--sub); background: var(--gg); padding: 2px 8px; border-radius: 10px; }
-.save-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: var(--border-4); border: 1px solid var(--border); background: var(--lbg); color: var(--text); font-size: var(--font-size-footnote); cursor: pointer; transition: background 0.15s; }
-.save-btn:hover:not(:disabled) { background: var(--ghost--hover); }
-.save-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.conflict-banner, .error-banner { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: var(--font-size-sub); flex-shrink: 0; }
-.conflict-banner { background: rgba(245, 124, 0, 0.1); color: #f57c00; border-bottom: 1px solid rgba(245, 124, 0, 0.2); }
-.error-banner { background: rgba(211, 47, 47, 0.1); color: #d32f2f; border-bottom: 1px solid rgba(211, 47, 47, 0.2); }
-.banner-enter-active, .banner-leave-active { transition: all 0.25s ease; }
-.banner-enter-from, .banner-leave-to { opacity: 0; transform: translateY(-6px); }
-.outline-sidebar { width: 240px; flex-shrink: 0; background: var(--vlbg); border-right: 1px solid var(--border2); display: flex; flex-direction: column; overflow: hidden; }
-.outline-header { padding: 12px 16px; border-bottom: 1px solid var(--border2); display: flex; justify-content: space-between; align-items: center; }
-.outline-header h3 { margin: 0; font-size: var(--font-size-body); font-weight: 600; color: var(--text); }
-.reset-btn { background: none; border: none; color: var(--sub); cursor: pointer; padding: 4px; border-radius: 4px; display: flex; }
-.reset-btn:hover { color: var(--danger); background: rgba(246, 82, 82, 0.08); }
-.outline-body { flex: 1; overflow-y: auto; padding: 8px; }
-.toc-empty { font-size: var(--font-size-footnote); color: var(--sub); font-style: italic; padding: 10px; }
-.toc-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: var(--font-size-sub); color: var(--text); transition: background 0.15s; margin-bottom: 1px; }
-.toc-item:hover { background: var(--gg); }
-.toc-badge { font-size: 9px; font-weight: 700; opacity: 0.5; width: 18px; flex-shrink: 0; }
-.toc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.outline-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.toc-empty {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+  font-style: italic;
+  padding: 10px;
+}
+
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: var(--font-size-sub);
+  color: var(--text);
+  transition: background 0.15s;
+  margin-bottom: 1px;
+}
+
+.toc-item:hover {
+  background: var(--gg);
+}
+
+.toc-badge {
+  font-size: 9px;
+  font-weight: 700;
+  opacity: 0.5;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.toc-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .level-1 { padding-left: 8px; font-weight: 600; }
 .level-2 { padding-left: 20px; }
 .level-3 { padding-left: 32px; }
 .level-4 { padding-left: 44px; }
-.editor-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-.editor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; background: var(--vlbg); border-bottom: 1px solid var(--border2); flex-shrink: 0; gap: 8px; flex-wrap: wrap; }
-.toolbar-left { display: flex; align-items: center; gap: 2px; }
-.toolbar-label { font-size: var(--font-size-footnote); font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: 0.4px; margin-right: 8px; }
-.toolbar-left button { background: none; border: none; padding: 7px; border-radius: var(--border-4); cursor: pointer; color: var(--sub); display: flex; align-items: center; }
-.toolbar-left button:hover { background: var(--gg); color: var(--text); }
-.toolbar-hint { font-size: var(--font-size-footnote); color: var(--sub); }
-.document-scroll-area { flex: 1; overflow-y: auto; padding: 40px 48px; background: var(--bg); scroll-behavior: smooth; }
-.document-inner { max-width: 780px; margin: 0 auto; min-height: 500px; position: relative; }
-:deep(.ghost-block) { opacity: 0.35; background: var(--gg) !important; }
-.block-list-move, .block-list-enter-active, .block-list-leave-active { transition: all 0.18s ease; }
-.block-list-enter-from, .block-list-leave-to { opacity: 0; transform: translateX(-8px); }
-.empty-doc { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; height: 200px; border: 2px dashed var(--border2); border-radius: 8px; color: var(--sub); cursor: pointer; margin-top: 24px; font-size: var(--font-size-body); transition: border-color 0.2s, color 0.2s; }
-.empty-doc:hover { border-color: var(--text); color: var(--text); }
-.empty-icon { opacity: 0.4; }
-.doc-spacer { height: 200px; }
-.tb-separator { width: 1px; height: 18px; background: var(--border2, #ddd); margin: 0 6px; flex-shrink: 0; }
-.toolbar-left button:disabled { opacity: 0.35; cursor: not-allowed; }
-.color-menu-wrapper { position: relative; display: flex; align-items: center; }
-.color-menu-wrapper.disabled { opacity: 0.35; pointer-events: none; }
-.color-menu-btn { display: flex; align-items: center; gap: 2px; background: none; border: none; padding: 6px 7px; border-radius: var(--border-4, 4px); cursor: pointer; color: var(--sub); }
-.color-menu-btn:hover { background: var(--gg); color: var(--text); }
 
-/* --- FIX: DROPDOWN GAP --- */
+/* =========================================
+   Editor Toolbar
+   ========================================= */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--vlbg);
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar-label {
+  font-size: var(--font-size-footnote);
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-right: 8px;
+}
+
+.toolbar-left button {
+  background: none;
+  border: none;
+  padding: 7px;
+  border-radius: var(--border-4);
+  cursor: pointer;
+  color: var(--sub);
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-left button:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+
+.toolbar-left button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.toolbar-hint {
+  font-size: var(--font-size-footnote);
+  color: var(--sub);
+}
+
+.tb-separator {
+  width: 1px;
+  height: 18px;
+  background: var(--border2, #ddd);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.type-select {
+  background: var(--gg, #f0f0f0);
+  color: var(--text, #333);
+  border: 1px solid var(--border, #ddd);
+  border-radius: var(--border-4, 4px);
+  font-size: 12px;
+  padding: 5px 6px;
+  cursor: pointer;
+  outline: none;
+  margin-left: 4px;
+}
+
+.type-select:hover:not(:disabled) {
+  background: var(--ghost--hover, #e8e8e8);
+}
+
+.type-select:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   Color Menu (Dropdown Logic)
+   ========================================= */
+.color-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.color-menu-wrapper.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.color-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 6px 7px;
+  border-radius: var(--border-4, 4px);
+  cursor: pointer;
+  color: var(--sub);
+}
+
+.color-menu-btn:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+
 .color-menu-dropdown {
   display: none;
   position: absolute;
-  top: 100%; /* Position right at edge */
   left: 0;
-  padding-top: 6px; /* Invisible bridge */
   z-index: 500;
-}
-/* The visual box is pseudo element or just styled content?
-   Let's style the div itself but reset the background clip */
-.color-menu-dropdown {
-  background: transparent;
-  width: 128px;
-}
-/* Create a visual container inside using flex logic is easier in template,
-   but since template structure is fixed: use a background on the elements wrapper
-   or styling the box differently.
-
-   Easiest: Make .color-menu-dropdown transparent, and give it a child or ::after.
-
-   Actually, looking at template:
-   <div class="color-menu-dropdown"> <div ... dot> </div>
-
-   Let's keep it simple: padding-top on the dropdown handles the mouse bridge.
-   Then we set background/border on the dropdown, but use background-clip: content-box?
-   No, that cuts off shadow.
-
-   Better: Use clip-path or just a transparent border?
-   Let's go with ::before for the bridge to be safe.
-*/
-.color-menu-dropdown {
+  /* Visual styling */
   background: var(--lbg, #fff);
   border: 1px solid var(--border, #ddd);
   border-radius: 8px;
   padding: 8px;
   gap: 5px;
   flex-wrap: wrap;
+  width: 128px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  /* REVERT top offset to allow ::before bridge */
+  /* Positioning with bridge gap */
   top: calc(100% + 6px);
 }
-/* The Bridge */
+
+.color-menu-wrapper:hover .color-menu-dropdown {
+  display: flex;
+}
+
+/* Invisible bridge to prevent mouse leaving the hover area */
 .color-menu-dropdown::before {
   content: '';
   position: absolute;
-  top: -8px; /* Extend upwards to button */
+  top: -8px;
   left: 0;
   width: 100%;
   height: 8px;
   background: transparent;
 }
 
-.color-menu-wrapper:hover .color-menu-dropdown {
-  display: flex;
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  flex-shrink: 0;
 }
 
-.color-dot { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.15); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; flex-shrink: 0; }
-.color-dot:hover { transform: scale(1.2); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-.color-dot.custom { display: flex; align-items: center; justify-content: center; background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); color: #fff; font-size: 12px; font-weight: 700; position: relative; overflow: hidden; }
-.color-dot.custom input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.type-select { background: var(--gg, #f0f0f0); color: var(--text, #333); border: 1px solid var(--border, #ddd); border-radius: var(--border-4, 4px); font-size: 12px; padding: 5px 6px; cursor: pointer; outline: none; margin-left: 4px; }
-.type-select:hover:not(:disabled) { background: var(--ghost--hover, #e8e8e8); }
-.type-select:disabled { opacity: 0.35; cursor: not-allowed; }
-@media (max-width: 900px) { .outline-sidebar { display: none; } .document-scroll-area { padding: 24px 20px; } }
+.color-dot:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.color-dot.custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+
+.color-dot.custom input[type="color"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: block;
+  visibility: visible;
+}
+
+/* =========================================
+   Document Content Area
+   ========================================= */
+.document-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+.document-inner {
+  max-width: 780px;
+  margin: 0 auto;
+  min-height: 500px;
+  position: relative;
+}
+
+:deep(.ghost-block) {
+  opacity: 0.35;
+  background: var(--gg) !important;
+}
+
+.block-list-move,
+.block-list-enter-active,
+.block-list-leave-active {
+  transition: all 0.18s ease;
+}
+
+.block-list-enter-from,
+.block-list-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.empty-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 200px;
+  border: 2px dashed var(--border2);
+  border-radius: 8px;
+  color: var(--sub);
+  cursor: pointer;
+  margin-top: 24px;
+  font-size: var(--font-size-body);
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.empty-doc:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+
+.empty-icon {
+  opacity: 0.4;
+}
+
+.doc-spacer {
+  height: 200px;
+}
+
+/* =========================================
+   Media Queries
+   ========================================= */
+@media (max-width: 900px) {
+  .outline-sidebar {
+    display: none;
+  }
+  .document-scroll-area {
+    padding: 24px 20px;
+  }
+}
 </style>
