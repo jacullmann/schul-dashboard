@@ -5,7 +5,6 @@
       :class="{ 'is-checked': block.checked && block.type === 'cl' }"
       :style="{ paddingLeft: `${block.indentLevel * 24}px` }"
   >
-    <!-- Steuerelemente links (Drag + Löschen) -->
     <div class="block-controls">
       <div class="drag-handle" title="Verschieben">
         <GripVertical :size="14" />
@@ -15,7 +14,6 @@
       </button>
     </div>
 
-    <!-- Collapse-Pfeil für Überschriften -->
     <div
         v-if="isHeading"
         class="collapse-toggle"
@@ -26,10 +24,8 @@
       <ChevronDown  v-else                   :size="15" />
     </div>
 
-    <!-- Bullet-Marker für Listen -->
     <div v-if="block.type === 'ul'" class="marker-bullet">•</div>
 
-    <!-- Checkbox-Marker für Checklisten -->
     <div v-if="block.type === 'cl'" class="marker-checkbox">
       <input
           type="checkbox"
@@ -38,20 +34,14 @@
       />
     </div>
 
-    <!-- Content-Bereich -->
     <div class="content-area">
 
-      <!-- Floating Toolbar (erscheint beim Fokus) -->
       <div v-if="isFocused" class="floating-toolbar" @mousedown.prevent>
-
-        <!-- Fett -->
         <button @click="exec('bold')" title="Fett">
           <Bold :size="12" />
         </button>
-
         <div class="tb-divider"></div>
 
-        <!-- Textfarbe -->
         <div class="color-picker-wrapper">
           <button class="color-btn" title="Textfarbe">
             <Palette :size="12" />
@@ -65,7 +55,6 @@
                 :title="c"
                 @click="applyColor(c)"
             ></div>
-            <!-- Eigene Farbe -->
             <label class="color-swatch custom-color" title="Eigene Farbe">
               +
               <input type="color" @input="(e: any) => applyColor(e.target.value)" />
@@ -75,7 +64,6 @@
 
         <div class="tb-divider"></div>
 
-        <!-- Block-Typ wechseln -->
         <select
             :value="block.type"
             @change="$emit('change-type', ($event.target as HTMLSelectElement).value)"
@@ -88,10 +76,8 @@
           <option value="ul">Liste</option>
           <option value="cl">Checkliste</option>
         </select>
-
       </div>
 
-      <!-- Editierbares Feld -->
       <div
           ref="inputEl"
           :id="`block-input-${block.id}`"
@@ -111,17 +97,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-
-const inputEl = ref<HTMLElement | null>(null);
 import {
   GripVertical, Trash2,
   ChevronDown, ChevronRight,
   Bold, Palette
 } from 'lucide-vue-next';
 
-// ---------------------------------------------------------------------------
-// Props & Emits
-// ---------------------------------------------------------------------------
 const props = defineProps<{
   block: {
     id: string;
@@ -146,9 +127,8 @@ const emit = defineEmits<{
   (e: 'change-type', value: string): void;
 }>();
 
-// ---------------------------------------------------------------------------
-// Konstanten
-// ---------------------------------------------------------------------------
+const inputEl = ref<HTMLElement | null>(null);
+
 const COLORS = [
   '#000000', '#ffffff',
   '#d32f2f', '#f57c00',
@@ -166,36 +146,23 @@ const PLACEHOLDERS: Record<string, string> = {
   cl: 'Aufgabe',
 };
 
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
 const isFocused = ref(false);
 
-// ---------------------------------------------------------------------------
-// Computed
-// ---------------------------------------------------------------------------
 const isHeading = computed(() =>
     ['h1', 'h2', 'h3', 'h4'].includes(props.block.type)
 );
 
-// ---------------------------------------------------------------------------
-// Event-Handler
-// ---------------------------------------------------------------------------
 function onInput(e: Event) {
   const target = e.target as HTMLElement;
   emit('update:content', target.innerHTML);
 }
-
 function onFocus() {
   isFocused.value = true;
   emit('focus');
 }
-
 function onBlur() {
-  // Kurze Verzögerung damit Toolbar-Klicks noch registriert werden
   setTimeout(() => { isFocused.value = false; }, 200);
 }
-
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     emit('keydown-enter', e);
@@ -207,26 +174,19 @@ function onKeydown(e: KeyboardEvent) {
     else            emit('indent');
   }
 }
-
-// ---------------------------------------------------------------------------
-// Toolbar-Aktionen
-// ---------------------------------------------------------------------------
 function exec(command: string, value?: string) {
   document.execCommand(command, false, value);
   const el = document.getElementById(`block-input-${props.block.id}`);
   if (el) emit('update:content', el.innerHTML);
 }
-
 function applyColor(color: string) {
   exec('foreColor', color);
 }
-
 onMounted(() => {
   if (inputEl.value) {
     inputEl.value.innerHTML = props.block.content;
   }
 });
-
 watch(() => props.block.content, (newContent) => {
   if (!inputEl.value) return;
   if (isFocused.value) return;
@@ -237,26 +197,10 @@ watch(() => props.block.content, (newContent) => {
 </script>
 
 <style scoped>
-/* ============================================================
-   Wrapper
-   ============================================================ */
-.block-wrapper {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  padding: 3px 0 3px 8px;
-  border-radius: 4px;
-  transition: background 0.1s;
-  margin-bottom: 1px;
-}
+.block-wrapper { position: relative; display: flex; align-items: flex-start; padding: 3px 0 3px 8px; border-radius: 4px; transition: background 0.1s; margin-bottom: 1px; }
+.block-wrapper:hover { background: var(--vlbg, #f5f5f5); }
 
-.block-wrapper:hover {
-  background: var(--vlbg, #f5f5f5);
-}
-
-/* ============================================================
-   Steuerelemente (links, nur bei Hover sichtbar)
-   ============================================================ */
+/* --- FIX: Z-INDEX and POSITION --- */
 .block-controls {
   position: absolute;
   left: -44px;
@@ -267,224 +211,41 @@ watch(() => props.block.content, (newContent) => {
   opacity: 0;
   transition: opacity 0.15s;
   pointer-events: none;
+  /* Fix: Ensure controls are above other content */
+  z-index: 100;
 }
-
 .block-wrapper:hover .block-controls {
   opacity: 1;
   pointer-events: all;
 }
 
-.drag-handle,
-.delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  border: none;
-  background: none;
-  color: var(--sub, #888);
-  cursor: pointer;
-}
+.drag-handle, .delete-btn { display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; border: none; background: none; color: var(--sub, #888); cursor: pointer; }
+.drag-handle:hover { background: var(--gg, #eee); color: var(--text, #333); cursor: grab; }
+.delete-btn:hover { background: rgba(246, 82, 82, 0.1); color: #f65252; }
+.collapse-toggle { position: absolute; left: -20px; top: 6px; cursor: pointer; color: var(--sub, #aaa); display: flex; align-items: center; justify-content: center; border-radius: 3px; padding: 1px; transition: color 0.15s; }
+.collapse-toggle:hover { color: var(--text, #333); }
+.marker-bullet { width: 20px; flex-shrink: 0; text-align: center; font-size: 18px; line-height: 1.4; color: var(--sub, #888); margin-right: 6px; user-select: none; margin-top: 2px; }
+.marker-checkbox { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-right: 6px; margin-top: 5px; }
+.marker-checkbox input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text, #333); }
+.content-area { flex: 1; position: relative; min-width: 0; }
+.editable-input { outline: none; min-height: 24px; word-break: break-word; line-height: 1.6; }
+.editable-input:empty::before { content: attr(placeholder); color: var(--sub, #bbb); pointer-events: none; }
+.h1 { font-size: 1.9em; font-weight: 700; color: var(--text, #111); line-height: 1.2; margin: 12px 0 4px; }
+.h2 { font-size: 1.5em; font-weight: 700; color: var(--text, #111); margin: 10px 0 4px; }
+.h3 { font-size: 1.2em; font-weight: 600; color: var(--text, #111); margin: 8px 0 2px; }
+.h4 { font-size: 1.05em; font-weight: 600; color: var(--text, #111); margin: 6px 0 2px; }
+.p { font-size: 1em; color: var(--text, #333); margin: 2px 0; }
+.ul, .cl { font-size: 1em; color: var(--text, #333); margin: 1px 0; }
+.is-checked .editable-input { text-decoration: line-through; color: var(--sub, #999); }
+.floating-toolbar { position: absolute; top: -38px; left: 0; z-index: 200; display: flex; align-items: center; gap: 3px; padding: 4px 6px; background: #1e1e1e; border-radius: 6px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); white-space: nowrap; }
+.floating-toolbar button { display: flex; align-items: center; justify-content: center; background: none; border: none; color: #ddd; padding: 4px 5px; border-radius: 3px; cursor: pointer; transition: background 0.1s; }
+.floating-toolbar button:hover { background: #3a3a3a; color: #fff; }
+.tb-divider { width: 1px; height: 16px; background: #444; margin: 0 3px; flex-shrink: 0; }
+.floating-toolbar select { background: #2a2a2a; color: #ddd; border: none; border-radius: 3px; font-size: 11px; padding: 3px 4px; cursor: pointer; outline: none; }
+.floating-toolbar select:hover { background: #3a3a3a; }
+.color-picker-wrapper { position: relative; }
 
-.drag-handle:hover {
-  background: var(--gg, #eee);
-  color: var(--text, #333);
-  cursor: grab;
-}
-
-.delete-btn:hover {
-  background: rgba(246, 82, 82, 0.1);
-  color: #f65252;
-}
-
-/* ============================================================
-   Collapse-Pfeil
-   ============================================================ */
-.collapse-toggle {
-  position: absolute;
-  left: -20px;
-  top: 6px;
-  cursor: pointer;
-  color: var(--sub, #aaa);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  padding: 1px;
-  transition: color 0.15s;
-}
-.collapse-toggle:hover {
-  color: var(--text, #333);
-}
-
-/* ============================================================
-   Marker (Bullet / Checkbox)
-   ============================================================ */
-.marker-bullet {
-  width: 20px;
-  flex-shrink: 0;
-  text-align: center;
-  font-size: 18px;
-  line-height: 1.4;
-  color: var(--sub, #888);
-  margin-right: 6px;
-  user-select: none;
-  margin-top: 2px;
-}
-
-.marker-checkbox {
-  width: 20px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 6px;
-  margin-top: 5px;
-}
-
-.marker-checkbox input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-  accent-color: var(--text, #333);
-}
-
-/* ============================================================
-   Content-Bereich
-   ============================================================ */
-.content-area {
-  flex: 1;
-  position: relative;
-  min-width: 0;
-}
-
-/* ============================================================
-   Editierbares Feld
-   ============================================================ */
-.editable-input {
-  outline: none;
-  min-height: 24px;
-  word-break: break-word;
-  line-height: 1.6;
-}
-
-/* Placeholder */
-.editable-input:empty::before {
-  content: attr(placeholder);
-  color: var(--sub, #bbb);
-  pointer-events: none;
-}
-
-/* Typografie pro Block-Typ */
-.h1 {
-  font-size: 1.9em;
-  font-weight: 700;
-  color: var(--text, #111);
-  line-height: 1.2;
-  margin: 12px 0 4px;
-}
-.h2 {
-  font-size: 1.5em;
-  font-weight: 700;
-  color: var(--text, #111);
-  margin: 10px 0 4px;
-}
-.h3 {
-  font-size: 1.2em;
-  font-weight: 600;
-  color: var(--text, #111);
-  margin: 8px 0 2px;
-}
-.h4 {
-  font-size: 1.05em;
-  font-weight: 600;
-  color: var(--text, #111);
-  margin: 6px 0 2px;
-}
-.p {
-  font-size: 1em;
-  color: var(--text, #333);
-  margin: 2px 0;
-}
-.ul,
-.cl {
-  font-size: 1em;
-  color: var(--text, #333);
-  margin: 1px 0;
-}
-
-/* Abgehakte Checklisten-Einträge */
-.is-checked .editable-input {
-  text-decoration: line-through;
-  color: var(--sub, #999);
-}
-
-/* ============================================================
-   Floating Toolbar
-   ============================================================ */
-.floating-toolbar {
-  position: absolute;
-  top: -38px;
-  left: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 4px 6px;
-  background: #1e1e1e;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  white-space: nowrap;
-}
-
-.floating-toolbar button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: #ddd;
-  padding: 4px 5px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.floating-toolbar button:hover {
-  background: #3a3a3a;
-  color: #fff;
-}
-
-.tb-divider {
-  width: 1px;
-  height: 16px;
-  background: #444;
-  margin: 0 3px;
-  flex-shrink: 0;
-}
-
-/* Block-Typ-Auswahl */
-.floating-toolbar select {
-  background: #2a2a2a;
-  color: #ddd;
-  border: none;
-  border-radius: 3px;
-  font-size: 11px;
-  padding: 3px 4px;
-  cursor: pointer;
-  outline: none;
-}
-.floating-toolbar select:hover {
-  background: #3a3a3a;
-}
-
-/* ============================================================
-   Farbauswahl (Hover-Dropdown)
-   ============================================================ */
-.color-picker-wrapper {
-  position: relative;
-}
-
+/* --- FIX: DROPDOWN GAP --- */
 .color-dropdown {
   display: none;
   position: absolute;
@@ -500,42 +261,20 @@ watch(() => props.block.content, (newContent) => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 300;
 }
-
-.color-picker-wrapper:hover .color-dropdown {
-  display: flex;
-}
-
-.color-swatch {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: transform 0.1s;
-  flex-shrink: 0;
-}
-.color-swatch:hover {
-  transform: scale(1.2);
-}
-
-/* Eigene Farbe */
-.custom-color {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f00, #0f0, #00f);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  position: relative;
-  overflow: hidden;
-}
-.custom-color input[type="color"] {
+/* Invisible Bridge to prevent closing on hover transfer */
+.color-dropdown::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
+  top: -8px;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: 8px;
+  background: transparent;
 }
+.color-picker-wrapper:hover .color-dropdown { display: flex; }
+
+.color-swatch { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.15); cursor: pointer; transition: transform 0.1s; flex-shrink: 0; }
+.color-swatch:hover { transform: scale(1.2); }
+.custom-color { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f00, #0f0, #00f); color: #fff; font-size: 11px; font-weight: 700; position: relative; overflow: hidden; }
+.custom-color input[type="color"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 </style>
