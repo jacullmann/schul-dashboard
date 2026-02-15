@@ -1,0 +1,82 @@
+{
+  "global": {
+    "title": "schul-dashboard",
+    "buttons": {
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "delete": "Löschen"
+    },
+    "selection": {
+      "placeholder": "Bitte wählen",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "header": {
+    },
+    "footer": {
+    }
+  },
+  "account": {
+    "courses": "Kurse bearbeiten",
+    "personalization": "Personalisierte Kurse",
+    "security": "Sicherheit",
+    "changePassword": "Passwort ändern",
+    "logout": "Abmelden",
+    "deleteAccount": "Konto löschen"
+  },
+  "school": {
+    "tasks": {
+      "title": "Aufgaben",
+      "types": {
+        "homework": "Hausaufgabe",
+        "dalton": "Dalton",
+        "exam": "Prüfung"
+      },
+      "tabs": {
+        "homework": "Hausaufgaben",
+        "dalton": "Dalton",
+        "exam": "Prüfungen",
+        "private": "Privat"
+      }
+    },
+    "tables": {
+      "dalton": {
+        "title": "Daltonraumfinder"
+      },
+      "timetable": {
+        "title": "Stundenplan"
+      },
+      "abbr": {
+        "title": "Kürzelfinder"
+      }
+    },
+    "private": {
+      "entry": "Privater Eintrag"
+    },
+    "dashboard": {
+      "title": "Dashboard"
+    }
+  },
+  "tools": {
+  },
+  "info": {
+  },
+  "legal": {
+    "imprint": {
+      "title": "Impressum"
+    },
+    "privacy": {
+      "title": "Datenschutzerklärung"
+    },
+    "terms": {
+      "title": "Nutzungsbedingungen"
+    }
+  },
+  "contact": {
+  },
+  "about": {
+  },
+  "games": {
+  }
+}
