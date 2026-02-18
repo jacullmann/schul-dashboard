@@ -746,7 +746,7 @@ export function useHausaufgaben() {
         }
     }
 
-    function goTab(t: ItemType) { router.push({ name: 'ItemsByType', params: { type: t } }); }
+    function goTab(t: ItemType) { router.push({ name: 'items', params: { type: t } }); }
 
 // --- Watchers ---
     watch(() => route.params.type, async (v) => {
@@ -775,8 +775,11 @@ export function useHausaufgaben() {
 
         if (highlightedItemId.value && route.params.itemId) {
             router.replace({
-                name: 'ItemsByType',
-                params: { ...route.params, itemId: '' }
+                name: 'items',
+                params: {
+                    ...route.params,
+                    itemId: ''
+                }
             });
         }
         reload();
@@ -786,8 +789,11 @@ export function useHausaufgaben() {
     watch(subjectFilter, () => {
         if (highlightedItemId.value && route.params.itemId) {
             router.replace({
-                name: 'ItemsByType',
-                params: { ...route.params, itemId: '' }
+                name: 'items',
+                params: {
+                    ...route.params,
+                    itemId: ''
+                }
             });
         }
     });
