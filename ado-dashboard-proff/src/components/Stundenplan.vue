@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import hw from "../hwApi";
-import InfoPop from '../components/info/InfoModalCenter.vue'
-import { useUserStore } from '../stores/userStore';
+import hw from "@/hwApi";
+import InfoPop from '@/components/info/InfoModalCenter.vue'
+import { useUserStore } from '@/stores/userStore';
 const userStore = useUserStore();
 
 interface Lesson {

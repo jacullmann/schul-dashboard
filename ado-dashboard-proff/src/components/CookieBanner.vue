@@ -3,20 +3,15 @@
     <div class="cookie-content">
       <div>
         <h3 style="margin: 0">
-          Cookies
+          {{ t('global.cookies.banner.title') }}
         </h3>
       </div>
       <div class="cookie-text">
-        <p>Wir nutzen Cookies, um grundlegende Funktionen wie Anmeldung, Sicherheit und den Betrieb des Schul-Dashboards zuverlässig bereitzustellen.
-
-          Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten.
-
-          Mehr dazu findest du in unserer Datenschutzerklärung.</p>
+        <p>{{ t('global.cookies.banner.text') }}</p>
       </div>
 
       <div class="cookie-actions">
-        <!--<button data-umami-event="Cookies ablehnen" class="btn btn-ghost" @click="revoke">Ablehnen</button>-->
-        <button data-umami-event="Cookies-Hinweis bestätigt" class="btn action" @click="accept">Verstanden</button>
+        <button class="btn action" @click="accept">{{ t('global.cookies.banner.action') }}</button>
       </div>
     </div>
   </div>
@@ -24,12 +19,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useAppAuth } from '../composables/useAppAuth';
+import { useAppAuth } from '@/composables/useAppAuth';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 const auth = useAppAuth();
 const visible = ref(false);
 const router = useRouter();
+const { t } = useI18n();
 
 function accept() {
   const payload = { accepted: true, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };

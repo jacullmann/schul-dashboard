@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, onMounted } from 'vue';
+import { ref, computed, onUnmounted, onMounted } from 'vue';
 import {
   Search,
   Play,

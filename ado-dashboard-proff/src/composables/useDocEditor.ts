@@ -1,8 +1,7 @@
 // src/composables/useDocEditor.ts
-
 import { ref, computed, onUnmounted, readonly } from 'vue';
 import { io, Socket } from 'socket.io-client';
-import hw from '../hwApi';
+import hw from '@/hwApi';
 
 // Typen
 export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -14,7 +13,6 @@ export interface DocEditorState {
     lastEditedAt: string | null;
 }
 
-// Debounce-Hilfsfunktion
 // Update this function
 function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
     let timer: ReturnType<typeof setTimeout> | null = null;

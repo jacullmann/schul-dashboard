@@ -1,33 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Hausaufgaben from './views/Hausaufgaben.vue';
-import { useAppAuth } from './composables/useAppAuth';
-import { useLoadingBar } from './composables/loadingState';
-import { useUserStore } from './stores/userStore';
-
-const VerifyEmail = () => import('./views/VerifyEmail.vue');
-const Kuerzel = () => import('./views/tools/Kuerzel.vue');
-const Ye = () => import('./views/kanye/Ye.vue');
-const BS = () => import('./views/BS.vue');
-const Kontakt = () => import('./components/ContactForm.vue');
-const AuthPage = () => import('./views/AuthPage.vue');
-const Aidetector = () => import('./views/aiDetector.vue');
-const Games = () => import('./views/Games.vue');
-const GameDetail = () => import('./views/GameDetail.vue');
-const Finales = () => import('./components/Finaleb.vue');
-const Countdown = () => import('./views/Countdown.vue');
-const AdminDashboard = () => import('./views/AdminDashboard.vue');
-const DaltonFinder = () => import('./views/tools/DaltonFinder.vue');
-const ImageTool = () => import('./views/tools/ImageTool.vue');
-const Devide = () => import('./views/devider/Devide.vue');
-const PatchInfo = () => import('./views/updates/Info.vue');
-const InfoDashboard = () => import('./views/InfoDashboard/InfoDashboard.vue')
+import { useAppAuth } from '@/composables/useAppAuth';
+import { useLoadingBar } from '@/composables/loadingState';
+import { useUserStore } from '@/stores/userStore';
 
 const routes = [
-    { path: '/', redirect: '/items/HAUSAUFGABE' },
+    {
+        path: '/',
+        redirect: '/items/HAUSAUFGABE'
+    },
     {
         path: '/welcome',
-        name: 'Auth',
-        component: AuthPage,
+        name: 'welcome-page',
+        component: () => import('@/views/AuthPage.vue'),
         meta: {
             title: 'Anmeldung',
             fullWidth: true,
@@ -36,8 +20,8 @@ const routes = [
     },
     {
         path: '/items/:type?/:itemId?',
-        name: 'ItemsByType',
-        component: Hausaufgaben,
+        name: 'items',
+        component: () => import('@/views/Hausaufgaben.vue'),
         props: true,
         meta: {
             title: 'Hausaufgaben',
@@ -48,8 +32,8 @@ const routes = [
 
     {
         path: '/admin-dashboard',
-        name: 'AdminDashboard',
-        component: AdminDashboard,
+        name: 'admin-dashboard',
+        component: () => import('@/views/AdminDashboard.vue'),
         meta: {
             title: 'Admin Dashboard',
             requiresAdmin: true,
@@ -59,9 +43,10 @@ const routes = [
     },
     {
         path: '/divide',
-        component: Devide,
+        name: 'divider',
+        component: () => import('@/views/divider/Divide.vue'),
         meta: {
-            title: 'Devided',
+            title: 'Divided',
             fullWidth: true,
             hideNavigation: false
         }
@@ -73,7 +58,8 @@ const routes = [
     },
     {
         path: '/verify',
-        component: VerifyEmail,
+        name: 'verify-email',
+        component: () => import('@/views/VerifyEmail.vue'),
         meta: {
             title: 'E-Mail Verifizierung',
             fullWidth: false,
@@ -82,7 +68,8 @@ const routes = [
     },
     {
         path: '/kuerzel',
-        component: Kuerzel,
+        name: 'kürzelfinder',
+        component: () => import('@/views/tools/Kuerzel.vue'),
         meta: {
             title: 'Kürzelfinder',
             fullWidth: false,
@@ -91,7 +78,8 @@ const routes = [
     },
     {
         path: '/kanye',
-        component: Ye,
+        name: 'kanye',
+        component: () => import('@/views/kanye/Ye.vue'),
         meta: {
             title: 'Kanye',
             fullWidth: true,
@@ -100,7 +88,8 @@ const routes = [
         children: [
             {
                 path: 'graduation',
-                component: () => import('./views/kanye/routes/Graduation.vue'),
+                name: 'kanye-graduation',
+                component: () => import('@/views/kanye/routes/Graduation.vue'),
                 meta: {
                     title: 'Graduation',
                     fullWidth: true,
@@ -109,7 +98,8 @@ const routes = [
             },
             {
                 path: 'late-registration',
-                component: () => import('./views/kanye/routes/LateRegistration.vue'),
+                name: 'kanye-late-registration',
+                component: () => import('@/views/kanye/routes/LateRegistration.vue'),
                 meta: {
                     title: 'Late Registration',
                     fullWidth: true,
@@ -118,7 +108,8 @@ const routes = [
             },
             {
                 path: 'twisted-fantasy',
-                component: () => import('./views/kanye/routes/TwistedFantasy.vue'),
+                name: 'kanye-twisted-fantasy',
+                component: () => import('@/views/kanye/routes/TwistedFantasy.vue'),
                 meta: {
                     title: 'Twisted Fantasy',
                     fullWidth: true,
@@ -127,7 +118,8 @@ const routes = [
             },
             {
                 path: 'ye',
-                component: () => import('./views/kanye/routes/Ye.vue'),
+                name: 'kanye-ye',
+                component: () => import('@/views/kanye/routes/Ye.vue'),
                 meta: {
                     title: 'Ye',
                     fullWidth: true,
@@ -136,7 +128,8 @@ const routes = [
             },
             {
                 path: 'yeezus',
-                component: () => import('./views/kanye/routes/Yeezus.vue'),
+                name: 'kanye-yeezus',
+                component: () => import('@/views/kanye/routes/Yeezus.vue'),
                 meta: {
                     title: 'Yeezus',
                     fullWidth: true,
@@ -147,7 +140,8 @@ const routes = [
     },
     {
         path: '/ai-detector',
-        component: Aidetector,
+        name: 'ai-detector',
+        component: () => import('@/views/aiDetector.vue'),
         meta: {
             title: 'AI Detektor',
             fullWidth: true,
@@ -156,7 +150,8 @@ const routes = [
     },
     {
         path: '/sorgenbox',
-        component: BS,
+        name: 'sorgenbox',
+        component: () => import('@/views/Sorgenbox.vue'),
         meta: {
             title: 'Sorgenbox',
             fullWidth: false,
@@ -165,7 +160,8 @@ const routes = [
     },
     {
         path: '/kontakt',
-        component: Kontakt,
+        name: 'contact',
+        component: () => import('@/components/ContactForm.vue'),
         meta: {
             title: 'Kontakt',
             fullWidth: false,
@@ -174,16 +170,18 @@ const routes = [
     },
     {
         path: '/update-history',
-        component: PatchInfo,
+        name: 'update-history',
+        component: () => import('@/views/updates/PatchInfo.vue'),
         meta: {
-            title: 'Update Hostory',
+            title: 'Update History',
             fullWidth: true,
             hideNavigation: false
         }
     },
     {
         path: '/spiele',
-        component: Games,
+        name: 'games',
+        component: () => import('@/views/Games.vue'),
         meta: {
             title: 'Spiel Übersicht',
             fullWidth: false,
@@ -192,7 +190,8 @@ const routes = [
     },
     {
         path: '/stundenplan',
-        component: Finales,
+        name: 'stundenplan',
+        component: () => import('@/components/Stundenplan.vue'),
         meta: {
             title: 'Stundenplan',
             fullWidth: false,
@@ -201,7 +200,8 @@ const routes = [
     },
     {
         path: '/daltonraumfinder',
-        component: DaltonFinder,
+        name: 'daltonraumfinder',
+        component: () => import('@/views/tools/DaltonFinder.vue'),
         meta: {
             title: 'Daltonraumfinder',
             fullWidth: false,
@@ -210,7 +210,8 @@ const routes = [
     },
     {
         path: '/imagetool',
-        component: ImageTool,
+        name: 'imagetool',
+        component: () => import('@/views/tools/ImageTool.vue'),
         meta: {
             title: 'Bildbearbeitung',
             fullWidth: false,
@@ -219,7 +220,8 @@ const routes = [
     },
     {
         path: '/info-dashboard',
-        component: InfoDashboard,
+        name: 'info-dashboard',
+        component: () => import('@/views/InfoDashboard/InfoDashboard.vue'),
         meta: {
             title: 'Info Dashboard',
             fullWidth: true,
@@ -228,7 +230,8 @@ const routes = [
     },
     {
         path: '/countdown',
-        component: Countdown,
+        name: 'countdown',
+        component: () => import('@/views/Countdown.vue'),
         meta: {
             title: 'Countdown',
             fullWidth: false,
@@ -238,7 +241,7 @@ const routes = [
     {
         path: '/spiele/:id',
         name: 'GameDetail',
-        component: GameDetail,
+        component: () => import('@/views/GameDetail.vue'),
         props: true,
         meta: {
             title: 'Spiel',
@@ -246,14 +249,19 @@ const routes = [
             hideNavigation: false
         }
     },
-    { path: '/goat', redirect: '/kanye' },
-
+    {
+        path: '/goat',
+        redirect: '/kanye'
+    },
     {
         path: '/impressum-&-datenschutz',
-        component: () => import('./views/legal/LegalLayout.vue'),
+        name: 'impressum-und-datenschutz',
+        component: () => import('@/views/legal/LegalLayout.vue'),
         children: [
-            { path: 'impressum',
-                component: () => import('./views/legal/ImpressumPage.vue'),
+            {
+                path: 'impressum',
+                name: 'impressum',
+                component: () => import('@/views/legal/ImpressumPage.vue'),
                 meta: {
                     title: 'Impressum',
                     fullWidth: false,
@@ -262,7 +270,8 @@ const routes = [
             },
             {
                 path: 'datenschutz',
-                component: () => import('./views/legal/DatenschutzPage.vue'),
+                name: 'datenschutz',
+                component: () => import('@/views/legal/DatenschutzPage.vue'),
                 meta: {
                     title: 'Datenschutzerklärung',
                     fullWidth: false,
@@ -271,7 +280,8 @@ const routes = [
             },
             {
                 path: 'nutzung',
-                component: () => import('./views/legal/Nutzungsbedingungen.vue'),
+                name: 'nutzung',
+                component: () => import('@/views/legal/Nutzungsbedingungen.vue'),
                 meta: {
                     title: 'Nutzungsbedingungen',
                     fullWidth: false,
@@ -283,8 +293,8 @@ const routes = [
     },
     {
         path: '/:pathMatch(.*)*',
-        name: 'NotFound',
-        component: () => import('./views/NotFound.vue'),
+        name: 'not-found',
+        component: () => import('@/views/NotFound.vue'),
         meta: {
             title: '404',
             fullWidth: true,
@@ -308,18 +318,27 @@ router.beforeEach(async (to, from, next) => {
         await initAuth();
     }
 
-    const publicPaths = ['/welcome', '/verify'];
+    const publicPaths = [
+        '/welcome',
+        '/verify'
+    ];
     const isPublicRoute = publicPaths.includes(to.path);
     if (!isPublicRoute && !isAuthenticated.value) {
         finish();
-        return next({ path: '/welcome', replace: true });
+        return next({
+            path: '/welcome',
+            replace: true
+        });
     }
     if (to.path === '/welcome' && isAuthenticated.value) {
         finish();
-        return next({ path: '/items/HAUSAUFGABE', replace: true });
+        return next({
+            path: '/items/HAUSAUFGABE',
+            replace: true
+        });
     }
 
-    if (to.name === 'ItemsByType') {
+    if (to.name === 'items') {
         const type = to.params.type;
         let title = 'Hausaufgaben';
         if (type === 'DALTON') title = 'Dalton';

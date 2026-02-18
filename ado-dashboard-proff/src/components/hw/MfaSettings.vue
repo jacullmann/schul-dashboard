@@ -176,7 +176,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onUnmounted } from 'vue';
 import {
-  Shield,
   ShieldCheck,
   ShieldOff,
   Copy,
@@ -185,8 +184,8 @@ import {
   AlertCircle,
   AlertTriangle
 } from 'lucide-vue-next';
-import LoadingSpinner from '../LoadingSpinner.vue';
-import { useMfa } from '../../composables/useMfa';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { useMfa } from '@/composables/useMfa';
 
 const props = defineProps<{
   mfaEnabled: boolean;

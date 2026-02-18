@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Filter, FilterX, ChevronDown, Check } from 'lucide-vue-next';
-import hw from '../../hwApi';
+import hw from '@/hwApi';
 
 const props = defineProps<{
   modelValue: boolean;

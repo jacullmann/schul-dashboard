@@ -30,10 +30,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import TabSwitcher from '../TabSwitcher.vue';
-import MfaSettings from './MfaSettings.vue';
-import { useMfa } from '../../composables/useMfa';
-import Modal from './Modal.vue';
+import TabSwitcher from '@/components/TabSwitcher.vue';
+import MfaSettings from '@/components/hw/MfaSettings.vue';
+import { useMfa } from '@/composables/useMfa';
+import Modal from '@/components/hw/Modal.vue';
 
 const props = defineProps<{
   initialMfaEnabled?: boolean;

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import hw from '../hwApi';
+import hw from '@/hwApi';
 
 interface UserData {
     id: string;

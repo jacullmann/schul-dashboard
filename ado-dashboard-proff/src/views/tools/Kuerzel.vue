@@ -2,20 +2,18 @@
   <div class="card">
     <div class="card-top">
       <h2 style="margin-bottom: 16px" class="title-inf">
-        Kürzelfinder
-        <InfoPop tooltip="Kürzelfinder Info" title="Kürzelfinder">
-          <p style="margin-top: 0;">Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.</p>
+        {{ t('school.tables.abbr.title') }}
+        <InfoPop :tooltip="$t('school.tables.abbr.infopop.tooltip')" :title="t('school.tables.abbr.title')">
+          <p style="margin-top: 0;">{{ t('school.tables.abbr.infopop.description') }}</p>
 
-          <h3>Kürzelübersetzer</h3>
-          <p>Gib das unbekannte Kürzel in das Textfeld ein und erhalte den zugehörigen Namen.</p>
+          <template v-for="(section, index) in tm('school.tables.abbr.infopop.sections')" :key="index">
+            <h3>{{ t('school.tables.abbr.infopop.sections.title') }}</h3>
+            <p>{{ t('school.tables.abbr.infopop.sections.text') }}</p>
+          </template>
 
-          <h3>Kürzelfinder</h3>
-          <p>Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel.</p>
           <div class="info-img-container">
             <img style="margin-bottom: 16px;" alt="Bild" class="info-img" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
           </div>
-
-
         </InfoPop>
       </h2>
     </div>
@@ -30,7 +28,7 @@
         />
 
         <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion mobile">
-          Meintest du vielleicht
+          {{ t('school.tables.abbr.didYouMean1') }}
           <span
               v-for="(s, idx) in suggestions"
               :key="idx"
@@ -39,7 +37,7 @@
           >
               {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
             </span>
-          ?
+          {{ t('school.tables.abbr.didYouMean2') }}
         </div>
       </div>
 
@@ -55,7 +53,7 @@
       </div>
 
       <div class="col">
-        <small class="nwer">{{ mode==='shortToName' ? 'Name' : 'Kürzel' }}</small>
+        <small class="nwer">{{ mode==='shortToName' ? t('school.tables.abbr.name') : t('school.tables.abbr.abbr') }}</small>
         <input
             class="input"
             :value="outputValue"
@@ -66,7 +64,7 @@
     </div>
 
     <div v-if="mode==='nameToShort' && suggestions.length > 0 && !outputValue" class="suggestion desktop">
-      Meintest du vielleicht
+      {{ t('school.tables.abbr.didYouMean1') }}
       <span
           v-for="(s, idx) in suggestions"
           :key="idx"
@@ -75,22 +73,21 @@
       >
           {{ s.title }} {{ s.name }}<span v-if="idx < suggestions.length-1">,</span>
         </span>
-      ?
+      {{ t('school.tables.abbr.didYouMean2') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { supabase} from "../../composables/Datatable";
+import { supabase } from "@/composables/Datatable";
 import { ArrowLeftRight} from "lucide-vue-next";
-import InfoPop from '../../components/info/InfoModalCenter.vue'
+import InfoPop from '@/components/info/InfoModalCenter.vue'
+import { useI18n } from 'vue-i18n'
 
-
+const { t } = useI18n()
 
 const persons = ref([])
-
-
 
 const loadPeople = async () => {
   const { data: persondata, error: personerror} = await supabase
@@ -103,8 +100,6 @@ const loadPeople = async () => {
   console.log(persons.value)
 
 }
-
-
 
 const mode = ref<'shortToName' | 'nameToShort'>('shortToName')
 const inputValue = ref('')

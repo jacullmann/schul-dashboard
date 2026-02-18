@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import BackButton from "../buttons/BackButton.vue";
+import { ref } from 'vue';
+import BackButton from "@/views/kanye/buttons/BackButton.vue";
 
 // --- Types ---
 interface Track {

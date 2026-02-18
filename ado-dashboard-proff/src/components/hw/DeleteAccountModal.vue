@@ -62,8 +62,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import hw from '../../hwApi';
-import LoadingSpinner from '../LoadingSpinner.vue';
+import hw from '@/hwApi';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const props = defineProps<{
   email: string;

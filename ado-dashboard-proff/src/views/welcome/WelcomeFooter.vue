@@ -4,44 +4,50 @@
       <div class="footer-columns">
 
         <div class="footer-section">
-          <h3>Hinweis</h3>
+          <h3>{{ t('welcome.footer.disclaimer.title') }}</h3>
           <p class="text-sub">
-            Dies ist eine geschützte und private Applikation. Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird ausnahmslos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden.
+            {{ t('welcome.footer.disclaimer.text') }}
           </p>
         </div>
 
         <div class="footer-section">
           <h3>Navigation</h3>
-          <p @click="gotomain" class="footer-link">Startseite</p>
-          <p @click="gotosec" class="footer-link">Impressum</p>
-          <p class="footer-link" @click="goToStatus" >Status<ExternalLink size="14px"/></p>
+          <p @click="gotomain" class="footer-link">{{ t('welcome.footer.navigation.landingPage') }}</p>
+          <p @click="gotosec" class="footer-link">{{ t('legal.imprint.title') }}</p>
+          <p class="footer-link" @click="goToStatus">{{ t('welcome.footer.navigation.status') }}<ExternalLink size="14px"/></p>
         </div>
+
         <div class="footer-section">
           <h3>Design</h3>
           <div class="theme-selector">
             <ThemeDropdown />
           </div>
-          <p class="brand-description">
-            Wähle dein bevorzugtes Design für das Schul Dashboard aus.
-          </p>
         </div>
+
+        <div class="footer-section">
+          <h3>Sprache</h3>
+          <div class="theme-selector">
+            <LocaleDropdown />
+          </div>
+        </div>
+
       </div>
       <div class="footer-bottom">
         <div class="container footer-bottom-content">
-          <p class="text-xs text-sub">Dies ist ein privates Projekt von Schülern für Schüler</p>
+          <p class="text-xs text-sub">{{ t('welcome.footer.byStudentsForStudents') }}</p>
         </div>
       </div>
     </div>
-
-
-
-
   </footer>
 </template>
 
 <script setup lang="ts">
-import { ExternalLink} from "lucide-vue-next";
-import ThemeDropdown from "../../components/hw/ThemeDropdown.vue";
+import { ExternalLink } from "lucide-vue-next";
+import ThemeDropdown from "@/components/hw/ThemeDropdown.vue";
+import LocaleDropdown from "@/components/hw/LocaleDropdown.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const emit = defineEmits(['goToSec', 'goToMain'])
 function gotosec() {
@@ -50,7 +56,6 @@ function gotosec() {
 function gotomain() {
   emit('goToMain')
 }
-// Statusseite auf Uptimerobot öffnen
 function goToStatus() {
   window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank', 'noopener,noreferrer');
 }
@@ -62,10 +67,6 @@ function goToStatus() {
   padding: 16px 16px 0 16px;
   border-top: 1px solid var(--border);
 }
-
-/* .footer-container {
-  padding: 0 5px 2rem;
-} */
 
 .container {
   max-width: 1200px;
@@ -128,6 +129,7 @@ function goToStatus() {
 .footer-bottom-content p {
   margin: 0;
 }
+
 @media (max-width: 768px) {
   .footer-columns {
     gap: 2rem;

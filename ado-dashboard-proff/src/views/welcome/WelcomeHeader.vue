@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import Logo from "../../components/hw/Logo.vue";
+import Logo from "@/components/hw/Logo.vue";
 
 const emit = defineEmits(['goToMain2'])
 

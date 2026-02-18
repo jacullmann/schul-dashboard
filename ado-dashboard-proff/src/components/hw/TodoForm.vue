@@ -29,9 +29,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import hw from '../../hwApi';
-import Modal from './Modal.vue';
-import LoadingSpinner from '../LoadingSpinner.vue';
+import hw from '@/hwApi';
+import Modal from '@/components/hw/Modal.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 interface TodoItem {
   id: string;

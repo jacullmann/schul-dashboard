@@ -56,8 +56,8 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import hw from '../hwApi';
-import AnnouncementPopup from './popups/AnnouncementPopup.vue';
+import hw from '@/hwApi';
+import AnnouncementPopup from '@/components/popups/AnnouncementPopup.vue';
 import { X } from 'lucide-vue-next';
 
 const announcements = ref([]);

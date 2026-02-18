@@ -48,9 +48,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { games } from '../components/spiele/GameData';
+import { games } from '@/components/spiele/GameData';
 import { useRouter } from 'vue-router';
-import { Gamepad2, LucideFrown, Search } from "lucide-vue-next";
+import { LucideFrown } from "lucide-vue-next";
 
 const router = useRouter();
 

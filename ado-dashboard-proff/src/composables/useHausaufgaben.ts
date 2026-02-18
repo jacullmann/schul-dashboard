@@ -1,10 +1,10 @@
 import { ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/userStore';
-import { useImageUploadStore } from '../stores/imageStore';
-import { useGlobalAuthModal } from './useGlobalAuthModal';
-import hw from '../hwApi';
+import { useUserStore } from '@/stores/userStore';
+import { useImageUploadStore } from '@/stores/imageStore';
+import { useGlobalAuthModal } from '@/composables/useGlobalAuthModal';
+import hw from '@/hwApi';
 
 // Interface Definition exportieren
 export interface HwItem {

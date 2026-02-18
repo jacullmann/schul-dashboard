@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 let intervalId: number | undefined = undefined;
 
@@ -16,17 +19,17 @@ async function checkServerStatus() {
 
 
       if (data.status === 'good') {
-        status.value = 'Server erreichbar';
+        status.value = t('welcome.auth.serverStatus.good');
       } else  {
-        status.value = 'Serverantwort unerwartet';
+        status.value = t('welcome.auth.serverStatus.ok');
       }
     } else {
-      status.value = 'Serververbindung unterbrochen.';
+      status.value = t('welcome.auth.serverStatus.notOk');
     }
 
   } catch (error) {
     console.error('Verbindung zum Server konnte nicht hergestellt werden:', error);
-    status.value = 'Server nicht erreichbar';
+    status.value = t('welcome.auth.serverStatus.error');
   }
 
 }

@@ -1,8 +1,7 @@
 // src/composables/useAppAuth.ts
-
 import { ref } from 'vue';
 import axios from 'axios';
-import hw, { setCsrfToken } from '../hwApi';
+import hw, { setCsrfToken } from '@/hwApi';
 
 const API_ENDPOINT = '/api/app-gate/login';
 const STATUS_ENDPOINT = '/api/app-gate/status';

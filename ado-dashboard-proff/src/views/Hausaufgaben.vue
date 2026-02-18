@@ -322,27 +322,27 @@
 </template>
 
 <script setup lang="ts">
-import ItemForm from '../components/hw/ItemForm.vue';
-import LoadingSpinner from '../components/LoadingSpinner.vue';
-import ImageContextMenu from '../components/hw/ImageContextMenu.vue';
-import ImageViewer from '../components/ImageViewer.vue';
-import ConfirmDialog from '../components/ConfirmDialog.vue'
-import OldNewSwitch from "../components/NewOldSwitch.vue"
-import CompleteSetup from "../components/hw/CompleteSetup.vue";
-import TodoApp from "./TodoApp.vue";
-import ItemSkeleton from '../components/ItemSkeleton.vue';
-import TabNavigation from '../components/TabNavigation.vue';
+import ItemForm from '@/components/hw/ItemForm.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import ImageContextMenu from '@/components/hw/ImageContextMenu.vue';
+import ImageViewer from '@/components/ImageViewer.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import OldNewSwitch from "@/components/NewOldSwitch.vue"
+import CompleteSetup from "@/components/hw/CompleteSetup.vue";
+import TodoApp from "@/views/TodoApp.vue";
+import ItemSkeleton from '@/components/ItemSkeleton.vue';
+import TabNavigation from '@/components/TabNavigation.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin, Ellipsis} from 'lucide-vue-next'
-import { useHausaufgaben } from '../composables/useHausaufgaben';
-import CreateEntryDropdown from '../components/hw/CreateEntryDropdown.vue';
-import TodoForm from '../components/hw/TodoForm.vue';
-import CreateEntryDropdownPseudo from "../components/hw/CreateEntryDropdownPseudo.vue";
-import InfoPop from '../components/info/InfoModalCenter.vue'
-import DeleteEntryModal from '../components/hw/DeleteEntryModal.vue';
-import DeleteImageModal from '../components/hw/DeleteImageModal.vue'
-import { formatSubjectDisplay } from '../composables/useSubjectFormatter';
-import SelectDropdown from '../components/hw/SelectDropdown.vue';
-import { ref, computed} from 'vue';
+import { useHausaufgaben } from '@/composables/useHausaufgaben';
+import CreateEntryDropdown from '@/components/hw/CreateEntryDropdown.vue';
+import TodoForm from '@/components/hw/TodoForm.vue';
+import CreateEntryDropdownPseudo from "@/components/hw/CreateEntryDropdownPseudo.vue";
+import InfoPop from '@/components/info/InfoModalCenter.vue'
+import DeleteEntryModal from '@/components/hw/DeleteEntryModal.vue';
+import DeleteImageModal from '@/components/hw/DeleteImageModal.vue'
+import { formatSubjectDisplay } from '@/composables/useSubjectFormatter';
+import SelectDropdown from '@/components/hw/SelectDropdown.vue';
+import { computed} from 'vue';
 
 const {
   MAX_TITLE_LENGTH,
@@ -370,7 +370,6 @@ const {
   toggleDescription,
   showMore,
   showLess,
-  colorStyles,
   toggleMenu,
   onMenuAction,
   logout,

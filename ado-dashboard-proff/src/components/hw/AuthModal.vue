@@ -153,14 +153,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
-import hw from '../../hwApi';
-import LoadingSpinner from "../LoadingSpinner.vue";
-import TabSwitcher from "../TabSwitcher.vue";
-import ResetModal from "../ResetModal.vue";
-import MfaVerifyModal from "./MfaVerifyModal.vue";
+import hw from '@/hwApi';
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import TabSwitcher from "@/components/TabSwitcher.vue";
+import ResetModal from "@/components/ResetModal.vue";
+import MfaVerifyModal from "@/components/hw/MfaVerifyModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
-import { syncCsrfFromCookie, setCsrfToken } from '../../hwApi';
-import { useMfa } from '../../composables/useMfa';
+import { syncCsrfFromCookie, setCsrfToken } from '@/hwApi';
+import { useMfa } from '@/composables/useMfa';
 
 const emit = defineEmits<{
   (e: 'close'): void;

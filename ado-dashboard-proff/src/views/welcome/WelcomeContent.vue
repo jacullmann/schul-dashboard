@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Line from './Line.vue'
 import { Ellipsis } from 'lucide-vue-next'
-import WelcomeButtonPrimary from "./WelcomeButtonPrimary.vue";
-import WelcomeButtonSecondary from "./WelcomeButtonSecondary.vue";
+import WelcomeButtonPrimary from "@/views/welcome/WelcomeButtonPrimary.vue";
+import WelcomeButtonSecondary from "@/views/welcome/WelcomeButtonSecondary.vue";
 
 defineProps<{
   onStartClick: () => void;

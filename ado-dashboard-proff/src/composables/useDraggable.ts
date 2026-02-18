@@ -1,5 +1,4 @@
 // composables/useResizableAndDraggable.ts
-
 import { ref, reactive, computed, Ref, onMounted, onUnmounted } from 'vue';
 
 // Definiert die Zustände für Position und Größe

@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import hw from '../../hwApi'
 
-import { useAdmin } from '../../composables/useAdmin';
+import { useAdmin } from '@/composables/useAdmin';
 
 const { saveTimetableSub, savingSub } = useAdmin();
 

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import hw from '../hwApi';
-import { processImageBeforeUpload } from '../composables/useConvertImage';
+import { processImageBeforeUpload } from '@/composables/useConvertImage';
 
 export interface ImageItem {
     url: string;

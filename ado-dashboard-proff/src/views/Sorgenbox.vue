@@ -55,11 +55,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import LoadingSpinner from '../components/LoadingSpinner.vue'
-import hw from "../hwApi"
-import InfoPop from '../components/info/InfoModalCenter.vue'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import hw from "@/hwApi"
+import InfoPop from '@/components/info/InfoModalCenter.vue'
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdkwadva';
 const MAX_LENGTH = 5000;
 
 const message = ref('');

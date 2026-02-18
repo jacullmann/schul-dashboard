@@ -200,14 +200,12 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { VueDraggableNext } from 'vue-draggable-next';
 import {
-  GripVertical, Trash2,
-  ChevronDown, ChevronRight,
-  Bold, Palette, Save, AlertTriangle, AlertCircle, RotateCcw,
+  ChevronDown, Bold, Palette, Save, AlertTriangle, AlertCircle, RotateCcw,
   Heading1, Heading2, Type, List, CheckSquare, FileText
 } from 'lucide-vue-next';
 
-import PlanBlock from '../components/PlanBlock.vue';
-import { useDocEditor } from '../composables/useDocEditor';
+import PlanBlock from '@/components/PlanBlock.vue';
+import { useDocEditor } from '@/composables/useDocEditor';
 const TOOLBAR_COLORS = ['#000000','#ffffff','#d32f2f','#f57c00','#388e3c','#1976d2','#7b1fa2'];
 
 type BlockType = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'ul' | 'cl';

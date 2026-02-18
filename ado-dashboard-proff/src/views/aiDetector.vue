@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { Zap, AlertTriangle } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
+import { Zap } from 'lucide-vue-next';
 
 const textInput = ref('');
 const isAnalyzing = ref(false);

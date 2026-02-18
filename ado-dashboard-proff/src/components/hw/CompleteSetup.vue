@@ -62,10 +62,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch, defineProps, defineEmits } from 'vue';
-import hw from '../../hwApi';
-import Modal from './Modal.vue';
-import SelectDropdown from './SelectDropdown.vue';
-import LoadingSpinner from '../LoadingSpinner.vue';
+import hw from '@/hwApi';
+import Modal from '@/components/hw/Modal.vue';
+import SelectDropdown from '@/components/hw/SelectDropdown.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 // Option Definitions
 const enrichmentOptions = [

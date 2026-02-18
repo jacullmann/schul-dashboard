@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getGameById, Game } from '../components/spiele/GameData';
+import { getGameById, Game } from '@/components/spiele/GameData';
 
 const route = useRoute();
 const router = useRouter();

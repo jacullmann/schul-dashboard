@@ -24,8 +24,8 @@
 <script setup lang="ts">
 // Parntdatei prüfen, ob props korrekt übergeben werden
 import { onMounted, onBeforeUnmount } from 'vue';
-import Modal from './Modal.vue';
-import LoadingSpinner from '../LoadingSpinner.vue';
+import Modal from '@/components/hw/Modal.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const props = defineProps<{
   show: boolean;

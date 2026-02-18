@@ -79,12 +79,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/userStore';
+import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
-import hw from '../hwApi';
-import LoadingSpinner from "../components/LoadingSpinner.vue";
+import hw from '@/hwApi';
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { Pencil, Trash2, Ellipsis, Lock } from 'lucide-vue-next';
-import InfoPop from '../components/info/InfoModalCenter.vue'
+import InfoPop from '@/components/info/InfoModalCenter.vue'
 
 interface Todo {
   id: string;

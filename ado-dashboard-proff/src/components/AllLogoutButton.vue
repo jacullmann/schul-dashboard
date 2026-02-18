@@ -34,10 +34,10 @@
 
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount } from 'vue'
-import { useAppAuth } from '../composables/useAppAuth';
+import { useAppAuth } from '@/composables/useAppAuth';
 import { TabletSmartphone, LogOut } from "lucide-vue-next";
 import { useRouter } from 'vue-router';
-import LoadingSpinner from './LoadingSpinner.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const router = useRouter();
 

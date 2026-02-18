@@ -1,6 +1,3 @@
-Here is the complete file with the critical fixes applied. I have ensured that preventDefault() is handled correctly for the Enter key to stop the ghosting issue, and I've switched the color picker to a robust click-based toggle to fix the usability issues.
-HTML
-
 <template>
   <div
       :id="`block-wrapper-${block.id}`"

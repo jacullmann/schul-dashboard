@@ -31,10 +31,12 @@
           <router-link to="/impressum-&-datenschutz/datenschutz" class="footer-link">Datenschutz</router-link>
           <router-link to="/impressum-&-datenschutz/nutzung" class="footer-link">Nutzungsbedingungen</router-link>
         </div>
+
         <div class="footer-section">
           <h3>Kontakt</h3>
           <router-link to="/kontakt" class="footer-link">Kontakt</router-link>
         </div>
+
         <div class="footer-section">
           <h3>Design</h3>
           <div class="theme-selector">
@@ -43,30 +45,37 @@
           <p class="brand-description">
             Wähle dein bevorzugtes Design für das Schul-Dashboard aus.
           </p>
-
         </div>
-        <All  class="logoutDeviceMobile" />
+
+        <div class="footer-section">
+          <h3>Sprache</h3>
+          <div class="theme-selector">
+            <LocaleDropdown />
+          </div>
+          <p class="brand-description">
+            Wähle deine bevorzugte Sprache aus.
+          </p>
+        </div>
+
+        <All class="logoutDeviceMobile" />
       </div>
     </div>
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p class="copyright-text">© {{ year }} Schul-Dashboard</p>
-        <All  class="logoutDeviceDesktop" />
-
+        <All class="logoutDeviceDesktop" />
       </div>
-
     </div>
-
-
   </footer>
 </template>
 
 <script setup lang="ts">
-import All from './AllLogoutButton.vue';
-import Logo from './hw/Logo.vue';
-import Notizen from "./Notizen.vue";
-import ThemeDropdown from "./hw/ThemeDropdown.vue";
+import All from '@/components/AllLogoutButton.vue';
+import Logo from '@/components/hw/Logo.vue';
+import Notizen from "@/components/Notizen.vue";
+import ThemeDropdown from "@/components/hw/ThemeDropdown.vue";
+import LocaleDropdown from "@/components/hw/LocaleDropdown.vue";
 
 const year = new Date().getFullYear();
 </script>
@@ -84,13 +93,13 @@ const year = new Date().getFullYear();
   padding-bottom: 2.5rem;
 }
 
-.container{
+.container {
   max-width: 1300px;
 }
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1fr;
   gap: 18px;
 }
 
@@ -100,7 +109,6 @@ const year = new Date().getFullYear();
   gap: 12px;
 }
 
-/* Brand Section */
 .footer-brand {
   gap: 0.5rem;
 }
@@ -157,7 +165,6 @@ const year = new Date().getFullYear();
   margin-top: 0.5rem;
 }
 
-/* Footer Bottom */
 .footer-bottom {
   border-top: 1px solid var(--border);
   padding: 1.5rem 0;
@@ -174,19 +181,19 @@ const year = new Date().getFullYear();
   color: var(--sub);
   margin: 0;
 }
+
 .logoutDeviceMobile {
   display: none;
 }
+
 .logoutDeviceDesktop {
   display: block;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .footer-grid {
     grid-template-columns: 1fr 1fr;
   }
-
   .footer-brand {
     grid-column: 1 / -1;
   }
@@ -199,19 +206,15 @@ const year = new Date().getFullYear();
   .footer {
     padding: 16px 16px 0;
   }
-
   .footer-container {
     padding-bottom: 2rem;
   }
-
   .footer-grid {
     grid-template-columns: 1fr;
   }
-
   .footer-brand {
     grid-column: auto;
   }
-
   .footer-bottom-content {
     flex-direction: column;
     align-items: flex-start;

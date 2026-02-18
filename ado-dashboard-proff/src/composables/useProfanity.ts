@@ -1,5 +1,5 @@
 // src/utils/profanity.ts
-import { supabase } from './Datatable';
+import { supabase } from '@/composables/Datatable';
 
 let badWords: string[] = [];
 

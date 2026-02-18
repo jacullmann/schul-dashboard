@@ -110,10 +110,10 @@
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from "lucide-vue-next";
-import ChangePasswordModal from './ChangePasswordModal.vue';
-import DeleteAccountModal from './DeleteAccountModal.vue';
-import PersonalizationDropdown from './PersonalizationDropdown.vue';
-import SecurityModal from './SecurityModal.vue';
+import ChangePasswordModal from '@/components/hw/ChangePasswordModal.vue';
+import DeleteAccountModal from '@/components/hw/DeleteAccountModal.vue';
+import PersonalizationDropdown from '@/components/hw/PersonalizationDropdown.vue';
+import SecurityModal from '@/components/hw/SecurityModal.vue';
 
 const props = defineProps<{
   email: string;

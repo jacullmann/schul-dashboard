@@ -1,7 +1,7 @@
 import { ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/userStore';
-import hw from '../hwApi';
+import { useUserStore } from '@/stores/userStore';
+import hw from '@/hwApi';
 
 export interface Announcement {
     _id: string;

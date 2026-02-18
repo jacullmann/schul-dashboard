@@ -135,9 +135,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { supabase } from '../composables/Datatable.ts'
-import hw from '../hwApi.ts'
-import LoadingSpinner from '../components/LoadingSpinner.vue'
+import { supabase } from '@/composables/Datatable.ts'
+import hw from '@/hwApi.ts'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 
 interface Countdown {

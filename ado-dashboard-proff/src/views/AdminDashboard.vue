@@ -478,11 +478,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useAdmin } from '../composables/useAdmin';
-import { useAnnouncements } from "../composables/useAnnouncements";
-import AnnouncementForm from '../components/hw/AnnouncementForm.vue';
-import AdminHeader from '../components/admin-components/AdminHeader.vue';
-import AdminSidebar from '../components/admin-components/AdminSidebar.vue';
+import { useAdmin } from '@/composables/useAdmin';
+import { useAnnouncements } from "@/composables/useAnnouncements";
+import AnnouncementForm from '@/components/hw/AnnouncementForm.vue';
+import AdminHeader from '@/components/admin-components/AdminHeader.vue';
+import AdminSidebar from '@/components/admin-components/AdminSidebar.vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import {
@@ -494,8 +494,8 @@ import {
   Check,
   RotateCcw
 } from 'lucide-vue-next';
-import EditModal from "../components/stundenplan-admin/EditModal.vue";
-import AdminDocEditor from './AdminDocEditor.vue';
+import EditModal from "@/components/stundenplan-admin/EditModal.vue";
+import AdminDocEditor from '@/views/AdminDocEditor.vue';
 
 const {
   activeTab,

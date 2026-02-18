@@ -46,20 +46,19 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
-import Header from './components/Header.vue';
-import Footer from './components/Footer.vue';
-import CookieBanner from "./components/CookieBanner.vue";
-import GlobalAnnouncements from './components/GlobalAnnouncements.vue';
-import { loadBadWords } from "./composables/useProfanity";
-import { useLoadingBar } from "./composables/loadingState";
-import AuthModal from './components/hw/AuthModal.vue';
-import { useGlobalAuthModal } from './composables/useGlobalAuthModal';
-import { useAppAuth } from './composables/useAppAuth';
-import { useRouter, useRoute } from 'vue-router';
-import hw, { syncCsrfFromCookie } from './hwApi';
+import Header from '@/components/Header.vue';
+import Footer from '@/components/Footer.vue';
+import CookieBanner from "@/components/CookieBanner.vue";
+import GlobalAnnouncements from '@/components/GlobalAnnouncements.vue';
+import { loadBadWords } from "@/composables/useProfanity";
+import { useLoadingBar } from "@/composables/loadingState";
+import AuthModal from '@/components/hw/AuthModal.vue';
+import { useGlobalAuthModal } from '@/composables/useGlobalAuthModal';
+import { useAppAuth } from '@/composables/useAppAuth';
+import { useRouter } from 'vue-router';
+import hw, { syncCsrfFromCookie } from '@/hwApi';
 
 const router = useRouter();
-const route = useRoute();
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);

@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import {computed, onMounted} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import TabSwitcher from '../../components/TabSwitcher.vue';
+import TabSwitcher from '@/components/TabSwitcher.vue';
 
 // Schnittstelle für die Tabs, die der TabSwitcher erwartet
 interface NavItem {

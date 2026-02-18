@@ -1,6 +1,5 @@
 import { ref, computed, onMounted } from 'vue';
 import hw from '../hwApi';
-import { marked } from 'marked';
 
 export interface AdminStats {
     userCount: number;

@@ -57,10 +57,10 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import TabSwitcher from './TabSwitcher.vue';
-import InfoModalCenter from './info/InfoModalCenter.vue';
-import Modal from './hw/Modal.vue';
-import LoadingSpinner from './LoadingSpinner.vue';
+import TabSwitcher from '@/components/TabSwitcher.vue';
+import InfoModalCenter from '@/components/info/InfoModalCenter.vue';
+import Modal from '@/components/hw/Modal.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const MAX_LENGTH = 5000;
 

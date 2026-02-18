@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import hw from '../hwApi';
+import hw from '@/hwApi';
 import { CheckCircle2, XCircle, Info, AlertTriangle, ArrowLeft } from 'lucide-vue-next';
 
 const loading = ref(true);

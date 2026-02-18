@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 
-// Deine Komponenten
-import Finaleb from "../../components/Finaleb.vue";
-import Kuerzel from "../tools/Kuerzel.vue";
-import DaltonFinder from "../tools/DaltonFinder.vue";
+import Stundenplan from "@/components/Stundenplan.vue";
+import Kuerzel from "@/views/tools/Kuerzel.vue";
+import DaltonFinder from "@/views/tools/DaltonFinder.vue";
 
 // --- 1. Typdefinitionen ---
 interface Widget {
@@ -169,7 +168,7 @@ onUnmounted(() => {
 
       <div class="widget-content">
         <component
-            :is="widget.component === 'Stundenplan' ? Finaleb : (widget.component === 'Kürzelfinder' ? Kuerzel : DaltonFinder)"
+            :is="widget.component === 'Stundenplan' ? Stundenplan : (widget.component === 'Kürzelfinder' ? Kuerzel : DaltonFinder)"
         />
       </div>
 

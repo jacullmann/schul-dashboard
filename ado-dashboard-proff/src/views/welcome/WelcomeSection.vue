@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import ImageComparison from "./ImageComparison.vue";
+import ImageComparison from "@/views/welcome/ImageComparison.vue";
 </script>
 
 <style scoped>

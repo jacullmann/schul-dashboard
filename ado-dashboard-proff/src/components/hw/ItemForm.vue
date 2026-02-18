@@ -113,13 +113,13 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
-import hw from '../../hwApi';
-import LoadingSpinner from '../LoadingSpinner.vue';
-import type { HwItem } from '../../composables/useHausaufgaben';
-import { containsProfanity } from '../../composables/useProfanity';
-import { useImageUploadStore } from '../../stores/imageStore';
-import Modal from './Modal.vue';
-import SelectDropdown from './SelectDropdown.vue';
+import hw from '@/hwApi';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import type { HwItem } from '@/composables/useHausaufgaben';
+import { containsProfanity } from '@/composables/useProfanity';
+import { useImageUploadStore } from '@/stores/imageStore';
+import Modal from '@/components/hw/Modal.vue';
+import SelectDropdown from '@/components/hw/SelectDropdown.vue';
 
 const props = defineProps<{
   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';

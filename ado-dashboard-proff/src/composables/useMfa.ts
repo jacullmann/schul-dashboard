@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import hw from '../hwApi';
+import hw from '@/hwApi';
 
 // Dies ist kein kritisches Problem,
 // aber für zukünftige Wartbarkeit sollte eine Single Source of Truth etabliert werden.

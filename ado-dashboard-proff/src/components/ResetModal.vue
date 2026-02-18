@@ -74,9 +74,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
-import hw from '../hwApi';
+import hw from '@/hwApi';
 import { Eye, EyeOff } from 'lucide-vue-next';
-import LoadingSpinner from './LoadingSpinner.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const emit = defineEmits(['close', 'success']);
 

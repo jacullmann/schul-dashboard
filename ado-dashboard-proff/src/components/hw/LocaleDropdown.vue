@@ -1,5 +1,5 @@
 <template>
-  <div class="theme-wrapper" ref="wrapperRef">
+  <div class="locale-wrapper" ref="wrapperRef">
     <button
         class="menu-btn"
         @click="toggleMenu"
@@ -8,8 +8,8 @@
         :aria-expanded="isOpen"
     >
       <div class="menu-btn-content">
-        <component :is="themeIcons[selectedThemeMode]" size="16px" />
-        <span>Design: {{ themeLabels[selectedThemeMode] }}</span>
+        <Languages size="16px" />
+        <span>Sprache: {{ localeLabels[locale as SupportedLocale] }}</span>
         <ChevronDown size="16px" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </div>
     </button>
@@ -19,14 +19,14 @@
         class="dropdown-menu"
     >
       <button
-          v-for="option in themeOptions"
+          v-for="option in localeOptions"
           :key="option.val"
           class="dropdown-item"
-          :class="{ active: selectedThemeMode === option.val }"
-          @click="updateTheme(option.val)"
+          :class="{ active: locale === option.val }"
+          @click="updateLocale(option.val)"
           type="button"
       >
-        <Check v-if="selectedThemeMode === option.val" size="16px" class="check-icon" />
+        <Check v-if="locale === option.val" size="16px" class="check-icon" />
         <span class="spacer" v-else></span>
         {{ option.label }}
       </button>
@@ -36,36 +36,24 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { Sun, Moon, SunMoon, ChevronDown, Check } from 'lucide-vue-next';
-// ich importiere theme von der composable
-import { useTheme, type ThemeMode } from '@/composables/useTheme';
+import { Languages, ChevronDown, Check } from 'lucide-vue-next';
+import { useLocale } from '@/composables/useLocale';
+import type { SupportedLocale } from '@/locales';
 
-// ich definiere die werte und den text der dropdown optionen
-const themeOptions: { val: ThemeMode, label: string }[] = [
-  { val: 'system', label: 'System' },
-  { val: 'light', label: 'Hell' },
-  { val: 'dark', label: 'Dunkel' }
+const localeOptions: { val: SupportedLocale; label: string }[] = [
+  { val: 'de', label: 'Deutsch' },
+  { val: 'en', label: 'English' },
 ];
 
-// ich definiere den passenden text für alle werte
-const themeLabels: Record<ThemeMode, string> = {
-  system: 'System',
-  light: 'Hell',
-  dark: 'Dunkel'
+const localeLabels: Record<SupportedLocale, string> = {
+  de: 'Deutsch',
+  en: 'English',
 };
 
-// ich definiere die passenden lucide icons für jede option
-const themeIcons = {
-  system: SunMoon,
-  light: Sun,
-  dark: Moon
-};
+const { locale, setLocale } = useLocale();
 
-// ich füge die logik für das lokale ändern des themes ein
-const { selectedThemeMode, applyTheme } = useTheme();
-
-function updateTheme(mode: ThemeMode) {
-  applyTheme(mode);
+function updateLocale(loc: SupportedLocale) {
+  setLocale(loc);
   isOpen.value = false;
 }
 
@@ -78,7 +66,6 @@ function toggleMenu() {
 
 function handleClickOutside(event: MouseEvent) {
   if (!isOpen.value) return;
-
   if (wrapperRef.value && !wrapperRef.value.contains(event.target as Node)) {
     isOpen.value = false;
   }
@@ -94,7 +81,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.theme-wrapper {
+.locale-wrapper {
   position: relative;
   display: inline-block;
 }
@@ -115,11 +102,6 @@ onBeforeUnmount(() => {
 
 .menu-btn:hover:not(:disabled) {
   background: var(--gg);
-}
-
-.menu-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .menu-btn-content {
@@ -178,11 +160,6 @@ onBeforeUnmount(() => {
 
 .dropdown-item:hover:not(:disabled) {
   background: var(--gg);
-}
-
-.dropdown-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .dropdown-item.active {

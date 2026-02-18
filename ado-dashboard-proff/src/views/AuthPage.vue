@@ -13,10 +13,6 @@
           <AuthForm />
         </div>
       <WelcomeSecurityPage  v-if="!isWelcomeContent && isSecurity" />
-
-
-
-
     </div>
 
     <div class="footer-container">
@@ -29,12 +25,12 @@
 <script setup lang="ts">
 import  { ref } from 'vue';
 
-import WelcomeHeader from "./welcome/WelcomeHeader.vue";
-import WelcomeFooter from "./welcome/WelcomeFooter.vue";
-import AuthForm from "./welcome/AuthForm.vue";
-import WelcomeContent from "./welcome/WelcomeContent.vue";
-import WelcomeSecurityPage from "./welcome/WelcomeSecurityPage.vue";
-import WelcomeSection from "./welcome/WelcomeSection.vue";
+import WelcomeHeader from "@/views/welcome/WelcomeHeader.vue";
+import WelcomeFooter from "@/views/welcome/WelcomeFooter.vue";
+import AuthForm from "@/views/welcome/AuthForm.vue";
+import WelcomeContent from "@/views/welcome/WelcomeContent.vue";
+import WelcomeSecurityPage from "@/views/welcome/WelcomeSecurityPage.vue";
+import WelcomeSection from "@/views/welcome/WelcomeSection.vue";
 
 const isSecurity = ref(false);
 

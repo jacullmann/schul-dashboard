@@ -1,13 +1,13 @@
 <template>
   <div>
-    <h2>Impressum</h2>
-    <p>Deniz Keskin</p>
-    <p>12045 Berlin</p>
+    <h2>{{ $t('legal.imprint.title') }}</h2>
+    <p>{{ $t('legal.imprint.info.name') }}</p>
+    <p>{{ $t('legal.imprint.info.address') }}</p>
 
-    <h3>Kontakt</h3>
-    <p>E-Mail: kontakt@schul-dashboard.com</p><br>
+    <h3>{{ $t('contact.contact.title') }}</h3>
+    <p>{{ $t('contact.contact.email') }}: kontakt@schul-dashboard.com</p><br>
 
-    <p>Bei dieser Anwendung handelt es sich um ein rein privates, nicht-kommerzielles Schülerprojekt.</p>
+    <p>{{ $t('legal.imprint.disclaimer') }}</p>
   </div>
 </template>
 

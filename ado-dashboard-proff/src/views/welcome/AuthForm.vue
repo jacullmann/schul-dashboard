@@ -93,9 +93,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAppAuth } from '../../composables/useAppAuth';
-import GetStatushwb2 from "./GetStatushwb2.vue";
-import { syncCsrfFromCookie, setCsrfToken } from '../../hwApi';
+import { useAppAuth } from '@/composables/useAppAuth';
+import GetStatushwb2 from "@/views/welcome/GetStatushwb2.vue";
+import { syncCsrfFromCookie, setCsrfToken } from '@/hwApi';
 import {
   Eye,
   EyeOff,
@@ -105,8 +105,8 @@ import {
   Check,
   AlertCircle
 } from 'lucide-vue-next'
-import LoadingSpinner from "../../components/LoadingSpinner.vue";
-import { useUserStore } from "../../stores/userStore";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { useUserStore } from "@/stores/userStore";
 const userStore = useUserStore();
 
 const router = useRouter();
