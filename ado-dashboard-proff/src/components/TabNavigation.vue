@@ -37,12 +37,12 @@ const resizeObserver = ref<ResizeObserver | null>(null);
 
 // Find index based on activeTab
 const selectedIndex = ref(
-    items.findIndex(item => item.id === props.activeTab)
+    items.value.findIndex(item => item.id === props.activeTab)
 );
 
 // Watch for external tab changes
 watch(() => props.activeTab, (newTab) => {
-  const index = items.findIndex(item => item.id === newTab);
+  const index = items.value.findIndex(item => item.id === newTab);
   if (index !== -1) {
     selectedIndex.value = index;
     nextTick(() => {
@@ -86,7 +86,7 @@ const updateMetrics = () => {
 
 const selectItem = (index: number) => {
   selectedIndex.value = index;
-  emit('change', items[index].id);
+  emit('change', items.value[index].id);
 };
 
 const scrollToActive = () => {
