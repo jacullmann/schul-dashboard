@@ -23,12 +23,12 @@ const emit = defineEmits<{
 }>();
 
 // -- Data --
-const items: NavItem[] = [
+const items = computed<NavItem[]>(() => [
   { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
   { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
   { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
   { id: 'PRIVATE', label: t('school.tasks.tabs.private') },
-];
+]);
 
 const itemRefs = ref<(HTMLElement | null)[]>([]);
 const navBarRef = ref<HTMLElement | null>(null);
