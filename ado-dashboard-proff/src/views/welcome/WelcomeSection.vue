@@ -2,33 +2,23 @@
   <section class="info-section">
 
     <div class="info-container">
-      <h3 class="info-title">
-        Papier ist von
-        <span class="highlight">gestern.</span>
-        Starte heute noch in die
-        <span class="highlight">Zukunft</span>
-      </h3>
-      <ImageComparison/>
+      <h3 class="info-title" v-html="t('welcome.comparison.headline')" />
+      <ImageComparison />
       <div class="small-print">
-        Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons
+        {{ t('welcome.comparison.attribution') }}
       </div>
     </div>
 
     <div class="info-container">
       <h3 class="info-title">
-        Warum Schul Dashboard?
+        {{ t('welcome.reasons.byStudentsForStudents') }}
       </h3>
-      <h3 class="info-title">
-        <span class="highlight">Von </span>
-        Schülern
-        <span class="highlight">für </span>
-        Schüler, das heißt:
-      </h3>
+      <h3 class="info-title" v-html="t('welcome.reasons.why')" />
       <div class="info-promises">
-        <div><span class="highlight">0</span> Euro</div>
-        <div><span class="highlight">0</span> Werbung</div>
-        <div><span class="highlight">0</span> verkaufte Daten</div>
-        <div><span class="highlight">100%</span> Liebe zum Detail</div>
+        <template v-for="(section, index) in tm('welcome.reasons.reasons')" :key="index">
+          <span class="highlight">{{ section.number }}</span>
+          {{ section.text }}
+        </template>
       </div>
     </div>
   </section>
@@ -36,6 +26,10 @@
 
 <script setup lang="ts">
 import ImageComparison from "@/views/welcome/ImageComparison.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+const { tm } = useI18n();
 </script>
 
 <style scoped>
@@ -60,7 +54,8 @@ import ImageComparison from "@/views/welcome/ImageComparison.vue";
   margin: 0;
 }
 
-.info-title .highlight{
+.info-title :deep(.highlight),
+.info-promises :deep(.highlight) {
   font-weight: 700;
 }
 
@@ -75,9 +70,6 @@ import ImageComparison from "@/views/welcome/ImageComparison.vue";
   font-size: 32px;
   line-height: 48px;
   color: var(--text);
-  font-weight:500;
-}
-.info-promises .highlight {
-  font-weight: 700;
+  font-weight: 500;
 }
 </style>

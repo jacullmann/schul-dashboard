@@ -3,6 +3,9 @@ import Line from './Line.vue'
 import { Ellipsis } from 'lucide-vue-next'
 import WelcomeButtonPrimary from "@/views/welcome/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/views/welcome/WelcomeButtonSecondary.vue";
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 defineProps<{
   onStartClick: () => void;
@@ -22,7 +25,7 @@ defineProps<{
                   <div class="example-checkbox-ticked">
                     <span class="example-tick"></span>
                   </div>
-                  <h3 class="example-title">Kapitel 3 lesen</h3>
+                  <h3 class="example-title">{{ t('welcome.hero.visual.items[0].title') }}</h3>
                 </div>
               </div>
               <div class="example-menu-trigger">
@@ -35,11 +38,10 @@ defineProps<{
               <div class="example-meta">
                 <div class="example-top-row">
                   <div class="example-checkbox"></div>
-                  <h3 class="example-title">Notizen für den Test</h3>
+                  <h3 class="example-title">{{ t('welcome.hero.visual.items[1].title') }}</h3>
                 </div>
                 <div class="example-badge-row">
-                  <div class="example-badge">Erdkunde</div>
-                  <div class="example-badge">8.2.2026</div>
+                  <div class="example-badge">{{ t('global.subjects.geography') }} • {{ d(new Date('2026-03-07'), 'short') }}</div>
                 </div>
               </div>
               <div class="example-menu-trigger">
@@ -55,11 +57,10 @@ defineProps<{
               <div class="example-meta">
                 <div class="example-top-row">
                   <div class="example-checkbox"></div>
-                  <h3 class="example-title">Aufgaben im Buch</h3>
+                  <h3 class="example-title">{{ t('welcome.hero.visual.items[2].title') }}</h3>
                 </div>
                 <div class="example-badge-row">
-                  <div class="example-badge">Mathe</div>
-                  <div class="example-badge">9.2.2026</div>
+                  <div class="example-badge">{{ t('global.subjects.math') }} • {{ d(new Date('2026-03-08'), 'short') }}</div>
                 </div>
               </div>
               <div class="example-menu-trigger">
@@ -67,7 +68,7 @@ defineProps<{
               </div>
             </div>
             <div class="example-body">
-              <span>S. 137 4b und 5 schriftlich bearbeiten</span>
+              <span>{{ t('welcome.hero.visual.items[2].text') }}</span>
             </div>
           </div>
           <div class="example-card-vanishing"></div>
@@ -76,11 +77,15 @@ defineProps<{
     </div>
 
     <div class="text-content">
-      <h1 class="headline">Schule im Überblick</h1>
+      <h1 class="headline">{{ t('welcome.hero.headline') }}</h1>
       <p class="subline">
-        Alle Infos zu jeder Zeit in deiner Hosentasche.
-        Kollaborativ und
-        <span class="free"><span class="line-span">komplett kostenfrei <Line class="line"/></span> </span>.
+        {{ t('welcome.hero.subline') }}
+        <span class="free">
+          <span class="line-span">
+            {{ t('welcome.hero.sublineHighlight') }}
+            <Line class="line" />
+          </span>
+        </span>.
       </p>
 
       <div class="action-buttons">
@@ -88,7 +93,6 @@ defineProps<{
         <WelcomeButtonPrimary @click="onStartClick" class="action-btn primary"/>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -141,10 +145,11 @@ defineProps<{
 .example-card {
   background: var(--vlbg);
   border:1px solid var(--border2);
-  border-radius: 16px;
+  border-radius: var(--border-7);
   padding:12px;
   color: var(--text);
   width: 100%;
+  box-shadow: var(--input-shadow);
 }
 
 .example-main {
@@ -173,7 +178,7 @@ defineProps<{
   cursor: pointer;
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--border-2);
   border: 2px solid var(--sub);
   background: transparent;
   position: relative;
@@ -189,7 +194,7 @@ defineProps<{
   cursor: pointer;
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--border-2);
   border: 2px solid var(--text);
   background: var(--text);
   position: relative;
@@ -227,13 +232,10 @@ defineProps<{
 }
 
 .example-badge {
-  background: var(--gg);
-  color: var(--text);
-  border: none;
-  padding: 4px 8px;
-  border-radius: 8px;
+  color: var(--sub);
+  padding: 0;
   font-family: var(--normal-font), sans-serif;
-  font-size: 16px;
+  font-size: var(--font-size-body);
 }
 
 .example-menu-trigger {
@@ -264,13 +266,13 @@ defineProps<{
 
 .example-card-vanishing {
   background:linear-gradient(var(--vlbg) 0%, transparent 100%);
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--border-7) var(--border-7) 0 0;
   min-height: 30px;
 }
 
 .example-card-vanishing::before {
   content: "";
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--border-7) var(--border-7) 0 0;
   min-height: 30px;
   display: flex;
   border: 1px solid transparent;
@@ -320,9 +322,9 @@ defineProps<{
 }
 
 .action-btn {
-  padding: 10px 24px;
-  border-radius: 12px;
-  font-size: 1rem;
+  padding: 10px 16px;
+  border-radius: var(--border-4);
+  font-size: var(--font-size-body);
   font-weight: 600;
   cursor: pointer;
   min-width: 180px;
@@ -330,11 +332,8 @@ defineProps<{
   overflow: hidden;
 }
 
-
+.primary,
 .secondary {
-  white-space: nowrap;
-}
-.primary  {
   white-space: nowrap;
 }
 @media (max-width: 1200px) {
