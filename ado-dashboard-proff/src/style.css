@@ -24,12 +24,6 @@
     --lp: #C44DFF;
     --s-hover: #323232;
     --admin-header-height: 60px;
-    --sup-base: #006239;
-    --sup-text: #fafafa;
-    --sup-border: #138352;
-    --sup-base-hover: #287150;
-    --sup-border-hover: #3ecf8e;
-    --sup-text-hover: #e1eae6;
     --display-font: 'Satoshi';
     --normal-font: 'Inter';
     --not-spinning: #666;
@@ -152,7 +146,8 @@ body {
 button,
 input,
 select,
-textarea {
+textarea,
+label {
     font-family: var(--normal-font), sans-serif;
 }
 a, button {
@@ -183,6 +178,12 @@ h1, h2, h3, h4, h5 {
     .input.hover:hover {
         background: var(--ghost--hover);
         cursor: pointer;
+    }
+    .label {
+        display: block;
+        color: var(--text);
+        font-size: var(--font-size-button);
+        margin-top: 6px;
     }
 
     .btn {
@@ -219,17 +220,6 @@ h1, h2, h3, h4, h5 {
     .btn.action:hover {
         background: var(--sub);
         border: 1px solid var(--sub);
-    }
-    .btn.main {
-        background: var(--sup-base);
-        color: var(--sup-text);
-        border: 1px solid var(--sup-border);
-    }
-    .btn.main:hover {
-        background: var(--sup-base-hover);
-        border-color: var(--sup-border-hover);
-        color: var(--sup-text-hover);
-
     }
     .btn.danger {
         background: var(--danger);

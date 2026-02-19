@@ -22,7 +22,7 @@
             >
               <div class="menu-btn-content">
                 <LucideGraduationCap :size="16"/>
-                Kurse bearbeiten
+                {{ t('account.menu.courses.title') }}
               </div>
             </button>
 
@@ -32,24 +32,22 @@
             />
             <div class="menu-divider"></div>
             <button
-                data-umami-event="Sicherheit Button"
                 class="menu-btn"
                 @click="openSecurity"
             >
               <div class="menu-btn-content">
                 <ShieldCheck :size="16"/>
-                Sicherheit
+                {{ t('account.menu.security.title') }}
               </div>
             </button>
 
             <button
-                data-umami-event="Passwort ändern Button"
                 class="menu-btn"
                 @click="openChangePassword"
             >
               <div class="menu-btn-content">
                 <LucideKeyRound :size="16"/>
-                Passwort ändern
+                {{ t('account.menu.changePassword.title') }}
               </div>
             </button>
 
@@ -59,19 +57,18 @@
             >
               <div class="menu-btn-content">
                 <LogOut :size="16"/>
-                Abmelden
+                {{ t('account.menu.logout') }}
               </div>
             </button>
             <div class="menu-divider"></div>
             <div class="danger-section">
               <button
-                  data-umami-event="Account löschen Button"
                   class="menu-btn danger"
                   @click="startDelete"
               >
                 <div class="menu-btn-content">
                   <Trash2 :size="16"/>
-                  Konto löschen
+                  {{ t('account.menu.deleteAccount.title') }}
                 </div>
               </button>
             </div>
@@ -114,6 +111,9 @@ import ChangePasswordModal from '@/components/hw/ChangePasswordModal.vue';
 import DeleteAccountModal from '@/components/hw/DeleteAccountModal.vue';
 import PersonalizationDropdown from '@/components/hw/PersonalizationDropdown.vue';
 import SecurityModal from '@/components/hw/SecurityModal.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   email: string;
@@ -129,7 +129,7 @@ const emit = defineEmits<{
   (e: 'mfaChanged', value: boolean): void;
 }>();
 
-// Liste der 11 Google Farben
+// Liste der Farben für das Standard-Profilbild
 const AVATAR_COLORS = [
   '#AA47BD',
   '#7B1FA2',
@@ -144,26 +144,24 @@ const AVATAR_COLORS = [
   '#F6511E',
 ];
 
+// Wählt deterministisch eine Farbe aus der Liste aus
 function getColorIndexFromEmail(email: string): number {
-  if (!email || email.length < 2) {
-    return 0; // wenn email sehr kurz ist
-  }
+  if (!email) return 0;
 
-  const secondChar = email[1];
+  const charToHash = email.length >= 2 ? email[1] : email[0];
 
-  const charCode = secondChar.charCodeAt(0);
-
+  const charCode = charToHash.charCodeAt(0);
   return charCode % AVATAR_COLORS.length;
 }
 
-// hilfsfunktion für buchstaben zurückgeben
+// Gibt den ersten Buchstaben der E-Mail aus
 const avatarLetter = computed(() => {
   return props.email && props.email.length > 0
       ? props.email[0].toUpperCase()
       : '?';
 });
 
-// deterministische farbe zurückgeben
+// Gibt deterministisch eine Farbe aus der Liste aus
 const avatarColor = computed(() => {
   const index = getColorIndexFromEmail(props.email);
   return AVATAR_COLORS[index];
