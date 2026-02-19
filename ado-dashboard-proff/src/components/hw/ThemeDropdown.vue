@@ -9,11 +9,15 @@
 <script setup lang="ts">
 import { useTheme, type ThemeMode } from '@/composables/useTheme';
 import SelectDropdown, { type UnitOption } from '@/components/hw/SelectDropdown.vue';
+import { useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 
 const themeOptions: UnitOption[] = [
-  { value: 'system', label: 'System' },
-  { value: 'light', label: 'Hell' },
-  { value: 'dark', label: 'Dunkel' }
+  { value: 'system', label: t('global.theme.system') },
+  { value: 'dark', label: t('global.theme.dark') },
+  { value: 'light', label: t('global.theme.light') }
+
 ];
 
 const { selectedThemeMode, applyTheme } = useTheme();
