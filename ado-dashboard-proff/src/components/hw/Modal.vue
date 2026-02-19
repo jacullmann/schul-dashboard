@@ -11,7 +11,7 @@
         </div>
 
         <button class="btn ghost" @click="$emit('cancel')">
-          Schließen
+          {{ t('global.buttons.close') }}
         </button>
       </div>
 
@@ -22,12 +22,12 @@
       <div class="row">
         <slot name="actions">
           <button class="btn ghost" @click="$emit('cancel')">
-            Abbrechen
+            {{ t('global.buttons.cancel') }}
           </button>
 
           <slot name="action-btn">
             <button class="btn action">
-              Bestätigen
+              {{ t('global.buttons.confirm') }}
             </button>
           </slot>
         </slot>
@@ -39,6 +39,9 @@
 <script setup lang="ts">
 // Überprüfen: Ist es schlimm wenn sowohl basis modal als auch die speziellen modale die escape handler haben? hat das unerwünschte effekte, oder ist es problemlos machbar?
 import { onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 

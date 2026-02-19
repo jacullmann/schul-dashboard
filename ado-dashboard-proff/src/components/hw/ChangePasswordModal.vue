@@ -2,111 +2,110 @@
   <div class="blurit">
     <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">Passwort ändern</h3>
+        <h3 style="margin-bottom: 16px;">{{ t('account.menu.changePassword.title') }}</h3>
         <button
-            data-umami-event="Passwort ändern Modal schließen"
             class="btn ghost"
             @click="$emit('close')"
             :disabled="submitting"
         >
-          Schließen
+          {{ t('global.buttons.close') }}
         </button>
       </div>
 
-      <div style="margin-top:12px;">
-        <p style="color: var(--sub); font-size: 14px;">
-          Gib bitte dein aktuelles (altes) Passwort ein.
-        </p>
-
+      <div>
         <!-- Aktuelles Passwort -->
-        <div style="margin-top:16px; position: relative;">
-          <label for="currentPassword" style="display: block; margin-bottom: 6px; font-size: 14px; color: var(--text);">
-            Aktuelles Passwort
+        <div class="password-wrapper">
+          <label for="currentPassword">
+            {{ t('account.menu.changePassword.currentPassword') }}
           </label>
-          <input
-              ref="currentPasswordRef"
-              id="currentPassword"
-              class="input"
-              :type="showCurrentPassword ? 'text' : 'password'"
-              v-model="currentPassword"
-              placeholder="Aktuelles Passwort eingeben"
-              @input="clearFieldError('current')"
-          />
-          <button
-              type="button"
-              @click="showCurrentPassword = !showCurrentPassword"
-              class="password-toggle"
-              aria-label="Toggle password visibility"
-          >
-            <component :is="showCurrentPassword ? EyeOff : Eye" size="20" />
-          </button>
+          <div class="input-wrapper">
+            <input
+                ref="currentPasswordRef"
+                id="currentPassword"
+                class="input"
+                :type="showCurrentPassword ? 'text' : 'password'"
+                v-model="currentPassword"
+                :placeholder="t('account.menu.changePassword.currentPlaceholder')"
+                @input="clearFieldError('current')"
+            />
+            <button
+                type="button"
+                @click="showCurrentPassword = !showCurrentPassword"
+                class="password-toggle"
+                aria-label="Toggle password visibility"
+            >
+              <component :is="showCurrentPassword ? EyeOff : Eye" :size="20" />
+            </button>
+          </div>
           <div v-if="errors.current" class="field-error">{{ errors.current }}</div>
         </div>
 
         <!-- Neues Passwort -->
-        <div style="margin-top:12px; position: relative;">
+        <div class="password-wrapper">
           <label for="newPassword" style="display: block; margin-bottom: 6px; font-size: 14px; color: var(--text);">
-            Neues Passwort
+            {{ t('account.menu.changePassword.newPassword') }}
           </label>
-          <input
-              id="newPassword"
-              class="input"
-              :type="showNewPassword ? 'text' : 'password'"
-              v-model="newPassword"
-              placeholder="Neues Passwort (min. 8 Zeichen)"
-              @input="clearFieldError('new')"
-          />
-          <button
-              type="button"
-              @click="showNewPassword = !showNewPassword"
-              class="password-toggle"
-              aria-label="Toggle password visibility"
-          >
-            <component :is="showNewPassword ? EyeOff : Eye" size="20" />
-          </button>
+          <div class="input-wrapper">
+            <input
+                id="newPassword"
+                class="input"
+                :type="showNewPassword ? 'text' : 'password'"
+                v-model="newPassword"
+                :placeholder="t('account.menu.changePassword.newPlaceholder')"
+                @input="clearFieldError('new')"
+            />
+            <button
+                type="button"
+                @click="showNewPassword = !showNewPassword"
+                class="password-toggle"
+                aria-label="Toggle password visibility"
+            >
+              <component :is="showNewPassword ? EyeOff : Eye" :size="20" />
+            </button>
+          </div>
           <div v-if="errors.new" class="field-error">{{ errors.new }}</div>
         </div>
 
         <!-- Neues Passwort bestätigen -->
-        <div style="margin-top:12px; position: relative;">
+        <div class="password-wrapper">
           <label for="newPassword2" style="display: block; margin-bottom: 6px; font-size: 14px; color: var(--text);">
-            Neues Passwort bestätigen
+            {{ t('account.menu.changePassword.confirmPassword') }}
           </label>
-          <input
-              id="newPassword2"
-              class="input"
-              :type="showNewPassword2 ? 'text' : 'password'"
-              v-model="newPassword2"
-              placeholder="Neues Passwort wiederholen"
-              @input="clearFieldError('confirm')"
-          />
-          <button
-              type="button"
-              @click="showNewPassword2 = !showNewPassword2"
-              class="password-toggle"
-              aria-label="Toggle password visibility"
-          >
-            <component :is="showNewPassword2 ? EyeOff : Eye" size="20" />
-          </button>
+          <div class="input-wrapper">
+            <input
+                id="newPassword2"
+                class="input"
+                :type="showNewPassword2 ? 'text' : 'password'"
+                v-model="newPassword2"
+                :placeholder="t('account.menu.changePassword.confirmPlaceholder')"
+                @input="clearFieldError('confirm')"
+            />
+            <button
+                type="button"
+                @click="showNewPassword2 = !showNewPassword2"
+                class="password-toggle"
+                aria-label="Toggle password visibility"
+            >
+              <component :is="showNewPassword2 ? EyeOff : Eye" :size="20" />
+            </button>
+          </div>
           <div v-if="errors.confirm" class="field-error">{{ errors.confirm }}</div>
         </div>
 
         <!-- Allgemeine Fehlermeldung -->
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }" style="margin-top:12px;">
+        <label v-if="message" :style="{ color: isError ? 'var(--danger)' : 'var(--text' }">
           {{ message }}
-        </div>
+        </label>
 
         <!-- Submit Button -->
-        <div class="row" style="margin-top:16px;">
+        <div class="row">
           <button
-              data-umami-event="Neues Passwort festlegen Button"
               class="btn action"
               @click="submit"
               :disabled="submitting"
-              style="width: 100%;"
           >
             <LoadingSpinner v-if="submitting" size="1.1em" />
-            <span v-else>Neues Passwort festlegen</span>
+            <span v-else>{{ t('account.menu.changePassword.title') }}</span>
           </button>
         </div>
       </div>
@@ -119,6 +118,9 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
 import hw from '@/hwApi';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { useI18n } from 'vue-i18n';
+
+const{ t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'close'): void;
@@ -185,34 +187,34 @@ function validateBeforeSubmit(): boolean {
 
   // Aktuelles Passwort
   if (!currentPassword.value) {
-    errors.current = 'Bitte aktuelles Passwort eingeben.';
+    errors.current = t('account.menu.changePassword.errors.currentMissing');
     ok = false;
   } else if (currentPassword.value.length < 8) {
-    errors.current = 'Passwort muss mindestens 8 Zeichen lang sein.';
+    errors.current = t('account.menu.changePassword.errors.currentShort');
     ok = false;
   }
 
   // Neues Passwort
   if (!newPassword.value) {
-    errors.new = 'Bitte neues Passwort eingeben.';
+    errors.new = t('account.menu.changePassword.errors.newMissing');
     ok = false;
   } else if (newPassword.value.length < 8) {
-    errors.new = 'Neues Passwort muss mindestens 8 Zeichen lang sein.';
+    errors.new = t('account.menu.changePassword.errors.newShort');
     ok = false;
   }
 
   // Neues Passwort bestätigen
   if (!newPassword2.value) {
-    errors.confirm = 'Bitte neues Passwort bestätigen.';
+    errors.confirm = t('account.menu.changePassword.errors.confirmMissing');
     ok = false;
   } else if (newPassword.value !== newPassword2.value) {
-    errors.confirm = 'Passwörter stimmen nicht überein.';
+    errors.confirm = t('account.menu.changePassword.errors.confirmWrong');
     ok = false;
   }
 
   // Gleiche Passwörter?
   if (ok && currentPassword.value === newPassword.value) {
-    errors.new = 'Neues Passwort muss sich vom aktuellen unterscheiden.';
+    errors.new = t('account.menu.changePassword.errors.equal');
     ok = false;
   }
 
@@ -224,7 +226,6 @@ async function submit() {
   const valid = validateBeforeSubmit();
 
   if (!valid) {
-    setMessage('Bitte die Fehler im Formular korrigieren.', true);
     return;
   }
 
@@ -235,18 +236,18 @@ async function submit() {
       newPassword: newPassword.value
     });
 
-    setMessage('Passwort erfolgreich geändert!', false);
+    setMessage(t('account.menu.changePassword.success'), false);
     emit('success');
 
     // Modal nach 1 Sekunde schließen
     setTimeout(() => emit('close'), 1000);
   } catch (e: any) {
-    const errorMsg = e.response?.data?.error || 'Fehler beim Ändern des Passworts';
+    const errorMsg = e.response?.data?.error || t('account.menu.changePassword.errors.failed');
     setMessage(errorMsg, true);
 
     // Spezifischer Fehler für falsches aktuelles Passwort
     if (errorMsg.includes('falsch')) {
-      errors.current = 'Aktuelles Passwort ist falsch';
+      errors.current = t('account.menu.changePassword.errors.currentWrong');
     }
   } finally {
     submitting.value = false;
@@ -266,12 +267,20 @@ async function submit() {
   box-shadow: var(--shadow-l);
 }
 
-.small {
-  font-size: 13px;
+.password-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: center;
 }
 
 .field-error {
-  color: #ff7777;
+  color: var(--danger);
   font-size: 13px;
   margin-top: 6px;
 }
@@ -279,24 +288,19 @@ async function submit() {
 .password-toggle {
   position: absolute;
   right: 12px;
-  top: 70%;
-  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  color: #aaaaaa;
+  color: var(--sub);
   display: flex;
   align-items: center;
-  transition: color 0.2s ease;
+  justify-content: center;
+  transition: color 0.1s ease;
 }
 
 .password-toggle:hover {
-  color: #f1f1f1;
-}
-
-label {
-  user-select: none;
+  color: var(--text);
 }
 
 /* Responsive */

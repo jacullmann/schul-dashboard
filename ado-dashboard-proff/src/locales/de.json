@@ -58,6 +58,7 @@
       "dark": "Dunkel",
       "light": "Hell"
     },
+    "language": "Sprache",
     "titles": {
       "mr": "Herr",
       "ms": "Frau",
@@ -112,15 +113,29 @@
       },
       "changePassword": {
         "title": "Passwort ändern",
-        "description": "Gib bitte dein aktuelles Passwort ein.",
         "currentPassword": "Aktuelles Passwort",
-        "newPassword": "Neues Passwort (min. 8 Zeichen)",
-        "confirmPasswort": "Neues Passwort bestätigen"
+        "currentPlaceholder": "Gib dein aktuelles Passwort ein",
+        "newPassword": "Neues Passwort",
+        "newPlaceholder": "mindestens 8 Zeichen",
+        "confirmPassword": "Neues Passwort bestätigen",
+        "confirmPlaceholder": "Wiederhole dein neues Passwort",
+        "success": "Passwort erfolgreich geändert",
+        "errors": {
+          "currentMissing": "Gib dein aktuelles Passwort ein",
+          "currentShort": "Dein Passwort hat mindestens 8 Zeichen",
+          "currentWrong": "Das eingegebene Passwort ist falsch",
+          "newMissing": "Gib dein neues Passwort ein",
+          "newShort": "Dein neues Passwort muss mindestens 8 Zeichen lang sein",
+          "confirmMissing": "Bestätige dein neues Passwort",
+          "confirmWrong": "Die Passwörter stimmen nicht überein",
+          "equal": "Dein neues Passwort muss sich vom aktuellen unterscheiden",
+          "failed": "Fehler beim Ändern des Passworts"
+        }
       },
       "logout": "Abmelden",
       "deleteAccount": {
         "title": "Konto löschen",
-        "warnbox": {
+        "warnBox": {
           "title": "Konto unwiderruflich löschen?",
           "text": "Wenn du dein Konto löschst, wird dieses mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Konto geschlossen wird.<br><br>Du kannst jederzeit einneues Konto erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Konto verknüpft, sodass du nicht mehr auf sie zugreifen kannst."
         },
