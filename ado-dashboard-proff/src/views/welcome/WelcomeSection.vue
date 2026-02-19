@@ -10,14 +10,16 @@
     </div>
 
     <div class="info-container">
+      <h3 class="info-title" v-html="t('welcome.reasons.byStudentsForStudents')" />
       <h3 class="info-title">
-        {{ t('welcome.reasons.byStudentsForStudents') }}
+        {{ t('welcome.reasons.why') }}
       </h3>
-      <h3 class="info-title" v-html="t('welcome.reasons.why')" />
       <div class="info-promises">
         <template v-for="(section, index) in tm('welcome.reasons.reasons')" :key="index">
-          <span class="highlight">{{ section.number }}</span>
-          {{ section.text }}
+          <div>
+            <b>{{ section.number }}</b>
+            {{ section.text }}
+          </div>
         </template>
       </div>
     </div>
@@ -54,8 +56,7 @@ const { tm } = useI18n();
   margin: 0;
 }
 
-.info-title :deep(.highlight),
-.info-promises :deep(.highlight) {
+b {
   font-weight: 700;
 }
 

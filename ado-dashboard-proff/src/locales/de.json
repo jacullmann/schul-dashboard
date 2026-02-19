@@ -98,7 +98,7 @@
       "courses": {
         "title": "Kurse bearbeiten",
         "description": "Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.",
-        "enr": "Enrichemnt",
+        "enr": "Enrichment",
         "wpu1": "WPU am Dienstag",
         "wpu2": "WPU am Donnerstag",
         "wpu3": "Theater"
@@ -177,12 +177,12 @@
       "cta": "Jetzt loslegen"
     },
     "comparison":  {
-      "headline": "Papier ist von <span class=\"highlight\">gestern.</span> Starte heute noch in die <span class=\"highlight\">Zukunft</span>",
+      "headline": "Papier ist von <b>gestern.</b> Starte heute noch in die <b>Zukunft</b>",
       "attribution": "Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
     },
     "reasons": {
       "why": "Warum schul-dashboard?",
-      "byStudentsForStudents": "<span class=\"highlight\">Von </span> Schülern <span class=\"highlight\">für </span> Schüler, das heißt:",
+      "byStudentsForStudents": "<b>Von </b> Schülern <b>für </b> Schüler, das heißt:",
       "reasons": [
         {
           "number": "0",
