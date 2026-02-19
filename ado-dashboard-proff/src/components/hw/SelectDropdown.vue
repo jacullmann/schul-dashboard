@@ -10,7 +10,7 @@
     >
       <div class="btn-content">
         <span>
-          {{ options.find(o => o.value === modelValue)?.label || 'Bitte Wählen' }}
+          {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
         </span>
         <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </div>
@@ -36,6 +36,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { ChevronDown, Check } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 export interface UnitOption {
   label: string;
