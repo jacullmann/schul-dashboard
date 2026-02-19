@@ -42,7 +42,7 @@
 
         <!-- Neues Passwort -->
         <div class="password-wrapper">
-          <label for="newPassword" style="display: block; margin-bottom: 6px; font-size: 14px; color: var(--text);">
+          <label for="newPassword">
             {{ t('account.menu.changePassword.newPassword') }}
           </label>
           <div class="input-wrapper">
@@ -68,7 +68,7 @@
 
         <!-- Neues Passwort bestätigen -->
         <div class="password-wrapper">
-          <label for="newPassword2" style="display: block; margin-bottom: 6px; font-size: 14px; color: var(--text);">
+          <label for="newPassword2">
             {{ t('account.menu.changePassword.confirmPassword') }}
           </label>
           <div class="input-wrapper">
@@ -93,7 +93,7 @@
         </div>
 
         <!-- Allgemeine Fehlermeldung -->
-        <label v-if="message" :style="{ color: isError ? 'var(--danger)' : 'var(--text' }">
+        <label v-if="message" :style="{ color: isError ? 'var(--danger)' : 'var(--text)' }">
           {{ message }}
         </label>
 
@@ -264,7 +264,7 @@ async function submit() {
   background: var(--lbg);
   color: var(--text);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-l);
+  box-shadow: var(--menu-shadow);
 }
 
 .password-wrapper {
@@ -281,7 +281,8 @@ async function submit() {
 
 .field-error {
   color: var(--danger);
-  font-size: 13px;
+  font-size: var(--font-size-sub);
+  font-family: var(--normal-font);
   margin-top: 6px;
 }
 
