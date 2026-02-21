@@ -1,4 +1,4 @@
-import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/constants/subjects';
+import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects';
 export function formatSubjectDisplay(subject: string, t: (key: string) => string, te: (key: string) => boolean): string {
     if (!subject) return subject;
 

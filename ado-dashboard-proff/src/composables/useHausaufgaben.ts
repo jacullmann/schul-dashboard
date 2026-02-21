@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useImageUpload } from '@/composables/useImageUpload';
 import { useGlobalAuthModal } from '@/composables/useGlobalAuthModal';
-import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/constants/subjects';
+import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects';
 import hw from '@/hwApi';
 
 export interface HwItem {

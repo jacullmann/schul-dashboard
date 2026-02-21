@@ -121,7 +121,7 @@ import { useImageUpload } from '@/composables/useImageUpload';
 import Modal from '@/components/hw/Modal.vue';
 import SelectDropdown from '@/components/hw/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
-import { AVAILABLE_SUBJECTS, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/constants/subjects';
+import { AVAILABLE_SUBJECTS, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects';
 const { t } = useI18n();
 
 const props = defineProps<{
