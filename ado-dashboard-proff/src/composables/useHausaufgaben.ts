@@ -2,11 +2,11 @@ import { ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } 
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
-import { useImageUploadStore } from '@/stores/imageStore';
+import { useImageUpload } from '@/composables/useImageUpload';
 import { useGlobalAuthModal } from '@/composables/useGlobalAuthModal';
+import { getSubjectKey } from '@/types/subjects';
 import hw from '@/hwApi';
 
-// Interface Definition exportieren
 export interface HwItem {
     id: string;
     type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
@@ -21,21 +21,27 @@ export interface HwItem {
     editorNote: string;
 }
 
+type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
+
+function isValidType(t: unknown): t is ItemType {
+    return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG' || t === 'PRIVATE';
+}
+
 export function useHausaufgaben() {
     const route = useRoute();
     const router = useRouter();
-    const { openAuthModal } = useGlobalAuthModal();
+    const { openAuthModal: handleShowAuthModal } = useGlobalAuthModal();
     const userStore = useUserStore();
-    const imageStore = useImageUploadStore(); // Init Image Store
+    const imageUpload = useImageUpload();
     const { user } = storeToRefs(userStore);
 
-    // --- Konstanten ---
+    // --- Constants ---
     const enrKurse = [
         { id: '1', name: 'Herr Müller' },
         { id: '2', name: 'Herr Weber' },
         { id: '3', name: 'Frau Glier' },
         { id: '4', name: 'Frau Thamm' },
-    ];
+    ] as const;
     const wpuDiKurse = [
         { id: '1', name: 'Englisch' },
         { id: '2', name: 'Deutsch' },
@@ -43,26 +49,22 @@ export function useHausaufgaben() {
         { id: '4', name: 'Geschichte' },
         { id: '5', name: 'Informatik' },
         { id: '6', name: 'Latein' },
-    ];
+    ] as const;
     const wpuDoKurse = [
         { id: '1', name: 'Englisch' },
         { id: '2', name: 'Biologie' },
         { id: '3', name: 'Mathe' },
         { id: '4', name: 'Geschichte' },
         { id: '5', name: 'Musik' },
-    ];
+    ] as const;
 
     const MAX_TITLE_LENGTH = 50;
     const MAX_SUBJECT_LENGTH = 30;
 
-    const itemFormType = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
-
     // --- State ---
+    const itemFormType = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
     const showItemForm = ref(false);
     const showAnnouncementForm = ref(false);
-
-    // REMOVED: const showImageFormFor = ref<any>(null);
-
     const itemToEdit = ref<HwItem | null>(null);
     const subjects = ref<string[]>([]);
     const items = ref<HwItem[]>([]);
@@ -72,133 +74,137 @@ export function useHausaufgaben() {
     const showPersonalized = computed(() => user.value?.personalized ?? false);
     const showOldEntries = ref(false);
     const showSetupModal = ref(false);
-
-    // Deep Linking State
     const highlightedItemId = ref<string | null>(null);
 
-    // --- Image Viewer State ---
     const showImageViewer = ref(false);
-    const viewerImages = ref<any[]>([]);
+    const viewerImages = ref<HwItem['images']>([]);
     const viewerStartIndex = ref(0);
 
-
     const showDeleteConfirm = ref(false);
-    let itemToDelete: string | null = null;
+    const itemToDelete = ref<string | null>(null);
 
-    // Todo State
+    // TODO: type these properly when Todo types are available
     const showTodoForm = ref(false);
     const todoToEdit = ref<any>(null);
     const todoAppRef = ref<any>(null);
 
-    // UI Messages
     const message = ref('');
     const isError = ref(false);
     const itemFormKey = ref(0);
 
-    // Checked items & Expansion & Pagination
     const checkedItems = ref(new Set<string>());
     const pinnedItems = ref(new Set<string>());
     const expandedDescriptions = ref<Set<string>>(new Set());
     const visibleCount = ref(5);
 
-    // Confirm Dialog State
     const showReportConfirm = ref(false);
     const reportReason = ref('');
-    let reportTarget: HwItem | null = null;
+    const reportTarget = ref<HwItem | null>(null);
 
-    // Image Context Menu State
     const imageMenu = reactive({
         visible: false,
         x: 0,
         y: 0,
         item: null as HwItem | null,
-        image: null as any | null
+        image: null as any | null,
     });
 
     const showImageDeleteConfirm = ref(false);
     const deletingEntry = ref(false);
     const deletingImage = ref(false);
 
-    // State für Anmerkungsbearbeitung
     const editingNoteForId = ref<string | null>(null);
     const noteEditContent = ref('');
     const savingNote = ref(false);
 
-    // Temp storage for the ID being uploaded to
     const currentUploadItemId = ref<string | null>(null);
 
-    // Tab Handling
-    type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
-    function isValidType(t: any): t is ItemType {
-        return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG' || t === 'PRIVATE';
-    }
     const tab = ref<ItemType>(isValidType(route.params.type) ? (route.params.type as ItemType) : 'HAUSAUFGABE');
-
-    // Menu & Images
     const openMenuId = ref<string | null>(null);
     const revealedImages = ref(new Set<string>());
 
+    // --- Flash message helper ---
+    // Prevents stale timeouts from clearing a newer message prematurely
+    let messageTimerId: ReturnType<typeof setTimeout> | null = null;
+
+    function flashMessage(text: string, error = false, durationMs = 5000) {
+        if (messageTimerId) clearTimeout(messageTimerId);
+        message.value = text;
+        isError.value = error;
+        messageTimerId = setTimeout(() => {
+            message.value = '';
+            isError.value = false;
+            messageTimerId = null;
+        }, durationMs);
+    }
+
     // --- Computed ---
-    const colorStyles = (timeColor: string) => {
-        if (timeColor === 'expired') return { background: 'var(--gg)', color: 'var(--text)' };
-        if (timeColor === 'danger') return { background: 'var(--danger)', color: 'var(--text)' };
-        if (timeColor === 'warn') return { background: 'var(--warn)', color: 'var(--card)' };
-        if (timeColor === 'info') return { background: 'var(--primary)', color: 'var(--text)' };
-        return { background: 'var(--gg)', color: 'var(--text)' };
-    };
 
     const filteredItems = computed(() => {
-        const allItems = items.value;
         const pins = pinnedItems.value;
-
-        // Separate pinned and unpinned items
-        // Pinned items will be displayed at the top regardless of filters
         const pinnedList: HwItem[] = [];
         const unpinnedList: HwItem[] = [];
 
-        for (const item of allItems) {
-            if (pins.has(item.id)) {
-                pinnedList.push(item);
-            } else {
-                unpinnedList.push(item);
-            }
+        for (const item of items.value) {
+            (pins.has(item.id) ? pinnedList : unpinnedList).push(item);
         }
 
-        // Apply filters ONLY to unpinned items
         let list = unpinnedList;
         const filter = subjectFilter.value;
 
         if (filter) {
-            const parentCategories = ['enrichment', 'wpu (di)', 'wpu (do)'];
+            const parentCategories = ['enrichment', 'wpu1', 'wpu2'];
             const filterLower = filter.toLowerCase();
 
-            if (parentCategories.includes(filterLower)) {
-                list = list.filter(i => i.subject.toLowerCase().startsWith(filterLower));
-            } else {
-                list = list.filter(i => i.subject.toLowerCase() === filterLower);
-            }
+            list = parentCategories.includes(filterLower)
+                ? list.filter(i => {
+                    const subjLower = i.subject.toLowerCase();
+                    return subjLower.startsWith(filterLower) ||
+                        (filterLower === 'enrichment' && subjLower.startsWith('enrichment')) ||
+                        (filterLower === 'wpu1' && subjLower.startsWith('wpu (di)')) ||
+                        (filterLower === 'wpu2' && subjLower.startsWith('wpu (do)'));
+                })
+                : list.filter(i => i.subject.toLowerCase() === filterLower || getSubjectKey(i.subject) === filterLower || getSubjectKey(i.subject).toLowerCase() === filterLower);
         }
 
-        if (showPersonalized.value && user.value && user.value.doneSetup) {
-            const enrName = enrKurse.find(k => k.id == user.value.enrKurs)?.name;
-            const wpu1Name = wpuDiKurse.find(k => k.id == user.value.wpuKurs1)?.name;
-            const wpu2Name = wpuDoKurse.find(k => k.id == user.value.wpuKurs2)?.name;
+        if (showPersonalized.value && user.value?.doneSetup) {
+            const enrName = String(user.value!.enrKurs);
+            const wpu1Name = String(user.value!.wpuKurs1);
+            const wpu2Name = String(user.value!.wpuKurs2);
 
             const userSubjects = new Set<string>();
-            if (enrName) userSubjects.add(`Enrichment - ${enrName}`);
-            if (wpu1Name) userSubjects.add(`WPU (Di) - ${wpu1Name}`);
-            if (wpu2Name) userSubjects.add(`WPU (Do) - ${wpu2Name}`);
+            if (enrName && enrName !== '0') {
+                userSubjects.add(`enrichment - ${enrName}`);
+                // add backward compat support
+                const legacyEnrName = enrKurse.find(k => k.id === enrName)?.name;
+                if (legacyEnrName) userSubjects.add(`Enrichment - ${legacyEnrName}`);
+            }
+            if (wpu1Name && wpu1Name !== '0') {
+                userSubjects.add(`wpu1 - ${wpu1Name}`);
+                const legacyWpu1Name = wpuDiKurse.find(k => k.id === wpu1Name)?.name;
+                if (legacyWpu1Name) userSubjects.add(`WPU (Di) - ${legacyWpu1Name}`);
+            }
+            if (wpu2Name && wpu2Name !== '0') {
+                userSubjects.add(`wpu2 - ${wpu2Name}`);
+                const legacyWpu2Name = wpuDoKurse.find(k => k.id === wpu2Name)?.name;
+                if (legacyWpu2Name) userSubjects.add(`WPU (Do) - ${legacyWpu2Name}`);
+            }
 
             list = list.filter(item => {
                 const subjectLower = item.subject.toLowerCase();
-                if (subjectLower.startsWith('enrichment')) return userSubjects.has(item.subject);
-                if (subjectLower.startsWith('wpu (di)')) return userSubjects.has(item.subject);
-                if (subjectLower.startsWith('wpu (do)')) return userSubjects.has(item.subject);
+                if (
+                    subjectLower.startsWith('enrichment') ||
+                    subjectLower.startsWith('wpu (di)') ||
+                    subjectLower.startsWith('wpu (do)') ||
+                    subjectLower.startsWith('wpu1') ||
+                    subjectLower.startsWith('wpu2')
+                ) {
+                    return userSubjects.has(item.subject);
+                }
                 return true;
             });
         }
 
-        // Return combined list: Pinned items first, then filtered normal items
         return [...pinnedList, ...list];
     });
 
@@ -206,7 +212,6 @@ export function useHausaufgaben() {
 
     // --- Actions ---
 
-    // Deep Linking Handler
     async function checkAndScrollToItem() {
         const targetId = route.params.itemId as string;
 
@@ -215,45 +220,36 @@ export function useHausaufgaben() {
             return;
         }
 
-        const existsInRaw = items.value.find(i => i.id === targetId);
+        const existsInRaw = items.value.some(i => i.id === targetId);
 
         if (!existsInRaw) {
             if (!showOldEntries.value) {
                 showOldEntries.value = true;
-                // Watching showOldEntries will trigger reload(), which calls this function again
+                // The showOldEntries watcher will trigger reload(), which re-invokes this function
                 return;
             }
             return;
         }
 
-        // Handle filtering: check if it's hidden by a filter
         let index = filteredItems.value.findIndex(i => i.id === targetId);
 
-        if (index === -1) {
-            if (subjectFilter.value) {
-                subjectFilter.value = '';
-                await nextTick();
-                // Re-calculate index after clearing filter
-                index = filteredItems.value.findIndex(i => i.id === targetId);
-            }
+        if (index === -1 && subjectFilter.value) {
+            subjectFilter.value = '';
+            await nextTick();
+            index = filteredItems.value.findIndex(i => i.id === targetId);
         }
 
-        if (index !== -1) {
-            highlightedItemId.value = targetId;
+        if (index === -1) return;
 
-            // Expand pagination if needed
-            if (index >= visibleCount.value) {
-                visibleCount.value = index + 5;
-                // Important: Wait for DOM to update after expanding the list
-                await nextTick();
-            }
+        highlightedItemId.value = targetId;
 
-            // Robust Retry Mechanism
-            const el = document.getElementById(`item-${targetId}`);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+        if (index >= visibleCount.value) {
+            visibleCount.value = index + 5;
+            await nextTick();
         }
+
+        const el = document.getElementById(`item-${targetId}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function openImageViewer(item: HwItem, index: number) {
@@ -264,7 +260,7 @@ export function useHausaufgaben() {
 
     function closeImageViewer() {
         showImageViewer.value = false;
-        // Delay clearing images slightly so fade-out animation still shows the image
+        // Delay clearing so the fade-out animation still has data
         setTimeout(() => {
             viewerImages.value = [];
             viewerStartIndex.value = 0;
@@ -272,34 +268,33 @@ export function useHausaufgaben() {
     }
 
     function isExpanded(id: string) { return expandedDescriptions.value.has(id); }
+
     function toggleDescription(id: string) {
         if (expandedDescriptions.value.has(id)) expandedDescriptions.value.delete(id);
         else expandedDescriptions.value.add(id);
     }
+
     function showMore() { visibleCount.value = Math.min(visibleCount.value + 5, filteredItems.value.length); }
     function showLess() { visibleCount.value = Math.max(5, visibleCount.value - 5); }
     function toggleMenu(id: string) { openMenuId.value = openMenuId.value === id ? null : id; }
 
     function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
         openMenuId.value = null;
-        if (action === 'images') {
-            triggerImageUpload(item);
-            return;
-        }
+        if (action === 'images') return triggerImageUpload(item);
         if (action === 'edit') return editItem(item);
         if (action === 'delete') return deleteItem(item.id);
         if (action === 'report') return reportItem(item);
     }
 
     function reportItem(item: HwItem) {
-        reportTarget = item;
+        reportTarget.value = item;
         reportReason.value = '';
         showReportConfirm.value = true;
     }
 
-    function openCreateFormByType(type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE') {
+    function openCreateFormByType(type: ItemType) {
         if (type === 'PRIVATE') {
-            todoToEdit.value = null; // Reset für neuen Eintrag
+            todoToEdit.value = null;
             showTodoForm.value = true;
         } else {
             itemToEdit.value = null;
@@ -314,8 +309,7 @@ export function useHausaufgaben() {
     }
 
     function handleTodoSuccess(msg: string, data?: any) {
-        message.value = msg;
-        isError.value = false;
+        flashMessage(msg);
         showTodoForm.value = false;
         if (todoAppRef.value && data) {
             if (todoToEdit.value) {
@@ -324,15 +318,11 @@ export function useHausaufgaben() {
                 todoAppRef.value.addTodo(data);
             }
         }
-
         todoToEdit.value = null;
-        setTimeout(() => message.value = '', 5000);
     }
 
-
-    function onDocumentClick(e: MouseEvent) {
-        if (!openMenuId.value) return;
-        openMenuId.value = null;
+    function onDocumentClick() {
+        if (openMenuId.value) openMenuId.value = null;
     }
 
     function onSetupSuccess(updatedUser: any) {
@@ -340,19 +330,14 @@ export function useHausaufgaben() {
         showSetupModal.value = false;
     }
 
-    function openSetupModal() {
-        if (user.value) showSetupModal.value = true;
-    }
-    function onPersonalizationChanged(value: boolean) {
-        userStore.updateUser({ personalized: value });
-    }
+    // --- Data loading ---
 
     async function loadCheckedForMe() {
         if (!user.value) { checkedItems.value = new Set(); return; }
         try {
             const { data } = await hw.get('/api/user/checks');
             checkedItems.value = new Set(data.itemIds || []);
-        } catch (e) { checkedItems.value = new Set(); }
+        } catch { checkedItems.value = new Set(); }
     }
 
     async function loadPinnedForMe() {
@@ -360,14 +345,14 @@ export function useHausaufgaben() {
         try {
             const { data } = await hw.get('/api/user/pins');
             pinnedItems.value = new Set(data.itemIds || []);
-        } catch (e) { pinnedItems.value = new Set(); }
+        } catch { pinnedItems.value = new Set(); }
     }
 
     async function loadSubjects() {
         try {
             const { data } = await hw.get('/api/subjects');
             subjects.value = data;
-        } catch (e) {}
+        } catch { /* subjects stay empty */ }
     }
 
     async function reload() {
@@ -395,12 +380,10 @@ export function useHausaufgaben() {
             loading.value = false;
             initialLoad.value = false;
 
-            // Only reset visible count if we aren't deep linking
             if (!route.params.itemId) {
                 visibleCount.value = Math.min(5, filteredItems.value.length || 5);
             }
 
-            // Check for deep link
             await checkAndScrollToItem();
         }
     }
@@ -412,8 +395,7 @@ export function useHausaufgaben() {
             if (index !== -1) {
                 items.value[index] = data;
             }
-            // Update context menu item reference if open
-            if(imageMenu.item && imageMenu.item.id === itemId) {
+            if (imageMenu.item?.id === itemId) {
                 imageMenu.item = data;
             }
         } catch (e) {
@@ -421,21 +403,7 @@ export function useHausaufgaben() {
         }
     }
 
-    // Auth & Account
-    function onAccountDeleted() {
-        userStore.clearUser();
-    }
-
-    function onAccountDeleteError(msg: string) {
-        console.error('Account delete error:', msg);
-    }
-
-    async function onLoggedIn() {
-        await userStore.fetchUser();
-        await loadCheckedForMe();
-        await loadPinnedForMe();
-        reload();
-    }
+    // --- Auth & Account ---
 
     async function logout() {
         try {
@@ -447,25 +415,18 @@ export function useHausaufgaben() {
         }
     }
 
-    const handleShowAuthModal = () => {
-        openAuthModal();
-    };
+    // --- Item CRUD ---
 
-    // Item Management
     function handleSuccess(msg: string) {
-        message.value = msg;
-        isError.value = false;
+        flashMessage(msg);
         itemFormKey.value += 1;
-        setTimeout(() => message.value = '', 5000);
         showItemForm.value = false;
         showAnnouncementForm.value = false;
         reload();
     }
 
     function onItemFormError(msg: string) {
-        message.value = msg || 'Bitte Eingaben prüfen.';
-        isError.value = true;
-        setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
+        flashMessage(msg || 'Bitte Eingaben prüfen.', true);
     }
 
     function editItem(item: HwItem) {
@@ -475,83 +436,73 @@ export function useHausaufgaben() {
     }
 
     function deleteItem(id: string) {
-        itemToDelete = id;
+        itemToDelete.value = id;
         showDeleteConfirm.value = true;
     }
+
     function cancelDelete() {
         showDeleteConfirm.value = false;
-        itemToDelete = null;
+        itemToDelete.value = null;
     }
+
     async function confirmDelete() {
-        if (!itemToDelete || deletingEntry.value) return;
+        if (!itemToDelete.value || deletingEntry.value) return;
 
         deletingEntry.value = true;
-        const id = itemToDelete;
+        const id = itemToDelete.value;
 
         try {
             await hw.delete(`/api/items/${id}`);
             showDeleteConfirm.value = false;
-            itemToDelete = null;
+            itemToDelete.value = null;
             handleSuccess('Eintrag gelöscht.');
         } catch (e: any) {
-            message.value = e.response?.data?.error || 'Fehler beim Löschen.';
-            isError.value = true;
+            flashMessage(e.response?.data?.error || 'Fehler beim Löschen.', true);
         } finally {
             deletingEntry.value = false;
         }
     }
 
-    // Report
+    // --- Report ---
+
     async function doReport(category: 'illegal' | 'falschinfo') {
-        if (!reportTarget) return;
-        const item = reportTarget;
+        if (!reportTarget.value) return;
+        const item = reportTarget.value;
         const reason = reportReason.value;
         cancelReport();
-        message.value = 'Melde...';
-        isError.value = false;
+        flashMessage('Melde...', false, 10000);
 
         try {
             await hw.post('/api/items/reports', {
                 itemId: item.id,
                 itemTitle: item.title,
                 category,
-                reason: reason
+                reason,
             });
-            message.value = 'Eintrag gemeldet.';
-            isError.value = false;
+            flashMessage('Eintrag gemeldet.', false, 7000);
         } catch (e: any) {
-            message.value = 'Fehler beim Melden: ' + (e.response?.data?.error || '');
-            isError.value = true;
-        } finally {
-            setTimeout(() => {
-                message.value = '';
-                isError.value = false
-            }, 7000);
+            flashMessage('Fehler beim Melden: ' + (e.response?.data?.error || ''), true, 7000);
         }
     }
 
     function cancelReport() {
         showReportConfirm.value = false;
-        reportTarget = null;
+        reportTarget.value = null;
         reportReason.value = '';
     }
 
-    // --- Image Context Menu Logic ---
+    // --- Image context menu ---
 
-    // Use store helper
-    const makeThumb = imageStore.makeThumb;
+    const makeThumb = imageUpload.makeThumb;
 
-    // Called on right click or long press
     function openImageMenu(event: MouseEvent, item: HwItem, img: any) {
-        if(!user.value) return; // Only logged in users
+        if (!user.value) return;
         imageMenu.item = item;
         imageMenu.image = img;
         imageMenu.x = event.clientX;
         imageMenu.y = event.clientY;
         imageMenu.visible = true;
-
-        // Initialize store so we have the array locally if needed (though we use item.images mostly)
-        imageStore.init(item.images);
+        imageUpload.init(item.images);
     }
 
     function closeImageMenu() {
@@ -560,27 +511,18 @@ export function useHausaufgaben() {
         imageMenu.image = null;
     }
 
-    // Triggered from menu "Add Image"
     function triggerImageUpload(item?: HwItem) {
         const targetItem = item || imageMenu.item;
-        if(targetItem) {
-            // Init store with current images to check limits
-            imageStore.init(targetItem.images);
+        if (!targetItem) return;
 
-            // Set the ID tracking ref so we know what to refresh later
-            currentUploadItemId.value = targetItem.id;
-
-            // Trigger upload in store (true = editMode, item.id = immediate upload)
-            imageStore.uploadImage(true, targetItem.id);
-            closeImageMenu();
-        }
+        imageUpload.init(targetItem.images);
+        currentUploadItemId.value = targetItem.id;
+        imageUpload.uploadImage(true, targetItem.id);
+        closeImageMenu();
     }
 
-    // Triggered from menu "Delete Image"
     function triggerImageDelete() {
-        // Just show confirmation, store state is already set in imageMenu
         showImageDeleteConfirm.value = true;
-        // Keep menu open or close it? Close it.
         imageMenu.visible = false;
     }
 
@@ -589,17 +531,14 @@ export function useHausaufgaben() {
 
         deletingImage.value = true;
         try {
-            await imageStore.removeImg(imageMenu.image, imageMenu.item.id);
+            await imageUpload.removeImg(imageMenu.image, imageMenu.item.id);
             await refreshItem(imageMenu.item.id);
-            message.value = 'Bild gelöscht.';
-            setTimeout(() => message.value = '', 3000);
+            flashMessage('Bild gelöscht.', false, 3000);
             showImageDeleteConfirm.value = false;
             imageMenu.image = null;
             imageMenu.item = null;
-        } catch (e: any) {
-            message.value = 'Fehler beim Löschen des Bildes.';
-            isError.value = true;
-            setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+        } catch {
+            flashMessage('Fehler beim Löschen des Bildes.', true, 4000);
         } finally {
             deletingImage.value = false;
         }
@@ -610,6 +549,8 @@ export function useHausaufgaben() {
         imageMenu.image = null;
         imageMenu.item = null;
     }
+
+    // --- Check / Pin / Permissions ---
 
     function isRevealed(itemId: string) { return revealedImages.value.has(itemId); }
     function revealImages(itemId: string) { revealedImages.value.add(itemId); }
@@ -627,10 +568,8 @@ export function useHausaufgaben() {
                 await hw.post(`/api/user/items/${id}/check`);
                 checkedItems.value.add(id);
             }
-        } catch (e: any) {
-            message.value = 'Fehler beim Setzen des Status.';
-            isError.value = true;
-            setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+        } catch {
+            flashMessage('Fehler beim Setzen des Status.', true, 4000);
         }
     }
 
@@ -638,6 +577,7 @@ export function useHausaufgaben() {
         if (!user.value) return;
         const id = item.id;
         try {
+            // Snapshot so we can roll back on failure without partial state
             const newPins = new Set(pinnedItems.value);
             if (newPins.has(id)) {
                 await hw.delete(`/api/user/items/${id}/pin`);
@@ -647,17 +587,13 @@ export function useHausaufgaben() {
                 newPins.add(id);
             }
             pinnedItems.value = newPins;
-        } catch (e: any) {
-            message.value = 'Fehler beim Setzen des Status.';
-            isError.value = true;
-            setTimeout(() => { message.value = ''; isError.value = false; }, 4000);
+        } catch {
+            flashMessage('Fehler beim Setzen des Status.', true, 4000);
         }
     }
 
-    // Permissions
     function canEdit(createdBy: string) {
-        if (!user.value) return false;
-        return user.value.id === createdBy;
+        return user.value?.id === createdBy;
     }
 
     function canDelete(createdBy: string) {
@@ -667,15 +603,14 @@ export function useHausaufgaben() {
 
     function canDeleteImage(itemCreatedBy: string, imageCreatedBy: string) {
         if (!user.value) return false;
-        if (user.value.isAdmin) return true;
-        if (user.value.id === imageCreatedBy) return true;
-        if (user.value.id === itemCreatedBy) return true;
-        return false;
+        return user.value.isAdmin || user.value.id === imageCreatedBy || user.value.id === itemCreatedBy;
     }
 
     function canEditNote() {
         return user.value?.isAdmin === true;
     }
+
+    // --- Editor notes ---
 
     function startEditNote(item: HwItem) {
         editingNoteForId.value = item.id;
@@ -693,33 +628,27 @@ export function useHausaufgaben() {
 
         try {
             await hw.patch(`/api/items/${itemId}/note`, {
-                editorNote: noteEditContent.value
+                editorNote: noteEditContent.value,
             });
 
-            // Lokales Update
             const item = items.value.find(i => i.id === itemId);
-            if (item) {
-                item.editorNote = noteEditContent.value;
-            }
+            if (item) item.editorNote = noteEditContent.value;
 
-            message.value = 'Anmerkung gespeichert.';
-            isError.value = false;
+            flashMessage('Anmerkung gespeichert.');
             editingNoteForId.value = null;
             noteEditContent.value = '';
         } catch (e: any) {
-            message.value = e.response?.data?.error || 'Fehler beim Speichern der Anmerkung.';
-            isError.value = true;
+            flashMessage(e.response?.data?.error || 'Fehler beim Speichern der Anmerkung.', true);
         } finally {
             savingNote.value = false;
-            setTimeout(() => { message.value = ''; isError.value = false; }, 5000);
         }
     }
 
+    // --- Share ---
+
     async function shareItem(item: HwItem) {
-        // Dynamische URL basierend auf dem aktuellen Domainnamen und den Item-Daten
         const shareUrl = `${window.location.origin}/items/${item.type}/${item.id}`;
 
-        // Prüfen, ob die Web Share API verfügbar ist
         if (navigator.share) {
             try {
                 await navigator.share({
@@ -728,72 +657,53 @@ export function useHausaufgaben() {
                     url: shareUrl,
                 });
             } catch (err) {
-                // Falls der Nutzer abbricht oder ein Fehler auftritt
+                // User cancelled or share failed — no action needed
                 console.error('Teilen abgebrochen oder fehlgeschlagen:', err);
             }
         } else {
-            // Fallback: Link in die Zwischenablage kopieren
             try {
                 await navigator.clipboard.writeText(shareUrl);
-                message.value = 'Link in die Zwischenablage kopiert!';
-                isError.value = false;
-            } catch (err) {
-                message.value = 'Teilen fehlgeschlagen.';
-                isError.value = true;
+                flashMessage('Link in die Zwischenablage kopiert!', false, 3000);
+            } catch {
+                flashMessage('Teilen fehlgeschlagen.', true, 3000);
             }
-            // Nachricht nach 3 Sekunden ausblenden
-            setTimeout(() => { message.value = ''; isError.value = false; }, 3000);
         }
     }
 
     function goTab(t: ItemType) { router.push({ name: 'items', params: { type: t } }); }
 
-// --- Watchers ---
-    watch(() => route.params.type, async (v) => {
+    // --- Watchers ---
+
+    watch(() => route.params.type, (v) => {
         tab.value = isValidType(v) ? v : 'HAUSAUFGABE';
         reload();
     });
 
     watch(() => route.params.itemId, async (newId) => {
-        if (newId) {
-            await checkAndScrollToItem();
-        }
+        if (newId) await checkAndScrollToItem();
     });
 
-    // Clear itemId when toggling old entries
     watch(showOldEntries, () => {
-        // FIX: Do not clear the ID if we just turned this on to find that specific ID
-        // We check if we are currently looking for an item that isn't in the current list
         const targetId = route.params.itemId as string;
-        const exists = items.value.find(i => i.id === targetId);
+        const exists = items.value.some(i => i.id === targetId);
 
-        // Only clear URL param if we are interacting manually (not deep linking flow)
-        if (targetId && !exists && showOldEntries.value) {
-            // We are likely in the middle of the deep link flow, don't clear the ID
-            return;
-        }
+        // Skip if we just turned on old entries to find a deep-linked item
+        if (targetId && !exists && showOldEntries.value) return;
 
         if (highlightedItemId.value && route.params.itemId) {
             router.replace({
                 name: 'items',
-                params: {
-                    ...route.params,
-                    itemId: ''
-                }
+                params: { ...route.params, itemId: '' },
             });
         }
         reload();
     });
 
-    // Clear itemId when changing the subject filter
     watch(subjectFilter, () => {
         if (highlightedItemId.value && route.params.itemId) {
             router.replace({
                 name: 'items',
-                params: {
-                    ...route.params,
-                    itemId: ''
-                }
+                params: { ...route.params, itemId: '' },
             });
         }
     });
@@ -804,31 +714,17 @@ export function useHausaufgaben() {
         }
     });
 
-    // Watch upload store to refresh item when uploading finishes
-    watch(() => imageStore.uploading, async (val, oldVal) => {
-        if(oldVal && !val && !imageStore.uploadError) {
-            // Check if we have a pending upload ID
-            if(currentUploadItemId.value) {
-                await refreshItem(currentUploadItemId.value);
-                currentUploadItemId.value = null; // Clear it
-                message.value = 'Bild erfolgreich hochgeladen.';
-                setTimeout(() => message.value = '', 3000);
-            }
+    watch(() => imageUpload.uploading, async (val, oldVal) => {
+        if (oldVal && !val && !imageUpload.uploadError && currentUploadItemId.value) {
+            await refreshItem(currentUploadItemId.value);
+            currentUploadItemId.value = null;
+            flashMessage('Bild erfolgreich hochgeladen.', false, 3000);
         }
-    });
-
-    onMounted(() => {
-        document.addEventListener('click', onDocumentClick);
-        loadSubjects();
-        reload();
-        loadCheckedForMe();
-        loadPinnedForMe();
     });
 
     watch(user, async (newUser, oldUser) => {
         if (newUser && !oldUser) {
-            await loadCheckedForMe();
-            await loadPinnedForMe();
+            await Promise.all([loadCheckedForMe(), loadPinnedForMe()]);
             reload();
         }
         if (!newUser && oldUser) {
@@ -838,8 +734,16 @@ export function useHausaufgaben() {
         }
     }, { deep: true });
 
+    // --- Lifecycle ---
+
+    onMounted(async () => {
+        document.addEventListener('click', onDocumentClick);
+        await Promise.all([loadSubjects(), reload(), loadCheckedForMe(), loadPinnedForMe()]);
+    });
+
     onBeforeUnmount(() => {
         document.removeEventListener('click', onDocumentClick);
+        if (messageTimerId) clearTimeout(messageTimerId);
     });
 
     return {
@@ -869,7 +773,6 @@ export function useHausaufgaben() {
         toggleDescription,
         showMore,
         showLess,
-        colorStyles,
         toggleMenu,
         onMenuAction,
         logout,
@@ -925,6 +828,6 @@ export function useHausaufgaben() {
         shareItem,
         highlightedItemId,
         deletingImage,
-        deletingEntry
+        deletingEntry,
     };
 }

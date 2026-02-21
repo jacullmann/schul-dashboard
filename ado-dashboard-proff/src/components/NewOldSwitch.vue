@@ -12,6 +12,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: boolean
@@ -23,9 +26,9 @@ const emit = defineEmits<{
 
 const buttonText = computed(() => {
   if (props.modelValue) {
-    return 'Eintragsarchiv verlassen'
+    return t('school.tasks.archive.closeArchive')
   } else {
-    return 'Eintragsarchiv anzeigen'
+    return t('school.tasks.archive.archive')
   }
 })
 

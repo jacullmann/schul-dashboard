@@ -4,6 +4,7 @@
     "buttons": {
       "save": "Speichern",
       "confirm": "Bestätigen",
+      "create": "Erstellen",
       "add": "Hinzufügen",
       "cancel": "Abbrechen",
       "close": "Schließen",
@@ -18,7 +19,8 @@
     "search": {
       "placeholder": "Suche",
       "result": "Ergebnis",
-      "resultPlural": "Ergebnisse"
+      "resultPlural": "Ergebnisse",
+      "noResults": "Keine Suchergebnisse für"
     },
     "weekdays": {
       "full": {
@@ -40,6 +42,11 @@
         "sunday": "So"
       }
     },
+    "errors": {
+      "unknown": "Unbekannter Fehler",
+      "delete": "Fehler beim Löschen",
+      "save": "Fehler beim Speichern"
+    },
     "cookies": {
       "banner": {
         "title": "Cookies",
@@ -47,8 +54,7 @@
         "action": "Verstanden"
       }
     },
-    "header": {
-    },
+    "header": {},
     "footer": {
       "removeDevice": "Dieses Gerät abmelden"
     },
@@ -139,7 +145,9 @@
           "title": "Konto unwiderruflich löschen?",
           "text": "Wenn du dein Konto löschst, wird dieses mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Konto geschlossen wird.<br><br>Du kannst jederzeit einneues Konto erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Konto verknüpft, sodass du nicht mehr auf sie zugreifen kannst."
         },
-        "confirm": "Ich verstehe, dass ich hiermit mein Konto unwiderruflich lösche."
+        "confirm": "Ich verstehe, dass ich hiermit mein Konto unwiderruflich lösche.",
+        "success": "Konto erfolgreich gelöscht",
+        "errors": {}
       }
     },
     "auth": {
@@ -176,7 +184,7 @@
       "learnMore": "Mehr erfahren",
       "cta": "Jetzt loslegen"
     },
-    "comparison":  {
+    "comparison": {
       "headline": "Papier ist von <b>gestern.</b> Starte heute noch in die <b>Zukunft</b>",
       "attribution": "Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
     },
@@ -290,9 +298,23 @@
         "customSubject": "Benutzerdefiniertes Fach",
         "course": "Kurs",
         "description": "Beschreibung (optional)",
-        "duedate": "Datum",
+        "dueDate": "Datum",
         "images": "Bilder",
-        "uploadImages": "Bilder hochladen"
+        "uploadingImage": "Lade Bild hoch...",
+        "successCreate": "Eintrag erfolgreich bearbeitet",
+        "successEdit": "Eintrag erfolgreich erstellt",
+        "errors": {
+          "enrichmentMissing": "Wähle einen Enrichment-Kurs aus",
+          "wpuMissing": "Wähle einen WPU-Kurs aus",
+          "profanity": "Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.",
+          "customMissing": "Trage ein benutzerdefiniertes Fach ein",
+          "customLong": "Das benutzerdefinierte Fach ist zu lang (max. 40 Zeichen).",
+          "titleMissing": "Füge einen Titel hinzu",
+          "titleLong": "Der Titel ist zu lang (max. 60 Zeichen).",
+          "descriptionLong": "Die Beschreibung ist zu lang (max. 1000 Zeichen).",
+          "dateOld": "Das Datum liegt zu weit in der Vergangenheit",
+          "dateNew": "Das Datum liegt zu weit in der Zukunft"
+        }
       },
       "items": {
         "menu": {
@@ -445,6 +467,7 @@
       },
       "recommendations": "Das könnte dich auch interessieren",
       "topic": "Thema:",
+      "allTopics": "Alle Themen",
       "sortBy": "Sortieren:",
       "sortMethods": {
         "relevance": "Relevanz",
@@ -453,6 +476,11 @@
         "shortest": "Kürzeste Lesezeit"
       },
       "maxTime": "Max. Lesezeit:"
+    },
+    "articles": {
+      "1": {
+        "content": "Trotz der Behauptung, dass sich die Christdemokraten um die Armen, Zugewanderten und Opfer scheren, beweisen sie immer wieder: Was uns ein Dorn im Auge ist, soll weg.\n\nIn New York wurde das Prinzip l\u00e4ngst perfektioniert \u2013 B\u00e4nke mit Kurven, Abtrennungen und Stacheln sind der Trend des Jahres. Denn wenn man sich nicht hinlegen kann, geht man weg und \u201eaus den Augen, aus dem Sinn\u201c, oder? Leider ert\u00f6nten keine feierlichen Trompeten, gefolgt von genug bezahlbaren Wohnungen und die Obdachlosen legten sich neben die B\u00e4nke. Aber die Berliner CDU glaubt, in Kreuzberg herrschen andere Gesetze. Wenn sie das ganze Geld, das f\u00fcr die Versorgung und Unterst\u00fctzung der Suchtkranken eingeplant war, f\u00fcr einen riesigen Zaun um den G\u00f6rlitzer Park ausgeben, dann m\u00fcssten sie auf magische Weise verschwinden und keine zus\u00e4tzlichen Investitionen w\u00e4ren n\u00f6tig, so die These. Allerdings muss sich ein Denkfehler eingeschlichen haben \u2013 das einzige Problem, das verschwindet, ist die Entscheidung, wof\u00fcr man 2 Mio. Euro Steuergelder ausgeben soll.\n\nEin befragter Anwohner findet, der Park brauche definitiv Hilfe, aber in Form von Hilfe f\u00fcr die Abh\u00e4ngigen \u2013 nur schlecht, dass das im Haushalt nicht vorgesehen ist. In den letzten Monaten gab es Aufschreie im Minutentakt, eine gesunde Prise zivilen Ungehorsam und zwei Klagen vom Bezirk, die schneller abgewiesen wurden, als man sie durchlesen kann. Aber was wissen die Menschen, um die es geht, schon \u00fcber das Thema? Die christlichen \u201eDemokraten\u201c h\u00f6ren auf das Volk \u2013 allerdings nur auf die reicheren 20 % in den Randbezirken. Der Zaun ist ein Geschenk an ihre W\u00e4hler, die den Park als Schande sehen, und kommt gleich mit einer Gl\u00fcckwunschkarte, auf der \u201eWir machen alles, was ihr wollt\u201c steht.\n\nSolange Kai Wegner seine Symbolpolitik betreibt und jegliche Aufrufe der Bev\u00f6lkerung ignoriert, scheint Geld f\u00fcr echte L\u00f6sungen fernzubleiben. Uns bleibt also nur noch eins zu hoffen \u2013 jeder freischaffende Pharmah\u00e4ndler denkt sich um 22 Uhr bei Schlie\u00dfung der Tore: Jetzt ist Feierabend."
+      }
     },
     "kanye": {
       "footnote": "Die Abbildungen der Albumcover dienen ausschließlich der Identifizierung. Das Urheberrecht liegt bei den jeweiligen Eigentümern, Labels und Künstlern."
@@ -482,8 +510,6 @@
       "feedback": "Feedback"
     }
   },
-  "about": {
-  },
-  "games": {
-  }
+  "about": {},
+  "games": {}
 }

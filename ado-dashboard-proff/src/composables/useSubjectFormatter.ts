@@ -1,29 +1,38 @@
-/**
- * "Enrichment - Herr Weber" -> "ENR Hr. Weber"
- * "Enrichment - Frau Müller" -> "ENR Fr. Müller"
- * "WPU (Di) - Latein" -> "WPU 1 Latein"
- * "WPU (Do) - Englisch" -> "WPU 2 Englisch"
- */
-export function formatSubjectDisplay(subject: string): string {
+import { getSubjectKey } from '@/types/subjects';
+
+export function formatSubjectDisplay(subject: string, t: (key: string) => string, te: (key: string) => boolean): string {
     if (!subject) return subject;
-    // Enrichment
-    if (subject.startsWith('Enrichment - ')) {
-        const coursePart = subject.replace('Enrichment - ', '');
-        // "Herr Weber" -> "Hr. Weber", "Frau Yatkin" -> "Fr. Yatkin"
-        const abbreviated = coursePart
-            .replace(/^Herr\s+/, 'Hr. ')
-            .replace(/^Frau\s+/, 'Fr. ');
-        return `ENR ${abbreviated}`;
+
+    const parts = subject.split(' - ');
+    const mainKey = getSubjectKey(parts[0]!.trim());
+
+    if (parts.length === 2 && ['enrichment', 'wpu1', 'wpu2'].includes(mainKey)) {
+        const course = parts[1]!.trim();
+        let courseDisplay = course;
+
+        // Try to translate course if it matches a subject key (like Biologie -> biology)
+        const courseKey = getSubjectKey(course);
+        if (te(`global.subjects.${courseKey}`)) {
+            courseDisplay = t(`global.subjects.${courseKey}`);
+        } else {
+            // Check for titles
+            const mr = t('global.titles.abbr.mr');
+            const ms = t('global.titles.abbr.ms');
+
+            courseDisplay = course
+                .replace(/^Herr\s+/, `${mr} `)
+                .replace(/^Frau\s+/, `${ms} `);
+        }
+
+        if (mainKey === 'enrichment') return `ENR ${courseDisplay}`;
+        if (mainKey === 'wpu1') return `WPU 1 ${courseDisplay}`;
+        if (mainKey === 'wpu2') return `WPU 2 ${courseDisplay}`;
     }
-    // WPU (Di) -> WPU 1
-    if (subject.startsWith('WPU (Di) - ')) {
-        const coursePart = subject.replace('WPU (Di) - ', '');
-        return `WPU 1 ${coursePart}`;
+
+    // Try translating main part
+    if (te(`global.subjects.${mainKey}`)) {
+        return t(`global.subjects.${mainKey}`);
     }
-    // WPU (Do) -> WPU 2
-    if (subject.startsWith('WPU (Do) - ')) {
-        const coursePart = subject.replace('WPU (Do) - ', '');
-        return `WPU 2 ${coursePart}`;
-    }
+
     return subject;
 }

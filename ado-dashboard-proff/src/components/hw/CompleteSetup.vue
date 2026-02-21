@@ -3,10 +3,10 @@
     <template #title>{{ isSetup ? 'Willkommen! Vervollständige dein Profil' : 'Kurse bearbeiten' }}</template>
 
     <template #content>
-      <p class="small" style="color: var(--sub)">{{ isSetup ? 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen. Du kannst deine Auswahl jederzeit in deinen Account-Einstellungen ändern.' : 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.' }}</p>
+      <p class="small" style="color: var(--sub)">{{ isSetup ? 'Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen. Du kannst deine Auswahl jederzeit in deinen Account-Einstellungen ändern.' : t('account.menu.courses.description') }}</p>
 
       <div class="form-group">
-        <label class="label-text">Enrichment</label>
+        <label class="label-text">{{ t('account.menu.courses.enr') }}</label>
         <SelectDropdown
             v-model="formData.enrKurs"
             :options="enrichmentOptions"
@@ -14,7 +14,7 @@
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">WPU am Dienstag</label>
+        <label class="label-text">{{ t('account.menu.courses.wpu1') }}</label>
         <SelectDropdown
             v-model="formData.wpuKurs1"
             :options="wpu1Options"
@@ -22,7 +22,7 @@
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">WPU am Donnerstag</label>
+        <label class="label-text">{{ t('account.menu.courses.wpu2') }}</label>
         <SelectDropdown
             v-model="formData.wpuKurs2"
             :options="wpu2Options"
@@ -30,7 +30,7 @@
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">Theater</label>
+        <label class="label-text">{{ t('account.menu.courses.wpu3') }}</label>
         <SelectDropdown
             v-model="formData.theater"
             :options="theaterOptions"
@@ -48,12 +48,12 @@
         </button>
 
         <button class="btn ghost" v-else @click="$emit('close')">
-          Abbrechen
+          {{ t('global.buttons.cancel') }}
         </button>
 
         <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
           <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>Speichern</span>
+          <span v-else>{{ t('global.buttons.save') }}</span>
         </button>
       </div>
     </template>
@@ -61,11 +61,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, defineProps, defineEmits } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import hw from '@/hwApi';
 import Modal from '@/components/hw/Modal.vue';
 import SelectDropdown from '@/components/hw/SelectDropdown.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Option Definitions
 const enrichmentOptions = [

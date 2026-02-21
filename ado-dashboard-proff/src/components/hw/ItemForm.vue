@@ -1,42 +1,42 @@
 <template>
   <Modal @cancel="emit('cancel')">
     <template #title>
-      {{ initial ? 'Eintrag bearbeiten' : 'Neuer Eintrag' }} — {{ labelFor(type) }}
+      {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') + labelFor(type) }}
     </template>
 
     <template #content>
       <div class="row-n top">
         <div class="col">
-          <label class="label">Titel</label>
+          <label class="label">{{ t('school.tasks.itemForm.title') }}</label>
           <input ref="titleInputRef" class="input" v-model="title" />
         </div>
 
         <div class="col">
-          <label class="label">Fach</label>
+          <label class="label">{{ t('school.tasks.itemForm.subject') }}</label>
           <SelectDropdown
               v-model="subjectSel"
               :options="subjectOptions"
           />
         </div>
 
-        <div class="col" v-if="subjectSel === 'Enrichment'">
-          <label class="label">Kurs</label>
+        <div class="col" v-if="subjectSel === 'enrichment'">
+          <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
           <SelectDropdown
               v-model="enrKursSel"
               :options="enrOptions"
           />
         </div>
 
-        <div class="col" v-if="subjectSel === 'WPU (Di)'">
-          <label class="label">Kurs</label>
+        <div class="col" v-if="subjectSel === 'wpu1'">
+          <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
           <SelectDropdown
               v-model="wpuDiKursSel"
               :options="wpuDiOptions"
           />
         </div>
 
-        <div class="col" v-if="subjectSel === 'WPU (Do)'">
-          <label class="label">Kurs</label>
+        <div class="col" v-if="subjectSel === 'wpu2'">
+          <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
           <SelectDropdown
               v-model="wpuDoKursSel"
               :options="wpuDoOptions"
@@ -45,34 +45,34 @@
       </div>
 
       <div v-if="subjectSel==='__OTHER__'" class="section">
-        <label class="label">Benutzerdefiniertes Fach</label>
+        <label class="label">{{ t('school.tasks.itemForm.customSubject') }}</label>
         <input class="input" v-model="subjectOther"/>
       </div>
 
       <div class="section">
-        <label class="label">Beschreibung (optional)</label>
+        <label class="label">{{ t('school.tasks.itemForm.description') }}</label>
         <textarea class="input" rows="4" v-model="description"></textarea>
       </div>
 
       <div class="row-n section">
         <div class="col">
-          <label class="label">Datum</label>
+          <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
           <input class="input hover" type="date" v-model="dueLocal" />
 
         </div>
       </div>
 
       <div class="section">
-        <div class="label">Bilder</div>
+        <div class="label">{{ t('school.tasks.itemForm.images') }}</div>
         <div class="row-n images">
           <div
-              v-for="img in imgStore.images"
+              v-for="img in imgImages"
               :key="img.publicId"
               class="image-item"
           >
             <a :href="img.url" target="_blank" rel="noopener">
               <img
-                  :src="img.thumbUrl || imgStore.makeThumb(img.url)"
+                  :src="img.thumbUrl || makeThumb(img.url)"
                   class="thumb"
                   loading="lazy"
                   decoding="async"
@@ -80,17 +80,17 @@
               />
             </a>
             <div class="image-actions">
-              <button class="btn danger image-remove" @click="imgStore.removeImg(img, initial?.id)">X</button>
+              <button class="btn danger image-remove" @click="removeImg(img, initial?.id)">X</button>
             </div>
           </div>
 
-          <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="imgStore.uploadImage(!!initial)" :disabled="imgStore.uploading">
-            <LoadingSpinner v-if="imgStore.uploading" size="1.1em" />
-            <span v-else>Bilder hochladen</span>
+          <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="uploadImage(!!initial)" :disabled="imgUploading">
+            <LoadingSpinner v-if="imgUploading" size="1.1em" />
+            <span v-else>{{ t('school.tasks.items.menu.uploadImages') }}</span>
           </button>
         </div>
-        <div v-if="imgStore.uploading" class="small">Lade Bild hoch...</div>
-        <div v-if="imgStore.uploadError" class="small error">{{ imgStore.uploadError }}</div>
+        <div v-if="imgUploading" class="small">{{ t('school.tasks.itemForm.uploadingImage') }}</div>
+        <div v-if="imgUploadError" class="small error">{{ imgUploadError }}</div>
       </div>
     </template>
 
@@ -99,12 +99,12 @@
         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
 
         <button class="btn ghost" @click="emit('cancel')">
-          Abbrechen
+          {{ t('global.buttons.cancel') }}
         </button>
 
         <button class="btn action" @click="submit" :disabled="submitting">
           <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>{{ initial ? 'Speichern' : 'Erstellen' }}</span>
+          <span v-else>{{ initial ? t('global.buttons.save') : t('global.buttons.create') }}</span>
         </button>
       </div>
     </template>
@@ -117,24 +117,27 @@ import hw from '@/hwApi';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import type { HwItem } from '@/composables/useHausaufgaben';
 import { containsProfanity } from '@/composables/useProfanity';
-import { useImageUploadStore } from '@/stores/imageStore';
+import { useImageUpload } from '@/composables/useImageUpload';
 import Modal from '@/components/hw/Modal.vue';
 import SelectDropdown from '@/components/hw/SelectDropdown.vue';
+import { useI18n } from 'vue-i18n';
+import { AVAILABLE_SUBJECTS } from '@/types/subjects';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-  initial?: HwItem;
-  subjects: string[]
+  initial?: HwItem | null;
 }>();
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 
-const imgStore = useImageUploadStore();
+const { images: imgImages, uploading: imgUploading, uploadError: imgUploadError, init: imgInit, makeThumb, uploadImage, removeImg } = useImageUpload();
 
-const labelFor = (type: string) => {
+const labelFor = (type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG') => {
   const map = {
-    'HAUSAUFGABE': 'Hausaufgabe',
-    'DALTON': 'Daltonauftrag',
-    'PRUEFUNG': 'Prüfung',
+    'HAUSAUFGABE': t('school.tasks.types.homework'),
+    'DALTON': t('school.tasks.types.dalton'),
+    'PRUEFUNG': t('school.tasks.types.exam'),
   } as const;
   return map[type];
 };
@@ -169,10 +172,34 @@ const getInitialSubjectParts = () => {
 
   const parts = initial.split(' - ');
   if (parts.length === 2) {
-    const main = parts[0].trim();
-    const course = parts[1].trim();
-    if (['Enrichment', 'WPU (Di)', 'WPU (Do)'].includes(main)) {
-      return { main, course };
+    const main = parts[0]!.trim();
+    const course = parts[1]!.trim();
+    if (['enrichment', 'wpu1', 'wpu2', 'Enrichment', 'WPU (Di)', 'WPU (Do)'].includes(main)) {
+      // Map old main to new main
+      const keyMap: Record<string, string> = {
+        'Enrichment': 'enrichment',
+        'WPU (Di)': 'wpu1',
+        'WPU (Do)': 'wpu2',
+      };
+
+      // Attempt to resolve legacy names to IDs (only relevant for old strings editing)
+      let resolvedCourseId = course;
+      const mappedMain = keyMap[main] || main;
+
+      if (main === 'Enrichment' || main === 'enrichment') {
+        const found = enrKurse.find(k => k.name === course || k.id === course);
+        if (found) resolvedCourseId = found.id;
+      }
+      if (main === 'WPU (Di)' || main === 'wpu1') {
+        const found = wpuDiKurse.find(k => k.name === course || k.id === course);
+        if (found) resolvedCourseId = found.id;
+      }
+      if (main === 'WPU (Do)' || main === 'wpu2') {
+        const found = wpuDoKurse.find(k => k.name === course || k.id === course);
+        if (found) resolvedCourseId = found.id;
+      }
+
+      return { main: mappedMain, course: resolvedCourseId };
     }
   }
   return { main: initial, course: '' };
@@ -184,14 +211,14 @@ const title = ref(props.initial?.title || '');
 const subjectSel = ref(initialParts.main);
 const subjectOther = ref('');
 const description = ref(props.initial?.description || '');
-const enrKursSel = ref(initialParts.main === 'Enrichment' ? initialParts.course : '');
-const wpuDiKursSel = ref(initialParts.main === 'WPU (Di)' ? initialParts.course : '');
-const wpuDoKursSel = ref(initialParts.main === 'WPU (Do)' ? initialParts.course : '');
+const enrKursSel = ref(initialParts.main === 'enrichment' ? initialParts.course : '');
+const wpuDiKursSel = ref(initialParts.main === 'wpu1' ? initialParts.course : '');
+const wpuDoKursSel = ref(initialParts.main === 'wpu2' ? initialParts.course : '');
 
 watch(subjectSel, (newVal) => {
-  if (newVal !== 'Enrichment') enrKursSel.value = '';
-  if (newVal !== 'WPU (Di)') wpuDiKursSel.value = '';
-  if (newVal !== 'WPU (Do)') wpuDoKursSel.value = '';
+  if (newVal !== 'enrichment') enrKursSel.value = '';
+  if (newVal !== 'wpu1') wpuDiKursSel.value = '';
+  if (newVal !== 'wpu2') wpuDoKursSel.value = '';
 });
 
 const now = new Date();
@@ -222,24 +249,37 @@ const message = ref('');
 const isError = ref(false);
 
 const subjectOptions = computed(() => {
-  const opts = props.subjects.map(s => ({ label: s, value: s }));
+  const opts = AVAILABLE_SUBJECTS.map(s => ({
+    label: t(`global.subjects.${s}`),
+    value: s
+  }));
 
-  const specials = ['Enrichment', 'WPU (Di)', 'WPU (Do)'];
-
-  specials.forEach(special => {
-    if (!opts.some(o => o.value === special)) {
-      opts.push({ label: special, value: special });
-    }
-  });
-
-  opts.push({ label: 'Anderes...', value: '__OTHER__' });
+  opts.push({ label: t('global.selection.other'), value: '__OTHER__' });
 
   return opts;
 });
 
-const enrOptions = enrKurse.map(k => ({ label: k.name, value: k.name }));
-const wpuDiOptions = wpuDiKurse.map(k => ({ label: k.name, value: k.name }));
-const wpuDoOptions = wpuDoKurse.map(k => ({ label: k.name, value: k.name }));
+const getCourseLabel = (courseName: string): string => {
+  const map: Record<string, string> = {
+    'Englisch': t('global.subjects.english'),
+    'Deutsch': t('global.subjects.german'),
+    'Biologie': t('global.subjects.biology'),
+    'Geschichte': t('global.subjects.history'),
+    'Informatik': t('global.subjects.cs'),
+    'Latein': t('global.subjects.latin'),
+    'Mathe': t('global.subjects.math'),
+    'Musik': t('global.subjects.music'),
+    'Herr Müller': `${t('global.titles.abbr.mr')} Müller`,
+    'Herr Weber': `${t('global.titles.abbr.mr')} Weber`,
+    'Frau Glier': `${t('global.titles.abbr.ms')} Glier`,
+    'Frau Thamm': `${t('global.titles.abbr.ms')} Thamm`
+  };
+  return map[courseName] || courseName;
+};
+
+const enrOptions = enrKurse.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
+const wpuDiOptions = wpuDiKurse.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
+const wpuDoOptions = wpuDoKurse.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
 
 async function submit() {
   submitting.value = true;
@@ -253,19 +293,19 @@ async function submit() {
       return subjectOther.value.trim();
     }
 
-    if (main === 'Enrichment') {
-      if (!enrKursSel.value) throw new Error('Du musst einen Enrichment-Kurs auswählen.');
-      return `Enrichment - ${enrKursSel.value}`;
+    if (main === 'enrichment') {
+      if (!enrKursSel.value) throw new Error(t('school.tasks.itemForm.errors.enrichmentMissing'));
+      return `enrichment - ${enrKursSel.value}`;
     }
 
-    if (main === 'WPU (Di)') {
-      if (!wpuDiKursSel.value) throw new Error('Du musst einen WPU-Kurs auswählen.');
-      return `WPU (Di) - ${wpuDiKursSel.value}`;
+    if (main === 'wpu1') {
+      if (!wpuDiKursSel.value) throw new Error(t('school.tasks.itemForm.errors.wpuMissing'));
+      return `wpu1 - ${wpuDiKursSel.value}`;
     }
 
-    if (main === 'WPU (Do)') {
-      if (!wpuDoKursSel.value) throw new Error('Du musst einen WPU-Kurs auswählen.');
-      return `WPU (Do) - ${wpuDoKursSel.value}`;
+    if (main === 'wpu2') {
+      if (!wpuDoKursSel.value) throw new Error(t('school.tasks.itemForm.errors.wpuMissing'));
+      return `wpu2 - ${wpuDoKursSel.value}`;
     }
 
     return main;
@@ -280,52 +320,52 @@ async function submit() {
     ].some(text => containsProfanity(text));
 
     if (hasProfanity) {
-      throw new Error('Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.');
+      throw new Error(t('school.tasks.itemForm.errors.profanity'));
     }
 
     const subject = resolveSubject();
 
     if (!subject || !subject.length) {
-      throw new Error('Du musst ein benutzerdefiniertes Fach eintragen.');
+      throw new Error(t('school.tasks.itemForm.errors.customMissing'));
     }
     if (subject.length > 40) {
-      throw new Error('Das benutzerdefinierte Fach ist zu lang (max. 40 Zeichen).');
+      throw new Error(t('school.tasks.itemForm.errors.customLong'));
     }
 
     const cleanTitle = title.value.trim();
     const cleanDesc = description.value.trim();
 
     if (!cleanTitle) {
-      throw new Error('Du musst einen Titel hinzufügen.');
+      throw new Error(t('school.tasks.itemForm.errors.titleMissing'));
     }
     if (cleanTitle.length > 60) {
-      throw new Error('Der Titel ist zu lang (max. 60 Zeichen).');
+      throw new Error(t('school.tasks.itemForm.errors.titleLong'));
     }
     if (cleanDesc.length > 1000) {
-      throw new Error('Die Beschreibung ist zu lang (max. 1000 Zeichen).');
+      throw new Error(t('school.tasks.itemForm.errors.descriptionLong'));
     }
 
     const selectedDate = new Date(dueLocal.value);
     selectedDate.setHours(23, 59, 0, 0);
 
-    if (selectedDate < minDate) throw new Error('Das Datum liegt zu weit in der Vergangenheit.');
-    if (selectedDate > maxDate) throw new Error('Das Datum liegt zu weit in der Zukunft.');
+    if (selectedDate < minDate) throw new Error(t('school.tasks.itemForm.errors.dateOld'));
+    if (selectedDate > maxDate) throw new Error(t('school.tasks.itemForm.errors.dateNew'));
 
     const payload = {
       type: props.type,
       title: cleanTitle,
       subject,
       description: cleanDesc,
-      images: imgStore.images,
+      images: imgImages.value,
       dueDate: selectedDate.toISOString()
     };
 
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
-      message.value = 'Eintrag erfolgreich bearbeitet.';
+      message.value = t('school.tasks.itemForm.successEdit');
     } else {
       await hw.post('/api/items', payload);
-      message.value = 'Eintrag erfolgreich erstellt.';
+      message.value = t('school.tasks.itemForm.successCreate');
     }
 
     emit('success');
@@ -350,7 +390,7 @@ function onKeyDown(e: KeyboardEvent) {
 const titleInputRef = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
-  imgStore.init(props.initial?.images || []);
+  imgInit(props.initial?.images || []);
   window.addEventListener('keydown', onKeyDown);
   titleInputRef.value?.focus();
 });

@@ -7,6 +7,10 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
+const formatDate = (dateString: string) => {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(dateString))
+}
+
 defineProps<{
   onStartClick: () => void;
   onMoreInfoClick: () => void;
@@ -41,7 +45,7 @@ defineProps<{
                   <h3 class="example-title">{{ t('welcome.hero.visual.items[1].title') }}</h3>
                 </div>
                 <div class="example-badge-row">
-                  <div class="example-badge">{{ t('global.subjects.geography') }} • {{ d(new Date('2026-03-07'), 'short') }}</div>
+                  <div class="example-badge">{{ t('global.subjects.geography') }} • {{ formatDate('2026-03-07') }}</div>
                 </div>
               </div>
               <div class="example-menu-trigger">
@@ -60,7 +64,7 @@ defineProps<{
                   <h3 class="example-title">{{ t('welcome.hero.visual.items[2].title') }}</h3>
                 </div>
                 <div class="example-badge-row">
-                  <div class="example-badge">{{ t('global.subjects.math') }} • {{ d(new Date('2026-03-08'), 'short') }}</div>
+                  <div class="example-badge">{{ t('global.subjects.math') }} • {{ formatDate('2026-03-08') }}</div>
                 </div>
               </div>
               <div class="example-menu-trigger">
@@ -97,7 +101,6 @@ defineProps<{
 </template>
 
 <style scoped>
-
 .line {
   height: 12px;
   width: 100%;

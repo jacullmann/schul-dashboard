@@ -1,46 +1,11 @@
 <template>
   <div class="personalization-wrapper">
-    <button
-        class="menu-btn"
-        @click="toggleMenu"
-        ref="buttonRef"
+    <MenuDropdown
+        v-model="dropdownValue"
+        :options="options"
+        :prefix="t('account.menu.personalization') + ':'"
         :disabled="updating"
-    >
-      <div class="menu-btn-content">
-        <component :is="currentPersonalized ? Filter : FilterX" size="16px" />
-        <span>Personalisierte Kurse: {{ currentPersonalized ? 'Ja' : 'Nein' }}</span>
-        <ChevronDown size="16px" class="chevron" :class="{ 'chevron-open': isOpen }" />
-      </div>
-    </button>
-
-    <div
-        v-if="isOpen"
-        class="dropdown-menu"
-        ref="menuRef"
-    >
-      <button
-          class="dropdown-item"
-          :class="{ active: currentPersonalized }"
-          @click="setPersonalization(true)"
-          :disabled="updating"
-      >
-        <Check v-if="currentPersonalized" size="16px" class="check-icon" />
-        <span class="spacer" v-else></span>
-        Ja
-      </button>
-
-      <button
-          class="dropdown-item"
-          :class="{ active: !currentPersonalized }"
-          @click="setPersonalization(false)"
-          :disabled="updating"
-      >
-        <Check v-if="!currentPersonalized" size="16px" class="check-icon" />
-        <span class="spacer" v-else></span>
-        Nein
-      </button>
-    </div>
-
+    />
     <div v-if="message" class="message" :class="{ error: isError }">
       {{ message }}
     </div>
@@ -48,9 +13,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { Filter, FilterX, ChevronDown, Check } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { Filter, FilterX } from 'lucide-vue-next';
+import MenuDropdown from './MenuDropdown.vue';
 import hw from '@/hwApi';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   modelValue: boolean;
@@ -61,23 +30,24 @@ const emit = defineEmits<{
   (e: 'change', value: boolean): void;
 }>();
 
-const isOpen = ref(false);
 const updating = ref(false);
 const message = ref('');
 const isError = ref(false);
 
-const buttonRef = ref<HTMLButtonElement | null>(null);
-const menuRef = ref<HTMLDivElement | null>(null);
-
 const currentPersonalized = computed(() => props.modelValue);
 
-function toggleMenu() {
-  isOpen.value = !isOpen.value;
-}
+const dropdownValue = computed({
+  get: () => (currentPersonalized.value ? 'yes' : 'no'),
+  set: (val: string) => setPersonalization(val === 'yes')
+});
+
+const options = computed(() => [
+  { value: 'yes', label: t('global.selection.yes'), icon: Filter },
+  { value: 'no', label: t('global.selection.no'), icon: FilterX }
+]);
 
 async function setPersonalization(value: boolean) {
   if (updating.value || value === currentPersonalized.value) {
-    isOpen.value = false;
     return;
   }
 
@@ -110,133 +80,15 @@ async function setPersonalization(value: boolean) {
     }, 4000);
   } finally {
     updating.value = false;
-    isOpen.value = false;
   }
 }
-
-function handleClickOutside(event: MouseEvent) {
-  if (!isOpen.value) return;
-
-  const target = event.target as HTMLElement;
-  const wrapper = buttonRef.value?.closest('.personalization-wrapper');
-  if (wrapper && !wrapper.contains(target)) {
-    isOpen.value = false;
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
-});
 </script>
 
 <style scoped>
 .personalization-wrapper {
   position: relative;
-  display: inline-block;
-}
-
-.menu-btn {
   display: block;
   width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: var(--border-4);
-  cursor: pointer;
-  font-size: var(--font-size-sub);
-  transition: background 0.2s ease;
-}
-
-.menu-btn:hover:not(:disabled) {
-  background: var(--gg);
-}
-
-.menu-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.menu-btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-}
-
-.menu-btn-content svg {
-  flex-shrink: 0;
-}
-
-.chevron {
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.chevron-open {
-  transform: rotate(180deg);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  min-width: 100%;
-  margin-top: 4px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: var(--border-5);
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 1100;
-  box-shadow: var(--menu-shadow);
-  animation: menuFadeIn 160ms ease;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: var(--border-4);
-  cursor: pointer;
-  font-size: var(--font-size-sub);
-  transition: background 0.2s ease;
-  white-space: nowrap;
-}
-
-.dropdown-item:hover:not(:disabled) {
-  background: var(--gg);
-}
-
-.dropdown-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.dropdown-item.active {
-  font-weight: 600;
-}
-
-.check-icon {
-  color: var(--text);
-  flex-shrink: 0;
-}
-
-.spacer {
-  width: 16px;
-  flex-shrink: 0;
 }
 
 .message {
@@ -259,17 +111,6 @@ onBeforeUnmount(() => {
   background: var(--gg);
   color: var(--text);
   border: 1px solid var(--danger);
-}
-
-@keyframes menuFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 @keyframes messageSlideIn {

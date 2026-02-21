@@ -89,7 +89,7 @@
             </div>
 
             <div class="row-n item-badges" :class="{ collapsed: isChecked(item.id) }">
-              <div class="badge subject-badge">{{ formatSubjectDisplay(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
+              <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
               <div v-if="user?.isAdmin" class="admin-creator-info">
                 {{ item.createdByEmail || 'Unbekannt' }}
               </div>
@@ -343,6 +343,14 @@ import DeleteImageModal from '@/components/hw/DeleteImageModal.vue'
 import { formatSubjectDisplay } from '@/composables/useSubjectFormatter';
 import SelectDropdown from '@/components/hw/SelectDropdown.vue';
 import { computed} from 'vue';
+import { useI18n } from 'vue-i18n';
+import { AVAILABLE_SUBJECTS } from '@/types/subjects';
+
+const { t, te } = useI18n();
+
+const getSubjectName = (subject: string) => {
+  return formatSubjectDisplay(subject, t, te);
+};
 
 const {
   MAX_TITLE_LENGTH,
@@ -435,10 +443,11 @@ const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
 };
 
 const subjectOptions = computed(() => {
-  const defaultOption = { label: 'Alle Fächer', value: '' };
+  const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
 
-  const dynamicOptions = subjects.value.map((s) => ({
-    label: formatSubjectDisplay(s),
+  const allSubjects = Array.from(new Set([...AVAILABLE_SUBJECTS, ...subjects.value]));
+  const dynamicOptions = allSubjects.map((s) => ({
+    label: getSubjectName(s),
     value: s,
   }));
 

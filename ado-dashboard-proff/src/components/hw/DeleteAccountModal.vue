@@ -1,28 +1,16 @@
 <template>
-  <div class="blurit" @click.self="handleBackdropClick">
-    <div class="card rlc modal">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">Account löschen</h3>
-        <button
-            data-umami-event="Account löschen Modal schließen"
-            class="btn ghost"
-            @click="$emit('close')"
-            :disabled="submitting"
-        >
-          Schließen
-        </button>
-      </div>
+  <Modal @cancel="$emit('cancel')">
+    <template #title>
+      {{ t('account.menu.deleteAccount.title') }}
+    </template>
 
+    <template #content>
       <div style="margin-top:16px; font-family: var(--normal-font), sans-serif;">
         <div class="warning-box">
-          <strong style="font-family: var(--normal-font), sans-serif; font-size: var(--font-size-title)">Account unwiderruflich löschen?</strong>
-          <div class="user-email">E-Mail: {{ email }}</div>
+          <strong style="font-family: var(--normal-font), sans-serif; font-size: var(--font-size-title)">{{ t('account.menu.deleteAccount.warnBox.title')}}</strong>
+          <div class="user-email">{{ t('contact.contact.email') }}: {{ email }}</div>
           <br>
-          <div class="warning-text">
-            Wenn du dein Konto löschst, wird dieses mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Konto geschlossen wird.
-            <br><br>
-            Du kannst jederzeit einneues Konto erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Konto verknüpft, sodass du nicht mehr auf sie zugreifen kannst.
-          </div>
+          <div class="warning-text" v-html="t('account.menu.deleteAccount.warnBox.text')" />
         </div>
 
         <label class="collapse-checkbox">
@@ -31,110 +19,56 @@
               v-model="understoodChecked"
           >
           <span class="vis-label"></span>
-          <span class="checkbox-text">Ich verstehe, dass ich hiermit mein Konto unwiderruflich lösche.</span>
+          <span class="checkbox-text">{{ t('account.menu.deleteAccount.confirm') }}</span>
         </label>
 
         <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
         <div v-if="successMsg" class="message success">{{ successMsg }}</div>
-
-        <div class="action-buttons row">
-          <button
-              class="btn ghost"
-              @click="$emit('close')"
-              :disabled="submitting"
-          >
-            Abbrechen
-          </button>
-          <button
-              data-umami-event="Account löschen Bestätigung"
-              class="btn danger"
-              @click="confirmDelete"
-              :disabled="submitting || !understoodChecked"
-          >
-            <LoadingSpinner v-if="submitting" size="1.1em" />
-            <span v-else>Account Löschen</span>
-          </button>
-        </div>
       </div>
-    </div>
-  </div>
+    </template>
+
+    <template #action-btn>
+      <button
+          class="btn danger"
+          @click="confirmDelete"
+          :disabled="submitting || !understoodChecked"
+      >
+        <LoadingSpinner v-if="submitting" size="1.1em" />
+        <span v-else>{{ t('global.buttons.delete') }}</span>
+      </button>
+    </template>
+  </Modal>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import hw from '@/hwApi';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import { useI18n } from 'vue-i18n';
+import Modal from '@/components/hw/Modal.vue';
+import { useDeleteAccount } from '@/composables/useDeleteAccount';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   email: string;
 }>();
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: 'cancel'): void;
   (e: 'deleted'): void;
   (e: 'error', msg: string): void;
 }>();
 
-const understoodChecked = ref(false);
-const submitting = ref(false);
-const errorMsg = ref('');
-const successMsg = ref('');
+const {
+  understoodChecked,
+  submitting,
+  errorMsg,
+  successMsg,
+  confirmDelete
+} = useDeleteAccount(emit);
 
-function handleBackdropClick() {
-  if (!submitting.value) {
-    emit('close');
-  }
-}
-
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && !submitting.value) {
-    emit('close');
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
-});
-
-async function confirmDelete() {
-  submitting.value = true;
-  errorMsg.value = '';
-  try {
-    const res = await hw.delete('/api/auth/me');
-    if (res?.data?.ok) {
-      successMsg.value = 'Account wurde gelöscht.';
-      emit('deleted');
-      setTimeout(() => emit('close'), 600);
-    } else {
-      const err = res?.data?.error || 'Unbekannter Fehler';
-      errorMsg.value = err;
-      emit('error', err);
-    }
-  } catch (e: any) {
-    const msg = e?.response?.data?.error || 'Fehler beim Löschen';
-    errorMsg.value = msg;
-    emit('error', msg);
-  } finally {
-    submitting.value = false;
-  }
-}
 </script>
 
 <style scoped>
-.modal {
-  width: 100%;
-  max-width: 480px;
-  padding: 16px;
-  border-radius: 16px;
-  background: var(--lbg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-l);
-}
 
 .warning-box {
   background: rgba(246, 82, 82, 0.08);
@@ -243,10 +177,4 @@ async function confirmDelete() {
   color: var(--special--green);
 }
 
-@media (max-width: 480px) {
-  .modal {
-    max-width: 92vw;
-    padding: 16px;
-  }
-}
 </style>
