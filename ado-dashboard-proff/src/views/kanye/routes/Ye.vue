@@ -59,7 +59,7 @@ const tracks: Track[] = [
   },
   {
     "number": 3,
-    "title": "All Mine",
+    "title": "AppLogoutButton Mine",
     "features": ["Ty Dolla $ign", "Ant Clemons"],
     "duration": "2:25",
     "description": "A stripped-back, bass-heavy track focused on infidelity and temptation. It features falsetto vocals from Ant Clemons and a catchy hook by Ty Dolla $ign.",

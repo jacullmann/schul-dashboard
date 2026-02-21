@@ -106,7 +106,7 @@ const quotes: Quote[] = [
   { text: 'Pasteurisiert und homogenisiert!' },
   { text: 'Ohne Zusatzstoffe!' },
   { text: '0 Kalorien – Schul Dashboard' },
-  { text: 'All unsere Milch kommt von organischen Kühen!' },
+  { text: 'AppLogoutButton unsere Milch kommt von organischen Kühen!' },
   { text: '100% Tierleidfrei!' },
   { text: 'Diese Website enthält kein echtes Tierfleisch.' },
   { text: 'Fettarm und lang haltbar!' },

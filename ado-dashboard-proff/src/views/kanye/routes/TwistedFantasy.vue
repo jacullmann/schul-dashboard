@@ -67,7 +67,7 @@ const tracks: Track[] = [
   },
   {
     "number": 4,
-    "title": "All of the Lights (Interlude)",
+    "title": "AppLogoutButton of the Lights (Interlude)",
     "features": [],
     "duration": "1:02",
     "description": "A melancholic orchestral prelude composed primarily of cello and piano, setting the stage for the mania to follow.",
@@ -75,7 +75,7 @@ const tracks: Track[] = [
   },
   {
     "number": 5,
-    "title": "All of the Lights",
+    "title": "AppLogoutButton of the Lights",
     "features": ["Rihanna", "Kid Cudi", "Elton John", "Fergie"],
     "duration": "4:59",
     "description": "A sonic overload featuring vocals from 14 different artists. It’s a bright, chaotic pop-rap synthesis about the blinding nature of fame.",

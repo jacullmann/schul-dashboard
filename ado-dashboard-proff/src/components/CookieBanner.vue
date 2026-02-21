@@ -18,34 +18,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useAppAuth } from '@/composables/useAppAuth';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const auth = useAppAuth();
 const visible = ref(false);
-const router = useRouter();
 const { t } = useI18n();
 
 function accept() {
-  const payload = { accepted: true, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() };
+  const payload = {
+    dismissed: true,
+  };
   localStorage.setItem('cookie_consent', JSON.stringify(payload));
-  visible.value = false;
-}
-function toData(){
-  router.push('/impressum-&-datenschutz/datenschutz');
-}
-function revoke() {
-  localStorage.removeItem('cookie_consent');
   visible.value = false;
 }
 
 function checkShow() {
-  //if (!auth.isAuthenticated.value) {
-  //visible.value = false;
-  //return;
-  //}
   const raw = localStorage.getItem('cookie_consent');
   if (!raw) {
     visible.value = true;
@@ -53,8 +40,7 @@ function checkShow() {
   }
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed.accepted || new Date() > new Date(parsed.expires)) visible.value = true;
-    else visible.value = false;
+    visible.value = !parsed.dismissed;
   } catch {
     visible.value = true;
   }
@@ -62,9 +48,6 @@ function checkShow() {
 
 onMounted(() => {
   checkShow();
-});
-
-onBeforeUnmount(() => {
 });
 </script>
 

@@ -42,17 +42,6 @@ const routes = [
         }
     },
     {
-        path: '/divide',
-        name: 'divider',
-        component: () => import('@/views/divider/Divide.vue'),
-        meta: {
-            title: 'Divided',
-            fullWidth: true,
-            hideNavigation: false
-        }
-    },
-
-    {
         path: '/hausaufgaben/verify',
         redirect: '/verify'
     },
@@ -79,7 +68,7 @@ const routes = [
     {
         path: '/kanye',
         name: 'kanye',
-        component: () => import('@/views/kanye/Ye.vue'),
+        component: () => import('@/views/kanye/KanyeLayout.vue'),
         meta: {
             title: 'Kanye',
             fullWidth: true,
@@ -231,7 +220,7 @@ const routes = [
     {
         path: '/kontakt',
         name: 'contact',
-        component: () => import('@/components/ContactForm.vue'),
+        component: () => import('@/components/ContactInfo.vue'),
         meta: {
             title: 'Kontakt',
             fullWidth: false,

@@ -57,21 +57,21 @@
           </p>
         </div>
 
-        <All class="logoutDeviceMobile" />
+        <AppLogoutButton class="logoutDeviceMobile" />
       </div>
     </div>
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p class="copyright-text">© {{ year }} Schul-Dashboard</p>
-        <All class="logoutDeviceDesktop" />
+        <AppLogoutButton class="logoutDeviceDesktop" />
       </div>
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
-import All from '@/components/AllLogoutButton.vue';
+import AppLogoutButton from '@/components/AppLogoutButton.vue';
 import Logo from '@/components/hw/Logo.vue';
 import Notizen from "@/components/Notizen.vue";
 import ThemeDropdown from "@/components/hw/ThemeDropdown.vue";

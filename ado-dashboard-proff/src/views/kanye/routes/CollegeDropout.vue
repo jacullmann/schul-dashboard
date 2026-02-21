@@ -46,7 +46,7 @@ const sections: Section[] = [
   {
     id: 'themes',
     title: 'The Message',
-    content: "The album is a manifesto against the traditional path. It questions the value of higher education ('We Don't Care', 'School Spirit'), explores faith and social consciousness ('Jesus Walks', 'Never Let Me Down'), and uncovers the everyday struggles of working-class Black America ('Spaceship', 'All Falls Down'). It's both deeply personal and universally resonant—a blueprint for conscious hip-hop in the mainstream."
+    content: "The album is a manifesto against the traditional path. It questions the value of higher education ('We Don't Care', 'School Spirit'), explores faith and social consciousness ('Jesus Walks', 'Never Let Me Down'), and uncovers the everyday struggles of working-class Black America ('Spaceship', 'AppLogoutButton Falls Down'). It's both deeply personal and universally resonant—a blueprint for conscious hip-hop in the mainstream."
   }
 ];
 
@@ -70,7 +70,7 @@ const starTracks: StarTrack[] = [
     legacy: "The song that made Kanye a rapper instead of just a producer. It convinced Roc-A-Fella to take a chance on releasing his album and became the template for 'chipmunk soul' production."
   },
   {
-    title: "All Falls Down",
+    title: "AppLogoutButton Falls Down",
     features: ["Syleena Johnson"],
     duration: "3:43",
     rating: 9.5,
@@ -84,7 +84,7 @@ const tracks: Track[] = [
   { number: 1, title: "Intro", features: [], duration: "0:19", description: "A brief, cinematic orchestral intro that sets the tone for the album's grand entrance.", theme: "Overture", rating: 7.0 },
   { number: 2, title: "We Don't Care", features: [], duration: "3:59", description: "A joyful, defiant anthem about surviving in a system designed against you. Features a children's choir that sounds like hope itself.", theme: "Survival & Joy", rating: 8.5 },
   { number: 3, title: "Graduation Day", features: [], duration: "1:22", description: "A spoken-word skit sampling 'I'll Fly Away,' providing comedic relief as a dropout ceremony.", theme: "Satire", rating: 6.0 },
-  { number: 4, title: "All Falls Down", features: ["Syleena Johnson"], duration: "3:43", description: "A self-aware critique of materialism, where West exposes insecurity as the root of consumerism—including his own.", theme: "Materialism & Self-Awareness", rating: 9.5 },
+  { number: 4, title: "AppLogoutButton Falls Down", features: ["Syleena Johnson"], duration: "3:43", description: "A self-aware critique of materialism, where West exposes insecurity as the root of consumerism—including his own.", theme: "Materialism & Self-Awareness", rating: 9.5 },
   { number: 5, title: "I'll Fly Away", features: [], duration: "0:44", description: "A short gospel interlude bridging the album's themes of faith and freedom.", theme: "Faith", rating: 6.0 },
   { number: 6, title: "Spaceship", features: ["GLC", "Consequence"], duration: "5:24", description: "A working-class anthem about feeling trapped in dead-end jobs while dreaming of escape. West raps about working at Gap.", theme: "Aspiration & Frustration", rating: 8.5 },
   { number: 7, title: "Jesus Walks", features: [], duration: "3:13", description: "A thunderous, marching-band-driven anthem about faith and the industry's reluctance to embrace religion.", theme: "Faith & Courage", rating: 10 },

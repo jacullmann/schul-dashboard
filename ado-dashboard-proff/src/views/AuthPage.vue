@@ -12,7 +12,7 @@
         <div v-if="!isWelcomeContent && !isSecurity" class="auth-content content" key="auth-form">
           <AuthForm />
         </div>
-      <WelcomeSecurityPage  v-if="!isWelcomeContent && isSecurity" />
+      <WelcomeLegal  v-if="!isWelcomeContent && isSecurity" />
     </div>
 
     <div class="footer-container">
@@ -29,7 +29,7 @@ import WelcomeHeader from "@/views/welcome/WelcomeHeader.vue";
 import WelcomeFooter from "@/views/welcome/WelcomeFooter.vue";
 import AuthForm from "@/views/welcome/AuthForm.vue";
 import WelcomeContent from "@/views/welcome/WelcomeContent.vue";
-import WelcomeSecurityPage from "@/views/welcome/WelcomeSecurityPage.vue";
+import WelcomeLegal from "@/views/welcome/WelcomeLegal.vue";
 import WelcomeSection from "@/views/welcome/WelcomeSection.vue";
 
 const isSecurity = ref(false);
