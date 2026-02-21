@@ -135,6 +135,76 @@ const routes = [
                     fullWidth: true,
                     hideNavigation: true
                 }
+            },
+            {
+                path: 'the-college-droupout',
+                name: 'kanye-college-dropout',
+                component: () => import('@/views/kanye/routes/CollegeDropout.vue'),
+                meta: {
+                    title: 'The College Dropout',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: '808s-and-heartbreak',
+                name: 'kanye-808s-and-heartbreak',
+                component: () => import('@/views/kanye/routes/808sAndHeartbreak.vue'),
+                meta: {
+                    title: '808s & Heartbreak',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'watch-the-throne',
+                name: 'kanye-watch-the-throne',
+                component: () => import('@/views/kanye/routes/WatchTheThrone.vue'),
+                meta: {
+                    title: 'Watch The Throne',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'life-of-pablo',
+                name: 'kanye-life-of-pablo',
+                component: () => import('@/views/kanye/routes/LifeOfPablo.vue'),
+                meta: {
+                    title: 'The Life Of Pablo',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'kids-see-ghosts',
+                name: 'kanye-kids-see-ghosts',
+                component: () => import('@/views/kanye/routes/KidsSeeGhosts.vue'),
+                meta: {
+                    title: 'KIDS SEE GHOSTS',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'jesus-is-king',
+                name: 'kanye-jesus-is-king',
+                component: () => import('@/views/kanye/routes/JesusIsKing.vue'),
+                meta: {
+                    title: 'Jesus Is King',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
+            },
+            {
+                path: 'donda',
+                name: 'kanye-donda',
+                component: () => import('@/views/kanye/routes/Donda.vue'),
+                meta: {
+                    title: 'Donda',
+                    fullWidth: true,
+                    hideNavigation: true
+                }
             }
         ]
     },
