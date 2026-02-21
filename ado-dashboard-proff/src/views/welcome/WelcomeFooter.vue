@@ -14,7 +14,7 @@
           <h3>Navigation</h3>
           <p @click="gotomain" class="footer-link">{{ t('welcome.footer.navigation.landingPage') }}</p>
           <p @click="gotosec" class="footer-link">{{ t('legal.imprint.title') }}</p>
-          <p class="footer-link" @click="goToStatus">{{ t('welcome.footer.navigation.status') }}<ExternalLink size="14px"/></p>
+          <p class="footer-link" @click="goToStatus">{{ t('welcome.footer.navigation.status') }}<ExternalLink :size="14"/></p>
         </div>
 
         <div class="footer-section">

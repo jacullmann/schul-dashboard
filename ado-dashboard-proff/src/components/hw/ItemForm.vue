@@ -121,8 +121,7 @@ import { useImageUpload } from '@/composables/useImageUpload';
 import Modal from '@/components/hw/Modal.vue';
 import SelectDropdown from '@/components/hw/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
-import { AVAILABLE_SUBJECTS } from '@/types/subjects';
-
+import { AVAILABLE_SUBJECTS, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/constants/subjects';
 const { t } = useI18n();
 
 const props = defineProps<{
@@ -142,29 +141,6 @@ const labelFor = (type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG') => {
   return map[type];
 };
 
-const enrKurse = [
-  { id: '1', name: 'Herr Müller' },
-  { id: '2', name: 'Herr Weber' },
-  { id: '3', name: 'Frau Glier' },
-  { id: '4', name: 'Frau Thamm' },
-];
-
-const wpuDiKurse = [
-  { id: '1', name: 'Englisch' },
-  { id: '2', name: 'Deutsch' },
-  { id: '3', name: 'Biologie' },
-  { id: '4', name: 'Geschichte' },
-  { id: '5', name: 'Informatik' },
-  { id: '6', name: 'Latein' },
-];
-
-const wpuDoKurse = [
-  { id: '1', name: 'Englisch' },
-  { id: '2', name: 'Biologie' },
-  { id: '3', name: 'Mathe' },
-  { id: '4', name: 'Geschichte' },
-  { id: '5', name: 'Musik' },
-];
 
 const getInitialSubjectParts = () => {
   const initial = props.initial?.subject;
@@ -187,15 +163,15 @@ const getInitialSubjectParts = () => {
       const mappedMain = keyMap[main] || main;
 
       if (main === 'Enrichment' || main === 'enrichment') {
-        const found = enrKurse.find(k => k.name === course || k.id === course);
+        const found = ENR_COURSES.find(k => k.name === course || k.id === course);
         if (found) resolvedCourseId = found.id;
       }
       if (main === 'WPU (Di)' || main === 'wpu1') {
-        const found = wpuDiKurse.find(k => k.name === course || k.id === course);
+        const found = WPU1_COURSES.find(k => k.name === course || k.id === course);
         if (found) resolvedCourseId = found.id;
       }
       if (main === 'WPU (Do)' || main === 'wpu2') {
-        const found = wpuDoKurse.find(k => k.name === course || k.id === course);
+        const found = WPU2_COURSES.find(k => k.name === course || k.id === course);
         if (found) resolvedCourseId = found.id;
       }
 
@@ -277,9 +253,9 @@ const getCourseLabel = (courseName: string): string => {
   return map[courseName] || courseName;
 };
 
-const enrOptions = enrKurse.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-const wpuDiOptions = wpuDiKurse.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-const wpuDoOptions = wpuDoKurse.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
+const enrOptions = ENR_COURSES.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
+const wpuDiOptions = WPU1_COURSES.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
+const wpuDoOptions = WPU2_COURSES.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
 
 async function submit() {
   submitting.value = true;

@@ -39,7 +39,7 @@ const loadGame = (gameId: string) => {
   } else {
     // Wenn das Spiel nicht gefunden wird, auf 404 umleiten oder zur Übersicht
     console.error(`Spiel mit ID "${gameId}" nicht gefunden.`);
-    router.replace('/8912'); // Zurück zur Übersicht
+    router.replace('/spiele'); // Zurück zur Übersicht
   }
 };
 

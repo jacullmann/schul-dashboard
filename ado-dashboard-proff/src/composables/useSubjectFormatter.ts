@@ -1,5 +1,4 @@
-import { getSubjectKey } from '@/types/subjects';
-
+import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/constants/subjects';
 export function formatSubjectDisplay(subject: string, t: (key: string) => string, te: (key: string) => boolean): string {
     if (!subject) return subject;
 
@@ -7,7 +6,20 @@ export function formatSubjectDisplay(subject: string, t: (key: string) => string
     const mainKey = getSubjectKey(parts[0]!.trim());
 
     if (parts.length === 2 && ['enrichment', 'wpu1', 'wpu2'].includes(mainKey)) {
-        const course = parts[1]!.trim();
+        let course = parts[1]!.trim();
+
+        // Attempt to map an ID back to its native name first
+        if (mainKey === 'enrichment') {
+            const mapped = ENR_COURSES.find(k => k.id === course);
+            if (mapped) course = mapped.name;
+        } else if (mainKey === 'wpu1') {
+            const mapped = WPU1_COURSES.find(k => k.id === course);
+            if (mapped) course = mapped.name;
+        } else if (mainKey === 'wpu2') {
+            const mapped = WPU2_COURSES.find(k => k.id === course);
+            if (mapped) course = mapped.name;
+        }
+
         let courseDisplay = course;
 
         // Try to translate course if it matches a subject key (like Biologie -> biology)

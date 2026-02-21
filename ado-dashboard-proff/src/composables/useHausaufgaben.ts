@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useImageUpload } from '@/composables/useImageUpload';
 import { useGlobalAuthModal } from '@/composables/useGlobalAuthModal';
-import { getSubjectKey } from '@/types/subjects';
+import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/constants/subjects';
 import hw from '@/hwApi';
 
 export interface HwItem {
@@ -34,29 +34,6 @@ export function useHausaufgaben() {
     const userStore = useUserStore();
     const imageUpload = useImageUpload();
     const { user } = storeToRefs(userStore);
-
-    // --- Constants ---
-    const enrKurse = [
-        { id: '1', name: 'Herr Müller' },
-        { id: '2', name: 'Herr Weber' },
-        { id: '3', name: 'Frau Glier' },
-        { id: '4', name: 'Frau Thamm' },
-    ] as const;
-    const wpuDiKurse = [
-        { id: '1', name: 'Englisch' },
-        { id: '2', name: 'Deutsch' },
-        { id: '3', name: 'Biologie' },
-        { id: '4', name: 'Geschichte' },
-        { id: '5', name: 'Informatik' },
-        { id: '6', name: 'Latein' },
-    ] as const;
-    const wpuDoKurse = [
-        { id: '1', name: 'Englisch' },
-        { id: '2', name: 'Biologie' },
-        { id: '3', name: 'Mathe' },
-        { id: '4', name: 'Geschichte' },
-        { id: '5', name: 'Musik' },
-    ] as const;
 
     const MAX_TITLE_LENGTH = 50;
     const MAX_SUBJECT_LENGTH = 30;
@@ -176,17 +153,17 @@ export function useHausaufgaben() {
             if (enrName && enrName !== '0') {
                 userSubjects.add(`enrichment - ${enrName}`);
                 // add backward compat support
-                const legacyEnrName = enrKurse.find(k => k.id === enrName)?.name;
+                const legacyEnrName = ENR_COURSES.find(k => k.id === enrName)?.name;
                 if (legacyEnrName) userSubjects.add(`Enrichment - ${legacyEnrName}`);
             }
             if (wpu1Name && wpu1Name !== '0') {
                 userSubjects.add(`wpu1 - ${wpu1Name}`);
-                const legacyWpu1Name = wpuDiKurse.find(k => k.id === wpu1Name)?.name;
+                const legacyWpu1Name = WPU1_COURSES.find(k => k.id === wpu1Name)?.name;
                 if (legacyWpu1Name) userSubjects.add(`WPU (Di) - ${legacyWpu1Name}`);
             }
             if (wpu2Name && wpu2Name !== '0') {
                 userSubjects.add(`wpu2 - ${wpu2Name}`);
-                const legacyWpu2Name = wpuDoKurse.find(k => k.id === wpu2Name)?.name;
+                const legacyWpu2Name = WPU2_COURSES.find(k => k.id === wpu2Name)?.name;
                 if (legacyWpu2Name) userSubjects.add(`WPU (Do) - ${legacyWpu2Name}`);
             }
 
