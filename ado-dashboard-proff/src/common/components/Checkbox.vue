@@ -1,12 +1,12 @@
 <template>
-  <div class="collapse-checkbox">
+  <label class="collapse-checkbox">
     <input
         type="checkbox"
         :checked="modelValue || checked"
         @change="handleChange"
     />
     <span class="vis-label"></span>
-  </div>
+  </label>
 </template>
 
 <script setup lang="ts">
@@ -35,6 +35,13 @@ function handleChange(event: Event) {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+  user-select: none;
+  /* reset any global label styles */
+  font: inherit;
+  color: inherit;
+  font-weight: inherit;
+  margin: 0;
+  padding: 0;
 }
 
 .collapse-checkbox input {

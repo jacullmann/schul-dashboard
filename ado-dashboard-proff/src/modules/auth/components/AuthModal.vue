@@ -1,19 +1,17 @@
 <template>
-  <div class="blurit">
-    <div class="modal-wrapper">
-      <!-- Normales Login/Register Modal -->
-      <div v-if="!showMfaVerify" class="card rlc modal-card">
-        <div class="modal-header">
-          <h3 class="modal-title">{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</h3>
-          <button
-              data-umami-event="AuthModal schließen"
-              class="btn ghost close-btn"
-              @click="$emit('close')"
-          >
-            Schließen
-          </button>
-        </div>
+  <Modal @cancel="$emit('close')">
+    <template #title>
+      {{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}
+    </template>
 
+    <template #content>
+      <MfaVerifyModal
+          v-if="showMfaVerify"
+          @verified="onMfaVerified"
+          @cancelled="onMfaCancelled"
+      />
+
+      <template v-else>
         <div class="tab-wrapper">
           <TabSwitcher
               :items="tabs"
@@ -24,11 +22,13 @@
 
         <form @submit.prevent="submit" class="form-content">
           <div class="form-group">
+            <label for="auth-email">{{ t('account.auth.email') }}</label>
             <input
+                id="auth-email"
                 ref="emailInputRef"
                 class="input"
                 v-model="email"
-                placeholder="E-Mail"
+                :placeholder="t('account.auth.email')"
                 type="email"
                 autocomplete="email"
                 @input="clearFieldError('email')"
@@ -39,11 +39,13 @@
           <div class="form-group">
             <div class="password-field-wrapper">
               <div class="password-wrapper">
+                <label for="auth-password">{{ t('account.auth.password') }}</label>
                 <input
+                    id="auth-password"
                     class="input"
                     :type="showPassword ? 'text' : 'password'"
                     v-model="password"
-                    placeholder="Passwort (min. 8 Zeichen)"
+                    :placeholder="t('account.auth.passwordPlaceholder')"
                     autocomplete="current-password"
                     @input="clearFieldError('password')"
                 />
@@ -51,20 +53,19 @@
                     type="button"
                     @click="showPassword = !showPassword"
                     class="password-toggle"
-                    aria-label="Passwort anzeigen/verstecken"
+                    :aria-label="t('account.auth.revealLabel')"
                 >
-                  <component :is="showPassword ? EyeOff : Eye" size="20" />
+                  <component :is="showPassword ? EyeOff : Eye" :size="20" />
                 </button>
               </div>
               <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
                 <button
                     v-if="mode === 'login'"
                     type="button"
-                    data-umami-event="Passwort vergessen Button"
                     class="forgot-password-link"
                     @click="openReset"
                 >
-                  Passwort vergessen?
+                  {{ t('account.auth.forgot') }}
                 </button>
               </Transition>
             </div>
@@ -75,11 +76,13 @@
             <div v-if="mode === 'register'" class="register-fields-wrapper">
               <div class="form-group">
                 <div class="password-wrapper">
+                  <label for="auth-confirm">{{ t('account.auth.confirmPassword') }}</label>
                   <input
+                      id="auth-confirm"
                       class="input"
                       :type="showPassword ? 'text' : 'password'"
                       v-model="passwordConfirm"
-                      placeholder="Passwort bestätigen"
+                      :placeholder="t('account.auth.confirmPassword')"
                       autocomplete="new-password"
                       @input="clearFieldError('passwordConfirm')"
                   />
@@ -87,32 +90,19 @@
                       type="button"
                       @click="showPassword = !showPassword"
                       class="password-toggle"
-                      aria-label="Passwort anzeigen/verstecken"
+                      :aria-label="t('account.auth.revealLabel')"
                   >
-                    <component :is="showPassword ? EyeOff : Eye" size="20" />
+                    <component :is="showPassword ? EyeOff : Eye" :size="20" />
                   </button>
                 </div>
                 <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
               </div>
 
               <div class="form-group">
-                <div style="display: flex; align-items: flex-start; gap: 8px;">
-                  <label class="collapse-checkbox">
-                    <input type="checkbox" v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-                    <span class="vis-label"></span>
-                  </label>
-                  <span class="checkbox-label">
-                    Ich stimme der
-                    <a href="/impressum-&-datenschutz/impressum" target="_blank" class="privacy-link">
-                      Datenschutzerklärung
-                    </a>
-                    und den
-                    <a href="/impressum-&-datenschutz/nutzung" target="_blank" class="privacy-link">
-                      Nutzungsbedingungen
-                    </a>
-                    zu
-                  </span>
-                </div>
+                <label class="privacy-row">
+                  <Checkbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
+                  <span class="checkbox-label" v-html="t('account.auth.terms')" />
+                </label>
                 <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
               </div>
             </div>
@@ -121,59 +111,56 @@
           <div v-if="message" class="message" :class="{ error: isError }">
             {{ message }}
           </div>
-
-          <div class="form-actions">
-            <button
-                type="submit"
-                data-umami-event="Anmelden/Registrieren Button"
-                class="btn action submit-btn"
-                :disabled="submitting"
-            >
-              <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
-              <span v-else>{{ mode === 'login' ? 'Anmelden' : 'Registrieren' }}</span>
-            </button>
-          </div>
         </form>
-      </div>
+      </template>
+    </template>
 
-      <!-- MFA Verifizierungs-Modal -->
-      <MfaVerifyModal
-          v-if="showMfaVerify"
-          @verified="onMfaVerified"
-          @cancelled="onMfaCancelled"
-      />
-      <ResetModal
-          v-if="showReset"
-          @close="showReset = false"
-          @success="onResetSuccess"
-      />
-    </div>
-  </div>
+    <template #actions>
+      <button
+          type="submit"
+          class="btn action submit-btn"
+          :disabled="submitting"
+          @click="submit"
+      >
+        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
+        <span v-else>{{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}</span>
+      </button>
+    </template>
+  </Modal>
+
+  <ResetModal
+      v-if="showReset"
+      @close="showReset = false"
+      @success="onResetSuccess"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import hw from '@/api/hwApi';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import TabSwitcher from "@/common/components/TabSwitcher.vue";
+import Modal from '@/common/components/Modal.vue';
+import Checkbox from '@/common/components/Checkbox.vue';
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa.ts';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'logged-in'): void
+  (e: 'logged-in'): void;
 }>();
 
-// Tab Configuration
 const tabs = [
-  { id: 'login', label: 'Anmelden', routePath: '' },
-  { id: 'register', label: 'Registrieren', routePath: '' }
+  { id: 'login', label: t('account.auth.login'), routePath: '' },
+  { id: 'register', label: t('account.auth.register'), routePath: '' }
 ];
 
-// State
 const mode = ref<'login' | 'register'>('login');
 const email = ref('');
 const password = ref('');
@@ -189,29 +176,17 @@ const { cancelMfaLogin, resetMfaState } = useMfa();
 
 const emailInputRef = ref<HTMLInputElement | null>(null);
 
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && !submitting.value && !showMfaVerify.value && !showReset.value) {
-    emit('close');
-  }
-}
-
 onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
   emailInputRef.value?.focus();
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
 });
 
 const errors = reactive<{
   email?: string;
   password?: string;
   passwordConfirm?: string;
-  privacy?: string
+  privacy?: string;
 }>({});
 
-// Methods
 function handleTabChange(newId: string) {
   mode.value = newId as 'login' | 'register';
   clearAllErrors();
@@ -253,40 +228,33 @@ function validateBeforeSubmit(): boolean {
   clearAllErrors();
   let ok = true;
 
-  // Email validation
-  if (!email.value || !email.value.trim()) {
-    errors.email = 'Bitte E-Mail angeben.';
+  if (!email.value?.trim()) {
+    errors.email = t('account.auth.errors.emailMissing');
     ok = false;
-  } else {
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(email.value.trim())) {
-      errors.email = 'Bitte gültige E-Mail-Adresse eingeben.';
-      ok = false;
-    }
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+    errors.email = t('account.auth.errors.emailWrong');
+    ok = false;
   }
 
-  // Password validation
   if (!password.value) {
-    errors.password = 'Bitte Passwort angeben.';
+    errors.password = t('account.auth.errors.passwordMissing');
     ok = false;
   } else if (password.value.length < 8) {
-    errors.password = 'Das Passwort muss mindestens 8 Zeichen lang sein.';
+    errors.password = mode.value === 'login' ? t('account.auth.errors.passwordShort') : t('account.auth.errors.newShort');
     ok = false;
   }
 
-  // Password confirmation (register only)
   if (mode.value === 'register') {
     if (!passwordConfirm.value) {
-      errors.passwordConfirm = 'Bitte Passwort bestätigen.';
+      errors.passwordConfirm = t('account.auth.errors.confirmMissing');
       ok = false;
     } else if (password.value !== passwordConfirm.value) {
-      errors.passwordConfirm = 'Die Passwörter stimmen nicht überein.';
+      errors.passwordConfirm = t('account.auth.errors.confirmWrong');
       ok = false;
     }
 
-    // Privacy checkbox
     if (!acceptedPrivacy.value) {
-      errors.privacy = 'Bitte stimmen Sie der Datenschutzerklärung und den Nutzungsbedingungen zu.';
+      errors.privacy = t('account.auth.errors.termsMissing');
       ok = false;
     }
   }
@@ -295,11 +263,11 @@ function validateBeforeSubmit(): boolean {
 }
 
 async function submit() {
+  if (showMfaVerify.value) return;
   message.value = '';
   isError.value = false;
 
-  const valid = validateBeforeSubmit();
-  if (!valid) {
+  if (!validateBeforeSubmit()) {
     message.value = 'Bitte die Fehler im Formular korrigieren.';
     isError.value = true;
     return;
@@ -308,20 +276,12 @@ async function submit() {
   submitting.value = true;
   try {
     if (mode.value === 'register') {
-      await hw.post('/api/auth/register', {
-        email: email.value,
-        password: password.value
-      });
-      message.value = 'Registriert. Überprüfe dein E-Mail-Postfach...';
+      await hw.post('/api/auth/register', { email: email.value, password: password.value });
+      message.value = t('account.auth.successRegister');
       isError.value = false;
     } else {
-      const { data } = await hw.post('/api/auth/login', {
-        email: email.value,
-        password: password.value
-      });
-
+      const { data } = await hw.post('/api/auth/login', { email: email.value, password: password.value });
       if (data.ok) {
-        // MFA-Check
         if (data.requiresMfa) {
           showMfaVerify.value = true;
         } else {
@@ -335,14 +295,13 @@ async function submit() {
       }
     }
   } catch (e: any) {
-    message.value = e.response?.data?.error || 'Unbekannter Fehler';
+    message.value = e.response?.data?.error || t('global.errors.unknown');
     isError.value = true;
   } finally {
     submitting.value = false;
   }
 }
 
-// MFA erfolgreich verifiziert
 function onMfaVerified(csrfToken: string) {
   showMfaVerify.value = false;
   if (csrfToken) {
@@ -350,11 +309,10 @@ function onMfaVerified(csrfToken: string) {
   } else {
     syncCsrfFromCookie();
   }
-  resetMfaState(); // MFA-State zurücksetzen
+  resetMfaState();
   emit('logged-in');
 }
 
-// MFA abgebrochen
 function onMfaCancelled() {
   showMfaVerify.value = false;
   resetMfaState();
@@ -362,83 +320,42 @@ function onMfaCancelled() {
   isError.value = true;
 }
 
-// Transition Hooks
 const enter = (el: Element) => {
-  const element = el as HTMLElement;
-  const height = element.scrollHeight;
-  element.style.height = '0';
-  element.style.opacity = '0';
-  element.style.marginTop = '0';
-  element.style.marginBottom = '0';
-  element.style.overflow = 'hidden';
-
-  element.offsetHeight; // Force reflow
-
-  element.style.transition = 'height 0.3s cubic-bezier(0.78, 0, 0.22, 1), opacity 0.3s cubic-bezier(0.78, 0, 0.22, 1), margin 0.3s cubic-bezier(0.78, 0, 0.22, 1)';
-  element.style.height = height + 'px';
-  element.style.opacity = '1';
-  element.style.marginTop = '';
-  element.style.marginBottom = '';
+  const e = el as HTMLElement;
+  const height = e.scrollHeight;
+  e.style.cssText = 'height:0;opacity:0;margin-top:0;margin-bottom:0;overflow:hidden';
+  e.offsetHeight;
+  e.style.transition = 'height 0.3s cubic-bezier(0.78,0,0.22,1),opacity 0.3s cubic-bezier(0.78,0,0.22,1),margin 0.3s cubic-bezier(0.78,0,0.22,1)';
+  e.style.height = height + 'px';
+  e.style.opacity = '1';
+  e.style.marginTop = '';
+  e.style.marginBottom = '';
 };
 
 const afterEnter = (el: Element) => {
-  const element = el as HTMLElement;
-  element.style.height = 'auto';
-  element.style.overflow = '';
-  element.style.transition = '';
+  const e = el as HTMLElement;
+  e.style.height = 'auto';
+  e.style.overflow = '';
+  e.style.transition = '';
 };
 
 const leave = (el: Element) => {
-  const element = el as HTMLElement;
-  element.style.height = element.scrollHeight + 'px';
-  element.style.overflow = 'hidden';
-  element.offsetHeight; // Force reflow
-  element.style.transition = 'height 0.3s cubic-bezier(0.78, 0, 0.22, 1), opacity 0.3s cubic-bezier(0.78, 0, 0.22, 1), margin 0.3s cubic-bezier(0.78, 0, 0.22, 1)';
-  element.style.height = '0';
-  element.style.opacity = '0';
-  element.style.marginTop = '0';
-  element.style.marginBottom = '0';
+  const e = el as HTMLElement;
+  e.style.height = e.scrollHeight + 'px';
+  e.style.overflow = 'hidden';
+  e.offsetHeight;
+  e.style.transition = 'height 0.3s cubic-bezier(0.78,0,0.22,1),opacity 0.3s cubic-bezier(0.78,0,0.22,1),margin 0.3s cubic-bezier(0.78,0,0.22,1)';
+  e.style.height = '0';
+  e.style.opacity = '0';
+  e.style.marginTop = '0';
+  e.style.marginBottom = '0';
 };
 </script>
 
 <style scoped>
-.modal-wrapper {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 16px;
-}
-
-.modal-card {
-  width: 100%;
+/* Constrain to login-size width */
+:deep(.modal-card) {
   max-width: 420px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--lbg);
-  padding: 24px;
-  box-shadow: var(--shadow-l);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.modal-title {
-  margin: 0;
-  color: var(--text);
-  font-size: var(--font-size-h2);
-  font-weight: 700;
-}
-
-.close-btn {
-  color: var(--text);
-  padding: 8px 12px;
 }
 
 .tab-wrapper {
@@ -448,7 +365,6 @@ const leave = (el: Element) => {
 .form-content {
   display: flex;
   flex-direction: column;
-  /* gap removed for smooth transition */
 }
 
 .form-group {
@@ -461,7 +377,6 @@ const leave = (el: Element) => {
 .password-field-wrapper {
   display: flex;
   flex-direction: column;
-  /* gap removed */
 }
 
 .password-wrapper {
@@ -480,7 +395,6 @@ const leave = (el: Element) => {
   color: var(--sub);
   display: flex;
   align-items: center;
-  justify-content: center;
   transition: color 0.1s ease;
 }
 
@@ -504,54 +418,17 @@ const leave = (el: Element) => {
   color: var(--text);
 }
 
-.collapse-checkbox {
-  display: inline-flex;
-  align-items: center;
+.privacy-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   cursor: pointer;
-}
-
-.collapse-checkbox input {
-  display: none;
-}
-
-.collapse-checkbox .vis-label {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 2px solid var(--sub);
-  display: inline-block;
-  background: transparent;
-  position: relative;
-}
-
-.collapse-checkbox input:checked + .vis-label {
-  background: var(--text);
-  border-color: var(--text);
-}
-
-.collapse-checkbox .vis-label:hover {
-  border-color: var(--text);
-}
-
-.collapse-checkbox .vis-label::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border: solid var(--lbg);
-  border-width: 0 2px 2px 0;
-  opacity: 0;
-  left: 50%;
-  top: 32%;
-  transform: translate(-50%, -30%) rotate(70deg);
-  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.collapse-checkbox input:checked + .vis-label::after {
-  opacity: 1;
-  width: 5px;
-  height: 10px;
-  transform: translate(-50%, -45%) rotate(45deg);
+  user-select: none;
+  font: inherit;
+  color: inherit;
+  font-weight: inherit;
+  margin: 0;
+  padding: 0;
 }
 
 .checkbox-label {
@@ -563,7 +440,7 @@ const leave = (el: Element) => {
 .privacy-link {
   color: var(--sub);
   text-decoration: underline;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .privacy-link:hover {
@@ -583,16 +460,11 @@ const leave = (el: Element) => {
 .message {
   color: var(--primary);
   font-size: var(--font-size-sub);
+  margin-bottom: 12px;
 }
 
 .message.error {
   color: var(--danger);
-}
-
-.form-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .submit-btn {
@@ -607,13 +479,8 @@ const leave = (el: Element) => {
 }
 
 @media (max-width: 500px) {
-  .modal-card {
+  :deep(.modal-card) {
     max-width: 100%;
-    margin: 0;
-  }
-
-  .modal-title {
-    font-size: var(--font-size-h3);
   }
 }
 </style>

@@ -47,10 +47,7 @@
       </div>
 
       <label class="s-checkbox">
-        <input class="checkbox-input" type="checkbox" v-model="accepted" />
-        <span class="checkbox-box">
-          <component :is="Check" class="check-icon" :size="18" />
-        </span>
+        <Checkbox v-model="accepted" />
         <span class="checkbox-text">Nutzungsbedingungen und Datenschutzerlärungen akzeptieren</span>
       </label>
 
@@ -102,10 +99,10 @@ import {
   User,
   Key,
   ArrowRight,
-  Check,
   AlertCircle
 } from 'lucide-vue-next'
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import Checkbox from '@/common/components/Checkbox.vue';
 import { useUserStore } from "@/stores/userStore.ts";
 const userStore = useUserStore();
 
@@ -153,10 +150,6 @@ async function submit() {
       }
       try {
         await userStore.fetchUser();
-      } catch {
-      }
-      try {
-        umami?.track('Welcome Page Login erfolgreich');
       } catch {
       }
       await router.push('/items/HAUSAUFGABE');
@@ -266,44 +259,6 @@ async function submit() {
   cursor: pointer;
   margin: 8px 0 16px 0;
   user-select: none;
-}
-
-.checkbox-input {
-  display: none;
-}
-
-.checkbox-box {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--sub);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.1s;
-  background: transparent;
-}
-
-.checkbox-box:hover {
-  border-color: var(--text);
-}
-
-.check-icon {
-  color: var(--bg);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.checkbox-input:checked + .checkbox-box {
-  background: var(--text);
-  border-color: var(--text);
-}
-
-.checkbox-input:checked + .checkbox-box .check-icon {
-  opacity: 1;
-  transform: scale(1);
-  color: var(--lbg);
 }
 
 .checkbox-text {

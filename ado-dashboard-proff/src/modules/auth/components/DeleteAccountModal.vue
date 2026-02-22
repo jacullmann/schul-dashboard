@@ -13,12 +13,8 @@
           <div class="warning-text" v-html="t('account.menu.deleteAccount.warnBox.text')" />
         </div>
 
-        <label class="collapse-checkbox">
-          <input
-              type="checkbox"
-              v-model="understoodChecked"
-          >
-          <span class="vis-label"></span>
+        <label class="checkbox-row">
+          <Checkbox v-model="understoodChecked" />
           <span class="checkbox-text">{{ t('account.menu.deleteAccount.confirm') }}</span>
         </label>
 
@@ -45,6 +41,7 @@ import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
 import Modal from '@/common/components/Modal.vue';
 import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount.ts';
+import Checkbox from '@/common/components/Checkbox.vue';
 
 const { t } = useI18n();
 
@@ -95,58 +92,13 @@ const {
   line-height: 1.5;
 }
 
-.collapse-checkbox {
+.checkbox-row {
   display: inline-flex;
   align-items: center;
-  cursor: pointer;
-  margin-top: 16px;
   gap: 10px;
-}
-
-.collapse-checkbox input {
-  display: none;
-}
-
-.collapse-checkbox .vis-label {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  border-radius: 4px;
-  border: 2px solid var(--sub);
-  display: inline-block;
-  background: transparent;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.collapse-checkbox input:checked + .vis-label {
-  background: var(--text);
-  border-color: var(--text);
-}
-
-.collapse-checkbox .vis-label:hover {
-  border-color: var(--text);
-}
-
-.collapse-checkbox .vis-label::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border: solid var(--lbg);
-  border-width: 0 2px 2px 0;
-  opacity: 0;
-  left: 50%;
-  top: 32%;
-  transform: translate(-50%, -30%) rotate(70deg);
-  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.collapse-checkbox input:checked + .vis-label::after {
-  opacity: 1;
-  width: 5px;
-  height: 10px;
-  transform: translate(-50%, -45%) rotate(45deg);
+  margin-top: 16px;
+  cursor: pointer;
+  user-select: none;
 }
 
 .checkbox-text {
