@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { useLocale } from '@/common/composables/useLocale.ts';
+import { useLocale } from '@/common/composables/useLocale';
 import type { SupportedLocale } from '@/i18n';
 import { Languages } from 'lucide-vue-next';
 import MenuDropdown, { type MenuOption } from '@/common/components/MenuDropdown.vue';

@@ -81,7 +81,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { ShieldCheck, AlertCircle, AlertTriangle } from 'lucide-vue-next';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import { useMfa } from '@/modules/auth/composables/useMfa.ts';
+import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const emit = defineEmits<{
   (e: 'verified', csrfToken: string): void;

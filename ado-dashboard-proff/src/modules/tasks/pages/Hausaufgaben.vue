@@ -319,7 +319,7 @@ import TodoApp from "@/modules/tasks/components/TodoApp.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabNavigation from '@/modules/tasks/components/TabNavigation.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin, Ellipsis} from 'lucide-vue-next'
-import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben.ts';
+import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
 import TodoForm from '@/modules/tasks/components/TodoForm.vue';
 import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";

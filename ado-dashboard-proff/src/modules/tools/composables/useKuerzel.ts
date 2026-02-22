@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
-import { supabase } from '@/common/composables/Datatable.ts'
-import { normalize, similarity } from '@/modules/tools/utils/kuerzelHelper.ts'
+import { supabase } from '@/common/composables/Datatable'
+import { normalize, similarity } from '@/modules/tools/utils/kuerzelHelper'
 
 interface Person {
     id: number

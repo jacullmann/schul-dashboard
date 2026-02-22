@@ -205,7 +205,7 @@ import {
 } from 'lucide-vue-next';
 
 import PlanBlock from '@/modules/admin/components/AdminDocPlanBlock.vue';
-import { useDocEditor } from '@/modules/admin/composables/useDocEditor.ts';
+import { useDocEditor } from '@/modules/admin/composables/useDocEditor';
 const TOOLBAR_COLORS = ['#000000','#ffffff','#d32f2f','#f57c00','#388e3c','#1976d2','#7b1fa2'];
 
 type BlockType = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'ul' | 'cl';

@@ -478,8 +478,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useAdmin } from '@/modules/admin/composables/useAdmin.ts';
-import { useAnnouncements } from "@/modules/announcements/composables/useAnnouncements.ts";
+import { useAdmin } from '@/modules/admin/composables/useAdmin';
+import { useAnnouncements } from "@/modules/announcements/composables/useAnnouncements";
 import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
 import AdminHeader from '@/modules/admin/components/AdminHeader.vue';
 import AdminSidebar from '@/modules/admin/components/AdminSidebar.vue';

@@ -185,7 +185,7 @@ import {
   AlertTriangle
 } from 'lucide-vue-next';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import { useMfa } from '@/modules/auth/composables/useMfa.ts';
+import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const props = defineProps<{
   mfaEnabled: boolean;

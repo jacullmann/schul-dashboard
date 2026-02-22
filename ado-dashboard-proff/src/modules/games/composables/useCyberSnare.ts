@@ -1,5 +1,5 @@
 import { ref, reactive, type Ref } from 'vue';
-import { sfx } from '@/modules/games/composables/useCyberSnareAudio.ts';
+import { sfx } from '@/modules/games/composables/useCyberSnareAudio';
 import type { GameState, UpgradeDef, MetaStats } from '@/modules/games/types';
 
 // ─── Types & Constants ──────────────────────────────────────────────

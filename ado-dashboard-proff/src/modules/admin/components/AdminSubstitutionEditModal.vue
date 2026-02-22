@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
-import { useAdmin } from '@/modules/admin/composables/useAdmin.ts';
+import { useAdmin } from '@/modules/admin/composables/useAdmin';
 
 const { saveTimetableSub, savingSub } = useAdmin();
 

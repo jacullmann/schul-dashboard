@@ -80,14 +80,14 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import Checkbox from '@/common/components/Checkbox.vue';
-import { useUserStore } from '@/stores/userStore.ts';
+import { useUserStore } from '@/stores/userStore';
 import { useRouter } from 'vue-router';
 import hw from '@/api/hwApi';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Trash2, Ellipsis, Lock } from 'lucide-vue-next';
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import { useI18n } from 'vue-i18n';
-import type { Todo } from '@/modules/tasks/types.ts';
+import type { Todo } from '@/modules/tasks/types';
 
 const { t } = useI18n();
 

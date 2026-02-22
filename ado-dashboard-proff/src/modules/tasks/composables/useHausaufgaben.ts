@@ -1,15 +1,15 @@
-import kommt kei{ ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/userStore.ts';
-import { useImageUpload } from '@/modules/tasks/composables/useImageUpload.ts';
-import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal.ts';
-import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES, AVAILABLE_SUBJECTS } from '@/types/subjects.ts';
+import { useUserStore } from '@/stores/userStore';
+import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
+import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
+import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES, AVAILABLE_SUBJECTS } from '@/types/subjects';
 import hw from '@/api/hwApi';
-import type { HwItem, ItemType } from '@/modules/tasks/types.ts';
-import { isValidType } from '@/modules/tasks/types.ts';
+import type { HwItem, ItemType } from '@/modules/tasks/types';
+import { isValidType } from '@/modules/tasks/types';
 import { useI18n } from 'vue-i18n';
-import { formatSubjectDisplay } from '@/utils/subject-formatter.ts';
+import { formatSubjectDisplay } from '@/utils/subject-formatter';
 
 export type { HwItem };
 

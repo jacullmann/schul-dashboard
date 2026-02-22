@@ -26,10 +26,10 @@ import { watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
-import { loadBadWords } from "@/modules/tasks/composables/useProfanity.ts";
+import { loadBadWords } from "@/modules/tasks/composables/useProfanity";
 import AuthModal from '@/modules/auth/components/AuthModal.vue';
-import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal.ts';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
+import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useRouter } from 'vue-router';
 import hw, { syncCsrfFromCookie } from '@/api/hwApi';
 

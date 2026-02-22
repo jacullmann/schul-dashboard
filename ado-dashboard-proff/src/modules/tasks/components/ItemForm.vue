@@ -115,13 +115,13 @@
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben.ts';
-import { containsProfanity } from '@/modules/tasks/composables/useProfanity.ts';
-import { useImageUpload } from '@/modules/tasks/composables/useImageUpload.ts';
+import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
+import { containsProfanity } from '@/modules/tasks/composables/useProfanity';
+import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import Modal from '@/common/components/Modal.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
-import { AVAILABLE_SUBJECTS, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects.ts';
+import { AVAILABLE_SUBJECTS, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects';
 const { t } = useI18n();
 
 const props = defineProps<{

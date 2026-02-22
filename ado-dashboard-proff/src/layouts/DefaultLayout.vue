@@ -31,7 +31,7 @@ import { ref, onMounted } from 'vue';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
-import { useLoadingBar } from '@/common/composables/loadingState.ts';
+import { useLoadingBar } from '@/common/composables/loadingState';
 
 const { loading, progress, opacity } = useLoadingBar();
 

@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useCyberSnare } from '@/modules/games/composables/useCyberSnare.ts';
+import { useCyberSnare } from '@/modules/games/composables/useCyberSnare';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const monitorRef = ref<HTMLElement | null>(null);

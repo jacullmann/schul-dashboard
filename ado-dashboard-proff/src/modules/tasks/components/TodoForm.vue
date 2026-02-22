@@ -32,7 +32,7 @@ import { ref, onMounted } from 'vue';
 import hw from '@/api/hwApi';
 import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import type { Todo } from '@/modules/tasks/types.ts';
+import type { Todo } from '@/modules/tasks/types';
 
 const props = defineProps<{ initial?: Todo }>();
 const emit = defineEmits<{

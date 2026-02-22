@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
-import { useLoadingBar } from '@/common/composables/loadingState.ts';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 
 const routes = [
@@ -107,7 +107,7 @@ const routes = [
             {
                 path: 'info-dashboard',
                 name: 'info-dashboard',
-                component: () => import('@/modules/infodashboard/InfoDashboard.vue'),
+                component: () => import('@/modules/infodashboard/pages/InfoDashboard.vue'),
                 meta: {
                     title: 'Info Dashboard',
                     fullWidth: true,

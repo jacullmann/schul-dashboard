@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount } from 'vue'
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { TabletSmartphone, LogOut } from "lucide-vue-next";
 import { useRouter } from 'vue-router';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';

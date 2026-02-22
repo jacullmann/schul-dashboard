@@ -2,8 +2,8 @@ import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import type { Article, ViewState, SortOption } from '@/modules/infodashboard/types.ts';
-import { articles } from '@/modules/infodashboard/data.ts';
+import type { Article, ViewState, SortOption } from '@/modules/infodashboard/types';
+import { articles } from '@/modules/infodashboard/data';
 
 export function useArticleSearch() {
     const { t } = useI18n();

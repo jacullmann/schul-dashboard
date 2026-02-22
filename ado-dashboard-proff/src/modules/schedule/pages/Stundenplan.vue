@@ -2,8 +2,8 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from "@/api/hwApi";
 import InfoPop from '@/common/components/InfoModalCenter.vue'
-import { useUserStore } from '@/stores/userStore.ts';
-import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types/types.ts';
+import { useUserStore } from '@/stores/userStore';
+import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
 const userStore = useUserStore();
 
 const isPersonalized = computed(() => {

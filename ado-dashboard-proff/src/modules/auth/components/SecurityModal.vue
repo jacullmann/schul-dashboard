@@ -32,7 +32,7 @@
 import { ref, onMounted } from 'vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
-import { useMfa } from '@/modules/auth/composables/useMfa.ts';
+import { useMfa } from '@/modules/auth/composables/useMfa';
 import Modal from '@/common/components/Modal.vue';
 
 const props = defineProps<{

@@ -90,7 +90,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import GetStatushwb2 from "@/modules/welcome/components/GetStatushwb2.vue";
 import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import {
@@ -103,7 +103,7 @@ import {
 } from 'lucide-vue-next'
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import Checkbox from '@/common/components/Checkbox.vue';
-import { useUserStore } from "@/stores/userStore.ts";
+import { useUserStore } from "@/stores/userStore";
 const userStore = useUserStore();
 
 const router = useRouter();

@@ -89,15 +89,15 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/userStore.ts';
+import { useUserStore } from '@/stores/userStore';
 import Logo from '@/common/components/Logo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import { X, Menu } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal.ts';
-import { useMfa } from '@/modules/auth/composables/useMfa.ts';
+import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
+import { useMfa } from '@/modules/auth/composables/useMfa';
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();

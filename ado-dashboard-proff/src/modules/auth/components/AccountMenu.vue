@@ -118,7 +118,7 @@ import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
 import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import { useI18n } from 'vue-i18n';
-import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu.ts';
+import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu';
 
 const { t } = useI18n();
 

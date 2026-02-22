@@ -9,7 +9,7 @@ import {
   FastForward
 } from 'lucide-vue-next';
 import { ref } from 'vue';
-import { useVideoPlayer } from '@/modules/infodashboard/composables/useVideoPlayer.ts';
+import { useVideoPlayer } from '@/modules/infodashboard/composables/useVideoPlayer';
 
 defineProps<{
   src: string;

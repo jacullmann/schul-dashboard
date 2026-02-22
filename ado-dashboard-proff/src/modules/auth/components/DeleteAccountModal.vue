@@ -40,7 +40,7 @@
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
 import Modal from '@/common/components/Modal.vue';
-import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount.ts';
+import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount';
 import Checkbox from '@/common/components/Checkbox.vue';
 
 const { t } = useI18n();

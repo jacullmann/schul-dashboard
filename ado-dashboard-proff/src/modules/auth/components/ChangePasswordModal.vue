@@ -112,7 +112,7 @@ import { Eye, EyeOff } from 'lucide-vue-next';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
 import Modal from '@/common/components/Modal.vue';
-import { useChangePassword } from '@/modules/auth/composables/useChangePassword.ts';
+import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
 
 const { t } = useI18n();
 

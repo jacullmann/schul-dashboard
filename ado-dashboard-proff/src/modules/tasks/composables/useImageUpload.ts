@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import hw from '@/api/hwApi';
-import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage.ts';
-import type { ImageItem } from '@/modules/tasks/types.ts';
+import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage';
+import type { ImageItem } from '@/modules/tasks/types';
 
 export type { ImageItem };
 

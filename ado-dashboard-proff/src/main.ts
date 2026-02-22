@@ -3,7 +3,7 @@ import { createPinia } from 'pinia';
 import App from '@/App.vue';
 import '@/assets/css/style.css';
 import router from '@/router';
-import { useTheme } from '@/common/composables/useTheme.ts';
+import { useTheme } from '@/common/composables/useTheme';
 import i18n from '@/i18n';
 
 const { initializeTheme } = useTheme();

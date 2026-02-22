@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Play } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
-import type { Article } from '@/modules/infodashboard/types.ts';
+import type { Article } from '@/modules/infodashboard/types';
 
 const { t } = useI18n();
 

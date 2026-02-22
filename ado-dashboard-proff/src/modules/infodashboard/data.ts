@@ -1,4 +1,4 @@
-import type { Article } from '@/modules/infodashboard/types.ts';
+import type { Article } from '@/modules/infodashboard/types';
 
 export const articles: Article[] = [
     {

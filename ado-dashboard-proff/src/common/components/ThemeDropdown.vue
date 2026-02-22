@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useTheme, type ThemeMode } from '@/common/composables/useTheme.ts';
+import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
 import SelectDropdown, { type UnitOption } from '@/common/components/SelectDropdown.vue';
 import { useI18n} from "vue-i18n";
 

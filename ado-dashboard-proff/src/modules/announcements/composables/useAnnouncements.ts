@@ -1,6 +1,6 @@
 import { ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/userStore.ts';
+import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/hwApi';
 import type { Announcement } from '@/modules/announcements/types';
 
