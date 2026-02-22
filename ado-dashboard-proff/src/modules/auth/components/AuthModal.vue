@@ -23,60 +23,63 @@
         <form @submit.prevent="submit" class="form-content">
           <div class="form-group">
             <label for="auth-email">{{ t('account.auth.email') }}</label>
-            <input
-                id="auth-email"
-                ref="emailInputRef"
-                class="input"
-                v-model="email"
-                :placeholder="t('account.auth.email')"
-                type="email"
-                autocomplete="email"
-                @input="clearFieldError('email')"
-            />
-            <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
+            <div class="input-wrapper">
+              <input
+                  id="auth-email"
+                  ref="emailInputRef"
+                  class="input"
+                  v-model="email"
+                  :placeholder="t('account.auth.email')"
+                  type="email"
+                  autocomplete="email"
+                  @input="clearFieldError('email')"
+              />
+
+              <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
+            </div>
           </div>
 
           <div class="form-group">
-            <div class="password-field-wrapper">
-              <div class="password-wrapper">
-                <label for="auth-password">{{ t('account.auth.password') }}</label>
-                <input
-                    id="auth-password"
-                    class="input"
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="password"
-                    :placeholder="t('account.auth.passwordPlaceholder')"
-                    autocomplete="current-password"
-                    @input="clearFieldError('password')"
-                />
-                <button
-                    type="button"
-                    @click="showPassword = !showPassword"
-                    class="password-toggle"
-                    :aria-label="t('account.auth.revealLabel')"
-                >
-                  <component :is="showPassword ? EyeOff : Eye" :size="20" />
-                </button>
-              </div>
-              <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
-                <button
-                    v-if="mode === 'login'"
-                    type="button"
-                    class="forgot-password-link"
-                    @click="openReset"
-                >
-                  {{ t('account.auth.forgot') }}
-                </button>
-              </Transition>
+            <label for="auth-password">{{ t('account.auth.password') }}</label>
+            <div class="input-wrapper">
+              <input
+                  id="auth-password"
+                  class="input"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  :placeholder="t('account.auth.passwordPlaceholder')"
+                  autocomplete="current-password"
+                  @input="clearFieldError('password')"
+              />
+              <button
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="password-toggle"
+                  :aria-label="t('account.auth.revealLabel')"
+              >
+                <component :is="showPassword ? EyeOff : Eye" :size="20" />
+              </button>
             </div>
+
+            <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
+              <button
+                  v-if="mode === 'login'"
+                  type="button"
+                  class="forgot-password-link"
+                  @click="openReset"
+              >
+                {{ t('account.auth.forgot') }}
+              </button>
+            </Transition>
+
             <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
           </div>
 
           <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
             <div v-if="mode === 'register'" class="register-fields-wrapper">
               <div class="form-group">
-                <div class="password-wrapper">
-                  <label for="auth-confirm">{{ t('account.auth.confirmPassword') }}</label>
+                <label for="auth-confirm">{{ t('account.auth.confirmPassword') }}</label>
+                <div class="input-wrapper">
                   <input
                       id="auth-confirm"
                       class="input"
@@ -95,6 +98,7 @@
                     <component :is="showPassword ? EyeOff : Eye" :size="20" />
                   </button>
                 </div>
+
                 <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
               </div>
 
@@ -103,6 +107,7 @@
                   <Checkbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
                   <span class="checkbox-label" v-html="t('account.auth.terms')" />
                 </label>
+
                 <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
               </div>
             </div>
@@ -370,18 +375,13 @@ const leave = (el: Element) => {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
-.password-field-wrapper {
+.input-wrapper {
   display: flex;
-  flex-direction: column;
-}
-
-.password-wrapper {
+  flex-direction: row;
   position: relative;
-  display: flex;
   align-items: center;
 }
 
