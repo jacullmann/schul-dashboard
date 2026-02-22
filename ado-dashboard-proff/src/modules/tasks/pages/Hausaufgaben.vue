@@ -8,26 +8,10 @@
             :title="t('school.tasks.title')"
         >
           <h3>{{ t('school.tasks.infopop.description') }}</h3>
-          <h3>Einträge</h3>
-          <p>Jede/r, die/der ein Konto hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken.</p>
-
-          <h3>Einträge hinzufügen</h3>
-          <p>Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä.</p>
-
-          <h3>Bilder hochladen</h3>
-          <p>Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus.</p>
-
-          <h3>Falschinformationen melden</h3>
-          <p>Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du im 3-Punkte-Menü auf "Melden" klicken und unter "Falschinformationen" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt.</p>
-
-          <h3>Abgeschlossene Aufgaben tracken</h3>
-          <p>Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst.</p>
-
-          <h3>Personalisierte Kurse</h3>
-          <p>Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in deinen <strong>Kontoeinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren.</p>
-
-          <h3>Eintragarchiv</h3>
-          <p>Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Eintragarchiv</strong> Button klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind.</p>
+          <template v-for="(section, index) in tm('school.tasks.infopop.sections')" :key="index">
+            <h3 v-html="section.title"></h3>
+            <p v-html="section.text"></p>
+          </template>
         </InfoPop>
 
       </div>
@@ -342,17 +326,10 @@ import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDro
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
-import { formatSubjectDisplay } from '@/utils/subject-formatter.ts';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { AVAILABLE_SUBJECTS } from '@/types/subjects.ts';
 
-const { t, te } = useI18n();
-
-const getSubjectName = (subject: string) => {
-  return formatSubjectDisplay(subject, t, te);
-};
+const { t, tm } = useI18n();
 
 const {
   MAX_TITLE_LENGTH,
@@ -417,7 +394,6 @@ const {
   confirmDelete,
   cancelDelete,
   imageMenu,
-  openImageMenu,
   closeImageMenu,
   triggerImageUpload,
   triggerImageDelete,
@@ -432,29 +408,11 @@ const {
   shareItem,
   highlightedItemId,
   deletingImage,
-  deletingEntry
+  deletingEntry,
+  handleImageContextMenu,
+  subjectOptions,
+  getSubjectName
 } = useHausaufgaben();
-
-// New wrapper to handle vibration and opening the menu
-const handleImageContextMenu = (event: MouseEvent, item: any, img: any) => {
-  // Check if the browser supports vibration (mostly mobile devices)
-  if (typeof navigator !== 'undefined' && navigator.vibrate) {
-    navigator.vibrate(50); // Short 50ms vibration
-  }
-  openImageMenu(event, item, img);
-};
-
-const subjectOptions = computed(() => {
-  const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
-
-  const allSubjects = Array.from(new Set([...AVAILABLE_SUBJECTS, ...subjects.value]));
-  const dynamicOptions = allSubjects.map((s) => ({
-    label: getSubjectName(s),
-    value: s,
-  }));
-
-  return [defaultOption, ...dynamicOptions];
-});
 </script>
 
 <style scoped>
@@ -503,30 +461,6 @@ const subjectOptions = computed(() => {
   display:flex;
   flex-direction:column;
   gap:12px;
-}
-
-.item-card {
-  border-radius: var(--border-7);
-  padding: 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  transition: transform 150ms ease;
-  overflow: visible;
-  cursor: default;
-  box-shadow: var(--input-shadow);
-}
-
-.item-card.collapsed {
-  transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1), max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-
-.item-card.highlighted {
-  border: 2px solid transparent;
-  background:
-      linear-gradient(var(--vlbg), var(--vlbg)),
-      linear-gradient(125deg, #FFA91A 0%, #FF335A 38%, #AF00FF 75%, #5600FF 110%);
-  background-clip: padding-box, border-box;
-  background-origin: padding-box, border-box;
 }
 
 .item-main {

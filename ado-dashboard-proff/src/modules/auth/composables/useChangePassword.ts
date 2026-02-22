@@ -1,6 +1,7 @@
 import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
+import type { ChangePasswordErrors } from '@/modules/auth/types';
 
 export function useChangePassword(emit: {
     (e: 'cancel'): void;
@@ -20,11 +21,7 @@ export function useChangePassword(emit: {
     const message = ref('');
     const isError = ref(false);
 
-    const errors = reactive<{
-        current?: string;
-        new?: string;
-        confirm?: string;
-    }>({});
+    const errors = reactive<ChangePasswordErrors>({});
 
     function clearAllErrors() {
         errors.current = undefined;

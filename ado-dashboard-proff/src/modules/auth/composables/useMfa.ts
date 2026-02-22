@@ -1,22 +1,11 @@
 import { ref, computed } from 'vue';
 import hw from '@/api/hwApi';
+import type { MfaSetupResponse, MfaStatusResponse } from '@/modules/auth/types';
 
 // Dies ist kein kritisches Problem,
 // aber für zukünftige Wartbarkeit sollte eine Single Source of Truth etabliert werden.
 // Der userStore sollte die autoritative Quelle sein,
 // und useMfa sollte für API-Operationen zuständig sein.
-
-interface MfaSetupResponse {
-    ok: boolean;
-    qrCode: string;
-    secret: string;
-    expiresAt: string;
-}
-
-interface MfaStatusResponse {
-    ok: boolean;
-    mfaEnabled: boolean;
-}
 
 const mfaEnabled = ref(false);
 const mfaLoading = ref(false);

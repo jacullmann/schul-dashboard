@@ -46,15 +46,16 @@ import { ExternalLink } from "lucide-vue-next";
 import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
 import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 
 const { t } = useI18n();
+const router = useRouter();
 
-const emit = defineEmits(['goToSec', 'goToMain'])
 function gotosec() {
-  emit('goToSec')
+  router.push('/welcome/legal');
 }
 function gotomain() {
-  emit('goToMain')
+  router.push('/welcome');
 }
 function goToStatus() {
   window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank', 'noopener,noreferrer');

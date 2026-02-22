@@ -1,13 +1,9 @@
 import { ref } from 'vue';
 import hw from '@/api/hwApi';
 import { processImageBeforeUpload } from '@/modules/tasks/composables/useConvertImage.ts';
+import type { ImageItem } from '@/modules/tasks/types.ts';
 
-export interface ImageItem {
-    url: string;
-    publicId: string;
-    thumbUrl?: string;
-    createdBy?: string;
-}
+export type { ImageItem };
 
 // Module-level state so all callers share the same instance (mirrors Pinia store behaviour)
 const images = ref<ImageItem[]>([]);

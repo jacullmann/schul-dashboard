@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Search, Play } from 'lucide-vue-next';
-import { useArticleSearch } from '@/modules/infodashboard/useArticleSearch.ts';
-import ArticleCard from '@/modules/infodashboard/ArticleCard.vue';
-import VideoPlayer from '@/modules/infodashboard/components/VideoPlayer.vue';
+import { useArticleSearch } from '@/modules/infodashboard/composables/useArticleSearch.ts';
+import ArticleCard from '@/modules/infodashboard/components/ArticleCard.vue';
+import VideoPlayer from '@/common/components/VideoPlayer.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
 
@@ -27,19 +27,19 @@ const {
 } = useArticleSearch();
 
 const topicOptions = computed(() => [
-  { value: 'All', label: t('infodashboard.dashboard.categories.all') },
-  { value: 'Technologie', label: t('infodashboard.dashboard.categories.technology') },
-  { value: 'Politik', label: t('infodashboard.dashboard.categories.politics') },
-  { value: 'Wissenschaft', label: t('infodashboard.dashboard.categories.science') },
-  { value: 'Kultur', label: t('infodashboard.dashboard.categories.culture') },
-  { value: 'Wirtschaft', label: t('infodashboard.dashboard.categories.economy') }
+  { value: 'All', label: t('info.dashboard.allTopics') },
+  { value: 'technology', label: t('info.dashboard.categories.technology') },
+  { value: 'politics', label: t('info.dashboard.categories.politics') },
+  { value: 'science', label: t('info.dashboard.categories.science') },
+  { value: 'culture', label: t('info.dashboard.categories.culture') },
+  { value: 'economy', label: t('info.dashboard.categories.economy') }
 ]);
 
 const sortOptions = computed(() => [
-  { value: 'relevance', label: t('infodashboard.dashboard.sortMethods.relevance') },
-  { value: 'dateDesc', label: t('infodashboard.dashboard.sortMethods.newest') },
-  { value: 'dateAsc', label: t('infodashboard.dashboard.sortMethods.oldest') },
-  { value: 'readTime', label: t('infodashboard.dashboard.sortMethods.shortest') }
+  { value: 'relevance', label: t('info.dashboard.sortMethods.relevance') },
+  { value: 'dateDesc', label: t('info.dashboard.sortMethods.newest') },
+  { value: 'dateAsc', label: t('info.dashboard.sortMethods.oldest') },
+  { value: 'readTime', label: t('info.dashboard.sortMethods.shortest') }
 ]);
 
 const getSliderStyle = (current: number, max: number) => {
@@ -55,8 +55,8 @@ const getSliderStyle = (current: number, max: number) => {
 
     <header class="navbar">
       <div class="brand" @click="goHome">
-        <span class="brand-text">{{ t('infodashboard.dashboard.title') }}</span>
-        <span class="brand-sub">{{ t('infodashboard.dashboard.description') }}</span>
+        <span class="brand-text">{{ t('info.dashboard.title') }}</span>
+        <span class="brand-sub">{{ t('info.dashboard.description') }}</span>
       </div>
 
       <div class="search-wrapper">
@@ -79,17 +79,17 @@ const getSliderStyle = (current: number, max: number) => {
 
       <div v-if="currentView === 'search'" class="toolbar">
         <div class="toolbar-section">
-          <label>{{ t('infodashboard.dashboard.topic') }}</label>
+          <label>{{ t('info.dashboard.topic') }}</label>
           <SelectDropdown v-model="activeTopicFilter" :options="topicOptions" />
         </div>
 
         <div class="toolbar-section">
-          <label>{{ t('infodashboard.dashboard.sortBy') }}</label>
+          <label>{{ t('info.dashboard.sortBy') }}</label>
           <SelectDropdown v-model="sortOption" :options="sortOptions" />
         </div>
 
         <div class="toolbar-section">
-          <label>{{ t('infodashboard.dashboard.maxTime') }} {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label>
+          <label>{{ t('info.dashboard.maxTime') }} {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label>
           <input
               type="range"
               v-model.number="minReadTime"
@@ -111,9 +111,9 @@ const getSliderStyle = (current: number, max: number) => {
               </div>
             </div>
             <div class="hero-content">
-              <span class="badge">{{ processedArticles[0]!.topic }}</span>
-              <h1 class="hero-title">{{ processedArticles[0]!.title }}</h1>
-              <p class="hero-excerpt">{{ processedArticles[0]!.excerpt }}</p>
+              <span class="badge">{{ t('info.dashboard.categories.' + processedArticles[0]!.topic) }}</span>
+              <h1 class="hero-title">{{ t(processedArticles[0]!.titleKey) }}</h1>
+              <p class="hero-excerpt">{{ t(processedArticles[0]!.excerptKey) }}</p>
               <div class="meta">
                 <span>{{ processedArticles[0]!.author }}</span>
                 <span class="separator"> • </span>
@@ -161,19 +161,19 @@ const getSliderStyle = (current: number, max: number) => {
             />
 
             <header class="article-header video-meta-header">
-              <span class="badge">{{ activeArticle.topic }}</span>
-              <h1 class="article-title">{{ activeArticle.title }}</h1>
+              <span class="badge">{{ t('info.dashboard.categories.' + activeArticle.topic) }}</span>
+              <h1 class="article-title">{{ t(activeArticle.titleKey) }}</h1>
               <div class="article-meta">
                 Video von <span class="highlight">{{ activeArticle.author }}</span> am {{ formatDate(activeArticle.date) }}
               </div>
-              <p class="video-description">{{ activeArticle.excerpt }}</p>
+              <p class="video-description">{{ t(activeArticle.excerptKey) }}</p>
             </header>
           </div>
 
           <article v-else class="full-article">
             <header class="article-header">
-              <span class="badge">{{ activeArticle.topic }}</span>
-              <h1 class="article-title">{{ activeArticle.title }}</h1>
+              <span class="badge">{{ t('info.dashboard.categories.' + activeArticle.topic) }}</span>
+              <h1 class="article-title">{{ t(activeArticle.titleKey) }}</h1>
               <div class="article-meta">
                 Von <span class="highlight">{{ activeArticle.author }}</span> am {{ formatDate(activeArticle.date) }}
                 <span class="separator">|</span> {{ activeArticle.readTime }} Min
@@ -191,7 +191,7 @@ const getSliderStyle = (current: number, max: number) => {
           </article>
 
           <div class="recommendations">
-            <h3>{{ t('infodashboard.dashboard.recommendations') }}</h3>
+            <h3>{{ t('info.dashboard.recommendations') }}</h3>
             <div class="rec-grid">
               <ArticleCard
                   v-for="rec in recommendedArticles"

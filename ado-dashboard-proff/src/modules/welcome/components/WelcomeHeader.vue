@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { RouterLink } from 'vue-router';
 import Logo from "@/common/components/Logo.vue";
-
-const emit = defineEmits(['goToMain2'])
 
 // --- Scroll & Resize Logic ---
 const scrollY = ref(0);
-const isLargeScreen = ref(false); // Changed variable name for clarity
+const isLargeScreen = ref(false);
 
 const updateScroll = () => {
   scrollY.value = window.scrollY;
 };
 
 const updateWidth = () => {
-  // Logic updated to check if width is 1200px or greater
   isLargeScreen.value = window.innerWidth >= 1200;
 };
 
@@ -30,30 +28,25 @@ onUnmounted(() => {
 });
 
 const announcementStyle = computed(() => {
-  // 1000px limit if width >= 1200, otherwise 600px
   const limit = isLargeScreen.value ? 1000 : 600;
-
-  // Calculate offset: 0 if below limit, otherwise the difference
   const offset = Math.max(0, scrollY.value - limit);
 
   return {
-    position: 'sticky',
+    position: 'sticky' as const,
     top: '0',
     zIndex: '100',
-    // CHANGED: Use marginTop instead of transform to remove the "footprint"
     marginTop: `-${offset}px`
   };
 });
-// -----------------------------
 </script>
 
 <template>
   <header class="header">
     <div class="header-content-wrapper">
-      <div @click="emit('goToMain2')" class="logo-container">
+      <RouterLink to="/welcome" class="logo-container">
         <Logo class="logo-img" aria-label="Website Logo"/>
         <span class="logo-text">schul-dashboard</span>
-      </div>
+      </RouterLink>
     </div>
   </header>
   <div class="example-announcement" :style="announcementStyle">

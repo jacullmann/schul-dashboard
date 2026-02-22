@@ -2,14 +2,9 @@ import { ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore.ts';
 import hw from '@/api/hwApi';
+import type { Announcement } from '@/modules/announcements/types';
 
-export interface Announcement {
-    _id: string;
-    content: string;
-    color: string;
-    createdBy: string;
-    createdAt: string;
-}
+export type { Announcement };
 
 export function useAnnouncements() {
     const userStore = useUserStore();

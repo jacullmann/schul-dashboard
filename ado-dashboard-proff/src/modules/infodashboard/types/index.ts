@@ -1,15 +1,15 @@
 export interface Article {
     id: number;
     type: 'text' | 'video';
-    title: string;
-    excerpt: string;
+    titleKey: string;
+    excerptKey: string;
     contentKey?: string;
     videoUrl?: string;
     duration?: string;
     author: string;
     date: string;
     readTime: number;
-    topic: 'Technologie' | 'Politik' | 'Wissenschaft' | 'Kultur' | 'Wirtschaft';
+    topic: 'technology' | 'politics' | 'science' | 'culture' | 'economy';
     imageUrl: string;
     imageAttribution?: string;
     recommendedIds?: number[];

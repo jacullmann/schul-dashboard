@@ -3,10 +3,12 @@
     <div class="header">
       <div>
         <h2 style="margin: 0" class=" title-inf">
-          Sorgenbox
-          <InfoPop tooltip="Sorgenbox Info" title="Sorgenbox">
-            <p style="margin-top: 0">Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest.</p>
-
+          {{ t('tools.worrybox.title') }}
+          <InfoPop
+              :tooltip="t('tools.worrybox.infopop.tooltip')"
+              :title="t('tools.worrybox.title')"
+          >
+            <p style="margin-top: 0">{{ t('tools.worrybox.infopop.text') }}</p>
           </InfoPop>
         </h2>
       </div>
@@ -19,7 +21,7 @@
             class="input message-input"
             rows="8"
             v-model="message"
-            placeholder="Du kanst über alles schreiben..."
+            :placeholder="t('tools.worrybox.placeholder')"
             required
             @input="onTextInput"
             @keydown.ctrl.enter="onSubmit"
@@ -37,18 +39,15 @@
             class="btn action"
             type="submit"
             :disabled="submitting || !message.trim() || charCount > MAX_LENGTH"
-            data-umami-event="Sorgenbox absenden Button"
         >
-          <span v-if="!submitting">Anonym absenden</span>
+          <span v-if="!submitting">{{ t('tools.worrybox.action') }}</span>
           <LoadingSpinner v-else color="black" size="1.2em" />
         </button>
       </div>
 
       <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>
 
-      <p v-if="charCount > MAX_LENGTH" class="small err">
-        Nachricht zu lang (maximal {{ MAX_LENGTH }} Zeichen)
-      </p>
+      <p v-if="charCount > MAX_LENGTH" class="small err" v-html="t('tools.worrybox.errors.messageLong')" />
     </form>
   </div>
 </template>
@@ -58,6 +57,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue'
 import hw from "@/api/hwApi"
 import InfoPop from '@/common/components/InfoModalCenter.vue'
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const MAX_LENGTH = 5000;
 
@@ -66,7 +68,7 @@ const submitting = ref(false);
 const feedback = ref('');
 const feedbackClass = ref('');
 const cooldownEndTime = ref<number | null>(null);
-const cooldownInterval = ref<NodeJS.Timeout | null>(null);
+const cooldownInterval = ref<ReturnType<typeof setInterval> | null>(null);
 
 const COOLDOWN_KEY = 'sorgenbox_cooldown_end';
 
@@ -152,8 +154,8 @@ async function onSubmit() {
   // Cooldown Check
   if (isCooldown.value) {
     const remaining = getRemainingSeconds();
-    feedback.value = `Bitte warte ${remaining} Sekunden, bevor du eine neue Nachricht sendest.`;
-    feedbackClass.value = 'cooldown-infodashboard';
+    feedback.value = t(`tools.worrybox.errors.cooldown`, { r: remaining });
+    feedbackClass.value = 'cooldown-info';
     return;
   }
 
@@ -166,27 +168,21 @@ async function onSubmit() {
 
     if (res.status !== 200) throw new Error('Fehler beim Senden');
 
-    feedback.value = 'Danke! Deine Nachricht wurde anonym übermittelt.';
+    feedback.value = t('tools.worrybox.success');
     feedbackClass.value = 'ok';
     message.value = '';
 
     startCooldown();
   } catch (e: any) {
     if (e.response?.data?.error?.includes('maximal 5000 Zeichen')) {
-      feedback.value = 'Die Nachricht ist zu lang.';
+      feedback.value = t('tools.worrybox.errors.messageLong');
     } else {
-      feedback.value = 'Übertragung fehlgeschlagen.';
+      feedback.value = t('tools.worrybox.errors.failed');
     }
     feedbackClass.value = 'err';
   } finally {
     submitting.value = false;
   }
-}
-
-function reset() {
-  message.value = '';
-  feedback.value = '';
-  feedbackClass.value = '';
 }
 
 onUnmounted(() => {

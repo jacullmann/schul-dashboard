@@ -1,51 +1,34 @@
 import { ref, computed, onMounted } from 'vue';
 import hw from '@/api/hwApi';
+import type { AdminStats, AdminTab, AdminUser, AdminReport, AdminSorge, TimetableSubstitution } from '@/modules/admin/types';
 
-export interface AdminStats {
-    userCount: number;
-    itemCount: number;
-    reportCount: number;
-    reportCountTotal: number;
-    reportCountProcessed: number;
-    bannedCount: number;
-    sorgeCount: number;
-    sorgeCountTotal: number;
-    sorgeCountProcessed: number;
-    itemsByType: { _id: string; count: number }[];
-    verifiedUsers: number;
-    unverifiedUsers: number;
-    adminCount: number;
-    oldItemsCount: number;
-    newUsersThisWeek: number;
-    newItemsThisWeek: number;
-    topCreators: { _id: string; count: number; email?: string }[];
-}
+export type { AdminStats };
 
 export function useAdmin() {
     // --- State ---
-    const activeTab = ref<'overview' | 'users' | 'reports' | 'security' | 'sorgen' | 'announcements' | 'timetable'>('overview');
+    const activeTab = ref<AdminTab>('overview');
 
     // Stats
     const stats = ref<AdminStats | null>(null);
     const loadingStats = ref(false);
 
     // Users
-    const allUsers = ref<any[]>([]);
+    const allUsers = ref<AdminUser[]>([]);
     const loadingUsers = ref(false);
     const showActivityFor = ref<string | null>(null);
-    const userActivities = ref<Record<string, any[]>>({});
+    const userActivities = ref<Record<string, unknown[]>>({});
     const loadingActivities = ref<Record<string, boolean>>({});
     const deletingUsers = ref<Record<string, boolean>>({});
     const togglingBan = ref<Record<string, boolean>>({});
 
-    const timetableSubs = ref<any[]>([]);
+    const timetableSubs = ref<TimetableSubstitution[]>([]);
     const loadingSubs = ref(false);
     const savingSub = ref(false);
     const deletingSubs = ref<Record<string, boolean>>({});
 
     // Reports & Sorgen
-    const reports = ref<any[]>([]);
-    const entriessorgen = ref<any[]>([]);
+    const reports = ref<AdminReport[]>([]);
+    const entriessorgen = ref<AdminSorge[]>([]);
 
     // Processing states
     const togglingReportProcessed = ref<Record<string, boolean>>({});

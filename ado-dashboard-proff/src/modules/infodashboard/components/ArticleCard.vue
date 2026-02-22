@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Play } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 import type { Article } from '@/modules/infodashboard/types.ts';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   article: Article;
@@ -24,10 +27,10 @@ const formatDate = (dateStr: string) => {
       </div>
     </div>
     <div class="card-content">
-      <span class="badge-small">{{ article.topic }}</span>
-      <h3 class="card-title">{{ article.title }}</h3>
+      <span class="badge-small">{{ t('info.dashboard.categories.' + article.topic) }}</span>
+      <h3 class="card-title">{{ t(article.titleKey) }}</h3>
       <div class="card-top"></div>
-      <p class="card-excerpt">{{ article.excerpt }}</p>
+      <p class="card-excerpt">{{ t(article.excerptKey) }}</p>
       <div class="card-footer">
         {{ formatDate(article.date) + ' ' + (article.type === 'video' ? article.duration : article.readTime + ' Min') }}
       </div>

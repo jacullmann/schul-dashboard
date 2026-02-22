@@ -4,17 +4,22 @@ import { Ellipsis } from 'lucide-vue-next'
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const formatDate = (dateString: string) => {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(dateString))
 }
 
 defineProps<{
-  onStartClick: () => void;
   onMoreInfoClick: () => void;
 }>();
+
+function navigateToAuth() {
+  router.push('/welcome/auth');
+}
 </script>
 
 <template>
@@ -94,7 +99,7 @@ defineProps<{
 
       <div class="action-buttons">
         <WelcomeButtonSecondary class="action-btn secondary" @click="onMoreInfoClick" />
-        <WelcomeButtonPrimary @click="onStartClick" class="action-btn primary"/>
+        <WelcomeButtonPrimary @click="navigateToAuth" class="action-btn primary"/>
       </div>
     </div>
   </div>

@@ -1,9 +1,10 @@
 import { ref, reactive, type Ref } from 'vue';
 import { sfx } from '@/modules/games/composables/useCyberSnareAudio.ts';
+import type { GameState, UpgradeDef, MetaStats } from '@/modules/games/types';
 
 // ─── Types & Constants ──────────────────────────────────────────────
 
-export type GameState = 'START' | 'PLAYING' | 'GAMEOVER' | 'UPGRADE';
+export type { GameState, UpgradeDef, MetaStats };
 
 interface Point { x: number; y: number }
 
@@ -256,16 +257,7 @@ function ptSegDist(p: Point, v: Point, w: Point) {
 
 // ─── Upgrade Definitions ────────────────────────────────────────────
 
-export interface UpgradeDef {
-    lvl: number; max: number;
-    costBase: number; costMult: number;
-    name: string; desc: string;
-}
 
-export interface MetaStats {
-    driveSpace: number;
-    upgrades: Record<string, UpgradeDef>;
-}
 
 function createDefaultMeta(): MetaStats {
     return {

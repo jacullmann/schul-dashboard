@@ -32,17 +32,12 @@ import { ref, onMounted } from 'vue';
 import hw from '@/api/hwApi';
 import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import type { Todo } from '@/modules/tasks/types.ts';
 
-interface TodoItem {
-  id: string;
-  title: string;
-  description: string;
-}
-
-const props = defineProps<{ initial?: TodoItem }>();
+const props = defineProps<{ initial?: Todo }>();
 const emit = defineEmits<{
   (e: 'cancel'): void;
-  (e: 'success', data: TodoItem): void;
+  (e: 'success', data: Todo): void;
   (e: 'error', msg: string): void
 }>();
 

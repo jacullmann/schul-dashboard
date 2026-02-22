@@ -87,17 +87,9 @@ import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Trash2, Ellipsis, Lock } from 'lucide-vue-next';
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import { useI18n } from 'vue-i18n';
+import type { Todo } from '@/modules/tasks/types.ts';
 
 const { t } = useI18n();
-
-interface Todo {
-  id: string;
-  title: string;
-  description: string;
-  completed: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 // Definition der Events für den Parent
 const emit = defineEmits<{

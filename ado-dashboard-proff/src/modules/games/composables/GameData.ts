@@ -1,14 +1,5 @@
-import { defineAsyncComponent, type Component } from 'vue';
-
-
-export interface Game {
-    id: string;
-    name: string;
-    description: string;
-    component: Component;
-    tags: string[];
-    previewImage: string;
-}
+import { defineAsyncComponent } from 'vue';
+import type { Game } from '@/modules/games/types';
 
 export const games: Game[] = [
     {

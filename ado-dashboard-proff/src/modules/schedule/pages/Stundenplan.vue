@@ -3,43 +3,12 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from "@/api/hwApi";
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import { useUserStore } from '@/stores/userStore.ts';
+import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types/types.ts';
 const userStore = useUserStore();
-
-interface Lesson {
-  id: number;
-  day: string;
-  slot: number;
-  duration: number;
-  subject: string;
-  subject_abbr?: string;
-  teacher: string | null;
-  room: string | null;
-  courseId?: number | null;
-  _original?: Lesson;
-  cancelled?: boolean;
-}
 
 const isPersonalized = computed(() => {
   return userStore.user?.personalized && userStore.user?.doneSetup;
 });
-
-interface Substitution {
-  lessonId: number;
-  day?: string;
-  slot?: number;
-  duration?: number;
-  subject?: string;
-  subject_abbr?: string;
-  teacher?: string | null;
-  room?: string | null;
-  cancelled?: boolean;
-  hide?: boolean;
-}
-
-interface TimeSlot {
-  slot: number;
-  time: string;
-}
 
 const lessons = ref<Lesson[]>([]);
 const substitutions = ref<Substitution[]>([]);

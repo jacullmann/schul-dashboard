@@ -31,7 +31,7 @@ onUnmounted(() => {
 <template>
   <div class="info-pop-container" :title="props.tooltip">
     <div class="info-icon-wrapper" @click.stop="togglePop">
-      <Info size="16px" />
+      <Info :size="16" />
     </div>
 
     <transition name="pop-fade">

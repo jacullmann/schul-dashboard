@@ -47,8 +47,7 @@
         "action": "Got it"
       }
     },
-    "header": {
-    },
+    "header": {},
     "footer": {
       "removeDevice": "Sign out this device"
     },
@@ -414,7 +413,13 @@
         "text": "Here you can anonymously submit complaints or things that are bothering you — all topics are accepted. It is not saved who you are. You may decide whether to leave contact information in case you would like a response."
       },
       "placeholder": "You can write about anything...",
-      "action": "Submit anonymously"
+      "action": "Submit anonymously",
+      "success": "Your message has been successfully submitted anonymously.",
+      "errors": {
+        "messageLong": "The message is too long (max. 5000 characters).",
+        "cooldown": "Please wait {r} seconds before sending another message.",
+        "failed": "Submission failed."
+      }
     }
   },
   "info": {
@@ -430,6 +435,7 @@
       },
       "recommendations": "You might also be interested in",
       "topic": "Topic:",
+      "allTopics": "All Topics",
       "sortBy": "Sort by:",
       "sortMethods": {
         "relevance": "Relevance",
@@ -438,6 +444,12 @@
         "shortest": "Shortest read time"
       },
       "maxTime": "Max. read time:"
+    },
+    "articles": {
+      "1": {
+        "title": "No one has the intention of building a fence",
+        "excerpt": "\"No one has the intention of building a wall.\" That's what they said 60 years ago. Then a wall was built. Today it's a fence, and instead of the socialists, the CDU wants to build it."
+      }
     },
     "kanye": {
       "footnote": "The album cover images are used solely for identification purposes. The copyright belongs to the respective owners, labels, and artists."
@@ -467,8 +479,6 @@
       "feedback": "Feedback"
     }
   },
-  "about": {
-  },
-  "games": {
-  }
+  "about": {},
+  "games": {}
 }

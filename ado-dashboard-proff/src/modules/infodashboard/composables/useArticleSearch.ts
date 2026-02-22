@@ -62,9 +62,9 @@ export function useArticleSearch() {
         const totalTerms = queryTerms.length;
 
         const scored = articles.map(article => {
-            const titleLower = (article.title || '').toLowerCase();
+            const titleLower = t(article.titleKey).toLowerCase();
             const contentText = getArticleContent(article);
-            const excerptText = article.excerpt || '';
+            const excerptText = t(article.excerptKey);
 
             const stripHtml = (html: string) => html.replace(/<[^>]*>?/gm, ' ');
 

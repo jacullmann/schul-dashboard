@@ -1,31 +1,19 @@
-import { ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } from 'vue';
+import kommt kei{ ref, onMounted, onBeforeUnmount, watch, computed, reactive, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore.ts';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload.ts';
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal.ts';
-import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects.ts';
+import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES, AVAILABLE_SUBJECTS } from '@/types/subjects.ts';
 import hw from '@/api/hwApi';
+import type { HwItem, ItemType } from '@/modules/tasks/types.ts';
+import { isValidType } from '@/modules/tasks/types.ts';
+import { useI18n } from 'vue-i18n';
+import { formatSubjectDisplay } from '@/utils/subject-formatter.ts';
 
-export interface HwItem {
-    id: string;
-    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
-    title: string;
-    subject: string;
-    description: string;
-    images: Array<{ url: string; thumbUrl?: string; publicId: string; createdBy: string }>;
-    dueDate: string;
-    createdBy: string;
-    createdByEmail?: string;
-    timeColor: string;
-    editorNote: string;
-}
+export type { HwItem };
 
-type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
 
-function isValidType(t: unknown): t is ItemType {
-    return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG' || t === 'PRIVATE';
-}
 
 export function useHausaufgaben() {
     const route = useRoute();
@@ -34,6 +22,7 @@ export function useHausaufgaben() {
     const userStore = useUserStore();
     const imageUpload = useImageUpload();
     const { user } = storeToRefs(userStore);
+    const { t, te } = useI18n();
 
     const MAX_TITLE_LENGTH = 50;
     const MAX_SUBJECT_LENGTH = 30;
@@ -186,6 +175,22 @@ export function useHausaufgaben() {
     });
 
     const limitedItems = computed(() => filteredItems.value.slice(0, visibleCount.value));
+
+    const getSubjectName = (subject: string) => {
+        return formatSubjectDisplay(subject, t, te);
+    };
+
+    const subjectOptions = computed(() => {
+        const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
+
+        const allSubjects = Array.from(new Set([...AVAILABLE_SUBJECTS, ...subjects.value]));
+        const dynamicOptions = allSubjects.map((s) => ({
+            label: getSubjectName(s),
+            value: s,
+        }));
+
+        return [defaultOption, ...dynamicOptions];
+    });
 
     // --- Actions ---
 
@@ -471,6 +476,14 @@ export function useHausaufgaben() {
     // --- Image context menu ---
 
     const makeThumb = imageUpload.makeThumb;
+
+    function handleImageContextMenu(event: MouseEvent, item: any, img: any) {
+        // Check if the browser supports vibration (mostly mobile devices)
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(50); // Short 50ms vibration
+        }
+        openImageMenu(event, item, img);
+    }
 
     function openImageMenu(event: MouseEvent, item: HwItem, img: any) {
         if (!user.value) return;
@@ -806,5 +819,8 @@ export function useHausaufgaben() {
         highlightedItemId,
         deletingImage,
         deletingEntry,
+        handleImageContextMenu,
+        subjectOptions,
+        getSubjectName,
     };
 }
