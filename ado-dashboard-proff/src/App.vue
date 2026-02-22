@@ -10,11 +10,13 @@
         <component :is="Component" />
       </router-view>
 
-      <AuthModal
-          v-if="isAuthModalOpen"
-          @close="closeAuthModal"
-          @logged-in="onAuthSuccess"
-      />
+      <Teleport to="body">
+        <AuthModal
+            v-if="isAuthModalOpen"
+            @close="closeAuthModal"
+            @logged-in="onAuthSuccess"
+        />
+      </Teleport>
 
       <CookieBanner />
     </template>

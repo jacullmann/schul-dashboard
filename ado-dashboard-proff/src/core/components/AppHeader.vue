@@ -49,8 +49,7 @@
         <button
             v-else
             class="btn action cta-button"
-            @click="openAuthModal"
-            data-umami-event="Header Jetzt loslegen Button"
+            @click="handleLoginClick"
         >
           Anmelden
         </button>
@@ -62,7 +61,7 @@
             v-if="!navOpen"
             data-umami-event="Mobile Menu öffnen"
         >
-          <Menu style="color: var(--text)" size="26px"/>
+          <Menu style="color: var(--text)" :size="26"/>
         </button>
       </div>
 
@@ -107,6 +106,10 @@ const navOpen = ref(false);
 const showSetupModal = ref(false);
 
 const { openAuthModal } = useGlobalAuthModal();
+
+function handleLoginClick() {
+  openAuthModal().catch(() => {});
+}
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;

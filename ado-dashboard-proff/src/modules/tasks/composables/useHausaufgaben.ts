@@ -3,7 +3,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
-import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES, AVAILABLE_SUBJECTS } from '@/types/subjects';
 import hw from '@/api/hwApi';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
@@ -18,7 +17,6 @@ export type { HwItem };
 export function useHausaufgaben() {
     const route = useRoute();
     const router = useRouter();
-    const { openAuthModal: handleShowAuthModal } = useGlobalAuthModal();
     const userStore = useUserStore();
     const imageUpload = useImageUpload();
     const { user } = storeToRefs(userStore);
