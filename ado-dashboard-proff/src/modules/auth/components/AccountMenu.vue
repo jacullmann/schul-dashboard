@@ -258,7 +258,7 @@ const {
 }
 
 .menu-btn.danger:hover {
-  background: var(--danger-hover);
+  background: var(--special--red--background);
 }
 
 .menu-btn-content {
