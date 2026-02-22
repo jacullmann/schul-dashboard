@@ -6,7 +6,7 @@
       </div>
     </template>
     <template v-else>
-      <Header v-if="!$route.meta.hideNavigation"/>
+      <AppHeader v-if="!$route.meta.hideNavigation"/>
       <GlobalAnnouncements />
 
       <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
@@ -30,7 +30,7 @@
         </div>
       </main>
 
-      <Footer v-if="!$route.meta.hideNavigation"/>
+      <AppFooter v-if="!$route.meta.hideNavigation"/>
       <AuthModal
           v-if="isAuthModalOpen"
           @close="closeAuthModal"
@@ -46,17 +46,17 @@
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
-import Header from '@/components/Header.vue';
-import Footer from '@/components/Footer.vue';
-import CookieBanner from "@/components/CookieBanner.vue";
-import GlobalAnnouncements from '@/components/GlobalAnnouncements.vue';
-import { loadBadWords } from "@/composables/useProfanity";
-import { useLoadingBar } from "@/composables/loadingState";
-import AuthModal from '@/components/hw/AuthModal.vue';
-import { useGlobalAuthModal } from '@/composables/useGlobalAuthModal';
-import { useAppAuth } from '@/composables/useAppAuth';
+import AppHeader from '@/core/components/AppHeader.vue';
+import AppFooter from '@/core/components/AppFooter.vue';
+import CookieBanner from "@/common/components/CookieBanner.vue";
+import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
+import { loadBadWords } from "@/modules/tasks/composables/useProfanity.ts";
+import { useLoadingBar } from "@/common/composables/loadingState.ts";
+import AuthModal from '@/modules/auth/components/AuthModal.vue';
+import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal.ts';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
 import { useRouter } from 'vue-router';
-import hw, { syncCsrfFromCookie } from '@/hwApi';
+import hw, { syncCsrfFromCookie } from '@/api/hwApi';
 
 const router = useRouter();
 

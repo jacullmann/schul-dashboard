@@ -66,17 +66,17 @@
 
 
                       if (window.umami && typeof window.umami.track === 'function') {
-                          window.umami.track('device-info', payload);
+                          window.umami.track('device-infodashboard', payload);
                       } else if (typeof window.umami === 'function') {
 
-                          window.umami('trackEvent', 'device-info', payload);
+                          window.umami('trackEvent', 'device-infodashboard', payload);
                       } else {
 
-                          console.warn('Umami tracker not available - device-info not sent.');
+                          console.warn('Umami tracker not available - device-infodashboard not sent.');
                       }
                   } catch (err) {
 
-                      console.error('device info tracking failed', err);
+                      console.error('device infodashboard tracking failed', err);
                   }
               }
 

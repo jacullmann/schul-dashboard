@@ -1,0 +1,528 @@
+{
+  "global": {
+    "title": "schul-dashboard",
+    "buttons": {
+      "save": "Speichern",
+      "confirm": "Bestätigen",
+      "create": "Erstellen",
+      "add": "Hinzufügen",
+      "edit": "Bearbeiten",
+      "showMore": "Mehr anzeigen",
+      "showLess": "Weniger anzeigen",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "delete": "Löschen"
+    },
+    "selection": {
+      "placeholder": "Bitte wählen",
+      "yes": "Ja",
+      "no": "Nein",
+      "other": "Anderes..."
+    },
+    "search": {
+      "placeholder": "Suche",
+      "result": "Ergebnis",
+      "resultPlural": "Ergebnisse",
+      "noResults": "Keine Suchergebnisse für"
+    },
+    "weekdays": {
+      "full": {
+        "monday": "Montag",
+        "tuesday": "Dienstag",
+        "wednesday": "Mittwoch",
+        "thursday": "Donnerstag",
+        "friday": "Freitag",
+        "saturday": "Samstag",
+        "sunday": "Sonntag"
+      },
+      "abbr": {
+        "monday": "Mo",
+        "tuesday": "Di",
+        "wednesday": "Mi",
+        "thursday": "Do",
+        "friday": "Fr",
+        "saturday": "Sa",
+        "sunday": "So"
+      }
+    },
+    "errors": {
+      "unknown": "Unbekannter Fehler",
+      "delete": "Fehler beim Löschen",
+      "save": "Fehler beim Speichern"
+    },
+    "cookies": {
+      "banner": {
+        "title": "Cookies",
+        "text": "Wir nutzen Cookies, um grundlegende Funktionen wie Anmeldung, Sicherheit und den Betrieb des Schul-Dashboards zuverlässig bereitzustellen. Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten. Mehr dazu findest du in unserer Datenschutzerklärung.",
+        "action": "Verstanden"
+      }
+    },
+    "header": {},
+    "footer": {
+      "removeDevice": "Dieses Gerät abmelden"
+    },
+    "theme": {
+      "theme": "Design",
+      "system": "System",
+      "dark": "Dunkel",
+      "light": "Hell"
+    },
+    "language": "Sprache",
+    "titles": {
+      "mr": "Herr",
+      "ms": "Frau",
+      "abbr": {
+        "mr": "Hr.",
+        "ms": "Fr."
+      }
+    },
+    "subjects": {
+      "german": "Deutsch",
+      "french": "Französisch",
+      "math": "Mathe",
+      "english": "Englisch",
+      "enrichment": "Enrichment",
+      "wpu1": "WPU 1",
+      "wpu2": "WPU 2",
+      "theater": "Theater",
+      "cs": "Informatik",
+      "latin": "Latein",
+      "chemistry": "Chemie",
+      "politics": "Politik",
+      "history": "Geschichte",
+      "art": "Kunst",
+      "pe": "Sport",
+      "classHour": "Klassenstunde",
+      "ethics": "Ethik",
+      "geography": "Erdkunde",
+      "physics": "Physik",
+      "music": "Musik",
+      "biology": "Biologie",
+      "philosophy": "Philosophie",
+      "religion": "Religion"
+    }
+  },
+  "account": {
+    "menu": {
+      "courses": {
+        "title": "Kurse bearbeiten",
+        "description": "Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.",
+        "enr": "Enrichment",
+        "wpu1": "WPU am Dienstag",
+        "wpu2": "WPU am Donnerstag",
+        "wpu3": "Theater"
+      },
+      "personalization": "Personalisierte Kurse",
+      "security": {
+        "title": "Sicherheit",
+        "2fa": "Zwei-Faktor-Authentifizierung",
+        "activated": "Aktiviert",
+        "deactivated": "Deaktiviert",
+        "description": "Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google Authenticator."
+      },
+      "changePassword": {
+        "title": "Passwort ändern",
+        "currentPassword": "Aktuelles Passwort",
+        "currentPlaceholder": "Gib dein aktuelles Passwort ein",
+        "newPassword": "Neues Passwort",
+        "newPlaceholder": "mindestens 8 Zeichen",
+        "confirmPassword": "Neues Passwort bestätigen",
+        "confirmPlaceholder": "Wiederhole dein neues Passwort",
+        "success": "Passwort erfolgreich geändert",
+        "errors": {
+          "currentMissing": "Gib dein aktuelles Passwort ein",
+          "currentShort": "Dein Passwort hat mindestens 8 Zeichen",
+          "currentWrong": "Das eingegebene Passwort ist falsch",
+          "newMissing": "Gib dein neues Passwort ein",
+          "newShort": "Dein neues Passwort muss mindestens 8 Zeichen lang sein",
+          "confirmMissing": "Bestätige dein neues Passwort",
+          "confirmWrong": "Die Passwörter stimmen nicht überein",
+          "equal": "Dein neues Passwort muss sich vom aktuellen unterscheiden",
+          "failed": "Fehler beim Ändern des Passworts"
+        }
+      },
+      "logout": "Abmelden",
+      "deleteAccount": {
+        "title": "Konto löschen",
+        "warnBox": {
+          "title": "Konto unwiderruflich löschen?",
+          "text": "Wenn du dein Konto löschst, wird dieses mitsamt all deinen Einstellungen unwiderruflich entfernt. Allerdings bleiben hochgeladene Einträge, Bilder oder Ankündigungen erhalten. Falls du diese ebenfalls entfernen willst, musst du diese manuell löschen, bevor dein Konto geschlossen wird.<br><br>Du kannst jederzeit einneues Konto erstellen, aber vorherig hinzugefügte Inhalte sind dann nicht mehr mit deinem Konto verknüpft, sodass du nicht mehr auf sie zugreifen kannst."
+        },
+        "confirm": "Ich verstehe, dass ich hiermit mein Konto unwiderruflich lösche.",
+        "success": "Konto erfolgreich gelöscht",
+        "errors": {}
+      }
+    },
+    "auth": {
+      "login": "Anmelden",
+      "register": "Registrieren",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "newPassword": "Passwort (min. 8 Zeichen)",
+      "confirmPassword": "Passwort bestätigen",
+      "forgot": "Passwort vergessen?",
+      "terms": "Ich stimme der <a href=\"/impressum-&-datenschutz/impressum\" target=\"_blank\" class=\"privacy-link\">Datenschutzerklärung</a> und den <a href=\"/impressum-&-datenschutz/nutzung\" target=\"_blank\" class=\"privacy-link\">Nutzungsbedingungen</a> zu"
+    }
+  },
+  "welcome": {
+    "hero": {
+      "headline": "Schule im Überblick",
+      "subline": "Alle Infos zu jeder Zeit in deiner Hosentasche. Kollaborativ und ",
+      "sublineHighlight": "komplett kostenfrei",
+      "visual": {
+        "announcement": "Biologie fällt morgen aus",
+        "items": [
+          {
+            "title": "Kapitel 3 lesen"
+          },
+          {
+            "title": "Notizen für den Test"
+          },
+          {
+            "title": "Aufgaben im Buch",
+            "text": "S. 137 4b und 5 schriftlich bearbeiten"
+          }
+        ]
+      },
+      "learnMore": "Mehr erfahren",
+      "cta": "Jetzt loslegen"
+    },
+    "comparison": {
+      "headline": "Papier ist von <b>gestern.</b> Starte heute noch in die <b>Zukunft</b>",
+      "attribution": "Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
+    },
+    "reasons": {
+      "why": "Warum schul-dashboard?",
+      "byStudentsForStudents": "<b>Von </b> Schülern <b>für </b> Schüler, das heißt:",
+      "reasons": [
+        {
+          "number": "0",
+          "text": " Euro"
+        },
+        {
+          "number": "0",
+          "text": " Werbung"
+        },
+        {
+          "number": "0",
+          "text": " verkaufte Daten"
+        },
+        {
+          "number": "100%",
+          "text": " Liebe zum Detail"
+        }
+      ]
+    },
+    "footer": {
+      "disclaimer": {
+        "title": "Hinweis",
+        "text": "Dies ist eine geschützte und private Applikation. Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird ausnahmslos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden."
+      },
+      "navigation": {
+        "landingPage": "Startseite",
+        "status": "Status"
+      },
+      "byStudentsForStudents": "Dies ist ein privates Projekt von Schülern für Schüler"
+    },
+    "auth": {
+      "title": "Authentifizierung",
+      "name": "Name",
+      "passcode": "Zugangscode",
+      "terms": "Nutzungsbedingungen und Datenschutzerklärung akzeptieren",
+      "serverStatus": {
+        "good": "Server erreichbar",
+        "ok": "Serverantwort unerwartet",
+        "notOk": "Serververbindung unterbrochen",
+        "error": "Server nicht erreichbar"
+      },
+      "disclaimerTitle": "Wichtiger rechtlicher Hinweis!",
+      "disclaimer": "Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird lückenlos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden."
+    }
+  },
+  "school": {
+    "tasks": {
+      "title": "Aufgaben",
+      "infopop": {
+        "tooltip": "Übersicht und Funktionen für Aufgaben",
+        "description": "Arbeite kollaborativ mit anderen und behalte alles im Blick.",
+        "sections": [
+          {
+            "title": "Einträge",
+            "text": "Jede/r, die/der ein Konto hat, kann einen Eintrag hinzufügen. Ob <strong>Hausaufgabe</strong>, <strong>Daltonauftrag</strong> oder <strong>Prüfung</strong> – alles, was du für die Schule im Überblick haben musst, kann hochgeladen werden. Alle Einträge sind öffentlich und jederzeit einsehbar, du kannst also gemeinsam mit anderen tracken."
+          },
+          {
+            "title": "Einträge hinzufügen",
+            "text": "Um einen Eintrag hinzuzufügen, klicke auf das <strong>+</strong> und wähle den Typ aus. Hausaufgaben, Daltonaufträge und Prüfungen sind immer öffentlich, Private Einträge sind verschlüsselt und nur für dich sichtbar. Fülle nun das Formular aus und wähle Fach und Abgabedatum aus. Optional können dazugehörige Bilder hochgeladen werden wie Tafelbilder, Musterlösungen, Notizen, Lernzettel o. ä."
+          },
+          {
+            "title": "Bilder hochladen",
+            "text": "Bilder können auch bei fremden Einträgen hochgeladen werden, sofern passend; klicke auf das <strong>3-Punkte-Menü</strong>, wähle <strong>Bilder hochladen</strong> aus und wähle die gewünschten Bilder aus. Um eigene Bilder zu entfernen, <strong>halte</strong> das Bild <strong>gedrückt</strong> oder klicke mit der <strong>rechten Maustaste</strong> auf dein Bild und wähle im Menü <strong>Löschen</strong> aus."
+          },
+          {
+            "title": "Falschinformationen melden",
+            "text": "Einträge sollten in der Regel wahr sein, aber falls du bei einem fremden Eintrag falsche Informationen entdeckst, kannst du im 3-Punkte-Menü auf \"Melden\" klicken und unter \"Falschinformationen\" eine Korrektur abschicken. Deine Nachricht wird dann geprüft und als Anmerkung dem gemeldeten Eintrag angehängt."
+          },
+          {
+            "title": "Abgeschlossene Aufgaben tracken",
+            "text": "Wenn du ein Konto hast, kannst du mit der <strong>Checkbox</strong> jeden Eintrag, den du erledigt hast, abhaken. Dein Fortschritt wird in der Cloud gespeichert und der Eintrag verkleinert, um Platz für offene Aufträge zu machen. So hast du gleich im Blick, was du noch erledigen musst."
+          },
+          {
+            "title": "Personalisierte Kurse",
+            "text": "Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch Einträge zu anderen Fächern ausblenden lassen. Deine Auswahl kannst du in deinen <strong>Kontoeinstellungen</strong> anpassen. Wenn du trotzdem alle Einträge sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren."
+          },
+          {
+            "title": "Archiv",
+            "text": "Einträge, die älter als <strong>24 Stunden</strong> sind, werden automatisch ausgeblendet, um die Ansicht übersichtlich zu halten. Falls du einen älteren Eintrag suchst, kannst du auf den <strong>Archiv</strong>-Button klicken und Einträge einsehen, die bis zu <strong>30 Tage</strong> alt sind."
+          }
+        ]
+      },
+      "types": {
+        "homework": "Hausaufgabe",
+        "dalton": "Dalton",
+        "exam": "Prüfung"
+      },
+      "tabs": {
+        "homework": "Hausaufgaben",
+        "dalton": "Dalton",
+        "exams": "Prüfungen",
+        "private": "Privat"
+      },
+      "allsubjects": "Alle Fächer",
+      "archive": {
+        "archive": "Archiv",
+        "closeArchive": "Archiv schließen",
+        "archiveNote": "Du siehst gerade alte Einträge"
+      },
+      "notes": {
+        "note": "Anmerkung",
+        "noNotes": "Keine Anmerkung vorhanden"
+      },
+      "itemForm": {
+        "newEntry": "Neuer Eintrag – ",
+        "editEntry": "Eintrag bearbeiten – ",
+        "title": "Titel",
+        "subject": "Fach",
+        "customSubject": "Benutzerdefiniertes Fach",
+        "course": "Kurs",
+        "description": "Beschreibung (optional)",
+        "dueDate": "Datum",
+        "images": "Bilder",
+        "uploadingImage": "Lade Bild hoch...",
+        "successCreate": "Eintrag erfolgreich erstellt",
+        "successEdit": "Eintrag erfolgreich bearbeitet",
+        "errors": {
+          "enrichmentMissing": "Wähle einen Enrichment-Kurs aus",
+          "wpuMissing": "Wähle einen WPU-Kurs aus",
+          "profanity": "Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.",
+          "customMissing": "Trage ein benutzerdefiniertes Fach ein",
+          "customLong": "Das benutzerdefinierte Fach ist zu lang (max. 40 Zeichen).",
+          "titleMissing": "Füge einen Titel hinzu",
+          "titleLong": "Der Titel ist zu lang (max. 60 Zeichen).",
+          "descriptionLong": "Die Beschreibung ist zu lang (max. 1000 Zeichen).",
+          "dateOld": "Das Datum liegt zu weit in der Vergangenheit",
+          "dateNew": "Das Datum liegt zu weit in der Zukunft"
+        }
+      },
+      "items": {
+        "menu": {
+          "uploadImages": "Bilder hochladen",
+          "pin": "Anheften",
+          "unpin": "Lösen",
+          "share": "Teilen",
+          "shareConfirm": "Link in die Zwischenablage kopiert!",
+          "report": {
+            "title": "Diesen Eintrag melden?",
+            "name": "Melden",
+            "infopop": {
+              "title": "Einträge melden",
+              "tooltip": "Informationen zum Melden Melden von Einträgen",
+              "sections": [
+                {
+                  "title": "Falschinformationen",
+                  "text": "Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt."
+                },
+                {
+                  "title": "Unangebrachte/Illegale Inhalte",
+                  "text": "Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst."
+                }
+              ]
+            },
+            "selectReason": "Wähle den Grund aus:",
+            "illegalLabel": "Was genau ist das Problem? (optional)",
+            "illegalPlaceholder": "Beschreibung...",
+            "falseLabel": "Korrektur (erforderlich)",
+            "falsePlaceholder": "Korrektur...",
+            "action": "Eintrag melden"
+          },
+          "delete": {
+            "title": "Diesen Eintrag löschen?",
+            "description": "Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.",
+            "action": "Eintrag löschen"
+          }
+        },
+        "view": {
+          "noEntriesFound": "Keine Einträge gefunden",
+          "noEntriesInView": "Keine Einträge in der aktuellen Ansicht."
+        }
+      }
+    },
+    "tables": {
+      "dalton": {
+        "title": "Daltonraumfinder",
+        "infopop": {
+          "tooltip": "Überblick und Funktionen zum Daltonraumfinder",
+          "description": "Finde den passenden Raum in wenigen Sekunden.",
+          "sections": [
+            {
+              "title": "Raumsuche",
+              "text": "Sehe für jeden Raum ein, an welchem Tag welche/r Lehrer*in dort ist."
+            },
+            {
+              "title": "Lehrer*innensuche",
+              "text": "Suche nach bestimmten Lehrer*innen und lasse dir anzeigen, wann sie in welchen Räumen sind oder gib ein Fach ein, für das du Hilfe brauchst, und finde jede/n zugehörige/n Fachlehrer*in und die Räume, die sie belegen."
+            }
+          ]
+        },
+        "roomSearch": "Raumsuche",
+        "searchRoom": "Raum suchen...",
+        "room": "Raum",
+        "noRoomFound": "Keine Räume gefunden.",
+        "teacherSearch": "Lehrer*innensuche",
+        "searchTeacher": "Lehrer*in suchen...",
+        "enterTeacherName": "Bitte Lehrer*innenname eingeben",
+        "noTeacherFound": "Keine Lehrer*innen gefunden"
+      },
+      "timetable": {
+        "title": "Stundenplan",
+        "infopop": {
+          "tooltip": "Überblick und Funktionen zum Stundenplan",
+          "description": "Die digitale Version vom Programm.",
+          "sections": [
+            {
+              "title": "Personalisierte Kurse",
+              "text": "Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du in deinen Kontoeinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren."
+            },
+            {
+              "title": "Live-Änderungen",
+              "text": "Vertretung, Ausfall, Raumänderungen usw. werden vom Admin-Team zeitnah übertragen und gleich im digitalen Stundenplan angezeigt."
+            }
+          ]
+        },
+        "disclaimer": "Schul-dashboard und das Admin-Team übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der der bereitgestellten Informationen.",
+        "personalized": "Personalisiert",
+        "lesson": "Stunde",
+        "cancelled": "Entfällt/Ausfall"
+      },
+      "abbr": {
+        "title": "Kürzelfinder",
+        "infopop": {
+          "tooltip": "Überblick und Funktionen zum Kürzelfinder",
+          "description": "Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.",
+          "sections": [
+            {
+              "title": "Kürzelübersetzer",
+              "text": "Gib das unbekannte Kürzel in das Textfeld ein und erhalte den zugehörigen Namen."
+            },
+            {
+              "title": "Kürzelfinder",
+              "text": "Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel."
+            }
+          ]
+        },
+        "abbr": "Kürzel",
+        "name": "Name",
+        "didYouMean1": "Meintest du ",
+        "didYouMean2": "?"
+      }
+    },
+    "private": {
+      "entry": "Privater Eintrag",
+      "onlyVisibleToYou": "Nur für dich sichtbar",
+      "infopop": {
+        "tooltip": "Überblick und Funktionen zu privaten Einträgen",
+        "text": "Anders als normale Einträge sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>. Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um die Sicherheit machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen."
+      },
+      "requiresAccount": "Du musst angemeldet sein, um private Einträge zu verwenden.",
+      "loading": "Lade private Einträge...",
+      "noEntriesFound": "Keine privaten Einträge gefunden.",
+      "successDelete": "Privater Eintrag erfolgreich gelöscht",
+      "todoForm": {
+        "title": "Neuer privater Eintrag",
+        "titlePlaceholder": "Einkaufen gehen...",
+        "descriptionPlaceholder": "6 Eier..."
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard"
+    }
+  },
+  "tools": {
+    "worrybox": {
+      "title": "Kummerkasten",
+      "infopop": {
+        "tooltip": "Informationen über den Kummerkasten",
+        "text": "Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest."
+      },
+      "placeholder": "Du kannst über alles schreiben...",
+      "action": "Anonym absenden"
+    }
+  },
+  "info": {
+    "dashboard": {
+      "title": "Info Dashboard",
+      "description": "Spannende Geschichte rund um den Globus",
+      "categories": {
+        "politics": "Politik",
+        "science": "Wissenschaft",
+        "technology": "Technologie",
+        "culture": "Kultur",
+        "economy": "Wirtschaft"
+      },
+      "recommendations": "Das könnte dich auch interessieren",
+      "topic": "Thema:",
+      "allTopics": "Alle Themen",
+      "sortBy": "Sortieren:",
+      "sortMethods": {
+        "relevance": "Relevanz",
+        "newest": "Neueste",
+        "oldest": "Älteste",
+        "shortest": "Kürzeste Lesezeit"
+      },
+      "maxTime": "Max. Lesezeit:"
+    },
+    "articles": {
+      "1": {
+        "content": "Trotz der Behauptung, dass sich die Christdemokraten um die Armen, Zugewanderten und Opfer scheren, beweisen sie immer wieder: Was uns ein Dorn im Auge ist, soll weg.\n\nIn New York wurde das Prinzip l\u00e4ngst perfektioniert \u2013 B\u00e4nke mit Kurven, Abtrennungen und Stacheln sind der Trend des Jahres. Denn wenn man sich nicht hinlegen kann, geht man weg und \u201eaus den Augen, aus dem Sinn\u201c, oder? Leider ert\u00f6nten keine feierlichen Trompeten, gefolgt von genug bezahlbaren Wohnungen und die Obdachlosen legten sich neben die B\u00e4nke. Aber die Berliner CDU glaubt, in Kreuzberg herrschen andere Gesetze. Wenn sie das ganze Geld, das f\u00fcr die Versorgung und Unterst\u00fctzung der Suchtkranken eingeplant war, f\u00fcr einen riesigen Zaun um den G\u00f6rlitzer Park ausgeben, dann m\u00fcssten sie auf magische Weise verschwinden und keine zus\u00e4tzlichen Investitionen w\u00e4ren n\u00f6tig, so die These. Allerdings muss sich ein Denkfehler eingeschlichen haben \u2013 das einzige Problem, das verschwindet, ist die Entscheidung, wof\u00fcr man 2 Mio. Euro Steuergelder ausgeben soll.\n\nEin befragter Anwohner findet, der Park brauche definitiv Hilfe, aber in Form von Hilfe f\u00fcr die Abh\u00e4ngigen \u2013 nur schlecht, dass das im Haushalt nicht vorgesehen ist. In den letzten Monaten gab es Aufschreie im Minutentakt, eine gesunde Prise zivilen Ungehorsam und zwei Klagen vom Bezirk, die schneller abgewiesen wurden, als man sie durchlesen kann. Aber was wissen die Menschen, um die es geht, schon \u00fcber das Thema? Die christlichen \u201eDemokraten\u201c h\u00f6ren auf das Volk \u2013 allerdings nur auf die reicheren 20 % in den Randbezirken. Der Zaun ist ein Geschenk an ihre W\u00e4hler, die den Park als Schande sehen, und kommt gleich mit einer Gl\u00fcckwunschkarte, auf der \u201eWir machen alles, was ihr wollt\u201c steht.\n\nSolange Kai Wegner seine Symbolpolitik betreibt und jegliche Aufrufe der Bev\u00f6lkerung ignoriert, scheint Geld f\u00fcr echte L\u00f6sungen fernzubleiben. Uns bleibt also nur noch eins zu hoffen \u2013 jeder freischaffende Pharmah\u00e4ndler denkt sich um 22 Uhr bei Schlie\u00dfung der Tore: Jetzt ist Feierabend."
+      }
+    },
+    "kanye": {
+      "footnote": "Die Abbildungen der Albumcover dienen ausschließlich der Identifizierung. Das Urheberrecht liegt bei den jeweiligen Eigentümern, Labels und Künstlern."
+    }
+  },
+  "legal": {
+    "imprint": {
+      "title": "Impressum",
+      "info": {
+        "name": "Deniz Keskin",
+        "address": "12045 Berlin"
+      },
+      "disclaimer": "Bei dieser Anwendung handelt es sich um ein rein privates, nicht-kommerzielles Schülerprojekt."
+    },
+    "privacy": {
+      "title": "Datenschutzerklärung"
+    },
+    "terms": {
+      "title": "Nutzungsbedingungen"
+    }
+  },
+  "contact": {
+    "contact": {
+      "title": "Kontakt",
+      "email": "E-Mail",
+      "location": "Standort",
+      "feedback": "Feedback"
+    }
+  },
+  "about": {},
+  "games": {}
+}

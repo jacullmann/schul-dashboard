@@ -1,1 +1,0 @@
-export { default as AuthLayout } from '@/modules/auth/views/MainLayout.vue'
