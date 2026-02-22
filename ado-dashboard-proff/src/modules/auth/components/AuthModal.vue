@@ -29,7 +29,7 @@
                   ref="emailInputRef"
                   class="input"
                   v-model="email"
-                  :placeholder="t('account.auth.email')"
+                  :placeholder="t('account.auth.emailPlaceholder')"
                   type="email"
                   autocomplete="email"
                   @input="clearFieldError('email')"
@@ -85,7 +85,7 @@
                       class="input"
                       :type="showPassword ? 'text' : 'password'"
                       v-model="passwordConfirm"
-                      :placeholder="t('account.auth.confirmPassword')"
+                      :placeholder="t('account.auth.confirmPlaceholder')"
                       autocomplete="new-password"
                       @input="clearFieldError('passwordConfirm')"
                   />
@@ -437,13 +437,13 @@ const leave = (el: Element) => {
   line-height: 1.5;
 }
 
-.privacy-link {
+:deep(.privacy-link) {
   color: var(--sub);
   text-decoration: underline;
   transition: color 0.2s ease;
 }
 
-.privacy-link:hover {
+:deep(.privacy-link:hover) {
   color: var(--text);
 }
 
