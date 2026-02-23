@@ -30,15 +30,22 @@
       <button
           v-for="option in options"
           :key="option.value"
-          class="dropdown-item"
+          class="menu-btn"
           :class="{ active: modelValue === option.value }"
           @click="selectOption(option.value)"
           type="button"
           :disabled="disabled"
       >
-        <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
-        <span class="spacer" v-else></span>
-        {{ option.label }}
+        <div class="menu-btn-content">
+          <component
+              v-if="option.icon"
+              :is="option.icon"
+              :size="16"
+          />
+          {{ option.label }}
+          <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
+          <span class="spacer" v-else></span>
+        </div>
       </button>
     </div>
   </div>
@@ -107,20 +114,6 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-.menu-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: var(--border-4);
-  cursor: pointer;
-  font-size: var(--font-size-sub);
-  transition: background 0.2s ease;
-}
-
 .menu-btn:hover:not(:disabled) {
   background: var(--gg);
 }
@@ -128,17 +121,6 @@ onBeforeUnmount(() => {
 .menu-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.menu-btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-}
-
-.menu-btn-content svg {
-  flex-shrink: 0;
 }
 
 .lucide-chevron-down {
@@ -167,33 +149,7 @@ onBeforeUnmount(() => {
   animation: menuFadeIn 160ms ease;
 }
 
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: var(--border-4);
-  cursor: pointer;
-  font-size: var(--font-size-sub);
-  transition: background 0.2s ease;
-  white-space: nowrap;
-}
-
-.dropdown-item:hover:not(:disabled) {
-  background: var(--gg);
-}
-
-.dropdown-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.dropdown-item.active {
+.menu-btn.active {
   font-weight: 600;
 }
 
