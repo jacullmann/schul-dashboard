@@ -5,7 +5,7 @@
         @click="toggleMenu"
         ref="buttonRef"
     >
-      <Plus size="28px" />
+      <Plus :size="28" />
     </button>
 
     <div
@@ -19,9 +19,9 @@
           @click="selectType('HAUSAUFGABE')"
           data-umami-event="Dropdown - Hausaufgabe erstellen"
       >
-        <div class="fixall">
+        <div class="menu-btn-content">
           <FileText :size="16" />
-          Hausaufgabe
+          {{ t('school.tasks.types.homework') }}
         </div>
       </button>
       <button
@@ -29,9 +29,9 @@
           @click="selectType('DALTON')"
           data-umami-event="Dropdown - Dalton erstellen"
       >
-        <div class="fixall">
+        <div class="menu-btn-content">
           <NotebookText :size="16" />
-          Dalton
+          {{ t('school.tasks.types.dalton') }}
         </div>
       </button>
       <button
@@ -39,12 +39,12 @@
           @click="selectType('PRUEFUNG')"
           data-umami-event="Dropdown - Prüfung erstellen"
       >
-        <div class="fixall">
+        <div class="menu-btn-content">
           <BookOpenText :size="16" />
-          Prüfung
+          {{ t('school.tasks.types.exam') }}
         </div>
       </button>
-      <div class="last-of-three">
+      <div class="menu-divider">
 
       </div>
       <button
@@ -52,9 +52,9 @@
           @click="selectType('PRIVATE')"
           data-umami-event="Dropdown - Privater Eintrag erstellen"
       >
-        <div class="fixall">
+        <div class="menu-btn-content">
           <Lock :size="16" />
-          Privater Eintrag
+          {{ t('school.private.entry') }}
         </div>
       </button>
     </div>
@@ -64,6 +64,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { NotebookText, FileText, Lock, BookOpenText, Plus } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
 
@@ -145,28 +148,18 @@ onBeforeUnmount(() => {
   display: inline-block;
 }
 
-.entry-menu {
-  position: absolute;
-  left: 0;
-  top: 100%;
+.menu {
   min-width: 180px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 4px;
-  z-index: 1000;
-  box-shadow: var(--menu-shadow);
-  animation: menuFadeIn 160ms ease;
   margin-top: 8px;
 }
 
-.entry-menu.align-right {
+.menu.align-right {
   left: auto;
   right: 0;
+}
+
+.mg {
+  padding: 4px;
 }
 
 @keyframes menuFadeIn {
@@ -178,44 +171,5 @@ onBeforeUnmount(() => {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-
-.menu-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s ease;
-}
-
-.menu-btn .fixall {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-}
-
-.menu-btn .fixall svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.menu-btn:hover {
-  background: var(--gg);
-}
-.mg {
-  padding: 4px;
-
-}
-.last-of-three {
-  border-bottom: 1px solid var(--border2);
-  margin-inline: 4px;
 }
 </style>

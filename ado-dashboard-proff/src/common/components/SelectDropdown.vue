@@ -1,5 +1,5 @@
 <template>
-  <div class="dropdown-wrapper" ref="wrapperRef">
+  <div class="menu-wrapper" ref="wrapperRef">
     <button
         :class="['btn ghost', extraClass]"
         @click="toggleMenu"
@@ -16,11 +16,11 @@
       </div>
     </button>
 
-    <div v-if="isOpen" class="dropdown-menu">
+    <div v-if="isOpen" class="select-menu">
       <button
           v-for="option in options"
           :key="option.value"
-          class="dropdown-item"
+          class="menu-btn"
           :class="{ active: modelValue === option.value }"
           @click="selectOption(option.value)"
           type="button"
@@ -81,7 +81,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <style scoped>
-.dropdown-wrapper {
+.menu-wrapper {
   position: relative;
 }
 
@@ -106,7 +106,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   transform: rotate(180deg);
 }
 
-.dropdown-menu {
+.select-menu {
   position: absolute;
   top: 100%;
   min-width: 100%;
@@ -123,37 +123,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   z-index: 999;
   box-shadow: var(--menu-shadow);
   animation: menuFadeIn 160ms ease;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  justify-content: space-between;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: var(--border-4);
-  cursor: pointer;
-  font-size: var(--font-size-sub);
-  transition: background 0.2s ease;
-  white-space: nowrap;
-}
-
-.dropdown-item:hover:not(:disabled) {
-  background: var(--gg);
-}
-
-.dropdown-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.dropdown-item.active {
-  font-weight: 600;
 }
 
 .lucide-check {

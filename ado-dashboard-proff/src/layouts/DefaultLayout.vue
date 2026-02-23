@@ -66,7 +66,7 @@ const { loading, progress, opacity } = useLoadingBar();
 }
 
 .main-content {
-  margin-top: var(--anouncement-height);
+  margin-top: var(--announcement-height);
   transition: margin-top 0.3s ease;
   width: 100%;
 }

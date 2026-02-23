@@ -43,9 +43,9 @@
               :size="16"
           />
           {{ option.label }}
-          <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
-          <span class="spacer" v-else></span>
         </div>
+        <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
+        <span class="spacer" v-else></span>
       </button>
     </div>
   </div>
@@ -147,10 +147,6 @@ onBeforeUnmount(() => {
   z-index: 1100;
   box-shadow: var(--menu-shadow);
   animation: menuFadeIn 160ms ease;
-}
-
-.menu-btn.active {
-  font-weight: 600;
 }
 
 .check-icon {

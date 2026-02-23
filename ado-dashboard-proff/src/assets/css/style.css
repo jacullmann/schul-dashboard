@@ -16,7 +16,7 @@
     --vlbg: #282828;
     --sub2: #8a8a8a;
     --s-hover: #323232;
-    --anouncement-height: 0px;
+    --announcement-height: 0px;
     --admin-header-height: 60px;
     --display-font: 'Satoshi';
     --normal-font: 'Inter';
@@ -228,7 +228,8 @@ h1, h2, h3, h4, h5 {
         pointer-events: auto;
     }
     .menu-btn {
-        display: block;
+        display: flex;
+        justify-content: space-between;
         width: 100%;
         text-align: left;
         background: transparent;
@@ -260,6 +261,9 @@ h1, h2, h3, h4, h5 {
     }
     .menu-btn.danger:hover {
         background: var(--special--red--background);
+    }
+    .menu-btn.active {
+        font-weight: 600;
     }
     .menu-divider {
         border-bottom: 1px solid var(--border2);
