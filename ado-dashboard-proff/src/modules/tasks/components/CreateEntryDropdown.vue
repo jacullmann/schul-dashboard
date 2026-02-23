@@ -10,7 +10,7 @@
 
     <div
         v-if="isOpen"
-        class="entry-menu"
+        class="menu"
         :class="{ 'align-right': alignRight }"
         ref="menuRef"
     >
