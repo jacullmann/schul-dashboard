@@ -132,6 +132,24 @@ const routes = [
                     fullWidth: false,
                 }
             },
+            {
+                path: 'brain',
+                name: 'brain-library',
+                component: () => import('@/modules/brain/pages/BrainLibrary.vue'),
+                meta: {
+                    title: 'Gehirntraining',
+                    fullWidth: false,
+                }
+            },
+            {
+                path: 'brain/:testId',
+                name: 'brain-test',
+                component: () => import('@/modules/brain/pages/BrainTest.vue'),
+                meta: {
+                    title: 'Gehirntest',
+                    fullWidth: false,
+                }
+            },
         ]
     },
 

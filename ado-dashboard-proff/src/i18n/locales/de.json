@@ -7,6 +7,7 @@
       "create": "Erstellen",
       "add": "Hinzufügen",
       "edit": "Bearbeiten",
+      "duplicate": "Duplizieren",
       "showMore": "Mehr anzeigen",
       "showLess": "Weniger anzeigen",
       "cancel": "Abbrechen",
@@ -48,7 +49,8 @@
     "errors": {
       "unknown": "Unbekannter Fehler",
       "delete": "Fehler beim Löschen",
-      "save": "Fehler beim Speichern"
+      "save": "Fehler beim Speichern",
+      "update": "Fehler beim Aktualisieren"
     },
     "cookies": {
       "banner": {
@@ -459,6 +461,10 @@
       "requiresAccount": "Du musst angemeldet sein, um private Einträge zu verwenden.",
       "loading": "Lade private Einträge...",
       "noEntriesFound": "Keine privaten Einträge gefunden.",
+      "errorLoad": "Fehler beim Laden der privaten Einträge",
+      "successDuplicate": "Privater Eintrag erfolgreich dupliziert",
+      "errorDuplicate": "Fehler beim duplizieren",
+      "deleteConfirm": "Möchtest du diesen privaten Eintrag wirklich löschen?",
       "successDelete": "Privater Eintrag erfolgreich gelöscht",
       "todoForm": {
         "title": "Neuer privater Eintrag",
