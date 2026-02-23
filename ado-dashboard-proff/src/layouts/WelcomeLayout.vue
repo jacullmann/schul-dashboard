@@ -4,9 +4,13 @@
       <WelcomeHeader />
     </div>
 
-    <div class="main-container">
-      <router-view />
-    </div>
+    <main class="full-c">
+      <div class="bg"></div>
+
+      <div class="main-container">
+        <router-view />
+      </div>
+    </main>
 
     <div class="footer-container">
       <WelcomeFooter />

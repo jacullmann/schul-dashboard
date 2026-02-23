@@ -9,8 +9,7 @@
   </div>
 
   <main class="full-c">
-    <div class="svg-background" v-if="deviceIsMobile"></div>
-    <div class="black-bg" v-else></div>
+    <div class="bg"></div>
 
     <div
         :class="{ 'container': !$route.meta.fullWidth }"
@@ -27,28 +26,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
 import { useLoadingBar } from '@/common/composables/loadingState';
 
 const { loading, progress, opacity } = useLoadingBar();
-
-const deviceIsMobile = ref(false);
-
-const checkIfMobile = () => {
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isMobileUserAgent = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-  const isSmallScreen = window.innerWidth <= 768;
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
-  deviceIsMobile.value = isMobileUserAgent || (isSmallScreen && isTouchDevice);
-};
-
-onMounted(() => {
-  checkIfMobile();
-});
 </script>
 
 <style scoped>
@@ -82,23 +65,9 @@ onMounted(() => {
   transform: rotate(3deg) translate(0px, -4px);
 }
 
-.full-c {
-  flex: 1;
-  position: relative;
-}
 .main-content {
-  margin-top: var(--announcement-height);
+  margin-top: 0;
   transition: margin-top 0.3s ease;
   width: 100%;
-}
-
-.black-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--bg);
-  z-index: -2;
 }
 </style>

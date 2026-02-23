@@ -98,7 +98,8 @@ const announcementStyle = computed(() => {
   font-size: 1.6rem;
   white-space: nowrap;
   line-height: 32px;
-  font-family: var(--display-font)
+  font-family: var(--display-font), sans-serif;
+  color: var(--text);
 }
 
 .example-announcement {
