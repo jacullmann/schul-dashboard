@@ -150,6 +150,40 @@ const routes = [
                     fullWidth: false,
                 }
             },
+            {
+                path: 'impressum-&-datenschutz',
+                name: 'impressum-und-datenschutz',
+                component: () => import('@/modules/legal/pages/LegalLayout.vue'),
+                children: [
+                    {
+                        path: 'impressum',
+                        name: 'impressum',
+                        component: () => import('@/modules/legal/components/ImpressumPage.vue'),
+                        meta: {
+                            title: 'Impressum',
+                            fullWidth: false,
+                        }
+                    },
+                    {
+                        path: 'datenschutz',
+                        name: 'datenschutz',
+                        component: () => import('@/modules/legal/components/DatenschutzPage.vue'),
+                        meta: {
+                            title: 'Datenschutzerklärung',
+                            fullWidth: false,
+                        }
+                    },
+                    {
+                        path: 'nutzung',
+                        name: 'nutzung',
+                        component: () => import('@/modules/legal/components/Nutzungsbedingungen.vue'),
+                        meta: {
+                            title: 'Nutzungsbedingungen',
+                            fullWidth: false,
+                        }
+                    }
+                ]
+            },
         ]
     },
 
@@ -293,40 +327,6 @@ const routes = [
     {
         path: '/goat',
         redirect: '/kanye'
-    },
-    {
-        path: '/impressum-&-datenschutz',
-        name: 'impressum-und-datenschutz',
-        component: () => import('@/modules/legal/pages/LegalLayout.vue'),
-        children: [
-            {
-                path: 'impressum',
-                name: 'impressum',
-                component: () => import('@/modules/legal/components/ImpressumPage.vue'),
-                meta: {
-                    title: 'Impressum',
-                    fullWidth: false,
-                }
-            },
-            {
-                path: 'datenschutz',
-                name: 'datenschutz',
-                component: () => import('@/modules/legal/components/DatenschutzPage.vue'),
-                meta: {
-                    title: 'Datenschutzerklärung',
-                    fullWidth: false,
-                }
-            },
-            {
-                path: 'nutzung',
-                name: 'nutzung',
-                component: () => import('@/modules/legal/components/Nutzungsbedingungen.vue'),
-                meta: {
-                    title: 'Nutzungsbedingungen',
-                    fullWidth: false,
-                }
-            }
-        ]
     },
     {
         path: '/:pathMatch(.*)*',

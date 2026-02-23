@@ -17,40 +17,38 @@
       <button
           class="menu-btn"
           @click="selectType('HAUSAUFGABE')"
-          data-umami-event="Dropdown - Hausaufgabe erstellen"
       >
         <div class="menu-btn-content">
           <FileText :size="16" />
           {{ t('school.tasks.types.homework') }}
         </div>
       </button>
+
       <button
           class="menu-btn"
           @click="selectType('DALTON')"
-          data-umami-event="Dropdown - Dalton erstellen"
       >
         <div class="menu-btn-content">
           <NotebookText :size="16" />
           {{ t('school.tasks.types.dalton') }}
         </div>
       </button>
+
       <button
           class="menu-btn"
           @click="selectType('PRUEFUNG')"
-          data-umami-event="Dropdown - Prüfung erstellen"
       >
         <div class="menu-btn-content">
           <BookOpenText :size="16" />
           {{ t('school.tasks.types.exam') }}
         </div>
       </button>
-      <div class="menu-divider">
 
-      </div>
+      <div class="menu-divider"></div>
+
       <button
           class="menu-btn"
           @click="selectType('PRIVATE')"
-          data-umami-event="Dropdown - Privater Eintrag erstellen"
       >
         <div class="menu-btn-content">
           <Lock :size="16" />
@@ -149,8 +147,9 @@ onBeforeUnmount(() => {
 }
 
 .menu {
-  min-width: 180px;
   margin-top: 8px;
+  display: flex;
+  opacity: 1;
 }
 
 .menu.align-right {
