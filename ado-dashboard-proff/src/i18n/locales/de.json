@@ -157,7 +157,7 @@
       "login": "Anmelden",
       "register": "Registrieren",
       "email": "E-Mail",
-      "emailPlaceholder": "name@example.com",
+      "emailPlaceholder": "name{'@'}example.com",
       "password": "Passwort",
       "passwordPlaceholder": "mindestens 8 Zeichen",
       "confirmPassword": "Passwort bestätigen",
