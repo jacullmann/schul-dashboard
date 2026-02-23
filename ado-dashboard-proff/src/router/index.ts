@@ -153,7 +153,7 @@ const routes = [
             {
                 path: 'impressum-&-datenschutz',
                 name: 'impressum-und-datenschutz',
-                component: () => import('@/modules/legal/pages/LegalLayout.vue'),
+                component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
                 children: [
                     {
                         path: 'impressum',
