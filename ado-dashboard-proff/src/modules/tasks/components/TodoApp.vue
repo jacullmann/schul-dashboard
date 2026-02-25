@@ -31,9 +31,10 @@
             :list="displayTodos"
             class="todos"
             item-key="id"
-            handle=".drag-handle"
+            handle=".item-card"
             @end="onDragEnd"
             :animation="200"
+            easing="cubic-bezier(0.3, 0, 0.14, 1)"
             ghost-class="ghost"
         >
           <div
@@ -46,9 +47,6 @@
             <div class="item-main">
               <div class="item-meta">
                 <div style="display:flex; align-items:center; gap:8px;">
-                  <div class="drag-handle" title="Ziehen zum Sortieren" v-if="!todo.completed">
-                    <GripVertical :size="16" />
-                  </div>
                   <Checkbox
                       :checked="todo.completed"
                       @change="toggleTodoCompletion(todo)"
@@ -234,28 +232,22 @@ defineExpose({ loadTodos, addTodo, updateTodo });
 }
 
 .item-card.ghost {
-  opacity: 0.5;
-  background: var(--gg);
+  background: white;
+  will-change: transform, filter
 }
 
-.drag-handle {
-  cursor: grab;
-  color: var(--sub);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: -8px;
-  padding: 4px;
-  border-radius: 4px;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.drag-handle:hover {
-  background-color: var(--gg);
-  color: var(--text);
+.item-card.ghost::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  z-index: -1;
+  background: linear-gradient(120deg, #ffa91a 0, #ff335a 35%, #af00ff 70%, #5600ff 110%);
+  filter: blur(12px);
+  opacity: 0.9;
+  display: block !important;
 }
 
 .item-card.collapsed {
@@ -308,6 +300,26 @@ defineExpose({ loadTodos, addTodo, updateTodo });
 .item-menu-trigger:hover {
   background: var(--gg);
   color: var(--text);
+}
+
+.lucide-chevron-up {
+  overflow: visible;
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+.menu-btn:hover .lucide-chevron-up {
+  transform: translateY(-1px);
+}
+
+.lucide-chevron-down {
+  overflow: visible;
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+.menu-btn:hover .lucide-chevron-down {
+  transform: translateY(1px);
 }
 
 .item-body {
