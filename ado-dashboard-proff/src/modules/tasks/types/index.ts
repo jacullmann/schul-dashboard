@@ -32,6 +32,7 @@ export interface Todo {
     title: string;
     description: string;
     completed: boolean;
+    position?: string;
     createdAt: string;
     updatedAt: string;
 }

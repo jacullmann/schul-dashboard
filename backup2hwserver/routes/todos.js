@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
+import { generateKeyBetween } from 'fractional-indexing';
 
 export default function createTodosRoutes(deps) {
     const router = Router();
@@ -26,7 +27,7 @@ export default function createTodosRoutes(deps) {
         async (req, res) => {
             try {
                 const todos = await EncryptedTodo.find({ userId: req.user.sub })
-                    .sort({ createdAt: -1 })
+                    .sort({ position: 1, createdAt: -1 })
                     .lean();
 
                 const decryptedTodos = await Promise.all(todos.map(async todo => ({
@@ -36,6 +37,7 @@ export default function createTodosRoutes(deps) {
                         ? await decryptData(todo.encryptedDescription, req.user.sub)
                         : '',
                     completed: todo.completed,
+                    position: todo.position || '',
                     createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
                 })));
@@ -62,6 +64,19 @@ export default function createTodosRoutes(deps) {
             try {
                 const { title, description } = req.body;
 
+                const firstTodo = await EncryptedTodo.findOne({ userId: req.user.sub })
+                    .sort({ position: 1, createdAt: -1 })
+                    .lean();
+
+                let newPosition;
+                try {
+                    newPosition = firstTodo && firstTodo.position
+                        ? generateKeyBetween(null, firstTodo.position)
+                        : generateKeyBetween(null, null);
+                } catch (e) {
+                    newPosition = generateKeyBetween(null, null);
+                }
+
                 const encryptedTitle = await encryptData(title.trim(), req.user.sub);
                 const encryptedDescription = await encryptData(description?.trim() || '', req.user.sub);
 
@@ -69,7 +84,8 @@ export default function createTodosRoutes(deps) {
                     userId: req.user.sub,
                     encryptedTitle,
                     encryptedDescription,
-                    completed: false
+                    completed: false,
+                    position: newPosition
                 });
 
                 await User.findByIdAndUpdate(req.user.sub, {
@@ -87,6 +103,7 @@ export default function createTodosRoutes(deps) {
                     title: title.trim(),
                     description: description?.trim() || '',
                     completed: false,
+                    position: newPosition,
                     createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
                 });
@@ -140,6 +157,7 @@ export default function createTodosRoutes(deps) {
                     title: title.trim(),
                     description: description?.trim() || '',
                     completed: todo.completed,
+                    position: todo.position || '',
                     createdAt: todo.createdAt,
                     updatedAt: todo.updatedAt
                 });
@@ -186,12 +204,81 @@ export default function createTodosRoutes(deps) {
                 res.json({
                     id: todo._id,
                     completed: todo.completed,
+                    position: todo.position || '',
                     updatedAt: todo.updatedAt
                 });
 
             } catch (error) {
                 console.error('Fehler beim Umschalten des privaten Eintrag-Statuses:', error);
                 sendJSONError(res, 500, 'Fehler beim Aktualisieren des privaten Eintrags');
+            }
+        }
+    );
+
+    // PATCH /api/todos/:id/reorder
+    router.patch('/:id/reorder',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, BannedUser, User),
+        validateCsrf(csrfSecret),
+        [
+            param('id').isMongoId(),
+            body('prevPosition').optional({ nullable: true }).isString(),
+            body('nextPosition').optional({ nullable: true }).isString()
+        ],
+        validate,
+        async (req, res) => {
+            try {
+                const todo = await EncryptedTodo.findOne({
+                    _id: req.params.id,
+                    userId: req.user.sub
+                });
+
+                if (!todo) {
+                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
+                }
+
+                const { prevPosition, nextPosition } = req.body;
+
+                let newPosition;
+                try {
+                    newPosition = generateKeyBetween(prevPosition || null, nextPosition || null);
+                } catch (e) {
+                    return sendJSONError(res, 400, 'Ungültige Positionen für Re-Ordering');
+                }
+
+                todo.position = newPosition;
+                await todo.save();
+
+                // Rebalancing check: If the position string gets too long, re-assign positions for all incomplete todos
+                if (newPosition && newPosition.length > 20) {
+                    const allIncomplete = await EncryptedTodo.find({ userId: req.user.sub, completed: false })
+                        .sort({ position: 1, createdAt: -1 });
+
+                    let p = null;
+                    for (const t of allIncomplete) {
+                        try {
+                            p = generateKeyBetween(p, null);
+                            t.position = p;
+                            await t.save();
+                        } catch (e) {
+                            // Ignore error and continue
+                        }
+                    }
+                    if (todo._id) {
+                        const updatedTodo = await EncryptedTodo.findById(todo._id);
+                        if (updatedTodo) newPosition = updatedTodo.position;
+                    }
+                }
+
+                res.json({
+                    id: todo._id,
+                    position: newPosition,
+                    updatedAt: todo.updatedAt
+                });
+
+            } catch (error) {
+                console.error('Fehler beim Neuordnen des privaten Eintrags:', error);
+                sendJSONError(res, 500, 'Fehler beim Neuordnen des privaten Eintrags');
             }
         }
     );

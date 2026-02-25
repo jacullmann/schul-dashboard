@@ -33,7 +33,16 @@ export function useTodoApp() {
     const sortDisplayList = (data: Todo[]): Todo[] => {
         return [...data].sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+            // If the user does not reorder the items manually, the items should be displayed exactly like before
+            if (!a.position || !b.position) {
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            }
+
+            // sort by position ascending
+            if (a.position < b.position) return -1;
+            if (a.position > b.position) return 1;
+            return 0;
         });
     };
 
@@ -126,6 +135,36 @@ export function useTodoApp() {
         }
     }
 
+    async function reorderTodo(todoId: string, prevPosition: string | null, nextPosition: string | null) {
+        const todoIndex = todos.value.findIndex(t => t.id === todoId);
+        if (todoIndex === -1) return;
+
+        // Optimistische UI Aktualisierung
+        const todo = todos.value[todoIndex];
+        // Erzeuge eine temporäre Position für das direkte UI Feedback wenn möglich.
+        // Das echte Positionssignal kommt vom Server zurück.
+        if (prevPosition && nextPosition) {
+            todo.position = prevPosition + 'a'; // nur als pseudo-position
+        }
+
+        displayTodos.value = sortDisplayList(todos.value);
+
+        try {
+            const { data } = await hw.patch(`/api/todos/${todoId}/reorder`, {
+                prevPosition,
+                nextPosition
+            });
+            const updatedIndex = todos.value.findIndex(t => t.id === todoId);
+            if (updatedIndex !== -1) {
+                todos.value[updatedIndex] = { ...todos.value[updatedIndex], position: data.position, updatedAt: data.updatedAt };
+                displayTodos.value = sortDisplayList(todos.value);
+            }
+        } catch (error: any) {
+            loadTodos(); // Bei Fehler neu laden
+            showMessage(error.response?.data?.error || t('global.errors.update'), true);
+        }
+    }
+
     // Set up event listeners and watchers
     onMounted(() => {
         document.addEventListener('click', closeMenu);
@@ -163,5 +202,6 @@ export function useTodoApp() {
         toggleTodoCompletion,
         duplicateTodo,
         deleteTodo,
+        reorderTodo,
     };
 }

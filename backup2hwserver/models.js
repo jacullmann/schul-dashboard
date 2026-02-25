@@ -30,6 +30,11 @@ export function initModels(mongoose) {
         completed: {
             type: Boolean,
             default: false
+        },
+        position: {
+            type: String,
+            default: '',
+            index: true
         }
     }, {
         timestamps: true

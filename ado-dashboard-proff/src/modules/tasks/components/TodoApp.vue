@@ -27,53 +27,71 @@
       </div>
 
       <div v-else class="todos-container">
-        <div class="todos">
-          <div
-              v-for="todo in displayTodos"
-              :key="todo.id"
-              class="item-card"
-              :class="{ collapsed: todo.completed }"
-              @dblclick="user ? toggleTodoCompletion(todo) : null"
-          >
-            <div class="item-main">
-              <div class="item-meta">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <Checkbox
-                      :checked="todo.completed"
-                      @change="toggleTodoCompletion(todo)"
-                  />
-                  <h3 class="item-title" :title="todo.title">{{ todo.title }}</h3>
+        <draggable
+            v-model="displayTodos"
+            class="todos"
+            item-key="id"
+            handle=".drag-handle"
+            @end="onDragEnd"
+            :animation="200"
+            ghost-class="ghost"
+        >
+          <template #item="{ element: todo, index }">
+            <div
+                class="item-card"
+                :class="{ collapsed: todo.completed }"
+                @dblclick="user ? toggleTodoCompletion(todo) : null"
+            >
+              <div class="item-main">
+                <div class="item-meta">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="drag-handle" title="Ziehen zum Sortieren" v-if="!todo.completed">
+                      <GripVertical :size="16" />
+                    </div>
+                    <Checkbox
+                        :checked="todo.completed"
+                        @change="toggleTodoCompletion(todo)"
+                    />
+                    <h3 class="item-title" :title="todo.title">{{ todo.title }}</h3>
+                  </div>
+                </div>
+
+                <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(todo.id)">
+                  <Ellipsis :size="18"/>
+                </div>
+
+                <div class="menu" :class="{ open: openMenuId === todo.id }" @click.stop>
+                  <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
+                    <div class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</div>
+                  </button>
+
+                  <button class="menu-btn" v-if="!todo.completed && index > 0 && !displayTodos[index-1].completed" @click="moveItemUp(index); openMenuId = null">
+                    <div class="menu-btn-content"><ChevronUp :size="16" />Nach oben</div>
+                  </button>
+                  <button class="menu-btn" v-if="!todo.completed && index < incompleteTodosCount - 1" @click="moveItemDown(index); openMenuId = null">
+                    <div class="menu-btn-content"><ChevronDown :size="16" />Nach unten</div>
+                  </button>
+
+                  <button class="menu-btn" @click="duplicateTodo(todo); openMenuId = null">
+                    <div class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</div>
+                  </button>
+
+                  <div class="menu-divider"></div>
+
+                  <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
+                    <div class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</div>
+                  </button>
                 </div>
               </div>
 
-              <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(todo.id)">
-                <Ellipsis :size="18"/>
-              </div>
-
-              <div class="menu" :class="{ open: openMenuId === todo.id }" @click.stop>
-                <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
-                  <div class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</div>
-                </button>
-
-                <button class="menu-btn" @click="duplicateTodo(todo); openMenuId = null">
-                  <div class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</div>
-                </button>
-
-                <div class="menu-divider"></div>
-
-                <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
-                  <div class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</div>
-                </button>
-              </div>
+              <transition name="collapse">
+                <div v-show="!todo.completed" v-if="todo.description" class="item-body">
+                  <span>{{ todo.description }}</span>
+                </div>
+              </transition>
             </div>
-
-            <transition name="collapse">
-              <div v-show="!todo.completed" v-if="todo.description" class="item-body">
-                <span>{{ todo.description }}</span>
-              </div>
-            </transition>
-          </div>
-        </div>
+          </template>
+        </draggable>
       </div>
     </div>
     <div v-if="message" class="message" :class="{ error: isError }">{{ message }}</div>
@@ -81,13 +99,15 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import Checkbox from '@/common/components/Checkbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import { Pencil, Copy, Trash2, Ellipsis, Lock } from 'lucide-vue-next';
+import { Pencil, Copy, Trash2, Ellipsis, Lock, GripVertical, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import InfoPop from '@/common/components/InfoModalCenter.vue';
 import { useI18n } from 'vue-i18n';
 import type { Todo } from '@/modules/tasks/types';
 import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
+import { VueDraggableNext as draggable } from 'vue-draggable-next';
 
 const { t } = useI18n();
 
@@ -112,7 +132,61 @@ const {
   toggleTodoCompletion,
   duplicateTodo,
   deleteTodo,
+  reorderTodo,
 } = useTodoApp();
+
+const incompleteTodosCount = computed(() => {
+  return displayTodos.value.filter(t => !t.completed).length;
+});
+
+function onDragEnd(event: any) {
+  const { newIndex, oldIndex } = event;
+  if (newIndex === oldIndex) return;
+
+  // displayTodos reflects the NEW order visually already due to v-model
+  const movedItem = displayTodos.value[newIndex];
+  if (movedItem.completed) {
+    // We shouldn't drag completed items or drop into them, but if it happens somehow, revert.
+    loadTodos();
+    return;
+  }
+
+  const prevItem = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
+  const nextItem = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
+
+  let prevPos = prevItem && !prevItem.completed ? prevItem.position || null : null;
+  let nextPos = nextItem && !nextItem.completed ? nextItem.position || null : null;
+
+  reorderTodo(movedItem.id, prevPos, nextPos);
+}
+
+function moveItemUp(index: number) {
+  if (index <= 0) return;
+  const item = displayTodos.value[index];
+  const itemAbove = displayTodos.value[index - 1];
+
+  if (item.completed || itemAbove.completed) return;
+
+  const prevItem = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
+  let prevPos = prevItem ? prevItem.position || null : null;
+  let nextPos = itemAbove.position || null;
+
+  reorderTodo(item.id, prevPos, nextPos);
+}
+
+function moveItemDown(index: number) {
+  if (index >= incompleteTodosCount.value - 1) return;
+  const item = displayTodos.value[index];
+  const itemBelow = displayTodos.value[index + 1];
+
+  if (item.completed || itemBelow.completed) return;
+
+  const nextItem = index + 2 < incompleteTodosCount.value ? displayTodos.value[index + 2] : null;
+  let prevPos = itemBelow.position || null;
+  let nextPos = nextItem ? nextItem.position || null : null;
+
+  reorderTodo(item.id, prevPos, nextPos);
+}
 
 defineExpose({ loadTodos, addTodo, updateTodo });
 </script>
@@ -151,10 +225,35 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   padding: 12px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  transition: transform 150ms ease;
+  transition: transform 150ms ease, box-shadow 150ms ease;
   overflow: visible;
   cursor: default;
   box-shadow: var(--input-shadow);
+}
+
+.item-card.ghost {
+  opacity: 0.5;
+  background: var(--gg);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -8px;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:hover {
+  background-color: var(--gg);
+  color: var(--text);
 }
 
 .item-card.collapsed {
