@@ -27,71 +27,13 @@
       </div>
 
       <div v-else class="todos-container">
-        <draggable
-            v-model="displayTodos"
-            class="todos"
-            item-key="id"
-            handle=".drag-handle"
-            @end="onDragEnd"
-            :animation="200"
-            ghost-class="ghost"
-        >
-          <template #item="{ element: todo, index }">
-            <div
-                class="item-card"
-                :class="{ collapsed: todo.completed }"
-                @dblclick="user ? toggleTodoCompletion(todo) : null"
-            >
-              <div class="item-main">
-                <div class="item-meta">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="drag-handle" title="Ziehen zum Sortieren" v-if="!todo.completed">
-                      <GripVertical :size="16" />
-                    </div>
-                    <Checkbox
-                        :checked="todo.completed"
-                        @change="toggleTodoCompletion(todo)"
-                    />
-                    <h3 class="item-title" :title="todo.title">{{ todo.title }}</h3>
-                  </div>
-                </div>
+        <div style="background: yellow;">
+          LENGTH: {{ displayTodos.length }}
+        </div>
 
-                <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(todo.id)">
-                  <Ellipsis :size="18"/>
-                </div>
-
-                <div class="menu" :class="{ open: openMenuId === todo.id }" @click.stop>
-                  <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
-                    <div class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</div>
-                  </button>
-
-                  <button class="menu-btn" v-if="!todo.completed && index > 0 && !displayTodos[index-1].completed" @click="moveItemUp(index); openMenuId = null">
-                    <div class="menu-btn-content"><ChevronUp :size="16" />Nach oben</div>
-                  </button>
-                  <button class="menu-btn" v-if="!todo.completed && index < incompleteTodosCount - 1" @click="moveItemDown(index); openMenuId = null">
-                    <div class="menu-btn-content"><ChevronDown :size="16" />Nach unten</div>
-                  </button>
-
-                  <button class="menu-btn" @click="duplicateTodo(todo); openMenuId = null">
-                    <div class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</div>
-                  </button>
-
-                  <div class="menu-divider"></div>
-
-                  <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
-                    <div class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</div>
-                  </button>
-                </div>
-              </div>
-
-              <transition name="collapse">
-                <div v-show="!todo.completed" v-if="todo.description" class="item-body">
-                  <span>{{ todo.description }}</span>
-                </div>
-              </transition>
-            </div>
-          </template>
-        </draggable>
+        <div v-for="todo in displayTodos" :key="todo.id">
+          {{ todo.title }}
+        </div>
       </div>
     </div>
     <div v-if="message" class="message" :class="{ error: isError }">{{ message }}</div>
