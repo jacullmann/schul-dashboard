@@ -70,8 +70,13 @@ export function useTodoApp() {
         loading.value = true;
         try {
             const { data } = await hw.get('/api/todos');
+            console.log("USER:", user.value);
+            console.log("SERVER DATA:", data);
+            console.log("SERVER LENGTH:", data.length);
             todos.value = data;
             displayTodos.value = sortDisplayList(data);
+            console.log("TODOS STATE:", todos.value.length);
+            console.log("DISPLAY STATE:", displayTodos.value.length);
         } catch (error) {
             showMessage(t('school.private.errorLoad'), true);
         } finally {

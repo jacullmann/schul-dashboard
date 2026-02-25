@@ -150,6 +150,7 @@ onBeforeUnmount(() => {
   margin-top: 8px;
   display: flex;
   opacity: 1;
+  pointer-events: auto;
 }
 
 .menu.align-right {

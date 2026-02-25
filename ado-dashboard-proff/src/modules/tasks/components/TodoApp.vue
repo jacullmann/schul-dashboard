@@ -14,6 +14,11 @@
       <div v-if="!user" class="login-prompt">
         <p>{{ t('school.private.requiresAccount') }}</p>
       </div>
+      <pre>
+USER: {{ user }}
+TODOS: {{ todos.length }}
+DISPLAY: {{ displayTodos.length }}
+</pre>
     </div>
 
     <div v-if="user" class="todo-list">
