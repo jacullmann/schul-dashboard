@@ -32,13 +32,10 @@
             class="todos"
             item-key="id"
             handle=".item-card"
-            @start="isDragging = true"
-            @end="onDragEndWrapper"
+            @end="onDragEnd"
             :animation="200"
             easing="cubic-bezier(0.3, 0, 0.14, 1)"
             ghost-class="ghost"
-            tag="transition-group"
-            :component-data="{ name: !isDragging ? 'todo-item' : null, type: 'transition' }"
         >
           <div
               v-for="(todo, index) in displayTodos"
@@ -102,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import Checkbox from '@/common/components/Checkbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Copy, Trash2, Ellipsis, Lock, GripVertical, ChevronUp, ChevronDown } from 'lucide-vue-next';
@@ -141,13 +138,6 @@ const {
 const incompleteTodosCount = computed(() => {
   return displayTodos.value.filter(t => !t.completed).length;
 });
-
-const isDragging = ref(false);
-
-function onDragEndWrapper(event: any) {
-  isDragging.value = false;
-  onDragEnd(event);
-}
 
 function onDragEnd(event: any) {
   const { newIndex, oldIndex } = event;
@@ -229,25 +219,6 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   display: flex;
   flex-direction: column;
   gap: 12px;
-  position: relative;
-}
-
-.todo-item-move,
-.todo-item-enter-active,
-.todo-item-leave-active {
-  transition: all 300ms cubic-bezier(0.3, 0, 0.14, 1);
-}
-
-.todo-item-enter-from,
-.todo-item-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.todo-item-leave-active {
-  position: absolute;
-  width: 100%;
-  left: 0;
 }
 .item-card {
   border-radius: var(--border-7);
