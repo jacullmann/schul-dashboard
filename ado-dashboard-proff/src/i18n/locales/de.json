@@ -458,6 +458,10 @@
         "tooltip": "Überblick und Funktionen zu privaten Einträgen",
         "text": "Anders als normale Einträge sind diese <strong>verschlüsselt</strong> und nur für dich sichtbar. So kannst du auch persönliche Aufgaben und To-dos tracken – alles mit <strong>einem Programm</strong>. Dank <strong>AES-256 Verschlüsselung</strong> musst du dir keine Sorgen um die Sicherheit machen: Man kann nur mit <strong>deinem Passwort</strong> auf deine privaten Einträge zugreifen."
       },
+      "menu": {
+        "up": "Nach oben",
+        "down": "Nach unten"
+      },
       "requiresAccount": "Du musst angemeldet sein, um private Einträge zu verwenden.",
       "loading": "Lade private Einträge...",
       "noEntriesFound": "Keine privaten Einträge gefunden.",
