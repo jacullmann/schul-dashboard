@@ -12,9 +12,11 @@
           </slot>
         </div>
 
-        <div v-if="$slots.badges" class="row-n item-badges" :class="{ collapsed: isCollapsed }">
-          <slot name="badges"></slot>
-        </div>
+        <transition name="collapse">
+          <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges">
+            <slot name="badges"></slot>
+          </div>
+        </transition>
       </div>
 
       <slot name="actions-pre"></slot>
@@ -66,6 +68,30 @@ defineEmits<{
 </script>
 
 <style scoped>
+.item-card {
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: var(--border-7);
+  padding: 12px;
+  box-shadow: var(--input-shadow);
+  overflow: visible;
+  cursor: default;
+  transition: transform 150ms ease;
+}
+.item-card.collapsed {
+  transition:
+      padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
+      max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
+}
+.item-card.highlighted {
+  border: 2px solid transparent;
+  background:
+      linear-gradient(var(--vlbg), var(--vlbg)),
+      linear-gradient(125deg, #FFA91A 0%, #FF335A 38%, #AF00FF 75%, #5600FF 110%);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+}
+
 .item-main {
   position: relative;
   display: flex;
