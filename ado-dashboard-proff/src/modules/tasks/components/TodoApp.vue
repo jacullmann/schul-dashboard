@@ -37,6 +37,10 @@
             easing="cubic-bezier(0.3, 0, 0.14, 1)"
             ghost-class="ghost"
             :set-data="setDragImage"
+            :delay="100"
+            :delay-on-touch-only="true"
+            filter=".item-menu-trigger, input, button, .checkbox, [role='button']"
+            :prevent-on-filter="false"
         >
           <ItemCard
               v-for="(todo, index) in displayTodos"
@@ -65,15 +69,15 @@
 
                 <div class="menu-divider"></div>
 
-                <button class="menu-btn" v-if="!todo.completed && index > 0 && !displayTodos[index-1]?.completed" @click="moveItemUp(index); openMenuId = null">
+                <button class="menu-btn" v-if="index > 0" @click="moveItemUp(index); openMenuId = null">
                   <div class="menu-btn-content"><ChevronUp :size="16" />{{ t('school.private.menu.up') }}</div>
                 </button>
 
-                <button class="menu-btn" v-if="!todo.completed && index < incompleteTodosCount - 1" @click="moveItemDown(index); openMenuId = null">
+                <button class="menu-btn" v-if="index < displayTodos.length - 1" @click="moveItemDown(index); openMenuId = null">
                   <div class="menu-btn-content"><ChevronDown :size="16" />{{ t('school.private.menu.down') }}</div>
                 </button>
 
-                <div class="menu-divider"></div>
+                <div v-if="index > 0 || index < displayTodos.length - 1" class="menu-divider"></div>
 
                 <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
                   <div class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</div>
@@ -93,7 +97,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import Checkbox from '@/common/components/Checkbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
@@ -130,10 +133,6 @@ const {
   reorderTodo,
 } = useTodoApp();
 
-const incompleteTodosCount = computed(() => {
-  return displayTodos.value.filter(t => !t.completed).length;
-});
-
 const emptyImage = new Image();
 emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
@@ -147,21 +146,14 @@ function onDragEnd(event: any) {
   const { newIndex, oldIndex } = event;
   if (newIndex === oldIndex) return;
 
-  // displayTodos reflects the NEW order visually already due to v-model
   const movedItem = displayTodos.value[newIndex];
   if (!movedItem) return;
-
-  if (movedItem.completed) {
-    // We shouldn't drag completed items or drop into them, but if it happens somehow, revert.
-    loadTodos();
-    return;
-  }
 
   const prevItem = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
   const nextItem = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
 
-  let prevPos = prevItem && !prevItem.completed ? prevItem.position || null : null;
-  let nextPos = nextItem && !nextItem.completed ? nextItem.position || null : null;
+  let prevPos = prevItem ? prevItem.position || null : null;
+  let nextPos = nextItem ? nextItem.position || null : null;
 
   reorderTodo(movedItem.id, prevPos, nextPos);
 }
@@ -172,7 +164,6 @@ function moveItemUp(index: number) {
   const itemAbove = displayTodos.value[index - 1];
 
   if (!item || !itemAbove) return;
-  if (item.completed || itemAbove.completed) return;
 
   const prevItem = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
   let prevPos = prevItem ? prevItem.position || null : null;
@@ -182,14 +173,13 @@ function moveItemUp(index: number) {
 }
 
 function moveItemDown(index: number) {
-  if (index >= incompleteTodosCount.value - 1) return;
+  if (index >= displayTodos.value.length - 1) return;
   const item = displayTodos.value[index];
   const itemBelow = displayTodos.value[index + 1];
 
   if (!item || !itemBelow) return;
-  if (item.completed || itemBelow.completed) return;
 
-  const nextItem = index + 2 < incompleteTodosCount.value ? displayTodos.value[index + 2] : null;
+  const nextItem = index + 2 < displayTodos.value.length ? displayTodos.value[index + 2] : null;
   let prevPos = itemBelow.position || null;
   let nextPos = nextItem ? nextItem.position || null : null;
 

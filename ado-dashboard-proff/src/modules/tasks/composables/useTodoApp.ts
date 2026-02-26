@@ -32,17 +32,15 @@ export function useTodoApp() {
 
     const sortDisplayList = (data: Todo[]): Todo[] => {
         return [...data].sort((a, b) => {
-            if (a.completed !== b.completed) return a.completed ? 1 : -1;
-
-            // If the user does not reorder the items manually, the items should be displayed exactly like before
-            if (!a.position || !b.position) {
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            // Sort by position ascending if both have positions
+            if (a.position && b.position) {
+                if (a.position < b.position) return -1;
+                if (a.position > b.position) return 1;
             }
 
-            // sort by position ascending
-            if (a.position < b.position) return -1;
-            if (a.position > b.position) return 1;
-            return 0;
+            // Fallback: If position is completely absent, order by completed state and then createdAt
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
     };
 
@@ -54,7 +52,8 @@ export function useTodoApp() {
     function updateTodo(updatedTodo: Todo) {
         const index = todos.value.findIndex(t => t.id === updatedTodo.id);
         if (index !== -1) {
-            todos.value[index] = { ...todos.value[index], ...updatedTodo };
+            const currentTodo = todos.value[index]!;
+            todos.value[index] = { ...currentTodo, ...updatedTodo };
             displayTodos.value = sortDisplayList(todos.value);
         }
     }
@@ -90,7 +89,12 @@ export function useTodoApp() {
             // Update the original todo array as well to ensure synchronization
             const index = todos.value.findIndex(t => t.id === todo.id);
             if (index !== -1) {
-                todos.value[index] = { ...todos.value[index], completed: todo.completed, updatedAt: todo.updatedAt };
+                const currentTodo = todos.value[index]!;
+                todos.value[index] = {
+                    ...currentTodo,
+                    completed: todo.completed,
+                    updatedAt: todo.updatedAt
+                };
             }
         } catch (error: any) {
             todo.completed = previousState;
@@ -123,7 +127,7 @@ export function useTodoApp() {
         if (!confirm(t('school.private.deleteConfirm'))) return;
         const todoIndex = todos.value.findIndex(t => t.id === id);
         if (todoIndex === -1) return;
-        const deletedTodo = todos.value[todoIndex];
+        const deletedTodo = todos.value[todoIndex]!;
         todos.value.splice(todoIndex, 1);
         try {
             await hw.delete(`/api/todos/${id}`);
@@ -140,7 +144,7 @@ export function useTodoApp() {
         if (todoIndex === -1) return;
 
         // Optimistische UI Aktualisierung
-        const todo = todos.value[todoIndex];
+        const todo = todos.value[todoIndex]!;
         // Erzeuge eine temporäre Position für das direkte UI Feedback wenn möglich.
         // Das echte Positionssignal kommt vom Server zurück.
         if (prevPosition && nextPosition) {
@@ -156,7 +160,8 @@ export function useTodoApp() {
             });
             const updatedIndex = todos.value.findIndex(t => t.id === todoId);
             if (updatedIndex !== -1) {
-                todos.value[updatedIndex] = { ...todos.value[updatedIndex], position: data.position, updatedAt: data.updatedAt };
+                const currentTodo = todos.value[updatedIndex]!;
+                todos.value[updatedIndex] = { ...currentTodo, position: data.position, updatedAt: data.updatedAt };
                 displayTodos.value = sortDisplayList(todos.value);
             }
         } catch (error: any) {

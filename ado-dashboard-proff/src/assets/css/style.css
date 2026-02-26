@@ -58,11 +58,12 @@
     --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     --input-shadow: none;
     --menu-shadow: 0 4px 6px -1px #0000001a;
-    --animate-pulse: pulse 2s cubic-bezier(.4,0,.6,1) infinite;
+    --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
     --skeleton-base: #282828;
     --nav-hover: #b3b3b3;
     --danger-hover: #ff6666;
 }
+
 :root.light {
     --bg: #fff;
     --lbg: #fff;
@@ -76,13 +77,14 @@
     --action-hover: #0f0f0f;
     --not-spinning: #bbb;
     --color--white: #000;
-    --shadow-s:none;
-    --shadow-l:none;
+    --shadow-s: none;
+    --shadow-l: none;
     --skeleton-base: #eee;
     --nav-hover: #555;
     --input-shadow: 0 1px 2px 0 #0000000d;
     --menu-shadow: 0 4px 6px -1px #0000001a;
 }
+
 :root.dark-glass {
     --bg: #0f0f0faa;
     --lbg: #0f0f0faa;
@@ -95,6 +97,7 @@
     --ghost--hover: #323232aa;
     --blur: blur(32px) saturate(120%);
 }
+
 :root.light-glass {
     --blur: blur(32px) saturate(120%);
 }
@@ -126,13 +129,19 @@ textarea::-moz-selection {
     -webkit-tap-highlight-color: transparent;
 }
 
-html, body, #app { height: 100%; }
+html,
+body,
+#app {
+    height: 100%;
+}
+
 body {
     margin: 0;
     color: var(--text);
     font-family: var(--normal-font), sans-serif;
     position: relative;
 }
+
 button,
 input,
 select,
@@ -140,21 +149,35 @@ textarea,
 label {
     font-family: var(--normal-font), sans-serif;
 }
-a, button {
+
+a,
+button {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
-a { color: var(--primary); text-decoration: none; }
-h1, h2, h3, h4, h5 {
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
     font-family: var(--display-font), sans-serif;
     margin-top: 0;
 }
 
 @tailwind base;
 @tailwind components;
+
 @layer components {
 
-    .input, select, textarea {
+    .input,
+    select,
+    textarea {
         width: 100%;
         padding: 10px 12px;
         border-radius: var(--border-4);
@@ -164,10 +187,12 @@ h1, h2, h3, h4, h5 {
         outline: none;
         box-shadow: var(--input-shadow);
     }
+
     .input.hover:hover {
         background: var(--ghost--hover);
         cursor: pointer;
     }
+
     label {
         display: block;
         color: var(--text);
@@ -176,44 +201,51 @@ h1, h2, h3, h4, h5 {
     }
 
     .btn {
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        padding:10px 12px;
-        background:var(--text);
-        color:var(--vlbg);
-        border:1px solid transparent;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--text);
+        color: var(--vlbg);
+        border: 1px solid transparent;
         border-radius: var(--border-4);
-        cursor:pointer;
-        transition:.1s ease;
+        cursor: pointer;
+        transition: .1s ease;
         white-space: nowrap;
     }
+
     .btn:hover {
         background-color: var(--action-hover);
     }
+
     .btn.ghost {
-        background:var(--vlbg);
-        border:1px solid var(--border2);
-        color:var(--text);
+        background: var(--vlbg);
+        border: 1px solid var(--border2);
+        color: var(--text);
         transition: .1s ease;
         box-shadow: var(--input-shadow);
     }
+
     .btn.ghost:hover {
-        background-color:var(--ghost--hover);
+        background-color: var(--ghost--hover);
     }
+
     .btn.action {
         background: var(--text);
         color: var(--lbg);
         border: 1px solid var(--text);
     }
+
     .btn.action:hover {
         background: var(--action-hover);
         border: 1px solid var(--action-hover);
     }
+
     .btn.danger {
         background: var(--danger);
         color: #fff;
     }
+
     .btn.danger:hover {
         background: var(--danger-hover);
     }
@@ -226,7 +258,7 @@ h1, h2, h3, h4, h5 {
         background: var(--vlbg);
         border: 1px solid var(--border2);
         border-radius: var(--border-5);
-        padding:4px;
+        padding: 4px;
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -236,6 +268,7 @@ h1, h2, h3, h4, h5 {
         margin-bottom: 0;
         box-shadow: var(--menu-shadow);
     }
+
     .menu-btn {
         display: flex;
         justify-content: space-between;
@@ -250,35 +283,43 @@ h1, h2, h3, h4, h5 {
         font-size: var(--font-size-sub);
         transition: background 0.1s;
     }
+
     .menu-btn-content {
         display: flex;
         align-items: center;
         gap: 8px;
         line-height: 1;
     }
+
     .menu-btn-content svg {
         width: 16px;
         height: 16px;
         flex-shrink: 0;
     }
+
     .menu-btn:hover {
         background: var(--gg)
     }
+
     .menu-btn.danger {
         color: var(--special--red);
-        fill:  var(--special--red);
+        fill: var(--special--red);
     }
+
     .menu-btn.danger:hover {
         background: var(--special--red--background);
     }
+
     .menu-btn.active {
         font-weight: 600;
     }
+
     .menu-divider {
         border-bottom: 1px solid var(--border2);
         margin-inline: 4px;
     }
 }
+
 @tailwind utilities;
 
 .container {
@@ -294,63 +335,59 @@ h1, h2, h3, h4, h5 {
     padding: 16px;
 }
 
-.item-card {
-    background: var(--vlbg);
-    border: 1px solid var(--border2);
-    border-radius: var(--border-7);
-    padding: 12px;
-    box-shadow: var(--input-shadow);
-    overflow: visible;
-    cursor: default;
-    transition: transform 150ms ease;
-}
-.item-card.collapsed {
-    transition:
-            padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
-            max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-.item-card.highlighted {
-    border: 2px solid transparent;
-    background:
-            linear-gradient(var(--vlbg), var(--vlbg)),
-            linear-gradient(125deg, #FFA91A 0%, #FF335A 38%, #AF00FF 75%, #5600FF 110%);
-    background-clip: padding-box, border-box;
-    background-origin: padding-box, border-box;
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
 }
 
-hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .row {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
 }
+
 .row-n {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     justify-content: flex-start;
 }
-.col { flex: 1; min-width: 240px; }
-.small { font-size: 12px; color: var(--sub); }
+
+.col {
+    flex: 1;
+    min-width: 240px;
+}
+
+.small {
+    font-size: 12px;
+    color: var(--sub);
+}
+
 .badge {
     padding: 4px 8px;
     border-radius: var(--border-4);
     color: var(--sub);
 }
+
 .badge:hover {
     color: white
 }
+
 .title-inf {
     display: flex;
     align-items: center;
     gap: 6px
 }
+
 .info-img {
     width: 100%;
     height: 100%;
     border-radius: 8px;
 }
+
 .info-img-container {
     width: 100%;
     display: flex;
@@ -369,12 +406,12 @@ footer {
 }
 
 .blurit {
-    position:fixed;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:9999;
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
     backdrop-filter: blur(5px);
     background: rgba(0, 0, 0, 0.4);
     border-radius: 0;
@@ -386,10 +423,12 @@ footer {
     flex-direction: column;
     min-height: 100vh;
 }
+
 .full-c {
     flex: 1;
     position: relative;
 }
+
 .bg {
     position: absolute;
     top: 0;
@@ -399,12 +438,14 @@ footer {
     background-color: var(--bg);
     z-index: -2;
 }
+
 footer {
     bottom: initial;
     position: initial;
     width: initial;
     height: initial;
 }
+
 #animated-background {
     position: fixed;
     top: 0;
@@ -441,16 +482,19 @@ footer {
         -webkit-overflow-scrolling: touch;
     }
 }
+
 @media (max-width: 1000px) {
     :root {
         --header-height: 50px;
         --header-padding-y: 12px;
     }
 }
+
 @media (max-width: 768px) {
     .svg-background {
         background: var(--bg);
     }
+
     .card {
         margin: 0 0 0 0;
         padding: 16px 16px 16px 16px;
@@ -463,15 +507,18 @@ footer {
         padding: 0;
         background: var(--bg);
     }
+
     .btn.ghost:hover {
-        background:var(--vlbg);
-        border:1px solid var(--border2);
-        color:var(--text);
+        background: var(--vlbg);
+        border: 1px solid var(--border2);
+        color: var(--text);
     }
+
     .btn.danger:hover {
         background: var(--danger);
     }
 }
+
 @media (max-width: 500px) {
     :root {
         --header-height: 50px;
