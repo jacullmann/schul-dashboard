@@ -36,30 +36,25 @@
             :animation="200"
             easing="cubic-bezier(0.3, 0, 0.14, 1)"
             ghost-class="ghost"
+            :set-data="setDragImage"
         >
-          <div
+          <ItemCard
               v-for="(todo, index) in displayTodos"
               :key="todo.id"
-              class="item-card"
-              :class="{ collapsed: todo.completed }"
+              :is-collapsed="todo.completed"
+              :title="todo.title"
               @dblclick="user ? toggleTodoCompletion(todo) : null"
+              @menu-click="toggleMenu(todo.id)"
           >
-            <div class="item-main">
-              <div class="item-meta">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <Checkbox
-                      :checked="todo.completed"
-                      @change="toggleTodoCompletion(todo)"
-                  />
-                  <h3 class="item-title" :title="todo.title">{{ todo.title }}</h3>
-                </div>
-              </div>
+            <template #checkbox>
+              <Checkbox
+                  :checked="todo.completed"
+                  @change="toggleTodoCompletion(todo)"
+              />
+            </template>
 
-              <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(todo.id)">
-                <Ellipsis :size="18"/>
-              </div>
-
-              <div class="menu" :class="{ open: openMenuId === todo.id }" @click.stop>
+            <template #menu>
+              <div v-if="openMenuId === todo.id" class="menu" @click.stop>
                 <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
                   <div class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</div>
                 </button>
@@ -70,11 +65,12 @@
 
                 <div class="menu-divider"></div>
 
-                <button class="menu-btn" v-if="!todo.completed && index > 0 && !displayTodos[index-1].completed" @click="moveItemUp(index); openMenuId = null">
-                  <div class="menu-btn-content"><ChevronUp :size="16" />Nach oben</div>
+                <button class="menu-btn" v-if="!todo.completed && index > 0 && !displayTodos[index-1]?.completed" @click="moveItemUp(index); openMenuId = null">
+                  <div class="menu-btn-content"><ChevronUp :size="16" />{{ t('school.private.menu.up') }}</div>
                 </button>
+
                 <button class="menu-btn" v-if="!todo.completed && index < incompleteTodosCount - 1" @click="moveItemDown(index); openMenuId = null">
-                  <div class="menu-btn-content"><ChevronDown :size="16" />Nach unten</div>
+                  <div class="menu-btn-content"><ChevronDown :size="16" />{{ t('school.private.menu.down') }}</div>
                 </button>
 
                 <div class="menu-divider"></div>
@@ -83,14 +79,12 @@
                   <div class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</div>
                 </button>
               </div>
-            </div>
+            </template>
 
-            <transition name="collapse">
-              <div v-show="!todo.completed" v-if="todo.description" class="item-body">
-                <span>{{ todo.description }}</span>
-              </div>
-            </transition>
-          </div>
+            <template #body v-if="todo.description">
+              <span>{{ todo.description }}</span>
+            </template>
+          </ItemCard>
         </draggable>
       </div>
     </div>
@@ -102,12 +96,13 @@
 import { computed } from 'vue';
 import Checkbox from '@/common/components/Checkbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import { Pencil, Copy, Trash2, Ellipsis, Lock, GripVertical, ChevronUp, ChevronDown } from 'lucide-vue-next';
+import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import InfoPop from '@/common/components/InfoModalCenter.vue';
 import { useI18n } from 'vue-i18n';
 import type { Todo } from '@/modules/tasks/types';
 import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 
 const { t } = useI18n();
 
@@ -139,12 +134,23 @@ const incompleteTodosCount = computed(() => {
   return displayTodos.value.filter(t => !t.completed).length;
 });
 
+const emptyImage = new Image();
+emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+function setDragImage(dataTransfer: DataTransfer) {
+  if (dataTransfer && dataTransfer.setDragImage) {
+    dataTransfer.setDragImage(emptyImage, 0, 0);
+  }
+}
+
 function onDragEnd(event: any) {
   const { newIndex, oldIndex } = event;
   if (newIndex === oldIndex) return;
 
   // displayTodos reflects the NEW order visually already due to v-model
   const movedItem = displayTodos.value[newIndex];
+  if (!movedItem) return;
+
   if (movedItem.completed) {
     // We shouldn't drag completed items or drop into them, but if it happens somehow, revert.
     loadTodos();
@@ -165,6 +171,7 @@ function moveItemUp(index: number) {
   const item = displayTodos.value[index];
   const itemAbove = displayTodos.value[index - 1];
 
+  if (!item || !itemAbove) return;
   if (item.completed || itemAbove.completed) return;
 
   const prevItem = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
@@ -179,6 +186,7 @@ function moveItemDown(index: number) {
   const item = displayTodos.value[index];
   const itemBelow = displayTodos.value[index + 1];
 
+  if (!item || !itemBelow) return;
   if (item.completed || itemBelow.completed) return;
 
   const nextItem = index + 2 < incompleteTodosCount.value ? displayTodos.value[index + 2] : null;
@@ -220,16 +228,6 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   flex-direction: column;
   gap: 12px;
 }
-.item-card {
-  border-radius: var(--border-7);
-  padding: 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  transition: transform 150ms ease, box-shadow 150ms ease;
-  overflow: visible;
-  cursor: default;
-  box-shadow: var(--input-shadow);
-}
 
 .item-card.ghost {
   background: white;
@@ -250,58 +248,6 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   display: block !important;
 }
 
-.item-card.collapsed {
-  transition: padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-
-.item-main {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.item-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.item-title {
-  margin: -3px 0;
-  font-size: var(--font-size-title);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 24px;
-}
-
-.item-badges {
-  margin-top: 4px;
-  gap: 8px;
-  align-items: center;
-}
-
-.item-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: var(--border-5);
-  cursor: pointer;
-  color: var(--sub);
-  transition: background 120ms ease, color 120ms ease;
-  margin: -8px;
-}
-
-.item-menu-trigger:hover {
-  background: var(--gg);
-  color: var(--text);
-}
-
 .lucide-chevron-up {
   overflow: visible;
   transform: translateY(0);
@@ -320,39 +266,6 @@ defineExpose({ loadTodos, addTodo, updateTodo });
 
 .menu-btn:hover .lucide-chevron-down {
   transform: translateY(1px);
-}
-
-.item-body {
-  margin-top: 8px;
-  color: var(--text);
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  hyphens: auto;
-  white-space: pre-wrap;
-  user-select: text;
-  -webkit-user-select: text;
-  cursor: text;
-}
-
-.collapse-enter-active,
-.collapse-leave-active {
-  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-
-.collapse-enter-from,
-.collapse-leave-to {
-  max-height: 0;
-  opacity: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.collapse-enter-to,
-.collapse-leave-from {
-  max-height: 800px;
-  opacity: 1;
 }
 
 .message {

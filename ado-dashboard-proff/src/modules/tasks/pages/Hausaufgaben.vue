@@ -52,44 +52,40 @@
     <div class="items">
       <ItemSkeleton v-if="loading && initialLoad && tab !== 'PRIVATE'" :count="5" :image-count="2" />
 
-      <div
+      <ItemCard
           v-else-if="tab !== 'PRIVATE'"
           v-for="item in limitedItems"
           :key="item.id"
           :id="'item-' + item.id"
-          class="item-card"
-          :class="{ collapsed: isChecked(item.id), highlighted: highlightedItemId === item.id }"
+          :is-collapsed="isChecked(item.id)"
+          :highlighted="highlightedItemId === item.id"
+          :title="item.title"
           @dblclick="user ? toggleCheck(item) : null"
+          @menu-click="toggleMenu(item.id)"
       >
-        <div class="item-main">
-          <div class="item-meta">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <Checkbox
-                  v-if="user"
-                  :checked="isChecked(item.id)"
-                  @change="toggleCheck(item)"
-              />
+        <template #checkbox>
+          <Checkbox
+              v-if="user"
+              :checked="isChecked(item.id)"
+              @change="toggleCheck(item)"
+          />
+        </template>
 
-              <h3 class="item-title" :title="item.title">{{ item.title }}</h3>
-            </div>
-
-            <div class="row-n item-badges" :class="{ collapsed: isChecked(item.id) }">
-              <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
-              <div v-if="user?.isAdmin" class="admin-creator-info">
-                {{ item.createdByEmail || 'Unbekannt' }}
-              </div>
-            </div>
+        <template #badges>
+          <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
+          <div v-if="user?.isAdmin" class="admin-creator-info">
+            {{ item.createdByEmail || 'Unbekannt' }}
           </div>
+        </template>
 
+        <template #actions-pre>
           <div v-if="isPinned(item.id)" class="unpin-trigger" role="button" @click.stop="togglePin(item)">
             <Pin :size="18" fill="currentColor" class="pinned" />
           </div>
+        </template>
 
-          <div class="item-menu-trigger" role="button" tabindex="0" @click.stop="toggleMenu(item.id)">
-            <Ellipsis :size="18" />
-          </div>
-
-          <div class="menu" :class="{ open: openMenuId === item.id }" @click.stop>
+        <template #menu>
+          <div v-if="openMenuId === item.id" class="menu" @click.stop>
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
               <div class="menu-btn-content"><Upload />{{ t('school.tasks.items.menu.uploadImages') }}</div>
             </button>
@@ -118,107 +114,107 @@
               <div class="menu-btn-content"><Trash2 />{{ t('global.buttons.delete') }}</div>
             </button>
           </div>
-        </div>
+        </template>
 
-        <transition name="collapse">
-          <div v-show="!isChecked(item.id) && item.description.length" class="item-body">
-            <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
-            <span v-else-if="item.description.length">{{ item.description }}</span>
-            <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
-              {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
-            </button>
-          </div>
-        </transition>
+        <template #body v-if="item.description.length">
+          <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
+          <span v-else-if="item.description.length">{{ item.description }}</span>
+          <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
+            {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
+          </button>
+        </template>
 
-        <transition name="collapse">
-          <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
-            <div class="images-row">
-              <template v-if="!isRevealed(item.id)">
-                <div v-for="(img, idx) in item.images.slice(0, 2)"
-                     :key="img.publicId"
-                     class="thumb thumb-with-overlay-wrapper"
-                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
-                >
-                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
-                  </div>
-
-                  <button
-                      v-if="idx === 1 && item.images.length > 2"
-                      class="img-overlay"
-                      @click.stop.prevent="revealImages(item.id)"
-                      @contextmenu.stop.prevent
+        <template #content-after>
+          <transition name="collapse">
+            <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
+              <div class="images-row">
+                <template v-if="!isRevealed(item.id)">
+                  <div v-for="(img, idx) in item.images.slice(0, 2)"
+                       :key="img.publicId"
+                       class="thumb thumb-with-overlay-wrapper"
+                       @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                   >
-                    <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
-                  </button>
-                </div>
-              </template>
+                    <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                      <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                    </div>
 
-              <template v-else>
-                <div v-for="(img, idx) in item.images"
-                     :key="img.publicId"
-                     class="thumb"
-                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
-                >
-                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                    <button
+                        v-if="idx === 1 && item.images.length > 2"
+                        class="img-overlay"
+                        @click.stop.prevent="revealImages(item.id)"
+                        @contextmenu.stop.prevent
+                    >
+                      <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
+                    </button>
                   </div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </transition>
+                </template>
 
-        <transition name="collapse">
-          <div
-              v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
-              class="editor-note-section"
-          >
-            <div class="editor-note-header">
-              <span class="editor-note-label">{{ t('school.tasks.notes.note') }}</span>
-              <button
-                  v-if="canEditNote()"
-                  class="btn ghost tiny"
-                  @click.stop="startEditNote(item)"
-              >
-                {{ t('global.buttons.edit') }}
-              </button>
-            </div>
-
-            <div v-if="editingNoteForId !== item.id" class="editor-note-content">
-              <span v-if="item.editorNote">{{ item.editorNote }}</span>
-              <span v-else class="note-placeholder">{{ t('school.tasks.notes.noNotes') }}</span>
-            </div>
-
-            <div v-else class="editor-note-edit">
-              <textarea
-                  class="input"
-                  v-model="noteEditContent"
-                  rows="3"
-                  placeholder="Anmerkung eingeben..."
-                  maxlength="2000"
-              ></textarea>
-              <div class="editor-note-actions">
-                <button
-                    class="btn action"
-                    @click.stop="saveNote(item.id)"
-                    :disabled="savingNote"
-                >
-                  <LoadingSpinner v-if="savingNote" size="1.1em" />
-                  <span v-else>{{ t('global.buttons.save') }}</span>
-                </button>
-                <button
-                    class="btn ghost"
-                    @click.stop="cancelEditNote()"
-                    :disabled="savingNote"
-                >
-                  {{ t('global.buttons.cancel') }}
-                </button>
+                <template v-else>
+                  <div v-for="(img, idx) in item.images"
+                       :key="img.publicId"
+                       class="thumb"
+                       @contextmenu.prevent="handleImageContextMenu($event, item, img)"
+                  >
+                    <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                      <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
-          </div>
-        </transition>
-      </div>
+          </transition>
+
+          <transition name="collapse">
+            <div
+                v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
+                class="editor-note-section"
+            >
+              <div class="editor-note-header">
+                <span class="editor-note-label">{{ t('school.tasks.notes.note') }}</span>
+                <button
+                    v-if="canEditNote()"
+                    class="btn ghost tiny"
+                    @click.stop="startEditNote(item)"
+                >
+                  {{ t('global.buttons.edit') }}
+                </button>
+              </div>
+
+              <div v-if="editingNoteForId !== item.id" class="editor-note-content">
+                <span v-if="item.editorNote">{{ item.editorNote }}</span>
+                <span v-else class="note-placeholder">{{ t('school.tasks.notes.noNotes') }}</span>
+              </div>
+
+              <div v-else class="editor-note-edit">
+                <textarea
+                    class="input"
+                    v-model="noteEditContent"
+                    rows="3"
+                    placeholder="Anmerkung eingeben..."
+                    maxlength="2000"
+                ></textarea>
+                <div class="editor-note-actions">
+                  <button
+                      class="btn action"
+                      @click.stop="saveNote(item.id)"
+                      :disabled="savingNote"
+                  >
+                    <LoadingSpinner v-if="savingNote" size="1.1em" />
+                    <span v-else>{{ t('global.buttons.save') }}</span>
+                  </button>
+                  <button
+                      class="btn ghost"
+                      @click.stop="cancelEditNote()"
+                      :disabled="savingNote"
+                  >
+                    {{ t('global.buttons.cancel') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </template>
+      </ItemCard>
 
       <div v-if="tab === 'PRIVATE'" class="private-entries-container">
         <TodoApp
@@ -308,6 +304,7 @@
 
 <script setup lang="ts">
 import Checkbox from '@/common/components/Checkbox.vue';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
@@ -318,7 +315,7 @@ import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import TodoApp from "@/modules/tasks/components/TodoApp.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabNavigation from '@/modules/tasks/components/TabNavigation.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin, Ellipsis} from 'lucide-vue-next'
+import { Upload, Pencil, Send, Flag, Trash2, Pin } from 'lucide-vue-next'
 import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
 import TodoForm from '@/modules/tasks/components/TodoForm.vue';
@@ -463,36 +460,6 @@ const {
   gap:12px;
 }
 
-.item-main {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.item-meta {
-  flex:1;
-  min-width: 0;
-}
-
-.item-title {
-  margin: -3px 0;
-  font-size: var(--font-size-title);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 24px;
-}
-
-.item-badges {
-  margin-top:4px;
-  gap:8px;
-  align-items:center;
-}
-
 .subject-badge {
   color:var(--sub);
   padding: 0;
@@ -604,18 +571,6 @@ const {
   transform: translateY(-1px) translateX(1px) rotate(10deg);
 }
 
-.item-body {
-  margin-top:8px;
-  color: var(--text);
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  hyphens: auto;
-  white-space: pre-wrap;
-  user-select: text;
-  -webkit-user-select: text;
-  cursor: text;
-}
-
 .item-images {
   margin-top:8px;
 
@@ -711,22 +666,6 @@ const {
   border: none
 }
 
-.collapse-enter-active, .collapse-leave-active {
-  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1), opacity 300ms cubic-bezier(0.78, 0, 0.22, 1), padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-
-.collapse-enter-from, .collapse-leave-to {
-  max-height: 0;
-  opacity: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-.collapse-enter-to, .collapse-leave-from {
-  max-height: 800px;
-  opacity: 1;
-}
-
 .message {
   font-weight:600;
   white-space: normal;
@@ -750,23 +689,6 @@ const {
 }
 
 .unpin-trigger:hover {
-  background: var(--gg);
-  color: var(--text);
-}
-
-.item-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: var(--border-5);
-  cursor: pointer;
-  color: var(--sub);
-  transition: background 120ms ease, color 120ms ease;
-  margin: -8px;
-}
-
-.item-menu-trigger:hover {
   background: var(--gg);
   color: var(--text);
 }

@@ -3,6 +3,7 @@ import Line from './Line.vue'
 import { Ellipsis } from 'lucide-vue-next'
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
+import ItemCard from "@/common/components/ItemCard.vue";
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -27,60 +28,66 @@ function navigateToAuth() {
     <div class="visual-container">
       <div class="example-wrapper">
         <div class="example-dashboard">
-          <div class="example-card">
-            <div class="example-main">
-              <div class="example-meta">
-                <div class="example-top-row">
-                  <div class="example-checkbox-ticked">
-                    <span class="example-tick"></span>
-                  </div>
-                  <h3 class="example-title">{{ t('welcome.hero.visual.items[0].title') }}</h3>
-                </div>
+          <ItemCard :show-menu-trigger="false">
+            <template #checkbox>
+              <div class="example-checkbox-ticked">
+                <span class="example-tick"></span>
               </div>
+            </template>
+            <template #title>
+              <h3 class="example-title">{{ t('welcome.hero.visual.items[0].title') }}</h3>
+            </template>
+            <template #actions-pre>
               <div class="example-menu-trigger">
                 <Ellipsis :size="24" :stroke-width="2" stroke="currentColor"></Ellipsis>
               </div>
-            </div>
-          </div>
-          <div class="example-card only-desktop">
-            <div class="example-main">
-              <div class="example-meta">
-                <div class="example-top-row">
-                  <div class="example-checkbox"></div>
-                  <h3 class="example-title">{{ t('welcome.hero.visual.items[1].title') }}</h3>
-                </div>
-                <div class="example-badge-row">
-                  <div class="example-badge">{{ t('global.subjects.geography') }} • {{ formatDate('2026-03-07') }}</div>
-                </div>
-              </div>
+            </template>
+          </ItemCard>
+
+          <ItemCard class="only-desktop" :show-menu-trigger="false">
+            <template #checkbox>
+              <div class="example-checkbox"></div>
+            </template>
+            <template #title>
+              <h3 class="example-title">{{ t('welcome.hero.visual.items[1].title') }}</h3>
+            </template>
+            <template #badges>
+              <div class="example-badge">{{ t('global.subjects.geography') }} • {{ formatDate('2026-03-07') }}</div>
+            </template>
+            <template #actions-pre>
               <div class="example-menu-trigger">
                 <Ellipsis :size="24" :stroke-width="2" stroke="currentColor"></Ellipsis>
               </div>
-            </div>
-            <div class="example-body">
-              <span>[Bild]</span>
-            </div>
-          </div>
-          <div class="example-card">
-            <div class="example-main">
-              <div class="example-meta">
-                <div class="example-top-row">
-                  <div class="example-checkbox"></div>
-                  <h3 class="example-title">{{ t('welcome.hero.visual.items[2].title') }}</h3>
-                </div>
-                <div class="example-badge-row">
-                  <div class="example-badge">{{ t('global.subjects.math') }} • {{ formatDate('2026-03-08') }}</div>
-                </div>
+            </template>
+            <template #content-after>
+              <div class="example-body">
+                <span>[Bild]</span>
               </div>
+            </template>
+          </ItemCard>
+
+          <ItemCard :show-menu-trigger="false">
+            <template #checkbox>
+              <div class="example-checkbox"></div>
+            </template>
+            <template #title>
+              <h3 class="example-title">{{ t('welcome.hero.visual.items[2].title') }}</h3>
+            </template>
+            <template #badges>
+              <div class="example-badge">{{ t('global.subjects.math') }} • {{ formatDate('2026-03-08') }}</div>
+            </template>
+            <template #actions-pre>
               <div class="example-menu-trigger">
                 <Ellipsis :size="24" :stroke-width="2" stroke="currentColor"></Ellipsis>
               </div>
-            </div>
-            <div class="example-body">
-              <span>{{ t('welcome.hero.visual.items[2].text') }}</span>
-            </div>
-          </div>
-          <div class="example-card-vanishing"></div>
+            </template>
+            <template #content-after>
+              <div class="example-body">
+                <span>{{ t('welcome.hero.visual.items[2].text') }}</span>
+              </div>
+            </template>
+          </ItemCard>
+          <div class="item-card-vanishing"></div>
         </div>
       </div>
     </div>
@@ -98,8 +105,8 @@ function navigateToAuth() {
       </p>
 
       <div class="action-buttons">
-        <WelcomeButtonSecondary class="action-btn secondary" @click="onMoreInfoClick" />
-        <WelcomeButtonPrimary @click="navigateToAuth" class="action-btn primary"/>
+        <WelcomeButtonSecondary class="btn ghost" @click="onMoreInfoClick" />
+        <WelcomeButtonPrimary @click="navigateToAuth" class="btn action"/>
       </div>
     </div>
   </div>
@@ -148,36 +155,6 @@ function navigateToAuth() {
   display:flex;
   flex-direction: column;
   justify-content: left;
-}
-
-.example-card {
-  background: var(--vlbg);
-  border:1px solid var(--border2);
-  border-radius: var(--border-7);
-  padding:12px;
-  color: var(--text);
-  width: 100%;
-  box-shadow: var(--input-shadow);
-}
-
-.example-main {
-  position:relative;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px
-}
-
-.example-meta {
-  flex:1;
-  min-width:0
-}
-
-.example-top-row {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  gap: 8px;
 }
 
 .example-checkbox {
@@ -232,13 +209,6 @@ function navigateToAuth() {
   font-family: var(--display-font), sans-serif;
 }
 
-.example-badge-row {
-  display: flex;
-  margin-top: 8px;
-  gap: 8px;
-  align-items: center;
-}
-
 .example-badge {
   color: var(--sub);
   padding: 0;
@@ -272,13 +242,13 @@ function navigateToAuth() {
   font-size: 16px;
 }
 
-.example-card-vanishing {
+.item-card-vanishing {
   background:linear-gradient(var(--vlbg) 0%, transparent 100%);
   border-radius: var(--border-7) var(--border-7) 0 0;
   min-height: 30px;
 }
 
-.example-card-vanishing::before {
+.item-card-vanishing::before {
   content: "";
   border-radius: var(--border-7) var(--border-7) 0 0;
   min-height: 30px;

@@ -44,6 +44,7 @@
           />
           {{ option.label }}
         </div>
+
         <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
         <span class="spacer" v-else></span>
       </button>

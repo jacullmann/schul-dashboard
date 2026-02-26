@@ -148,9 +148,6 @@ onBeforeUnmount(() => {
 
 .menu {
   margin-top: 8px;
-  display: flex;
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .menu.align-right {
@@ -160,16 +157,5 @@ onBeforeUnmount(() => {
 
 .mg {
   padding: 4px;
-}
-
-@keyframes menuFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 </style>
