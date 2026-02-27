@@ -36,6 +36,8 @@
             :animation="200"
             easing="cubic-bezier(0.3, 0, 0.14, 1)"
             ghost-class="ghost"
+            drag-class="hidden-drag"
+            fallback-class="hidden-drag"
             :set-data="setDragImage"
             :delay="100"
             :delay-on-touch-only="true"
@@ -105,7 +107,7 @@ import { useI18n } from 'vue-i18n';
 import type { Todo } from '@/modules/tasks/types';
 import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import ItemCard from '@/common/components/ItemCard.vue';
 
 const { t } = useI18n();
 
@@ -284,5 +286,13 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   align-items: center;
   gap: 12px;
   padding: 2rem;
+}
+</style>
+
+<style>
+.hidden-drag,
+.sortable-drag,
+.sortable-fallback {
+  opacity: 0 !important;
 }
 </style>

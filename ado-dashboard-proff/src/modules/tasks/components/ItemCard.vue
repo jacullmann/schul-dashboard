@@ -11,12 +11,6 @@
             <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
           </slot>
         </div>
-
-        <transition name="collapse">
-          <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges">
-            <slot name="badges"></slot>
-          </div>
-        </transition>
       </div>
 
       <slot name="actions-pre"></slot>
@@ -39,12 +33,20 @@
     </div>
 
     <transition name="collapse">
-      <div v-show="!isCollapsed" v-if="$slots.body" class="item-body">
-        <slot name="body"></slot>
+      <div v-show="!isCollapsed" class="item-collapsible-wrapper">
+        <div class="item-collapsible">
+          <div v-if="$slots.badges" class="row-n item-badges">
+            <slot name="badges"></slot>
+          </div>
+
+          <div v-if="$slots.body" class="item-body">
+            <slot name="body"></slot>
+          </div>
+
+          <slot name="content-after"></slot>
+        </div>
       </div>
     </transition>
-
-    <slot name="content-after"></slot>
   </div>
 </template>
 
@@ -76,7 +78,6 @@ defineEmits<{
   box-shadow: var(--input-shadow);
   overflow: visible;
   cursor: default;
-  transition: transform 150ms ease;
 }
 .item-card.collapsed {
   transition:
@@ -151,24 +152,32 @@ defineEmits<{
   cursor: text;
 }
 
+.item-collapsible-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
 .collapse-enter-active,
 .collapse-leave-active {
-  transition: max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  padding 300ms cubic-bezier(0.78, 0, 0.22, 1);
+  transition: grid-template-rows 400ms cubic-bezier(0.4, 0, 0.2, 1),
+  opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .collapse-enter-from,
 .collapse-leave-to {
-  max-height: 0;
+  grid-template-rows: 0fr;
   opacity: 0;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 
 .collapse-enter-to,
 .collapse-leave-from {
-  max-height: 800px;
+  grid-template-rows: 1fr;
   opacity: 1;
+}
+
+.item-collapsible {
+  overflow: hidden;
+  min-height: 0;
 }
 </style>

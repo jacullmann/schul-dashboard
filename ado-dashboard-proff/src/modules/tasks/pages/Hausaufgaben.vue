@@ -125,67 +125,64 @@
         </template>
 
         <template #content-after>
-          <transition name="collapse">
-            <div v-if="item.images && item.images.length && !isChecked(item.id)" class="item-images">
-              <div class="images-row">
-                <template v-if="!isRevealed(item.id)">
-                  <div v-for="(img, idx) in item.images.slice(0, 2)"
-                       :key="img.publicId"
-                       class="thumb thumb-with-overlay-wrapper"
-                       @contextmenu.prevent="handleImageContextMenu($event, item, img)"
-                  >
-                    <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                      <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
-                    </div>
-
-                    <button
-                        v-if="idx === 1 && item.images.length > 2"
-                        class="img-overlay"
-                        @click.stop.prevent="revealImages(item.id)"
-                        @contextmenu.stop.prevent
-                    >
-                      <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
-                    </button>
-                  </div>
-                </template>
-
-                <template v-else>
-                  <div v-for="(img, idx) in item.images"
-                       :key="img.publicId"
-                       class="thumb"
-                       @contextmenu.prevent="handleImageContextMenu($event, item, img)"
-                  >
-                    <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                      <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </transition>
-
-          <transition name="collapse">
-            <div
-                v-if="!isChecked(item.id) && (item.editorNote || user?.isAdmin)"
-                class="editor-note-section"
-            >
-              <div class="editor-note-header">
-                <span class="editor-note-label">{{ t('school.tasks.notes.note') }}</span>
-                <button
-                    v-if="canEditNote()"
-                    class="btn ghost tiny"
-                    @click.stop="startEditNote(item)"
+          <div v-if="item.images && item.images.length" class="item-images">
+            <div class="images-row">
+              <template v-if="!isRevealed(item.id)">
+                <div v-for="(img, idx) in item.images.slice(0, 2)"
+                     :key="img.publicId"
+                     class="thumb thumb-with-overlay-wrapper"
+                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
-                  {{ t('global.buttons.edit') }}
-                </button>
-              </div>
+                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                  </div>
 
-              <div v-if="editingNoteForId !== item.id" class="editor-note-content">
-                <span v-if="item.editorNote">{{ item.editorNote }}</span>
-                <span v-else class="note-placeholder">{{ t('school.tasks.notes.noNotes') }}</span>
-              </div>
+                  <button
+                      v-if="idx === 1 && item.images.length > 2"
+                      class="img-overlay"
+                      @click.stop.prevent="revealImages(item.id)"
+                      @contextmenu.stop.prevent
+                  >
+                    <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
+                  </button>
+                </div>
+              </template>
 
-              <div v-else class="editor-note-edit">
+              <template v-else>
+                <div v-for="(img, idx) in item.images"
+                     :key="img.publicId"
+                     class="thumb"
+                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
+                >
+                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div
+              v-if="item.editorNote || user?.isAdmin"
+              class="editor-note-section"
+          >
+            <div class="editor-note-header">
+              <span class="editor-note-label">{{ t('school.tasks.notes.note') }}</span>
+              <button
+                  v-if="canEditNote()"
+                  class="btn ghost tiny"
+                  @click.stop="startEditNote(item)"
+              >
+                {{ t('global.buttons.edit') }}
+              </button>
+            </div>
+
+            <div v-if="editingNoteForId !== item.id" class="editor-note-content">
+              <span v-if="item.editorNote">{{ item.editorNote }}</span>
+              <span v-else class="note-placeholder">{{ t('school.tasks.notes.noNotes') }}</span>
+            </div>
+
+            <div v-else class="editor-note-edit">
                 <textarea
                     class="input"
                     v-model="noteEditContent"
@@ -193,26 +190,25 @@
                     placeholder="Anmerkung eingeben..."
                     maxlength="2000"
                 ></textarea>
-                <div class="editor-note-actions">
-                  <button
-                      class="btn action"
-                      @click.stop="saveNote(item.id)"
-                      :disabled="savingNote"
-                  >
-                    <LoadingSpinner v-if="savingNote" size="1.1em" />
-                    <span v-else>{{ t('global.buttons.save') }}</span>
-                  </button>
-                  <button
-                      class="btn ghost"
-                      @click.stop="cancelEditNote()"
-                      :disabled="savingNote"
-                  >
-                    {{ t('global.buttons.cancel') }}
-                  </button>
-                </div>
+              <div class="editor-note-actions">
+                <button
+                    class="btn action"
+                    @click.stop="saveNote(item.id)"
+                    :disabled="savingNote"
+                >
+                  <LoadingSpinner v-if="savingNote" size="1.1em" />
+                  <span v-else>{{ t('global.buttons.save') }}</span>
+                </button>
+                <button
+                    class="btn ghost"
+                    @click.stop="cancelEditNote()"
+                    :disabled="savingNote"
+                >
+                  {{ t('global.buttons.cancel') }}
+                </button>
               </div>
             </div>
-          </transition>
+          </div>
         </template>
       </ItemCard>
 
@@ -304,7 +300,7 @@
 
 <script setup lang="ts">
 import Checkbox from '@/common/components/Checkbox.vue';
-import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import ItemCard from '@/common/components/ItemCard.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
