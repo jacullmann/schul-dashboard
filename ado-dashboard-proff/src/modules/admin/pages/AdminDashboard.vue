@@ -183,7 +183,7 @@
                         title="Logs älter als 30 Tage löschen"
                         @click="pruneOldLogs(u)"
                     >
-                      <Eraser size="16" />
+                      <Eraser :size="16" />
                     </button>
                     <button v-if="!u.isAdmin" class="btn icon-only danger" @click="deleteUser(u.id)" title="Löschen">
                       <Trash2 :size="16"/>
@@ -371,7 +371,7 @@
               <h4>Ergebnis</h4>
               <button class="btn ghost tiny" @click="copyReportToClipboard">Kopieren</button>
             </div>
-            <div class="markdown-body" v-html="DOMPurify.sanitize(marked.parse(securityReport))"></div>
+            <div class="markdown-body" v-html="DOMPurify.sanitize(marked.parse(securityReport) as string)"></div>
           </div>
         </div>
 
@@ -440,7 +440,7 @@
                     </div>
 
                     <div class="sub-meta small">
-                      {{ new Date(sub.createdAt).toLocaleString() }}
+                      <span v-if="sub.createdAt">{{ new Date(sub.createdAt).toLocaleString() }}</span>
                     </div>
                   </div>
 
@@ -494,7 +494,7 @@ import {
   Check,
   RotateCcw
 } from 'lucide-vue-next';
-import EditModal from "@/modules/admin/components/AdminDocEditor.vue";
+import EditModal from "@/modules/admin/components/AdminSubstitutionEditModal.vue";
 import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
 
 const {

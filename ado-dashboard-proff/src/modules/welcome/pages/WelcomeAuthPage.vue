@@ -10,8 +10,8 @@ import AuthForm from '@/modules/auth/components/AuthForm.vue';
 
 <style scoped>
 .auth-content {
-  text-align: center;
-  padding: 20px 0;
+  text-align: left;
+  padding: 16px 0;
   display: flex;
   justify-content: center;
   width: 100%;

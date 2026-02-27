@@ -6,15 +6,14 @@
 
     <div class="card-body">
       <div class="input-group">
-        <label class="sr-only" for="username">Name</label>
+        <label for="username">{{ t('welcome.auth.name') }}</label>
         <div class="input-wrapper">
-          <component :is="User" class="input-icon" :size="18" />
           <input
               ref="usernameInputRef"
               id="username"
               v-model="password1"
               placeholder="Name"
-              class="s-input"
+              class="input"
               type="text"
               autocomplete="username"
               :class="{ 'input-focus': password1 }"
@@ -23,14 +22,13 @@
       </div>
 
       <div class="input-group">
-        <label class="sr-only" for="access-code">Zugangscode</label>
+        <label for="access-code">{{ t('welcome.auth.passcode') }}</label>
         <div class="input-wrapper">
-          <component :is="Key" class="input-icon" :size="18" />
           <input
               id="access-code"
               v-model="password2"
               placeholder="Zugangscode"
-              class="s-input"
+              class="input"
               :type="showPassword ? 'text' : 'password'"
               autocomplete="current-password"
               :class="{ 'input-focus': password2 }"
@@ -41,25 +39,25 @@
               class="visibility-toggle"
               aria-label="Passwort anzeigen"
           >
-            <component :is="showPassword ? EyeOff : Eye" :size="18" />
+            <component :is="showPassword ? EyeOff : Eye" :size="20" />
           </button>
         </div>
       </div>
 
       <label class="s-checkbox">
         <Checkbox v-model="accepted" />
-        <span class="checkbox-text">Nutzungsbedingungen und Datenschutzerlärungen akzeptieren</span>
+        <span class="checkbox-text">{{ t('welcome.auth.terms') }}</span>
       </label>
 
       <div class="action-area">
         <button
-            class="s-btn"
+            class="btn action s-btn"
             @click="submit"
             :disabled="!accepted || isLoading"
         >
-          <span v-if="!isLoading">Anmelden</span>
+          <span v-if="!isLoading">{{ t('account.auth.login') }}</span>
           <LoadingSpinner v-else color="white" size="1.2em" />
-          <component v-if="!isLoading" :is="ArrowRight" :size="18" />
+          <component v-if="!isLoading" :is="ArrowRight" :size="16" />
         </button>
       </div>
 
@@ -76,12 +74,10 @@
         <GetStatushwb2 />
       </div>
       <p  @click="showIt = false" v-if="showIt" class="disclaimer">
-        Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird lückenlos dokumentiert.
-
-        Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden.
+        {{ t('welcome.auth.disclaimer') }}
       </p>
       <p style="cursor: pointer" v-else @click="showIt = true" class="disclaimer link-subtle">
-        Wichtiger rechtlicher Hinweis!
+        {{ t('welcome.auth.disclaimerTitle') }}
       </p>
     </div>
   </div>
@@ -93,17 +89,14 @@ import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import GetStatushwb2 from "@/modules/welcome/components/GetStatushwb2.vue";
 import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
-import {
-  Eye,
-  EyeOff,
-  User,
-  Key,
-  ArrowRight,
-  AlertCircle
-} from 'lucide-vue-next'
+import { Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-vue-next'
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import Checkbox from '@/common/components/Checkbox.vue';
 import { useUserStore } from "@/stores/userStore";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
 const userStore = useUserStore();
 
 const router = useRouter();
@@ -180,18 +173,18 @@ async function submit() {
   overflow: hidden;
 }
 
-
 .card-header {
   text-align: center;
 }
 
 .card-title {
-  font-size: 1.75rem;
+  font-size: var(--font-size-h2);
   font-weight: 700;
   color: var(--text);
   margin: 0;
   letter-spacing: -0.01em;
 }
+
 .input-group {
   margin-bottom: 16px;
 }
@@ -202,55 +195,22 @@ async function submit() {
   align-items: center;
 }
 
-.input-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--sub);
-  z-index: 10;
-  pointer-events: none;
-  transition: color 0.2s;
-}
-
-.s-input {
-  width: 100%;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 10px 12px 10px 42px;
-  color: var(--text);
-  font-size: 1rem;
-}
-
-.s-input:focus {
-  outline: none;
-}
-
-.s-input:focus + .input-icon,
-.input-wrapper:focus-within .input-icon {
-  color: var(--sub);
-}
-.s-input.input-focus {
-  border-color: var(--border2);
-}
-.s-input.input-focus + .input-icon {
-  color: var(--sub);
-}
-
-
 .visibility-toggle {
   position: absolute;
-  right: 8px;
-  background: transparent;
+  right: 12px;
+  background: none;
   border: none;
   color: var(--sub);
   cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
+  padding: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  transition: color 0.1s ease;
 }
-.visibility-toggle:hover { color: var(--text); }
-
+.visibility-toggle:hover {
+  color: var(--text);
+}
 
 .s-checkbox {
   display: flex;
@@ -266,26 +226,11 @@ async function submit() {
   color: var(--text);
 }
 
-
 .s-btn {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  color: var(--bg);
-  background: var(--text);
-  border: 1px solid var(--text);
-}
-
-.s-btn:hover {
-  background: var(--sub);
-  border-color: var(--sub);
 }
 
 .s-btn:disabled {
@@ -311,7 +256,7 @@ async function submit() {
 }
 
 .disclaimer {
-  font-size: 0.8rem;
+  font-size: var(--font-size-sub);
   color: var(--sub);
   margin: 0;
   line-height: 1.4;
@@ -333,18 +278,6 @@ async function submit() {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
 }
 
 .fade-enter-active,

@@ -1,6 +1,6 @@
 // --- Admin Module Types ---
 
-export type AdminTab = 'overview' | 'users' | 'reports' | 'security' | 'sorgen' | 'announcements' | 'timetable';
+export type AdminTab = 'overview' | 'users' | 'reports' | 'security' | 'sorgen' | 'announcements' | 'timetable' | 'doc';
 
 export interface AdminStats {
     userCount: number;
@@ -31,6 +31,10 @@ export interface AdminUser {
     createdAt: string;
     lastLogin?: string;
     activityCount?: number;
+    enrKurs?: number;
+    wpuKurs1?: number;
+    wpuKurs2?: number;
+    theater?: number;
 }
 
 export interface AdminReport {
@@ -40,14 +44,15 @@ export interface AdminReport {
     category: string;
     reason: string;
     reportedBy: string;
+    reporterEmail?: string;
     processed: boolean;
     processedAt: string | null;
-    createdAt: string;
+    reportedAt: string;
 }
 
 export interface AdminSorge {
     _id: string;
-    content: string;
+    message: string;
     processed: boolean;
     processedAt: string | null;
     createdAt: string;
@@ -65,4 +70,5 @@ export interface TimetableSubstitution {
     room?: string | null;
     cancelled?: boolean;
     hide?: boolean;
+    createdAt?: string;
 }

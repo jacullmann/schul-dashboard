@@ -16,7 +16,7 @@ export function useAdmin() {
     const allUsers = ref<AdminUser[]>([]);
     const loadingUsers = ref(false);
     const showActivityFor = ref<string | null>(null);
-    const userActivities = ref<Record<string, unknown[]>>({});
+    const userActivities = ref<Record<string, any[]>>({});
     const loadingActivities = ref<Record<string, boolean>>({});
     const deletingUsers = ref<Record<string, boolean>>({});
     const togglingBan = ref<Record<string, boolean>>({});
