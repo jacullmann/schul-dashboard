@@ -20,13 +20,12 @@ const app = express();
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
     cors: {
-        origin: process.env.CORS_ORIGIN || 'https://schul-dashboard.com',
+        origin: process.env.CORS_ORIGIN,
         credentials: true,
     }
 });
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
-const CLIENT_ORIGIN = process.env.CORS_ORIGIN || 'https://schul-dashboard.com';
 
 const supabase = createClient(
     process.env.SUPABASE_URL,
@@ -69,13 +68,13 @@ cloudinary.config({
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
-    origin: CLIENT_ORIGIN,
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
 app.options('*', cors({
-    origin: CLIENT_ORIGIN,
+    origin: process.env.CORS_ORIGIN,
     credentials: true
 }));
 app.use(morgan('combined'));

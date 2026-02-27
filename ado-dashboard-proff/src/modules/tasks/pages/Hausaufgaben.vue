@@ -300,7 +300,7 @@
 
 <script setup lang="ts">
 import Checkbox from '@/common/components/Checkbox.vue';
-import ItemCard from '@/common/components/ItemCard.vue';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
@@ -712,22 +712,6 @@ const {
 
 .admin-creator-info {
   color: var(--sub);
-}
-
-.row-n.item-badges {
-  transition: opacity 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  max-height 300ms cubic-bezier(0.78, 0, 0.22, 1),
-  margin-top 300ms cubic-bezier(0.78, 0, 0.22, 1);
-  opacity: 1;
-  max-height: 50px;
-  margin-top: 8px;
-}
-
-.row-n.item-badges.collapsed {
-  opacity: 0;
-  max-height: 0;
-  margin-top: 0;
-  overflow: hidden;
 }
 
 /* Anmerkungen */

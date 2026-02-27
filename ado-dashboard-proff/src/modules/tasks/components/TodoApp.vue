@@ -107,7 +107,7 @@ import { useI18n } from 'vue-i18n';
 import type { Todo } from '@/modules/tasks/types';
 import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import ItemCard from '@/common/components/ItemCard.vue';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 
 const { t } = useI18n();
 

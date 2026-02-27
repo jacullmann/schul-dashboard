@@ -11,6 +11,16 @@
             <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
           </slot>
         </div>
+
+        <transition
+            @enter="onEnter"
+            @after-enter="onAfterEnter"
+            @leave="onLeave"
+        >
+          <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges" style="overflow: hidden;">
+            <slot name="badges"></slot>
+          </div>
+        </transition>
       </div>
 
       <slot name="actions-pre"></slot>
@@ -32,19 +42,16 @@
       <slot name="menu"></slot>
     </div>
 
-    <transition name="collapse">
-      <div v-show="!isCollapsed" class="item-collapsible-wrapper">
-        <div class="item-collapsible">
-          <div v-if="$slots.badges" class="row-n item-badges">
-            <slot name="badges"></slot>
-          </div>
-
-          <div v-if="$slots.body" class="item-body">
-            <slot name="body"></slot>
-          </div>
-
-          <slot name="content-after"></slot>
+    <transition
+        @enter="onEnter"
+        @after-enter="onAfterEnter"
+        @leave="onLeave"
+    >
+      <div v-show="!isCollapsed" class="item-collapsible-wrapper" style="overflow: hidden;">
+        <div v-if="$slots.body" class="item-body">
+          <slot name="body"></slot>
         </div>
+        <slot name="content-after"></slot>
       </div>
     </transition>
   </div>
@@ -67,6 +74,36 @@ withDefaults(defineProps<{
 defineEmits<{
   (e: 'menu-click', event: MouseEvent): void;
 }>();
+
+const transitionDuration = '350ms';
+const transitionEasing = 'cubic-bezier(0.25, 1, 0.5, 1)'; // Super smooth out-quart
+
+function onEnter(el: Element) {
+  const htmlEl = el as HTMLElement;
+  htmlEl.style.height = '0';
+  htmlEl.style.opacity = '0';
+  void htmlEl.offsetHeight; // trigger reflow
+
+  htmlEl.style.transition = `height ${transitionDuration} ${transitionEasing}, opacity ${transitionDuration} ${transitionEasing}`;
+  htmlEl.style.height = htmlEl.scrollHeight + 'px';
+  htmlEl.style.opacity = '1';
+}
+
+function onAfterEnter(el: Element) {
+  const htmlEl = el as HTMLElement;
+  htmlEl.style.height = '';
+  htmlEl.style.transition = '';
+}
+
+function onLeave(el: Element) {
+  const htmlEl = el as HTMLElement;
+  htmlEl.style.height = htmlEl.scrollHeight + 'px';
+  void htmlEl.offsetHeight; // trigger reflow
+
+  htmlEl.style.transition = `height ${transitionDuration} ${transitionEasing}, opacity ${transitionDuration} ${transitionEasing}`;
+  htmlEl.style.height = '0';
+  htmlEl.style.opacity = '0';
+}
 </script>
 
 <style scoped>
@@ -153,31 +190,6 @@ defineEmits<{
 }
 
 .item-collapsible-wrapper {
-  display: grid;
-  grid-template-rows: 1fr;
   opacity: 1;
-}
-
-.collapse-enter-active,
-.collapse-leave-active {
-  transition: grid-template-rows 400ms cubic-bezier(0.4, 0, 0.2, 1),
-  opacity 400ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.collapse-enter-from,
-.collapse-leave-to {
-  grid-template-rows: 0fr;
-  opacity: 0;
-}
-
-.collapse-enter-to,
-.collapse-leave-from {
-  grid-template-rows: 1fr;
-  opacity: 1;
-}
-
-.item-collapsible {
-  overflow: hidden;
-  min-height: 0;
 }
 </style>
