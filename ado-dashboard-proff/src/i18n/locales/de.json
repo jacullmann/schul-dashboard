@@ -27,15 +27,6 @@
       "noResults": "Keine Suchergebnisse für"
     },
     "weekdays": {
-      "full": {
-        "monday": "Montag",
-        "tuesday": "Dienstag",
-        "wednesday": "Mittwoch",
-        "thursday": "Donnerstag",
-        "friday": "Freitag",
-        "saturday": "Samstag",
-        "sunday": "Sonntag"
-      },
       "abbr": {
         "monday": "Mo",
         "tuesday": "Di",
@@ -531,6 +522,7 @@
       "footnote": "Die Abbildungen der Albumcover dienen ausschließlich der Identifizierung. Das Urheberrecht liegt bei den jeweiligen Eigentümern, Labels und Künstlern."
     }
   },
+  "games": {},
   "legal": {
     "imprint": {
       "title": "Impressum",
@@ -555,6 +547,5 @@
       "feedback": "Feedback"
     }
   },
-  "about": {},
-  "games": {}
+  "about": {}
 }
