@@ -1,293 +1,54 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import hw from "@/api/hwApi";
 import InfoPop from '@/common/components/InfoModalCenter.vue'
-import { useUserStore } from '@/stores/userStore';
-import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
-const userStore = useUserStore();
+import { useTimetable } from '@/modules/schedule/composables/useTimetable';
+import { useI18n } from 'vue-i18n';
 
-const isPersonalized = computed(() => {
-  return userStore.user?.personalized && userStore.user?.doneSetup;
-});
-
-const lessons = ref<Lesson[]>([]);
-const substitutions = ref<Substitution[]>([]);
-const loadingSubs = ref(true);
-const loadingLessons = ref(true);
-
-const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
-const totalSlots = 9;
-const lessonDurationMins = 45;
-const startTimeHour = 8;
-const startTimeMinute = 0;
-
-const breaks: Record<number, number> = {
-  2: 25,
-  3: 5,
-  5: 40,
-  7: 10
-};
-const SUBJECT_ABBR_TO_NAME: Record<string, string> = {
-  'INF': 'Informatik',
-  'ENG': 'Englisch',
-  'BI': 'Biologie',
-  'LA': 'Latein',
-  'GEWI': 'Geschichte',
-  'DE': 'Deutsch',
-  'MA': 'Mathe',
-  'MU': 'Musik'
-};
-
-function getDisplayName(lesson: Lesson): string {
-  if (lesson.subject?.startsWith('WPU') && lesson.subject_abbr) {
-    const fachName = SUBJECT_ABBR_TO_NAME[lesson.subject_abbr];
-    if (fachName) {
-      return `${fachName} WPU`;
-    }
-  }
-  return lesson.subject;
-}
-async function loadSubstitutions() {
-  try {
-    const { data } = await hw.get('/api/timetable/subs');
-    substitutions.value = data;
-  } catch (error) {
-    console.error('Fehler beim Laden der Substitutions:', error);
-    substitutions.value = [];
-  } finally {
-    loadingSubs.value = false;
-  }
-}
-
-async function loadTimetable() {
-  loadingLessons.value = true;
-  try {
-    const { data } = await hw.get('/api/timetable');
-    lessons.value = data;
-  } catch (error) {
-    console.error('Fehler beim Laden des Stundenplans:', error);
-    lessons.value = [];
-  } finally {
-    loadingLessons.value = false;
-  }
-}
-
-
-const effectiveLessons = computed<Lesson[]>(() => {
-  const result: Lesson[] = [];
-
-  const subMap = new Map<number, Substitution[]>();
-  substitutions.value.forEach(sub => {
-    if (!subMap.has(sub.lessonId)) subMap.set(sub.lessonId, []);
-    subMap.get(sub.lessonId)!.push(sub);
-  });
-
-  lessons.value.forEach(original => {
-    const subs = subMap.get(original.id);
-
-    if (!subs || subs.length === 0) {
-      result.push({ ...original, _original: original });
-      return;
-    }
-
-    subs.forEach(sub => {
-      if (sub.hide) return;
-
-      const merged: Lesson = {
-        ...original,
-        ...sub,
-        _original: original
-      };
-
-      result.push(merged);
-    });
-  });
-
-  return result;
-});
-
-
-const formatTime = (totalMinutes: number): string => {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-};
-
-const slotStartMinutes = computed(() => {
-  const map: Record<number, number> = {};
-  let currentMetrics = (startTimeHour * 60) + startTimeMinute;
-  for (let i = 1; i <= totalSlots; i++) {
-    map[i] = currentMetrics;
-    const breakTime = breaks[i] || 0;
-    currentMetrics += lessonDurationMins + breakTime;
-  }
-  return map;
-});
-
-const timeSlots = computed<TimeSlot[]>(() => {
-  const slots: TimeSlot[] = [];
-  for (let i = 1; i <= totalSlots; i++) {
-    const startMins = slotStartMinutes.value[i];
-    const endMins = startMins + lessonDurationMins;
-    slots.push({ slot: i, time: `${formatTime(startMins)} - ${formatTime(endMins)}` });
-  }
-  return slots;
-});
-
-const groupedLessons = computed(() => {
-  const groups: Record<string, Lesson[]> = {};
-  effectiveLessons.value.forEach(lesson => {
-    const key = `${lesson.day}-${lesson.slot}`;
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(lesson);
-  });
-  return groups;
-});
-
-const getGroupStyle = (groupLessons: Lesson[]) => {
-  if (!groupLessons.length) return {};
-  const firstLesson = groupLessons[0];
-  const maxDuration = Math.max(...groupLessons.map(l => l.duration));
-  const dayIndex = days.indexOf(firstLesson.day);
-  const colStart = dayIndex + 2;
-  const rowStart = firstLesson.slot + 1;
-  return {
-    gridColumn: `${colStart} / ${colStart + 1}`,
-    gridRow: `${rowStart} / span ${maxDuration}`
-  };
-};
-
-const now = ref(new Date());
-
-const updateTime = () => {
-  now.value = new Date();
-};
-
-let timer: number | undefined;
-onMounted(() => {
-  timer = window.setInterval(updateTime, 1000 * 60);
-  loadTimetable();
-  loadSubstitutions();
-});
-watch(
-    () => [
-      userStore.user?.personalized,
-      userStore.user?.enrKurs,
-      userStore.user?.wpuKurs1,
-      userStore.user?.wpuKurs2,
-      userStore.user?.theater
-    ],
-    (newVal, oldVal) => {
-      if (oldVal !== undefined && JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-        loadTimetable();
-      }
-    },
-    { deep: false }
-);
-onUnmounted(() => {
-  clearInterval(timer);
-});
-
-const dayMap: Record<string, number> = {
-  'Montag': 0, 'Dienstag': 1, 'Mittwoch': 2, 'Donnerstag': 3, 'Freitag': 4
-};
-// --- Start of new code to add ---
-
-// New computed property to get the name of the current day
-const currentDayName = computed(() => {
-  const dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0, Sunday = 6
-  // Check if it's a weekday (Monday to Friday, 0 to 4)
-  if (dayIndex >= 0 && dayIndex < days.length) {
-    return days[dayIndex];
-  }
-  return null; // Not a standard school day in this context (e.g., weekend)
-});
-
-const activeOrNextGroupKey = computed<string | null>(() => {
-  const currentDayIndex = (now.value.getDay() + 6) % 7;
-  const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
-  const currentTotalWeekMinutes = (currentDayIndex * 24 * 60) + currentMinutes;
-
-  const timeBlocks = Object.entries(groupedLessons.value).map(([key, group]) => {
-    const first = group[0];
-    const dayIdx = dayMap[first.day] ?? -1;
-    if (dayIdx === -1) return null;
-
-    const maxDuration = Math.max(...group.map(l => l.duration));
-    const startMinsOfDay = slotStartMinutes.value[first.slot];
-
-    let endMinsOfDay = startMinsOfDay;
-    for(let d = 0; d < maxDuration; d++) {
-      endMinsOfDay += lessonDurationMins;
-      if(d < maxDuration - 1) {
-        endMinsOfDay += (breaks[first.slot + d] || 0);
-      }
-    }
-
-    const startTotal = (dayIdx * 24 * 60) + startMinsOfDay;
-    const endTotal = (dayIdx * 24 * 60) + endMinsOfDay;
-
-    return { key, startTotal, endTotal };
-  }).filter(block => block !== null) as { key: string, startTotal: number, endTotal: number }[];
-
-  const activeBlock = timeBlocks.find(b => currentTotalWeekMinutes >= b.startTotal && currentTotalWeekMinutes < b.endTotal);
-  if (activeBlock) return activeBlock.key;
-
-  const pastBlocks = timeBlocks.filter(b => b.endTotal <= currentTotalWeekMinutes);
-  const futureBlocks = timeBlocks.filter(b => b.startTotal > currentTotalWeekMinutes);
-
-  futureBlocks.sort((a, b) => a.startTotal - b.startTotal);
-  const nextBlock = futureBlocks[0];
-
-  if (!nextBlock) return null;
-
-  pastBlocks.sort((a, b) => b.endTotal - a.endTotal);
-  const lastFinishedBlock = pastBlocks[0];
-
-  if (lastFinishedBlock) {
-    const minutesSinceFinish = currentTotalWeekMinutes - lastFinishedBlock.endTotal;
-    const minutesUntilNext = nextBlock.startTotal - currentTotalWeekMinutes;
-
-    if (minutesSinceFinish > 10 && minutesUntilNext > 120) {
-      return null;
-    }
-  }
-
-  return nextBlock.key;
-});
+const { t, tm } = useI18n();
+const {
+  isPersonalized,
+  loadingSubs,
+  loadingLessons,
+  days,
+  timeSlots,
+  groupedLessons,
+  currentDayName,
+  activeOrNextGroupKey,
+  getDisplayName,
+  getGroupStyle
+} = useTimetable();
 </script>
 
 <template>
   <div class="card">
     <div>
       <h2 style="margin-top: 0" class="title-inf">
-        Stundenplan
-        <InfoPop tooltip="Stundenplan Info" title="Stundenplan">
-          <h3>Die digitale Version vom Programm.</h3>
+        {{ t('school.tables.timetable.title') }}
+        <InfoPop
+            :tooltip="t('school.tables.timetable.infopop.tooltip')"
+            :title="t('school.tables.timetable.title')">
 
-          <h3>Personalisierte Kurse</h3>
-          <p>Wenn du bei deinem Konto hinterlegt hast, welche Kurse/Wahlfächer du belegst, kannst du automatisch alle Stunden, die dich nicht betreffen, ausblenden lassen. Deine Auswahl kannst du in deinen Kontoeinstellungen anpassen. Wenn du trotzdem alle Stunden sehen willst, kannst du diese Option ebenfalls in deinen Kontoeinstellungen deaktivieren.</p>
-
-          <h3>Live-Änderungen</h3>
-          <p>Vertretung, Ausfall, Raumänderungen usw. werden vom Admin-Team zeitnah übertragen und gleich im digitalen Stundenplan angezeigt.</p>
+          <h3>{{ t('school.tables.timetable.infopop.description') }}</h3>
+          <div v-for="(section, index) in tm('school.tables.timetable.infopop.sections')" :key="index">
+            <h3>{{ section.title }}</h3>
+            <p>{{ section.text }}</p>
+          </div>
           <div class="info-img-container">
             <img alt="Bild" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474359/Stundenplan_Ausfall_Grafik_b34pcq.webp" class="info-img"/>
-
           </div>
 
 
         </InfoPop>
       </h2>
       <div class="status-row">
-        <div v-if="loadingSubs || loadingLessons" class="small">Lade Stundenplan...</div>
+        <div v-if="loadingSubs || loadingLessons" class="small">{{ t('school.tables.timetable.loading') }}</div>
         <div v-else-if="isPersonalized" class="personalized-badge">
-          Personalisiert
+          {{ t('school.tables.timetable.personalized') }}
         </div>
       </div>
     </div>
     <div class="timetable-grid">
 
-      <div class="header-cell time-header">Stunde</div>
+      <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
       <div
           v-for="day in days"
           :key="day"
@@ -327,7 +88,7 @@ const activeOrNextGroupKey = computed<string | null>(() => {
         >
           <div v-if="lesson.cancelled">
             <div class="lesson-subject crossed">{{ getDisplayName(lesson) }}</div>
-            <div class="ausfall-label">Ausfall</div>
+            <div class="ausfall-label">{{ t('school.tables.timetable.cancelled') }}</div>
             <div class="lesson-details">
               <span class="crossed">{{ lesson.room }}</span>
               <span class="crossed">{{ lesson.teacher }}</span>

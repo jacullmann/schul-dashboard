@@ -403,7 +403,7 @@
         "title": "Stundenplan",
         "infopop": {
           "tooltip": "Überblick und Funktionen zum Stundenplan",
-          "description": "Die digitale Version vom Programm.",
+          "description": "Die digitale Version vom Programm",
           "sections": [
             {
               "title": "Personalisierte Kurse",
@@ -416,9 +416,10 @@
           ]
         },
         "disclaimer": "Schul-dashboard und das Admin-Team übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit und Aktualität der der bereitgestellten Informationen.",
+        "loading": "Lade Stundenplan...",
         "personalized": "Personalisiert",
         "lesson": "Stunde",
-        "cancelled": "Entfällt/Ausfall"
+        "cancelled": "Entfällt"
       },
       "abbr": {
         "title": "Kürzelfinder",
