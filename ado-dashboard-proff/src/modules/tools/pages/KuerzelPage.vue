@@ -82,7 +82,7 @@
 import { ArrowLeftRight } from 'lucide-vue-next'
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import { useI18n } from 'vue-i18n'
-import { useKuerzel } from '../composables/useKuerzel'
+import { useKuerzel } from '@/modules/tools/composables/useKuerzel'
 
 const { t, tm } = useI18n()
 

@@ -28,7 +28,6 @@ import { watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
-import { loadBadWords } from "@/modules/tasks/composables/useProfanity";
 import AuthModal from '@/modules/auth/components/AuthModal.vue';
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -111,7 +110,6 @@ watch(user, (newUser, oldUser) => {
 });
 
 onMounted(() => {
-  loadBadWords();
   logPageload();
 
   window.addEventListener('show-auth-modal', handleShowAuthModal);

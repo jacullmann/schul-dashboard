@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import dayjs from 'dayjs';
+import * as db from '../db/db.js';
 
 export default function createItemsRoutes(deps) {
     const router = Router();
     const {
-        models,
+        supabase,
         cloudinary,
         appGateSecret,
         userSecret,
@@ -21,10 +22,8 @@ export default function createItemsRoutes(deps) {
         validateItemCreation,
         buildThumbUrl,
         withThumb,
-        timeLeftColor
+        timeLeftColor,
     } = deps;
-
-    const { User, BannedUser, Item, KeepChecked, Report } = models;
 
     // GET /api/items
     router.get('/',
@@ -34,30 +33,26 @@ export default function createItemsRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const cutOffDate = dayjs().subtract(24, 'hour').toDate();
-                let dateQuery = {};
-                if (req.query.filter === 'old') dateQuery = { dueDate: { $lt: cutOffDate } };
-                else dateQuery = { dueDate: { $gte: cutOffDate } };
-                const list = await Item.find({ type: req.query.type, ...dateQuery })
-                    .populate('createdBy', 'email')
-                    .sort({ dueDate: req.query.filter === 'old' ? -1 : 1 })
-                    .limit(100)
-                    .lean();
-                const normalized = list.map(i => {
-                    const imgs = (i.images || []).map(img => withThumb(img));
-                    const createdById = i.createdBy?._id?.toString() || i.createdBy?.toString();
+                const rows = await db.listItems(supabase, {
+                    type: req.query.type,
+                    filter: req.query.filter,
+                    limit: 100,
+                });
+
+                const normalized = rows.map(row => {
+                    const imgs = (row.images || []).map(img => withThumb(img));
                     return {
-                        id: i._id.toString(),
-                        type: i.type,
-                        title: i.title,
-                        subject: i.subject,
-                        description: i.description,
+                        id: row.id,
+                        type: row.type,
+                        title: row.title,
+                        subject: row.subject,
+                        description: row.description,
                         images: imgs,
-                        dueDate: i.dueDate,
-                        createdBy: createdById,
-                        createdByEmail: i.createdBy?.email || 'Unbekannt',
-                        timeColor: timeLeftColor(i.dueDate),
-                        editorNote: i.editorNote || ''
+                        dueDate: row.due_date,
+                        createdBy: row.created_by,
+                        createdByEmail: row.creator?.email || 'Unbekannt',
+                        timeColor: timeLeftColor(row.due_date),
+                        editorNote: row.editor_note || '',
                     };
                 });
                 res.json(normalized);
@@ -71,36 +66,30 @@ export default function createItemsRoutes(deps) {
     // GET /api/items/:id
     router.get('/:id',
         requireAppGate(appGateSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const item = await Item.findById(req.params.id)
-                    .populate('createdBy', 'email')
-                    .lean();
+                const row = await db.findItemById(supabase, req.params.id);
+                if (!row) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
 
-                if (!item) {
-                    return sendJSONError(res, 404, 'Eintrag nicht gefunden');
-                }
+                // Fetch creator email
+                const creator = await db.findUserById(supabase, row.created_by, 'email');
+                const imgs = (row.images || []).map(img => withThumb(img));
 
-                const imgs = (item.images || []).map(img => withThumb(img));
-                const createdById = item.createdBy?._id?.toString() || item.createdBy?.toString();
-
-                const normalized = {
-                    id: item._id.toString(),
-                    type: item.type,
-                    title: item.title,
-                    subject: item.subject,
-                    description: item.description,
+                res.json({
+                    id: row.id,
+                    type: row.type,
+                    title: row.title,
+                    subject: row.subject,
+                    description: row.description,
                     images: imgs,
-                    dueDate: item.dueDate,
-                    createdBy: createdById,
-                    createdByEmail: item.createdBy?.email || 'Unbekannt',
-                    timeColor: timeLeftColor(item.dueDate),
-                    editorNote: item.editorNote || ''
-                };
-
-                res.json(normalized);
+                    dueDate: row.due_date,
+                    createdBy: row.created_by,
+                    createdByEmail: creator?.email || 'Unbekannt',
+                    timeColor: timeLeftColor(row.due_date),
+                    editorNote: row.editor_note || '',
+                });
             } catch (error) {
                 console.error('Error fetching single item:', error);
                 sendJSONError(res, 500, 'Fehler beim Laden des Eintrags');
@@ -111,7 +100,7 @@ export default function createItemsRoutes(deps) {
     // POST /api/items
     router.post('/',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']).withMessage('type'),
@@ -119,14 +108,14 @@ export default function createItemsRoutes(deps) {
             body('subject').isString().isLength({ min: 1, max: 40 }).withMessage('subject'),
             body('description').optional().isString().isLength({ max: 1000 }).withMessage('description'),
             body('images').optional().isArray({ max: 8 }).withMessage('images'),
-            body('dueDate').isISO8601().toDate().withMessage('dueDate')
+            body('dueDate').isISO8601().toDate().withMessage('dueDate'),
         ],
         validateItemCreation,
         async (req, res) => {
             try {
-                const Title = req.body.title.trim();
-                const Subject = req.body.subject.trim();
-                const Description = (req.body.description || '').trim();
+                const title = req.body.title.trim();
+                const subject = req.body.subject.trim();
+                const description = (req.body.description || '').trim();
 
                 const rawImages = req.body.images || [];
                 for (const img of rawImages) {
@@ -138,24 +127,22 @@ export default function createItemsRoutes(deps) {
                     url: img.url,
                     thumbUrl: buildThumbUrl(img.url),
                     publicId: img.publicId,
-                    createdBy: req.user.sub
+                    createdBy: req.user.sub,
                 }));
 
-                const doc = await Item.create({
+                const item = await db.createItem(supabase, {
                     type: req.body.type,
-                    title: Title,
-                    subject: Subject,
-                    description: Description,
+                    title,
+                    subject,
+                    description,
                     images,
                     dueDate: req.body.dueDate,
-                    createdBy: req.user.sub
+                    createdBy: req.user.sub,
                 });
 
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: { activity: { at: new Date(), type: 'item:create', meta: { id: doc._id, type: doc.type } } }
-                });
+                await db.logActivity(supabase, req.user.sub, 'item:create', { id: item.id, type: item.type });
 
-                res.status(201).json({ ok: true, id: doc._id });
+                res.status(201).json({ ok: true, id: item.id });
             } catch (error) {
                 console.error('Item creation error:', error);
                 sendJSONError(res, 500, 'Fehler beim Erstellen des Eintrags');
@@ -166,9 +153,9 @@ export default function createItemsRoutes(deps) {
     // PATCH /api/items/:id
     router.patch('/:id',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         body('title').optional().isString().isLength({ min: 2, max: 60 }),
         body('subject').optional().isString().isLength({ min: 2, max: 40 }),
         body('description').optional().isString().isLength({ max: 1000 }),
@@ -176,121 +163,123 @@ export default function createItemsRoutes(deps) {
         body('dueDate').optional().isISO8601().toDate(),
         validate,
         async (req, res) => {
-            const item = await Item.findById(req.params.id);
-            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-            if (item.createdBy.toString() !== req.user.sub) {
-                return sendJSONError(res, 403, 'Nur der Ersteller kann diesen Eintrag bearbeiten.');
-            }
-
-            const minDate = dayjs().subtract(2, 'day').startOf('day');
-            const maxDate = dayjs().add(365, 'day').endOf('day');
-            if (req.body.dueDate) {
-                const due = dayjs(req.body.dueDate);
-                if (due.isBefore(minDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
-                if (due.isAfter(maxDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
-            }
-            if (req.body.images) {
-                const PER_USER_MAX_IMAGES = 8;
-                const TOTAL_MAX_IMAGES = 12;
-
-                if (req.body.images.length > TOTAL_MAX_IMAGES) {
-                    return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
+            try {
+                const item = await db.findItemById(supabase, req.params.id);
+                if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+                if (item.created_by !== req.user.sub) {
+                    return sendJSONError(res, 403, 'Nur der Ersteller kann diesen Eintrag bearbeiten.');
                 }
 
-                const userImageCount = req.body.images.filter(
-                    img => (img.createdBy && img.createdBy.toString() === req.user.sub) ||
-                        !img.createdBy
-                ).length;
-
-                if (userImageCount > PER_USER_MAX_IMAGES) {
-                    return sendJSONError(res, 400, `Du kannst maximal ${PER_USER_MAX_IMAGES} Bilder selbst zu einem Eintrag hinzufügen.`);
+                const minDate = dayjs().subtract(2, 'day').startOf('day');
+                const maxDate = dayjs().add(365, 'day').endOf('day');
+                if (req.body.dueDate) {
+                    const due = dayjs(req.body.dueDate);
+                    if (due.isBefore(minDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Vergangenheit');
+                    if (due.isAfter(maxDate)) return sendJSONError(res, 400, 'Das Datum liegt zu weit in der Zukunft');
                 }
-            }
 
-            const update = {};
-            for (const k of ['title', 'subject', 'description', 'images', 'dueDate']) {
-                if (req.body[k] !== undefined) update[k] = req.body[k];
-            }
-            if (update.images) {
-                for (const img of update.images) {
-                    if (!isValidCloudinaryUrl(img.url)) {
-                        return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                if (req.body.images) {
+                    const PER_USER_MAX_IMAGES = 8;
+                    const TOTAL_MAX_IMAGES = 12;
+
+                    if (req.body.images.length > TOTAL_MAX_IMAGES) {
+                        return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
+                    }
+                    const userImageCount = req.body.images.filter(
+                        img => (img.createdBy && img.createdBy === req.user.sub) || !img.createdBy
+                    ).length;
+                    if (userImageCount > PER_USER_MAX_IMAGES) {
+                        return sendJSONError(res, 400, `Du kannst maximal ${PER_USER_MAX_IMAGES} Bilder selbst zu einem Eintrag hinzufügen.`);
                     }
                 }
-                update.images = update.images.map(img => ({
-                    url: img.url,
-                    thumbUrl: buildThumbUrl(img.url),
-                    publicId: img.publicId,
-                    createdBy: img.createdBy || req.user.sub
-                }));
+
+                const update = {};
+                if (req.body.title !== undefined) update.title = req.body.title;
+                if (req.body.subject !== undefined) update.subject = req.body.subject;
+                if (req.body.description !== undefined) update.description = req.body.description;
+                if (req.body.dueDate !== undefined) update.due_date = req.body.dueDate;
+                if (req.body.images !== undefined) {
+                    for (const img of req.body.images) {
+                        if (!isValidCloudinaryUrl(img.url)) {
+                            return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                        }
+                    }
+                    update.images = req.body.images.map(img => ({
+                        url: img.url,
+                        thumbUrl: buildThumbUrl(img.url),
+                        publicId: img.publicId,
+                        createdBy: img.createdBy || req.user.sub,
+                    }));
+                }
+
+                await db.updateItem(supabase, item.id, update);
+                await db.logActivity(supabase, req.user.sub, 'item:update', { id: item.id });
+                res.json({ ok: true });
+            } catch (error) {
+                console.error('PATCH /api/items/:id error:', error);
+                sendJSONError(res, 500, 'Fehler beim Aktualisieren des Eintrags');
             }
-            await Item.findByIdAndUpdate(item._id, { $set: update });
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:update', meta: { id: item._id } } } });
-            res.json({ ok: true });
         }
     );
 
     // DELETE /api/items/:id
     router.delete('/:id',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         validate,
         async (req, res) => {
-            const item = await Item.findById(req.params.id);
-            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-            if (!req.user.isAdmin && item.createdBy.toString() !== req.user.sub) {
-                return sendJSONError(res, 403, 'Nicht autorisiert.');
-            }
-            if (item.images && item.images.length > 0) {
-                const publicIds = item.images.map(img => img.publicId);
-                try {
-                    await cloudinary.api.delete_resources(publicIds);
-                } catch (err) {
-                    console.error('Cloudinary bulk delete error', err);
+            try {
+                const item = await db.findItemById(supabase, req.params.id);
+                if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+                if (!req.user.isAdmin && item.created_by !== req.user.sub) {
+                    return sendJSONError(res, 403, 'Nicht autorisiert.');
                 }
+
+                // Delete Cloudinary images
+                if (item.images && item.images.length > 0) {
+                    const publicIds = item.images.map(img => img.publicId).filter(Boolean);
+                    if (publicIds.length > 0) {
+                        try {
+                            await cloudinary.api.delete_resources(publicIds);
+                        } catch (err) {
+                            console.error('Cloudinary bulk delete error', err);
+                        }
+                    }
+                }
+
+                // CASCADE handles keep_checked and pinned_items
+                await db.deleteItem(supabase, item.id);
+                await db.logActivity(supabase, req.user.sub, 'item:delete', { id: item.id });
+                res.json({ ok: true });
+            } catch (error) {
+                console.error('DELETE /api/items/:id error:', error);
+                sendJSONError(res, 500, 'Fehler beim Löschen des Eintrags');
             }
-            await KeepChecked.deleteMany({ itemId: item._id });
-            await item.deleteOne();
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:delete', meta: { id: item._id } } } });
-            res.json({ ok: true });
         }
     );
 
     // PATCH /api/items/:id/note (nur Admins)
     router.patch('/:id/note',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         requireAdmin,
         validateCsrf(csrfSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         body('editorNote').isString().isLength({ max: 2000 }),
         validate,
         async (req, res) => {
             try {
-                const item = await Item.findById(req.params.id);
+                const item = await db.findItemById(supabase, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
 
                 const noteContent = req.body.editorNote.trim();
-
-                await Item.findByIdAndUpdate(item._id, {
-                    $set: { editorNote: noteContent }
+                await db.updateItem(supabase, item.id, { editor_note: noteContent });
+                await db.logActivity(supabase, req.user.sub, 'item:note:update', {
+                    itemId: item.id,
+                    noteLength: noteContent.length,
                 });
-
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'item:note:update',
-                            meta: {
-                                itemId: item._id,
-                                noteLength: noteContent.length
-                            }
-                        }
-                    }
-                });
-
                 res.json({ ok: true, editorNote: noteContent });
             } catch (error) {
                 console.error('PATCH /api/items/:id/note error:', error);
@@ -302,86 +291,109 @@ export default function createItemsRoutes(deps) {
     // POST /api/items/:id/images
     router.post('/:id/images',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         body('image').isObject(),
         body('image.url').isString(),
         body('image.publicId').isString(),
         validate,
         async (req, res) => {
-            const item = await Item.findById(req.params.id);
-            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-            const TOTAL_MAX_IMAGES = 12;
-            const PER_USER_MAX_IMAGES = 8;
+            try {
+                const item = await db.findItemById(supabase, req.params.id);
+                if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
-            if (item.images.length >= TOTAL_MAX_IMAGES) {
-                return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
-            }
+                const TOTAL_MAX_IMAGES = 12;
+                const PER_USER_MAX_IMAGES = 8;
+                const images = item.images || [];
 
-            const userImageCount = item.images.filter(
-                img => img.createdBy && img.createdBy.toString() === req.user.sub
-            ).length;
+                if (images.length >= TOTAL_MAX_IMAGES) {
+                    return sendJSONError(res, 400, `Das Limit von ${TOTAL_MAX_IMAGES} Bildern pro Eintrag ist erreicht.`);
+                }
+                const userImageCount = images.filter(
+                    img => img.createdBy && img.createdBy === req.user.sub
+                ).length;
+                if (userImageCount >= PER_USER_MAX_IMAGES) {
+                    return sendJSONError(res, 400, `Du hast dein Limit von ${PER_USER_MAX_IMAGES} Bildern für diesen Eintrag erreicht.`);
+                }
+                if (!isValidCloudinaryUrl(req.body.image.url)) {
+                    return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                }
 
-            if (userImageCount >= PER_USER_MAX_IMAGES) {
-                return sendJSONError(res, 400, `Du hast dein Limit von ${PER_USER_MAX_IMAGES} Bildern für diesen Eintrag erreicht.`);
+                const newImage = {
+                    url: req.body.image.url,
+                    thumbUrl: buildThumbUrl(req.body.image.url),
+                    publicId: req.body.image.publicId,
+                    createdBy: req.user.sub,
+                };
+                images.push(newImage);
+                await db.updateItem(supabase, item.id, { images });
+                await db.logActivity(supabase, req.user.sub, 'item:image:add', {
+                    itemId: item.id,
+                    publicId: newImage.publicId,
+                });
+                res.status(201).json({ ok: true, image: withThumb(newImage) });
+            } catch (error) {
+                console.error('POST /api/items/:id/images error:', error);
+                sendJSONError(res, 500, 'Fehler beim Hinzufügen des Bildes');
             }
-            if (!isValidCloudinaryUrl(req.body.image.url)) {
-                return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
-            }
-            const newImage = {
-                url: req.body.image.url,
-                thumbUrl: buildThumbUrl(req.body.image.url),
-                publicId: req.body.image.publicId,
-                createdBy: req.user.sub
-            };
-            item.images.push(newImage);
-            await item.save();
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:image:add', meta: { itemId: item._id, publicId: newImage.publicId } } } });
-            res.status(201).json({ ok: true, image: withThumb(newImage) });
         }
     );
 
     // DELETE /api/items/:itemId/images/:publicId
     router.delete('/:itemId/images/:publicId',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        param('itemId').isMongoId(),
+        param('itemId').isUUID(),
         param('publicId').isString(),
         validate,
         async (req, res) => {
-            const item = await Item.findById(req.params.itemId);
-            if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-            let publicId;
-            try { publicId = decodeURIComponent(req.params.publicId); } catch { publicId = req.params.publicId; }
-            const imageIndex = item.images.findIndex(img => img.publicId === publicId);
-            if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
-            const image = item.images[imageIndex];
-            const isAdmin = req.user.isAdmin;
-            const isImageOwner = image.createdBy && image.createdBy.toString() === req.user.sub;
-            const isItemOwner = item.createdBy.toString() === req.user.sub;
-            if (!isAdmin && !isImageOwner && !isItemOwner) {
-                return sendJSONError(res, 403, 'Du kannst dieses Bild nicht löschen.');
-            }
             try {
-                await cloudinary.uploader.destroy(image.publicId);
-            } catch (err) {
-                console.error('Cloudinary destroy error', err);
+                const item = await db.findItemById(supabase, req.params.itemId);
+                if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                let publicId;
+                try { publicId = decodeURIComponent(req.params.publicId); } catch { publicId = req.params.publicId; }
+
+                const images = item.images || [];
+                const imageIndex = images.findIndex(img => img.publicId === publicId);
+                if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
+
+                const image = images[imageIndex];
+                const isAdmin = req.user.isAdmin;
+                const isImageOwner = image.createdBy && image.createdBy === req.user.sub;
+                const isItemOwner = item.created_by === req.user.sub;
+                if (!isAdmin && !isImageOwner && !isItemOwner) {
+                    return sendJSONError(res, 403, 'Du kannst dieses Bild nicht löschen.');
+                }
+
+                try {
+                    await cloudinary.uploader.destroy(image.publicId);
+                } catch (err) {
+                    console.error('Cloudinary destroy error', err);
+                }
+
+                images.splice(imageIndex, 1);
+                await db.updateItem(supabase, item.id, { images });
+                await db.logActivity(supabase, req.user.sub, 'item:image:delete', {
+                    itemId: item.id,
+                    publicId: image.publicId,
+                });
+                res.json({ ok: true });
+            } catch (error) {
+                console.error('DELETE /api/items/:itemId/images/:publicId error:', error);
+                sendJSONError(res, 500, 'Fehler beim Löschen des Bildes');
             }
-            item.images.splice(imageIndex, 1);
-            await item.save();
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'item:image:delete', meta: { itemId: item._id, publicId: image.publicId } } } });
-            res.json({ ok: true });
         }
     );
 
-    // POST /api/items/reports (war /api/reports)
+    // POST /api/items/reports
     router.post('/reports',
         requireAppGate(appGateSecret),
-        checkUser(userSecret, User),
+        checkUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        body('itemId').isMongoId(),
+        body('itemId').isUUID(),
         body('itemTitle').isString().isLength({ min: 1, max: 200 }),
         body('category').isIn(['illegal', 'falschinfo']),
         body('reason').optional().isString().isLength({ max: 5000 }),
@@ -394,36 +406,24 @@ export default function createItemsRoutes(deps) {
                     return sendJSONError(res, 400, 'Bitte füge einen Grund hinzu.');
                 }
 
-                const reportData = {
+                await db.createReport(supabase, {
                     itemId,
                     itemTitle,
                     category,
                     reason: reason ? reason.trim() : null,
-                    reportedAt: new Date(),
                     reporterId: req.user ? req.user.sub : null,
-                    reporterEmail: req.user ? req.user.email : 'anonymous'
-                };
-                await Report.create(reportData);
+                    reporterEmail: req.user ? req.user.email : 'anonymous',
+                });
 
                 if (req.user) {
-                    await User.findByIdAndUpdate(req.user.sub, {
-                        $push: {
-                            activity: {
-                                at: new Date(),
-                                type: 'item:report',
-                                meta: {
-                                    itemId,
-                                    category,
-                                    hasReason: !!reason
-                                }
-                            }
-                        }
+                    await db.logActivity(supabase, req.user.sub, 'item:report', {
+                        itemId,
+                        category,
+                        hasReason: !!reason,
                     });
                 }
-                res.status(201).json({
-                    ok: true,
-                    message: 'Eintrag erfolgreich gemeldet.'
-                });
+
+                res.status(201).json({ ok: true, message: 'Eintrag erfolgreich gemeldet.' });
             } catch (err) {
                 console.error('POST /api/items/reports error', err);
                 sendJSONError(res, 500, 'Server error');

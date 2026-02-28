@@ -114,15 +114,6 @@ const routes = [
                 }
             },
             {
-                path: 'countdown',
-                name: 'countdown',
-                component: () => import('@/modules/tools/pages/CountdownPage.vue'),
-                meta: {
-                    title: 'Countdown',
-                    fullWidth: false,
-                }
-            },
-            {
                 path: 'spiele/:id',
                 name: 'GameDetail',
                 component: () => import('@/modules/games/GameDetail.vue'),

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
+import * as db from '../db/db.js';
 
 export default function createPublicRoutes(deps) {
     const router = Router();
     const {
-        models,
         supabase,
         cloudinary,
         appGateSecret,
@@ -17,49 +17,32 @@ export default function createPublicRoutes(deps) {
         sendJSONError,
         validate,
         requireAdmin,
-        filterLessonsForUser
+        filterLessonsForUser,
     } = deps;
-
-    const { User, BannedUser, Subject, Announcement, Timetable, TimetableSub, Sorgen } = models;
-
-    // GET /api/countdowns
-    router.get('/api/countdowns',
-        requireAppGate(appGateSecret),
-        async (req, res) => {
-            try {
-                const { data, error } = await supabase
-                    .from('countdowns')
-                    .select('*')
-                    .order('target_date', { ascending: true });
-
-                if (error) throw error;
-                res.json(data || []);
-            } catch (err) {
-                console.error('GET /api/countdowns error:', err);
-                sendJSONError(res, 500, 'Fehler beim Laden der Countdowns');
-            }
-        }
-    );
 
     // GET /api/timetable
     router.get('/api/timetable',
         requireAppGate(appGateSecret),
-        checkUser(userSecret, User),
+        checkUser(userSecret, supabase),
         async (req, res) => {
             try {
-                const timetable = await Timetable.findOne()
-                    .sort({ updatedAt: -1 })
-                    .lean();
+                const timetable = await db.getLatestTimetable(supabase);
                 if (!timetable) {
                     return sendJSONError(res, 404, 'Kein Stundenplan gefunden');
                 }
+
                 let lessons = timetable.lessons;
                 if (req.user) {
-                    const user = await User.findById(req.user.sub)
-                        .select('personalized doneSetup enrKurs wpuKurs1 wpuKurs2 theater')
-                        .lean();
-                    if (user && user.personalized && user.doneSetup) {
-                        lessons = filterLessonsForUser(timetable.lessons, user);
+                    const user = await db.findUserById(supabase, req.user.sub,
+                        'personalized, done_setup, enr_kurs, wpu_kurs_1, wpu_kurs_2, theater'
+                    );
+                    if (user && user.personalized && user.done_setup) {
+                        lessons = filterLessonsForUser(timetable.lessons, {
+                            enrKurs: user.enr_kurs,
+                            wpuKurs1: user.wpu_kurs_1,
+                            wpuKurs2: user.wpu_kurs_2,
+                            theater: user.theater,
+                        });
                     }
                 }
                 res.json(lessons);
@@ -75,7 +58,7 @@ export default function createPublicRoutes(deps) {
         requireAppGate(appGateSecret),
         async (req, res) => {
             try {
-                const subs = await TimetableSub.find({}).lean();
+                const subs = await db.listTimetableSubs(supabase);
                 res.json(subs);
             } catch (err) {
                 console.error('GET /api/timetable/subs error', err);
@@ -88,8 +71,13 @@ export default function createPublicRoutes(deps) {
     router.get('/api/subjects',
         requireAppGate(appGateSecret),
         async (req, res) => {
-            const list = await Subject.find({}).sort({ name: 1 }).lean();
-            res.json(list.map(s => s.name));
+            try {
+                const list = await db.listSubjects(supabase);
+                res.json(list.map(s => s.name));
+            } catch (err) {
+                console.error('GET /api/subjects error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Fächer');
+            }
         }
     );
 
@@ -97,15 +85,20 @@ export default function createPublicRoutes(deps) {
     router.get('/api/announcements',
         requireAppGate(appGateSecret),
         async (req, res) => {
-            const list = await Announcement.find({}).sort({ createdAt: -1 }).limit(5).lean();
-            res.json(list);
+            try {
+                const list = await db.listAnnouncements(supabase, 5);
+                res.json(list);
+            } catch (err) {
+                console.error('GET /api/announcements error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Ankündigungen');
+            }
         }
     );
 
     // POST /api/announcements
     router.post('/api/announcements',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         requireAdmin,
         validateCsrf(csrfSecret),
         body('content').isString().isLength({ min: 2 }),
@@ -113,57 +106,70 @@ export default function createPublicRoutes(deps) {
         body('showAsPopup').optional().isBoolean(),
         validate,
         async (req, res) => {
-            const Content = req.body.content;
-
-            const doc = await Announcement.create({
-                content: Content,
-                color: req.body.color || 'warn',
-                showAsPopup: req.body.showAsPopup || false,
-                createdBy: req.user.sub
-            });
-
-            await User.findByIdAndUpdate(req.user.sub, {
-                $push: { activity: { at: new Date(), type: 'announcement:create', meta: { id: doc._id } } }
-            });
-
-            res.status(201).json(doc);
+            try {
+                const ann = await db.createAnnouncement(supabase, {
+                    content: req.body.content,
+                    color: req.body.color || 'warn',
+                    showAsPopup: req.body.showAsPopup || false,
+                    createdBy: req.user.sub,
+                });
+                await db.logActivity(supabase, req.user.sub, 'announcement:create', { id: ann.id });
+                res.status(201).json(ann);
+            } catch (err) {
+                console.error('POST /api/announcements error', err);
+                sendJSONError(res, 500, 'Fehler beim Erstellen der Ankündigung');
+            }
         }
     );
 
     // DELETE /api/announcements/:id
     router.delete('/api/announcements/:id',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         requireAdmin,
         validateCsrf(csrfSecret),
+        param('id').isUUID(),
+        validate,
         async (req, res) => {
-            const ann = await Announcement.findById(req.params.id);
-            if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-            if (!req.user.isAdmin && ann.createdBy.toString() !== req.user.sub) return sendJSONError(res, 403, 'Nicht autorisiert.');
-            await ann.deleteOne();
-            await User.findByIdAndUpdate(req.user.sub, { $push: { activity: { at: new Date(), type: 'announcement:delete', meta: { id: ann._id } } } });
-            res.json({ ok: true });
+            try {
+                const ann = await db.findAnnouncementById(supabase, req.params.id);
+                if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
+                if (!req.user.isAdmin && ann.created_by !== req.user.sub) {
+                    return sendJSONError(res, 403, 'Nicht autorisiert.');
+                }
+                await db.deleteAnnouncement(supabase, req.params.id);
+                await db.logActivity(supabase, req.user.sub, 'announcement:delete', { id: ann.id });
+                res.json({ ok: true });
+            } catch (err) {
+                console.error('DELETE /api/announcements/:id error', err);
+                sendJSONError(res, 500, 'Fehler beim Löschen der Ankündigung');
+            }
         }
     );
 
     // POST /api/uploads/sign
     router.post('/api/uploads/sign',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
-            const timestamp = Math.floor(Date.now() / 1000);
-            const signature = cloudinary.utils.api_sign_request(
-                { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
-                process.env.CLOUDINARY_API_SECRET
-            );
-            res.json({
-                cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-                apiKey: process.env.CLOUDINARY_API_KEY,
-                timestamp,
-                signature,
-                folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben'
-            });
+            try {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const signature = cloudinary.utils.api_sign_request(
+                    { timestamp, folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben' },
+                    process.env.CLOUDINARY_API_SECRET
+                );
+                res.json({
+                    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+                    apiKey: process.env.CLOUDINARY_API_KEY,
+                    timestamp,
+                    signature,
+                    folder: process.env.CLOUDINARY_FOLDER || 'hausaufgaben',
+                });
+            } catch (err) {
+                console.error('POST /api/uploads/sign error', err);
+                sendJSONError(res, 500, 'Fehler beim Erstellen der Upload-Signatur');
+            }
         }
     );
 
@@ -183,19 +189,87 @@ export default function createPublicRoutes(deps) {
 
                 if (trimmedMessage.length > MAX_LENGTH) {
                     return res.status(400).json({
-                        error: `Nachricht zu lang (maximal ${MAX_LENGTH} Zeichen)`
+                        error: `Nachricht zu lang (maximal ${MAX_LENGTH} Zeichen)`,
                     });
                 }
 
-                await Sorgen.create({
-                    message: trimmedMessage,
-                    createdAt: new Date()
-                });
-
+                await db.createSorge(supabase, trimmedMessage);
                 res.json({ ok: true });
             } catch (err) {
                 console.error('POST /anon/sorgenbox error', err);
                 sendJSONError(res, 500, 'Server error');
+            }
+        }
+    );
+
+    // ─── Reference data endpoints (replacing direct Supabase client calls) ──
+
+    // GET /api/persons
+    router.get('/api/persons',
+        requireAppGate(appGateSecret),
+        async (req, res) => {
+            try {
+                const data = await db.listPersons(supabase);
+                res.json(data);
+            } catch (err) {
+                console.error('GET /api/persons error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Personen');
+            }
+        }
+    );
+
+    // GET /api/days
+    router.get('/api/days',
+        requireAppGate(appGateSecret),
+        async (req, res) => {
+            try {
+                const data = await db.listDays(supabase);
+                res.json(data);
+            } catch (err) {
+                console.error('GET /api/days error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Tage');
+            }
+        }
+    );
+
+    // GET /api/lesson-hours
+    router.get('/api/lesson-hours',
+        requireAppGate(appGateSecret),
+        async (req, res) => {
+            try {
+                const data = await db.listLessonHours(supabase);
+                res.json(data);
+            } catch (err) {
+                console.error('GET /api/lesson-hours error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Stunden');
+            }
+        }
+    );
+
+    // GET /api/schedule-entries
+    router.get('/api/schedule-entries',
+        requireAppGate(appGateSecret),
+        async (req, res) => {
+            try {
+                const data = await db.listScheduleEntries(supabase);
+                res.json(data);
+            } catch (err) {
+                console.error('GET /api/schedule-entries error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Einträge');
+            }
+        }
+    );
+
+    // GET /api/double-lessons
+    router.get('/api/double-lessons',
+        requireAppGate(appGateSecret),
+        async (req, res) => {
+            try {
+                const data = await db.listDoubleLessons(supabase);
+                res.json(data);
+            } catch (err) {
+                console.error('GET /api/double-lessons error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Doppelstunden');
             }
         }
     );

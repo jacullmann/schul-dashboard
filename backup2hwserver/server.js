@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from 'express';
-import mongoose from 'mongoose';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -11,7 +10,6 @@ import { v2 as cloudinary } from 'cloudinary';
 import { Resend } from 'resend';
 import { GoogleGenAI } from "@google/genai";
 import routes from './routes.js';
-import { initModels, ensureSubjects } from './models.js';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { registerDocSocket } from './routes/doc.js';
@@ -87,10 +85,6 @@ app.use(rateLimit({
     legacyHeaders: false
 }));
 
-if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI nicht gesetzt. Beenden.');
-    process.exit(1);
-}
 if (!process.env.APP_GATE_JWT_SECRET || !process.env.USER_JWT_SECRET || !process.env.CSRF_SECRET || !process.env.PASSWORD_RESET_SECRET) {
     console.error('FEHLER: APP_GATE_JWT_SECRET, USER_JWT_SECRET, CSRF_SECRET und PASSWORD_RESET_SECRET müssen gesetzt sein!');
     process.exit(1);
@@ -103,13 +97,8 @@ if (!process.env.DASHBOARD_CHECK_PASSWORD_HASH) {
     console.error('FEHLER: DASHBOARD_CHECK_PASSWORD_HASH muss gesetzt sein!');
     process.exit(1);
 }
-await mongoose.connect(process.env.MONGODB_URI);
-const models = initModels(mongoose);
-await ensureSubjects(models.Subject);
 
 routes(app, {
-    mongoose,
-    models,
     supabase,
     cloudinary,
     resendClient,
@@ -123,8 +112,7 @@ routes(app, {
 });
 
 registerDocSocket(io, supabase, {
-    userSecret: process.env.USER_JWT_SECRET,
-    models,
+    userSecret: process.env.USER_JWT_SECRET
 });
 
 app.get('/health', (req, res) => res.json({ ok: true }));

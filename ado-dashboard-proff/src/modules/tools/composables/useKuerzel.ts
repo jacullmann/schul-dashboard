@@ -1,5 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
-import { supabase } from '@/common/composables/Datatable'
+import hw from '@/api/hwApi'
 import { normalize, similarity } from '@/modules/tools/utils/kuerzelHelper'
 
 interface Person {
@@ -29,17 +29,12 @@ export function useKuerzel() {
     // ─── Data loading ────────────────────────────────────────────────────────
 
     async function loadPeople() {
-        const { data, error } = await supabase
-            .from('persons')
-            .select('*')
-            .order('id')
-
-        if (error) {
+        try {
+            const response = await hw.get('/api/persons')
+            persons.value = response.data
+        } catch (error) {
             console.error('Failed to load persons:', error)
-            return
         }
-
-        persons.value = data ?? []
     }
 
     // ─── Placeholder ─────────────────────────────────────────────────────────

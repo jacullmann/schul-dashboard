@@ -1,23 +1,24 @@
 import { Router } from 'express';
 import sanitizeHtml from 'sanitize-html';
 import jwt from 'jsonwebtoken';
+import * as db from '../db/db.js';
 
 // Doc state in memory
 let docState = {
-    content: '',        // aktueller HTML-Content
-    version: 0,         // Monoton steigender Versions-Zähler (für Conflict-Detection)
-    lastEditedBy: null, // E-Mail des letzten Bearbeiters
-    lastEditedAt: null, // Timestamp des letzten Edits
+    content: '',
+    version: 0,
+    lastEditedBy: null,
+    lastEditedAt: null,
 };
 
 const connectedAdmins = new Map(); // socketId -> { email, userId }
 
-// Erlaubte Html tags
+// Erlaubte HTML tags
 const SANITIZE_OPTIONS = {
     allowedTags: [
         'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li',
         'strong', 'em', 'u', 's', 'br', 'span', 'div',
-        'input'  // für Checkboxen
+        'input',
     ],
     allowedAttributes: {
         '*': ['style', 'class', 'data-*'],
@@ -31,23 +32,14 @@ const SANITIZE_OPTIONS = {
             'font-weight': [/.*/],
             'font-style': [/.*/],
             'text-decoration': [/.*/],
-        }
-    }
+        },
+    },
 };
 
-// Lädt neuste Daten aus supabase
+// Lädt neusten Stand aus Supabase
 async function loadDocFromDb(supabase) {
     try {
-        const { data, error } = await supabase
-            .from('admin_shared_doc')
-            .select('content, version, last_edited_by, last_edited_at')
-            .eq('id', 1)
-            .maybeSingle();
-
-        if (error) {
-            console.error('[Doc] Fehler beim Laden aus DB:', error.message);
-            return;
-        }
+        const data = await db.getSharedDoc(supabase);
 
         if (data) {
             docState.content = data.content ?? '';
@@ -56,13 +48,11 @@ async function loadDocFromDb(supabase) {
             docState.lastEditedAt = data.last_edited_at ?? null;
             console.log(`[Doc] Dokument aus DB geladen (Version ${docState.version})`);
         } else {
-            // Zeile existiert noch nicht -> anlegen
-            await supabase.from('admin_shared_doc').insert({
-                id: 1,
+            await db.upsertSharedDoc(supabase, {
                 content: '',
                 version: 0,
-                last_edited_by: null,
-                last_edited_at: null,
+                lastEditedBy: null,
+                lastEditedAt: null,
             });
             console.log('[Doc] Initiale DB-Zeile angelegt');
         }
@@ -74,43 +64,32 @@ async function loadDocFromDb(supabase) {
 // Schreibt aktuellen Stand in Supabase
 async function persistDocToDb(supabase) {
     try {
-        const { error } = await supabase
-            .from('admin_shared_doc')
-            .upsert({
-                id: 1,
-                content: docState.content,
-                version: docState.version,
-                last_edited_by: docState.lastEditedBy,
-                last_edited_at: docState.lastEditedAt,
-                updated_at: new Date().toISOString(),
-            }, { onConflict: 'id' });
-
-        if (error) {
-            console.error('[Doc] Fehler beim Persistieren:', error.message);
-        } else {
-            console.log(`[Doc] In DB gespeichert (Version ${docState.version})`);
-        }
+        await db.upsertSharedDoc(supabase, {
+            content: docState.content,
+            version: docState.version,
+            lastEditedBy: docState.lastEditedBy,
+            lastEditedAt: docState.lastEditedAt,
+        });
+        console.log(`[Doc] In DB gespeichert (Version ${docState.version})`);
     } catch (err) {
         console.error('[Doc] Unerwarteter Fehler beim DB-Write:', err);
     }
 }
 
-// Socket io namespace handler
+// Socket.IO namespace handler
 export function registerDocSocket(io, supabase, deps) {
-    const { requireUser, requireAdmin, userSecret } = deps;
+    const { userSecret } = deps;
 
-    // Letzten Stand bei server stand einmalig aus db laden
+    // Letzten Stand bei Serverstart einmalig aus DB laden
     loadDocFromDb(supabase);
 
-    // Solange jemand online -> Alle 30 sekunden in db speichern
     const PERSIST_INTERVAL_MS = 30_000;
     let persistTimer = null;
 
     function startPersistTimer() {
-        if (persistTimer) return; // läuft schon
+        if (persistTimer) return;
         persistTimer = setInterval(async () => {
             if (connectedAdmins.size === 0) {
-                // Niemand mehr online -> letzten Stand speichern und Timer stoppen
                 await persistDocToDb(supabase);
                 clearInterval(persistTimer);
                 persistTimer = null;
@@ -122,10 +101,9 @@ export function registerDocSocket(io, supabase, deps) {
         console.log('[Doc] Persistenz-Timer gestartet');
     }
 
-    // Socket io namespace: /doc
     const docNs = io.of('/doc');
 
-    // Middleware: JWT aus Cookie validieren (gleiche Logik wie requireUser, aber für Sockets)
+    // Middleware: JWT aus Cookie validieren (Supabase-basiert)
     docNs.use(async (socket, next) => {
         try {
             const cookieHeader = socket.handshake.headers.cookie || '';
@@ -137,24 +115,17 @@ export function registerDocSocket(io, supabase, deps) {
             );
 
             const userToken = cookieMap['user_token'];
-            if (!userToken) {
-                return next(new Error('AUTH_REQUIRED'));
-            }
+            if (!userToken) return next(new Error('AUTH_REQUIRED'));
 
-            // Token verifizieren
             const payload = jwt.verify(userToken, userSecret);
+            if (!payload?.sub || !payload?.email) return next(new Error('AUTH_INVALID'));
 
-            if (!payload?.sub || !payload?.email) {
-                return next(new Error('AUTH_INVALID'));
-            }
-
-            // Aus DB isAdmin prüfen
-            const { User, BannedUser } = deps.models;
-            const user = await User.findById(payload.sub).lean();
+            // Check user exists, is admin, not banned — via Supabase
+            const user = await db.findUserById(supabase, payload.sub, 'id, is_admin');
             if (!user) return next(new Error('AUTH_NOT_FOUND'));
-            if (!user.isAdmin) return next(new Error('AUTH_FORBIDDEN'));
+            if (!user.is_admin) return next(new Error('AUTH_FORBIDDEN'));
 
-            const banned = await BannedUser.findOne({ userId: payload.sub }).lean();
+            const banned = await db.isBanned(supabase, payload.sub);
             if (banned) return next(new Error('AUTH_BANNED'));
 
             socket.data.userId = payload.sub;
@@ -169,13 +140,9 @@ export function registerDocSocket(io, supabase, deps) {
         const { email, userId } = socket.data;
         console.log(`[Doc] Admin verbunden: ${email} (${socket.id})`);
 
-        // Admin registrieren
         connectedAdmins.set(socket.id, { email, userId });
-
-        // Persistenz-Timer starten falls er noch nicht läuft
         startPersistTimer();
 
-        // Neuen Client mit aktuellem Stand + Online-Liste versorgen
         socket.emit('doc:init', {
             content: docState.content,
             version: docState.version,
@@ -184,23 +151,15 @@ export function registerDocSocket(io, supabase, deps) {
             onlineAdmins: getOnlineAdminList(),
         });
 
-        // Alle anderen über neuen Online-Admin informieren
         socket.broadcast.emit('doc:admins-update', {
             onlineAdmins: getOnlineAdminList(),
         });
 
-
-        // Event: doc:update
         socket.on('doc:update', (payload) => {
-            // Payload-Validierung
             if (typeof payload?.content !== 'string') return;
             if (typeof payload?.clientVersion !== 'number') return;
 
-            // Konflikt-Check:
-            // Wenn der Client auf einer alten Version basiert, bekommt er den
-            // aktuellen Stand zurück
             if (payload.clientVersion < docState.version) {
-                // Client ist veraltet -> ihm den aktuellen Stand schicken
                 socket.emit('doc:conflict', {
                     serverContent: docState.content,
                     serverVersion: docState.version,
@@ -209,7 +168,6 @@ export function registerDocSocket(io, supabase, deps) {
                 return;
             }
 
-            // HTML sanitizen bevor er an den state übergeben wird
             const sanitized = sanitizeHtml(payload.content, SANITIZE_OPTIONS);
 
             docState.content = sanitized;
@@ -217,38 +175,27 @@ export function registerDocSocket(io, supabase, deps) {
             docState.lastEditedBy = email;
             docState.lastEditedAt = new Date().toISOString();
 
-            // Allen anderen Clients (nicht dem sender) das Update schicken
             socket.broadcast.emit('doc:update', {
                 content: docState.content,
                 version: docState.version,
                 editedBy: email,
             });
 
-            // Sender-Bestätigung mit aktueller Version
-            socket.emit('doc:ack', {
-                version: docState.version,
-            });
+            socket.emit('doc:ack', { version: docState.version });
         });
 
-        // Event: doc:cursor
         socket.on('doc:cursor', (payload) => {
-            socket.broadcast.emit('doc:cursor', {
-                email,
-                ...payload,
-            });
+            socket.broadcast.emit('doc:cursor', { email, ...payload });
         });
 
-        // Disconnect
         socket.on('disconnect', async () => {
             console.log(`[Doc] Admin getrennt: ${email} (${socket.id})`);
             connectedAdmins.delete(socket.id);
 
-            // Alle über aktualisierte Online-Liste informieren
             docNs.emit('doc:admins-update', {
                 onlineAdmins: getOnlineAdminList(),
             });
 
-            // Wenn letzter Admin -> sofort persistieren
             if (connectedAdmins.size === 0) {
                 await persistDocToDb(supabase);
                 console.log('[Doc] Letzter Admin offline → sofort persistiert');
@@ -266,22 +213,20 @@ export default function createDocRoutes(deps) {
     const router = Router();
     const {
         supabase,
+        appGateSecret,
+        userSecret,
+        csrfSecret,
         requireAppGate,
         requireUser,
         requireAdmin,
         validateCsrf,
         sendJSONError,
-        appGateSecret,
-        userSecret,
-        csrfSecret,
-        models,
     } = deps;
-    const { User, BannedUser } = models;
 
-    // GET /api/doc — Aktuellen Stand holen (Fallback falls Socket nicht verfügbar)
+    // GET /api/doc
     router.get('/',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         requireAdmin,
         async (req, res) => {
             try {
@@ -298,10 +243,10 @@ export default function createDocRoutes(deps) {
         }
     );
 
-    // POST /api/doc/save — Manuelles Speichern in DB anstossen
+    // POST /api/doc/save
     router.post('/save',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         requireAdmin,
         validateCsrf(csrfSecret),
         async (req, res) => {
@@ -315,20 +260,14 @@ export default function createDocRoutes(deps) {
         }
     );
 
-    // GET /api/doc/history — Letzten gespeicherten Stand aus DB holen
+    // GET /api/doc/history
     router.get('/history',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         requireAdmin,
         async (req, res) => {
             try {
-                const { data, error } = await supabase
-                    .from('admin_shared_doc')
-                    .select('content, version, last_edited_by, last_edited_at, updated_at')
-                    .eq('id', 1)
-                    .maybeSingle();
-
-                if (error) throw error;
+                const data = await db.getSharedDoc(supabase);
                 res.json(data ?? { content: '', version: 0 });
             } catch (err) {
                 console.error('[Doc] GET /history Fehler:', err);

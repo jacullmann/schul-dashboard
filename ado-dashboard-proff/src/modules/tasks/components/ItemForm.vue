@@ -116,7 +116,6 @@ import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
-import { containsProfanity } from '@/modules/tasks/composables/useProfanity';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import Modal from '@/common/components/Modal.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
@@ -288,16 +287,6 @@ async function submit() {
   };
 
   try {
-    const hasProfanity = [
-      title.value,
-      subjectSel.value,
-      subjectOther.value,
-      description.value
-    ].some(text => containsProfanity(text));
-
-    if (hasProfanity) {
-      throw new Error(t('school.tasks.itemForm.errors.profanity'));
-    }
 
     const subject = resolveSubject();
 

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { generateKeyBetween } from 'fractional-indexing';
+import * as db from '../db/db.js';
 
 export default function createTodosRoutes(deps) {
     const router = Router();
     const {
-        models,
+        supabase,
         appGateSecret,
         userSecret,
         csrfSecret,
@@ -15,31 +16,27 @@ export default function createTodosRoutes(deps) {
         sendJSONError,
         validate,
         encryptData,
-        decryptData
+        decryptData,
     } = deps;
-
-    const { User, BannedUser, EncryptedTodo } = models;
 
     // GET /api/todos
     router.get('/',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         async (req, res) => {
             try {
-                const todos = await EncryptedTodo.find({ userId: req.user.sub })
-                    .sort({ position: 1, createdAt: -1 })
-                    .lean();
+                const todos = await db.listTodos(supabase, req.user.sub);
 
                 const decryptedTodos = await Promise.all(todos.map(async todo => ({
-                    id: todo._id,
-                    title: await decryptData(todo.encryptedTitle, req.user.sub),
-                    description: todo.encryptedDescription?.data
-                        ? await decryptData(todo.encryptedDescription, req.user.sub)
+                    id: todo.id,
+                    title: await decryptData(todo.encrypted_title, req.user.sub),
+                    description: todo.encrypted_description?.data
+                        ? await decryptData(todo.encrypted_description, req.user.sub)
                         : '',
                     completed: todo.completed,
                     position: todo.position || '',
-                    createdAt: todo.createdAt,
-                    updatedAt: todo.updatedAt
+                    createdAt: todo.created_at,
+                    updatedAt: todo.updated_at,
                 })));
 
                 res.json(decryptedTodos);
@@ -53,20 +50,18 @@ export default function createTodosRoutes(deps) {
     // POST /api/todos
     router.post('/',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('description').optional().isString().isLength({ max: 2000 })
+            body('description').optional().isString().isLength({ max: 2000 }),
         ],
         validate,
         async (req, res) => {
             try {
                 const { title, description } = req.body;
 
-                const firstTodo = await EncryptedTodo.findOne({ userId: req.user.sub })
-                    .sort({ position: 1, createdAt: -1 })
-                    .lean();
+                const firstTodo = await db.getFirstTodo(supabase, req.user.sub);
 
                 let newPosition;
                 try {
@@ -80,32 +75,23 @@ export default function createTodosRoutes(deps) {
                 const encryptedTitle = await encryptData(title.trim(), req.user.sub);
                 const encryptedDescription = await encryptData(description?.trim() || '', req.user.sub);
 
-                const todo = await EncryptedTodo.create({
+                const todo = await db.createTodo(supabase, {
                     userId: req.user.sub,
                     encryptedTitle,
                     encryptedDescription,
-                    completed: false,
-                    position: newPosition
+                    position: newPosition,
                 });
 
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'todo:create',
-                            meta: { todoId: todo._id }
-                        }
-                    }
-                });
+                await db.logActivity(supabase, req.user.sub, 'todo:create', { todoId: todo.id });
 
                 res.status(201).json({
-                    id: todo._id,
+                    id: todo.id,
                     title: title.trim(),
                     description: description?.trim() || '',
                     completed: false,
                     position: newPosition,
-                    createdAt: todo.createdAt,
-                    updatedAt: todo.updatedAt
+                    createdAt: todo.created_at,
+                    updatedAt: todo.updated_at,
                 });
             } catch (error) {
                 console.error('Fehler beim Erstellen des privaten Eintrags:', error);
@@ -117,49 +103,39 @@ export default function createTodosRoutes(deps) {
     // PUT /api/todos/:id
     router.put('/:id',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         [
-            param('id').isMongoId(),
+            param('id').isUUID(),
             body('title').isString().isLength({ min: 1, max: 100 }),
-            body('description').optional().isString().isLength({ max: 2000 })
+            body('description').optional().isString().isLength({ max: 2000 }),
         ],
         validate,
         async (req, res) => {
             try {
-                const todo = await EncryptedTodo.findOne({
-                    _id: req.params.id,
-                    userId: req.user.sub
-                });
-
-                if (!todo) {
-                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
-                }
+                const todo = await db.findTodoById(supabase, req.params.id, req.user.sub);
+                if (!todo) return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
 
                 const { title, description } = req.body;
 
-                todo.encryptedTitle = await encryptData(title.trim(), req.user.sub);
-                todo.encryptedDescription = await encryptData(description?.trim() || '', req.user.sub);
-                await todo.save();
+                const encryptedTitle = await encryptData(title.trim(), req.user.sub);
+                const encryptedDescription = await encryptData(description?.trim() || '', req.user.sub);
 
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'todo:update',
-                            meta: { todoId: todo._id }
-                        }
-                    }
+                const updated = await db.updateTodo(supabase, todo.id, {
+                    encrypted_title: encryptedTitle,
+                    encrypted_description: encryptedDescription,
                 });
 
+                await db.logActivity(supabase, req.user.sub, 'todo:update', { todoId: todo.id });
+
                 res.json({
-                    id: todo._id,
+                    id: updated.id,
                     title: title.trim(),
                     description: description?.trim() || '',
-                    completed: todo.completed,
-                    position: todo.position || '',
-                    createdAt: todo.createdAt,
-                    updatedAt: todo.updatedAt
+                    completed: updated.completed,
+                    position: updated.position || '',
+                    createdAt: updated.created_at,
+                    updatedAt: updated.updated_at,
                 });
             } catch (error) {
                 console.error('Fehler beim Aktualisieren des privaten Eintrags:', error);
@@ -171,43 +147,29 @@ export default function createTodosRoutes(deps) {
     // PATCH /api/todos/:id/toggle
     router.patch('/:id/toggle',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const todo = await EncryptedTodo.findOne({
-                    _id: req.params.id,
-                    userId: req.user.sub
+                const todo = await db.findTodoById(supabase, req.params.id, req.user.sub);
+                if (!todo) return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
+
+                const newCompleted = !todo.completed;
+                const updated = await db.updateTodo(supabase, todo.id, { completed: newCompleted });
+
+                await db.logActivity(supabase, req.user.sub, 'todo:toggle', {
+                    todoId: todo.id,
+                    completed: newCompleted,
                 });
 
-                if (!todo) {
-                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
-                }
-
-                todo.completed = !todo.completed;
-                await todo.save();
-
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'todo:toggle',
-                            meta: {
-                                todoId: todo._id,
-                                completed: todo.completed
-                            }
-                        }
-                    }
-                });
                 res.json({
-                    id: todo._id,
-                    completed: todo.completed,
-                    position: todo.position || '',
-                    updatedAt: todo.updatedAt
+                    id: updated.id,
+                    completed: updated.completed,
+                    position: updated.position || '',
+                    updatedAt: updated.updated_at,
                 });
-
             } catch (error) {
                 console.error('Fehler beim Umschalten des privaten Eintrag-Statuses:', error);
                 sendJSONError(res, 500, 'Fehler beim Aktualisieren des privaten Eintrags');
@@ -218,24 +180,18 @@ export default function createTodosRoutes(deps) {
     // PATCH /api/todos/:id/reorder
     router.patch('/:id/reorder',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         [
-            param('id').isMongoId(),
+            param('id').isUUID(),
             body('prevPosition').optional({ nullable: true }).isString(),
-            body('nextPosition').optional({ nullable: true }).isString()
+            body('nextPosition').optional({ nullable: true }).isString(),
         ],
         validate,
         async (req, res) => {
             try {
-                const todo = await EncryptedTodo.findOne({
-                    _id: req.params.id,
-                    userId: req.user.sub
-                });
-
-                if (!todo) {
-                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
-                }
+                const todo = await db.findTodoById(supabase, req.params.id, req.user.sub);
+                if (!todo) return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
 
                 const { prevPosition, nextPosition } = req.body;
 
@@ -246,36 +202,30 @@ export default function createTodosRoutes(deps) {
                     return sendJSONError(res, 400, 'Ungültige Positionen für Re-Ordering');
                 }
 
-                todo.position = newPosition;
-                await todo.save();
+                await db.updateTodo(supabase, todo.id, { position: newPosition });
 
-                // Rebalancing check: If the position string gets too long, re-assign positions for all incomplete todos
+                // Rebalancing check
                 if (newPosition && newPosition.length > 20) {
-                    const allIncomplete = await EncryptedTodo.find({ userId: req.user.sub, completed: false })
-                        .sort({ position: 1, createdAt: -1 });
-
+                    const allIncomplete = await db.listIncompleteTodos(supabase, req.user.sub);
                     let p = null;
                     for (const t of allIncomplete) {
                         try {
                             p = generateKeyBetween(p, null);
-                            t.position = p;
-                            await t.save();
+                            await db.updateTodo(supabase, t.id, { position: p });
                         } catch (e) {
-                            // Ignore error and continue
+                            // Ignore and continue
                         }
                     }
-                    if (todo._id) {
-                        const updatedTodo = await EncryptedTodo.findById(todo._id);
-                        if (updatedTodo) newPosition = updatedTodo.position;
-                    }
+                    // Refresh position after rebalance
+                    const refreshed = await db.findTodoById(supabase, todo.id, req.user.sub);
+                    if (refreshed) newPosition = refreshed.position;
                 }
 
                 res.json({
-                    id: todo._id,
+                    id: todo.id,
                     position: newPosition,
-                    updatedAt: todo.updatedAt
+                    updatedAt: todo.updated_at,
                 });
-
             } catch (error) {
                 console.error('Fehler beim Neuordnen des privaten Eintrags:', error);
                 sendJSONError(res, 500, 'Fehler beim Neuordnen des privaten Eintrags');
@@ -286,30 +236,17 @@ export default function createTodosRoutes(deps) {
     // DELETE /api/todos/:id
     router.delete('/:id',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        param('id').isMongoId(),
+        param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const todo = await EncryptedTodo.findOneAndDelete({
-                    _id: req.params.id,
-                    userId: req.user.sub
-                });
+                const todo = await db.findTodoById(supabase, req.params.id, req.user.sub);
+                if (!todo) return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
 
-                if (!todo) {
-                    return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
-                }
-
-                await User.findByIdAndUpdate(req.user.sub, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'todo:delete',
-                            meta: { todoId: req.params.id }
-                        }
-                    }
-                });
+                await db.deleteTodo(supabase, req.params.id, req.user.sub);
+                await db.logActivity(supabase, req.user.sub, 'todo:delete', { todoId: req.params.id });
 
                 res.json({ ok: true });
             } catch (error) {

@@ -3,11 +3,12 @@ import { body } from 'express-validator';
 import { authenticator } from '@otplib/preset-v11';
 import QRCode from 'qrcode';
 import { mfaVerifyLimiter } from '../middleware/rateLimiters.js';
+import * as db from '../db/db.js';
 
 export default function createMfaRoutes(deps) {
     const router = Router();
     const {
-        models,
+        supabase,
         appGateSecret,
         userSecret,
         csrfSecret,
@@ -16,25 +17,23 @@ export default function createMfaRoutes(deps) {
         validateCsrf,
         sendJSONError,
         validate,
-        encryptData, // Hier nochmal genau gucken, da die beiden Funktionen eigentlich für die Ver und Entschlüsselung von privaten EInträgen gedacht waren - Kompatibilität prüfen
-        decryptData, //
-        authLimiter
+        encryptData,
+        decryptData,
+        authLimiter,
     } = deps;
 
-    const { User, BannedUser, MfaPendingSecret } = models;
-
-    // GET /api/mfa/status - MFA-Status des Users abrufen
+    // GET /api/mfa/status
     router.get('/status',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         async (req, res) => {
             try {
-                const user = await User.findById(req.user.sub).select('mfaEnabled').lean();
+                const user = await db.findUserById(supabase, req.user.sub, 'mfa_enabled');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
 
                 res.json({
                     ok: true,
-                    mfaEnabled: !!user.mfaEnabled
+                    mfaEnabled: !!user.mfa_enabled,
                 });
             } catch (err) {
                 console.error('GET /api/mfa/status error', err);
@@ -43,32 +42,32 @@ export default function createMfaRoutes(deps) {
         }
     );
 
-    // POST /api/mfa/setup - MFA-Setup starten (generiert temporäres Secret)
+    // POST /api/mfa/setup
     router.post('/setup',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
                 const userId = req.user.sub;
-                const user = await User.findById(userId).select('email mfaEnabled').lean();
+                const user = await db.findUserById(supabase, userId, 'email, mfa_enabled');
 
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                if (user.mfaEnabled) return sendJSONError(res, 400, 'MFA ist bereits aktiviert');
+                if (user.mfa_enabled) return sendJSONError(res, 400, 'MFA ist bereits aktiviert');
 
                 // Altes Pending-Secret löschen falls vorhanden
-                await MfaPendingSecret.deleteMany({ userId });
+                await db.deleteMfaPending(supabase, userId).catch(() => {});
 
                 // Neues Secret generieren
                 const secret = authenticator.generateSecret();
                 const encryptedSecret = await encryptData(secret, userId);
 
                 // Pending-Secret speichern (15 Minuten gültig)
-                const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-                await MfaPendingSecret.create({
+                const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+                await db.upsertMfaPending(supabase, {
                     userId,
                     encryptedSecret,
-                    expiresAt
+                    expiresAt,
                 });
 
                 // QR-Code generieren
@@ -78,28 +77,16 @@ export default function createMfaRoutes(deps) {
                 const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl, {
                     width: 200,
                     margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
-                    }
+                    color: { dark: '#000000', light: '#ffffff' },
                 });
 
-                // Activity loggen
-                await User.findByIdAndUpdate(userId, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'mfa:setup:started',
-                            meta: {}
-                        }
-                    }
-                });
+                await db.logActivity(supabase, userId, 'mfa:setup:started', {});
 
                 res.json({
                     ok: true,
                     qrCode: qrCodeDataUrl,
-                    secret: secret, // Für manuelle Eingabe – Sicherheitsrisiko, aber vorerst lassen
-                    expiresAt: expiresAt.toISOString()
+                    secret, // Für manuelle Eingabe
+                    expiresAt,
                 });
             } catch (err) {
                 console.error('POST /api/mfa/setup error', err);
@@ -108,11 +95,11 @@ export default function createMfaRoutes(deps) {
         }
     );
 
-    // POST /api/mfa/activate - MFA aktivieren (nach TOTP-Verifikation)
+    // POST /api/mfa/activate
     router.post('/activate',
         mfaVerifyLimiter,
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
@@ -122,10 +109,7 @@ export default function createMfaRoutes(deps) {
                 const { code } = req.body;
 
                 // Pending-Secret abrufen
-                const pending = await MfaPendingSecret.findOne({
-                    userId,
-                    expiresAt: { $gt: new Date() }
-                });
+                const pending = await db.findMfaPending(supabase, userId);
 
                 if (!pending) {
                     await new Promise(r => setTimeout(r, 100 + Math.random() * 100));
@@ -133,7 +117,7 @@ export default function createMfaRoutes(deps) {
                 }
 
                 // Secret entschlüsseln und Code verifizieren
-                const secret = await decryptData(pending.encryptedSecret, userId);
+                const secret = await decryptData(pending.encrypted_secret, userId);
                 const isValid = authenticator.check(code, secret);
 
                 if (!isValid) {
@@ -143,26 +127,15 @@ export default function createMfaRoutes(deps) {
 
                 // MFA aktivieren: Secret verschlüsselt in User speichern
                 const encryptedSecret = await encryptData(secret, userId);
-                await User.findByIdAndUpdate(userId, {
-                    $set: {
-                        mfaEnabled: true,
-                        mfaSecret: encryptedSecret
-                    }
+                await db.updateUser(supabase, userId, {
+                    mfa_enabled: true,
+                    mfa_secret: encryptedSecret,
                 });
 
                 // Pending-Secret löschen
-                await MfaPendingSecret.deleteMany({ userId });
+                await db.deleteMfaPending(supabase, userId);
 
-                // Activity loggen
-                await User.findByIdAndUpdate(userId, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'mfa:activated',
-                            meta: {}
-                        }
-                    }
-                });
+                await db.logActivity(supabase, userId, 'mfa:activated', {});
 
                 res.json({ ok: true, message: 'MFA erfolgreich aktiviert' });
             } catch (err) {
@@ -172,11 +145,11 @@ export default function createMfaRoutes(deps) {
         }
     );
 
-    // POST /api/mfa/deactivate - MFA deaktivieren (erfordert TOTP-Verifikation)
+    // POST /api/mfa/deactivate
     router.post('/deactivate',
         mfaVerifyLimiter,
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
@@ -185,15 +158,15 @@ export default function createMfaRoutes(deps) {
                 const userId = req.user.sub;
                 const { code } = req.body;
 
-                const user = await User.findById(userId).select('mfaEnabled mfaSecret');
+                const user = await db.findUserById(supabase, userId, 'mfa_enabled, mfa_secret');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                if (!user.mfaEnabled || !user.mfaSecret) {
+                if (!user.mfa_enabled || !user.mfa_secret) {
                     await new Promise(r => setTimeout(r, 100 + Math.random() * 100));
                     return sendJSONError(res, 400, 'Authentifizierung fehlgeschlagen');
                 }
 
                 // Secret entschlüsseln und Code verifizieren
-                const secret = await decryptData(user.mfaSecret, userId);
+                const secret = await decryptData(user.mfa_secret, userId);
                 const isValid = authenticator.check(code, secret);
 
                 if (!isValid) {
@@ -202,21 +175,12 @@ export default function createMfaRoutes(deps) {
                 }
 
                 // MFA deaktivieren
-                await User.findByIdAndUpdate(userId, {
-                    $set: { mfaEnabled: false },
-                    $unset: { mfaSecret: 1 }
+                await db.updateUser(supabase, userId, {
+                    mfa_enabled: false,
+                    mfa_secret: null,
                 });
 
-                // Activity loggen (mit IP für Sicherheits-Audit)
-                await User.findByIdAndUpdate(userId, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'mfa:deactivated',
-                            meta: { ip: req.ip }
-                        }
-                    }
-                });
+                await db.logActivity(supabase, userId, 'mfa:deactivated', { ip: req.ip });
 
                 res.json({ ok: true, message: 'MFA erfolgreich deaktiviert' });
             } catch (err) {

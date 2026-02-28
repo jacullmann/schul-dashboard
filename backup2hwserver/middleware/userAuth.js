@@ -4,10 +4,7 @@ const COOKIE_NAME = 'user_token';
 
 export function setUserToken(res, userId, email, secret) {
     const token = jwt.sign(
-        {
-            sub: userId.toString(),
-            email
-        },
+        { sub: userId.toString(), email },
         secret,
         { expiresIn: '7d' }
     );
@@ -17,20 +14,24 @@ export function setUserToken(res, userId, email, secret) {
         secure: true,
         path: '/',
         sameSite: 'None',
-        maxAge: 7 * 24 * 60 * 60 * 1000
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return token;
 }
 
-export function requireUser(secret, BannedUserModel, UserModel) {
+/**
+ * Middleware: require an authenticated, non-banned user.
+ * Now uses Supabase instead of Mongoose.
+ */
+export function requireUser(secret, supabase) {
     return async (req, res, next) => {
         const token = req.cookies[COOKIE_NAME];
 
         if (!token) {
             return res.status(401).json({
                 error: 'Benutzer-Authentifizierung erforderlich',
-                requiresLogin: true
+                requiresLogin: true,
             });
         }
 
@@ -38,27 +39,35 @@ export function requireUser(secret, BannedUserModel, UserModel) {
             const payload = jwt.verify(token, secret);
 
             if (!payload.sub || !payload.email) {
-                return res.status(401).json({
-                    error: 'Ungültiges User-Token'
-                });
+                return res.status(401).json({ error: 'Ungültiges User-Token' });
             }
 
-            const user = await UserModel.findById(payload.sub).lean();
+            const { data: user } = await supabase
+                .from('users')
+                .select('id, email, is_admin')
+                .eq('id', payload.sub)
+                .maybeSingle();
+
             if (!user) return res.status(401).json({ error: 'User nicht gefunden' });
 
-            const isBanned = await BannedUserModel.findOne({ userId: payload.sub }).lean();
-            if (isBanned) return res.status(403).json({ error: 'Account gesperrt' });
+            const { data: ban } = await supabase
+                .from('banned_users')
+                .select('id')
+                .eq('user_id', payload.sub)
+                .maybeSingle();
+
+            if (ban) return res.status(403).json({ error: 'Account gesperrt' });
 
             req.user = {
                 sub: payload.sub,
                 email: payload.email,
-                isAdmin: user.isAdmin
+                isAdmin: user.is_admin,
             };
             next();
-        } catch (err) {
+        } catch {
             return res.status(401).json({
                 error: 'User-Token ungültig oder abgelaufen',
-                requiresLogin: true
+                requiresLogin: true,
             });
         }
     };
@@ -73,7 +82,11 @@ export function clearUserToken(res) {
     });
 }
 
-export function checkUser(secret, UserModel) {
+/**
+ * Middleware: optionally attach user info if token present.
+ * Does NOT block if no token.
+ */
+export function checkUser(secret, supabase) {
     return async (req, res, next) => {
         const token = req.cookies[COOKIE_NAME];
         req.user = null;
@@ -82,17 +95,20 @@ export function checkUser(secret, UserModel) {
             try {
                 const payload = jwt.verify(token, secret);
                 if (payload.sub && payload.email) {
-                    const user = await UserModel.findById(payload.sub)
-                        .select('isAdmin')
-                        .lean();
+                    const { data: user } = await supabase
+                        .from('users')
+                        .select('is_admin')
+                        .eq('id', payload.sub)
+                        .maybeSingle();
 
                     req.user = {
                         sub: payload.sub,
                         email: payload.email,
-                        isAdmin: user?.isAdmin || false
+                        isAdmin: user?.is_admin || false,
                     };
                 }
-            } catch (err) {
+            } catch {
+                // ignore
             }
         }
 

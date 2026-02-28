@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import dayjs from 'dayjs';
 
-import { buildThumbUrl, withThumb, timeLeftColor } from './models.js';
+import { buildThumbUrl, withThumb, timeLeftColor } from './utils/modelHelpers.js';
 
 import { setAppGateToken, requireAppGate, clearAppGateToken, checkAppGate } from './middleware/appAuth.js';
 import { setUserToken, requireUser, clearUserToken, checkUser } from './middleware/userAuth.js';

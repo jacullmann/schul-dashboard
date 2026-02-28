@@ -5,17 +5,18 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import dayjs from 'dayjs';
 import { authenticator } from '@otplib/preset-v11';
-import { mfaVerifyLimiter } from '../middleware/rateLimiters.js'
+import { mfaVerifyLimiter } from '../middleware/rateLimiters.js';
 import {
     generateMfaPendingToken,
     clearMfaPendingToken,
-    verifyMfaPendingToken
+    verifyMfaPendingToken,
 } from '../middleware/mfaAuth.js';
+import * as db from '../db/db.js';
 
 export default function createAuthRoutes(deps) {
     const router = Router();
     const {
-        models,
+        supabase,
         appGateSecret,
         userSecret,
         csrfSecret,
@@ -32,12 +33,10 @@ export default function createAuthRoutes(deps) {
         passwordResetLimiter,
         sendJSONError,
         validate,
-        decryptData
+        decryptData,
     } = deps;
 
-    const { User, BannedUser, Verification, PasswordReset, KeepChecked, EncryptedTodo, MfaPendingSecret } = models;
-
-    // POST /api/auth/login mit MFA
+    // POST /api/auth/login
     router.post('/login',
         authLimiter,
         requireAppGate(appGateSecret),
@@ -47,38 +46,31 @@ export default function createAuthRoutes(deps) {
         validate,
         async (req, res) => {
             const { email, password } = req.body;
-            const user = await User.findOne({ email: email.toLowerCase() })
-                .select('passwordHash emailVerified mfaEnabled mfaSecret email');
+            const user = await db.findUserByEmail(supabase, email, 'id, email, password_hash, email_verified, mfa_enabled, mfa_secret');
 
             if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-            const ok = await bcrypt.compare(password, user.passwordHash);
+            const ok = await bcrypt.compare(password, user.password_hash);
             if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-            if (!user.emailVerified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
-            const isBanned = await BannedUser.findOne({ userId: user._id }).lean();
-            if (isBanned) return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
+            if (!user.email_verified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
 
-            // MFA-Check
-            if (user.mfaEnabled && user.mfaSecret) {
-                // Wenn MFA aktiviert ist Pending-Token setzen, aber noch kein User-Token
-                generateMfaPendingToken(res, user._id, email, passwordResetSecret);
-
-                return res.json({
-                    ok: true,
-                    requiresMfa: true,
-                    message: 'MFA-Verifizierung erforderlich'
-                });
+            if (await db.isBanned(supabase, user.id)) {
+                return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
             }
-            // Normal einloggen
-            // Normal einloggen
-            setUserToken(res, user._id, user.email, userSecret);
+
+            if (user.mfa_enabled && user.mfa_secret) {
+                generateMfaPendingToken(res, user.id, email, passwordResetSecret);
+                return res.json({ ok: true, requiresMfa: true, message: 'MFA-Verifizierung erforderlich' });
+            }
+
+            setUserToken(res, user.id, user.email, userSecret);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
-            await User.findByIdAndUpdate(user._id, { $set: { lastLoginAt: new Date() } });
-            await MfaPendingSecret.deleteMany({ userId: user._id });
+            await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
+            await db.deleteMfaPending(supabase, user.id).catch(() => {});
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
 
-    // POST /api/auth/mfa/verify – MFA-Code verifizieren beim Login
+    // POST /api/auth/mfa/verify
     router.post('/mfa/verify',
         mfaVerifyLimiter,
         requireAppGate(appGateSecret),
@@ -92,51 +84,30 @@ export default function createAuthRoutes(deps) {
                 const userId = req.mfaPending.sub;
                 const email = req.mfaPending.email;
 
-                // User laden
-                const user = await User.findById(userId)
-                    .select('mfaEnabled mfaSecret');
+                const user = await db.findUserById(supabase, userId, 'id, mfa_enabled, mfa_secret');
 
-                if (!user || !user.mfaEnabled || !user.mfaSecret) {
+                if (!user || !user.mfa_enabled || !user.mfa_secret) {
                     clearMfaPendingToken(res);
                     await new Promise(r => setTimeout(r, 100 + Math.random() * 100));
                     return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
                 }
-                const secret = await decryptData(user.mfaSecret, userId);
+
+                const secret = await decryptData(user.mfa_secret, userId);
                 const isValid = authenticator.check(code, secret);
 
                 if (!isValid) {
-                    await User.findByIdAndUpdate(userId, {
-                        $push: {
-                            activity: {
-                                at: new Date(),
-                                type: 'auth:mfa_login_failed',
-                                meta: { ip: req.ip }
-                            }
-                        }
-                    });
+                    await db.logActivity(supabase, userId, 'auth:mfa_login_failed', { ip: req.ip });
                     await new Promise(r => setTimeout(r, 100 + Math.random() * 100));
                     return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
                 }
 
-                // Wenn isvalid true ist Pending-Token löschen und User-Token setzen
                 clearMfaPendingToken(res);
                 setUserToken(res, userId, email, userSecret);
                 const newCsrfToken = rotateCsrfToken(res, csrfSecret);
 
-                // LastLogin aktualisieren und MfaPendingSecret bereinigen
-                await User.findByIdAndUpdate(userId, { $set: { lastLoginAt: new Date() } });
-                await MfaPendingSecret.deleteMany({ userId });
-
-                // loggen
-                await User.findByIdAndUpdate(userId, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'auth:mfa_login',
-                            meta: {}
-                        }
-                    }
-                });
+                await db.updateUser(supabase, userId, { last_login_at: new Date().toISOString() });
+                await db.deleteMfaPending(supabase, userId).catch(() => {});
+                await db.logActivity(supabase, userId, 'auth:mfa_login', {});
 
                 res.json({ ok: true, csrfToken: newCsrfToken });
             } catch (err) {
@@ -146,7 +117,7 @@ export default function createAuthRoutes(deps) {
         }
     );
 
-    // POST /api/auth/mfa/cancel - MFA-Login abbrechen
+    // POST /api/auth/mfa/cancel
     router.post('/mfa/cancel',
         requireAppGate(appGateSecret),
         validateCsrf(csrfSecret),
@@ -166,17 +137,16 @@ export default function createAuthRoutes(deps) {
         validate,
         async (req, res) => {
             const { email, password } = req.body;
-            const exists = await User.findOne({ email: email.toLowerCase() });
+            const exists = await db.findUserByEmail(supabase, email, 'id');
             if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
+
             const passwordHash = await bcrypt.hash(password, 12);
-            const user = await User.create({
-                email: email.toLowerCase(),
-                passwordHash,
-                emailVerified: false
-            });
+            const user = await db.createUser(supabase, { email: email.toLowerCase(), passwordHash });
+
             const token = crypto.randomBytes(32).toString('hex');
-            const expiresAt = dayjs().add(2, 'day').toDate();
-            await Verification.create({ email: user.email, token, expiresAt });
+            const expiresAt = dayjs().add(2, 'day').toISOString();
+            await db.createVerification(supabase, { email: user.email, token, expiresAt });
+
             const verifyUrl = `${process.env.CLIENT_VERIFY_URL}?token=${token}`;
             try {
                 await emailService.sendVerificationEmail(user.email, verifyUrl);
@@ -185,7 +155,7 @@ export default function createAuthRoutes(deps) {
                 console.error('Failed to send verification email:', mailErr);
                 res.status(201).json({
                     ok: true,
-                    message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.'
+                    message: 'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.',
                 });
             }
         }
@@ -194,11 +164,11 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/logout
     router.post('/logout',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         (req, res) => {
             clearUserToken(res);
-            clearMfaPendingToken(res); // MFA-Pending-Token löschen
+            clearMfaPendingToken(res);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
@@ -207,29 +177,27 @@ export default function createAuthRoutes(deps) {
     // GET /api/auth/me
     router.get('/me',
         requireAppGate(appGateSecret),
-        checkUser(userSecret, User),
+        checkUser(userSecret, supabase),
         async (req, res) => {
             try {
-                if (!req.user) {
-                    return res.json({ authenticated: false });
-                }
-                const user = await User.findById(req.user.sub).lean();
-                if (!user) {
-                    return res.json({ authenticated: false });
-                }
+                if (!req.user) return res.json({ authenticated: false });
+
+                const user = await db.findUserById(supabase, req.user.sub);
+                if (!user) return res.json({ authenticated: false });
+
                 res.json({
                     authenticated: true,
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
-                    isAdmin: !!user?.isAdmin,
-                    emailVerified: !!user?.emailVerified,
-                    enrKurs: user.enrKurs,
-                    wpuKurs1: user.wpuKurs1,
-                    wpuKurs2: user.wpuKurs2,
+                    isAdmin: !!user.is_admin,
+                    emailVerified: !!user.email_verified,
+                    enrKurs: user.enr_kurs,
+                    wpuKurs1: user.wpu_kurs_1,
+                    wpuKurs2: user.wpu_kurs_2,
                     theater: user.theater,
-                    doneSetup: !!user?.doneSetup,
+                    doneSetup: !!user.done_setup,
                     personalized: user.personalized !== false,
-                    mfaEnabled: !!user.mfaEnabled // MFA-Status zurückgeben
+                    mfaEnabled: !!user.mfa_enabled,
                 });
             } catch (err) {
                 console.error('GET /api/auth/me error', err);
@@ -241,21 +209,20 @@ export default function createAuthRoutes(deps) {
     // DELETE /api/auth/me
     router.delete('/me',
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
-                const user = await User.findById(req.user.sub);
+                const user = await db.findUserById(supabase, req.user.sub, 'id, is_admin');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                if (user.isAdmin) return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
-                const userId = user._id;
-                const { MfaPendingSecret } = models;
-                await KeepChecked.deleteMany({ userId });
-                await EncryptedTodo.deleteMany({ userId });
-                await MfaPendingSecret.deleteMany({ userId });
-                await User.deleteOne({ _id: userId });
+                if (user.is_admin) return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
+
+                const userId = user.id;
+                // Cascading deletes handle keep_checked, pinned_items, encrypted_todos, etc.
+                await db.deleteUser(supabase, userId);
+
                 clearUserToken(res);
-                clearMfaPendingToken(res); // Bereinigen
+                clearMfaPendingToken(res);
                 rotateCsrfToken(res, csrfSecret);
                 res.json({ ok: true });
             } catch (err) {
@@ -271,12 +238,15 @@ export default function createAuthRoutes(deps) {
         query('token').isString().isLength({ min: 10 }),
         validate,
         async (req, res) => {
-            const ver = await Verification.findOne({ token: req.query.token });
+            const ver = await db.findVerification(supabase, req.query.token);
             if (!ver) return sendJSONError(res, 400, 'Ungültiger Token');
-            if (dayjs(ver.expiresAt).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
-            const user = await User.findOneAndUpdate({ email: ver.email }, { $set: { emailVerified: true } }, { new: true });
+            if (dayjs(ver.expires_at).isBefore(dayjs())) return sendJSONError(res, 400, 'Token abgelaufen');
+
+            const user = await db.findUserByEmail(supabase, ver.email, 'id');
             if (!user) return sendJSONError(res, 400, 'Nutzer nicht gefunden');
-            await Verification.deleteMany({ email: ver.email });
+
+            await db.updateUser(supabase, user.id, { email_verified: true });
+            await db.deleteVerificationsByEmail(supabase, ver.email);
             res.json({ ok: true });
         }
     );
@@ -291,12 +261,15 @@ export default function createAuthRoutes(deps) {
         async (req, res) => {
             try {
                 const email = req.body.email.toLowerCase();
-                const user = await User.findOne({ email });
+                const user = await db.findUserByEmail(supabase, email, 'id');
                 if (!user) return res.json({ ok: true, message: 'Wenn die E-Mail existiert, wurde ein Code versendet.' });
+
                 const code = crypto.randomBytes(3).toString('hex').toUpperCase();
-                const expiresAt = dayjs().add(30, 'minute').toDate();
-                await PasswordReset.updateMany({ email }, { $set: { used: true } });
-                await PasswordReset.create({ email, code, expiresAt, used: false });
+                const expiresAt = dayjs().add(30, 'minute').toISOString();
+
+                await db.markAllResetsUsed(supabase, email);
+                await db.createPasswordReset(supabase, { email, code, expiresAt });
+
                 try {
                     await emailService.sendPasswordResetEmail(email, code);
                 } catch (mailErr) {
@@ -322,14 +295,13 @@ export default function createAuthRoutes(deps) {
             try {
                 const email = req.body.email.toLowerCase();
                 const code = String(req.body.code).trim();
-                const pr = await PasswordReset.findOne({ email, code, used: false })
-                    .sort({ createdAt: -1 });
+
+                const pr = await db.findValidReset(supabase, email, code);
                 if (!pr) return sendJSONError(res, 400, 'Ungültiger Code');
-                if (dayjs(pr.expiresAt).isBefore(dayjs())) {
-                    return sendJSONError(res, 400, 'Code abgelaufen');
-                }
-                pr.used = true;
-                await pr.save();
+                if (dayjs(pr.expires_at).isBefore(dayjs())) return sendJSONError(res, 400, 'Code abgelaufen');
+
+                await db.markResetUsed(supabase, pr.id);
+
                 const resetToken = jwt.sign(
                     { email, purpose: 'password_reset' },
                     passwordResetSecret,
@@ -363,32 +335,30 @@ export default function createAuthRoutes(deps) {
                 if (payload?.purpose !== 'password_reset' || !payload?.email) {
                     return sendJSONError(res, 400, 'Ungültiger Reset-Token');
                 }
+
                 const email = String(payload.email).toLowerCase();
-                const user = await User.findOne({ email });
+                const user = await db.findUserByEmail(supabase, email, 'id, mfa_enabled');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
+
                 const passwordHash = await bcrypt.hash(password, 12);
-                await User.findByIdAndUpdate(user._id, {
-                    $set: {
-                        passwordHash,
-                        mfaEnabled: false
-                    },
-                    $unset: { mfaSecret: 1 }
+                await db.updateUser(supabase, user.id, {
+                    password_hash: passwordHash,
+                    mfa_enabled: false,
+                    mfa_secret: null,
                 });
-                await User.findByIdAndUpdate(user._id, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'account:password_reset',
-                            meta: { by: 'self', mfaWasEnabled: !!user.mfaEnabled, mfaDisabled: true }
-                        }
-                    }
+
+                await db.logActivity(supabase, user.id, 'account:password_reset', {
+                    by: 'self',
+                    mfaWasEnabled: !!user.mfa_enabled,
+                    mfaDisabled: true,
                 });
-                // Info email an den user, um über das passwort reset und seine wirkung, dass mfa deaktiviert wird, zu informieren (NOCHMAL ÜBERPRÜFEN OB ALLES KORREKT IMPLEMENTIERT IST)
+
                 try {
-                    await emailService.sendSecurityEmail(user.email)
+                    await emailService.sendSecurityEmail(email);
                 } catch (e) {
                     console.error('Security alert email failed.', e);
                 }
+
                 res.json({ ok: true, message: 'Passwort wurde geändert. MFA wurde deaktiviert.' });
             } catch (err) {
                 console.error('POST /api/auth/reset error', err);
@@ -401,11 +371,11 @@ export default function createAuthRoutes(deps) {
     router.post('/change-password',
         authLimiter,
         requireAppGate(appGateSecret),
-        requireUser(userSecret, BannedUser, User),
+        requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('currentPassword').isString().isLength({ min: 8 }),
-            body('newPassword').isString().isLength({ min: 8 })
+            body('newPassword').isString().isLength({ min: 8 }),
         ],
         validate,
         async (req, res) => {
@@ -413,26 +383,15 @@ export default function createAuthRoutes(deps) {
                 const { currentPassword, newPassword } = req.body;
                 const userId = req.user.sub;
 
-                const user = await User.findById(userId);
+                const user = await db.findUserById(supabase, userId, 'id, password_hash');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
 
-                const isCorrect = await bcrypt.compare(currentPassword, user.passwordHash);
-                if (!isCorrect) {
-                    return sendJSONError(res, 403, 'Aktuelles Passwort ist falsch');
-                }
+                const isCorrect = await bcrypt.compare(currentPassword, user.password_hash);
+                if (!isCorrect) return sendJSONError(res, 403, 'Aktuelles Passwort ist falsch');
 
                 const newPasswordHash = await bcrypt.hash(newPassword, 12);
-                await User.findByIdAndUpdate(userId, { $set: { passwordHash: newPasswordHash } });
-
-                await User.findByIdAndUpdate(userId, {
-                    $push: {
-                        activity: {
-                            at: new Date(),
-                            type: 'account:password_change',
-                            meta: { by: 'self' }
-                        }
-                    }
-                });
+                await db.updateUser(supabase, userId, { password_hash: newPasswordHash });
+                await db.logActivity(supabase, userId, 'account:password_change', { by: 'self' });
 
                 res.json({ ok: true, message: 'Passwort erfolgreich geändert.' });
             } catch (err) {

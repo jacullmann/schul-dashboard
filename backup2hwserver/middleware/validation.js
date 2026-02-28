@@ -24,8 +24,7 @@ export function isValidCloudinaryUrl(url) {
     if (!url || typeof url !== 'string') return false;
     try {
         const parsed = new URL(url);
-        return parsed.protocol === 'https:' &&
-            parsed.hostname === 'res.cloudinary.com';
+        return parsed.protocol === 'https:' && parsed.hostname === 'res.cloudinary.com';
     } catch {
         return false;
     }
@@ -40,7 +39,7 @@ export function validateItemCreation(req, res, next) {
             'subject': 'Passe das Fach an (2-40 Zeichen).',
             'description': 'Die Beschreibung ist zu lang.',
             'images': 'Du kannst maximal 8 Bilder selbst hochladen.',
-            'dueDate': 'Das Datumsformat ist ungültig.'
+            'dueDate': 'Das Datumsformat ist ungültig.',
         };
         const firstError = errors.array()[0];
         const fieldName = firstError.param;
