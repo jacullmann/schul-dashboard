@@ -21,8 +21,9 @@ jobs:
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
             cd /root/codes/main-server/234u88
+            git fetch --all
             git reset --hard origin/main
-            git pull
+            git clean -fd
             cd backup2hwserver
             npm ci
             pm2 reload all
