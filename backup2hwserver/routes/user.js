@@ -49,9 +49,9 @@ export default function createUserRoutes(deps) {
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
-        body('enrKurs').exists().withMessage('enrKurs ist erforderlich').isInt({ min: 0 }).toInt(),
-        body('wpuKurs1').exists().withMessage('wpuKurs1 ist erforderlich').isInt({ min: 0 }).toInt(),
-        body('wpuKurs2').exists().withMessage('wpuKurs2 ist erforderlich').isInt({ min: 0 }).toInt(),
+        body('enrKurs').optional({ nullable: true }).isUUID().withMessage('ungültiges Format'),
+        body('wpuKurs1').optional({ nullable: true }).isUUID().withMessage('ungültiges Format'),
+        body('wpuKurs2').optional({ nullable: true }).isUUID().withMessage('ungültiges Format'),
         body('theater').exists().withMessage('Theater ist erforderlich').isInt({ min: 0 }).toInt(),
         validate,
         async (req, res) => {
@@ -59,12 +59,14 @@ export default function createUserRoutes(deps) {
                 const { enrKurs, wpuKurs1, wpuKurs2, theater } = req.body;
                 const userId = req.user.sub;
 
+                const isDone = Boolean(enrKurs && wpuKurs1 && wpuKurs2 && theater > 0);
+
                 const updatedUser = await db.updateUser(supabase, userId, {
                     enr_kurs: enrKurs,
                     wpu_kurs_1: wpuKurs1,
                     wpu_kurs_2: wpuKurs2,
                     theater,
-                    done_setup: true,
+                    done_setup: isDone,
                 });
                 if (!updatedUser) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
 

@@ -1,9 +1,9 @@
 export function filterLessonsForUser(lessons, user) {
     const courseMapping = {
-        'Enrichment': user.enrKurs,
-        'WPU (Di)': user.wpuKurs1,
-        'WPU (Do)': user.wpuKurs2,
-        'Theater': user.theater
+        'enrichment': user.enrKurs,
+        'wpu1': user.wpuKurs1,
+        'wpu2': user.wpuKurs2,
+        'theater': user.theater
     };
 
     return lessons.filter(lesson => {
@@ -15,7 +15,7 @@ export function filterLessonsForUser(lessons, user) {
         }
 
         // keine anzeigen, wenn er übersprungen hat
-        if (userCourseId === 0) {
+        if (userCourseId === null) {
             return false;
         }
 

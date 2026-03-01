@@ -8,7 +8,6 @@ export default function createAdminRoutes(deps) {
     const {
         supabase,
         cloudinary,
-        geminiClient,
         appGateSecret,
         userSecret,
         csrfSecret,
@@ -74,73 +73,6 @@ export default function createAdminRoutes(deps) {
             } catch (err) {
                 console.error('DELETE /api/admin/cleanup/old-items error', err);
                 sendJSONError(res, 500, 'Fehler beim Bereinigen alter Einträge');
-            }
-        }
-    );
-
-    // POST /api/admin/security-report
-    router.post('/security-report',
-        ...adminAuth,
-        validateCsrf(csrfSecret),
-        async (req, res) => {
-            try {
-                const data = await db.listSecurityEvents(supabase, 500);
-                if (!data || data.length === 0) return sendJSONError(res, 404, 'Keine Security-Events gefunden.');
-
-                const logsJsonString = JSON.stringify(data, null, 2);
-                const truncatedLogs = logsJsonString.length > 50000
-                    ? logsJsonString.substring(0, 50000) + '\n... (Daten zur Anzeige gekürzt)'
-                    : logsJsonString;
-
-                const prompt = `
-Du bist ein leitender Cyber-Sicherheitsanalyst für eine Web-Anwendung.
-Deine Aufgabe ist es, einen Sicherheitsbericht basierend auf den folgenden Security-Events (Tabelle 'security_events') zu erstellen.
-
-Die Logs enthalten folgende Felder:
-- 'event_type': Art des Events (z.B. 'app_gate_login', 'app_gate_logout')
-- 'event_status': Status des Events ('success', 'failure')
-- 'ip_address': IP-Adresse des Clients
-- 'user_agent': Browser/Client Information
-- 'metadata': Zusätzliche Event-spezifische Daten (JSON)
-- 'created_at': Zeitstempel des Events
-
-Event-Typen:
-- 'app_gate_login': Authentifizierungsversuch am App-Gate (success = erfolgreich, failure = fehlgeschlagen)
-- 'app_gate_logout': Logout eines authentifizierten Nutzers (normalerweise immer success)
-
-Hier sind die Rohdaten (möglicherweise gekürzt):
-${truncatedLogs}
-
----
-AUFGABE:
-Erstelle einen detaillierten, aber prägnanten Sicherheitsbericht auf Deutsch.
-Struktur:
-1.  **Zusammenfassung:** Kurze Übersicht.
-2.  **Trendanalyse:** Gibt es Muster?
-3.  **Auffällige Aktivitäten & IPs:** Identifiziere spezifische Bedrohungen.
-4.  **Empfohlene Maßnahmen:** Konkrete, priorisierte Tipps.
-5.  **Sicherheitswarnungen:** (Nur falls akute Bedrohungen erkennbar sind).
-
-Formatiere die gesamte Ausgabe als sauberes Markdown.
-Hinweis: Es handelt sich bei der Authentifizierung nicht um eine klassische mit Benutzerkonten, sondern um eine äußere Authentifizierung.
-Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff.
-`;
-
-                if (!geminiClient) {
-                    return sendJSONError(res, 500, 'Gemini API Key ist ungültig oder nicht initialisiert.');
-                }
-
-                const response = await geminiClient.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents: prompt,
-                });
-                res.json({ ok: true, report: response.text });
-            } catch (err) {
-                console.error('Fehler beim Generieren des Sicherheitsberichts:', err);
-                if (err.message?.includes('API key not valid')) {
-                    return sendJSONError(res, 500, 'Gemini API Key ist ungültig.');
-                }
-                sendJSONError(res, 500, 'Fehler bei der Kommunikation mit der Gemini API.');
             }
         }
     );

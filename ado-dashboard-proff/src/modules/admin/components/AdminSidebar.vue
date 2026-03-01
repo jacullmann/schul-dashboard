@@ -30,7 +30,6 @@ import {
   Users,
   Flag,
   Inbox,
-  ShieldAlert,
   Megaphone,
   CalendarDays,
   FileText
@@ -61,7 +60,6 @@ const navItems = ref<NavItem[]>([
   { key: 'users', label: 'Benutzer', icon: Users, counter: 0 },
   { key: 'reports', label: 'Meldungen', icon: Flag, counter: props.reportsCount },
   { key: 'sorgen', label: 'Sorgenbox', icon: Inbox, counter: props.sorgenCount },
-  { key: 'security', label: 'Sicherheit', icon: ShieldAlert, counter: 0 },
   { key: 'doc', label: 'Doc', icon: FileText, counter: 0 },
 ]);
 

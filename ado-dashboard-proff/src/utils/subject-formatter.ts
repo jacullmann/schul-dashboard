@@ -1,4 +1,6 @@
-import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects';
+import { getSubjectKey } from '@/types/subjects';
+import { useSubjectStore } from '@/stores/subjectStore';
+
 export function formatSubjectDisplay(subject: string, t: (key: string) => string, te: (key: string) => boolean): string {
     if (!subject) return subject;
 
@@ -7,16 +9,17 @@ export function formatSubjectDisplay(subject: string, t: (key: string) => string
 
     if (parts.length === 2 && ['enrichment', 'wpu1', 'wpu2'].includes(mainKey)) {
         let course = parts[1]!.trim();
+        const subjectStore = useSubjectStore();
 
         // Attempt to map an ID back to its native name first
         if (mainKey === 'enrichment') {
-            const mapped = ENR_COURSES.find(k => k.id === course);
+            const mapped = subjectStore.enrCourses.find(k => k.id === course);
             if (mapped) course = mapped.name;
         } else if (mainKey === 'wpu1') {
-            const mapped = WPU1_COURSES.find(k => k.id === course);
+            const mapped = subjectStore.wpu1Courses.find(k => k.id === course);
             if (mapped) course = mapped.name;
         } else if (mainKey === 'wpu2') {
-            const mapped = WPU2_COURSES.find(k => k.id === course);
+            const mapped = subjectStore.wpu2Courses.find(k => k.id === course);
             if (mapped) course = mapped.name;
         }
 

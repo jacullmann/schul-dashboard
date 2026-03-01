@@ -120,8 +120,11 @@ import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import Modal from '@/common/components/Modal.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
-import { AVAILABLE_SUBJECTS, ENR_COURSES, WPU1_COURSES, WPU2_COURSES } from '@/types/subjects';
-const { t } = useI18n();
+import { getSubjectKey } from '@/types/subjects';
+import { useSubjectStore } from '@/stores/subjectStore';
+
+const { t, te } = useI18n();
+const subjectStore = useSubjectStore();
 
 const props = defineProps<{
   type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
@@ -149,32 +152,8 @@ const getInitialSubjectParts = () => {
   if (parts.length === 2) {
     const main = parts[0]!.trim();
     const course = parts[1]!.trim();
-    if (['enrichment', 'wpu1', 'wpu2', 'Enrichment', 'WPU (Di)', 'WPU (Do)'].includes(main)) {
-      // Map old main to new main
-      const keyMap: Record<string, string> = {
-        'Enrichment': 'enrichment',
-        'WPU (Di)': 'wpu1',
-        'WPU (Do)': 'wpu2',
-      };
-
-      // Attempt to resolve legacy names to IDs (only relevant for old strings editing)
-      let resolvedCourseId = course;
-      const mappedMain = keyMap[main] || main;
-
-      if (main === 'Enrichment' || main === 'enrichment') {
-        const found = ENR_COURSES.find(k => k.name === course || k.id === course);
-        if (found) resolvedCourseId = found.id;
-      }
-      if (main === 'WPU (Di)' || main === 'wpu1') {
-        const found = WPU1_COURSES.find(k => k.name === course || k.id === course);
-        if (found) resolvedCourseId = found.id;
-      }
-      if (main === 'WPU (Do)' || main === 'wpu2') {
-        const found = WPU2_COURSES.find(k => k.name === course || k.id === course);
-        if (found) resolvedCourseId = found.id;
-      }
-
-      return { main: mappedMain, course: resolvedCourseId };
+    if (['enrichment', 'wpu1', 'wpu2'].includes(main)) {
+      return { main, course };
     }
   }
   return { main: initial, course: '' };
@@ -224,10 +203,11 @@ const message = ref('');
 const isError = ref(false);
 
 const subjectOptions = computed(() => {
-  const opts = AVAILABLE_SUBJECTS.map(s => ({
-    label: t(`global.subjects.${s}`),
-    value: s
-  }));
+  const opts = subjectStore.availableSubjectKeys.map(s => {
+    const translationKey = `global.subjects.${s}`;
+    const label = te(translationKey) ? t(translationKey) : s;
+    return { label, value: s };
+  });
 
   opts.push({ label: t('global.selection.other'), value: '__OTHER__' });
 
@@ -235,26 +215,21 @@ const subjectOptions = computed(() => {
 });
 
 const getCourseLabel = (courseName: string): string => {
-  const map: Record<string, string> = {
-    'Englisch': t('global.subjects.english'),
-    'Deutsch': t('global.subjects.german'),
-    'Biologie': t('global.subjects.biology'),
-    'Geschichte': t('global.subjects.history'),
-    'Informatik': t('global.subjects.cs'),
-    'Latein': t('global.subjects.latin'),
-    'Mathe': t('global.subjects.math'),
-    'Musik': t('global.subjects.music'),
-    'Herr Müller': `${t('global.titles.abbr.mr')} Müller`,
-    'Herr Weber': `${t('global.titles.abbr.mr')} Weber`,
-    'Frau Glier': `${t('global.titles.abbr.ms')} Glier`,
-    'Frau Thamm': `${t('global.titles.abbr.ms')} Thamm`
-  };
-  return map[courseName] || courseName;
+  const courseKey = getSubjectKey(courseName);
+  if (te(`global.subjects.${courseKey}`)) {
+    return t(`global.subjects.${courseKey}`);
+  }
+
+  const mr = t('global.titles.abbr.mr');
+  const ms = t('global.titles.abbr.ms');
+  return courseName
+    .replace(/^Herr\s+/, `${mr} `)
+    .replace(/^Frau\s+/, `${ms} `);
 };
 
-const enrOptions = ENR_COURSES.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-const wpuDiOptions = WPU1_COURSES.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-const wpuDoOptions = WPU2_COURSES.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
+const enrOptions = computed(() => subjectStore.enrCourses.map(k => ({ label: getCourseLabel(k.name), value: k.id })));
+const wpuDiOptions = computed(() => subjectStore.wpu1Courses.map(k => ({ label: getCourseLabel(k.name), value: k.id })));
+const wpuDoOptions = computed(() => subjectStore.wpu2Courses.map(k => ({ label: getCourseLabel(k.name), value: k.id })));
 
 async function submit() {
   submitting.value = true;

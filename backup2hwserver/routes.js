@@ -32,7 +32,6 @@ export default function registerRoutes(app, deps) {
         supabase,
         cloudinary,
         resendClient,
-        geminiClient,
         emailConfigured,
         emailFrom,
         appGateSecret,

@@ -8,7 +8,6 @@ import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 import { v2 as cloudinary } from 'cloudinary';
 import { Resend } from 'resend';
-import { GoogleGenAI } from "@google/genai";
 import routes from './routes.js';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -46,16 +45,6 @@ if (RESEND_API_KEY) {
     })();
 } else {
     console.error('WARN: RESEND_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.');
-}
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-let geminiClient = null;
-try {
-    if (GEMINI_API_KEY) {
-        geminiClient = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    }
-} catch (e) {
-    console.warn('Warn: Gemini Initialisierung fehlgeschlagen oder kein API Key vorhanden.');
 }
 
 cloudinary.config({
@@ -102,7 +91,6 @@ routes(app, {
     supabase,
     cloudinary,
     resendClient,
-    geminiClient,
     emailConfigured: !!RESEND_API_KEY,
     emailFrom: EMAIL_FROM,
     appGateSecret: process.env.APP_GATE_JWT_SECRET,

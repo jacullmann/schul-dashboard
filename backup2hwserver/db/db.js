@@ -507,7 +507,7 @@ export async function getFirstTodo(sb, userId) {
 
 export async function listSubjects(sb) {
     return throwOnError(
-        await sb.from('subjects').select('name').order('name', { ascending: true })
+        await sb.from('subjects').select('id, name, is_active, courses(id, name)').order('name', { ascending: true })
     );
 }
 
@@ -666,15 +666,6 @@ export async function logSecurityEvent(sb, event) {
     } catch (err) {
         console.error('Failed to log security event:', err);
     }
-}
-
-export async function listSecurityEvents(sb, limit = 500) {
-    return throwOnError(
-        await sb.from('security_events')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(limit)
-    );
 }
 
 // ─── Reference Tables (persons, days, lesson_hours, schedule_entries, double_lessons)

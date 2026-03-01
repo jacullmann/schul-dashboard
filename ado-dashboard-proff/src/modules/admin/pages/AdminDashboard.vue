@@ -355,26 +355,6 @@
           </template>
         </div>
 
-        <div v-if="activeTab === 'security'" class="tab-content fade-in">
-          <h3>KI Sicherheits-Analyse</h3>
-          <div class="row mt-4">
-            <button class="btn primary" @click="generateSecurityReport" :disabled="isGeneratingReport">
-              <span v-if="isGeneratingReport">Analysiere...</span>
-              <span v-else>Bericht generieren</span>
-            </button>
-          </div>
-
-          <div v-if="reportError" class="message error mt-4">{{ reportError }}</div>
-
-          <div v-if="securityReport" class="report-result card rlc mt-4">
-            <div class="report-toolbar">
-              <h4>Ergebnis</h4>
-              <button class="btn ghost tiny" @click="copyReportToClipboard">Kopieren</button>
-            </div>
-            <div class="markdown-body" v-html="DOMPurify.sanitize(marked.parse(securityReport) as string)"></div>
-          </div>
-        </div>
-
         <div v-if="activeTab === 'announcements'" class="tab-content fade-in">
           <div class="announcements">
             <div class="ann-list">
@@ -483,8 +463,6 @@ import { useAnnouncements } from "@/modules/announcements/composables/useAnnounc
 import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
 import AdminHeader from '@/modules/admin/components/AdminHeader.vue';
 import AdminSidebar from '@/modules/admin/components/AdminSidebar.vue';
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
 import {
   FileText,
   Lock,
@@ -513,11 +491,6 @@ const {
   deleteReport,
   entriessorgen,
   deleteSorge,
-  generateSecurityReport,
-  isGeneratingReport,
-  securityReport,
-  reportError,
-  copyReportToClipboard,
   message,
   isError,
   handleSuccess,
@@ -554,7 +527,6 @@ const tabTitles: Record<string, string> = {
   users: 'Benutzerverwaltung',
   reports: 'Gemeldete Inhalte',
   sorgen: 'Sorgenbox',
-  security: 'Sicherheit',
   announcements: 'Ankündigungen',
   timetable: 'Stundenplan',
   doc: 'Doc',

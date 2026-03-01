@@ -7,9 +7,9 @@ interface UserData {
     email: string;
     isAdmin: boolean;
     emailVerified: boolean;
-    enrKurs: number;
-    wpuKurs1: number;
-    wpuKurs2: number;
+    enrKurs: string | null;
+    wpuKurs1: string | null;
+    wpuKurs2: string | null;
     theater: number;
     doneSetup: boolean;
     personalized: boolean;

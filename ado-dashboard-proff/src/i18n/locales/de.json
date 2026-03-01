@@ -10,6 +10,7 @@
       "duplicate": "Duplizieren",
       "showMore": "Mehr anzeigen",
       "showLess": "Weniger anzeigen",
+      "skip": "Überspringen",
       "cancel": "Abbrechen",
       "close": "Schließen",
       "delete": "Löschen"
@@ -99,7 +100,9 @@
     "menu": {
       "courses": {
         "title": "Kurse bearbeiten",
+        "titleCreation": "Willkommen! Vervollständige dein Profil",
         "description": "Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen.",
+        "descriptionCreation": "Wähle aus, welche Fächer du belegst, um bessere Ergebnisse zu bekommen. Du kannst deine Auswahl jederzeit in deinen Konto-Einstellungen ändern.",
         "enr": "Enrichment",
         "wpu1": "WPU am Dienstag",
         "wpu2": "WPU am Donnerstag",

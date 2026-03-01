@@ -73,7 +73,7 @@ export default function createPublicRoutes(deps) {
         async (req, res) => {
             try {
                 const list = await db.listSubjects(supabase);
-                res.json(list.map(s => s.name));
+                res.json(list);
             } catch (err) {
                 console.error('GET /api/subjects error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Fächer');

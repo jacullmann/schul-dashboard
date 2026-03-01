@@ -5,122 +5,80 @@
       viewBox="0 0 1024 1024"
       xmlns="http://www.w3.org/2000/svg"
       xmlns:xlink="http://www.w3.org/1999/xlink"
+      role="img"
+      aria-label="schul-dashboard Logo"
   >
+    <title>schul-dashboard Logo</title>
     <defs>
-      <linearGradient id="logo-gradient-base">
-        <stop style="stop-color: var(--primary--step1); stop-opacity: 1" offset="0.07171854" />
-        <stop style="stop-color: var(--primary--step2); stop-opacity: 1" offset="0.40121785" />
-        <stop style="stop-color: var(--primary--step3); stop-opacity: 1" offset="0.69113672" />
-        <stop style="stop-color: var(--primary--step4); stop-opacity: 1" offset="1" />
+      <linearGradient id="linearGradient14">
+        <stop style="stop-color: #ffa91a; stop-opacity:1;" offset="0.08389716" id="stop11" />
+        <stop style="stop-color: #ff335a; stop-opacity:1;" offset="0.38362652" id="stop12" />
+        <stop style="stop-color: #af00ff; stop-opacity:1;" offset="0.69113672" id="stop13" />
+        <stop style="stop-color: #5600ff; stop-opacity:1;" offset="1" id="stop14" />
       </linearGradient>
       <linearGradient
-          xlink:href="#logo-gradient-base"
-          :id="gradientId"
-          x1="116.89321"
-          y1="-72.786751"
-          x2="982.60699"
-          y2="334.15128"
+          xlink:href="#linearGradient14"
+          id="linearGradient8"
+          x1="58.46209"
+          y1="-160.82309"
+          x2="1114.1292"
+          y2="333.66876"
           gradientUnits="userSpaceOnUse"
       />
-      <mask maskUnits="userSpaceOnUse" :id="maskId">
-        <path
-            style="fill: #ffffff; fill-opacity: 1"
-            d="M 65.816826,65.816826 H 958.18322 V 958.18316 H 65.816826 Z"
-        />
-        <g style="fill: #000000; fill-opacity: 1">
-          <rect
-              style="fill: #000000; fill-opacity: 1"
-              height="277.78479"
-              x="192"
-              y="165.10788"
-              ry="48"
-              width="96"
-          />
-          <rect
-              style="fill: #000000; fill-opacity: 1"
-              height="277.78479"
-              x="736"
-              y="165.10788"
-              ry="48"
-              width="96"
-          />
-          <text
-              x="512"
-              y="864"
-              :style="textStyle"
-          >
-            <tspan x="512" y="864" text-anchor="middle">{{ dayString }}</tspan>
-          </text>
-        </g>
-      </mask>
     </defs>
-
-    <g
-        :mask="`url(#${maskId})`"
-        style="fill: var(--color--white); fill-opacity: 1"
-        transform="matrix(1.1500884,0,0,1.1500884,-76.845255,-76.845255)"
+    <path
+      style="display: inline; fill: #0f0f0f; fill-opacity: 1; stroke-width: 0; stroke-linecap: square; paint-order: stroke markers fill"
+      d="M 0,160 1.3117412e-4,475.00447 1023.9999,472.56856 1024,159.87511 853.47687,44.06984 173.10682,43.669109 Z"
+      id="background" />
+    <path
+      id="bottom"
+      style="display: inline; fill: #ffffff; fill-opacity: 1; stroke-width: 0; stroke-linecap: square; paint-order: stroke markers fill"
+      d="M -3.5732999e-7,352 V 896 A 128,128 0 0 0 128,1024 H 896 A 128,128 0 0 0 1024,896 V 352 a 32,32 0 0 0 -32,-32 h -64 a 32,32 0 0 0 -32,32 v 32 a 48,48 0 0 1 -48,48 48,48 0 0 1 -48,-48 V 352 A 32,32 0 0 0 768,320 H 256 a 32,32 0 0 0 -32,32 v 32 a 48,48 0 0 1 -48,48 48,48 0 0 1 -48,-48 V 352 A 32,32 0 0 0 96,320 H 32 A 32,32 0 0 0 -3.5732999e-7,352 Z" />
+    <path
+      id="top"
+      style="display: inline; fill: url(#linearGradient8); fill-opacity: 1; stroke-width: 0; stroke-linecap: square; paint-order: stroke markers fill"
+      d="m -3.5732999e-7,128 v 64 A 32,32 0 0 0 32,224 h 64 a 32,32 0 0 0 32,-32 v -32 a 48,48 0 0 1 48,-48 48,48 0 0 1 48,48 v 32 a 32,32 0 0 0 32,32 h 512 a 32,32 0 0 0 32,-32 v -32 a 48,48 0 0 1 48,-48 48,48 0 0 1 48,48 v 32 a 32,32 0 0 0 32,32 h 64 a 32,32 0 0 0 32,-32 V 128 A 128,128 0 0 0 896,-3.5732999e-7 H 128 A 128,128 0 0 0 -3.5732999e-7,128 Z" />
+    <text
+      style="font-weight: 900; font-size: 560px; line-height: 1.1; font-family: Inter, sans-serif; letter-spacing: 0; fill: #0f0f0f; fill-opacity: 1; stroke-width:0; stroke-linecap: square; text-anchor: middle; paint-order: stroke markers fill"
+      id="date"
     >
-      <path
-          style="display: inline; fill: var(--color--white); fill-opacity: 1"
-          d="m 957.18322,352 v 477.18316 c 0,70.912 -57.088,128 -128,128 H 194.81683 c -70.912,0 -128.000025,-57.088 -128.000004,-128 L 66.81698,352 Z"
-      />
-      <path
-          :style="`display: inline; fill: url(#${gradientId})`"
-          d="m 194.81683,66.816826 h 634.36639 c 70.912,0 128,57.088004 128,128.000004 V 256 H 66.817 v -61.18317 c 0,-70.912 57.08783,-128.000004 127.99983,-128.000004 z"
-      />
-    </g>
+      <tspan x="512" y="880" text-anchor="middle">{{ dayString }}</tspan>
+    </text>
   </svg>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 
-const instanceId = Math.random().toString(36).substring(2, 9);
-const gradientId = `logo-gradient-${instanceId}`;
-const maskId = `logo-mask-${instanceId}`;
-
-const day = ref<number>(getToday());
+const day = ref<number>(new Date().getDate());
 const dayString = computed(() => String(day.value));
 
-function getToday(): number {
-  return new Date().getDate();
+let intervalId: ReturnType<typeof setInterval>;
+
+function updateDay() {
+  const currentDay = new Date().getDate();
+  if (day.value !== currentDay) {
+    day.value = currentDay;
+  }
 }
 
-function setDayNow() {
-  day.value = getToday();
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible') {
+    updateDay();
+  }
 }
-
-function msUntilNextMidnight(): number {
-  const now = new Date();
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  return tomorrow.getTime() - now.getTime();
-}
-
-let midnightTimeout: number | undefined;
-let dailyInterval: number | undefined;
 
 onMounted(() => {
-  setDayNow();
-  midnightTimeout = window.setTimeout(() => {
-    setDayNow();
-    dailyInterval = window.setInterval(setDayNow, 24 * 60 * 60 * 1000);
-  }, msUntilNextMidnight());
+  updateDay();
+  // Check every minute if the date changed
+  intervalId = setInterval(updateDay, 60000);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 });
 
 onUnmounted(() => {
-  if (midnightTimeout) window.clearTimeout(midnightTimeout);
-  if (dailyInterval) window.clearInterval(dailyInterval);
+  clearInterval(intervalId);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
-
-const textStyle = {
-  fontWeight: '900',
-  fontSize: '521.699px',
-  lineHeight: '1.1',
-  fontFamily: 'Inter, sans-serif',
-  fill: '#000000',
-  textAnchor: 'middle',
-  dominantBaseline: 'auto'
-} as Record<string, string>;
 </script>
 
 <style scoped>

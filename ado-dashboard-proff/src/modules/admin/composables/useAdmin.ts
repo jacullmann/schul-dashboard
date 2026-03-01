@@ -37,11 +37,6 @@ export function useAdmin() {
     // Cleanup
     const isCleaningUp = ref(false);
 
-    // Security
-    const securityReport = ref<string | null>(null);
-    const isGeneratingReport = ref(false);
-    const reportError = ref<string | null>(null);
-
     // UI Feedback
     const message = ref('');
     const isError = ref(false);
@@ -289,22 +284,6 @@ export function useAdmin() {
         }
     }
 
-    // Security
-    async function generateSecurityReport() {
-        if (isGeneratingReport.value) return;
-        isGeneratingReport.value = true;
-        securityReport.value = null;
-        reportError.value = null;
-        try {
-            const { data } = await hw.post('/api/admin/security-report', {}, { timeout: 300000 });
-            securityReport.value = data.report;
-        } catch (e: any) {
-            reportError.value = e.response?.data?.error || 'Fehler beim Generieren.';
-        } finally {
-            isGeneratingReport.value = false;
-        }
-    }
-
     async function pruneOldLogs(user: any) {
         if (!confirm(`Möchtest du wirklich alle Logs von ${user.email} löschen, die älter als 30 Tage sind?`)) {
             return;
@@ -320,13 +299,6 @@ export function useAdmin() {
             console.error(e);
             alert(e.response?.data?.error || 'Fehler beim Löschen der Logs.');
         }
-    }
-
-    function copyReportToClipboard() {
-        if (!securityReport.value) return;
-        navigator.clipboard.writeText(securityReport.value)
-            .then(() => handleSuccess('Kopiert!'))
-            .catch(() => handleError('Fehler beim Kopieren.'));
     }
 
     // Init
@@ -365,10 +337,6 @@ export function useAdmin() {
         isCleaningUp,
         cleanupOldItems,
         // Rest
-        securityReport,
-        isGeneratingReport,
-        reportError,
-        reportHtml: securityReport,
         message,
         isError,
         handleSuccess,
@@ -380,8 +348,6 @@ export function useAdmin() {
         deleteUser,
         deleteReport,
         deleteSorge,
-        generateSecurityReport,
-        copyReportToClipboard,
         timetableSubs,
         loadingSubs,
         savingSub,

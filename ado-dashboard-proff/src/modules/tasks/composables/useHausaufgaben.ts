@@ -3,7 +3,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
-import { getSubjectKey, ENR_COURSES, WPU1_COURSES, WPU2_COURSES, AVAILABLE_SUBJECTS } from '@/types/subjects';
+import { getSubjectKey } from '@/types/subjects';
+import { useSubjectStore } from '@/stores/subjectStore';
 import hw from '@/api/hwApi';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import { isValidType } from '@/modules/tasks/types';
@@ -18,6 +19,7 @@ export function useHausaufgaben() {
     const route = useRoute();
     const router = useRouter();
     const userStore = useUserStore();
+    const subjectStore = useSubjectStore();
     const imageUpload = useImageUpload();
     const { user } = storeToRefs(userStore);
     const { t, te } = useI18n();
@@ -30,7 +32,7 @@ export function useHausaufgaben() {
     const showItemForm = ref(false);
     const showAnnouncementForm = ref(false);
     const itemToEdit = ref<HwItem | null>(null);
-    const subjects = ref<string[]>([]);
+    const subjects = computed(() => subjectStore.availableSubjectKeys);
     const items = ref<HwItem[]>([]);
     const loading = ref(true);
     const initialLoad = ref(true);
@@ -137,21 +139,14 @@ export function useHausaufgaben() {
             const wpu2Name = String(user.value!.wpuKurs2);
 
             const userSubjects = new Set<string>();
-            if (enrName && enrName !== '0') {
+            if (enrName && enrName !== '0' && enrName !== 'null') {
                 userSubjects.add(`enrichment - ${enrName}`);
-                // add backward compat support
-                const legacyEnrName = ENR_COURSES.find(k => k.id === enrName)?.name;
-                if (legacyEnrName) userSubjects.add(`Enrichment - ${legacyEnrName}`);
             }
             if (wpu1Name && wpu1Name !== '0') {
                 userSubjects.add(`wpu1 - ${wpu1Name}`);
-                const legacyWpu1Name = WPU1_COURSES.find(k => k.id === wpu1Name)?.name;
-                if (legacyWpu1Name) userSubjects.add(`WPU (Di) - ${legacyWpu1Name}`);
             }
             if (wpu2Name && wpu2Name !== '0') {
                 userSubjects.add(`wpu2 - ${wpu2Name}`);
-                const legacyWpu2Name = WPU2_COURSES.find(k => k.id === wpu2Name)?.name;
-                if (legacyWpu2Name) userSubjects.add(`WPU (Do) - ${legacyWpu2Name}`);
             }
 
             list = list.filter(item => {
@@ -181,8 +176,7 @@ export function useHausaufgaben() {
     const subjectOptions = computed(() => {
         const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
 
-        const allSubjects = Array.from(new Set([...AVAILABLE_SUBJECTS, ...subjects.value]));
-        const dynamicOptions = allSubjects.map((s) => ({
+        const dynamicOptions = subjectStore.availableSubjectKeys.map((s) => ({
             label: getSubjectName(s),
             value: s,
         }));
@@ -329,10 +323,7 @@ export function useHausaufgaben() {
     }
 
     async function loadSubjects() {
-        try {
-            const { data } = await hw.get('/api/subjects');
-            subjects.value = data;
-        } catch { /* subjects stay empty */ }
+        await subjectStore.loadSubjects();
     }
 
     async function reload() {
