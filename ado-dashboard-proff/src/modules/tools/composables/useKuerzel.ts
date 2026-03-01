@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import hw from '@/api/hwApi'
 import { normalize, similarity } from '@/modules/tools/utils/kuerzelHelper'
+import { useI18n } from 'vue-i18n'
 
 interface Person {
     id: number
@@ -9,13 +10,23 @@ interface Person {
     name: string
 }
 
-const SHORT_EXAMPLES = ['HA', 'FS', 'AY', 'SM', 'AN'] as const
-const NAME_EXAMPLES = ['Frau Haupt', 'Herr Fischer', 'Frau Aydem', 'Frau Simsek', 'Herr Al-Najjar'] as const
-
 /** Minimum fuzzy-similarity score for a suggestion to be shown. */
 const SUGGESTION_THRESHOLD = 0.6
 
 export function useKuerzel() {
+    const { t } = useI18n()
+
+    // ─── Constants ───────────────────────────────────────────────────────────
+
+    const SHORT_EXAMPLES = ['HA', 'FS', 'AY', 'SM', 'AN'] as const
+    const NAME_EXAMPLES = [
+        t('global.titles.ms') + ' Haupt',
+        t('global.titles.mr') + ' Fischer',
+        t('global.titles.ms') + ' Aydem',
+        t('global.titles.ms') + ' Simsek',
+        t('global.titles.mr') + ' Al-Najjar'
+    ] as const
+
     // ─── State ───────────────────────────────────────────────────────────────
 
     const persons = ref<Person[]>([])
@@ -30,7 +41,7 @@ export function useKuerzel() {
 
     async function loadPeople() {
         try {
-            const response = await hw.get('/api/persons')
+            const response = await hw.get<Person[]>('/api/persons')
             persons.value = response.data
         } catch (error) {
             console.error('Failed to load persons:', error)
@@ -67,18 +78,18 @@ export function useKuerzel() {
         if (!q) return []
 
         // Exact full-name match → no suggestions needed
-        if (persons.value.some(p => normalize(p.title + p.name) === q)) return []
+        if (persons.value.some((p: Person) => normalize(p.title + p.name) === q)) return []
 
         // Multiple last-name-only matches → surface them all, no fuzzy needed
-        const byName = persons.value.filter(p => normalize(p.name) === q)
+        const byName = persons.value.filter((p: Person) => normalize(p.name) === q)
         if (byName.length > 1) return byName
 
         // Fuzzy: collect candidates above threshold and sort best-first
         return persons.value
-            .map(p => ({ person: p, score: similarity(q, normalize(p.name)) }))
-            .filter(({ score }) => score > SUGGESTION_THRESHOLD)
-            .sort((a, b) => b.score - a.score)
-            .map(({ person }) => person)
+            .map((p: Person) => ({ person: p, score: similarity(q, normalize(p.name)) }))
+            .filter(({ score }: { score: number }) => score > SUGGESTION_THRESHOLD)
+            .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
+            .map(({ person }: { person: Person }) => person)
     })
 
     /** The resolved value shown in the read-only output field. */
@@ -87,16 +98,16 @@ export function useKuerzel() {
         if (!q) return ''
 
         if (mode.value === 'shortToName') {
-            const match = persons.value.find(p => normalize(p.short) === q)
+            const match = persons.value.find((p: Person) => normalize(p.short) === q)
             return match ? `${match.title} ${match.name}` : ''
         }
 
         // Exact full-name match (title + name)
-        const fullMatch = persons.value.find(p => normalize(p.title + p.name) === q)
+        const fullMatch = persons.value.find((p: Person) => normalize(p.title + p.name) === q)
         if (fullMatch) return fullMatch.short.toUpperCase()
 
         // Single last-name match
-        const byName = persons.value.filter(p => normalize(p.name) === q)
+        const byName = persons.value.filter((p: Person) => normalize(p.name) === q)
         if (byName.length === 1) return byName[0]!.short.toUpperCase()
 
         return ''
@@ -105,7 +116,7 @@ export function useKuerzel() {
     // ─── Actions ─────────────────────────────────────────────────────────────
 
     function applySuggestion(person: Person) {
-        inputValue.value = `${person.title} ${person.name}`
+        inputValue.value = `${t('global.titles.' + person.title)} ${person.name}`
     }
 
     function toggleMode() {

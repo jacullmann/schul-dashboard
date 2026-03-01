@@ -68,6 +68,14 @@ export async function countUsers(sb, filters = {}) {
     return count ?? 0;
 }
 
+export async function countUsersSince(sb, dateISO) {
+    const { count, error } = await sb.from('users')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', dateISO);
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+}
+
 export async function listUsers(sb, { select = '*', orderBy = 'created_at', ascending = false, limit } = {}) {
     let q = sb.from('users').select(select).order(orderBy, { ascending });
     if (limit) q = q.limit(limit);
@@ -303,7 +311,7 @@ export async function getItemsByTypeCount(sb) {
     for (const row of data) {
         counts[row.type] = (counts[row.type] || 0) + 1;
     }
-    return Object.entries(counts).map(([type, count]) => ({ _id: type, count }));
+    return Object.entries(counts).map(([type, count]) => ({ type, count }));
 }
 
 export async function getTopCreators(sb, limit = 5) {

@@ -40,7 +40,7 @@ export function createEmailService({ resendClient, emailConfigured, emailFrom })
             to: [to],
             subject: 'Passwort zurücksetzen',
             html: `
-            <h3>Bestätigungscode<h3>
+            <h3>Bestätigungscode</h3>
             <p>Um dein Passwort zurückzusetzen, gebe folgenden Code auf der Schul Dashboard Seite ein:</p>
             <p><strong>${code}</strong></p>
             <p>Dieser Code ist für 30 Minuten gültig.</p>
@@ -64,7 +64,7 @@ export function createEmailService({ resendClient, emailConfigured, emailFrom })
             to: [to],
             subject: 'Dein Passwort wurde zurückgesetzt',
             html: `
-            <h3>Wichtige Sicherheitsmeldung<h3>
+            <h3>Wichtige Sicherheitsmeldung</h3>
             <p>Soeben wurde ein erfolgreiches Passwortreset deines Kontos durchgeführt. Wenn die Zwei-Faktor-Authentifizierung für dein Konto aktiviert war, ist es dies nun NICHT mehr.</p>
             <p>Wenn du die Zwei-Faktor-Authentifizierung wieder aktivieren willst, kannst du dies jederzeit manuell in den Accounteinstellungen tun.</p>
             <p>Falls du den Passwortreset nicht veranlasst hast, kontaktiere sofort den Support.</p>
