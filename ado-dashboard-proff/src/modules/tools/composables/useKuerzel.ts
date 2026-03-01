@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import hw from '@/api/hwApi'
-import { normalize, similarity } from '@/modules/tools/utils/kuerzelHelper'
+import { normalize, similarity, editDistance } from '@/modules/tools/utils/kuerzelHelper'
 import { useI18n } from 'vue-i18n'
 
 interface Person {
@@ -15,6 +15,35 @@ const SUGGESTION_THRESHOLD = 0.6
 
 export function useKuerzel() {
     const { t } = useI18n()
+
+    function getTitleAliases(titleKey: string): string[] {
+        if (!titleKey) return ['']
+        const aliases = new Set<string>()
+        aliases.add(normalize(titleKey))
+
+        const normalTitle = t(`global.titles.${titleKey}`)
+        if (!normalTitle.includes('global.titles.')) aliases.add(normalize(normalTitle))
+
+        const abbrTitle = t(`global.titles.abbr.${titleKey}`)
+        if (!abbrTitle.includes('global.titles.')) aliases.add(normalize(abbrTitle))
+
+        // Always check for german hr, fr, herr, frau regardless of current language
+        if (titleKey === 'mr') {
+            aliases.add(normalize('herr'))
+            aliases.add(normalize('hr'))
+            aliases.add(normalize('hr.'))
+            aliases.add(normalize('mr'))
+            aliases.add(normalize('mr.'))
+        } else if (titleKey === 'ms') {
+            aliases.add(normalize('frau'))
+            aliases.add(normalize('fr'))
+            aliases.add(normalize('fr.'))
+            aliases.add(normalize('ms'))
+            aliases.add(normalize('ms.'))
+        }
+
+        return Array.from(aliases).filter(Boolean)
+    }
 
     // ─── Constants ───────────────────────────────────────────────────────────
 
@@ -78,7 +107,13 @@ export function useKuerzel() {
         if (!q) return []
 
         // Exact full-name match → no suggestions needed
-        if (persons.value.some((p: Person) => normalize(p.title + p.name) === q)) return []
+        if (persons.value.some((p: Person) => {
+            const normName = normalize(p.name)
+            const aliases = getTitleAliases(p.title)
+            return aliases.some(alias => alias + normName === q)
+        })) {
+            return []
+        }
 
         // Multiple last-name-only matches → surface them all, no fuzzy needed
         const byName = persons.value.filter((p: Person) => normalize(p.name) === q)
@@ -86,7 +121,31 @@ export function useKuerzel() {
 
         // Fuzzy: collect candidates above threshold and sort best-first
         return persons.value
-            .map((p: Person) => ({ person: p, score: similarity(q, normalize(p.name)) }))
+            .map((p: Person) => {
+                const normName = normalize(p.name)
+                const aliases = getTitleAliases(p.title)
+
+                // Base score: evaluate the name alone assuming no title was provided in the input
+                let maxScore = similarity(q, normName)
+
+                // Give one additional "false character" that is allowed for the suggestion to go through for the title
+                // Try to match a title alias at the beginning of q with <= 1 error
+                for (const alias of aliases) {
+                    if (!alias) continue
+                    for (let len = Math.max(0, alias.length - 1); len <= Math.min(q.length, alias.length + 1); len++) {
+                        const prefix = q.slice(0, len)
+                        if (editDistance(alias, prefix) <= 1) {
+                            const qName = q.slice(len)
+                            const nameScore = similarity(qName, normName)
+                            if (nameScore > maxScore) {
+                                maxScore = nameScore
+                            }
+                        }
+                    }
+                }
+
+                return { person: p, score: maxScore }
+            })
             .filter(({ score }: { score: number }) => score > SUGGESTION_THRESHOLD)
             .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
             .map(({ person }: { person: Person }) => person)
@@ -99,11 +158,17 @@ export function useKuerzel() {
 
         if (mode.value === 'shortToName') {
             const match = persons.value.find((p: Person) => normalize(p.short) === q)
-            return match ? `${match.title} ${match.name}` : ''
+            if (!match) return ''
+            const titleStr = match.title ? t(`global.titles.${match.title}`) + ' ' : ''
+            return `${titleStr}${match.name}`
         }
 
         // Exact full-name match (title + name)
-        const fullMatch = persons.value.find((p: Person) => normalize(p.title + p.name) === q)
+        const fullMatch = persons.value.find((p: Person) => {
+            const normName = normalize(p.name)
+            const aliases = getTitleAliases(p.title)
+            return aliases.some(alias => alias + normName === q)
+        })
         if (fullMatch) return fullMatch.short.toUpperCase()
 
         // Single last-name match
@@ -116,7 +181,8 @@ export function useKuerzel() {
     // ─── Actions ─────────────────────────────────────────────────────────────
 
     function applySuggestion(person: Person) {
-        inputValue.value = `${t('global.titles.' + person.title)} ${person.name}`
+        const titleStr = person.title ? t(`global.titles.${person.title}`) + ' ' : ''
+        inputValue.value = `${titleStr}${person.name}`
     }
 
     function toggleMode() {

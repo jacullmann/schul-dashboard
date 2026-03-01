@@ -65,7 +65,7 @@ export default function createAuthRoutes(deps) {
             setUserToken(res, user.id, user.email, userSecret);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
-            await db.deleteMfaPending(supabase, user.id).catch(() => {});
+            await db.deleteMfaPending(supabase, user.id).catch(() => { });
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
@@ -106,7 +106,7 @@ export default function createAuthRoutes(deps) {
                 const newCsrfToken = rotateCsrfToken(res, csrfSecret);
 
                 await db.updateUser(supabase, userId, { last_login_at: new Date().toISOString() });
-                await db.deleteMfaPending(supabase, userId).catch(() => {});
+                await db.deleteMfaPending(supabase, userId).catch(() => { });
                 await db.logActivity(supabase, userId, 'auth:mfa_login', {});
 
                 res.json({ ok: true, csrfToken: newCsrfToken });
@@ -182,14 +182,14 @@ export default function createAuthRoutes(deps) {
             try {
                 if (!req.user) return res.json({ authenticated: false });
 
-                const user = await db.findUserById(supabase, req.user.sub);
+                const user = await db.findUserById(supabase, req.user.sub, '*, user_roles(roles(name))');
                 if (!user) return res.json({ authenticated: false });
 
                 res.json({
                     authenticated: true,
                     id: user.id,
                     email: user.email,
-                    isAdmin: !!user.is_admin,
+                    role: user.user_roles?.[0]?.roles?.name || 'user',
                     emailVerified: !!user.email_verified,
                     enrKurs: user.enr_kurs,
                     wpuKurs1: user.wpu_kurs_1,
@@ -213,9 +213,9 @@ export default function createAuthRoutes(deps) {
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
-                const user = await db.findUserById(supabase, req.user.sub, 'id, is_admin');
+                const user = await db.findUserById(supabase, req.user.sub, 'id, user_roles(roles(name))');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                if (user.is_admin) return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
+                if (user.user_roles?.[0]?.roles?.name === 'superadmin') return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
 
                 const userId = user.id;
                 // Cascading deletes handle keep_checked, pinned_items, encrypted_todos, etc.

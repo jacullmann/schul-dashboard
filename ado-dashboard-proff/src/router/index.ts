@@ -396,7 +396,7 @@ router.beforeEach(async (to, from, next) => {
             return next({ path: '/welcome', replace: true });
         }
 
-        if (!userStore.isAdmin) {
+        if (!userStore.isSuperadmin) {
             console.warn('Autorisierung fehlgeschlagen: Kein Admin.');
             finish();
             return next({ path: '/items/HAUSAUFGABE', replace: true });

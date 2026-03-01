@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import hw from '@/api/hwApi';
 import InfoPop from '@/common/components/InfoModalCenter.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import { useI18n } from 'vue-i18n';
@@ -8,8 +9,17 @@ const { t, tm } = useI18n();
 
 // --- 1. Types & Interfaces ---
 
+// Updated to match Supabase schema (persons + person_subjects payload)
+interface DbPerson {
+  id: string; // uuid
+  name: string; // surname
+  short: string; // abbreviation
+  title: string;
+  person_subjects?: { subjects: { name: string } }[];
+}
+
 interface Teacher {
-  id: number;
+  id: string;
   surname: string;
   abbreviation: string;
   title: string;
@@ -19,15 +29,26 @@ interface Teacher {
   subject4?: string;
 }
 
+interface DbScheduleRow {
+  id: string;
+  room: string;
+  size: number;
+  mo_person_id: string | null;
+  di_person_id: string | null;
+  mi_person_id: string | null;
+  do_person_id: string | null;
+  fr_person_id: string | null;
+}
+
 interface ScheduleRow {
   room: string;
   size: number;
   schedule: {
-    mo: number | null;
-    di: number | null;
-    mi: number | null;
-    do: number | null;
-    fr: number | null;
+    mo: string | null;
+    di: string | null;
+    mi: string | null;
+    do: string | null;
+    fr: string | null;
   };
 }
 
@@ -47,108 +68,57 @@ interface TeacherScheduleCard {
 // Union type for our computed property
 type SearchResult = ScheduleRow | TeacherScheduleCard;
 
-// --- 2. Data (Kept exactly as you had them) ---
-const teachers: Teacher[] = [
-  { id: 1, surname: "Akdemir", abbreviation: "Ak", title: "ms", subject1: "Deutsch", subject2: "Kunst" },
-  { id: 2, surname: "Austerfield", abbreviation: "Au", title: "mr", subject1: "Englisch", subject2: "Ethik", subject3: "Philosophie" },
-  { id: 3, surname: "Bauer", abbreviation: "Br", title: "ms", subject1: "Religion", subject2: "Ethik" },
-  { id: 4, surname: "Berg", abbreviation: "Bg", title: "mr", subject1: "Mathematik", subject2: "Sport" },
-  { id: 5, surname: "Bies", abbreviation: "Bs", title: "mr", subject1: "Deutsch", subject2: "Latein" },
-  { id: 6, surname: "Blanke", abbreviation: "Ba", title: "ms", subject1: "Biologie", subject2: "Englisch" },
-  { id: 7, surname: "Borali", abbreviation: "Bor", title: "ms", subject1: "Chemie", subject2: "Informatik", subject3: "Mathematik" },
-  { id: 8, surname: "Borchers", abbreviation: "Bo", title: "mr", subject1: "Sport" },
-  { id: 9, surname: "Burkert", abbreviation: "Bu", title: "ms", subject1: "Englisch" },
-  { id: 10, surname: "Burkhardt", abbreviation: "Bt", title: "ms", subject1: "Deutsch", subject2: "Politik" },
-  { id: 11, surname: "Chahine", abbreviation: "Cn", title: "mr", subject1: "Englisch", subject2: "Politik" },
-  { id: 12, surname: "Damde", abbreviation: "Dm", title: "ms", subject1: "Biologie", subject2: "Deutsch", subject3: "Ethik", subject4: "Philosophie" },
-  { id: 13, surname: "Dias", abbreviation: "Da", title: "ms", subject1: "Geschichte", subject2: "Musik" },
-  { id: 14, surname: "Dreyer", abbreviation: "Dy", title: "mr", subject1: "Theater", subject2: "Deutsch", subject3: "Französisch", subject4: "Kunst" },
-  { id: 15, surname: "Drumm", abbreviation: "Dru", title: "ms", subject1: "Theater", subject2: "Englisch", subject3: "Geschichte", subject4: "Politik" },
-  { id: 16, surname: "Eckers", abbreviation: "Ecs", title: "ms", subject1: "Biologie", subject2: "Deutsch" },
-  { id: 17, surname: "Eckert", abbreviation: "Ec", title: "ms", subject1: "Englisch", subject2: "Physik" },
-  { id: 18, surname: "Ellsiepen", abbreviation: "El", title: "ms", subject1: "Deutsch", subject2: "Musik" },
-  { id: 19, surname: "Glier", abbreviation: "Gl", title: "ms", subject1: "Deutsch", subject2: "Französisch" },
-  { id: 20, surname: "Haupt", abbreviation: "Ha", title: "ms", subject1: "Englisch", subject2: "Sport" },
-  { id: 21, surname: "Herrmann", abbreviation: "Hr", title: "mr", subject1: "Informatik", subject2: "Mathematik", subject3: "Physik" },
-  { id: 22, surname: "Keller", abbreviation: "Kel", title: "ms", subject1: "Englisch", subject2: "Geografie" },
-  { id: 23, surname: "Kießling", abbreviation: "Ks", title: "ms", subject1: "Chemie", subject2: "Ethik", subject3: "Mathematik", subject4: "Philosophie" },
-  { id: 24, surname: "Klein", abbreviation: "Ke", title: "ms", subject1: "Mathematik", subject2: "Musik" },
-  { id: 25, surname: "Klose", abbreviation: "Kl", title: "ms", subject1: "Mathematik", subject2: "Physik" },
-  { id: 26, surname: "Korte", abbreviation: "Kor", title: "ms", subject1: "Deutsch", subject2: "Latein" },
-  { id: 27, surname: "Kröse", abbreviation: "Kr", title: "mr", subject1: "Englisch", subject2: "Ethik", subject3: "Philosophie" },
-  { id: 28, surname: "Lee", abbreviation: "Le", title: "ms", subject1: "Deutsch", subject2: "Englisch" },
-  { id: 29, surname: "Lillge", abbreviation: "Lg", title: "ms", subject1: "Englisch", subject2: "Geschichte", subject3: "Politik" },
-  { id: 30, surname: "Luxen", abbreviation: "Lu", title: "mr", subject1: "Biologie", subject2: "Chemie" },
-  { id: 31, surname: "Magnus", abbreviation: "Mg", title: "mr", subject1: "Theater", subject2: "Deutsch", subject3: "Geschichte", subject4: "Politik" },
-  { id: 32, surname: "Matzies", abbreviation: "Mz", title: "ms", subject1: "Musik", subject2: "Politik" },
-  { id: 33, surname: "Meister", abbreviation: "Mr", title: "mr", subject1: "Englisch", subject2: "Physik" },
-  { id: 34, surname: "Moresmau", abbreviation: "Mo", title: "mr", subject1: "Französisch", subject2: "Politik" },
-  { id: 35, surname: "Müller", abbreviation: "Mue", title: "ms", subject1: "Deutsch", subject2: "Französisch" },
-  { id: 36, surname: "Müller", abbreviation: "Me", title: "mr", subject1: "Deutsch", subject2: "Ethik", subject3: "Philosophie" },
-  { id: 37, surname: "Nagler", abbreviation: "Ng", title: "ms", subject1: "Englisch", subject2: "Kunst" },
-  { id: 38, surname: "Nehse", abbreviation: "Nh", title: "ms", subject1: "Französisch", subject2: "Mathematik" },
-  { id: 39, surname: "Nix", abbreviation: "Nx", title: "ms", subject1: "Geografie", subject2: "Mathematik" },
-  { id: 40, surname: "Paasch", abbreviation: "Pa", title: "ms", subject1: "Deutsch", subject2: "Sport" },
-  { id: 41, surname: "Paulus", abbreviation: "Ps", title: "ms", subject1: "Geografie", subject2: "Geschichte", subject3: "Politik" },
-  { id: 42, surname: "Peukert", abbreviation: "Pt", title: "mr", subject1: "Geschichte", subject2: "Latein" },
-  { id: 43, surname: "Preuß", abbreviation: "Pr", title: "mr", subject1: "Deutsch", subject2: "Ethik", subject3: "Geschichte" },
-  { id: 44, surname: "Prey", abbreviation: "Py", title: "ms", subject1: "Mathematik", subject2: "Physik" },
-  { id: 45, surname: "Rehlinghaus", abbreviation: "Rh", title: "ms", subject1: "Geschichte", subject2: "Mathematik", subject3: "Musik" },
-  { id: 46, surname: "Rückert", abbreviation: "Rue", title: "mr", subject1: "Ethik", subject2: "Geschichte", subject3: "Politik" },
-  { id: 47, surname: "Schalge", abbreviation: "Sg", title: "mr", subject1: "Chemie", subject2: "Geografie" },
-  { id: 48, surname: "Schatz", abbreviation: "Saz", title: "mr", subject1: "Geschichte", subject2: "Politik", subject3: "Sport" },
-  { id: 49, surname: "Schlüter", abbreviation: "Sü", title: "mr", subject1: "Geografie", subject2: "Geschichte", subject3: "Informatik" },
-  { id: 50, surname: "Schmelzer", abbreviation: "Sz", title: "ms", subject1: "Biologie", subject2: "Chemie" },
-  { id: 51, surname: "Schmid", abbreviation: "Sd", title: "ms", subject1: "Englisch", subject2: "Kunst" },
-  { id: 52, surname: "Schmitt", abbreviation: "Sc", title: "ms", subject1: "Deutsch", subject2: "Geografie" },
-  { id: 53, surname: "Schneider", abbreviation: "Ser", title: "ms", subject1: "Theater", subject2: "Englisch", subject3: "Kunst" },
-  { id: 54, surname: "Scholler", abbreviation: "Sol", title: "ms", subject1: "Deutsch", subject2: "Englisch" },
-  { id: 55, surname: "Schröter", abbreviation: "Shr", title: "mr", subject1: "Physik" },
-  { id: 56, surname: "Sonnemann", abbreviation: "So", title: "ms", subject1: "Französisch", subject2: "Latein" },
-  { id: 57, surname: "Stilo", abbreviation: "St", title: "ms", subject1: "Französisch", subject2: "Musik" },
-  { id: 58, surname: "Stöhr", abbreviation: "Sr", title: "mr", subject1: "Biologie", subject2: "Geografie" },
-  { id: 59, surname: "Tarakci", abbreviation: "Ta", title: "ms", subject1: "Ethik", subject2: "Philosophie", subject3: "Politik" },
-  { id: 60, surname: "Thamm", abbreviation: "Tm", title: "ms", subject1: "Biologie", subject2: "Chemie" },
-  { id: 61, surname: "Türhan", abbreviation: "Tn", title: "ms", subject1: "Mathematik", subject2: "Physik" },
-  { id: 62, surname: "Ucaroglu", abbreviation: "Uc", title: "ms", subject1: "Englisch", subject2: "Geschichte", subject3: "Politik" },
-  { id: 63, surname: "von Wangenheim", abbreviation: "Wh", title: "ms", subject1: "Französisch", subject2: "Mathematik" },
-  { id: 64, surname: "Weber", abbreviation: "We", title: "mr", subject1: "Biologie", subject2: "Physik" },
-  { id: 65, surname: "Wolf", abbreviation: "WL", title: "ms", subject1: "Deutsch", subject2: "Englisch" },
-  { id: 66, surname: "Yatkin", abbreviation: "Ya", title: "ms", subject1: "Französisch", subject2: "Sport" },
-  { id: 67, surname: "Zimmermann", abbreviation: "Zm", title: "mr", subject1: "Geografie", subject2: "Sport" }
-];
+// --- 2. Data & Loading State ---
+const teachers = ref<Teacher[]>([]);
+const scheduleData = ref<ScheduleRow[]>([]);
+const loading = ref(true);
 
-const scheduleData: ScheduleRow[] = [
-  { "room": "A-109", "size": 20, "schedule": { "mo": 1, "di": 1, "mi": 1, "do": 37, "fr": 53 } },
-  { "room": "A-115", "size": 20, "schedule": { "mo": 49, "di": null, "mi": 49, "do": 49, "fr": null } },
-  { "room": "A003", "size": 27, "schedule": { "mo": null, "di": 15, "mi": 65, "do": 64, "fr": 27 } },
-  { "room": "A004", "size": 27, "schedule": { "mo": 47, "di": 9, "mi": 15, "do": 31, "fr": 20 } },
-  { "room": "A005", "size": 27, "schedule": { "mo": 36, "di": 10, "mi": 10, "do": 26, "fr": 66 } },
-  { "room": "A007", "size": 27, "schedule": { "mo": 29, "di": 60, "mi": 6, "do": 30, "fr": 60 } },
-  { "room": "A008", "size": 27, "schedule": { "mo": 59, "di": 33, "mi": 36, "do": 27, "fr": 9 } },
-  { "room": "A009", "size": 27, "schedule": { "mo": 56, "di": 65, "mi": 16, "do": 9, "fr": 63 } },
-  { "room": "A104", "size": 27, "schedule": { "mo": 17, "di": 55, "mi": 3, "do": 33, "fr": 46 } },
-  { "room": "A106", "size": 25, "schedule": { "mo": 44, "di": 25, "mi": 60, "do": 58, "fr": 44 } },
-  { "room": "A108", "size": 25, "schedule": { "mo": 12, "di": 23, "mi": 46, "do": 47, "fr": 7 } },
-  { "room": "A110", "size": 27, "schedule": { "mo": 60, "di": 43, "mi": 42, "do": 23, "fr": 50 } },
-  { "room": "A111", "size": 27, "schedule": { "mo": 25, "di": 61, "mi": 27, "do": 46, "fr": 38 } },
-  { "room": "A202", "size": 27, "schedule": { "mo": 35, "di": 51, "mi": 9, "do": 56, "fr": 56 } },
-  { "room": "A203", "size": 27, "schedule": { "mo": 58, "di": 64, "mi": 58, "do": 12, "fr": 12 } },
-  { "room": "A204", "size": 27, "schedule": { "mo": null, "di": 16, "mi": 40, "do": 5, "fr": 62 } },
-  { "room": "A206", "size": 25, "schedule": { "mo": 7, "di": 17, "mi": 2, "do": 11, "fr": 2 } },
-  { "room": "A207", "size": 25, "schedule": { "mo": 16, "di": 58, "mi": 12, "do": 15, "fr": 14 } },
-  { "room": "A210", "size": 27, "schedule": { "mo": 48, "di": 14, "mi": 37, "do": 53, "fr": 1 } },
-  { "room": "A301", "size": 27, "schedule": { "mo": 18, "di": 18, "mi": 35, "do": null, "fr": 48 } },
-  { "room": "A303", "size": 27, "schedule": { "mo": 67, "di": 3, "mi": 67, "do": 41, "fr": 41 } },
-  { "room": "A305", "size": 24, "schedule": { "mo": 54, "di": 31, "mi": 43, "do": 48, "fr": 42 } },
-  { "room": "A306", "size": 24, "schedule": { "mo": null, "di": 62, "mi": 11, "do": null, "fr": 34 } },
-  { "room": "A307", "size": 22, "schedule": { "mo": 5, "di": 28, "mi": null, "do": 59, "fr": 28 } },
-  { "room": "A309", "size": 15, "schedule": { "mo": 45, "di": 45, "mi": 44, "do": 45, "fr": 43 } },
-  { "room": "A310", "size": 22, "schedule": { "mo": 24, "di": 63, "mi": 63, "do": 63, "fr": 39 } },
-  { "room": "A311", "size": 22, "schedule": { "mo": 34, "di": 34, "mi": 28, "do": 35, "fr": 19 } },
-  { "room": "A312", "size": 24, "schedule": { "mo": 64, "di": 54, "mi": 7, "do": 7, "fr": 54 } },
-  { "room": "B204", "size": 12, "schedule": { "mo": null, "di": null, "mi": null, "do": null, "fr": 40 } }
-];
+const loadData = async () => {
+    loading.value = true;
+    try {
+        const [personsRes, scheduleRes] = await Promise.all([
+            hw.get<DbPerson[]>('/api/persons'),
+            hw.get<DbScheduleRow[]>('/api/dalton_schedule')
+        ]);
+        
+        // Transform Persons into Teachers format
+        teachers.value = personsRes.data.map(p => {
+           const subs = p.person_subjects?.map(ps => ps.subjects?.name).filter(Boolean) || [];
+           return {
+               id: p.id,
+               surname: p.name,
+               abbreviation: p.short,
+               title: p.title || '',
+               subject1: subs[0],
+               subject2: subs[1],
+               subject3: subs[2],
+               subject4: subs[3],
+           };
+        });
+
+        // Transform Dalton Schedules
+        scheduleData.value = scheduleRes.data.map(r => ({
+           room: r.room,
+           size: r.size,
+           schedule: {
+               mo: r.mo_person_id,
+               di: r.di_person_id,
+               mi: r.mi_person_id,
+               do: r.do_person_id,
+               fr: r.fr_person_id
+           }
+        })).sort((a, b) => a.room.localeCompare(b.room));
+
+    } catch (e) {
+        console.error('Failed to load dalton planner data', e);
+    } finally {
+        loading.value = false;
+    }
+};
+
+onMounted(() => {
+    loadData();
+});
 
 // --- 3. Logic & Composition ---
 
@@ -168,18 +138,29 @@ const handleTabChange = (id: string) => {
 };
 
 // Helper: Returns object instead of string for better styling control
-const getTeacherDisplay = (id: number | null) => {
+const getTeacherDisplay = (id: string | null) => {
   if (!id) return { name: '-', subjects: '' };
 
-  const teacher = teachers.find(item => item.id === id);
+  const teacher = teachers.value.find(item => item.id === id);
   if (!teacher) return { name: 'Unbekannt', subjects: '' };
 
-  const titleKey = teacher.title === 'ms' ? 'global.titles.abbr.ms' : 'global.titles.abbr.mr';
-  const titleAbbr = t(titleKey); // Fixed: Removed quotes so it uses the variable
-  const subs = [teacher.subject1, teacher.subject2, teacher.subject3, teacher.subject4].filter(s => s).join(', ');
+  let titleKey = teacher.title;
+  // Fallbacks if title is raw mr / ms instead of i18n key or if it's missing
+  if (teacher.title === 'ms') titleKey = 'global.titles.abbr.ms';
+  else if (teacher.title === 'mr') titleKey = 'global.titles.abbr.mr';
+
+  const titleAbbr = titleKey ? t(titleKey) : '';
+  const nameBase = titleAbbr ? `${titleAbbr} ${teacher.surname}` : teacher.surname;
+
+  // Translate subjects if their global.subjects i18n key is used
+  const rawSubs = [teacher.subject1, teacher.subject2, teacher.subject3, teacher.subject4].filter(s => s);
+  const subs = rawSubs.map(s => {
+      // Check if it's a global subject key, e.g. "global.subjects.math" vs "Mathematik"
+      return t(s as string);
+  }).join(', ');
 
   return {
-    name: `${titleAbbr} ${teacher.surname}`,
+    name: nameBase,
     subjects: subs
   };
 };
@@ -188,11 +169,11 @@ const getTeacherDisplay = (id: number | null) => {
 const filteredResults = computed<SearchResult[]>(() => {
   const query = searchQuery.value.toLowerCase().trim();
 
-  if (searchMode.value === 'room') {
+    if (searchMode.value === 'room') {
     // FIX: If no query, return ALL rooms
-    if (!query) return scheduleData;
+    if (!query) return scheduleData.value;
 
-    return scheduleData.filter(row =>
+    return scheduleData.value.filter(row =>
         row.room.toLowerCase().includes(query)
     );
   } else {
@@ -200,15 +181,20 @@ const filteredResults = computed<SearchResult[]>(() => {
     // If no query, we return empty list (too many teachers to show all by default)
     if (!query) return [];
 
-    const matchedTeacherIds = teachers
+    const matchedTeacherIds = teachers.value
         .filter(teacher => {
+          let titleKey = teacher.title;
+          if (teacher.title === 'ms') titleKey = 'global.titles.abbr.ms';
+          else if (teacher.title === 'mr') titleKey = 'global.titles.abbr.mr';
+          const titleAbbr = titleKey ? t(titleKey) : '';
+
           const fullSearchString = [
-            teacher.title,
+            titleAbbr,
             teacher.surname,
             teacher.abbreviation,
-            teacher.subject1,
-            teacher.subject2,
-            teacher.subject3
+            teacher.subject1 ? t(teacher.subject1) : '',
+            teacher.subject2 ? t(teacher.subject2) : '',
+            teacher.subject3 ? t(teacher.subject3) : ''
           ].join(' ').toLowerCase();
 
           return fullSearchString.includes(query);
@@ -220,23 +206,26 @@ const filteredResults = computed<SearchResult[]>(() => {
     const results: TeacherScheduleCard[] = [];
 
     matchedTeacherIds.forEach(id => {
-      // Renamed 't' to 'teacherObj' to avoid conflict with i18n 't'
-      const teacherObj = teachers.find(teacher => teacher.id === id)!;
-      const subs = [teacherObj.subject1, teacherObj.subject2, teacherObj.subject3, teacherObj.subject4].filter(s => s).join(', ');
+      const teacherObj = teachers.value.find(teacher => teacher.id === id)!;
+      let titleKey = teacherObj.title;
+      if (teacherObj.title === 'ms') titleKey = 'global.titles.abbr.ms';
+      else if (teacherObj.title === 'mr') titleKey = 'global.titles.abbr.mr';
+      const titleAbbr = titleKey ? t(titleKey) : '';
+      const nameBase = titleAbbr ? `${titleAbbr} ${teacherObj.surname}` : teacherObj.surname;
+
+      const rawSubs = [teacherObj.subject1, teacherObj.subject2, teacherObj.subject3, teacherObj.subject4].filter(s => s);
+      const subs = rawSubs.map(s => t(s as string)).join(', ');
 
       const teacherSchedule: TeacherScheduleCard = {
-        teacherName: `${teacherObj.title} ${teacherObj.surname}`,
+        teacherName: nameBase,
         teacherSubjects: subs,
         schedule: { mo: [], di: [], mi: [], do: [], fr: [] }
       };
 
-      let hasEntries = false;
-
-      scheduleData.forEach(row => {
+      scheduleData.value.forEach(row => {
         const days = ['mo', 'di', 'mi', 'do', 'fr'] as const;
         days.forEach(day => {
           if (row.schedule[day] === id) {
-            hasEntries = true;
             teacherSchedule.schedule[day].push(row.room);
           }
         });
@@ -252,24 +241,26 @@ const filteredResults = computed<SearchResult[]>(() => {
 
 <template>
   <div class="card">
-    <div class="flex align-center">
-      <h2 style="margin-top: 0;"
-          class="title-inf"
-      >
-        {{ t('school.tables.dalton.title') }}
-        <InfoPop
-            :tooltip="t('school.tables.dalton.infopop.tooltip')"
-            :title="t('school.tables.dalton.title')"
-        >
-          <h3>{{ t('school.tables.dalton.infopop.description') }}</h3>
-
-          <template v-for="(section, index) in tm('school.tables.dalton.infopop.sections')" :key="index">
-            <h3>{{ t('school.tables.dalton.infopop.sections.title') }}</h3>
-            <p>{{ t('school.tables.dalton.infopop.sections.text') }}</p>
-          </template>
-        </InfoPop>
-      </h2>
+    <div v-if="loading" class="flex align-center justify-center p-8">
+       <span class="text-sub">Lade...</span>
     </div>
+    <template v-else>
+      <div class="flex align-center">
+        <h2 style="margin-top: 0;" class="title-inf">
+          {{ t('school.tables.dalton.title') }}
+          <InfoPop
+              :tooltip="t('school.tables.dalton.infopop.tooltip')"
+              :title="t('school.tables.dalton.title')"
+          >
+            <h3 v-html="t('school.tables.dalton.infopop.description')"></h3>
+
+            <template v-for="(section, index) in tm('school.tables.dalton.infopop.sections')" :key="index">
+              <h3 v-html="section.title"></h3>
+              <p v-html="section.text"></p>
+            </template>
+          </InfoPop>
+        </h2>
+      </div>
 
     <!-- TabSwitcher Navigation -->
     <div class="tab-navigation">
@@ -389,6 +380,7 @@ const filteredResults = computed<SearchResult[]>(() => {
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 

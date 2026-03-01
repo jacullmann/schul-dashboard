@@ -325,7 +325,7 @@
           "wpuMissing": "Wähle einen WPU-Kurs aus",
           "profanity": "Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.",
           "customMissing": "Trage ein benutzerdefiniertes Fach ein",
-          "customLong": "Das benutzerdefinierte Fach ist zu lang (max. 40 Zeichen).",
+          "customLong": "Das benutzerdefinierte Fach ist zu lang (max. 100 Zeichen).",
           "titleMissing": "Füge einen Titel hinzu",
           "titleLong": "Der Titel ist zu lang (max. 60 Zeichen).",
           "descriptionLong": "Die Beschreibung ist zu lang (max. 1000 Zeichen).",

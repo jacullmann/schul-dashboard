@@ -44,7 +44,7 @@ export function requireUser(secret, supabase) {
 
             const { data: user } = await supabase
                 .from('users')
-                .select('id, email, is_admin')
+                .select('id, email, user_roles(roles(name))')
                 .eq('id', payload.sub)
                 .maybeSingle();
 
@@ -61,7 +61,7 @@ export function requireUser(secret, supabase) {
             req.user = {
                 sub: payload.sub,
                 email: payload.email,
-                isAdmin: user.is_admin,
+                role: user.user_roles?.[0]?.roles?.name || 'user',
             };
             next();
         } catch {
@@ -97,14 +97,14 @@ export function checkUser(secret, supabase) {
                 if (payload.sub && payload.email) {
                     const { data: user } = await supabase
                         .from('users')
-                        .select('is_admin')
+                        .select('user_roles(roles(name))')
                         .eq('id', payload.sub)
                         .maybeSingle();
 
                     req.user = {
                         sub: payload.sub,
                         email: payload.email,
-                        isAdmin: user?.is_admin || false,
+                        role: user?.user_roles?.[0]?.roles?.name || 'user',
                     };
                 }
             } catch {

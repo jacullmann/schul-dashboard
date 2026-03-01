@@ -73,7 +73,7 @@
 
         <template #badges>
           <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
-          <div v-if="user?.isAdmin" class="admin-creator-info">
+          <div v-if="user?.role === 'superadmin'" class="admin-creator-info">
             {{ item.createdByEmail || 'Unbekannt' }}
           </div>
         </template>
@@ -163,7 +163,7 @@
           </div>
 
           <div
-              v-if="item.editorNote || user?.isAdmin"
+              v-if="item.editorNote || user?.role === 'superadmin'"
               class="editor-note-section"
           >
             <div class="editor-note-header">
@@ -294,7 +294,7 @@
         @close="closeImageViewer"
     />
 
-    <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || 0, wpuKurs1: user.wpuKurs1 || 0, wpuKurs2: user.wpuKurs2 || 0, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
+    <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || null, wpuKurs1: user.wpuKurs1 || null, wpuKurs2: user.wpuKurs2 || null, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 

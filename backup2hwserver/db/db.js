@@ -672,7 +672,13 @@ export async function logSecurityEvent(sb, event) {
 
 export async function listPersons(sb) {
     return throwOnError(
-        await sb.from('persons').select('*').order('id', { ascending: true })
+        await sb.from('persons').select('*, person_subjects(subjects(name))').order('id', { ascending: true })
+    );
+}
+
+export async function listDaltonSchedule(sb) {
+    return throwOnError(
+        await sb.from('dalton_schedule').select('*')
     );
 }
 

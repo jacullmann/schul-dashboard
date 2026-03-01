@@ -121,9 +121,9 @@ export function registerDocSocket(io, supabase, deps) {
             if (!payload?.sub || !payload?.email) return next(new Error('AUTH_INVALID'));
 
             // Check user exists, is admin, not banned — via Supabase
-            const user = await db.findUserById(supabase, payload.sub, 'id, is_admin');
+            const user = await db.findUserById(supabase, payload.sub, 'id, user_roles(roles(name))');
             if (!user) return next(new Error('AUTH_NOT_FOUND'));
-            if (!user.is_admin) return next(new Error('AUTH_FORBIDDEN'));
+            if (user.user_roles?.[0]?.roles?.name !== 'superadmin') return next(new Error('AUTH_FORBIDDEN'));
 
             const banned = await db.isBanned(supabase, payload.sub);
             if (banned) return next(new Error('AUTH_BANNED'));

@@ -46,7 +46,6 @@
             class="switch-btn"
             :class="{ rotated: isRotated }"
             @click="toggleMode"
-            data-umami-event="Kürzel Richtung Switch "
         >
           <ArrowLeftRight class="switch-icon" />
         </button>
@@ -143,12 +142,12 @@ const {
 .switch-icon {
   width: 22px;
   height: 22px;
-  color: var(--sub);
-  transition: color 0.3s ease, transform 0.2s cubic-bezier(0.66, 0, 0.34, 1);
+  color: var(--text);
+  transition: color 0.1s, transform 0.2s ease;
 }
 
-.switch-btn:hover .switch-icon {
-  color: var(--text);
+.switch-btn:hover {
+  background: var(--ghost--hover)
 }
 
 .switch-btn.rotated .switch-icon {

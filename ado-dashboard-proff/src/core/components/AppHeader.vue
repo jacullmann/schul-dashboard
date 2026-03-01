@@ -15,7 +15,7 @@
           <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
 
           <router-link
-              v-if="user?.isAdmin"
+              v-if="user?.role === 'superadmin'"
               to="/admin-dashboard"
               class="nav-item admin-link"
               @click="closeNav"
@@ -61,7 +61,7 @@
             v-if="!navOpen"
             data-umami-event="Mobile Menu öffnen"
         >
-          <Menu style="color: var(--text)" :size="26"/>
+          <Menu style="color: var(--text)" :size="26" />
         </button>
       </div>
 
@@ -73,9 +73,9 @@
         :visible="showSetupModal"
         :is-setup="user && !user.doneSetup"
         :initial-data="{
-          enrKurs: user.enrKurs || 0,
-          wpuKurs1: user.wpuKurs1 || 0,
-          wpuKurs2: user.wpuKurs2 || 0,
+          enrKurs: user.enrKurs || null,
+          wpuKurs1: user.wpuKurs1 || null,
+          wpuKurs2: user.wpuKurs2 || null,
           theater: user.theater || 0
         }"
         @close="showSetupModal = false"

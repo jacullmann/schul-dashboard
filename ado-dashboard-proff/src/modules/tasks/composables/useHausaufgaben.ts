@@ -25,7 +25,7 @@ export function useHausaufgaben() {
     const { t, te } = useI18n();
 
     const MAX_TITLE_LENGTH = 50;
-    const MAX_SUBJECT_LENGTH = 30;
+    const MAX_SUBJECT_LENGTH = 100;
 
     // --- State ---
     const itemFormType = ref<'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'>('HAUSAUFGABE');
@@ -577,16 +577,16 @@ export function useHausaufgaben() {
 
     function canDelete(createdBy: string) {
         if (!user.value) return false;
-        return user.value.isAdmin || user.value.id === createdBy;
+        return user.value.role === 'superadmin' || user.value.id === createdBy;
     }
 
     function canDeleteImage(itemCreatedBy: string, imageCreatedBy: string) {
         if (!user.value) return false;
-        return user.value.isAdmin || user.value.id === imageCreatedBy || user.value.id === itemCreatedBy;
+        return user.value.role === 'superadmin' || user.value.id === imageCreatedBy || user.value.id === itemCreatedBy;
     }
 
     function canEditNote() {
-        return user.value?.isAdmin === true;
+        return user.value?.role === 'superadmin';
     }
 
     // --- Editor notes ---

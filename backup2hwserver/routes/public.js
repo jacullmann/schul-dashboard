@@ -134,7 +134,7 @@ export default function createPublicRoutes(deps) {
             try {
                 const ann = await db.findAnnouncementById(supabase, req.params.id);
                 if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
-                if (!req.user.isAdmin && ann.created_by !== req.user.sub) {
+                if (req.user.role !== 'superadmin' && ann.created_by !== req.user.sub) {
                     return sendJSONError(res, 403, 'Nicht autorisiert.');
                 }
                 await db.deleteAnnouncement(supabase, req.params.id);
@@ -214,6 +214,20 @@ export default function createPublicRoutes(deps) {
             } catch (err) {
                 console.error('GET /api/persons error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Personen');
+            }
+        }
+    );
+
+    // GET /api/dalton_schedule
+    router.get('/api/dalton_schedule',
+        requireAppGate(appGateSecret),
+        async (req, res) => {
+            try {
+                const data = await db.listDaltonSchedule(supabase);
+                res.json(data);
+            } catch (err) {
+                console.error('GET /api/dalton_schedule error', err);
+                sendJSONError(res, 500, 'Fehler beim Laden der Dalton-Pläne');
             }
         }
     );

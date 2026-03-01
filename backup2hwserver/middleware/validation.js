@@ -14,7 +14,7 @@ export function validate(req, res, next) {
 }
 
 export function requireAdmin(req, res, next) {
-    if (!req.user?.isAdmin) {
+    if (req.user?.role !== 'superadmin') {
         return sendJSONError(res, 403, 'Forbidden');
     }
     next();
@@ -36,7 +36,7 @@ export function validateItemCreation(req, res, next) {
         const errorMap = {
             'type': 'Der Eintragstyp ist ungültig.',
             'title': 'Passe den Titel an (2-60 Zeichen).',
-            'subject': 'Passe das Fach an (2-40 Zeichen).',
+            'subject': 'Passe das Fach an (2-100 Zeichen).',
             'description': 'Die Beschreibung ist zu lang.',
             'images': 'Du kannst maximal 8 Bilder selbst hochladen.',
             'dueDate': 'Das Datumsformat ist ungültig.',

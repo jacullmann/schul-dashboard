@@ -268,7 +268,7 @@ async function submit() {
     if (!subject || !subject.length) {
       throw new Error(t('school.tasks.itemForm.errors.customMissing'));
     }
-    if (subject.length > 40) {
+    if (subject.length > 100) {
       throw new Error(t('school.tasks.itemForm.errors.customLong'));
     }
 

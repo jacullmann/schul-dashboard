@@ -5,7 +5,7 @@ import hw from '@/api/hwApi';
 interface UserData {
     id: string;
     email: string;
-    isAdmin: boolean;
+    role: string;
     emailVerified: boolean;
     enrKurs: string | null;
     wpuKurs1: string | null;
@@ -23,7 +23,8 @@ export const useUserStore = defineStore('user', () => {
     const hasShownSetup = ref(false);
 
     const isLoggedIn = computed(() => user.value !== null);
-    const isAdmin = computed(() => user.value?.isAdmin === true);
+    const role = computed(() => user.value?.role);
+    const isSuperadmin = computed(() => user.value?.role === 'superadmin');
     const needsSetup = computed(() => user.value !== null && !user.value.doneSetup);
     const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
 
@@ -36,7 +37,7 @@ export const useUserStore = defineStore('user', () => {
                 user.value = {
                     id: data.id,
                     email: data.email,
-                    isAdmin: data.isAdmin,
+                    role: data.role || 'user',
                     emailVerified: data.emailVerified,
                     enrKurs: data.enrKurs,
                     wpuKurs1: data.wpuKurs1,
@@ -84,7 +85,8 @@ export const useUserStore = defineStore('user', () => {
         initialized,
         hasShownSetup,
         isLoggedIn,
-        isAdmin,
+        role,
+        isSuperadmin,
         needsSetup,
         mfaEnabled,
         fetchUser,

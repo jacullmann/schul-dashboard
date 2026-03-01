@@ -97,7 +97,7 @@ export default function createAdminRoutes(deps) {
                     db.countSorgen(supabase),
                     db.getItemsByTypeCount(supabase),
                     db.countUsers(supabase, { email_verified: true }),
-                    db.countUsers(supabase, { is_admin: true }),
+                    supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('role_id', 1).then(({ count }) => count || 0),
                     db.countItemsOlderThan(supabase, new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
                 ]);
 
@@ -229,11 +229,11 @@ export default function createAdminRoutes(deps) {
         ...adminAuth,
         async (req, res) => {
             try {
-                const users = await db.listUsers(supabase, { select: 'id, email, is_admin, created_at, last_login_at' });
+                const users = await db.listUsers(supabase, { select: 'id, email, user_roles(roles(name)), created_at, last_login_at' });
                 const result = await Promise.all(users.map(async (u) => {
                     const activity = await db.getUserActivity(supabase, u.id, { limit: 20 });
                     return {
-                        id: u.id, email: u.email, isAdmin: u.is_admin,
+                        id: u.id, email: u.email, isAdmin: u.user_roles?.[0]?.roles?.name === 'superadmin',
                         createdAt: u.created_at, lastLoginAt: u.last_login_at,
                         activity: activity.map(a => ({ at: a.created_at, type: a.type, meta: a.meta })),
                     };
@@ -272,9 +272,9 @@ export default function createAdminRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const target = await db.findUserById(supabase, req.params.id, 'id, is_admin');
+                const target = await db.findUserById(supabase, req.params.id, 'id, user_roles(roles(name))');
                 if (!target) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
-                if (target.is_admin) return sendJSONError(res, 403, 'Admins können nicht gelöscht werden');
+                if (target.user_roles?.[0]?.roles?.name === 'superadmin') return sendJSONError(res, 403, 'Admins können nicht gelöscht werden');
                 // CASCADE handles dependent records
                 await db.deleteUser(supabase, req.params.id);
                 res.json({ ok: true });
@@ -293,7 +293,11 @@ export default function createAdminRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                await db.updateUser(supabase, req.params.id, { is_admin: !!req.body.isAdmin });
+                if (req.body.isAdmin) {
+                    await supabase.from('user_roles').upsert({ user_id: req.params.id, role_id: 1 });
+                } else {
+                    await supabase.from('user_roles').delete().eq('user_id', req.params.id).eq('role_id', 1);
+                }
                 res.json({ ok: true });
             } catch (err) {
                 console.error('PATCH /api/admin/users/:id error', err);
@@ -340,14 +344,14 @@ export default function createAdminRoutes(deps) {
         async (req, res) => {
             try {
                 const users = await db.listUsers(supabase, {
-                    select: 'id, email, is_admin, email_verified, created_at, last_login_at, enr_kurs, wpu_kurs_1, wpu_kurs_2, theater, done_setup',
+                    select: 'id, email, user_roles(roles(name)), email_verified, created_at, last_login_at, enr_kurs, wpu_kurs_1, wpu_kurs_2, theater, done_setup',
                 });
                 const bannedIds = new Set(await db.listBannedUserIds(supabase));
 
                 const result = users.map(u => ({
                     id: u.id,
                     email: u.email,
-                    isAdmin: u.is_admin,
+                    isAdmin: u.user_roles?.[0]?.roles?.name === 'superadmin',
                     emailVerified: u.email_verified,
                     createdAt: u.created_at,
                     lastLoginAt: u.last_login_at,
@@ -388,9 +392,9 @@ export default function createAdminRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const target = await db.findUserById(supabase, req.params.id, 'id, is_admin');
+                const target = await db.findUserById(supabase, req.params.id, 'id, user_roles(roles(name))');
                 if (!target) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
-                if (target.is_admin) return sendJSONError(res, 400, 'Du kannst keine Admins bannen.');
+                if (target.user_roles?.[0]?.roles?.name === 'superadmin') return sendJSONError(res, 400, 'Du kannst keine Admins bannen.');
                 await db.banUser(supabase, target.id);
                 await db.logActivity(supabase, req.user.sub, 'admin:ban:user', { targetUserId: target.id });
                 res.json({ ok: true, isBanned: true });

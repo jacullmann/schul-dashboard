@@ -105,7 +105,7 @@ export default function createItemsRoutes(deps) {
         [
             body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']).withMessage('type'),
             body('title').isString().isLength({ min: 1, max: 60 }).withMessage('title'),
-            body('subject').isString().isLength({ min: 1, max: 40 }).withMessage('subject'),
+            body('subject').isString().isLength({ min: 1, max: 100 }).withMessage('subject'),
             body('description').optional().isString().isLength({ max: 1000 }).withMessage('description'),
             body('images').optional().isArray({ max: 8 }).withMessage('images'),
             body('dueDate').isISO8601().toDate().withMessage('dueDate'),
@@ -157,7 +157,7 @@ export default function createItemsRoutes(deps) {
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         body('title').optional().isString().isLength({ min: 2, max: 60 }),
-        body('subject').optional().isString().isLength({ min: 2, max: 40 }),
+        body('subject').optional().isString().isLength({ min: 2, max: 100 }),
         body('description').optional().isString().isLength({ max: 1000 }),
         body('images').optional().isArray({ max: 12 }),
         body('dueDate').optional().isISO8601().toDate(),
@@ -233,7 +233,7 @@ export default function createItemsRoutes(deps) {
             try {
                 const item = await db.findItemById(supabase, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
-                if (!req.user.isAdmin && item.created_by !== req.user.sub) {
+                if (req.user.role !== 'superadmin' && item.created_by !== req.user.sub) {
                     return sendJSONError(res, 403, 'Nicht autorisiert.');
                 }
 
@@ -361,7 +361,7 @@ export default function createItemsRoutes(deps) {
                 if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
 
                 const image = images[imageIndex];
-                const isAdmin = req.user.isAdmin;
+                const isAdmin = req.user.role === 'superadmin';
                 const isImageOwner = image.createdBy && image.createdBy === req.user.sub;
                 const isItemOwner = item.created_by === req.user.sub;
                 if (!isAdmin && !isImageOwner && !isItemOwner) {
