@@ -171,10 +171,7 @@ Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff.
 
                 const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
                 const [newUsersThisWeek, newItemsThisWeek, topCreators] = await Promise.all([
-                    db.countUsers(supabase).then(async () => {
-                        const { count } = await supabase.from('users').select('*', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo);
-                        return count ?? 0;
-                    }),
+                    db.countUsersSince(supabase, sevenDaysAgo),
                     db.countItemsSince(supabase, sevenDaysAgo),
                     db.getTopCreators(supabase, 5),
                 ]);
@@ -301,15 +298,14 @@ Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff.
         async (req, res) => {
             try {
                 const users = await db.listUsers(supabase, { select: 'id, email, is_admin, created_at, last_login_at' });
-                const result = [];
-                for (const u of users) {
+                const result = await Promise.all(users.map(async (u) => {
                     const activity = await db.getUserActivity(supabase, u.id, { limit: 20 });
-                    result.push({
+                    return {
                         id: u.id, email: u.email, isAdmin: u.is_admin,
                         createdAt: u.created_at, lastLoginAt: u.last_login_at,
                         activity: activity.map(a => ({ at: a.created_at, type: a.type, meta: a.meta })),
-                    });
-                }
+                    };
+                }));
                 res.json(result);
             } catch (err) {
                 console.error('GET /api/admin/users error', err);
@@ -364,8 +360,13 @@ Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff.
         body('isAdmin').isBoolean(),
         validate,
         async (req, res) => {
-            await db.updateUser(supabase, req.params.id, { is_admin: !!req.body.isAdmin });
-            res.json({ ok: true });
+            try {
+                await db.updateUser(supabase, req.params.id, { is_admin: !!req.body.isAdmin });
+                res.json({ ok: true });
+            } catch (err) {
+                console.error('PATCH /api/admin/users/:id error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
         }
     );
 
@@ -376,8 +377,13 @@ Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff.
         body('name').isString().isLength({ min: 2, max: 50 }),
         validate,
         async (req, res) => {
-            await db.upsertSubject(supabase, req.body.name);
-            res.status(201).json({ ok: true });
+            try {
+                await db.upsertSubject(supabase, req.body.name);
+                res.status(201).json({ ok: true });
+            } catch (err) {
+                console.error('POST /api/admin/subjects error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
         }
     );
 
@@ -386,8 +392,13 @@ Sei weder zu lasch, noch sieh jede Abfolge von Fehlschlägen als Angriff.
         ...adminAuth,
         validateCsrf(csrfSecret),
         async (req, res) => {
-            await db.deleteSubject(supabase, req.params.name);
-            res.json({ ok: true });
+            try {
+                await db.deleteSubject(supabase, req.params.name);
+                res.json({ ok: true });
+            } catch (err) {
+                console.error('DELETE /api/admin/subjects/:name error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
         }
     );
 

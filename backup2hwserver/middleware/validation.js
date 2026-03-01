@@ -42,7 +42,7 @@ export function validateItemCreation(req, res, next) {
             'dueDate': 'Das Datumsformat ist ungültig.',
         };
         const firstError = errors.array()[0];
-        const fieldName = firstError.param;
+        const fieldName = firstError.path;
         const userFriendlyMessage = errorMap[fieldName] || `Ungültiger Wert für ${fieldName}`;
         return sendJSONError(res, 400, userFriendlyMessage, errors.array());
     }

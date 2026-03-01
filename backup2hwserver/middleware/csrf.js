@@ -34,21 +34,6 @@ export function verifyCsrfToken(token, secret) {
     }
 }
 
-export function setCsrfCookie(csrfSecret) {
-    return (req, res, next) => {
-        const token = req.cookies[CSRF_COOKIE_NAME] || generateCsrfToken(csrfSecret);
-        res.cookie(CSRF_COOKIE_NAME, token, {
-            httpOnly: false,
-            secure: true,
-            path: '/',
-            sameSite: 'None',
-            maxAge: 30 * 24 * 60 * 60 * 1000
-        });
-
-        next();
-    };
-}
-
 
 export function validateCsrf(csrfSecret) {
     return (req, res, next) => {

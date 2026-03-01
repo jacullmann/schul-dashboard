@@ -29,8 +29,6 @@ import createDocRoutes from './routes/doc.js';
 
 export default function registerRoutes(app, deps) {
     const {
-        mongoose,
-        models,
         supabase,
         cloudinary,
         resendClient,
