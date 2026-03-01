@@ -70,7 +70,7 @@ export async function countUsers(sb, filters = {}) {
 
 export async function countUsersSince(sb, dateISO) {
     const { count, error } = await sb.from('users')
-        .select('*', { count: 'exact', head: true })
+        .selet('*', { count: 'exact', head: true })
         .gte('created_at', dateISO);
     if (error) throw new Error(error.message);
     return count ?? 0;
