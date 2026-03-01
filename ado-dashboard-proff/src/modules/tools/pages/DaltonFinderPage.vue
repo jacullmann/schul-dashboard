@@ -184,12 +184,12 @@ const filteredResults = computed<SearchResult[]>(() => {
     const matchedTeacherIds = teachers.value
         .filter(teacher => {
           let titleKey = teacher.title;
-          if (teacher.title === 'ms') titleKey = 'global.titles.abbr.ms';
-          else if (teacher.title === 'mr') titleKey = 'global.titles.abbr.mr';
-          const titleAbbr = titleKey ? t(titleKey) : '';
+          if (teacher.title === 'ms') titleKey = 'global.titles.ms';
+          else if (teacher.title === 'mr') titleKey = 'global.titles.mr';
+          const titleLabel = titleKey ? t(titleKey) : '';
 
           const fullSearchString = [
-            titleAbbr,
+            titleLabel,
             teacher.surname,
             teacher.abbreviation,
             teacher.subject1 ? t(teacher.subject1) : '',
@@ -208,10 +208,10 @@ const filteredResults = computed<SearchResult[]>(() => {
     matchedTeacherIds.forEach(id => {
       const teacherObj = teachers.value.find(teacher => teacher.id === id)!;
       let titleKey = teacherObj.title;
-      if (teacherObj.title === 'ms') titleKey = 'global.titles.abbr.ms';
-      else if (teacherObj.title === 'mr') titleKey = 'global.titles.abbr.mr';
-      const titleAbbr = titleKey ? t(titleKey) : '';
-      const nameBase = titleAbbr ? `${titleAbbr} ${teacherObj.surname}` : teacherObj.surname;
+      if (teacherObj.title === 'ms') titleKey = 'global.titles.ms';
+      else if (teacherObj.title === 'mr') titleKey = 'global.titles.mr';
+      const titleLabel = titleKey ? t(titleKey) : '';
+      const nameBase = titleLabel ? `${titleLabel} ${teacherObj.surname}` : teacherObj.surname;
 
       const rawSubs = [teacherObj.subject1, teacherObj.subject2, teacherObj.subject3, teacherObj.subject4].filter(s => s);
       const subs = rawSubs.map(s => t(s as string)).join(', ');

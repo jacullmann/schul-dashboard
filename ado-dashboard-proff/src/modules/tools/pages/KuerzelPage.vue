@@ -35,7 +35,7 @@
               @click="applySuggestion(s)"
               class="suggestion-link"
           >
-              {{ s.title }} {{ s.name }}<span v-if="Number(idx) < suggestions.length - 1">,</span>
+              {{ s.title ? t(`global.titles.${s.title}`) : '' }} {{ s.name }}<span v-if="Number(idx) < suggestions.length - 1">,</span>
             </span>
           {{ t('school.tables.abbr.didYouMean2') }}
         </div>
@@ -70,7 +70,7 @@
           @click="applySuggestion(s)"
           class="suggestion-link"
       >
-          {{ s.title }} {{ s.name }}<span v-if="Number(idx) < suggestions.length - 1">,</span>
+          {{ s.title ? t(`global.titles.${s.title}`) : '' }} {{ s.name }}<span v-if="Number(idx) < suggestions.length - 1">,</span>
         </span>
       {{ t('school.tables.abbr.didYouMean2') }}
     </div>

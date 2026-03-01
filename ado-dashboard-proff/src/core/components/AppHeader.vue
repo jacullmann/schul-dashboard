@@ -12,7 +12,7 @@
             <X />
           </button>
 
-          <router-link to="/" class="nav-item" @click="closeNav">Dashboard</router-link>
+          <router-link to="/" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
 
           <router-link
               v-if="user?.role === 'superadmin'"
@@ -23,9 +23,9 @@
             Admin
           </router-link>
 
-          <router-link to="/stundenplan" class="nav-item" @click="closeNav">Stundenplan</router-link>
-          <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">Daltonraumfinder</router-link>
-          <router-link to="/kuerzel" class="nav-item" @click="closeNav">Kürzelfinder</router-link>
+          <router-link to="/stundenplan" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
+          <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">{{ t('school.tables.dalton.title') }}</router-link>
+          <router-link to="/kuerzel" class="nav-item" @click="closeNav">{{ t('school.tables.abbr.title') }}</router-link>
 
         </nav>
       </div>
@@ -51,7 +51,7 @@
             class="btn action cta-button"
             @click="handleLoginClick"
         >
-          Anmelden
+          {{ t('account.auth.login') }}
         </button>
 
         <button
@@ -97,6 +97,10 @@ import hw from '@/api/hwApi';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
@@ -261,7 +265,7 @@ onUnmounted(() => {
 }
 
 .nav-item:hover {
-  color: var(--nav-hover);
+  color: var(--action-hover);
 }
 
 .header-right {
