@@ -74,7 +74,7 @@ const {
           class="lesson-group-container"
           :class="{
             'highlight-active': key === activeOrNextGroupKey,
-            'current-day': group[0].day === currentDayName
+            'current-day': group[0]?.day === currentDayName
             }"
           :style="getGroupStyle(group)"
       >

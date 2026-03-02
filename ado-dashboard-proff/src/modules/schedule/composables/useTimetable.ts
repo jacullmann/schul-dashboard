@@ -131,7 +131,7 @@ export function useTimetable() {
     const timeSlots = computed<TimeSlot[]>(() => {
         const slots: TimeSlot[] = [];
         for (let i = 1; i <= totalSlots; i++) {
-            const startMins = slotStartMinutes.value[i];
+            const startMins = slotStartMinutes.value[i] ?? 0;
             const endMins = startMins + lessonDurationMins;
             slots.push({ slot: i, time: `${formatTime(startMins)} - ${formatTime(endMins)}` });
         }
@@ -151,6 +151,7 @@ export function useTimetable() {
     const getGroupStyle = (groupLessons: Lesson[]) => {
         if (!groupLessons.length) return {};
         const firstLesson = groupLessons[0];
+        if (!firstLesson) return {};
         const maxDuration = Math.max(...groupLessons.map(l => l.duration));
         const dayIndex = days.indexOf(firstLesson.day);
         const colStart = dayIndex + 2;
@@ -215,11 +216,12 @@ export function useTimetable() {
 
         const timeBlocks = Object.entries(groupedLessons.value).map(([key, group]) => {
             const first = group[0];
+            if (!first) return null;
             const dayIdx = dayMap[first.day] ?? -1;
             if (dayIdx === -1) return null;
 
             const maxDuration = Math.max(...group.map(l => l.duration));
-            const startMinsOfDay = slotStartMinutes.value[first.slot];
+            const startMinsOfDay = slotStartMinutes.value[first.slot] ?? 0;
 
             let endMinsOfDay = startMinsOfDay;
             for (let d = 0; d < maxDuration; d++) {
@@ -233,7 +235,7 @@ export function useTimetable() {
             const endTotal = (dayIdx * 24 * 60) + endMinsOfDay;
 
             return { key, startTotal, endTotal };
-        }).filter(block => block !== null) as { key: string, startTotal: number, endTotal: number }[];
+        }).filter((block): block is { key: string, startTotal: number, endTotal: number } => block !== null);
 
         const activeBlock = timeBlocks.find(b => currentTotalWeekMinutes >= b.startTotal && currentTotalWeekMinutes < b.endTotal);
         if (activeBlock) return activeBlock.key;

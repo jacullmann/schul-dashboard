@@ -1,129 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import hw from '@/api/hwApi';
+import { onMounted } from 'vue';
 import InfoPop from '@/common/components/InfoModalCenter.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import { useI18n } from 'vue-i18n';
+import { useDaltonFinder } from '../composables/useDaltonFinder';
+import type { ScheduleRow, TeacherScheduleCard } from '../composables/useDaltonFinder';
 
 const { t, tm } = useI18n();
 
-// --- 1. Types & Interfaces ---
+const {
+  loading,
+  searchMode,
+  searchQuery,
+  filteredResults,
+  loadData,
+  getTeacherDisplay
+} = useDaltonFinder();
 
-// Updated to match Supabase schema (persons + person_subjects payload)
-interface DbPerson {
-  id: string; // uuid
-  name: string; // surname
-  short: string; // abbreviation
-  title: string;
-  person_subjects?: { subjects: { name: string } }[];
-}
-
-interface Teacher {
-  id: string;
-  surname: string;
-  abbreviation: string;
-  title: string;
-  subject1?: string;
-  subject2?: string;
-  subject3?: string;
-  subject4?: string;
-}
-
-interface DbScheduleRow {
-  id: string;
-  room: string;
-  size: number;
-  mo_person_id: string | null;
-  di_person_id: string | null;
-  mi_person_id: string | null;
-  do_person_id: string | null;
-  fr_person_id: string | null;
-}
-
-interface ScheduleRow {
-  room: string;
-  size: number;
-  schedule: {
-    mo: string | null;
-    di: string | null;
-    mi: string | null;
-    do: string | null;
-    fr: string | null;
-  };
-}
-
-// Interface for the transformed Teacher Card data
-interface TeacherScheduleCard {
-  teacherName: string;
-  teacherSubjects: string;
-  schedule: {
-    mo: string[];
-    di: string[];
-    mi: string[];
-    do: string[];
-    fr: string[];
-  };
-}
-
-// Union type for our computed property
-type SearchResult = ScheduleRow | TeacherScheduleCard;
-
-// --- 2. Data & Loading State ---
-const teachers = ref<Teacher[]>([]);
-const scheduleData = ref<ScheduleRow[]>([]);
-const loading = ref(true);
-
-const loadData = async () => {
-    loading.value = true;
-    try {
-        const [personsRes, scheduleRes] = await Promise.all([
-            hw.get<DbPerson[]>('/api/persons'),
-            hw.get<DbScheduleRow[]>('/api/dalton_schedule')
-        ]);
-        
-        // Transform Persons into Teachers format
-        teachers.value = personsRes.data.map(p => {
-           const subs = p.person_subjects?.map(ps => ps.subjects?.name).filter(Boolean) || [];
-           return {
-               id: p.id,
-               surname: p.name,
-               abbreviation: p.short,
-               title: p.title || '',
-               subject1: subs[0],
-               subject2: subs[1],
-               subject3: subs[2],
-               subject4: subs[3],
-           };
-        });
-
-        // Transform Dalton Schedules
-        scheduleData.value = scheduleRes.data.map(r => ({
-           room: r.room,
-           size: r.size,
-           schedule: {
-               mo: r.mo_person_id,
-               di: r.di_person_id,
-               mi: r.mi_person_id,
-               do: r.do_person_id,
-               fr: r.fr_person_id
-           }
-        })).sort((a, b) => a.room.localeCompare(b.room));
-
-    } catch (e) {
-        console.error('Failed to load dalton planner data', e);
-    } finally {
-        loading.value = false;
-    }
-};
-
-onMounted(() => {
-    loadData();
-});
-
-// --- 3. Logic & Composition ---
-
-const searchMode = ref<'room' | 'teacher'>('room');
-const searchQuery = ref('');
 const currentDay = new Date().getDay();
 
 // TabSwitcher Items
@@ -137,105 +30,8 @@ const handleTabChange = (id: string) => {
   searchQuery.value = ''; // Clear search when switching tabs
 };
 
-// Helper: Returns object instead of string for better styling control
-const getTeacherDisplay = (id: string | null) => {
-  if (!id) return { name: '-', subjects: '' };
-
-  const teacher = teachers.value.find(item => item.id === id);
-  if (!teacher) return { name: 'Unbekannt', subjects: '' };
-
-  let titleKey = teacher.title;
-  // Fallbacks if title is raw mr / ms instead of i18n key or if it's missing
-  if (teacher.title === 'ms') titleKey = 'global.titles.abbr.ms';
-  else if (teacher.title === 'mr') titleKey = 'global.titles.abbr.mr';
-
-  const titleAbbr = titleKey ? t(titleKey) : '';
-  const nameBase = titleAbbr ? `${titleAbbr} ${teacher.surname}` : teacher.surname;
-
-  // Translate subjects if their global.subjects i18n key is used
-  const rawSubs = [teacher.subject1, teacher.subject2, teacher.subject3, teacher.subject4].filter(s => s);
-  const subs = rawSubs.map(s => {
-      // Check if it's a global subject key, e.g. "global.subjects.math" vs "Mathematik"
-      return t(s as string);
-  }).join(', ');
-
-  return {
-    name: nameBase,
-    subjects: subs
-  };
-};
-
-// Computed property with simplified Types and better "Default" logic
-const filteredResults = computed<SearchResult[]>(() => {
-  const query = searchQuery.value.toLowerCase().trim();
-
-    if (searchMode.value === 'room') {
-    // FIX: If no query, return ALL rooms
-    if (!query) return scheduleData.value;
-
-    return scheduleData.value.filter(row =>
-        row.room.toLowerCase().includes(query)
-    );
-  } else {
-    // Mode: Teacher
-    // If no query, we return empty list (too many teachers to show all by default)
-    if (!query) return [];
-
-    const matchedTeacherIds = teachers.value
-        .filter(teacher => {
-          let titleKey = teacher.title;
-          if (teacher.title === 'ms') titleKey = 'global.titles.ms';
-          else if (teacher.title === 'mr') titleKey = 'global.titles.mr';
-          const titleLabel = titleKey ? t(titleKey) : '';
-
-          const fullSearchString = [
-            titleLabel,
-            teacher.surname,
-            teacher.abbreviation,
-            teacher.subject1 ? t(teacher.subject1) : '',
-            teacher.subject2 ? t(teacher.subject2) : '',
-            teacher.subject3 ? t(teacher.subject3) : ''
-          ].join(' ').toLowerCase();
-
-          return fullSearchString.includes(query);
-        })
-        .map(teacher => teacher.id);
-
-    if (matchedTeacherIds.length === 0) return [];
-
-    const results: TeacherScheduleCard[] = [];
-
-    matchedTeacherIds.forEach(id => {
-      const teacherObj = teachers.value.find(teacher => teacher.id === id)!;
-      let titleKey = teacherObj.title;
-      if (teacherObj.title === 'ms') titleKey = 'global.titles.ms';
-      else if (teacherObj.title === 'mr') titleKey = 'global.titles.mr';
-      const titleLabel = titleKey ? t(titleKey) : '';
-      const nameBase = titleLabel ? `${titleLabel} ${teacherObj.surname}` : teacherObj.surname;
-
-      const rawSubs = [teacherObj.subject1, teacherObj.subject2, teacherObj.subject3, teacherObj.subject4].filter(s => s);
-      const subs = rawSubs.map(s => t(s as string)).join(', ');
-
-      const teacherSchedule: TeacherScheduleCard = {
-        teacherName: nameBase,
-        teacherSubjects: subs,
-        schedule: { mo: [], di: [], mi: [], do: [], fr: [] }
-      };
-
-      scheduleData.value.forEach(row => {
-        const days = ['mo', 'di', 'mi', 'do', 'fr'] as const;
-        days.forEach(day => {
-          if (row.schedule[day] === id) {
-            teacherSchedule.schedule[day].push(row.room);
-          }
-        });
-      });
-
-      results.push(teacherSchedule);
-    });
-
-    return results;
-  }
+onMounted(() => {
+  loadData();
 });
 </script>
 
