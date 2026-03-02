@@ -622,7 +622,6 @@ export async function createTimetableSub(sb, sub) {
             slot: sub.slot || null,
             duration: sub.duration || null,
             subject: sub.subject || null,
-            subject_abbr: sub.subject_abbr || null,
             teacher: sub.teacher || null,
             room: sub.room || null,
             cancelled: sub.cancelled || false,
@@ -676,7 +675,7 @@ export async function logSecurityEvent(sb, event) {
     }
 }
 
-// ─── Reference Tables (persons, days, lesson_hours, schedule_entries, double_lessons)
+// ─── Reference Tables (persons, dalton_schedule)
 
 export async function listPersons(sb) {
     return throwOnError(
@@ -687,29 +686,5 @@ export async function listPersons(sb) {
 export async function listDaltonSchedule(sb) {
     return throwOnError(
         await sb.from('dalton_schedule').select('*')
-    );
-}
-
-export async function listDays(sb) {
-    return throwOnError(
-        await sb.from('days').select('*').order('id', { ascending: true })
-    );
-}
-
-export async function listLessonHours(sb) {
-    return throwOnError(
-        await sb.from('lesson_hours').select('*').order('id', { ascending: true })
-    );
-}
-
-export async function listScheduleEntries(sb) {
-    return throwOnError(
-        await sb.from('schedule_entries').select('*').order('id', { ascending: true })
-    );
-}
-
-export async function listDoubleLessons(sb) {
-    return throwOnError(
-        await sb.from('double_lessons').select('*').order('created_at', { ascending: true })
     );
 }

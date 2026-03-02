@@ -8,12 +8,11 @@ const { saveTimetableSub, savingSub } = useAdmin();
 
 // --- Interfaces ---
 interface Substitution {
-  lessonId: number;
+  lessonId: string;
   day?: string; // Not requested in UI, but part of interface
   slot?: number;
   duration?: number;
   subject?: string;
-  subject_abbr?: string;
   teacher?: string | null;
   room?: string | null;
   cancelled?: boolean;
@@ -22,30 +21,30 @@ interface Substitution {
 
 interface SubjectMapping {
   name: string;
-  abbr: string;
 }
 
 // --- Constants ---
 const SUBJECTS: SubjectMapping[] = [
-  { name: 'Biologie', abbr: 'BI' },
-  { name: 'Deutsch', abbr: 'DE' },
-  { name: 'Englisch', abbr: 'ENG' },
-  { name: 'Erdkunde', abbr: 'EK' },
-  { name: 'Ethik', abbr: 'ETH' },
-  { name: 'Französisch', abbr: 'FRZ' },
-  { name: 'Mathe', abbr: 'MA' },
-  { name: 'Musik', abbr: 'MU' },
-  { name: 'Physik', abbr: 'PH' },
-  { name: 'Sport', abbr: 'SP' },
-  { name: 'Theater', abbr: 'TH' },
-  { name: 'Klassenstunde', abbr: 'KSTD' },
-  { name: 'WPU', abbr: 'WPU' },
-  { name: 'Enrichment', abbr: 'ENR' },
-  { name: 'Dalton', abbr: 'DAL' },
-  { name: 'Geschichte', abbr: 'GE' },
-  { name: 'Chemie', abbr: 'CH' },
-  { name: 'Politik', abbr: 'PB' },
-  { name: 'Kunst', abbr: 'KU' },
+  { name: 'biology' },
+  { name: 'german' },
+  { name: 'english' },
+  { name: 'geography' },
+  { name: 'ethics' },
+  { name: 'french' },
+  { name: 'math' },
+  { name: 'music' },
+  { name: 'physics' },
+  { name: 'pe' },
+  { name: 'theater' },
+  { name: 'classHour' },
+  { name: 'wpu1' },
+  { name: 'wpu2' },
+  { name: 'enrichment' },
+  { name: 'dalton' },
+  { name: 'history' },
+  { name: 'chemistry' },
+  { name: 'politics' },
+  { name: 'art' },
 ];
 
 const SPECIAL_OPT_NO_CHANGES = 'NO_CHANGES';
@@ -53,7 +52,7 @@ const SPECIAL_OPT_CUSTOM = 'CUSTOM';
 
 // --- State ---
 const form = ref({
-  lessonId: null,
+  lessonId: '',
   selectedSubjectMode: 'NO_CHANGES', // Default to Sport as per example
   customSubject: '',
   slot: null as number | null,
@@ -111,7 +110,6 @@ const generatedJson = computed((): Substitution => {
     const found = SUBJECTS.find(s => s.name === form.value.selectedSubjectMode);
     if (found) {
       output.subject = found.name;
-      output.subject_abbr = found.abbr;
     }
   }
   // If NO_CHANGES is selected, we simply don't add subject/subject_abbr keys
@@ -130,7 +128,7 @@ async function saveSub() {
   try {
     await saveTimetableSub(generatedJson.value);
     form.value = {
-      lessonId: null,
+      lessonId: '',
       selectedSubjectMode: 'NO_CHANGES',
       customSubject: '',
       slot: null,
@@ -153,9 +151,9 @@ async function saveSub() {
       <label for="lessonId">Lesson ID</label>
       <input
           id="lessonId"
-          type="number"
+          type="text"
           v-model="form.lessonId"
-          placeholder="e.g. 21"
+          placeholder="e.g. 123e4567-..."
       />
     </div>
 
@@ -164,8 +162,8 @@ async function saveSub() {
       <select id="subjectSelect" v-model="form.selectedSubjectMode">
         <option :value="SPECIAL_OPT_NO_CHANGES">No Changes</option>
         <option disabled>---</option>
-        <option v-for="sub in SUBJECTS" :key="sub.abbr" :value="sub.name">
-          {{ sub.name }} ({{ sub.abbr }})
+        <option v-for="sub in SUBJECTS" :key="sub.name" :value="sub.name">
+          {{ sub.name }}
         </option>
         <option disabled>---</option>
         <option :value="SPECIAL_OPT_CUSTOM">Custom Subject</option>

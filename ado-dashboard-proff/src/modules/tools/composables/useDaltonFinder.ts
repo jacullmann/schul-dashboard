@@ -118,8 +118,8 @@ export function useDaltonFinder() {
 
         const nameBase = titleAbbr ? `${titleAbbr} ${teacher.surname}` : teacher.surname;
 
-        // The subject name is already the i18n key
-        const subs = teacher.subjects.map(s => t(s)).join(', ');
+        // The subject name is the key for global.subjects
+        const subs = teacher.subjects.map(s => t(`global.subjects.${s}`)).join(', ');
 
         return {
             name: nameBase,
@@ -153,7 +153,7 @@ export function useDaltonFinder() {
                         titleLabel,
                         teacher.surname,
                         teacher.abbreviation,
-                        ...teacher.subjects.map(s => t(s))
+                        ...teacher.subjects.map(s => t(`global.subjects.${s}`))
                     ].join(' ').toLowerCase();
 
                     return fullSearchString.includes(query);
@@ -171,7 +171,7 @@ export function useDaltonFinder() {
                 else if (teacherObj.title === 'mr') titleLabel = t('global.titles.mr');
 
                 const nameBase = titleLabel ? `${titleLabel} ${teacherObj.surname}` : teacherObj.surname;
-                const subs = teacherObj.subjects.map(s => t(s)).join(', ');
+                const subs = teacherObj.subjects.map(s => t(`global.subjects.${s}`)).join(', ');
 
                 const teacherSchedule: TeacherScheduleCard = {
                     teacherName: nameBase,

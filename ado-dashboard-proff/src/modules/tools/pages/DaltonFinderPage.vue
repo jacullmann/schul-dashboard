@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { useDaltonFinder } from '../composables/useDaltonFinder';
 import type { ScheduleRow, TeacherScheduleCard } from '../composables/useDaltonFinder';
 
-const { t, tm } = useI18n();
+const { t, tm, locale } = useI18n();
 
 const {
   loading,
@@ -18,6 +18,16 @@ const {
 } = useDaltonFinder();
 
 const currentDay = new Date().getDay();
+
+/**
+ * Gets the 2-letter weekday name using Intl
+ * @param day 1 (Mo) to 5 (Fr)
+ */
+const getDayName = (day: number) => {
+  // January 1st, 2024 was a Monday
+  const date = new Date(2024, 0, day);
+  return new Intl.DateTimeFormat(locale.value, { weekday: 'short' }).format(date).slice(0, 2).toUpperCase();
+};
 
 // TabSwitcher Items
 const tabItems = [
@@ -86,11 +96,11 @@ onMounted(() => {
               <thead>
               <tr>
                 <th class="col-room">{{ t('school.tables.dalton.room') }}</th>
-                <th :class="{ 'is-today': currentDay === 1 }">{{ t('global.weekdays.abbr.monday').toUpperCase() }}</th>
-                <th :class="{ 'is-today': currentDay === 2 }">{{ t('global.weekdays.abbr.tuesday').toUpperCase() }}</th>
-                <th :class="{ 'is-today': currentDay === 3 }">{{ t('global.weekdays.abbr.wednesday').toUpperCase() }}</th>
-                <th :class="{ 'is-today': currentDay === 4 }">{{ t('global.weekdays.abbr.thursday').toUpperCase() }}</th>
-                <th :class="{ 'is-today': currentDay === 5 }">{{ t('global.weekdays.abbr.friday').toUpperCase() }}</th>
+                <th :class="{ 'is-today': currentDay === 1 }">{{ getDayName(1) }}</th>
+                <th :class="{ 'is-today': currentDay === 2 }">{{ getDayName(2) }}</th>
+                <th :class="{ 'is-today': currentDay === 3 }">{{ getDayName(3) }}</th>
+                <th :class="{ 'is-today': currentDay === 4 }">{{ getDayName(4) }}</th>
+                <th :class="{ 'is-today': currentDay === 5 }">{{ getDayName(5) }}</th>
               </tr>
               </thead>
               <tbody>
@@ -149,23 +159,23 @@ onMounted(() => {
             </div>
             <div class="teacher-grid">
               <div class="day-col" :class="{ 'is-today': currentDay === 1 }">
-                <h4>MO</h4>
+                <h4>{{ getDayName(1) }}</h4>
                 <ul><li v-for="r in res.schedule.mo" :key="r">{{ r }}</li><li v-if="!res.schedule.mo.length" class="empty">-</li></ul>
               </div>
               <div class="day-col" :class="{ 'is-today': currentDay === 2 }">
-                <h4>DI</h4>
+                <h4>{{ getDayName(2) }}</h4>
                 <ul><li v-for="r in res.schedule.di" :key="r">{{ r }}</li><li v-if="!res.schedule.di.length" class="empty">-</li></ul>
               </div>
               <div class="day-col" :class="{ 'is-today': currentDay === 3 }">
-                <h4>MI</h4>
+                <h4>{{ getDayName(3) }}</h4>
                 <ul><li v-for="r in res.schedule.mi" :key="r">{{ r }}</li><li v-if="!res.schedule.mi.length" class="empty">-</li></ul>
               </div>
               <div class="day-col" :class="{ 'is-today': currentDay === 4 }">
-                <h4>DO</h4>
+                <h4>{{ getDayName(4) }}</h4>
                 <ul><li v-for="r in res.schedule.do" :key="r">{{ r }}</li><li v-if="!res.schedule.do.length" class="empty">-</li></ul>
               </div>
               <div class="day-col" :class="{ 'is-today': currentDay === 5 }">
-                <h4>FR</h4>
+                <h4>{{ getDayName(5) }}</h4>
                 <ul><li v-for="r in res.schedule.fr" :key="r">{{ r }}</li><li v-if="!res.schedule.fr.length" class="empty">-</li></ul>
               </div>
             </div>

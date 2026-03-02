@@ -153,12 +153,11 @@ export default function createAdminRoutes(deps) {
         ...adminAuth,
         validateCsrf(csrfSecret),
         [
-            body('lessonId').isInt(),
+            body('lessonId').isUUID(),
             body('day').optional().isString(),
             body('slot').optional().isInt(),
             body('duration').optional().isInt(),
             body('subject').optional().isString(),
-            body('subject_abbr').optional().isString(),
             body('teacher').optional().isString(),
             body('room').optional().isString(),
             body('cancelled').optional().isBoolean(),

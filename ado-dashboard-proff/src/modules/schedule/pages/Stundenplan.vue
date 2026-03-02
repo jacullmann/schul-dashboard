@@ -3,6 +3,9 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import { useTimetable } from '@/modules/schedule/composables/useTimetable';
 import { useI18n } from 'vue-i18n';
+import { useUserStore } from '@/stores/userStore';
+
+const userStore = useUserStore();
 
 const { t, tm } = useI18n();
 const {
@@ -19,6 +22,16 @@ const {
   getGroupStyle,
   defaultDayIndex
 } = useTimetable();
+
+const copyLessonId = (id: string | number) => {
+  if (userStore.isSuperadmin) {
+    navigator.clipboard.writeText(String(id)).then(() => {
+      alert(`Lesson ID kopiert: ${id}`);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
+  }
+};
 
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
@@ -162,8 +175,10 @@ onUnmounted(() => {
                 v-for="(lesson, index) in group"
                 :key="index"
                 class="sub-lesson-item"
+                @click="copyLessonId(lesson.id)"
                 :class="{
                   'has-border': index < group.length - 1,
+                  'clickable': userStore.isSuperadmin
                 }"
             >
               <div v-if="lesson.cancelled">
@@ -298,6 +313,14 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   padding: 6px 8px;
+}
+
+.sub-lesson-item.clickable {
+  cursor: pointer;
+}
+
+.sub-lesson-item.clickable:hover {
+  background-color: var(--gg);
 }
 
 .sub-lesson-item.has-border {
