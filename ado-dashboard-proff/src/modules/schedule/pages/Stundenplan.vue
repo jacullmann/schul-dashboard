@@ -352,65 +352,57 @@ onUnmounted(() => {
 /* --- MOBILE TIMETABLE VIEW --- */
 @media (max-width: 500px) {
   .timetable-grid {
-    display: flex;
-    overflow: hidden; /* nothing escapes parent */
-    grid-template-columns: none;
-    grid-template-rows: none;
-    gap: 8px; /* space between fixed column and scrollable track */
-  }
-
-  .time-col-wrapper {
     display: grid;
-    /* Allow rows to size naturally based on content while matching the right side */
+    /* First col: Time (80px), Next 5 cols: Days */
+    grid-template-columns: 80px repeat(5, calc(100vw - 110px));
     grid-template-rows: auto repeat(9, auto);
-    width: 80px;
-    flex-shrink: 0;
     gap: 8px;
-    z-index: 5;
-    background: transparent;
-  }
+    align-items: stretch;
 
-  /* Make sure previous sticky values are overridden */
-  .header-cell.time-header,
-  .time-slot-label {
-    position: static;
-  }
-
-  .days-scroll-wrapper {
-    display: block;
-    position: relative;
+    /* Make the whole grid horizontally scrollable */
     overflow-x: auto;
-    overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    flex: 1; /* fills remaining width */
-    overscroll-behavior-x: none; /* Stops iOS rubber-banding */
+    scroll-padding-left: 88px; /* Ensure snapping accounts for the 80px frozen column + 8px gap */
+    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
-    height: 100%;
-    /* Hide scrollbar for native app feel */
+    padding-bottom: 8px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  .days-scroll-wrapper::-webkit-scrollbar {
+  .timetable-grid::-webkit-scrollbar {
     display: none;
   }
 
+  /* Unify grids by making wrappers pass-through */
+  .time-col-wrapper,
+  .days-scroll-wrapper,
   .days-grid-wrapper {
-    display: grid;
-    /* 5 days, each takes 100% of wrapper */
-    grid-template-columns: repeat(5, 100%);
-    grid-template-rows: auto repeat(9, auto);
-    gap: 8px;
+    display: contents;
   }
-  
+
+  /* Make the time column sticky */
+  .header-cell.time-header,
+  .time-slot-label {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+  }
+
+  /* Provide a solid background so scrolled items hide properly */
+  .time-slot-label {
+    background-color: var(--bg);
+  }
+
+  /* Setup snap points for the scrolling days */
   .header-cell.day-header,
   .lesson-group-container {
     scroll-snap-align: start;
-    scroll-margin-left: 0;
+    scroll-margin-left: 88px;
   }
 
-  /* Reposition columns to be 1 to 5 instead of 2 to 6, matching the new independent grid! */
+  /* Mobile now uses the unified grid, so the column is identical to desktop */
   .lesson-group-container {
-    grid-column: var(--col-mobile) !important;
+    grid-column: var(--col-desktop) !important;
   }
 }
 
