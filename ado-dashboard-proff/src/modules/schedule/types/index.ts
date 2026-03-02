@@ -21,12 +21,13 @@ export interface Lesson {
         id: string;
         name: string;
     } | null;
-    _original?: Lesson;
-    cancelled?: boolean;
-    // For backwards compatibility and subs mapping if needed:
+    // Backward compatibility properties from old JSON
     subject_abbr?: string;
     teacher?: string | null;
     subject?: string;
+    courseName?: string;
+    _original?: Lesson;
+    cancelled?: boolean;
 }
 
 export interface Substitution {

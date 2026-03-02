@@ -600,9 +600,9 @@ export async function getTimetableLessons(sb) {
             duration,
             room,
             course_id,
-            persons:teacher_id ( id, name, title, short ),
-            subjects:subject_id ( id, name ),
-            courses:course_id ( id, name )
+            persons ( id, name, title, short ),
+            subjects ( id, name ),
+            courses ( id, name )
         `)
         .is('tenant_id', null);
     return data;

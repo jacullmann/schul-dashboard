@@ -33,11 +33,11 @@ export function useTimetable() {
         7: 10
     };
     function getDisplayName(lesson: Lesson): string {
-        const subjectName = lesson.subjects?.name || lesson.subject || '';
+        const subjectName = lesson.subjects?.name || lesson.subject || lesson.subject_abbr || '';
         const normalizedSubject = subjectName.toLowerCase();
 
         if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
-            const courseName = lesson.courses?.name;
+            const courseName = lesson.courses?.name || lesson.courseName;
             if (courseName) {
                 return `WPU ${t(`global.subjects.${courseName}`)}`;
             }
@@ -53,7 +53,10 @@ export function useTimetable() {
         }
 
         if (subjectName) {
-            return t(`global.subjects.${subjectName}`);
+            // Check if there is an i18n key for it. Otherwise, display the subjectName directly.
+            const translationKey = `global.subjects.${subjectName}`;
+            const translation = t(translationKey);
+            return translation !== translationKey ? translation : subjectName;
         }
 
         return '';
