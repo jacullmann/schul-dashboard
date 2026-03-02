@@ -3,7 +3,7 @@ name: Deploy to Hetzner
 on:
   push:
     branches:
-      - main  
+      - main
 
 jobs:
   deploy:
@@ -21,9 +21,8 @@ jobs:
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
             cd /root/codes/main-server/234u88
-            git fetch --all
             git reset --hard origin/main
-            git clean -fd
+            git pull
             cd backup2hwserver
             npm ci
             pm2 reload all
