@@ -32,25 +32,31 @@ export function useTimetable() {
         5: 40,
         7: 10
     };
-    const SUBJECT_ABBR_TO_NAME: Record<string, string> = {
-        'INF': 'global.subjects.cs',
-        'ENG': 'global.subjects.english',
-        'BI': 'global.subjects.biology',
-        'LA': 'global.subjects.latin',
-        'GEWI': 'global.subjects.history',
-        'DE': 'global.subjects.german',
-        'MA': 'global.subjects.math',
-        'MU': 'global.subjects.music'
-    };
-
     function getDisplayName(lesson: Lesson): string {
-        if (lesson.subject?.startsWith('WPU') && lesson.subject_abbr) {
-            const fachName = SUBJECT_ABBR_TO_NAME[lesson.subject_abbr];
-            if (fachName) {
-                return `${t(fachName)} WPU`;
+        const subjectName = lesson.subjects?.name || lesson.subject || '';
+        const normalizedSubject = subjectName.toLowerCase();
+
+        if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {
+            const courseName = lesson.courses?.name;
+            if (courseName) {
+                return `WPU ${t(`global.subjects.${courseName}`)}`;
             }
+            return normalizedSubject === 'wpu1' ? 'WPU 1' : 'WPU 2';
         }
-        return lesson.subject;
+
+        if (normalizedSubject === 'enrichment') {
+            return t('global.subjects.enrichment');
+        }
+
+        if (normalizedSubject === 'theater') {
+            return t('global.subjects.theater');
+        }
+
+        if (subjectName) {
+            return t(`global.subjects.${subjectName}`);
+        }
+
+        return '';
     }
 
     async function loadSubstitutions() {
@@ -81,7 +87,7 @@ export function useTimetable() {
     const effectiveLessons = computed<Lesson[]>(() => {
         const result: Lesson[] = [];
 
-        const subMap = new Map<number, Substitution[]>();
+        const subMap = new Map<string, Substitution[]>();
         substitutions.value.forEach(sub => {
             if (!subMap.has(sub.lessonId)) subMap.set(sub.lessonId, []);
             subMap.get(sub.lessonId)!.push(sub);
@@ -263,6 +269,33 @@ export function useTimetable() {
         return nextBlock.key;
     });
 
+    const getTeacherName = (lesson: Lesson): string => {
+        // If there is a substitution teacher name or backwards compatibility string
+        if (lesson.teacher) {
+            return lesson.teacher;
+        }
+
+        // If there is a linked person from the database
+        if (lesson.persons) {
+            const { title, name } = lesson.persons;
+            if (title) {
+                // Determine i18n key for title, checking abbreviation
+                const titleKey = title.replace(/\./g, "").toLowerCase(); // "Fr" -> "fr", "Herr" -> "herr"
+                // E.g. global.titles.abbr.mr, global.titles.abbr.ms
+                // The prompt says "t('global.titles.abbr.mr_or_ms_goes_here')"
+                // Typically you map 'Herr'/'Mr' -> 'mr', 'Frau'/'Fr'/'Ms' -> 'ms'
+                let abbrKey = titleKey;
+                if (titleKey === 'hr' || titleKey === 'herr' || titleKey === 'mr') abbrKey = 'mr';
+                else if (titleKey === 'fr' || titleKey === 'frau' || titleKey === 'ms') abbrKey = 'ms';
+
+                return `${t(`global.titles.abbr.${abbrKey}`)} ${name}`;
+            }
+            return name;
+        }
+
+        return '';
+    };
+
     return {
         isPersonalized,
         loadingSubs,
@@ -273,6 +306,7 @@ export function useTimetable() {
         currentDayName,
         activeOrNextGroupKey,
         getDisplayName,
+        getTeacherName,
         getGroupStyle
     };
 }

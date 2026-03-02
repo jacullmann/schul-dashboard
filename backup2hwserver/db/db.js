@@ -70,7 +70,7 @@ export async function countUsers(sb, filters = {}) {
 
 export async function countUsersSince(sb, dateISO) {
     const { count, error } = await sb.from('users')
-        .selet('*', { count: 'exact', head: true })
+        .select('*', { count: 'exact', head: true })
         .gte('created_at', dateISO);
     if (error) throw new Error(error.message);
     return count ?? 0;
@@ -591,12 +591,20 @@ export async function countSorgen(sb, filters = {}) {
 
 // ─── Timetable ──────────────────────────────────────────────────────────────
 
-export async function getLatestTimetable(sb) {
+export async function getTimetableLessons(sb) {
     const { data } = await sb.from('timetables')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .select(`
+            id,
+            day,
+            slot,
+            duration,
+            room,
+            course_id,
+            persons:teacher_id ( id, name, title, short ),
+            subjects:subject_id ( id, name ),
+            courses:course_id ( id, name )
+        `)
+        .is('tenant_id', null);
     return data;
 }
 

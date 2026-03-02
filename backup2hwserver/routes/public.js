@@ -26,18 +26,18 @@ export default function createPublicRoutes(deps) {
         checkUser(userSecret, supabase),
         async (req, res) => {
             try {
-                const timetable = await db.getLatestTimetable(supabase);
-                if (!timetable) {
-                    return sendJSONError(res, 404, 'Kein Stundenplan gefunden');
+                const lessons = await db.getTimetableLessons(supabase);
+                if (!lessons) {
+                    return res.json([]);
                 }
 
-                let lessons = timetable.lessons;
+                let filteredLessons = lessons;
                 if (req.user) {
                     const user = await db.findUserById(supabase, req.user.sub,
                         'personalized, done_setup, enr_kurs, wpu_kurs_1, wpu_kurs_2, theater'
                     );
                     if (user && user.personalized && user.done_setup) {
-                        lessons = filterLessonsForUser(timetable.lessons, {
+                        filteredLessons = filterLessonsForUser(lessons, {
                             enrKurs: user.enr_kurs,
                             wpuKurs1: user.wpu_kurs_1,
                             wpuKurs2: user.wpu_kurs_2,
@@ -45,7 +45,7 @@ export default function createPublicRoutes(deps) {
                         });
                     }
                 }
-                res.json(lessons);
+                res.json(filteredLessons);
             } catch (err) {
                 console.error('GET /api/timetable error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden des Stundenplans');

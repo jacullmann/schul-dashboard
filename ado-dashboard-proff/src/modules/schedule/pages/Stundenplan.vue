@@ -14,6 +14,7 @@ const {
   currentDayName,
   activeOrNextGroupKey,
   getDisplayName,
+  getTeacherName,
   getGroupStyle
 } = useTimetable();
 </script>
@@ -91,17 +92,16 @@ const {
             <div class="ausfall-label">{{ t('school.tables.timetable.cancelled') }}</div>
             <div class="lesson-details">
               <span class="crossed">{{ lesson.room }}</span>
-              <span class="crossed">{{ lesson.teacher }}</span>
+              <span class="crossed">{{ getTeacherName(lesson) }}</span>
             </div>
           </div>
 
           <div v-else>
             <div class="lesson-subject">
-              <span v-if="lesson.subject !== lesson._original?.subject" class="crossed">
+              <span v-if="getDisplayName(lesson) !== getDisplayName(lesson._original!)" class="crossed">
                 {{ getDisplayName(lesson._original!) }}
-                <!---{{ lesson._original?.subject_abbr || getDisplayName(lesson._original!) }}--->
               </span>
-              <span :class="{ 'new-val': lesson.subject !== lesson._original?.subject }">
+              <span :class="{ 'new-val': getDisplayName(lesson) !== getDisplayName(lesson._original!) }">
                 {{ getDisplayName(lesson) }}
               </span>
             </div>
@@ -117,11 +117,11 @@ const {
               </span>
 
               <span class="detail-group">
-                <span v-if="lesson.teacher !== lesson._original?.teacher" class="crossed">
-                   {{ lesson._original?.teacher }}
+                <span v-if="getTeacherName(lesson) !== getTeacherName(lesson._original!)" class="crossed">
+                   {{ getTeacherName(lesson._original!) }}
                 </span>
-                <span :class="{ 'new-val': lesson.teacher !== lesson._original?.teacher }">
-                  {{ lesson.teacher }}
+                <span :class="{ 'new-val': getTeacherName(lesson) !== getTeacherName(lesson._original!) }">
+                  {{ getTeacherName(lesson) }}
                 </span>
               </span>
             </div>

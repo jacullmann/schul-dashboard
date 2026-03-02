@@ -7,24 +7,33 @@ export function filterLessonsForUser(lessons, user) {
     };
 
     return lessons.filter(lesson => {
-        const userCourseId = courseMapping[lesson.subject];
+        const subjectName = lesson.subjects?.name || lesson.subject;
+        const normalizedSubject = subjectName ? subjectName.toLowerCase() : '';
+        const userCourseId = courseMapping[normalizedSubject];
 
-        // Immer anzeigen wenn keine id
+        // Immer anzeigen wenn es kein personalisiertes Fach ist
         if (userCourseId === undefined) {
             return true;
         }
 
-        // keine anzeigen, wenn er übersprungen hat
-        if (userCourseId === null) {
+        // Wenn der User den Kurs nicht gewählt hat (UUID ist null oder Theater ist 0), nicht anzeigen
+        if (!userCourseId) {
             return false;
         }
 
-        // alle kurse ohne ki anzeigen
-        if (lesson.courseId === null || lesson.courseId === undefined) {
+        // Theater hat keine course_id, aber user.theater > 0 bedeutet gewählt
+        if (normalizedSubject === 'theater') {
             return true;
         }
 
-        // personalisierte kurse anzeigen
-        return lesson.courseId === userCourseId;
+        // Für WPU/ENR die UUID vergleichen
+        const lessonCourseId = lesson.course_id || lesson.courseId;
+
+        // Wenn die Lesson komischerweise keine ID hat, sicherheitshalber anzeigen
+        if (!lessonCourseId) {
+            return true;
+        }
+
+        return lessonCourseId === userCourseId;
     });
 }
