@@ -24,16 +24,11 @@ const scrollContainerRef = ref<HTMLElement | null>(null);
 
 const scrollToDefaultDay = () => {
   if (!scrollContainerRef.value) return;
-  // If we are on mobile (viewport < 500px)
   if (window.innerWidth < 500) {
     const dayIndex = defaultDayIndex.value;
     const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
     if (dayHeaders && dayHeaders[dayIndex]) {
-      const header = dayHeaders[dayIndex] as HTMLElement;
-      scrollContainerRef.value.scrollTo({
-        left: header.offsetLeft,
-        behavior: 'auto'
-      });
+      dayHeaders[dayIndex].scrollIntoView({ behavior: 'auto', inline: 'start', block: 'nearest' });
     }
   }
 };
@@ -58,8 +53,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="card p-0" style="overflow: hidden;">
-    <div>
+  <div class="card p-0 scroll-card" ref="scrollContainerRef">
+    <div style="padding: 1rem;">
       <h2 style="margin-top: 0" class="title-inf">
         {{ t('school.tables.timetable.title') }}
         <InfoPop
@@ -85,91 +80,87 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    <div class="timetable-grid">
-      <div class="time-col-wrapper">
-        <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
-        <div
-            v-for="ts in timeSlots"
-            :key="ts.slot"
-            class="time-slot-label"
-            :style="{ gridRow: ts.slot + 1 }"
-        >
-          <span class="slot-number">{{ ts.slot }}</span>
-          <span class="slot-time">{{ ts.time }}</span>
-        </div>
+    <div class="timetable-grid" style="padding: 0 1rem 1rem 1rem;">
+      <div class="mobile-sticky-bg"></div>
+      
+      <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
+      <div
+          v-for="day in days"
+          :key="day"
+          class="header-cell day-header"
+          :class="{'current-day-header': day === currentDayName}"
+      >
+        {{ day }}
       </div>
 
-      <div class="days-scroll-wrapper" ref="scrollContainerRef">
-        <div class="days-grid-wrapper">
-          <div
-              v-for="day in days"
-              :key="day"
-              class="header-cell day-header"
-              :class="{'current-day-header': day === currentDayName}"
-          >
-            {{ day }}
-          </div>
+      <div
+          v-for="ts in timeSlots"
+          :key="ts.slot"
+          class="time-slot-label"
+          :style="{ gridRow: ts.slot + 1 }"
+      >
+        <span class="slot-number">{{ ts.slot }}</span>
+        <span class="slot-time">{{ ts.time }}</span>
+      </div>
 
-          <div
-              v-for="(group, key) in groupedLessons"
-              :key="key"
-              class="lesson-group-container"
-              :class="{
-                'highlight-active': key === activeOrNextGroupKey,
-                'current-day': group[0]?.day === currentDayName
-                }"
-              :style="getGroupStyle(group)"
-          >
-            <div
-                v-for="(lesson, index) in group"
-                :key="index"
-                class="sub-lesson-item"
-                :class="{
-                  'has-border': index < group.length - 1,
-                }"
-            >
-              <div v-if="lesson.cancelled">
-                <div class="lesson-subject crossed">{{ getDisplayName(lesson) }}</div>
-                <div class="ausfall-label">{{ t('school.tables.timetable.cancelled') }}</div>
-                <div class="lesson-details">
-                  <span class="crossed">{{ lesson.room }}</span>
-                  <span class="crossed">{{ getTeacherName(lesson) }}</span>
-                </div>
-              </div>
-
-              <div v-else>
-                <div class="lesson-subject">
-                  <span v-if="getDisplayName(lesson) !== getDisplayName(lesson._original!)" class="crossed">
-                    {{ getDisplayName(lesson._original!) }}
-                  </span>
-                  <span :class="{ 'new-val': getDisplayName(lesson) !== getDisplayName(lesson._original!) }">
-                    {{ getDisplayName(lesson) }}
-                  </span>
-                </div>
-
-                <div class="lesson-details">
-                  <span class="detail-group">
-                    <span v-if="lesson.room !== lesson._original?.room" class="crossed">
-                       {{ lesson._original?.room }}
-                    </span>
-                    <span :class="{ 'new-val': lesson.room !== lesson._original?.room }">
-                       {{ lesson.room }}
-                    </span>
-                  </span>
-
-                  <span class="detail-group">
-                    <span v-if="getTeacherName(lesson) !== getTeacherName(lesson._original!)" class="crossed">
-                       {{ getTeacherName(lesson._original!) }}
-                    </span>
-                    <span :class="{ 'new-val': getTeacherName(lesson) !== getTeacherName(lesson._original!) }">
-                      {{ getTeacherName(lesson) }}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
+      <div
+          v-for="(group, key) in groupedLessons"
+          :key="key"
+          class="lesson-group-container"
+          :class="{
+            'highlight-active': key === activeOrNextGroupKey,
+            'current-day': group[0]?.day === currentDayName
+            }"
+          :style="getGroupStyle(group)"
+      >
+        <div
+            v-for="(lesson, index) in group"
+            :key="index"
+            class="sub-lesson-item"
+            :class="{
+              'has-border': index < group.length - 1,
+            }"
+        >
+          <div v-if="lesson.cancelled">
+            <div class="lesson-subject crossed">{{ getDisplayName(lesson) }}</div>
+            <div class="ausfall-label">{{ t('school.tables.timetable.cancelled') }}</div>
+            <div class="lesson-details">
+              <span class="crossed">{{ lesson.room }}</span>
+              <span class="crossed">{{ getTeacherName(lesson) }}</span>
             </div>
           </div>
+
+          <div v-else>
+            <div class="lesson-subject">
+              <span v-if="getDisplayName(lesson) !== getDisplayName(lesson._original!)" class="crossed">
+                {{ getDisplayName(lesson._original!) }}
+              </span>
+              <span :class="{ 'new-val': getDisplayName(lesson) !== getDisplayName(lesson._original!) }">
+                {{ getDisplayName(lesson) }}
+              </span>
+            </div>
+
+            <div class="lesson-details">
+              <span class="detail-group">
+                <span v-if="lesson.room !== lesson._original?.room" class="crossed">
+                   {{ lesson._original?.room }}
+                </span>
+                <span :class="{ 'new-val': lesson.room !== lesson._original?.room }">
+                   {{ lesson.room }}
+                </span>
+              </span>
+
+              <span class="detail-group">
+                <span v-if="getTeacherName(lesson) !== getTeacherName(lesson._original!)" class="crossed">
+                   {{ getTeacherName(lesson._original!) }}
+                </span>
+                <span :class="{ 'new-val': getTeacherName(lesson) !== getTeacherName(lesson._original!) }">
+                  {{ getTeacherName(lesson) }}
+                </span>
+              </span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -178,7 +169,7 @@ onUnmounted(() => {
 
 <style scoped>
 .card {
-  overflow-x: scroll;
+  overflow-x: hidden;
 }
 
 .timetable-grid {
@@ -187,6 +178,10 @@ onUnmounted(() => {
   grid-template-rows: auto repeat(9, auto);
   gap: 8px;
   align-items: stretch;
+}
+
+.mobile-sticky-bg {
+  display: none;
 }
 
 .header-cell {
@@ -351,78 +346,63 @@ onUnmounted(() => {
 
 /* --- MOBILE TIMETABLE VIEW --- */
 @media (max-width: 500px) {
-  .timetable-grid {
-    display: flex;
-    overflow: hidden; /* nothing escapes parent */
-    grid-template-columns: none;
-    grid-template-rows: none;
-    gap: 8px; /* space between fixed column and scrollable track */
-  }
-
-  .time-col-wrapper {
-    display: grid;
-    /* Force exact heights so mobile cells match perfectly across the fixed boundary */
-    grid-template-rows: auto repeat(9, 85px);
-    width: 80px;
-    flex-shrink: 0;
-    gap: 8px;
-    z-index: 5;
-    background: transparent;
-  }
-
-  /* Make sure previous sticky values are overridden */
-  .header-cell.time-header,
-  .time-slot-label {
-    position: static;
-  }
-
-  .days-scroll-wrapper {
-    display: block;
-    position: relative;
-    overflow-x: auto;
-    overflow-y: hidden;
+  .scroll-card {
     scroll-snap-type: x mandatory;
-    flex: 1; /* fills remaining width */
-    overscroll-behavior-x: none; /* Stops iOS rubber-banding */
+    scroll-padding-left: 104px; /* 80px width + 8px gap + 16px padding */
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    overscroll-behavior-x: none;
     -webkit-overflow-scrolling: touch;
-    height: 100%;
-    /* Hide scrollbar for native app feel */
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  .days-scroll-wrapper::-webkit-scrollbar {
+  .scroll-card::-webkit-scrollbar {
     display: none;
   }
 
-  .days-grid-wrapper {
-    display: grid;
-    /* 5 days, each takes 100% of wrapper */
-    grid-template-columns: repeat(5, 100%);
-    grid-template-rows: auto repeat(9, 85px); /* Same fixed heights as time column */
-    gap: 8px;
+  .timetable-grid {
+    /* 5 days taking up the full remaining width minus margins */
+    grid-template-columns: 80px repeat(5, calc(100vw - 104px - 1rem));
+  }
+
+  .mobile-sticky-bg {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / -1; /* Cover all rows */
+    position: sticky;
+    left: 0;
+    /* Extra width covers the 8px gap on the right and negative margin aligns it */
+    width: calc(100% + 8px);
+    background: var(--bg); /* Opaque background over scrollable content */
+    z-index: 4; /* Below sticky content, above scrolling */
+    pointer-events: none;
+  }
+
+  .header-cell.time-header,
+  .time-slot-label {
+    position: sticky;
+    left: 1rem; /* Adjusting for padding */
+    z-index: 5;
+    background-color: var(--vlbg);
   }
   
+  /* Reset previous styles from last fix */
+  .time-slot-label {
+    border-right: none;
+  }
+
+  .lesson-group-container {
+    z-index: 2; /* Slide under the background */
+  }
+
   .header-cell.day-header,
   .lesson-group-container {
     scroll-snap-align: start;
-    scroll-margin-left: 0;
+    scroll-margin-left: 104px; /* matches scroll padding */
   }
 
-  /* Reposition columns to be 1 to 5 instead of 2 to 6, matching the new independent grid! */
-  .lesson-group-container {
-    grid-column: var(--col-mobile) !important;
-  }
-}
-
-/* On Desktop fallback, return them directly to the main Grid so nothing breaks */
-@media (min-width: 501px) {
-  .time-col-wrapper,
-  .days-scroll-wrapper,
-  .days-grid-wrapper {
-    display: contents;
-  }
-  .lesson-group-container {
-    grid-column: var(--col-desktop) !important;
+  .header-cell.day-header {
+    z-index: 1;
   }
 }
 </style>
