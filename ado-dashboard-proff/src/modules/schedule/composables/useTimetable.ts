@@ -166,9 +166,11 @@ export function useTimetable() {
         const colStart = dayIndex + 2;
         const rowStart = firstLesson.slot + 1;
         return {
-            gridColumn: `${colStart} / ${colStart + 1}`,
+            '--col-desktop': `${colStart} / span 1`,
+            '--col-mobile': `${colStart - 1} / span 1`,
+            gridColumn: `var(--col-desktop)`,
             gridRow: `${rowStart} / span ${maxDuration}`
-        };
+        } as Record<string, string>;
     };
 
     const now = ref(new Date());
