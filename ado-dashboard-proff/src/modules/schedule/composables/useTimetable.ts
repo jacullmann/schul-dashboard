@@ -218,6 +218,37 @@ export function useTimetable() {
         return null;
     });
 
+    const defaultDayIndex = computed(() => {
+        let dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0
+        if (dayIndex >= 5) {
+            return 0; // Weekend, default to Monday
+        }
+
+        const lessonsToday = effectiveLessons.value.filter(l => l.day === days[dayIndex]);
+        if (lessonsToday.length > 0) {
+            let maxEndMins = 0;
+            lessonsToday.forEach(l => {
+                const startMins = slotStartMinutes.value[l.slot] ?? 0;
+                let endMins = startMins;
+                for (let d = 0; d < l.duration; d++) {
+                    endMins += lessonDurationMins;
+                    if (d < l.duration - 1) {
+                        endMins += (breaks[l.slot + d] || 0);
+                    }
+                }
+                if (endMins > maxEndMins) {
+                    maxEndMins = endMins;
+                }
+            });
+
+            const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
+            if (currentMinutes > maxEndMins + 10) {
+                return (dayIndex + 1) % 5;
+            }
+        }
+        return dayIndex;
+    });
+
     const activeOrNextGroupKey = computed<string | null>(() => {
         const currentDayIndex = (now.value.getDay() + 6) % 7;
         const currentMinutes = now.value.getHours() * 60 + now.value.getMinutes();
@@ -308,6 +339,7 @@ export function useTimetable() {
         groupedLessons,
         currentDayName,
         activeOrNextGroupKey,
+        defaultDayIndex,
         getDisplayName,
         getTeacherName,
         getGroupStyle

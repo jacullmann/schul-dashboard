@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import { useTimetable } from '@/modules/schedule/composables/useTimetable';
 import { useI18n } from 'vue-i18n';
@@ -15,12 +16,55 @@ const {
   activeOrNextGroupKey,
   getDisplayName,
   getTeacherName,
-  getGroupStyle
+  getGroupStyle,
+  defaultDayIndex
 } = useTimetable();
+
+const cardRef = ref<HTMLElement | null>(null);
+
+const scrollToDefaultDay = () => {
+  if (!cardRef.value) return;
+  // If we are on mobile (viewport < 500px)
+  if (window.innerWidth < 500) {
+    const dayIndex = defaultDayIndex.value;
+    // The width of the time column is 80px + gap 8px roughly.
+    // The day columns are 100vw - 80px - 2rem.
+    // However, the easiest way to snap correctly is to let CSS snap handle it,
+    // we just need to scroll so that the element is visible.
+    // Let's calculate based on grid template or just rely on finding the day header.
+    const dayHeaders = cardRef.value.querySelectorAll('.day-header');
+    if (dayHeaders && dayHeaders[dayIndex]) {
+      const header = dayHeaders[dayIndex] as HTMLElement;
+      // scroll to the center/start of that column
+      cardRef.value.scrollTo({
+        left: header.offsetLeft - 80 - 8, // subtract time column width and gap
+        behavior: 'smooth'
+      });
+    }
+  }
+};
+
+watch(loadingLessons, (newVal) => {
+  if (!newVal) {
+    // Wait for DOM to render
+    setTimeout(scrollToDefaultDay, 100);
+  }
+});
+
+onMounted(() => {
+  if (!loadingLessons.value) {
+    setTimeout(scrollToDefaultDay, 100);
+  }
+  window.addEventListener('resize', scrollToDefaultDay);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', scrollToDefaultDay);
+});
 </script>
 
 <template>
-  <div class="card">
+  <div class="card" ref="cardRef">
     <div>
       <h2 style="margin-top: 0" class="title-inf">
         {{ t('school.tables.timetable.title') }}
@@ -306,5 +350,49 @@ const {
   font-size: var(--font-size-body);
   color: var(--text);
   box-shadow: var(--input-shadow);
+}
+
+/* --- MOBILE TIMETABLE VIEW --- */
+@media (max-width: 500px) {
+  .card {
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 88px; /* 80px width + 8px gap */
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  .timetable-grid {
+    grid-template-columns: 80px repeat(5, calc(100vw - 80px - 2rem));
+  }
+
+  .header-cell.time-header,
+  .time-slot-label {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--vlbg); /* Ensure solid background so it hides scrolling content */
+  }
+
+  .time-slot-label {
+    /* Optional: add a slight border or shadow to separate from scrolling content */
+    border-right: 1px solid var(--border2);
+    /* For dark mode consistency, make sure background is solid */
+    background-color: var(--bg);
+  }
+
+  /* When the current day container slides under the sticky column, we need the background to not be transparent */
+  .lesson-group-container {
+    z-index: 2;
+  }
+
+  .header-cell.day-header,
+  .lesson-group-container {
+    scroll-snap-align: start;
+    scroll-margin-left: 88px; /* match scroll-padding */
+  }
+
+  .header-cell.day-header {
+    z-index: 1;
+  }
 }
 </style>

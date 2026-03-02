@@ -4,6 +4,7 @@ import { Ellipsis } from 'lucide-vue-next'
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
+import Checkbox from "@/common/components/Checkbox.vue";
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -30,9 +31,7 @@ function navigateToAuth() {
         <div class="example-dashboard">
           <ItemCard :show-menu-trigger="false">
             <template #checkbox>
-              <div class="example-checkbox-ticked">
-                <span class="example-tick"></span>
-              </div>
+              <Checkbox :checked="true" />
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[0].title') }}</h3>
@@ -46,7 +45,7 @@ function navigateToAuth() {
 
           <ItemCard class="only-desktop" :show-menu-trigger="false">
             <template #checkbox>
-              <div class="example-checkbox"></div>
+              <Checkbox />
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[1].title') }}</h3>
@@ -68,7 +67,7 @@ function navigateToAuth() {
 
           <ItemCard :show-menu-trigger="false">
             <template #checkbox>
-              <div class="example-checkbox"></div>
+              <Checkbox />
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[2].title') }}</h3>
@@ -155,47 +154,6 @@ function navigateToAuth() {
   display:flex;
   flex-direction: column;
   justify-content: left;
-}
-
-.example-checkbox {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--border-2);
-  border: 2px solid var(--sub);
-  background: transparent;
-  position: relative;
-}
-
-.example-checkbox:hover {
-  border-color: var(--text);
-}
-
-.example-checkbox-ticked {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  width: 18px;
-  height: 18px;
-  border-radius: var(--border-2);
-  border: 2px solid var(--text);
-  background: var(--text);
-  position: relative;
-}
-
-.example-tick {
-  content:"";
-  position:absolute;
-  width:5px;
-  height:10px;
-  border:solid var(--bg);
-  border-width:0 2px 2px 0;
-  opacity:1;
-  left:50%;
-  top:32%;
-  transform:translate(-50%,-45%) rotate(45deg);
 }
 
 .example-title {
