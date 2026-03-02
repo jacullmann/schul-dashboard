@@ -21,11 +21,27 @@ const {
 } = useTimetable();
 
 const scrollContainerRef = ref<HTMLElement | null>(null);
+const timeColWrapperRef = ref<HTMLElement | null>(null);
+const daysGridWrapperRef = ref<HTMLElement | null>(null);
+let resizeObserver: ResizeObserver | null = null;
+
+const syncRowHeights = () => {
+  if (window.innerWidth >= 501) {
+    if (timeColWrapperRef.value) {
+      timeColWrapperRef.value.style.gridTemplateRows = '';
+    }
+    return;
+  }
+  if (daysGridWrapperRef.value && timeColWrapperRef.value) {
+    const computed = window.getComputedStyle(daysGridWrapperRef.value);
+    timeColWrapperRef.value.style.gridTemplateRows = computed.gridTemplateRows;
+  }
+};
 
 const scrollToDefaultDay = () => {
   if (!scrollContainerRef.value) return;
-  // If we are on mobile (viewport < 500px)
-  if (window.innerWidth < 500) {
+  // If we are on mobile (viewport <= 500px)
+  if (window.innerWidth <= 500) {
     const dayIndex = defaultDayIndex.value;
     const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
     if (dayHeaders && dayHeaders[dayIndex]) {
@@ -38,22 +54,44 @@ const scrollToDefaultDay = () => {
   }
 };
 
+const handleResize = () => {
+  scrollToDefaultDay();
+  syncRowHeights();
+};
+
 watch(loadingLessons, (newVal) => {
   if (!newVal) {
     // Wait for DOM to render
-    setTimeout(scrollToDefaultDay, 100);
+    setTimeout(() => {
+      syncRowHeights();
+      scrollToDefaultDay();
+    }, 100);
   }
 });
 
 onMounted(() => {
   if (!loadingLessons.value) {
-    setTimeout(scrollToDefaultDay, 100);
+    setTimeout(() => {
+      syncRowHeights();
+      scrollToDefaultDay();
+    }, 100);
   }
-  window.addEventListener('resize', scrollToDefaultDay);
+  window.addEventListener('resize', handleResize);
+
+  resizeObserver = new ResizeObserver(() => {
+    syncRowHeights();
+  });
+  
+  if (daysGridWrapperRef.value) {
+    resizeObserver.observe(daysGridWrapperRef.value);
+  }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', scrollToDefaultDay);
+  window.removeEventListener('resize', handleResize);
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
 });
 </script>
 
@@ -86,7 +124,7 @@ onUnmounted(() => {
       </div>
     </div>
     <div class="timetable-grid">
-      <div class="time-col-wrapper">
+      <div class="time-col-wrapper" ref="timeColWrapperRef">
         <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
         <div
             v-for="ts in timeSlots"
@@ -100,7 +138,7 @@ onUnmounted(() => {
       </div>
 
       <div class="days-scroll-wrapper" ref="scrollContainerRef">
-        <div class="days-grid-wrapper">
+        <div class="days-grid-wrapper" ref="daysGridWrapperRef">
           <div
               v-for="day in days"
               :key="day"
@@ -352,57 +390,65 @@ onUnmounted(() => {
 /* --- MOBILE TIMETABLE VIEW --- */
 @media (max-width: 500px) {
   .timetable-grid {
-    display: grid;
-    /* First col: Time (80px), Next 5 cols: Days */
-    grid-template-columns: 80px repeat(5, calc(100vw - 110px));
-    grid-template-rows: auto repeat(9, auto);
-    gap: 8px;
-    align-items: stretch;
+    display: flex;
+    overflow: hidden; /* nothing escapes parent */
+    grid-template-columns: none;
+    grid-template-rows: none;
+    gap: 8px; /* space between fixed column and scrollable track */
+  }
 
-    /* Make the whole grid horizontally scrollable */
+  .time-col-wrapper {
+    display: grid;
+    /* Allow rows to size naturally based on content while matching the right side */
+    grid-template-rows: auto repeat(9, auto);
+    width: 80px;
+    flex-shrink: 0;
+    gap: 8px;
+    z-index: 5;
+    background: transparent;
+  }
+
+  /* Make sure previous sticky values are overridden */
+  .header-cell.time-header,
+  .time-slot-label {
+    position: static;
+  }
+
+  .days-scroll-wrapper {
+    display: block;
+    position: relative;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    scroll-padding-left: 88px; /* Ensure snapping accounts for the 80px frozen column + 8px gap */
-    overscroll-behavior-x: none;
+    flex: 1; /* fills remaining width */
+    overscroll-behavior-x: none; /* Stops iOS rubber-banding */
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
+    height: 100%;
+    /* Hide scrollbar for native app feel */
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  .timetable-grid::-webkit-scrollbar {
+  .days-scroll-wrapper::-webkit-scrollbar {
     display: none;
   }
 
-  /* Unify grids by making wrappers pass-through */
-  .time-col-wrapper,
-  .days-scroll-wrapper,
   .days-grid-wrapper {
-    display: contents;
+    display: grid;
+    /* 5 days, each takes 100% of wrapper */
+    grid-template-columns: repeat(5, 100%);
+    grid-template-rows: auto repeat(9, minmax(35px, auto));
+    gap: 8px;
   }
-
-  /* Make the time column sticky */
-  .header-cell.time-header,
-  .time-slot-label {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-  }
-
-  /* Provide a solid background so scrolled items hide properly */
-  .time-slot-label {
-    background-color: var(--bg);
-  }
-
-  /* Setup snap points for the scrolling days */
+  
   .header-cell.day-header,
   .lesson-group-container {
     scroll-snap-align: start;
-    scroll-margin-left: 88px;
+    scroll-margin-left: 0;
   }
 
-  /* Mobile now uses the unified grid, so the column is identical to desktop */
+  /* Reposition columns to be 1 to 5 instead of 2 to 6, matching the new independent grid! */
   .lesson-group-container {
-    grid-column: var(--col-desktop) !important;
+    grid-column: var(--col-mobile) !important;
   }
 }
 
