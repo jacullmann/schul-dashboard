@@ -79,7 +79,7 @@ export default function createUserRoutes(deps) {
                     user: {
                         id: updatedUser.id,
                         email: updatedUser.email,
-                        isAdmin: updatedUser.is_admin,
+                        role: req.user.role,
                         enrKurs: updatedUser.enr_kurs,
                         wpuKurs1: updatedUser.wpu_kurs_1,
                         wpuKurs2: updatedUser.wpu_kurs_2,

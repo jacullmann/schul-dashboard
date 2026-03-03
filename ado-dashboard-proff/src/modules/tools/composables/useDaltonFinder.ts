@@ -7,7 +7,7 @@ interface DbPerson {
     name: string; // surname
     short: string; // abbreviation
     title: string | null;
-    person_subjects?: { subjects: { name: string } }[];
+    personSubjects?: { subjects: { name: string } }[];
 }
 
 interface Teacher {
@@ -22,11 +22,11 @@ interface DbScheduleRow {
     id: string;
     room: string;
     size: number;
-    mo_person_id: string | null;
-    di_person_id: string | null;
-    mi_person_id: string | null;
-    do_person_id: string | null;
-    fr_person_id: string | null;
+    moPersonId: string | null;
+    diPersonId: string | null;
+    miPersonId: string | null;
+    doPersonId: string | null;
+    frPersonId: string | null;
 }
 
 export interface ScheduleRow {
@@ -75,7 +75,7 @@ export function useDaltonFinder() {
 
             // Transform Persons into Teachers format
             teachers.value = personsRes.data.map(p => {
-                const subs = p.person_subjects?.map(ps => ps.subjects?.name).filter(Boolean) || [];
+                const subs = p.personSubjects?.map(ps => ps.subjects?.name).filter(Boolean) || [];
                 return {
                     id: p.id,
                     surname: p.name,
@@ -90,11 +90,11 @@ export function useDaltonFinder() {
                 room: r.room,
                 size: r.size,
                 schedule: {
-                    mo: r.mo_person_id,
-                    di: r.di_person_id,
-                    mi: r.mi_person_id,
-                    do: r.do_person_id,
-                    fr: r.fr_person_id
+                    mo: r.moPersonId,
+                    di: r.diPersonId,
+                    mi: r.miPersonId,
+                    do: r.doPersonId,
+                    fr: r.frPersonId
                 }
             })).sort((a, b) => a.room.localeCompare(b.room));
 

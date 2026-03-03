@@ -33,7 +33,7 @@ export function useTimetable() {
         7: 10
     };
     function getDisplayName(lesson: Lesson): string {
-        const subjectName = lesson.subjects?.name || lesson.subject || lesson.subject_abbr || '';
+        const subjectName = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
         const normalizedSubject = subjectName.toLowerCase();
 
         if (normalizedSubject === 'wpu1' || normalizedSubject === 'wpu2') {

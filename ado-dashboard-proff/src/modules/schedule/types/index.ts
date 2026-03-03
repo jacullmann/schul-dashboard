@@ -6,7 +6,7 @@ export interface Lesson {
     slot: number;
     duration: number;
     room: string | null;
-    course_id?: string | null;
+    courseId?: string | null;
     persons?: {
         id: string;
         name: string;
@@ -22,7 +22,7 @@ export interface Lesson {
         name: string;
     } | null;
     // Backward compatibility properties from old JSON
-    subject_abbr?: string;
+    subjectAbbr?: string;
     teacher?: string | null;
     subject?: string;
     courseName?: string;
@@ -36,11 +36,12 @@ export interface Substitution {
     slot?: number;
     duration?: number;
     subject?: string;
-    subject_abbr?: string;
+    subjectAbbr?: string;
     teacher?: string | null;
     room?: string | null;
     cancelled?: boolean;
     hide?: boolean;
+    createdAt?: string;
 }
 
 export interface TimeSlot {

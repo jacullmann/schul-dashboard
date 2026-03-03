@@ -245,7 +245,7 @@ export default function createAdminRoutes(deps) {
                 const result = await Promise.all(users.map(async (u) => {
                     const activity = await db.getUserActivity(supabase, u.id, { limit: 20 });
                     return {
-                        id: u.id, email: u.email, isAdmin: u.user_roles?.[0]?.roles?.name === 'superadmin',
+                        id: u.id, email: u.email, role: u.user_roles?.[0]?.roles?.name || 'user',
                         createdAt: u.created_at, lastLoginAt: u.last_login_at,
                         activity: activity.map(a => ({ at: a.created_at, type: a.type, meta: a.meta })),
                     };
@@ -301,11 +301,11 @@ export default function createAdminRoutes(deps) {
     router.patch('/users/:id',
         ...adminAuth,
         validateCsrf(csrfSecret),
-        body('isAdmin').isBoolean(),
+        body('role').isString(),
         validate,
         async (req, res) => {
             try {
-                if (req.body.isAdmin) {
+                if (req.body.role === 'superadmin') {
                     await supabase.from('user_roles').upsert({ user_id: req.params.id, role_id: 1 });
                 } else {
                     await supabase.from('user_roles').delete().eq('user_id', req.params.id).eq('role_id', 1);
@@ -363,7 +363,7 @@ export default function createAdminRoutes(deps) {
                 const result = users.map(u => ({
                     id: u.id,
                     email: u.email,
-                    isAdmin: u.user_roles?.[0]?.roles?.name === 'superadmin',
+                    role: u.user_roles?.[0]?.roles?.name || 'user',
                     emailVerified: u.email_verified,
                     createdAt: u.created_at,
                     lastLoginAt: u.last_login_at,

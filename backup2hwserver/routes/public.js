@@ -45,7 +45,32 @@ export default function createPublicRoutes(deps) {
                         });
                     }
                 }
-                res.json(filteredLessons);
+
+                // Map to proper camelCase DTOs for frontend
+                const mappedLessons = filteredLessons.map(l => ({
+                    id: l.id,
+                    day: l.day,
+                    slot: l.slot,
+                    duration: l.duration,
+                    room: l.room,
+                    courseId: l.course_id,
+                    persons: l.persons ? {
+                        id: l.persons.id,
+                        name: l.persons.name,
+                        title: l.persons.title,
+                        short: l.persons.short
+                    } : null,
+                    subjects: l.subjects ? {
+                        id: l.subjects.id,
+                        name: l.subjects.name
+                    } : null,
+                    courses: l.courses ? {
+                        id: l.courses.id,
+                        name: l.courses.name
+                    } : null
+                }));
+
+                res.json(mappedLessons);
             } catch (err) {
                 console.error('GET /api/timetable error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden des Stundenplans');
@@ -59,7 +84,21 @@ export default function createPublicRoutes(deps) {
         async (req, res) => {
             try {
                 const subs = await db.listTimetableSubs(supabase);
-                res.json(subs);
+                const mappedSubs = subs.map(s => ({
+                    id: s.id,
+                    lessonId: s.lesson_id,
+                    day: s.day,
+                    slot: s.slot,
+                    duration: s.duration,
+                    subject: s.subject,
+                    subjectAbbr: s.subject_abbr,
+                    teacher: s.teacher,
+                    room: s.room,
+                    cancelled: s.cancelled,
+                    hide: s.hide,
+                    createdAt: s.created_at,
+                }));
+                res.json(mappedSubs);
             } catch (err) {
                 console.error('GET /api/timetable/subs error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Substitutions');
@@ -87,7 +126,15 @@ export default function createPublicRoutes(deps) {
         async (req, res) => {
             try {
                 const list = await db.listAnnouncements(supabase, 5);
-                res.json(list);
+                const mappedList = list.map(a => ({
+                    id: a.id,
+                    content: a.content,
+                    color: a.color,
+                    showAsPopup: a.show_as_popup,
+                    createdBy: a.created_by,
+                    createdAt: a.created_at
+                }));
+                res.json(mappedList);
             } catch (err) {
                 console.error('GET /api/announcements error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Ankündigungen');
@@ -114,7 +161,14 @@ export default function createPublicRoutes(deps) {
                     createdBy: req.user.sub,
                 });
                 await db.logActivity(supabase, req.user.sub, 'announcement:create', { id: ann.id });
-                res.status(201).json(ann);
+                res.status(201).json({
+                    id: ann.id,
+                    content: ann.content,
+                    color: ann.color,
+                    showAsPopup: ann.show_as_popup,
+                    createdBy: ann.created_by,
+                    createdAt: ann.created_at
+                });
             } catch (err) {
                 console.error('POST /api/announcements error', err);
                 sendJSONError(res, 500, 'Fehler beim Erstellen der Ankündigung');
@@ -210,7 +264,14 @@ export default function createPublicRoutes(deps) {
         async (req, res) => {
             try {
                 const data = await db.listPersons(supabase);
-                res.json(data);
+                const mappedData = data.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    short: p.short,
+                    title: p.title,
+                    personSubjects: p.person_subjects
+                }));
+                res.json(mappedData);
             } catch (err) {
                 console.error('GET /api/persons error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Personen');
@@ -224,7 +285,17 @@ export default function createPublicRoutes(deps) {
         async (req, res) => {
             try {
                 const data = await db.listDaltonSchedule(supabase);
-                res.json(data);
+                const mappedData = data.map(r => ({
+                    id: r.id,
+                    room: r.room,
+                    size: r.size,
+                    moPersonId: r.mo_person_id,
+                    diPersonId: r.di_person_id,
+                    miPersonId: r.mi_person_id,
+                    doPersonId: r.do_person_id,
+                    frPersonId: r.fr_person_id
+                }));
+                res.json(mappedData);
             } catch (err) {
                 console.error('GET /api/dalton_schedule error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Dalton-Pläne');

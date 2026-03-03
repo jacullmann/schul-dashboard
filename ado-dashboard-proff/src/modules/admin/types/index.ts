@@ -25,7 +25,7 @@ export interface AdminStats {
 export interface AdminUser {
     id: string;
     email: string;
-    isAdmin: boolean;
+    role: string;
     isBanned: boolean;
     emailVerified: boolean;
     createdAt: string;

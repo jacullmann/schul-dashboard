@@ -27,7 +27,7 @@ export function filterLessonsForUser(lessons, user) {
         }
 
         // Für WPU/ENR die UUID vergleichen
-        const lessonCourseId = lesson.course_id || lesson.courseId;
+        const lessonCourseId = lesson.courseId || lesson.course_id;
 
         // Wenn die Lesson komischerweise keine ID hat, sicherheitshalber anzeigen
         if (!lessonCourseId) {

@@ -108,10 +108,10 @@ function checkForNewPopups(announcements) {
   const seenPopups = getSeenPopups();
 
   for (const announcement of announcements) {
-    if (announcement.showAsPopup && !seenPopups.includes(announcement._id)) {
+    if (announcement.showAsPopup && !seenPopups.includes(announcement.id)) {
       currentPopupAnnouncement.value = announcement;
       showPopup.value = true;
-      markPopupAsSeen(announcement._id);
+      markPopupAsSeen(announcement.id);
       break;
     }
   }

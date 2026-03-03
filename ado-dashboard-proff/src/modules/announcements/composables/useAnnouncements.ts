@@ -36,7 +36,7 @@ export function useAnnouncements() {
         }
     }
 
-    function canManage(createdBy: string): boolean {
+    function canManage(): boolean {
         if (!user.value) return false;
         return user.value.role === 'superadmin';
     }

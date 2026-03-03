@@ -156,7 +156,7 @@ export function useAdmin() {
     }
 
     async function toggleBan(targetUser: any) {
-        if (!targetUser || targetUser.isAdmin) return;
+        if (!targetUser || targetUser.role === 'superadmin') return;
         togglingBan.value[targetUser.id] = true;
         try {
             if (targetUser.isBanned) {

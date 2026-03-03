@@ -160,7 +160,7 @@
                   <div class="u-id small">{{ u.id }}</div>
                 </td>
                 <td>
-                  <span v-if="u.isAdmin" class="badge admin-badge">Admin</span>
+                  <span v-if="u.role === 'superadmin'" class="badge admin-badge">Admin</span>
                   <span v-else-if="u.isBanned" class="badge danger-badge">Gesperrt</span>
                   <span v-else class="badge ok-badge">Aktiv</span>
                   <span v-if="!u.emailVerified" class="badge warn-badge ml-1">Unverifiziert</span>
@@ -174,7 +174,7 @@
                     <button class="btn icon-only" @click="toggleUserActivity(u.id)" title="Logs">
                       <FileText :size="16"/>
                     </button>
-                    <button v-if="!u.isAdmin" class="btn icon-only" @click="toggleBan(u)" :title="u.isBanned ? 'Entsperren' : 'Sperren'">
+                    <button v-if="u.role !== 'superadmin'" class="btn icon-only" @click="toggleBan(u)" :title="u.isBanned ? 'Entsperren' : 'Sperren'">
                       <Lock v-if="!u.isBanned" :size="16"/>
                       <Unlock v-else :size="16"/>
                     </button>
@@ -185,7 +185,7 @@
                     >
                       <Eraser :size="16" />
                     </button>
-                    <button v-if="!u.isAdmin" class="btn icon-only danger" @click="deleteUser(u.id)" title="Löschen">
+                    <button v-if="u.role !== 'superadmin'" class="btn icon-only danger" @click="deleteUser(u.id)" title="Löschen">
                       <Trash2 :size="16"/>
                     </button>
                   </div>
@@ -363,7 +363,7 @@
               <div v-for="a in announcements" :key="a.id" class="ann" :style="{ borderColor: colorFor(a.color) }" v-if="announcements.length">
                 <div class="ann-content">{{ a.content }}</div>
                 <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
-                <div v-if="canManage(a.createdBy)" class="ann-actions">
+                <div v-if="canManage()" class="ann-actions">
                   <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a.id)">Löschen</button>
                 </div>
               </div>

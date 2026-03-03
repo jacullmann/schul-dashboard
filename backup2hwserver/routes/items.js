@@ -361,10 +361,10 @@ export default function createItemsRoutes(deps) {
                 if (imageIndex === -1) return sendJSONError(res, 404, 'Bild nicht gefunden');
 
                 const image = images[imageIndex];
-                const isAdmin = req.user.role === 'superadmin';
+                const isSuperadmin = req.user.role === 'superadmin';
                 const isImageOwner = image.createdBy && image.createdBy === req.user.sub;
                 const isItemOwner = item.created_by === req.user.sub;
-                if (!isAdmin && !isImageOwner && !isItemOwner) {
+                if (!isSuperadmin && !isImageOwner && !isItemOwner) {
                     return sendJSONError(res, 403, 'Du kannst dieses Bild nicht löschen.');
                 }
 
