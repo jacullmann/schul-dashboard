@@ -220,7 +220,7 @@
             <div class="reports-section" v-if="unprocessedReports.length">
               <h3 class="section-subtitle">Nicht bearbeitet</h3>
               <div class="report-grid">
-                <div v-for="rep in unprocessedReports" :key="rep._id" class="report-card card rlc">
+                <div v-for="rep in unprocessedReports" :key="rep.id" class="report-card card rlc">
                   <div class="rep-header">
                     <strong>{{ rep.itemTitle }}</strong>
                     <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
@@ -238,13 +238,13 @@
                   <div class="rep-actions">
                     <button
                         class="btn tiny"
-                        @click="toggleReportProcessed(rep._id, rep.processed)"
-                        :disabled="togglingReportProcessed[rep._id]"
+                        @click="toggleReportProcessed(rep.id, rep.processed)"
+                        :disabled="togglingReportProcessed[rep.id]"
                     >
                       <Check :size="14" />
-                      <span>{{ togglingReportProcessed[rep._id] ? '...' : 'Bearbeitet' }}</span>
+                      <span>{{ togglingReportProcessed[rep.id] ? '...' : 'Bearbeitet' }}</span>
                     </button>
-                    <button class="btn danger tiny" @click="deleteReport(rep._id)">
+                    <button class="btn danger tiny" @click="deleteReport(rep.id)">
                       <Trash2 :size="14" />
                       <span>Löschen</span>
                     </button>
@@ -258,7 +258,7 @@
             <div class="reports-section" v-if="processedReports.length">
               <h3 class="section-subtitle muted">Bearbeitet</h3>
               <div class="report-grid">
-                <div v-for="rep in processedReports" :key="rep._id" class="report-card card rlc processed">
+                <div v-for="rep in processedReports" :key="rep.id" class="report-card card rlc processed">
                   <div class="rep-header">
                     <strong>{{ rep.itemTitle }}</strong>
                     <span class="small">{{ new Date(rep.reportedAt).toLocaleDateString() }}</span>
@@ -280,13 +280,13 @@
                   <div class="rep-actions">
                     <button
                         class="btn tiny ghost"
-                        @click="toggleReportProcessed(rep._id, rep.processed)"
-                        :disabled="togglingReportProcessed[rep._id]"
+                        @click="toggleReportProcessed(rep.id, rep.processed)"
+                        :disabled="togglingReportProcessed[rep.id]"
                     >
                       <RotateCcw :size="14" />
-                      <span>{{ togglingReportProcessed[rep._id] ? '...' : 'Zurücksetzen' }}</span>
+                      <span>{{ togglingReportProcessed[rep.id] ? '...' : 'Zurücksetzen' }}</span>
                     </button>
-                    <button class="btn danger tiny" @click="deleteReport(rep._id)">
+                    <button class="btn danger tiny" @click="deleteReport(rep.id)">
                       <Trash2 :size="14" />
                       <span>Löschen</span>
                     </button>
@@ -304,20 +304,20 @@
             <div class="sorgen-section" v-if="unprocessedSorgen.length">
               <h3 class="section-subtitle">Nicht bearbeitet</h3>
               <div class="sorgen-list">
-                <div v-for="s in unprocessedSorgen" :key="s._id" class="sorge-card rlc card">
+                <div v-for="s in unprocessedSorgen" :key="s.id" class="sorge-card rlc card">
                   <div class="sorge-body">{{ s.message }}</div>
                   <div class="sorge-footer">
                     <span class="small">{{ new Date(s.createdAt).toLocaleString() }}</span>
                     <div class="sorge-actions">
                       <button
                           class="btn tiny"
-                          @click="toggleSorgeProcessed(s._id, s.processed)"
-                          :disabled="togglingSorgeProcessed[s._id]"
+                          @click="toggleSorgeProcessed(s.id, s.processed)"
+                          :disabled="togglingSorgeProcessed[s.id]"
                       >
                         <Check :size="14" />
-                        <span>{{ togglingSorgeProcessed[s._id] ? '...' : 'Bearbeitet' }}</span>
+                        <span>{{ togglingSorgeProcessed[s.id] ? '...' : 'Bearbeitet' }}</span>
                       </button>
-                      <button class="btn danger tiny" @click="deleteSorge(s._id)">Löschen</button>
+                      <button class="btn danger tiny" @click="deleteSorge(s.id)">Löschen</button>
                     </div>
                   </div>
                 </div>
@@ -329,7 +329,7 @@
             <div class="sorgen-section" v-if="processedSorgen.length">
               <h3 class="section-subtitle muted">Bearbeitet</h3>
               <div class="sorgen-list">
-                <div v-for="s in processedSorgen" :key="s._id" class="sorge-card rlc card processed">
+                <div v-for="s in processedSorgen" :key="s.id" class="sorge-card rlc card processed">
                   <div class="sorge-header-processed">
                     <span class="badge ok-badge small">✓ Bearbeitet</span>
                     <span class="small" v-if="s.processedAt">{{ new Date(s.processedAt).toLocaleString() }}</span>
@@ -340,13 +340,13 @@
                     <div class="sorge-actions">
                       <button
                           class="btn tiny ghost"
-                          @click="toggleSorgeProcessed(s._id, s.processed)"
-                          :disabled="togglingSorgeProcessed[s._id]"
+                          @click="toggleSorgeProcessed(s.id, s.processed)"
+                          :disabled="togglingSorgeProcessed[s.id]"
                       >
                         <RotateCcw :size="14" />
-                        <span>{{ togglingSorgeProcessed[s._id] ? '...' : 'Zurücksetzen' }}</span>
+                        <span>{{ togglingSorgeProcessed[s.id] ? '...' : 'Zurücksetzen' }}</span>
                       </button>
-                      <button class="btn danger tiny" @click="deleteSorge(s._id)">Löschen</button>
+                      <button class="btn danger tiny" @click="deleteSorge(s.id)">Löschen</button>
                     </div>
                   </div>
                 </div>
@@ -360,11 +360,11 @@
             <div class="ann-list">
               <button class="btn" @click="showAnnouncementForm = true">Neue Ankündigung</button>
 
-              <div v-for="a in announcements" :key="a._id" class="ann" :style="{ borderColor: colorFor(a.color) }" v-if="announcements.length">
+              <div v-for="a in announcements" :key="a.id" class="ann" :style="{ borderColor: colorFor(a.color) }" v-if="announcements.length">
                 <div class="ann-content">{{ a.content }}</div>
                 <div class="small ann-date">{{ new Date(a.createdAt).toLocaleString() }}</div>
                 <div v-if="canManage(a.createdBy)" class="ann-actions">
-                  <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a._id)">Löschen</button>
+                  <button data-umami-event="Dashboard Admin Ankündigung löschen" class="btn danger tiny" @click="deleteAnnouncement(a.id)">Löschen</button>
                 </div>
               </div>
             </div>
@@ -397,7 +397,7 @@
               </div>
 
               <div v-else class="subs-list">
-                <div v-for="sub in timetableSubs" :key="sub._id" class="sub-item">
+                <div v-for="sub in timetableSubs" :key="sub.id" class="sub-item">
                   <div class="sub-info">
                     <div class="sub-header">
                       <strong>Lesson ID: {{ sub.lessonId }}</strong>
@@ -427,9 +427,9 @@
                   <div class="sub-actions">
                     <button
                         class="btn icon-only danger"
-                        @click="deleteTimetableSub(sub._id)"
-                        :disabled="deletingSubs[sub._id]"
-                        :title="deletingSubs[sub._id] ? 'Löscht...' : 'Löschen'"
+                        @click="deleteTimetableSub(sub.id)"
+                        :disabled="deletingSubs[sub.id]"
+                        :title="deletingSubs[sub.id] ? 'Löscht...' : 'Löschen'"
                     >
                       <Trash2 :size="16"/>
                     </button>

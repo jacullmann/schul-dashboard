@@ -204,7 +204,7 @@ export function useAdmin() {
         try {
             await hw.delete(`/api/admin/reports/${id}`);
             // Optimistic update
-            reports.value = reports.value.filter(r => r._id !== id);
+            reports.value = reports.value.filter(r => r.id !== id);
             handleSuccess('Meldung gelöscht.');
             loadStats();
         } catch (e) { handleError('Fehler beim Löschen.'); }
@@ -216,7 +216,7 @@ export function useAdmin() {
         try {
             await hw.patch(`/api/admin/reports/${id}/processed`, { processed: newProcessed });
             // Optimistic update
-            const report = reports.value.find(r => r._id === id);
+            const report = reports.value.find(r => r.id === id);
             if (report) {
                 report.processed = newProcessed;
                 report.processedAt = newProcessed ? new Date().toISOString() : null;
@@ -243,7 +243,7 @@ export function useAdmin() {
         try {
             await hw.delete(`/api/admin/sorgen/${id}`);
             // Optimistic update
-            entriessorgen.value = entriessorgen.value.filter(s => s._id !== id);
+            entriessorgen.value = entriessorgen.value.filter(s => s.id !== id);
             handleSuccess('Eintrag gelöscht.');
             loadStats();
         } catch (e) { handleError('Fehler beim Löschen.'); }
@@ -255,7 +255,7 @@ export function useAdmin() {
         try {
             await hw.patch(`/api/admin/sorgen/${id}/processed`, { processed: newProcessed });
             // Optimistic update
-            const sorge = entriessorgen.value.find(s => s._id === id);
+            const sorge = entriessorgen.value.find(s => s.id === id);
             if (sorge) {
                 sorge.processed = newProcessed;
                 sorge.processedAt = newProcessed ? new Date().toISOString() : null;

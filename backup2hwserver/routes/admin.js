@@ -140,7 +140,20 @@ export default function createAdminRoutes(deps) {
         async (req, res) => {
             try {
                 const subs = await db.listTimetableSubs(supabase);
-                res.json(subs);
+                res.json(subs.map(s => ({
+                    id: s.id,
+                    lessonId: s.lesson_id,
+                    day: s.day,
+                    slot: s.slot,
+                    duration: s.duration,
+                    subject: s.subject,
+                    subject_abbr: s.subject_abbr,
+                    teacher: s.teacher,
+                    room: s.room,
+                    cancelled: s.cancelled,
+                    hide: s.hide,
+                    createdAt: s.created_at,
+                })));
             } catch (err) {
                 console.error('GET /api/admin/timetable/subs error', err);
                 sendJSONError(res, 500, 'Serverfehler beim Laden der Substitutions');
@@ -428,7 +441,18 @@ export default function createAdminRoutes(deps) {
         async (req, res) => {
             try {
                 const reports = await db.listReports(supabase);
-                res.json(reports);
+                res.json(reports.map(r => ({
+                    id: r.id,
+                    itemId: r.item_id,
+                    itemTitle: r.item_title,
+                    category: r.category,
+                    reason: r.reason,
+                    reportedBy: r.reporter_id,
+                    reporterEmail: r.reporter_email,
+                    processed: r.processed,
+                    processedAt: r.processed_at,
+                    reportedAt: r.reported_at,
+                })));
             } catch (err) {
                 console.error('GET /api/admin/reports error', err);
                 sendJSONError(res, 500, 'Server error');
@@ -460,7 +484,13 @@ export default function createAdminRoutes(deps) {
         async (req, res) => {
             try {
                 const sorgen = await db.listSorgen(supabase);
-                res.json(sorgen);
+                res.json(sorgen.map(s => ({
+                    id: s.id,
+                    message: s.message,
+                    processed: s.processed,
+                    processedAt: s.processed_at,
+                    createdAt: s.created_at,
+                })));
             } catch (err) {
                 console.error('GET /api/admin/sorgen error', err);
                 sendJSONError(res, 500, 'Server error');

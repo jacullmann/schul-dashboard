@@ -38,7 +38,7 @@ export interface AdminUser {
 }
 
 export interface AdminReport {
-    _id: string;
+    id: string;
     itemId: string;
     itemTitle: string;
     category: string;
@@ -51,7 +51,7 @@ export interface AdminReport {
 }
 
 export interface AdminSorge {
-    _id: string;
+    id: string;
     message: string;
     processed: boolean;
     processedAt: string | null;
@@ -59,7 +59,7 @@ export interface AdminSorge {
 }
 
 export interface TimetableSubstitution {
-    _id: string;
+    id: string;
     lessonId: number;
     day?: string;
     slot?: number;
