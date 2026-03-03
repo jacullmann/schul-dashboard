@@ -2,7 +2,7 @@
 
 export interface Lesson {
     id: string; // uuid
-    day: string;
+    day: number;
     slot: number;
     duration: number;
     room: string | null;
@@ -32,7 +32,7 @@ export interface Lesson {
 
 export interface Substitution {
     lessonId: string;
-    day?: string;
+    day?: number;
     slot?: number;
     duration?: number;
     subject?: string;

@@ -15,12 +15,13 @@ const {
   days,
   timeSlots,
   groupedLessons,
-  currentDayName,
+  currentDay,
   activeOrNextGroupKey,
   getDisplayName,
   getTeacherName,
   getGroupStyle,
-  defaultDayIndex
+  defaultDayIndex,
+  formatDayName
 } = useTimetable();
 
 const copyLessonId = (id: string | number) => {
@@ -156,9 +157,9 @@ onUnmounted(() => {
               v-for="day in days"
               :key="day"
               class="header-cell day-header"
-              :class="{'current-day-header': day === currentDayName}"
+              :class="{'current-day-header': day === currentDay}"
           >
-            {{ day }}
+            {{ formatDayName(day) }}
           </div>
 
           <div
@@ -167,7 +168,7 @@ onUnmounted(() => {
               class="lesson-group-container"
               :class="{
                 'highlight-active': key === activeOrNextGroupKey,
-                'current-day': group[0]?.day === currentDayName
+                'current-day': group[0]?.day === currentDay
                 }"
               :style="getGroupStyle(group)"
           >

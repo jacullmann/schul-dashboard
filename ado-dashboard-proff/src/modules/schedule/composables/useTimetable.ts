@@ -5,7 +5,7 @@ import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 
 export function useTimetable() {
-    const { t } = useI18n();
+    const { t, locale } = useI18n();
     const userStore = useUserStore();
 
     const isPersonalized = computed(() => {
@@ -17,10 +17,12 @@ export function useTimetable() {
     const loadingSubs = ref(true);
     const loadingLessons = ref(true);
 
-    const days = Array.from({ length: 5 }).map((_, i) => {
-        const date = new Date(Date.UTC(2024, 0, i + 1, 12)); // 2024-01-01 is Monday
-        return new Intl.DateTimeFormat('de-DE', { weekday: 'long' }).format(date);
-    });
+    const days = [1, 2, 3, 4, 5];
+
+    const formatDayName = (day: number): string => {
+        const date = new Date(Date.UTC(2024, 0, day, 12)); // 2024-01-01 is Monday
+        return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(date);
+    };
     const totalSlots = 9;
     const lessonDurationMins = 45;
     const startTimeHour = 8;
@@ -206,13 +208,13 @@ export function useTimetable() {
         clearInterval(timer);
     });
 
-    const dayMap: Record<string, number> = days.reduce((acc, day, i) => {
+    const dayMap: Record<number, number> = days.reduce((acc, day, i) => {
         acc[day] = i;
         return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<number, number>);
 
-    // New computed property to get the name of the current day
-    const currentDayName = computed(() => {
+    // New computed property to get the value of the current day
+    const currentDay = computed(() => {
         const dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0, Sunday = 6
         if (dayIndex >= 0 && dayIndex < days.length) {
             return days[dayIndex];
@@ -339,11 +341,12 @@ export function useTimetable() {
         days,
         timeSlots,
         groupedLessons,
-        currentDayName,
+        currentDay,
         activeOrNextGroupKey,
         defaultDayIndex,
         getDisplayName,
         getTeacherName,
-        getGroupStyle
+        getGroupStyle,
+        formatDayName
     };
 }
