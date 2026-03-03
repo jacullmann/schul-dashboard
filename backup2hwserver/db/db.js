@@ -603,8 +603,7 @@ export async function getTimetableLessons(sb) {
             persons ( id, name, title, short ),
             subjects ( id, name ),
             courses ( id, name )
-        `)
-        .is('tenant_id', null);
+        `);
     return data;
 }
 
