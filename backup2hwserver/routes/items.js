@@ -13,6 +13,7 @@ export default function createItemsRoutes(deps) {
         csrfSecret,
         requireAppGate,
         requireUser,
+        checkUser,
         requireTenant,
         validateCsrf,
         sendJSONError,
