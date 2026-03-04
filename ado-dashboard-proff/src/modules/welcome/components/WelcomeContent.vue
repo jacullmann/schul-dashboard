@@ -284,11 +284,6 @@ function navigateToAuth() {
     flex-direction: row;
     gap: 8px;
   }
-
-  .action-btn {
-    padding: 0;
-    min-width: inherit;
-  }
 }
 
 @media (max-width: 368px) {

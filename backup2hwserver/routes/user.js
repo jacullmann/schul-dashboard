@@ -11,6 +11,7 @@ export default function createUserRoutes(deps) {
         csrfSecret,
         requireAppGate,
         requireUser,
+        requireTenant,
         validateCsrf,
         sendJSONError,
         validate,
@@ -146,12 +147,13 @@ export default function createUserRoutes(deps) {
     router.post('/items/:id/check',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.id);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
                 await db.checkItem(supabase, item.id, req.user.sub);
@@ -168,12 +170,13 @@ export default function createUserRoutes(deps) {
     router.post('/items/:id/pin',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.id);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
                 await db.pinItem(supabase, item.id, req.user.sub);
