@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Line from './Line.vue'
-import { Ellipsis } from 'lucide-vue-next'
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
@@ -29,21 +28,16 @@ function navigateToAuth() {
     <div class="visual-container">
       <div class="example-wrapper">
         <div class="example-dashboard">
-          <ItemCard :show-menu-trigger="false">
+          <ItemCard>
             <template #checkbox>
               <Checkbox :checked="true" />
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[0].title') }}</h3>
             </template>
-            <template #actions-pre>
-              <div class="example-menu-trigger">
-                <Ellipsis :size="24" :stroke-width="2" stroke="currentColor"></Ellipsis>
-              </div>
-            </template>
           </ItemCard>
 
-          <ItemCard class="only-desktop" :show-menu-trigger="false">
+          <ItemCard class="only-desktop">
             <template #checkbox>
               <Checkbox />
             </template>
@@ -53,11 +47,6 @@ function navigateToAuth() {
             <template #badges>
               <div class="example-badge">{{ t('global.subjects.geography') }} • {{ formatDate('2026-03-07') }}</div>
             </template>
-            <template #actions-pre>
-              <div class="example-menu-trigger">
-                <Ellipsis :size="24" :stroke-width="2" stroke="currentColor"></Ellipsis>
-              </div>
-            </template>
             <template #content-after>
               <div class="example-body">
                 <span>[Bild]</span>
@@ -65,7 +54,7 @@ function navigateToAuth() {
             </template>
           </ItemCard>
 
-          <ItemCard :show-menu-trigger="false">
+          <ItemCard>
             <template #checkbox>
               <Checkbox />
             </template>
@@ -75,17 +64,13 @@ function navigateToAuth() {
             <template #badges>
               <div class="example-badge">{{ t('global.subjects.math') }} • {{ formatDate('2026-03-08') }}</div>
             </template>
-            <template #actions-pre>
-              <div class="example-menu-trigger">
-                <Ellipsis :size="24" :stroke-width="2" stroke="currentColor"></Ellipsis>
-              </div>
-            </template>
             <template #content-after>
               <div class="example-body">
                 <span>{{ t('welcome.hero.visual.items[2].text') }}</span>
               </div>
             </template>
           </ItemCard>
+
           <div class="item-card-vanishing"></div>
         </div>
       </div>
@@ -104,8 +89,8 @@ function navigateToAuth() {
       </p>
 
       <div class="action-buttons">
-        <WelcomeButtonSecondary class="btn ghost" @click="onMoreInfoClick" />
-        <WelcomeButtonPrimary @click="navigateToAuth" class="btn action"/>
+        <WelcomeButtonSecondary class="btn ghost action-btn" @click="onMoreInfoClick" />
+        <WelcomeButtonPrimary @click="navigateToAuth" class="btn action action-btn"/>
       </div>
     </div>
   </div>
@@ -172,22 +157,6 @@ function navigateToAuth() {
   padding: 0;
   font-family: var(--normal-font), sans-serif;
   font-size: var(--font-size-body);
-}
-
-.example-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 24px;
-  cursor: pointer;
-  color: var(--sub);
-  transition: 0.1s;
-  margin: -3px 0;
-}
-
-.example-menu-trigger:hover {
-  color:var(--text);
 }
 
 .example-body {
@@ -266,19 +235,15 @@ function navigateToAuth() {
   font-size: var(--font-size-body);
   font-weight: 600;
   cursor: pointer;
-  min-width: 180px;
   position: relative;
   overflow: hidden;
 }
 
-.primary,
-.secondary {
-  white-space: nowrap;
-}
 @media (max-width: 1200px) {
   .welcome-section {
     flex-direction: column;
     padding: 0;
+    min-height: auto;
   }
 
   .text-content {
@@ -323,11 +288,6 @@ function navigateToAuth() {
   .action-btn {
     padding: 0;
     min-width: inherit;
-  }
-
-  .secondary, .primary {
-    padding: 12px 14px 12px 14px;
-    font-size: 1rem;
   }
 }
 

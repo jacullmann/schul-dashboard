@@ -331,7 +331,6 @@ const {
   itemToEdit,
   user,
   subjects,
-  items,
   loading,
   initialLoad,
   subjectFilter,
@@ -352,7 +351,6 @@ const {
   showLess,
   toggleMenu,
   onMenuAction,
-  logout,
   handleSuccess,
   onItemFormError,
   canEdit,
@@ -406,6 +404,9 @@ const {
   subjectOptions,
   getSubjectName
 } = useHausaufgaben();
+
+// Expose todoAppRef to satisfy TS declaration and allow template bindings
+defineExpose({ todoAppRef });
 </script>
 
 <style scoped>

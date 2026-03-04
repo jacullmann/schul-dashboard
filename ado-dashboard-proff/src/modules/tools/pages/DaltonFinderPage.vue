@@ -26,7 +26,7 @@ const currentDay = new Date().getDay();
 const getDayName = (day: number) => {
   // January 1st, 2024 was a Monday
   const date = new Date(2024, 0, day);
-  return new Intl.DateTimeFormat(locale.value, { weekday: 'short' }).format(date).slice(0, 2).toUpperCase();
+  return new Intl.DateTimeFormat(locale.value, { weekday: 'short' }).format(date).slice(0, 2);
 };
 
 // TabSwitcher Items
