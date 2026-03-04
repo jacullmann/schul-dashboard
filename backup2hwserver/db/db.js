@@ -241,7 +241,7 @@ export async function cleanupExpiredMfaPending(sb) {
 
 // ─── Items ──────────────────────────────────────────────────────────────────
 
-export async function createItem(sb, item) {
+export async function createItem(sb, tenantId, item) {
     return throwOnError(
         await sb.from('items').insert({
             type: item.type,
@@ -252,18 +252,19 @@ export async function createItem(sb, item) {
             due_date: item.dueDate,
             created_by: item.createdBy,
             editor_note: item.editorNote || '',
+            tenant_id: tenantId,
         }).select().single()
     );
 }
 
-export async function findItemById(sb, id) {
-    const { data } = await sb.from('items').select('*').eq('id', id).maybeSingle();
+export async function findItemById(sb, tenantId, id) {
+    const { data } = await sb.from('items').select('*').eq('id', id).eq('tenant_id', tenantId).maybeSingle();
     return data;
 }
 
-export async function listItems(sb, { type, filter, limit = 100 }) {
+export async function listItems(sb, tenantId, { type, filter, limit = 100 }) {
     const cutoff = dayjs().subtract(24, 'hour').toISOString();
-    let q = sb.from('items').select('*, creator:users!items_created_by_fkey(email)').eq('type', type);
+    let q = sb.from('items').select('*, creator:users!items_created_by_fkey(email)').eq('type', type).eq('tenant_id', tenantId);
     if (filter === 'old') {
         q = q.lt('due_date', cutoff).order('due_date', { ascending: false });
     } else {
@@ -273,51 +274,53 @@ export async function listItems(sb, { type, filter, limit = 100 }) {
     return throwOnError(await q);
 }
 
-export async function updateItem(sb, id, fields) {
-    return throwOnError(await sb.from('items').update(fields).eq('id', id).select().single());
+export async function updateItem(sb, tenantId, id, fields) {
+    return throwOnError(await sb.from('items').update(fields).eq('id', id).eq('tenant_id', tenantId).select().single());
 }
 
-export async function deleteItem(sb, id) {
-    return throwOnError(await sb.from('items').delete().eq('id', id));
+export async function deleteItem(sb, tenantId, id) {
+    return throwOnError(await sb.from('items').delete().eq('id', id).eq('tenant_id', tenantId));
 }
 
-export async function countItems(sb, filters = {}) {
-    let q = sb.from('items').select('*', { count: 'exact', head: true });
+export async function countItems(sb, tenantId, filters = {}) {
+    let q = sb.from('items').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId);
     for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
     const { count, error } = await q;
     if (error) throw new Error(error.message);
     return count ?? 0;
 }
 
-export async function countItemsOlderThan(sb, dateISO) {
+export async function countItemsOlderThan(sb, tenantId, dateISO) {
     const { count, error } = await sb.from('items')
         .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
         .lt('created_at', dateISO);
     if (error) throw new Error(error.message);
     return count ?? 0;
 }
 
-export async function countItemsSince(sb, dateISO) {
+export async function countItemsSince(sb, tenantId, dateISO) {
     const { count, error } = await sb.from('items')
         .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
         .gte('created_at', dateISO);
     if (error) throw new Error(error.message);
     return count ?? 0;
 }
 
-export async function findOldItems(sb, olderThanISO) {
+export async function findOldItems(sb, tenantId, olderThanISO) {
     return throwOnError(
-        await sb.from('items').select('id, images').lt('created_at', olderThanISO)
+        await sb.from('items').select('id, images').eq('tenant_id', tenantId).lt('created_at', olderThanISO)
     );
 }
 
-export async function deleteItemsOlderThan(sb, olderThanISO) {
-    return throwOnError(await sb.from('items').delete().lt('created_at', olderThanISO));
+export async function deleteItemsOlderThan(sb, tenantId, olderThanISO) {
+    return throwOnError(await sb.from('items').delete().eq('tenant_id', tenantId).lt('created_at', olderThanISO));
 }
 
-export async function getItemsByTypeCount(sb) {
+export async function getItemsByTypeCount(sb, tenantId) {
     // Supabase doesn't support GROUP BY natively via JS client, use RPC or manual
-    const data = throwOnError(await sb.from('items').select('type'));
+    const data = throwOnError(await sb.from('items').select('type').eq('tenant_id', tenantId));
     const counts = {};
     for (const row of data) {
         counts[row.type] = (counts[row.type] || 0) + 1;
@@ -325,8 +328,8 @@ export async function getItemsByTypeCount(sb) {
     return Object.entries(counts).map(([type, count]) => ({ type, count }));
 }
 
-export async function getTopCreators(sb, limit = 5) {
-    const data = throwOnError(await sb.from('items').select('created_by'));
+export async function getTopCreators(sb, tenantId, limit = 5) {
+    const data = throwOnError(await sb.from('items').select('created_by').eq('tenant_id', tenantId));
     const counts = {};
     for (const row of data) {
         counts[row.created_by] = (counts[row.created_by] || 0) + 1;
@@ -516,51 +519,53 @@ export async function getFirstTodo(sb, userId) {
 
 // ─── Subjects ───────────────────────────────────────────────────────────────
 
-export async function listSubjects(sb) {
+export async function listSubjects(sb, tenantId) {
     return throwOnError(
-        await sb.from('subjects').select('id, name, is_active, courses(id, name)').order('name', { ascending: true })
+        await sb.from('subjects').select('id, name, is_active, courses(id, name)').eq('tenant_id', tenantId).order('name', { ascending: true })
     );
 }
 
-export async function upsertSubject(sb, name) {
+export async function upsertSubject(sb, tenantId, name) {
     return throwOnError(
-        await sb.from('subjects').upsert({ name }, { onConflict: 'name' })
+        await sb.from('subjects').upsert({ name, tenant_id: tenantId }, { onConflict: 'name' })
     );
 }
 
-export async function deleteSubject(sb, name) {
-    return throwOnError(await sb.from('subjects').delete().eq('name', name));
+export async function deleteSubject(sb, tenantId, name) {
+    return throwOnError(await sb.from('subjects').delete().eq('name', name).eq('tenant_id', tenantId));
 }
 
 // ─── Announcements ──────────────────────────────────────────────────────────
 
-export async function listAnnouncements(sb, limit = 5) {
+export async function listAnnouncements(sb, tenantId, limit = 5) {
     return throwOnError(
         await sb.from('announcements')
             .select('*')
+            .eq('tenant_id', tenantId)
             .order('created_at', { ascending: false })
             .limit(limit)
     );
 }
 
-export async function createAnnouncement(sb, ann) {
+export async function createAnnouncement(sb, tenantId, ann) {
     return throwOnError(
         await sb.from('announcements').insert({
             content: ann.content,
             color: ann.color || 'warn',
             show_as_popup: ann.showAsPopup || false,
             created_by: ann.createdBy,
+            tenant_id: tenantId,
         }).select().single()
     );
 }
 
-export async function findAnnouncementById(sb, id) {
-    const { data } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+export async function findAnnouncementById(sb, tenantId, id) {
+    const { data } = await sb.from('announcements').select('*').eq('id', id).eq('tenant_id', tenantId).maybeSingle();
     return data;
 }
 
-export async function deleteAnnouncement(sb, id) {
-    return throwOnError(await sb.from('announcements').delete().eq('id', id));
+export async function deleteAnnouncement(sb, tenantId, id) {
+    return throwOnError(await sb.from('announcements').delete().eq('id', id).eq('tenant_id', tenantId));
 }
 
 // ─── Sorgen ─────────────────────────────────────────────────────────────────
@@ -602,7 +607,7 @@ export async function countSorgen(sb, filters = {}) {
 
 // ─── Timetable ──────────────────────────────────────────────────────────────
 
-export async function getTimetableLessons(sb) {
+export async function getTimetableLessons(sb, tenantId) {
     const { data } = await sb.from('timetables')
         .select(`
             id,
@@ -614,17 +619,18 @@ export async function getTimetableLessons(sb) {
             persons ( id, name, title, short ),
             subjects ( id, name ),
             courses ( id, name )
-        `);
+        `)
+        .eq('tenant_id', tenantId);
     return data;
 }
 
-export async function listTimetableSubs(sb) {
+export async function listTimetableSubs(sb, tenantId) {
     return throwOnError(
-        await sb.from('timetable_subs').select('*').order('created_at', { ascending: false })
+        await sb.from('timetable_subs').select('*').eq('tenant_id', tenantId).order('created_at', { ascending: false })
     );
 }
 
-export async function createTimetableSub(sb, sub) {
+export async function createTimetableSub(sb, tenantId, sub) {
     return throwOnError(
         await sb.from('timetable_subs').insert({
             lesson_id: sub.lessonId,
@@ -636,13 +642,14 @@ export async function createTimetableSub(sb, sub) {
             room: sub.room || null,
             cancelled: sub.cancelled || false,
             hide: sub.hide || false,
+            tenant_id: tenantId,
         }).select().single()
     );
 }
 
-export async function deleteTimetableSub(sb, id) {
-    const item = throwOnError(await sb.from('timetable_subs').select('*').eq('id', id).single());
-    await sb.from('timetable_subs').delete().eq('id', id);
+export async function deleteTimetableSub(sb, tenantId, id) {
+    const item = throwOnError(await sb.from('timetable_subs').select('*').eq('id', id).eq('tenant_id', tenantId).single());
+    await sb.from('timetable_subs').delete().eq('id', id).eq('tenant_id', tenantId);
     return item;
 }
 
@@ -687,14 +694,14 @@ export async function logSecurityEvent(sb, event) {
 
 // ─── Reference Tables (persons, dalton_schedule)
 
-export async function listPersons(sb) {
+export async function listPersons(sb, tenantId) {
     return throwOnError(
-        await sb.from('persons').select('*, person_subjects(subjects(name))').order('id', { ascending: true })
+        await sb.from('persons').select('*, person_subjects(subjects(name))').eq('tenant_id', tenantId).order('id', { ascending: true })
     );
 }
 
-export async function listDaltonSchedule(sb) {
+export async function listDaltonSchedule(sb, tenantId) {
     return throwOnError(
-        await sb.from('dalton_schedule').select('*')
+        await sb.from('dalton_schedule').select('*').eq('tenant_id', tenantId)
     );
 }

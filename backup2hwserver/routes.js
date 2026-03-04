@@ -11,6 +11,7 @@ import { setUserToken, requireUser, clearUserToken, checkUser } from './middlewa
 import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken, verifyCsrfToken } from './middleware/csrf.js';
 import { dashboardLimiter, authLimiter, passwordResetLimiter } from './middleware/rateLimiters.js';
 import { sendJSONError, validate, requireAdmin, isValidCloudinaryUrl, validateItemCreation } from './middleware/validation.js';
+import { requireTenant } from './middleware/tenantContext.js';
 import { encryptData, decryptData } from './utils/encryption.js';
 import { createEmailService } from './utils/email.js';
 import { filterLessonsForUser } from './utils/helpers.js';
@@ -76,6 +77,7 @@ export default function registerRoutes(app, deps) {
         sendJSONError,
         validate,
         requireAdmin,
+        requireTenant,
         isValidCloudinaryUrl,
         validateItemCreation,
         // Utils

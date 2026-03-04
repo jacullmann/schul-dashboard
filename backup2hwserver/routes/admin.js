@@ -13,6 +13,7 @@ export default function createAdminRoutes(deps) {
         csrfSecret,
         requireAppGate,
         requireUser,
+        requireTenant,
         validateCsrf,
         sendJSONError,
         validate,
@@ -23,6 +24,7 @@ export default function createAdminRoutes(deps) {
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         requireAdmin,
+        requireTenant,
     ];
 
     // DELETE /api/admin/cleanup/old-items
@@ -33,7 +35,7 @@ export default function createAdminRoutes(deps) {
             try {
                 const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
-                const oldItems = await db.findOldItems(supabase, ninetyDaysAgo);
+                const oldItems = await db.findOldItems(supabase, req.tenantId, ninetyDaysAgo);
 
                 const publicIdsToDelete = [];
                 const itemIds = oldItems.map(item => {
@@ -57,7 +59,7 @@ export default function createAdminRoutes(deps) {
                 }
 
                 // Cascading deletes handle keep_checked and pinned_items
-                await db.deleteItemsOlderThan(supabase, ninetyDaysAgo);
+                await db.deleteItemsOlderThan(supabase, req.tenantId, ninetyDaysAgo);
 
                 await db.logActivity(supabase, req.user.sub, 'admin:cleanup:old_items', {
                     deletedCount: itemIds.length,
@@ -89,23 +91,23 @@ export default function createAdminRoutes(deps) {
                     itemsByType, verifiedUsers, adminCount, oldItemsCount,
                 ] = await Promise.all([
                     db.countUsers(supabase),
-                    db.countItems(supabase),
+                    db.countItems(supabase, req.tenantId),
                     db.countBanned(supabase),
                     db.countReports(supabase, { processed: false }),
                     db.countReports(supabase),
                     db.countSorgen(supabase, { processed: false }),
                     db.countSorgen(supabase),
-                    db.getItemsByTypeCount(supabase),
+                    db.getItemsByTypeCount(supabase, req.tenantId),
                     db.countUsers(supabase, { email_verified: true }),
                     supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('role_id', 1).then(({ count }) => count || 0),
-                    db.countItemsOlderThan(supabase, new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
+                    db.countItemsOlderThan(supabase, req.tenantId, new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
                 ]);
 
                 const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
                 const [newUsersThisWeek, newItemsThisWeek, topCreators] = await Promise.all([
                     db.countUsersSince(supabase, sevenDaysAgo),
-                    db.countItemsSince(supabase, sevenDaysAgo),
-                    db.getTopCreators(supabase, 5),
+                    db.countItemsSince(supabase, req.tenantId, sevenDaysAgo),
+                    db.getTopCreators(supabase, req.tenantId, 5),
                 ]);
 
                 res.json({
@@ -139,7 +141,7 @@ export default function createAdminRoutes(deps) {
         ...adminAuth,
         async (req, res) => {
             try {
-                const subs = await db.listTimetableSubs(supabase);
+                const subs = await db.listTimetableSubs(supabase, req.tenantId);
                 res.json(subs.map(s => ({
                     id: s.id,
                     lessonId: s.lesson_id,
@@ -179,7 +181,7 @@ export default function createAdminRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const newSub = await db.createTimetableSub(supabase, req.body);
+                const newSub = await db.createTimetableSub(supabase, req.tenantId, req.body);
                 await db.logActivity(supabase, req.user.sub, 'timetable:sub:create', { lessonId: req.body.lessonId });
                 res.status(201).json(newSub);
             } catch (err) {
@@ -197,7 +199,7 @@ export default function createAdminRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const deleted = await db.deleteTimetableSub(supabase, req.params.id);
+                const deleted = await db.deleteTimetableSub(supabase, req.tenantId, req.params.id);
                 await db.logActivity(supabase, req.user.sub, 'timetable:sub:delete', { lessonId: deleted.lesson_id });
                 res.json({ ok: true, message: 'Substitution gelöscht' });
             } catch (err) {
@@ -326,7 +328,7 @@ export default function createAdminRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                await db.upsertSubject(supabase, req.body.name);
+                await db.upsertSubject(supabase, req.tenantId, req.body.name);
                 res.status(201).json({ ok: true });
             } catch (err) {
                 console.error('POST /api/admin/subjects error', err);
@@ -341,7 +343,7 @@ export default function createAdminRoutes(deps) {
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
-                await db.deleteSubject(supabase, req.params.name);
+                await db.deleteSubject(supabase, req.tenantId, req.params.name);
                 res.json({ ok: true });
             } catch (err) {
                 console.error('DELETE /api/admin/subjects/:name error', err);

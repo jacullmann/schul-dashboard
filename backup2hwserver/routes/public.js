@@ -13,6 +13,7 @@ export default function createPublicRoutes(deps) {
         requireAppGate,
         requireUser,
         checkUser,
+        requireTenant,
         validateCsrf,
         sendJSONError,
         validate,
@@ -23,10 +24,11 @@ export default function createPublicRoutes(deps) {
     // GET /api/timetable
     router.get('/api/timetable',
         requireAppGate(appGateSecret),
+        requireTenant,
         checkUser(userSecret, supabase),
         async (req, res) => {
             try {
-                const lessons = await db.getTimetableLessons(supabase);
+                const lessons = await db.getTimetableLessons(supabase, req.tenantId);
                 if (!lessons) {
                     return res.json([]);
                 }
@@ -81,9 +83,10 @@ export default function createPublicRoutes(deps) {
     // GET /api/timetable/subs
     router.get('/api/timetable/subs',
         requireAppGate(appGateSecret),
+        requireTenant,
         async (req, res) => {
             try {
-                const subs = await db.listTimetableSubs(supabase);
+                const subs = await db.listTimetableSubs(supabase, req.tenantId);
                 const mappedSubs = subs.map(s => ({
                     id: s.id,
                     lessonId: s.lesson_id,
@@ -109,9 +112,10 @@ export default function createPublicRoutes(deps) {
     // GET /api/subjects
     router.get('/api/subjects',
         requireAppGate(appGateSecret),
+        requireTenant,
         async (req, res) => {
             try {
-                const list = await db.listSubjects(supabase);
+                const list = await db.listSubjects(supabase, req.tenantId);
                 res.json(list);
             } catch (err) {
                 console.error('GET /api/subjects error', err);
@@ -123,9 +127,10 @@ export default function createPublicRoutes(deps) {
     // GET /api/announcements
     router.get('/api/announcements',
         requireAppGate(appGateSecret),
+        requireTenant,
         async (req, res) => {
             try {
-                const list = await db.listAnnouncements(supabase, 5);
+                const list = await db.listAnnouncements(supabase, req.tenantId, 5);
                 const mappedList = list.map(a => ({
                     id: a.id,
                     content: a.content,
@@ -147,6 +152,7 @@ export default function createPublicRoutes(deps) {
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         requireAdmin,
+        requireTenant,
         validateCsrf(csrfSecret),
         body('content').isString().isLength({ min: 2 }),
         body('color').optional().isIn(['info', 'warn', 'danger']),
@@ -154,7 +160,7 @@ export default function createPublicRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const ann = await db.createAnnouncement(supabase, {
+                const ann = await db.createAnnouncement(supabase, req.tenantId, {
                     content: req.body.content,
                     color: req.body.color || 'warn',
                     showAsPopup: req.body.showAsPopup || false,
@@ -181,17 +187,18 @@ export default function createPublicRoutes(deps) {
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         requireAdmin,
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const ann = await db.findAnnouncementById(supabase, req.params.id);
+                const ann = await db.findAnnouncementById(supabase, req.tenantId, req.params.id);
                 if (!ann) return sendJSONError(res, 404, 'Nicht gefunden');
                 if (req.user.role !== 'superadmin' && ann.created_by !== req.user.sub) {
                     return sendJSONError(res, 403, 'Nicht autorisiert.');
                 }
-                await db.deleteAnnouncement(supabase, req.params.id);
+                await db.deleteAnnouncement(supabase, req.tenantId, req.params.id);
                 await db.logActivity(supabase, req.user.sub, 'announcement:delete', { id: ann.id });
                 res.json({ ok: true });
             } catch (err) {
@@ -261,9 +268,10 @@ export default function createPublicRoutes(deps) {
     // GET /api/persons
     router.get('/api/persons',
         requireAppGate(appGateSecret),
+        requireTenant,
         async (req, res) => {
             try {
-                const data = await db.listPersons(supabase);
+                const data = await db.listPersons(supabase, req.tenantId);
                 const mappedData = data.map(p => ({
                     id: p.id,
                     name: p.name,
@@ -282,9 +290,10 @@ export default function createPublicRoutes(deps) {
     // GET /api/dalton_schedule
     router.get('/api/dalton_schedule',
         requireAppGate(appGateSecret),
+        requireTenant,
         async (req, res) => {
             try {
-                const data = await db.listDaltonSchedule(supabase);
+                const data = await db.listDaltonSchedule(supabase, req.tenantId);
                 const mappedData = data.map(r => ({
                     id: r.id,
                     room: r.room,

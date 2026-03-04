@@ -14,6 +14,7 @@ export default function createItemsRoutes(deps) {
         requireAppGate,
         requireUser,
         checkUser,
+        requireTenant,
         validateCsrf,
         sendJSONError,
         validate,
@@ -28,12 +29,13 @@ export default function createItemsRoutes(deps) {
     // GET /api/items
     router.get('/',
         requireAppGate(appGateSecret),
+        requireTenant,
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
         validate,
         async (req, res) => {
             try {
-                const rows = await db.listItems(supabase, {
+                const rows = await db.listItems(supabase, req.tenantId, {
                     type: req.query.type,
                     filter: req.query.filter,
                     limit: 100,
@@ -66,11 +68,12 @@ export default function createItemsRoutes(deps) {
     // GET /api/items/:id
     router.get('/:id',
         requireAppGate(appGateSecret),
+        requireTenant,
         param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const row = await db.findItemById(supabase, req.params.id);
+                const row = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!row) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
 
                 // Fetch creator email
@@ -101,6 +104,7 @@ export default function createItemsRoutes(deps) {
     router.post('/',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         [
             body('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']).withMessage('type'),
@@ -130,7 +134,7 @@ export default function createItemsRoutes(deps) {
                     createdBy: req.user.sub,
                 }));
 
-                const item = await db.createItem(supabase, {
+                const item = await db.createItem(supabase, req.tenantId, {
                     type: req.body.type,
                     title,
                     subject,
@@ -154,6 +158,7 @@ export default function createItemsRoutes(deps) {
     router.patch('/:id',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         body('title').optional().isString().isLength({ min: 2, max: 60 }),
@@ -164,7 +169,7 @@ export default function createItemsRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.id);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
                 if (item.created_by !== req.user.sub) {
                     return sendJSONError(res, 403, 'Nur der Ersteller kann diesen Eintrag bearbeiten.');
@@ -212,7 +217,7 @@ export default function createItemsRoutes(deps) {
                     }));
                 }
 
-                await db.updateItem(supabase, item.id, update);
+                await db.updateItem(supabase, req.tenantId, item.id, update);
                 await db.logActivity(supabase, req.user.sub, 'item:update', { id: item.id });
                 res.json({ ok: true });
             } catch (error) {
@@ -226,12 +231,13 @@ export default function createItemsRoutes(deps) {
     router.delete('/:id',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.id);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
                 if (req.user.role !== 'superadmin' && item.created_by !== req.user.sub) {
                     return sendJSONError(res, 403, 'Nicht autorisiert.');
@@ -250,7 +256,7 @@ export default function createItemsRoutes(deps) {
                 }
 
                 // CASCADE handles keep_checked and pinned_items
-                await db.deleteItem(supabase, item.id);
+                await db.deleteItem(supabase, req.tenantId, item.id);
                 await db.logActivity(supabase, req.user.sub, 'item:delete', { id: item.id });
                 res.json({ ok: true });
             } catch (error) {
@@ -265,17 +271,18 @@ export default function createItemsRoutes(deps) {
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         requireAdmin,
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         body('editorNote').isString().isLength({ max: 2000 }),
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.id);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Eintrag nicht gefunden');
 
                 const noteContent = req.body.editorNote.trim();
-                await db.updateItem(supabase, item.id, { editor_note: noteContent });
+                await db.updateItem(supabase, req.tenantId, item.id, { editor_note: noteContent });
                 await db.logActivity(supabase, req.user.sub, 'item:note:update', {
                     itemId: item.id,
                     noteLength: noteContent.length,
@@ -292,6 +299,7 @@ export default function createItemsRoutes(deps) {
     router.post('/:id/images',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         body('image').isObject(),
@@ -300,7 +308,7 @@ export default function createItemsRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.id);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
                 const TOTAL_MAX_IMAGES = 12;
@@ -327,7 +335,7 @@ export default function createItemsRoutes(deps) {
                     createdBy: req.user.sub,
                 };
                 images.push(newImage);
-                await db.updateItem(supabase, item.id, { images });
+                await db.updateItem(supabase, req.tenantId, item.id, { images });
                 await db.logActivity(supabase, req.user.sub, 'item:image:add', {
                     itemId: item.id,
                     publicId: newImage.publicId,
@@ -344,13 +352,14 @@ export default function createItemsRoutes(deps) {
     router.delete('/:itemId/images/:publicId',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
+        requireTenant,
         validateCsrf(csrfSecret),
         param('itemId').isUUID(),
         param('publicId').isString(),
         validate,
         async (req, res) => {
             try {
-                const item = await db.findItemById(supabase, req.params.itemId);
+                const item = await db.findItemById(supabase, req.tenantId, req.params.itemId);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
                 let publicId;
@@ -375,7 +384,7 @@ export default function createItemsRoutes(deps) {
                 }
 
                 images.splice(imageIndex, 1);
-                await db.updateItem(supabase, item.id, { images });
+                await db.updateItem(supabase, req.tenantId, item.id, { images });
                 await db.logActivity(supabase, req.user.sub, 'item:image:delete', {
                     itemId: item.id,
                     publicId: image.publicId,
