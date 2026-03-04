@@ -87,31 +87,31 @@
         <template #menu>
           <div v-if="openMenuId === item.id" class="menu" @click.stop>
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
-              <div class="menu-btn-content"><Upload />{{ t('school.tasks.items.menu.uploadImages') }}</div>
+              <span class="menu-btn-content"><Upload />{{ t('school.tasks.items.menu.uploadImages') }}</span>
             </button>
 
             <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
-              <div class="menu-btn-content"><Pencil />{{ t('global.buttons.edit') }}</div>
+              <span class="menu-btn-content"><Pencil />{{ t('global.buttons.edit') }}</span>
             </button>
 
             <div class="menu-divider" v-if="canEdit(item.createdBy) || user"></div>
 
             <button class="menu-btn" v-if="user" @click="togglePin(item)">
-              <div class="menu-btn-content"><Pin v-if="!isPinned(item.id)" class="unpinned" /><Pin fill="currentColor" v-else class="pinned" /> {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}</div>
+              <span class="menu-btn-content"><Pin v-if="!isPinned(item.id)" class="unpinned" /><Pin fill="currentColor" v-else class="pinned" /> {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}</span>
             </button>
 
             <button class="menu-btn" @click="shareItem(item)">
-              <div class="menu-btn-content"><Send />{{ t('school.tasks.items.menu.share') }}</div>
+              <span class="menu-btn-content"><Send />{{ t('school.tasks.items.menu.share') }}</span>
             </button>
 
             <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
-              <div class="menu-btn-content"><Flag />{{ t('school.tasks.items.menu.report.name') }}</div>
+              <span class="menu-btn-content"><Flag />{{ t('school.tasks.items.menu.report.name') }}</span>
             </button>
 
             <div class="menu-divider" v-if="canDelete(item.createdBy)"></div>
 
             <button class="menu-btn danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
-              <div class="menu-btn-content"><Trash2 />{{ t('global.buttons.delete') }}</div>
+              <span class="menu-btn-content"><Trash2 />{{ t('global.buttons.delete') }}</span>
             </button>
           </div>
         </template>
@@ -134,7 +134,7 @@
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" alt="Vorschau" />
                   </div>
 
                   <button

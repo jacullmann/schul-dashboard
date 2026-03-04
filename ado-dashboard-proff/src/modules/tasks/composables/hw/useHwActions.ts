@@ -32,15 +32,28 @@ export function useHwActions(
     async function toggleCheck(item: HwItem) {
         if (!user.value) return;
         const id = item.id;
+        const wasChecked = isChecked(id);
+
+        // Optimistic update
+        if (wasChecked) {
+            checkedItems.value.delete(id);
+        } else {
+            checkedItems.value.add(id);
+        }
+
         try {
-            if (isChecked(id)) {
+            if (wasChecked) {
                 await hw.delete(`/api/user/items/${id}/check`);
-                checkedItems.value.delete(id);
             } else {
                 await hw.post(`/api/user/items/${id}/check`);
-                checkedItems.value.add(id);
             }
         } catch {
+            // Revert on failure
+            if (wasChecked) {
+                checkedItems.value.add(id);
+            } else {
+                checkedItems.value.delete(id);
+            }
             flashMessage('Fehler beim Setzen des Status.', true, 4000);
         }
     }
@@ -48,17 +61,32 @@ export function useHwActions(
     async function togglePin(item: HwItem) {
         if (!user.value) return;
         const id = item.id;
+        const wasPinned = isPinned(id);
+
+        // Optimistic update
+        const newPins = new Set(pinnedItems.value);
+        if (wasPinned) {
+            newPins.delete(id);
+        } else {
+            newPins.add(id);
+        }
+        pinnedItems.value = newPins;
+
         try {
-            const newPins = new Set(pinnedItems.value);
-            if (newPins.has(id)) {
+            if (wasPinned) {
                 await hw.delete(`/api/user/items/${id}/pin`);
-                newPins.delete(id);
             } else {
                 await hw.post(`/api/user/items/${id}/pin`);
-                newPins.add(id);
             }
-            pinnedItems.value = newPins;
         } catch {
+            // Revert on failure
+            const revertedPins = new Set(pinnedItems.value);
+            if (wasPinned) {
+                revertedPins.add(id);
+            } else {
+                revertedPins.delete(id);
+            }
+            pinnedItems.value = revertedPins;
             flashMessage('Fehler beim Setzen des Status.', true, 4000);
         }
     }

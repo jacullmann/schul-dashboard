@@ -45,10 +45,10 @@ export function processImageBeforeUpload(imageFile: File): Promise<File> {
                     resolve(newFile);
                 }, WEBP_MIME_TYPE, WEBP_QUALITY);
             };
-            img.onerror = (e) => reject(new Error('Image loading failed.'));
+            img.onerror = () => reject(new Error('Image loading failed.'));
             img.src = event.target?.result as string;
         };
-        reader.onerror = (e) => reject(new Error('File reading failed.'));
+        reader.onerror = () => reject(new Error('File reading failed.'));
         reader.readAsDataURL(imageFile);
     });
 }
