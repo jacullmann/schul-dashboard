@@ -32,13 +32,21 @@ export function useTodoApp() {
 
     const sortDisplayList = (data: Todo[]): Todo[] => {
         return [...data].sort((a, b) => {
-            // Sort by position ascending if both have positions
-            if (a.position && b.position) {
-                if (a.position < b.position) return -1;
-                if (a.position > b.position) return 1;
+            const posA = a.position || null;
+            const posB = b.position || null;
+
+            // Both have fractional-index positions: compare lexicographically
+            if (posA && posB) {
+                if (posA < posB) return -1;
+                if (posA > posB) return 1;
+                return 0;
             }
 
-            // Fallback: If position is completely absent, order by completed state and then createdAt
+            // One has a position, the other doesn't: positioned items come first
+            if (posA && !posB) return -1;
+            if (!posA && posB) return 1;
+
+            // Neither has a position: fall back to incomplete-first, then newest-first
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
@@ -143,12 +151,15 @@ export function useTodoApp() {
         const todoIndex = todos.value.findIndex(t => t.id === todoId);
         if (todoIndex === -1) return;
 
-        // Optimistische UI Aktualisierung
+        // Optimistic UI update: apply a temporary position so the item visually
+        // moves immediately without waiting for the server.
+        // Moving up:   prevPosition=null (or real), nextPosition=item above → use nextPos prepended
+        // Moving down: prevPosition=item below, nextPosition=null (last slot) → use prevPos appended
         const todo = todos.value[todoIndex]!;
-        // Erzeuge eine temporäre Position für das direkte UI Feedback wenn möglich.
-        // Das echte Positionssignal kommt vom Server zurück.
-        if (prevPosition && nextPosition) {
-            todo.position = prevPosition + 'a'; // nur als pseudo-position
+        if (prevPosition) {
+            todo.position = prevPosition + 'z'; // sits after prevPosition lexicographically
+        } else if (nextPosition) {
+            todo.position = nextPosition + '0'; // sits before nextPosition
         }
 
         displayTodos.value = sortDisplayList(todos.value);
