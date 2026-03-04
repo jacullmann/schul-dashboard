@@ -85,7 +85,7 @@ onMounted(async () => {
 <style scoped>
 .verify-container {
   max-width: 600px;
-  margin: 60px auto;
+  width: 100%;
 }
 
 .verify-content {
@@ -216,10 +216,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .verify-container {
-    margin: 20px auto;
-  }
-
   .verify-content {
     padding: 20px 10px;
   }

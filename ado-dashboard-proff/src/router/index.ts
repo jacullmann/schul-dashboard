@@ -225,12 +225,18 @@ const routes = [
     },
     {
         path: '/verify',
-        name: 'verify-email',
-        component: () => import('@/core/pages/VerifyEmail.vue'),
-        meta: {
-            title: 'E-Mail Verifizierung',
-            fullWidth: false,
-        }
+        component: () => import('@/layouts/WelcomeLayout.vue'),
+        children: [
+            {
+                path: '',
+                name: 'verify-email',
+                component: () => import('@/core/pages/VerifyEmail.vue'),
+                meta: {
+                    title: 'E-Mail Verifizierung',
+                    fullWidth: false,
+                }
+            }
+        ]
     },
     {
         path: '/kanye',

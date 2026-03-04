@@ -128,7 +128,7 @@
           <div v-if="item.images && item.images.length" class="item-images">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div v-for="(img, idx) in item.images.slice(0, 2)"
+                <div v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
                      :key="img.publicId"
                      class="thumb thumb-with-overlay-wrapper"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
@@ -138,12 +138,12 @@
                   </div>
 
                   <button
-                      v-if="idx === 1 && item.images.length > 2"
+                      v-if="idx === imagesPerRow - 1 && item.images.length > imagesPerRow"
                       class="img-overlay"
                       @click.stop.prevent="revealImages(item.id)"
                       @contextmenu.stop.prevent
                   >
-                    <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - 1 }}</div>
+                    <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - (imagesPerRow - 1) }}</div>
                   </button>
                 </div>
               </template>
@@ -321,8 +321,17 @@ import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
+import { useWindowSize } from '@vueuse/core';
+import { computed } from 'vue';
 
 const { t, tm } = useI18n();
+const { width: windowWidth } = useWindowSize();
+
+const imagesPerRow = computed(() => {
+  if (windowWidth.value < 500) return 2;
+  if (windowWidth.value < 800) return 3;
+  return 4;
+});
 
 const {
   MAX_TITLE_LENGTH,
@@ -574,15 +583,15 @@ defineExpose({ todoAppRef });
 }
 
 .images-row {
-  display:flex;
-  flex-wrap:wrap;
+  display: grid;
+  grid-template-columns: repeat(v-bind(imagesPerRow), 1fr);
   gap:8px;
   position:relative;
 }
 
 .thumb {
-  width:120px;
-  height:120px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border-radius:8px;
   overflow:hidden;
   border:none;
@@ -766,16 +775,6 @@ defineExpose({ todoAppRef });
     margin-bottom: 0;
     flex-wrap: wrap;
     justify-content: left;
-  }
-
-  .thumb {
-    aspect-ratio: 1 / 1;
-    width: calc(50% - 4px);
-    border-radius: var(--border-4);
-    overflow: hidden;
-    position: relative;
-    height: auto;
-    display: block;
   }
 }
 </style>
