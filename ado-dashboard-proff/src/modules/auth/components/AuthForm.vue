@@ -132,8 +132,10 @@ async function submit() {
   error.value = null;
 
   try {
-    const combinedPassword = password1.value.trim() + password2.value.trim();
-    const res = await auth.loginWithCode(combinedPassword);
+    const res = await auth.loginWithCode(
+        password1.value.trim(),
+        password2.value.trim()
+    );
 
     if (res.ok) {
       if (res.csrfToken) {

@@ -20,6 +20,17 @@ function throwOnError({ data, error }) {
     return data;
 }
 
+// ─── Groups ─────────────────────────────────────────────────────────────────
+
+export async function findGroupByName(sb, name) {
+    const { data } = await sb
+        .from('groups')
+        .select('id, name, passcode_hash')
+        .eq('name', name)
+        .maybeSingle();
+    return data;
+}
+
 // ─── Users ──────────────────────────────────────────────────────────────────
 
 export async function createUser(sb, { email, passwordHash }) {

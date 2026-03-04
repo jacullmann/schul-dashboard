@@ -2,9 +2,9 @@ import jwt from 'jsonwebtoken';
 
 const COOKIE_NAME = 'app_gate_token';
 
-export function setAppGateToken(res, secret) {
+export function setAppGateToken(res, secret, { groupId, groupName }) {
     const token = jwt.sign(
-        { gate: true },
+        { gate: true, groupId, groupName },
         secret,
         { expiresIn: '30d' }
     );
@@ -14,7 +14,7 @@ export function setAppGateToken(res, secret) {
         secure: true,
         path: '/',
         sameSite: 'None',
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Tage
+        maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
     return token;
@@ -34,14 +34,17 @@ export function requireAppGate(secret) {
         try {
             const payload = jwt.verify(token, secret);
 
-            if (!payload.gate) {
+            if (!payload.gate || !payload.groupId) {
                 return res.status(401).json({
                     error: 'Ungültiges App-Gate Token'
                 });
             }
 
-            // Token ist gültig
             req.appGate = true;
+            req.appGateGroup = {
+                id: payload.groupId,
+                name: payload.groupName
+            };
             next();
         } catch (err) {
             return res.status(401).json({
@@ -66,12 +69,17 @@ export function checkAppGate(secret) {
         const token = req.cookies[COOKIE_NAME];
 
         req.appGate = false;
+        req.appGateGroup = null;
 
         if (token) {
             try {
                 const payload = jwt.verify(token, secret);
-                if (payload.gate) {
+                if (payload.gate && payload.groupId) {
                     req.appGate = true;
+                    req.appGateGroup = {
+                        id: payload.groupId,
+                        name: payload.groupName
+                    };
                 }
             } catch (err) {
             }

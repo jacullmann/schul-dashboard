@@ -82,10 +82,6 @@ if (!process.env.ENCRYPTION_KEY) {
     console.error('FEHLER: ENCRYPTION_KEY muss gesetzt sein!');
     process.exit(1);
 }
-if (!process.env.DASHBOARD_CHECK_PASSWORD_HASH) {
-    console.error('FEHLER: DASHBOARD_CHECK_PASSWORD_HASH muss gesetzt sein!');
-    process.exit(1);
-}
 
 routes(app, {
     supabase,

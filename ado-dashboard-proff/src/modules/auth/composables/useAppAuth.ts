@@ -71,10 +71,11 @@ export function useAppAuth() {
         await initPromise;
     }
 
-    async function loginWithCode(code: string) {
+    async function loginWithCode(groupName: string, password: string) {
         try {
             const response = await hw.post(API_ENDPOINT, {
-                password: code
+                groupName,
+                password
             });
 
             if (response.status === 200 && response.data.ok) {

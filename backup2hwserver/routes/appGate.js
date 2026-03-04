@@ -6,7 +6,10 @@ import { setAppGateToken, requireAppGate, clearAppGateToken, checkAppGate } from
 import { validateCsrf, clearCsrfCookie, rotateCsrfToken } from '../middleware/csrf.js';
 import { dashboardLimiter } from '../middleware/rateLimiters.js';
 import { sendJSONError, validate } from '../middleware/validation.js';
-import { logSecurityEvent } from '../db/db.js';
+import { logSecurityEvent, findGroupByName } from '../db/db.js';
+
+
+const DUMMY_HASH = bcrypt.hashSync('__dummy__', 10);
 
 export default function createAppGateRoutes(deps) {
     const router = Router();
@@ -15,23 +18,38 @@ export default function createAppGateRoutes(deps) {
     router.post('/login',
         dashboardLimiter,
         validateCsrf(csrfSecret),
-        [body('password').isString().isLength({ min: 1 })],
+        [
+            body('groupName').isString().trim().isLength({ min: 1, max: 100 }),
+            body('password').isString().isLength({ min: 1 })
+        ],
         validate,
         async (req, res) => {
             const ip = req.ip;
             const ua = req.get('User-Agent') || 'unknown';
-            const { password } = req.body;
+            const { groupName, password } = req.body;
 
-            const isValid = await bcrypt.compare(password, process.env.DASHBOARD_CHECK_PASSWORD_HASH);
+            const group = await findGroupByName(supabase, groupName);
+
+
+            const hashToCompare = group?.passcode_hash || DUMMY_HASH;
+            const isValid = await bcrypt.compare(password, hashToCompare);
+            const isAuthenticated = group && isValid;
 
             await logSecurityEvent(supabase, {
                 eventType: 'app_gate_login',
-                eventStatus: isValid ? 'success' : 'failure',
-                ip, userAgent: ua, metadata: {},
+                eventStatus: isAuthenticated ? 'success' : 'failure',
+                ip, userAgent: ua,
+                metadata: {
+                    groupName,
+                    groupId: group?.id || null
+                },
             });
 
-            if (isValid) {
-                setAppGateToken(res, appGateSecret);
+            if (isAuthenticated) {
+                setAppGateToken(res, appGateSecret, {
+                    groupId: group.id,
+                    groupName: group.name
+                });
                 const newCsrfToken = rotateCsrfToken(res, csrfSecret);
                 return res.json({ ok: true, csrfToken: newCsrfToken });
             } else {
@@ -40,9 +58,13 @@ export default function createAppGateRoutes(deps) {
         }
     );
 
+
     router.get('/status',
         checkAppGate(appGateSecret),
-        (req, res) => res.json({ authenticated: req.appGate })
+        (req, res) => res.json({
+            authenticated: req.appGate,
+            ...(req.appGateGroup ? { group: req.appGateGroup } : {})
+        })
     );
 
     router.post('/logout',
