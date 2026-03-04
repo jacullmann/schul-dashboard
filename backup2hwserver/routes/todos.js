@@ -193,6 +193,34 @@ export default function createTodosRoutes(deps) {
                 const todo = await db.findTodoById(supabase, req.params.id, req.user.sub);
                 if (!todo) return sendJSONError(res, 404, 'Privater Eintrag nicht gefunden');
 
+                // Ensure every to-do has a fractional-index position before reordering.
+                // Todos created before ordering was introduced have position = '' or null.
+                // generateKeyBetween(null, null) always returns 'a0', causing duplicate-key
+                // errors on the second reorder.
+                const allTodos = await db.listTodos(supabase, req.user.sub);
+                const unpositioned = allTodos.filter(t => !t.position);
+                if (unpositioned.length > 0) {
+                    // Find the lowest existing fractional key so we can prepend before it
+                    const positioned = allTodos
+                        .filter(t => t.position)
+                        .map(t => t.position)
+                        .sort();
+                    let cursor = null; // start from the very beginning
+                    for (const t of unpositioned) {
+                        // Place unpositioned items before any already-positioned ones
+                        const nextAnchor = positioned[0] || null;
+                        try {
+                            cursor = generateKeyBetween(cursor, nextAnchor);
+                        } catch {
+                            cursor = generateKeyBetween(null, null);
+                        }
+                        await db.updateTodo(supabase, t.id, { position: cursor });
+                        // Shift the anchor so the next unpositioned item goes after this one
+                        positioned.unshift(cursor);
+                        positioned.sort();
+                    }
+                }
+
                 const { prevPosition, nextPosition } = req.body;
 
                 let newPosition;
@@ -204,7 +232,7 @@ export default function createTodosRoutes(deps) {
 
                 await db.updateTodo(supabase, todo.id, { position: newPosition });
 
-                // Rebalancing check
+                // Rebalancing check: fractional keys can get very long after many operations
                 if (newPosition && newPosition.length > 20) {
                     const allIncomplete = await db.listIncompleteTodos(supabase, req.user.sub);
                     let p = null;

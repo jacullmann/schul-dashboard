@@ -62,27 +62,27 @@
             <template #menu>
               <div v-if="openMenuId === todo.id" class="menu" @click.stop>
                 <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
-                  <div class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</div>
+                  <span class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</span>
                 </button>
 
                 <button class="menu-btn" @click="duplicateTodo(todo); openMenuId = null">
-                  <div class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</div>
+                  <span class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</span>
                 </button>
 
                 <div class="menu-divider"></div>
 
                 <button class="menu-btn" v-if="index > 0" @click="moveItemUp(index); openMenuId = null">
-                  <div class="menu-btn-content"><ChevronUp :size="16" />{{ t('school.private.menu.up') }}</div>
+                  <span class="menu-btn-content"><ChevronUp :size="16" />{{ t('school.private.menu.up') }}</span>
                 </button>
 
                 <button class="menu-btn" v-if="index < displayTodos.length - 1" @click="moveItemDown(index); openMenuId = null">
-                  <div class="menu-btn-content"><ChevronDown :size="16" />{{ t('school.private.menu.down') }}</div>
+                  <span class="menu-btn-content"><ChevronDown :size="16" />{{ t('school.private.menu.down') }}</span>
                 </button>
 
                 <div v-if="index > 0 || index < displayTodos.length - 1" class="menu-divider"></div>
 
                 <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
-                  <div class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</div>
+                  <span class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</span>
                 </button>
               </div>
             </template>
@@ -151,41 +151,44 @@ function onDragEnd(event: any) {
   const movedItem = displayTodos.value[newIndex];
   if (!movedItem) return;
 
-  const prevItem = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
-  const nextItem = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
+  // Read neighbours from displayTodos for the layout, but look up real positions
+  // from the authoritative todos array to avoid sending optimistic pseudo-positions.
+  const prevDisplay = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
+  const nextDisplay = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
 
-  let prevPos = prevItem ? prevItem.position || null : null;
-  let nextPos = nextItem ? nextItem.position || null : null;
+  const realPosition = (item: { id: string } | null | undefined) => {
+    if (!item) return null;
+    const real = todos.value.find(t => t.id === item.id);
+    return real?.position || null;
+  };
 
-  reorderTodo(movedItem.id, prevPos, nextPos);
+  reorderTodo(movedItem.id, realPosition(prevDisplay), realPosition(nextDisplay));
 }
 
 function moveItemUp(index: number) {
   if (index <= 0) return;
   const item = displayTodos.value[index];
   const itemAbove = displayTodos.value[index - 1];
-
   if (!item || !itemAbove) return;
 
-  const prevItem = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
-  let prevPos = prevItem ? prevItem.position || null : null;
-  let nextPos = itemAbove.position || null;
+  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
+  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
 
-  reorderTodo(item.id, prevPos, nextPos);
+  const twoAbove = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
+  reorderTodo(item.id, twoAbove ? realPos(twoAbove.id) : null, realPos(itemAbove.id));
 }
 
 function moveItemDown(index: number) {
   if (index >= displayTodos.value.length - 1) return;
   const item = displayTodos.value[index];
   const itemBelow = displayTodos.value[index + 1];
-
   if (!item || !itemBelow) return;
 
-  const nextItem = index + 2 < displayTodos.value.length ? displayTodos.value[index + 2] : null;
-  let prevPos = itemBelow.position || null;
-  let nextPos = nextItem ? nextItem.position || null : null;
+  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
+  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
 
-  reorderTodo(item.id, prevPos, nextPos);
+  const twoBelow = index + 2 < displayTodos.value.length ? displayTodos.value[index + 2] : null;
+  reorderTodo(item.id, realPos(itemBelow.id), twoBelow ? realPos(twoBelow.id) : null);
 }
 
 defineExpose({ loadTodos, addTodo, updateTodo });
