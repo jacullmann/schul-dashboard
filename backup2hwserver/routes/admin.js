@@ -3,6 +3,9 @@ import { body, param } from 'express-validator';
 import dayjs from 'dayjs';
 import * as db from '../db/db.js';
 
+const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
 export default function createAdminRoutes(deps) {
     const router = Router();
     const {
@@ -33,7 +36,7 @@ export default function createAdminRoutes(deps) {
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
-                const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+                const ninetyDaysAgo = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
 
                 const oldItems = await db.findOldItems(supabase, req.tenantId, ninetyDaysAgo);
 
@@ -84,11 +87,15 @@ export default function createAdminRoutes(deps) {
         ...adminAuth,
         async (req, res) => {
             try {
+                const ninetyDaysAgo = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
+                const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
+
                 const [
                     userCount, itemCount, bannedCount,
                     reportCountUnprocessed, reportCountTotal,
                     sorgeCountUnprocessed, sorgeCountTotal,
                     itemsByType, verifiedUsers, adminCount, oldItemsCount,
+                    newUsersThisWeek, newItemsThisWeek, topCreators,
                 ] = await Promise.all([
                     db.countUsers(supabase),
                     db.countItems(supabase, req.tenantId),
@@ -100,11 +107,7 @@ export default function createAdminRoutes(deps) {
                     db.getItemsByTypeCount(supabase, req.tenantId),
                     db.countUsers(supabase, { email_verified: true }),
                     supabase.from('user_roles').select('*', { count: 'exact', head: true }).eq('role_id', 1).then(({ count }) => count || 0),
-                    db.countItemsOlderThan(supabase, req.tenantId, new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()),
-                ]);
-
-                const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-                const [newUsersThisWeek, newItemsThisWeek, topCreators] = await Promise.all([
+                    db.countItemsOlderThan(supabase, req.tenantId, ninetyDaysAgo),
                     db.countUsersSince(supabase, sevenDaysAgo),
                     db.countItemsSince(supabase, req.tenantId, sevenDaysAgo),
                     db.getTopCreators(supabase, req.tenantId, 5),
@@ -244,13 +247,37 @@ export default function createAdminRoutes(deps) {
         async (req, res) => {
             try {
                 const users = await db.listUsers(supabase, { select: 'id, email, user_roles(roles(name)), created_at, last_login_at' });
-                const result = await Promise.all(users.map(async (u) => {
-                    const activity = await db.getUserActivity(supabase, u.id, { limit: 20 });
-                    return {
-                        id: u.id, email: u.email, role: u.user_roles?.[0]?.roles?.name || 'user',
-                        createdAt: u.created_at, lastLoginAt: u.last_login_at,
-                        activity: activity.map(a => ({ at: a.created_at, type: a.type, meta: a.meta })),
-                    };
+                const userIds = users.map(u => u.id);
+
+                // Batch-load all activity instead of N+1 queries
+                let allActivity = [];
+                if (userIds.length > 0) {
+                    allActivity = await supabase
+                        .from('user_activity')
+                        .select('user_id, created_at, type, meta')
+                        .in('user_id', userIds)
+                        .order('created_at', { ascending: false })
+                        .limit(userIds.length * 20)
+                        .then(({ data, error }) => {
+                            if (error) throw new Error(error.message);
+                            return data || [];
+                        });
+                }
+
+                // Group activity by user_id, keeping max 20 per user
+                const activityByUser = new Map();
+                for (const a of allActivity) {
+                    const list = activityByUser.get(a.user_id) || [];
+                    if (list.length < 20) {
+                        list.push({ at: a.created_at, type: a.type, meta: a.meta });
+                        activityByUser.set(a.user_id, list);
+                    }
+                }
+
+                const result = users.map(u => ({
+                    id: u.id, email: u.email, role: u.user_roles?.[0]?.roles?.name || 'user',
+                    createdAt: u.created_at, lastLoginAt: u.last_login_at,
+                    activity: activityByUser.get(u.id) || [],
                 }));
                 res.json(result);
             } catch (err) {

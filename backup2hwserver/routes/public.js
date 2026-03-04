@@ -263,7 +263,7 @@ export default function createPublicRoutes(deps) {
         }
     );
 
-    // ─── Reference data endpoints (replacing direct Supabase client calls) ──
+    // ─── Reference data endpoints ───────────────────────────────────────────
 
     // GET /api/persons
     router.get('/api/persons',
@@ -308,62 +308,6 @@ export default function createPublicRoutes(deps) {
             } catch (err) {
                 console.error('GET /api/dalton_schedule error', err);
                 sendJSONError(res, 500, 'Fehler beim Laden der Dalton-Pläne');
-            }
-        }
-    );
-
-    // GET /api/days
-    router.get('/api/days',
-        requireAppGate(appGateSecret),
-        async (req, res) => {
-            try {
-                const data = await db.listDays(supabase);
-                res.json(data);
-            } catch (err) {
-                console.error('GET /api/days error', err);
-                sendJSONError(res, 500, 'Fehler beim Laden der Tage');
-            }
-        }
-    );
-
-    // GET /api/lesson-hours
-    router.get('/api/lesson-hours',
-        requireAppGate(appGateSecret),
-        async (req, res) => {
-            try {
-                const data = await db.listLessonHours(supabase);
-                res.json(data);
-            } catch (err) {
-                console.error('GET /api/lesson-hours error', err);
-                sendJSONError(res, 500, 'Fehler beim Laden der Stunden');
-            }
-        }
-    );
-
-    // GET /api/schedule-entries
-    router.get('/api/schedule-entries',
-        requireAppGate(appGateSecret),
-        async (req, res) => {
-            try {
-                const data = await db.listScheduleEntries(supabase);
-                res.json(data);
-            } catch (err) {
-                console.error('GET /api/schedule-entries error', err);
-                sendJSONError(res, 500, 'Fehler beim Laden der Einträge');
-            }
-        }
-    );
-
-    // GET /api/double-lessons
-    router.get('/api/double-lessons',
-        requireAppGate(appGateSecret),
-        async (req, res) => {
-            try {
-                const data = await db.listDoubleLessons(supabase);
-                res.json(data);
-            } catch (err) {
-                console.error('GET /api/double-lessons error', err);
-                sendJSONError(res, 500, 'Fehler beim Laden der Doppelstunden');
             }
         }
     );

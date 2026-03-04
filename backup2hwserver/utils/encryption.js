@@ -1,22 +1,48 @@
 import crypto from 'crypto';
 
+// ─── Key derivation cache ───────────────────────────────────────────────────
+// scrypt is CPU-intensive by design. Cache derived keys per userId to avoid
+// re-deriving on every encrypt/decrypt call. Entries expire after 5 minutes.
+const KEY_CACHE = new Map();
+const KEY_CACHE_TTL_MS = 5 * 60 * 1000;
+const KEY_CACHE_MAX_SIZE = 500;
+
+async function deriveKey(userId) {
+    const now = Date.now();
+    const cached = KEY_CACHE.get(userId);
+    if (cached && (now - cached.ts) < KEY_CACHE_TTL_MS) {
+        return cached.key;
+    }
+
+    const keyMaterial = process.env.ENCRYPTION_KEY +
+        (process.env.USER_KEY_PEPPER || '') +
+        userId;
+
+    const salt = crypto.createHash('sha256')
+        .update(process.env.ENCRYPTION_KEY + userId)
+        .digest();
+
+    const key = await new Promise((resolve, reject) => {
+        crypto.scrypt(keyMaterial, salt, 32, (err, derivedKey) => {
+            if (err) reject(err);
+            else resolve(derivedKey);
+        });
+    });
+
+    // Evict oldest entries if cache is full
+    if (KEY_CACHE.size >= KEY_CACHE_MAX_SIZE) {
+        const firstKey = KEY_CACHE.keys().next().value;
+        KEY_CACHE.delete(firstKey);
+    }
+
+    KEY_CACHE.set(userId, { key, ts: now });
+    return key;
+}
+
 export async function encryptData(data, userId) {
     try {
         const algorithm = 'aes-256-gcm';
-
-        const keyMaterial = process.env.ENCRYPTION_KEY +
-            (process.env.USER_KEY_PEPPER || '') +
-            userId;
-
-        const salt = crypto.createHash('sha256')
-            .update(process.env.ENCRYPTION_KEY + userId)
-            .digest();
-        const key = await new Promise((resolve, reject) => {
-            crypto.scrypt(keyMaterial, salt, 32, (err, derivedKey) => {
-                if (err) reject(err);
-                else resolve(derivedKey);
-            });
-        });
+        const key = await deriveKey(userId);
 
         const iv = crypto.randomBytes(16);
 
@@ -41,20 +67,8 @@ export async function encryptData(data, userId) {
 export async function decryptData(encryptedData, userId) {
     try {
         const algorithm = 'aes-256-gcm';
+        const key = await deriveKey(userId);
 
-        const keyMaterial = process.env.ENCRYPTION_KEY +
-            (process.env.USER_KEY_PEPPER || '') +
-            userId;
-
-        const salt = crypto.createHash('sha256')
-            .update(process.env.ENCRYPTION_KEY + userId)
-            .digest();
-        const key = await new Promise((resolve, reject) => {
-            crypto.scrypt(keyMaterial, salt, 32, (err, derivedKey) => {
-                if (err) reject(err);
-                else resolve(derivedKey);
-            });
-        });
         const iv = Buffer.from(encryptedData.iv, 'hex');
         const authTag = Buffer.from(encryptedData.authTag, 'hex');
 

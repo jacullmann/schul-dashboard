@@ -319,13 +319,16 @@ export async function deleteItemsOlderThan(sb, tenantId, olderThanISO) {
 }
 
 export async function getItemsByTypeCount(sb, tenantId) {
-    // Supabase doesn't support GROUP BY natively via JS client, use RPC or manual
-    const data = throwOnError(await sb.from('items').select('type').eq('tenant_id', tenantId));
-    const counts = {};
-    for (const row of data) {
-        counts[row.type] = (counts[row.type] || 0) + 1;
-    }
-    return Object.entries(counts).map(([type, count]) => ({ type, count }));
+    const types = ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'];
+    const counts = await Promise.all(types.map(async (type) => {
+        const { count, error } = await sb.from('items')
+            .select('*', { count: 'exact', head: true })
+            .eq('tenant_id', tenantId)
+            .eq('type', type);
+        if (error) throw new Error(error.message);
+        return { type, count: count ?? 0 };
+    }));
+    return counts.filter(c => c.count > 0);
 }
 
 export async function getTopCreators(sb, tenantId, limit = 5) {
@@ -338,12 +341,17 @@ export async function getTopCreators(sb, tenantId, limit = 5) {
         .sort(([, a], [, b]) => b - a)
         .slice(0, limit);
 
-    const results = [];
-    for (const [userId, count] of sorted) {
-        const user = await findUserById(sb, userId, 'email');
-        results.push({ _id: userId, count, email: user?.email || 'Unbekannt' });
-    }
-    return results;
+    const userIds = sorted.map(([userId]) => userId);
+    const users = userIds.length > 0
+        ? throwOnError(await sb.from('users').select('id, email').in('id', userIds))
+        : [];
+    const userMap = new Map(users.map(u => [u.id, u.email]));
+
+    return sorted.map(([userId, count]) => ({
+        _id: userId,
+        count,
+        email: userMap.get(userId) || 'Unbekannt',
+    }));
 }
 
 // ─── Keep Checked ───────────────────────────────────────────────────────────
@@ -608,20 +616,21 @@ export async function countSorgen(sb, filters = {}) {
 // ─── Timetable ──────────────────────────────────────────────────────────────
 
 export async function getTimetableLessons(sb, tenantId) {
-    const { data } = await sb.from('timetables')
-        .select(`
-            id,
-            day,
-            slot,
-            duration,
-            room,
-            course_id,
-            persons ( id, name, title, short ),
-            subjects ( id, name ),
-            courses ( id, name )
-        `)
-        .eq('tenant_id', tenantId);
-    return data;
+    return throwOnError(
+        await sb.from('timetables')
+            .select(`
+                id,
+                day,
+                slot,
+                duration,
+                room,
+                course_id,
+                persons ( id, name, title, short ),
+                subjects ( id, name ),
+                courses ( id, name )
+            `)
+            .eq('tenant_id', tenantId)
+    );
 }
 
 export async function listTimetableSubs(sb, tenantId) {
@@ -648,9 +657,9 @@ export async function createTimetableSub(sb, tenantId, sub) {
 }
 
 export async function deleteTimetableSub(sb, tenantId, id) {
-    const item = throwOnError(await sb.from('timetable_subs').select('*').eq('id', id).eq('tenant_id', tenantId).single());
-    await sb.from('timetable_subs').delete().eq('id', id).eq('tenant_id', tenantId);
-    return item;
+    return throwOnError(
+        await sb.from('timetable_subs').delete().eq('id', id).eq('tenant_id', tenantId).select().single()
+    );
 }
 
 // ─── Shared Doc ─────────────────────────────────────────────────────────────

@@ -1,9 +1,3 @@
-import { body, param, query } from 'express-validator';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import dayjs from 'dayjs';
-
 import { buildThumbUrl, withThumb, timeLeftColor } from './utils/modelHelpers.js';
 
 import { setAppGateToken, requireAppGate, clearAppGateToken, checkAppGate } from './middleware/appAuth.js';
