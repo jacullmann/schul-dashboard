@@ -4,8 +4,8 @@
       <div class="header-left">
         <router-link to="/" class="logo-group" @click="closeNav">
           <Logo class="logo-img" aria-hidden="true" />
-          <span v-if="groupName" class="logo-text logo-text--group">{{ groupName }}</span>
-          <span v-else class="logo-text">schul-dashboard</span>
+          <span class="logo-text logo-text--group">{{ groupName }}</span>
+          <span class="logo-text logo-text--brand">schul-dashboard</span>
           <template v-if="groupName">
             <span class="logo-separator--desktop" aria-hidden="true">/</span>
             <span class="logo-group-name--desktop">{{ groupName }}</span>
@@ -250,6 +250,13 @@ onUnmounted(() => {
   transition: opacity 0.2s ease;
 }
 
+.logo-text--group {
+  display: none;
+}
+
+.logo-text--brand {
+  display: inline;
+}
 .logo-separator {
   font-size: var(--font-size-body);
   font-weight: 400;
@@ -278,7 +285,6 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 
 .nav-links {
   display: flex;
@@ -421,6 +427,14 @@ onUnmounted(() => {
     font-size: var(--font-size-h2);
   }
 
+  .logo-text--group {
+    display: inline;
+  }
+
+  .logo-text--brand {
+    display: none;
+  }
+
   .header-container {
     padding-left: 16px;
     padding-right: 16px;
@@ -445,9 +459,9 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 340px) {
+@media (max-width: 332px) {
   .logo-text {
-    display:none;
+    font-size: var(--font-size-body);
   }
 }
 </style>
