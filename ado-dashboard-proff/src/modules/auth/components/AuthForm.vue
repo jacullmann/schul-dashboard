@@ -4,7 +4,7 @@
       <h2 class="card-title">Authentifizierung</h2>
     </div>
 
-    <div class="card-body">
+    <form @submit.prevent="submit" class="card-body">
       <div class="input-group">
         <label for="username">{{ t('welcome.auth.name') }}</label>
         <div class="input-wrapper">
@@ -51,8 +51,8 @@
 
       <div class="action-area">
         <button
+            type="submit"
             class="btn action s-btn"
-            @click="submit"
             :disabled="!accepted || isLoading"
         >
           <span v-if="!isLoading">{{ t('account.auth.login') }}</span>
@@ -66,6 +66,7 @@
           <span>oder</span>
         </div>
         <button
+            type="button"
             class="btn outline s-btn"
             @click="handleCreateGroupClick"
             :disabled="isLoading"
@@ -80,7 +81,7 @@
           {{ error }}
         </div>
       </transition>
-    </div>
+    </form>
 
     <div class="card-footer">
       <div class="status-line">
@@ -102,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import GetStatushwb2 from "@/modules/welcome/components/GetStatushwb2.vue";
@@ -132,19 +133,8 @@ const showIt = ref(false);
 const showCreateGroupModal = ref(false);
 const usernameInputRef = ref<HTMLInputElement | null>(null);
 
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Enter' && accepted.value && !isLoading.value) {
-    submit();
-  }
-}
-
 onMounted(() => {
   usernameInputRef.value?.focus();
-  window.addEventListener('keydown', onKeyDown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
 });
 
 async function submit() {

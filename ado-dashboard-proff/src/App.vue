@@ -58,7 +58,10 @@ function handleShowAuthModal() {
   openAuthModal().catch(() => {});
 }
 function handleAppGateExpired() {
-  router.push('/welcome');
+  const currentPath = router.currentRoute.value.path;
+  if (!currentPath.startsWith('/welcome')) {
+    router.push('/welcome');
+  }
 }
 async function onAuthSuccess() {
   syncCsrfFromCookie();
@@ -74,7 +77,10 @@ async function handleUserTokenExpired() {
   if (stillAuthenticated) {
     openAuthModal().catch(() => {});
   } else {
-    await router.push('/welcome');
+    const currentPath = router.currentRoute.value.path;
+    if (!currentPath.startsWith('/welcome')) {
+      await router.push('/welcome');
+    }
   }
 }
 function handleCsrfRefreshFailed() {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from "vue-i18n";
+import hw from '@/api/hwApi';
 
 const { t } = useI18n();
 
@@ -8,15 +9,12 @@ let intervalId: number | undefined = undefined;
 
 const status = ref<string>('Lade...');
 
-const API_STATUS_URL = 'https://api.schul-dashboard.com/api/serverstatus';
-
 async function checkServerStatus() {
   try {
-    const response  = await fetch(API_STATUS_URL);
+    const response = await hw.get('/api/serverstatus');
 
-    if (response.ok) {
-      const data = await response.json();
-
+    if (response.status === 200) {
+      const data = response.data;
 
       if (data.status === 'good') {
         status.value = t('welcome.auth.serverStatus.good');
