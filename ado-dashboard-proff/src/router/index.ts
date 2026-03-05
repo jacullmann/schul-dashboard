@@ -194,6 +194,12 @@ const routes = [
                 meta: { title: 'Willkommen' }
             },
             {
+                path: 'get-started',
+                name: 'welcome-get-started',
+                component: () => import('@/modules/welcome/pages/WelcomeGetStartedPage.vue'),
+                meta: { title: 'Loslegen' }
+            },
+            {
                 path: 'auth',
                 name: 'welcome-auth',
                 component: () => import('@/modules/welcome/pages/WelcomeAuthPage.vue'),
