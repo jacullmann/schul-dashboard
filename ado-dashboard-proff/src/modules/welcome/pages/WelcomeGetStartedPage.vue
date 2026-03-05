@@ -13,9 +13,8 @@
         </div>
         <div class="option-body">
           <h2 class="option-title">Gruppe beitreten</h2>
-          <p class="option-desc">Du hast bereits einen Zugangscode? Melde dich hier an.</p>
+          <p class="option-desc">Du hast bereits Zugangsdaten? Melde dich hier an.</p>
         </div>
-        <component :is="ArrowRight" :size="18" class="option-arrow" />
       </button>
 
       <!-- Gruppe erstellen -->
@@ -27,7 +26,6 @@
           <h2 class="option-title">Gruppe erstellen</h2>
           <p class="option-desc">Erstelle eine neue Gruppe und lade deine Klasse ein.</p>
         </div>
-        <component :is="ArrowRight" :size="18" class="option-arrow" />
       </button>
     </div>
 
@@ -41,7 +39,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { LogIn, Plus, ArrowRight } from 'lucide-vue-next';
+import { LogIn, Plus } from 'lucide-vue-next';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import { useUserStore } from '@/stores/userStore';
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
@@ -82,7 +80,6 @@ async function handleCreateGroupClick() {
   box-sizing: border-box;
 }
 
-/* ── Header ─────────────────────────────────────── */
 .page-header {
   text-align: center;
   margin-bottom: 48px;
@@ -98,133 +95,79 @@ async function handleCreateGroupClick() {
 }
 
 .page-subtitle {
-  font-size: 1.15rem;
+  font-size: var(--font-size-title);
   color: var(--sub);
   margin: 0;
   line-height: 1.5;
 }
 
-/* ── Options grid ────────────────────────────────── */
 .options-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
-  max-width: 760px;
+  max-width: 640px;
 }
 
-/* ── Option card ─────────────────────────────────── */
 .option-card {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 20px;
-  padding: 28px 24px;
+  gap: 16px;
+  padding: 16px;
   background: var(--vlbg);
-  border: 1px solid var(--border);
-  border-radius: var(--border-7, 12px);
+  border: 1px solid var(--border2);
+  border-radius: var(--border-7);
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, background 0.2s ease;
+  box-shadow: var(--input-shadow);
+  transition: transform 0.15s ease;
   position: relative;
   overflow: hidden;
 }
 
-.option-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--gg, transparent) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  border-radius: inherit;
-}
-
 .option-card:hover {
-  border-color: var(--text);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
-.option-card:hover::before {
-  opacity: 0.06;
-}
-
-.option-card:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* ── Icon wrapper ────────────────────────────────── */
 .option-icon-wrapper {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--border-4, 10px);
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease;
-}
-
-.option-card:hover .option-icon-wrapper {
-  transform: scale(1.08);
-}
-
-.option-icon-wrapper.join {
-  background: color-mix(in srgb, var(--text) 10%, transparent);
-  color: var(--text);
-}
-
-.option-icon-wrapper.create {
-  background: color-mix(in srgb, var(--text) 10%, transparent);
-  color: var(--text);
 }
 
 .option-icon {
   display: block;
 }
 
-/* ── Card body ───────────────────────────────────── */
 .option-body {
   flex: 1;
   min-width: 0;
 }
 
 .option-title {
-  font-size: 1.1rem;
+  font-size: var(--font-size-title);
   font-weight: 700;
   color: var(--text);
-  margin: 0 0 6px 0;
+  margin-bottom: 4px;
   font-family: var(--display-font), sans-serif;
   letter-spacing: -0.01em;
 }
 
 .option-desc {
-  font-size: 0.88rem;
+  font-size: var(--font-size-sub);
   color: var(--sub);
   margin: 0;
   line-height: 1.45;
 }
 
-/* ── Arrow ───────────────────────────────────────── */
-.option-arrow {
-  flex-shrink: 0;
-  color: var(--sub);
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.option-card:hover .option-arrow {
-  color: var(--text);
-  transform: translateX(4px);
-}
-
-/* ── Responsive ──────────────────────────────────── */
 @media (max-width: 640px) {
   .options-grid {
     grid-template-columns: 1fr;
-    max-width: 440px;
+    width: 100%;
   }
 
   .page-title {
@@ -233,18 +176,6 @@ async function handleCreateGroupClick() {
 
   .page-header {
     margin-bottom: 32px;
-  }
-}
-
-@media (max-width: 360px) {
-  .option-card {
-    padding: 20px 16px;
-    gap: 14px;
-  }
-
-  .option-icon-wrapper {
-    width: 48px;
-    height: 48px;
   }
 }
 </style>
