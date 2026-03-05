@@ -4,10 +4,11 @@
       <div class="header-left">
         <router-link to="/" class="logo-group" @click="closeNav">
           <Logo class="logo-img" aria-hidden="true" />
-          <span class="logo-text">schul-dashboard</span>
+          <span v-if="groupName" class="logo-text logo-text--group">{{ groupName }}</span>
+          <span v-else class="logo-text">schul-dashboard</span>
           <template v-if="groupName">
-            <span class="logo-separator" aria-hidden="true">/</span>
-            <span class="logo-group-name">{{ groupName }}</span>
+            <span class="logo-separator--desktop" aria-hidden="true">/</span>
+            <span class="logo-group-name--desktop">{{ groupName }}</span>
           </template>
         </router-link>
 
@@ -15,10 +16,6 @@
           <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
             <X />
           </button>
-
-          <div v-if="groupName" class="nav-group-label">
-            <span class="nav-group-name-display">{{ groupName }}</span>
-          </div>
           <router-link to="/" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
 
           <router-link
@@ -33,7 +30,6 @@
           <router-link to="/stundenplan" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
           <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">{{ t('school.tables.dalton.title') }}</router-link>
           <router-link to="/kuerzel" class="nav-item" @click="closeNav">{{ t('school.tables.abbr.title') }}</router-link>
-
         </nav>
       </div>
 
@@ -68,7 +64,7 @@
             v-if="!navOpen"
             data-umami-event="Mobile Menu öffnen"
         >
-          <Menu style="color: var(--text)" :size="26" />
+          <Menu style="color: var(--text)" :size="26"></Menu>
         </button>
       </div>
 
@@ -263,7 +259,16 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.logo-group-name {
+.logo-separator--desktop {
+  font-size: var(--font-size-body);
+  font-weight: 400;
+  color: var(--text);
+  opacity: 0.4;
+  margin: 0 0.1rem;
+  user-select: none;
+}
+
+.logo-group-name--desktop {
   font-size: var(--font-size-body);
   font-weight: 600;
   color: var(--text);
@@ -274,20 +279,6 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-/* Only shown inside mobile sidebar */
-.nav-group-label {
-  display: none;
-  width: 100%;
-  padding-block: 24px 8px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
-}
-
-.nav-group-name-display {
-  font-size: var(--font-size-h3);
-  font-weight: 700;
-  color: var(--text)
-}
 
 .nav-links {
   display: flex;
@@ -435,15 +426,10 @@ onUnmounted(() => {
     padding-right: 16px;
   }
 
-  /* Hide desktop breadcrumb; group is shown in sidebar instead */
-  .logo-separator,
-  .logo-group-name {
+  /* Hide desktop-only breadcrumb pieces on mobile */
+  .logo-separator--desktop,
+  .logo-group-name--desktop {
     display: none;
-  }
-
-  /* Show group label inside the mobile sidebar */
-  .nav-group-label {
-    display: block;
   }
 }
 
