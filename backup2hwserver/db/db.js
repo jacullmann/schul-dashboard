@@ -31,6 +31,15 @@ export async function findGroupByName(sb, name) {
     return data;
 }
 
+export async function createGroup(sb, { name, passcodeHash }) {
+    return throwOnError(
+        await sb.from('groups').insert({
+            name,
+            passcode_hash: passcodeHash
+        }).select().single()
+    );
+}
+
 // ─── Users ──────────────────────────────────────────────────────────────────
 
 export async function createUser(sb, { email, passwordHash }) {

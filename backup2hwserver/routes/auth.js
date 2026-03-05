@@ -23,6 +23,7 @@ export default function createAuthRoutes(deps) {
         passwordResetSecret,
         emailService,
         requireAppGate,
+        checkAppGate,
         requireUser,
         checkUser,
         setUserToken,
@@ -39,7 +40,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/login
     router.post('/login',
         authLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
@@ -73,7 +74,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/mfa/verify
     router.post('/mfa/verify',
         mfaVerifyLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         verifyMfaPendingToken(passwordResetSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
@@ -119,7 +120,7 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/mfa/cancel
     router.post('/mfa/cancel',
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         (req, res) => {
             clearMfaPendingToken(res);
@@ -130,7 +131,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/register
     router.post('/register',
         authLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
@@ -163,7 +164,7 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/logout
     router.post('/logout',
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         (req, res) => {
@@ -176,7 +177,7 @@ export default function createAuthRoutes(deps) {
 
     // GET /api/auth/me
     router.get('/me',
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         checkUser(userSecret, supabase),
         async (req, res) => {
             try {
@@ -208,7 +209,7 @@ export default function createAuthRoutes(deps) {
 
     // DELETE /api/auth/me
     router.delete('/me',
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
@@ -254,7 +255,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/forgot
     router.post('/forgot',
         authLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         validate,
@@ -286,7 +287,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/reset/verify
     router.post('/reset/verify',
         passwordResetLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         body('code').isString().isLength({ min: 6, max: 6 }),
@@ -318,7 +319,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/reset
     router.post('/reset',
         passwordResetLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         validateCsrf(csrfSecret),
         body('resetToken').isString(),
         body('password').isString().isLength({ min: 8 }),
@@ -370,7 +371,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/change-password
     router.post('/change-password',
         authLimiter,
-        requireAppGate(appGateSecret),
+        checkAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
         [

@@ -61,6 +61,19 @@
         </button>
       </div>
 
+      <div class="create-group-area">
+        <div class="divider">
+          <span>oder</span>
+        </div>
+        <button
+            class="btn outline s-btn"
+            @click="handleCreateGroupClick"
+            :disabled="isLoading"
+        >
+          Gruppe erstellen
+        </button>
+      </div>
+
       <transition name="fade">
         <div v-if="error" class="error-banner">
           <component :is="AlertCircle" :size="16" />
@@ -81,6 +94,11 @@
       </p>
     </div>
   </div>
+
+  <CreateGroupModal
+      v-if="showCreateGroupModal"
+      @close="showCreateGroupModal = false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -92,12 +110,15 @@ import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import { Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-vue-next'
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import Checkbox from '@/common/components/Checkbox.vue';
+import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import { useUserStore } from "@/stores/userStore";
 import { useI18n } from "vue-i18n";
+import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 
 const { t } = useI18n();
 
 const userStore = useUserStore();
+const { openAuthModal } = useGlobalAuthModal();
 
 const router = useRouter();
 const auth = useAppAuth();
@@ -108,6 +129,7 @@ const accepted = ref(false)
 const showPassword = ref(false);
 const isLoading = ref(false);
 const showIt = ref(false);
+const showCreateGroupModal = ref(false);
 const usernameInputRef = ref<HTMLInputElement | null>(null);
 
 function onKeyDown(e: KeyboardEvent) {
@@ -161,6 +183,20 @@ async function submit() {
     }
   } finally {
     isLoading.value = false;
+  }
+}
+
+async function handleCreateGroupClick() {
+  if (!userStore.isLoggedIn) {
+    try {
+      await openAuthModal();
+    } catch {
+      return; 
+    }
+  }
+  
+  if (userStore.isLoggedIn) {
+    showCreateGroupModal.value = true;
   }
 }
 </script>
@@ -239,6 +275,32 @@ async function submit() {
   cursor: not-allowed;
   background: var(--sub);
   border-color: var(--sub);
+}
+
+.create-group-area {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--sub);
+  font-size: 0.9rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+
+.divider span {
+  padding: 0 10px;
 }
 
 .card-footer {

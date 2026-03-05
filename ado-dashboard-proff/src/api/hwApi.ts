@@ -26,7 +26,7 @@ export function syncCsrfFromCookie(): void {
 }
 
 const hw = axios.create({
-    baseURL: import.meta.env.VITE_HW_API_BASE,
+    baseURL: import.meta.env.VITE_HW_API_BASE || '',
     withCredentials: true,
     timeout: 30000
 });
@@ -54,7 +54,7 @@ async function refreshCsrfToken(): Promise<void> {
     csrfRefreshPromise = (async () => {
         try {
             const { data } = await axios.get(
-                `${import.meta.env.VITE_HW_API_BASE}/api/csrf/init`,
+                `${import.meta.env.VITE_HW_API_BASE || ''}/api/csrf/init`,
                 { withCredentials: true }
             );
             if (data.csrfToken) {

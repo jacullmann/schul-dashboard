@@ -65,7 +65,7 @@ export function useDocEditor() {
 
         connectionState.value = 'connecting';
 
-        socket = io(`${import.meta.env.VITE_HW_API_BASE}/doc`, {
+        socket = io(`${import.meta.env.VITE_HW_API_BASE || ''}/doc`, {
             // Cookies werden automatisch mitgeschickt (withCredentials)
             withCredentials: true,
             transports: ['websocket', 'polling'],

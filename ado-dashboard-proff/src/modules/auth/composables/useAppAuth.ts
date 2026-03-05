@@ -35,7 +35,7 @@ export function useAppAuth() {
             for (let attempt = 1; attempt <= MAX_CSRF_RETRIES; attempt++) {
                 try {
                     const { data } = await axios.get(
-                        `${import.meta.env.VITE_HW_API_BASE}/api/csrf/init`,
+                        `${import.meta.env.VITE_HW_API_BASE || ''}/api/csrf/init`,
                         { withCredentials: true }
                     );
                     if (data.csrfToken) {
@@ -91,6 +91,26 @@ export function useAppAuth() {
         }
     }
 
+    async function createGroup(groupName: string, password: string) {
+        try {
+            const response = await hw.post('/api/app-gate/create-group', {
+                groupName,
+                password
+            });
+
+            if (response.status === 200 && response.data.ok) {
+                isAuthenticated.value = true;
+                isAuthReady.value = true;
+                return { ok: true, csrfToken: response.data.csrfToken || null };
+            }
+
+            return { ok: false, error: 'Gruppenerstellung fehlgeschlagen' };
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.error || 'Fehler beim Erstellen der Gruppe';
+            return { ok: false, error: errorMsg };
+        }
+    }
+
     async function logout() {
         try {
             await hw.post('/api/app-gate/logout');
@@ -107,6 +127,7 @@ export function useAppAuth() {
         isAuthenticated,
         isAuthReady,
         loginWithCode,
+        createGroup,
         logout,
         initAuth,
         checkAuthStatus,
