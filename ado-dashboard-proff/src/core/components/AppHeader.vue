@@ -5,6 +5,10 @@
         <router-link to="/" class="logo-group" @click="closeNav">
           <Logo class="logo-img" aria-hidden="true" />
           <span class="logo-text">schul-dashboard</span>
+          <template v-if="groupName">
+            <span class="logo-separator" aria-hidden="true">/</span>
+            <span class="logo-group-name">{{ groupName }}</span>
+          </template>
         </router-link>
 
         <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
@@ -12,6 +16,9 @@
             <X />
           </button>
 
+          <div v-if="groupName" class="nav-group-label">
+            <span class="nav-group-name-display">{{ groupName }}</span>
+          </div>
           <router-link to="/" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
 
           <router-link
@@ -89,6 +96,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import Logo from '@/common/components/Logo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
@@ -105,6 +113,8 @@ const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
 const { user, loading, needsSetup, hasShownSetup } = storeToRefs(userStore);
+
+const { groupName } = useAppAuth();
 
 const navOpen = ref(false);
 const showSetupModal = ref(false);
@@ -242,6 +252,41 @@ onUnmounted(() => {
   font-size: var(--font-size-h2);
   font-weight: 700;
   transition: opacity 0.2s ease;
+}
+
+.logo-separator {
+  font-size: var(--font-size-body);
+  font-weight: 400;
+  color: var(--text);
+  opacity: 0.4;
+  margin: 0 0.1rem;
+  user-select: none;
+}
+
+.logo-group-name {
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.85;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Only shown inside mobile sidebar */
+.nav-group-label {
+  display: none;
+  width: 100%;
+  padding-block: 24px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.nav-group-name-display {
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+  color: var(--text)
 }
 
 .nav-links {
@@ -388,6 +433,17 @@ onUnmounted(() => {
   .header-container {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  /* Hide desktop breadcrumb; group is shown in sidebar instead */
+  .logo-separator,
+  .logo-group-name {
+    display: none;
+  }
+
+  /* Show group label inside the mobile sidebar */
+  .nav-group-label {
+    display: block;
   }
 }
 

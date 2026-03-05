@@ -8,6 +8,7 @@ const STATUS_ENDPOINT = '/api/app-gate/status';
 
 const isAuthenticated = ref(false);
 const isAuthReady = ref(false);
+const groupName = ref<string | null>(null);
 let initPromise: Promise<void> | null = null;
 let eventListenerRegistered = false;
 const MAX_CSRF_RETRIES = 3;
@@ -18,10 +19,12 @@ export function useAppAuth() {
         try {
             const { data } = await hw.get(STATUS_ENDPOINT);
             isAuthenticated.value = data.authenticated === true;
+            groupName.value = data.group?.name ?? null;
             return data.authenticated;
         } catch (err) {
             console.error('Überprüfung der Authentifizierung fehlgeschlagen:', err);
             isAuthenticated.value = false;
+            groupName.value = null;
             return false;
         }
     }
@@ -81,6 +84,8 @@ export function useAppAuth() {
             if (response.status === 200 && response.data.ok) {
                 isAuthenticated.value = true;
                 isAuthReady.value = true;
+                // Refresh group name from server so it's always in sync
+                await checkAuthStatus();
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
 
@@ -101,6 +106,7 @@ export function useAppAuth() {
             if (response.status === 200 && response.data.ok) {
                 isAuthenticated.value = true;
                 isAuthReady.value = true;
+                await checkAuthStatus();
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
 
@@ -119,6 +125,7 @@ export function useAppAuth() {
         } finally {
             isAuthenticated.value = false;
             isAuthReady.value = false;
+            groupName.value = null;
             initPromise = null;
         }
     }
@@ -126,6 +133,7 @@ export function useAppAuth() {
     return {
         isAuthenticated,
         isAuthReady,
+        groupName,
         loginWithCode,
         createGroup,
         logout,

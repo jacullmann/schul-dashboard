@@ -8,7 +8,7 @@
     <div class="options-grid">
       <!-- Gruppe beitreten -->
       <button class="option-card" @click="navigateToAuth">
-        <div class="option-icon-wrapper join">
+        <div class="option-icon-wrapper">
           <component :is="LogIn" :size="28" class="option-icon" />
         </div>
         <div class="option-body">
@@ -19,7 +19,7 @@
 
       <!-- Gruppe erstellen -->
       <button class="option-card" @click="handleCreateGroupClick">
-        <div class="option-icon-wrapper create">
+        <div class="option-icon-wrapper">
           <component :is="Plus" :size="28" class="option-icon" />
         </div>
         <div class="option-body">
@@ -131,6 +131,7 @@ async function handleCreateGroupClick() {
 }
 
 .option-icon-wrapper {
+  color: var(--text);
   flex-shrink: 0;
   width: 28px;
   height: 28px;

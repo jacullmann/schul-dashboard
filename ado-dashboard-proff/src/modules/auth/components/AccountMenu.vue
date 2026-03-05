@@ -24,10 +24,10 @@
                 class="menu-btn"
                 @click="openSetup"
             >
-              <div class="menu-btn-content">
+              <span class="menu-btn-content">
                 <LucideGraduationCap :size="16"/>
                 {{ t('account.menu.courses.title') }}
-              </div>
+              </span>
             </button>
 
             <PersonalizationDropdown
@@ -39,30 +39,30 @@
                 class="menu-btn"
                 @click="openSecurity"
             >
-              <div class="menu-btn-content">
+              <span class="menu-btn-content">
                 <ShieldCheck :size="16"/>
                 {{ t('account.menu.security.title') }}
-              </div>
+              </span>
             </button>
 
             <button
                 class="menu-btn"
                 @click="openChangePassword"
             >
-              <div class="menu-btn-content">
+              <span class="menu-btn-content">
                 <LucideKeyRound :size="16"/>
                 {{ t('account.menu.changePassword.title') }}
-              </div>
+              </span>
             </button>
 
             <button
                 class="menu-btn"
                 @click="handleLogout"
             >
-              <div class="menu-btn-content">
+              <span class="menu-btn-content">
                 <LogOut :size="16"/>
                 {{ t('account.menu.logout') }}
-              </div>
+              </span>
             </button>
             <div class="menu-divider"></div>
             <div class="danger-section">
@@ -70,10 +70,10 @@
                   class="menu-btn danger"
                   @click="startDelete"
               >
-                <div class="menu-btn-content">
+                <span class="menu-btn-content">
                   <Trash2 :size="16"/>
                   {{ t('account.menu.deleteAccount.title') }}
-                </div>
+                </span>
               </button>
             </div>
           </div>
@@ -204,7 +204,7 @@ const {
 .popup-inner {
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 12px;
+  border-radius: var(--border-5);
   padding: 4px;
   display: flex;
   flex-direction: column;
@@ -404,7 +404,7 @@ const {
   .avatar-circle {
     width: 26px;
     height: 26px;
-    font-size: 12px;
+    font-size: 14px;
   }
   .account-menu {
     height: 26px;
