@@ -20,6 +20,7 @@ export function useHwList(
     const initialLoad = ref(true);
     const visibleCount = ref(5);
     const checkedItems = ref(new Set<string>());
+    const checksLoading = ref(true);
 
     const filteredItems = computed(() => {
         const pins = pinnedItems.value;
@@ -92,11 +93,13 @@ export function useHwList(
     function showLess() { visibleCount.value = Math.max(5, visibleCount.value - 5); }
 
     async function loadCheckedForMe() {
-        if (!user.value) { checkedItems.value = new Set(); return; }
+        checksLoading.value = true;
+        if (!user.value) { checkedItems.value = new Set(); checksLoading.value = false; return; }
         try {
             const { data } = await hw.get('/api/user/checks');
             checkedItems.value = new Set(data.itemIds || []);
         } catch { checkedItems.value = new Set(); }
+        finally { checksLoading.value = false; }
     }
 
     async function checkAndScrollToItem(targetId: string | undefined, forceOldEntries: () => void) {
@@ -187,6 +190,7 @@ export function useHwList(
     return {
         items,
         loading,
+        checksLoading,
         initialLoad,
         visibleCount,
         checkedItems,

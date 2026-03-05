@@ -17,13 +17,16 @@ export function useHwActions(
     const showReportConfirm = ref(false);
     const reportReason = ref('');
     const reportTarget = ref<HwItem | null>(null);
+    const pinsLoading = ref(true);
 
     async function loadPinnedForMe() {
-        if (!user.value) { pinnedItems.value = new Set(); return; }
+        pinsLoading.value = true;
+        if (!user.value) { pinnedItems.value = new Set(); pinsLoading.value = false; return; }
         try {
             const { data } = await hw.get('/api/user/pins');
             pinnedItems.value = new Set(data.itemIds || []);
         } catch { pinnedItems.value = new Set(); }
+        finally { pinsLoading.value = false; }
     }
 
     function isChecked(itemId: string) { return checkedItems.value.has(itemId); }
@@ -195,6 +198,7 @@ export function useHwActions(
         showReportConfirm,
         reportReason,
         reportTarget,
+        pinsLoading,
         loadPinnedForMe,
         isChecked,
         isPinned,

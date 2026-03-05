@@ -60,8 +60,9 @@ export function useHausaufgaben() {
     // List
     const {
         items,
-        loading,
-        initialLoad,
+        loading: listLoading,
+        checksLoading,
+        initialLoad: hwInitialLoad,
         visibleCount,
         checkedItems,
         filteredItems,
@@ -91,6 +92,7 @@ export function useHausaufgaben() {
         deletingEntry,
         showReportConfirm,
         reportReason,
+        pinsLoading,
         loadPinnedForMe,
         isChecked,
         isPinned,
@@ -170,6 +172,15 @@ export function useHausaufgaben() {
     );
 
     const subjects = computed(() => subjectStore.availableSubjectKeys);
+
+    const loading = computed(() => listLoading.value || checksLoading.value || pinsLoading.value);
+    const hasLoadedOnce = ref(false);
+
+    watch(loading, (val) => {
+        if (!val) hasLoadedOnce.value = true;
+    }, { immediate: true });
+
+    const initialLoad = computed(() => !hasLoadedOnce.value || hwInitialLoad.value);
 
     const getSubjectName = (subject: string) => {
         return formatSubjectDisplay(subject, t, te);
