@@ -66,13 +66,14 @@ export function useHausaufgaben() {
         visibleCount,
         checkedItems,
         archivedItems,
+        keptItems,
         filteredItems,
         limitedItems,
         setVisibleCount,
         showMore,
         showLess,
         loadCheckedForMe,
-        loadArchivedForMe,
+        loadVisibilityForMe,
         reloadList,
         refreshItem,
         checkAndScrollToItem
@@ -99,9 +100,10 @@ export function useHausaufgaben() {
         isChecked,
         isPinned,
         isArchived,
+        isKept,
         toggleCheck,
         togglePin,
-        toggleArchive,
+        toggleVisibility,
         canEdit,
         canDelete,
         canDeleteImage,
@@ -117,6 +119,7 @@ export function useHausaufgaben() {
         checkedItems,
         pinnedItems,
         archivedItems,
+        keptItems,
         flashMessage,
         (msg) => handleSuccess(msg)
     );
@@ -274,13 +277,14 @@ export function useHausaufgaben() {
 
     watch(user, async (newUser, oldUser) => {
         if (newUser && !oldUser) {
-            await Promise.all([loadCheckedForMe(), loadPinnedForMe(), loadArchivedForMe()]);
+            await Promise.all([loadCheckedForMe(), loadPinnedForMe(), loadVisibilityForMe()]);
             reload();
         }
         if (!newUser && oldUser) {
             checkedItems.value = new Set();
             pinnedItems.value = new Set();
             archivedItems.value = new Set();
+            keptItems.value = new Set();
             reload();
         }
     }, { deep: true });
@@ -290,7 +294,7 @@ export function useHausaufgaben() {
     onMounted(async () => {
         document.addEventListener('click', onDocumentClick);
         await subjectStore.loadSubjects();
-        await Promise.all([reload(), loadCheckedForMe(), loadPinnedForMe(), loadArchivedForMe()]);
+        await Promise.all([reload(), loadCheckedForMe(), loadPinnedForMe(), loadVisibilityForMe()]);
     });
 
     onBeforeUnmount(() => {
@@ -343,9 +347,11 @@ export function useHausaufgaben() {
         isPinned,
         togglePin,
         isArchived,
-        toggleArchive,
+        isKept,
+        toggleVisibility,
         pinnedItems,
         archivedItems,
+        keptItems,
         makeThumb,
         isRevealed,
         revealImages,

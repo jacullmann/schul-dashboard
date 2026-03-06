@@ -274,20 +274,26 @@ export async function findItemById(sb, tenantId, id) {
 export async function listItems(sb, tenantId, { type, filter, limit = 100, userId }) {
     const cutoff = dayjs().subtract(24, 'hour').toISOString();
 
-    let archivedIds = [];
+    let visibility = { archived: [], kept: [] };
     if (userId) {
-        archivedIds = await getArchivedItemIds(sb, userId);
+        visibility = await getItemVisibility(sb, userId);
     }
 
     let q = sb.from('items').select('*, creator:users!items_created_by_fkey(email)').eq('type', type).eq('tenant_id', tenantId);
 
     if (filter === 'old') {
         const conds = [`due_date.lt.${cutoff}`];
-        if (archivedIds.length > 0) conds.push(`id.in.(${archivedIds.join(',')})`);
-        q = q.or(conds.join(',')).order('due_date', { ascending: false });
+        if (visibility.archived.length > 0) conds.push(`id.in.(${visibility.archived.join(',')})`);
+
+        q = q.or(conds.join(','));
+        if (visibility.kept.length > 0) q = q.not('id', 'in', `(${visibility.kept.join(',')})`);
+        q = q.order('due_date', { ascending: false });
     } else {
-        q = q.gte('due_date', cutoff);
-        if (archivedIds.length > 0) q = q.not('id', 'in', `(${archivedIds.join(',')})`);
+        const conds = [`due_date.gte.${cutoff}`];
+        if (visibility.kept.length > 0) conds.push(`id.in.(${visibility.kept.join(',')})`);
+
+        q = q.or(conds.join(','));
+        if (visibility.archived.length > 0) q = q.not('id', 'in', `(${visibility.archived.join(',')})`);
         q = q.order('due_date', { ascending: true });
     }
     q = q.limit(limit);
@@ -735,25 +741,28 @@ export async function listDaltonSchedule(sb, tenantId) {
     );
 }
 
-// ─── Archived Items ─────────────────────────────────────────────────────────
+// ─── Item Visibility ─────────────────────────────────────────────────────────
 
-export async function getArchivedItemIds(sb, userId) {
+export async function getItemVisibility(sb, userId) {
     const data = throwOnError(
-        await sb.from('archived_items').select('item_id').eq('user_id', userId)
+        await sb.from('user_item_visibility').select('item_id, status').eq('user_id', userId)
     );
-    return data.map(d => d.item_id);
+    const archived = data.filter(d => d.status === 'archived').map(d => d.item_id);
+    const kept = data.filter(d => d.status === 'kept').map(d => d.item_id);
+    return { archived, kept };
 }
 
-export async function archiveItem(sb, itemId, userId) {
-    const existing = await getArchivedItemIds(sb, userId);
-    if (existing.includes(itemId)) return;
+export async function setItemVisibility(sb, itemId, userId, status) {
     return throwOnError(
-        await sb.from('archived_items').insert({ item_id: itemId, user_id: userId, archived_at: new Date().toISOString() })
+        await sb.from('user_item_visibility').upsert(
+            { item_id: itemId, user_id: userId, status, updated_at: new Date().toISOString() },
+            { onConflict: 'user_id,item_id' }
+        )
     );
 }
 
-export async function unarchiveItem(sb, itemId, userId) {
+export async function removeItemVisibility(sb, itemId, userId) {
     return throwOnError(
-        await sb.from('archived_items').delete().eq('item_id', itemId).eq('user_id', userId)
+        await sb.from('user_item_visibility').delete().eq('item_id', itemId).eq('user_id', userId)
     );
 }

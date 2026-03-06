@@ -2,9 +2,15 @@
   <!-- Outer wrapper: handles height collapse after dismiss -->
   <div ref="containerRef" class="swipe-container" :class="{ 'swipe-active': swipeable && (isSwiping || isDismissing || swipeOffset > 0) }">
 
-    <!-- Red background — only rendered + visible while swiping -->
-    <div v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)" class="swipe-background" aria-hidden="true">
-      <Archive :size="24" color="#fff" />
+    <!-- Background — only rendered + visible while swiping -->
+    <div
+        v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
+        class="swipe-background"
+        :class="swipeAction === 'keep' ? 'bg-keep' : 'bg-archive'"
+        aria-hidden="true"
+    >
+      <ArchiveRestore v-if="swipeAction === 'keep'" :size="24" color="#fff" />
+      <Archive v-else :size="24" color="#fff" />
     </div>
 
     <!-- Card — slides on swipe, otherwise completely unchanged -->
@@ -63,7 +69,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Ellipsis, Archive } from 'lucide-vue-next';
+import { Ellipsis, Archive, ArchiveRestore } from 'lucide-vue-next';
 import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
 
 const props = withDefaults(defineProps<{
@@ -72,11 +78,13 @@ const props = withDefaults(defineProps<{
   highlighted?: boolean;
   showMenuTrigger?: boolean;
   swipeable?: boolean;
+  swipeAction?: 'archive' | 'keep';
 }>(), {
   isCollapsed: false,
   highlighted: false,
   showMenuTrigger: true,
   swipeable: false,
+  swipeAction: 'archive',
 });
 
 const emit = defineEmits<{
@@ -168,16 +176,21 @@ function onLeave(el: Element) {
   border-radius: var(--border-7);
 }
 
-/* Red background shown only while swiping */
+/* Background shown only while swiping */
 .swipe-background {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
   border-radius: var(--border-7);
   display: flex;
   align-items: center;
   padding-left: 24px;
   pointer-events: none;
+}
+.swipe-background.bg-archive {
+  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+}
+.swipe-background.bg-keep {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
 }
 
 /* ─── item-card: identical to original when swipe is idle ─────────────────── */

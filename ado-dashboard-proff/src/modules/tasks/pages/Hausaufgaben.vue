@@ -60,7 +60,8 @@
           :is-collapsed="isChecked(item.id)"
           :highlighted="highlightedItemId === item.id"
           :title="item.title"
-          :swipeable="!showOldEntries || isArchived(item.id)"
+          :swipeable="true"
+          :swipe-action="showOldEntries ? 'keep' : 'archive'"
           @swiped="handleSwipe(item)"
           @dblclick="user ? toggleCheck(item) : null"
           @menu-click="toggleMenu(item.id)"
@@ -335,7 +336,8 @@ const dismissedItems = ref(new Set<string>());
 
 function handleSwipe(item: HwItem) {
   dismissedItems.value.add(item.id);
-  toggleArchive(item);
+  const cutoffIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  toggleVisibility(item, showOldEntries.value, cutoffIso);
 }
 
 const visibleItems = computed(() => {
@@ -401,8 +403,7 @@ const {
   toggleCheck,
   isPinned,
   togglePin,
-  isArchived,
-  toggleArchive,
+  toggleVisibility,
   makeThumb,
   isRevealed,
   revealImages,

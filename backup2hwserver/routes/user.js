@@ -125,46 +125,47 @@ export default function createUserRoutes(deps) {
         }
     );
 
-    // GET /api/user/archives
-    router.get('/archives',
+    // GET /api/user/visibility
+    router.get('/visibility',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         async (req, res) => {
             try {
-                const itemIds = await db.getArchivedItemIds(supabase, req.user.sub);
-                res.json({ itemIds });
+                const visibility = await db.getItemVisibility(supabase, req.user.sub);
+                res.json(visibility);
             } catch (err) {
-                console.error('archives/me error', err);
+                console.error('visibility/me error', err);
                 sendJSONError(res, 500, 'Server error');
             }
         }
     );
 
-    // POST /api/user/items/:id/archive
-    router.post('/items/:id/archive',
+    // POST /api/user/items/:id/visibility
+    router.post('/items/:id/visibility',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
+        body('status').isIn(['archived', 'kept']),
         validate,
         async (req, res) => {
             try {
                 const item = await db.findItemById(supabase, req.tenantId, req.params.id);
                 if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
 
-                await db.archiveItem(supabase, item.id, req.user.sub);
-                await db.logActivity(supabase, req.user.sub, 'item:archive', { itemId: item.id });
+                await db.setItemVisibility(supabase, item.id, req.user.sub, req.body.status);
+                await db.logActivity(supabase, req.user.sub, 'item:visibility:set', { itemId: item.id, status: req.body.status });
                 res.json({ ok: true });
             } catch (err) {
-                console.error('archive post error', err);
+                console.error('visibility post error', err);
                 sendJSONError(res, 500, 'Server error');
             }
         }
     );
 
-    // DELETE /api/user/items/:id/archive
-    router.delete('/items/:id/archive',
+    // DELETE /api/user/items/:id/visibility
+    router.delete('/items/:id/visibility',
         requireAppGate(appGateSecret),
         requireUser(userSecret, supabase),
         validateCsrf(csrfSecret),
@@ -172,11 +173,11 @@ export default function createUserRoutes(deps) {
         validate,
         async (req, res) => {
             try {
-                await db.unarchiveItem(supabase, req.params.id, req.user.sub);
-                await db.logActivity(supabase, req.user.sub, 'item:unarchive', { itemId: req.params.id });
+                await db.removeItemVisibility(supabase, req.params.id, req.user.sub);
+                await db.logActivity(supabase, req.user.sub, 'item:visibility:remove', { itemId: req.params.id });
                 res.json({ ok: true });
             } catch (err) {
-                console.error('archive delete error', err);
+                console.error('visibility delete error', err);
                 sendJSONError(res, 500, 'Server error');
             }
         }

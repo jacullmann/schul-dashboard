@@ -8,6 +8,7 @@ export function useHwActions(
     checkedItems: Ref<Set<string>>,
     pinnedItems: Ref<Set<string>>,
     archivedItems: Ref<Set<string>>,
+    keptItems: Ref<Set<string>>,
     flashMessage: (text: string, error?: boolean, durationMs?: number) => void,
     handleSuccessAction: (msg: string) => void
 ) {
@@ -63,28 +64,57 @@ export function useHwActions(
     }
 
     function isArchived(itemId: string) { return archivedItems.value.has(itemId); }
+    function isKept(itemId: string) { return keptItems.value.has(itemId); }
 
-    async function toggleArchive(item: HwItem) {
-        if (!user.value) {
-            // Local only
-            if (isArchived(item.id)) archivedItems.value.delete(item.id);
-            else archivedItems.value.add(item.id);
-            return;
+    async function toggleVisibility(item: HwItem, isOldEntriesView: boolean, cutoffIso: string) {
+        const id = item.id;
+        let newStatus: 'archived' | 'kept' | null = null;
+        let originalArchived = isArchived(id);
+        let originalKept = isKept(id);
+
+        const isNaturallyOld = item.dueDate < cutoffIso;
+
+        if (isOldEntriesView) {
+            // We are in the archive. 
+            // If it's naturally old, swiping keeps it.
+            // If it's forced old (archived), swiping removes the archived status.
+            if (isNaturallyOld) {
+                newStatus = 'kept';
+            } else {
+                newStatus = null; // Remove forced archive
+            }
+        } else {
+            // We are in the active view.
+            // If it's naturally active, swiping archives it.
+            // If it's forced active (kept), swiping removes the kept status.
+            if (!isNaturallyOld) {
+                newStatus = 'archived';
+            } else {
+                newStatus = null; // Remove forced keep
+            }
         }
 
-        const id = item.id;
-        const wasArchived = isArchived(id);
+        // Optimistic UI
+        archivedItems.value.delete(id);
+        keptItems.value.delete(id);
+        if (newStatus === 'archived') archivedItems.value.add(id);
+        if (newStatus === 'kept') keptItems.value.add(id);
 
-        if (wasArchived) archivedItems.value.delete(id);
-        else archivedItems.value.add(id);
+        if (!user.value) return; // local only
 
         try {
-            if (wasArchived) await hw.delete(`/api/user/items/${id}/archive`);
-            else await hw.post(`/api/user/items/${id}/archive`);
+            if (newStatus === null) {
+                await hw.delete(`/api/user/items/${id}/visibility`);
+            } else {
+                await hw.post(`/api/user/items/${id}/visibility`, { status: newStatus });
+            }
         } catch {
-            if (wasArchived) archivedItems.value.add(id);
-            else archivedItems.value.delete(id);
-            flashMessage('Fehler beim Archivieren.', true, 4000);
+            // Revert
+            archivedItems.value.delete(id);
+            keptItems.value.delete(id);
+            if (originalArchived) archivedItems.value.add(id);
+            if (originalKept) keptItems.value.add(id);
+            flashMessage('Fehler bei der Statusänderung.', true, 4000);
         }
     }
 
@@ -230,9 +260,10 @@ export function useHwActions(
         isChecked,
         isPinned,
         isArchived,
+        isKept,
         toggleCheck,
         togglePin,
-        toggleArchive,
+        toggleVisibility,
         canEdit,
         canDelete,
         canDeleteImage,
