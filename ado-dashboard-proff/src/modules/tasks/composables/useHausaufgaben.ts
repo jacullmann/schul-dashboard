@@ -65,12 +65,14 @@ export function useHausaufgaben() {
         initialLoad: hwInitialLoad,
         visibleCount,
         checkedItems,
+        archivedItems,
         filteredItems,
         limitedItems,
         setVisibleCount,
         showMore,
         showLess,
         loadCheckedForMe,
+        loadArchivedForMe,
         reloadList,
         refreshItem,
         checkAndScrollToItem
@@ -96,8 +98,10 @@ export function useHausaufgaben() {
         loadPinnedForMe,
         isChecked,
         isPinned,
+        isArchived,
         toggleCheck,
         togglePin,
+        toggleArchive,
         canEdit,
         canDelete,
         canDeleteImage,
@@ -112,6 +116,7 @@ export function useHausaufgaben() {
         user,
         checkedItems,
         pinnedItems,
+        archivedItems,
         flashMessage,
         (msg) => handleSuccess(msg)
     );
@@ -269,12 +274,13 @@ export function useHausaufgaben() {
 
     watch(user, async (newUser, oldUser) => {
         if (newUser && !oldUser) {
-            await Promise.all([loadCheckedForMe(), loadPinnedForMe()]);
+            await Promise.all([loadCheckedForMe(), loadPinnedForMe(), loadArchivedForMe()]);
             reload();
         }
         if (!newUser && oldUser) {
             checkedItems.value = new Set();
             pinnedItems.value = new Set();
+            archivedItems.value = new Set();
             reload();
         }
     }, { deep: true });
@@ -284,7 +290,7 @@ export function useHausaufgaben() {
     onMounted(async () => {
         document.addEventListener('click', onDocumentClick);
         await subjectStore.loadSubjects();
-        await Promise.all([reload(), loadCheckedForMe(), loadPinnedForMe()]);
+        await Promise.all([reload(), loadCheckedForMe(), loadPinnedForMe(), loadArchivedForMe()]);
     });
 
     onBeforeUnmount(() => {
@@ -336,7 +342,10 @@ export function useHausaufgaben() {
         toggleCheck,
         isPinned,
         togglePin,
+        isArchived,
+        toggleArchive,
         pinnedItems,
+        archivedItems,
         makeThumb,
         isRevealed,
         revealImages,

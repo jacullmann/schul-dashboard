@@ -271,13 +271,24 @@ export async function findItemById(sb, tenantId, id) {
     return data;
 }
 
-export async function listItems(sb, tenantId, { type, filter, limit = 100 }) {
+export async function listItems(sb, tenantId, { type, filter, limit = 100, userId }) {
     const cutoff = dayjs().subtract(24, 'hour').toISOString();
+
+    let archivedIds = [];
+    if (userId) {
+        archivedIds = await getArchivedItemIds(sb, userId);
+    }
+
     let q = sb.from('items').select('*, creator:users!items_created_by_fkey(email)').eq('type', type).eq('tenant_id', tenantId);
+
     if (filter === 'old') {
-        q = q.lt('due_date', cutoff).order('due_date', { ascending: false });
+        const conds = [`due_date.lt.${cutoff}`];
+        if (archivedIds.length > 0) conds.push(`id.in.(${archivedIds.join(',')})`);
+        q = q.or(conds.join(',')).order('due_date', { ascending: false });
     } else {
-        q = q.gte('due_date', cutoff).order('due_date', { ascending: true });
+        q = q.gte('due_date', cutoff);
+        if (archivedIds.length > 0) q = q.not('id', 'in', `(${archivedIds.join(',')})`);
+        q = q.order('due_date', { ascending: true });
     }
     q = q.limit(limit);
     return throwOnError(await q);
@@ -721,5 +732,28 @@ export async function listPersons(sb, tenantId) {
 export async function listDaltonSchedule(sb, tenantId) {
     return throwOnError(
         await sb.from('dalton_schedule').select('*').eq('tenant_id', tenantId)
+    );
+}
+
+// ─── Archived Items ─────────────────────────────────────────────────────────
+
+export async function getArchivedItemIds(sb, userId) {
+    const data = throwOnError(
+        await sb.from('archived_items').select('item_id').eq('user_id', userId)
+    );
+    return data.map(d => d.item_id);
+}
+
+export async function archiveItem(sb, itemId, userId) {
+    const existing = await getArchivedItemIds(sb, userId);
+    if (existing.includes(itemId)) return;
+    return throwOnError(
+        await sb.from('archived_items').insert({ item_id: itemId, user_id: userId, archived_at: new Date().toISOString() })
+    );
+}
+
+export async function unarchiveItem(sb, itemId, userId) {
+    return throwOnError(
+        await sb.from('archived_items').delete().eq('item_id', itemId).eq('user_id', userId)
     );
 }

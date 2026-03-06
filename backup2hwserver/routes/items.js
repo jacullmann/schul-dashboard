@@ -29,6 +29,7 @@ export default function createItemsRoutes(deps) {
     // GET /api/items
     router.get('/',
         requireAppGate(appGateSecret),
+        checkUser(userSecret, supabase),
         requireTenant,
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
@@ -39,6 +40,7 @@ export default function createItemsRoutes(deps) {
                     type: req.query.type,
                     filter: req.query.filter,
                     limit: 100,
+                    userId: req.user?.sub,
                 });
 
                 const normalized = rows.map(row => {

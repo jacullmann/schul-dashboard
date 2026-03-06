@@ -125,6 +125,63 @@ export default function createUserRoutes(deps) {
         }
     );
 
+    // GET /api/user/archives
+    router.get('/archives',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, supabase),
+        async (req, res) => {
+            try {
+                const itemIds = await db.getArchivedItemIds(supabase, req.user.sub);
+                res.json({ itemIds });
+            } catch (err) {
+                console.error('archives/me error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
+        }
+    );
+
+    // POST /api/user/items/:id/archive
+    router.post('/items/:id/archive',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, supabase),
+        requireTenant,
+        validateCsrf(csrfSecret),
+        param('id').isUUID(),
+        validate,
+        async (req, res) => {
+            try {
+                const item = await db.findItemById(supabase, req.tenantId, req.params.id);
+                if (!item) return sendJSONError(res, 404, 'Nicht gefunden');
+
+                await db.archiveItem(supabase, item.id, req.user.sub);
+                await db.logActivity(supabase, req.user.sub, 'item:archive', { itemId: item.id });
+                res.json({ ok: true });
+            } catch (err) {
+                console.error('archive post error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
+        }
+    );
+
+    // DELETE /api/user/items/:id/archive
+    router.delete('/items/:id/archive',
+        requireAppGate(appGateSecret),
+        requireUser(userSecret, supabase),
+        validateCsrf(csrfSecret),
+        param('id').isUUID(),
+        validate,
+        async (req, res) => {
+            try {
+                await db.unarchiveItem(supabase, req.params.id, req.user.sub);
+                await db.logActivity(supabase, req.user.sub, 'item:unarchive', { itemId: req.params.id });
+                res.json({ ok: true });
+            } catch (err) {
+                console.error('archive delete error', err);
+                sendJSONError(res, 500, 'Server error');
+            }
+        }
+    );
+
     // POST /api/user/activity/pageload
     router.post('/activity/pageload',
         requireAppGate(appGateSecret),

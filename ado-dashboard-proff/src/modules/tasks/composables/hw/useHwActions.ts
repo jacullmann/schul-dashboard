@@ -7,6 +7,7 @@ export function useHwActions(
     user: Ref<any>,
     checkedItems: Ref<Set<string>>,
     pinnedItems: Ref<Set<string>>,
+    archivedItems: Ref<Set<string>>,
     flashMessage: (text: string, error?: boolean, durationMs?: number) => void,
     handleSuccessAction: (msg: string) => void
 ) {
@@ -58,6 +59,32 @@ export function useHwActions(
                 checkedItems.value.delete(id);
             }
             flashMessage('Fehler beim Setzen des Status.', true, 4000);
+        }
+    }
+
+    function isArchived(itemId: string) { return archivedItems.value.has(itemId); }
+
+    async function toggleArchive(item: HwItem) {
+        if (!user.value) {
+            // Local only
+            if (isArchived(item.id)) archivedItems.value.delete(item.id);
+            else archivedItems.value.add(item.id);
+            return;
+        }
+
+        const id = item.id;
+        const wasArchived = isArchived(id);
+
+        if (wasArchived) archivedItems.value.delete(id);
+        else archivedItems.value.add(id);
+
+        try {
+            if (wasArchived) await hw.delete(`/api/user/items/${id}/archive`);
+            else await hw.post(`/api/user/items/${id}/archive`);
+        } catch {
+            if (wasArchived) archivedItems.value.add(id);
+            else archivedItems.value.delete(id);
+            flashMessage('Fehler beim Archivieren.', true, 4000);
         }
     }
 
@@ -202,8 +229,10 @@ export function useHwActions(
         loadPinnedForMe,
         isChecked,
         isPinned,
+        isArchived,
         toggleCheck,
         togglePin,
+        toggleArchive,
         canEdit,
         canDelete,
         canDeleteImage,

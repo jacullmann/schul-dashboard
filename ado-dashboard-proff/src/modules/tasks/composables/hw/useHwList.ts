@@ -20,6 +20,7 @@ export function useHwList(
     const initialLoad = ref(true);
     const visibleCount = ref(5);
     const checkedItems = ref(new Set<string>());
+    const archivedItems = ref(new Set<string>());
     const checksLoading = ref(true);
 
     const filteredItems = computed(() => {
@@ -100,6 +101,14 @@ export function useHwList(
             checkedItems.value = new Set(data.itemIds || []);
         } catch { checkedItems.value = new Set(); }
         finally { checksLoading.value = false; }
+    }
+
+    async function loadArchivedForMe() {
+        if (!user.value) { archivedItems.value = new Set(); return; }
+        try {
+            const { data } = await hw.get('/api/user/archives');
+            archivedItems.value = new Set(data.itemIds || []);
+        } catch { archivedItems.value = new Set(); }
     }
 
     async function checkAndScrollToItem(targetId: string | undefined, forceOldEntries: () => void) {
@@ -194,12 +203,14 @@ export function useHwList(
         initialLoad,
         visibleCount,
         checkedItems,
+        archivedItems,
         filteredItems,
         limitedItems,
         setVisibleCount,
         showMore,
         showLess,
         loadCheckedForMe,
+        loadArchivedForMe,
         reloadList,
         refreshItem,
         checkAndScrollToItem

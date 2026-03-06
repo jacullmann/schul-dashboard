@@ -79,7 +79,7 @@ export function useSwipeToDismiss(
                 setTimeout(() => {
                     el.removeEventListener('transitionend', onTransitionEnd);
                     options.onSlideOut();
-                }, 420);
+                }, 280);
             } else {
                 swipeOffset.value = 0;
             }

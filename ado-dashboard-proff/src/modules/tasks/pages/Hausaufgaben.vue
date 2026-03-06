@@ -60,8 +60,8 @@
           :is-collapsed="isChecked(item.id)"
           :highlighted="highlightedItemId === item.id"
           :title="item.title"
-          :swipeable="!!user"
-          @swiped="dismissedItems.add(item.id)"
+          :swipeable="!showOldEntries || isArchived(item.id)"
+          @swiped="handleSwipe(item)"
           @dblclick="user ? toggleCheck(item) : null"
           @menu-click="toggleMenu(item.id)"
       >
@@ -325,16 +325,31 @@ import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { computed, ref } from 'vue';
+import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
 
-// Local-only dismissed items (resets on reload)
+// Local-only dismissed items tracking for immediate UI removal before refresh
 const dismissedItems = ref(new Set<string>());
 
-const visibleItems = computed(() =>
-  limitedItems.value.filter((item) => !dismissedItems.value.has(item.id))
-);
+function handleSwipe(item: HwItem) {
+  dismissedItems.value.add(item.id);
+  toggleArchive(item);
+}
+
+const visibleItems = computed(() => {
+  return limitedItems.value.filter((item) => {
+    // Hide item quickly if dismissed this session
+    if (dismissedItems.value.has(item.id)) return false;
+    
+    // In old entries: skip conditionally if we want custom UI hiding...?
+    // Oh wait, if we are in old entries, un-archiving the item should just hide it too
+    // until the page reloads (it magically becomes unarchived and potentially a "new" entry if its date qualifies).
+    // So the dismissedItems.has(item.id) check works perfectly for BOTH directions!
+    return true;
+  });
+});
 
 const imagesPerRow = computed(() => {
   if (windowWidth.value < 500) return 2;
@@ -386,6 +401,8 @@ const {
   toggleCheck,
   isPinned,
   togglePin,
+  isArchived,
+  toggleArchive,
   makeThumb,
   isRevealed,
   revealImages,
