@@ -63,7 +63,7 @@
           :swipeable="true"
           :swipe-action="showOldEntries ? 'keep' : 'archive'"
           @swiped="handleSwipe(item)"
-          @dblclick="user ? toggleCheck(item) : null"
+          @dblclick="handleItemDoubleClick(item, $event)"
           @menu-click="toggleMenu(item.id)"
       >
         <template #checkbox>
@@ -441,6 +441,30 @@ const {
   getSubjectName
 } = useHausaufgaben();
 
+function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
+  if (!user.value) return;
+  const target = event.target as HTMLElement;
+  const ignoreSelectors = [
+    'button',
+    'a',
+    'input',
+    'textarea',
+    '.item-menu-trigger',
+    '.editor-note-section',
+    '.img-clickable',
+    '.img-overlay',
+    '.unpin-trigger',
+    '.menu',
+    '.checkbox'
+  ].join(', ');
+
+  if (target.closest(ignoreSelectors)) {
+    return;
+  }
+
+  toggleCheck(item);
+}
+
 // Expose todoAppRef to satisfy TS declaration and allow template bindings
 defineExpose({ todoAppRef });
 </script>
@@ -479,11 +503,7 @@ defineExpose({ todoAppRef });
 }
 
 .select-subject {
-  max-width: 160px;
-  min-width: auto;
-  width: auto;
-  flex-shrink: 0;
-  box-shadow: var(--input-shadow);
+  min-width: 150px;
 }
 
 .items {

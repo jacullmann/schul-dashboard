@@ -170,10 +170,12 @@ function onLeave(el: Element) {
   position: relative;
 }
 
-/* Only clip while a swipe gesture is in progress */
+/* Active swipe container */
 .swipe-container.swipe-active {
-  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
   border-radius: var(--border-7);
+  z-index: 10;
 }
 
 /* Background shown only while swiping */
@@ -183,7 +185,7 @@ function onLeave(el: Element) {
   border-radius: var(--border-7);
   display: flex;
   align-items: center;
-  padding-left: 24px;
+  padding-left: 12px;
   pointer-events: none;
 }
 .swipe-background.bg-archive {

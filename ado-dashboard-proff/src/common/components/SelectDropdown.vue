@@ -1,7 +1,7 @@
 <template>
-  <div class="menu-wrapper" ref="wrapperRef">
+  <div :class="['menu-wrapper', extraClass]" ref="wrapperRef">
     <button
-        :class="['btn ghost', extraClass]"
+        class="btn ghost"
         @click="toggleMenu"
         :disabled="disabled"
         type="button"
