@@ -100,10 +100,9 @@ function collapseContainer() {
   el.style.marginBottom = '0'; // counteract the flex gap on the parent .items
   void el.offsetHeight; // flush
 
-  const easing = 'cubic-bezier(0.25, 1, 0.5, 1)';
-  el.style.transition = `height 320ms ${easing}, opacity 260ms ${easing}`;
+  const easing = 'cubic-bezier(0.78, 0, 0.22, 1)';
+  el.style.transition = `height 300ms ${easing}, margin 300ms ${easing}`;
   el.style.height = '0';
-  el.style.opacity = '0';
 
   const onEnd = (e: TransitionEvent) => {
     if (e.propertyName !== 'height') return;
@@ -111,7 +110,7 @@ function collapseContainer() {
     emit('swiped');
   };
   el.addEventListener('transitionend', onEnd);
-  setTimeout(() => { el.removeEventListener('transitionend', onEnd); emit('swiped'); }, 400);
+  setTimeout(() => { el.removeEventListener('transitionend', onEnd); emit('swiped'); }, 350);
 }
 
 // Swipe composable — only instantiated when swipeable is true
@@ -179,13 +178,11 @@ function onLeave(el: Element) {
   align-items: center;
   padding-left: 24px;
   pointer-events: none;
-  z-index: 0;
 }
 
 /* ─── item-card: identical to original when swipe is idle ─────────────────── */
 .item-card {
   position: relative;
-  z-index: 1;
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: var(--border-7);

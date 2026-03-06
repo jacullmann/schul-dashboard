@@ -224,12 +224,12 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   gap: 12px;
 }
 
-.item-card.ghost {
+.ghost .item-card {
   background: white;
   will-change: transform, filter
 }
 
-.item-card.ghost::before {
+.ghost .item-card::before {
   content: "";
   position: absolute;
   top: 2px;
