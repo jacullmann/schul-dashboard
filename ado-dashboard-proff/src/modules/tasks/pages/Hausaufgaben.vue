@@ -60,6 +60,8 @@
           :is-collapsed="isChecked(item.id)"
           :highlighted="highlightedItemId === item.id"
           :title="item.title"
+          :swipeable="!!user"
+          @swiped="toggleCheck(item)"
           @dblclick="user ? toggleCheck(item) : null"
           @menu-click="toggleMenu(item.id)"
       >
@@ -155,7 +157,7 @@
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" />
+                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false"  alt=""/>
                   </div>
                 </div>
               </template>

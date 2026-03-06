@@ -257,6 +257,7 @@ onUnmounted(() => {
 .logo-text--brand {
   display: inline;
 }
+
 .logo-separator {
   font-size: var(--font-size-body);
   font-weight: 400;

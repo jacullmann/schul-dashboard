@@ -1,80 +1,123 @@
 <template>
   <div
-      class="item-card"
-      :class="{ collapsed: isCollapsed, highlighted: highlighted }"
+      class="swipe-container"
+      :class="{ dismissing: isDismissing }"
   >
-    <div class="item-main">
-      <div class="item-meta">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <slot name="checkbox"></slot>
-          <slot name="title">
-            <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
-          </slot>
-        </div>
-
-        <transition
-            @enter="onEnter"
-            @after-enter="onAfterEnter"
-            @leave="onLeave"
-        >
-          <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges" style="overflow: hidden;">
-            <slot name="badges"></slot>
-          </div>
-        </transition>
+    <!-- Red background layer revealed on swipe -->
+    <div v-if="swipeable" class="swipe-background">
+      <div class="swipe-background-icon" :style="{ opacity: backgroundIconOpacity }">
+        <Check :size="28" :stroke-width="2.5" />
       </div>
-
-      <slot name="actions-pre"></slot>
-
-      <slot name="menu-trigger">
-        <div
-            v-if="showMenuTrigger"
-            class="item-menu-trigger"
-            role="button"
-            tabindex="0"
-            @click.stop="(e) => $emit('menu-click', e)"
-        >
-          <slot name="menu-icon">
-            <Ellipsis :size="18" />
-          </slot>
-        </div>
-      </slot>
-
-      <slot name="menu"></slot>
     </div>
 
-    <transition
-        @enter="onEnter"
-        @after-enter="onAfterEnter"
-        @leave="onLeave"
+    <!-- Card content layer -->
+    <div
+        ref="cardRef"
+        class="item-card"
+        :class="{ collapsed: isCollapsed, highlighted: highlighted }"
+        :style="cardSwipeStyle"
     >
-      <div v-show="!isCollapsed" class="item-collapsible-wrapper" style="overflow: hidden;">
-        <div v-if="$slots.body" class="item-body">
-          <slot name="body"></slot>
+      <div class="item-main">
+        <div class="item-meta">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <slot name="checkbox"></slot>
+            <slot name="title">
+              <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
+            </slot>
+          </div>
+
+          <transition
+              @enter="onEnter"
+              @after-enter="onAfterEnter"
+              @leave="onLeave"
+          >
+            <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges" style="overflow: hidden;">
+              <slot name="badges"></slot>
+            </div>
+          </transition>
         </div>
-        <slot name="content-after"></slot>
+
+        <slot name="actions-pre"></slot>
+
+        <slot name="menu-trigger">
+          <div
+              v-if="showMenuTrigger"
+              class="item-menu-trigger"
+              role="button"
+              tabindex="0"
+              @click.stop="(e) => $emit('menu-click', e)"
+          >
+            <slot name="menu-icon">
+              <Ellipsis :size="18" />
+            </slot>
+          </div>
+        </slot>
+
+        <slot name="menu"></slot>
       </div>
-    </transition>
+
+      <transition
+          @enter="onEnter"
+          @after-enter="onAfterEnter"
+          @leave="onLeave"
+      >
+        <div v-show="!isCollapsed" class="item-collapsible-wrapper" style="overflow: hidden;">
+          <div v-if="$slots.body" class="item-body">
+            <slot name="body"></slot>
+          </div>
+          <slot name="content-after"></slot>
+        </div>
+      </transition>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Ellipsis } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
+import { Ellipsis, Check } from 'lucide-vue-next';
+import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   title?: string;
   isCollapsed?: boolean;
   highlighted?: boolean;
   showMenuTrigger?: boolean;
+  swipeable?: boolean;
 }>(), {
   isCollapsed: false,
   highlighted: false,
   showMenuTrigger: true,
+  swipeable: false,
 });
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'menu-click', event: MouseEvent): void;
+  (e: 'swiped'): void;
 }>();
 
+const cardRef = ref<HTMLElement | null>(null);
+
+// Swipe setup
+const { swipeOffset, isSwiping, isDismissing } = props.swipeable
+  ? useSwipeToDismiss(cardRef, { onDismiss: () => emit('swiped') })
+  : { swipeOffset: ref(0), isSwiping: ref(false), isDismissing: ref(false) };
+
+const cardSwipeStyle = computed(() => {
+  if (!props.swipeable || swipeOffset.value === 0) return undefined;
+  return {
+    transform: `translateX(${swipeOffset.value}px)`,
+    transition: isSwiping.value ? 'none' : 'transform 350ms cubic-bezier(0.25, 1, 0.5, 1)',
+  };
+});
+
+const backgroundIconOpacity = computed(() => {
+  if (!props.swipeable) return 0;
+  const width = cardRef.value?.offsetWidth ?? 300;
+  // Fade in progressively as the card is swiped
+  return Math.min(1, swipeOffset.value / (width * 0.2));
+});
+
+// Collapse / expand transition logic
 const transitionDuration = '350ms';
 const transitionEasing = 'cubic-bezier(0.25, 1, 0.5, 1)'; // Super smooth out-quart
 
@@ -107,7 +150,39 @@ function onLeave(el: Element) {
 </script>
 
 <style scoped>
+.swipe-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--border-7);
+}
+
+.swipe-background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+  border-radius: var(--border-7);
+  display: flex;
+  align-items: center;
+  padding-left: 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.swipe-background-icon {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: opacity 80ms ease;
+}
+
 .item-card {
+  position: relative;
+  z-index: 1;
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: var(--border-7);
@@ -115,6 +190,8 @@ function onLeave(el: Element) {
   box-shadow: var(--input-shadow);
   overflow: visible;
   cursor: default;
+  touch-action: pan-y;
+  will-change: transform;
 }
 .item-card.collapsed {
   transition:
