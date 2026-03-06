@@ -4,8 +4,8 @@ import { usePointerSwipe } from '@vueuse/core';
 export interface SwipeToDismissOptions {
     /** Fraction of element width needed to trigger dismiss (0–1). Default: 0.35 */
     threshold?: number;
-    /** Called once the dismiss animation finishes */
-    onDismiss: () => void;
+    /** Called after the card slides off-screen and the height collapse should begin */
+    onSlideOut: () => void;
 }
 
 export function useSwipeToDismiss(
@@ -15,10 +15,11 @@ export function useSwipeToDismiss(
     const threshold = options.threshold ?? 0.35;
 
     const swipeOffset = ref(0);
+    // true while finger is dragging horizontally
     const isSwiping = ref(false);
+    // true while the card is flying off to the right
     const isDismissing = ref(false);
 
-    // Whether this gesture was determined to be horizontal (vs vertical scroll)
     let gestureLockedHorizontal = false;
     let gestureDecided = false;
     let elementWidth = 0;
@@ -35,15 +36,14 @@ export function useSwipeToDismiss(
         onSwipe() {
             if (isDismissing.value) return;
 
-            // usePointerSwipe reports distance as positive when swiping left,
-            // negative when swiping right. We want positive = right swipe.
+            // usePointerSwipe: distanceX is positive when swiping LEFT.
+            // We want positive = right swipe.
             const dx = -distanceX.value;
             const dy = Math.abs(distanceY.value);
 
-            // Decide gesture direction on first significant movement
-            if (!gestureDecided && (Math.abs(dx) > 4 || dy > 4)) {
+            if (!gestureDecided && (Math.abs(dx) > 5 || dy > 5)) {
                 gestureDecided = true;
-                gestureLockedHorizontal = Math.abs(dx) > dy * 1.2;
+                gestureLockedHorizontal = Math.abs(dx) > dy * 1.3;
             }
 
             if (!gestureLockedHorizontal) {
@@ -51,7 +51,7 @@ export function useSwipeToDismiss(
                 return;
             }
 
-            // Only allow right swipe (positive), clamp left to 0
+            // Only right swipe
             swipeOffset.value = Math.max(0, dx);
         },
         onSwipeEnd() {
@@ -59,48 +59,38 @@ export function useSwipeToDismiss(
             isSwiping.value = false;
 
             const offset = swipeOffset.value;
-            const didPassThreshold = offset > elementWidth * threshold;
 
-            if (didPassThreshold && gestureLockedHorizontal) {
-                // Animate off-screen then dismiss
+            if (offset > elementWidth * threshold && gestureLockedHorizontal) {
                 isDismissing.value = true;
                 swipeOffset.value = elementWidth + 20;
 
-                // Wait for the slide-out transition to finish
-                const onEnd = () => {
-                    target.value?.removeEventListener('transitionend', onEnd);
-                    options.onDismiss();
-                };
-                // Fallback timeout in case transitionend doesn't fire
-                const fallback = setTimeout(() => {
-                    target.value?.removeEventListener('transitionend', onEnd);
-                    options.onDismiss();
-                }, 400);
+                // After the slide-out CSS transition ends, trigger the height collapse
+                const el = target.value;
+                if (!el) { options.onSlideOut(); return; }
 
-                target.value?.addEventListener('transitionend', function handler(e) {
-                    if (e.propertyName === 'transform') {
-                        clearTimeout(fallback);
-                        target.value?.removeEventListener('transitionend', handler);
-                        options.onDismiss();
-                    }
-                });
+                const onTransitionEnd = (e: TransitionEvent) => {
+                    if (e.propertyName !== 'transform') return;
+                    el.removeEventListener('transitionend', onTransitionEnd);
+                    options.onSlideOut();
+                };
+                el.addEventListener('transitionend', onTransitionEnd);
+
+                // Fallback in case transitionend doesn't fire
+                setTimeout(() => {
+                    el.removeEventListener('transitionend', onTransitionEnd);
+                    options.onSlideOut();
+                }, 420);
             } else {
-                // Spring back
                 swipeOffset.value = 0;
             }
         },
     });
 
-    // Reset state when element changes (e.g. list re-renders)
     watch(target, () => {
         swipeOffset.value = 0;
         isSwiping.value = false;
         isDismissing.value = false;
     });
 
-    return {
-        swipeOffset,
-        isSwiping,
-        isDismissing,
-    };
+    return { swipeOffset, isSwiping, isDismissing };
 }

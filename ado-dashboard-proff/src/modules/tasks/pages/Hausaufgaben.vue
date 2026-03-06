@@ -54,14 +54,14 @@
 
       <ItemCard
           v-else-if="tab !== 'PRIVATE'"
-          v-for="item in limitedItems"
+          v-for="item in visibleItems"
           :key="item.id"
           :id="'item-' + item.id"
           :is-collapsed="isChecked(item.id)"
           :highlighted="highlightedItemId === item.id"
           :title="item.title"
           :swipeable="!!user"
-          @swiped="toggleCheck(item)"
+          @swiped="dismissedItems.add(item.id)"
           @dblclick="user ? toggleCheck(item) : null"
           @menu-click="toggleMenu(item.id)"
       >
@@ -324,10 +324,17 @@ import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
+
+// Local-only dismissed items (resets on reload)
+const dismissedItems = ref(new Set<string>());
+
+const visibleItems = computed(() =>
+  limitedItems.value.filter((item) => !dismissedItems.value.has(item.id))
+);
 
 const imagesPerRow = computed(() => {
   if (windowWidth.value < 500) return 2;
