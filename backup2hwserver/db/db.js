@@ -753,11 +753,16 @@ export async function getItemVisibility(sb, userId) {
 }
 
 export async function setItemVisibility(sb, itemId, userId, status) {
+    // Delete any existing override to safely bypass the lack of a UNIQUE constraint
+    await sb.from('user_item_visibility').delete().eq('item_id', itemId).eq('user_id', userId);
+
+    // Insert the new status
     return throwOnError(
-        await sb.from('user_item_visibility').upsert(
-            { item_id: itemId, user_id: userId, status, updated_at: new Date().toISOString() },
-            { onConflict: 'user_id,item_id' }
-        )
+        await sb.from('user_item_visibility').insert({
+            item_id: itemId,
+            user_id: userId,
+            status
+        })
     );
 }
 
