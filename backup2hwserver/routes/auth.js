@@ -24,6 +24,8 @@ export default function createAuthRoutes(deps) {
         emailService,
         requireAppGate,
         checkAppGate,
+        setAppGateToken,
+        clearAppGateToken,
         requireUser,
         checkUser,
         setUserToken,
@@ -228,6 +230,7 @@ export default function createAuthRoutes(deps) {
         validateCsrf(csrfSecret),
         (req, res) => {
             clearUserToken(res);
+            clearAppGateToken(res);
             clearMfaPendingToken(res);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             res.json({ ok: true, csrfToken: newCsrfToken });
