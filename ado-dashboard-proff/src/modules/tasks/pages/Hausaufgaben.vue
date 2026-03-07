@@ -325,7 +325,7 @@ import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
 
 const { t, tm } = useI18n();
@@ -440,6 +440,10 @@ const {
   subjectOptions,
   getSubjectName
 } = useHausaufgaben();
+
+watch([showOldEntries, tab, subjectFilter], () => {
+  dismissedItems.value.clear();
+});
 
 function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   if (!user.value) return;
