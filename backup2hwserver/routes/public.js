@@ -7,12 +7,10 @@ export default function createPublicRoutes(deps) {
     const {
         supabase,
         cloudinary,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
-        checkUser,
+        requireAuth,
+        checkAuth,
         requireTenant,
         validateCsrf,
         sendJSONError,
@@ -23,9 +21,9 @@ export default function createPublicRoutes(deps) {
 
     // GET /api/timetable
     router.get('/api/timetable',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
-        checkUser(userSecret, supabase),
+        checkAuth(authSecret),
         async (req, res) => {
             try {
                 const lessons = await db.getTimetableLessons(supabase, req.tenantId);
@@ -79,7 +77,7 @@ export default function createPublicRoutes(deps) {
 
     // GET /api/timetable/subs
     router.get('/api/timetable/subs',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
         async (req, res) => {
             try {
@@ -107,7 +105,7 @@ export default function createPublicRoutes(deps) {
 
     // GET /api/subjects
     router.get('/api/subjects',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
         async (req, res) => {
             try {
@@ -122,7 +120,7 @@ export default function createPublicRoutes(deps) {
 
     // GET /api/announcements
     router.get('/api/announcements',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
         async (req, res) => {
             try {
@@ -145,8 +143,7 @@ export default function createPublicRoutes(deps) {
 
     // POST /api/announcements
     router.post('/api/announcements',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         requireTenant,
         validateCsrf(csrfSecret),
@@ -180,8 +177,7 @@ export default function createPublicRoutes(deps) {
 
     // DELETE /api/announcements/:id
     router.delete('/api/announcements/:id',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         requireTenant,
         validateCsrf(csrfSecret),
@@ -206,8 +202,7 @@ export default function createPublicRoutes(deps) {
 
     // POST /api/uploads/sign
     router.post('/api/uploads/sign',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
@@ -232,7 +227,7 @@ export default function createPublicRoutes(deps) {
 
     // POST /anon/sorgenbox
     router.post('/anon/sorgenbox',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
@@ -263,7 +258,7 @@ export default function createPublicRoutes(deps) {
 
     // GET /api/persons
     router.get('/api/persons',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
         async (req, res) => {
             try {
@@ -285,7 +280,7 @@ export default function createPublicRoutes(deps) {
 
     // GET /api/dalton_schedule
     router.get('/api/dalton_schedule',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
         async (req, res) => {
             try {

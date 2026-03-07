@@ -8,12 +8,10 @@ export default function createItemsRoutes(deps) {
     const {
         supabase,
         cloudinary,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
-        checkUser,
+        requireAuth,
+        checkAuth,
         requireTenant,
         validateCsrf,
         sendJSONError,
@@ -28,8 +26,8 @@ export default function createItemsRoutes(deps) {
 
     // GET /api/items
     router.get('/',
-        requireAppGate(appGateSecret),
-        checkUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
+        checkAuth(authSecret),
         requireTenant,
         query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
         query('filter').optional().isIn(['old']),
@@ -69,7 +67,7 @@ export default function createItemsRoutes(deps) {
 
     // GET /api/items/:id
     router.get('/:id',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         requireTenant,
         param('id').isUUID(),
         validate,
@@ -104,8 +102,7 @@ export default function createItemsRoutes(deps) {
 
     // POST /api/items
     router.post('/',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         [
@@ -158,8 +155,7 @@ export default function createItemsRoutes(deps) {
 
     // PATCH /api/items/:id
     router.patch('/:id',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
@@ -231,8 +227,7 @@ export default function createItemsRoutes(deps) {
 
     // DELETE /api/items/:id
     router.delete('/:id',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
@@ -270,8 +265,7 @@ export default function createItemsRoutes(deps) {
 
     // PATCH /api/items/:id/note (nur Admins)
     router.patch('/:id/note',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         requireTenant,
         validateCsrf(csrfSecret),
@@ -299,8 +293,7 @@ export default function createItemsRoutes(deps) {
 
     // POST /api/items/:id/images
     router.post('/:id/images',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
@@ -352,8 +345,7 @@ export default function createItemsRoutes(deps) {
 
     // DELETE /api/items/:itemId/images/:publicId
     router.delete('/:itemId/images/:publicId',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('itemId').isUUID(),
@@ -401,8 +393,8 @@ export default function createItemsRoutes(deps) {
 
     // POST /api/items/reports
     router.post('/reports',
-        requireAppGate(appGateSecret),
-        checkUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         body('itemId').isUUID(),
         body('itemTitle').isString().isLength({ min: 1, max: 200 }),

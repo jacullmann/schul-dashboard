@@ -4,7 +4,7 @@
  * Extracts the tenant ID from the 'x-tenant-id' header and validates it against
  * the user's groups in the already-decoded app-gate JWT. places it on `req.tenantId` for downstream handlers.
  * Superadmins bypass the array check, but still need the header or default.
- * Must be used AFTER `requireAppGate`.
+ * Must be used AFTER `requireAuth`.
  */
 
 export function requireTenant(req, res, next) {

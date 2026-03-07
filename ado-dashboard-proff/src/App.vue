@@ -57,19 +57,14 @@ function logPageload() {
 function handleShowAuthModal() {
   openAuthModal().catch(() => {});
 }
-function handleAppGateExpired() {
-  const currentPath = router.currentRoute.value.path;
-  if (!currentPath.startsWith('/welcome')) {
-    router.push('/welcome');
-  }
-}
 async function onAuthSuccess() {
   syncCsrfFromCookie();
   await userStore.fetchUser();
   handleAuthSuccess('');
   await nextTick();
 }
-async function handleUserTokenExpired() {
+
+async function handleAuthExpired() {
   userStore.clearUser();
 
   const stillAuthenticated = await checkAuthStatus();
@@ -119,8 +114,7 @@ onMounted(() => {
   logPageload();
 
   window.addEventListener('show-auth-modal', handleShowAuthModal);
-  window.addEventListener('user-token-expired', handleUserTokenExpired);
-  window.addEventListener('app-gate-expired', handleAppGateExpired);
+  window.addEventListener('auth-expired', handleAuthExpired);
   window.addEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
   window.addEventListener('csrf-init-failed', handleCsrfInitFailed);
 
@@ -133,8 +127,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('show-auth-modal', handleShowAuthModal);
-  window.removeEventListener('user-token-expired', handleUserTokenExpired);
-  window.removeEventListener('app-gate-expired', handleAppGateExpired);
+  window.removeEventListener('auth-expired', handleAuthExpired);
   window.removeEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
   window.removeEventListener('csrf-init-failed', handleCsrfInitFailed);
 

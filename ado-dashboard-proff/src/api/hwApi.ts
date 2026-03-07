@@ -105,11 +105,8 @@ hw.interceptors.response.use(
         // 401-Handling wie bisher
         if (error.response?.status === 401) {
             const errorData = error.response.data;
-            if (errorData?.requiresAppGate) {
-                window.dispatchEvent(new CustomEvent('app-gate-expired'));
-            }
-            if (errorData?.requiresLogin) {
-                window.dispatchEvent(new CustomEvent('user-token-expired'));
+            if (errorData?.requiresAuth) {
+                window.dispatchEvent(new CustomEvent('auth-expired'));
             }
         }
 

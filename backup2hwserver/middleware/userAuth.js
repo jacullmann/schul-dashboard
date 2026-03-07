@@ -1,13 +1,18 @@
 import jwt from 'jsonwebtoken';
 
-const COOKIE_NAME = 'user_token';
+const COOKIE_NAME = 'auth_token';
 
-export function setUserToken(res, userId, email, secret) {
-    const token = jwt.sign(
-        { sub: userId.toString(), email },
-        secret,
-        { expiresIn: '7d' }
-    );
+export function setAuthToken(res, secret, { userId, email, role, activeGroupId, activeGroupName, groups = [] }) {
+    const payload = {
+        sub: userId.toString(),
+        email,
+        role,
+        activeGroupId,
+        activeGroupName,
+        groups
+    };
+
+    const token = jwt.sign(payload, secret, { expiresIn: '7d' });
 
     res.cookie(COOKIE_NAME, token, {
         httpOnly: true,
@@ -21,17 +26,16 @@ export function setUserToken(res, userId, email, secret) {
 }
 
 /**
- * Middleware: require an authenticated, non-banned user.
- * Now uses Supabase instead of Mongoose.
+ * Middleware: require an authenticated, non-banned user context with groups.
  */
-export function requireUser(secret, supabase) {
+export function requireAuth(secret, supabase) {
     return async (req, res, next) => {
         const token = req.cookies[COOKIE_NAME];
 
         if (!token) {
             return res.status(401).json({
-                error: 'Benutzer-Authentifizierung erforderlich',
-                requiresLogin: true,
+                error: 'Authentifizierung erforderlich',
+                requiresAuth: true,
             });
         }
 
@@ -39,17 +43,11 @@ export function requireUser(secret, supabase) {
             const payload = jwt.verify(token, secret);
 
             if (!payload.sub || !payload.email) {
-                return res.status(401).json({ error: 'Ungültiges User-Token' });
+                return res.status(401).json({ error: 'Ungültiges Auth-Token', requiresAuth: true });
             }
 
-            const { data: user } = await supabase
-                .from('users')
-                .select('id, email, user_roles(roles(name))')
-                .eq('id', payload.sub)
-                .maybeSingle();
-
-            if (!user) return res.status(401).json({ error: 'User nicht gefunden' });
-
+            // Optional: You could fetch the banned status dynamically here,
+            // or rely on caching / other mechanisms. Let's do a lightweight check for active banning:
             const { data: ban } = await supabase
                 .from('banned_users')
                 .select('id')
@@ -58,22 +56,31 @@ export function requireUser(secret, supabase) {
 
             if (ban) return res.status(403).json({ error: 'Account gesperrt' });
 
+            // Populate both user and appGate contexts
             req.user = {
                 sub: payload.sub,
                 email: payload.email,
-                role: user.user_roles?.[0]?.roles?.name || 'user',
+                role: payload.role || 'user',
             };
+            req.userId = payload.sub;
+            req.appGate = !!payload.activeGroupId;
+            req.appGateGroup = payload.activeGroupId ? {
+                id: payload.activeGroupId,
+                name: payload.activeGroupName
+            } : null;
+            req.userGroups = payload.groups || [];
+
             next();
         } catch {
             return res.status(401).json({
-                error: 'User-Token ungültig oder abgelaufen',
-                requiresLogin: true,
+                error: 'Auth-Token ungültig oder abgelaufen',
+                requiresAuth: true,
             });
         }
     };
 }
 
-export function clearUserToken(res) {
+export function clearAuthToken(res) {
     res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
         secure: true,
@@ -83,29 +90,35 @@ export function clearUserToken(res) {
 }
 
 /**
- * Middleware: optionally attach user info if token present.
+ * Middleware: optionally attach user info if auth token present.
  * Does NOT block if no token.
  */
-export function checkUser(secret, supabase) {
-    return async (req, res, next) => {
+export function checkAuth(secret) {
+    return (req, res, next) => {
         const token = req.cookies[COOKIE_NAME];
+
         req.user = null;
+        req.userId = null;
+        req.appGate = false;
+        req.appGateGroup = null;
+        req.userGroups = [];
 
         if (token) {
             try {
                 const payload = jwt.verify(token, secret);
                 if (payload.sub && payload.email) {
-                    const { data: user } = await supabase
-                        .from('users')
-                        .select('user_roles(roles(name))')
-                        .eq('id', payload.sub)
-                        .maybeSingle();
-
                     req.user = {
                         sub: payload.sub,
                         email: payload.email,
-                        role: user?.user_roles?.[0]?.roles?.name || 'user',
+                        role: payload.role || 'user',
                     };
+                    req.userId = payload.sub;
+                    req.appGate = !!payload.activeGroupId;
+                    req.appGateGroup = payload.activeGroupId ? {
+                        id: payload.activeGroupId,
+                        name: payload.activeGroupName
+                    } : null;
+                    req.userGroups = payload.groups || [];
                 }
             } catch {
                 // ignore

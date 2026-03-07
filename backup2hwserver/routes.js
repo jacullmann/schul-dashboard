@@ -1,7 +1,6 @@
 import { buildThumbUrl, withThumb, timeLeftColor } from './utils/modelHelpers.js';
 
-import { setAppGateToken, requireAppGate, clearAppGateToken, checkAppGate } from './middleware/appAuth.js';
-import { setUserToken, requireUser, clearUserToken, checkUser } from './middleware/userAuth.js';
+import { setAuthToken, requireAuth, clearAuthToken, checkAuth } from './middleware/userAuth.js';
 import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken, verifyCsrfToken } from './middleware/csrf.js';
 import { dashboardLimiter, authLimiter, passwordResetLimiter } from './middleware/rateLimiters.js';
 import { sendJSONError, validate, requireAdmin, isValidCloudinaryUrl, validateItemCreation } from './middleware/validation.js';
@@ -29,8 +28,7 @@ export default function registerRoutes(app, deps) {
         resendClient,
         emailConfigured,
         emailFrom,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
         passwordResetSecret
     } = deps;
@@ -50,14 +48,10 @@ export default function registerRoutes(app, deps) {
         ...deps,
         emailService,
         // Middleware-Funktionen
-        requireAppGate,
-        checkAppGate,
-        setAppGateToken,
-        clearAppGateToken,
-        requireUser,
-        checkUser,
-        setUserToken,
-        clearUserToken,
+        requireAuth,
+        checkAuth,
+        setAuthToken,
+        clearAuthToken,
         validateCsrf,
         rotateCsrfToken,
         clearCsrfCookie,

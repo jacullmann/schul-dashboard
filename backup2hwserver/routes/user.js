@@ -6,11 +6,9 @@ export default function createUserRoutes(deps) {
     const router = Router();
     const {
         supabase,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
+        requireAuth,
         requireTenant,
         validateCsrf,
         sendJSONError,
@@ -19,8 +17,7 @@ export default function createUserRoutes(deps) {
 
     // PATCH /api/user/personalization
     router.patch('/personalization',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         body('personalized').isBoolean(),
         validate,
@@ -47,8 +44,7 @@ export default function createUserRoutes(deps) {
 
     // PATCH /api/user/setup
     router.patch('/setup',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         body('enrKurs').optional({ nullable: true }).isUUID().withMessage('ungültiges Format'),
         body('wpuKurs1').optional({ nullable: true }).isUUID().withMessage('ungültiges Format'),
@@ -97,8 +93,7 @@ export default function createUserRoutes(deps) {
 
     // GET /api/user/checks
     router.get('/checks',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         async (req, res) => {
             try {
                 const itemIds = await db.getCheckedItemIds(supabase, req.user.sub);
@@ -112,8 +107,7 @@ export default function createUserRoutes(deps) {
 
     // GET /api/user/pins
     router.get('/pins',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         async (req, res) => {
             try {
                 const itemIds = await db.getPinnedItemIds(supabase, req.user.sub);
@@ -127,8 +121,7 @@ export default function createUserRoutes(deps) {
 
     // GET /api/user/visibility
     router.get('/visibility',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         async (req, res) => {
             try {
                 const visibility = await db.getItemVisibility(supabase, req.user.sub);
@@ -142,8 +135,7 @@ export default function createUserRoutes(deps) {
 
     // POST /api/user/items/:id/visibility
     router.post('/items/:id/visibility',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
@@ -166,8 +158,7 @@ export default function createUserRoutes(deps) {
 
     // DELETE /api/user/items/:id/visibility
     router.delete('/items/:id/visibility',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
@@ -185,8 +176,7 @@ export default function createUserRoutes(deps) {
 
     // POST /api/user/activity/pageload
     router.post('/activity/pageload',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
@@ -203,8 +193,7 @@ export default function createUserRoutes(deps) {
 
     // POST /api/user/items/:id/check
     router.post('/items/:id/check',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
@@ -226,8 +215,7 @@ export default function createUserRoutes(deps) {
 
     // POST /api/user/items/:id/pin
     router.post('/items/:id/pin',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireTenant,
         validateCsrf(csrfSecret),
         param('id').isUUID(),
@@ -249,8 +237,7 @@ export default function createUserRoutes(deps) {
 
     // DELETE /api/user/items/:id/check
     router.delete('/items/:id/check',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
@@ -268,8 +255,7 @@ export default function createUserRoutes(deps) {
 
     // DELETE /api/user/items/:id/pin
     router.delete('/items/:id/pin',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,

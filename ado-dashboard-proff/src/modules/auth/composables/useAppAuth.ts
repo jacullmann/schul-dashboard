@@ -78,7 +78,7 @@ export function useAppAuth() {
             isAuthReady.value = true;
 
             if (!eventListenerRegistered) {
-                window.addEventListener('app-gate-expired', () => {
+                window.addEventListener('auth-expired', () => {
                     isAuthenticated.value = false;
                 });
                 eventListenerRegistered = true;

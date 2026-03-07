@@ -11,11 +11,9 @@ export default function createAdminRoutes(deps) {
     const {
         supabase,
         cloudinary,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
+        requireAuth,
         requireTenant,
         validateCsrf,
         sendJSONError,
@@ -24,8 +22,7 @@ export default function createAdminRoutes(deps) {
     } = deps;
 
     const adminAuth = [
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         requireTenant,
     ];

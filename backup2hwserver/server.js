@@ -74,8 +74,8 @@ app.use(rateLimit({
     legacyHeaders: false
 }));
 
-if (!process.env.APP_GATE_JWT_SECRET || !process.env.USER_JWT_SECRET || !process.env.CSRF_SECRET || !process.env.PASSWORD_RESET_SECRET) {
-    console.error('FEHLER: APP_GATE_JWT_SECRET, USER_JWT_SECRET, CSRF_SECRET und PASSWORD_RESET_SECRET müssen gesetzt sein!');
+if (!process.env.USER_JWT_SECRET || !process.env.CSRF_SECRET || !process.env.PASSWORD_RESET_SECRET) {
+    console.error('FEHLER: USER_JWT_SECRET, CSRF_SECRET und PASSWORD_RESET_SECRET müssen gesetzt sein!');
     process.exit(1);
 }
 if (!process.env.ENCRYPTION_KEY) {
@@ -89,14 +89,13 @@ routes(app, {
     resendClient,
     emailConfigured: !!RESEND_API_KEY,
     emailFrom: EMAIL_FROM,
-    appGateSecret: process.env.APP_GATE_JWT_SECRET,
-    userSecret: process.env.USER_JWT_SECRET,
+    authSecret: process.env.USER_JWT_SECRET,
     csrfSecret: process.env.CSRF_SECRET,
     passwordResetSecret: process.env.PASSWORD_RESET_SECRET
 });
 
 registerDocSocket(io, supabase, {
-    userSecret: process.env.USER_JWT_SECRET
+    authSecret: process.env.USER_JWT_SECRET
 });
 
 app.get('/health', (req, res) => res.json({ ok: true }));

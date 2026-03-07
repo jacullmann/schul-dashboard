@@ -9,25 +9,23 @@ export default function createAppGateRoutes(deps) {
     const router = Router();
     const {
         supabase,
-        appGateSecret,
+        authSecret,
         csrfSecret,
-        setAppGateToken,
-        clearAppGateToken,
-        requireAppGate,
-        checkAppGate,
+        setAuthToken,
+        clearAuthToken,
+        requireAuth,
+        checkAuth,
         validateCsrf,
         clearCsrfCookie,
         rotateCsrfToken,
         dashboardLimiter,
         sendJSONError,
         validate,
-        requireUser,
-        userSecret,
     } = deps;
 
     router.post('/login',
         dashboardLimiter,
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('groupName').isString().trim().isLength({ min: 1, max: 100 }),
@@ -98,8 +96,12 @@ export default function createAppGateRoutes(deps) {
                         role: ur.roles?.name
                     })).filter(g => g.id); // Filter out any broken relations
 
-                    setAppGateToken(res, appGateSecret, {
+                    const globalRole = req.user?.role || 'user'; // Maintain existing role
+
+                    setAuthToken(res, authSecret, {
                         userId,
+                        email: req.user.email,
+                        role: globalRole,
                         activeGroupId: group.id,
                         activeGroupName: group.name,
                         groups
@@ -118,7 +120,7 @@ export default function createAppGateRoutes(deps) {
 
     router.post('/create-group',
         dashboardLimiter,
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('groupName').isString().trim().isLength({ min: 1, max: 100 }),
@@ -188,9 +190,13 @@ export default function createAppGateRoutes(deps) {
                     role: ur.roles.name
                 }));
 
+                const globalRole = req.user?.role || 'user';
+
                 // Authenticate user into the new group
-                setAppGateToken(res, appGateSecret, {
+                setAuthToken(res, authSecret, {
                     userId,
+                    email: req.user.email,
+                    role: globalRole,
                     activeGroupId: newGroup.id,
                     activeGroupName: newGroup.name,
                     groups
@@ -215,7 +221,7 @@ export default function createAppGateRoutes(deps) {
     );
 
     router.get('/status',
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         (req, res) => res.json({
             authenticated: req.appGate,
             ...(req.appGateGroup ? { group: req.appGateGroup } : {}),
@@ -224,7 +230,7 @@ export default function createAppGateRoutes(deps) {
     );
 
     router.post('/logout',
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             await db.logSecurityEvent(supabase, {
@@ -235,7 +241,7 @@ export default function createAppGateRoutes(deps) {
                 metadata: {},
             });
 
-            clearAppGateToken(res);
+            clearAuthToken(res);
             clearCsrfCookie(res);
             res.json({ ok: true });
         }
@@ -243,7 +249,7 @@ export default function createAppGateRoutes(deps) {
 
     router.post('/switch-group',
         dashboardLimiter,
-        requireAppGate(appGateSecret),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('groupId').isUUID()
@@ -259,9 +265,13 @@ export default function createAppGateRoutes(deps) {
                 return sendJSONError(res, 403, 'Zugriff auf diese Gruppe nicht erlaubt oder Gruppe existiert nicht.');
             }
 
+            const globalRole = req.user?.role || 'user';
+
             // reissue the token with the switched active group
-            setAppGateToken(res, appGateSecret, {
+            setAuthToken(res, authSecret, {
                 userId: req.userId,
+                email: req.user.email,
+                role: globalRole,
                 activeGroupId: group.id,
                 activeGroupName: group.name,
                 groups: req.userGroups

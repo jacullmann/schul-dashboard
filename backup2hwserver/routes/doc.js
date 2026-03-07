@@ -78,7 +78,7 @@ async function persistDocToDb(supabase) {
 
 // Socket.IO namespace handler
 export function registerDocSocket(io, supabase, deps) {
-    const { userSecret } = deps;
+    const { authSecret } = deps;
 
     // Letzten Stand bei Serverstart einmalig aus DB laden
     loadDocFromDb(supabase);
@@ -114,10 +114,10 @@ export function registerDocSocket(io, supabase, deps) {
                 })
             );
 
-            const userToken = cookieMap['user_token'];
+            const userToken = cookieMap['auth_token'];
             if (!userToken) return next(new Error('AUTH_REQUIRED'));
 
-            const payload = jwt.verify(userToken, userSecret);
+            const payload = jwt.verify(userToken, authSecret);
             if (!payload?.sub || !payload?.email) return next(new Error('AUTH_INVALID'));
 
             // Check user exists, is admin, not banned — via Supabase
@@ -213,11 +213,9 @@ export default function createDocRoutes(deps) {
     const router = Router();
     const {
         supabase,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
+        requireAuth,
         requireAdmin,
         validateCsrf,
         sendJSONError,
@@ -225,8 +223,7 @@ export default function createDocRoutes(deps) {
 
     // GET /api/doc
     router.get('/',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         async (req, res) => {
             try {
@@ -245,8 +242,7 @@ export default function createDocRoutes(deps) {
 
     // POST /api/doc/save
     router.post('/save',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         validateCsrf(csrfSecret),
         async (req, res) => {
@@ -262,8 +258,7 @@ export default function createDocRoutes(deps) {
 
     // GET /api/doc/history
     router.get('/history',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         requireAdmin,
         async (req, res) => {
             try {

@@ -9,11 +9,9 @@ export default function createMfaRoutes(deps) {
     const router = Router();
     const {
         supabase,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
+        requireAuth,
         validateCsrf,
         sendJSONError,
         validate,
@@ -24,8 +22,7 @@ export default function createMfaRoutes(deps) {
 
     // GET /api/mfa/status
     router.get('/status',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         async (req, res) => {
             try {
                 const user = await db.findUserById(supabase, req.user.sub, 'mfa_enabled');
@@ -44,8 +41,7 @@ export default function createMfaRoutes(deps) {
 
     // POST /api/mfa/setup
     router.post('/setup',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
@@ -98,8 +94,7 @@ export default function createMfaRoutes(deps) {
     // POST /api/mfa/activate
     router.post('/activate',
         mfaVerifyLimiter,
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
@@ -148,8 +143,7 @@ export default function createMfaRoutes(deps) {
     // POST /api/mfa/deactivate
     router.post('/deactivate',
         mfaVerifyLimiter,
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,

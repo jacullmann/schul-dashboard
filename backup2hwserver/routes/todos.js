@@ -7,11 +7,9 @@ export default function createTodosRoutes(deps) {
     const router = Router();
     const {
         supabase,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
-        requireAppGate,
-        requireUser,
+        requireAuth,
         validateCsrf,
         sendJSONError,
         validate,
@@ -21,8 +19,7 @@ export default function createTodosRoutes(deps) {
 
     // GET /api/todos
     router.get('/',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         async (req, res) => {
             try {
                 const todos = await db.listTodos(supabase, req.user.sub);
@@ -49,8 +46,7 @@ export default function createTodosRoutes(deps) {
 
     // POST /api/todos
     router.post('/',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('title').isString().isLength({ min: 1, max: 100 }),
@@ -102,8 +98,7 @@ export default function createTodosRoutes(deps) {
 
     // PUT /api/todos/:id
     router.put('/:id',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             param('id').isUUID(),
@@ -146,8 +141,7 @@ export default function createTodosRoutes(deps) {
 
     // PATCH /api/todos/:id/toggle
     router.patch('/:id/toggle',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,
@@ -179,8 +173,7 @@ export default function createTodosRoutes(deps) {
 
     // PATCH /api/todos/:id/reorder
     router.patch('/:id/reorder',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             param('id').isUUID(),
@@ -263,8 +256,7 @@ export default function createTodosRoutes(deps) {
 
     // DELETE /api/todos/:id
     router.delete('/:id',
-        requireAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         validate,

@@ -17,19 +17,14 @@ export default function createAuthRoutes(deps) {
     const router = Router();
     const {
         supabase,
-        appGateSecret,
-        userSecret,
+        authSecret,
         csrfSecret,
         passwordResetSecret,
         emailService,
-        requireAppGate,
-        checkAppGate,
-        setAppGateToken,
-        clearAppGateToken,
-        requireUser,
-        checkUser,
-        setUserToken,
-        clearUserToken,
+        requireAuth,
+        checkAuth,
+        setAuthToken,
+        clearAuthToken,
         validateCsrf,
         rotateCsrfToken,
         authLimiter,
@@ -42,14 +37,15 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/login
     router.post('/login',
         authLimiter,
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
         async (req, res) => {
             const { email, password } = req.body;
-            const user = await db.findUserByEmail(supabase, email, 'id, email, password_hash, email_verified, mfa_enabled, mfa_secret');
+            // Fetch global custom roles via user_roles filtering where tenant_id is null
+            const user = await db.findUserByEmail(supabase, email, 'id, email, password_hash, email_verified, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)');
 
             if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
             const ok = await bcrypt.compare(password, user.password_hash);
@@ -65,39 +61,42 @@ export default function createAuthRoutes(deps) {
                 return res.json({ ok: true, requiresMfa: true, message: 'MFA-Verifizierung erforderlich' });
             }
 
-            setUserToken(res, user.id, user.email, userSecret);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
             await db.deleteMfaPending(supabase, user.id).catch(() => { });
 
-            // Automatically issue appGate token with the user's groups
+            const globalRole = user.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user';
+
+            // Automatically issue auth token with the user's groups
             const { data: userRoles } = await supabase
                 .from('user_roles')
                 .select('tenant_id, groups(id, name), roles(name)')
                 .eq('user_id', user.id)
                 .not('tenant_id', 'is', null);
 
+            let groups = [];
+            let activeGroupId = null;
+            let activeGroupName = null;
+
             if (userRoles && userRoles.length > 0) {
-                const groups = userRoles.map(ur => ({
+                groups = userRoles.map(ur => ({
                     id: ur.groups.id,
                     name: ur.groups.name,
                     role: ur.roles.name
                 }));
                 // Set the first group as active fallback
-                setAppGateToken(res, appGateSecret, {
-                    userId: user.id,
-                    activeGroupId: groups[0].id,
-                    activeGroupName: groups[0].name,
-                    groups
-                });
-            } else {
-                setAppGateToken(res, appGateSecret, {
-                    userId: user.id,
-                    activeGroupId: null,
-                    activeGroupName: null,
-                    groups: []
-                });
+                activeGroupId = groups[0].id;
+                activeGroupName = groups[0].name;
             }
+
+            setAuthToken(res, authSecret, {
+                userId: user.id,
+                email: user.email,
+                role: globalRole,
+                activeGroupId,
+                activeGroupName,
+                groups
+            });
 
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
@@ -106,7 +105,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/mfa/verify
     router.post('/mfa/verify',
         mfaVerifyLimiter,
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         verifyMfaPendingToken(passwordResetSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
@@ -117,7 +116,7 @@ export default function createAuthRoutes(deps) {
                 const userId = req.mfaPending.sub;
                 const email = req.mfaPending.email;
 
-                const user = await db.findUserById(supabase, userId, 'id, mfa_enabled, mfa_secret');
+                const user = await db.findUserById(supabase, userId, 'id, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)');
 
                 if (!user || !user.mfa_enabled || !user.mfa_secret) {
                     clearMfaPendingToken(res);
@@ -135,41 +134,44 @@ export default function createAuthRoutes(deps) {
                 }
 
                 clearMfaPendingToken(res);
-                setUserToken(res, userId, email, userSecret);
                 const newCsrfToken = rotateCsrfToken(res, csrfSecret);
 
                 await db.updateUser(supabase, userId, { last_login_at: new Date().toISOString() });
                 await db.deleteMfaPending(supabase, userId).catch(() => { });
                 await db.logActivity(supabase, userId, 'auth:mfa_login', {});
 
-                // Automatically issue appGate token with the user's groups
+                const globalRole = user.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user';
+
+                // Automatically issue auth token with the user's groups
                 const { data: userRoles } = await supabase
                     .from('user_roles')
                     .select('tenant_id, groups(id, name), roles(name)')
                     .eq('user_id', userId)
                     .not('tenant_id', 'is', null);
 
+                let groups = [];
+                let activeGroupId = null;
+                let activeGroupName = null;
+
                 if (userRoles && userRoles.length > 0) {
-                    const groups = userRoles.map(ur => ({
+                    groups = userRoles.map(ur => ({
                         id: ur.groups.id,
                         name: ur.groups.name,
                         role: ur.roles.name
                     }));
                     // Set the first group as active fallback
-                    setAppGateToken(res, appGateSecret, {
-                        userId: userId,
-                        activeGroupId: groups[0].id,
-                        activeGroupName: groups[0].name,
-                        groups
-                    });
-                } else {
-                    setAppGateToken(res, appGateSecret, {
-                        userId: userId,
-                        activeGroupId: null,
-                        activeGroupName: null,
-                        groups: []
-                    });
+                    activeGroupId = groups[0].id;
+                    activeGroupName = groups[0].name;
                 }
+
+                setAuthToken(res, authSecret, {
+                    userId: userId,
+                    email: email,
+                    role: globalRole,
+                    activeGroupId,
+                    activeGroupName,
+                    groups
+                });
 
                 res.json({ ok: true, csrfToken: newCsrfToken });
             } catch (err) {
@@ -181,7 +183,7 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/mfa/cancel
     router.post('/mfa/cancel',
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         (req, res) => {
             clearMfaPendingToken(res);
@@ -192,7 +194,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/register
     router.post('/register',
         authLimiter,
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
@@ -225,12 +227,11 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/logout
     router.post('/logout',
-        checkAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        checkAuth(authSecret),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         (req, res) => {
-            clearUserToken(res);
-            clearAppGateToken(res);
+            clearAuthToken(res);
             clearMfaPendingToken(res);
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             res.json({ ok: true, csrfToken: newCsrfToken });
@@ -239,8 +240,7 @@ export default function createAuthRoutes(deps) {
 
     // GET /api/auth/me
     router.get('/me',
-        checkAppGate(appGateSecret),
-        checkUser(userSecret, supabase),
+        checkAuth(authSecret),
         async (req, res) => {
             try {
                 if (!req.user) return res.json({ authenticated: false });
@@ -271,8 +271,8 @@ export default function createAuthRoutes(deps) {
 
     // DELETE /api/auth/me
     router.delete('/me',
-        checkAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        checkAuth(authSecret),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         async (req, res) => {
             try {
@@ -284,7 +284,7 @@ export default function createAuthRoutes(deps) {
                 // Cascading deletes handle keep_checked, pinned_items, encrypted_todos, etc.
                 await db.deleteUser(supabase, userId);
 
-                clearUserToken(res);
+                clearAuthToken(res);
                 clearMfaPendingToken(res);
                 rotateCsrfToken(res, csrfSecret);
                 res.json({ ok: true });
@@ -317,7 +317,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/forgot
     router.post('/forgot',
         authLimiter,
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         validate,
@@ -349,7 +349,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/reset/verify
     router.post('/reset/verify',
         passwordResetLimiter,
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         body('email').isEmail(),
         body('code').isString().isLength({ min: 6, max: 6 }),
@@ -381,7 +381,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/reset
     router.post('/reset',
         passwordResetLimiter,
-        checkAppGate(appGateSecret),
+        checkAuth(authSecret),
         validateCsrf(csrfSecret),
         body('resetToken').isString(),
         body('password').isString().isLength({ min: 8 }),
@@ -433,8 +433,8 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/change-password
     router.post('/change-password',
         authLimiter,
-        checkAppGate(appGateSecret),
-        requireUser(userSecret, supabase),
+        checkAuth(authSecret),
+        requireAuth(authSecret, supabase),
         validateCsrf(csrfSecret),
         [
             body('currentPassword').isString().isLength({ min: 8 }),
