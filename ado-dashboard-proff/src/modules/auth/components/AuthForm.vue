@@ -186,9 +186,8 @@ const {
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   background: var(--bg);
-  padding: 32px;
+  padding: 16px;
   border-radius: var(--border-7);
   box-shadow: var(--menu-shadow);
 }

@@ -40,54 +40,78 @@ export default function createAppGateRoutes(deps) {
             const { groupName, password } = req.body;
             const userId = req.user.sub;
 
-            const group = await db.findGroupByName(supabase, groupName);
+            try {
+                const group = await db.findGroupByName(supabase, groupName);
 
-            const hashToCompare = group?.passcode_hash || DUMMY_HASH;
-            const isValid = await bcrypt.compare(password, hashToCompare);
-            const isAuthenticated = group && isValid;
+                const hashToCompare = group?.passcode_hash || DUMMY_HASH;
+                const isValid = await bcrypt.compare(password, hashToCompare);
+                const isAuthenticated = group && isValid;
 
-            await db.logSecurityEvent(supabase, {
-                eventType: 'group_join',
-                eventStatus: isAuthenticated ? 'success' : 'failure',
-                ip, userAgent: ua,
-                metadata: {
-                    groupName,
-                    groupId: group?.id || null,
-                    userId
-                },
-            });
-
-            if (isAuthenticated) {
-                // Ensure the user has role 'user' (role 4) in user_roles for this tenant
-                await supabase.from('user_roles').upsert({
-                    user_id: userId,
-                    role_id: 4,
-                    tenant_id: group.id
-                }, { onConflict: 'user_id, role_id, tenant_id' }); // Note: this requires the new unique constraint
-
-                // Fetch all groups the user is now part of to populate JWT
-                const { data: userRoles } = await supabase
-                    .from('user_roles')
-                    .select('tenant_id, groups(id, name), roles(name)')
-                    .eq('user_id', userId)
-                    .not('tenant_id', 'is', null);
-
-                const groups = userRoles.map(ur => ({
-                    id: ur.groups.id,
-                    name: ur.groups.name,
-                    role: ur.roles.name
-                }));
-
-                setAppGateToken(res, appGateSecret, {
-                    userId,
-                    activeGroupId: group.id,
-                    activeGroupName: group.name,
-                    groups
+                await db.logSecurityEvent(supabase, {
+                    eventType: 'group_join',
+                    eventStatus: isAuthenticated ? 'success' : 'failure',
+                    ip, userAgent: ua,
+                    metadata: {
+                        groupName,
+                        groupId: group?.id || null,
+                        userId
+                    },
                 });
-                const newCsrfToken = rotateCsrfToken(res, csrfSecret);
-                return res.json({ ok: true, csrfToken: newCsrfToken });
-            } else {
-                return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
+
+                if (isAuthenticated) {
+                    // Check if the user already has role 'user' in this group
+                    const { data: existingRole, error: selectErr } = await supabase
+                        .from('user_roles')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .eq('role_id', 4)
+                        .eq('tenant_id', group.id)
+                        .maybeSingle();
+
+                    if (!existingRole) {
+                        const { error: insertErr } = await supabase.from('user_roles').insert({
+                            user_id: userId,
+                            role_id: 4,
+                            tenant_id: group.id
+                        });
+                        if (insertErr) {
+                            console.error("Failed to add user to group:", insertErr);
+                            return sendJSONError(res, 500, 'Fehler beim Beitritt zur Gruppe.');
+                        }
+                    }
+
+                    // Fetch all groups the user is now part of to populate JWT
+                    const { data: userRoles, error: urError } = await supabase
+                        .from('user_roles')
+                        .select('tenant_id, groups(id, name), roles(name)')
+                        .eq('user_id', userId)
+                        .not('tenant_id', 'is', null);
+
+                    if (urError) {
+                        console.error("Failed to fetch user roles:", urError);
+                        return sendJSONError(res, 500, 'Fehler beim Abrufen der Gruppen.');
+                    }
+
+                    const groups = (userRoles || []).map(ur => ({
+                        id: ur.groups?.id,
+                        name: ur.groups?.name,
+                        role: ur.roles?.name
+                    })).filter(g => g.id); // Filter out any broken relations
+
+                    setAppGateToken(res, appGateSecret, {
+                        userId,
+                        activeGroupId: group.id,
+                        activeGroupName: group.name,
+                        groups
+                    });
+                    const newCsrfToken = rotateCsrfToken(res, csrfSecret);
+                    return res.json({ ok: true, csrfToken: newCsrfToken });
+                } else {
+                    return sendJSONError(res, 401, 'Authentifizierung fehlgeschlagen');
+                }
+            } catch (err) {
+                console.error('/api/app-gate/login error:', err);
+                return sendJSONError(res, 500, 'Interner Serverfehler');
             }
         }
     );
@@ -123,12 +147,21 @@ export default function createAppGateRoutes(deps) {
                     passcodeHash
                 });
 
+                if (!newGroup || !newGroup.id) {
+                    return sendJSONError(res, 500, 'Gruppe konnte nicht erstellt werden.');
+                }
+
                 // Assign the creator as an admin (role 2) for this new group
-                await supabase.from('user_roles').upsert({
+                const { error: insertErr } = await supabase.from('user_roles').insert({
                     user_id: userId,
                     role_id: 2,
                     tenant_id: newGroup.id
                 });
+
+                if (insertErr) {
+                    console.error("Failed to assign admin role:", insertErr);
+                    return sendJSONError(res, 500, 'Fehler bei der Zuweisung der Administratorrechte.');
+                }
 
                 // Log activity
                 await db.logSecurityEvent(supabase, {

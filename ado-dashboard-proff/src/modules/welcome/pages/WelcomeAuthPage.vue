@@ -56,8 +56,8 @@ async function onLoggedIn() {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 32px;
   overflow-y: auto;
+  border-right: none;
 }
 
 .bg-section {
@@ -80,6 +80,7 @@ async function onLoggedIn() {
 @media (min-width: 900px) {
   .auth-section {
     flex: 0 0 500px; /* Fixed width on desktop */
+    border-right: 1px solid var(--border);
   }
   .bg-section {
     display: block; /* Show background on large screens */
