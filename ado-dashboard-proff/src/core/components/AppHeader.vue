@@ -133,10 +133,8 @@ import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
-const router = useRouter();
 
 const { resetMfaState } = useMfa();
 
@@ -160,7 +158,7 @@ async function onSwitchGroup(id: string) {
   if (id !== activeGroupId.value) {
     const res = await switchActiveGroup(id);
     if (res.ok) {
-       router.push('/');
+       window.location.href = '/';
     } else {
        console.error("Failed to switch group", res.error);
     }

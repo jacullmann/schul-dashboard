@@ -142,6 +142,7 @@ const quotes: Quote[] = [
   { text: 'I never sleep, cause sleep is the cousin of death'},
   { text: 'Keep Ya Head Up'},
   { text: 'Just remember ALL CAPS when you spell the man name'},
+  { text: 'Death gotta be easy, cause life is hard'}
 ];
 
 /**
@@ -155,6 +156,7 @@ onMounted(() => {
   if (availableQuotes.length > 0) {
     const randomIndex = Math.floor(Math.random() * availableQuotes.length);
     const selected = availableQuotes[randomIndex];
+    if (!selected) return;
 
     // 3. Resolve text (handle dynamic numbers if needed)
     let finalString = selected.text;
