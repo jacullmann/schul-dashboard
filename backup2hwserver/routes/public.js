@@ -57,10 +57,7 @@ export default function createPublicRoutes(deps) {
                     room: l.room,
                     courseId: l.course_id,
                     persons: l.persons ? {
-                        id: l.persons.id,
-                        name: l.persons.name,
-                        title: l.persons.title,
-                        short: l.persons.short
+                        id: l.persons.id
                     } : null,
                     subjects: l.subjects ? {
                         id: l.subjects.id,
@@ -95,7 +92,6 @@ export default function createPublicRoutes(deps) {
                     duration: s.duration,
                     subject: s.subject,
                     subjectAbbr: s.subject_abbr,
-                    teacher: s.teacher,
                     room: s.room,
                     cancelled: s.cancelled,
                     hide: s.hide,

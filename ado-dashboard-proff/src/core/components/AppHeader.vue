@@ -28,8 +28,6 @@
           </router-link>
 
           <router-link to="/stundenplan" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
-          <router-link to="/daltonraumfinder" class="nav-item" @click="closeNav">{{ t('school.tables.dalton.title') }}</router-link>
-          <router-link to="/kuerzel" class="nav-item" @click="closeNav">{{ t('school.tables.abbr.title') }}</router-link>
         </nav>
       </div>
 

@@ -307,33 +307,6 @@ export function useTimetable() {
         return nextBlock.key;
     });
 
-    const getTeacherName = (lesson: Lesson): string => {
-        // If there is a substitution teacher name or backwards compatibility string
-        if (lesson.teacher) {
-            return lesson.teacher;
-        }
-
-        // If there is a linked person from the database
-        if (lesson.persons) {
-            const { title, name } = lesson.persons;
-            if (title) {
-                // Determine i18n key for title, checking abbreviation
-                const titleKey = title.replace(/\./g, "").toLowerCase(); // "Fr" -> "fr", "Herr" -> "herr"
-                // E.g. global.titles.abbr.mr, global.titles.abbr.ms
-                // The prompt says "t('global.titles.abbr.mr_or_ms_goes_here')"
-                // Typically you map 'Herr'/'Mr' -> 'mr', 'Frau'/'Fr'/'Ms' -> 'ms'
-                let abbrKey = titleKey;
-                if (titleKey === 'hr' || titleKey === 'herr' || titleKey === 'mr') abbrKey = 'mr';
-                else if (titleKey === 'fr' || titleKey === 'frau' || titleKey === 'ms') abbrKey = 'ms';
-
-                return `${t(`global.titles.abbr.${abbrKey}`)} ${name}`;
-            }
-            return name;
-        }
-
-        return '';
-    };
-
     return {
         isPersonalized,
         loadingSubs,
@@ -345,7 +318,6 @@ export function useTimetable() {
         activeOrNextGroupKey,
         defaultDayIndex,
         getDisplayName,
-        getTeacherName,
         getGroupStyle,
         formatDayName
     };

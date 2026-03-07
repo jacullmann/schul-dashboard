@@ -9,9 +9,6 @@ export interface Lesson {
     courseId?: string | null;
     persons?: {
         id: string;
-        name: string;
-        title: string | null;
-        short: string | null;
     } | null;
     subjects?: {
         id: string;
@@ -23,7 +20,6 @@ export interface Lesson {
     } | null;
     // Backward compatibility properties from old JSON
     subjectAbbr?: string;
-    teacher?: string | null;
     subject?: string;
     courseName?: string;
     _original?: Lesson;
@@ -37,7 +33,6 @@ export interface Substitution {
     duration?: number;
     subject?: string;
     subjectAbbr?: string;
-    teacher?: string | null;
     room?: string | null;
     cancelled?: boolean;
     hide?: boolean;

@@ -17,9 +17,7 @@
           <h3>Navigation</h3>
           <router-link to="/" class="footer-link">Dashboard</router-link>
           <router-link to="/stundenplan" class="footer-link">Stundenplan</router-link>
-          <router-link to="/kuerzel" class="footer-link">Kürzelfinder</router-link>
           <router-link to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
-          <router-link to="/daltonraumfinder" class="footer-link">Daltonraumfinder</router-link>
           <router-link to="/update-history" class="footer-link">Update History</router-link>
           <router-link to="/info-dashboard" class="footer-link">Info Dashboard</router-link>
         </div>

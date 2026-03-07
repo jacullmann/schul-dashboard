@@ -18,7 +18,6 @@ const {
   currentDay,
   activeOrNextGroupKey,
   getDisplayName,
-  getTeacherName,
   getGroupStyle,
   defaultDayIndex,
   formatDayName
@@ -187,7 +186,6 @@ onUnmounted(() => {
                 <div class="ausfall-label">{{ t('school.tables.timetable.cancelled') }}</div>
                 <div class="lesson-details">
                   <span class="crossed">{{ lesson.room }}</span>
-                  <span class="crossed">{{ getTeacherName(lesson) }}</span>
                 </div>
               </div>
 
@@ -208,15 +206,6 @@ onUnmounted(() => {
                     </span>
                     <span :class="{ 'new-val': lesson.room !== lesson._original?.room }">
                        {{ lesson.room }}
-                    </span>
-                  </span>
-
-                  <span class="detail-group">
-                    <span v-if="getTeacherName(lesson) !== getTeacherName(lesson._original!)" class="crossed">
-                       {{ getTeacherName(lesson._original!) }}
-                    </span>
-                    <span :class="{ 'new-val': getTeacherName(lesson) !== getTeacherName(lesson._original!) }">
-                      {{ getTeacherName(lesson) }}
                     </span>
                   </span>
                 </div>

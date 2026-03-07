@@ -12,7 +12,7 @@
         <div class="nav-grid">
           <router-link to="/items/HAUSAUFGABE" class="nav-card">
             <div class="nav-icon">
-              <FileText size="24"/>
+              <FileText :size="24"/>
             </div>
             <div class="nav-info">
               <div class="nav-title">Hausaufgaben</div>
@@ -22,31 +22,11 @@
 
           <router-link to="/stundenplan" class="nav-card">
             <div class="nav-icon">
-              <CalendarDays size="24"/>
+              <CalendarDays :size="24"/>
             </div>
             <div class="nav-info">
               <div class="nav-title">Stundenplan</div>
               <div class="nav-desc">Persönlicher Zeitplan</div>
-            </div>
-          </router-link>
-
-          <router-link to="/kuerzel" class="nav-card">
-            <div class="nav-icon">
-              <Search size="24" />
-            </div>
-            <div class="nav-info">
-              <div class="nav-title">Kürzelfinder</div>
-              <div class="nav-desc">Lehrerkürzel nachschlagen</div>
-            </div>
-          </router-link>
-
-          <router-link to="/daltonraumfinder" class="nav-card">
-            <div class="nav-icon">
-              <House size="24"/>
-            </div>
-            <div class="nav-info">
-              <div class="nav-title">Daltonraumfinder</div>
-              <div class="nav-desc">Räume finden</div>
             </div>
           </router-link>
         </div>
@@ -54,7 +34,7 @@
 
       <div class="action-section">
         <button @click="goBack" class="btn ghost">
-         <ArrowLeft size="18"/>
+         <ArrowLeft :size="18"/>
           Zurück zur letzten Seite
         </button>
       </div>
@@ -64,7 +44,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { FileText, CalendarDays, Search, House, ArrowLeft } from "lucide-vue-next";
+import { FileText, CalendarDays, ArrowLeft } from "lucide-vue-next";
 
 const router = useRouter();
 
