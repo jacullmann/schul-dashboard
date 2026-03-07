@@ -2,15 +2,48 @@
   <header class="header">
     <div class="header-container container">
       <div class="header-left">
-        <router-link to="/" class="logo-group" @click="closeNav">
-          <Logo class="logo-img" aria-hidden="true" />
-          <span class="logo-text logo-text--group">{{ groupName }}</span>
-          <span class="logo-text logo-text--brand">schul-dashboard</span>
+        <div class="logo-group-container">
+          <router-link to="/" class="logo-group" @click="closeNav">
+            <Logo class="logo-img" aria-hidden="true" />
+            <span class="logo-text logo-text--group">{{ groupName }}</span>
+            <span class="logo-text logo-text--brand">schul-dashboard</span>
+          </router-link>
+
           <template v-if="groupName">
             <span class="logo-separator--desktop" aria-hidden="true">/</span>
-            <span class="logo-group-name--desktop">{{ groupName }}</span>
+            
+            <div class="group-switcher" ref="groupMenuRef">
+              <button 
+                  class="group-switcher-btn logo-group-name--desktop" 
+                  @click="toggleGroupMenu"
+                  title="Gruppe wechseln"
+              >
+                <span>{{ groupName }}</span>
+                <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': groupMenuOpen }" />
+              </button>
+
+              <div v-if="groupMenuOpen" class="group-dropdown">
+                <button 
+                    v-for="g in userGroups" 
+                    :key="g.id"
+                    class="group-dropdown-item"
+                    :class="{ active: g.id === activeGroupId }"
+                    @click="onSwitchGroup(g.id)"
+                >
+                  {{ g.name }}
+                </button>
+                <div class="group-dropdown-divider"></div>
+                <router-link 
+                    to="/get-started" 
+                    class="group-dropdown-item action"
+                    @click="groupMenuOpen = false"
+                >
+                  + Neue Gruppe
+                </router-link>
+              </div>
+            </div>
           </template>
-        </router-link>
+        </div>
 
         <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
           <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
@@ -94,24 +127,51 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import Logo from '@/common/components/Logo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
-import { X, Menu } from 'lucide-vue-next';
+import { X, Menu, ChevronDown } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
+const router = useRouter();
 
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
 const { user, loading, needsSetup, hasShownSetup } = storeToRefs(userStore);
 
-const { groupName } = useAppAuth();
+const { groupName, userGroups, activeGroupId, switchActiveGroup } = useAppAuth();
 
 const navOpen = ref(false);
 const showSetupModal = ref(false);
+
+const groupMenuOpen = ref(false);
+const groupMenuRef = ref<HTMLElement | null>(null);
+
+function toggleGroupMenu() {
+  groupMenuOpen.value = !groupMenuOpen.value;
+}
+
+async function onSwitchGroup(id: string) {
+  groupMenuOpen.value = false;
+  if (id !== activeGroupId.value) {
+    const res = await switchActiveGroup(id);
+    if (res.ok) {
+       router.push('/');
+    } else {
+       console.error("Failed to switch group", res.error);
+    }
+  }
+}
+
+function handleClickOutside(event: MouseEvent) {
+  if (groupMenuOpen.value && groupMenuRef.value && !groupMenuRef.value.contains(event.target as Node)) {
+    groupMenuOpen.value = false;
+  }
+}
 
 const { openAuthModal } = useGlobalAuthModal();
 
@@ -173,6 +233,7 @@ function onSetupSuccess(updatedUser: any) {
 
 onMounted(() => {
   document.addEventListener('keydown', handleEscape);
+  document.addEventListener('click', handleClickOutside);
   if (!userStore.initialized) {
     userStore.fetchUser();
   }
@@ -187,6 +248,7 @@ watch(needsSetup, (needs) => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleEscape);
+  document.removeEventListener('click', handleClickOutside);
   document.body.style.overflow = '';
 });
 </script>
@@ -227,6 +289,12 @@ onUnmounted(() => {
   max-width: 1300px;
 }
 
+.logo-group-container {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
 .logo-group {
   display: flex;
   align-items: center;
@@ -256,33 +324,114 @@ onUnmounted(() => {
   display: inline;
 }
 
-.logo-separator {
-  font-size: var(--font-size-body);
-  font-weight: 400;
-  color: var(--text);
-  opacity: 0.4;
-  margin: 0 0.1rem;
-  user-select: none;
-}
-
 .logo-separator--desktop {
   font-size: var(--font-size-body);
   font-weight: 400;
   color: var(--text);
   opacity: 0.4;
-  margin: 0 0.1rem;
+  margin: 0 0.2rem;
   user-select: none;
 }
 
-.logo-group-name--desktop {
+.group-switcher {
+  position: relative;
+  display: inline-block;
+  margin-left: 0.2rem;
+}
+
+.group-switcher-btn {
+  background: transparent;
+  border: none;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: var(--border-3);
+  transition: background-color 0.2s ease;
+}
+
+.group-switcher-btn:hover {
+  background: var(--gg);
+}
+
+.logo-group-name--desktop span {
   font-size: var(--font-size-body);
   font-weight: 600;
-  color: var(--text);
   opacity: 0.85;
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  opacity: 0.7;
+}
+
+.chevron-open {
+  transform: rotate(180deg);
+}
+
+.group-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  margin-top: 6px;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1100;
+  box-shadow: var(--menu-shadow);
+  animation: menuFadeIn 160ms ease;
+}
+
+.group-dropdown-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--font-size-footnote);
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.group-dropdown-item:hover {
+  background: var(--gg);
+}
+
+.group-dropdown-item.active {
+  background: var(--bg);
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+.group-dropdown-item.action {
+  text-decoration: none;
+  color: var(--text);
+  text-align: center;
+  display: block;
+}
+
+.group-dropdown-item.action:hover {
+  background: var(--gg);
+}
+
+.group-dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 8px;
 }
 
 .nav-links {

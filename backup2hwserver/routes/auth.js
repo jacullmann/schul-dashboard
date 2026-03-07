@@ -67,6 +67,36 @@ export default function createAuthRoutes(deps) {
             const newCsrfToken = rotateCsrfToken(res, csrfSecret);
             await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
             await db.deleteMfaPending(supabase, user.id).catch(() => { });
+
+            // Automatically issue appGate token with the user's groups
+            const { data: userRoles } = await supabase
+                .from('user_roles')
+                .select('tenant_id, groups(id, name), roles(name)')
+                .eq('user_id', user.id)
+                .not('tenant_id', 'is', null);
+
+            if (userRoles && userRoles.length > 0) {
+                const groups = userRoles.map(ur => ({
+                    id: ur.groups.id,
+                    name: ur.groups.name,
+                    role: ur.roles.name
+                }));
+                // Set the first group as active fallback
+                setAppGateToken(res, appGateSecret, {
+                    userId: user.id,
+                    activeGroupId: groups[0].id,
+                    activeGroupName: groups[0].name,
+                    groups
+                });
+            } else {
+                setAppGateToken(res, appGateSecret, {
+                    userId: user.id,
+                    activeGroupId: null,
+                    activeGroupName: null,
+                    groups: []
+                });
+            }
+
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
@@ -109,6 +139,35 @@ export default function createAuthRoutes(deps) {
                 await db.updateUser(supabase, userId, { last_login_at: new Date().toISOString() });
                 await db.deleteMfaPending(supabase, userId).catch(() => { });
                 await db.logActivity(supabase, userId, 'auth:mfa_login', {});
+
+                // Automatically issue appGate token with the user's groups
+                const { data: userRoles } = await supabase
+                    .from('user_roles')
+                    .select('tenant_id, groups(id, name), roles(name)')
+                    .eq('user_id', userId)
+                    .not('tenant_id', 'is', null);
+
+                if (userRoles && userRoles.length > 0) {
+                    const groups = userRoles.map(ur => ({
+                        id: ur.groups.id,
+                        name: ur.groups.name,
+                        role: ur.roles.name
+                    }));
+                    // Set the first group as active fallback
+                    setAppGateToken(res, appGateSecret, {
+                        userId: userId,
+                        activeGroupId: groups[0].id,
+                        activeGroupName: groups[0].name,
+                        groups
+                    });
+                } else {
+                    setAppGateToken(res, appGateSecret, {
+                        userId: userId,
+                        activeGroupId: null,
+                        activeGroupName: null,
+                        groups: []
+                    });
+                }
 
                 res.json({ ok: true, csrfToken: newCsrfToken });
             } catch (err) {

@@ -2,9 +2,10 @@ import jwt from 'jsonwebtoken';
 
 const COOKIE_NAME = 'app_gate_token';
 
-export function setAppGateToken(res, secret, { groupId, groupName }) {
+// Now sets the active context but also includes a list of allowed groups.
+export function setAppGateToken(res, secret, { userId, activeGroupId, activeGroupName, groups = [] }) {
     const token = jwt.sign(
-        { gate: true, groupId, groupName },
+        { gate: true, userId, activeGroupId, activeGroupName, groups },
         secret,
         { expiresIn: '30d' }
     );
@@ -34,17 +35,19 @@ export function requireAppGate(secret) {
         try {
             const payload = jwt.verify(token, secret);
 
-            if (!payload.gate || !payload.groupId) {
+            if (!payload.gate) {
                 return res.status(401).json({
                     error: 'Ungültiges App-Gate Token'
                 });
             }
 
             req.appGate = true;
-            req.appGateGroup = {
-                id: payload.groupId,
-                name: payload.groupName
-            };
+            req.userId = payload.userId || null;
+            req.appGateGroup = payload.activeGroupId ? {
+                id: payload.activeGroupId,
+                name: payload.activeGroupName
+            } : null;
+            req.userGroups = payload.groups || [];
             next();
         } catch (err) {
             return res.status(401).json({
@@ -70,16 +73,22 @@ export function checkAppGate(secret) {
 
         req.appGate = false;
         req.appGateGroup = null;
+        req.userGroups = [];
+        req.userId = null;
 
         if (token) {
             try {
                 const payload = jwt.verify(token, secret);
-                if (payload.gate && payload.groupId) {
+                if (payload.gate) {
                     req.appGate = true;
-                    req.appGateGroup = {
-                        id: payload.groupId,
-                        name: payload.groupName
-                    };
+                    req.userId = payload.userId || null;
+                    if (payload.activeGroupId) {
+                        req.appGateGroup = {
+                            id: payload.activeGroupId,
+                            name: payload.activeGroupName
+                        };
+                    }
+                    req.userGroups = payload.groups || [];
                 }
             } catch (err) {
             }

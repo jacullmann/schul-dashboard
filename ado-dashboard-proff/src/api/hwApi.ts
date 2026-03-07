@@ -11,7 +11,7 @@ export function getCsrfToken(): string | null {
     // Fallback: Token aus Cookie lesen falls Memory leer
     if (!csrfTokenMemory) {
         const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
-        if (match) {
+        if (match && match[1]) {
             csrfTokenMemory = decodeURIComponent(match[1]);
         }
     }
@@ -20,7 +20,7 @@ export function getCsrfToken(): string | null {
 
 export function syncCsrfFromCookie(): void {
     const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
-    if (match) {
+    if (match && match[1]) {
         csrfTokenMemory = decodeURIComponent(match[1]);
     }
 }
@@ -36,6 +36,13 @@ hw.interceptors.request.use((config) => {
     if (token) {
         config.headers['x-csrf-token'] = token;
     }
+
+    // Attempt to acquire active tenant id from memory/localStorage
+    const storedTenantId = localStorage.getItem('active_tenant_id');
+    if (storedTenantId) {
+        config.headers['x-tenant-id'] = storedTenantId;
+    }
+
     return config;
 }, (error) => {
     return Promise.reject(error);

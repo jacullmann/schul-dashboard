@@ -24,6 +24,15 @@ const routes = [
                 }
             },
             {
+                path: 'get-started',
+                name: 'get-started',
+                component: () => import('@/core/pages/GetStartedPage.vue'),
+                meta: {
+                    title: 'Loslegen',
+                    fullWidth: false,
+                }
+            },
+            {
                 path: 'kuerzel',
                 name: 'kürzelfinder',
                 component: () => import('@/modules/tools/pages/KuerzelPage.vue'),
@@ -348,7 +357,7 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isAuthenticated, isAuthReady, initAuth } = useAppAuth();
+const { isAuthenticated, isAuthReady, initAuth, activeGroupId } = useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
     if (to.path !== from.path) start();
@@ -366,12 +375,24 @@ router.beforeEach(async (to, from, next) => {
             replace: true
         });
     }
+
     if (to.path === '/welcome' && isAuthenticated.value) {
         finish();
+        // Send them to get-started if they have no active group
+        if (!activeGroupId.value) {
+            return next({ path: '/get-started', replace: true });
+        }
         return next({
             path: '/items/HAUSAUFGABE',
             replace: true
         });
+    }
+
+    if (isAuthenticated.value && !isPublicRoute && to.path !== '/get-started' && !activeGroupId.value) {
+        if (to.path !== '/admin-dashboard' && !to.path.startsWith('/impressum') && to.path !== '/kontakt') {
+            finish();
+            return next({ path: '/get-started', replace: true });
+        }
     }
 
     if (to.name === 'items') {

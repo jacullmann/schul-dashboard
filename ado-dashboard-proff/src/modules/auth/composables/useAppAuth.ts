@@ -9,6 +9,8 @@ const STATUS_ENDPOINT = '/api/app-gate/status';
 const isAuthenticated = ref(false);
 const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
+const activeGroupId = ref<string | null>(null);
+const userGroups = ref<Array<{ id: string, name: string, role: string }>>([]);
 let initPromise: Promise<void> | null = null;
 let eventListenerRegistered = false;
 const MAX_CSRF_RETRIES = 3;
@@ -20,11 +22,23 @@ export function useAppAuth() {
             const { data } = await hw.get(STATUS_ENDPOINT);
             isAuthenticated.value = data.authenticated === true;
             groupName.value = data.group?.name ?? null;
+            activeGroupId.value = data.group?.id ?? null;
+            userGroups.value = data.groups ?? [];
+
+            if (activeGroupId.value) {
+                localStorage.setItem('active_tenant_id', activeGroupId.value);
+            } else {
+                localStorage.removeItem('active_tenant_id');
+            }
+
             return data.authenticated;
         } catch (err) {
             console.error('Überprüfung der Authentifizierung fehlgeschlagen:', err);
             isAuthenticated.value = false;
             groupName.value = null;
+            activeGroupId.value = null;
+            userGroups.value = [];
+            localStorage.removeItem('active_tenant_id');
             return false;
         }
     }
@@ -130,12 +144,32 @@ export function useAppAuth() {
         }
     }
 
+    async function switchActiveGroup(groupId: string) {
+        try {
+            const response = await hw.post('/api/app-gate/switch-group', { groupId });
+            if (response.status === 200 && response.data.ok) {
+                setCsrfToken(response.data.csrfToken);
+                await checkAuthStatus();
+                // We should also trigger a general app reload or specific data reload event
+                window.dispatchEvent(new CustomEvent('tenant-changed', { detail: { groupId } }));
+                return { ok: true };
+            }
+            return { ok: false, error: 'Wechsel fehlgeschlagen' };
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.error || 'Wechsel fehlgeschlagen';
+            return { ok: false, error: errorMsg };
+        }
+    }
+
     return {
         isAuthenticated,
         isAuthReady,
         groupName,
+        activeGroupId,
+        userGroups,
         loginWithCode,
         createGroup,
+        switchActiveGroup,
         logout,
         initAuth,
         checkAuthStatus,

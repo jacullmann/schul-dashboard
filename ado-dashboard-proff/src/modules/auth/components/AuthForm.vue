@@ -1,171 +1,201 @@
 <template>
-  <div class="login-card">
-    <div class="card-header">
-      <h2 class="card-title">Authentifizierung</h2>
+  <div class="auth-form-container">
+    <div class="auth-header">
+      <h2 class="card-title">{{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}</h2>
     </div>
 
-    <form @submit.prevent="submit" class="card-body">
-      <div class="input-group">
-        <label for="username">{{ t('welcome.auth.name') }}</label>
-        <div class="input-wrapper">
-          <input
-              ref="usernameInputRef"
-              id="username"
-              v-model="password1"
-              placeholder="Name"
-              class="input"
-              type="text"
-              autocomplete="username"
-              :class="{ 'input-focus': password1 }"
-          />
+    <MfaVerifyModal
+        v-if="showMfaVerify"
+        @verified="onMfaVerified"
+        @cancelled="onMfaCancelled"
+    />
+
+    <template v-else>
+      <div class="tab-wrapper">
+        <TabSwitcher
+            :items="tabs"
+            :active-id="mode"
+            @change="handleTabChange"
+        />
+      </div>
+
+      <form id="auth-form" @submit.prevent="submit" class="form-content" novalidate>
+        <div class="form-group">
+          <label for="auth-email">{{ t('account.auth.email') }}</label>
+          <div class="input-wrapper">
+            <input
+                id="auth-email"
+                ref="emailInputRef"
+                class="input"
+                v-model="email"
+                :placeholder="t('account.auth.emailPlaceholder')"
+                type="email"
+                autocomplete="email"
+                @input="clearFieldError('email')"
+            />
+          </div>
+          <div v-if="errors.email" class="field-error">{{ errors.email }}</div>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label for="access-code">{{ t('welcome.auth.passcode') }}</label>
-        <div class="input-wrapper">
-          <input
-              id="access-code"
-              v-model="password2"
-              placeholder="Zugangscode"
-              class="input"
-              :type="showPassword ? 'text' : 'password'"
-              autocomplete="current-password"
-              :class="{ 'input-focus': password2 }"
-          />
-          <button
-              type="button"
-              @click="showPassword = !showPassword"
-              class="visibility-toggle"
-              aria-label="Passwort anzeigen"
-          >
-            <component :is="showPassword ? EyeOff : Eye" :size="20" />
-          </button>
+        <div class="form-group">
+          <label for="auth-password">{{ t('account.auth.password') }}</label>
+          <div class="input-wrapper">
+            <input
+                id="auth-password"
+                class="input"
+                :type="showPassword ? 'text' : 'password'"
+                v-model="password"
+                :placeholder="t('account.auth.passwordPlaceholder')"
+                autocomplete="current-password"
+                @input="clearFieldError('password')"
+            />
+            <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                :aria-label="t('account.auth.revealLabel')"
+            >
+              <component :is="showPassword ? EyeOff : Eye" :size="20" />
+            </button>
+          </div>
+
+          <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
+
+          <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
+            <button
+                v-if="mode === 'login'"
+                type="button"
+                class="forgot-password-link"
+                @click="openReset"
+            >
+              {{ t('account.auth.forgot') }}
+            </button>
+          </Transition>
         </div>
-      </div>
 
-      <label class="s-checkbox">
-        <Checkbox v-model="accepted" />
-        <span class="checkbox-text">{{ t('welcome.auth.terms') }}</span>
-      </label>
+        <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
+          <div v-if="mode === 'register'" class="register-fields-wrapper">
+            <div class="form-group">
+              <label for="auth-confirm">{{ t('account.auth.confirmPassword') }}</label>
+              <div class="input-wrapper">
+                <input
+                    id="auth-confirm"
+                    class="input"
+                    :type="showPassword ? 'text' : 'password'"
+                    v-model="passwordConfirm"
+                    :placeholder="t('account.auth.confirmPlaceholder')"
+                    autocomplete="new-password"
+                    @input="clearFieldError('passwordConfirm')"
+                />
+                <button
+                    type="button"
+                    @click="showPassword = !showPassword"
+                    class="password-toggle"
+                    :aria-label="t('account.auth.revealLabel')"
+                >
+                  <component :is="showPassword ? EyeOff : Eye" :size="20" />
+                </button>
+              </div>
+              <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
+            </div>
 
-      <div class="action-area">
-        <button
-            type="submit"
-            class="btn action s-btn"
-            :disabled="!accepted || isLoading"
-        >
-          <span v-if="!isLoading">{{ t('account.auth.login') }}</span>
-          <LoadingSpinner v-else color="white" size="1.2em" />
-          <component v-if="!isLoading" :is="ArrowRight" :size="16" />
-        </button>
-      </div>
+            <div class="form-group">
+              <label class="privacy-row">
+                <Checkbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
+                <span class="checkbox-label" v-html="t('account.auth.terms')" />
+              </label>
 
-      <transition name="fade">
-        <div v-if="error" class="error-banner">
-          <component :is="AlertCircle" :size="16" />
-          {{ error }}
+              <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
+            </div>
+          </div>
+        </Transition>
+
+        <div v-if="message" class="message" :class="{ error: isError }">
+          {{ message }}
         </div>
-      </transition>
-    </form>
+      </form>
+    </template>
 
-    <div class="card-footer">
-      <div class="status-line">
-        <GetStatushwb2 />
-      </div>
-      <p  @click="showIt = false" v-if="showIt" class="disclaimer">
-        {{ t('welcome.auth.disclaimer') }}
-      </p>
-      <p style="cursor: pointer" v-else @click="showIt = true" class="disclaimer link-subtle">
-        {{ t('welcome.auth.disclaimerTitle') }}
-      </p>
+    <div class="auth-actions" v-if="!showMfaVerify">
+      <button
+          form="auth-form"
+          type="submit"
+          class="btn action submit-btn"
+          :disabled="submitting"
+      >
+        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
+        <span v-else>{{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}</span>
+      </button>
     </div>
+
+    <ResetModal
+        v-if="showReset"
+        @close="showReset = false"
+        @success="onResetSuccess"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import GetStatushwb2 from "@/modules/welcome/components/GetStatushwb2.vue";
-import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
-import { Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import TabSwitcher from "@/common/components/TabSwitcher.vue";
 import Checkbox from '@/common/components/Checkbox.vue';
-import { useUserStore } from "@/stores/userStore";
-import { useI18n } from "vue-i18n";
+import ResetModal from "@/modules/auth/components/ResetModal.vue";
+import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
+import { Eye, EyeOff } from 'lucide-vue-next';
+import { useAuthModal } from '@/modules/auth/composables/useAuthModal';
 
 const { t } = useI18n();
 
-const userStore = useUserStore();
+const emit = defineEmits<{
+  (e: 'logged-in'): void;
+}>();
 
-const router = useRouter();
-const auth = useAppAuth();
-const password1 = ref('');
-const password2 = ref('');
-const error = ref<string | null>(null);
-const accepted = ref(false)
-const showPassword = ref(false);
-const isLoading = ref(false);
-const showIt = ref(false);
-const usernameInputRef = ref<HTMLInputElement | null>(null);
-
-onMounted(() => {
-  usernameInputRef.value?.focus();
-});
-
-async function submit() {
-  if (!accepted.value) return;
-
-  isLoading.value = true;
-  error.value = null;
-
-  try {
-    const res = await auth.loginWithCode(
-        password1.value.trim(),
-        password2.value.trim()
-    );
-
-    if (res.ok) {
-      if (res.csrfToken) {
-        setCsrfToken(res.csrfToken);
-      } else {
-        syncCsrfFromCookie();
-      }
-      try {
-        await userStore.fetchUser();
-      } catch {
-      }
-      await router.push('/items/HAUSAUFGABE');
-    } else {
-      error.value = res.error || 'Zugriff verweigert. Code prüfen.';
-    }
-  } catch (e: any) {
-    if (e.response?.data?.error) {
-      error.value = e.response.data.error;
-    } else if (e.name === 'NavigationDuplicated') {
-      return;
-    } else {
-      error.value = "Verbindungsfehler. Bitte erneut versuchen.";
-    }
-  } finally {
-    isLoading.value = false;
-  }
-}
+const {
+  tabs,
+  mode,
+  email,
+  password,
+  passwordConfirm,
+  acceptedPrivacy,
+  submitting,
+  message,
+  isError,
+  showPassword,
+  showReset,
+  showMfaVerify,
+  emailInputRef,
+  errors,
+  handleTabChange,
+  openReset,
+  onResetSuccess,
+  clearFieldError,
+  submit,
+  onMfaVerified,
+  onMfaCancelled,
+  enter,
+  afterEnter,
+  leave
+} = useAuthModal(() => emit('logged-in'));
 </script>
 
 <style scoped>
-.login-card {
-  width: 480px;
+.auth-form-container {
+  width: 100%;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  position: relative;
-  overflow: hidden;
+  background: var(--bg);
+  padding: 32px;
+  border-radius: var(--border-7);
+  box-shadow: var(--menu-shadow);
 }
 
-.card-header {
+.auth-header {
   text-align: center;
+  margin-bottom: 8px;
 }
 
 .card-title {
@@ -176,108 +206,122 @@ async function submit() {
   letter-spacing: -0.01em;
 }
 
-.input-group {
+.tab-wrapper {
+  margin-bottom: 24px;
+}
+
+.form-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 16px;
 }
 
 .input-wrapper {
-  position: relative;
   display: flex;
+  flex-direction: row;
+  position: relative;
   align-items: center;
 }
 
-.visibility-toggle {
+.password-toggle {
   position: absolute;
-  right: 12px;
+  right: 10px;
   background: none;
   border: none;
-  color: var(--sub);
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
+  color: var(--sub);
   display: flex;
   align-items: center;
-  justify-content: center;
   transition: color 0.1s ease;
 }
-.visibility-toggle:hover {
+
+.password-toggle:hover {
   color: var(--text);
 }
 
-.s-checkbox {
+.forgot-password-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--sub);
+  cursor: pointer;
+  text-align: right;
+  align-self: flex-end;
+  font-size: var(--font-size-sub);
+  margin-top: 8px;
+}
+
+.forgot-password-link:hover {
+  color: var(--text);
+}
+
+.privacy-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   cursor: pointer;
-  margin: 8px 0 16px 0;
   user-select: none;
-}
-
-.checkbox-text {
-  font-size: 0.9rem;
-  color: var(--text);
-}
-
-.s-btn {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.s-btn:disabled {
-  cursor: not-allowed;
-  background: var(--sub);
-  border-color: var(--sub);
-}
-
-.card-footer {
-  margin-top: 0;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-  text-align: center;
-}
-
-.status-line {
-  font-size: 0.8rem;
-  color: var(--text);
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.disclaimer {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font: inherit;
+  color: inherit;
+  font-weight: inherit;
   margin: 0;
-  line-height: 1.4;
+  padding: 0;
 }
 
-.link-subtle:hover {
+.checkbox-label {
   color: var(--text);
+  font-size: var(--font-size-sub);
+  line-height: 18px;
+}
+
+:deep(.privacy-link) {
+  color: var(--sub);
   text-decoration: underline;
+  transition: color 0.2s ease;
 }
 
-.error-banner {
-  margin-top: 16px;
-  background: var(--special--red--background);
-  border: 1px solid var(--special--red--background);
-  color: var(--special--red);
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+:deep(.privacy-link:hover) {
+  color: var(--text);
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+.field-error {
+  color: var(--danger);
+  font-size: var(--font-size-sub);
+  margin-top: 4px;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.privacy-error {
+  margin-left: 26px;
+}
+
+.message {
+  color: var(--text);
+  font-size: var(--font-size-sub);
+  margin-bottom: 16px;
+}
+
+.message.error {
+  color: var(--danger);
+}
+
+.auth-actions {
+  margin-top: 8px;
+}
+
+.submit-btn {
+  width: 100%;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
