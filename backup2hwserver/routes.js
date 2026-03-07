@@ -1,9 +1,9 @@
-import { buildThumbUrl, withThumb, timeLeftColor } from './utils/modelHelpers.js';
+import { withThumb, timeLeftColor } from './utils/modelHelpers.js';
 
 import { setAuthToken, requireAuth, clearAuthToken, checkAuth } from './middleware/userAuth.js';
 import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken, verifyCsrfToken } from './middleware/csrf.js';
 import { dashboardLimiter, authLimiter, passwordResetLimiter } from './middleware/rateLimiters.js';
-import { sendJSONError, validate, requireAdmin, isValidCloudinaryUrl, validateItemCreation } from './middleware/validation.js';
+import { sendJSONError, validate, requireAdmin, validateItemCreation } from './middleware/validation.js';
 import { requireTenant } from './middleware/tenantContext.js';
 import { encryptData, decryptData } from './utils/encryption.js';
 import { createEmailService } from './utils/email.js';
@@ -66,14 +66,12 @@ export default function registerRoutes(app, deps) {
         validate,
         requireAdmin,
         requireTenant,
-        isValidCloudinaryUrl,
         validateItemCreation,
         // Utils
         encryptData,
         decryptData,
         filterLessonsForUser,
         // Model-Helpers
-        buildThumbUrl,
         withThumb,
         timeLeftColor
     };

@@ -21,10 +21,16 @@ export function isValidType(t: unknown): t is ItemType {
 }
 
 export interface ImageItem {
-    url: string;
     publicId: string;
+    url?: string;
     thumbUrl?: string;
     createdBy?: string;
+    metadata?: {
+        version?: number;
+        format?: string;
+        width?: number;
+        height?: number;
+    };
 }
 
 export interface Todo {

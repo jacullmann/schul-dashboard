@@ -137,7 +137,7 @@
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false" alt="Vorschau" />
+                    <img :src="img.thumbUrl || makeThumb(img.url || '')" loading="lazy" draggable="false" alt="Vorschau" />
                   </div>
 
                   <button
@@ -158,7 +158,7 @@
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url)" loading="lazy" draggable="false"  alt=""/>
+                    <img :src="img.thumbUrl || makeThumb(img.url || '')" loading="lazy" draggable="false"  alt=""/>
                   </div>
                 </div>
               </template>

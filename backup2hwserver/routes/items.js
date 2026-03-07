@@ -17,9 +17,7 @@ export default function createItemsRoutes(deps) {
         sendJSONError,
         validate,
         requireAdmin,
-        isValidCloudinaryUrl,
         validateItemCreation,
-        buildThumbUrl,
         withThumb,
         timeLeftColor,
     } = deps;
@@ -122,15 +120,14 @@ export default function createItemsRoutes(deps) {
 
                 const rawImages = req.body.images || [];
                 for (const img of rawImages) {
-                    if (!isValidCloudinaryUrl(img.url)) {
-                        return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                    if (!img.publicId) {
+                        return sendJSONError(res, 400, 'Fehlendes publicId im Bild');
                     }
                 }
                 const images = rawImages.map(img => ({
-                    url: img.url,
-                    thumbUrl: buildThumbUrl(img.url),
                     publicId: img.publicId,
                     createdBy: req.user.sub,
+                    metadata: img.metadata || {}
                 }));
 
                 const item = await db.createItem(supabase, req.tenantId, {
@@ -203,15 +200,14 @@ export default function createItemsRoutes(deps) {
                 if (req.body.dueDate !== undefined) update.due_date = req.body.dueDate;
                 if (req.body.images !== undefined) {
                     for (const img of req.body.images) {
-                        if (!isValidCloudinaryUrl(img.url)) {
-                            return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                        if (!img.publicId) {
+                            return sendJSONError(res, 400, 'Fehlendes publicId im Bild');
                         }
                     }
                     update.images = req.body.images.map(img => ({
-                        url: img.url,
-                        thumbUrl: buildThumbUrl(img.url),
                         publicId: img.publicId,
                         createdBy: img.createdBy || req.user.sub,
+                        metadata: img.metadata || {}
                     }));
                 }
 
@@ -298,7 +294,6 @@ export default function createItemsRoutes(deps) {
         validateCsrf(csrfSecret),
         param('id').isUUID(),
         body('image').isObject(),
-        body('image.url').isString(),
         body('image.publicId').isString(),
         validate,
         async (req, res) => {
@@ -319,15 +314,14 @@ export default function createItemsRoutes(deps) {
                 if (userImageCount >= PER_USER_MAX_IMAGES) {
                     return sendJSONError(res, 400, `Du hast dein Limit von ${PER_USER_MAX_IMAGES} Bildern für diesen Eintrag erreicht.`);
                 }
-                if (!isValidCloudinaryUrl(req.body.image.url)) {
-                    return sendJSONError(res, 400, 'Ungültige Cloudinary-Bild-URL');
+                if (!req.body.image || !req.body.image.publicId) {
+                    return sendJSONError(res, 400, 'Ungültiges Bild-Objekt. publicId fehlt.');
                 }
 
                 const newImage = {
-                    url: req.body.image.url,
-                    thumbUrl: buildThumbUrl(req.body.image.url),
                     publicId: req.body.image.publicId,
                     createdBy: req.user.sub,
+                    metadata: req.body.image.metadata || {}
                 };
                 images.push(newImage);
                 await db.updateItem(supabase, req.tenantId, item.id, { images });

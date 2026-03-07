@@ -23,7 +23,7 @@ export function useImageUpload() {
     }
 
     /**
-     * Helper to generate thumbnail URLs
+     * Helper to generate thumbnail URLs from a full Cloudinary URL
      */
     function makeThumb(url: string) {
         try {
@@ -108,9 +108,16 @@ export function useImageUpload() {
                     const json = await res.json();
 
                     if (json.secure_url && json.public_id) {
+                        const metadata = {
+                            version: json.version,
+                            format: json.format,
+                            width: json.width,
+                            height: json.height,
+                        };
+
                         const imgPayload = {
-                            url: json.secure_url,
                             publicId: json.public_id,
+                            metadata,
                         };
 
                         // 2. If we have an itemId, save to backend immediately using the correct POST route
@@ -119,7 +126,7 @@ export function useImageUpload() {
                                 const { data } = await hw.post(`/api/items/${itemId}/images`, {
                                     image: imgPayload
                                 });
-                                // Add the returned image (with correct createdBy infodashboard) to local state
+                                // Add the returned image (with correct createdBy + dynamically built URLs) to local state
                                 images.value.push(data.image);
                                 uploadError.value = '';
                             } catch (e: any) {
@@ -127,11 +134,13 @@ export function useImageUpload() {
                                 uploadError.value = e.response?.data?.error || 'Speichern fehlgeschlagen.';
                             }
                         } else {
-                            // Creating a new item: just add to local state
+                            // Creating a new item: add to local state with preview URLs
                             images.value.push({
-                                ...imgPayload,
+                                publicId: json.public_id,
+                                url: json.secure_url,
                                 thumbUrl: makeThumb(json.secure_url),
-                                createdBy: '' // Will be set upon item creation
+                                createdBy: '',
+                                metadata
                             });
                         }
                     } else {
@@ -154,7 +163,7 @@ export function useImageUpload() {
      * @param img - The image object to remove
      * @param parentId - The ID of the parent entry (props.initial.id) if it exists
      */
-    async function removeImg(img: { url: string; publicId: string }, parentId?: string) {
+    async function removeImg(img: { publicId: string; url?: string }, parentId?: string) {
         if (parentId) {
             try {
                 // encode publicId so slashes are safe in the URL
