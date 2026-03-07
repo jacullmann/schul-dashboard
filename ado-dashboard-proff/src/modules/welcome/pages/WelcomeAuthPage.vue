@@ -6,7 +6,7 @@
     <div class="bg-section">
       <img 
         v-if="isDesktop"
-        src="@/assets/images/background_landscape.webp" 
+        src="@/public/background_landscape.webp" 
         alt="Background" 
         class="bg-image" 
         loading="lazy"
