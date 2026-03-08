@@ -31,6 +31,7 @@ export default function registerRoutes(app, deps) {
         emailFrom,
         authSecret,
         passwordResetSecret,
+        mfaPendingSecret,
     } = deps;
 
     configureOtplib();

@@ -226,9 +226,26 @@ export default function createSuperAdminRoutes(deps) {
     router.patch('/users/:id', ...sa, validateCsrf(), body('role').isString(), validate, async (req, res) => {
         try {
             if (req.body.role === 'superadmin') {
-                await supabase.from('user_roles').upsert({ user_id: req.params.id, role_id: 1 });
+                const { data: existing } = await supabase
+                    .from('user_roles')
+                    .select('id')
+                    .eq('user_id', req.params.id)
+                    .eq('role_id', 1)
+                    .is('tenant_id', null)
+                    .maybeSingle();
+                if (!existing) {
+                    await supabase.from('user_roles').insert({
+                        user_id: req.params.id,
+                        role_id: 1,
+                        tenant_id: null
+                    });
+                }
             } else {
-                await supabase.from('user_roles').delete().eq('user_id', req.params.id).eq('role_id', 1);
+                await supabase.from('user_roles')
+                    .delete()
+                    .eq('user_id', req.params.id)
+                    .eq('role_id', 1)
+                    .is('tenant_id', null);
             }
             res.json({ ok: true });
         } catch (err) {

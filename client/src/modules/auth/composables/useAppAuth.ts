@@ -7,6 +7,7 @@ const STATUS_ENDPOINT = '/api/groups/status';
 const GROUPS_ENDPOINT = '/api/auth/groups';
 
 const isAuthenticated = ref(false);
+const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
@@ -29,6 +30,7 @@ export function useAppAuth() {
     async function checkAuthStatus() {
         try {
             const { data } = await hw.get(STATUS_ENDPOINT);
+            isLoggedIn.value = (data.groups && data.groups.length > 0) || data.authenticated === true;
             isAuthenticated.value = data.authenticated === true;
             groupName.value = data.group?.name ?? null;
             activeGroupId.value = data.group?.id ?? null;
@@ -42,6 +44,7 @@ export function useAppAuth() {
 
             return data.authenticated;
         } catch {
+            isLoggedIn.value = false;
             isAuthenticated.value = false;
             groupName.value = null;
             activeGroupId.value = null;
@@ -77,7 +80,8 @@ export function useAppAuth() {
             if (!csrfInitialized) {
                 window.dispatchEvent(new CustomEvent('csrf-init-failed'));
                 isAuthReady.value = true;
-                isAuthenticated.value = false;
+                isLoggedIn.value = false;
+            isAuthenticated.value = false;
                 return;
             }
             await checkAuthStatus();
@@ -85,7 +89,8 @@ export function useAppAuth() {
 
             if (!eventListenerRegistered) {
                 window.addEventListener('auth-expired', () => {
-                    isAuthenticated.value = false;
+                    isLoggedIn.value = false;
+            isAuthenticated.value = false;
                 });
                 eventListenerRegistered = true;
             }
@@ -130,6 +135,7 @@ export function useAppAuth() {
         try {
             await hw.post('/api/groups/logout');
         } catch {} finally {
+            isLoggedIn.value = false;
             isAuthenticated.value = false;
             isAuthReady.value = false;
             groupName.value = null;
@@ -158,6 +164,7 @@ export function useAppAuth() {
 
     return {
         isAuthenticated,
+        isLoggedIn,
         isAuthReady,
         groupName,
         activeGroupId,

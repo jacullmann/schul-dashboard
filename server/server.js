@@ -84,6 +84,12 @@ if (!process.env.ENCRYPTION_KEY) {
     process.exit(1);
 }
 
+let mfaPendingSecret = process.env.MFA_PENDING_SECRET;
+if (!mfaPendingSecret) {
+    mfaPendingSecret = process.env.USER_JWT_SECRET + '_mfa_pending';
+    console.warn('WARN: MFA_PENDING_SECRET nicht gesetzt. Fällt zurück auf USER_JWT_SECRET abgeleitetes Geheimnis.');
+}
+
 routes(app, {
     supabase,
     cloudinary,
@@ -91,7 +97,8 @@ routes(app, {
     emailConfigured: !!RESEND_API_KEY,
     emailFrom: EMAIL_FROM,
     authSecret: process.env.USER_JWT_SECRET,
-    passwordResetSecret: process.env.PASSWORD_RESET_SECRET
+    passwordResetSecret: process.env.PASSWORD_RESET_SECRET,
+    mfaPendingSecret: mfaPendingSecret
 });
 
 registerDocSocket(io, supabase, {
