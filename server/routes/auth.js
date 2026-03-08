@@ -266,7 +266,7 @@ export default function createAuthRoutes(deps) {
             try {
                 const user = await db.findUserById(supabase, req.user.sub, 'id, user_roles(roles(name))');
                 if (!user) return sendJSONError(res, 404, 'Nutzer nicht gefunden');
-                if (user.user_roles?.[0]?.roles?.name === 'superadmin') return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
+                if (user.user_roles?.some(ur => ur.roles?.name === 'superadmin')) return sendJSONError(res, 403, 'Adminkonten können nicht gelöscht werden.');
 
                 const userId = user.id;
                 // Cascading deletes handle keep_checked, pinned_items, encrypted_todos, etc.
