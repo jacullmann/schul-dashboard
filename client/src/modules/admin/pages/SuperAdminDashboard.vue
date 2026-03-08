@@ -286,7 +286,9 @@ import {
 import hw from '@/api/hwApi';
 import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
 
-type NavItem = { id: string; label: string; icon: any; count: number };
+import type { Component } from 'vue';
+
+type NavItem = { id: string; label: string; icon: Component; count: number };
 
 const navItems = ref<NavItem[]>([
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard), count: 0 },
@@ -298,14 +300,63 @@ const navItems = ref<NavItem[]>([
 
 const activeTab = ref('overview');
 
+interface AdminStats {
+  userCount?: number;
+  itemCount?: number;
+  reportCount?: number;
+  sorgeCount?: number;
+  bannedCount?: number;
+  verifiedUsers?: number;
+  unverifiedUsers?: number;
+  adminCount?: number;
+  newUsersThisWeek?: number;
+  newItemsThisWeek?: number;
+  reportCountTotal?: number;
+  reportCountProcessed?: number;
+  oldItemsCount?: number;
+}
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  isBanned: boolean;
+  emailVerified: boolean;
+  createdAt: string;
+}
+
+interface Report {
+  id: string;
+  itemTitle?: string;
+  category?: string;
+  reason?: string;
+  reporterEmail?: string;
+  reportedAt: string;
+  processed: boolean;
+  processedAt?: string | null;
+}
+
+interface Sorge {
+  id: string;
+  message: string;
+  createdAt: string;
+  processed: boolean;
+}
+
+interface UserActivity {
+  at: string;
+  type: string;
+  meta: Record<string, unknown>;
+}
+
 // State
-const stats = ref<any>(null);
+const stats = ref<AdminStats | null>(null);
 const loadingStats = ref(false);
-const allUsers = ref<any[]>([]);
-const reports = ref<any[]>([]);
-const sorgen = ref<any[]>([]);
+const allUsers = ref<User[]>([]);
+const reports = ref<Report[]>([]);
+const sorgen = ref<Sorge[]>([]);
 const showActivityFor = ref<string | null>(null);
-const userActivities = ref<Record<string, any[]>>({});
+const userActivities = ref<Record<string, UserActivity[]>>({});
 const loadingActivities = ref<Record<string, boolean>>({});
 const isCleaningUp = ref(false);
 const message = ref('');
@@ -366,7 +417,7 @@ async function toggleActivity(userId: string) {
   finally { loadingActivities.value[userId] = false; }
 }
 
-async function toggleBan(u: any) {
+async function toggleBan(u: User) {
   if (u.role === 'superadmin') return;
   try {
     if (u.isBanned) {
@@ -389,7 +440,7 @@ async function deleteUser(id: string) {
   } catch { toast('Fehler', true); }
 }
 
-async function pruneOldLogs(u: any) {
+async function pruneOldLogs(u: User) {
   if (!confirm(`Logs von ${u.email} älter als 30 Tage löschen?`)) return;
   try {
     await hw.delete(`/api/admin/users/${u.id}/activity/prune`);

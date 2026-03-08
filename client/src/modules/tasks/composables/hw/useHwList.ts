@@ -5,7 +5,7 @@ import { getSubjectKey } from '@/types/subjects';
 import hw from '@/api/hwApi';
 
 export function useHwList(
-    user: Ref<any>,
+    user: Ref<Record<string, unknown> | null>,
     tab: Ref<ItemType>,
     showOldEntries: Ref<boolean>,
     subjectFilter: Ref<string>,
@@ -168,7 +168,7 @@ export function useHwList(
         }
 
         loading.value = true;
-        const params: Record<string, any> = { type: tab.value };
+        const params: Record<string, string> = { type: tab.value };
         if (showOldEntries.value) params.filter = 'old';
 
         try {

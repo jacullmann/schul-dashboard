@@ -93,8 +93,9 @@ export function useChangePassword(emit: {
             emit('success');
 
             setTimeout(() => emit('cancel'), 1000);
-        } catch (e: any) {
-            const errorMsg = e.response?.data?.error || t('account.menu.changePassword.errors.failed');
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            const errorMsg = err.response?.data?.error || t('account.menu.changePassword.errors.failed');
             setMessage(errorMsg, true);
 
             if (errorMsg.includes('falsch')) {

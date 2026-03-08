@@ -194,10 +194,33 @@ const tabs = [
 ];
 const activeTab = ref('overview');
 
+interface Stats {
+  itemCount?: number;
+  subsCount?: number;
+  oldItemsCount?: number;
+}
+
+interface Sub {
+  id: string;
+  lessonId: string;
+  subject?: string;
+  cancelled?: boolean;
+  hide?: boolean;
+  room?: string;
+  slot?: number;
+}
+
+interface Announcement {
+  id: string;
+  content: string;
+  color: string;
+  createdAt: string;
+}
+
 // State
-const stats = ref<any>(null);
-const subs = ref<any[]>([]);
-const announcements = ref<any[]>([]);
+const stats = ref<Stats | null>(null);
+const subs = ref<Sub[]>([]);
+const announcements = ref<Announcement[]>([]);
 const loadingSubs = ref(false);
 const savingSub = ref(false);
 const cleaningUp = ref(false);
@@ -250,7 +273,7 @@ async function saveSub() {
   if (!subForm.value.lessonId) return;
   savingSub.value = true;
   try {
-    const payload: any = { lessonId: subForm.value.lessonId };
+    const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
     if (subForm.value.subject) payload.subject = subForm.value.subject;
     if (subForm.value.room) payload.room = subForm.value.room;
     if (subForm.value.slot) payload.slot = subForm.value.slot;

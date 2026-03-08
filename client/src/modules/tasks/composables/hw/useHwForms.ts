@@ -3,8 +3,10 @@ import type { Ref } from 'vue';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 
+import type { Todo } from '@/modules/tasks/types';
+
 export function useHwForms(
-    user: Ref<any>,
+    user: Ref<Record<string, unknown> | null>,
     items: Ref<HwItem[]>,
     flashMessage: (text: string, error?: boolean, durationMs?: number) => void,
     reloadList: () => void
@@ -15,8 +17,8 @@ export function useHwForms(
     const itemFormKey = ref(0);
 
     const showTodoForm = ref(false);
-    const todoToEdit = ref<any>(null);
-    const todoAppRef = ref<any>(null);
+    const todoToEdit = ref<Todo | null>(null);
+    const todoAppRef = ref<{ addTodo: (todo: Todo) => void; updateTodo: (todo: Todo) => void } | null>(null);
 
     const editingNoteForId = ref<string | null>(null);
     const noteEditContent = ref('');
@@ -50,12 +52,12 @@ export function useHwForms(
         }
     }
 
-    function openEditTodo(todo: any) {
+    function openEditTodo(todo: Todo) {
         todoToEdit.value = todo;
         showTodoForm.value = true;
     }
 
-    function handleTodoSuccess(msg: string, data?: any) {
+    function handleTodoSuccess(msg: string, data?: Todo) {
         flashMessage(msg);
         showTodoForm.value = false;
         if (todoAppRef.value && data) {
@@ -97,8 +99,9 @@ export function useHwForms(
             flashMessage('Anmerkung gespeichert.');
             editingNoteForId.value = null;
             noteEditContent.value = '';
-        } catch (e: any) {
-            flashMessage(e.response?.data?.error || 'Fehler beim Speichern der Anmerkung.', true);
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            flashMessage(err.response?.data?.error || 'Fehler beim Speichern der Anmerkung.', true);
         } finally {
             savingNote.value = false;
         }

@@ -16,7 +16,7 @@ export function useAdmin() {
     const allUsers = ref<AdminUser[]>([]);
     const loadingUsers = ref(false);
     const showActivityFor = ref<string | null>(null);
-    const userActivities = ref<Record<string, any[]>>({});
+    const userActivities = ref<Record<string, Record<string, unknown>[]>>({});
     const loadingActivities = ref<Record<string, boolean>>({});
     const deletingUsers = ref<Record<string, boolean>>({});
     const togglingBan = ref<Record<string, boolean>>({});
@@ -76,21 +76,21 @@ export function useAdmin() {
         try {
             const { data } = await hw.get('/api/admin/timetable/subs');
             timetableSubs.value = data;
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Laden der Substitutions');
         } finally {
             loadingSubs.value = false;
         }
     }
 
-    async function saveTimetableSub(subData: any) {
+    async function saveTimetableSub(subData: Record<string, unknown>) {
         savingSub.value = true;
         try {
             const { data } = await hw.post('/api/admin/timetable/subs', subData);
             await loadTimetableSubs();
             handleSuccess('Substitution gespeichert');
             return data;
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Speichern der Substitution');
             throw e;
         } finally {
@@ -105,7 +105,7 @@ export function useAdmin() {
             await hw.delete(`/api/admin/timetable/subs/${id}`);
             await loadTimetableSubs();
             handleSuccess('Substitution gelöscht');
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Löschen der Substitution');
         } finally {
             deletingSubs.value[id] = false;
@@ -131,8 +131,9 @@ export function useAdmin() {
         try {
             const { data } = await hw.get('/api/admin/all-users');
             allUsers.value = data;
-        } catch (e: any) {
-            handleError(e.response?.data?.error || 'Fehler beim Laden der Benutzer');
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            handleError(err.response?.data?.error || 'Fehler beim Laden der Benutzer');
         } finally {
             loadingUsers.value = false;
         }
@@ -148,14 +149,14 @@ export function useAdmin() {
             const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
             userActivities.value[userId] = data;
             showActivityFor.value = userId;
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Laden der Aktivitäten');
         } finally {
             loadingActivities.value[userId] = false;
         }
     }
 
-    async function toggleBan(targetUser: any) {
+    async function toggleBan(targetUser: AdminUser) {
         if (!targetUser || targetUser.role === 'superadmin') return;
         togglingBan.value[targetUser.id] = true;
         try {
@@ -169,7 +170,7 @@ export function useAdmin() {
                 handleSuccess('Benutzer gesperrt.');
             }
             loadStats();
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Ändern des Status.');
         } finally {
             togglingBan.value[targetUser.id] = false;
@@ -184,7 +185,7 @@ export function useAdmin() {
             handleSuccess('Benutzer gelöscht');
             allUsers.value = allUsers.value.filter(u => u.id !== userId);
             loadStats();
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Löschen.');
         } finally {
             deletingUsers.value[userId] = false;
@@ -223,7 +224,7 @@ export function useAdmin() {
             }
             handleSuccess(newProcessed ? 'Als bearbeitet markiert.' : 'Als nicht bearbeitet markiert.');
             loadStats(); // Stats neu laden für Counter
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Ändern des Status.');
         } finally {
             togglingReportProcessed.value[id] = false;
@@ -262,7 +263,7 @@ export function useAdmin() {
             }
             handleSuccess(newProcessed ? 'Als bearbeitet markiert.' : 'Als nicht bearbeitet markiert.');
             loadStats();
-        } catch (e: any) {
+        } catch (e: unknown) {
             handleError('Fehler beim Ändern des Status.');
         } finally {
             togglingSorgeProcessed.value[id] = false;
@@ -277,14 +278,15 @@ export function useAdmin() {
             const { data } = await hw.delete('/api/admin/cleanup/old-items');
             handleSuccess(data.message || `${data.deletedItems} Einträge gelöscht.`);
             loadStats();
-        } catch (e: any) {
-            handleError(e.response?.data?.error || 'Fehler beim Bereinigen.');
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            handleError(err.response?.data?.error || 'Fehler beim Bereinigen.');
         } finally {
             isCleaningUp.value = false;
         }
     }
 
-    async function pruneOldLogs(user: any) {
+    async function pruneOldLogs(user: AdminUser) {
         if (!confirm(`Möchtest du wirklich alle Logs von ${user.email} löschen, die älter als 30 Tage sind?`)) {
             return;
         }
@@ -295,9 +297,10 @@ export function useAdmin() {
                 handleSuccess('Alte Logs erfolgreich gelöscht.');
                 loadAllUsers();
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            alert(e.response?.data?.error || 'Fehler beim Löschen der Logs.');
+            const err = e as { response?: { data?: { error?: string } } };
+            alert(err.response?.data?.error || 'Fehler beim Löschen der Logs.');
         }
     }
 

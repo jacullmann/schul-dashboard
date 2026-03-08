@@ -82,8 +82,9 @@ async function submit() {
     isError.value = false;
     emit('success', responseData);
 
-  } catch (e: any) {
-    message.value = e.response?.data?.error || e.message || 'Fehler.';
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { error?: string } }, message?: string };
+    message.value = err.response?.data?.error || err.message || 'Fehler.';
     isError.value = true;
     emit('error', message.value);
   } finally {

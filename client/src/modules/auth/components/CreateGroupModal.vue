@@ -156,8 +156,9 @@ async function submit() {
     } else {
       errorMsg.value = res.error || 'Erstellen der Gruppe fehlgeschlagen';
     }
-  } catch (err: any) {
-    errorMsg.value = err.message || 'Verbindungsfehler';
+  } catch (err: unknown) {
+    const e = err as { response?: { data?: { error?: string } } };
+    errorMsg.value = e.response?.data?.error || t('global.errors.unknown');
   } finally {
     submitting.value = false;
   }

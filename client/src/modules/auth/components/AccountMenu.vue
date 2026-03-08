@@ -124,7 +124,7 @@ const { t } = useI18n();
 
 const props = defineProps<{
   email: string;
-  userData: any;
+  userData: Record<string, unknown> | null;
 }>();
 
 const emit = defineEmits<{

@@ -144,7 +144,7 @@ function setDragImage(dataTransfer: DataTransfer) {
   }
 }
 
-function onDragEnd(event: any) {
+function onDragEnd(event: { newIndex: number; oldIndex: number }) {
   const { newIndex, oldIndex } = event;
   if (newIndex === oldIndex) return;
 

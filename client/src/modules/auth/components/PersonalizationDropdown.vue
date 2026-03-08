@@ -70,8 +70,9 @@ async function setPersonalization(value: boolean) {
         message.value = '';
       }, 3000);
     }
-  } catch (e: any) {
-    message.value = e.response?.data?.error || 'Fehler beim Aktualisieren';
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { error?: string } } };
+    message.value = err.response?.data?.error || 'Fehler beim Aktualisieren';
     isError.value = true;
 
     setTimeout(() => {

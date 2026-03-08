@@ -310,13 +310,14 @@ async function submit() {
 
     emit('success');
 
-  } catch (e: any) {
+  } catch (e: unknown) {
     isError.value = true;
 
-    if (e.response?.status === 400) {
-      message.value = e.response.data.error || 'Bitte überprüfe deine Eingaben.';
+    const err = e as { response?: { status?: number, data?: { error?: string } }, message?: string };
+    if (err.response?.status === 400) {
+      message.value = err.response?.data?.error || 'Bitte überprüfe deine Eingaben.';
     } else {
-      message.value = e.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
+      message.value = err.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
     }
   } finally {
     submitting.value = false;

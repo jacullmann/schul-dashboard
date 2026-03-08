@@ -104,8 +104,9 @@ export function useAppAuth() {
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
             return { ok: false, error: 'Login fehlgeschlagen' };
-        } catch (error: any) {
-            return { ok: false, error: error.response?.data?.error || 'Ungültiger Code' };
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { error?: string } } };
+            return { ok: false, error: err.response?.data?.error || 'Ungültiger Code' };
         }
     }
 
@@ -119,8 +120,9 @@ export function useAppAuth() {
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
             return { ok: false, error: 'Gruppenerstellung fehlgeschlagen' };
-        } catch (error: any) {
-            return { ok: false, error: error.response?.data?.error || 'Fehler' };
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { error?: string } } };
+            return { ok: false, error: err.response?.data?.error || 'Fehler' };
         }
     }
 
@@ -148,8 +150,9 @@ export function useAppAuth() {
                 return { ok: true };
             }
             return { ok: false, error: 'Wechsel fehlgeschlagen' };
-        } catch (error: any) {
-            return { ok: false, error: error.response?.data?.error || 'Wechsel fehlgeschlagen' };
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { error?: string } } };
+            return { ok: false, error: err.response?.data?.error || 'Wechsel fehlgeschlagen' };
         }
     }
 

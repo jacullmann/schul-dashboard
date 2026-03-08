@@ -142,8 +142,9 @@ export function useAuthModal(onLoggedIn: () => void) {
                     }
                 }
             }
-        } catch (e: any) {
-            message.value = e.response?.data?.error || t('global.errors.unknown');
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            message.value = err.response?.data?.error || t('global.errors.unknown');
             isError.value = true;
         } finally {
             submitting.value = false;
