@@ -13,6 +13,13 @@ import {
 } from '../middleware/mfaAuth.js';
 import * as db from '../db/db.js';
 
+function isWeakPassword(password) {
+    if (password.length < 8) return true;
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    return !(hasLetter && hasNumber);
+}
+
 export default function createAuthRoutes(deps) {
     const router = Router();
     const {
@@ -20,6 +27,7 @@ export default function createAuthRoutes(deps) {
         authSecret,
         csrfSecret,
         passwordResetSecret,
+        mfaPendingSecret,
         emailService,
         requireAuth,
         checkAuth,
@@ -43,68 +51,51 @@ export default function createAuthRoutes(deps) {
         body('password').isString().isLength({ min: 8 }),
         validate,
         async (req, res) => {
-            const { email, password } = req.body;
-            // Fetch global custom roles via user_roles filtering where tenant_id is null
-            const user = await db.findUserByEmail(supabase, email, 'id, email, password_hash, email_verified, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)');
+            try {
+                const { email, password } = req.body;
+                // Fetch global custom roles via user_roles filtering where tenant_id is null
+                const user = await db.findUserByEmail(supabase, email, 'id, email, password_hash, email_verified, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)');
 
-            if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-            const ok = await bcrypt.compare(password, user.password_hash);
-            if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
-            if (!user.email_verified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
+                if (!user) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                const ok = await bcrypt.compare(password, user.password_hash);
+                if (!ok) return sendJSONError(res, 401, 'Ungültige Zugangsdaten');
+                if (!user.email_verified) return sendJSONError(res, 401, 'Bitte E-Mail zuerst verifizieren');
 
-            if (await db.isBanned(supabase, user.id)) {
-                return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
+                if (await db.isBanned(supabase, user.id)) {
+                    return sendJSONError(res, 403, 'Dein Account ist gesperrt.');
+                }
+
+                if (user.mfa_enabled && user.mfa_secret) {
+                    generateMfaPendingToken(res, user.id, email, mfaPendingSecret);
+                    return res.json({ ok: true, requiresMfa: true, message: 'MFA-Verifizierung erforderlich' });
+                }
+
+                const newCsrfToken = rotateCsrfToken(res);
+                await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
+                await db.deleteMfaPending(supabase, user.id).catch(() => { });
+
+                const globalRole = user.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user';
+
+                const { data: firstGroup } = await supabase
+                    .from('user_roles')
+                    .select('tenant_id')
+                    .eq('user_id', user.id)
+                    .not('tenant_id', 'is', null)
+                    .limit(1)
+                    .maybeSingle();
+
+                setAuthToken(res, authSecret, {
+                    userId: user.id,
+                    email: user.email,
+                    globalRole,
+                    activeGroupId: firstGroup?.tenant_id || null,
+                });
+
+                res.json({ ok: true, csrfToken: newCsrfToken });
+            } catch (err) {
+                console.error('POST /api/auth/login error', err);
+                sendJSONError(res, 500, 'Serverfehler');
             }
-
-            if (user.mfa_enabled && user.mfa_secret) {
-                generateMfaPendingToken(res, user.id, email, passwordResetSecret);
-                return res.json({ ok: true, requiresMfa: true, message: 'MFA-Verifizierung erforderlich' });
-            }
-
-            const newCsrfToken = rotateCsrfToken(res);
-            await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
-            await db.deleteMfaPending(supabase, user.id).catch(() => { });
-
-            const globalRole = user.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user';
-
-            // Automatically issue auth token with the user's groups
-            const { data: userRoles } = await supabase
-                .from('user_roles')
-                .select('tenant_id, groups(id, name), roles(name)')
-                .eq('user_id', user.id)
-                .not('tenant_id', 'is', null);
-
-            let groups = [];
-            let activeGroupId = null;
-            let activeGroupName = null;
-
-            if (userRoles && userRoles.length > 0) {
-                groups = userRoles.map(ur => ({
-                    id: ur.groups.id,
-                    name: ur.groups.name,
-                    role: ur.roles.name
-                }));
-                // Set the first group as active fallback
-                activeGroupId = groups[0].id;
-                activeGroupName = groups[0].name;
-            }
-
-            const { data: firstGroup } = await supabase
-                .from('user_roles')
-                .select('tenant_id')
-                .eq('user_id', user.id)
-                .not('tenant_id', 'is', null)
-                .limit(1)
-                .maybeSingle();
-
-            setAuthToken(res, authSecret, {
-                userId: user.id,
-                email: user.email,
-                globalRole,
-                activeGroupId: firstGroup?.tenant_id || null,
-            });
-
-            res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
 
@@ -113,7 +104,7 @@ export default function createAuthRoutes(deps) {
         mfaVerifyLimiter,
         checkAuth(authSecret),
         validateCsrf(),
-        verifyMfaPendingToken(passwordResetSecret),
+        verifyMfaPendingToken(mfaPendingSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
         async (req, res) => {
@@ -147,28 +138,6 @@ export default function createAuthRoutes(deps) {
                 await db.logActivity(supabase, userId, 'auth:mfa_login', {});
 
                 const globalRole = user.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user';
-
-                // Automatically issue auth token with the user's groups
-                const { data: userRoles } = await supabase
-                    .from('user_roles')
-                    .select('tenant_id, groups(id, name), roles(name)')
-                    .eq('user_id', userId)
-                    .not('tenant_id', 'is', null);
-
-                let groups = [];
-                let activeGroupId = null;
-                let activeGroupName = null;
-
-                if (userRoles && userRoles.length > 0) {
-                    groups = userRoles.map(ur => ({
-                        id: ur.groups.id,
-                        name: ur.groups.name,
-                        role: ur.roles.name
-                    }));
-                    // Set the first group as active fallback
-                    activeGroupId = groups[0].id;
-                    activeGroupName = groups[0].name;
-                }
 
                 const { data: firstGroup } = await supabase
                     .from('user_roles')
@@ -213,6 +182,11 @@ export default function createAuthRoutes(deps) {
         validate,
         async (req, res) => {
             const { email, password } = req.body;
+
+            if (isWeakPassword(password)) {
+                return sendJSONError(res, 400, 'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.');
+            }
+
             const exists = await db.findUserByEmail(supabase, email, 'id');
             if (exists) return sendJSONError(res, 400, 'E-Mail bereits registriert');
 
@@ -239,7 +213,6 @@ export default function createAuthRoutes(deps) {
 
     // POST /api/auth/logout
     router.post('/logout',
-        checkAuth(authSecret),
         requireAuth(authSecret, supabase),
         validateCsrf(),
         (req, res) => {
@@ -257,14 +230,18 @@ export default function createAuthRoutes(deps) {
             try {
                 if (!req.user) return res.json({ authenticated: false });
 
-                const user = await db.findUserById(supabase, req.user.sub, '*, user_roles(roles(name))');
+                const user = await db.findUserById(supabase, req.user.sub, '*, user_roles(tenant_id, roles(name))');
                 if (!user) return res.json({ authenticated: false });
+
+                const globalRoleName = user.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user';
+                const tenantRoleName = user.user_roles?.find(ur => ur.tenant_id === req.activeGroupId)?.roles?.name || null;
 
                 res.json({
                     authenticated: true,
                     id: user.id,
                     email: user.email,
-                    role: user.user_roles?.[0]?.roles?.name || 'user',
+                    role: globalRoleName,
+                    tenantRole: tenantRoleName,
                     emailVerified: !!user.email_verified,
                     enrKurs: user.enr_kurs,
                     wpuKurs1: user.wpu_kurs_1,
@@ -283,7 +260,6 @@ export default function createAuthRoutes(deps) {
 
     // DELETE /api/auth/me
     router.delete('/me',
-        checkAuth(authSecret),
         requireAuth(authSecret, supabase),
         validateCsrf(),
         async (req, res) => {
@@ -401,6 +377,11 @@ export default function createAuthRoutes(deps) {
         async (req, res) => {
             try {
                 const { resetToken, password } = req.body;
+
+                if (isWeakPassword(password)) {
+                    return sendJSONError(res, 400, 'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.');
+                }
+
                 let payload;
                 try {
                     payload = jwt.verify(resetToken, passwordResetSecret);
@@ -445,7 +426,6 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/change-password
     router.post('/change-password',
         authLimiter,
-        checkAuth(authSecret),
         requireAuth(authSecret, supabase),
         validateCsrf(),
         [
@@ -456,6 +436,11 @@ export default function createAuthRoutes(deps) {
         async (req, res) => {
             try {
                 const { currentPassword, newPassword } = req.body;
+
+                if (isWeakPassword(newPassword)) {
+                    return sendJSONError(res, 400, 'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.');
+                }
+
                 const userId = req.user.sub;
 
                 const user = await db.findUserById(supabase, userId, 'id, password_hash');

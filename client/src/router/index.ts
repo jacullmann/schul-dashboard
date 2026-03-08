@@ -205,7 +205,7 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isAuthenticated, isAuthReady, initAuth, activeGroupId } = useAppAuth();
+const { isAuthenticated, isLoggedIn, isAuthReady, initAuth, activeGroupId } = useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
     if (to.path !== from.path) start();
@@ -215,7 +215,7 @@ router.beforeEach(async (to, from, next) => {
     const isPublicRoute = to.path.startsWith('/welcome') || to.path === '/verify';
 
     // Redirect unauthenticated users to welcome
-    if (!isPublicRoute && !isAuthenticated.value) {
+    if (!isPublicRoute && !isLoggedIn.value) {
         // Allow pages that don't strictly need auth
         const allowedWithoutAuth = ['/kontakt', '/impressum'];
         const isAllowed = allowedWithoutAuth.some(p => to.path.startsWith(p));
@@ -270,8 +270,12 @@ router.beforeEach(async (to, from, next) => {
 
     // When navigating to a group route, switch active group if needed
     if (to.params.groupId && to.params.groupId !== activeGroupId.value) {
-        // The group switch will happen via the component or header
-        // For now just allow navigation
+        const { switchActiveGroup } = useAppAuth();
+        const result = await switchActiveGroup(to.params.groupId as string);
+        if (!result.ok) {
+            finish();
+            return next({ path: '/home', replace: true });
+        }
     }
 
     next();

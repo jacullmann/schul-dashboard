@@ -136,7 +136,7 @@ export default function createUserRoutes(deps) {
     // POST /api/user/items/:id/visibility
     router.post('/items/:id/visibility',
         requireAuth(authSecret, supabase),
-        requireTenant,
+        requireTenant(supabase),
         validateCsrf(),
         param('id').isUUID(),
         body('status').isIn(['archived', 'kept']),
@@ -194,7 +194,7 @@ export default function createUserRoutes(deps) {
     // POST /api/user/items/:id/check
     router.post('/items/:id/check',
         requireAuth(authSecret, supabase),
-        requireTenant,
+        requireTenant(supabase),
         validateCsrf(),
         param('id').isUUID(),
         validate,
@@ -216,7 +216,7 @@ export default function createUserRoutes(deps) {
     // POST /api/user/items/:id/pin
     router.post('/items/:id/pin',
         requireAuth(authSecret, supabase),
-        requireTenant,
+        requireTenant(supabase),
         validateCsrf(),
         param('id').isUUID(),
         validate,
