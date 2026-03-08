@@ -22,15 +22,17 @@ export function validateCsrf() {
             return res.status(403).json({ error: 'CSRF-Token fehlt' });
         }
 
-        // Timing-safe comparison
-        if (cookieToken.length !== headerToken.length) {
-            return res.status(403).json({ error: 'CSRF-Token ungültig' });
-        }
+        // Timing-safe comparison using fixed-length hashes to prevent length-based side-channel attacks.
+        // We hash both tokens and compare the hashes to ensure the comparison always takes the same
+        // amount of time regardless of the actual token lengths.
+        const cookieTokenBuffer = Buffer.from(cookieToken, 'utf8');
+        const headerTokenBuffer = Buffer.from(headerToken, 'utf8');
 
-        const isValid = crypto.timingSafeEqual(
-            Buffer.from(cookieToken, 'utf8'),
-            Buffer.from(headerToken, 'utf8')
-        );
+        const cookieHash = crypto.createHash('sha256').update(cookieTokenBuffer).digest();
+        const headerHash = crypto.createHash('sha256').update(headerTokenBuffer).digest();
+
+        const isValid = crypto.timingSafeEqual(cookieHash, headerHash) &&
+                        cookieToken.length === headerToken.length;
 
         if (!isValid) {
             return res.status(403).json({ error: 'CSRF-Token ungültig' });
