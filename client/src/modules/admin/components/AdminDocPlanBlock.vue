@@ -190,7 +190,7 @@ function exec(command: string, value?: string) {
 function applyColor(color: string) {
   exec('foreColor', color);
   // Optional: close picker after selection
-  // showColors.value = false;
+  showColors.value = false;
 }
 onMounted(() => {
   if (inputEl.value) {
@@ -454,7 +454,7 @@ watch(() => props.block.content, (newContent) => {
 }
 
 .color-dropdown {
-  display: none;
+  display: flex;
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
@@ -467,10 +467,6 @@ watch(() => props.block.content, (newContent) => {
   width: 116px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 300;
-}
-
-.color-picker-wrapper:hover .color-dropdown {
-  display: flex;
 }
 
 /* Invisible bridge to prevent dropdown closing when moving mouse */
