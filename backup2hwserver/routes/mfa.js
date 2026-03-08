@@ -42,7 +42,7 @@ export default function createMfaRoutes(deps) {
     // POST /api/mfa/setup
     router.post('/setup',
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         async (req, res) => {
             try {
                 const userId = req.user.sub;
@@ -95,7 +95,7 @@ export default function createMfaRoutes(deps) {
     router.post('/activate',
         mfaVerifyLimiter,
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
         async (req, res) => {
@@ -144,7 +144,7 @@ export default function createMfaRoutes(deps) {
     router.post('/deactivate',
         mfaVerifyLimiter,
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
         async (req, res) => {

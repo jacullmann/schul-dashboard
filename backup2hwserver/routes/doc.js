@@ -1,129 +1,64 @@
+// routes/doc.js
 import { Router } from 'express';
 import sanitizeHtml from 'sanitize-html';
 import jwt from 'jsonwebtoken';
 import * as db from '../db/db.js';
 
-// Doc state in memory
-let docState = {
-    content: '',
-    version: 0,
-    lastEditedBy: null,
-    lastEditedAt: null,
-};
+let docState = { content: '', version: 0, lastEditedBy: null, lastEditedAt: null };
+const connectedAdmins = new Map();
 
-const connectedAdmins = new Map(); // socketId -> { email, userId }
-
-// Erlaubte HTML tags
 const SANITIZE_OPTIONS = {
-    allowedTags: [
-        'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li',
-        'strong', 'em', 'u', 's', 'br', 'span', 'div',
-        'input',
-    ],
-    allowedAttributes: {
-        '*': ['style', 'class', 'data-*'],
-        'input': ['type', 'checked', 'disabled'],
-        'span': ['style'],
-    },
-    allowedStyles: {
-        '*': {
-            'color': [/.*/],
-            'background-color': [/.*/],
-            'font-weight': [/.*/],
-            'font-style': [/.*/],
-            'text-decoration': [/.*/],
-        },
-    },
+    allowedTags: ['h1','h2','h3','h4','p','ul','ol','li','strong','em','u','s','br','span','div','input'],
+    allowedAttributes: { '*': ['style','class','data-*'], 'input': ['type','checked','disabled'], 'span': ['style'] },
+    allowedStyles: { '*': { 'color': [/.*/], 'background-color': [/.*/], 'font-weight': [/.*/], 'font-style': [/.*/], 'text-decoration': [/.*/] } },
 };
 
-// Lädt neusten Stand aus Supabase
 async function loadDocFromDb(supabase) {
     try {
         const data = await db.getSharedDoc(supabase);
-
         if (data) {
-            docState.content = data.content ?? '';
-            docState.version = data.version ?? 0;
-            docState.lastEditedBy = data.last_edited_by ?? null;
-            docState.lastEditedAt = data.last_edited_at ?? null;
-            console.log(`[Doc] Dokument aus DB geladen (Version ${docState.version})`);
+            docState = { content: data.content ?? '', version: data.version ?? 0, lastEditedBy: data.last_edited_by, lastEditedAt: data.last_edited_at };
         } else {
-            await db.upsertSharedDoc(supabase, {
-                content: '',
-                version: 0,
-                lastEditedBy: null,
-                lastEditedAt: null,
-            });
-            console.log('[Doc] Initiale DB-Zeile angelegt');
+            await db.upsertSharedDoc(supabase, { content: '', version: 0, lastEditedBy: null, lastEditedAt: null });
         }
-    } catch (err) {
-        console.error('[Doc] Unerwarteter Fehler beim DB-Load:', err);
-    }
+    } catch (err) { console.error('[Doc] DB load error:', err); }
 }
 
-// Schreibt aktuellen Stand in Supabase
 async function persistDocToDb(supabase) {
     try {
-        await db.upsertSharedDoc(supabase, {
-            content: docState.content,
-            version: docState.version,
-            lastEditedBy: docState.lastEditedBy,
-            lastEditedAt: docState.lastEditedAt,
-        });
-        console.log(`[Doc] In DB gespeichert (Version ${docState.version})`);
-    } catch (err) {
-        console.error('[Doc] Unerwarteter Fehler beim DB-Write:', err);
-    }
+        await db.upsertSharedDoc(supabase, docState);
+    } catch (err) { console.error('[Doc] DB write error:', err); }
 }
 
-// Socket.IO namespace handler
 export function registerDocSocket(io, supabase, deps) {
     const { authSecret } = deps;
-
-    // Letzten Stand bei Serverstart einmalig aus DB laden
     loadDocFromDb(supabase);
 
-    const PERSIST_INTERVAL_MS = 30_000;
     let persistTimer = null;
-
     function startPersistTimer() {
         if (persistTimer) return;
         persistTimer = setInterval(async () => {
-            if (connectedAdmins.size === 0) {
-                await persistDocToDb(supabase);
-                clearInterval(persistTimer);
-                persistTimer = null;
-                console.log('[Doc] Alle Admins offline – Persistenz-Timer gestoppt');
-            } else {
-                await persistDocToDb(supabase);
-            }
-        }, PERSIST_INTERVAL_MS);
-        console.log('[Doc] Persistenz-Timer gestartet');
+            await persistDocToDb(supabase);
+            if (connectedAdmins.size === 0) { clearInterval(persistTimer); persistTimer = null; }
+        }, 30_000);
     }
 
     const docNs = io.of('/doc');
 
-    // Middleware: JWT aus Cookie validieren (Supabase-basiert)
     docNs.use(async (socket, next) => {
         try {
             const cookieHeader = socket.handshake.headers.cookie || '';
             const cookieMap = Object.fromEntries(
-                cookieHeader.split(';').map(c => {
-                    const [k, ...v] = c.trim().split('=');
-                    return [k, decodeURIComponent(v.join('='))];
-                })
+                cookieHeader.split(';').map(c => { const [k,...v] = c.trim().split('='); return [k, decodeURIComponent(v.join('='))]; }),
             );
-
             const userToken = cookieMap['auth_token'];
             if (!userToken) return next(new Error('AUTH_REQUIRED'));
 
             const payload = jwt.verify(userToken, authSecret);
             if (!payload?.sub || !payload?.email) return next(new Error('AUTH_INVALID'));
 
-            // Check user exists, is admin, not banned — via Supabase
-            const user = await db.findUserById(supabase, payload.sub, 'id, user_roles(roles(name))');
-            if (!user) return next(new Error('AUTH_NOT_FOUND'));
-            if (user.user_roles?.[0]?.roles?.name !== 'superadmin') return next(new Error('AUTH_FORBIDDEN'));
+            // Use globalRole from lean JWT
+            if (payload.gRole !== 'superadmin') return next(new Error('AUTH_FORBIDDEN'));
 
             const banned = await db.isBanned(supabase, payload.sub);
             if (banned) return next(new Error('AUTH_BANNED'));
@@ -131,145 +66,70 @@ export function registerDocSocket(io, supabase, deps) {
             socket.data.userId = payload.sub;
             socket.data.email = payload.email;
             next();
-        } catch (err) {
-            next(new Error('AUTH_INVALID'));
-        }
+        } catch { next(new Error('AUTH_INVALID')); }
     });
 
     docNs.on('connection', (socket) => {
         const { email, userId } = socket.data;
-        console.log(`[Doc] Admin verbunden: ${email} (${socket.id})`);
-
         connectedAdmins.set(socket.id, { email, userId });
         startPersistTimer();
 
-        socket.emit('doc:init', {
-            content: docState.content,
-            version: docState.version,
-            lastEditedBy: docState.lastEditedBy,
-            lastEditedAt: docState.lastEditedAt,
-            onlineAdmins: getOnlineAdminList(),
-        });
+        const getOnlineList = () => Array.from(connectedAdmins.values()).map(a => a.email);
 
-        socket.broadcast.emit('doc:admins-update', {
-            onlineAdmins: getOnlineAdminList(),
-        });
+        socket.emit('doc:init', { ...docState, onlineAdmins: getOnlineList() });
+        socket.broadcast.emit('doc:admins-update', { onlineAdmins: getOnlineList() });
 
         socket.on('doc:update', (payload) => {
-            if (typeof payload?.content !== 'string') return;
-            if (typeof payload?.clientVersion !== 'number') return;
-
+            if (typeof payload?.content !== 'string' || typeof payload?.clientVersion !== 'number') return;
             if (payload.clientVersion < docState.version) {
-                socket.emit('doc:conflict', {
-                    serverContent: docState.content,
-                    serverVersion: docState.version,
-                    lastEditedBy: docState.lastEditedBy,
-                });
+                socket.emit('doc:conflict', { serverContent: docState.content, serverVersion: docState.version, lastEditedBy: docState.lastEditedBy });
                 return;
             }
-
-            const sanitized = sanitizeHtml(payload.content, SANITIZE_OPTIONS);
-
-            docState.content = sanitized;
+            docState.content = sanitizeHtml(payload.content, SANITIZE_OPTIONS);
             docState.version += 1;
             docState.lastEditedBy = email;
             docState.lastEditedAt = new Date().toISOString();
-
-            socket.broadcast.emit('doc:update', {
-                content: docState.content,
-                version: docState.version,
-                editedBy: email,
-            });
-
+            socket.broadcast.emit('doc:update', { content: docState.content, version: docState.version, editedBy: email });
             socket.emit('doc:ack', { version: docState.version });
         });
 
-        socket.on('doc:cursor', (payload) => {
-            socket.broadcast.emit('doc:cursor', { email, ...payload });
-        });
+        socket.on('doc:cursor', (p) => socket.broadcast.emit('doc:cursor', { email, ...p }));
 
         socket.on('disconnect', async () => {
-            console.log(`[Doc] Admin getrennt: ${email} (${socket.id})`);
             connectedAdmins.delete(socket.id);
-
-            docNs.emit('doc:admins-update', {
-                onlineAdmins: getOnlineAdminList(),
-            });
-
-            if (connectedAdmins.size === 0) {
-                await persistDocToDb(supabase);
-                console.log('[Doc] Letzter Admin offline → sofort persistiert');
-            }
+            docNs.emit('doc:admins-update', { onlineAdmins: getOnlineList() });
+            if (connectedAdmins.size === 0) await persistDocToDb(supabase);
         });
     });
-
-    function getOnlineAdminList() {
-        return Array.from(connectedAdmins.values()).map(a => a.email);
-    }
 }
 
-// REST-Routen: /api/doc
 export default function createDocRoutes(deps) {
     const router = Router();
-    const {
-        supabase,
-        authSecret,
-        csrfSecret,
-        requireAuth,
-        requireAdmin,
-        validateCsrf,
-        sendJSONError,
-    } = deps;
+    const { supabase, authSecret, requireAuth, validateCsrf, sendJSONError } = deps;
 
-    // GET /api/doc
-    router.get('/',
-        requireAuth(authSecret, supabase),
-        requireAdmin,
-        async (req, res) => {
-            try {
-                res.json({
-                    content: docState.content,
-                    version: docState.version,
-                    lastEditedBy: docState.lastEditedBy,
-                    lastEditedAt: docState.lastEditedAt,
-                });
-            } catch (err) {
-                console.error('[Doc] GET / Fehler:', err);
-                sendJSONError(res, 500, 'Fehler beim Laden des Dokuments');
-            }
-        }
-    );
+    const sa = [requireAuth(authSecret, supabase, 'superadmin')];
 
-    // POST /api/doc/save
-    router.post('/save',
-        requireAuth(authSecret, supabase),
-        requireAdmin,
-        validateCsrf(csrfSecret),
-        async (req, res) => {
-            try {
-                await persistDocToDb(supabase);
-                res.json({ ok: true, version: docState.version });
-            } catch (err) {
-                console.error('[Doc] POST /save Fehler:', err);
-                sendJSONError(res, 500, 'Fehler beim Speichern');
-            }
-        }
-    );
+    router.get('/', ...sa, async (_req, res) => {
+        res.json(docState);
+    });
 
-    // GET /api/doc/history
-    router.get('/history',
-        requireAuth(authSecret, supabase),
-        requireAdmin,
-        async (req, res) => {
-            try {
-                const data = await db.getSharedDoc(supabase);
-                res.json(data ?? { content: '', version: 0 });
-            } catch (err) {
-                console.error('[Doc] GET /history Fehler:', err);
-                sendJSONError(res, 500, 'Fehler beim Laden der History');
-            }
+    router.post('/save', ...sa, validateCsrf(), async (_req, res) => {
+        try {
+            await persistDocToDb(supabase);
+            res.json({ ok: true, version: docState.version });
+        } catch (err) {
+            sendJSONError(res, 500, 'Fehler beim Speichern');
         }
-    );
+    });
+
+    router.get('/history', ...sa, async (_req, res) => {
+        try {
+            const data = await db.getSharedDoc(supabase);
+            res.json(data ?? { content: '', version: 0 });
+        } catch (err) {
+            sendJSONError(res, 500, 'Fehler beim Laden');
+        }
+    });
 
     return router;
 }

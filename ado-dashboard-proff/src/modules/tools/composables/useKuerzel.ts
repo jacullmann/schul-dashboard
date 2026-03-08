@@ -70,7 +70,7 @@ export function useKuerzel() {
 
     async function loadPeople() {
         try {
-            const response = await hw.get<Person[]>('/api/persons')
+            const response = await hw.get<Person[]>('/api/timetable/persons')
             persons.value = response.data
         } catch (error) {
             console.error('Failed to load persons:', error)

@@ -1,28 +1,37 @@
+// middleware/tenantContext.js
+
 /**
- * Tenant context middleware.
- *
- * Extracts the tenant ID from the 'x-tenant-id' header and validates it against
- * the user's groups in the already-decoded app-gate JWT. places it on `req.tenantId` for downstream handlers.
- * Superadmins bypass the array check, but still need the header or default.
- * Must be used AFTER `requireAuth`.
+ * Extracts tenant ID and validates access.
+ * Superadmins bypass the membership check.
+ * Must be used AFTER requireAuth().
  */
+export function requireTenant(supabase) {
+    return async (req, res, next) => {
+        const tenantId = req.headers['x-tenant-id'] || req.activeGroupId;
 
-export function requireTenant(req, res, next) {
-    const requestedTenantId = req.headers['x-tenant-id'] || (req.appGateGroup ? req.appGateGroup.id : null);
-
-    if (!requestedTenantId) {
-        return res.status(403).json({ error: 'Tenant-Kontext fehlt' });
-    }
-
-    const isSuperAdmin = req.user?.role === 'superadmin';
-
-    if (!isSuperAdmin) {
-        const hasAccess = req.userGroups?.some(g => g.id === requestedTenantId);
-        if (!hasAccess) {
-            return res.status(403).json({ error: 'Fehlende Berechtigung für diesen Tenant' });
+        if (!tenantId) {
+            return res.status(403).json({ error: 'Tenant-Kontext fehlt' });
         }
-    }
 
-    req.tenantId = requestedTenantId;
-    next();
+        // Superadmin has access to all tenants
+        if (req.user?.globalRole === 'superadmin') {
+            req.tenantId = tenantId;
+            return next();
+        }
+
+        // Check membership
+        const { data: membership } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('user_id', req.userId)
+            .eq('tenant_id', tenantId)
+            .maybeSingle();
+
+        if (!membership) {
+            return res.status(403).json({ error: 'Kein Zugriff auf diesen Tenant' });
+        }
+
+        req.tenantId = tenantId;
+        next();
+    };
 }

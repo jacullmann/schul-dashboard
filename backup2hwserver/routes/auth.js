@@ -38,7 +38,7 @@ export default function createAuthRoutes(deps) {
     router.post('/login',
         authLimiter,
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
@@ -61,7 +61,7 @@ export default function createAuthRoutes(deps) {
                 return res.json({ ok: true, requiresMfa: true, message: 'MFA-Verifizierung erforderlich' });
             }
 
-            const newCsrfToken = rotateCsrfToken(res, csrfSecret);
+            const newCsrfToken = rotateCsrfToken(res);
             await db.updateUser(supabase, user.id, { last_login_at: new Date().toISOString() });
             await db.deleteMfaPending(supabase, user.id).catch(() => { });
 
@@ -89,13 +89,19 @@ export default function createAuthRoutes(deps) {
                 activeGroupName = groups[0].name;
             }
 
+            const { data: firstGroup } = await supabase
+                .from('user_roles')
+                .select('tenant_id')
+                .eq('user_id', user.id)
+                .not('tenant_id', 'is', null)
+                .limit(1)
+                .maybeSingle();
+
             setAuthToken(res, authSecret, {
                 userId: user.id,
                 email: user.email,
-                role: globalRole,
-                activeGroupId,
-                activeGroupName,
-                groups
+                globalRole,
+                activeGroupId: firstGroup?.tenant_id || null,
             });
 
             res.json({ ok: true, csrfToken: newCsrfToken });
@@ -106,7 +112,7 @@ export default function createAuthRoutes(deps) {
     router.post('/mfa/verify',
         mfaVerifyLimiter,
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         verifyMfaPendingToken(passwordResetSecret),
         body('code').isString().isLength({ min: 6, max: 6 }).matches(/^\d{6}$/),
         validate,
@@ -134,7 +140,7 @@ export default function createAuthRoutes(deps) {
                 }
 
                 clearMfaPendingToken(res);
-                const newCsrfToken = rotateCsrfToken(res, csrfSecret);
+                const newCsrfToken = rotateCsrfToken(res);
 
                 await db.updateUser(supabase, userId, { last_login_at: new Date().toISOString() });
                 await db.deleteMfaPending(supabase, userId).catch(() => { });
@@ -164,13 +170,19 @@ export default function createAuthRoutes(deps) {
                     activeGroupName = groups[0].name;
                 }
 
+                const { data: firstGroup } = await supabase
+                    .from('user_roles')
+                    .select('tenant_id')
+                    .eq('user_id', user.id)
+                    .not('tenant_id', 'is', null)
+                    .limit(1)
+                    .maybeSingle();
+
                 setAuthToken(res, authSecret, {
-                    userId: userId,
-                    email: email,
-                    role: globalRole,
-                    activeGroupId,
-                    activeGroupName,
-                    groups
+                    userId: user.id,
+                    email: user.email,
+                    globalRole,
+                    activeGroupId: firstGroup?.tenant_id || null,
                 });
 
                 res.json({ ok: true, csrfToken: newCsrfToken });
@@ -184,7 +196,7 @@ export default function createAuthRoutes(deps) {
     // POST /api/auth/mfa/cancel
     router.post('/mfa/cancel',
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         (req, res) => {
             clearMfaPendingToken(res);
             res.json({ ok: true });
@@ -195,7 +207,7 @@ export default function createAuthRoutes(deps) {
     router.post('/register',
         authLimiter,
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('email').isEmail(),
         body('password').isString().isLength({ min: 8 }),
         validate,
@@ -229,11 +241,11 @@ export default function createAuthRoutes(deps) {
     router.post('/logout',
         checkAuth(authSecret),
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         (req, res) => {
             clearAuthToken(res);
             clearMfaPendingToken(res);
-            const newCsrfToken = rotateCsrfToken(res, csrfSecret);
+            const newCsrfToken = rotateCsrfToken(res);
             res.json({ ok: true, csrfToken: newCsrfToken });
         }
     );
@@ -273,7 +285,7 @@ export default function createAuthRoutes(deps) {
     router.delete('/me',
         checkAuth(authSecret),
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         async (req, res) => {
             try {
                 const user = await db.findUserById(supabase, req.user.sub, 'id, user_roles(roles(name))');
@@ -286,7 +298,7 @@ export default function createAuthRoutes(deps) {
 
                 clearAuthToken(res);
                 clearMfaPendingToken(res);
-                rotateCsrfToken(res, csrfSecret);
+                rotateCsrfToken(res);
                 res.json({ ok: true });
             } catch (err) {
                 console.error('DELETE /api/auth/me error', err);
@@ -318,7 +330,7 @@ export default function createAuthRoutes(deps) {
     router.post('/forgot',
         authLimiter,
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('email').isEmail(),
         validate,
         async (req, res) => {
@@ -350,7 +362,7 @@ export default function createAuthRoutes(deps) {
     router.post('/reset/verify',
         passwordResetLimiter,
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('email').isEmail(),
         body('code').isString().isLength({ min: 6, max: 6 }),
         validate,
@@ -382,7 +394,7 @@ export default function createAuthRoutes(deps) {
     router.post('/reset',
         passwordResetLimiter,
         checkAuth(authSecret),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         body('resetToken').isString(),
         body('password').isString().isLength({ min: 8 }),
         validate,
@@ -435,7 +447,7 @@ export default function createAuthRoutes(deps) {
         authLimiter,
         checkAuth(authSecret),
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         [
             body('currentPassword').isString().isLength({ min: 8 }),
             body('newPassword').isString().isLength({ min: 8 }),
@@ -460,6 +472,35 @@ export default function createAuthRoutes(deps) {
             } catch (err) {
                 console.error('POST /api/auth/change-password error', err);
                 sendJSONError(res, 500, 'Server error');
+            }
+        }
+    );
+
+    // GET /api/auth/groups
+    router.get('/groups',
+        requireAuth(authSecret, supabase),
+        async (req, res) => {
+            try {
+                const { data: userRoles, error } = await supabase
+                    .from('user_roles')
+                    .select('tenant_id, groups(id, name), roles(name)')
+                    .eq('user_id', req.userId)
+                    .not('tenant_id', 'is', null);
+
+                if (error) throw error;
+
+                const groups = (userRoles || [])
+                    .filter(ur => ur.groups?.id)
+                    .map(ur => ({
+                        id: ur.groups.id,
+                        name: ur.groups.name,
+                        role: ur.roles.name,
+                    }));
+
+                res.json({ groups });
+            } catch (err) {
+                console.error('GET /api/auth/groups error', err);
+                res.status(500).json({ error: 'Fehler beim Laden der Gruppen' });
             }
         }
     );

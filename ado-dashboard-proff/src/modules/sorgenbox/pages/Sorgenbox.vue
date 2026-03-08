@@ -164,7 +164,7 @@ async function onSubmit() {
   feedbackClass.value = '';
 
   try {
-    const res = await hw.post('/anon/sorgenbox', { message: message.value });
+    const res = await hw.post('/api/items/sorgenbox', { message: message.value });
 
     if (res.status !== 200) throw new Error('Fehler beim Senden');
 

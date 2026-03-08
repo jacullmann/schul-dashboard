@@ -23,7 +23,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
         if (loaded.value || loading.value) return;
         loading.value = true;
         try {
-            const { data } = await hw.get<Subject[]>('/api/subjects');
+            const { data } = await hw.get<Subject[]>('/api/timetable/subjects');
             subjects.value = data || [];
             loaded.value = true;
         } catch (e) {

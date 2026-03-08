@@ -69,8 +69,8 @@ export function useDaltonFinder() {
         loading.value = true;
         try {
             const [personsRes, scheduleRes] = await Promise.all([
-                hw.get<DbPerson[]>('/api/persons'),
-                hw.get<DbScheduleRow[]>('/api/dalton_schedule')
+                hw.get<DbPerson[]>('/api/timetable/persons'),
+                hw.get<DbScheduleRow[]>('/api/timetable/dalton-schedule')
             ]);
 
             // Transform Persons into Teachers format

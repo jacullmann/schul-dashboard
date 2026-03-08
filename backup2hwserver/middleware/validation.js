@@ -1,3 +1,4 @@
+// middleware/validation.js
 import { validationResult } from 'express-validator';
 import dayjs from 'dayjs';
 
@@ -8,14 +9,10 @@ export function sendJSONError(res, status, msg, errors) {
 export function validate(req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return sendJSONError(res, 400, 'Validierungsfehler. Bitte überprüfe deine Eingabe.', errors.array());
-    }
-    next();
-}
-
-export function requireAdmin(req, res, next) {
-    if (req.user?.role !== 'superadmin') {
-        return sendJSONError(res, 403, 'Forbidden');
+        return sendJSONError(res, 400,
+            'Validierungsfehler. Bitte überprüfe deine Eingabe.',
+            errors.array()
+        );
     }
     next();
 }

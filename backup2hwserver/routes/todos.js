@@ -47,7 +47,7 @@ export default function createTodosRoutes(deps) {
     // POST /api/todos
     router.post('/',
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         [
             body('title').isString().isLength({ min: 1, max: 100 }),
             body('description').optional().isString().isLength({ max: 2000 }),
@@ -99,7 +99,7 @@ export default function createTodosRoutes(deps) {
     // PUT /api/todos/:id
     router.put('/:id',
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         [
             param('id').isUUID(),
             body('title').isString().isLength({ min: 1, max: 100 }),
@@ -142,7 +142,7 @@ export default function createTodosRoutes(deps) {
     // PATCH /api/todos/:id/toggle
     router.patch('/:id/toggle',
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         param('id').isUUID(),
         validate,
         async (req, res) => {
@@ -174,7 +174,7 @@ export default function createTodosRoutes(deps) {
     // PATCH /api/todos/:id/reorder
     router.patch('/:id/reorder',
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         [
             param('id').isUUID(),
             body('prevPosition').optional({ nullable: true }).isString(),
@@ -257,7 +257,7 @@ export default function createTodosRoutes(deps) {
     // DELETE /api/todos/:id
     router.delete('/:id',
         requireAuth(authSecret, supabase),
-        validateCsrf(csrfSecret),
+        validateCsrf(),
         param('id').isUUID(),
         validate,
         async (req, res) => {

@@ -14,6 +14,7 @@ interface UserData {
     doneSetup: boolean;
     personalized: boolean;
     mfaEnabled: boolean;
+    tenantRole: string | null;
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -27,6 +28,11 @@ export const useUserStore = defineStore('user', () => {
     const isSuperadmin = computed(() => user.value?.role === 'superadmin');
     const needsSetup = computed(() => user.value !== null && !user.value.doneSetup);
     const mfaEnabled = computed(() => user.value?.mfaEnabled === true);
+    const isGroupAdmin = computed(() =>
+        user.value?.role === 'superadmin' ||
+        user.value?.tenantRole === 'admin' ||
+        user.value?.tenantRole === 'mod'
+    );
 
     async function fetchUser(): Promise<void> {
         if (loading.value) return;
@@ -45,7 +51,8 @@ export const useUserStore = defineStore('user', () => {
                     theater: data.theater,
                     doneSetup: data.doneSetup,
                     personalized: data.personalized,
-                    mfaEnabled: data.mfaEnabled ?? false
+                    mfaEnabled: data.mfaEnabled ?? false,
+                    tenantRole: data.tenantRole ?? null
                 };
             } else {
                 user.value = null;
@@ -93,6 +100,7 @@ export const useUserStore = defineStore('user', () => {
         clearUser,
         updateUser,
         markSetupShown,
-        setMfaEnabled
+        setMfaEnabled,
+        isGroupAdmin
     };
 });

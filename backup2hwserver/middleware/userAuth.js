@@ -1,15 +1,18 @@
+// middleware/userAuth.js
 import jwt from 'jsonwebtoken';
+import * as db from '../db/db.js';
 
 const COOKIE_NAME = 'auth_token';
 
-export function setAuthToken(res, secret, { userId, email, role, activeGroupId, activeGroupName, groups = [] }) {
+/**
+ * Issue a lean JWT. No groups array – that comes from a separate endpoint.
+ */
+export function setAuthToken(res, secret, { userId, email, globalRole, activeGroupId }) {
     const payload = {
         sub: userId.toString(),
         email,
-        role,
-        activeGroupId,
-        activeGroupName,
-        groups
+        gRole: globalRole || 'user',      // global role: 'superadmin' | 'user'
+        gId: activeGroupId || null,        // active tenant id
     };
 
     const token = jwt.sign(payload, secret, { expiresIn: '7d' });
@@ -25,10 +28,26 @@ export function setAuthToken(res, secret, { userId, email, role, activeGroupId, 
     return token;
 }
 
+export function clearAuthToken(res) {
+    res.clearCookie(COOKIE_NAME, {
+        httpOnly: true,
+        secure: true,
+        path: '/',
+        sameSite: 'None',
+    });
+}
+
 /**
- * Middleware: require an authenticated, non-banned user context with groups.
+ * Core auth middleware factory.
+ *
+ * Usage:
+ *   requireAuth(secret, supabase)                    → any authenticated, non-banned user
+ *   requireAuth(secret, supabase, 'superadmin')      → global superadmin only
+ *   requireAuth(secret, supabase, ['admin', 'mod'])   → tenant-scoped role check (requires x-tenant-id)
+ *
+ * Populates: req.user, req.userId, req.activeGroupId
  */
-export function requireAuth(secret, supabase) {
+export function requireAuth(secret, supabase, requiredRole) {
     return async (req, res, next) => {
         const token = req.cookies[COOKIE_NAME];
 
@@ -46,8 +65,7 @@ export function requireAuth(secret, supabase) {
                 return res.status(401).json({ error: 'Ungültiges Auth-Token', requiresAuth: true });
             }
 
-            // Optional: You could fetch the banned status dynamically here,
-            // or rely on caching / other mechanisms. Let's do a lightweight check for active banning:
+            // Ban check
             const { data: ban } = await supabase
                 .from('banned_users')
                 .select('id')
@@ -56,20 +74,56 @@ export function requireAuth(secret, supabase) {
 
             if (ban) return res.status(403).json({ error: 'Account gesperrt' });
 
-            // Populate both user and appGate contexts
+            // Populate user context
             req.user = {
                 sub: payload.sub,
                 email: payload.email,
-                role: payload.role || 'user',
+                globalRole: payload.gRole || 'user',
             };
             req.userId = payload.sub;
-            req.appGate = !!payload.activeGroupId;
-            req.appGateGroup = payload.activeGroupId ? {
-                id: payload.activeGroupId,
-                name: payload.activeGroupName
-            } : null;
-            req.userGroups = payload.groups || [];
+            req.activeGroupId = payload.gId || null;
 
+            // ── Role checks ──
+
+            // 1) Global superadmin check
+            if (requiredRole === 'superadmin') {
+                if (req.user.globalRole !== 'superadmin') {
+                    return res.status(403).json({ error: 'Keine Berechtigung' });
+                }
+                return next();
+            }
+
+            // 2) Tenant-scoped role check (e.g. ['admin', 'mod'])
+            if (Array.isArray(requiredRole)) {
+                const tenantId = req.headers['x-tenant-id'] || req.activeGroupId;
+                if (!tenantId) {
+                    return res.status(403).json({ error: 'Tenant-Kontext fehlt' });
+                }
+                req.tenantId = tenantId;
+
+                // Superadmin bypasses tenant role checks
+                if (req.user.globalRole === 'superadmin') {
+                    return next();
+                }
+
+                // Look up user's role in this specific tenant
+                const { data: userRole } = await supabase
+                    .from('user_roles')
+                    .select('roles(name)')
+                    .eq('user_id', payload.sub)
+                    .eq('tenant_id', tenantId)
+                    .maybeSingle();
+
+                const tenantRoleName = userRole?.roles?.name;
+                if (!tenantRoleName || !requiredRole.includes(tenantRoleName)) {
+                    return res.status(403).json({ error: 'Keine Berechtigung für diese Aktion' });
+                }
+
+                req.tenantRole = tenantRoleName;
+                return next();
+            }
+
+            // 3) No specific role required – just authenticated
             next();
         } catch {
             return res.status(401).json({
@@ -80,18 +134,8 @@ export function requireAuth(secret, supabase) {
     };
 }
 
-export function clearAuthToken(res) {
-    res.clearCookie(COOKIE_NAME, {
-        httpOnly: true,
-        secure: true,
-        path: '/',
-        sameSite: 'None',
-    });
-}
-
 /**
- * Middleware: optionally attach user info if auth token present.
- * Does NOT block if no token.
+ * Lightweight: attach user if token present, don't block if missing.
  */
 export function checkAuth(secret) {
     return (req, res, next) => {
@@ -99,9 +143,7 @@ export function checkAuth(secret) {
 
         req.user = null;
         req.userId = null;
-        req.appGate = false;
-        req.appGateGroup = null;
-        req.userGroups = [];
+        req.activeGroupId = null;
 
         if (token) {
             try {
@@ -110,18 +152,13 @@ export function checkAuth(secret) {
                     req.user = {
                         sub: payload.sub,
                         email: payload.email,
-                        role: payload.role || 'user',
+                        globalRole: payload.gRole || 'user',
                     };
                     req.userId = payload.sub;
-                    req.appGate = !!payload.activeGroupId;
-                    req.appGateGroup = payload.activeGroupId ? {
-                        id: payload.activeGroupId,
-                        name: payload.activeGroupName
-                    } : null;
-                    req.userGroups = payload.groups || [];
+                    req.activeGroupId = payload.gId || null;
                 }
             } catch {
-                // ignore
+                // ignore – user stays null
             }
         }
 

@@ -96,7 +96,7 @@ export function useImageUpload() {
                 try {
                     // 1. Prepare and Upload to Cloudinary
                     const processedFile = await processImageBeforeUpload(file);
-                    const { data: sign } = await hw.post('/api/uploads/sign');
+                    const { data: sign } = await hw.post('/api/items/uploads/sign');
                     const form = new FormData();
                     form.set('file', processedFile);
                     form.set('api_key', sign.apiKey);

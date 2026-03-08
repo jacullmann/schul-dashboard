@@ -53,22 +53,18 @@
             Wähle deine bevorzugte Sprache aus.
           </p>
         </div>
-
-        <AppLogoutButton class="logoutDeviceMobile" />
       </div>
     </div>
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
         <p class="copyright-text">© {{ year }} Schul-Dashboard</p>
-        <AppLogoutButton class="logoutDeviceDesktop" />
       </div>
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
-import AppLogoutButton from '@/modules/auth/components/AppLogoutButton.vue';
 import Logo from '@/common/components/Logo.vue';
 import Notizen from "@/common/components/Notizen.vue";
 import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
@@ -179,14 +175,6 @@ const year = new Date().getFullYear();
   margin: 0;
 }
 
-.logoutDeviceMobile {
-  display: none;
-}
-
-.logoutDeviceDesktop {
-  display: block;
-}
-
 @media (max-width: 1024px) {
   .footer-grid {
     grid-template-columns: 1fr 1fr;
@@ -216,12 +204,6 @@ const year = new Date().getFullYear();
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
-  }
-  .logoutDeviceMobile {
-    display: block;
-  }
-  .logoutDeviceDesktop {
-    display: none;
   }
 }
 </style>

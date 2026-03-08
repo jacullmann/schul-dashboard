@@ -1,22 +1,31 @@
-// src/composables/useAppAuth.ts
+// src/modules/auth/composables/useAppAuth.ts
 import { ref } from 'vue';
 import axios from 'axios';
 import hw, { setCsrfToken } from '@/api/hwApi';
 
-const API_ENDPOINT = '/api/app-gate/login';
-const STATUS_ENDPOINT = '/api/app-gate/status';
+const STATUS_ENDPOINT = '/api/groups/status';
+const GROUPS_ENDPOINT = '/api/auth/groups';
 
 const isAuthenticated = ref(false);
 const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
-const userGroups = ref<Array<{ id: string, name: string, role: string }>>([]);
+const userGroups = ref<Array<{ id: string; name: string; role: string }>>([]);
 let initPromise: Promise<void> | null = null;
 let eventListenerRegistered = false;
 const MAX_CSRF_RETRIES = 3;
 const CSRF_RETRY_DELAY = 1000;
 
 export function useAppAuth() {
+    async function fetchGroups() {
+        try {
+            const { data } = await hw.get(GROUPS_ENDPOINT);
+            userGroups.value = data.groups ?? [];
+        } catch {
+            userGroups.value = [];
+        }
+    }
+
     async function checkAuthStatus() {
         try {
             const { data } = await hw.get(STATUS_ENDPOINT);
@@ -32,8 +41,7 @@ export function useAppAuth() {
             }
 
             return data.authenticated;
-        } catch (err) {
-            console.error('Überprüfung der Authentifizierung fehlgeschlagen:', err);
+        } catch {
             isAuthenticated.value = false;
             groupName.value = null;
             activeGroupId.value = null;
@@ -53,22 +61,20 @@ export function useAppAuth() {
                 try {
                     const { data } = await axios.get(
                         `${import.meta.env.VITE_HW_API_BASE || ''}/api/csrf/init`,
-                        { withCredentials: true }
+                        { withCredentials: true },
                     );
                     if (data.csrfToken) {
                         setCsrfToken(data.csrfToken);
                         csrfInitialized = true;
                         break;
                     }
-                } catch (e) {
-                    console.warn(`CSRF init attempt ${attempt}/${MAX_CSRF_RETRIES} failed:`, e);
+                } catch {
                     if (attempt < MAX_CSRF_RETRIES) {
-                        await new Promise(resolve => setTimeout(resolve, CSRF_RETRY_DELAY));
+                        await new Promise(r => setTimeout(r, CSRF_RETRY_DELAY));
                     }
                 }
             }
             if (!csrfInitialized) {
-                console.error('CSRF initialization failed after all retries');
                 window.dispatchEvent(new CustomEvent('csrf-init-failed'));
                 isAuthReady.value = true;
                 isAuthenticated.value = false;
@@ -88,76 +94,62 @@ export function useAppAuth() {
         await initPromise;
     }
 
-    async function loginWithCode(groupName: string, password: string) {
+    async function joinGroup(name: string, password: string) {
         try {
-            const response = await hw.post(API_ENDPOINT, {
-                groupName,
-                password
-            });
-
+            const response = await hw.post('/api/groups/join', { groupName: name, password });
             if (response.status === 200 && response.data.ok) {
                 isAuthenticated.value = true;
                 isAuthReady.value = true;
-                // Refresh group name from server so it's always in sync
                 await checkAuthStatus();
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
-
             return { ok: false, error: 'Login fehlgeschlagen' };
         } catch (error: any) {
-            const errorMsg = error.response?.data?.error || 'Ungültiger Code';
-            return { ok: false, error: errorMsg };
+            return { ok: false, error: error.response?.data?.error || 'Ungültiger Code' };
         }
     }
 
-    async function createGroup(groupName: string, password: string) {
+    async function createGroup(name: string, password: string) {
         try {
-            const response = await hw.post('/api/app-gate/create-group', {
-                groupName,
-                password
-            });
-
+            const response = await hw.post('/api/groups/create', { groupName: name, password });
             if (response.status === 200 && response.data.ok) {
                 isAuthenticated.value = true;
                 isAuthReady.value = true;
                 await checkAuthStatus();
                 return { ok: true, csrfToken: response.data.csrfToken || null };
             }
-
             return { ok: false, error: 'Gruppenerstellung fehlgeschlagen' };
         } catch (error: any) {
-            const errorMsg = error.response?.data?.error || 'Fehler beim Erstellen der Gruppe';
-            return { ok: false, error: errorMsg };
+            return { ok: false, error: error.response?.data?.error || 'Fehler' };
         }
     }
 
     async function logout() {
         try {
-            await hw.post('/api/app-gate/logout');
-        } catch (err) {
-            console.error('Logout-Request fehlgeschlagen:', err);
-        } finally {
+            await hw.post('/api/groups/logout');
+        } catch {} finally {
             isAuthenticated.value = false;
             isAuthReady.value = false;
             groupName.value = null;
+            activeGroupId.value = null;
+            userGroups.value = [];
+            localStorage.removeItem('active_tenant_id');
             initPromise = null;
         }
     }
 
     async function switchActiveGroup(groupId: string) {
         try {
-            const response = await hw.post('/api/app-gate/switch-group', { groupId });
+            const response = await hw.post('/api/groups/switch', { groupId });
             if (response.status === 200 && response.data.ok) {
                 setCsrfToken(response.data.csrfToken);
                 await checkAuthStatus();
-                // We should also trigger a general app reload or specific data reload event
                 window.dispatchEvent(new CustomEvent('tenant-changed', { detail: { groupId } }));
                 return { ok: true };
             }
             return { ok: false, error: 'Wechsel fehlgeschlagen' };
         } catch (error: any) {
-            const errorMsg = error.response?.data?.error || 'Wechsel fehlgeschlagen';
-            return { ok: false, error: errorMsg };
+            return { ok: false, error: error.response?.data?.error || 'Wechsel fehlgeschlagen' };
         }
     }
 
@@ -167,11 +159,12 @@ export function useAppAuth() {
         groupName,
         activeGroupId,
         userGroups,
-        loginWithCode,
+        joinGroup,
         createGroup,
         switchActiveGroup,
         logout,
         initAuth,
         checkAuthStatus,
+        fetchGroups,
     };
 }

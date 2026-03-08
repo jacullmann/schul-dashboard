@@ -29,9 +29,9 @@ const isDesktop = useMediaQuery('(min-width: 900px)');
 async function onLoggedIn() {
   await checkAuthStatus();
   if (activeGroupId.value) {
-    router.push('/items/HAUSAUFGABE');
+    router.push(`/groups/${activeGroupId.value}/items/HAUSAUFGABE`);
   } else {
-    router.push('/get-started');
+    router.push('/home');
   }
 }
 </script>

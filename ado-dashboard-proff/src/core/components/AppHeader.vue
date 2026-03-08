@@ -3,7 +3,7 @@
     <div class="header-container container">
       <div class="header-left">
         <div class="logo-group-container">
-          <router-link to="/" class="logo-group" @click="closeNav">
+          <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="logo-group" @click="closeNav">
             <Logo class="logo-img" aria-hidden="true" />
             <span class="logo-text logo-text--group">{{ groupName }}</span>
             <span class="logo-text logo-text--brand">schul-dashboard</span>
@@ -33,8 +33,8 @@
                   {{ g.name }}
                 </button>
                 <div class="group-dropdown-divider"></div>
-                <router-link 
-                    to="/get-started" 
+                <router-link
+                    to="/home"
                     class="group-dropdown-item action"
                     @click="groupMenuOpen = false"
                 >
@@ -49,18 +49,25 @@
           <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
             <X />
           </button>
-          <router-link to="/" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
+          <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
 
           <router-link
               v-if="user?.role === 'superadmin'"
-              to="/admin-dashboard"
+              to="/admin"
               class="nav-item admin-link"
               @click="closeNav"
           >
             Admin
           </router-link>
+          <router-link
+              v-if="user?.role === 'admin'"
+              :to="`/groups/${activeGroupId}/admin`"
+              class="nav-item"
+          >
+            Verwaltung
+          </router-link>
 
-          <router-link to="/stundenplan" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
+          <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
         </nav>
       </div>
 

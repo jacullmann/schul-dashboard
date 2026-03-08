@@ -1,25 +1,26 @@
 import { withThumb, timeLeftColor } from './utils/modelHelpers.js';
 
 import { setAuthToken, requireAuth, clearAuthToken, checkAuth } from './middleware/userAuth.js';
-import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken, verifyCsrfToken } from './middleware/csrf.js';
+import { validateCsrf, clearCsrfCookie, rotateCsrfToken, generateCsrfToken } from './middleware/csrf.js';
 import { dashboardLimiter, authLimiter, passwordResetLimiter } from './middleware/rateLimiters.js';
-import { sendJSONError, validate, requireAdmin, validateItemCreation } from './middleware/validation.js';
+import { sendJSONError, validate, validateItemCreation } from './middleware/validation.js';
 import { requireTenant } from './middleware/tenantContext.js';
 import { encryptData, decryptData } from './utils/encryption.js';
 import { createEmailService } from './utils/email.js';
 import { filterLessonsForUser } from './utils/helpers.js';
 import { configureOtplib } from './middleware/mfaAuth.js';
 
-import createAppGateRoutes from './routes/appGate.js';
-import createSystemRoutes from './routes/system.js';
 import createAuthRoutes from './routes/auth.js';
-import createAdminRoutes from './routes/admin.js';
+import createGroupRoutes from './routes/groups.js';
+import createSuperAdminRoutes from './routes/superAdmin.js';
+import createGroupAdminRoutes from './routes/groupAdmin.js';
+import createItemsRoutes from './routes/items.js';
+import createTimetableRoutes from './routes/timetable.js';
 import createTodosRoutes from './routes/todos.js';
 import createUserRoutes from './routes/user.js';
-import createItemsRoutes from './routes/items.js';
-import createPublicRoutes from './routes/public.js';
 import createMfaRoutes from './routes/mfa.js';
 import createDocRoutes from './routes/doc.js';
+import createSystemRoutes from './routes/system.js';
 
 export default function registerRoutes(app, deps) {
     const {
@@ -29,25 +30,21 @@ export default function registerRoutes(app, deps) {
         emailConfigured,
         emailFrom,
         authSecret,
-        csrfSecret,
-        passwordResetSecret
+        passwordResetSecret,
     } = deps;
 
-    // OTPlib konfigurieren
     configureOtplib();
 
-    // E-Mail-Service initialisieren
     const emailService = createEmailService({
         resendClient,
         emailConfigured,
-        emailFrom
+        emailFrom,
     });
 
-    // Erweiterte Dependencies für Route-Module
     const routeDeps = {
         ...deps,
         emailService,
-        // Middleware-Funktionen
+        // Middleware
         requireAuth,
         checkAuth,
         setAuthToken,
@@ -56,35 +53,31 @@ export default function registerRoutes(app, deps) {
         rotateCsrfToken,
         clearCsrfCookie,
         generateCsrfToken,
-        verifyCsrfToken,
-        // Rate-Limiter
+        requireTenant,
+        // Rate limiters
         dashboardLimiter,
         authLimiter,
         passwordResetLimiter,
-        // Validierung
+        // Validation
         sendJSONError,
         validate,
-        requireAdmin,
-        requireTenant,
         validateItemCreation,
         // Utils
         encryptData,
         decryptData,
         filterLessonsForUser,
-        // Model-Helpers
         withThumb,
-        timeLeftColor
+        timeLeftColor,
     };
-
-    // Router mounten
-    app.use('/api/app-gate', createAppGateRoutes(routeDeps));
     app.use('/api', createSystemRoutes(routeDeps));
     app.use('/api/auth', createAuthRoutes(routeDeps));
-    app.use('/api/admin', createAdminRoutes(routeDeps));
-    app.use('/api/todos', createTodosRoutes(routeDeps));
-    app.use('/api/user', createUserRoutes(routeDeps));
-    app.use('/api/items', createItemsRoutes(routeDeps));
     app.use('/api/mfa', createMfaRoutes(routeDeps));
+    app.use('/api/groups', createGroupRoutes(routeDeps));
+    app.use('/api/admin', createSuperAdminRoutes(routeDeps));
+    app.use('/api/group-admin', createGroupAdminRoutes(routeDeps));
+    app.use('/api/items', createItemsRoutes(routeDeps));
+    app.use('/api/timetable', createTimetableRoutes(routeDeps));
+    app.use('/api/user', createUserRoutes(routeDeps));
+    app.use('/api/todos', createTodosRoutes(routeDeps));
     app.use('/api/doc', createDocRoutes(routeDeps));
-    app.use('/', createPublicRoutes(routeDeps));
 }

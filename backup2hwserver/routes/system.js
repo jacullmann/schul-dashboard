@@ -1,15 +1,12 @@
+// routes/system.js
 import { Router } from 'express';
-import { generateCsrfToken, verifyCsrfToken } from '../middleware/csrf.js';
+import { generateCsrfToken } from '../middleware/csrf.js';
 
 export default function createSystemRoutes(deps) {
     const router = Router();
-    const { csrfSecret } = deps;
 
     router.get('/csrf/init', (req, res) => {
-        let token = req.cookies['csrf_token'];
-        if (!token || !verifyCsrfToken(token, csrfSecret)) {
-            token = generateCsrfToken(csrfSecret);
-        }
+        const token = generateCsrfToken();
         res.cookie('csrf_token', token, {
             httpOnly: false,
             secure: true,

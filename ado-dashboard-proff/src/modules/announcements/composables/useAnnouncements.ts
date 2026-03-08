@@ -16,7 +16,7 @@ export function useAnnouncements() {
     async function loadAnnouncements() {
         loading.value = true;
         try {
-            const { data } = await hw.get<Announcement[]>('/api/announcements');
+            const { data } = await hw.get<Announcement[]>('/api/timetable/announcements');
             announcements.value = data;
         } catch (e) {
             console.error('Failed to load announcements', e);
@@ -28,7 +28,7 @@ export function useAnnouncements() {
     async function deleteAnnouncement(id: string) {
         if (confirm('Ankündigung löschen?')) {
             try {
-                await hw.delete(`/api/announcements/${id}`);
+                await hw.delete(`/api/timetable/announcements/${id}`);
                 await loadAnnouncements();
             } catch (e: any) {
                 alert(e.response?.data?.error || 'Fehler beim Löschen.');

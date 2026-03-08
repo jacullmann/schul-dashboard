@@ -105,6 +105,7 @@ const emit = defineEmits<{
 const router = useRouter();
 const auth = useAppAuth();
 const userStore = useUserStore();
+const { activeGroupId } = useAppAuth();
 
 const groupNameInputRef = ref<HTMLInputElement | null>(null);
 
@@ -151,7 +152,7 @@ async function submit() {
       } catch {}
       
       emit('close');
-      await router.push('/items/HAUSAUFGABE');
+      await router.push(`/groups/${activeGroupId.value}/items/HAUSAUFGABE`);
     } else {
       errorMsg.value = res.error || 'Erstellen der Gruppe fehlgeschlagen';
     }
