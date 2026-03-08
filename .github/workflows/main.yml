@@ -20,10 +20,10 @@ jobs:
           username: root
           key: ${{ secrets.HETZNER_SSH_KEY }}
           script: |
-            cd /root/codes/main-server/schul-dashboard
+            cd /root/codes/main-server/schul-dashboard || exit 1
+            git fetch origin main
             git reset --hard origin/main
-            git pull
-            cd server
+            cd server || exit 1
             npm ci
-            pm2 reload all
+            pm2 reload schul-dashboard-server --update-env
             sudo caddy reload --config /etc/caddy/Caddyfile
