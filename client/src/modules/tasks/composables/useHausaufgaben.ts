@@ -205,7 +205,12 @@ export function useHausaufgaben() {
         return [defaultOption, ...dynamicOptions];
     });
 
-    function goTab(t_type: ItemType) { router.push({ name: 'items', params: { type: t_type } }); }
+    function goTab(t_type: ItemType) {
+        router.push({
+            name: 'group-items',
+            params: { ...route.params, type: t_type }
+        });
+    }
 
     function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
         openMenuId.value = null;
