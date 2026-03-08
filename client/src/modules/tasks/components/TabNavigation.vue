@@ -36,19 +36,13 @@ const navBarScrollWidth = ref(0);
 const resizeObserver = ref<ResizeObserver | null>(null);
 
 // Find index based on activeTab
-const selectedIndex = ref(
-    items.value.findIndex(item => item.id === props.activeTab)
+const selectedIndex = computed(
+    () => items.value.findIndex(item => item.id === props.activeTab)
 );
 
 // Watch for external tab changes
-watch(() => props.activeTab, (newTab) => {
-  const index = items.value.findIndex(item => item.id === newTab);
-  if (index !== -1) {
-    selectedIndex.value = index;
-    nextTick(() => {
-      scrollToActive();
-    });
-  }
+watch(() => props.activeTab, () => {
+  nextTick(() => scrollToActive());
 });
 
 // -- Computed Styles --
