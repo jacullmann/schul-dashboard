@@ -226,7 +226,7 @@ router.beforeEach(async (to, from, next) => {
     }
 
     // Redirect authenticated users away from welcome
-    if (to.path === '/welcome' && isAuthenticated.value) {
+    if (to.path.startsWith('/welcome') && isAuthenticated.value) {
         finish();
         return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/HAUSAUFGABE` : '/home', replace: true });
     }

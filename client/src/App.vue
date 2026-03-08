@@ -85,11 +85,18 @@ function handleCsrfRefreshFailed() {
   console.error('CSRF refresh failed - redirecting to welcome');
 
   setTimeout(() => {
-    router.push('/welcome').finally(() => {
+    const currentPath = router.currentRoute.value.path;
+    if (!currentPath.startsWith('/welcome')) {
+      router.push('/welcome').finally(() => {
+        setTimeout(() => {
+          csrfRedirectInProgress = false;
+        }, 1000);
+      });
+    } else {
       setTimeout(() => {
         csrfRedirectInProgress = false;
       }, 1000);
-    });
+    }
   }, 100);
 }
 
