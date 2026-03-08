@@ -30,7 +30,7 @@ export function useAppAuth() {
     async function checkAuthStatus() {
         try {
             const { data } = await hw.get(STATUS_ENDPOINT);
-            isLoggedIn.value = (data.groups && data.groups.length > 0) || data.authenticated === true;
+            isLoggedIn.value = data.authenticated === true;
             isAuthenticated.value = data.authenticated === true;
             groupName.value = data.group?.name ?? null;
             activeGroupId.value = data.group?.id ?? null;

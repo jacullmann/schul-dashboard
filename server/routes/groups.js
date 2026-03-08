@@ -190,7 +190,7 @@ export default function createGroupRoutes(deps) {
                 const activeGroup = groups.find(g => g.id === req.activeGroupId);
 
                 res.json({
-                    authenticated: !!req.activeGroupId,
+                    authenticated: true,
                     group: activeGroup
                         ? { id: activeGroup.id, name: activeGroup.name }
                         : null,
