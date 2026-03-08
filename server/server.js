@@ -99,5 +99,4 @@ registerDocSocket(io, supabase, {
 });
 
 app.get('/health', (req, res) => res.json({ ok: true }));
-
 httpServer.listen(PORT, () => console.log(`Backend läuft nun auf: ${PORT} | Version 1.0.0 = ${VERSION}`));
