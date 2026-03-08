@@ -250,7 +250,7 @@ export function useHausaufgaben() {
 
         if (highlightedItemId.value && route.params.itemId) {
             router.replace({
-                name: 'items',
+                name: 'group-items',
                 params: { ...route.params, itemId: '' },
             });
         }
@@ -260,7 +260,7 @@ export function useHausaufgaben() {
     watch(subjectFilter, () => {
         if (highlightedItemId.value && route.params.itemId) {
             router.replace({
-                name: 'items',
+                name: 'group-items',
                 params: { ...route.params, itemId: '' },
             });
         }
