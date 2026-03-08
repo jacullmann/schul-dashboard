@@ -25,5 +25,7 @@ jobs:
             git reset --hard origin/main
             cd server || exit 1
             npm ci
-            pm2 reload schul-dashboard-server --update-env
+            npm run build
+            pm2 restart schul-dashboard-server --update-env
+            pm2 save
             sudo caddy reload --config /etc/caddy/Caddyfile
