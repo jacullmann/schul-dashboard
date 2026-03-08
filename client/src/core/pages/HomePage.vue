@@ -289,13 +289,12 @@ onMounted(() => {
 }
 
 .group-card:hover {
-  background: var(--lbg);
-  border-color: var(--border);
+  background: var(--gg);
 }
 
 .group-card.active {
   border-color: var(--text);
-  background: var(--lbg);
+  background: var(--text);
 }
 
 .group-card-icon {
@@ -311,7 +310,8 @@ onMounted(() => {
 }
 
 .group-card.active .group-card-icon {
-  color: var(--text);
+  color: var(--bg);
+  background: var(--text);
 }
 
 .group-card-body {
@@ -331,9 +331,17 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.group-card.active .group-card-name {
+  color: var(--bg);
+}
+
 .group-card-meta {
   font-size: var(--font-size-sub);
   color: var(--sub);
+}
+
+.group-card.active .group-card-meta {
+  color: var(--gg);
 }
 
 .group-card-role {

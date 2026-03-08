@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
 
 .fade-scale-enter-active .info-modal-content,
 .fade-scale-leave-active .info-modal-content {
-  transition: all 0.2s ease-out;
+  transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .fade-scale-enter-from .info-modal-content,

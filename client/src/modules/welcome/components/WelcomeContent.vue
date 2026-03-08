@@ -181,7 +181,7 @@ function navigateToAuth() {
   min-height: 30px;
   display: flex;
   border: 1px solid transparent;
-  background: linear-gradient(var(--gg) 0%, transparent 100%) border-box;
+  background: linear-gradient(var(--border2) 0%, transparent 100%) border-box;
   -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
