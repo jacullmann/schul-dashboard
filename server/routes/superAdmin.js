@@ -93,13 +93,18 @@ export default function createSuperAdminRoutes(deps) {
             });
 
             if (publicIdsToDelete.length > 0) {
+                const batches = [];
                 for (let i = 0; i < publicIdsToDelete.length; i += 100) {
+                    batches.push(publicIdsToDelete.slice(i, i + 100));
+                }
+
+                await Promise.all(batches.map(async (batch) => {
                     try {
-                        await cloudinary.api.delete_resources(publicIdsToDelete.slice(i, i + 100));
+                        await cloudinary.api.delete_resources(batch);
                     } catch (e) {
                         console.error('Cloudinary batch delete error:', e);
                     }
-                }
+                }));
             }
 
             await db.deleteItemsOlderThan(supabase, req.tenantId, ninetyDaysAgo);
