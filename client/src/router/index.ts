@@ -226,7 +226,7 @@ router.beforeEach(async (to, from, next) => {
     }
 
     // Redirect authenticated users away from welcome
-    if (to.path.startsWith('/welcome') && isAuthenticated.value) {
+    if (to.path.startsWith('/welcome') && isLoggedIn.value) {
         finish();
         return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/HAUSAUFGABE` : '/home', replace: true });
     }
@@ -240,7 +240,7 @@ router.beforeEach(async (to, from, next) => {
 
     // Ensure user store is initialized
     const userStore = useUserStore();
-    if (isAuthenticated.value && !isPublicRoute && !userStore.initialized) {
+    if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
         try { await userStore.fetchUser(); } catch {}
     }
 
