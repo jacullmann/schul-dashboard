@@ -162,7 +162,7 @@ export default function createSuperAdminRoutes(deps) {
             res.json(users.map(u => ({
                 id: u.id,
                 email: u.email,
-                role: u.user_roles?.[0]?.roles?.name || 'user',
+                role: u.user_roles?.find(ur => !ur.tenant_id)?.roles?.name || 'user',
                 emailVerified: u.email_verified,
                 createdAt: u.created_at,
                 lastLoginAt: u.last_login_at,
@@ -192,7 +192,7 @@ export default function createSuperAdminRoutes(deps) {
         try {
             const target = await db.findUserById(supabase, req.params.id, 'id, user_roles(roles(name))');
             if (!target) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
-            if (target.user_roles?.[0]?.roles?.name === 'superadmin') return sendJSONError(res, 400, 'Admins können nicht gesperrt werden.');
+            if (target.user_roles?.some(ur => ur.roles?.name === 'superadmin')) return sendJSONError(res, 400, 'Admins können nicht gesperrt werden.');
             await db.banUser(supabase, target.id);
             await db.logActivity(supabase, req.user.sub, 'admin:ban:user', { targetUserId: target.id });
             res.json({ ok: true, isBanned: true });
@@ -215,7 +215,7 @@ export default function createSuperAdminRoutes(deps) {
         try {
             const target = await db.findUserById(supabase, req.params.id, 'id, user_roles(roles(name))');
             if (!target) return sendJSONError(res, 404, 'Benutzer nicht gefunden');
-            if (target.user_roles?.[0]?.roles?.name === 'superadmin') return sendJSONError(res, 403, 'Admins können nicht gelöscht werden');
+            if (target.user_roles?.some(ur => ur.roles?.name === 'superadmin')) return sendJSONError(res, 403, 'Admins können nicht gelöscht werden');
             await db.deleteUser(supabase, req.params.id);
             res.json({ ok: true });
         } catch (err) {

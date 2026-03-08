@@ -22,6 +22,10 @@ export function validateCsrf() {
             return res.status(403).json({ error: 'CSRF-Token fehlt' });
         }
 
+        if (typeof cookieToken !== 'string' || typeof headerToken !== 'string') {
+            return res.status(403).json({ error: 'Ungültiges CSRF-Token Format' });
+        }
+
         // Timing-safe comparison using fixed-length hashes to prevent length-based side-channel attacks.
         // We hash both tokens and compare the hashes to ensure the comparison always takes the same
         // amount of time regardless of the actual token lengths.

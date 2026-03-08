@@ -60,10 +60,11 @@ export function useAppAuth() {
 
         initPromise = (async () => {
             let csrfInitialized = false;
+            const baseUrl = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_HW_API_BASE : '';
             for (let attempt = 1; attempt <= MAX_CSRF_RETRIES; attempt++) {
                 try {
                     const { data } = await axios.get(
-                        `${import.meta.env.VITE_HW_API_BASE || ''}/api/csrf/init`,
+                        `${baseUrl || ''}/api/csrf/init`,
                         { withCredentials: true },
                     );
                     if (data.csrfToken) {
