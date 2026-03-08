@@ -75,8 +75,8 @@ app.use(rateLimit({
     legacyHeaders: false
 }));
 
-if (!process.env.USER_JWT_SECRET || !process.env.PASSWORD_RESET_SECRET) {
-    console.error('FEHLER: USER_JWT_SECRET und PASSWORD_RESET_SECRET müssen gesetzt sein!');
+if (!process.env.USER_JWT_SECRET || !process.env.PASSWORD_RESET_JWT_SECRET) {
+    console.error('FEHLER: USER_JWT_SECRET und PASSWORD_RESET_JWT_SECRET müssen gesetzt sein!');
     process.exit(1);
 }
 if (!process.env.ENCRYPTION_KEY) {
@@ -84,10 +84,10 @@ if (!process.env.ENCRYPTION_KEY) {
     process.exit(1);
 }
 
-let mfaPendingSecret = process.env.MFA_PENDING_SECRET;
-if (!mfaPendingSecret) {
-    mfaPendingSecret = process.env.USER_JWT_SECRET + '_mfa_pending';
-    console.warn('WARN: MFA_PENDING_SECRET nicht gesetzt. Fällt zurück auf USER_JWT_SECRET abgeleitetes Geheimnis.');
+const mfaPendingSecret = process.env.MFA_PENDING_JWT_SECRET;
+if (!process.env.MFA_PENDING_JWT_SECRET) {
+    console.error('FEHLER: MFA_PENDING_JWT_SECRET muss gesetzt sein!');
+    process.exit(1);
 }
 
 routes(app, {
@@ -97,7 +97,7 @@ routes(app, {
     emailConfigured: !!RESEND_API_KEY,
     emailFrom: EMAIL_FROM,
     authSecret: process.env.USER_JWT_SECRET,
-    passwordResetSecret: process.env.PASSWORD_RESET_SECRET,
+    passwordResetSecret: process.env.PASSWORD_RESET_JWT_SECRET,
     mfaPendingSecret: mfaPendingSecret
 });
 
