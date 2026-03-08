@@ -27,8 +27,9 @@ export function useDeleteAccount(emit: {
                 errorMsg.value = err;
                 emit('error', err);
             }
-        } catch (e: any) {
-            const msg = e?.response?.data?.error || t('global.errors.delete');
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            const msg = err?.response?.data?.error || t('global.errors.delete');
             errorMsg.value = msg;
             emit('error', msg);
         } finally {

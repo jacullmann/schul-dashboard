@@ -147,8 +147,9 @@ async function onPrimary() {
       await hw.post('/api/auth/forgot', { email: email.value });
       setMessage('Wenn die E-Mail existiert, wurde ein Code versendet.', false);
       step.value = 2;
-    } catch (e:any) {
-      setMessage(e?.response?.data?.error || 'Fehler beim Anfordern des Codes.', true);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } } };
+      setMessage(err?.response?.data?.error || 'Fehler beim Anfordern des Codes.', true);
     } finally { submitting.value = false; }
   } else if (step.value === 2) {
     if (!code.value || code.value.trim().length !== 6) {
@@ -161,8 +162,9 @@ async function onPrimary() {
       savedResetToken = data.resetToken;
       setMessage('Code bestätigt. Bitte neues Passwort eingeben.', false);
       step.value = 3;
-    } catch (e:any) {
-      setMessage(e?.response?.data?.error || 'Ungültiger oder abgelaufener Code.', true);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } } };
+      setMessage(err?.response?.data?.error || 'Ungültiger oder abgelaufener Code.', true);
     } finally { submitting.value = false; }
   } else if (step.value === 3) {
     if (!password.value || password.value.length < 8) {
@@ -186,8 +188,9 @@ async function onPrimary() {
       setMessage(msg, false);
       emit('success');
       setTimeout(() => emit('close'), 800);
-    } catch (e:any) {
-      setMessage(e?.response?.data?.error || 'Fehler beim Zurücksetzen des Passworts.', true);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } } };
+      setMessage(err?.response?.data?.error || 'Fehler beim Zurücksetzen des Passworts.', true);
     } finally { submitting.value = false; }
   }
 }

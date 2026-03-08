@@ -58,7 +58,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const props = defineProps<{
   visible: boolean;
-  images: Array<{ url?: string; [key: string]: any }>;
+  images: Array<{ url?: string; [key: string]: unknown }>;
   initialIndex: number;
 }>();
 

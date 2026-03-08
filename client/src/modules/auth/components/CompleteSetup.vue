@@ -151,9 +151,10 @@ async function submitData(dataToSend: Record<string, string | number | null>) {
     emit('update:user', data.user);
     emit('success');
     emit('close');
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Setup failed:', e);
-    error.value = e.response?.data?.error || 'Speichern fehlgeschlagen.';
+    const err = e as { response?: { data?: { error?: string } } };
+    error.value = err.response?.data?.error || 'Speichern fehlgeschlagen.';
   } finally {
     submitting.value = false;
     skipping.value = false;

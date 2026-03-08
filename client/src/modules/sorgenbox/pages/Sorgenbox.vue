@@ -173,8 +173,9 @@ async function onSubmit() {
     message.value = '';
 
     startCooldown();
-  } catch (e: any) {
-    if (e.response?.data?.error?.includes('maximal 5000 Zeichen')) {
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { error?: string } } };
+    if (err.response?.data?.error?.includes('maximal 5000 Zeichen')) {
       feedback.value = t('tools.worrybox.errors.messageLong');
     } else {
       feedback.value = t('tools.worrybox.errors.failed');

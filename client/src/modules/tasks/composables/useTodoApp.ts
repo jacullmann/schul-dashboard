@@ -104,9 +104,10 @@ export function useTodoApp() {
                     updatedAt: todo.updatedAt
                 };
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             todo.completed = previousState;
-            showMessage(error.response?.data?.error || t('global.errors.update'), true);
+            const err = error as { response?: { data?: { error?: string } } };
+            showMessage(err.response?.data?.error || t('global.errors.update'), true);
         }
     }
 
@@ -124,8 +125,9 @@ export function useTodoApp() {
             const { data } = await hw.post('/api/todos', duplicateData);
             addTodo(data);
             showMessage(t('school.private.successDuplicate'));
-        } catch (error: any) {
-            showMessage(error.response?.data?.error || t('school.private.errorDuplicate'), true);
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { error?: string } } };
+            showMessage(err.response?.data?.error || t('school.private.errorDuplicate'), true);
         } finally {
             loading.value = false;
         }
@@ -141,9 +143,10 @@ export function useTodoApp() {
             await hw.delete(`/api/todos/${id}`);
             displayTodos.value = sortDisplayList(todos.value);
             showMessage(t('school.private.successDelete'));
-        } catch (error: any) {
+        } catch (error: unknown) {
             todos.value.splice(todoIndex, 0, deletedTodo);
-            showMessage(error.response?.data?.error || t('global.errors.delete'), true);
+            const err = error as { response?: { data?: { error?: string } } };
+            showMessage(err.response?.data?.error || t('global.errors.delete'), true);
         }
     }
 
@@ -175,9 +178,10 @@ export function useTodoApp() {
                 todos.value[updatedIndex] = { ...currentTodo, position: data.position, updatedAt: data.updatedAt };
                 displayTodos.value = sortDisplayList(todos.value);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             loadTodos(); // Bei Fehler neu laden
-            showMessage(error.response?.data?.error || t('global.errors.update'), true);
+            const err = error as { response?: { data?: { error?: string } } };
+            showMessage(err.response?.data?.error || t('global.errors.update'), true);
         }
     }
 

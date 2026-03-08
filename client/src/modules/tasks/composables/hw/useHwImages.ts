@@ -2,9 +2,11 @@ import { ref, reactive } from 'vue';
 import type { Ref } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
 
+import type { ImageUploadReturn } from '@/modules/tasks/composables/useImageUpload'; // Let's define it as a generic return type locally if needed or just use `unknown`
+
 export function useHwImages(
-    user: Ref<any>,
-    imageUpload: any,
+    user: Ref<Record<string, unknown> | null>,
+    imageUpload: ReturnType<typeof import('@/modules/tasks/composables/useImageUpload').useImageUpload>,
     refreshItem: (itemId: string, onUpdate?: (item: HwItem) => void) => Promise<void>,
     flashMessage: (text: string, error?: boolean, durationMs?: number) => void
 ) {
@@ -17,7 +19,7 @@ export function useHwImages(
         x: 0,
         y: 0,
         item: null as HwItem | null,
-        image: null as any | null,
+        image: null as Record<string, unknown> | null,
     });
 
     const showImageDeleteConfirm = ref(false);
@@ -38,14 +40,14 @@ export function useHwImages(
         }, 300);
     }
 
-    function handleImageContextMenu(event: MouseEvent, item: any, img: any) {
+    function handleImageContextMenu(event: MouseEvent, item: HwItem, img: Record<string, unknown>) {
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
             navigator.vibrate(50);
         }
         openImageMenu(event, item, img);
     }
 
-    function openImageMenu(event: MouseEvent, item: HwItem, img: any) {
+    function openImageMenu(event: MouseEvent, item: HwItem, img: Record<string, unknown>) {
         if (!user.value) return;
         imageMenu.item = item;
         imageMenu.image = img;

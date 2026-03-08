@@ -21,8 +21,9 @@ export function useMfa() {
             const { data } = await hw.get<MfaStatusResponse>('/api/mfa/status');
             mfaEnabled.value = data.mfaEnabled;
             return data.mfaEnabled;
-        } catch (err: any) {
-            mfaError.value = err.response?.data?.error || 'Fehler beim Abrufen des MFA-Status';
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { error?: string } } };
+            mfaError.value = e.response?.data?.error || 'Fehler beim Abrufen des MFA-Status';
             return false;
         } finally {
             mfaLoading.value = false;
@@ -37,8 +38,9 @@ export function useMfa() {
         try {
             const { data } = await hw.post<MfaSetupResponse>('/api/mfa/setup');
             return data;
-        } catch (err: any) {
-            mfaError.value = err.response?.data?.error || 'Fehler beim Starten des MFA-Setups';
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { error?: string } } };
+            mfaError.value = e.response?.data?.error || 'Fehler beim Starten des MFA-Setups';
             return null;
         } finally {
             mfaLoading.value = false;
@@ -54,8 +56,9 @@ export function useMfa() {
             await hw.post('/api/mfa/activate', { code });
             mfaEnabled.value = true;
             return { ok: true };
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.error || 'Authentifizierung fehlgeschlagen';
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { error?: string } } };
+            const errorMsg = e.response?.data?.error || 'Authentifizierung fehlgeschlagen';
             mfaError.value = errorMsg;
             return { ok: false, error: errorMsg };
         } finally {
@@ -72,8 +75,9 @@ export function useMfa() {
             await hw.post('/api/mfa/deactivate', { code });
             mfaEnabled.value = false;
             return { ok: true };
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.error || 'Authentifizierung fehlgeschlagen';
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { error?: string } } };
+            const errorMsg = e.response?.data?.error || 'Authentifizierung fehlgeschlagen';
             mfaError.value = errorMsg;
             return { ok: false, error: errorMsg };
         } finally {
@@ -89,8 +93,9 @@ export function useMfa() {
         try {
             const { data } = await hw.post('/api/auth/mfa/verify', { code });
             return { ok: true, csrfToken: data.csrfToken };
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.error || 'Authentifizierung fehlgeschlagen';
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { error?: string } } };
+            const errorMsg = e.response?.data?.error || 'Authentifizierung fehlgeschlagen';
             mfaError.value = errorMsg;
             return { ok: false, error: errorMsg };
         } finally {

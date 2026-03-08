@@ -4,7 +4,7 @@ import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 
 export function useHwActions(
-    user: Ref<any>,
+    user: Ref<Record<string, unknown> | null>,
     checkedItems: Ref<Set<string>>,
     pinnedItems: Ref<Set<string>>,
     archivedItems: Ref<Set<string>>,
@@ -186,8 +186,9 @@ export function useHwActions(
             showDeleteConfirm.value = false;
             itemToDelete.value = null;
             handleSuccessAction('Eintrag gelöscht.');
-        } catch (e: any) {
-            flashMessage(e.response?.data?.error || 'Fehler beim Löschen.', true);
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            flashMessage(err.response?.data?.error || 'Fehler beim Löschen.', true);
         } finally {
             deletingEntry.value = false;
         }
@@ -214,8 +215,9 @@ export function useHwActions(
                 reason,
             });
             flashMessage('Eintrag gemeldet.', false, 7000);
-        } catch (e: any) {
-            flashMessage('Fehler beim Melden: ' + (e.response?.data?.error || ''), true, 7000);
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { error?: string } } };
+            flashMessage('Fehler beim Melden: ' + (err.response?.data?.error || ''), true, 7000);
         }
     }
 

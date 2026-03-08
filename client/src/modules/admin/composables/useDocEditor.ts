@@ -14,10 +14,10 @@ export interface DocEditorState {
 }
 
 // Update this function
-function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay: number) {
     let timer: ReturnType<typeof setTimeout> | null = null;
 
-    const debounced = (...args: any[]) => {
+    const debounced = (...args: unknown[]) => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => fn(...args), delay);
     };
@@ -201,8 +201,9 @@ export function useDocEditor() {
             const { data } = await hw.post('/api/doc/save');
             docVersion.value = data.version;
             localVersion = data.version;
-        } catch (err: any) {
-            saveError.value = err.response?.data?.error ?? 'Fehler beim Speichern';
+        } catch (err: unknown) {
+            const e = err as { response?: { data?: { error?: string } } };
+            saveError.value = e.response?.data?.error ?? 'Fehler beim Speichern';
         } finally {
             isSaving.value = false;
         }

@@ -79,8 +79,9 @@ async function submit() {
     message.value = 'Ankündigung erfolgreich angelegt.';
     isError.value = false;
     emit('success');
-  } catch (e: any) {
-    message.value = e.response?.data?.error || 'Fehler beim Anlegen.';
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { error?: string } } };
+    message.value = err.response?.data?.error || 'Fehler beim Anlegen.';
     isError.value = true;
   } finally {
     submitting.value = false;

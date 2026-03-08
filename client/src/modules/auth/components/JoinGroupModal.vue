@@ -130,8 +130,9 @@ async function submit() {
     } else {
       errorMsg.value = res.error || 'Zugriff verweigert. Code prüfen.';
     }
-  } catch (err: any) {
-    errorMsg.value = err.message || 'Verbindungsfehler';
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    errorMsg.value = e.message || 'Verbindungsfehler';
   } finally {
     submitting.value = false;
   }

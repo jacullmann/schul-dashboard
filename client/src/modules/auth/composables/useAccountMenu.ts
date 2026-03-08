@@ -14,9 +14,11 @@ function getColorIndexFromEmail(email: string): number {
     return charCode % AVATAR_COLORS.length;
 }
 
+import type { SetupContext } from 'vue';
+
 export function useAccountMenu(
-    props: { email: string; userData: any },
-    emit: any,
+    props: { email: string; userData: Record<string, unknown> | null },
+    emit: SetupContext['emit'],
     refs: {
         root: Ref<HTMLElement | null>;
         popupInner: Ref<HTMLElement | null>;

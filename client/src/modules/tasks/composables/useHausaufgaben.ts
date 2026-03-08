@@ -215,7 +215,7 @@ export function useHausaufgaben() {
         if (action === 'report') return reportItem(item);
     }
 
-    function onSetupSuccess(updatedUser: any) {
+    function onSetupSuccess(updatedUser: Record<string, unknown>) {
         user.value = { ...user.value, ...updatedUser };
         showSetupModal.value = false;
     }

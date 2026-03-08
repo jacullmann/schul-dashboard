@@ -30,8 +30,9 @@ export function useAnnouncements() {
             try {
                 await hw.delete(`/api/timetable/announcements/${id}`);
                 await loadAnnouncements();
-            } catch (e: any) {
-                alert(e.response?.data?.error || 'Fehler beim Löschen.');
+            } catch (e: unknown) {
+                const err = e as { response?: { data?: { error?: string } } };
+                alert(err.response?.data?.error || 'Fehler beim Löschen.');
             }
         }
     }

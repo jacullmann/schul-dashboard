@@ -129,9 +129,10 @@ export function useImageUpload() {
                                 // Add the returned image (with correct createdBy + dynamically built URLs) to local state
                                 images.value.push(data.image);
                                 uploadError.value = '';
-                            } catch (e: any) {
+                            } catch (e: unknown) {
                                 console.error('Failed to save image to item:', e);
-                                uploadError.value = e.response?.data?.error || 'Speichern fehlgeschlagen.';
+                                const err = e as { response?: { data?: { error?: string } } };
+                                uploadError.value = err.response?.data?.error || 'Speichern fehlgeschlagen.';
                             }
                         } else {
                             // Creating a new item: add to local state with preview URLs
@@ -147,7 +148,7 @@ export function useImageUpload() {
                         console.error('Cloudinary Upload failed', json);
                         uploadError.value = 'Upload zu Cloudinary fehlgeschlagen.';
                     }
-                } catch (e: any) {
+                } catch (e: unknown) {
                     console.error('uploadImage error', e);
                     uploadError.value = 'Fehler beim Upload.';
                 }
@@ -176,7 +177,7 @@ export function useImageUpload() {
                 uploadError.value = 'Bild erfolgreich gelöscht.';
                 setTimeout(() => uploadError.value = '', 3000);
 
-            } catch (e: any) {
+            } catch (e: unknown) {
                 console.error('Fehler beim Löschen des Bildes:', e);
                 uploadError.value = 'Fehler beim Löschen des Bildes.';
             }
