@@ -113,7 +113,7 @@ export default function createAuthRoutes(deps) {
                 const userId = req.mfaPending.sub;
                 const email = req.mfaPending.email;
 
-                const user = await db.findUserById(supabase, userId, 'id, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)');
+                const user = await db.findUserById(supabase, userId, 'id, email, mfa_enabled, mfa_secret, user_roles(roles(name), tenant_id)');
 
                 if (!user || !user.mfa_enabled || !user.mfa_secret) {
                     clearMfaPendingToken(res);
