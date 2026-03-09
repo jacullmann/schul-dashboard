@@ -32,7 +32,7 @@ export function generateMfaPendingToken(
     httpOnly: true,
     secure: true,
     path: '/',
-    sameSite: 'none',
+    sameSite: 'None',
     maxAge: 5 * 60 * 1000,
   });
 
@@ -45,7 +45,7 @@ export function clearMfaPendingToken(res: Response): void {
     httpOnly: true,
     secure: true,
     path: '/',
-    sameSite: 'none',
+    sameSite: 'None',
   });
 }
 

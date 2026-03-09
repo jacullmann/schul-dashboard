@@ -44,7 +44,7 @@ export function setAuthToken(
     httpOnly: true,
     secure: true,
     path: '/',
-    sameSite: 'none',
+    sameSite: 'None',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -56,7 +56,7 @@ export function clearAuthToken(res: Response): void {
     httpOnly: true,
     secure: true,
     path: '/',
-    sameSite: 'none',
+    sameSite: 'None',
   });
 }
 

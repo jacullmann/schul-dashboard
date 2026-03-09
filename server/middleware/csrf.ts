@@ -61,7 +61,7 @@ export function setCsrfCookie(res: Response, token: string): void {
     httpOnly: false,
     secure: true,
     path: '/',
-    sameSite: 'none',
+    sameSite: 'None',
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 }
@@ -71,7 +71,7 @@ export function clearCsrfCookie(res: Response): void {
     httpOnly: false,
     secure: true,
     path: '/',
-    sameSite: 'none',
+    sameSite: 'None',
   });
 }
 
