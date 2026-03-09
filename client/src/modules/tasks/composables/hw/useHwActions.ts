@@ -157,12 +157,14 @@ export function useHwActions(
 
     function canDelete(createdBy: string) {
         if (!user.value) return false;
-        return user.value.role === 'superadmin' || user.value.id === createdBy;
+        const u = user.value as any;
+        return u.role === 'superadmin' || u.tenantRole === 'admin' || u.tenantRole === 'moderator' || u.id === createdBy;
     }
 
-    function canDeleteImage(itemCreatedBy: string, imageCreatedBy: string) {
+    function canDeleteImage(itemCreatedBy: string | undefined, imageCreatedBy: string | undefined) {
         if (!user.value) return false;
-        return user.value.role === 'superadmin' || user.value.id === imageCreatedBy || user.value.id === itemCreatedBy;
+        const u = user.value as any;
+        return u.role === 'superadmin' || u.tenantRole === 'admin' || u.tenantRole === 'moderator' || u.id === imageCreatedBy || u.id === itemCreatedBy;
     }
 
     function deleteItem(id: string) {

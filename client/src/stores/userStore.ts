@@ -31,7 +31,7 @@ export const useUserStore = defineStore('user', () => {
     const isGroupAdmin = computed(() =>
         user.value?.role === 'superadmin' ||
         user.value?.tenantRole === 'admin' ||
-        user.value?.tenantRole === 'mod'
+        user.value?.tenantRole === 'moderator'
     );
 
     async function fetchUser(): Promise<void> {

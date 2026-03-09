@@ -21,8 +21,8 @@ export default function createGroupAdminRoutes(deps: RouteDeps): Router {
     validate,
   } = deps;
 
-  // admin or mod of the active tenant
-  const ga = [requireAuth(authSecret, supabase, ['admin', 'mod'])];
+  // admin or moderator of the active tenant
+  const ga = [requireAuth(authSecret, supabase, ['admin', 'moderator'])];
 
   // ─── Stats ──────────────────────────────────────────────────────
   router.get('/stats', ...ga, async (req: Request, res: Response) => {

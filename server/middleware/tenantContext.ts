@@ -28,20 +28,24 @@ export function requireTenant(supabase: Supabase) {
       return;
     }
 
-    // Check membership
+    // Check membership and fetch role
     const { data: membership } = await supabase
       .from('user_roles')
-      .select('id')
+      .select('roles(name)')
       .eq('user_id', req.userId!)
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!membership) {
+    const roleData = membership as any;
+    const roleName = roleData?.roles?.name;
+
+    if (!membership || !roleName) {
       res.status(403).json({ error: 'Kein Zugriff auf diesen Tenant' });
       return;
     }
 
     req.tenantId = tenantId;
+    req.tenantRole = roleName;
     next();
   };
 }

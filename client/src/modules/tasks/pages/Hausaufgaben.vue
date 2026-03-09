@@ -77,7 +77,7 @@
         <template #badges>
           <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
           <div
-            v-if="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'mod'"
+            v-if="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"
             class="admin-creator-info"
           >
             {{ item.createdByName || 'Unbekannt' }}<span v-if="user?.role === 'superadmin'" class="creator-email"> ({{ item.createdByEmail }})</span>
@@ -250,7 +250,7 @@
 
     <TodoForm
         v-if="showTodoForm"
-        :initial="todoToEdit"
+        :initial="todoToEdit || undefined"
         @cancel="showTodoForm=false"
         @success="(data) => handleTodoSuccess(
         todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.',

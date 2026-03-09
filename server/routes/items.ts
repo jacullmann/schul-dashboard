@@ -297,7 +297,8 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
           return;
         }
         const isSuperadmin = req.user!.globalRole === 'superadmin';
-        if (!isSuperadmin && item.created_by !== req.userId) {
+        const isGroupAdmin = req.tenantRole === 'admin' || req.tenantRole === 'moderator';
+        if (!isSuperadmin && !isGroupAdmin && item.created_by !== req.userId) {
           sendJSONError(res, 403, 'Nicht autorisiert.');
           return;
         }
@@ -324,10 +325,10 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
     },
   );
 
-  // PATCH /api/items/:id/note (admin/mod only)
+  // PATCH /api/items/:id/note (admin/moderator only)
   router.patch(
     '/:id/note',
-    requireAuth(authSecret, supabase, ['admin', 'mod']),
+    requireAuth(authSecret, supabase, ['admin', 'moderator']),
     validateCsrf(),
     param('id').isUUID(),
     body('editorNote').isString().isLength({ max: 2000 }),
@@ -450,9 +451,10 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
 
         const image = images[idx]!;
         const isSuperadmin = req.user!.globalRole === 'superadmin';
+        const isGroupAdmin = req.tenantRole === 'admin' || req.tenantRole === 'moderator';
         const isImageOwner = image.createdBy === req.userId;
         const isItemOwner = item.created_by === req.userId;
-        if (!isSuperadmin && !isImageOwner && !isItemOwner) {
+        if (!isSuperadmin && !isGroupAdmin && !isImageOwner && !isItemOwner) {
           sendJSONError(res, 403, 'Nicht autorisiert.');
           return;
         }

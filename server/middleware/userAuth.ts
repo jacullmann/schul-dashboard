@@ -44,7 +44,7 @@ export function setAuthToken(
     httpOnly: true,
     secure: true,
     path: '/',
-    sameSite: 'None',
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -56,7 +56,7 @@ export function clearAuthToken(res: Response): void {
     httpOnly: true,
     secure: true,
     path: '/',
-    sameSite: 'None',
+    sameSite: 'none',
   });
 }
 
@@ -66,7 +66,7 @@ export function clearAuthToken(res: Response): void {
  * Usage:
  *   requireAuth(secret, supabase)                    → any authenticated, non-banned user
  *   requireAuth(secret, supabase, 'superadmin')      → global superadmin only
- *   requireAuth(secret, supabase, ['admin', 'mod'])   → tenant-scoped role check (requires x-tenant-id)
+ *   requireAuth(secret, supabase, ['admin', 'moderator'])   → tenant-scoped role check (requires x-tenant-id)
  *
  * Populates: req.user, req.userId, req.activeGroupId
  */
