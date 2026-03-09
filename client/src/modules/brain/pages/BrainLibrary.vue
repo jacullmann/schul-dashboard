@@ -38,13 +38,19 @@
 </template>
 
 <script setup lang="ts">
-import { icons } from 'lucide-vue-next';
+import { Brain, Zap, Eye } from 'lucide-vue-next';
 import { useBrainTests } from '../composables/useBrainTests';
 
 const { brainTests, getScore } = useBrainTests();
 
+const iconMap = {
+  Brain,
+  Zap,
+  Eye
+};
+
 function getIcon(name: string) {
-  return icons[name as keyof typeof icons] || icons.Brain;
+  return (iconMap as any)[name] || Brain;
 }
 </script>
 

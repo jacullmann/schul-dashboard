@@ -23,7 +23,9 @@
            <input 
              ref="inputRef"
              v-model="userInput" 
-             type="number" 
+             type="text" 
+             inputmode="numeric"
+             pattern="[0-9]*"
              class="number-input input" 
              placeholder="Zahl eingeben..."
              autofocus
@@ -79,7 +81,7 @@ const showingTime = computed(() => {
 });
 
 const isCorrect = computed(() => {
-    return userInput.value === currentNumber.value;
+    return String(userInput.value).trim() === String(currentNumber.value).trim();
 });
 
 function generateNumber(length: number) {
