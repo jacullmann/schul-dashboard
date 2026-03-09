@@ -20,6 +20,9 @@
           <router-link to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
           <router-link to="/update-history" class="footer-link">Update History</router-link>
           <router-link to="/info-dashboard" class="footer-link">Info Dashboard</router-link>
+          <router-link to="/spiele" class="footer-link">Spiele</router-link>
+          <router-link to="/brain" class="footer-link">Brain-Tests</router-link>
+          <router-link to="/imagetool" class="footer-link">Bildkonvertierungstool</router-link>
         </div>
 
         <div class="footer-section">

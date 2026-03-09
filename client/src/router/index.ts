@@ -49,12 +49,6 @@ const routes = [
                 meta: { title: 'Kürzelfinder' },
             },
             {
-                path: 'ai-detector',
-                name: 'ai-detector',
-                component: () => import('@/modules/tools/pages/AiDetectorPage.vue'),
-                meta: { title: 'AI Detektor', fullWidth: true },
-            },
-            {
                 path: 'sorgenbox',
                 name: 'sorgenbox',
                 component: () => import('@/modules/sorgenbox/pages/Sorgenbox.vue'),
@@ -166,29 +160,6 @@ const routes = [
             return '/home';
         }},
     { path: '/stundenplan', redirect: '/home' },
-
-    // ─── Kanye Easter Egg ───────────────────────────────────────────
-    {
-        path: '/kanye',
-        name: 'kanye',
-        component: () => import('@/layouts/KanyeLayout.vue'),
-        meta: { title: 'Kanye', fullWidth: true },
-        children: [
-            { path: 'graduation', name: 'kanye-graduation', component: () => import('@/modules/kanye/pages/Graduation.vue'), meta: { title: 'Graduation', fullWidth: true } },
-            { path: 'late-registration', name: 'kanye-late-registration', component: () => import('@/modules/kanye/pages/LateRegistration.vue'), meta: { title: 'Late Registration', fullWidth: true } },
-            { path: 'twisted-fantasy', name: 'kanye-twisted-fantasy', component: () => import('@/modules/kanye/pages/TwistedFantasy.vue'), meta: { title: 'Twisted Fantasy', fullWidth: true } },
-            { path: 'ye', name: 'kanye-ye', component: () => import('@/modules/kanye/pages/Ye.vue'), meta: { title: 'Ye', fullWidth: true } },
-            { path: 'yeezus', name: 'kanye-yeezus', component: () => import('@/modules/kanye/pages/Yeezus.vue'), meta: { title: 'Yeezus', fullWidth: true } },
-            { path: 'the-college-droupout', name: 'kanye-college-dropout', component: () => import('@/modules/kanye/pages/CollegeDropout.vue'), meta: { title: 'The College Dropout', fullWidth: true } },
-            { path: '808s-and-heartbreak', name: 'kanye-808s-and-heartbreak', component: () => import('@/modules/kanye/pages/808sAndHeartbreak.vue'), meta: { title: '808s & Heartbreak', fullWidth: true } },
-            { path: 'watch-the-throne', name: 'kanye-watch-the-throne', component: () => import('@/modules/kanye/pages/WatchTheThrone.vue'), meta: { title: 'Watch The Throne', fullWidth: true } },
-            { path: 'life-of-pablo', name: 'kanye-life-of-pablo', component: () => import('@/modules/kanye/pages/LifeOfPablo.vue'), meta: { title: 'The Life Of Pablo', fullWidth: true } },
-            { path: 'kids-see-ghosts', name: 'kanye-kids-see-ghosts', component: () => import('@/modules/kanye/pages/KidsSeeGhosts.vue'), meta: { title: 'KIDS SEE GHOSTS', fullWidth: true } },
-            { path: 'jesus-is-king', name: 'kanye-jesus-is-king', component: () => import('@/modules/kanye/pages/JesusIsKing.vue'), meta: { title: 'Jesus Is King', fullWidth: true } },
-            { path: 'donda', name: 'kanye-donda', component: () => import('@/modules/kanye/pages/Donda.vue'), meta: { title: 'Donda', fullWidth: true } },
-        ],
-    },
-    { path: '/goat', redirect: '/kanye' },
 
     // ─── 404 ────────────────────────────────────────────────────────
     {
