@@ -5,7 +5,7 @@
       <div class="welcome-content">
         <div class="welcome-text">
           <h1 class="welcome-title">
-            {{ greeting }}<span v-if="user" class="welcome-name">, {{ displayName }}</span>
+            {{ greeting }}<span v-if="user">, </span><span v-if="user" class="welcome-name">{{ displayName }}</span>
           </h1>
           <p class="welcome-sub">
             {{ isSuperadmin
@@ -18,7 +18,7 @@
         </div>
         <div class="welcome-actions">
           <button class="btn action" @click="showJoinModal = true">
-            <UserPlus :size="16" />
+            <UserRoundPlus :size="16" />
             <span>Gruppe beitreten</span>
           </button>
           <button class="btn ghost" @click="showCreateModal = true">
@@ -26,7 +26,7 @@
             <span>Neue Gruppe</span>
           </button>
           <router-link v-if="isSuperadmin" to="/admin" class="btn ghost">
-            <Shield :size="16" />
+            <ShieldUser :size="16" />
             <span>Super Admin</span>
           </router-link>
         </div>
@@ -48,7 +48,7 @@
             @click="navigateToGroup(group.id)"
         >
           <div class="group-card-icon">
-            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="22" />
+            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
           </div>
           <div class="group-card-body">
             <span class="group-card-name">{{ group.name }}</span>
@@ -76,7 +76,7 @@
             @click="navigateToGroup(group.id)"
         >
           <div class="group-card-icon">
-            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="22" />
+            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
           </div>
           <div class="group-card-body">
             <span class="group-card-name">{{ group.name }}</span>
@@ -120,7 +120,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserPlus, Plus, Shield, Folder, FolderOpen, ChevronRight, Users } from 'lucide-vue-next';
+import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, Users } from 'lucide-vue-next';
 import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import hw from '@/api/hwApi';
@@ -188,14 +188,12 @@ onMounted(() => {
 
 <style scoped>
 .home-page {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding: 0;
 }
 
 /* ─── Welcome Banner ─────────────────────────────────── */
 .welcome-banner {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .welcome-content {
@@ -214,8 +212,16 @@ onMounted(() => {
 }
 
 .welcome-name {
-  color: var(--sub);
-  font-weight: 600;
+  background: linear-gradient(
+    116deg,
+    #ffa91a 8.389716%,
+    #ff335a 38.362652%,
+    #af00ff 69.113672%,
+    #5600ff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .welcome-sub {
@@ -229,14 +235,6 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
-}
-
-.welcome-actions .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--font-size-footnote);
-  white-space: nowrap;
 }
 
 /* ─── Section ────────────────────────────────────────── */
@@ -261,27 +259,27 @@ onMounted(() => {
 .section-badge {
   background: var(--gg);
   color: var(--sub);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sub);
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 2px 10px;
+  border-radius: 999px;
 }
 
 /* ─── Group Cards ────────────────────────────────────── */
 .groups-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .group-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 8px;
+  padding: 12px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: 12px;
+  border-radius: var(--border-7);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
   text-align: left;
@@ -290,7 +288,7 @@ onMounted(() => {
 }
 
 .group-card:hover {
-  background: var(--gg);
+  background: var(--ghost--hover);
 }
 
 .group-card.active {
@@ -302,12 +300,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--gg);
+  margin: 8px;
   color: var(--sub);
   flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.group-card:hover .group-card-icon {
+  color: var(--text);
 }
 
 .group-card.active .group-card-icon {
@@ -440,7 +440,7 @@ onMounted(() => {
 /* ─── Responsive ─────────────────────────────────────── */
 @media (max-width: 640px) {
   .home-page {
-    padding: 20px 12px 48px;
+    padding: 16px;
   }
 
   .welcome-content {

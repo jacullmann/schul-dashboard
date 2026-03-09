@@ -22,20 +22,20 @@
                 <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': groupMenuOpen }" />
               </button>
 
-              <div v-if="groupMenuOpen" class="group-dropdown">
+              <div v-if="groupMenuOpen" class="menu">
                 <button 
                     v-for="g in userGroups" 
                     :key="g.id"
-                    class="group-dropdown-item"
+                    class="menu-btn"
                     :class="{ active: g.id === activeGroupId }"
                     @click="onSwitchGroup(g.id)"
                 >
                   {{ g.name }}
                 </button>
-                <div class="group-dropdown-divider"></div>
+                <div class="menu-divider"></div>
                 <router-link
                     to="/home"
-                    class="group-dropdown-item action"
+                    class="menu-btn action"
                     @click="groupMenuOpen = false"
                 >
                   + Neue Gruppe
@@ -378,65 +378,6 @@ onUnmounted(() => {
 
 .chevron-open {
   transform: rotate(180deg);
-}
-
-.group-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  min-width: 200px;
-  margin-top: 6px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 1100;
-  box-shadow: var(--menu-shadow);
-  animation: menuFadeIn 160ms ease;
-}
-
-.group-dropdown-item {
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text);
-  font-size: var(--font-size-footnote);
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-}
-
-.group-dropdown-item:hover {
-  background: var(--gg);
-}
-
-.group-dropdown-item.active {
-  background: var(--bg);
-  font-weight: 700;
-  border: 1px solid var(--border);
-}
-
-.group-dropdown-item.action {
-  text-decoration: none;
-  color: var(--text);
-  text-align: center;
-  display: block;
-}
-
-.group-dropdown-item.action:hover {
-  background: var(--gg);
-}
-
-.group-dropdown-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 4px 8px;
 }
 
 .nav-links {
