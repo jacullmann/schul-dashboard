@@ -5,6 +5,7 @@ import { body, param, query } from 'express-validator';
 import dayjs from 'dayjs';
 import * as db from '../db/db.js';
 import type { RouteDeps, ItemImage } from '../types/index.js';
+import { generateUserName } from '../utils/nameGenerator.js';
 
 export default function createItemsRoutes(deps: RouteDeps): Router {
   const router = Router();
@@ -50,6 +51,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
             dueDate: row.due_date,
             createdBy: row.created_by,
             createdByEmail: row.creator?.email || 'Unbekannt',
+            createdByName: generateUserName(row.created_by, req.tenantId!),
             timeColor: timeLeftColor(row.due_date),
             editorNote: row.editor_note || '',
           })),
@@ -93,6 +95,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
           dueDate: row.due_date,
           createdBy: row.created_by,
           createdByEmail: (creator?.email as string) || 'Unbekannt',
+          createdByName: generateUserName(row.created_by, req.tenantId!),
           timeColor: timeLeftColor(row.due_date),
           editorNote: row.editor_note || '',
         });

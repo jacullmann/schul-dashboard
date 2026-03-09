@@ -5,6 +5,7 @@ import { Router } from 'express';
 import { body, param } from 'express-validator';
 import * as db from '../db/db.js';
 import type { RouteDeps, ItemImage } from '../types/index.js';
+import { generateUserName } from '../utils/nameGenerator.js';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -225,6 +226,91 @@ export default function createGroupAdminRoutes(deps: RouteDeps): Router {
         res.json({ ok: true });
       } catch {
         sendJSONError(res, 500, 'Fehler beim Löschen');
+      }
+    },
+  );
+
+  // ─── Assign role by generated username ──────────────────────────
+  router.post(
+    '/assign-role',
+    requireAuth(authSecret, supabase, ['admin']),
+    validateCsrf(),
+    [
+      body('generatedName').isString().trim().isLength({ min: 3, max: 100 }),
+      body('role').isIn(['admin', 'moderator']),
+    ],
+    validate,
+    async (req: Request, res: Response) => {
+      try {
+        const { generatedName, role } = req.body as {
+          generatedName: string;
+          role: 'admin' | 'moderator';
+        };
+        const tenantId = req.tenantId!;
+        const roleId = role === 'admin' ? 2 : 3;
+
+        // Get all users in this tenant
+        const { data: tenantUsers, error } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('tenant_id', tenantId);
+
+        if (error) throw error;
+        if (!tenantUsers || tenantUsers.length === 0) {
+          sendJSONError(res, 404, 'Keine Nutzer in dieser Gruppe gefunden.');
+          return;
+        }
+
+        // Find the user whose generated name matches
+        const targetUserId = tenantUsers.find(
+          (ur) => generateUserName(ur.user_id, tenantId) === generatedName.trim(),
+        )?.user_id;
+
+        if (!targetUserId) {
+          sendJSONError(
+            res,
+            404,
+            'Kein Nutzer mit diesem Namen in dieser Gruppe gefunden.',
+          );
+          return;
+        }
+
+        // Check if the user already has this role in the tenant
+        const { data: existingRole } = await supabase
+          .from('user_roles')
+          .select('id, role_id')
+          .eq('user_id', targetUserId)
+          .eq('tenant_id', tenantId)
+          .maybeSingle();
+
+        if (existingRole) {
+          // Update existing role
+          const { error: updateErr } = await supabase
+            .from('user_roles')
+            .update({ role_id: roleId })
+            .eq('id', existingRole.id);
+          if (updateErr) throw updateErr;
+        } else {
+          // Insert new role
+          const { error: insertErr } = await supabase
+            .from('user_roles')
+            .insert({ user_id: targetUserId, role_id: roleId, tenant_id: tenantId });
+          if (insertErr) throw insertErr;
+        }
+
+        await db.logActivity(supabase, req.userId!, 'group-admin:assign-role', {
+          targetUserId,
+          generatedName,
+          role,
+        });
+
+        res.json({
+          ok: true,
+          message: `Rolle "${role}" wurde erfolgreich zugewiesen.`,
+        });
+      } catch (err) {
+        console.error('POST /api/group-admin/assign-role error', err);
+        sendJSONError(res, 500, 'Fehler bei der Rollenzuweisung');
       }
     },
   );

@@ -10,6 +10,7 @@ export interface HwItem {
     dueDate: string;
     createdBy: string;
     createdByEmail?: string;
+    createdByName?: string;
     timeColor: string;
     editorNote: string;
 }

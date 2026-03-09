@@ -76,8 +76,11 @@
 
         <template #badges>
           <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
-          <div v-if="user?.role === 'superadmin'" class="admin-creator-info">
-            {{ item.createdByEmail || 'Unbekannt' }}
+          <div
+            v-if="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'mod'"
+            class="admin-creator-info"
+          >
+            {{ item.createdByName || 'Unbekannt' }}<span v-if="user?.role === 'superadmin'" class="creator-email"> ({{ item.createdByEmail }})</span>
           </div>
         </template>
 
@@ -773,6 +776,11 @@ defineExpose({ todoAppRef });
 
 .admin-creator-info {
   color: var(--sub);
+  font-size: var(--font-size-sub);
+}
+
+.creator-email {
+  opacity: 0.7;
 }
 
 /* Anmerkungen */

@@ -6,6 +6,7 @@ import { body } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import * as db from '../db/db.js';
 import type { RouteDeps } from '../types/index.js';
+import { generateUserName } from '../utils/nameGenerator.js';
 
 const DUMMY_HASH = bcrypt.hashSync('__dummy__', 10);
 
@@ -218,6 +219,7 @@ export default function createGroupRoutes(deps: RouteDeps): Router {
             id: ur.groups!.id,
             name: ur.groups!.name,
             role: ur.roles?.name,
+            generatedName: generateUserName(req.userId!, ur.groups!.id),
           }));
 
         const activeGroup = groups.find((g) => g.id === req.activeGroupId);

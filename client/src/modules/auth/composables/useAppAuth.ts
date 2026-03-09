@@ -11,7 +11,7 @@ const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
-const userGroups = ref<Array<{ id: string; name: string; role: string }>>([]);
+const userGroups = ref<Array<{ id: string; name: string; role: string; generatedName?: string }>>([]);
 let initPromise: Promise<void> | null = null;
 let eventListenerRegistered = false;
 const MAX_CSRF_RETRIES = 3;
@@ -82,7 +82,7 @@ export function useAppAuth() {
                 window.dispatchEvent(new CustomEvent('csrf-init-failed'));
                 isAuthReady.value = true;
                 isLoggedIn.value = false;
-            isAuthenticated.value = false;
+                isAuthenticated.value = false;
                 return;
             }
             await checkAuthStatus();
@@ -91,7 +91,7 @@ export function useAppAuth() {
             if (!eventListenerRegistered) {
                 window.addEventListener('auth-expired', () => {
                     isLoggedIn.value = false;
-            isAuthenticated.value = false;
+                    isAuthenticated.value = false;
                 });
                 eventListenerRegistered = true;
             }
@@ -135,7 +135,7 @@ export function useAppAuth() {
     async function logout() {
         try {
             await hw.post('/api/groups/logout');
-        } catch {} finally {
+        } catch { } finally {
             isLoggedIn.value = false;
             isAuthenticated.value = false;
             isAuthReady.value = false;

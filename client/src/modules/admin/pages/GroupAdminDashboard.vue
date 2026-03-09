@@ -164,6 +164,44 @@
           </div>
         </div>
       </div>
+
+      <!-- Roles -->
+      <div v-if="activeTab === 'roles'" class="tab-panel">
+        <div class="panel-header">
+          <h2>Rollen vergeben</h2>
+        </div>
+        <div class="role-form-card">
+          <p class="role-form-hint">
+            Gib den generierten Namen eines Gruppenmitglieds ein, um ihm eine Rolle zuzuweisen.
+          </p>
+          <div class="role-form-fields">
+            <div class="form-field">
+              <label>Generierter Name</label>
+              <input
+                v-model="roleForm.generatedName"
+                class="input"
+                placeholder="z.B. RedBraveTiger"
+                autocomplete="off"
+                @keyup.enter="assignRole"
+              />
+            </div>
+            <div class="form-field">
+              <label>Rolle</label>
+              <select v-model="roleForm.role" class="input">
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button
+            class="btn action"
+            @click="assignRole"
+            :disabled="!roleForm.generatedName.trim() || assigningRole"
+          >
+            {{ assigningRole ? 'Wird zugewiesen...' : 'Rolle zuweisen' }}
+          </button>
+        </div>
+      </div>
     </main>
 
     <!-- Status Messages -->
@@ -178,7 +216,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, markRaw } from 'vue';
 import { useRoute } from 'vue-router';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2 } from 'lucide-vue-next';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UserCog } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '@/api/hwApi';
 
@@ -191,6 +229,7 @@ const tabs = [
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
   { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
+  { id: 'roles', label: 'Rollen', icon: markRaw(UserCog) },
 ];
 const activeTab = ref('overview');
 
@@ -227,6 +266,28 @@ const cleaningUp = ref(false);
 const creatingAnn = ref(false);
 const message = ref('');
 const isError = ref(false);
+
+// Role assignment
+const roleForm = ref({ generatedName: '', role: 'moderator' as 'admin' | 'moderator' });
+const assigningRole = ref(false);
+
+async function assignRole() {
+  if (!roleForm.value.generatedName.trim()) return;
+  assigningRole.value = true;
+  try {
+    const { data } = await hw.post('/api/group-admin/assign-role', {
+      generatedName: roleForm.value.generatedName.trim(),
+      role: roleForm.value.role,
+    });
+    roleForm.value.generatedName = '';
+    showMessage(data.message || 'Rolle zugewiesen.');
+  } catch (err: unknown) {
+    const e = err as { response?: { data?: { error?: string } } };
+    showMessage(e.response?.data?.error || 'Fehler bei der Rollenzuweisung.', true);
+  } finally {
+    assigningRole.value = false;
+  }
+}
 
 const subForm = ref({
   lessonId: '',
@@ -689,6 +750,28 @@ onMounted(() => {
 .ann-item-date {
   font-size: var(--font-size-sub);
   color: var(--sub);
+}
+
+/* ─── Role Assignment ────────────────────────────────── */
+.role-form-card {
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.role-form-hint {
+  font-size: var(--font-size-body);
+  color: var(--sub);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.role-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 /* ─── Shared ─────────────────────────────────────────── */

@@ -15,6 +15,7 @@ import {
 } from '../middleware/mfaAuth.js';
 import * as db from '../db/db.js';
 import type { RouteDeps } from '../types/index.js';
+import { generateUserName } from '../utils/nameGenerator.js';
 
 function isWeakPassword(password: string): boolean {
   if (password.length < 8) return true;
@@ -696,6 +697,7 @@ export default function createAuthRoutes(deps: RouteDeps): Router {
             id: ur.groups!.id,
             name: ur.groups!.name,
             role: ur.roles?.name,
+            generatedName: generateUserName(req.userId!, ur.groups!.id),
           }));
 
         res.json({ groups });

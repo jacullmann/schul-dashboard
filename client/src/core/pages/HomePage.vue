@@ -83,6 +83,7 @@
             <span class="group-card-role" :class="'role-' + group.role">
               {{ roleLabel(group.role) }}
             </span>
+            <span v-if="group.generatedName" class="group-card-username">{{ group.generatedName }}</span>
           </div>
           <ChevronRight :size="16" class="group-card-arrow" />
         </button>
@@ -355,6 +356,15 @@ onMounted(() => {
 .role-mod { color: #f59e0b; }
 .role-user { color: var(--sub); }
 .role-superadmin { color: #ef4444; }
+
+.group-card-username {
+  font-size: 0.7rem;
+  color: var(--sub);
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .group-card-arrow {
   color: var(--sub);
