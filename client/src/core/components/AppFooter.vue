@@ -15,23 +15,23 @@
 
         <div class="footer-section">
           <h3>Navigation</h3>
-          <router-link to="/" class="footer-link">Dashboard</router-link>
-          <router-link to="/stundenplan" class="footer-link">Stundenplan</router-link>
-          <router-link to="/sorgenbox" class="footer-link">Sorgenbox</router-link>
+          <router-link to="/" class="footer-link">{{ t('school.tasks.title') }}</router-link>
+          <router-link to="/stundenplan" class="footer-link">{{ t('school.tables.timetable.title') }}</router-link>
+          <router-link to="/sorgenbox" class="footer-link">{{ t('tools.worrybox.title') }}</router-link>
           <router-link to="/update-history" class="footer-link">Update History</router-link>
-          <router-link to="/info-dashboard" class="footer-link">Info Dashboard</router-link>
+          <router-link to="/info-dashboard" class="footer-link">{{ t('info.dashboard.title') }}</router-link>
         </div>
 
         <div class="footer-section">
           <h3>Rechtliches</h3>
-          <router-link to="/impressum-&-datenschutz/impressum" class="footer-link">Impressum</router-link>
-          <router-link to="/impressum-&-datenschutz/datenschutz" class="footer-link">Datenschutz</router-link>
-          <router-link to="/impressum-&-datenschutz/nutzung" class="footer-link">Nutzungsbedingungen</router-link>
+          <router-link to="/impressum-&-datenschutz/impressum" class="footer-link">{{ t('legal.imprint.title') }}</router-link>
+          <router-link to="/impressum-&-datenschutz/datenschutz" class="footer-link">{{ t('legal.privacy.title') }}</router-link>
+          <router-link to="/impressum-&-datenschutz/nutzung" class="footer-link">{{ t('legal.terms.title') }}</router-link>
         </div>
 
         <div class="footer-section">
           <h3>Kontakt</h3>
-          <router-link to="/kontakt" class="footer-link">Kontakt</router-link>
+          <router-link to="/kontakt" class="footer-link">{{ t('contact.contact.title') }}</router-link>
         </div>
 
         <div class="footer-section">
@@ -58,7 +58,7 @@
 
     <div class="footer-bottom">
       <div class="container footer-bottom-content">
-        <p class="copyright-text">© {{ year }} Schul-Dashboard</p>
+        <p class="copyright-text">© {{ year }} {{ t('global.title') }}</p>
       </div>
     </div>
   </footer>
@@ -69,6 +69,9 @@ import Logo from '@/common/components/Logo.vue';
 import Notizen from "@/common/components/Notizen.vue";
 import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
 import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const year = new Date().getFullYear();
 </script>
