@@ -28,7 +28,7 @@ export function useAnnouncements() {
     async function deleteAnnouncement(id: string) {
         if (confirm('Ankündigung löschen?')) {
             try {
-                await hw.delete(`/api/timetable/announcements/${id}`);
+                await hw.delete(`/api/group-admin/announcements/${id}`);
                 await loadAnnouncements();
             } catch (e: unknown) {
                 const err = e as { response?: { data?: { error?: string } } };

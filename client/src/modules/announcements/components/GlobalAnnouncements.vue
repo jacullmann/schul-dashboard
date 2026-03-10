@@ -94,7 +94,7 @@ const markPopupAsSeen = (announcementId) => {
 onMounted(async () => {
   if (!isWelcomePage.value) {
     try {
-      const { data } = await hw.get('/api/announcements');
+      const { data } = await hw.get('/api/timetable/announcements');
       announcements.value = data;
       updateAnnouncementHeight();
       checkForNewPopups(data);
@@ -157,7 +157,7 @@ watch(isWelcomePage, () => {
 watch(isWelcomePage, async (newValue, oldValue) => {
   if (oldValue === true && newValue === false) {
     try {
-      const { data } = await hw.get('/api/announcements');
+      const { data } = await hw.get('/api/timetable/announcements');
       announcements.value = data;
       updateAnnouncementHeight();
       checkForNewPopups(data);

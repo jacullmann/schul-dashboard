@@ -71,7 +71,7 @@ async function submit() {
   message.value = '';
   isError.value = false;
   try {
-    await hw.post('/api/announcements', {
+    await hw.post('/api/group-admin/announcements', {
       content: content.value,
       color: color.value,
       showAsPopup: showAsPopup.value,
