@@ -790,6 +790,8 @@ defineExpose({ todoAppRef });
   background: var(--gg);
   border: 1px solid var(--border);
   border-radius: var(--border-4);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .editor-note-header {

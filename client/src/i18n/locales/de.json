@@ -175,6 +175,11 @@
       }
     }
   },
+  "groups": {
+    "join": "Gruppe beitreten",
+    "create": "Gruppe erstellen/Neue Gruppe",
+    "myGroups": "Meine Gruppen"
+  },
   "welcome": {
     "hero": {
       "headline": "Schule im Überblick",

@@ -128,6 +128,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -148,7 +149,8 @@ const { resetMfaState } = useMfa();
 const userStore = useUserStore();
 const { user, loading, needsSetup, hasShownSetup } = storeToRefs(userStore);
 
-const { groupName, userGroups, activeGroupId, switchActiveGroup } = useAppAuth();
+const { groupName, userGroups, activeGroupId, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
+const router = useRouter();
 
 const navOpen = ref(false);
 const showSetupModal = ref(false);
@@ -215,6 +217,8 @@ async function logout() {
   } finally {
     userStore.clearUser();
     resetMfaState();
+    await appAuthLogout();
+    router.push('/welcome');
   }
 }
 

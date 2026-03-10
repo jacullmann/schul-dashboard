@@ -170,8 +170,7 @@ h5 {
     margin-top: 0;
 }
 
-@tailwind base;
-@tailwind components;
+@import "tailwindcss";
 
 @layer components {
 
@@ -212,6 +211,8 @@ h5 {
         cursor: pointer;
         transition: .1s ease;
         white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .btn:hover {
@@ -282,6 +283,8 @@ h5 {
         cursor: pointer;
         font-size: var(--font-size-sub);
         transition: background 0.1s;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .menu-btn-content {
@@ -320,7 +323,7 @@ h5 {
     }
 }
 
-@tailwind utilities;
+@layer utilities {}
 
 .container {
     max-width: 1100px;

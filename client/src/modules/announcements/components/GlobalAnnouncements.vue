@@ -1,4 +1,29 @@
 <template>
+  <div class="blurit" v-if="showMenu" @click="showMenu = false">
+    <div class="announcement-menu" @click.stop>
+      <div class="announcement-menu-header">
+        <h3>Alle Ankündigungen</h3>
+        <button class="close-btn" @click="showMenu = false">
+          <X :size="20" />
+        </button>
+      </div>
+      <div class="announcement-list">
+        <div
+            v-for="(ann, index) in announcements"
+            :key="ann.id"
+            class="announcement-item"
+            :class="{ active: index === currentIndex }"
+            @click="selectAnnouncement(index)"
+        >
+          <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
+          <div class="announcement-item-content">
+            <span>{{ ann.content }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="global-announcements" v-if="announcements.length && !isWelcomePage">
     <div
         class="global-ann"
@@ -12,40 +37,11 @@
       </div>
 
       <button class="announcement-menu-btn" @click.stop="toggleMenu">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-        </svg>
+        <EllipsisVertical />
       </button>
-    </div>
-
-    <!-- NEU: Menu Overlay -->
-    <div class="blurit" v-if="showMenu" @click="showMenu = false">
-      <div class="announcement-menu" @click.stop>
-        <div class="announcement-menu-header">
-          <h3>Alle Ankündigungen</h3>
-          <button class="close-btn" @click="showMenu = false">
-            <X :size="20" />
-          </button>
-        </div>
-        <div class="announcement-list">
-          <div
-              v-for="(ann, index) in announcements"
-              :key="ann.id"
-              class="announcement-item"
-              :class="{ active: index === currentIndex }"
-              @click="selectAnnouncement(index)"
-          >
-            <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
-            <div class="announcement-item-content">
-              <span>{{ ann.content }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- NEU: Popup Components -->
   <AnnouncementPopup
       v-if="showPopup && currentPopupAnnouncement"
       :announcement="currentPopupAnnouncement"
@@ -58,7 +54,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import hw from '@/api/hwApi';
 import AnnouncementPopup from '@/modules/announcements/components/AnnouncementPopup.vue';
-import { X } from 'lucide-vue-next';
+import { X, EllipsisVertical } from 'lucide-vue-next';
 
 const announcements = ref([]);
 const currentIndex = ref(0);
