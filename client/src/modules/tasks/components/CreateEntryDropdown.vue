@@ -43,18 +43,6 @@
           {{ t('school.tasks.types.exam') }}
         </div>
       </button>
-
-      <div class="menu-divider"></div>
-
-      <button
-          class="menu-btn"
-          @click="selectType('PRIVATE')"
-      >
-        <div class="menu-btn-content">
-          <Lock :size="16" />
-          {{ t('school.private.entry') }}
-        </div>
-      </button>
     </div>
   </div>
 </template>
@@ -66,7 +54,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
+type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
 
 const emit = defineEmits<{
   (e: 'select', type: EntryType): void;
