@@ -46,6 +46,7 @@
             class="group-card"
             :class="{ active: group.id === activeGroupId }"
             @click="navigateToGroup(group.id)"
+            :disabled="navigatingGroupId === group.id"
         >
           <div class="group-card-icon">
             <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
@@ -74,6 +75,7 @@
             class="group-card"
             :class="{ active: group.id === activeGroupId }"
             @click="navigateToGroup(group.id)"
+            :disabled="navigatingGroupId === group.id"
         >
           <div class="group-card-icon">
             <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
@@ -133,6 +135,7 @@ const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
 const showJoinModal = ref(false);
 const showCreateModal = ref(false);
 const loading = ref(false);
+const navigatingGroupId = ref<string | null>(null);
 const allGroups = ref<Array<{ id: string; name: string; memberCount: number; created_at: string }>>([]);
 
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
@@ -154,6 +157,7 @@ function roleLabel(role: string): string {
   const map: Record<string, string> = {
     admin: 'Admin',
     mod: 'Moderator',
+    moderator: 'Moderator',
     user: 'Mitglied',
     superadmin: 'Super Admin',
   };
@@ -161,11 +165,29 @@ function roleLabel(role: string): string {
 }
 
 async function navigateToGroup(groupId: string) {
-  if (groupId !== activeGroupId.value) {
+  if (navigatingGroupId.value) return; // Prevent double-clicks
+  navigatingGroupId.value = groupId;
+
+  try {
+    // If this is already the active group, just navigate
+    if (groupId === activeGroupId.value) {
+      await router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
+      return;
+    }
+
+    // Switch the active group first
     const res = await switchActiveGroup(groupId);
-    if (!res.ok) return;
+    if (res.ok) {
+      // Now navigate — the router guard will see the updated activeGroupId
+      await router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
+    } else {
+      console.error('Failed to switch group:', res.error);
+    }
+  } catch (err) {
+    console.error('Navigation error:', err);
+  } finally {
+    navigatingGroupId.value = null;
   }
-  router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
 }
 
 async function loadAllGroups() {
@@ -191,7 +213,6 @@ onMounted(() => {
   padding: 0;
 }
 
-/* ─── Welcome Banner ─────────────────────────────────── */
 .welcome-banner {
   margin-bottom: 32px;
 }
@@ -212,13 +233,7 @@ onMounted(() => {
 }
 
 .welcome-name {
-  background: linear-gradient(
-    116deg,
-    #ffa91a 8.389716%,
-    #ff335a 38.362652%,
-    #af00ff 69.113672%,
-    #5600ff 100%
-  );
+  background: linear-gradient(116deg, #ffa91a 8%, #ff335a 38%, #af00ff 69%, #5600ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -237,7 +252,6 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* ─── Section ────────────────────────────────────────── */
 .groups-section {
   margin-bottom: 36px;
 }
@@ -265,7 +279,6 @@ onMounted(() => {
   border-radius: 999px;
 }
 
-/* ─── Group Cards ────────────────────────────────────── */
 .groups-grid {
   display: flex;
   flex-direction: column;
@@ -287,7 +300,12 @@ onMounted(() => {
   color: var(--text);
 }
 
-.group-card:hover {
+.group-card:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.group-card:hover:not(:disabled) {
   background: var(--ghost--hover);
 }
 
@@ -306,7 +324,7 @@ onMounted(() => {
   transition: color 0.15s ease;
 }
 
-.group-card:hover .group-card-icon {
+.group-card:hover:not(:disabled) .group-card-icon {
   color: var(--text);
 }
 
@@ -353,7 +371,7 @@ onMounted(() => {
 }
 
 .role-admin { color: #6366f1; }
-.role-mod { color: #f59e0b; }
+.role-mod, .role-moderator { color: #f59e0b; }
 .role-user { color: var(--sub); }
 .role-superadmin { color: #ef4444; }
 
@@ -373,12 +391,11 @@ onMounted(() => {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.group-card:hover .group-card-arrow {
+.group-card:hover:not(:disabled) .group-card-arrow {
   opacity: 1;
   transform: translateX(2px);
 }
 
-/* ─── Empty State ────────────────────────────────────── */
 .empty-section {
   margin-top: 40px;
 }
@@ -419,7 +436,6 @@ onMounted(() => {
   justify-content: center;
 }
 
-/* ─── Loading ────────────────────────────────────────── */
 .loading-state {
   display: flex;
   justify-content: center;
@@ -437,7 +453,6 @@ onMounted(() => {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Responsive ─────────────────────────────────────── */
 @media (max-width: 640px) {
   .home-page {
     padding: 16px;

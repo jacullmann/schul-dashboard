@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import hw from '@/api/hwApi';
 
 export interface Course {
@@ -33,6 +33,16 @@ export const useSubjectStore = defineStore('subjectStore', () => {
         }
     }
 
+    /**
+     * Reset the store so subjects are reloaded on next access.
+     * Called when the active tenant/group changes.
+     */
+    function reset() {
+        subjects.value = [];
+        loaded.value = false;
+        loading.value = false;
+    }
+
     const availableSubjectKeys = computed(() => {
         return subjects.value.filter(s => s.is_active).map(s => s.name);
     });
@@ -52,11 +62,21 @@ export const useSubjectStore = defineStore('subjectStore', () => {
         return match?.courses || [];
     });
 
+    // Listen for tenant changes and reset cached subjects
+    function onTenantChanged() {
+        reset();
+    }
+
+    if (typeof window !== 'undefined') {
+        window.addEventListener('tenant-changed', onTenantChanged);
+    }
+
     return {
         subjects,
         loading,
         loaded,
         loadSubjects,
+        reset,
         availableSubjectKeys,
         enrCourses,
         wpu1Courses,

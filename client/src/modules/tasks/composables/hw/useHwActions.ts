@@ -230,7 +230,10 @@ export function useHwActions(
     }
 
     async function shareItem(item: HwItem) {
-        const shareUrl = `${window.location.origin}/items/${item.type}/${item.id}`;
+        const groupId = window.location.pathname.match(/\/groups\/([^/]+)/)?.[1];
+        const shareUrl = groupId
+            ? `${window.location.origin}/groups/${groupId}/items/${item.type}/${item.id}`
+            : `${window.location.origin}/items/${item.type}/${item.id}`;
 
         if (navigator.share) {
             try {

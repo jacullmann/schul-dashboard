@@ -9,7 +9,7 @@
           </router-link>
           <div class="ga-header-title">
             <h1>Verwaltung</h1>
-            <span class="ga-group-name">{{ groupName || 'Gruppe' }}</span>
+            <span class="ga-group-name">{{ groupName }}</span>
           </div>
         </div>
       </div>
@@ -32,12 +32,16 @@
     <!-- Content -->
     <main class="ga-content">
 
-      <!-- Overview -->
+      <!-- ═══ OVERVIEW ═══ -->
       <div v-if="activeTab === 'overview'" class="tab-panel">
         <div class="stats-row">
           <div class="stat-tile">
             <span class="stat-value">{{ stats?.itemCount ?? '–' }}</span>
             <span class="stat-label">Aktive Einträge</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-value">{{ stats?.memberCount ?? '–' }}</span>
+            <span class="stat-label">Mitglieder</span>
           </div>
           <div class="stat-tile">
             <span class="stat-value">{{ stats?.subsCount ?? '–' }}</span>
@@ -58,9 +62,73 @@
             {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
           </button>
         </div>
+
+        <!-- Group Settings -->
+        <div class="settings-card">
+          <h3>Gruppen-Einstellungen</h3>
+          <div class="setting-row">
+            <label>Gruppenname</label>
+            <div v-if="!editingGroupName" class="setting-value">
+              <span>{{ groupName }}</span>
+              <button class="btn ghost tiny" @click="startEditGroupName">Bearbeiten</button>
+            </div>
+            <div v-else class="setting-edit">
+              <input v-model="newGroupName" class="input" placeholder="Neuer Gruppenname" @keyup.enter="saveGroupName" />
+              <button class="btn action" @click="saveGroupName" :disabled="savingGroupName || !newGroupName.trim()">
+                {{ savingGroupName ? 'Speichert...' : 'Speichern' }}
+              </button>
+              <button class="btn ghost" @click="cancelEditGroupName">Abbrechen</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Timetable / Substitutions -->
+      <!-- ═══ MEMBERS ═══ -->
+      <div v-if="activeTab === 'members'" class="tab-panel">
+        <div class="panel-header">
+          <h2>Mitglieder</h2>
+          <button class="btn ghost" @click="loadMembers" :disabled="loadingMembers">
+            <RefreshCw :size="14" :class="{ 'spin-icon': loadingMembers }" />
+            <span>Aktualisieren</span>
+          </button>
+        </div>
+
+        <div v-if="loadingMembers && members.length === 0" class="empty-hint">Lädt...</div>
+        <div v-else-if="members.length === 0" class="empty-hint">Keine Mitglieder gefunden.</div>
+
+        <div v-else class="members-list">
+          <div v-for="member in members" :key="member.userId" class="member-row">
+            <div class="member-info">
+              <span class="member-name">{{ member.generatedName }}</span>
+              <span class="member-role-badge" :class="'role-' + member.role">
+                {{ roleLabel(member.role) }}
+              </span>
+            </div>
+            <div class="member-actions">
+              <select
+                  class="input role-select"
+                  :value="member.role"
+                  @change="onRoleChange(member, ($event.target as HTMLSelectElement).value)"
+                  :disabled="member.role === 'admin' && !canDemoteAdmin"
+              >
+                <option value="user">Mitglied</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button
+                  class="btn-icon danger"
+                  @click="removeMember(member.userId, member.generatedName)"
+                  title="Aus Gruppe entfernen"
+                  :disabled="member.role === 'admin'"
+              >
+                <UserMinus :size="15" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TIMETABLE ═══ -->
       <div v-if="activeTab === 'timetable'" class="tab-panel">
         <div class="panel-header">
           <h2>Substitutions</h2>
@@ -97,15 +165,13 @@
               <label><input type="checkbox" v-model="subForm.hide" /> Verstecken</label>
             </div>
           </div>
-          <button class="btn action" @click="saveSub" :disabled="savingSub || !subForm.lessonId">
+          <button class="btn action" @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId">
             {{ savingSub ? 'Speichert...' : 'Speichern' }}
           </button>
         </div>
 
         <!-- Existing Subs -->
-        <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">
-          Keine Substitutions vorhanden.
-        </div>
+        <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">Keine Substitutions vorhanden.</div>
         <div v-else class="subs-list">
           <div v-for="sub in subs" :key="sub.id" class="sub-row">
             <div class="sub-row-info">
@@ -122,13 +188,12 @@
         </div>
       </div>
 
-      <!-- Announcements -->
+      <!-- ═══ ANNOUNCEMENTS ═══ -->
       <div v-if="activeTab === 'announcements'" class="tab-panel">
         <div class="panel-header">
           <h2>Ankündigungen</h2>
         </div>
 
-        <!-- Create -->
         <div class="ann-form-card">
           <textarea
               v-model="annContent"
@@ -142,69 +207,31 @@
               <option value="warn">Warnung</option>
               <option value="danger">Wichtig</option>
             </select>
-            <button class="btn action" @click="createAnn" :disabled="!annContent.trim() || creatingAnn">
+            <label class="popup-checkbox">
+              <input type="checkbox" v-model="annShowAsPopup" /> Als Popup
+            </label>
+            <button class="btn action" @click="handleCreateAnn" :disabled="!annContent.trim() || creatingAnn">
               {{ creatingAnn ? 'Erstellt...' : 'Veröffentlichen' }}
             </button>
           </div>
         </div>
 
-        <!-- Existing -->
-        <div v-if="announcements.length === 0" class="empty-hint">
-          Keine Ankündigungen vorhanden.
-        </div>
+        <div v-if="announcements.length === 0" class="empty-hint">Keine Ankündigungen vorhanden.</div>
         <div v-else class="ann-list">
           <div v-for="ann in announcements" :key="ann.id" class="ann-item" :class="'ann-' + ann.color">
             <div class="ann-item-body">{{ ann.content }}</div>
             <div class="ann-item-footer">
               <span class="ann-item-date">{{ formatDate(ann.createdAt) }}</span>
-              <button class="btn-icon danger" @click="deleteAnn(ann.id)">
+              <button class="btn-icon danger" @click="deleteAnnouncement(ann.id)">
                 <Trash2 :size="14" />
               </button>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Roles -->
-      <div v-if="activeTab === 'roles'" class="tab-panel">
-        <div class="panel-header">
-          <h2>Rollen vergeben</h2>
-        </div>
-        <div class="role-form-card">
-          <p class="role-form-hint">
-            Gib den generierten Namen eines Gruppenmitglieds ein, um ihm eine Rolle zuzuweisen.
-          </p>
-          <div class="role-form-fields">
-            <div class="form-field">
-              <label>Generierter Name</label>
-              <input
-                v-model="roleForm.generatedName"
-                class="input"
-                placeholder="z.B. RedBraveTiger"
-                autocomplete="off"
-                @keyup.enter="assignRole"
-              />
-            </div>
-            <div class="form-field">
-              <label>Rolle</label>
-              <select v-model="roleForm.role" class="input">
-                <option value="moderator">Moderator</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-          </div>
-          <button
-            class="btn action"
-            @click="assignRole"
-            :disabled="!roleForm.generatedName.trim() || assigningRole"
-          >
-            {{ assigningRole ? 'Wird zugewiesen...' : 'Rolle zuweisen' }}
-          </button>
-        </div>
-      </div>
     </main>
 
-    <!-- Status Messages -->
+    <!-- Toast -->
     <Transition name="toast">
       <div v-if="message" class="toast" :class="{ error: isError }">
         {{ message }}
@@ -214,81 +241,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, markRaw } from 'vue';
-import { useRoute } from 'vue-router';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UserCog } from 'lucide-vue-next';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import hw from '@/api/hwApi';
+import { ref, markRaw } from 'vue';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, Users, UserMinus } from 'lucide-vue-next';
+import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 
-const route = useRoute();
-const { groupName } = useAppAuth();
+const {
+  groupId,
+  groupName,
+  activeTab,
+  message,
+  isError,
+  stats,
+  loadingStats,
+  loadStats,
+  members,
+  loadingMembers,
+  loadMembers,
+  changeRole,
+  removeMember,
+  subs,
+  loadingSubs,
+  savingSub,
+  loadSubs,
+  saveSub,
+  deleteSub,
+  announcements,
+  creatingAnn,
+  createAnnouncement,
+  deleteAnnouncement,
+  cleaningUp,
+  cleanupOldItems,
+  editingGroupName,
+  newGroupName,
+  savingGroupName,
+  startEditGroupName,
+  cancelEditGroupName,
+  saveGroupName,
+  formatDate,
+} = useGroupAdmin();
 
-const groupId = computed(() => route.params.groupId as string);
+// Admins can only be demoted by other admins — for simplicity, we disable it
+const canDemoteAdmin = false;
 
 const tabs = [
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
+  { id: 'members', label: 'Mitglieder', icon: markRaw(Users) },
   { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
-  { id: 'roles', label: 'Rollen', icon: markRaw(UserCog) },
 ];
-const activeTab = ref('overview');
 
-interface Stats {
-  itemCount?: number;
-  subsCount?: number;
-  oldItemsCount?: number;
-}
-
-interface Sub {
-  id: string;
-  lessonId: string;
-  subject?: string;
-  cancelled?: boolean;
-  hide?: boolean;
-  room?: string;
-  slot?: number;
-}
-
-interface Announcement {
-  id: string;
-  content: string;
-  color: string;
-  createdAt: string;
-}
-
-// State
-const stats = ref<Stats | null>(null);
-const subs = ref<Sub[]>([]);
-const announcements = ref<Announcement[]>([]);
-const loadingSubs = ref(false);
-const savingSub = ref(false);
-const cleaningUp = ref(false);
-const creatingAnn = ref(false);
-const message = ref('');
-const isError = ref(false);
-
-// Role assignment
-const roleForm = ref({ generatedName: '', role: 'moderator' as 'admin' | 'moderator' });
-const assigningRole = ref(false);
-
-async function assignRole() {
-  if (!roleForm.value.generatedName.trim()) return;
-  assigningRole.value = true;
-  try {
-    const { data } = await hw.post('/api/group-admin/assign-role', {
-      generatedName: roleForm.value.generatedName.trim(),
-      role: roleForm.value.role,
-    });
-    roleForm.value.generatedName = '';
-    showMessage(data.message || 'Rolle zugewiesen.');
-  } catch (err: unknown) {
-    const e = err as { response?: { data?: { error?: string } } };
-    showMessage(e.response?.data?.error || 'Fehler bei der Rollenzuweisung.', true);
-  } finally {
-    assigningRole.value = false;
-  }
-}
-
+// Sub form
 const subForm = ref({
   lessonId: '',
   subject: '',
@@ -298,126 +300,42 @@ const subForm = ref({
   hide: false,
 });
 
+function handleSaveSub() {
+  const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
+  if (subForm.value.subject) payload.subject = subForm.value.subject;
+  if (subForm.value.room) payload.room = subForm.value.room;
+  if (subForm.value.slot) payload.slot = subForm.value.slot;
+  if (subForm.value.cancelled) payload.cancelled = true;
+  if (subForm.value.hide) payload.hide = true;
+
+  saveSub(payload).then(() => {
+    subForm.value = { lessonId: '', subject: '', room: '', slot: null, cancelled: false, hide: false };
+  });
+}
+
+// Announcement form
 const annContent = ref('');
 const annColor = ref('warn');
+const annShowAsPopup = ref(false);
 
-function showMessage(msg: string, error = false) {
-  message.value = msg;
-  isError.value = error;
-  setTimeout(() => { message.value = ''; }, 4000);
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-async function loadStats() {
-  try {
-    const { data } = await hw.get('/api/group-admin/stats');
-    stats.value = data;
-  } catch { /* ignore */ }
-}
-
-async function loadSubs() {
-  loadingSubs.value = true;
-  try {
-    const { data } = await hw.get('/api/group-admin/timetable/subs');
-    subs.value = data;
-  } catch {
-    showMessage('Fehler beim Laden', true);
-  } finally {
-    loadingSubs.value = false;
-  }
-}
-
-async function saveSub() {
-  if (!subForm.value.lessonId) return;
-  savingSub.value = true;
-  try {
-    const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
-    if (subForm.value.subject) payload.subject = subForm.value.subject;
-    if (subForm.value.room) payload.room = subForm.value.room;
-    if (subForm.value.slot) payload.slot = subForm.value.slot;
-    if (subForm.value.cancelled) payload.cancelled = true;
-    if (subForm.value.hide) payload.hide = true;
-
-    await hw.post('/api/group-admin/timetable/subs', payload);
-    subForm.value = { lessonId: '', subject: '', room: '', slot: null, cancelled: false, hide: false };
-    await loadSubs();
-    showMessage('Substitution gespeichert');
-  } catch {
-    showMessage('Fehler beim Speichern', true);
-  } finally {
-    savingSub.value = false;
-  }
-}
-
-async function deleteSub(id: string) {
-  if (!confirm('Substitution löschen?')) return;
-  try {
-    await hw.delete(`/api/group-admin/timetable/subs/${id}`);
-    subs.value = subs.value.filter(s => s.id !== id);
-    showMessage('Gelöscht');
-  } catch {
-    showMessage('Fehler beim Löschen', true);
-  }
-}
-
-async function cleanupOldItems() {
-  if (!confirm('Alle Einträge älter als 90 Tage löschen?')) return;
-  cleaningUp.value = true;
-  try {
-    const { data } = await hw.delete('/api/group-admin/cleanup/old-items');
-    showMessage(data.message || 'Bereinigung abgeschlossen');
-    await loadStats();
-  } catch {
-    showMessage('Fehler bei der Bereinigung', true);
-  } finally {
-    cleaningUp.value = false;
-  }
-}
-
-async function loadAnnouncements() {
-  try {
-    const { data } = await hw.get('/api/timetable/announcements');
-    announcements.value = data;
-  } catch { /* ignore */ }
-}
-
-async function createAnn() {
-  if (!annContent.value.trim()) return;
-  creatingAnn.value = true;
-  try {
-    await hw.post('/api/group-admin/announcements', {
-      content: annContent.value.trim(),
-      color: annColor.value,
-    });
+function handleCreateAnn() {
+  createAnnouncement(annContent.value, annColor.value, annShowAsPopup.value).then(() => {
     annContent.value = '';
-    await loadAnnouncements();
-    showMessage('Ankündigung erstellt');
-  } catch {
-    showMessage('Fehler beim Erstellen', true);
-  } finally {
-    creatingAnn.value = false;
-  }
+    annShowAsPopup.value = false;
+  });
 }
 
-async function deleteAnn(id: string) {
-  if (!confirm('Ankündigung löschen?')) return;
-  try {
-    await hw.delete(`/api/group-admin/announcements/${id}`);
-    announcements.value = announcements.value.filter(a => a.id !== id);
-    showMessage('Gelöscht');
-  } catch {
-    showMessage('Fehler beim Löschen', true);
-  }
+// Role helpers
+function roleLabel(role: string): string {
+  const map: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'Mitglied' };
+  return map[role] || role;
 }
 
-onMounted(() => {
-  loadStats();
-  loadSubs();
-  loadAnnouncements();
-});
+function onRoleChange(member: { userId: string; role: string }, newRole: string) {
+  if (newRole !== member.role) {
+    changeRole(member.userId, newRole);
+  }
+}
 </script>
 
 <style scoped>
@@ -427,7 +345,6 @@ onMounted(() => {
   color: var(--text);
 }
 
-/* ─── Header ─────────────────────────────────────────── */
 .ga-header {
   border-bottom: 1px solid var(--border);
   background: var(--lbg);
@@ -479,7 +396,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* ─── Tabs ───────────────────────────────────────────── */
 .ga-tabs {
   max-width: 960px;
   margin: 0 auto;
@@ -512,7 +428,6 @@ onMounted(() => {
   border-bottom-color: var(--text);
 }
 
-/* ─── Content ────────────────────────────────────────── */
 .ga-content {
   max-width: 960px;
   margin: 0 auto;
@@ -549,7 +464,7 @@ onMounted(() => {
 /* ─── Stats ──────────────────────────────────────────── */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -586,6 +501,7 @@ onMounted(() => {
   border-radius: 10px;
   padding: 12px 16px;
   gap: 12px;
+  margin-bottom: 24px;
 }
 
 .cleanup-info {
@@ -594,6 +510,111 @@ onMounted(() => {
   gap: 8px;
   font-size: var(--font-size-body);
   color: var(--sub);
+}
+
+/* ─── Settings ───────────────────────────────────────── */
+.settings-card {
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.settings-card h3 {
+  font-size: var(--font-size-title);
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-row label {
+  font-size: var(--font-size-sub);
+  color: var(--sub);
+  font-weight: 500;
+}
+
+.setting-value {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-value span {
+  font-weight: 600;
+}
+
+.setting-edit {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.setting-edit .input {
+  flex: 1;
+  max-width: 300px;
+}
+
+/* ─── Members ────────────────────────────────────────── */
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--vlbg);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  gap: 12px;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.member-name {
+  font-weight: 600;
+  font-size: var(--font-size-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-role-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.role-admin { color: #6366f1; }
+.role-moderator { color: #f59e0b; }
+.role-user { color: var(--sub); }
+
+.member-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.role-select {
+  width: 130px;
+  font-size: var(--font-size-sub);
+  padding: 6px 8px;
 }
 
 /* ─── Sub Form ───────────────────────────────────────── */
@@ -680,15 +701,8 @@ onMounted(() => {
   color: var(--text);
 }
 
-.sub-row-tag.danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.sub-row-tag.muted {
-  background: var(--gg);
-  color: var(--sub);
-}
+.sub-row-tag.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.sub-row-tag.muted { background: var(--gg); color: var(--sub); }
 
 .sub-row-detail {
   font-size: var(--font-size-sub);
@@ -714,8 +728,15 @@ onMounted(() => {
   align-items: center;
 }
 
-.ann-select {
-  width: 120px;
+.ann-select { width: 120px; }
+
+.popup-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sub);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .ann-list {
@@ -752,28 +773,6 @@ onMounted(() => {
   color: var(--sub);
 }
 
-/* ─── Role Assignment ────────────────────────────────── */
-.role-form-card {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.role-form-hint {
-  font-size: var(--font-size-body);
-  color: var(--sub);
-  margin: 0 0 16px;
-  line-height: 1.5;
-}
-
-.role-form-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
 /* ─── Shared ─────────────────────────────────────────── */
 .btn-icon {
   display: flex;
@@ -791,6 +790,7 @@ onMounted(() => {
 
 .btn-icon:hover { background: var(--gg); color: var(--text); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .empty-hint {
   text-align: center;
@@ -818,10 +818,7 @@ onMounted(() => {
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-.toast.error {
-  background: #ef4444;
-  color: #fff;
-}
+.toast.error { background: #ef4444; color: #fff; }
 
 .toast-enter-active { animation: toastIn 0.25s ease; }
 .toast-leave-active { animation: toastIn 0.2s ease reverse; }
@@ -834,8 +831,12 @@ onMounted(() => {
 @media (max-width: 640px) {
   .ga-content { padding: 20px 12px 48px; }
   .sub-form-grid { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
   .ga-tabs { overflow-x: auto; }
   .cleanup-bar { flex-direction: column; align-items: flex-start; }
+  .setting-edit { flex-wrap: wrap; }
+  .member-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .member-actions { width: 100%; }
+  .ann-form-footer { flex-wrap: wrap; }
 }
 </style>

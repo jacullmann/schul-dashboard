@@ -16,32 +16,41 @@ const routes = [
                 component: () => import('@/core/pages/HomePage.vue'),
                 meta: { title: 'Home' },
             },
+
+            // ─── Group-scoped pages ─────────────────────────────────
             {
                 path: 'groups/:groupId',
                 children: [
-                    { path: '', redirect: to => `/groups/${to.params.groupId}/items/HAUSAUFGABE` },
+                    { path: '', redirect: (to: { params: { groupId: string } }) => `/groups/${to.params.groupId}/items/HAUSAUFGABE` },
                     {
                         path: 'items/:type?/:itemId?',
                         name: 'group-items',
                         component: () => import('@/modules/tasks/pages/Hausaufgaben.vue'),
                         props: true,
-                        meta: { title: 'Aufgaben', requiresTenant: true },
+                        meta: { title: 'Aufgaben', requiresTenant: true, groupContext: true },
                     },
                     {
                         path: 'stundenplan',
                         name: 'group-stundenplan',
                         component: () => import('@/modules/schedule/pages/Stundenplan.vue'),
-                        meta: { title: 'Stundenplan', requiresTenant: true },
+                        meta: { title: 'Stundenplan', requiresTenant: true, groupContext: true },
                     },
                     {
                         path: 'admin',
                         name: 'group-admin',
                         component: () => import('@/modules/admin/pages/GroupAdminDashboard.vue'),
-                        meta: { title: 'Gruppen-Verwaltung', requiresGroupAdmin: true },
+                        meta: { title: 'Gruppen-Verwaltung', requiresGroupAdmin: true, groupContext: true },
                     },
                 ],
             },
-            // ─── Non-group pages ────────────────────────────────────
+
+            // ─── User-scoped pages (no group context needed) ────────
+            {
+                path: 'todos',
+                name: 'private-todos',
+                component: () => import('@/modules/tasks/pages/PrivateTodos.vue'),
+                meta: { title: 'Meine Einträge' },
+            },
             {
                 path: 'kuerzel',
                 name: 'kürzelfinder',
@@ -155,10 +164,6 @@ const routes = [
     { path: '/get-started', redirect: '/home' },
     { path: '/admin-dashboard', redirect: '/admin' },
     { path: '/hausaufgaben/verify', redirect: '/verify' },
-    { path: '/items/:type?/:itemId?', redirect: to => {
-            // Old /items/HAUSAUFGABE → needs group context, redirect to /home
-            return '/home';
-        }},
     { path: '/stundenplan', redirect: '/home' },
 
     // ─── 404 ────────────────────────────────────────────────────────
@@ -187,7 +192,6 @@ router.beforeEach(async (to, from, next) => {
 
     // Redirect unauthenticated users to welcome
     if (!isPublicRoute && !isLoggedIn.value) {
-        // Allow pages that don't strictly need auth
         const allowedWithoutAuth = ['/kontakt', '/impressum'];
         const isAllowed = allowedWithoutAuth.some(p => to.path.startsWith(p));
         if (!isAllowed) {

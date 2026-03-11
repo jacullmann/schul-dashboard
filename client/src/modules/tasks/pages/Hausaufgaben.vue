@@ -24,7 +24,7 @@
 
     <div class="controls">
       <div class="left">
-        <div v-if="tab !== 'PRIVATE'" class="row-two">
+        <div class="row-two">
 
           <SelectDropdown
               v-model="subjectFilter"
@@ -40,20 +40,16 @@
               v-if="!user"
           />
         </div>
-        <CreateEntryDropdown
-            v-if="user && tab === 'PRIVATE'"
-            @select="openCreateFormByType"
-        />
       </div>
 
       <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
     </div>
 
     <div class="items">
-      <ItemSkeleton v-if="loading && initialLoad && tab !== 'PRIVATE'" :count="5" :image-count="2" />
+      <ItemSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <ItemCard
-          v-else-if="tab !== 'PRIVATE'"
+          v-else
           v-for="item in visibleItems"
           :key="item.id"
           :id="'item-' + item.id"
@@ -219,16 +215,8 @@
         </template>
       </ItemCard>
 
-      <div v-if="tab === 'PRIVATE'" class="private-entries-container">
-        <TodoApp
-            ref="todoAppRef"
-            @create="openCreateFormByType('PRIVATE')"
-            @edit="openEditTodo"
-        />
-      </div>
-
-      <div v-if="!loading && !limitedItems.length && filteredItems.length && tab !== 'PRIVATE'" class="card empty">{{ t('school.tasks.items.view.noEntriesInView') }}</div>
-      <div v-if="!loading && !filteredItems.length && tab !== 'PRIVATE'" class="card empty">{{ t('school.tasks.items.view.noEntriesFound') }}</div>
+      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">{{ t('school.tasks.items.view.noEntriesInView') }}</div>
+      <div v-if="!loading && !filteredItems.length" class="card empty">{{ t('school.tasks.items.view.noEntriesFound') }}</div>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
         <button v-if="visibleCount < filteredItems.length" class="btn ghost" @click="showMore">{{ t('global.buttons.showMore') }}</button>
@@ -246,17 +234,6 @@
         :max-subject-length="MAX_SUBJECT_LENGTH"
         @cancel="showItemForm=false"
         @success="handleSuccess(t('school.tasks.itemForm.successEdit'))"
-        @error="onItemFormError"
-    />
-
-    <TodoForm
-        v-if="showTodoForm"
-        :initial="todoToEdit || undefined"
-        @cancel="showTodoForm=false"
-        @success="(data) => handleTodoSuccess(
-        todoToEdit ? 'Privater Eintrag aktualisiert.' : 'Privater Eintrag erstellt.',
-        data
-    )"
         @error="onItemFormError"
     />
 
@@ -315,13 +292,11 @@ import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
 import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
 import OldNewSwitch from "@/modules/tasks/components/NewOldSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
-import TodoApp from "@/modules/tasks/components/TodoApp.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabNavigation from '@/modules/tasks/components/TabNavigation.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin } from 'lucide-vue-next'
 import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
-import TodoForm from '@/modules/tasks/components/TodoForm.vue';
 import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";
 import InfoPop from '@/common/components/InfoModalCenter.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
@@ -414,13 +389,8 @@ const {
   onSetupSuccess,
   doReport,
   cancelReport,
-  showTodoForm,
-  todoToEdit,
   openCreateFormByType,
-  handleTodoSuccess,
   itemFormType,
-  openEditTodo,
-  todoAppRef,
   showDeleteConfirm,
   confirmDelete,
   cancelDelete,
@@ -473,9 +443,6 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
   toggleCheck(item);
 }
-
-// Expose todoAppRef to satisfy TS declaration and allow template bindings
-defineExpose({ todoAppRef });
 </script>
 
 <style scoped>
@@ -769,11 +736,6 @@ defineExpose({ todoAppRef });
   flex-direction: row;
   gap: 8px;
   position: relative;
-}
-
-.private-entries-container .hw-header {
-  padding: 0;
-  background: transparent;
 }
 
 .admin-creator-info {

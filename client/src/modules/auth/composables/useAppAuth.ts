@@ -152,6 +152,7 @@ export function useAppAuth() {
             const response = await hw.post('/api/groups/switch', { groupId });
             if (response.status === 200 && response.data.ok) {
                 setCsrfToken(response.data.csrfToken);
+                activeGroupId.value = groupId;
                 await checkAuthStatus();
                 window.dispatchEvent(new CustomEvent('tenant-changed', { detail: { groupId } }));
                 return { ok: true };

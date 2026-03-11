@@ -1,7 +1,10 @@
 // --- Admin Module Types ---
 
-export type AdminTab = 'overview' | 'users' | 'reports' | 'security' | 'sorgen' | 'announcements' | 'timetable' | 'doc';
+// ─── Shared Tab Types ───────────────────────────────────────────
+export type SuperAdminTab = 'overview' | 'users' | 'reports' | 'sorgen' | 'doc';
+export type GroupAdminTab = 'overview' | 'members' | 'timetable' | 'announcements';
 
+// ─── Super Admin Stats ──────────────────────────────────────────
 export interface AdminStats {
     userCount: number;
     itemCount: number;
@@ -22,6 +25,15 @@ export interface AdminStats {
     topCreators: { _id: string; count: number; email?: string }[];
 }
 
+// ─── Group Admin Stats ──────────────────────────────────────────
+export interface GroupStats {
+    itemCount: number;
+    subsCount: number;
+    oldItemsCount: number;
+    memberCount: number;
+}
+
+// ─── Users ──────────────────────────────────────────────────────
 export interface AdminUser {
     id: string;
     email: string;
@@ -37,6 +49,15 @@ export interface AdminUser {
     theater?: number;
 }
 
+// ─── Group Members ──────────────────────────────────────────────
+export interface GroupMember {
+    userId: string;
+    generatedName: string;
+    role: string;
+    joinedAt: string;
+}
+
+// ─── Reports ────────────────────────────────────────────────────
 export interface AdminReport {
     id: string;
     itemId: string;
@@ -50,6 +71,7 @@ export interface AdminReport {
     reportedAt: string;
 }
 
+// ─── Sorgen ─────────────────────────────────────────────────────
 export interface AdminSorge {
     id: string;
     message: string;
@@ -58,17 +80,26 @@ export interface AdminSorge {
     createdAt: string;
 }
 
+// ─── Timetable Substitutions ────────────────────────────────────
 export interface TimetableSubstitution {
     id: string;
-    lessonId: number;
+    lessonId: string;
     day?: string;
     slot?: number;
     duration?: number;
     subject?: string;
-    subject_abbr?: string;
     teacher?: string | null;
     room?: string | null;
     cancelled?: boolean;
     hide?: boolean;
     createdAt?: string;
+}
+
+// ─── Announcements ──────────────────────────────────────────────
+export interface AdminAnnouncement {
+    id: string;
+    content: string;
+    color: string;
+    showAsPopup?: boolean;
+    createdAt: string;
 }

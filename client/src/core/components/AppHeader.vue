@@ -3,18 +3,20 @@
     <div class="header-container container">
       <div class="header-left">
         <div class="logo-group-container">
-          <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="logo-group" @click="closeNav">
+          <!-- Logo always links to home or active group -->
+          <router-link :to="logoLink" class="logo-group" @click="closeNav">
             <Logo class="logo-img" aria-hidden="true" />
-            <span class="logo-text logo-text--group">{{ groupName }}</span>
-            <span class="logo-text logo-text--brand">schul-dashboard</span>
+            <span v-if="isGroupRoute && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
+            <span v-else class="logo-text logo-text--brand">schul-dashboard</span>
           </router-link>
 
-          <template v-if="groupName">
+          <!-- Group switcher: only visible on group routes -->
+          <template v-if="isGroupRoute && groupName">
             <span class="logo-separator--desktop" aria-hidden="true">/</span>
-            
+
             <div class="group-switcher" ref="groupMenuRef">
-              <button 
-                  class="group-switcher-btn logo-group-name--desktop" 
+              <button
+                  class="group-switcher-btn logo-group-name--desktop"
                   @click="toggleGroupMenu"
                   title="Gruppe wechseln"
               >
@@ -23,8 +25,8 @@
               </button>
 
               <div v-if="groupMenuOpen" class="menu">
-                <button 
-                    v-for="g in userGroups" 
+                <button
+                    v-for="g in userGroups"
                     :key="g.id"
                     class="menu-btn"
                     :class="{ active: g.id === activeGroupId }"
@@ -49,8 +51,17 @@
           <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
             <X />
           </button>
-          <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
 
+          <!-- Group navigation: only when in group context -->
+          <template v-if="isGroupRoute && activeGroupId">
+            <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
+            <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
+          </template>
+
+          <!-- User navigation: always visible -->
+          <router-link to="/todos" class="nav-item" @click="closeNav" v-if="user">Meine Einträge</router-link>
+
+          <!-- Admin links -->
           <router-link
               v-if="user?.role === 'superadmin'"
               to="/admin"
@@ -60,14 +71,13 @@
             Admin
           </router-link>
           <router-link
-              v-if="user?.role === 'admin'"
+              v-if="isGroupRoute && isGroupAdmin"
               :to="`/groups/${activeGroupId}/admin`"
               class="nav-item"
+              @click="closeNav"
           >
             Verwaltung
           </router-link>
-
-          <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
         </nav>
       </div>
 
@@ -127,8 +137,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -143,20 +153,32 @@ import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
-const { user, loading, needsSetup, hasShownSetup } = storeToRefs(userStore);
+const { user, loading, needsSetup, hasShownSetup, isGroupAdmin } = storeToRefs(userStore);
 
 const { groupName, userGroups, activeGroupId, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
+const route = useRoute();
 
 const navOpen = ref(false);
 const showSetupModal = ref(false);
-
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
+
+// Detect if we are currently on a group-scoped route
+const isGroupRoute = computed(() => {
+  return route.matched.some(r => r.path.includes('/groups/:groupId'));
+});
+
+// Logo links to active group items if in group context, otherwise home
+const logoLink = computed(() => {
+  if (isGroupRoute.value && activeGroupId.value) {
+    return `/groups/${activeGroupId.value}/items/HAUSAUFGABE`;
+  }
+  return '/home';
+});
 
 function toggleGroupMenu() {
   groupMenuOpen.value = !groupMenuOpen.value;
@@ -167,9 +189,10 @@ async function onSwitchGroup(id: string) {
   if (id !== activeGroupId.value) {
     const res = await switchActiveGroup(id);
     if (res.ok) {
-       window.location.href = '/';
+      // Navigate to the new group's main page instead of full reload
+      await router.push(`/groups/${id}/items/HAUSAUFGABE`);
     } else {
-       console.error("Failed to switch group", res.error);
+      console.error("Failed to switch group", res.error);
     }
   }
 }
@@ -208,7 +231,6 @@ const handleEscape = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && navOpen.value) closeNav();
 };
 
-// Auth Funktionen
 async function logout() {
   try {
     await hw.post('/api/auth/logout');
@@ -221,7 +243,6 @@ async function logout() {
     router.push('/welcome');
   }
 }
-
 
 function onAccountDeleted() {
   userStore.clearUser();
@@ -513,10 +534,6 @@ onUnmounted(() => {
     border-bottom: none;
   }
 
-  .nav-item:hover {
-    opacity: 1;
-  }
-
   .logo-img {
     height: 26px;
   }
@@ -538,7 +555,6 @@ onUnmounted(() => {
     padding-right: 16px;
   }
 
-  /* Hide desktop-only breadcrumb pieces on mobile */
   .logo-separator--desktop,
   .logo-group-name--desktop {
     display: none;

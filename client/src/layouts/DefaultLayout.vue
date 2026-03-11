@@ -1,6 +1,6 @@
 <template>
   <AppHeader />
-  <GlobalAnnouncements />
+  <GlobalAnnouncements v-if="isGroupRoute" />
 
   <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
     <div class="progress-bar" :style="{ width: progress + '%' }">
@@ -26,12 +26,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
 import { useLoadingBar } from '@/common/composables/loadingState';
 
+const route = useRoute();
 const { loading, progress, opacity } = useLoadingBar();
+
+// Only show announcements when inside a group context
+const isGroupRoute = computed(() => {
+  return route.matched.some(r => r.path.includes('/groups/:groupId'));
+});
 </script>
 
 <style scoped>

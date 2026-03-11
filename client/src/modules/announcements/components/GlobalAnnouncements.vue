@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <div class="global-announcements" v-if="announcements.length && !isWelcomePage">
+  <div class="global-announcements" v-if="announcements.length">
     <div
         class="global-ann"
         :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
@@ -52,20 +52,25 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '@/api/hwApi';
 import AnnouncementPopup from '@/modules/announcements/components/AnnouncementPopup.vue';
 import { X, EllipsisVertical } from 'lucide-vue-next';
+
+const { activeGroupId } = useAppAuth();
+const route = useRoute();
 
 const announcements = ref([]);
 const currentIndex = ref(0);
 const showMenu = ref(false);
 const showPopup = ref(false);
 const currentPopupAnnouncement = ref(null);
-const route = useRoute();
-const welcomePaths = ['/welcome', '/admin-dashboard', '/kanye', '/verify'];
-const isWelcomePage = computed(() =>
-    welcomePaths.some(path => route.path.startsWith(path))
-);
+
+// This component is only rendered when inside a group route (parent handles v-if),
+// but we double-check that we have a group context before loading
+const hasGroupContext = computed(() => {
+  return !!activeGroupId.value && route.matched.some(r => r.path.includes('/groups/:groupId'));
+});
 
 const currentAnnouncement = computed(() => {
   return announcements.value[currentIndex.value] || {};
@@ -87,23 +92,25 @@ const markPopupAsSeen = (announcementId) => {
   }
 };
 
-onMounted(async () => {
-  if (!isWelcomePage.value) {
-    try {
-      const { data } = await hw.get('/api/timetable/announcements');
-      announcements.value = data;
-      updateAnnouncementHeight();
-      checkForNewPopups(data);
-    } catch (error) {
-      console.error('Fehler beim Laden der globalen Ankündigungen', error);
-    }
+async function loadAnnouncements() {
+  if (!hasGroupContext.value) {
+    announcements.value = [];
+    updateAnnouncementHeight();
+    return;
   }
-});
+  try {
+    const { data } = await hw.get('/api/timetable/announcements');
+    announcements.value = data;
+    updateAnnouncementHeight();
+    checkForNewPopups(data);
+  } catch (error) {
+    console.error('Fehler beim Laden der Ankündigungen', error);
+  }
+}
 
-function checkForNewPopups(announcements) {
+function checkForNewPopups(anns) {
   const seenPopups = getSeenPopups();
-
-  for (const announcement of announcements) {
+  for (const announcement of anns) {
     if (announcement.showAsPopup && !seenPopups.includes(announcement.id)) {
       currentPopupAnnouncement.value = announcement;
       showPopup.value = true;
@@ -134,34 +141,13 @@ function nextAnnouncement() {
 }
 
 function updateAnnouncementHeight() {
-  if (announcements.value.length && !isWelcomePage.value) {
+  if (announcements.value.length && hasGroupContext.value) {
     document.documentElement.style.setProperty('--announcement-height', '45px');
   } else {
     document.documentElement.style.setProperty('--announcement-height', '0px');
   }
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
-
-watch(announcements, () => {
-  updateAnnouncementHeight();
-});
-
-watch(isWelcomePage, () => {
-  updateAnnouncementHeight();
-});
-
-watch(isWelcomePage, async (newValue, oldValue) => {
-  if (oldValue === true && newValue === false) {
-    try {
-      const { data } = await hw.get('/api/timetable/announcements');
-      announcements.value = data;
-      updateAnnouncementHeight();
-      checkForNewPopups(data);
-    } catch (error) {
-      console.error('Fehler beim Laden der globalen Ankündigungen', error);
-    }
-  }
-}, { immediate: false });
 
 function colorFor(color) {
   const map = {
@@ -173,6 +159,20 @@ function colorFor(color) {
   };
   return map[color] || 'var(--sub)';
 }
+
+// Reload announcements when group context changes
+watch(hasGroupContext, (newVal) => {
+  if (newVal) {
+    loadAnnouncements();
+  } else {
+    announcements.value = [];
+    updateAnnouncementHeight();
+  }
+});
+
+onMounted(() => {
+  loadAnnouncements();
+});
 </script>
 
 <style scoped>
@@ -217,7 +217,6 @@ function colorFor(color) {
   flex-shrink: 0;
 }
 
-/* NEU: Menu Button Styles */
 .announcement-menu-btn {
   background: none;
   border: none;
@@ -294,7 +293,7 @@ function colorFor(color) {
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 12px;
-  box-shadow: var(--input-shadow)
+  box-shadow: var(--input-shadow);
 }
 
 .announcement-item:hover {
@@ -320,13 +319,6 @@ function colorFor(color) {
   flex-direction: column;
   gap: 4px;
   overflow: hidden;
-}
-
-.announcement-item-content strong {
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .announcement-item-content span {

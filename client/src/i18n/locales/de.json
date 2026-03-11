@@ -53,7 +53,8 @@
     },
     "header": {},
     "footer": {
-      "removeDevice": "Dieses Gerät abmelden"
+      "removeDevice": "Dieses Gerät abmelden",
+      "home": "Home"
     },
     "theme": {
       "theme": "Design",
@@ -454,6 +455,7 @@
     },
     "private": {
       "entry": "Privater Eintrag",
+      "title": "Private Todos",
       "onlyVisibleToYou": "Nur für dich sichtbar",
       "infopop": {
         "tooltip": "Überblick und Funktionen zu privaten Einträgen",

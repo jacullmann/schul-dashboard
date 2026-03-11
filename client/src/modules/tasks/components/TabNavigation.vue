@@ -6,20 +6,20 @@ const { t } = useI18n();
 
 // -- Types --
 interface NavItem {
-  id: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE';
+  id: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
   label: string;
 }
 
 // -- Props --
 const props = withDefaults(defineProps<{
-  activeTab?: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE'
+  activeTab?: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'
 }>(), {
   activeTab: 'HAUSAUFGABE'
 });
 
 // -- Emits --
 const emit = defineEmits<{
-  (e: 'change', tab: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'PRIVATE'): void
+  (e: 'change', tab: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG'): void
 }>();
 
 // -- Data --
@@ -27,7 +27,6 @@ const items = computed<NavItem[]>(() => [
   { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
   { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
   { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
-  { id: 'PRIVATE', label: t('school.tasks.tabs.private') },
 ]);
 
 const itemRefs = ref<(HTMLElement | null)[]>([]);

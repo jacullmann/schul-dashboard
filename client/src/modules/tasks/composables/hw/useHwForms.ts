@@ -3,8 +3,6 @@ import type { Ref } from 'vue';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 
-import type { Todo } from '@/modules/tasks/types';
-
 export function useHwForms(
     user: Ref<Record<string, unknown> | null>,
     items: Ref<HwItem[]>,
@@ -15,10 +13,6 @@ export function useHwForms(
     const showItemForm = ref(false);
     const itemToEdit = ref<HwItem | null>(null);
     const itemFormKey = ref(0);
-
-    const showTodoForm = ref(false);
-    const todoToEdit = ref<Todo | null>(null);
-    const todoAppRef = ref<{ addTodo: (todo: Todo) => void; updateTodo: (todo: Todo) => void } | null>(null);
 
     const editingNoteForId = ref<string | null>(null);
     const noteEditContent = ref('');
@@ -42,32 +36,9 @@ export function useHwForms(
     }
 
     function openCreateFormByType(type: ItemType) {
-        if (type === 'PRIVATE') {
-            todoToEdit.value = null;
-            showTodoForm.value = true;
-        } else {
-            itemToEdit.value = null;
-            itemFormType.value = type as Exclude<ItemType, 'PRIVATE'>;
-            showItemForm.value = true;
-        }
-    }
-
-    function openEditTodo(todo: Todo) {
-        todoToEdit.value = todo;
-        showTodoForm.value = true;
-    }
-
-    function handleTodoSuccess(msg: string, data?: Todo) {
-        flashMessage(msg);
-        showTodoForm.value = false;
-        if (todoAppRef.value && data) {
-            if (todoToEdit.value) {
-                todoAppRef.value.updateTodo(data);
-            } else {
-                todoAppRef.value.addTodo(data);
-            }
-        }
-        todoToEdit.value = null;
+        itemToEdit.value = null;
+        itemFormType.value = type as Exclude<ItemType, 'PRIVATE'>;
+        showItemForm.value = true;
     }
 
     function canEditNote() {
@@ -112,9 +83,6 @@ export function useHwForms(
         showItemForm,
         itemToEdit,
         itemFormKey,
-        showTodoForm,
-        todoToEdit,
-        todoAppRef,
         editingNoteForId,
         noteEditContent,
         savingNote,
@@ -122,8 +90,6 @@ export function useHwForms(
         handleSuccess,
         editItem,
         openCreateFormByType,
-        openEditTodo,
-        handleTodoSuccess,
         canEditNote,
         startEditNote,
         cancelEditNote,
