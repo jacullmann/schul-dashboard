@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { useResizeObserver } from '@vueuse/core';
 
 // -- Types --
 interface NavItem {
@@ -25,7 +26,7 @@ const emit = defineEmits<{
 const itemRefs = ref<(HTMLElement | null)[]>([]);
 const navBarRef = ref<HTMLElement | null>(null);
 const navBarScrollWidth = ref(0);
-const resizeObserver = ref<ResizeObserver | null>(null);
+const resizeTrigger = ref(0); // Forcing reactive recalculations on container resize
 
 // Find index based on activeId
 const selectedIndex = ref(
@@ -47,6 +48,7 @@ watch(() => props.activeId, (newId) => {
 
 // 1. Die Pille (Der weiße Hintergrund, der gleitet)
 const pillStyle = computed(() => {
+  if (resizeTrigger.value < 0) return { opacity: 0 }; // Track resize
   const targetElement = itemRefs.value[selectedIndex.value];
   if (!targetElement) return { opacity: 0 };
 
@@ -59,6 +61,7 @@ const pillStyle = computed(() => {
 
 // 2. Die innere Liste (Invertierter Text, der gegenläufig gleitet)
 const innerListStyle = computed(() => {
+  if (resizeTrigger.value < 0) return {}; // Track resize
   const targetElement = itemRefs.value[selectedIndex.value];
   if (!targetElement) return {};
 
@@ -72,12 +75,16 @@ const innerListStyle = computed(() => {
 const updateMetrics = () => {
   if (navBarRef.value) {
     navBarScrollWidth.value = navBarRef.value.scrollWidth;
+    resizeTrigger.value++; // Force style recalculation on resize
   }
 };
 
 const selectItem = (index: number) => {
-  selectedIndex.value = index;
-  emit('change', props.items[index].id);
+  const item = props.items[index];
+  if (item && item.id !== props.activeId) {
+    selectedIndex.value = index;
+    emit('change', item.id);
+  }
 };
 
 const scrollToActive = () => {
@@ -87,43 +94,65 @@ const scrollToActive = () => {
   }
 };
 
+// Keyboard navigation (a11y)
+const handleKeydown = (e: KeyboardEvent, index: number) => {
+  let newIndex = index;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    newIndex = (index + 1) % props.items.length;
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    newIndex = (index - 1 + props.items.length) % props.items.length;
+  } else if (e.key === 'Home') {
+    e.preventDefault();
+    newIndex = 0;
+  } else if (e.key === 'End') {
+    e.preventDefault();
+    newIndex = props.items.length - 1;
+  }
+
+  if (newIndex !== index) {
+    selectItem(newIndex);
+    nextTick(() => {
+      itemRefs.value[newIndex]?.focus();
+    });
+  }
+};
+
 // -- Lifecycle --
 onMounted(() => {
   updateMetrics();
-  if (navBarRef.value) {
-    resizeObserver.value = new ResizeObserver(() => {
-      updateMetrics();
-    });
-    resizeObserver.value.observe(navBarRef.value);
-  }
   setTimeout(updateMetrics, 100);
 });
 
-onBeforeUnmount(() => {
-  if (resizeObserver.value) {
-    resizeObserver.value.disconnect();
-  }
+useResizeObserver(navBarRef, () => {
+  updateMetrics();
 });
 </script>
 
 <template>
   <div class="wrapper">
-    <nav class="nav-bar" ref="navBarRef">
+    <nav class="nav-bar" ref="navBarRef" aria-label="Tabs">
       <!-- Background Layer (Die graue Schrift) -->
-      <div class="nav-layer background-layer">
+      <div class="nav-layer background-layer" role="tablist">
         <button
             v-for="(item, index) in items"
             :key="`bg-${item.id}`"
             :ref="(el) => { if (el) itemRefs[index] = el as HTMLElement }"
             class="nav-item"
+            role="tab"
+            :aria-selected="selectedIndex === index"
+            :tabindex="selectedIndex === index ? 0 : -1"
+            :id="`tab-${item.id}`"
             @click="selectItem(index)"
+            @keydown="handleKeydown($event, index)"
         >
           {{ item.label }}
         </button>
       </div>
 
       <!-- Pill Mask -->
-      <div class="highlight-pill" :style="pillStyle">
+      <div class="highlight-pill" :style="pillStyle" aria-hidden="true">
         <!-- Foreground Layer (Die dunkle Schrift, 1:1 Kopie der Liste) -->
         <div class="nav-layer foreground-layer" :style="innerListStyle">
           <button
@@ -154,7 +183,7 @@ onBeforeUnmount(() => {
 
 .nav-bar {
   position: relative;
-  background-color: var(--vlbg); /* Nutzt exakt die Dashboard-Farbe */
+  background-color: var(--vlbg);
   border: 1px solid var(--border2);
   padding: 0;
   border-radius: var(--border-4);
@@ -189,7 +218,7 @@ onBeforeUnmount(() => {
   left: 0;
   height: 100%;
   pointer-events: none;
-  transition: transform .4s cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition: transform 350ms cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .highlight-pill {
@@ -202,7 +231,7 @@ onBeforeUnmount(() => {
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition: all 350ms cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .nav-item {
@@ -215,7 +244,7 @@ onBeforeUnmount(() => {
   color: var(--sub);
   white-space: nowrap;
   flex-shrink: 0;
-  transition: color 0.2s ease;
+  transition: color 0.1s;
 }
 
 .nav-item:hover {
@@ -223,6 +252,6 @@ onBeforeUnmount(() => {
 }
 
 .nav-item.active-text {
-  color: var(--lbg); /* Die dunkle Farbe auf der weißen Pille */
+  color: var(--lbg);
 }
 </style>

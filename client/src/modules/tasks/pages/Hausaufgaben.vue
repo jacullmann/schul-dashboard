@@ -17,9 +17,10 @@
       </div>
     </div>
 
-    <TabNavigation
-        :active-tab="tab"
-        @change="goTab"
+    <TabSwitcher
+        :items="tabItems"
+        :active-id="tab"
+        @change="(id) => goTab(id as any)"
     />
 
     <div class="controls">
@@ -82,9 +83,9 @@
         </template>
 
         <template #actions-pre>
-          <div v-if="isPinned(item.id)" class="unpin-trigger" role="button" @click.stop="togglePin(item)">
+          <button type="button" v-if="isPinned(item.id)" class="unpin-trigger" @click.stop="togglePin(item)">
             <Pin :size="18" fill="currentColor" class="pinned" />
-          </div>
+          </button>
         </template>
 
         <template #menu>
@@ -136,9 +137,9 @@
                      class="thumb thumb-with-overlay-wrapper"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
-                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                  <button type="button" class="img-clickable" @click.stop="openImageViewer(item, idx)">
                     <img :src="img.thumbUrl || makeThumb(img.url || '')" loading="lazy" draggable="false" alt="Vorschau" />
-                  </div>
+                  </button>
 
                   <button
                       v-if="idx === imagesPerRow - 1 && item.images.length > imagesPerRow"
@@ -157,9 +158,9 @@
                      class="thumb"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
-                  <div class="img-clickable" @click.stop="openImageViewer(item, idx)">
+                  <button type="button" class="img-clickable" @click.stop="openImageViewer(item, idx)">
                     <img :src="img.thumbUrl || makeThumb(img.url || '')" loading="lazy" draggable="false"  alt=""/>
-                  </div>
+                  </button>
                 </div>
               </template>
             </div>
@@ -293,7 +294,7 @@ import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
 import OldNewSwitch from "@/modules/tasks/components/NewOldSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
-import TabNavigation from '@/modules/tasks/components/TabNavigation.vue';
+import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin } from 'lucide-vue-next'
 import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
@@ -309,6 +310,12 @@ import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
+
+const tabItems = computed(() => [
+  { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
+  { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
+  { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
+]);
 
 // Local-only dismissed items tracking for immediate UI removal before refresh
 const dismissedItems = ref(new Set<string>());
@@ -680,6 +687,10 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   width: 100%;
   height: 100%;
   cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: block;
 }
 
 .img-clickable img {
@@ -715,6 +726,8 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   margin: -8px;
   margin-right: 4px;
   transition: 0.15s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .unpin-trigger:hover {

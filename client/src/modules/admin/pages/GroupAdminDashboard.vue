@@ -242,7 +242,7 @@
 
 <script setup lang="ts">
 import { ref, markRaw } from 'vue';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, Users, UserMinus } from 'lucide-vue-next';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserMinus } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 
 const {
@@ -252,8 +252,6 @@ const {
   message,
   isError,
   stats,
-  loadingStats,
-  loadStats,
   members,
   loadingMembers,
   loadMembers,
@@ -285,7 +283,7 @@ const canDemoteAdmin = false;
 
 const tabs = [
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
-  { id: 'members', label: 'Mitglieder', icon: markRaw(Users) },
+  { id: 'members', label: 'Mitglieder', icon: markRaw(UsersRound) },
   { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
 ];

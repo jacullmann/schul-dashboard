@@ -72,7 +72,7 @@
           >
             <a :href="img.url" target="_blank" rel="noopener">
               <img
-                  :src="img.thumbUrl || makeThumb(img.url)"
+                  :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
                   class="thumb"
                   loading="lazy"
                   decoding="async"
@@ -84,7 +84,7 @@
             </div>
           </div>
 
-          <button data-umami-event="Bild zu Eintrag hinzufügen Button" class="btn ghost" @click="uploadImage(!!initial)" :disabled="imgUploading">
+          <button class="btn ghost" @click="uploadImage(!!initial)" :disabled="imgUploading">
             <LoadingSpinner v-if="imgUploading" size="1.1em" />
             <span v-else>{{ t('school.tasks.items.menu.uploadImages') }}</span>
           </button>

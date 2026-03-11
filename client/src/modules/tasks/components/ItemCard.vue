@@ -50,17 +50,16 @@
         <slot name="actions-pre"></slot>
 
         <slot name="menu-trigger">
-          <div
+          <button
               v-if="showMenuTrigger"
+              type="button"
               class="item-menu-trigger"
-              role="button"
-              tabindex="0"
               @click.stop="(e) => $emit('menu-click', e)"
           >
             <slot name="menu-icon">
               <Ellipsis :size="18" />
             </slot>
-          </div>
+          </button>
         </slot>
 
         <slot name="menu"></slot>
@@ -310,6 +309,8 @@ function onDrop(e: DragEvent) {
   color: var(--sub);
   transition: background 120ms ease, color 120ms ease;
   margin: -8px;
+  background: transparent;
+  border: none;
 }
 
 .item-menu-trigger:hover {

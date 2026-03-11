@@ -110,7 +110,6 @@
             :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
             aria-label="Menü öffnen oder schließen"
             v-if="!navOpen"
-            data-umami-event="Mobile Menu öffnen"
         >
           <Menu style="color: var(--text)" :size="26"></Menu>
         </button>

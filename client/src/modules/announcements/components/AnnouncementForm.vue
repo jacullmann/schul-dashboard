@@ -3,7 +3,7 @@
     <div class="card rlc" style="width:100%; max-width:520px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Neue Ankündigung</h3>
-        <button data-umami-event="Ankündigung erstellen Menü schließen" class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
       </div>
       <div style="margin-top:8px;">
         <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
@@ -22,7 +22,7 @@
         </label>
       </div>
       <div class="row" style="margin-top:12px; align-items:center;">
-        <button data-umami-event="Ankündigung hinzufügen" class="btn" @click="submit" :disabled="submitting">
+        <button class="btn" @click="submit" :disabled="submitting">
           <LoadingSpinner v-if="submitting" size="1.1em" />
           <span v-else>Absenden</span>
         </button>

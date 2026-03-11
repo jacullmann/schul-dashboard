@@ -25,7 +25,8 @@ export function useImageUpload() {
     /**
      * Helper to generate thumbnail URLs from a full Cloudinary URL
      */
-    function makeThumb(url: string) {
+    function makeThumb(url?: string) {
+        if (!url) return '';
         try {
             const u = new URL(url);
             const parts = u.pathname.split('/');

@@ -4,10 +4,10 @@
       <div class="modal-header">
         <div class="modal-title">
           <h3 id="modal-title" class="modal-title-text">
-            <slot name="title" />
+            <slot name="title"></slot>
           </h3>
 
-          <slot name="title-infopop" />
+          <slot name="title-infopop"></slot>
         </div>
 
         <button class="btn ghost" @click="$emit('cancel')">
@@ -16,7 +16,7 @@
       </div>
 
       <div class="modal-content">
-        <slot name="content" />
+        <slot name="content"></slot>
       </div>
 
       <div class="row">
@@ -63,7 +63,7 @@ onBeforeUnmount(() => {
 .modal-card {
   background: var(--lbg);
   border: 1px solid var(--border);
-  border-radius: var(--border-7);
+  border-radius: var(--border-11);
   padding: 16px;
   width: calc(100% - 32px);
   max-width: 640px;

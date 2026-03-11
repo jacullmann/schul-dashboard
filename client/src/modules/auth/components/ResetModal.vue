@@ -3,7 +3,7 @@
     <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort zurücksetzen</h3>
-        <button data-umami-event="Passwort zurücksetzen Abbruch" class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
       </div>
 
       <div style="margin-top:12px;">
@@ -37,7 +37,7 @@
                 style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text);"
                 aria-label="Toggle password visibility"
             >
-              <component :is="showPassword ? EyeOff : Eye" size="20" />
+              <component :is="showPassword ? EyeOff : Eye" :size="20" />
             </button>
           </div>
 
@@ -54,7 +54,7 @@
                 style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text);"
                 aria-label="Anzeigen/Nicht anzeigen"
             >
-              <component :is="showPassword ? EyeOff : Eye" size="20" />
+              <component :is="showPassword ? EyeOff : Eye" :size="20" />
             </button>
           </div>
         </div>

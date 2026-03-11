@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue'
-import { Info, X } from 'lucide-vue-next'
+import { ref } from 'vue'
+import { Info } from 'lucide-vue-next'
+import Modal from '@/common/components/Modal.vue'
 
 const props = defineProps<{
   title?: string
@@ -11,63 +12,31 @@ const isModalOpen = ref(false)
 
 const openModal = () => (isModalOpen.value = true)
 const closeModal = () => (isModalOpen.value = false)
-
-const handleBackgroundClick = (event: MouseEvent) => {
-  const target = event.target as HTMLElement
-  if (target.classList.contains('blurit')) {
-    closeModal()
-  }
-}
-
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && isModalOpen.value) {
-    closeModal()
-  }
-}
-
-watch(isModalOpen, (newVal) => {
-  if (newVal) {
-    window.addEventListener('keydown', onKeyDown)
-  } else {
-    window.removeEventListener('keydown', onKeyDown)
-  }
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown)
-})
 </script>
 
 
 <template>
   <div class="info-pop-container" :title="props.tooltip">
     <div class="info-icon-wrapper" @click="openModal">
-      <Info size="16px" />
+      <Info :size="16" />
     </div>
   </div>
 
   <Teleport to="body">
     <Transition name="fade-scale">
-      <div v-if="isModalOpen" class="blurit" @click="handleBackgroundClick">
-        <div class="card rlc info-modal-content">
-          <div class="modal-header">
-            <h3 v-if="props.title" class="popover-title">{{ props.title }}</h3>
-            <div v-else></div>
-
-            <button
-                class="close-btn"
-                @click="closeModal"
-                aria-label="Modal schließen"
-            >
-              <X size="20" />
-            </button>
+      <Modal v-if="isModalOpen" @cancel="closeModal">
+        <template #title>
+          <template v-if="props.title">{{ props.title }}</template>
+        </template>
+        <template #content>
+          <div class="popover-content">
+            <slot></slot>
           </div>
-
-          <div class="popover-content" >
-            <slot />
-          </div>
-        </div>
-      </div>
+        </template>
+        <template #actions>
+          <div style="display: none;"></div>
+        </template>
+      </Modal>
     </Transition>
   </Teleport>
 </template>
@@ -90,60 +59,17 @@ onBeforeUnmount(() => {
 .info-icon-wrapper:hover {
   color: var(--text);
 }
-.info-modal-content {
-  max-width: 640px;
-  width: 100%;
-  padding:16px 16px 0 16px;
-  border-radius: 16px;
-  background: var(--lbg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-l);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-  margin-bottom: 8px
-}
-
-.popover-title {
-  font-weight: 600;
-  margin: 0;
-  color: var(--text);
-}
 
 .popover-content {
   font-size: var(--font-size-body);
   color: var(--text);
   line-height: 1.6;
-  max-height: 70vh;
-  overflow: scroll;
 }
 
-.close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--text);
-}
-@media (max-width: 540px) {
-  .info-modal-content {
-    margin: 16px;
-  }
-}
 .fade-scale-enter-active,
 .fade-scale-leave-active {
-  transition: 0.2s ;
+  transition: 0.2s;
   opacity: 1;
-  transform: scale(1);
 }
 
 .fade-scale-enter-from,
@@ -151,13 +77,13 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 
-.fade-scale-enter-active .info-modal-content,
-.fade-scale-leave-active .info-modal-content {
+.fade-scale-enter-active :deep(.modal-card),
+.fade-scale-leave-active :deep(.modal-card) {
   transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.fade-scale-enter-from .info-modal-content,
-.fade-scale-leave-to .info-modal-content {
+.fade-scale-enter-from :deep(.modal-card),
+.fade-scale-leave-to :deep(.modal-card) {
   transform: scale(0);
 }
 </style>
