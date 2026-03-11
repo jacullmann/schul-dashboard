@@ -297,7 +297,8 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
           return;
         }
         const isSuperadmin = req.user!.globalRole === 'superadmin';
-        const isGroupAdmin = req.tenantRole === 'admin' || req.tenantRole === 'moderator';
+        const isGroupAdmin =
+          req.tenantRole === 'admin' || req.tenantRole === 'moderator';
         if (!isSuperadmin && !isGroupAdmin && item.created_by !== req.userId) {
           sendJSONError(res, 403, 'Nicht autorisiert.');
           return;
@@ -451,7 +452,8 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
 
         const image = images[idx]!;
         const isSuperadmin = req.user!.globalRole === 'superadmin';
-        const isGroupAdmin = req.tenantRole === 'admin' || req.tenantRole === 'moderator';
+        const isGroupAdmin =
+          req.tenantRole === 'admin' || req.tenantRole === 'moderator';
         const isImageOwner = image.createdBy === req.userId;
         const isItemOwner = item.created_by === req.userId;
         if (!isSuperadmin && !isGroupAdmin && !isImageOwner && !isItemOwner) {
