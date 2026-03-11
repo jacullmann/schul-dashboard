@@ -41,6 +41,111 @@ export function useImageUpload() {
     }
 
     /**
+     * Upload an array of files. Can be called directly (e.g., from drag & drop).
+     * @param files - Array of File objects to upload
+     * @param isEditMode - Boolean indicating if we are editing an existing entry (affects max limits)
+     * @param itemId - (Optional) The ID of the item. If present, the new images are saved to the backend immediately.
+     */
+    async function uploadFiles(files: File[], isEditMode: boolean, itemId?: string) {
+        uploading.value = true;
+        uploadError.value = '';
+
+        if (files.length === 0) {
+            uploading.value = false;
+            return;
+        }
+
+        const TOTAL_MAX_IMAGES = 12;
+        const PER_USER_MAX_IMAGES = 8;
+        const MAX_IMAGES = isEditMode ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
+
+        const existingCount = (images.value || []).length;
+        const remaining = MAX_IMAGES - existingCount;
+
+        if (remaining <= 0) {
+            uploadError.value = `Limit erreicht. Maximale Bilder: ${MAX_IMAGES}`;
+            uploading.value = false;
+            return;
+        }
+        if (files.length > remaining) {
+            uploadError.value = `Zu viele Dateien ausgewählt. Du kannst noch ${remaining} Bild(er) hochladen.`;
+            uploading.value = false;
+            return;
+        }
+        // Enforce per-upload limit to prevent backend rejection if batch > user limit
+        if (files.length > PER_USER_MAX_IMAGES) {
+            uploadError.value = `Maximal ${PER_USER_MAX_IMAGES} Bilder pro Upload erlaubt.`;
+            uploading.value = false;
+            return;
+        }
+
+        for (const file of files) {
+            if (!file.type.startsWith('image/')) continue;
+
+            try {
+                // 1. Prepare and Upload to Cloudinary
+                const processedFile = await processImageBeforeUpload(file);
+                const { data: sign } = await hw.post('/api/items/uploads/sign');
+                const form = new FormData();
+                form.set('file', processedFile);
+                form.set('api_key', sign.apiKey);
+                form.set('timestamp', String(sign.timestamp));
+                form.set('signature', sign.signature);
+                form.set('folder', sign.folder);
+
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
+                const json = await res.json();
+
+                if (json.secure_url && json.public_id) {
+                    const metadata = {
+                        version: json.version,
+                        format: json.format,
+                        width: json.width,
+                        height: json.height,
+                    };
+
+                    const imgPayload = {
+                        publicId: json.public_id,
+                        metadata,
+                    };
+
+                    // 2. If we have an itemId, save to backend immediately using the correct POST route
+                    if (itemId) {
+                        try {
+                            const { data } = await hw.post(`/api/items/${itemId}/images`, {
+                                image: imgPayload
+                            });
+                            // Add the returned image (with correct createdBy + dynamically built URLs) to local state
+                            images.value.push(data.image);
+                            uploadError.value = '';
+                        } catch (e: unknown) {
+                            console.error('Failed to save image to item:', e);
+                            const err = e as { response?: { data?: { error?: string } } };
+                            uploadError.value = err.response?.data?.error || 'Speichern fehlgeschlagen.';
+                        }
+                    } else {
+                        // Creating a new item: add to local state with preview URLs
+                        images.value.push({
+                            publicId: json.public_id,
+                            url: json.secure_url,
+                            thumbUrl: makeThumb(json.secure_url),
+                            createdBy: '',
+                            metadata
+                        });
+                    }
+                } else {
+                    console.error('Cloudinary Upload failed', json);
+                    uploadError.value = 'Upload zu Cloudinary fehlgeschlagen.';
+                }
+            } catch (e: unknown) {
+                console.error('uploadFiles error', e);
+                uploadError.value = 'Fehler beim Upload.';
+            }
+        }
+        uploading.value = false;
+    }
+
+    /**
      * Handles the file input creation, validation, signing, and uploading to Cloudinary.
      * If itemId is provided, it immediately pushes the backend via POST.
      * @param isEditMode - Boolean indicating if we are editing an existing entry (affects max limits)
@@ -61,99 +166,7 @@ export function useImageUpload() {
 
         input.onchange = async () => {
             const files = Array.from(input.files || []);
-            if (files.length === 0) {
-                uploading.value = false;
-                return;
-            }
-
-            const TOTAL_MAX_IMAGES = 12;
-            const PER_USER_MAX_IMAGES = 8;
-            const MAX_IMAGES = isEditMode ? TOTAL_MAX_IMAGES : PER_USER_MAX_IMAGES;
-
-            const existingCount = (images.value || []).length;
-            const remaining = MAX_IMAGES - existingCount;
-
-            if (remaining <= 0) {
-                uploadError.value = `Limit erreicht. Maximale Bilder: ${MAX_IMAGES}`;
-                uploading.value = false;
-                return;
-            }
-            if (files.length > remaining) {
-                uploadError.value = `Zu viele Dateien ausgewählt. Du kannst noch ${remaining} Bild(er) hochladen.`;
-                uploading.value = false;
-                return;
-            }
-            // Enforce per-upload limit to prevent backend rejection if batch > user limit
-            if (files.length > PER_USER_MAX_IMAGES) {
-                uploadError.value = `Maximal ${PER_USER_MAX_IMAGES} Bilder pro Upload erlaubt.`;
-                uploading.value = false;
-                return;
-            }
-
-            for (const file of files) {
-                if (!file.type.startsWith('image/')) continue;
-
-                try {
-                    // 1. Prepare and Upload to Cloudinary
-                    const processedFile = await processImageBeforeUpload(file);
-                    const { data: sign } = await hw.post('/api/items/uploads/sign');
-                    const form = new FormData();
-                    form.set('file', processedFile);
-                    form.set('api_key', sign.apiKey);
-                    form.set('timestamp', String(sign.timestamp));
-                    form.set('signature', sign.signature);
-                    form.set('folder', sign.folder);
-
-                    const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`, { method: 'POST', body: form });
-                    const json = await res.json();
-
-                    if (json.secure_url && json.public_id) {
-                        const metadata = {
-                            version: json.version,
-                            format: json.format,
-                            width: json.width,
-                            height: json.height,
-                        };
-
-                        const imgPayload = {
-                            publicId: json.public_id,
-                            metadata,
-                        };
-
-                        // 2. If we have an itemId, save to backend immediately using the correct POST route
-                        if (itemId) {
-                            try {
-                                const { data } = await hw.post(`/api/items/${itemId}/images`, {
-                                    image: imgPayload
-                                });
-                                // Add the returned image (with correct createdBy + dynamically built URLs) to local state
-                                images.value.push(data.image);
-                                uploadError.value = '';
-                            } catch (e: unknown) {
-                                console.error('Failed to save image to item:', e);
-                                const err = e as { response?: { data?: { error?: string } } };
-                                uploadError.value = err.response?.data?.error || 'Speichern fehlgeschlagen.';
-                            }
-                        } else {
-                            // Creating a new item: add to local state with preview URLs
-                            images.value.push({
-                                publicId: json.public_id,
-                                url: json.secure_url,
-                                thumbUrl: makeThumb(json.secure_url),
-                                createdBy: '',
-                                metadata
-                            });
-                        }
-                    } else {
-                        console.error('Cloudinary Upload failed', json);
-                        uploadError.value = 'Upload zu Cloudinary fehlgeschlagen.';
-                    }
-                } catch (e: unknown) {
-                    console.error('uploadImage error', e);
-                    uploadError.value = 'Fehler beim Upload.';
-                }
-            }
-            uploading.value = false;
+            await uploadFiles(files, isEditMode, itemId);
         };
 
         input.click();
@@ -193,6 +206,7 @@ export function useImageUpload() {
         init,
         makeThumb,
         uploadImage,
+        uploadFiles,
         removeImg,
     };
 }

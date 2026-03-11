@@ -168,6 +168,7 @@ export function useHausaufgaben() {
         openImageMenu,
         closeImageMenu,
         triggerImageUpload,
+        triggerImageDrop,
         triggerImageDelete,
         confirmImageDelete,
         cancelImageDelete,
@@ -221,7 +222,9 @@ export function useHausaufgaben() {
     }
 
     function onSetupSuccess(updatedUser: Record<string, unknown>) {
-        user.value = { ...user.value, ...updatedUser };
+        if (user.value) {
+            user.value = { ...user.value, ...updatedUser } as typeof user.value;
+        }
         showSetupModal.value = false;
     }
 
@@ -378,6 +381,7 @@ export function useHausaufgaben() {
         openImageMenu,
         closeImageMenu,
         triggerImageUpload,
+        triggerImageDrop,
         triggerImageDelete,
         showImageDeleteConfirm,
         confirmImageDelete,

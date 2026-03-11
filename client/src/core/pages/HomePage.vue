@@ -93,7 +93,7 @@
     <!-- Empty State -->
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading" class="empty-section">
       <div class="empty-state-card">
-        <Users :size="40" class="empty-icon" />
+        <UsersRound :size="40" class="empty-icon" />
         <h3>Noch keine Gruppen</h3>
         <p>Tritt einer bestehenden Gruppe bei oder erstelle eine neue, um loszulegen.</p>
         <div class="empty-actions">
@@ -120,7 +120,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, Users } from 'lucide-vue-next';
+import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, UsersRound } from 'lucide-vue-next';
 import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import hw from '@/api/hwApi';

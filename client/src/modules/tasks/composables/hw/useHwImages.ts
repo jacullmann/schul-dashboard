@@ -71,6 +71,14 @@ export function useHwImages(
         closeImageMenu();
     }
 
+    function triggerImageDrop(item: HwItem, files: File[]) {
+        if (!item || !files.length) return;
+
+        imageUpload.init(item.images);
+        currentUploadItemId.value = item.id;
+        imageUpload.uploadFiles(files, true, item.id);
+    }
+
     function triggerImageDelete() {
         showImageDeleteConfirm.value = true;
         imageMenu.visible = false;
@@ -122,6 +130,7 @@ export function useHwImages(
         openImageMenu,
         closeImageMenu,
         triggerImageUpload,
+        triggerImageDrop,
         triggerImageDelete,
         confirmImageDelete,
         cancelImageDelete,

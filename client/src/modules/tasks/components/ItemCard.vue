@@ -17,9 +17,20 @@
     <div
         ref="cardRef"
         class="item-card"
-        :class="{ collapsed: isCollapsed, highlighted: highlighted }"
+        :class="{ collapsed: isCollapsed, highlighted: highlighted, 'drag-over': isDragOver }"
         :style="cardStyle"
+        @dragenter.prevent="onDragEnter"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
     >
+      <div v-if="isDragOver" class="drop-overlay">
+        <div class="drop-content">
+          <UploadCloud :size="32" />
+          <span>Bilder ablegen zum Hochladen</span>
+        </div>
+      </div>
+
       <div class="item-main">
         <div class="item-meta">
           <div style="display:flex; align-items:center; gap:8px;">
@@ -69,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Ellipsis, Archive, ArchiveRestore } from 'lucide-vue-next';
+import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from 'lucide-vue-next';
 import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
 
 const props = withDefaults(defineProps<{
@@ -90,6 +101,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'menu-click', event: MouseEvent): void;
   (e: 'swiped'): void;
+  (e: 'files-dropped', files: File[]): void;
 }>();
 
 const cardRef = ref<HTMLElement | null>(null);
@@ -161,6 +173,43 @@ function onLeave(el: Element) {
   h.style.transition = `height ${transitionDuration} ${transitionEasing}, opacity ${transitionDuration} ${transitionEasing}`;
   h.style.height = '0';
   h.style.opacity = '0';
+}
+
+// ─── Drag & Drop ─────────────────────────────────────────────────────────────
+const isDragOver = ref(false);
+let dragCounter = 0;
+
+function onDragEnter(e: DragEvent) {
+  if (e.dataTransfer?.types.includes('Files')) {
+    dragCounter++;
+    isDragOver.value = true;
+  }
+}
+
+function onDragOver(e: DragEvent) {
+  if (e.dataTransfer?.types.includes('Files')) {
+    e.dataTransfer.dropEffect = 'copy';
+  }
+}
+
+function onDragLeave(e: DragEvent) {
+  if (e.dataTransfer?.types.includes('Files')) {
+    dragCounter--;
+    if (dragCounter === 0) {
+      isDragOver.value = false;
+    }
+  }
+}
+
+function onDrop(e: DragEvent) {
+  dragCounter = 0;
+  isDragOver.value = false;
+  if (e.dataTransfer?.files.length) {
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      emit('files-dropped', files);
+    }
+  }
 }
 </script>
 
@@ -282,5 +331,32 @@ function onLeave(el: Element) {
 
 .item-collapsible-wrapper {
   opacity: 1;
+}
+
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  border-radius: var(--border-7);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.item-card.drag-over {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: var(--font-size-body);
 }
 </style>

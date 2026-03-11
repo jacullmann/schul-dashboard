@@ -65,6 +65,7 @@
           @swiped="handleSwipe(item)"
           @dblclick="handleItemDoubleClick(item, $event)"
           @menu-click="toggleMenu(item.id)"
+          @files-dropped="(files) => triggerImageDrop(item, files)"
       >
         <template #checkbox>
           <Checkbox
@@ -426,6 +427,7 @@ const {
   imageMenu,
   closeImageMenu,
   triggerImageUpload,
+  triggerImageDrop,
   triggerImageDelete,
   showImageDeleteConfirm,
   confirmImageDelete,

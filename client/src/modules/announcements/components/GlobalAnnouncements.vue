@@ -37,7 +37,7 @@
       </div>
 
       <button class="announcement-menu-btn" @click.stop="toggleMenu">
-        <EllipsisVertical />
+        <EllipsisVertical :size="16" />
       </button>
     </div>
   </div>
