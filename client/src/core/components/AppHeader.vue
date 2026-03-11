@@ -59,7 +59,7 @@
           </template>
 
           <!-- User navigation: always visible -->
-          <router-link to="/todos" class="nav-item" @click="closeNav" v-if="user">Meine Einträge</router-link>
+          <router-link to="/todos" class="nav-item" @click="closeNav" v-if="user">Private Todos</router-link>
 
           <!-- Admin links -->
           <router-link
