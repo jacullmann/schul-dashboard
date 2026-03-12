@@ -43,7 +43,7 @@ const announcementStyle = computed(() => {
 <template>
   <header class="header">
     <div class="header-content-wrapper">
-      <RouterLink to="/welcome" class="logo-container">
+      <RouterLink to="/" class="logo-container">
         <Logo class="logo-img" aria-label="Website Logo"/>
         <span class="logo-text">schul-dashboard</span>
       </RouterLink>

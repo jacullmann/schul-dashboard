@@ -4,12 +4,46 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 
 const routes = [
+    // ─── Welcome Layout ─────────────────────────────────────────────
+    {
+        path: '/',
+        component: () => import('@/layouts/WelcomeLayout.vue'),
+        meta: {
+            title: 'schul-dashboard | Free Management Tool For Students',
+            fullWidth: true
+        },
+        children: [
+            {
+                path: '',
+                name: 'welcome-home',
+                component: () => import('@/modules/welcome/pages/WelcomeHomePage.vue'),
+                meta: {
+                    title: 'schul-dashboard | Free Management Tool For Students'
+                }
+                },
+            {
+                path: 'auth',
+                name: 'welcome-auth',
+                component: () => import('@/modules/welcome/pages/WelcomeAuthPage.vue'),
+                meta: {
+                    title: 'Authentication'
+                }
+                },
+            {
+                path: 'legal',
+                name: 'welcome-legal',
+                component: () => import('@/modules/welcome/pages/WelcomeLegalPage.vue'),
+                meta: {
+                    title: 'Legal'
+                }
+                },
+        ],
+    },
     // ─── Default Layout (header + footer) ───────────────────────────
     {
         path: '/',
         component: () => import('@/layouts/DefaultLayout.vue'),
         children: [
-            { path: '', redirect: '/home' },
             {
                 path: 'home',
                 name: 'home',
@@ -131,18 +165,6 @@ const routes = [
         ],
     },
 
-    // ─── Welcome Layout ─────────────────────────────────────────────
-    {
-        path: '/welcome',
-        component: () => import('@/layouts/WelcomeLayout.vue'),
-        meta: { title: 'Willkommen', fullWidth: true },
-        children: [
-            { path: '', name: 'welcome-home', component: () => import('@/modules/welcome/pages/WelcomeHomePage.vue'), meta: { title: 'Willkommen' } },
-            { path: 'auth', name: 'welcome-auth', component: () => import('@/modules/welcome/pages/WelcomeAuthPage.vue'), meta: { title: 'Anmeldung' } },
-            { path: 'legal', name: 'welcome-legal', component: () => import('@/modules/welcome/pages/WelcomeLegalPage.vue'), meta: { title: 'Rechtliches' } },
-        ],
-    },
-
     // ─── Super Admin Dashboard ──────────────────────────────────────
     {
         path: '/admin',
@@ -188,7 +210,8 @@ router.beforeEach(async (to, from, next) => {
 
     if (!isAuthReady.value) await initAuth();
 
-    const isPublicRoute = to.path.startsWith('/welcome') || to.path === '/verify';
+    const isPublicRoute = to.path === '/' || to.path.startsWith('/auth') ||
+        to.path === '/legal' || to.path === '/verify';
 
     // Redirect unauthenticated users to welcome
     if (!isPublicRoute && !isLoggedIn.value) {
@@ -196,19 +219,23 @@ router.beforeEach(async (to, from, next) => {
         const isAllowed = allowedWithoutAuth.some(p => to.path.startsWith(p));
         if (!isAllowed) {
             finish();
-            return next({ path: '/welcome', replace: true });
+            return next({ path: '/', replace: true });
         }
     }
 
     // Redirect authenticated users away from welcome
-    if (to.path.startsWith('/welcome') && isLoggedIn.value) {
+    if ((to.path === '/' || to.path === '/auth' || to.path === '/legal') && isLoggedIn.value) {
         finish();
         return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/ALLE` : '/home', replace: true });
     }
 
     // Set document title
     if (to.meta.title) {
-        document.title = to.meta.title + ' | Dashboard';
+        if (to.path === '/') {
+            document.title = to.meta.title;
+        } else {
+            document.title = to.meta.title + ' | Dashboard';
+        }
     } else {
         document.title = 'Dashboard';
     }

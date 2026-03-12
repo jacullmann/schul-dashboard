@@ -8,6 +8,7 @@ import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useRouter } from 'vue-router';
 import hw, { syncCsrfFromCookie } from '@/api/hwApi';
+import { useRoute } from 'vue-router';
 
 const router = useRouter();
 
@@ -16,6 +17,10 @@ const { user } = storeToRefs(userStore);
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
+const route = useRoute();
+const isPublicRoute = computed(() =>
+    route.path === '/' || route.path === '/auth' || route.path === '/legal'
+);
 
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 let pageloadLogged = false;
@@ -48,8 +53,8 @@ async function handleAuthExpired() {
     openAuthModal().catch(() => {});
   } else {
     const currentPath = router.currentRoute.value.path;
-    if (!currentPath.startsWith('/welcome')) {
-      await router.push('/welcome');
+    if (currentPath !== '/' && !currentPath.startsWith('/auth')) {
+      await router.push('/');
     }
   }
 }
@@ -61,8 +66,8 @@ function handleCsrfRefreshFailed() {
 
   setTimeout(() => {
     const currentPath = router.currentRoute.value.path;
-    if (!currentPath.startsWith('/welcome')) {
-      router.push('/welcome').finally(() => {
+    if (currentPath !== '/' && !currentPath.startsWith('/auth')) {
+      router.push('/').finally(() => {
         setTimeout(() => {
           csrfRedirectInProgress = false;
         }, 1000);
@@ -122,7 +127,7 @@ onUnmounted(() => {
 
 <template>
   <div class="full">
-    <template v-if="!isAuthReady">
+    <template v-if="!isAuthReady && !isPublicRoute">
       <div class="auth-loading-screen">
         <div class="auth-loading-spinner"></div>
       </div>

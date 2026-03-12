@@ -19,7 +19,7 @@ defineProps<{
 }>();
 
 function navigateToAuth() {
-  router.push('/welcome/auth');
+  router.push('/auth');
 }
 </script>
 

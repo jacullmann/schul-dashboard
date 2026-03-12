@@ -9,10 +9,10 @@ const { t } = useI18n();
 const router = useRouter();
 
 function gotosec() {
-  router.push('/welcome/legal');
+  router.push('/legal');
 }
 function gotomain() {
-  router.push('/welcome');
+  router.push('/');
 }
 function goToStatus() {
   window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank', 'noopener,noreferrer');
