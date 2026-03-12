@@ -44,7 +44,7 @@ watch(() => props.activeId, (newId) => {
   }
 }, { immediate: true });
 
-// -- Computed Styles (Exakt wie im Hausaufgaben Dashboard) --
+// -- Computed Styles (Exakt wie im Aufgaben Dashboard) --
 
 // 1. Die Pille (Der weiße Hintergrund, der gleitet)
 const pillStyle = computed(() => {

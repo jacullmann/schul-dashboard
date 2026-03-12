@@ -59,7 +59,7 @@ async function submit() {
       } catch {}
       
       emit('close');
-      await router.push(`/groups/${activeGroupId.value}/items/HAUSAUFGABE`);
+      await router.push(`/groups/${activeGroupId.value}/items/ALLE`);
     } else {
       errorMsg.value = res.error || 'Zugriff verweigert. Code prüfen.';
     }

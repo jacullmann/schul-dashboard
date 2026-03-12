@@ -2,7 +2,7 @@
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
+import type { HwItem } from '@/modules/tasks/composables/useAufgaben';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import Modal from '@/common/components/Modal.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';

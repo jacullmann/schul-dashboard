@@ -18,7 +18,7 @@ import { useHwActions } from './hw/useHwActions';
 
 export type { HwItem };
 
-export function useHausaufgaben() {
+export function useAufgaben() {
     const route = useRoute();
     const router = useRouter();
     const userStore = useUserStore();

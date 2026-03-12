@@ -8,7 +8,7 @@ const goBack = () => {
   if (window.history.length > 1) {
     router.back();
   } else {
-    router.push('/items/HAUSAUFGABE');
+    router.push('/items/ALLE');
   }
 };
 </script>
@@ -25,12 +25,12 @@ const goBack = () => {
       <div class="navigation-section">
         <h3 class="section-title">Wichtige Bereiche</h3>
         <div class="nav-grid">
-          <router-link to="/items/HAUSAUFGABE" class="nav-card">
+          <router-link to="/items/ALLE" class="nav-card">
             <div class="nav-icon">
               <FileText :size="24"/>
             </div>
             <div class="nav-info">
-              <div class="nav-title">Hausaufgaben</div>
+              <div class="nav-title">Aufgaben</div>
               <div class="nav-desc">Aufgaben und Klassenarbeiten</div>
             </div>
           </router-link>

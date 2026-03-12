@@ -21,18 +21,18 @@ const routes = [
             {
                 path: 'groups/:groupId',
                 children: [
-                    { path: '', redirect: (to: { params: { groupId: string } }) => `/groups/${to.params.groupId}/items/HAUSAUFGABE` },
+                    { path: '', redirect: (to: { params: { groupId: string } }) => `/groups/${to.params.groupId}/items/ALLE` },
                     {
                         path: 'items/:type?/:itemId?',
                         name: 'group-items',
-                        component: () => import('@/modules/tasks/pages/Hausaufgaben.vue'),
+                        component: () => import('@/modules/tasks/pages/Aufgaben.vue'),
                         props: true,
                         meta: { title: 'Aufgaben', requiresTenant: true, groupContext: true },
                     },
                     {
                         path: 'stundenplan',
                         name: 'group-stundenplan',
-                        component: () => import('@/modules/schedule/pages/Stundenplan.vue'),
+                        component: () => import('@/modules/schedule/pages/Timetable.vue'),
                         meta: { title: 'Stundenplan', requiresTenant: true, groupContext: true },
                     },
                     {
@@ -123,9 +123,9 @@ const routes = [
                 name: 'impressum-und-datenschutz',
                 component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
                 children: [
-                    { path: 'impressum', name: 'impressum', component: () => import('@/modules/legal/components/ImpressumPage.vue'), meta: { title: 'Impressum' } },
-                    { path: 'datenschutz', name: 'datenschutz', component: () => import('@/modules/legal/components/DatenschutzPage.vue'), meta: { title: 'Datenschutz' } },
-                    { path: 'nutzung', name: 'nutzung', component: () => import('@/modules/legal/components/Nutzungsbedingungen.vue'), meta: { title: 'Nutzungsbedingungen' } },
+                    { path: 'impressum', name: 'impressum', component: () => import('@/modules/legal/components/Impress.vue'), meta: { title: 'Impressum' } },
+                    { path: 'datenschutz', name: 'datenschutz', component: () => import('@/modules/legal/components/PrivacyPolicy.vue'), meta: { title: 'Datenschutz' } },
+                    { path: 'nutzung', name: 'nutzung', component: () => import('@/modules/legal/components/Terms.vue'), meta: { title: 'Nutzungsbedingungen' } },
                 ],
             },
         ],
@@ -203,7 +203,7 @@ router.beforeEach(async (to, from, next) => {
     // Redirect authenticated users away from welcome
     if (to.path.startsWith('/welcome') && isLoggedIn.value) {
         finish();
-        return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/HAUSAUFGABE` : '/home', replace: true });
+        return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/ALLE` : '/home', replace: true });
     }
 
     // Set document title
@@ -216,7 +216,7 @@ router.beforeEach(async (to, from, next) => {
     // Ensure user store is initialized
     const userStore = useUserStore();
     if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
-        try { await userStore.fetchUser(); } catch {}
+        try { await userStore.fetchUser(); } catch { }
     }
 
     // Super admin guard

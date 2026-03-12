@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Keine Script-Logik erforderlich
+// No script required
 </script>
 
 <template>
