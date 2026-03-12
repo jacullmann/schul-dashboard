@@ -37,7 +37,7 @@ const isGroupRoute = computed(() => {
 // Logo links to active group items if in group context, otherwise home
 const logoLink = computed(() => {
   if (isGroupRoute.value && activeGroupId.value) {
-    return `/groups/${activeGroupId.value}/items/ALLE`;
+    return `/groups/${activeGroupId.value}/items/all`;
   }
   return '/home';
 });
@@ -52,7 +52,7 @@ async function onSwitchGroup(id: string) {
     const res = await switchActiveGroup(id);
     if (res.ok) {
       // Navigate to the new group's main page instead of full reload
-      await router.push(`/groups/${id}/items/ALLE`);
+      await router.push(`/groups/${id}/items/all`);
     } else {
       console.error("Failed to switch group", res.error);
     }
@@ -201,7 +201,7 @@ onUnmounted(() => {
 
           <!-- Group navigation: only when in group context -->
           <template v-if="isGroupRoute && activeGroupId">
-            <router-link :to="`/groups/${activeGroupId}/items/ALLE`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
+            <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
             <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
           </template>
 

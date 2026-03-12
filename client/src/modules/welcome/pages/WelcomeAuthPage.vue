@@ -12,7 +12,7 @@ const isDesktop = useMediaQuery('(min-width: 900px)');
 async function onLoggedIn() {
   await checkAuthStatus();
   if (activeGroupId.value) {
-    router.push(`/groups/${activeGroupId.value}/items/ALLE`);
+    router.push(`/groups/${activeGroupId.value}/items/all`);
   } else {
     router.push('/home');
   }

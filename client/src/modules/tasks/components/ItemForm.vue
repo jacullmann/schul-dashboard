@@ -14,18 +14,18 @@ const { t, te } = useI18n();
 const subjectStore = useSubjectStore();
 
 const props = defineProps<{
-  type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+  type: 'homework' | 'dalton' | 'exam';
   initial?: HwItem | null;
 }>();
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 
 const { images: imgImages, uploading: imgUploading, uploadError: imgUploadError, init: imgInit, makeThumb, uploadImage, removeImg } = useImageUpload();
 
-const labelFor = (type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG') => {
+const labelFor = (type: 'homework' | 'dalton' | 'exam') => {
   const map = {
-    'HAUSAUFGABE': t('school.tasks.types.homework'),
-    'DALTON': t('school.tasks.types.dalton'),
-    'PRUEFUNG': t('school.tasks.types.exam'),
+    'homework': t('school.tasks.types.homework'),
+    'dalton': t('school.tasks.types.dalton'),
+    'exam': t('school.tasks.types.exam'),
   } as const;
   return map[type];
 };

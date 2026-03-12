@@ -29,7 +29,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
   router.get(
     '/',
     ...auth,
-    query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG', 'ALLE']),
+    query('type').isIn(['homework', 'dalton', 'exam', 'all']),
     query('filter').optional().isIn(['old']),
     validate,
     async (req: Request, res: Response) => {
@@ -112,7 +112,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
     validateCsrf(),
     [
       body('type')
-        .isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'])
+        .isIn(['homework', 'dalton', 'exam'])
         .withMessage('type'),
       body('title')
         .isString()
@@ -158,7 +158,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
         }));
 
         const item = await db.createItem(supabase, req.tenantId!, {
-          type: b.type as 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG',
+          type: b.type as 'homework' | 'dalton' | 'exam',
           title: b.title.trim(),
           subject: b.subject.trim(),
           description: (b.description || '').trim(),

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { NotebookText, FileText, Lock, BookOpenText, Plus } from 'lucide-vue-next';
+import { NotebookText, FileText, BookOpenText, Plus } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-type EntryType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+type EntryType = 'homework' | 'dalton' | 'exam';
 
 const emit = defineEmits<{
   (e: 'select', type: EntryType): void;
@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
     >
       <button
           class="menu-btn"
-          @click="selectType('HAUSAUFGABE')"
+          @click="selectType('homework')"
       >
         <div class="menu-btn-content">
           <FileText :size="16" />
@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
 
       <button
           class="menu-btn"
-          @click="selectType('DALTON')"
+          @click="selectType('dalton')"
       >
         <div class="menu-btn-content">
           <NotebookText :size="16" />
@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
 
       <button
           class="menu-btn"
-          @click="selectType('PRUEFUNG')"
+          @click="selectType('exam')"
       >
         <div class="menu-btn-content">
           <BookOpenText :size="16" />

@@ -27,10 +27,10 @@ const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
 
 const tabItems = computed(() => [
-  { id: 'ALLE', label: t('school.tasks.tabs.all') },
-  { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
-  { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
-  { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
+  { id: 'all', label: t('school.tasks.tabs.all') },
+  { id: 'homework', label: t('school.tasks.tabs.homework') },
+  { id: 'dalton', label: t('school.tasks.tabs.dalton') },
+  { id: 'exam', label: t('school.tasks.tabs.exams') },
 ]);
 
 // Local-only dismissed items tracking for immediate UI removal before refresh
@@ -245,7 +245,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 
         <template #badges>
           <div class="badge subject-badge">
-            <template v-if="tab === 'ALLE'">{{ getTypeLabel(item.type) }} • </template>{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}
+            <template v-if="tab === 'all'">{{ getTypeLabel(item.type) }} • </template>{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}
           </div>
           <div
             v-if="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"

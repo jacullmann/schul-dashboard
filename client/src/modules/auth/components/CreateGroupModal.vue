@@ -62,7 +62,7 @@ async function submit() {
       } catch {}
       
       emit('close');
-      await router.push(`/groups/${activeGroupId.value}/items/ALLE`);
+      await router.push(`/groups/${activeGroupId.value}/items/all`);
     } else {
       errorMsg.value = res.error || 'Erstellen der Gruppe fehlgeschlagen';
     }

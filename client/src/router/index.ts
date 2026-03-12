@@ -55,7 +55,7 @@ const routes = [
             {
                 path: 'groups/:groupId',
                 children: [
-                    { path: '', redirect: (to: { params: { groupId: string } }) => `/groups/${to.params.groupId}/items/ALLE` },
+                    { path: '', redirect: (to: any) => `/groups/${to.params.groupId}/items/all` },
                     {
                         path: 'items/:type?/:itemId?',
                         name: 'group-items',
@@ -203,7 +203,7 @@ const router = createRouter({
 });
 
 const { start, finish } = useLoadingBar();
-const { isAuthenticated, isLoggedIn, isAuthReady, initAuth, activeGroupId } = useAppAuth();
+const { isLoggedIn, isAuthReady, initAuth, activeGroupId } = useAppAuth();
 
 router.beforeEach(async (to, from, next) => {
     if (to.path !== from.path) start();
@@ -226,7 +226,7 @@ router.beforeEach(async (to, from, next) => {
     // Redirect authenticated users away from welcome
     if ((to.path === '/' || to.path === '/auth' || to.path === '/legal') && isLoggedIn.value) {
         finish();
-        return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/ALLE` : '/home', replace: true });
+        return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/all` : '/home', replace: true });
     }
 
     // Set document title

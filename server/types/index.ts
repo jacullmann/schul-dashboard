@@ -121,7 +121,7 @@ export interface DbMfaPendingSecret {
   created_at: string;
 }
 
-export type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+export type ItemType = 'homework' | 'dalton' | 'exam';
 
 export interface ItemImage {
   publicId: string;

@@ -100,7 +100,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
     <header class="ga-header">
       <div class="ga-header-inner">
         <div class="ga-header-left">
-          <router-link :to="`/groups/${groupId}/items/ALLE`" class="ga-back">
+          <router-link :to="`/groups/${groupId}/items/all`" class="ga-back">
             <ArrowLeft :size="18" />
           </router-link>
           <div class="ga-header-title">

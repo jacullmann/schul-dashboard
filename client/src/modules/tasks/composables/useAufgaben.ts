@@ -31,7 +31,7 @@ export function useAufgaben() {
     const MAX_SUBJECT_LENGTH = 100;
 
     // Core states
-    const tab = ref<ItemType>(isValidType(route.params.type) ? (route.params.type as ItemType) : 'ALLE');
+    const tab = ref<ItemType>(isValidType(route.params.type) ? (route.params.type as ItemType) : 'all');
     const showOldEntries = ref(false);
     const subjectFilter = ref('');
     const showPersonalized = computed(() => user.value?.personalized ?? false);
@@ -191,9 +191,9 @@ export function useAufgaben() {
     };
 
     const getTypeLabel = (type: string) => {
-        if (type === 'HAUSAUFGABE') return t('school.tasks.types.homework');
-        if (type === 'DALTON') return t('school.tasks.types.dalton');
-        if (type === 'PRUEFUNG') return t('school.tasks.types.exam');
+        if (type === 'homework') return t('school.tasks.types.homework');
+        if (type === 'dalton') return t('school.tasks.types.dalton');
+        if (type === 'exam') return t('school.tasks.types.exam');
         return type;
     };
 
@@ -239,7 +239,7 @@ export function useAufgaben() {
     // --- Watchers ---
 
     watch(() => route.params.type, (v) => {
-        tab.value = isValidType(v) ? (v as ItemType) : 'ALLE';
+        tab.value = isValidType(v) ? (v as ItemType) : 'all';
         reload();
     });
 

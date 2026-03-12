@@ -2,7 +2,7 @@
 
 export interface HwItem {
     id: string;
-    type: 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+    type: 'homework' | 'dalton' | 'exam';
     title: string;
     subject: string;
     description: string;
@@ -15,10 +15,10 @@ export interface HwItem {
     editorNote: string;
 }
 
-export type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'ALLE';
+export type ItemType = 'homework' | 'dalton' | 'exam' | 'all';
 
 export function isValidType(t: unknown): t is ItemType {
-    return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG' || t === 'ALLE';
+    return t === 'homework' || t === 'dalton' || t === 'exam' || t === 'all';
 }
 
 export interface ImageItem {

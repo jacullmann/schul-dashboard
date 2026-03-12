@@ -509,7 +509,7 @@ export async function listItems(
     .select('*, creator:users!items_created_by_fkey(email)')
     .eq('tenant_id', tenantId);
 
-  if (type && type !== 'ALLE') {
+  if (type && type !== 'all') {
     q = q.eq('type', type);
   }
 
@@ -638,7 +638,7 @@ export async function getItemsByTypeCount(
   sb: Supabase,
   tenantId: string,
 ): Promise<Array<{ type: string; count: number }>> {
-  const types = ['HAUSAUFGABE', 'DALTON', 'PRUEFUNG'];
+  const types = ['homework', 'dalton', 'exam'];
   const counts = await Promise.all(
     types.map(async (type) => {
       const { count, error } = await sb
