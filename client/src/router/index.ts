@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
+import i18n from '@/i18n';
 
 const routes = [
     // ─── Welcome Layout ─────────────────────────────────────────────
@@ -9,7 +10,7 @@ const routes = [
         path: '/',
         component: () => import('@/layouts/WelcomeLayout.vue'),
         meta: {
-            title: 'schul-dashboard | Free Management Tool For Students',
+            title: 'global.fullTitle',
             fullWidth: true
         },
         children: [
@@ -18,7 +19,7 @@ const routes = [
                 name: 'welcome-home',
                 component: () => import('@/modules/welcome/pages/WelcomeHomePage.vue'),
                 meta: {
-                    title: 'schul-dashboard | Free Management Tool For Students'
+                    title: 'global.fullTitle'
                 }
                 },
             {
@@ -26,7 +27,7 @@ const routes = [
                 name: 'welcome-auth',
                 component: () => import('@/modules/welcome/pages/WelcomeAuthPage.vue'),
                 meta: {
-                    title: 'Authentication'
+                    title: 'navigation.auth'
                 }
                 },
             {
@@ -34,7 +35,7 @@ const routes = [
                 name: 'welcome-legal',
                 component: () => import('@/modules/welcome/pages/WelcomeLegalPage.vue'),
                 meta: {
-                    title: 'Legal'
+                    title: 'navigation.legal'
                 }
                 },
         ],
@@ -48,7 +49,7 @@ const routes = [
                 path: 'home',
                 name: 'home',
                 component: () => import('@/core/pages/HomePage.vue'),
-                meta: { title: 'Home' },
+                meta: { title: 'navigation.home' },
             },
 
             // ─── Group-scoped pages ─────────────────────────────────
@@ -61,19 +62,19 @@ const routes = [
                         name: 'group-items',
                         component: () => import('@/modules/tasks/pages/Aufgaben.vue'),
                         props: true,
-                        meta: { title: 'Aufgaben', requiresTenant: true, groupContext: true },
+                        meta: { title: 'school.tasks.title', requiresTenant: true, groupContext: true },
                     },
                     {
                         path: 'stundenplan',
                         name: 'group-stundenplan',
                         component: () => import('@/modules/schedule/pages/Timetable.vue'),
-                        meta: { title: 'Stundenplan', requiresTenant: true, groupContext: true },
+                        meta: { title: 'school.tables.timetable.title', requiresTenant: true, groupContext: true },
                     },
                     {
                         path: 'admin',
                         name: 'group-admin',
                         component: () => import('@/modules/admin/pages/GroupAdminDashboard.vue'),
-                        meta: { title: 'Gruppen-Verwaltung', requiresGroupAdmin: true, groupContext: true },
+                        meta: { title: 'navigation.groupAdmin', requiresGroupAdmin: true, groupContext: true },
                     },
                 ],
             },
@@ -83,83 +84,83 @@ const routes = [
                 path: 'todos',
                 name: 'private-todos',
                 component: () => import('@/modules/tasks/pages/PrivateTodos.vue'),
-                meta: { title: 'Meine Einträge' },
+                meta: { title: 'navigation.privateTodos' },
             },
             {
                 path: 'kuerzel',
                 name: 'kürzelfinder',
                 component: () => import('@/modules/tools/pages/KuerzelPage.vue'),
-                meta: { title: 'Kürzelfinder' },
+                meta: { title: 'school.tables.abbr.title' },
             },
             {
                 path: 'sorgenbox',
                 name: 'sorgenbox',
                 component: () => import('@/modules/sorgenbox/pages/Sorgenbox.vue'),
-                meta: { title: 'Sorgenbox' },
+                meta: { title: 'tools.worrybox.title' },
             },
             {
                 path: 'kontakt',
                 name: 'contact',
                 component: () => import('@/modules/support/pages/ContactInfo.vue'),
-                meta: { title: 'Kontakt' },
+                meta: { title: 'contact.contact.title' },
             },
             {
                 path: 'update-history',
                 name: 'update-history',
                 component: () => import('@/modules/patchinfo/pages/PatchInfo.vue'),
-                meta: { title: 'Update History', fullWidth: true },
+                meta: { title: 'navigation.updateHistory', fullWidth: true },
             },
             {
                 path: 'spiele',
                 name: 'games',
                 component: () => import('@/modules/games/Games.vue'),
-                meta: { title: 'Spiel Übersicht' },
+                meta: { title: 'navigation.games' },
             },
             {
                 path: 'spiele/:id',
                 name: 'GameDetail',
                 component: () => import('@/modules/games/GameDetail.vue'),
                 props: true,
-                meta: { title: 'Spiel' },
+                meta: { title: 'navigation.gameDetail' },
             },
             {
                 path: 'daltonraumfinder',
                 name: 'daltonraumfinder',
                 component: () => import('@/modules/tools/pages/DaltonFinderPage.vue'),
-                meta: { title: 'Daltonraumfinder' },
+                meta: { title: 'school.tables.dalton.title' },
             },
             {
                 path: 'imagetool',
                 name: 'imagetool',
                 component: () => import('@/modules/tools/pages/ImageToolPage.vue'),
-                meta: { title: 'Bildbearbeitung' },
+                meta: { title: 'navigation.imageTool' },
             },
             {
                 path: 'info-dashboard',
                 name: 'info-dashboard',
                 component: () => import('@/modules/infodashboard/pages/InfoDashboard.vue'),
-                meta: { title: 'Info Dashboard', fullWidth: true },
+                meta: { title: 'info.dashboard.title', fullWidth: true },
             },
             {
                 path: 'brain',
                 name: 'brain-library',
                 component: () => import('@/modules/brain/pages/BrainLibrary.vue'),
-                meta: { title: 'Gehirntraining' },
+                meta: { title: 'navigation.brainLibrary' },
             },
             {
                 path: 'brain/:testId',
                 name: 'brain-test',
                 component: () => import('@/modules/brain/pages/BrainTest.vue'),
-                meta: { title: 'Gehirntest' },
+                meta: { title: 'navigation.brainTest' },
             },
             {
                 path: 'impressum-&-datenschutz',
                 name: 'impressum-und-datenschutz',
                 component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
                 children: [
-                    { path: 'impressum', name: 'impressum', component: () => import('@/modules/legal/components/Impress.vue'), meta: { title: 'Impressum' } },
-                    { path: 'datenschutz', name: 'datenschutz', component: () => import('@/modules/legal/components/PrivacyPolicy.vue'), meta: { title: 'Datenschutz' } },
-                    { path: 'nutzung', name: 'nutzung', component: () => import('@/modules/legal/components/Terms.vue'), meta: { title: 'Nutzungsbedingungen' } },
+                    { path: 'impressum', name: 'impressum', component: () => import('@/modules/legal/components/Impress.vue'), meta: { title: 'legal.imprint.title' } },
+                    { path: 'datenschutz', name: 'datenschutz', component: () => import('@/modules/legal/components/PrivacyPolicy.vue'), meta: { title: 'legal.privacy.title' } },
+                    { path: 'nutzung', name: 'nutzung', component: () => import('@/modules/legal/components/Terms.vue'), meta: { title: 'legal.terms.title' } },
                 ],
             },
         ],
@@ -170,7 +171,7 @@ const routes = [
         path: '/admin',
         name: 'super-admin',
         component: () => import('@/modules/admin/pages/SuperAdminDashboard.vue'),
-        meta: { title: 'Super Admin', requiresSuperAdmin: true, fullWidth: true },
+        meta: { title: 'navigation.superAdmin', requiresSuperAdmin: true, fullWidth: true },
     },
 
     // ─── Verify Email ───────────────────────────────────────────────
@@ -178,7 +179,7 @@ const routes = [
         path: '/verify',
         component: () => import('@/layouts/WelcomeLayout.vue'),
         children: [
-            { path: '', name: 'verify-email', component: () => import('@/core/pages/VerifyEmail.vue'), meta: { title: 'E-Mail Verifizierung' } },
+            { path: '', name: 'verify-email', component: () => import('@/core/pages/VerifyEmail.vue'), meta: { title: 'navigation.verifyEmail' } },
         ],
     },
 
@@ -193,7 +194,7 @@ const routes = [
         path: '/:pathMatch(.*)*',
         name: 'not-found',
         component: () => import('@/core/pages/404-Page.vue'),
-        meta: { title: '404', fullWidth: true },
+        meta: { title: 'navigation.notFound', fullWidth: true },
     },
 ];
 
@@ -231,10 +232,11 @@ router.beforeEach(async (to, from, next) => {
 
     // Set document title
     if (to.meta.title) {
+        const translatedTitle = i18n.global.t(to.meta.title as string);
         if (to.path === '/') {
-            document.title = to.meta.title;
+            document.title = translatedTitle;
         } else {
-            document.title = to.meta.title + ' | Dashboard';
+            document.title = translatedTitle + ' | Dashboard';
         }
     } else {
         document.title = 'Dashboard';

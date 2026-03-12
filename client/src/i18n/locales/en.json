@@ -1,6 +1,7 @@
 {
   "global": {
     "title": "school-dashboard",
+    "fullTitle": "school-dashboard | Free Management Tool For Students",
     "buttons": {
       "save": "Save",
       "confirm": "Confirm",
@@ -480,6 +481,21 @@
       "feedback": "Feedback"
     }
   },
-  "about": {},
-  "games": {}
+  "navigation": {
+    "home": "Home",
+    "updateHistory": "Update History",
+    "games": "Game Overview",
+    "gameDetail": "Game",
+    "imageTool": "Image Tool",
+    "brainLibrary": "Brain Training",
+    "brainTest": "Brain Test",
+    "superAdmin": "Super Admin",
+    "verifyEmail": "Email Verification",
+    "notFound": "404",
+    "groupAdmin": "Group Administration",
+    "legal": "Legal",
+    "auth": "Authentication",
+    "privateTodos": "Private Entries"
+  },
+  "about": {}
 }
