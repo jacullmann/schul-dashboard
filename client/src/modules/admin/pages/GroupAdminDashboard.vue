@@ -1,3 +1,99 @@
+<script setup lang="ts">
+import { ref, markRaw } from 'vue';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserMinus } from 'lucide-vue-next';
+import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+
+const {
+  groupId,
+  groupName,
+  activeTab,
+  message,
+  isError,
+  stats,
+  members,
+  loadingMembers,
+  loadMembers,
+  changeRole,
+  removeMember,
+  subs,
+  loadingSubs,
+  savingSub,
+  loadSubs,
+  saveSub,
+  deleteSub,
+  announcements,
+  creatingAnn,
+  createAnnouncement,
+  deleteAnnouncement,
+  cleaningUp,
+  cleanupOldItems,
+  editingGroupName,
+  newGroupName,
+  savingGroupName,
+  startEditGroupName,
+  cancelEditGroupName,
+  saveGroupName,
+  formatDate,
+} = useGroupAdmin();
+
+// Admins can only be demoted by other admins — for simplicity, we disable it
+const canDemoteAdmin = false;
+
+const tabs = [
+  { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
+  { id: 'members', label: 'Mitglieder', icon: markRaw(UsersRound) },
+  { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
+  { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
+];
+
+// Sub form
+const subForm = ref({
+  lessonId: '',
+  subject: '',
+  room: '',
+  slot: null as number | null,
+  cancelled: false,
+  hide: false,
+});
+
+function handleSaveSub() {
+  const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
+  if (subForm.value.subject) payload.subject = subForm.value.subject;
+  if (subForm.value.room) payload.room = subForm.value.room;
+  if (subForm.value.slot) payload.slot = subForm.value.slot;
+  if (subForm.value.cancelled) payload.cancelled = true;
+  if (subForm.value.hide) payload.hide = true;
+
+  saveSub(payload).then(() => {
+    subForm.value = { lessonId: '', subject: '', room: '', slot: null, cancelled: false, hide: false };
+  });
+}
+
+// Announcement form
+const annContent = ref('');
+const annColor = ref('warn');
+const annShowAsPopup = ref(false);
+
+function handleCreateAnn() {
+  createAnnouncement(annContent.value, annColor.value, annShowAsPopup.value).then(() => {
+    annContent.value = '';
+    annShowAsPopup.value = false;
+  });
+}
+
+// Role helpers
+function roleLabel(role: string): string {
+  const map: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'Mitglied' };
+  return map[role] || role;
+}
+
+function onRoleChange(member: { userId: string; role: string }, newRole: string) {
+  if (newRole !== member.role) {
+    changeRole(member.userId, newRole);
+  }
+}
+</script>
+
 <template>
   <div class="group-admin">
     <!-- Header Bar -->
@@ -239,102 +335,6 @@
     </Transition>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, markRaw } from 'vue';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserMinus } from 'lucide-vue-next';
-import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
-
-const {
-  groupId,
-  groupName,
-  activeTab,
-  message,
-  isError,
-  stats,
-  members,
-  loadingMembers,
-  loadMembers,
-  changeRole,
-  removeMember,
-  subs,
-  loadingSubs,
-  savingSub,
-  loadSubs,
-  saveSub,
-  deleteSub,
-  announcements,
-  creatingAnn,
-  createAnnouncement,
-  deleteAnnouncement,
-  cleaningUp,
-  cleanupOldItems,
-  editingGroupName,
-  newGroupName,
-  savingGroupName,
-  startEditGroupName,
-  cancelEditGroupName,
-  saveGroupName,
-  formatDate,
-} = useGroupAdmin();
-
-// Admins can only be demoted by other admins — for simplicity, we disable it
-const canDemoteAdmin = false;
-
-const tabs = [
-  { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
-  { id: 'members', label: 'Mitglieder', icon: markRaw(UsersRound) },
-  { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
-  { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
-];
-
-// Sub form
-const subForm = ref({
-  lessonId: '',
-  subject: '',
-  room: '',
-  slot: null as number | null,
-  cancelled: false,
-  hide: false,
-});
-
-function handleSaveSub() {
-  const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
-  if (subForm.value.subject) payload.subject = subForm.value.subject;
-  if (subForm.value.room) payload.room = subForm.value.room;
-  if (subForm.value.slot) payload.slot = subForm.value.slot;
-  if (subForm.value.cancelled) payload.cancelled = true;
-  if (subForm.value.hide) payload.hide = true;
-
-  saveSub(payload).then(() => {
-    subForm.value = { lessonId: '', subject: '', room: '', slot: null, cancelled: false, hide: false };
-  });
-}
-
-// Announcement form
-const annContent = ref('');
-const annColor = ref('warn');
-const annShowAsPopup = ref(false);
-
-function handleCreateAnn() {
-  createAnnouncement(annContent.value, annColor.value, annShowAsPopup.value).then(() => {
-    annContent.value = '';
-    annShowAsPopup.value = false;
-  });
-}
-
-// Role helpers
-function roleLabel(role: string): string {
-  const map: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'Mitglied' };
-  return map[role] || role;
-}
-
-function onRoleChange(member: { userId: string; role: string }, newRole: string) {
-  if (newRole !== member.role) {
-    changeRole(member.userId, newRole);
-  }
-}
-</script>
 
 <style scoped>
 .group-admin {

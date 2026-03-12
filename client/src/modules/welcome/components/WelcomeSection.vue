@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import ImageComparison from "@/modules/welcome/components/ImageComparison.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+const { tm } = useI18n();
+</script>
+
 <template>
   <section class="info-section">
 
@@ -25,14 +33,6 @@
     </div>
   </section>
 </template>
-
-<script setup lang="ts">
-import ImageComparison from "@/modules/welcome/components/ImageComparison.vue";
-import { useI18n } from "vue-i18n";
-
-const { t } = useI18n();
-const { tm } = useI18n();
-</script>
 
 <style scoped>
 .info-section {

@@ -1,32 +1,3 @@
-<template>
-  <Modal @cancel="$emit('cancel')">
-    <template #title>
-      {{ initial ? 'Privaten Eintrag bearbeiten' : 'Neuer privater Eintrag' }}
-    </template>
-
-    <template #content>
-      <div class="section">
-        <label class="label">Titel</label>
-        <input ref="titleInputRef" class="input" v-model="title" placeholder="Einkaufen gehen..." maxlength="100" />
-      </div>
-
-      <div class="section">
-        <label class="label">Beschreibung (optional)</label>
-        <textarea class="input" rows="4" v-model="description" placeholder="6 Eier..." maxlength="2000"></textarea>
-      </div>
-
-      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
-    </template>
-
-    <template #action-btn>
-      <button class="btn action" @click="submit" :disabled="submitting">
-        <LoadingSpinner v-if="submitting" size="1.1em" />
-        <span v-else>{{ initial ? 'Speichern' : 'Anlegen' }}</span>
-      </button>
-    </template>
-  </Modal>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import hw from '@/api/hwApi';
@@ -93,6 +64,35 @@ async function submit() {
 }
 
 </script>
+
+<template>
+  <Modal @cancel="$emit('cancel')">
+    <template #title>
+      {{ initial ? 'Privaten Eintrag bearbeiten' : 'Neuer privater Eintrag' }}
+    </template>
+
+    <template #content>
+      <div class="section">
+        <label class="label">Titel</label>
+        <input ref="titleInputRef" class="input" v-model="title" placeholder="Einkaufen gehen..." maxlength="100" />
+      </div>
+
+      <div class="section">
+        <label class="label">Beschreibung (optional)</label>
+        <textarea class="input" rows="4" v-model="description" placeholder="6 Eier..." maxlength="2000"></textarea>
+      </div>
+
+      <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
+    </template>
+
+    <template #action-btn>
+      <button class="btn action" @click="submit" :disabled="submitting">
+        <LoadingSpinner v-if="submitting" size="1.1em" />
+        <span v-else>{{ initial ? 'Speichern' : 'Anlegen' }}</span>
+      </button>
+    </template>
+  </Modal>
+</template>
 
 <style scoped>
 .section {

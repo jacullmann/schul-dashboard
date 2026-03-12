@@ -1,70 +1,3 @@
-<template>
-  <Modal @cancel="$emit('close')">
-    <template #title>
-      Gruppe beitreten
-    </template>
-
-    <template #content>
-      <form id="join-group-form" @submit.prevent="submit" class="form-content" novalidate>
-        <div class="form-group">
-          <label for="join-group-name">Gruppenname</label>
-          <div class="input-wrapper">
-            <input
-                id="join-group-name"
-                ref="groupNameInputRef"
-                class="input"
-                v-model="groupName"
-                placeholder="Name der Gruppe"
-                type="text"
-                autocomplete="off"
-                @input="clearError"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="join-group-password">Zugangscode</label>
-          <div class="input-wrapper">
-            <input
-                id="join-group-password"
-                class="input"
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                placeholder="Zugangscode"
-                autocomplete="current-password"
-                @input="clearError"
-            />
-            <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="password-toggle"
-                aria-label="Passwort anzeigen/verbergen"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="20" />
-            </button>
-          </div>
-        </div>
-
-        <div v-if="errorMsg" class="message error">
-          {{ errorMsg }}
-        </div>
-      </form>
-    </template>
-
-    <template #actions>
-      <button
-          form="join-group-form"
-          type="submit"
-          class="btn action submit-btn"
-          :disabled="submitting || !isValid"
-      >
-        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
-        <span v-else>Beitreten</span>
-      </button>
-    </template>
-  </Modal>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -138,6 +71,73 @@ async function submit() {
   }
 }
 </script>
+
+<template>
+  <Modal @cancel="$emit('close')">
+    <template #title>
+      Gruppe beitreten
+    </template>
+
+    <template #content>
+      <form id="join-group-form" @submit.prevent="submit" class="form-content" novalidate>
+        <div class="form-group">
+          <label for="join-group-name">Gruppenname</label>
+          <div class="input-wrapper">
+            <input
+                id="join-group-name"
+                ref="groupNameInputRef"
+                class="input"
+                v-model="groupName"
+                placeholder="Name der Gruppe"
+                type="text"
+                autocomplete="off"
+                @input="clearError"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="join-group-password">Zugangscode</label>
+          <div class="input-wrapper">
+            <input
+                id="join-group-password"
+                class="input"
+                :type="showPassword ? 'text' : 'password'"
+                v-model="password"
+                placeholder="Zugangscode"
+                autocomplete="current-password"
+                @input="clearError"
+            />
+            <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="password-toggle"
+                aria-label="Passwort anzeigen/verbergen"
+            >
+              <component :is="showPassword ? EyeOff : Eye" :size="20" />
+            </button>
+          </div>
+        </div>
+
+        <div v-if="errorMsg" class="message error">
+          {{ errorMsg }}
+        </div>
+      </form>
+    </template>
+
+    <template #actions>
+      <button
+          form="join-group-form"
+          type="submit"
+          class="btn action submit-btn"
+          :disabled="submitting || !isValid"
+      >
+        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
+        <span v-else>Beitreten</span>
+      </button>
+    </template>
+  </Modal>
+</template>
 
 <style scoped>
 :deep(.modal-card) {

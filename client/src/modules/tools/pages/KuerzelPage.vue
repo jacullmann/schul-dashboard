@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import { ArrowLeftRight } from 'lucide-vue-next'
+import InfoPop from '@/common/components/InfoModalCenter.vue'
+import { useI18n } from 'vue-i18n'
+import { useKuerzel } from '@/modules/tools/composables/useKuerzel'
+
+const { t, tm } = useI18n()
+
+const {
+  mode,
+  inputValue,
+  outputValue,
+  suggestions,
+  isRotated,
+  currentPlaceholder,
+  otherPlaceholder,
+  applySuggestion,
+  toggleMode,
+} = useKuerzel()
+</script>
+
 <template>
   <div class="card">
     <div class="card-top">
@@ -76,27 +97,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ArrowLeftRight } from 'lucide-vue-next'
-import InfoPop from '@/common/components/InfoModalCenter.vue'
-import { useI18n } from 'vue-i18n'
-import { useKuerzel } from '@/modules/tools/composables/useKuerzel'
-
-const { t, tm } = useI18n()
-
-const {
-  mode,
-  inputValue,
-  outputValue,
-  suggestions,
-  isRotated,
-  currentPlaceholder,
-  otherPlaceholder,
-  applySuggestion,
-  toggleMode,
-} = useKuerzel()
-</script>
 
 <style scoped>
 

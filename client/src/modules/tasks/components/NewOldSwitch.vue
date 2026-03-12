@@ -1,15 +1,3 @@
-<template>
-  <button
-      class="btn ghost"
-      :class="{ 'is-showing-old': props.modelValue }"
-      @click="toggleState"
-  >
-    <span :key="buttonText">
-        {{ buttonText }}
-      </span>
-  </button>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -40,6 +28,18 @@ function handleChange(value: boolean) {
   emit('update:modelValue', value)
 }
 </script>
+
+<template>
+  <button
+      class="btn ghost"
+      :class="{ 'is-showing-old': props.modelValue }"
+      @click="toggleState"
+  >
+    <span :key="buttonText">
+        {{ buttonText }}
+      </span>
+  </button>
+</template>
 
 <style scoped>
 </style>

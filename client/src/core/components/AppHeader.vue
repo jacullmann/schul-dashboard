@@ -1,140 +1,3 @@
-<template>
-  <header class="header">
-    <div class="header-container container">
-      <div class="header-left">
-        <div class="logo-group-container">
-          <!-- Logo always links to home or active group -->
-          <router-link :to="logoLink" class="logo-group" @click="closeNav">
-            <Logo class="logo-img" aria-hidden="true" />
-            <span v-if="isGroupRoute && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
-            <span v-else class="logo-text logo-text--brand">schul-dashboard</span>
-          </router-link>
-
-          <!-- Group switcher: only visible on group routes -->
-          <template v-if="isGroupRoute && groupName">
-            <span class="logo-separator--desktop" aria-hidden="true">/</span>
-
-            <div class="group-switcher" ref="groupMenuRef">
-              <button
-                  class="group-switcher-btn logo-group-name--desktop"
-                  @click="toggleGroupMenu"
-                  title="Gruppe wechseln"
-              >
-                <span>{{ groupName }}</span>
-                <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': groupMenuOpen }" />
-              </button>
-
-              <div v-if="groupMenuOpen" class="menu">
-                <button
-                    v-for="g in userGroups"
-                    :key="g.id"
-                    class="menu-btn"
-                    :class="{ active: g.id === activeGroupId }"
-                    @click="onSwitchGroup(g.id)"
-                >
-                  {{ g.name }}
-                </button>
-                <div class="menu-divider"></div>
-                <router-link
-                    to="/home"
-                    class="menu-btn action"
-                    @click="groupMenuOpen = false"
-                >
-                  + Neue Gruppe
-                </router-link>
-              </div>
-            </div>
-          </template>
-        </div>
-
-        <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
-          <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
-            <X />
-          </button>
-
-          <!-- Group navigation: only when in group context -->
-          <template v-if="isGroupRoute && activeGroupId">
-            <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
-            <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
-          </template>
-
-          <!-- User navigation: always visible -->
-          <router-link to="/todos" class="nav-item" @click="closeNav" v-if="user">Private Todos</router-link>
-
-          <!-- Admin links -->
-          <router-link
-              v-if="user?.role === 'superadmin'"
-              to="/admin"
-              class="nav-item admin-link"
-              @click="closeNav"
-          >
-            Admin
-          </router-link>
-          <router-link
-              v-if="isGroupRoute && isGroupAdmin"
-              :to="`/groups/${activeGroupId}/admin`"
-              class="nav-item"
-              @click="closeNav"
-          >
-            Verwaltung
-          </router-link>
-        </nav>
-      </div>
-
-      <div class="header-right">
-        <div v-if="loading" class="loading-placeholder">
-          <LoadingSpinner />
-        </div>
-        <AccountMenu
-            v-else-if="user"
-            :email="user.email"
-            :user-data="user"
-            @deleted="onAccountDeleted"
-            @error="onAccountDeleteError"
-            @open-setup="openSetupModal"
-            @logout="logout"
-            @personalization-changed="onPersonalizationChanged"
-            @mfa-changed="onMfaChanged"
-        />
-
-        <button
-            v-else
-            class="btn action cta-button"
-            @click="handleLoginClick"
-        >
-          {{ t('account.auth.login') }}
-        </button>
-
-        <button
-            @click="toggleNav"
-            :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
-            aria-label="Menü öffnen oder schließen"
-            v-if="!navOpen"
-        >
-          <Menu style="color: var(--text)" :size="26"></Menu>
-        </button>
-      </div>
-
-      <div v-if="navOpen" class="nav-overlay" @click="closeNav"></div>
-    </div>
-
-    <CompleteSetup
-        v-if="user && showSetupModal"
-        :visible="showSetupModal"
-        :is-setup="user && !user.doneSetup"
-        :initial-data="{
-          enrKurs: user.enrKurs || null,
-          wpuKurs1: user.wpuKurs1 || null,
-          wpuKurs2: user.wpuKurs2 || null,
-          theater: user.theater || 0
-        }"
-        @close="showSetupModal = false"
-        @success="onSetupSuccess"
-        @update:user="onSetupSuccess"
-    />
-  </header>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -281,6 +144,143 @@ onUnmounted(() => {
   document.body.style.overflow = '';
 });
 </script>
+
+<template>
+  <header class="header">
+    <div class="header-container container">
+      <div class="header-left">
+        <div class="logo-group-container">
+          <!-- Logo always links to home or active group -->
+          <router-link :to="logoLink" class="logo-group" @click="closeNav">
+            <Logo class="logo-img" aria-hidden="true" />
+            <span v-if="isGroupRoute && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
+            <span v-else class="logo-text logo-text--brand">schul-dashboard</span>
+          </router-link>
+
+          <!-- Group switcher: only visible on group routes -->
+          <template v-if="isGroupRoute && groupName">
+            <span class="logo-separator--desktop" aria-hidden="true">/</span>
+
+            <div class="group-switcher" ref="groupMenuRef">
+              <button
+                  class="group-switcher-btn logo-group-name--desktop"
+                  @click="toggleGroupMenu"
+                  title="Gruppe wechseln"
+              >
+                <span>{{ groupName }}</span>
+                <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': groupMenuOpen }" />
+              </button>
+
+              <div v-if="groupMenuOpen" class="menu">
+                <button
+                    v-for="g in userGroups"
+                    :key="g.id"
+                    class="menu-btn"
+                    :class="{ active: g.id === activeGroupId }"
+                    @click="onSwitchGroup(g.id)"
+                >
+                  {{ g.name }}
+                </button>
+                <div class="menu-divider"></div>
+                <router-link
+                    to="/home"
+                    class="menu-btn action"
+                    @click="groupMenuOpen = false"
+                >
+                  + Neue Gruppe
+                </router-link>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
+          <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
+            <X />
+          </button>
+
+          <!-- Group navigation: only when in group context -->
+          <template v-if="isGroupRoute && activeGroupId">
+            <router-link :to="`/groups/${activeGroupId}/items/HAUSAUFGABE`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
+            <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
+          </template>
+
+          <!-- User navigation: always visible -->
+          <router-link to="/todos" class="nav-item" @click="closeNav" v-if="user">Private Todos</router-link>
+
+          <!-- Admin links -->
+          <router-link
+              v-if="user?.role === 'superadmin'"
+              to="/admin"
+              class="nav-item admin-link"
+              @click="closeNav"
+          >
+            Admin
+          </router-link>
+          <router-link
+              v-if="isGroupRoute && isGroupAdmin"
+              :to="`/groups/${activeGroupId}/admin`"
+              class="nav-item"
+              @click="closeNav"
+          >
+            Verwaltung
+          </router-link>
+        </nav>
+      </div>
+
+      <div class="header-right">
+        <div v-if="loading" class="loading-placeholder">
+          <LoadingSpinner />
+        </div>
+        <AccountMenu
+            v-else-if="user"
+            :email="user.email"
+            :user-data="user"
+            @deleted="onAccountDeleted"
+            @error="onAccountDeleteError"
+            @open-setup="openSetupModal"
+            @logout="logout"
+            @personalization-changed="onPersonalizationChanged"
+            @mfa-changed="onMfaChanged"
+        />
+
+        <button
+            v-else
+            class="btn action cta-button"
+            @click="handleLoginClick"
+        >
+          {{ t('account.auth.login') }}
+        </button>
+
+        <button
+            @click="toggleNav"
+            :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
+            aria-label="Menü öffnen oder schließen"
+            v-if="!navOpen"
+        >
+          <Menu style="color: var(--text)" :size="26"></Menu>
+        </button>
+      </div>
+
+      <div v-if="navOpen" class="nav-overlay" @click="closeNav"></div>
+    </div>
+
+    <CompleteSetup
+        v-if="user && showSetupModal"
+        :visible="showSetupModal"
+        :is-setup="user && !user.doneSetup"
+        :initial-data="{
+          enrKurs: user.enrKurs || null,
+          wpuKurs1: user.wpuKurs1 || null,
+          wpuKurs2: user.wpuKurs2 || null,
+          theater: user.theater || 0
+        }"
+        @close="showSetupModal = false"
+        @success="onSetupSuccess"
+        @update:user="onSetupSuccess"
+    />
+  </header>
+</template>
 
 <style scoped>
 .header {

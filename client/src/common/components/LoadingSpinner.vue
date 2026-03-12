@@ -1,3 +1,17 @@
+<script setup lang="ts">
+
+// Definiere die Props mit Standardwerten
+const props = withDefaults(defineProps<{
+  color?: string;
+  size?: string;
+  borderThickness?: string;
+}>(), {
+  color: '#fff', // Standardfarbe: Weiß
+  size: '18px', // Standardgröße: 18px
+  borderThickness: '2px', // Standarddicke: 2px
+});
+</script>
+
 <template>
   <span
       class="loader"
@@ -12,20 +26,6 @@
       aria-label="Wird geladen..."
   ></span>
 </template>
-
-<script setup lang="ts">
-
-// Definiere die Props mit Standardwerten
-const props = withDefaults(defineProps<{
-  color?: string;
-  size?: string;
-  borderThickness?: string;
-}>(), {
-  color: '#fff', // Standardfarbe: Weiß
-  size: '18px', // Standardgröße: 18px
-  borderThickness: '2px', // Standarddicke: 2px
-});
-</script>
 
 <style scoped>
 .loader {

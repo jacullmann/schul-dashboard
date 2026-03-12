@@ -1,82 +1,3 @@
-<template>
-  <!-- Outer wrapper: handles height collapse after dismiss -->
-  <div ref="containerRef" class="swipe-container" :class="{ 'swipe-active': swipeable && (isSwiping || isDismissing || swipeOffset > 0) }">
-
-    <!-- Background — only rendered + visible while swiping -->
-    <div
-        v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
-        class="swipe-background"
-        :class="swipeAction === 'keep' ? 'bg-keep' : 'bg-archive'"
-        aria-hidden="true"
-    >
-      <ArchiveRestore v-if="swipeAction === 'keep'" :size="24" color="#fff" />
-      <Archive v-else :size="24" color="#fff" />
-    </div>
-
-    <!-- Card — slides on swipe, otherwise completely unchanged -->
-    <div
-        ref="cardRef"
-        class="item-card"
-        :class="{ collapsed: isCollapsed, highlighted: highlighted, 'drag-over': isDragOver }"
-        :style="cardStyle"
-        @dragenter.prevent="onDragEnter"
-        @dragover.prevent="onDragOver"
-        @dragleave.prevent="onDragLeave"
-        @drop.prevent="onDrop"
-    >
-      <div v-if="isDragOver" class="drop-overlay">
-        <div class="drop-content">
-          <UploadCloud :size="32" />
-          <span>Bilder ablegen zum Hochladen</span>
-        </div>
-      </div>
-
-      <div class="item-main">
-        <div class="item-meta">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <slot name="checkbox"></slot>
-            <slot name="title">
-              <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
-            </slot>
-          </div>
-
-          <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-            <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges" style="overflow: hidden;">
-              <slot name="badges"></slot>
-            </div>
-          </transition>
-        </div>
-
-        <slot name="actions-pre"></slot>
-
-        <slot name="menu-trigger">
-          <button
-              v-if="showMenuTrigger"
-              type="button"
-              class="item-menu-trigger"
-              @click.stop="(e) => $emit('menu-click', e)"
-          >
-            <slot name="menu-icon">
-              <Ellipsis :size="18" />
-            </slot>
-          </button>
-        </slot>
-
-        <slot name="menu"></slot>
-      </div>
-
-      <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-        <div v-show="!isCollapsed" class="item-collapsible-wrapper" style="overflow: hidden;">
-          <div v-if="$slots.body" class="item-body">
-            <slot name="body"></slot>
-          </div>
-          <slot name="content-after"></slot>
-        </div>
-      </transition>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from 'lucide-vue-next';
@@ -211,6 +132,85 @@ function onDrop(e: DragEvent) {
   }
 }
 </script>
+
+<template>
+  <!-- Outer wrapper: handles height collapse after dismiss -->
+  <div ref="containerRef" class="swipe-container" :class="{ 'swipe-active': swipeable && (isSwiping || isDismissing || swipeOffset > 0) }">
+
+    <!-- Background — only rendered + visible while swiping -->
+    <div
+        v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
+        class="swipe-background"
+        :class="swipeAction === 'keep' ? 'bg-keep' : 'bg-archive'"
+        aria-hidden="true"
+    >
+      <ArchiveRestore v-if="swipeAction === 'keep'" :size="24" color="#fff" />
+      <Archive v-else :size="24" color="#fff" />
+    </div>
+
+    <!-- Card — slides on swipe, otherwise completely unchanged -->
+    <div
+        ref="cardRef"
+        class="item-card"
+        :class="{ collapsed: isCollapsed, highlighted: highlighted, 'drag-over': isDragOver }"
+        :style="cardStyle"
+        @dragenter.prevent="onDragEnter"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
+    >
+      <div v-if="isDragOver" class="drop-overlay">
+        <div class="drop-content">
+          <UploadCloud :size="32" />
+          <span>Bilder ablegen zum Hochladen</span>
+        </div>
+      </div>
+
+      <div class="item-main">
+        <div class="item-meta">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <slot name="checkbox"></slot>
+            <slot name="title">
+              <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
+            </slot>
+          </div>
+
+          <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
+            <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges" style="overflow: hidden;">
+              <slot name="badges"></slot>
+            </div>
+          </transition>
+        </div>
+
+        <slot name="actions-pre"></slot>
+
+        <slot name="menu-trigger">
+          <button
+              v-if="showMenuTrigger"
+              type="button"
+              class="item-menu-trigger"
+              @click.stop="(e) => $emit('menu-click', e)"
+          >
+            <slot name="menu-icon">
+              <Ellipsis :size="18" />
+            </slot>
+          </button>
+        </slot>
+
+        <slot name="menu"></slot>
+      </div>
+
+      <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
+        <div v-show="!isCollapsed" class="item-collapsible-wrapper" style="overflow: hidden;">
+          <div v-if="$slots.body" class="item-body">
+            <slot name="body"></slot>
+          </div>
+          <slot name="content-after"></slot>
+        </div>
+      </transition>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 /* Container: transparent by default — no clipping so dropdown menus are not cut off */

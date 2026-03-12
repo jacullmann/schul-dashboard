@@ -1,3 +1,95 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, UsersRound } from 'lucide-vue-next';
+import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
+import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
+import hw from '@/api/hwApi';
+
+const router = useRouter();
+const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
+const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
+
+const showJoinModal = ref(false);
+const showCreateModal = ref(false);
+const loading = ref(false);
+const navigatingGroupId = ref<string | null>(null);
+const allGroups = ref<Array<{ id: string; name: string; memberCount: number; created_at: string }>>([]);
+
+const isSuperadmin = computed(() => user.value?.role === 'superadmin');
+
+const displayName = computed(() => {
+  if (!user.value?.email) return '';
+  return user.value.email.split('@')[0];
+});
+
+const greeting = computed(() => {
+  const h = new Date().getHours();
+  if (h < 6) return 'Gute Nacht';
+  if (h < 12) return 'Guten Morgen';
+  if (h < 18) return 'Guten Tag';
+  return 'Guten Abend';
+});
+
+function roleLabel(role: string): string {
+  const map: Record<string, string> = {
+    admin: 'Admin',
+    mod: 'Moderator',
+    moderator: 'Moderator',
+    user: 'Mitglied',
+    superadmin: 'Super Admin',
+  };
+  return map[role] || role;
+}
+
+async function navigateToGroup(groupId: string) {
+  if (navigatingGroupId.value) return; // Prevent double-clicks
+  navigatingGroupId.value = groupId;
+
+  try {
+    // If this is already the active group, just navigate
+    if (groupId === activeGroupId.value) {
+      await router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
+      return;
+    }
+
+    // Switch the active group first
+    const res = await switchActiveGroup(groupId);
+    if (res.ok) {
+      // Now navigate — the router guard will see the updated activeGroupId
+      await router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
+    } else {
+      console.error('Failed to switch group:', res.error);
+    }
+  } catch (err) {
+    console.error('Navigation error:', err);
+  } finally {
+    navigatingGroupId.value = null;
+  }
+}
+
+async function loadAllGroups() {
+  if (!isSuperadmin.value) return;
+  loading.value = true;
+  try {
+    const { data } = await hw.get('/api/admin/groups');
+    allGroups.value = data;
+  } catch (err) {
+    console.error('Failed to load groups:', err);
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadAllGroups();
+});
+</script>
+
 <template>
   <div class="home-page">
     <!-- Welcome Banner -->
@@ -115,98 +207,6 @@
     <CreateGroupModal v-if="showCreateModal" @close="showCreateModal = false" />
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/userStore';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, UsersRound } from 'lucide-vue-next';
-import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
-import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
-import hw from '@/api/hwApi';
-
-const router = useRouter();
-const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
-const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
-
-const showJoinModal = ref(false);
-const showCreateModal = ref(false);
-const loading = ref(false);
-const navigatingGroupId = ref<string | null>(null);
-const allGroups = ref<Array<{ id: string; name: string; memberCount: number; created_at: string }>>([]);
-
-const isSuperadmin = computed(() => user.value?.role === 'superadmin');
-
-const displayName = computed(() => {
-  if (!user.value?.email) return '';
-  return user.value.email.split('@')[0];
-});
-
-const greeting = computed(() => {
-  const h = new Date().getHours();
-  if (h < 6) return 'Gute Nacht';
-  if (h < 12) return 'Guten Morgen';
-  if (h < 18) return 'Guten Tag';
-  return 'Guten Abend';
-});
-
-function roleLabel(role: string): string {
-  const map: Record<string, string> = {
-    admin: 'Admin',
-    mod: 'Moderator',
-    moderator: 'Moderator',
-    user: 'Mitglied',
-    superadmin: 'Super Admin',
-  };
-  return map[role] || role;
-}
-
-async function navigateToGroup(groupId: string) {
-  if (navigatingGroupId.value) return; // Prevent double-clicks
-  navigatingGroupId.value = groupId;
-
-  try {
-    // If this is already the active group, just navigate
-    if (groupId === activeGroupId.value) {
-      await router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
-      return;
-    }
-
-    // Switch the active group first
-    const res = await switchActiveGroup(groupId);
-    if (res.ok) {
-      // Now navigate — the router guard will see the updated activeGroupId
-      await router.push(`/groups/${groupId}/items/HAUSAUFGABE`);
-    } else {
-      console.error('Failed to switch group:', res.error);
-    }
-  } catch (err) {
-    console.error('Navigation error:', err);
-  } finally {
-    navigatingGroupId.value = null;
-  }
-}
-
-async function loadAllGroups() {
-  if (!isSuperadmin.value) return;
-  loading.value = true;
-  try {
-    const { data } = await hw.get('/api/admin/groups');
-    allGroups.value = data;
-  } catch (err) {
-    console.error('Failed to load groups:', err);
-  } finally {
-    loading.value = false;
-  }
-}
-
-onMounted(() => {
-  loadAllGroups();
-});
-</script>
 
 <style scoped>
 .home-page {

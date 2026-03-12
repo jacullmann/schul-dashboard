@@ -1,8 +1,3 @@
-<template>
-  <WelcomeContent :on-more-info-click="scrollToSection" />
-  <WelcomeSection ref="welcomeSectionRef" />
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue';
 import WelcomeContent from '@/modules/welcome/components/WelcomeContent.vue';
@@ -21,3 +16,8 @@ function scrollToSection() {
   }
 }
 </script>
+
+<template>
+  <WelcomeContent :on-more-info-click="scrollToSection" />
+  <WelcomeSection ref="welcomeSectionRef" />
+</template>

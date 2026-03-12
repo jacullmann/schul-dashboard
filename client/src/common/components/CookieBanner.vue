@@ -1,22 +1,3 @@
-<template>
-  <div v-if="visible" class="cookie-banner">
-    <div class="cookie-content">
-      <div>
-        <h3 style="margin: 0">
-          {{ t('global.cookies.banner.title') }}
-        </h3>
-      </div>
-      <div class="cookie-text">
-        <p>{{ t('global.cookies.banner.text') }}</p>
-      </div>
-
-      <div class="cookie-actions">
-        <button class="btn action" @click="accept">{{ t('global.cookies.banner.action') }}</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -50,6 +31,25 @@ onMounted(() => {
   checkShow();
 });
 </script>
+
+<template>
+  <div v-if="visible" class="cookie-banner">
+    <div class="cookie-content">
+      <div>
+        <h3 style="margin: 0">
+          {{ t('global.cookies.banner.title') }}
+        </h3>
+      </div>
+      <div class="cookie-text">
+        <p>{{ t('global.cookies.banner.text') }}</p>
+      </div>
+
+      <div class="cookie-actions">
+        <button class="btn action" @click="accept">{{ t('global.cookies.banner.action') }}</button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .cookie-banner {

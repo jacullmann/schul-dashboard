@@ -1,131 +1,3 @@
-<template>
-  <div class="card">
-    <div class="container">
-      <h2 style="margin-bottom: 16px;">Bildbearbeitung</h2>
-
-      <div
-          class="upload-area"
-          :class="{ 'dragging': isDraggingFile }"
-          @click="triggerUpload"
-          @dragover.prevent="isDraggingFile = true"
-          @dragleave.prevent="isDraggingFile = false"
-          @drop.prevent="handleDrop"
-      >
-        <p style="margin-top: 0;"><strong>Klicken zum Hochladen</strong> oder Drag & Drop</p>
-        <span style="font-size: var(--font-size-sub); color: var(--sub);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
-        <input
-            type="file"
-            ref="fileInputRef"
-            accept="image/*"
-            class="hidden"
-            @change="handleFileChange"
-        >
-      </div>
-
-      <div class="controls" :class="{ active: hasImage }">
-        <div class="control-group">
-          <label>Ausgabeformat</label>
-          <select class="btn ghost" v-model="settings.format">
-            <option value="image/jpeg">JPEG</option>
-            <option value="image/png">PNG</option>
-            <option value="image/webp">WebP</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label>Qualität: {{ settings.quality }} %</label>
-          <input
-              type="range"
-              min="1"
-              max="100"
-              v-model.number="settings.quality"
-          >
-        </div>
-        <div class="control-group">
-          <label>Breite (px)</label>
-          <input
-              type="number"
-              class="input"
-              v-model.number="settings.width"
-              :placeholder="imageMeta.naturalWidth.toString()"
-          >
-        </div>
-        <div class="control-group">
-          <label>Höhe (px)</label>
-          <input
-              type="number"
-              class="input"
-              v-model.number="settings.height"
-              :placeholder="imageMeta.naturalHeight.toString()"
-          >
-        </div>
-      </div>
-
-      <div class="row button-group" v-if="hasImage">
-        <button @click="openEditor" class="btn ghost">Bearbeiten</button>
-        <button @click="convertAndDownload" class="btn action">Konvertieren</button>
-      </div>
-
-      <div class="preview-container" v-show="hasImage">
-        <div style="margin-bottom: 8px; font-size: var(--font-size-sub); color: var(--sub);">
-          Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
-        </div>
-        <img :src="currentImageSrc" alt="Preview" class="preview-img">
-      </div>
-    </div>
-
-    <div class="blurit" :class="{ open: isEditorOpen }">
-      <div class="editor-card">
-        <div class="editor-toolbar">
-          <button class="btn ghost" style="flex: 0; padding: 10px;" @click="rotateImage(-90)">
-            <RotateCcw :size="16"/>
-          </button>
-          <button class="btn ghost" style="flex: 0; padding: 10px;" @click="rotateImage(90)">
-            <RotateCw :size="16"/>
-          </button>
-
-          <div class="editor-input-group">
-            <span style="width: 16px;">X:</span> <input type="number" class="input" v-model.number="crop.x" @input="updateCropFromInput">
-          </div>
-          <div class="editor-input-group">
-            <span style="width: 16px;">Y:</span> <input type="number" class="input" v-model.number="crop.y" @input="updateCropFromInput">
-          </div>
-          <div class="editor-input-group">
-            <span style="width: 16px;">W:</span> <input type="number" class="input" v-model.number="crop.w" @input="updateCropFromInput">
-          </div>
-          <div class="editor-input-group">
-            <span style="width: 16px;">H:</span> <input type="number" class="input" v-model.number="crop.h" @input="updateCropFromInput">
-          </div>
-        </div>
-
-        <div class="crop-workspace" ref="workspaceRef">
-          <img ref="editorImageRef" :src="currentImageSrc" class="editor-image-element">
-
-          <div
-              class="crop-box"
-              v-show="isCropInitialized"
-              :style="cropBoxStyle"
-              @mousedown.prevent="startDrag($event, false)"
-          >
-            <div class="resize-handle handle-nw" @mousedown.stop.prevent="startDrag($event, 'nw')"></div>
-            <div class="resize-handle handle-n"  @mousedown.stop.prevent="startDrag($event, 'n')"></div>
-            <div class="resize-handle handle-ne" @mousedown.stop.prevent="startDrag($event, 'ne')"></div>
-            <div class="resize-handle handle-e"  @mousedown.stop.prevent="startDrag($event, 'e')"></div>
-            <div class="resize-handle handle-se" @mousedown.stop.prevent="startDrag($event, 'se')"></div>
-            <div class="resize-handle handle-s"  @mousedown.stop.prevent="startDrag($event, 's')"></div>
-            <div class="resize-handle handle-sw" @mousedown.stop.prevent="startDrag($event, 'sw')"></div>
-            <div class="resize-handle handle-w"  @mousedown.stop.prevent="startDrag($event, 'w')"></div>
-          </div>
-        </div>
-
-        <div class="row">
-          <button class="btn ghost" @click="closeEditor">Abbrechen</button>
-          <button class="btn action" @click="applyEdits">Anwenden</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { RotateCw, RotateCcw } from 'lucide-vue-next';
 import { ref, reactive, computed, nextTick, onUnmounted } from 'vue';
@@ -447,6 +319,134 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', handleGlobalMouseUp);
 });
 </script>
+
+<template>
+  <div class="card">
+    <div class="container">
+      <h2 style="margin-bottom: 16px;">Bildbearbeitung</h2>
+
+      <div
+          class="upload-area"
+          :class="{ 'dragging': isDraggingFile }"
+          @click="triggerUpload"
+          @dragover.prevent="isDraggingFile = true"
+          @dragleave.prevent="isDraggingFile = false"
+          @drop.prevent="handleDrop"
+      >
+        <p style="margin-top: 0;"><strong>Klicken zum Hochladen</strong> oder Drag & Drop</p>
+        <span style="font-size: var(--font-size-sub); color: var(--sub);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
+        <input
+            type="file"
+            ref="fileInputRef"
+            accept="image/*"
+            class="hidden"
+            @change="handleFileChange"
+        >
+      </div>
+
+      <div class="controls" :class="{ active: hasImage }">
+        <div class="control-group">
+          <label>Ausgabeformat</label>
+          <select class="btn ghost" v-model="settings.format">
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WebP</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Qualität: {{ settings.quality }} %</label>
+          <input
+              type="range"
+              min="1"
+              max="100"
+              v-model.number="settings.quality"
+          >
+        </div>
+        <div class="control-group">
+          <label>Breite (px)</label>
+          <input
+              type="number"
+              class="input"
+              v-model.number="settings.width"
+              :placeholder="imageMeta.naturalWidth.toString()"
+          >
+        </div>
+        <div class="control-group">
+          <label>Höhe (px)</label>
+          <input
+              type="number"
+              class="input"
+              v-model.number="settings.height"
+              :placeholder="imageMeta.naturalHeight.toString()"
+          >
+        </div>
+      </div>
+
+      <div class="row button-group" v-if="hasImage">
+        <button @click="openEditor" class="btn ghost">Bearbeiten</button>
+        <button @click="convertAndDownload" class="btn action">Konvertieren</button>
+      </div>
+
+      <div class="preview-container" v-show="hasImage">
+        <div style="margin-bottom: 8px; font-size: var(--font-size-sub); color: var(--sub);">
+          Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
+        </div>
+        <img :src="currentImageSrc" alt="Preview" class="preview-img">
+      </div>
+    </div>
+
+    <div class="blurit" :class="{ open: isEditorOpen }">
+      <div class="editor-card">
+        <div class="editor-toolbar">
+          <button class="btn ghost" style="flex: 0; padding: 10px;" @click="rotateImage(-90)">
+            <RotateCcw :size="16"/>
+          </button>
+          <button class="btn ghost" style="flex: 0; padding: 10px;" @click="rotateImage(90)">
+            <RotateCw :size="16"/>
+          </button>
+
+          <div class="editor-input-group">
+            <span style="width: 16px;">X:</span> <input type="number" class="input" v-model.number="crop.x" @input="updateCropFromInput">
+          </div>
+          <div class="editor-input-group">
+            <span style="width: 16px;">Y:</span> <input type="number" class="input" v-model.number="crop.y" @input="updateCropFromInput">
+          </div>
+          <div class="editor-input-group">
+            <span style="width: 16px;">W:</span> <input type="number" class="input" v-model.number="crop.w" @input="updateCropFromInput">
+          </div>
+          <div class="editor-input-group">
+            <span style="width: 16px;">H:</span> <input type="number" class="input" v-model.number="crop.h" @input="updateCropFromInput">
+          </div>
+        </div>
+
+        <div class="crop-workspace" ref="workspaceRef">
+          <img ref="editorImageRef" :src="currentImageSrc" class="editor-image-element">
+
+          <div
+              class="crop-box"
+              v-show="isCropInitialized"
+              :style="cropBoxStyle"
+              @mousedown.prevent="startDrag($event, false)"
+          >
+            <div class="resize-handle handle-nw" @mousedown.stop.prevent="startDrag($event, 'nw')"></div>
+            <div class="resize-handle handle-n"  @mousedown.stop.prevent="startDrag($event, 'n')"></div>
+            <div class="resize-handle handle-ne" @mousedown.stop.prevent="startDrag($event, 'ne')"></div>
+            <div class="resize-handle handle-e"  @mousedown.stop.prevent="startDrag($event, 'e')"></div>
+            <div class="resize-handle handle-se" @mousedown.stop.prevent="startDrag($event, 'se')"></div>
+            <div class="resize-handle handle-s"  @mousedown.stop.prevent="startDrag($event, 's')"></div>
+            <div class="resize-handle handle-sw" @mousedown.stop.prevent="startDrag($event, 'sw')"></div>
+            <div class="resize-handle handle-w"  @mousedown.stop.prevent="startDrag($event, 'w')"></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btn ghost" @click="closeEditor">Abbrechen</button>
+          <button class="btn action" @click="applyEdits">Anwenden</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 /* Page Wrapper acts as the 'body' from the original HTML */

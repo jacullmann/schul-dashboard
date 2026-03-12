@@ -1,37 +1,3 @@
-<template>
-  <div class="brain-test-view">
-    <div class="test-header">
-      <router-link to="/brain" class="back-btn">
-        <ArrowLeft :size="20" />
-        <span>Zurück zur Übersicht</span>
-      </router-link>
-      <div class="test-info" v-if="currentTest">
-        <h1 class="test-title">{{ currentTest.title }}</h1>
-        <div class="highscore-badge" v-if="highscore !== null" :style="{ '--badge-color': currentTest.color }">
-          <Trophy :size="16" />
-          <span>Highscore: {{ highscore }} {{ currentTest.unit }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="test-container" v-if="currentTest">
-      <transition name="fade" mode="out-in">
-        <component
-            :is="testComponent"
-            :key="currentTest.id"
-            @finish="onTestFinish"
-        />
-      </transition>
-    </div>
-    
-    <div class="not-found" v-else>
-      <h2>Test nicht gefunden</h2>
-      <p>Der angeforderte Test existiert nicht.</p>
-      <router-link to="/brain" class="btn action">Zurück</router-link>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
@@ -67,6 +33,40 @@ function onTestFinish(score: number) {
   saveScore(testId.value, score);
 }
 </script>
+
+<template>
+  <div class="brain-test-view">
+    <div class="test-header">
+      <router-link to="/brain" class="back-btn">
+        <ArrowLeft :size="20" />
+        <span>Zurück zur Übersicht</span>
+      </router-link>
+      <div class="test-info" v-if="currentTest">
+        <h1 class="test-title">{{ currentTest.title }}</h1>
+        <div class="highscore-badge" v-if="highscore !== null" :style="{ '--badge-color': currentTest.color }">
+          <Trophy :size="16" />
+          <span>Highscore: {{ highscore }} {{ currentTest.unit }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-container" v-if="currentTest">
+      <transition name="fade" mode="out-in">
+        <component
+            :is="testComponent"
+            :key="currentTest.id"
+            @finish="onTestFinish"
+        />
+      </transition>
+    </div>
+    
+    <div class="not-found" v-else>
+      <h2>Test nicht gefunden</h2>
+      <p>Der angeforderte Test existiert nicht.</p>
+      <router-link to="/brain" class="btn action">Zurück</router-link>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .brain-test-view {

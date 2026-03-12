@@ -1,17 +1,3 @@
-<template>
-  <div class="personalization-wrapper">
-    <MenuDropdown
-        v-model="dropdownValue"
-        :options="options"
-        :prefix="t('account.menu.personalization') + ':'"
-        :disabled="updating"
-    />
-    <div v-if="message" class="message" :class="{ error: isError }">
-      {{ message }}
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Filter, FilterX } from 'lucide-vue-next';
@@ -84,6 +70,20 @@ async function setPersonalization(value: boolean) {
   }
 }
 </script>
+
+<template>
+  <div class="personalization-wrapper">
+    <MenuDropdown
+        v-model="dropdownValue"
+        :options="options"
+        :prefix="t('account.menu.personalization') + ':'"
+        :disabled="updating"
+    />
+    <div v-if="message" class="message" :class="{ error: isError }">
+      {{ message }}
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .personalization-wrapper {

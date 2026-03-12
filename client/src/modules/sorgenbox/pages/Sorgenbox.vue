@@ -1,57 +1,3 @@
-<template>
-  <div class="card complaint-card">
-    <div class="header">
-      <div>
-        <h2 style="margin: 0" class=" title-inf">
-          {{ t('tools.worrybox.title') }}
-          <InfoPop
-              :tooltip="t('tools.worrybox.infopop.tooltip')"
-              :title="t('tools.worrybox.title')"
-          >
-            <p style="margin-top: 0">{{ t('tools.worrybox.infopop.text') }}</p>
-          </InfoPop>
-        </h2>
-      </div>
-    </div>
-
-    <form @submit.prevent="onSubmit" class="form">
-      <div class="textarea-container">
-        <textarea
-            id="message"
-            class="input message-input"
-            rows="8"
-            v-model="message"
-            :placeholder="t('tools.worrybox.placeholder')"
-            required
-            @input="onTextInput"
-            @keydown.ctrl.enter="onSubmit"
-            @keydown.meta.enter="onSubmit"
-            :maxlength="MAX_LENGTH"
-        ></textarea>
-
-        <div class="counter" :class="charCounterClass">
-          {{ charCount }} / {{ MAX_LENGTH }}
-        </div>
-      </div>
-
-      <div class="row actions">
-        <button
-            class="btn action"
-            type="submit"
-            :disabled="submitting || !message.trim() || charCount > MAX_LENGTH"
-        >
-          <span v-if="!submitting">{{ t('tools.worrybox.action') }}</span>
-          <LoadingSpinner v-else color="black" size="1.2em" />
-        </button>
-      </div>
-
-      <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>
-
-      <p v-if="charCount > MAX_LENGTH" class="small err" v-html="t('tools.worrybox.errors.messageLong')" />
-    </form>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue'
@@ -192,6 +138,60 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<template>
+  <div class="card complaint-card">
+    <div class="header">
+      <div>
+        <h2 style="margin: 0" class=" title-inf">
+          {{ t('tools.worrybox.title') }}
+          <InfoPop
+              :tooltip="t('tools.worrybox.infopop.tooltip')"
+              :title="t('tools.worrybox.title')"
+          >
+            <p style="margin-top: 0">{{ t('tools.worrybox.infopop.text') }}</p>
+          </InfoPop>
+        </h2>
+      </div>
+    </div>
+
+    <form @submit.prevent="onSubmit" class="form">
+      <div class="textarea-container">
+        <textarea
+            id="message"
+            class="input message-input"
+            rows="8"
+            v-model="message"
+            :placeholder="t('tools.worrybox.placeholder')"
+            required
+            @input="onTextInput"
+            @keydown.ctrl.enter="onSubmit"
+            @keydown.meta.enter="onSubmit"
+            :maxlength="MAX_LENGTH"
+        ></textarea>
+
+        <div class="counter" :class="charCounterClass">
+          {{ charCount }} / {{ MAX_LENGTH }}
+        </div>
+      </div>
+
+      <div class="row actions">
+        <button
+            class="btn action"
+            type="submit"
+            :disabled="submitting || !message.trim() || charCount > MAX_LENGTH"
+        >
+          <span v-if="!submitting">{{ t('tools.worrybox.action') }}</span>
+          <LoadingSpinner v-else color="black" size="1.2em" />
+        </button>
+      </div>
+
+      <p v-if="feedback" class="small" :class="feedbackClass">{{ feedback }}</p>
+
+      <p v-if="charCount > MAX_LENGTH" class="small err" v-html="t('tools.worrybox.errors.messageLong')" />
+    </form>
+  </div>
+</template>
 
 <style scoped>
 .complaint-card {

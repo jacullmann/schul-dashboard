@@ -1,54 +1,3 @@
-<template>
-  <div class="blurit" v-if="showMenu" @click="showMenu = false">
-    <div class="announcement-menu" @click.stop>
-      <div class="announcement-menu-header">
-        <h3>Alle Ankündigungen</h3>
-        <button class="close-btn" @click="showMenu = false">
-          <X :size="20" />
-        </button>
-      </div>
-      <div class="announcement-list">
-        <div
-            v-for="(ann, index) in announcements"
-            :key="ann.id"
-            class="announcement-item"
-            :class="{ active: index === currentIndex }"
-            @click="selectAnnouncement(index)"
-        >
-          <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
-          <div class="announcement-item-content">
-            <span>{{ ann.content }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="global-announcements" v-if="announcements.length">
-    <div
-        class="global-ann"
-        :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
-    >
-      <div class="global-ann-content" @click="nextAnnouncement">
-        <span class="announcement-text">{{ currentAnnouncement.content }}</span>
-        <span class="announcement-counter" v-if="announcements.length > 1">
-          ({{ currentIndex + 1 }}/{{ announcements.length }})
-        </span>
-      </div>
-
-      <button class="announcement-menu-btn" @click.stop="toggleMenu">
-        <EllipsisVertical :size="16" />
-      </button>
-    </div>
-  </div>
-
-  <AnnouncementPopup
-      v-if="showPopup && currentPopupAnnouncement"
-      :announcement="currentPopupAnnouncement"
-      @close="closePopup"
-  />
-</template>
-
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -174,6 +123,57 @@ onMounted(() => {
   loadAnnouncements();
 });
 </script>
+
+<template>
+  <div class="blurit" v-if="showMenu" @click="showMenu = false">
+    <div class="announcement-menu" @click.stop>
+      <div class="announcement-menu-header">
+        <h3>Alle Ankündigungen</h3>
+        <button class="close-btn" @click="showMenu = false">
+          <X :size="20" />
+        </button>
+      </div>
+      <div class="announcement-list">
+        <div
+            v-for="(ann, index) in announcements"
+            :key="ann.id"
+            class="announcement-item"
+            :class="{ active: index === currentIndex }"
+            @click="selectAnnouncement(index)"
+        >
+          <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
+          <div class="announcement-item-content">
+            <span>{{ ann.content }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="global-announcements" v-if="announcements.length">
+    <div
+        class="global-ann"
+        :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
+    >
+      <div class="global-ann-content" @click="nextAnnouncement">
+        <span class="announcement-text">{{ currentAnnouncement.content }}</span>
+        <span class="announcement-counter" v-if="announcements.length > 1">
+          ({{ currentIndex + 1 }}/{{ announcements.length }})
+        </span>
+      </div>
+
+      <button class="announcement-menu-btn" @click.stop="toggleMenu">
+        <EllipsisVertical :size="16" />
+      </button>
+    </div>
+  </div>
+
+  <AnnouncementPopup
+      v-if="showPopup && currentPopupAnnouncement"
+      :announcement="currentPopupAnnouncement"
+      @close="closePopup"
+  />
+</template>
 
 <style scoped>
 .global-announcements {

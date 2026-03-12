@@ -1,60 +1,3 @@
-<template>
-  <div class="test-wrapper visual-memory-test">
-    <div v-if="state === 'idle'" class="full-height flex-center">
-       <div class="center-content text-center">
-           <div class="icon-wrap"><Eye :size="64" /></div>
-           <h1 class="test-heading">Visuelles Gedächtnis</h1>
-           <p class="test-sub">Präge dir das Muster der aufleuchtenden Kacheln ein.</p>
-           <button class="btn action cta-large mt-4" @click="startLevel()">Start</button>
-       </div>
-    </div>
-
-    <div v-if="state === 'showing' || state === 'input' || state === 'feedback'" class="game-content full-height flex-center">
-       <div class="game-header">
-          <div class="level-indicator">Level {{ level }}</div>
-          <div class="lives-indicator">
-             <Heart 
-               v-for="i in 3" 
-               :key="i" 
-               class="heart-icon" 
-               :class="{ lost: i > lives }"
-               :size="28" 
-               fill="currentColor" 
-               stroke-width="2"
-             />
-          </div>
-       </div>
-
-       <div class="grid-container" :style="gridStyle">
-          <div 
-             v-for="index in totalTiles" 
-             :key="index"
-             class="tile"
-             :class="{ 
-               'active': activeTiles.includes(index) && (state === 'showing' || state === 'feedback'),
-               'revealed': revealedTiles.includes(index),
-               'wrong': wrongTiles.includes(index),
-               'clickable': state === 'input' && !revealedTiles.includes(index) && !wrongTiles.includes(index)
-             }"
-             @click="handleTileClick(index)"
-          ></div>
-       </div>
-    </div>
-
-    <div v-if="state === 'result'" class="full-height flex-center">
-        <div class="center-content result-content text-center">
-            <div class="icon-wrap"><Eye :size="64" /></div>
-            <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
-            <p class="test-sub">Du hast {{ level - 1 }} Level abgeschlossen.</p>
-            <div class="actions mt-4">
-                <button class="btn action cta-large" @click="saveAndExit">Speichern & Beenden</button>
-                <button class="btn secondary back-btn-sec" @click="reset">Nochmal spielen</button>
-            </div>
-        </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Eye, Heart } from 'lucide-vue-next';
@@ -143,6 +86,63 @@ function saveAndExit() {
     emit('finish', Math.max(0, level.value - 1));
 }
 </script>
+
+<template>
+  <div class="test-wrapper visual-memory-test">
+    <div v-if="state === 'idle'" class="full-height flex-center">
+       <div class="center-content text-center">
+           <div class="icon-wrap"><Eye :size="64" /></div>
+           <h1 class="test-heading">Visuelles Gedächtnis</h1>
+           <p class="test-sub">Präge dir das Muster der aufleuchtenden Kacheln ein.</p>
+           <button class="btn action cta-large mt-4" @click="startLevel()">Start</button>
+       </div>
+    </div>
+
+    <div v-if="state === 'showing' || state === 'input' || state === 'feedback'" class="game-content full-height flex-center">
+       <div class="game-header">
+          <div class="level-indicator">Level {{ level }}</div>
+          <div class="lives-indicator">
+             <Heart 
+               v-for="i in 3" 
+               :key="i" 
+               class="heart-icon" 
+               :class="{ lost: i > lives }"
+               :size="28" 
+               fill="currentColor" 
+               stroke-width="2"
+             />
+          </div>
+       </div>
+
+       <div class="grid-container" :style="gridStyle">
+          <div 
+             v-for="index in totalTiles" 
+             :key="index"
+             class="tile"
+             :class="{ 
+               'active': activeTiles.includes(index) && (state === 'showing' || state === 'feedback'),
+               'revealed': revealedTiles.includes(index),
+               'wrong': wrongTiles.includes(index),
+               'clickable': state === 'input' && !revealedTiles.includes(index) && !wrongTiles.includes(index)
+             }"
+             @click="handleTileClick(index)"
+          ></div>
+       </div>
+    </div>
+
+    <div v-if="state === 'result'" class="full-height flex-center">
+        <div class="center-content result-content text-center">
+            <div class="icon-wrap"><Eye :size="64" /></div>
+            <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
+            <p class="test-sub">Du hast {{ level - 1 }} Level abgeschlossen.</p>
+            <div class="actions mt-4">
+                <button class="btn action cta-large" @click="saveAndExit">Speichern & Beenden</button>
+                <button class="btn secondary back-btn-sec" @click="reset">Nochmal spielen</button>
+            </div>
+        </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .test-wrapper {

@@ -1,3 +1,45 @@
+<script setup lang="ts">
+import { ref, watch, computed } from 'vue';
+import TabSwitcher from '@/common/components/TabSwitcher.vue';
+import InfoModalCenter from '@/common/components/InfoModalCenter.vue';
+import Modal from '@/common/components/Modal.vue';
+import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+
+const MAX_LENGTH = 5000;
+
+const reasonLength = computed(() => {
+  return props.reason?.length || 0
+})
+// Überprüfen: Wird loading wirklich korrekt übergeben? auch in anderen dateien prüfen.
+const props = defineProps<{
+  show: boolean
+  message: string
+  showReasonInput?: boolean
+  reason?: string
+  loading?: boolean
+}>()
+
+const emit = defineEmits(['confirm', 'cancel', 'update:reason'])
+
+const category = ref<'illegal' | 'falschinfo'>('illegal')
+
+// TabSwitcher Items
+const tabItems = [
+  { id: 'illegal', label: 'Unangebrachte/Illegale Inhalte' },
+  { id: 'falschinfo', label: 'Falschinformation' }
+]
+
+const handleTabChange = (id: string) => {
+  category.value = id as 'illegal' | 'falschinfo'
+}
+
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    category.value = 'illegal'
+  }
+})
+</script>
+
 <template>
   <Modal v-if="show" @cancel="emit('cancel')">
     <template #title>
@@ -54,48 +96,6 @@
     </template>
   </Modal>
 </template>
-
-<script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import TabSwitcher from '@/common/components/TabSwitcher.vue';
-import InfoModalCenter from '@/common/components/InfoModalCenter.vue';
-import Modal from '@/common/components/Modal.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-
-const MAX_LENGTH = 5000;
-
-const reasonLength = computed(() => {
-  return props.reason?.length || 0
-})
-// Überprüfen: Wird loading wirklich korrekt übergeben? auch in anderen dateien prüfen.
-const props = defineProps<{
-  show: boolean
-  message: string
-  showReasonInput?: boolean
-  reason?: string
-  loading?: boolean
-}>()
-
-const emit = defineEmits(['confirm', 'cancel', 'update:reason'])
-
-const category = ref<'illegal' | 'falschinfo'>('illegal')
-
-// TabSwitcher Items
-const tabItems = [
-  { id: 'illegal', label: 'Unangebrachte/Illegale Inhalte' },
-  { id: 'falschinfo', label: 'Falschinformation' }
-]
-
-const handleTabChange = (id: string) => {
-  category.value = id as 'illegal' | 'falschinfo'
-}
-
-watch(() => props.show, (newVal) => {
-  if (newVal) {
-    category.value = 'illegal'
-  }
-})
-</script>
 
 <style scoped>
 .confirm-box {

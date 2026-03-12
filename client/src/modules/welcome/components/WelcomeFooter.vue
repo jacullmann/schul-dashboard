@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import { ExternalLink } from "lucide-vue-next";
+import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
+import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
+import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
+
+const { t } = useI18n();
+const router = useRouter();
+
+function gotosec() {
+  router.push('/welcome/legal');
+}
+function gotomain() {
+  router.push('/welcome');
+}
+function goToStatus() {
+  window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank', 'noopener,noreferrer');
+}
+</script>
+
 <template>
   <footer class="footer">
     <div class="footer-container container">
@@ -40,27 +61,6 @@
     </div>
   </footer>
 </template>
-
-<script setup lang="ts">
-import { ExternalLink } from "lucide-vue-next";
-import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
-import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
-import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
-
-const { t } = useI18n();
-const router = useRouter();
-
-function gotosec() {
-  router.push('/welcome/legal');
-}
-function gotomain() {
-  router.push('/welcome');
-}
-function goToStatus() {
-  window.open('https://stats.uptimerobot.com/m8tUrWG3Zz', '_blank', 'noopener,noreferrer');
-}
-</script>
 
 <style scoped>
 .footer {

@@ -1,33 +1,3 @@
-<template>
-  <div class="reaction-test" :class="state" @mousedown.prevent="handleClick" @touchstart.prevent="handleClick">
-    <div class="content">
-      <div v-if="state === 'idle'" class="icon-container">
-        <Zap :size="64" />
-      </div>
-      <div v-if="state === 'waiting'" class="icon-container">
-        <MoreHorizontal :size="64" />
-      </div>
-      <div v-if="state === 'ready'" class="icon-container">
-        <Zap :size="64" />
-      </div>
-      <div v-if="state === 'too-early'" class="icon-container">
-        <AlertTriangle :size="64" />
-      </div>
-      <div v-if="state === 'result'" class="icon-container">
-        <Clock :size="64" />
-      </div>
-
-      <h2 class="state-title">{{ titleText }}</h2>
-      <p class="state-desc">{{ descText }}</p>
-
-      <div v-if="state === 'result'" class="actions">
-        <button class="btn test-btn primary" @click.stop="saveAndExit">Speichern & Beenden</button>
-        <button class="btn test-btn secondary" @click.stop="reset">Nochmal</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Zap, Clock, AlertTriangle, MoreHorizontal } from 'lucide-vue-next';
@@ -95,6 +65,36 @@ function saveAndExit() {
   emit('finish', reactionTime.value);
 }
 </script>
+
+<template>
+  <div class="reaction-test" :class="state" @mousedown.prevent="handleClick" @touchstart.prevent="handleClick">
+    <div class="content">
+      <div v-if="state === 'idle'" class="icon-container">
+        <Zap :size="64" />
+      </div>
+      <div v-if="state === 'waiting'" class="icon-container">
+        <MoreHorizontal :size="64" />
+      </div>
+      <div v-if="state === 'ready'" class="icon-container">
+        <Zap :size="64" />
+      </div>
+      <div v-if="state === 'too-early'" class="icon-container">
+        <AlertTriangle :size="64" />
+      </div>
+      <div v-if="state === 'result'" class="icon-container">
+        <Clock :size="64" />
+      </div>
+
+      <h2 class="state-title">{{ titleText }}</h2>
+      <p class="state-desc">{{ descText }}</p>
+
+      <div v-if="state === 'result'" class="actions">
+        <button class="btn test-btn primary" @click.stop="saveAndExit">Speichern & Beenden</button>
+        <button class="btn test-btn secondary" @click.stop="reset">Nochmal</button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .reaction-test {

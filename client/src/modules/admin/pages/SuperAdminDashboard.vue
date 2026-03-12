@@ -1,3 +1,234 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, markRaw } from 'vue';
+import {
+  ArrowLeft, LayoutDashboard, Users, Flag, Inbox, FileText as FileTextIcon,
+  Lock, Unlock, Trash2, Eraser, Check, RotateCcw, X, FileText
+} from 'lucide-vue-next';
+import hw from '@/api/hwApi';
+import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
+
+import type { Component } from 'vue';
+
+type NavItem = { id: string; label: string; icon: Component; count: number };
+
+const navItems = ref<NavItem[]>([
+  { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard), count: 0 },
+  { id: 'users', label: 'Benutzer', icon: markRaw(Users), count: 0 },
+  { id: 'reports', label: 'Meldungen', icon: markRaw(Flag), count: 0 },
+  { id: 'sorgen', label: 'Sorgenbox', icon: markRaw(Inbox), count: 0 },
+  { id: 'doc', label: 'Doc', icon: markRaw(FileTextIcon), count: 0 },
+]);
+
+const activeTab = ref('overview');
+
+interface AdminStats {
+  userCount?: number;
+  itemCount?: number;
+  reportCount?: number;
+  sorgeCount?: number;
+  bannedCount?: number;
+  verifiedUsers?: number;
+  unverifiedUsers?: number;
+  adminCount?: number;
+  newUsersThisWeek?: number;
+  newItemsThisWeek?: number;
+  reportCountTotal?: number;
+  reportCountProcessed?: number;
+  oldItemsCount?: number;
+}
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  isBanned: boolean;
+  emailVerified: boolean;
+  createdAt: string;
+}
+
+interface Report {
+  id: string;
+  itemTitle?: string;
+  category?: string;
+  reason?: string;
+  reporterEmail?: string;
+  reportedAt: string;
+  processed: boolean;
+  processedAt?: string | null;
+}
+
+interface Sorge {
+  id: string;
+  message: string;
+  createdAt: string;
+  processed: boolean;
+}
+
+interface UserActivity {
+  at: string;
+  type: string;
+  meta: Record<string, unknown>;
+}
+
+// State
+const stats = ref<AdminStats | null>(null);
+const loadingStats = ref(false);
+const allUsers = ref<User[]>([]);
+const reports = ref<Report[]>([]);
+const sorgen = ref<Sorge[]>([]);
+const showActivityFor = ref<string | null>(null);
+const userActivities = ref<Record<string, UserActivity[]>>({});
+const loadingActivities = ref<Record<string, boolean>>({});
+const isCleaningUp = ref(false);
+const message = ref('');
+const isError = ref(false);
+
+const unprocessedReports = computed(() => reports.value.filter(r => !r.processed));
+const processedReports = computed(() => reports.value.filter(r => r.processed));
+const unprocessedSorgen = computed(() => sorgen.value.filter(s => !s.processed));
+const processedSorgen = computed(() => sorgen.value.filter(s => s.processed));
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function toast(msg: string, error = false) {
+  message.value = msg; isError.value = error;
+  setTimeout(() => { message.value = ''; }, 4000);
+}
+
+// ─── Data Loading ───────────────────────────────────────
+async function loadStats() {
+  loadingStats.value = true;
+  try {
+    const { data } = await hw.get('/api/admin/stats');
+    stats.value = data;
+    const ri = navItems.value.find(n => n.id === 'reports');
+    if (ri) ri.count = data.reportCount || 0;
+    const si = navItems.value.find(n => n.id === 'sorgen');
+    if (si) si.count = data.sorgeCount || 0;
+  } catch (e) { console.error(e); }
+  finally { loadingStats.value = false; }
+}
+
+async function loadAllUsers() {
+  try { const { data } = await hw.get('/api/admin/all-users'); allUsers.value = data; }
+  catch { toast('Fehler beim Laden der Benutzer', true); }
+}
+
+async function loadReports() {
+  try { const { data } = await hw.get('/api/admin/reports'); reports.value = data; }
+  catch { /* ignore */ }
+}
+
+async function loadSorgen() {
+  try { const { data } = await hw.get('/api/admin/sorgen'); sorgen.value = data; }
+  catch { /* ignore */ }
+}
+
+// ─── User Actions ───────────────────────────────────────
+async function toggleActivity(userId: string) {
+  if (showActivityFor.value === userId) { showActivityFor.value = null; return; }
+  loadingActivities.value[userId] = true;
+  try {
+    const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
+    userActivities.value[userId] = data;
+    showActivityFor.value = userId;
+  } catch { toast('Fehler', true); }
+  finally { loadingActivities.value[userId] = false; }
+}
+
+async function toggleBan(u: User) {
+  if (u.role === 'superadmin') return;
+  try {
+    if (u.isBanned) {
+      await hw.delete(`/api/admin/users/${u.id}/ban`);
+      u.isBanned = false; toast('Entsperrt');
+    } else {
+      await hw.post(`/api/admin/users/${u.id}/ban`);
+      u.isBanned = true; toast('Gesperrt');
+    }
+    loadStats();
+  } catch { toast('Fehler', true); }
+}
+
+async function deleteUser(id: string) {
+  if (!confirm('Benutzer wirklich löschen?')) return;
+  try {
+    await hw.delete(`/api/admin/users/${id}`);
+    allUsers.value = allUsers.value.filter(u => u.id !== id);
+    toast('Gelöscht'); loadStats();
+  } catch { toast('Fehler', true); }
+}
+
+async function pruneOldLogs(u: User) {
+  if (!confirm(`Logs von ${u.email} älter als 30 Tage löschen?`)) return;
+  try {
+    await hw.delete(`/api/admin/users/${u.id}/activity/prune`);
+    toast('Logs bereinigt');
+  } catch { toast('Fehler', true); }
+}
+
+// ─── Reports ────────────────────────────────────────────
+async function toggleReportProcessed(id: string, currentProcessed: boolean) {
+  try {
+    await hw.patch(`/api/admin/reports/${id}/processed`, { processed: !currentProcessed });
+    const r = reports.value.find(x => x.id === id);
+    if (r) { r.processed = !currentProcessed; r.processedAt = !currentProcessed ? new Date().toISOString() : null; }
+    toast(!currentProcessed ? 'Als erledigt markiert' : 'Zurückgesetzt');
+    loadStats();
+  } catch { toast('Fehler', true); }
+}
+
+async function deleteReport(id: string) {
+  if (!confirm('Meldung löschen?')) return;
+  try {
+    await hw.delete(`/api/admin/reports/${id}`);
+    reports.value = reports.value.filter(r => r.id !== id);
+    toast('Gelöscht'); loadStats();
+  } catch { toast('Fehler', true); }
+}
+
+// ─── Sorgen ─────────────────────────────────────────────
+async function toggleSorgeProcessed(id: string, currentProcessed: boolean) {
+  try {
+    await hw.patch(`/api/admin/sorgen/${id}/processed`, { processed: !currentProcessed });
+    const s = sorgen.value.find(x => x.id === id);
+    if (s) { s.processed = !currentProcessed; }
+    toast(!currentProcessed ? 'Als erledigt markiert' : 'Zurückgesetzt');
+    loadStats();
+  } catch { toast('Fehler', true); }
+}
+
+async function deleteSorge(id: string) {
+  if (!confirm('Eintrag löschen?')) return;
+  try {
+    await hw.delete(`/api/admin/sorgen/${id}`);
+    sorgen.value = sorgen.value.filter(s => s.id !== id);
+    toast('Gelöscht'); loadStats();
+  } catch { toast('Fehler', true); }
+}
+
+// ─── Cleanup ────────────────────────────────────────────
+async function cleanupOldItems() {
+  if (!confirm('Alle Einträge älter als 90 Tage löschen?')) return;
+  isCleaningUp.value = true;
+  try {
+    const { data } = await hw.delete('/api/admin/cleanup/old-items');
+    toast(data.message || 'Bereinigt');
+    loadStats();
+  } catch { toast('Fehler', true); }
+  finally { isCleaningUp.value = false; }
+}
+
+onMounted(() => {
+  loadStats();
+  loadAllUsers();
+  loadReports();
+  loadSorgen();
+});
+</script>
+
 <template>
   <div class="sa-layout">
     <!-- Header -->
@@ -276,237 +507,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted, markRaw } from 'vue';
-import {
-  ArrowLeft, LayoutDashboard, Users, Flag, Inbox, FileText as FileTextIcon,
-  Lock, Unlock, Trash2, Eraser, Check, RotateCcw, X, FileText
-} from 'lucide-vue-next';
-import hw from '@/api/hwApi';
-import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
-
-import type { Component } from 'vue';
-
-type NavItem = { id: string; label: string; icon: Component; count: number };
-
-const navItems = ref<NavItem[]>([
-  { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard), count: 0 },
-  { id: 'users', label: 'Benutzer', icon: markRaw(Users), count: 0 },
-  { id: 'reports', label: 'Meldungen', icon: markRaw(Flag), count: 0 },
-  { id: 'sorgen', label: 'Sorgenbox', icon: markRaw(Inbox), count: 0 },
-  { id: 'doc', label: 'Doc', icon: markRaw(FileTextIcon), count: 0 },
-]);
-
-const activeTab = ref('overview');
-
-interface AdminStats {
-  userCount?: number;
-  itemCount?: number;
-  reportCount?: number;
-  sorgeCount?: number;
-  bannedCount?: number;
-  verifiedUsers?: number;
-  unverifiedUsers?: number;
-  adminCount?: number;
-  newUsersThisWeek?: number;
-  newItemsThisWeek?: number;
-  reportCountTotal?: number;
-  reportCountProcessed?: number;
-  oldItemsCount?: number;
-}
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  isBanned: boolean;
-  emailVerified: boolean;
-  createdAt: string;
-}
-
-interface Report {
-  id: string;
-  itemTitle?: string;
-  category?: string;
-  reason?: string;
-  reporterEmail?: string;
-  reportedAt: string;
-  processed: boolean;
-  processedAt?: string | null;
-}
-
-interface Sorge {
-  id: string;
-  message: string;
-  createdAt: string;
-  processed: boolean;
-}
-
-interface UserActivity {
-  at: string;
-  type: string;
-  meta: Record<string, unknown>;
-}
-
-// State
-const stats = ref<AdminStats | null>(null);
-const loadingStats = ref(false);
-const allUsers = ref<User[]>([]);
-const reports = ref<Report[]>([]);
-const sorgen = ref<Sorge[]>([]);
-const showActivityFor = ref<string | null>(null);
-const userActivities = ref<Record<string, UserActivity[]>>({});
-const loadingActivities = ref<Record<string, boolean>>({});
-const isCleaningUp = ref(false);
-const message = ref('');
-const isError = ref(false);
-
-const unprocessedReports = computed(() => reports.value.filter(r => !r.processed));
-const processedReports = computed(() => reports.value.filter(r => r.processed));
-const unprocessedSorgen = computed(() => sorgen.value.filter(s => !s.processed));
-const processedSorgen = computed(() => sorgen.value.filter(s => s.processed));
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-function toast(msg: string, error = false) {
-  message.value = msg; isError.value = error;
-  setTimeout(() => { message.value = ''; }, 4000);
-}
-
-// ─── Data Loading ───────────────────────────────────────
-async function loadStats() {
-  loadingStats.value = true;
-  try {
-    const { data } = await hw.get('/api/admin/stats');
-    stats.value = data;
-    const ri = navItems.value.find(n => n.id === 'reports');
-    if (ri) ri.count = data.reportCount || 0;
-    const si = navItems.value.find(n => n.id === 'sorgen');
-    if (si) si.count = data.sorgeCount || 0;
-  } catch (e) { console.error(e); }
-  finally { loadingStats.value = false; }
-}
-
-async function loadAllUsers() {
-  try { const { data } = await hw.get('/api/admin/all-users'); allUsers.value = data; }
-  catch { toast('Fehler beim Laden der Benutzer', true); }
-}
-
-async function loadReports() {
-  try { const { data } = await hw.get('/api/admin/reports'); reports.value = data; }
-  catch { /* ignore */ }
-}
-
-async function loadSorgen() {
-  try { const { data } = await hw.get('/api/admin/sorgen'); sorgen.value = data; }
-  catch { /* ignore */ }
-}
-
-// ─── User Actions ───────────────────────────────────────
-async function toggleActivity(userId: string) {
-  if (showActivityFor.value === userId) { showActivityFor.value = null; return; }
-  loadingActivities.value[userId] = true;
-  try {
-    const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
-    userActivities.value[userId] = data;
-    showActivityFor.value = userId;
-  } catch { toast('Fehler', true); }
-  finally { loadingActivities.value[userId] = false; }
-}
-
-async function toggleBan(u: User) {
-  if (u.role === 'superadmin') return;
-  try {
-    if (u.isBanned) {
-      await hw.delete(`/api/admin/users/${u.id}/ban`);
-      u.isBanned = false; toast('Entsperrt');
-    } else {
-      await hw.post(`/api/admin/users/${u.id}/ban`);
-      u.isBanned = true; toast('Gesperrt');
-    }
-    loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-async function deleteUser(id: string) {
-  if (!confirm('Benutzer wirklich löschen?')) return;
-  try {
-    await hw.delete(`/api/admin/users/${id}`);
-    allUsers.value = allUsers.value.filter(u => u.id !== id);
-    toast('Gelöscht'); loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-async function pruneOldLogs(u: User) {
-  if (!confirm(`Logs von ${u.email} älter als 30 Tage löschen?`)) return;
-  try {
-    await hw.delete(`/api/admin/users/${u.id}/activity/prune`);
-    toast('Logs bereinigt');
-  } catch { toast('Fehler', true); }
-}
-
-// ─── Reports ────────────────────────────────────────────
-async function toggleReportProcessed(id: string, currentProcessed: boolean) {
-  try {
-    await hw.patch(`/api/admin/reports/${id}/processed`, { processed: !currentProcessed });
-    const r = reports.value.find(x => x.id === id);
-    if (r) { r.processed = !currentProcessed; r.processedAt = !currentProcessed ? new Date().toISOString() : null; }
-    toast(!currentProcessed ? 'Als erledigt markiert' : 'Zurückgesetzt');
-    loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-async function deleteReport(id: string) {
-  if (!confirm('Meldung löschen?')) return;
-  try {
-    await hw.delete(`/api/admin/reports/${id}`);
-    reports.value = reports.value.filter(r => r.id !== id);
-    toast('Gelöscht'); loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-// ─── Sorgen ─────────────────────────────────────────────
-async function toggleSorgeProcessed(id: string, currentProcessed: boolean) {
-  try {
-    await hw.patch(`/api/admin/sorgen/${id}/processed`, { processed: !currentProcessed });
-    const s = sorgen.value.find(x => x.id === id);
-    if (s) { s.processed = !currentProcessed; }
-    toast(!currentProcessed ? 'Als erledigt markiert' : 'Zurückgesetzt');
-    loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-async function deleteSorge(id: string) {
-  if (!confirm('Eintrag löschen?')) return;
-  try {
-    await hw.delete(`/api/admin/sorgen/${id}`);
-    sorgen.value = sorgen.value.filter(s => s.id !== id);
-    toast('Gelöscht'); loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-// ─── Cleanup ────────────────────────────────────────────
-async function cleanupOldItems() {
-  if (!confirm('Alle Einträge älter als 90 Tage löschen?')) return;
-  isCleaningUp.value = true;
-  try {
-    const { data } = await hw.delete('/api/admin/cleanup/old-items');
-    toast(data.message || 'Bereinigt');
-    loadStats();
-  } catch { toast('Fehler', true); }
-  finally { isCleaningUp.value = false; }
-}
-
-onMounted(() => {
-  loadStats();
-  loadAllUsers();
-  loadReports();
-  loadSorgen();
-});
-</script>
 
 <style scoped>
 .sa-layout {

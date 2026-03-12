@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import hw from '@/api/hwApi';
+import { CheckCircle2, XCircle, Info, AlertTriangle, ArrowLeft } from 'lucide-vue-next';
+
+const loading = ref(true);
+const ok = ref(false);
+
+onMounted(async () => {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token') || '';
+  try {
+    const { data } = await hw.get('/api/auth/verify', { params: { token } });
+    ok.value = data.ok;
+  } catch {
+    ok.value = false;
+  } finally {
+    loading.value = false;
+  }
+});
+</script>
+
 <template>
   <div class="card verify-container">
     <div class="verify-content">
@@ -59,28 +81,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import hw from '@/api/hwApi';
-import { CheckCircle2, XCircle, Info, AlertTriangle, ArrowLeft } from 'lucide-vue-next';
-
-const loading = ref(true);
-const ok = ref(false);
-
-onMounted(async () => {
-  const params = new URLSearchParams(location.search);
-  const token = params.get('token') || '';
-  try {
-    const { data } = await hw.get('/api/auth/verify', { params: { token } });
-    ok.value = data.ok;
-  } catch {
-    ok.value = false;
-  } finally {
-    loading.value = false;
-  }
-});
-</script>
 
 <style scoped>
 .verify-container {

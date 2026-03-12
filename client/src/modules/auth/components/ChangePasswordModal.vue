@@ -1,3 +1,40 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { Eye, EyeOff } from 'lucide-vue-next';
+import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import { useI18n } from 'vue-i18n';
+import Modal from '@/common/components/Modal.vue';
+import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
+
+const { t } = useI18n();
+
+const emit = defineEmits<{
+  (e: 'cancel'): void;
+  (e: 'success'): void;
+}>();
+
+const {
+  currentPassword,
+  newPassword,
+  newPassword2,
+  showCurrentPassword,
+  showNewPassword,
+  showNewPassword2,
+  submitting,
+  message,
+  isError,
+  errors,
+  clearFieldError,
+  submit
+} = useChangePassword(emit);
+
+const currentPasswordRef = ref<HTMLInputElement | null>(null);
+
+onMounted(() => {
+  currentPasswordRef.value?.focus();
+});
+</script>
+
 <template>
   <Modal @cancel="$emit('cancel')">
     <template #title>
@@ -105,43 +142,6 @@
     </template>
   </Modal>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Eye, EyeOff } from 'lucide-vue-next';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import { useI18n } from 'vue-i18n';
-import Modal from '@/common/components/Modal.vue';
-import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
-
-const { t } = useI18n();
-
-const emit = defineEmits<{
-  (e: 'cancel'): void;
-  (e: 'success'): void;
-}>();
-
-const {
-  currentPassword,
-  newPassword,
-  newPassword2,
-  showCurrentPassword,
-  showNewPassword,
-  showNewPassword2,
-  submitting,
-  message,
-  isError,
-  errors,
-  clearFieldError,
-  submit
-} = useChangePassword(emit);
-
-const currentPasswordRef = ref<HTMLInputElement | null>(null);
-
-onMounted(() => {
-  currentPasswordRef.value?.focus();
-});
-</script>
 
 <style scoped>
 .password-wrapper {

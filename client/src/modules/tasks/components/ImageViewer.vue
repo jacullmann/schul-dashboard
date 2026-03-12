@@ -1,57 +1,3 @@
-<template>
-  <transition name="fade">
-    <div
-        v-if="visible"
-        class="blurit viewer-overlay"
-        @mousemove="onActivity"
-        @click.self="close"
-        @touchstart="onActivity"
-        tabindex="0"
-        @keydown="handleKeydown"
-        ref="overlayRef"
-    >
-      <div class="image-wrapper" @click.self="close">
-        <img
-            v-if="currentImage"
-            :src="currentImage.url"
-            class="viewer-img"
-            draggable="false"
-            @click.stop
-        />
-      </div>
-
-      <transition name="fade-controls">
-        <div v-show="controlsVisible" class="controls-ui">
-
-          <button class="control-btn close-btn" @click.stop="close">
-            <X />
-          </button>
-
-          <button
-              v-if="hasPrev"
-              class="control-btn nav-btn prev"
-              @click.stop="prev"
-          >
-            <ChevronLeft />
-          </button>
-
-          <button
-              v-if="hasNext"
-              class="control-btn nav-btn next"
-              @click.stop="next"
-          >
-            <ChevronRight />
-          </button>
-
-          <div class="counter" @click.stop>
-            {{ currentIndex + 1 }} / {{ images.length }}
-          </div>
-        </div>
-      </transition>
-    </div>
-  </transition>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
 import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
@@ -138,6 +84,60 @@ watch(() => props.visible, (val) => {
   }
 });
 </script>
+
+<template>
+  <transition name="fade">
+    <div
+        v-if="visible"
+        class="blurit viewer-overlay"
+        @mousemove="onActivity"
+        @click.self="close"
+        @touchstart="onActivity"
+        tabindex="0"
+        @keydown="handleKeydown"
+        ref="overlayRef"
+    >
+      <div class="image-wrapper" @click.self="close">
+        <img
+            v-if="currentImage"
+            :src="currentImage.url"
+            class="viewer-img"
+            draggable="false"
+            @click.stop
+        />
+      </div>
+
+      <transition name="fade-controls">
+        <div v-show="controlsVisible" class="controls-ui">
+
+          <button class="control-btn close-btn" @click.stop="close">
+            <X />
+          </button>
+
+          <button
+              v-if="hasPrev"
+              class="control-btn nav-btn prev"
+              @click.stop="prev"
+          >
+            <ChevronLeft />
+          </button>
+
+          <button
+              v-if="hasNext"
+              class="control-btn nav-btn next"
+              @click.stop="next"
+          >
+            <ChevronRight />
+          </button>
+
+          <div class="counter" @click.stop>
+            {{ currentIndex + 1 }} / {{ images.length }}
+          </div>
+        </div>
+      </transition>
+    </div>
+  </transition>
+</template>
 
 <style scoped>
 /* We use 'blurit' from global styles for the background/backdrop.

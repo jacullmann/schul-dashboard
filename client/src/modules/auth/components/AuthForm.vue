@@ -1,3 +1,47 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import TabSwitcher from "@/common/components/TabSwitcher.vue";
+import Checkbox from '@/common/components/Checkbox.vue';
+import ResetModal from "@/modules/auth/components/ResetModal.vue";
+import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
+import { Eye, EyeOff } from 'lucide-vue-next';
+import { useAuthModal } from '@/modules/auth/composables/useAuthModal';
+
+const { t } = useI18n();
+
+const emit = defineEmits<{
+  (e: 'logged-in'): void;
+}>();
+
+const {
+  tabs,
+  mode,
+  email,
+  password,
+  passwordConfirm,
+  acceptedPrivacy,
+  submitting,
+  message,
+  isError,
+  showPassword,
+  showReset,
+  showMfaVerify,
+  emailInputRef,
+  errors,
+  handleTabChange,
+  openReset,
+  onResetSuccess,
+  clearFieldError,
+  submit,
+  onMfaVerified,
+  onMfaCancelled,
+  enter,
+  afterEnter,
+  leave
+} = useAuthModal(() => emit('logged-in'));
+</script>
+
 <template>
   <div class="auth-form-container">
     <div class="auth-header">
@@ -135,50 +179,6 @@
     />
   </div>
 </template>
-
-<script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import TabSwitcher from "@/common/components/TabSwitcher.vue";
-import Checkbox from '@/common/components/Checkbox.vue';
-import ResetModal from "@/modules/auth/components/ResetModal.vue";
-import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
-import { Eye, EyeOff } from 'lucide-vue-next';
-import { useAuthModal } from '@/modules/auth/composables/useAuthModal';
-
-const { t } = useI18n();
-
-const emit = defineEmits<{
-  (e: 'logged-in'): void;
-}>();
-
-const {
-  tabs,
-  mode,
-  email,
-  password,
-  passwordConfirm,
-  acceptedPrivacy,
-  submitting,
-  message,
-  isError,
-  showPassword,
-  showReset,
-  showMfaVerify,
-  emailInputRef,
-  errors,
-  handleTabChange,
-  openReset,
-  onResetSuccess,
-  clearFieldError,
-  submit,
-  onMfaVerified,
-  onMfaCancelled,
-  enter,
-  afterEnter,
-  leave
-} = useAuthModal(() => emit('logged-in'));
-</script>
 
 <style scoped>
 .auth-form-container {

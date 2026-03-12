@@ -1,101 +1,3 @@
-<template>
-  <div
-      :id="`block-wrapper-${block.id}`"
-      class="block-wrapper"
-      :class="{ 'is-checked': block.checked && block.type === 'cl' }"
-      :style="{ paddingLeft: `${block.indentLevel * 24}px` }"
-  >
-    <div class="block-controls">
-      <div class="drag-handle" title="Verschieben">
-        <GripVertical :size="14" />
-      </div>
-      <button class="delete-btn" @click="$emit('delete')" title="Löschen">
-        <Trash2 :size="14" />
-      </button>
-    </div>
-
-    <div
-        v-if="isHeading"
-        class="collapse-toggle"
-        @click="$emit('toggle-collapse')"
-        :title="block.isCollapsed ? 'Aufklappen' : 'Einklappen'"
-    >
-      <ChevronRight v-if="block.isCollapsed" :size="15" />
-      <ChevronDown  v-else                   :size="15" />
-    </div>
-
-    <div v-if="block.type === 'ul'" class="marker-bullet">•</div>
-
-    <div v-if="block.type === 'cl'" class="marker-checkbox">
-      <input
-          type="checkbox"
-          :checked="block.checked"
-          @change="$emit('update:checked', ($event.target as HTMLInputElement).checked)"
-      />
-    </div>
-
-    <div class="content-area">
-
-      <div v-if="isFocused" class="floating-toolbar" @mousedown.prevent>
-        <button @click="exec('bold')" title="Fett">
-          <Bold :size="12" />
-        </button>
-        <div class="tb-divider"></div>
-
-        <div class="color-picker-wrapper">
-          <button class="color-btn" title="Textfarbe" @click="showColors = !showColors">
-            <Palette :size="12" />
-          </button>
-
-          <div v-if="showColors" class="color-dropdown">
-            <div
-                v-for="c in COLORS"
-                :key="c"
-                class="color-swatch"
-                :style="{ backgroundColor: c }"
-                :title="c"
-                @click="applyColor(c)"
-            ></div>
-            <label class="color-swatch custom-color" title="Eigene Farbe">
-              +
-              <input type="color" @input="(e: any) => applyColor(e.target.value)" />
-            </label>
-          </div>
-        </div>
-
-        <div class="tb-divider"></div>
-
-        <select
-            :value="block.type"
-            @change="$emit('change-type', ($event.target as HTMLSelectElement).value)"
-            title="Block-Typ"
-        >
-          <option value="p">Text</option>
-          <option value="h1">Überschrift 1</option>
-          <option value="h2">Überschrift 2</option>
-          <option value="h3">Überschrift 3</option>
-          <option value="ul">Liste</option>
-          <option value="cl">Checkliste</option>
-        </select>
-      </div>
-
-      <div
-          ref="inputEl"
-          :id="`block-input-${block.id}`"
-          contenteditable="true"
-          class="editable-input"
-          :class="block.type"
-          :placeholder="PLACEHOLDERS[block.type] ?? 'Schreibe etwas…'"
-          @input="onInput"
-          @keydown="onKeydown"
-          @focus="onFocus"
-          @blur="onBlur"
-      ></div>
-
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import {
@@ -205,6 +107,104 @@ watch(() => props.block.content, (newContent) => {
   }
 });
 </script>
+
+<template>
+  <div
+      :id="`block-wrapper-${block.id}`"
+      class="block-wrapper"
+      :class="{ 'is-checked': block.checked && block.type === 'cl' }"
+      :style="{ paddingLeft: `${block.indentLevel * 24}px` }"
+  >
+    <div class="block-controls">
+      <div class="drag-handle" title="Verschieben">
+        <GripVertical :size="14" />
+      </div>
+      <button class="delete-btn" @click="$emit('delete')" title="Löschen">
+        <Trash2 :size="14" />
+      </button>
+    </div>
+
+    <div
+        v-if="isHeading"
+        class="collapse-toggle"
+        @click="$emit('toggle-collapse')"
+        :title="block.isCollapsed ? 'Aufklappen' : 'Einklappen'"
+    >
+      <ChevronRight v-if="block.isCollapsed" :size="15" />
+      <ChevronDown  v-else                   :size="15" />
+    </div>
+
+    <div v-if="block.type === 'ul'" class="marker-bullet">•</div>
+
+    <div v-if="block.type === 'cl'" class="marker-checkbox">
+      <input
+          type="checkbox"
+          :checked="block.checked"
+          @change="$emit('update:checked', ($event.target as HTMLInputElement).checked)"
+      />
+    </div>
+
+    <div class="content-area">
+
+      <div v-if="isFocused" class="floating-toolbar" @mousedown.prevent>
+        <button @click="exec('bold')" title="Fett">
+          <Bold :size="12" />
+        </button>
+        <div class="tb-divider"></div>
+
+        <div class="color-picker-wrapper">
+          <button class="color-btn" title="Textfarbe" @click="showColors = !showColors">
+            <Palette :size="12" />
+          </button>
+
+          <div v-if="showColors" class="color-dropdown">
+            <div
+                v-for="c in COLORS"
+                :key="c"
+                class="color-swatch"
+                :style="{ backgroundColor: c }"
+                :title="c"
+                @click="applyColor(c)"
+            ></div>
+            <label class="color-swatch custom-color" title="Eigene Farbe">
+              +
+              <input type="color" @input="(e: any) => applyColor(e.target.value)" />
+            </label>
+          </div>
+        </div>
+
+        <div class="tb-divider"></div>
+
+        <select
+            :value="block.type"
+            @change="$emit('change-type', ($event.target as HTMLSelectElement).value)"
+            title="Block-Typ"
+        >
+          <option value="p">Text</option>
+          <option value="h1">Überschrift 1</option>
+          <option value="h2">Überschrift 2</option>
+          <option value="h3">Überschrift 3</option>
+          <option value="ul">Liste</option>
+          <option value="cl">Checkliste</option>
+        </select>
+      </div>
+
+      <div
+          ref="inputEl"
+          :id="`block-input-${block.id}`"
+          contenteditable="true"
+          class="editable-input"
+          :class="block.type"
+          :placeholder="PLACEHOLDERS[block.type] ?? 'Schreibe etwas…'"
+          @input="onInput"
+          @keydown="onKeydown"
+          @focus="onFocus"
+          @blur="onBlur"
+      ></div>
+
+    </div>
+  </div>
+</template>
 
 <style scoped>
 /* =========================================

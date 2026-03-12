@@ -1,11 +1,3 @@
-<template>
-  <SelectDropdown
-      :model-value="locale"
-      :options="localeOptions"
-      @update:model-value="updateLocale"
-  />
-</template>
-
 <script setup lang="ts">
 import { useLocale } from '@/common/composables/useLocale';
 import type { SupportedLocale } from '@/i18n';
@@ -22,3 +14,11 @@ function updateLocale(loc: string) {
   setLocale(loc as SupportedLocale);
 }
 </script>
+
+<template>
+  <SelectDropdown
+      :model-value="locale"
+      :options="localeOptions"
+      @update:model-value="updateLocale"
+  />
+</template>

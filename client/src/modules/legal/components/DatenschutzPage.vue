@@ -1,3 +1,7 @@
+<script setup lang="ts">
+// Keine Script-Logik erforderlich
+</script>
+
 <template>
   <div>
     <h2>Datenschutzerklärung</h2>
@@ -105,7 +109,3 @@
 
   </div>
 </template>
-
-<script setup lang="ts">
-// Keine Script-Logik erforderlich
-</script>

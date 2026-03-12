@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { games } from '@/modules/games/composables/GameData';
+import { useRouter } from 'vue-router';
+import { LucideFrown } from "lucide-vue-next";
+
+const router = useRouter();
+
+const searchTag = ref('');
+
+const filteredGames = computed(() => {
+  const query = searchTag.value.trim().toLowerCase();
+
+  if (!query) {
+    return games;
+  }
+
+  return games.filter(game => {
+    const textMatch = game.name.toLowerCase().includes(query) ||
+        game.description.toLowerCase().includes(query) ||
+        game.id.toLowerCase().includes(query);
+
+    const tagMatch = game.tags.some(tag => tag.toLowerCase().includes(query));
+
+    return textMatch || tagMatch;
+  });
+});
+
+</script>
+
 <template>
   <div class="card rlc">
       <div>
@@ -45,36 +75,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-import { games } from '@/modules/games/composables/GameData';
-import { useRouter } from 'vue-router';
-import { LucideFrown } from "lucide-vue-next";
-
-const router = useRouter();
-
-const searchTag = ref('');
-
-const filteredGames = computed(() => {
-  const query = searchTag.value.trim().toLowerCase();
-
-  if (!query) {
-    return games;
-  }
-
-  return games.filter(game => {
-    const textMatch = game.name.toLowerCase().includes(query) ||
-        game.description.toLowerCase().includes(query) ||
-        game.id.toLowerCase().includes(query);
-
-    const tagMatch = game.tags.some(tag => tag.toLowerCase().includes(query));
-
-    return textMatch || tagMatch;
-  });
-});
-
-</script>
 
 <style scoped>
 .search-bar {

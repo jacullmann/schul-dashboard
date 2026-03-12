@@ -1,57 +1,3 @@
-<template>
-  <div class="menu-wrapper" ref="wrapperRef">
-    <button
-        class="menu-btn"
-        @click="toggleMenu"
-        :disabled="disabled"
-        type="button"
-        aria-haspopup="true"
-        :aria-expanded="isOpen"
-    >
-      <div class="menu-btn-content">
-        <component
-            v-if="selectedOption?.icon"
-            :is="selectedOption.icon"
-            :size="16"
-        />
-
-        <span>
-          {{ prefix ? prefix + ' ' : '' }}{{ selectedOption?.label || '' }}
-        </span>
-
-        <ChevronDown :size="16" :class="{ 'chevron-open': isOpen }" />
-      </div>
-    </button>
-
-    <div
-        v-if="isOpen"
-        class="dropdown-menu"
-    >
-      <button
-          v-for="option in options"
-          :key="option.value"
-          class="menu-btn"
-          :class="{ active: modelValue === option.value }"
-          @click="selectOption(option.value)"
-          type="button"
-          :disabled="disabled"
-      >
-        <div class="menu-btn-content">
-          <component
-              v-if="option.icon"
-              :is="option.icon"
-              :size="16"
-          />
-          {{ option.label }}
-        </div>
-
-        <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
-        <span class="spacer" v-else></span>
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { ChevronDown, Check } from 'lucide-vue-next';
@@ -107,6 +53,60 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
 </script>
+
+<template>
+  <div class="menu-wrapper" ref="wrapperRef">
+    <button
+        class="menu-btn"
+        @click="toggleMenu"
+        :disabled="disabled"
+        type="button"
+        aria-haspopup="true"
+        :aria-expanded="isOpen"
+    >
+      <div class="menu-btn-content">
+        <component
+            v-if="selectedOption?.icon"
+            :is="selectedOption.icon"
+            :size="16"
+        />
+
+        <span>
+          {{ prefix ? prefix + ' ' : '' }}{{ selectedOption?.label || '' }}
+        </span>
+
+        <ChevronDown :size="16" :class="{ 'chevron-open': isOpen }" />
+      </div>
+    </button>
+
+    <div
+        v-if="isOpen"
+        class="dropdown-menu"
+    >
+      <button
+          v-for="option in options"
+          :key="option.value"
+          class="menu-btn"
+          :class="{ active: modelValue === option.value }"
+          @click="selectOption(option.value)"
+          type="button"
+          :disabled="disabled"
+      >
+        <div class="menu-btn-content">
+          <component
+              v-if="option.icon"
+              :is="option.icon"
+              :size="16"
+          />
+          {{ option.label }}
+        </div>
+
+        <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
+        <span class="spacer" v-else></span>
+      </button>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .menu-wrapper {

@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const uniqueId = `_Linear1-${Math.random().toString(36).substring(2)}`;
+</script>
+
 <template>
   <svg width="100%" height="100%" viewBox="1575 675 290 17.5" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
     <g transform="matrix(1,0,0,0.542395,-2.578643,304.664373)">
@@ -8,6 +12,3 @@
     </defs>
 </svg>
 </template>
-<script setup lang="ts">
-const uniqueId = `_Linear1-${Math.random().toString(36).substring(2)}`;
-</script>

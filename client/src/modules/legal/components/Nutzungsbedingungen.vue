@@ -1,3 +1,7 @@
+<script setup lang="ts">
+// Keine Script-Logik erforderlich
+</script>
+
 <template>
   <div>
     <h2>Nutzungsbedingungen des Schul-Dashboards</h2>
@@ -121,7 +125,3 @@
 
   </div>
 </template>
-
-<script setup lang="ts">
-// Keine Script-Logik erforderlich
-</script>

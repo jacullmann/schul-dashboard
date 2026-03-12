@@ -1,38 +1,3 @@
-<template>
-  <div :class="['menu-wrapper', extraClass]" ref="wrapperRef">
-    <button
-        class="btn ghost"
-        @click="toggleMenu"
-        :disabled="disabled"
-        type="button"
-        aria-haspopup="true"
-        :aria-expanded="isOpen"
-    >
-      <div class="btn-content">
-        <span>
-          {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
-        </span>
-        <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': isOpen }" />
-      </div>
-    </button>
-
-    <div v-if="isOpen" class="select-menu">
-      <button
-          v-for="option in options"
-          :key="option.value"
-          class="menu-btn"
-          :class="{ active: modelValue === option.value }"
-          @click="selectOption(option.value)"
-          type="button"
-      >
-        {{ option.label }}
-        <Check v-if="modelValue === option.value" :size="16"  />
-        <span class="spacer" v-else></span>
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { ChevronDown, Check } from 'lucide-vue-next';
@@ -79,6 +44,41 @@ const handleClickOutside = (event: MouseEvent) => {
 onMounted(() => document.addEventListener('click', handleClickOutside));
 onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside));
 </script>
+
+<template>
+  <div :class="['menu-wrapper', extraClass]" ref="wrapperRef">
+    <button
+        class="btn ghost"
+        @click="toggleMenu"
+        :disabled="disabled"
+        type="button"
+        aria-haspopup="true"
+        :aria-expanded="isOpen"
+    >
+      <div class="btn-content">
+        <span>
+          {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
+        </span>
+        <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': isOpen }" />
+      </div>
+    </button>
+
+    <div v-if="isOpen" class="select-menu">
+      <button
+          v-for="option in options"
+          :key="option.value"
+          class="menu-btn"
+          :class="{ active: modelValue === option.value }"
+          @click="selectOption(option.value)"
+          type="button"
+      >
+        {{ option.label }}
+        <Check v-if="modelValue === option.value" :size="16"  />
+        <span class="spacer" v-else></span>
+      </button>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .menu-wrapper {

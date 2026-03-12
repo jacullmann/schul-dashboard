@@ -1,3 +1,32 @@
+<script setup lang="ts">
+import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import { useI18n } from 'vue-i18n';
+import Modal from '@/common/components/Modal.vue';
+import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount';
+import Checkbox from '@/common/components/Checkbox.vue';
+
+const { t } = useI18n();
+
+const props = defineProps<{
+  email: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'cancel'): void;
+  (e: 'deleted'): void;
+  (e: 'error', msg: string): void;
+}>();
+
+const {
+  understoodChecked,
+  submitting,
+  errorMsg,
+  successMsg,
+  confirmDelete
+} = useDeleteAccount(emit);
+
+</script>
+
 <template>
   <Modal @cancel="$emit('cancel')">
     <template #title>
@@ -35,35 +64,6 @@
     </template>
   </Modal>
 </template>
-
-<script setup lang="ts">
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import { useI18n } from 'vue-i18n';
-import Modal from '@/common/components/Modal.vue';
-import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount';
-import Checkbox from '@/common/components/Checkbox.vue';
-
-const { t } = useI18n();
-
-const props = defineProps<{
-  email: string;
-}>();
-
-const emit = defineEmits<{
-  (e: 'cancel'): void;
-  (e: 'deleted'): void;
-  (e: 'error', msg: string): void;
-}>();
-
-const {
-  understoodChecked,
-  submitting,
-  errorMsg,
-  successMsg,
-  confirmDelete
-} = useDeleteAccount(emit);
-
-</script>
 
 <style scoped>
 

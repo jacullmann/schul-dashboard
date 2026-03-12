@@ -1,3 +1,13 @@
+<script setup lang="ts">
+import {
+  Mail,
+  MapPin,
+  MessageSquare,
+  ExternalLink,
+  Info
+} from 'lucide-vue-next';
+</script>
+
 <template>
   <div class="card">
     <div class="contact-header">
@@ -64,16 +74,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import {
-  Mail,
-  MapPin,
-  MessageSquare,
-  ExternalLink,
-  Info
-} from 'lucide-vue-next';
-</script>
 
 <style scoped>
 .contact-header {

@@ -1,26 +1,3 @@
-<template>
-  <Modal v-if="show" @cancel="$emit('cancel')">
-    <template #title>
-      Dieses Bild löschen?
-    </template>
-
-    <template #content>
-      <p>Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.</p>
-    </template>
-
-    <template #action-btn>
-      <button
-          class="btn danger"
-          @click="emit('confirm')"
-          :disabled="loading"
-      >
-        <LoadingSpinner v-if="loading" size="1.1em" />
-        <span v-else>Bild löschen</span>
-      </button>
-    </template>
-  </Modal>
-</template>
-
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue';
 import Modal from '@/common/components/Modal.vue';
@@ -47,6 +24,29 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 </script>
+
+<template>
+  <Modal v-if="show" @cancel="$emit('cancel')">
+    <template #title>
+      Dieses Bild löschen?
+    </template>
+
+    <template #content>
+      <p>Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.</p>
+    </template>
+
+    <template #action-btn>
+      <button
+          class="btn danger"
+          @click="emit('confirm')"
+          :disabled="loading"
+      >
+        <LoadingSpinner v-if="loading" size="1.1em" />
+        <span v-else>Bild löschen</span>
+      </button>
+    </template>
+  </Modal>
+</template>
 
 <style scoped>
 p {

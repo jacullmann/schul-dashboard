@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { Brain, Zap, Eye } from 'lucide-vue-next';
+import { useBrainTests } from '../composables/useBrainTests';
+
+const { brainTests, getScore } = useBrainTests();
+
+const iconMap = {
+  Brain,
+  Zap,
+  Eye
+};
+
+function getIcon(name: string) {
+  return (iconMap as any)[name] || Brain;
+}
+</script>
+
 <template>
   <div class="brain-library">
     <div class="header-section">
@@ -36,23 +53,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Brain, Zap, Eye } from 'lucide-vue-next';
-import { useBrainTests } from '../composables/useBrainTests';
-
-const { brainTests, getScore } = useBrainTests();
-
-const iconMap = {
-  Brain,
-  Zap,
-  Eye
-};
-
-function getIcon(name: string) {
-  return (iconMap as any)[name] || Brain;
-}
-</script>
 
 <style scoped>
 .brain-library {

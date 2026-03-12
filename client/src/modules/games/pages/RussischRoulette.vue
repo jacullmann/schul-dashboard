@@ -1,3 +1,38 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+const hasPlayed = ref(false);
+const survived = ref(false);
+
+const status = computed(() => {
+  if (!hasPlayed.value) {
+    return 'Deine Chancen stehen 1 zu 6.';
+  }
+
+  if (survived.value) {
+    return 'Du hast überlebt.';
+  } else {
+    return 'Du bist gestorben';
+  }
+});
+
+const pullTrigger = () => {
+  if (hasPlayed.value) return;
+  if (Math.random() < (1 / 6)) {
+    survived.value = false;
+  } else {
+    survived.value = true;
+  }
+
+  hasPlayed.value = true;
+};
+
+const resetGame = () => {
+  hasPlayed.value = false;
+  survived.value = false;
+};
+</script>
+
 <template>
   <div class="bout">
   <div class="toub" >
@@ -34,41 +69,6 @@
   </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-
-const hasPlayed = ref(false);
-const survived = ref(false);
-
-const status = computed(() => {
-  if (!hasPlayed.value) {
-    return 'Deine Chancen stehen 1 zu 6.';
-  }
-
-  if (survived.value) {
-    return 'Du hast überlebt.';
-  } else {
-    return 'Du bist gestorben';
-  }
-});
-
-const pullTrigger = () => {
-  if (hasPlayed.value) return;
-  if (Math.random() < (1 / 6)) {
-    survived.value = false;
-  } else {
-    survived.value = true;
-  }
-
-  hasPlayed.value = true;
-};
-
-const resetGame = () => {
-  hasPlayed.value = false;
-  survived.value = false;
-};
-</script>
 
 <style scoped>
 

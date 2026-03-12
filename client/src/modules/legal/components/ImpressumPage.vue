@@ -1,3 +1,7 @@
+<script setup lang="ts">
+// Zusätzliche Logik ist hier nicht erforderlich
+</script>
+
 <template>
   <div>
     <h2>{{ $t('legal.imprint.title') }}</h2>
@@ -10,7 +14,3 @@
     <p>{{ $t('legal.imprint.disclaimer') }}</p>
   </div>
 </template>
-
-<script setup lang="ts">
-// Zusätzliche Logik ist hier nicht erforderlich
-</script>

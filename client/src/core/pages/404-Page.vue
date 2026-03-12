@@ -1,3 +1,18 @@
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+import { FileText, CalendarDays, ArrowLeft } from "lucide-vue-next";
+
+const router = useRouter();
+
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    router.push('/items/HAUSAUFGABE');
+  }
+};
+</script>
+
 <template>
   <div class="card not-found-container">
     <div class="not-found-content">
@@ -41,21 +56,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { FileText, CalendarDays, ArrowLeft } from "lucide-vue-next";
-
-const router = useRouter();
-
-const goBack = () => {
-  if (window.history.length > 1) {
-    router.back();
-  } else {
-    router.push('/items/HAUSAUFGABE');
-  }
-};
-</script>
 
 <style scoped>
 .not-found-container {

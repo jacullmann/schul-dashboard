@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+
+const day = ref<number>(new Date().getDate());
+const dayString = computed(() => String(day.value));
+
+let intervalId: ReturnType<typeof setInterval>;
+
+function updateDay() {
+  const currentDay = new Date().getDate();
+  if (day.value !== currentDay) {
+    day.value = currentDay;
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible') {
+    updateDay();
+  }
+}
+
+onMounted(() => {
+  updateDay();
+  // Check every minute if the date changed
+  intervalId = setInterval(updateDay, 60000);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+  clearInterval(intervalId);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+});
+</script>
+
 <template>
   <svg
       v-bind="$attrs"
@@ -46,40 +80,6 @@
     </text>
   </svg>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-
-const day = ref<number>(new Date().getDate());
-const dayString = computed(() => String(day.value));
-
-let intervalId: ReturnType<typeof setInterval>;
-
-function updateDay() {
-  const currentDay = new Date().getDate();
-  if (day.value !== currentDay) {
-    day.value = currentDay;
-  }
-}
-
-function handleVisibilityChange() {
-  if (document.visibilityState === 'visible') {
-    updateDay();
-  }
-}
-
-onMounted(() => {
-  updateDay();
-  // Check every minute if the date changed
-  intervalId = setInterval(updateDay, 60000);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-});
-
-onUnmounted(() => {
-  clearInterval(intervalId);
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-});
-</script>
 
 <style scoped>
 svg {

@@ -1,14 +1,3 @@
-<template>
-  <label class="collapse-checkbox">
-    <input
-        type="checkbox"
-        :checked="modelValue || checked"
-        @change="handleChange"
-    />
-    <span class="vis-label"></span>
-  </label>
-</template>
-
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
   modelValue?: boolean
@@ -29,6 +18,17 @@ function handleChange(event: Event) {
   emit('change', event)
 }
 </script>
+
+<template>
+  <label class="collapse-checkbox">
+    <input
+        type="checkbox"
+        :checked="modelValue || checked"
+        @change="handleChange"
+    />
+    <span class="vis-label"></span>
+  </label>
+</template>
 
 <style scoped>
 .collapse-checkbox {

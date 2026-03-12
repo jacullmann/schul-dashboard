@@ -1,33 +1,3 @@
-<template>
-  <Modal>
-    <template #title>
-      Sicherheit
-    </template>
-
-    <template #content>
-      <div class="tab-wrapper">
-        <TabSwitcher
-            :items="tabs"
-            :active-id="activeTab"
-            @change="handleTabChange"
-        />
-      </div>
-
-      <!-- Tab Content -->
-      <div v-if="activeTab === 'mfa'" class="mfa-section">
-        <MfaSettings
-            :mfa-enabled="mfaEnabled"
-            @mfa-changed="onMfaChanged"
-        />
-      </div>
-    </template>
-
-    <template #actions>
-      <div></div>
-    </template>
-  </Modal>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
@@ -68,6 +38,36 @@ onMounted(async () => {
   }
 });
 </script>
+
+<template>
+  <Modal>
+    <template #title>
+      Sicherheit
+    </template>
+
+    <template #content>
+      <div class="tab-wrapper">
+        <TabSwitcher
+            :items="tabs"
+            :active-id="activeTab"
+            @change="handleTabChange"
+        />
+      </div>
+
+      <!-- Tab Content -->
+      <div v-if="activeTab === 'mfa'" class="mfa-section">
+        <MfaSettings
+            :mfa-enabled="mfaEnabled"
+            @mfa-changed="onMfaChanged"
+        />
+      </div>
+    </template>
+
+    <template #actions>
+      <div></div>
+    </template>
+  </Modal>
+</template>
 
 <style scoped>
 .tab-wrapper {

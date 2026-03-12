@@ -1,37 +1,3 @@
-<template>
-  <div class="card rlc" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-    <div class="card rlc" style="width:100%; max-width:520px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">Neue Ankündigung</h3>
-        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
-      </div>
-      <div style="margin-top:8px;">
-        <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
-      </div>
-      <div style="margin-top:8px;">
-        <select class="input hover" v-model="color">
-          <option value="info">Info</option>
-          <option value="warn">Wichtig</option>
-          <option value="danger">Dringend</option>
-        </select>
-      </div>
-      <div style="margin-top:8px;">
-        <label style="display:flex; align-items:center; gap:8px; color:var(--text);">
-          <input type="checkbox" v-model="showAsPopup" />
-          Als Popup anzeigen für alle benutzer
-        </label>
-      </div>
-      <div class="row" style="margin-top:12px; align-items:center;">
-        <button class="btn" @click="submit" :disabled="submitting">
-          <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>Absenden</span>
-        </button>
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import hw from '@/api/hwApi';
@@ -88,3 +54,37 @@ async function submit() {
   }
 }
 </script>
+
+<template>
+  <div class="card rlc" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+    <div class="card rlc" style="width:100%; max-width:520px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">Neue Ankündigung</h3>
+        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+      </div>
+      <div style="margin-top:8px;">
+        <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
+      </div>
+      <div style="margin-top:8px;">
+        <select class="input hover" v-model="color">
+          <option value="info">Info</option>
+          <option value="warn">Wichtig</option>
+          <option value="danger">Dringend</option>
+        </select>
+      </div>
+      <div style="margin-top:8px;">
+        <label style="display:flex; align-items:center; gap:8px; color:var(--text);">
+          <input type="checkbox" v-model="showAsPopup" />
+          Als Popup anzeigen für alle benutzer
+        </label>
+      </div>
+      <div class="row" style="margin-top:12px; align-items:center;">
+        <button class="btn" @click="submit" :disabled="submitting">
+          <LoadingSpinner v-if="submitting" size="1.1em" />
+          <span v-else>Absenden</span>
+        </button>
+        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+      </div>
+    </div>
+  </div>
+</template>

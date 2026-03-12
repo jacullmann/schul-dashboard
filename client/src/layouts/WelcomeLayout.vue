@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import WelcomeHeader from '@/modules/welcome/components/WelcomeHeader.vue';
+import WelcomeFooter from '@/modules/welcome/components/WelcomeFooter.vue';
+</script>
+
 <template>
   <div class="outer-container">
     <div class="header-container">
@@ -17,11 +22,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import WelcomeHeader from '@/modules/welcome/components/WelcomeHeader.vue';
-import WelcomeFooter from '@/modules/welcome/components/WelcomeFooter.vue';
-</script>
 
 <style scoped>
 .outer-container {

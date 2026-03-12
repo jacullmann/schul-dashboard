@@ -1,22 +1,3 @@
-<template>
-  <div class="popup-overlay" @click.self="close">
-    <div class="announcement-popup" :style="{ borderLeftColor: color }">
-      <div class="popup-header">
-        <div class="popup-title">
-          <div class="popup-color-indicator" :style="{ backgroundColor: color }"></div>
-        </div>
-        <button class="popup-close" @click="close">×</button>
-      </div>
-      <div class="popup-content">
-        {{ announcement.content }}
-      </div>
-      <div class="popup-footer">
-        <button ref="confirmBtnRef" class="btn" @click="close">Alles klar</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 
@@ -59,6 +40,25 @@ function close() {
   emit('close')
 }
 </script>
+
+<template>
+  <div class="popup-overlay" @click.self="close">
+    <div class="announcement-popup" :style="{ borderLeftColor: color }">
+      <div class="popup-header">
+        <div class="popup-title">
+          <div class="popup-color-indicator" :style="{ backgroundColor: color }"></div>
+        </div>
+        <button class="popup-close" @click="close">×</button>
+      </div>
+      <div class="popup-content">
+        {{ announcement.content }}
+      </div>
+      <div class="popup-footer">
+        <button ref="confirmBtnRef" class="btn" @click="close">Alles klar</button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .popup-overlay {

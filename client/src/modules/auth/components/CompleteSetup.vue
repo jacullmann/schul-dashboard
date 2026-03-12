@@ -1,65 +1,3 @@
-<template>
-  <Modal v-if="visible" @cancel="$emit('close')">
-    <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
-
-    <template #content>
-      <p class="small" style="color: var(--sub)">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
-
-      <div class="form-group">
-        <label class="label-text">{{ t('account.menu.courses.enr') }}</label>
-        <SelectDropdown
-            v-model="formData.enrKurs"
-            :options="enrichmentOptions"
-        />
-      </div>
-
-      <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">{{ t('account.menu.courses.wpu1') }}</label>
-        <SelectDropdown
-            v-model="formData.wpuKurs1"
-            :options="wpu1Options"
-        />
-      </div>
-
-      <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">{{ t('account.menu.courses.wpu2') }}</label>
-        <SelectDropdown
-            v-model="formData.wpuKurs2"
-            :options="wpu2Options"
-        />
-      </div>
-
-      <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">{{ t('account.menu.courses.wpu3') }}</label>
-        <SelectDropdown
-            v-model="formData.theater"
-            :options="theaterOptions"
-        />
-      </div>
-    </template>
-
-    <template #actions>
-      <div v-if="error" class="field-error" style="color:var(--danger); margin-top: 12px;">{{ error }}</div>
-
-      <div class="row" style="margin-top: 16px;">
-        <button class="btn ghost" v-if="isSetup" @click="skip" :disabled="skipping || submitting">
-          <LoadingSpinner v-if="skipping" size="1.1em" />
-          <span v-else>{{ t('global.buttons.skip') }}</span>
-        </button>
-
-        <button class="btn ghost" v-else @click="$emit('close')">
-          {{ t('global.buttons.cancel') }}
-        </button>
-
-        <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
-          <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>{{ t('global.buttons.save') }}</span>
-        </button>
-      </div>
-    </template>
-  </Modal>
-</template>
-
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
 import hw from '@/api/hwApi';
@@ -193,6 +131,68 @@ async function skip() {
   await submitData(dataToSend);
 }
 </script>
+
+<template>
+  <Modal v-if="visible" @cancel="$emit('close')">
+    <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
+
+    <template #content>
+      <p class="small" style="color: var(--sub)">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
+
+      <div class="form-group">
+        <label class="label-text">{{ t('account.menu.courses.enr') }}</label>
+        <SelectDropdown
+            v-model="formData.enrKurs"
+            :options="enrichmentOptions"
+        />
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <label class="label-text">{{ t('account.menu.courses.wpu1') }}</label>
+        <SelectDropdown
+            v-model="formData.wpuKurs1"
+            :options="wpu1Options"
+        />
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <label class="label-text">{{ t('account.menu.courses.wpu2') }}</label>
+        <SelectDropdown
+            v-model="formData.wpuKurs2"
+            :options="wpu2Options"
+        />
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <label class="label-text">{{ t('account.menu.courses.wpu3') }}</label>
+        <SelectDropdown
+            v-model="formData.theater"
+            :options="theaterOptions"
+        />
+      </div>
+    </template>
+
+    <template #actions>
+      <div v-if="error" class="field-error" style="color:var(--danger); margin-top: 12px;">{{ error }}</div>
+
+      <div class="row" style="margin-top: 16px;">
+        <button class="btn ghost" v-if="isSetup" @click="skip" :disabled="skipping || submitting">
+          <LoadingSpinner v-if="skipping" size="1.1em" />
+          <span v-else>{{ t('global.buttons.skip') }}</span>
+        </button>
+
+        <button class="btn ghost" v-else @click="$emit('close')">
+          {{ t('global.buttons.cancel') }}
+        </button>
+
+        <button class="btn action" @click="save" :disabled="submitting || skipping || (isSetup && !isValid)">
+          <LoadingSpinner v-if="submitting" size="1.1em" />
+          <span v-else>{{ t('global.buttons.save') }}</span>
+        </button>
+      </div>
+    </template>
+  </Modal>
+</template>
 
 <style scoped>
 .small {

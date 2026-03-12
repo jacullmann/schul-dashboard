@@ -1,178 +1,3 @@
-<template>
-  <div class="mfa-settings">
-    <div class="status-card" :class="{ enabled: mfaEnabled }">
-      <div class="status-icon">
-        <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
-      </div>
-      <div class="status-info">
-        <span class="status-label">Zwei-Faktor-Authentifizierung</span>
-        <span class="status-value" :class="{ enabled: mfaEnabled }">
-          {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
-        </span>
-      </div>
-    </div>
-    <p class="description">
-      Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google Authenticator.
-    </p>
-    <div v-if="!mfaEnabled && !setupMode" class="action-section">
-      <button
-          class="btn action"
-          @click="startSetup"
-          :disabled="loading"
-      >
-        2FA aktivieren
-      </button>
-    </div>
-
-    <div v-if="setupMode" class="setup-section">
-      <div class="setup-steps">
-        <div class="step" :class="{ active: setupStep === 1, completed: setupStep > 1 }">
-          <span class="step-number">1</span>
-          <span class="step-label">QR-Code scannen</span>
-        </div>
-        <div class="step-divider"></div>
-        <div class="step" :class="{ active: setupStep === 2 }">
-          <span class="step-number">2</span>
-          <span class="step-label">Code eingeben</span>
-        </div>
-      </div>
-
-      <!-- Step 1 -->
-      <div v-if="setupStep === 1" class="qr-section">
-        <p class="instruction">
-          Bitte scanne den QR-Code mit deiner Authenticator-App
-          (z.B. Google Authenticator).
-        </p>
-
-        <div v-if="qrCodeUrl" class="qr-container">
-          <img :src="qrCodeUrl" alt="MFA QR-Code" class="qr-image" />
-        </div>
-
-        <div v-if="manualSecret" class="manual-entry">
-          <p class="manual-label">Oder gib diesen Code manuell ein:</p>
-          <div class="secret-display">
-            <code class="secret-code">{{ formattedSecret }}</code>
-            <button
-                type="button"
-                class="copy-btn"
-                @click="copySecret"
-                :title="copied ? 'Kopiert!' : 'Kopieren'"
-            >
-              <component :is="copied ? Check : Copy" :size="16" />
-            </button>
-          </div>
-        </div>
-
-        <div class="timer-info" v-if="expiresAt">
-          <Clock :size="16" />
-          <span>Gültig für {{ remainingTime }}</span>
-        </div>
-
-        <div class="step-actions">
-          <button class="btn ghost" @click="cancelSetup">Abbrechen</button>
-          <button class="btn action" @click="setupStep = 2">Weiter</button>
-        </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div v-if="setupStep === 2" class="verify-section">
-        <p class="instruction">
-          Gib den 6-stelligen Code aus deiner Authenticator-App ein,
-          um die Einrichtung abzuschließen.
-        </p>
-
-        <div class="code-input-wrapper">
-          <input
-              ref="codeInput"
-              v-model="verifyCode"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              maxlength="6"
-              placeholder="000000"
-              class="code-input"
-              :class="{ error: verifyError }"
-              @input="handleCodeInput"
-              @keyup.enter="activateMfa"
-          />
-        </div>
-
-        <div v-if="verifyError" class="error-message">
-          <AlertCircle :size="14" />
-          {{ verifyError }}
-        </div>
-
-        <div class="step-actions">
-          <button class="btn ghost" @click="setupStep = 1">Zurück</button>
-          <button
-              class="btn action"
-              @click="activateMfa"
-              :disabled="verifyCode.length !== 6 || loading"
-          >
-            <LoadingSpinner v-if="loading" color="white" size="1.2em" />
-            <span v-else>Aktivieren</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Deaktivieren Option -->
-    <div v-if="mfaEnabled && !deactivateMode" class="action-section">
-      <button
-          class="btn danger-outline"
-          @click="startDeactivate"
-      >
-        <ShieldOff :size="18" />
-        2FA deaktivieren
-      </button>
-    </div>
-
-    <!-- Deaktivieren Mode -->
-    <div v-if="deactivateMode" class="deactivate-section">
-      <div class="warning-box">
-        <AlertTriangle :size="20" />
-        <p>
-          Indem du fortfährst verringerst du die Sicherheit deines Kontos.
-          Um die Deaktivierung abzuschließen, must du noch ein letztes Mal den korrekten Code eingeben
-        </p>
-      </div>
-
-      <div class="code-input-wrapper">
-        <input
-            ref="deactivateCodeInput"
-            v-model="deactivateCode"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="6"
-            placeholder="000000"
-            class="code-input"
-            :class="{ error: deactivateError }"
-            @input="handleDeactivateCodeInput"
-            @keyup.enter="confirmDeactivate"
-        />
-      </div>
-
-      <div v-if="deactivateError" class="error-message">
-        <AlertCircle :size="14" />
-        {{ deactivateError }}
-      </div>
-
-      <div class="step-actions">
-        <button class="btn ghost" @click="cancelDeactivate">Abbrechen</button>
-        <button
-            class="btn danger"
-            @click="confirmDeactivate"
-            :disabled="deactivateCode.length !== 6 || loading"
-        >
-          <LoadingSpinner v-if="loading" color="white" size="1.2em" />
-          <span v-else>Deaktivieren</span>
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, nextTick, onUnmounted } from 'vue';
 import {
@@ -391,6 +216,181 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<template>
+  <div class="mfa-settings">
+    <div class="status-card" :class="{ enabled: mfaEnabled }">
+      <div class="status-icon">
+        <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
+      </div>
+      <div class="status-info">
+        <span class="status-label">Zwei-Faktor-Authentifizierung</span>
+        <span class="status-value" :class="{ enabled: mfaEnabled }">
+          {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
+        </span>
+      </div>
+    </div>
+    <p class="description">
+      Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google Authenticator.
+    </p>
+    <div v-if="!mfaEnabled && !setupMode" class="action-section">
+      <button
+          class="btn action"
+          @click="startSetup"
+          :disabled="loading"
+      >
+        2FA aktivieren
+      </button>
+    </div>
+
+    <div v-if="setupMode" class="setup-section">
+      <div class="setup-steps">
+        <div class="step" :class="{ active: setupStep === 1, completed: setupStep > 1 }">
+          <span class="step-number">1</span>
+          <span class="step-label">QR-Code scannen</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step" :class="{ active: setupStep === 2 }">
+          <span class="step-number">2</span>
+          <span class="step-label">Code eingeben</span>
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div v-if="setupStep === 1" class="qr-section">
+        <p class="instruction">
+          Bitte scanne den QR-Code mit deiner Authenticator-App
+          (z.B. Google Authenticator).
+        </p>
+
+        <div v-if="qrCodeUrl" class="qr-container">
+          <img :src="qrCodeUrl" alt="MFA QR-Code" class="qr-image" />
+        </div>
+
+        <div v-if="manualSecret" class="manual-entry">
+          <p class="manual-label">Oder gib diesen Code manuell ein:</p>
+          <div class="secret-display">
+            <code class="secret-code">{{ formattedSecret }}</code>
+            <button
+                type="button"
+                class="copy-btn"
+                @click="copySecret"
+                :title="copied ? 'Kopiert!' : 'Kopieren'"
+            >
+              <component :is="copied ? Check : Copy" :size="16" />
+            </button>
+          </div>
+        </div>
+
+        <div class="timer-info" v-if="expiresAt">
+          <Clock :size="16" />
+          <span>Gültig für {{ remainingTime }}</span>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn ghost" @click="cancelSetup">Abbrechen</button>
+          <button class="btn action" @click="setupStep = 2">Weiter</button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div v-if="setupStep === 2" class="verify-section">
+        <p class="instruction">
+          Gib den 6-stelligen Code aus deiner Authenticator-App ein,
+          um die Einrichtung abzuschließen.
+        </p>
+
+        <div class="code-input-wrapper">
+          <input
+              ref="codeInput"
+              v-model="verifyCode"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              placeholder="000000"
+              class="code-input"
+              :class="{ error: verifyError }"
+              @input="handleCodeInput"
+              @keyup.enter="activateMfa"
+          />
+        </div>
+
+        <div v-if="verifyError" class="error-message">
+          <AlertCircle :size="14" />
+          {{ verifyError }}
+        </div>
+
+        <div class="step-actions">
+          <button class="btn ghost" @click="setupStep = 1">Zurück</button>
+          <button
+              class="btn action"
+              @click="activateMfa"
+              :disabled="verifyCode.length !== 6 || loading"
+          >
+            <LoadingSpinner v-if="loading" color="white" size="1.2em" />
+            <span v-else>Aktivieren</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deaktivieren Option -->
+    <div v-if="mfaEnabled && !deactivateMode" class="action-section">
+      <button
+          class="btn danger-outline"
+          @click="startDeactivate"
+      >
+        <ShieldOff :size="18" />
+        2FA deaktivieren
+      </button>
+    </div>
+
+    <!-- Deaktivieren Mode -->
+    <div v-if="deactivateMode" class="deactivate-section">
+      <div class="warning-box">
+        <AlertTriangle :size="20" />
+        <p>
+          Indem du fortfährst verringerst du die Sicherheit deines Kontos.
+          Um die Deaktivierung abzuschließen, must du noch ein letztes Mal den korrekten Code eingeben
+        </p>
+      </div>
+
+      <div class="code-input-wrapper">
+        <input
+            ref="deactivateCodeInput"
+            v-model="deactivateCode"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            placeholder="000000"
+            class="code-input"
+            :class="{ error: deactivateError }"
+            @input="handleDeactivateCodeInput"
+            @keyup.enter="confirmDeactivate"
+        />
+      </div>
+
+      <div v-if="deactivateError" class="error-message">
+        <AlertCircle :size="14" />
+        {{ deactivateError }}
+      </div>
+
+      <div class="step-actions">
+        <button class="btn ghost" @click="cancelDeactivate">Abbrechen</button>
+        <button
+            class="btn danger"
+            @click="confirmDeactivate"
+            :disabled="deactivateCode.length !== 6 || loading"
+        >
+          <LoadingSpinner v-if="loading" color="white" size="1.2em" />
+          <span v-else>Deaktivieren</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .mfa-settings {

@@ -1,28 +1,3 @@
-<template>
-  <div class="full">
-    <template v-if="!isAuthReady">
-      <div class="auth-loading-screen">
-        <div class="auth-loading-spinner"></div>
-      </div>
-    </template>
-    <template v-else>
-      <router-view v-slot="{ Component }">
-        <component :is="Component" />
-      </router-view>
-
-      <Teleport to="body">
-        <AuthModal
-            v-if="isAuthModalOpen"
-            @close="closeAuthModal"
-            @logged-in="onAuthSuccess"
-        />
-      </Teleport>
-
-      <CookieBanner />
-    </template>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -144,6 +119,31 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<template>
+  <div class="full">
+    <template v-if="!isAuthReady">
+      <div class="auth-loading-screen">
+        <div class="auth-loading-spinner"></div>
+      </div>
+    </template>
+    <template v-else>
+      <router-view v-slot="{ Component }">
+        <component :is="Component" />
+      </router-view>
+
+      <Teleport to="body">
+        <AuthModal
+            v-if="isAuthModalOpen"
+            @close="closeAuthModal"
+            @logged-in="onAuthSuccess"
+        />
+      </Teleport>
+
+      <CookieBanner />
+    </template>
+  </div>
+</template>
 <style scoped>
 .auth-loading-screen {
   position: fixed;

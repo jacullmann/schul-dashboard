@@ -1,3 +1,26 @@
+<script setup lang="ts">
+import { onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    emit('cancel');
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeyDown);
+});
+</script>
+
 <template>
   <div class="blurit" @click.self="$emit('cancel')" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -35,29 +58,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { onMounted, onBeforeUnmount } from 'vue';
-import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n();
-
-const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
-
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    emit('cancel');
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
-});
-</script>
 
 <style scoped>
 .modal-card {

@@ -1,3 +1,75 @@
+<script setup lang="ts">
+import { ref, onMounted, nextTick } from 'vue';
+import { ShieldCheck, AlertCircle, AlertTriangle } from 'lucide-vue-next';
+import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import { useMfa } from '@/modules/auth/composables/useMfa';
+
+const emit = defineEmits<{
+  (e: 'verified', csrfToken: string): void;
+  (e: 'cancelled'): void;
+}>();
+
+const { verifyMfaLogin, cancelMfaLogin } = useMfa();
+
+const code = ref('');
+const error = ref<string | null>(null);
+const loading = ref(false);
+const shakeInput = ref(false);
+const attemptsRemaining = ref<number | null>(null);
+const codeInputRef = ref<HTMLInputElement | null>(null);
+
+function handleInput(event: Event) {
+  const input = event.target as HTMLInputElement;
+  input.value = input.value.replace(/\D/g, '').slice(0, 6);
+  code.value = input.value;
+  error.value = null;
+  if (code.value.length === 6) {
+    verify();
+  }
+}
+
+// Verifizieren
+async function verify() {
+  if (code.value.length !== 6 || loading.value) return;
+
+  loading.value = true;
+  error.value = null;
+
+  const result = await verifyMfaLogin(code.value);
+
+  if (result.ok) {
+    emit('verified', result.csrfToken || '');
+  } else {
+    if (result.error?.includes('fehlgeschlagen') || result.error?.includes('expired')) {
+      error.value = 'Sitzung abgelaufen. Bitte erneut anmelden.';
+      setTimeout(() => emit('cancelled'), 2000);
+    } else {
+      error.value = result.error || 'Authentifizierung fehlgeschlagen';
+    }
+    code.value = '';
+    shakeInput.value = true;
+    setTimeout(() => { shakeInput.value = false; }, 500);
+    await nextTick();
+    codeInputRef.value?.focus();
+  }
+
+  loading.value = false;
+}
+
+// Abbrechen
+async function cancel() {
+  await cancelMfaLogin();
+  emit('cancelled');
+}
+
+// Direkt Fokus
+onMounted(() => {
+  nextTick(() => {
+    codeInputRef.value?.focus();
+  });
+});
+</script>
+
 <template>
   <div class="blurit">
     <div class="modal-wrapper">
@@ -76,78 +148,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
-import { ShieldCheck, AlertCircle, AlertTriangle } from 'lucide-vue-next';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import { useMfa } from '@/modules/auth/composables/useMfa';
-
-const emit = defineEmits<{
-  (e: 'verified', csrfToken: string): void;
-  (e: 'cancelled'): void;
-}>();
-
-const { verifyMfaLogin, cancelMfaLogin } = useMfa();
-
-const code = ref('');
-const error = ref<string | null>(null);
-const loading = ref(false);
-const shakeInput = ref(false);
-const attemptsRemaining = ref<number | null>(null);
-const codeInputRef = ref<HTMLInputElement | null>(null);
-
-function handleInput(event: Event) {
-  const input = event.target as HTMLInputElement;
-  input.value = input.value.replace(/\D/g, '').slice(0, 6);
-  code.value = input.value;
-  error.value = null;
-  if (code.value.length === 6) {
-    verify();
-  }
-}
-
-// Verifizieren
-async function verify() {
-  if (code.value.length !== 6 || loading.value) return;
-
-  loading.value = true;
-  error.value = null;
-
-  const result = await verifyMfaLogin(code.value);
-
-  if (result.ok) {
-    emit('verified', result.csrfToken || '');
-  } else {
-    if (result.error?.includes('fehlgeschlagen') || result.error?.includes('expired')) {
-      error.value = 'Sitzung abgelaufen. Bitte erneut anmelden.';
-      setTimeout(() => emit('cancelled'), 2000);
-    } else {
-      error.value = result.error || 'Authentifizierung fehlgeschlagen';
-    }
-    code.value = '';
-    shakeInput.value = true;
-    setTimeout(() => { shakeInput.value = false; }, 500);
-    await nextTick();
-    codeInputRef.value?.focus();
-  }
-
-  loading.value = false;
-}
-
-// Abbrechen
-async function cancel() {
-  await cancelMfaLogin();
-  emit('cancelled');
-}
-
-// Direkt Fokus
-onMounted(() => {
-  nextTick(() => {
-    codeInputRef.value?.focus();
-  });
-});
-</script>
 
 <style scoped>
 .modal-wrapper {

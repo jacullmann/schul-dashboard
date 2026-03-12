@@ -1,3 +1,80 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import Modal from '@/common/components/Modal.vue';
+import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import { Eye, EyeOff } from 'lucide-vue-next';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
+import { useUserStore } from "@/stores/userStore";
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+}>();
+
+const router = useRouter();
+const auth = useAppAuth();
+const userStore = useUserStore();
+const { activeGroupId } = useAppAuth();
+
+const groupNameInputRef = ref<HTMLInputElement | null>(null);
+
+const groupName = ref('');
+const password = ref('');
+const passwordConfirm = ref('');
+const showPassword = ref(false);
+const submitting = ref(false);
+const errorMsg = ref('');
+
+const isValid = computed(() => {
+  return groupName.value.trim().length > 0 &&
+         password.value.length > 0 &&
+         password.value === passwordConfirm.value;
+});
+
+function clearError() {
+  errorMsg.value = '';
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    groupNameInputRef.value?.focus();
+  }, 100);
+});
+
+async function submit() {
+  if (!isValid.value || submitting.value) return;
+
+  submitting.value = true;
+  errorMsg.value = '';
+
+  try {
+    const res = await auth.createGroup(groupName.value.trim(), password.value);
+    
+    if (res.ok) {
+      if (res.csrfToken) {
+        setCsrfToken(res.csrfToken);
+      } else {
+        syncCsrfFromCookie();
+      }
+      try {
+        await userStore.fetchUser();
+      } catch {}
+      
+      emit('close');
+      await router.push(`/groups/${activeGroupId.value}/items/HAUSAUFGABE`);
+    } else {
+      errorMsg.value = res.error || 'Erstellen der Gruppe fehlgeschlagen';
+    }
+  } catch (err: unknown) {
+    const e = err as { response?: { data?: { error?: string } } };
+    errorMsg.value = e.response?.data?.error || t('global.errors.unknown');
+  } finally {
+    submitting.value = false;
+  }
+}
+</script>
+
 <template>
   <Modal @cancel="$emit('close')">
     <template #title>
@@ -87,83 +164,6 @@
     </template>
   </Modal>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import Modal from '@/common/components/Modal.vue';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import { Eye, EyeOff } from 'lucide-vue-next';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
-import { useUserStore } from "@/stores/userStore";
-
-const emit = defineEmits<{
-  (e: 'close'): void;
-}>();
-
-const router = useRouter();
-const auth = useAppAuth();
-const userStore = useUserStore();
-const { activeGroupId } = useAppAuth();
-
-const groupNameInputRef = ref<HTMLInputElement | null>(null);
-
-const groupName = ref('');
-const password = ref('');
-const passwordConfirm = ref('');
-const showPassword = ref(false);
-const submitting = ref(false);
-const errorMsg = ref('');
-
-const isValid = computed(() => {
-  return groupName.value.trim().length > 0 &&
-         password.value.length > 0 &&
-         password.value === passwordConfirm.value;
-});
-
-function clearError() {
-  errorMsg.value = '';
-}
-
-onMounted(() => {
-  setTimeout(() => {
-    groupNameInputRef.value?.focus();
-  }, 100);
-});
-
-async function submit() {
-  if (!isValid.value || submitting.value) return;
-
-  submitting.value = true;
-  errorMsg.value = '';
-
-  try {
-    const res = await auth.createGroup(groupName.value.trim(), password.value);
-    
-    if (res.ok) {
-      if (res.csrfToken) {
-        setCsrfToken(res.csrfToken);
-      } else {
-        syncCsrfFromCookie();
-      }
-      try {
-        await userStore.fetchUser();
-      } catch {}
-      
-      emit('close');
-      await router.push(`/groups/${activeGroupId.value}/items/HAUSAUFGABE`);
-    } else {
-      errorMsg.value = res.error || 'Erstellen der Gruppe fehlgeschlagen';
-    }
-  } catch (err: unknown) {
-    const e = err as { response?: { data?: { error?: string } } };
-    errorMsg.value = e.response?.data?.error || t('global.errors.unknown');
-  } finally {
-    submitting.value = false;
-  }
-}
-</script>
 
 <style scoped>
 :deep(.modal-card) {

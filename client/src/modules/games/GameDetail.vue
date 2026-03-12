@@ -1,28 +1,3 @@
-<template>
-  <div class="card">
-    <div v-if="!game">
-      <h3 class="text-center">Spiel wird geladen...</h3>
-    </div>
-
-    <div v-else class="game-container">
-      <router-link to="/spiele" class="back-link">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-        Zurück zur Spiele-Übersicht
-      </router-link>
-
-      <div class="game-card">
-        <h1 class="game-title">{{ game.name }}</h1>
-        <p class="game-description">{{ game.description }}</p>
-        <hr>
-
-        <!-- Hier wird die dynamische Spiel-Komponente gerendert -->
-        <component :is="game.component" class="game-component-instance" />
-
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -55,6 +30,31 @@ watch(() => route.params.id, (newId) => {
   }
 }, { immediate: true });
 </script>
+
+<template>
+  <div class="card">
+    <div v-if="!game">
+      <h3 class="text-center">Spiel wird geladen...</h3>
+    </div>
+
+    <div v-else class="game-container">
+      <router-link to="/spiele" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Zurück zur Spiele-Übersicht
+      </router-link>
+
+      <div class="game-card">
+        <h1 class="game-title">{{ game.name }}</h1>
+        <p class="game-description">{{ game.description }}</p>
+        <hr>
+
+        <!-- Hier wird die dynamische Spiel-Komponente gerendert -->
+        <component :is="game.component" class="game-component-instance" />
+
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 

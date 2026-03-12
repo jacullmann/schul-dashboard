@@ -1,33 +1,3 @@
-<template>
-  <div class="card">
-    <div class="page-header">
-      <h2 style="margin: 0">Private Todos</h2>
-      <button v-if="user" class="btn action" @click="openCreateForm">
-        <Plus :size="16" />
-        <span>Neuer Eintrag</span>
-      </button>
-    </div>
-
-    <div class="private-entries-container">
-      <TodoApp
-          ref="todoAppRef"
-          @create="openCreateForm"
-          @edit="openEditTodo"
-      />
-    </div>
-
-    <TodoForm
-        v-if="showTodoForm"
-        :initial="todoToEdit || undefined"
-        @cancel="showTodoForm = false"
-        @success="handleTodoSuccess"
-        @error="onFormError"
-    />
-
-    <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -82,6 +52,36 @@ function onFormError(msg: string) {
   flash(msg || 'Bitte Eingaben prüfen.', true);
 }
 </script>
+
+<template>
+  <div class="card">
+    <div class="page-header">
+      <h2 style="margin: 0">Private Todos</h2>
+      <button v-if="user" class="btn action" @click="openCreateForm">
+        <Plus :size="16" />
+        <span>Neuer Eintrag</span>
+      </button>
+    </div>
+
+    <div class="private-entries-container">
+      <TodoApp
+          ref="todoAppRef"
+          @create="openCreateForm"
+          @edit="openEditTodo"
+      />
+    </div>
+
+    <TodoForm
+        v-if="showTodoForm"
+        :initial="todoToEdit || undefined"
+        @cancel="showTodoForm = false"
+        @success="handleTodoSuccess"
+        @error="onFormError"
+    />
+
+    <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
+  </div>
+</template>
 
 <style scoped>
 .page-header {

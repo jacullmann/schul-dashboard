@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useCyberSnare } from '@/modules/games/composables/useCyberSnare';
+
+const canvasRef = ref<HTMLCanvasElement | null>(null);
+const monitorRef = ref<HTMLElement | null>(null);
+
+const {
+  gameState, score, lives, energy, energyMax, driveSpace, energyBarColor, meta,
+  init, destroy, startGame, restartGame, openUpgrades, closeUpgrades,
+  getUpgradeCost, isUpgradeMaxed, buyUpgrade,
+} = useCyberSnare();
+
+onMounted(() => init(canvasRef, monitorRef));
+onBeforeUnmount(() => destroy());
+</script>
+
 <template>
   <div id="monitor" ref="monitorRef">
     <canvas id="gameCanvas" ref="canvasRef"></canvas>
@@ -77,23 +94,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useCyberSnare } from '@/modules/games/composables/useCyberSnare';
-
-const canvasRef = ref<HTMLCanvasElement | null>(null);
-const monitorRef = ref<HTMLElement | null>(null);
-
-const {
-  gameState, score, lives, energy, energyMax, driveSpace, energyBarColor, meta,
-  init, destroy, startGame, restartGame, openUpgrades, closeUpgrades,
-  getUpgradeCost, isUpgradeMaxed, buyUpgrade,
-} = useCyberSnare();
-
-onMounted(() => init(canvasRef, monitorRef));
-onBeforeUnmount(() => destroy());
-</script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');

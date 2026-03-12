@@ -1,3 +1,174 @@
+<script setup lang="ts">
+import Checkbox from '@/common/components/Checkbox.vue';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import ItemForm from '@/modules/tasks/components/ItemForm.vue';
+import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
+import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
+import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
+import OldNewSwitch from "@/modules/tasks/components/NewOldSwitch.vue"
+import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
+import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
+import TabSwitcher from '@/common/components/TabSwitcher.vue';
+import { Upload, Pencil, Send, Flag, Trash2, Pin } from 'lucide-vue-next'
+import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben';
+import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
+import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";
+import InfoPop from '@/common/components/InfoModalCenter.vue'
+import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
+import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
+import SelectDropdown from '@/common/components/SelectDropdown.vue';
+import { useI18n } from 'vue-i18n';
+import { useWindowSize } from '@vueuse/core';
+import { computed, ref, watch } from 'vue';
+import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
+
+const { t, tm } = useI18n();
+const { width: windowWidth } = useWindowSize();
+
+const tabItems = computed(() => [
+  { id: 'ALLE', label: t('school.tasks.tabs.all') },
+  { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
+  { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
+  { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
+]);
+
+// Local-only dismissed items tracking for immediate UI removal before refresh
+const dismissedItems = ref(new Set<string>());
+
+function handleSwipe(item: HwItem) {
+  dismissedItems.value.add(item.id);
+  const cutoffIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  toggleVisibility(item, showOldEntries.value, cutoffIso);
+}
+
+const visibleItems = computed(() => {
+  return limitedItems.value.filter((item) => {
+    // Hide item quickly if dismissed this session
+    if (dismissedItems.value.has(item.id)) return false;
+    
+    // In old entries: skip conditionally if we want custom UI hiding...?
+    // Oh wait, if we are in old entries, un-archiving the item should just hide it too
+    // until the page reloads (it magically becomes unarchived and potentially a "new" entry if its date qualifies).
+    // So the dismissedItems.has(item.id) check works perfectly for BOTH directions!
+    return true;
+  });
+});
+
+const imagesPerRow = computed(() => {
+  if (windowWidth.value < 500) return 2;
+  if (windowWidth.value < 800) return 3;
+  return 4;
+});
+
+const {
+  MAX_TITLE_LENGTH,
+  MAX_SUBJECT_LENGTH,
+  showItemForm,
+  itemToEdit,
+  user,
+  subjects,
+  loading,
+  initialLoad,
+  subjectFilter,
+  showOldEntries,
+  showSetupModal,
+  message, isError,
+  itemFormKey,
+  visibleCount,
+  limitedItems,
+  filteredItems,
+  showReportConfirm,
+  reportReason,
+  tab,
+  openMenuId,
+  isExpanded,
+  toggleDescription,
+  showMore,
+  showLess,
+  toggleMenu,
+  onMenuAction,
+  handleSuccess,
+  onItemFormError,
+  canEdit,
+  canDelete,
+  canDeleteImage,
+  canEditNote,
+  editingNoteForId,
+  noteEditContent,
+  savingNote,
+  startEditNote,
+  cancelEditNote,
+  saveNote,
+  goTab,
+  isChecked,
+  toggleCheck,
+  isPinned,
+  togglePin,
+  toggleVisibility,
+  makeThumb,
+  isRevealed,
+  revealImages,
+  onSetupSuccess,
+  doReport,
+  cancelReport,
+  openCreateFormByType,
+  itemFormType,
+  showDeleteConfirm,
+  confirmDelete,
+  cancelDelete,
+  imageMenu,
+  closeImageMenu,
+  triggerImageUpload,
+  triggerImageDrop,
+  triggerImageDelete,
+  showImageDeleteConfirm,
+  confirmImageDelete,
+  cancelImageDelete,
+  showImageViewer,
+  viewerImages,
+  viewerStartIndex,
+  openImageViewer,
+  closeImageViewer,
+  shareItem,
+  highlightedItemId,
+  deletingImage,
+  deletingEntry,
+  handleImageContextMenu,
+  subjectOptions,
+  getSubjectName,
+  getTypeLabel
+} = useHausaufgaben();
+
+watch([showOldEntries, tab, subjectFilter], () => {
+  dismissedItems.value.clear();
+});
+
+function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
+  if (!user.value) return;
+  const target = event.target as HTMLElement;
+  const ignoreSelectors = [
+    'button',
+    'a',
+    'input',
+    'textarea',
+    '.item-menu-trigger',
+    '.editor-note-section',
+    '.img-clickable',
+    '.img-overlay',
+    '.unpin-trigger',
+    '.menu',
+    '.checkbox'
+  ].join(', ');
+
+  if (target.closest(ignoreSelectors)) {
+    return;
+  }
+
+  toggleCheck(item);
+}
+</script>
+
 <template>
   <div class="card">
     <div class="hw-header">
@@ -284,177 +455,6 @@
     <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || null, wpuKurs1: user.wpuKurs1 || null, wpuKurs2: user.wpuKurs2 || null, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
-
-<script setup lang="ts">
-import Checkbox from '@/common/components/Checkbox.vue';
-import ItemCard from '@/modules/tasks/components/ItemCard.vue';
-import ItemForm from '@/modules/tasks/components/ItemForm.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
-import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
-import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
-import OldNewSwitch from "@/modules/tasks/components/NewOldSwitch.vue"
-import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
-import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
-import TabSwitcher from '@/common/components/TabSwitcher.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin } from 'lucide-vue-next'
-import { useHausaufgaben } from '@/modules/tasks/composables/useHausaufgaben';
-import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
-import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";
-import InfoPop from '@/common/components/InfoModalCenter.vue'
-import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
-import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
-import SelectDropdown from '@/common/components/SelectDropdown.vue';
-import { useI18n } from 'vue-i18n';
-import { useWindowSize } from '@vueuse/core';
-import { computed, ref, watch } from 'vue';
-import type { HwItem } from '@/modules/tasks/composables/useHausaufgaben';
-
-const { t, tm } = useI18n();
-const { width: windowWidth } = useWindowSize();
-
-const tabItems = computed(() => [
-  { id: 'ALLE', label: t('school.tasks.tabs.all') },
-  { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
-  { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
-  { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
-]);
-
-// Local-only dismissed items tracking for immediate UI removal before refresh
-const dismissedItems = ref(new Set<string>());
-
-function handleSwipe(item: HwItem) {
-  dismissedItems.value.add(item.id);
-  const cutoffIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  toggleVisibility(item, showOldEntries.value, cutoffIso);
-}
-
-const visibleItems = computed(() => {
-  return limitedItems.value.filter((item) => {
-    // Hide item quickly if dismissed this session
-    if (dismissedItems.value.has(item.id)) return false;
-    
-    // In old entries: skip conditionally if we want custom UI hiding...?
-    // Oh wait, if we are in old entries, un-archiving the item should just hide it too
-    // until the page reloads (it magically becomes unarchived and potentially a "new" entry if its date qualifies).
-    // So the dismissedItems.has(item.id) check works perfectly for BOTH directions!
-    return true;
-  });
-});
-
-const imagesPerRow = computed(() => {
-  if (windowWidth.value < 500) return 2;
-  if (windowWidth.value < 800) return 3;
-  return 4;
-});
-
-const {
-  MAX_TITLE_LENGTH,
-  MAX_SUBJECT_LENGTH,
-  showItemForm,
-  itemToEdit,
-  user,
-  subjects,
-  loading,
-  initialLoad,
-  subjectFilter,
-  showOldEntries,
-  showSetupModal,
-  message, isError,
-  itemFormKey,
-  visibleCount,
-  limitedItems,
-  filteredItems,
-  showReportConfirm,
-  reportReason,
-  tab,
-  openMenuId,
-  isExpanded,
-  toggleDescription,
-  showMore,
-  showLess,
-  toggleMenu,
-  onMenuAction,
-  handleSuccess,
-  onItemFormError,
-  canEdit,
-  canDelete,
-  canDeleteImage,
-  canEditNote,
-  editingNoteForId,
-  noteEditContent,
-  savingNote,
-  startEditNote,
-  cancelEditNote,
-  saveNote,
-  goTab,
-  isChecked,
-  toggleCheck,
-  isPinned,
-  togglePin,
-  toggleVisibility,
-  makeThumb,
-  isRevealed,
-  revealImages,
-  onSetupSuccess,
-  doReport,
-  cancelReport,
-  openCreateFormByType,
-  itemFormType,
-  showDeleteConfirm,
-  confirmDelete,
-  cancelDelete,
-  imageMenu,
-  closeImageMenu,
-  triggerImageUpload,
-  triggerImageDrop,
-  triggerImageDelete,
-  showImageDeleteConfirm,
-  confirmImageDelete,
-  cancelImageDelete,
-  showImageViewer,
-  viewerImages,
-  viewerStartIndex,
-  openImageViewer,
-  closeImageViewer,
-  shareItem,
-  highlightedItemId,
-  deletingImage,
-  deletingEntry,
-  handleImageContextMenu,
-  subjectOptions,
-  getSubjectName,
-  getTypeLabel
-} = useHausaufgaben();
-
-watch([showOldEntries, tab, subjectFilter], () => {
-  dismissedItems.value.clear();
-});
-
-function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
-  if (!user.value) return;
-  const target = event.target as HTMLElement;
-  const ignoreSelectors = [
-    'button',
-    'a',
-    'input',
-    'textarea',
-    '.item-menu-trigger',
-    '.editor-note-section',
-    '.img-clickable',
-    '.img-overlay',
-    '.unpin-trigger',
-    '.menu',
-    '.checkbox'
-  ].join(', ');
-
-  if (target.closest(ignoreSelectors)) {
-    return;
-  }
-
-  toggleCheck(item);
-}
-</script>
 
 <style scoped>
 .hw-header {

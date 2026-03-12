@@ -1,3 +1,60 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from "lucide-vue-next";
+import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
+import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
+import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDropdown.vue';
+import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
+import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
+import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
+import { useI18n } from 'vue-i18n';
+import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu';
+
+const { t } = useI18n();
+
+const props = defineProps<{
+  email: string;
+  userData: Record<string, unknown> | null;
+}>();
+
+const emit = defineEmits<{
+  (e: 'deleted'): void;
+  (e: 'error', msg: string): void;
+  (e: 'openSetup'): void;
+  (e: 'logout'): void;
+  (e: 'personalizationChanged', value: boolean): void;
+  (e: 'mfaChanged', value: boolean): void;
+}>();
+
+const root = ref<HTMLElement | null>(null);
+const popupInner = ref<HTMLElement | null>(null);
+const firstMenuBtnRef = ref<HTMLButtonElement | null>(null);
+
+const {
+  avatarLetter,
+  avatarColor,
+  personalizationSetting,
+  onPersonalizationChange,
+  open,
+  errorMsg,
+  successMsg,
+  showChangePassword,
+  showDeleteAccount,
+  showSecurity,
+  popupStyle,
+  handleLogout,
+  openSetup,
+  openChangePassword,
+  openSecurity,
+  startDelete,
+  onMfaChanged,
+  onPasswordChanged,
+  onAccountDeleted,
+  onDeleteError,
+  toggle
+} = useAccountMenu(props, emit, { root, popupInner, firstMenuBtnRef });
+</script>
+
 <template>
   <div class="account-menu" ref="root">
     <div class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
@@ -107,63 +164,6 @@
     />
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from "lucide-vue-next";
-import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
-import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
-import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDropdown.vue';
-import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
-import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
-import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
-import { useI18n } from 'vue-i18n';
-import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu';
-
-const { t } = useI18n();
-
-const props = defineProps<{
-  email: string;
-  userData: Record<string, unknown> | null;
-}>();
-
-const emit = defineEmits<{
-  (e: 'deleted'): void;
-  (e: 'error', msg: string): void;
-  (e: 'openSetup'): void;
-  (e: 'logout'): void;
-  (e: 'personalizationChanged', value: boolean): void;
-  (e: 'mfaChanged', value: boolean): void;
-}>();
-
-const root = ref<HTMLElement | null>(null);
-const popupInner = ref<HTMLElement | null>(null);
-const firstMenuBtnRef = ref<HTMLButtonElement | null>(null);
-
-const {
-  avatarLetter,
-  avatarColor,
-  personalizationSetting,
-  onPersonalizationChange,
-  open,
-  errorMsg,
-  successMsg,
-  showChangePassword,
-  showDeleteAccount,
-  showSecurity,
-  popupStyle,
-  handleLogout,
-  openSetup,
-  openChangePassword,
-  openSecurity,
-  startDelete,
-  onMfaChanged,
-  onPasswordChanged,
-  onAccountDeleted,
-  onDeleteError,
-  toggle
-} = useAccountMenu(props, emit, { root, popupInner, firstMenuBtnRef });
-</script>
 
 <style scoped>
 .account-menu {

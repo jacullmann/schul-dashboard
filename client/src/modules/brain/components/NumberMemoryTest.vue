@@ -1,67 +1,3 @@
-<template>
-  <div class="test-wrapper number-memory-test">
-    <div v-if="state !== 'result'" class="full-height flex-center">
-      
-      <div v-if="state === 'idle'" class="center-content text-center">
-         <div class="icon-wrap"><Brain :size="64" /></div>
-         <h1 class="test-heading">Zahlen merken</h1>
-         <p class="test-sub">Merk dir die Zahl, die gleich auf dem Bildschirm erscheint.</p>
-         <button class="btn action cta-large mt-4" @click="startLevel()">Start</button>
-      </div>
-
-      <div v-if="state === 'showing'" class="center-content showing-content text-center">
-         <div class="number-display">{{ currentNumber }}</div>
-         <div class="progress-bar-container">
-            <div class="progress-bar" :style="{ animationDuration: showingTime + 'ms' }"></div>
-         </div>
-      </div>
-
-      <div v-if="state === 'input'" class="center-content input-content text-center">
-         <h2 class="test-heading-sm">Wie lautete die Zahl?</h2>
-         <p class="test-sub">Level {{ level }}</p>
-         <form @submit.prevent="checkAnswer" class="input-form">
-           <input 
-             ref="inputRef"
-             v-model="userInput" 
-             type="text" 
-             inputmode="numeric"
-             pattern="[0-9]*"
-             class="number-input input" 
-             placeholder="Zahl eingeben..."
-             autofocus
-           />
-           <button type="submit" class="btn action cta-large w-full mt-3">Prüfen</button>
-         </form>
-      </div>
-
-      <div v-if="state === 'feedback'" class="center-content feedback-content text-center">
-          <div v-if="isCorrect">
-            <h2 class="correct-text test-heading-sm">Richtig!</h2>
-            <p class="test-sub">Die Zahl war {{ currentNumber }}.</p>
-            <button class="btn action cta-large mt-4" @click="nextLevel()">Nächstes Level</button>
-          </div>
-          <div v-else>
-            <h2 class="wrong-text test-heading-sm">Falsch</h2>
-            <p class="test-sub">Die richtige Zahl war <strong>{{ currentNumber }}</strong>.</p>
-            <p class="test-sub">Deine Eingabe war <strong class="wrong-color">{{ userInput }}</strong>.</p>
-            <button class="btn action cta-large mt-4" @click="endGame()">Weiter</button>
-          </div>
-      </div>
-
-    </div>
-
-    <div v-if="state === 'result'" class="center-content result-content text-center full-height flex-center">
-        <div class="icon-wrap"><Brain :size="64" /></div>
-        <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
-        <p class="test-sub">Du konntest dir eine {{ level - 1 }}-stellige Zahl merken.</p>
-        <div class="actions mt-4">
-            <button class="btn action cta-large" @click="saveAndExit">Speichern & Beenden</button>
-            <button class="btn secondary back-btn-sec" @click="reset">Nochmal probieren</button>
-        </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue';
 import { Brain } from 'lucide-vue-next';
@@ -132,6 +68,70 @@ function saveAndExit() {
     emit('finish', Math.max(0, level.value - 1));
 }
 </script>
+
+<template>
+  <div class="test-wrapper number-memory-test">
+    <div v-if="state !== 'result'" class="full-height flex-center">
+      
+      <div v-if="state === 'idle'" class="center-content text-center">
+         <div class="icon-wrap"><Brain :size="64" /></div>
+         <h1 class="test-heading">Zahlen merken</h1>
+         <p class="test-sub">Merk dir die Zahl, die gleich auf dem Bildschirm erscheint.</p>
+         <button class="btn action cta-large mt-4" @click="startLevel()">Start</button>
+      </div>
+
+      <div v-if="state === 'showing'" class="center-content showing-content text-center">
+         <div class="number-display">{{ currentNumber }}</div>
+         <div class="progress-bar-container">
+            <div class="progress-bar" :style="{ animationDuration: showingTime + 'ms' }"></div>
+         </div>
+      </div>
+
+      <div v-if="state === 'input'" class="center-content input-content text-center">
+         <h2 class="test-heading-sm">Wie lautete die Zahl?</h2>
+         <p class="test-sub">Level {{ level }}</p>
+         <form @submit.prevent="checkAnswer" class="input-form">
+           <input 
+             ref="inputRef"
+             v-model="userInput" 
+             type="text" 
+             inputmode="numeric"
+             pattern="[0-9]*"
+             class="number-input input" 
+             placeholder="Zahl eingeben..."
+             autofocus
+           />
+           <button type="submit" class="btn action cta-large w-full mt-3">Prüfen</button>
+         </form>
+      </div>
+
+      <div v-if="state === 'feedback'" class="center-content feedback-content text-center">
+          <div v-if="isCorrect">
+            <h2 class="correct-text test-heading-sm">Richtig!</h2>
+            <p class="test-sub">Die Zahl war {{ currentNumber }}.</p>
+            <button class="btn action cta-large mt-4" @click="nextLevel()">Nächstes Level</button>
+          </div>
+          <div v-else>
+            <h2 class="wrong-text test-heading-sm">Falsch</h2>
+            <p class="test-sub">Die richtige Zahl war <strong>{{ currentNumber }}</strong>.</p>
+            <p class="test-sub">Deine Eingabe war <strong class="wrong-color">{{ userInput }}</strong>.</p>
+            <button class="btn action cta-large mt-4" @click="endGame()">Weiter</button>
+          </div>
+      </div>
+
+    </div>
+
+    <div v-if="state === 'result'" class="center-content result-content text-center full-height flex-center">
+        <div class="icon-wrap"><Brain :size="64" /></div>
+        <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
+        <p class="test-sub">Du konntest dir eine {{ level - 1 }}-stellige Zahl merken.</p>
+        <div class="actions mt-4">
+            <button class="btn action cta-large" @click="saveAndExit">Speichern & Beenden</button>
+            <button class="btn secondary back-btn-sec" @click="reset">Nochmal probieren</button>
+        </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .test-wrapper {

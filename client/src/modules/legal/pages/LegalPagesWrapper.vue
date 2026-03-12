@@ -1,16 +1,3 @@
-<template>
-  <div class="card">
-    <div class="row" style="margin-bottom:16px;">
-      <TabSwitcher
-          :items="tabs"
-          :active-id="activeTabId"
-          @change="handleTabChange"
-      />
-    </div>
-    <router-view />
-  </div>
-</template>
-
 <script setup lang="ts">
 import {computed, onMounted} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -63,6 +50,19 @@ onMounted(() => {
   handleTabChange(route.path);
 })
 </script>
+
+<template>
+  <div class="card">
+    <div class="row" style="margin-bottom:16px;">
+      <TabSwitcher
+          :items="tabs"
+          :active-id="activeTabId"
+          @change="handleTabChange"
+      />
+    </div>
+    <router-view />
+  </div>
+</template>
 
 <style scoped>
 </style>

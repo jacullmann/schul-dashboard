@@ -1,52 +1,3 @@
-<template>
-  <div class="create-entry-wrapper">
-    <button
-        class="btn mg action"
-        @click="toggleMenu"
-        ref="buttonRef"
-    >
-      <Plus :size="28" />
-    </button>
-
-    <div
-        v-if="isOpen"
-        class="menu"
-        :class="{ 'align-right': alignRight }"
-        ref="menuRef"
-    >
-      <button
-          class="menu-btn"
-          @click="selectType('HAUSAUFGABE')"
-      >
-        <div class="menu-btn-content">
-          <FileText :size="16" />
-          {{ t('school.tasks.types.homework') }}
-        </div>
-      </button>
-
-      <button
-          class="menu-btn"
-          @click="selectType('DALTON')"
-      >
-        <div class="menu-btn-content">
-          <NotebookText :size="16" />
-          {{ t('school.tasks.types.dalton') }}
-        </div>
-      </button>
-
-      <button
-          class="menu-btn"
-          @click="selectType('PRUEFUNG')"
-      >
-        <div class="menu-btn-content">
-          <BookOpenText :size="16" />
-          {{ t('school.tasks.types.exam') }}
-        </div>
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { NotebookText, FileText, Lock, BookOpenText, Plus } from 'lucide-vue-next';
@@ -127,6 +78,55 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
 });
 </script>
+
+<template>
+  <div class="create-entry-wrapper">
+    <button
+        class="btn mg action"
+        @click="toggleMenu"
+        ref="buttonRef"
+    >
+      <Plus :size="28" />
+    </button>
+
+    <div
+        v-if="isOpen"
+        class="menu"
+        :class="{ 'align-right': alignRight }"
+        ref="menuRef"
+    >
+      <button
+          class="menu-btn"
+          @click="selectType('HAUSAUFGABE')"
+      >
+        <div class="menu-btn-content">
+          <FileText :size="16" />
+          {{ t('school.tasks.types.homework') }}
+        </div>
+      </button>
+
+      <button
+          class="menu-btn"
+          @click="selectType('DALTON')"
+      >
+        <div class="menu-btn-content">
+          <NotebookText :size="16" />
+          {{ t('school.tasks.types.dalton') }}
+        </div>
+      </button>
+
+      <button
+          class="menu-btn"
+          @click="selectType('PRUEFUNG')"
+      >
+        <div class="menu-btn-content">
+          <BookOpenText :size="16" />
+          {{ t('school.tasks.types.exam') }}
+        </div>
+      </button>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .create-entry-wrapper {

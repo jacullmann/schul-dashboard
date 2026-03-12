@@ -1,11 +1,3 @@
-<template>
-  <SelectDropdown
-      :model-value="selectedThemeMode"
-      :options="themeOptions"
-      @update:model-value="updateTheme"
-  />
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
@@ -26,3 +18,11 @@ function updateTheme(mode: string) {
   applyTheme(mode as ThemeMode);
 }
 </script>
+
+<template>
+  <SelectDropdown
+      :model-value="selectedThemeMode"
+      :options="themeOptions"
+      @update:model-value="updateTheme"
+  />
+</template>

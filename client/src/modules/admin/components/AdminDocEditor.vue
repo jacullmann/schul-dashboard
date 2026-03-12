@@ -1,201 +1,3 @@
-<template>
-  <div class="doc-editor-page">
-
-    <div class="doc-statusbar">
-      <div class="status-left">
-        <div class="connection-badge" :class="connectionState">
-          <span class="dot"></span>
-          <span class="label">
-            {{ connectionLabels[connectionState] }}
-          </span>
-        </div>
-
-        <div v-if="isConnected && onlineAdmins.length > 0" class="online-admins">
-          <span class="online-label">Online:</span>
-          <span
-              v-for="email in onlineAdmins"
-              :key="email"
-              class="admin-chip"
-              :title="email"
-          >
-            {{ emailToInitials(email) }}
-          </span>
-        </div>
-      </div>
-
-      <div class="status-right">
-        <span v-if="lastEditedBy" class="last-edit">
-          Zuletzt von <strong>{{ lastEditedBy }}</strong>
-          <template v-if="lastEditedAt">
-            &nbsp;· {{ formatTime(lastEditedAt) }}
-          </template>
-        </span>
-
-        <span class="version-badge" title="Dokument-Version">
-          v{{ docVersion }}
-        </span>
-
-        <button
-            class="save-btn"
-            @click="saveNow"
-            :disabled="isSaving || !isConnected"
-            :title="isSaving ? 'Wird gespeichert…' : 'Jetzt speichern'"
-        >
-          <Save :size="14" />
-          {{ isSaving ? 'Speichern…' : 'Speichern' }}
-        </button>
-      </div>
-    </div>
-
-    <Transition name="banner">
-      <div v-if="conflictDetected" class="conflict-banner">
-        <AlertTriangle :size="14" />
-        Deine Version scheint veraltet zu sein. Wir haben sie mit dem neuen Stand aktualisiert.
-      </div>
-    </Transition>
-
-    <Transition name="banner">
-      <div v-if="saveError" class="error-banner">
-        <AlertCircle :size="14" />
-        {{ saveError }}
-      </div>
-    </Transition>
-
-    <div class="editor-layout">
-
-      <aside class="outline-sidebar">
-        <div class="outline-header">
-          <h3>Menü</h3>
-          <button class="reset-btn" @click="confirmReset">
-            <RotateCcw :size="13" />
-          </button>
-        </div>
-        <div class="outline-body">
-          <div v-if="toc.length === 0" class="toc-empty">
-            Füge Überschriften hinzu, um die Gliederung zu sehen.
-          </div>
-          <div
-              v-for="item in toc"
-              :key="item.id"
-              class="toc-item"
-              :class="`level-${item.level}`"
-              @click="scrollToBlock(item.id)"
-          >
-            <span class="toc-badge">{{ ['H1','H2','H3','H4'][item.level - 1] }}</span>
-            <span class="toc-text">{{ item.text || '(Ohne Titel)' }}</span>
-          </div>
-        </div>
-      </aside>
-
-      <main class="editor-main">
-
-        <div class="editor-toolbar">
-          <div class="toolbar-left">
-            <span class="toolbar-label">Block hinzufügen</span>
-            <button @click="addBlock('h1')" title="Überschrift 1">
-              <Heading1 :size="15" />
-            </button>
-            <button @click="addBlock('h2')" title="Überschrift 2">
-              <Heading2 :size="15" />
-            </button>
-            <button @click="addBlock('p')" title="Absatz">
-              <Type :size="15" />
-            </button>
-            <button @click="addBlock('ul')" title="Aufzählungsliste">
-              <List :size="15" />
-            </button>
-            <button @click="addBlock('cl')" title="Checkliste">
-              <CheckSquare :size="15" />
-            </button>
-            <div class="tb-separator"></div>
-
-            <button @click="execOnFocused('bold')" title="Fett (Strg+B)" :disabled="!currentFocusId">
-              <Bold :size="15" />
-            </button>
-
-            <div class="color-menu-wrapper" :class="{ disabled: !currentFocusId }">
-              <button class="color-menu-btn" title="Textfarbe">
-                <Palette :size="15" />
-                <ChevronDown :size="11" />
-              </button>
-              <div class="color-menu-dropdown">
-                <div v-for="c in TOOLBAR_COLORS" :key="c" class="color-dot"
-                     :style="{ backgroundColor: c }" @click="execOnFocused('foreColor', c)"></div>
-                <label class="color-dot custom" title="Eigene Farbe">
-                  <input type="color" @input="(e: any) => execOnFocused('foreColor', e.target.value)" />
-                </label>
-              </div>
-            </div>
-
-            <select class="type-select" :disabled="!currentFocusId"
-                    :value="currentBlockType"
-                    @change="changeCurrentBlockType(($event.target as HTMLSelectElement).value)">
-              <option value="p">Text</option>
-              <option value="h1">Überschrift 1</option>
-              <option value="h2">Überschrift 2</option>
-              <option value="h3">Überschrift 3</option>
-              <option value="ul">Liste</option>
-              <option value="cl">Checkliste</option>
-            </select>
-          </div>
-          <div class="toolbar-right">
-            <span class="toolbar-hint">Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span>
-          </div>
-        </div>
-
-        <div class="document-scroll-area" id="doc-scroll-area">
-          <div class="document-inner">
-
-            <VueDraggableNext
-                v-model="blocks"
-                handle=".drag-handle"
-                animation="180"
-                ghost-class="ghost-block"
-                @start="isDragging = true"
-                @end="onDragEnd"
-            >
-              <TransitionGroup name="block-list" tag="div">
-                <div
-                    v-for="(block, index) in blocks"
-                    :key="block.id"
-                    v-show="isBlockVisible(block.id)"
-                >
-                  <PlanBlock
-                      :block="block"
-                      @update:content="(c) => updateBlockContent(block, c)"
-                      @update:checked="(c) => updateBlockChecked(block, c)"
-                      @toggle-collapse="toggleCollapse(block)"
-                      @keydown-enter="handleEnter(index, $event)"
-                      @keydown-backspace="handleBackspace(index, $event)"
-                      @indent="handleIndent(block, 1)"
-                      @outdent="handleIndent(block, -1)"
-                      @delete="removeBlock(block.id)"
-                      @focus="currentFocusId = block.id"
-                      @change-type="(t) => changeBlockType(block, t)"
-                  />
-                </div>
-              </TransitionGroup>
-            </VueDraggableNext>
-
-            <div
-                v-if="blocks.length === 0"
-                class="empty-doc"
-                @click="addBlock('h1')"
-            >
-              <FileText :size="32" class="empty-icon" />
-              <span>Klicke hier, um mit dem Schreiben zu beginnen</span>
-            </div>
-
-            <div class="doc-spacer"></div>
-          </div>
-        </div>
-
-      </main>
-    </div>
-
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { VueDraggableNext } from 'vue-draggable-next';
@@ -555,6 +357,204 @@ onMounted(async () => {
   connect();
 });
 </script>
+
+<template>
+  <div class="doc-editor-page">
+
+    <div class="doc-statusbar">
+      <div class="status-left">
+        <div class="connection-badge" :class="connectionState">
+          <span class="dot"></span>
+          <span class="label">
+            {{ connectionLabels[connectionState] }}
+          </span>
+        </div>
+
+        <div v-if="isConnected && onlineAdmins.length > 0" class="online-admins">
+          <span class="online-label">Online:</span>
+          <span
+              v-for="email in onlineAdmins"
+              :key="email"
+              class="admin-chip"
+              :title="email"
+          >
+            {{ emailToInitials(email) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="status-right">
+        <span v-if="lastEditedBy" class="last-edit">
+          Zuletzt von <strong>{{ lastEditedBy }}</strong>
+          <template v-if="lastEditedAt">
+            &nbsp;· {{ formatTime(lastEditedAt) }}
+          </template>
+        </span>
+
+        <span class="version-badge" title="Dokument-Version">
+          v{{ docVersion }}
+        </span>
+
+        <button
+            class="save-btn"
+            @click="saveNow"
+            :disabled="isSaving || !isConnected"
+            :title="isSaving ? 'Wird gespeichert…' : 'Jetzt speichern'"
+        >
+          <Save :size="14" />
+          {{ isSaving ? 'Speichern…' : 'Speichern' }}
+        </button>
+      </div>
+    </div>
+
+    <Transition name="banner">
+      <div v-if="conflictDetected" class="conflict-banner">
+        <AlertTriangle :size="14" />
+        Deine Version scheint veraltet zu sein. Wir haben sie mit dem neuen Stand aktualisiert.
+      </div>
+    </Transition>
+
+    <Transition name="banner">
+      <div v-if="saveError" class="error-banner">
+        <AlertCircle :size="14" />
+        {{ saveError }}
+      </div>
+    </Transition>
+
+    <div class="editor-layout">
+
+      <aside class="outline-sidebar">
+        <div class="outline-header">
+          <h3>Menü</h3>
+          <button class="reset-btn" @click="confirmReset">
+            <RotateCcw :size="13" />
+          </button>
+        </div>
+        <div class="outline-body">
+          <div v-if="toc.length === 0" class="toc-empty">
+            Füge Überschriften hinzu, um die Gliederung zu sehen.
+          </div>
+          <div
+              v-for="item in toc"
+              :key="item.id"
+              class="toc-item"
+              :class="`level-${item.level}`"
+              @click="scrollToBlock(item.id)"
+          >
+            <span class="toc-badge">{{ ['H1','H2','H3','H4'][item.level - 1] }}</span>
+            <span class="toc-text">{{ item.text || '(Ohne Titel)' }}</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="editor-main">
+
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <span class="toolbar-label">Block hinzufügen</span>
+            <button @click="addBlock('h1')" title="Überschrift 1">
+              <Heading1 :size="15" />
+            </button>
+            <button @click="addBlock('h2')" title="Überschrift 2">
+              <Heading2 :size="15" />
+            </button>
+            <button @click="addBlock('p')" title="Absatz">
+              <Type :size="15" />
+            </button>
+            <button @click="addBlock('ul')" title="Aufzählungsliste">
+              <List :size="15" />
+            </button>
+            <button @click="addBlock('cl')" title="Checkliste">
+              <CheckSquare :size="15" />
+            </button>
+            <div class="tb-separator"></div>
+
+            <button @click="execOnFocused('bold')" title="Fett (Strg+B)" :disabled="!currentFocusId">
+              <Bold :size="15" />
+            </button>
+
+            <div class="color-menu-wrapper" :class="{ disabled: !currentFocusId }">
+              <button class="color-menu-btn" title="Textfarbe">
+                <Palette :size="15" />
+                <ChevronDown :size="11" />
+              </button>
+              <div class="color-menu-dropdown">
+                <div v-for="c in TOOLBAR_COLORS" :key="c" class="color-dot"
+                     :style="{ backgroundColor: c }" @click="execOnFocused('foreColor', c)"></div>
+                <label class="color-dot custom" title="Eigene Farbe">
+                  <input type="color" @input="(e: any) => execOnFocused('foreColor', e.target.value)" />
+                </label>
+              </div>
+            </div>
+
+            <select class="type-select" :disabled="!currentFocusId"
+                    :value="currentBlockType"
+                    @change="changeCurrentBlockType(($event.target as HTMLSelectElement).value)">
+              <option value="p">Text</option>
+              <option value="h1">Überschrift 1</option>
+              <option value="h2">Überschrift 2</option>
+              <option value="h3">Überschrift 3</option>
+              <option value="ul">Liste</option>
+              <option value="cl">Checkliste</option>
+            </select>
+          </div>
+          <div class="toolbar-right">
+            <span class="toolbar-hint">Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span>
+          </div>
+        </div>
+
+        <div class="document-scroll-area" id="doc-scroll-area">
+          <div class="document-inner">
+
+            <VueDraggableNext
+                v-model="blocks"
+                handle=".drag-handle"
+                animation="180"
+                ghost-class="ghost-block"
+                @start="isDragging = true"
+                @end="onDragEnd"
+            >
+              <TransitionGroup name="block-list" tag="div">
+                <div
+                    v-for="(block, index) in blocks"
+                    :key="block.id"
+                    v-show="isBlockVisible(block.id)"
+                >
+                  <PlanBlock
+                      :block="block"
+                      @update:content="(c) => updateBlockContent(block, c)"
+                      @update:checked="(c) => updateBlockChecked(block, c)"
+                      @toggle-collapse="toggleCollapse(block)"
+                      @keydown-enter="handleEnter(index, $event)"
+                      @keydown-backspace="handleBackspace(index, $event)"
+                      @indent="handleIndent(block, 1)"
+                      @outdent="handleIndent(block, -1)"
+                      @delete="removeBlock(block.id)"
+                      @focus="currentFocusId = block.id"
+                      @change-type="(t) => changeBlockType(block, t)"
+                  />
+                </div>
+              </TransitionGroup>
+            </VueDraggableNext>
+
+            <div
+                v-if="blocks.length === 0"
+                class="empty-doc"
+                @click="addBlock('h1')"
+            >
+              <FileText :size="32" class="empty-icon" />
+              <span>Klicke hier, um mit dem Schreiben zu beginnen</span>
+            </div>
+
+            <div class="doc-spacer"></div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+</template>
 
 <style scoped>
 /* =========================================

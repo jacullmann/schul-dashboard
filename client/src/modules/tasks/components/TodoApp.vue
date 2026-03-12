@@ -1,3 +1,99 @@
+<script setup lang="ts">
+import Checkbox from '@/common/components/Checkbox.vue';
+import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
+import InfoPop from '@/common/components/InfoModalCenter.vue';
+import { useI18n } from 'vue-i18n';
+import type { Todo } from '@/modules/tasks/types';
+import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
+import { VueDraggableNext as draggable } from 'vue-draggable-next';
+import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+
+const { t } = useI18n();
+
+// Definition der Events für den Parent
+const emit = defineEmits<{
+  (e: 'create'): void;
+  (e: 'edit', todo: Todo): void;
+}>();
+
+const {
+  user,
+  todos,
+  displayTodos,
+  loading,
+  message,
+  isError,
+  openMenuId,
+  loadTodos,
+  addTodo,
+  updateTodo,
+  toggleMenu,
+  toggleTodoCompletion,
+  duplicateTodo,
+  deleteTodo,
+  reorderTodo,
+} = useTodoApp();
+
+const emptyImage = new Image();
+emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+function setDragImage(dataTransfer: DataTransfer) {
+  if (dataTransfer && dataTransfer.setDragImage) {
+    dataTransfer.setDragImage(emptyImage, 0, 0);
+  }
+}
+
+function onDragEnd(event: { newIndex: number; oldIndex: number }) {
+  const { newIndex, oldIndex } = event;
+  if (newIndex === oldIndex) return;
+
+  const movedItem = displayTodos.value[newIndex];
+  if (!movedItem) return;
+
+  // Read neighbours from displayTodos for the layout, but look up real positions
+  // from the authoritative todos array to avoid sending optimistic pseudo-positions.
+  const prevDisplay = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
+  const nextDisplay = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
+
+  const realPosition = (item: { id: string } | null | undefined) => {
+    if (!item) return null;
+    const real = todos.value.find(t => t.id === item.id);
+    return real?.position || null;
+  };
+
+  reorderTodo(movedItem.id, realPosition(prevDisplay), realPosition(nextDisplay));
+}
+
+function moveItemUp(index: number) {
+  if (index <= 0) return;
+  const item = displayTodos.value[index];
+  const itemAbove = displayTodos.value[index - 1];
+  if (!item || !itemAbove) return;
+
+  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
+  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
+
+  const twoAbove = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
+  reorderTodo(item.id, twoAbove ? realPos(twoAbove.id) : null, realPos(itemAbove.id));
+}
+
+function moveItemDown(index: number) {
+  if (index >= displayTodos.value.length - 1) return;
+  const item = displayTodos.value[index];
+  const itemBelow = displayTodos.value[index + 1];
+  if (!item || !itemBelow) return;
+
+  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
+  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
+
+  const twoBelow = index + 2 < displayTodos.value.length ? displayTodos.value[index + 2] : null;
+  reorderTodo(item.id, realPos(itemBelow.id), twoBelow ? realPos(twoBelow.id) : null);
+}
+
+defineExpose({ loadTodos, addTodo, updateTodo });
+</script>
+
 <template>
   <div class="todo-app-integrated">
     <div class="todo-header">
@@ -97,102 +193,6 @@
     <div v-if="message" class="message" :class="{ error: isError }">{{ message }}</div>
   </div>
 </template>
-
-<script setup lang="ts">
-import Checkbox from '@/common/components/Checkbox.vue';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
-import InfoPop from '@/common/components/InfoModalCenter.vue';
-import { useI18n } from 'vue-i18n';
-import type { Todo } from '@/modules/tasks/types';
-import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
-import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import ItemCard from '@/modules/tasks/components/ItemCard.vue';
-
-const { t } = useI18n();
-
-// Definition der Events für den Parent
-const emit = defineEmits<{
-  (e: 'create'): void;
-  (e: 'edit', todo: Todo): void;
-}>();
-
-const {
-  user,
-  todos,
-  displayTodos,
-  loading,
-  message,
-  isError,
-  openMenuId,
-  loadTodos,
-  addTodo,
-  updateTodo,
-  toggleMenu,
-  toggleTodoCompletion,
-  duplicateTodo,
-  deleteTodo,
-  reorderTodo,
-} = useTodoApp();
-
-const emptyImage = new Image();
-emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-
-function setDragImage(dataTransfer: DataTransfer) {
-  if (dataTransfer && dataTransfer.setDragImage) {
-    dataTransfer.setDragImage(emptyImage, 0, 0);
-  }
-}
-
-function onDragEnd(event: { newIndex: number; oldIndex: number }) {
-  const { newIndex, oldIndex } = event;
-  if (newIndex === oldIndex) return;
-
-  const movedItem = displayTodos.value[newIndex];
-  if (!movedItem) return;
-
-  // Read neighbours from displayTodos for the layout, but look up real positions
-  // from the authoritative todos array to avoid sending optimistic pseudo-positions.
-  const prevDisplay = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
-  const nextDisplay = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
-
-  const realPosition = (item: { id: string } | null | undefined) => {
-    if (!item) return null;
-    const real = todos.value.find(t => t.id === item.id);
-    return real?.position || null;
-  };
-
-  reorderTodo(movedItem.id, realPosition(prevDisplay), realPosition(nextDisplay));
-}
-
-function moveItemUp(index: number) {
-  if (index <= 0) return;
-  const item = displayTodos.value[index];
-  const itemAbove = displayTodos.value[index - 1];
-  if (!item || !itemAbove) return;
-
-  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
-  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
-
-  const twoAbove = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
-  reorderTodo(item.id, twoAbove ? realPos(twoAbove.id) : null, realPos(itemAbove.id));
-}
-
-function moveItemDown(index: number) {
-  if (index >= displayTodos.value.length - 1) return;
-  const item = displayTodos.value[index];
-  const itemBelow = displayTodos.value[index + 1];
-  if (!item || !itemBelow) return;
-
-  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
-  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
-
-  const twoBelow = index + 2 < displayTodos.value.length ? displayTodos.value[index + 2] : null;
-  reorderTodo(item.id, realPos(itemBelow.id), twoBelow ? realPos(twoBelow.id) : null);
-}
-
-defineExpose({ loadTodos, addTodo, updateTodo });
-</script>
 
 <style scoped>
 .login-prompt {

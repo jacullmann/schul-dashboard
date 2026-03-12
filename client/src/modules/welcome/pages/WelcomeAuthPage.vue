@@ -1,20 +1,3 @@
-<template>
-  <div class="split-screen">
-    <div class="auth-section">
-      <AuthForm @logged-in="onLoggedIn" />
-    </div>
-    <div class="bg-section">
-      <img 
-        v-if="isDesktop"
-        src="/background_landscape.webp" 
-        alt="Background" 
-        class="bg-image" 
-        loading="lazy"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useMediaQuery } from '@vueuse/core';
@@ -35,6 +18,23 @@ async function onLoggedIn() {
   }
 }
 </script>
+
+<template>
+  <div class="split-screen">
+    <div class="auth-section">
+      <AuthForm @logged-in="onLoggedIn" />
+    </div>
+    <div class="bg-section">
+      <img 
+        v-if="isDesktop"
+        src="/background_landscape.webp" 
+        alt="Background" 
+        class="bg-image" 
+        loading="lazy"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .split-screen {

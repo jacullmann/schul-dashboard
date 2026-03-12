@@ -1,34 +1,3 @@
-<template>
-  <div class="create-entry-wrapper">
-    <button
-        class="btn mg action"
-        @click="toggleMenu"
-        ref="buttonRef"
-    >
-      <Plus size="28px" />
-    </button>
-
-    <div
-        v-if="isOpen"
-        class="entry-menu entry-menu-pseudo"
-        :class="{ 'align-right': alignRight }"
-        ref="menuRef"
-    >
-      <div class="pseudo-content">
-        <h4 style="margin: 0">
-          Möchtest du einen Eintrag erstellen?
-        </h4>
-        <p>Melde dich an, um Einträge zu erstellen.</p>
-        <div class="row">
-          <button class="btn action smaller" @click="openAuthModal">
-            Anmelden
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Plus } from 'lucide-vue-next';
@@ -99,6 +68,37 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
 });
 </script>
+
+<template>
+  <div class="create-entry-wrapper">
+    <button
+        class="btn mg action"
+        @click="toggleMenu"
+        ref="buttonRef"
+    >
+      <Plus size="28px" />
+    </button>
+
+    <div
+        v-if="isOpen"
+        class="entry-menu entry-menu-pseudo"
+        :class="{ 'align-right': alignRight }"
+        ref="menuRef"
+    >
+      <div class="pseudo-content">
+        <h4 style="margin: 0">
+          Möchtest du einen Eintrag erstellen?
+        </h4>
+        <p>Melde dich an, um Einträge zu erstellen.</p>
+        <div class="row">
+          <button class="btn action smaller" @click="openAuthModal">
+            Anmelden
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .create-entry-wrapper {

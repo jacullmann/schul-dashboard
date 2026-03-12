@@ -1,3 +1,15 @@
+<script setup lang="ts">
+import Logo from '@/common/components/Logo.vue';
+import Notizen from "@/common/components/Notizen.vue";
+import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
+import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const year = new Date().getFullYear();
+</script>
+
 <template>
   <footer class="footer">
     <div class="footer-container container">
@@ -66,18 +78,6 @@
     </div>
   </footer>
 </template>
-
-<script setup lang="ts">
-import Logo from '@/common/components/Logo.vue';
-import Notizen from "@/common/components/Notizen.vue";
-import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
-import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
-import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n();
-
-const year = new Date().getFullYear();
-</script>
 
 <style scoped>
 .footer {

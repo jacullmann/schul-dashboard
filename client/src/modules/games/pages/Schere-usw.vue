@@ -1,46 +1,3 @@
-<template>
-  <div class="rps-game">
-    <div class="result-display">
-      <div class="choice-card player-choice">
-        <h3>Du</h3>
-        <div class="icon-box">
-          <span v-if="playerChoice" class="icon-emoji">{{ choiceEmojis[playerChoice] }}</span>
-          <span v-else class="icon-placeholder">?</span>
-        </div>
-      </div>
-
-      <div class="vs-text">VS</div>
-
-      <div class="choice-card computer-choice">
-        <h3>Computer</h3>
-        <div class="icon-box">
-          <span v-if="computerChoice" class="icon-emoji">{{ choiceEmojis[computerChoice] }}</span>
-          <span v-else class="icon-placeholder">?</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="game-status" :class="resultClass">
-      {{ status }}
-    </div>
-
-    <div class="controls" v-if="!isGameOver">
-      <button
-          v-for="choice in choices"
-          :key="choice"
-          @click="makeMove(choice)"
-          class="btn btn-choice"
-      >
-        {{ choiceEmojis[choice] }} {{ choice }}
-      </button>
-    </div>
-
-    <button v-if="isGameOver" @click="resetGame" class="btn btn-reset">
-      Neues Spiel starten
-    </button>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
@@ -112,6 +69,49 @@ const resetGame = () => {
   isGameOver.value = false;
 };
 </script>
+
+<template>
+  <div class="rps-game">
+    <div class="result-display">
+      <div class="choice-card player-choice">
+        <h3>Du</h3>
+        <div class="icon-box">
+          <span v-if="playerChoice" class="icon-emoji">{{ choiceEmojis[playerChoice] }}</span>
+          <span v-else class="icon-placeholder">?</span>
+        </div>
+      </div>
+
+      <div class="vs-text">VS</div>
+
+      <div class="choice-card computer-choice">
+        <h3>Computer</h3>
+        <div class="icon-box">
+          <span v-if="computerChoice" class="icon-emoji">{{ choiceEmojis[computerChoice] }}</span>
+          <span v-else class="icon-placeholder">?</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-status" :class="resultClass">
+      {{ status }}
+    </div>
+
+    <div class="controls" v-if="!isGameOver">
+      <button
+          v-for="choice in choices"
+          :key="choice"
+          @click="makeMove(choice)"
+          class="btn btn-choice"
+      >
+        {{ choiceEmojis[choice] }} {{ choice }}
+      </button>
+    </div>
+
+    <button v-if="isGameOver" @click="resetGame" class="btn btn-reset">
+      Neues Spiel starten
+    </button>
+  </div>
+</template>
 
 <style scoped>
 .rps-game {

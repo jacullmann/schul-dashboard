@@ -1,29 +1,3 @@
-<template>
-  <div
-      ref="menuRef"
-      class="img-menu-wrapper"
-      :style="styleObject"
-      @click.stop
-  >
-    <div class="img-menu open">
-      <button class="menu-btn" @click="emit('upload')">
-        <div class="fixall">
-          <Upload />
-          Bild hochladen
-        </div>
-      </button>
-
-      <button v-if="canDelete" class="menu-btn danger" @click="emit('delete')">
-        <div class="fixall">
-          <Trash2 />
-          Löschen
-        </div>
-      </button>
-    </div>
-  </div>
-  <div class="menu-backdrop" @click="emit('close')" @contextmenu.prevent="emit('close')"></div>
-</template>
-
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Upload, Trash2 } from 'lucide-vue-next';
@@ -93,6 +67,32 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeyDown);
 });
 </script>
+
+<template>
+  <div
+      ref="menuRef"
+      class="img-menu-wrapper"
+      :style="styleObject"
+      @click.stop
+  >
+    <div class="img-menu open">
+      <button class="menu-btn" @click="emit('upload')">
+        <div class="fixall">
+          <Upload />
+          Bild hochladen
+        </div>
+      </button>
+
+      <button v-if="canDelete" class="menu-btn danger" @click="emit('delete')">
+        <div class="fixall">
+          <Trash2 />
+          Löschen
+        </div>
+      </button>
+    </div>
+  </div>
+  <div class="menu-backdrop" @click="emit('close')" @contextmenu.prevent="emit('close')"></div>
+</template>
 
 <style scoped>
 .img-menu-wrapper {

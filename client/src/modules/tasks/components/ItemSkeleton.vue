@@ -1,3 +1,13 @@
+<script setup lang="ts">
+withDefaults(defineProps<{
+  count?: number;
+  imageCount?: number;
+}>(), {
+  count: 5,
+  imageCount: 2
+});
+</script>
+
 <template>
   <div class="skeleton-container">
     <div
@@ -36,16 +46,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-withDefaults(defineProps<{
-  count?: number;
-  imageCount?: number;
-}>(), {
-  count: 5,
-  imageCount: 2
-});
-</script>
 
 <style scoped>
 .skeleton-container {
