@@ -9,7 +9,7 @@ export function useHwForms(
     flashMessage: (text: string, error?: boolean, durationMs?: number) => void,
     reloadList: () => void
 ) {
-    const itemFormType = ref<Exclude<ItemType, 'PRIVATE'>>('HAUSAUFGABE');
+    const itemFormType = ref<Exclude<ItemType, 'ALLE'>>('HAUSAUFGABE');
     const showItemForm = ref(false);
     const itemToEdit = ref<HwItem | null>(null);
     const itemFormKey = ref(0);
@@ -31,13 +31,13 @@ export function useHwForms(
 
     function editItem(item: HwItem) {
         itemToEdit.value = item;
-        itemFormType.value = item.type as Exclude<ItemType, 'PRIVATE'>;
+        itemFormType.value = item.type as Exclude<ItemType, 'ALLE'>;
         showItemForm.value = true;
     }
 
-    function openCreateFormByType(type: ItemType) {
+    function openCreateFormByType(type: Exclude<ItemType, 'ALLE'>) {
         itemToEdit.value = null;
-        itemFormType.value = type as Exclude<ItemType, 'PRIVATE'>;
+        itemFormType.value = type;
         showItemForm.value = true;
     }
 

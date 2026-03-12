@@ -15,10 +15,10 @@ export interface HwItem {
     editorNote: string;
 }
 
-export type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG';
+export type ItemType = 'HAUSAUFGABE' | 'DALTON' | 'PRUEFUNG' | 'ALLE';
 
 export function isValidType(t: unknown): t is ItemType {
-    return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG';
+    return t === 'HAUSAUFGABE' || t === 'DALTON' || t === 'PRUEFUNG' || t === 'ALLE';
 }
 
 export interface ImageItem {

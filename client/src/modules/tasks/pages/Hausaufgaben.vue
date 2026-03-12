@@ -73,7 +73,9 @@
         </template>
 
         <template #badges>
-          <div class="badge subject-badge">{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}</div>
+          <div class="badge subject-badge">
+            <template v-if="tab === 'ALLE'">{{ getTypeLabel(item.type) }} • </template>{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}
+          </div>
           <div
             v-if="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"
             class="admin-creator-info"
@@ -312,6 +314,7 @@ const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
 
 const tabItems = computed(() => [
+  { id: 'ALLE', label: t('school.tasks.tabs.all') },
   { id: 'HAUSAUFGABE', label: t('school.tasks.tabs.homework') },
   { id: 'DALTON', label: t('school.tasks.tabs.dalton') },
   { id: 'PRUEFUNG', label: t('school.tasks.tabs.exams') },
@@ -420,7 +423,8 @@ const {
   deletingEntry,
   handleImageContextMenu,
   subjectOptions,
-  getSubjectName
+  getSubjectName,
+  getTypeLabel
 } = useHausaufgaben();
 
 watch([showOldEntries, tab, subjectFilter], () => {

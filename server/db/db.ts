@@ -507,8 +507,11 @@ export async function listItems(
   let q = sb
     .from('items')
     .select('*, creator:users!items_created_by_fkey(email)')
-    .eq('type', type)
     .eq('tenant_id', tenantId);
+
+  if (type && type !== 'ALLE') {
+    q = q.eq('type', type);
+  }
 
   if (filter === 'old') {
     const conds = [`due_date.lt.${cutoff}`];
@@ -670,8 +673,8 @@ export async function getTopCreators(
   const users =
     userIds.length > 0
       ? (throwOnError(
-          await sb.from('users').select('id, email').in('id', userIds),
-        ) as Array<{ id: string; email: string }>)
+        await sb.from('users').select('id, email').in('id', userIds),
+      ) as Array<{ id: string; email: string }>)
       : [];
   const userMap = new Map(users.map((u) => [u.id, u.email]));
 

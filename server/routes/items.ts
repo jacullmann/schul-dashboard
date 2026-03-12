@@ -29,7 +29,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
   router.get(
     '/',
     ...auth,
-    query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG']),
+    query('type').isIn(['HAUSAUFGABE', 'DALTON', 'PRUEFUNG', 'ALLE']),
     query('filter').optional().isIn(['old']),
     validate,
     async (req: Request, res: Response) => {
