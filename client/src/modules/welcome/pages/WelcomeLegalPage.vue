@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import Nutzungsbedingungen from "@/modules/legal/components/Nutzungsbedingungen.vue";
-import DatenschutzPage from "@/modules/legal/components/DatenschutzPage.vue";
-import ImpressumPage from "@/modules/legal/components/ImpressumPage.vue";
+import Nutzungsbedingungen from "@/modules/legal/components/Terms.vue";
+import DatenschutzPage from "@/modules/legal/components/PrivacyPolicy.vue";
+import ImpressumPage from "@/modules/legal/components/Impress.vue";
 </script>
 
 <template>
