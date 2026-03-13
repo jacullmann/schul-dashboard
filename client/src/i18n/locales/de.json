@@ -486,21 +486,6 @@
     }
   },
   "tools": {
-    "worrybox": {
-      "title": "Sorgenbox",
-      "infopop": {
-        "tooltip": "Informationen über die Sorgenbox",
-        "text": "Hier kannst du anonym Beschwerden oder Sachen, die dich bedrücken, abgeben — alle Themen werden akzeptiert. Es wird nicht gespeichert, wer du bist. Du darfst entscheiden, ob du Kontaktinformationen da lässt, falls du gerne eine Rückmeldung hättest."
-      },
-      "placeholder": "Du kannst über alles schreiben...",
-      "action": "Anonym absenden",
-      "success": "Deine Nachricht wurde erfolgreich anonym übermittelt",
-      "errors": {
-        "messageLong": "Die Nachricht ist zu lang (max. 5000 Zeichen).",
-        "cooldown": "Bitte warte {r} Sekunden, bevor du eine neue Nachricht sendest.",
-        "failed": "Übertragung fehlgeschlagen."
-      }
-    }
   },
   "info": {
     "dashboard": {

@@ -520,33 +520,6 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
     },
   );
 
-  // POST /api/items/sorgenbox
-  router.post(
-    '/sorgenbox',
-    requireAuth(authSecret, supabase),
-    validateCsrf(),
-    async (req: Request, res: Response) => {
-      try {
-        const { message } = req.body as { message?: string };
-        if (!message?.trim()) {
-          res.status(400).json({ error: 'Nachricht darf nicht leer sein.' });
-          return;
-        }
-        const trimmed = message.trim();
-        if (trimmed.length > 5000) {
-          res
-            .status(400)
-            .json({ error: 'Nachricht zu lang (max 5000 Zeichen)' });
-          return;
-        }
-        await db.createSorge(supabase, trimmed);
-        res.json({ ok: true });
-      } catch {
-        sendJSONError(res, 500, 'Server error');
-      }
-    },
-  );
-
   // POST /api/items/uploads/sign
   router.post(
     '/uploads/sign',

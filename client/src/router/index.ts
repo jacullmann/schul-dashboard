@@ -104,12 +104,6 @@ const routes = [
                 meta: { title: 'school.tables.abbr.title' },
             },
             {
-                path: 'sorgenbox',
-                name: 'sorgenbox',
-                component: () => import('@/modules/sorgenbox/pages/Sorgenbox.vue'),
-                meta: { title: 'tools.worrybox.title' },
-            },
-            {
                 path: 'kontakt',
                 name: 'contact',
                 component: () => import('@/modules/support/pages/ContactInfo.vue'),

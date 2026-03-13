@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 // routes/superAdmin.ts
-// Global super-admin routes: user management, reports, sorgen, global stats
+// Global super-admin routes: user management, reports, global stats
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import * as db from '../db/db.js';
@@ -43,8 +43,6 @@ export default function createSuperAdminRoutes(deps: RouteDeps): Router {
         bannedCount,
         reportCountUnprocessed,
         reportCountTotal,
-        sorgeCountUnprocessed,
-        sorgeCountTotal,
         itemsByType,
         verifiedUsers,
         adminCount,
@@ -58,8 +56,6 @@ export default function createSuperAdminRoutes(deps: RouteDeps): Router {
         db.countBanned(supabase),
         db.countReports(supabase, { processed: false }),
         db.countReports(supabase),
-        db.countSorgen(supabase, { processed: false }),
-        db.countSorgen(supabase),
         db.getItemsByTypeCount(supabase, req.tenantId!),
         db.countUsers(supabase, { email_verified: true }),
         supabase
@@ -80,9 +76,6 @@ export default function createSuperAdminRoutes(deps: RouteDeps): Router {
         reportCount: reportCountUnprocessed,
         reportCountTotal,
         reportCountProcessed: reportCountTotal - reportCountUnprocessed,
-        sorgeCount: sorgeCountUnprocessed,
-        sorgeCountTotal,
-        sorgeCountProcessed: sorgeCountTotal - sorgeCountUnprocessed,
         itemsByType: itemsByType.map((t) => ({ _id: t.type, count: t.count })),
         verifiedUsers,
         unverifiedUsers: userCount - verifiedUsers,
@@ -467,74 +460,6 @@ export default function createSuperAdminRoutes(deps: RouteDeps): Router {
         await db.logActivity(supabase, req.user!.sub, 'admin:report:delete', {
           reportId: req.params.id!,
         });
-        res.json({ ok: true });
-      } catch {
-        sendJSONError(res, 500, 'Serverfehler');
-      }
-    },
-  );
-
-  // ─── Sorgen ─────────────────────────────────────────────────────
-  router.get('/sorgen', ...sa, async (_req: Request, res: Response) => {
-    try {
-      const sorgen = await db.listSorgen(supabase);
-      res.json(
-        sorgen.map((s) => ({
-          id: s.id,
-          message: s.message,
-          processed: s.processed,
-          processedAt: s.processed_at,
-          createdAt: s.created_at,
-        })),
-      );
-    } catch {
-      sendJSONError(res, 500, 'Server error');
-    }
-  });
-
-  router.patch(
-    '/sorgen/:id/processed',
-    ...sa,
-    validateCsrf(),
-    param('id').isUUID(),
-    body('processed').isBoolean(),
-    validate,
-    async (req: Request, res: Response) => {
-      try {
-        const { processed } = req.body as { processed: boolean };
-        const sorge = await db.updateSorge(supabase, req.params.id!, {
-          processed,
-          processed_at: processed ? new Date().toISOString() : null,
-          processed_by: processed ? req.user!.sub : null,
-        });
-        await db.logActivity(
-          supabase,
-          req.user!.sub,
-          processed
-            ? 'admin:sorge:mark_processed'
-            : 'admin:sorge:mark_unprocessed',
-          { sorgeId: req.params.id! },
-        );
-        res.json({
-          ok: true,
-          processed: sorge.processed,
-          processedAt: sorge.processed_at,
-        });
-      } catch {
-        sendJSONError(res, 500, 'Serverfehler');
-      }
-    },
-  );
-
-  router.delete(
-    '/sorgen/:id',
-    ...sa,
-    validateCsrf(),
-    param('id').isUUID(),
-    validate,
-    async (req: Request, res: Response) => {
-      try {
-        await db.deleteSorge(supabase, req.params.id!);
         res.json({ ok: true });
       } catch {
         sendJSONError(res, 500, 'Serverfehler');

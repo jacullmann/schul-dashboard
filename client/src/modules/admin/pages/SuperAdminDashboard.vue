@@ -15,7 +15,6 @@ const navItems = ref<NavItem[]>([
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard), count: 0 },
   { id: 'users', label: 'Benutzer', icon: markRaw(Users), count: 0 },
   { id: 'reports', label: 'Meldungen', icon: markRaw(Flag), count: 0 },
-  { id: 'sorgen', label: 'Sorgenbox', icon: markRaw(Inbox), count: 0 },
   { id: 'doc', label: 'Doc', icon: markRaw(FileTextIcon), count: 0 },
 ]);
 
@@ -25,7 +24,6 @@ interface AdminStats {
   userCount?: number;
   itemCount?: number;
   reportCount?: number;
-  sorgeCount?: number;
   bannedCount?: number;
   verifiedUsers?: number;
   unverifiedUsers?: number;
@@ -57,13 +55,6 @@ interface Report {
   processedAt?: string | null;
 }
 
-interface Sorge {
-  id: string;
-  message: string;
-  createdAt: string;
-  processed: boolean;
-}
-
 interface UserActivity {
   at: string;
   type: string;
@@ -75,7 +66,6 @@ const stats = ref<AdminStats | null>(null);
 const loadingStats = ref(false);
 const allUsers = ref<User[]>([]);
 const reports = ref<Report[]>([]);
-const sorgen = ref<Sorge[]>([]);
 const showActivityFor = ref<string | null>(null);
 const userActivities = ref<Record<string, UserActivity[]>>({});
 const loadingActivities = ref<Record<string, boolean>>({});
@@ -85,8 +75,6 @@ const isError = ref(false);
 
 const unprocessedReports = computed(() => reports.value.filter(r => !r.processed));
 const processedReports = computed(() => reports.value.filter(r => r.processed));
-const unprocessedSorgen = computed(() => sorgen.value.filter(s => !s.processed));
-const processedSorgen = computed(() => sorgen.value.filter(s => s.processed));
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -105,8 +93,6 @@ async function loadStats() {
     stats.value = data;
     const ri = navItems.value.find(n => n.id === 'reports');
     if (ri) ri.count = data.reportCount || 0;
-    const si = navItems.value.find(n => n.id === 'sorgen');
-    if (si) si.count = data.sorgeCount || 0;
   } catch (e) { console.error(e); }
   finally { loadingStats.value = false; }
 }
@@ -118,11 +104,6 @@ async function loadAllUsers() {
 
 async function loadReports() {
   try { const { data } = await hw.get('/api/admin/reports'); reports.value = data; }
-  catch { /* ignore */ }
-}
-
-async function loadSorgen() {
-  try { const { data } = await hw.get('/api/admin/sorgen'); sorgen.value = data; }
   catch { /* ignore */ }
 }
 
@@ -189,26 +170,6 @@ async function deleteReport(id: string) {
   } catch { toast('Fehler', true); }
 }
 
-// ─── Sorgen ─────────────────────────────────────────────
-async function toggleSorgeProcessed(id: string, currentProcessed: boolean) {
-  try {
-    await hw.patch(`/api/admin/sorgen/${id}/processed`, { processed: !currentProcessed });
-    const s = sorgen.value.find(x => x.id === id);
-    if (s) { s.processed = !currentProcessed; }
-    toast(!currentProcessed ? 'Als erledigt markiert' : 'Zurückgesetzt');
-    loadStats();
-  } catch { toast('Fehler', true); }
-}
-
-async function deleteSorge(id: string) {
-  if (!confirm('Eintrag löschen?')) return;
-  try {
-    await hw.delete(`/api/admin/sorgen/${id}`);
-    sorgen.value = sorgen.value.filter(s => s.id !== id);
-    toast('Gelöscht'); loadStats();
-  } catch { toast('Fehler', true); }
-}
-
 // ─── Cleanup ────────────────────────────────────────────
 async function cleanupOldItems() {
   if (!confirm('Alle Einträge älter als 90 Tage löschen?')) return;
@@ -225,7 +186,6 @@ onMounted(() => {
   loadStats();
   loadAllUsers();
   loadReports();
-  loadSorgen();
 });
 </script>
 
@@ -287,10 +247,6 @@ onMounted(() => {
               <div class="stat-card" :class="{ alert: stats.reportCount > 0 }">
                 <div class="stat-val">{{ stats.reportCount }}</div>
                 <div class="stat-lbl">Offene Meldungen</div>
-              </div>
-              <div class="stat-card" :class="{ warn: stats.sorgeCount > 0 }">
-                <div class="stat-val">{{ stats.sorgeCount }}</div>
-                <div class="stat-lbl">Offene Sorgen</div>
               </div>
               <div class="stat-card" :class="{ warn: stats.bannedCount > 0 }">
                 <div class="stat-val">{{ stats.bannedCount }}</div>
@@ -451,44 +407,6 @@ onMounted(() => {
                     <button class="btn ghost tiny danger" @click="deleteReport(r.id)">
                       <Trash2 :size="13" /> Löschen
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-        </template>
-
-        <!-- ═══ SORGEN ═══ -->
-        <template v-if="activeTab === 'sorgen'">
-          <h2 class="page-title">Sorgenbox</h2>
-          <div v-if="!sorgen.length" class="empty-msg">Keine Einträge.</div>
-          <template v-else>
-            <div v-if="unprocessedSorgen.length" class="sorgen-section">
-              <h3 class="sub-heading">Offen ({{ unprocessedSorgen.length }})</h3>
-              <div class="sorgen-list">
-                <div v-for="s in unprocessedSorgen" :key="s.id" class="sorge-card">
-                  <p class="sorge-body">{{ s.message }}</p>
-                  <div class="sorge-footer">
-                    <span>{{ fmtDate(s.createdAt) }}</span>
-                    <div class="sorge-actions">
-                      <button class="btn ghost tiny" @click="toggleSorgeProcessed(s.id, false)"><Check :size="13" /> Erledigt</button>
-                      <button class="btn ghost tiny danger" @click="deleteSorge(s.id)">Löschen</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div v-if="processedSorgen.length" class="sorgen-section processed-section">
-              <h3 class="sub-heading muted">Bearbeitet ({{ processedSorgen.length }})</h3>
-              <div class="sorgen-list">
-                <div v-for="s in processedSorgen" :key="s.id" class="sorge-card processed">
-                  <p class="sorge-body">{{ s.message }}</p>
-                  <div class="sorge-footer">
-                    <span>{{ fmtDate(s.createdAt) }}</span>
-                    <div class="sorge-actions">
-                      <button class="btn ghost tiny" @click="toggleSorgeProcessed(s.id, true)"><RotateCcw :size="13" /> Zurücksetzen</button>
-                      <button class="btn ghost tiny danger" @click="deleteSorge(s.id)">Löschen</button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -720,8 +638,8 @@ onMounted(() => {
 .sub-heading { font-size: 0.95rem; font-weight: 600; margin: 0 0 12px; }
 .sub-heading.muted { color: var(--sub); }
 
-/* ─── Reports & Sorgen ───────────────────────────────── */
-.report-section, .sorgen-section { margin-bottom: 32px; }
+/* ─── Reports ───────────────────────────────── */
+.report-section { margin-bottom: 32px; }
 .processed-section { opacity: 0.7; }
 .processed-section:hover { opacity: 1; transition: opacity 0.2s; }
 
@@ -731,22 +649,18 @@ onMounted(() => {
   gap: 10px;
 }
 
-.report-card, .sorge-card {
+.report-card {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   border-radius: 10px;
   padding: 14px 16px;
 }
-.report-card.processed, .sorge-card.processed { opacity: 0.8; }
+.report-card.processed { opacity: 0.8; }
 
 .report-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .report-reason { color: var(--sub); font-size: var(--font-size-body); line-height: 1.4; margin-bottom: 8px; }
 .report-meta { font-size: var(--font-size-sub); color: var(--sub); margin-bottom: 10px; }
-.report-actions, .sorge-actions { display: flex; gap: 6px; }
-
-.sorgen-list { display: flex; flex-direction: column; gap: 8px; }
-.sorge-body { margin: 0 0 10px; line-height: 1.5; }
-.sorge-footer { display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-sub); color: var(--sub); border-top: 1px solid var(--border); padding-top: 10px; }
+.report-actions { display: flex; gap: 6px; }
 
 /* ─── Drawer ─────────────────────────────────────────── */
 .drawer-overlay {

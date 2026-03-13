@@ -408,21 +408,6 @@
     }
   },
   "tools": {
-    "worrybox": {
-      "title": "Worry Box",
-      "infopop": {
-        "tooltip": "Information about the Worry Box",
-        "text": "Here you can anonymously submit complaints or things that are bothering you — all topics are accepted. It is not saved who you are. You may decide whether to leave contact information in case you would like a response."
-      },
-      "placeholder": "You can write about anything...",
-      "action": "Submit anonymously",
-      "success": "Your message has been successfully submitted anonymously.",
-      "errors": {
-        "messageLong": "The message is too long (max. 5000 characters).",
-        "cooldown": "Please wait {r} seconds before sending another message.",
-        "failed": "Submission failed."
-      }
-    }
   },
   "info": {
     "dashboard": {

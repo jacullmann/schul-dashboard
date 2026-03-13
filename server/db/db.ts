@@ -19,7 +19,6 @@ import type {
   DbEncryptedTodo,
   DbSubject,
   DbAnnouncement,
-  DbSorge,
   DbTimetableLesson,
   DbTimetableSub,
   DbPerson,
@@ -1083,59 +1082,6 @@ export async function deleteAnnouncement(
       .eq('id', id)
       .eq('tenant_id', tenantId),
   );
-}
-
-// ─── Sorgen ─────────────────────────────────────────────────────────────────
-
-export async function createSorge(
-  sb: Supabase,
-  message: string,
-): Promise<DbSorge> {
-  return throwOnError(
-    await sb.from('sorgen').insert({ message }).select().single(),
-  );
-}
-
-export async function listSorgen(
-  sb: Supabase,
-  limit: number = 100,
-): Promise<DbSorge[]> {
-  return throwOnError(
-    await sb
-      .from('sorgen')
-      .select('*')
-      .order('processed', { ascending: true })
-      .order('created_at', { ascending: false })
-      .limit(limit),
-  );
-}
-
-export async function updateSorge(
-  sb: Supabase,
-  id: string,
-  fields: Record<string, unknown>,
-): Promise<DbSorge> {
-  return throwOnError(
-    await sb.from('sorgen').update(fields).eq('id', id).select().single(),
-  );
-}
-
-export async function deleteSorge(sb: Supabase, id: string): Promise<unknown> {
-  return throwOnError(await sb.from('sorgen').delete().eq('id', id));
-}
-
-export async function countSorgen(
-  sb: Supabase,
-  filters: Record<string, unknown> = {},
-): Promise<number> {
-  let q = sb.from('sorgen').select('*', { count: 'exact', head: true });
-  for (const [k, v] of Object.entries(filters)) {
-    if (v === false) q = q.or(`${k}.eq.false,${k}.is.null`);
-    else q = q.eq(k, v);
-  }
-  const { count, error } = await q;
-  if (error) throw new Error(error.message);
-  return count ?? 0;
 }
 
 // ─── Timetable ──────────────────────────────────────────────────────────────
