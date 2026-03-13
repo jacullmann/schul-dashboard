@@ -105,7 +105,6 @@ const {
   toggleCheck,
   isPinned,
   togglePin,
-  isArchived,
   toggleVisibility,
   makeThumb,
   isRevealed,
@@ -287,19 +286,19 @@ function handleArchiveFromMenu(item: HwItem) {
 
             <div class="menu-divider" v-if="canEdit(item.createdBy) || user"></div>
 
-            <button class="menu-btn" v-if="user" @click="handleArchiveFromMenu(item)">
-              <span class="menu-btn-content">
-                <ArchiveRestore v-if="isArchived(item.id)" />
-                <Archive v-else />
-                {{ isArchived(item.id) ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
-              </span>
-            </button>
-
             <button class="menu-btn" v-if="user" @click="togglePin(item)">
               <span class="menu-btn-content">
                 <Pin v-if="!isPinned(item.id)" class="unpinned" />
                 <Pin fill="currentColor" v-else class="pinned" />
                 {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
+              </span>
+            </button>
+
+            <button class="menu-btn" v-if="user" @click="handleArchiveFromMenu(item)">
+              <span class="menu-btn-content">
+                <ArchiveRestore v-if="showOldEntries" />
+                <Archive v-else />
+                {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
               </span>
             </button>
 
