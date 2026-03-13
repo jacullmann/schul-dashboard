@@ -496,7 +496,7 @@ export async function listItems(
     userId?: string | null;
   },
 ): Promise<Array<DbItem & { creator?: { email: string } }>> {
-  const cutoff = dayjs().subtract(24, 'hour').toISOString();
+  const cutoff = dayjs().toISOString();
 
   let visibility: ItemVisibility = { archived: [], kept: [] };
   if (userId) {

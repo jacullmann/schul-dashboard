@@ -347,6 +347,8 @@
           "uploadImages": "Bilder hochladen",
           "pin": "Anheften",
           "unpin": "Lösen",
+          "archive": "Archivieren",
+          "unarchive": "Wiederherstellen",
           "share": "Teilen",
           "shareConfirm": "Link in die Zwischenablage kopiert!",
           "report": {

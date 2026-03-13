@@ -21,7 +21,7 @@ export class ItemsService {
 
   async getItems(tenantId: string, userId: string, type: string, filter?: string) {
     const sb = this.supabaseService.getClient();
-    const cutoff = dayjs().subtract(24, 'hour').toISOString();
+    const cutoff = dayjs().toISOString();
 
     const { data: visData } = await sb.from('user_item_visibility').select('item_id, status').eq('user_id', userId);
     const archived: string[] = [];

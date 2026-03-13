@@ -10,7 +10,7 @@ import OldNewSwitch from "@/modules/tasks/components/NewOldSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin } from 'lucide-vue-next'
+import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore } from 'lucide-vue-next'
 import { useAufgaben } from '@/modules/tasks/composables/useAufgaben';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
 import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";
@@ -38,7 +38,7 @@ const dismissedItems = ref(new Set<string>());
 
 function handleSwipe(item: HwItem) {
   dismissedItems.value.add(item.id);
-  const cutoffIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const cutoffIso = new Date().toISOString();
   toggleVisibility(item, showOldEntries.value, cutoffIso);
 }
 
@@ -105,6 +105,7 @@ const {
   toggleCheck,
   isPinned,
   togglePin,
+  isArchived,
   toggleVisibility,
   makeThumb,
   isRevealed,
@@ -166,6 +167,13 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   }
 
   toggleCheck(item);
+}
+
+function handleArchiveFromMenu(item: HwItem) {
+  openMenuId.value = null;
+  dismissedItems.value.add(item.id);
+  const cutoffIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  toggleVisibility(item, showOldEntries.value, cutoffIso);
 }
 </script>
 
@@ -264,31 +272,58 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
         <template #menu>
           <div v-if="openMenuId === item.id" class="menu" @click.stop>
             <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
-              <span class="menu-btn-content"><Upload />{{ t('school.tasks.items.menu.uploadImages') }}</span>
+              <span class="menu-btn-content">
+                <Upload />
+                {{ t('school.tasks.items.menu.uploadImages') }}
+              </span>
             </button>
 
             <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
-              <span class="menu-btn-content"><Pencil />{{ t('global.buttons.edit') }}</span>
+              <span class="menu-btn-content">
+                <Pencil />
+                {{ t('global.buttons.edit') }}
+              </span>
             </button>
 
             <div class="menu-divider" v-if="canEdit(item.createdBy) || user"></div>
 
+            <button class="menu-btn" v-if="user" @click="handleArchiveFromMenu(item)">
+              <span class="menu-btn-content">
+                <ArchiveRestore v-if="isArchived(item.id)" />
+                <Archive v-else />
+                {{ isArchived(item.id) ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
+              </span>
+            </button>
+
             <button class="menu-btn" v-if="user" @click="togglePin(item)">
-              <span class="menu-btn-content"><Pin v-if="!isPinned(item.id)" class="unpinned" /><Pin fill="currentColor" v-else class="pinned" /> {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}</span>
+              <span class="menu-btn-content">
+                <Pin v-if="!isPinned(item.id)" class="unpinned" />
+                <Pin fill="currentColor" v-else class="pinned" />
+                {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
+              </span>
             </button>
 
             <button class="menu-btn" @click="shareItem(item)">
-              <span class="menu-btn-content"><Send />{{ t('school.tasks.items.menu.share') }}</span>
+              <span class="menu-btn-content">
+                <Send />
+                {{ t('school.tasks.items.menu.share') }}
+              </span>
             </button>
 
             <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
-              <span class="menu-btn-content"><Flag />{{ t('school.tasks.items.menu.report.name') }}</span>
+              <span class="menu-btn-content">
+                <Flag />
+                {{ t('school.tasks.items.menu.report.name') }}
+              </span>
             </button>
 
             <div class="menu-divider" v-if="canDelete(item.createdBy)"></div>
 
             <button class="menu-btn danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
-              <span class="menu-btn-content"><Trash2 />{{ t('global.buttons.delete') }}</span>
+              <span class="menu-btn-content">
+                <Trash2 />
+                {{ t('global.buttons.delete') }}
+              </span>
             </button>
           </div>
         </template>
