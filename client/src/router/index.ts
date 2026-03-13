@@ -4,43 +4,37 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 
+// ─── Routes ───────────────────────────────────────────────────────────────────
+
 const routes = [
-    // ─── Welcome Layout ─────────────────────────────────────────────
+    // ── Welcome Layout ─────────────────────────────────────────────────
     {
         path: '/',
         component: () => import('@/layouts/WelcomeLayout.vue'),
-        meta: {
-            title: 'global.fullTitle',
-            fullWidth: true
-        },
+        meta: { title: 'global.fullTitle', fullWidth: true },
         children: [
             {
                 path: '',
                 name: 'welcome-home',
                 component: () => import('@/modules/welcome/pages/WelcomeHomePage.vue'),
-                meta: {
-                    title: 'global.fullTitle'
-                }
-                },
+                meta: { title: 'global.fullTitle' },
+            },
             {
                 path: 'auth',
                 name: 'welcome-auth',
                 component: () => import('@/modules/welcome/pages/WelcomeAuthPage.vue'),
-                meta: {
-                    title: 'navigation.auth'
-                }
-                },
+                meta: { title: 'navigation.auth' },
+            },
             {
                 path: 'legal',
                 name: 'welcome-legal',
                 component: () => import('@/modules/welcome/pages/WelcomeLegalPage.vue'),
-                meta: {
-                    title: 'navigation.legal'
-                }
-                },
+                meta: { title: 'navigation.legal' },
+            },
         ],
     },
-    // ─── Default Layout (header + footer) ───────────────────────────
+
+    // ── Default Layout (header + footer) ────────────────────────────────
     {
         path: '/',
         component: () => import('@/layouts/DefaultLayout.vue'),
@@ -52,34 +46,51 @@ const routes = [
                 meta: { title: 'navigation.home' },
             },
 
-            // ─── Group-scoped pages ─────────────────────────────────
+            // ── Group-scoped pages ──────────────────────────────────────
             {
                 path: 'groups/:groupId',
                 children: [
-                    { path: '', redirect: (to: any) => `/groups/${to.params.groupId}/items/all` },
+                    {
+                        path: '',
+                        redirect: (to: any) =>
+                            `/groups/${to.params.groupId}/items/all`,
+                    },
                     {
                         path: 'items/:type?/:itemId?',
                         name: 'group-items',
                         component: () => import('@/modules/tasks/pages/Aufgaben.vue'),
                         props: true,
-                        meta: { title: 'school.tasks.title', requiresTenant: true, groupContext: true },
+                        meta: {
+                            title: 'school.tasks.title',
+                            requiresTenant: true,
+                            groupContext: true,
+                        },
                     },
                     {
                         path: 'stundenplan',
                         name: 'group-stundenplan',
                         component: () => import('@/modules/schedule/pages/Timetable.vue'),
-                        meta: { title: 'school.tables.timetable.title', requiresTenant: true, groupContext: true },
+                        meta: {
+                            title: 'school.tables.timetable.title',
+                            requiresTenant: true,
+                            groupContext: true,
+                        },
                     },
                     {
                         path: 'admin',
                         name: 'group-admin',
-                        component: () => import('@/modules/admin/pages/GroupAdminDashboard.vue'),
-                        meta: { title: 'navigation.groupAdmin', requiresGroupAdmin: true, groupContext: true },
+                        component: () =>
+                            import('@/modules/admin/pages/GroupAdminDashboard.vue'),
+                        meta: {
+                            title: 'navigation.groupAdmin',
+                            requiresGroupAdmin: true,
+                            groupContext: true,
+                        },
                     },
                 ],
             },
 
-            // ─── User-scoped pages (no group context needed) ────────
+            // ── User-scoped pages ───────────────────────────────────────
             {
                 path: 'todos',
                 name: 'private-todos',
@@ -138,7 +149,8 @@ const routes = [
             {
                 path: 'info-dashboard',
                 name: 'info-dashboard',
-                component: () => import('@/modules/infodashboard/pages/InfoDashboard.vue'),
+                component: () =>
+                    import('@/modules/infodashboard/pages/InfoDashboard.vue'),
                 meta: { title: 'info.dashboard.title', fullWidth: true },
             },
             {
@@ -156,40 +168,66 @@ const routes = [
             {
                 path: 'impressum-&-datenschutz',
                 name: 'impressum-und-datenschutz',
-                component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
+                component: () =>
+                    import('@/modules/legal/pages/LegalPagesWrapper.vue'),
                 children: [
-                    { path: 'impressum', name: 'impressum', component: () => import('@/modules/legal/components/Impress.vue'), meta: { title: 'legal.imprint.title' } },
-                    { path: 'datenschutz', name: 'datenschutz', component: () => import('@/modules/legal/components/PrivacyPolicy.vue'), meta: { title: 'legal.privacy.title' } },
-                    { path: 'nutzung', name: 'nutzung', component: () => import('@/modules/legal/components/Terms.vue'), meta: { title: 'legal.terms.title' } },
+                    {
+                        path: 'impressum',
+                        name: 'impressum',
+                        component: () => import('@/modules/legal/components/Impress.vue'),
+                        meta: { title: 'legal.imprint.title' },
+                    },
+                    {
+                        path: 'datenschutz',
+                        name: 'datenschutz',
+                        component: () =>
+                            import('@/modules/legal/components/PrivacyPolicy.vue'),
+                        meta: { title: 'legal.privacy.title' },
+                    },
+                    {
+                        path: 'nutzung',
+                        name: 'nutzung',
+                        component: () => import('@/modules/legal/components/Terms.vue'),
+                        meta: { title: 'legal.terms.title' },
+                    },
                 ],
             },
         ],
     },
 
-    // ─── Super Admin Dashboard ──────────────────────────────────────
+    // ── Super Admin Dashboard ───────────────────────────────────────────
     {
         path: '/admin',
         name: 'super-admin',
         component: () => import('@/modules/admin/pages/SuperAdminDashboard.vue'),
-        meta: { title: 'navigation.superAdmin', requiresSuperAdmin: true, fullWidth: true },
+        meta: {
+            title: 'navigation.superAdmin',
+            requiresSuperAdmin: true,
+            fullWidth: true,
+        },
     },
 
-    // ─── Verify Email ───────────────────────────────────────────────
+    // ── Verify Email ────────────────────────────────────────────────────
     {
         path: '/verify',
         component: () => import('@/layouts/WelcomeLayout.vue'),
         children: [
-            { path: '', name: 'verify-email', component: () => import('@/core/pages/VerifyEmail.vue'), meta: { title: 'navigation.verifyEmail' } },
+            {
+                path: '',
+                name: 'verify-email',
+                component: () => import('@/core/pages/VerifyEmail.vue'),
+                meta: { title: 'navigation.verifyEmail' },
+            },
         ],
     },
 
-    // ─── Legacy Redirects ───────────────────────────────────────────
+    // ── Legacy Redirects ────────────────────────────────────────────────
     { path: '/get-started', redirect: '/home' },
     { path: '/admin-dashboard', redirect: '/admin' },
     { path: '/hausaufgaben/verify', redirect: '/verify' },
     { path: '/stundenplan', redirect: '/home' },
 
-    // ─── 404 ────────────────────────────────────────────────────────
+    // ── 404 ─────────────────────────────────────────────────────────────
     {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
@@ -198,57 +236,75 @@ const routes = [
     },
 ];
 
+// ─── Router Instance ─────────────────────────────────────────────────────────
+
 const router = createRouter({
     history: createWebHistory(),
     routes,
 });
 
 const { start, finish } = useLoadingBar();
-const { isLoggedIn, isAuthReady, initAuth, activeGroupId } = useAppAuth();
+const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
+    useAppAuth();
+
+// ─── Navigation Guard ─────────────────────────────────────────────────────────
 
 router.beforeEach(async (to, from, next) => {
     if (to.path !== from.path) start();
 
+    // Ensure auth is initialised exactly once on first navigation.
     if (!isAuthReady.value) await initAuth();
 
-    const isPublicRoute = to.path === '/' || to.path.startsWith('/auth') ||
-        to.path === '/legal' || to.path === '/verify';
+    const isPublicRoute =
+        to.path === '/' ||
+        to.path.startsWith('/auth') ||
+        to.path === '/legal' ||
+        to.path === '/verify';
 
-    // Redirect unauthenticated users to welcome
+    // ── Unauthenticated users → welcome ────────────────────────────────
     if (!isPublicRoute && !isLoggedIn.value) {
         const allowedWithoutAuth = ['/kontakt', '/impressum'];
-        const isAllowed = allowedWithoutAuth.some(p => to.path.startsWith(p));
+        const isAllowed = allowedWithoutAuth.some((p) => to.path.startsWith(p));
         if (!isAllowed) {
             finish();
             return next({ path: '/', replace: true });
         }
     }
 
-    // Redirect authenticated users away from welcome
-    if ((to.path === '/' || to.path === '/auth' || to.path === '/legal') && isLoggedIn.value) {
+    // ── Authenticated users → away from welcome/public routes ──────────
+    if (
+        (to.path === '/' || to.path === '/auth' || to.path === '/legal') &&
+        isLoggedIn.value
+    ) {
         finish();
-        return next({ path: activeGroupId.value ? `/groups/${activeGroupId.value}/items/all` : '/home', replace: true });
+        return next({
+            path: activeGroupId.value
+                ? `/groups/${activeGroupId.value}/items/all`
+                : '/home',
+            replace: true,
+        });
     }
 
-    // Set document title
+    // ── Document title ─────────────────────────────────────────────────
     if (to.meta.title) {
-        const translatedTitle = i18n.global.t(to.meta.title as string);
-        if (to.path === '/') {
-            document.title = translatedTitle;
-        } else {
-            document.title = translatedTitle + ' | Dashboard';
-        }
+        const translated = i18n.global.t(to.meta.title as string);
+        document.title =
+            to.path === '/' ? translated : `${translated} | Dashboard`;
     } else {
         document.title = 'Dashboard';
     }
 
-    // Ensure user store is initialized
+    // ── User store init ────────────────────────────────────────────────
     const userStore = useUserStore();
     if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
-        try { await userStore.fetchUser(); } catch { }
+        try {
+            await userStore.fetchUser();
+        } catch {
+            // Non-fatal
+        }
     }
 
-    // Super admin guard
+    // ── Role guards ────────────────────────────────────────────────────
     if (to.meta.requiresSuperAdmin) {
         if (!userStore.initialized) await userStore.fetchUser();
         if (!userStore.isSuperadmin) {
@@ -257,7 +313,6 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // Group admin guard
     if (to.meta.requiresGroupAdmin) {
         if (!userStore.initialized) await userStore.fetchUser();
         if (!userStore.isGroupAdmin && !userStore.isSuperadmin) {
@@ -266,16 +321,27 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    // Tenant-required routes: ensure there's an active group
+    // ── Tenant-required routes ─────────────────────────────────────────
     if (to.meta.requiresTenant && !activeGroupId.value) {
         finish();
         return next({ path: '/home', replace: true });
     }
 
-    // When navigating to a group route, switch active group if needed
-    if (to.params.groupId && to.params.groupId !== activeGroupId.value) {
+    const routeGroupId = to.params.groupId as string | undefined;
+    if (routeGroupId && routeGroupId !== activeGroupId.value) {
+        // Fast client-side membership check before hitting the server.
+        // Note: this is advisory — the server will reject unauthorized access
+        // regardless. But it saves a round-trip for obvious non-members.
+        const isMember = userGroups.value.some((g) => g.id === routeGroupId);
+        if (!isMember) {
+            finish();
+            return next({ path: '/home', replace: true });
+        }
+
+        // switchActiveGroup has built-in debounce (singleton promise per groupId),
+        // so rapid navigation to the same group won't cause parallel server calls.
         const { switchActiveGroup } = useAppAuth();
-        const result = await switchActiveGroup(to.params.groupId as string);
+        const result = await switchActiveGroup(routeGroupId);
         if (!result.ok) {
             finish();
             return next({ path: '/home', replace: true });

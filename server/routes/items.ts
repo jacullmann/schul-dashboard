@@ -111,9 +111,7 @@ export default function createItemsRoutes(deps: RouteDeps): Router {
     ...auth,
     validateCsrf(),
     [
-      body('type')
-        .isIn(['homework', 'dalton', 'exam'])
-        .withMessage('type'),
+      body('type').isIn(['homework', 'dalton', 'exam']).withMessage('type'),
       body('title')
         .isString()
         .isLength({ min: 1, max: 60 })

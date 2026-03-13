@@ -5,7 +5,6 @@ import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import { useUserStore } from "@/stores/userStore";
 
 const emit = defineEmits<{
@@ -47,17 +46,13 @@ async function submit() {
 
   try {
     const res = await auth.joinGroup(groupName.value.trim(), password.value);
-    
+
     if (res.ok) {
-      if (res.csrfToken) {
-        setCsrfToken(res.csrfToken);
-      } else {
-        syncCsrfFromCookie();
-      }
+      // CSRF token rotation is handled internally by joinGroup/checkAuthStatus.
       try {
         await userStore.fetchUser();
       } catch {}
-      
+
       emit('close');
       await router.push(`/groups/${activeGroupId.value}/items/all`);
     } else {

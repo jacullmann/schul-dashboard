@@ -5,7 +5,6 @@ import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import { useUserStore } from "@/stores/userStore";
 
 const emit = defineEmits<{
@@ -28,8 +27,8 @@ const errorMsg = ref('');
 
 const isValid = computed(() => {
   return groupName.value.trim().length > 0 &&
-         password.value.length > 0 &&
-         password.value === passwordConfirm.value;
+      password.value.length > 0 &&
+      password.value === passwordConfirm.value;
 });
 
 function clearError() {
@@ -50,17 +49,13 @@ async function submit() {
 
   try {
     const res = await auth.createGroup(groupName.value.trim(), password.value);
-    
+
     if (res.ok) {
-      if (res.csrfToken) {
-        setCsrfToken(res.csrfToken);
-      } else {
-        syncCsrfFromCookie();
-      }
+      // CSRF token rotation is handled internally by createGroup/checkAuthStatus.
       try {
         await userStore.fetchUser();
       } catch {}
-      
+
       emit('close');
       await router.push(`/groups/${activeGroupId.value}/items/all`);
     } else {
@@ -68,7 +63,7 @@ async function submit() {
     }
   } catch (err: unknown) {
     const e = err as { response?: { data?: { error?: string } } };
-    errorMsg.value = e.response?.data?.error || t('global.errors.unknown');
+    errorMsg.value = e.response?.data?.error || 'Unbekannter Fehler';
   } finally {
     submitting.value = false;
   }

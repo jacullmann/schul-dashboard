@@ -1,6 +1,5 @@
 // middleware/userAuth.ts
 import jwt from 'jsonwebtoken';
-import * as db from '../db/db.js';
 import type { Request, Response, NextFunction } from 'express';
 import type { Supabase, AuthUser } from '../types/index.js';
 
@@ -64,9 +63,13 @@ export function clearAuthToken(res: Response): void {
  * Core auth middleware factory.
  *
  * Usage:
- *   requireAuth(secret, supabase)                    → any authenticated, non-banned user
- *   requireAuth(secret, supabase, 'superadmin')      → global superadmin only
- *   requireAuth(secret, supabase, ['admin', 'moderator'])   → tenant-scoped role check (requires x-tenant-id)
+ *   requireAuth(secret, supabase)                           → any authenticated, non-banned user
+ *   requireAuth(secret, supabase, 'superadmin')             → global superadmin only
+ *   requireAuth(secret, supabase, ['admin', 'moderator'])   → tenant-scoped role check
+ *
+ * SECURITY: The active tenant is **always** derived from the verified JWT
+ * (`payload.gId`). We never read `x-tenant-id` from request headers for
+ * regular users. Superadmins may use the header for cross-tenant admin ops.
  *
  * Populates: req.user, req.userId, req.activeGroupId
  */
@@ -112,7 +115,7 @@ export function requireAuth(
         return;
       }
 
-      // Populate user context
+      // Populate user context from verified JWT
       req.user = {
         sub: payload.sub,
         email: payload.email,
@@ -121,7 +124,7 @@ export function requireAuth(
       req.userId = payload.sub;
       req.activeGroupId = payload.gId || null;
 
-      // ── Role checks ──
+      // ── Role checks ──────────────────────────────────────────────────
 
       // 1) Global superadmin check
       if (requiredRole === 'superadmin') {
@@ -135,9 +138,17 @@ export function requireAuth(
 
       // 2) Tenant-scoped role check (e.g. ['admin', 'mod'])
       if (Array.isArray(requiredRole)) {
-        const tenantId =
-          (req.headers['x-tenant-id'] as string | undefined) ||
-          req.activeGroupId;
+        // Tenant ID from JWT. Superadmins may override via header.
+        let tenantId: string | null = req.activeGroupId;
+
+        if (
+          req.user.globalRole === 'superadmin' &&
+          req.headers['x-tenant-id'] &&
+          typeof req.headers['x-tenant-id'] === 'string'
+        ) {
+          tenantId = req.headers['x-tenant-id'];
+        }
+
         if (!tenantId) {
           res.status(403).json({ error: 'Tenant-Kontext fehlt' });
           return;

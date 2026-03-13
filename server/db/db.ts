@@ -673,8 +673,8 @@ export async function getTopCreators(
   const users =
     userIds.length > 0
       ? (throwOnError(
-        await sb.from('users').select('id, email').in('id', userIds),
-      ) as Array<{ id: string; email: string }>)
+          await sb.from('users').select('id, email').in('id', userIds),
+        ) as Array<{ id: string; email: string }>)
       : [];
   const userMap = new Map(users.map((u) => [u.id, u.email]));
 
