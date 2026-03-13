@@ -16,7 +16,7 @@ export class RegisterDto {
   @IsString()
   @Length(8, 255, {
     message:
-      'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
+      'Das Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
   })
   password: string;
 }
