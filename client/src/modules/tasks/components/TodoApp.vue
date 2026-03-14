@@ -269,6 +269,7 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   border-radius: 8px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
 }
 
 .message.error {

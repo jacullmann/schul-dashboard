@@ -307,6 +307,7 @@ input[type="number"],
 select {
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   color: var(--text);
   padding: 10px 12px;
   border-radius: 8px;
@@ -356,6 +357,7 @@ input.disabled {
   width: 20px;
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 4px;
   margin-right: 10px;
   position: relative;
@@ -402,6 +404,7 @@ input.disabled {
 .copy-btn {
   background: transparent;
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   color: var(--sub);
   padding: 4px 10px;
   font-size: 0.8rem;
@@ -418,6 +421,7 @@ input.disabled {
 pre {
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   color: var(--text);
   padding: 12px;
   border-radius: 8px;

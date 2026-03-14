@@ -124,6 +124,7 @@ const goBack = () => {
   padding: 16px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: var(--border-4);
   text-decoration: none;
   transition: all 0.15s ease;

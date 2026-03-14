@@ -292,6 +292,7 @@ onMounted(() => {
   padding: 12px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: var(--border-7);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;

@@ -123,6 +123,7 @@ const {
 .switch-btn {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: var(--border-4);
   width: 38px;
   height: 38px;
@@ -136,6 +137,7 @@ const {
 
 .switch-btn:hover {
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
 }
 
 

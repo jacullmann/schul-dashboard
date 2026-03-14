@@ -114,6 +114,7 @@ import {
   justify-content: center;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: var(--border-4);
   color: var(--text);
 }
