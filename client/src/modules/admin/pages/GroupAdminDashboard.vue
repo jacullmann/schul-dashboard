@@ -470,6 +470,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 .stat-tile {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 18px 16px;
   display: flex;
@@ -514,6 +515,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 .settings-card {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 20px;
   margin-top: 20px;
@@ -572,6 +574,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   padding: 10px 14px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 10px;
   gap: 12px;
 }
@@ -619,6 +622,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 .sub-form-card {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -668,6 +672,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   padding: 10px 14px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 10px;
   gap: 8px;
 }

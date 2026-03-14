@@ -279,6 +279,7 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
   width: 100%;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   color: var(--text);
   padding: 10px 12px 10px 42px;
   font-size: 0.95rem;
@@ -324,6 +325,7 @@ select {
   background: var(--vlbg);
   color: var(--text);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   padding: 10px 12px;
 }
 

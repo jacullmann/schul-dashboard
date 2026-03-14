@@ -406,6 +406,7 @@ onUnmounted(() => {
   padding: 12px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 12px;
 }
 
@@ -584,6 +585,7 @@ onUnmounted(() => {
   padding: 4px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 8px;
 }
 
@@ -645,6 +647,7 @@ onUnmounted(() => {
   text-align: center;
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 12px;
   color: var(--text);
   transition: border-color 0.2s;

@@ -563,6 +563,7 @@ onMounted(() => {
 .stat-card {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 18px 16px;
   text-align: center;
@@ -580,6 +581,7 @@ onMounted(() => {
 .sub-stat {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 10px;
   padding: 12px;
   text-align: center;
@@ -601,7 +603,7 @@ onMounted(() => {
 .cleanup-card .btn { display: inline-flex; align-items: center; gap: 6px; }
 
 /* ─── Table ──────────────────────────────────────────── */
-.table-wrap { overflow-x: auto; border: 1px solid var(--border2); border-radius: 12px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border2); box-shadow: var(--input-shadow); border-radius: 12px; }
 
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th, .data-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -652,6 +654,7 @@ onMounted(() => {
 .report-card {
   background: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   border-radius: 10px;
   padding: 14px 16px;
 }

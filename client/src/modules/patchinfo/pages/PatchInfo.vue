@@ -260,6 +260,7 @@ const backToList = () => {
   width: 100%;
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
+  box-shadow: var(--input-shadow);
   color: var(--text);
   padding: 10px 12px 10px 36px;
   border-radius: 8px;
