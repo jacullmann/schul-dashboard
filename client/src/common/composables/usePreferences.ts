@@ -18,6 +18,7 @@ export function usePreferences() {
         } else if (key === 'language') {
             i18n.global.locale.value = value as SupportedLocale;
             localStorage.setItem(LOCALE_KEY, value);
+            document.documentElement.setAttribute('lang', value);
         }
 
         // Only send to backend if user is logged in
@@ -46,6 +47,7 @@ export function usePreferences() {
         if (preferences.language && preferences.language !== currentLanguage.value) {
              i18n.global.locale.value = preferences.language as SupportedLocale;
              localStorage.setItem(LOCALE_KEY, preferences.language);
+             document.documentElement.setAttribute('lang', preferences.language);
              hasChanges = true;
         }
 
