@@ -2,10 +2,12 @@ import { ref, reactive, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw, { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import { usePreferences } from '@/common/composables/usePreferences';
 
 export function useAuthModal(onLoggedIn: () => void) {
     const { t } = useI18n();
     const { cancelMfaLogin, resetMfaState } = useMfa();
+    const { currentTheme, currentLanguage } = usePreferences();
 
     const tabs = computed(() => [
         { id: 'login', label: t('account.auth.login'), routePath: '' },
@@ -124,7 +126,18 @@ export function useAuthModal(onLoggedIn: () => void) {
         submitting.value = true;
         try {
             if (mode.value === 'register') {
-                await hw.post('/api/auth/register', { email: email.value, password: password.value });
+                const preferences = {
+                    theme: currentTheme.value,
+                    language: currentLanguage.value,
+                    personalized: true
+                };
+
+                await hw.post('/api/auth/register', {
+                    email: email.value,
+                    password: password.value,
+                    preferences
+                });
+
                 message.value = t('account.auth.successRegister');
                 isError.value = false;
             } else {

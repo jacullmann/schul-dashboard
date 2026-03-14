@@ -29,6 +29,42 @@ export class UserService {
     return { ok: true, personalized: updatedUser.personalized };
   }
 
+  async updatePreferences(userId: string, preferences: Record<string, any>) {
+    const sb = this.supabaseService.getClient();
+
+    // Fetch the existing user preferences
+    const { data: user } = await sb
+      .from('users')
+      .select('preferences')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!user) throw new NotFoundException('User not found');
+
+    // Merge incoming preferences with existing preferences
+    const mergedPreferences = {
+      ...(user.preferences || {}),
+      ...preferences,
+    };
+
+    const { data: updatedUser } = await sb
+      .from('users')
+      .update({ preferences: mergedPreferences })
+      .eq('id', userId)
+      .select()
+      .maybeSingle();
+
+    if (!updatedUser) throw new NotFoundException('User not found');
+
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'profile:preferences:update',
+      meta: { preferences },
+    });
+
+    return { ok: true, preferences: updatedUser.preferences };
+  }
+
   async updateSetup(
     userId: string,
     globalRole: string,

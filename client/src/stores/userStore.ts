@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import hw from '@/api/hwApi';
+import { usePreferences } from '@/common/composables/usePreferences';
 
 interface UserData {
     id: string;
@@ -15,6 +16,7 @@ interface UserData {
     personalized: boolean;
     mfaEnabled: boolean;
     tenantRole: string | null;
+    preferences?: Record<string, any>;
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -22,6 +24,9 @@ export const useUserStore = defineStore('user', () => {
     const loading = ref(false);
     const initialized = ref(false);
     const hasShownSetup = ref(false);
+
+    // We defer accessing usePreferences here to avoid circular dependency loops during initialization
+    // by using it directly inside fetchUser
 
     const isLoggedIn = computed(() => user.value !== null);
     const role = computed(() => user.value?.role);
@@ -52,8 +57,16 @@ export const useUserStore = defineStore('user', () => {
                     doneSetup: data.doneSetup,
                     personalized: data.personalized,
                     mfaEnabled: data.mfaEnabled ?? false,
-                    tenantRole: data.tenantRole ?? null
+                    tenantRole: data.tenantRole ?? null,
+                    preferences: data.preferences
                 };
+
+                // Sync preferences if any exist
+                if (data.preferences) {
+                    const { syncFromBackend } = usePreferences();
+                    syncFromBackend(data.preferences);
+                }
+
             } else {
                 user.value = null;
             }

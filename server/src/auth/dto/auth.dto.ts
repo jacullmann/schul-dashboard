@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Length, Matches } from 'class-validator';
+import { IsEmail, IsString, Length, Matches, IsOptional } from 'class-validator';
 
 export class LoginDto {
   @IsEmail({}, { message: 'Ungültige Zugangsdaten' })
@@ -19,6 +19,9 @@ export class RegisterDto {
       'Das Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
   })
   password: string;
+
+  @IsOptional()
+  preferences?: Record<string, any>;
 }
 
 export class VerifyMfaDto {

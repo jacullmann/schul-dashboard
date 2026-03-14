@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
+import { usePreferences } from '@/common/composables/usePreferences';
 import { Sun, Moon, SunMoon } from 'lucide-vue-next';
 import MenuDropdown, { type MenuOption } from '@/common/components/MenuDropdown.vue';
 import { useI18n} from "vue-i18n";
@@ -13,16 +13,16 @@ const themeOptions = computed<MenuOption[]>(() => [
   { value: 'light', label: t('global.theme.light'), icon: Sun }
 ]);
 
-const { selectedThemeMode, applyTheme } = useTheme();
+const { currentTheme, setPreference } = usePreferences();
 
 function updateTheme(mode: string) {
-  applyTheme(mode as ThemeMode);
+  setPreference('theme', mode);
 }
 </script>
 
 <template>
   <MenuDropdown
-      :model-value="selectedThemeMode"
+      :model-value="currentTheme"
       :options="themeOptions"
       :prefix="t('global.theme.theme') + ':'"
       @update:model-value="updateTheme"

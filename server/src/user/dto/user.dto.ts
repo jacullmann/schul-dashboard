@@ -34,3 +34,16 @@ export class VisibilityStatusDto {
   @IsIn(['archived', 'kept'])
   status: string;
 }
+
+export class UpdatePreferencesDto {
+  @IsOptional()
+  @IsIn(['system', 'light', 'dark'])
+  theme?: string;
+
+  @IsOptional()
+  @IsIn(['de', 'en'])
+  language?: string;
+
+  @IsOptional()
+  personalized?: string | boolean;
+}

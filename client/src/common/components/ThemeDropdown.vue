@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useTheme, type ThemeMode } from '@/common/composables/useTheme';
+import { usePreferences } from '@/common/composables/usePreferences';
 import SelectDropdown, { type UnitOption } from '@/common/components/SelectDropdown.vue';
 import { useI18n} from "vue-i18n";
 
@@ -12,16 +12,16 @@ const themeOptions = computed<UnitOption[]>(() => [
   { value: 'light', label: t('global.theme.light') }
 ]);
 
-const { selectedThemeMode, applyTheme } = useTheme();
+const { currentTheme, setPreference } = usePreferences();
 
 function updateTheme(mode: string) {
-  applyTheme(mode as ThemeMode);
+  setPreference('theme', mode);
 }
 </script>
 
 <template>
   <SelectDropdown
-      :model-value="selectedThemeMode"
+      :model-value="currentTheme"
       :options="themeOptions"
       @update:model-value="updateTheme"
   />
