@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useLocale } from '@/common/composables/useLocale';
-import type { SupportedLocale } from '@/i18n';
+import { usePreferences } from '@/common/composables/usePreferences';
 import { Languages } from 'lucide-vue-next';
 import MenuDropdown, { type MenuOption } from '@/common/components/MenuDropdown.vue';
 import { useI18n } from 'vue-i18n';
@@ -12,16 +11,16 @@ const localeOptions: MenuOption[] = [
   { value: 'en', label: 'English', icon: Languages },
 ];
 
-const { locale, setLocale } = useLocale();
+const { currentLanguage, setPreference } = usePreferences();
 
 function updateLocale(loc: string) {
-  setLocale(loc as SupportedLocale);
+  setPreference('language', loc);
 }
 </script>
 
 <template>
   <MenuDropdown
-      :model-value="locale"
+      :model-value="currentLanguage"
       :options="localeOptions"
       :prefix="t('global.language') + ':'"
       @update:model-value="updateLocale"

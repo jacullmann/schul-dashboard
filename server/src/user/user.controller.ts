@@ -23,6 +23,7 @@ import {
   UpdatePersonalizationDto,
   UpdateSetupDto,
   VisibilityStatusDto,
+  UpdatePreferencesDto,
 } from './dto/user.dto';
 
 @UseGuards(JwtAuthGuard)
@@ -36,6 +37,14 @@ export class UserController {
     @Body() body: UpdatePersonalizationDto,
   ) {
     return this.userService.updatePersonalization(userId, body.personalized);
+  }
+
+  @Patch('preferences')
+  updatePreferences(
+    @CurrentUserId() userId: string,
+    @Body() body: UpdatePreferencesDto,
+  ) {
+    return this.userService.updatePreferences(userId, body);
   }
 
   @Patch('setup')

@@ -248,7 +248,7 @@ export class AuthService {
     return { ok: true };
   }
 
-  async register(email: string, password: string) {
+  async register(email: string, password: string, preferences?: Record<string, any>) {
     if (isWeakPassword(password)) {
       throw new BadRequestException(
         'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
@@ -266,12 +266,18 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
+
+    // Set default preferences and merge with user-provided preferences
+    const defaultPreferences = { theme: "system", language: "de", personalized: "true" };
+    const mergedPreferences = { ...defaultPreferences, ...(preferences || {}) };
+
     const { data: user, error } = await sb
       .from('users')
       .insert({
         email: email.toLowerCase(),
         password_hash: passwordHash,
         email_verified: false,
+        preferences: mergedPreferences,
       })
       .select()
       .single();
@@ -345,6 +351,7 @@ export class AuthService {
       doneSetup: !!user.done_setup,
       personalized: user.personalized !== false,
       mfaEnabled: !!user.mfa_enabled,
+      preferences: user.preferences,
     };
   }
 
