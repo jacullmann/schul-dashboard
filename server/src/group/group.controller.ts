@@ -8,6 +8,7 @@ import {
   Ip,
   Headers,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -22,6 +23,7 @@ export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
   @Post('join')
+  @HttpCode(200)
   joinGroup(
     @CurrentUser() user: AuthUser,
     @Body() body: JoinGroupDto,
@@ -42,6 +44,7 @@ export class GroupController {
   }
 
   @Post('create')
+  @HttpCode(200)
   createGroup(
     @CurrentUser() user: AuthUser,
     @Body() body: CreateGroupDto,
@@ -69,6 +72,7 @@ export class GroupController {
   }
 
   @Post('switch')
+  @HttpCode(200)
   switchGroup(
     @CurrentUser() user: AuthUser,
     @Body() body: SwitchGroupDto,
@@ -84,6 +88,7 @@ export class GroupController {
   }
 
   @Post('logout')
+  @HttpCode(200)
   logout(
     @Res({ passthrough: true }) res: Response,
     @Ip() ip: string,

@@ -131,7 +131,7 @@ export function useAppAuth() {
                 groupName: name,
                 password,
             });
-            if (status === 200 && data.ok) {
+            if ((status === 200 || status === 201) && data.ok) {
                 if (data.csrfToken) setCsrfToken(data.csrfToken);
                 // Full server sync — the JWT now encodes the new active tenant.
                 await checkAuthStatus();
@@ -150,7 +150,7 @@ export function useAppAuth() {
                 groupName: name,
                 password,
             });
-            if (status === 200 && data.ok) {
+            if ((status === 200 || status === 201) && data.ok) {
                 if (data.csrfToken) setCsrfToken(data.csrfToken);
                 await checkAuthStatus();
                 return { ok: true };
@@ -185,7 +185,7 @@ export function useAppAuth() {
             try {
                 const { status, data } = await hw.post('/api/groups/switch', { groupId });
 
-                if (status === 200 && data.ok) {
+                if ((status === 200 || status === 201) && data.ok) {
                     if (data.csrfToken) setCsrfToken(data.csrfToken);
                     // Canonical server sync — updates groupName, userGroups, etc.
                     await checkAuthStatus();

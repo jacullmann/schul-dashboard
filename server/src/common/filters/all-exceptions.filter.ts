@@ -33,15 +33,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       ) {
         // If it comes from our custom ValidationPipe, it's mapped to { error, errors }
         if (
-          'error' in exceptionResponse &&
-          typeof exceptionResponse.error === 'string'
-        ) {
-          message = exceptionResponse.error;
-        } else if (
           'message' in exceptionResponse &&
           typeof exceptionResponse.message === 'string'
         ) {
           message = exceptionResponse.message;
+        } else if (
+          'error' in exceptionResponse &&
+          typeof exceptionResponse.error === 'string'
+        ) {
+          message = exceptionResponse.error;
         }
 
         if ('errors' in exceptionResponse) {
