@@ -1,20 +1,18 @@
-# Schul Dashboard
+# schul-dashboard
 
-A web-based school platform where students manage homework, view timetables, and organize in groups.
+A free web-based platform where students can manage homework, view schedules, and organize in groups.
 
 ---
 
 ## Core Features
 
-**Tasks** — Create and track homework, Dalton tasks, and exams with due dates, images, and status indicators. Pin important items, archive completed ones, or report inappropriate content.
+**Tasks** — Create and track homework, tasks, and exams with due dates, images, and status indicators. Pin important items, archive completed ones, or report inappropriate content.
 
-**Timetable** — View your class schedule with substitution plans. Optionally personalize it by selecting your WPU courses, enrichment, and theater preferences.
+**Timetable** — View your class schedule with substitution plans. Optionally personalize it by selecting the courses you take.
 
 **Groups** — Every class or study group gets its own space. Join with a group name and password, or create your own. Switch between multiple groups seamlessly.
 
-**Private Todos** — Encrypted personal notes and to-dos that only you can see. Drag-and-drop sorting included.
-
-**Sorgenbox** — Submit anonymous concerns or feedback.
+**Private To-dos** — Encrypted personal notes and to-dos that only you can see. Progress tracking and drag-and-drop sorting included.
 
 **Admin Tools** — Group admins manage substitutions, announcements, and cleanup. Superadmins have global access to user management, reports, statistics, and a collaborative shared document.
 
@@ -22,7 +20,7 @@ A web-based school platform where students manage homework, view timetables, and
 
 ## Additional Tools
 
-Kürzelfinder (teacher abbreviation lookup), Dalton room finder, image editor, AI text detector, brain training games, and more.
+Image editor, mental tests, info dashboard and more.
 
 ---
 
@@ -30,8 +28,8 @@ Kürzelfinder (teacher abbreviation lookup), Dalton room finder, image editor, A
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Vue.js 3, TypeScript, Pinia, Vue Router |
-| Backend | Node.js, Express.js |
+| Frontend | Vue.js 3, TypeScript, Pinia, Vue Router, Tailwind CSS, Vite |
+| Backend | Node.js, NestJS |
 | Database | PostgreSQL via Supabase |
 | Auth | JWT (HttpOnly cookies), bcrypt, TOTP |
 | Encryption | AES-256-GCM with scrypt |
