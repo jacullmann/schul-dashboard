@@ -18,7 +18,7 @@ export class UserService {
       .select()
       .maybeSingle();
 
-    if (!updatedUser) throw new NotFoundException('Nutzer nicht gefunden');
+    if (!updatedUser) throw new NotFoundException('User not found');
 
     await sb.from('user_activity').insert({
       user_id: userId,
