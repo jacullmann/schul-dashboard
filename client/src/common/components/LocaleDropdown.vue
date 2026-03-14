@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useLocale } from '@/common/composables/useLocale';
-import type { SupportedLocale } from '@/i18n';
+import { usePreferences } from '@/common/composables/usePreferences';
 import SelectDropdown, { type UnitOption } from '@/common/components/SelectDropdown.vue';
 
 const localeOptions: UnitOption[] = [
@@ -8,16 +7,16 @@ const localeOptions: UnitOption[] = [
   { value: 'en', label: 'English' },
 ];
 
-const { locale, setLocale } = useLocale();
+const { currentLanguage, setPreference } = usePreferences();
 
 function updateLocale(loc: string) {
-  setLocale(loc as SupportedLocale);
+  setPreference('language', loc);
 }
 </script>
 
 <template>
   <SelectDropdown
-      :model-value="locale"
+      :model-value="currentLanguage"
       :options="localeOptions"
       @update:model-value="updateLocale"
   />

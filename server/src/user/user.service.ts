@@ -42,14 +42,17 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
 
     // Parse existing preferences safely, accounting for stringified JSON or objects
-    let currentPrefs = {};
+    // Fall back to schema defaults if the user has a null/empty preferences column
+    const defaultPreferences = { theme: 'system', language: 'de', personalized: 'true' };
+    let currentPrefs: Record<string, any> = { ...defaultPreferences };
+
     if (user.preferences) {
       if (typeof user.preferences === 'string') {
         try {
-          currentPrefs = JSON.parse(user.preferences);
+          currentPrefs = { ...currentPrefs, ...JSON.parse(user.preferences) };
         } catch (e) {}
       } else if (typeof user.preferences === 'object') {
-        currentPrefs = user.preferences;
+        currentPrefs = { ...currentPrefs, ...user.preferences };
       }
     }
 
