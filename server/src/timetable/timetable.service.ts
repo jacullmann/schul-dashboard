@@ -10,14 +10,19 @@ export class TimetableService {
     const sb = this.supabaseService.getClient();
     try {
       const { data: lessons } = await sb
-        .from('timetable_lessons')
+        .from('timetables')
         .select(
           `
-          id, day, slot, duration, room, course_id,
-          subjects(id, name),
-          courses(id, name),
-          persons(id)
-        `,
+                id,
+                day,
+                slot,
+                duration,
+                room,
+                course_id,
+                persons ( id, name, title, short ),
+                subjects ( id, name ),
+                courses ( id, name )
+            `,
         )
         .eq('tenant_id', tenantId);
 

@@ -29,7 +29,6 @@ const year = new Date().getFullYear();
           <h3>Navigation</h3>
           <router-link to="/home" class="footer-link">{{ t('global.footer.home') }}</router-link>
           <router-link to="/todos" class="footer-link">{{ t('school.private.title') }}</router-link>
-          <router-link to="/sorgenbox" class="footer-link">{{ t('tools.worrybox.title') }}</router-link>
           <router-link to="/update-history" class="footer-link">Update History</router-link>
           <router-link to="/info-dashboard" class="footer-link">{{ t('info.dashboard.title') }}</router-link>
           <router-link to="/spiele" class="footer-link">Spiele</router-link>
