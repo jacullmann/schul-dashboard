@@ -89,7 +89,7 @@ export function useAppAuth() {
             for (let attempt = 1; attempt <= MAX_CSRF_RETRIES; attempt++) {
                 try {
                     const { data } = await axios.get(
-                        `${baseUrl || ''}/api/csrf/init`,
+                        `${baseUrl || ''}/api/system/csrf/init`,
                         { withCredentials: true },
                     );
                     if (data.csrfToken) {

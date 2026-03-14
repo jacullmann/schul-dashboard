@@ -77,7 +77,7 @@ async function refreshCsrfToken(): Promise<void> {
                 typeof import.meta !== 'undefined' && import.meta.env
                     ? import.meta.env.VITE_HW_API_BASE
                     : '';
-            const { data } = await axios.get(`${baseUrl || ''}/api/csrf/init`, {
+            const { data } = await axios.get(`${baseUrl || ''}/api/system/csrf/init`, {
                 withCredentials: true,
             });
             if (data.csrfToken) {
