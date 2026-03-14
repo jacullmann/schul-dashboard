@@ -41,10 +41,30 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found');
 
+    // Parse existing preferences safely, accounting for stringified JSON or objects
+    let currentPrefs = {};
+    if (user.preferences) {
+      if (typeof user.preferences === 'string') {
+        try {
+          currentPrefs = JSON.parse(user.preferences);
+        } catch (e) {}
+      } else if (typeof user.preferences === 'object') {
+        currentPrefs = user.preferences;
+      }
+    }
+
+    // Clean incoming preferences to remove undefined keys
+    const newPrefs = { ...preferences };
+    Object.keys(newPrefs).forEach((key) => {
+      if (newPrefs[key] === undefined) {
+        delete newPrefs[key];
+      }
+    });
+
     // Merge incoming preferences with existing preferences
     const mergedPreferences = {
-      ...(user.preferences || {}),
-      ...preferences,
+      ...currentPrefs,
+      ...newPrefs,
     };
 
     const { data: updatedUser } = await sb
