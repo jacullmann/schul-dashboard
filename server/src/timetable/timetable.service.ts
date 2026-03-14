@@ -100,7 +100,7 @@ export class TimetableService {
     try {
       const { data } = await sb
         .from('subjects')
-        .select('id, name, short')
+        .select('id, name')
         .eq('tenant_id', tenantId)
         .order('name');
       return data || [];
@@ -114,7 +114,7 @@ export class TimetableService {
     try {
       const { data } = await sb
         .from('persons')
-        .select('id, name, short, title, person_subjects')
+        .select('id, name, short, title')
         .eq('tenant_id', tenantId)
         .order('name');
       return (data || []).map((p) => ({
@@ -122,7 +122,6 @@ export class TimetableService {
         name: p.name,
         short: p.short,
         title: p.title,
-        personSubjects: p.person_subjects,
       }));
     } catch {
       throw new InternalServerErrorException('Fehler beim Laden der Personen');

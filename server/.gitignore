@@ -1,20 +1,16 @@
 # Compiled output
 /dist
 /build
+*.tsbuildinfo
 
 # Dependencies
 /node_modules
 
-# IDE & editors
+# IDE & Editors
 /.idea
 /.vscode
 *.swp
 *.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
 
 # Environment variables
 .env
@@ -24,14 +20,7 @@ Thumbs.db
 # Logs
 logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
 
 # Testing
 /coverage
 /.nyc_output
-
-# Misc
-*.tsbuildinfo

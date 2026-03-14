@@ -87,7 +87,6 @@ export class GroupService {
       event_status: isAuthenticated ? 'success' : 'failure',
       ip_address: ip,
       user_agent: ua,
-      user_id: userId,
       metadata: { groupName, groupId: group?.id || null, userId },
     });
 
@@ -141,7 +140,6 @@ export class GroupService {
         event_status: 'failure',
         ip_address: ip,
         user_agent: ua,
-        user_id: userId,
         metadata: { groupName },
       });
       throw new ConflictException('Dieser Gruppenname ist bereits vergeben.');
@@ -174,7 +172,6 @@ export class GroupService {
       event_status: 'success',
       ip_address: ip,
       user_agent: ua,
-      user_id: userId,
       metadata: {
         groupName: newGroup.name,
         groupId: newGroup.id,

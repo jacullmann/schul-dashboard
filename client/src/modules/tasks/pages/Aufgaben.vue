@@ -171,7 +171,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
 function handleArchiveFromMenu(item: HwItem) {
   openMenuId.value = null;
   dismissedItems.value.add(item.id);
-  const cutoffIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const cutoffIso = new Date().toISOString();
   toggleVisibility(item, showOldEntries.value, cutoffIso);
 }
 </script>

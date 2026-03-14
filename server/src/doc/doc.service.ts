@@ -65,7 +65,7 @@ export class DocService {
     if (this.loaded) return;
     const sb = this.supabaseService.getClient();
     try {
-      const { data } = await sb.from('shared_doc').select('*').maybeSingle();
+      const { data } = await sb.from('admin_shared_doc').select('*').maybeSingle();
       if (data) {
         this.docState = {
           content: data.content ?? '',
@@ -74,8 +74,8 @@ export class DocService {
           lastEditedAt: data.last_edited_at,
         };
       } else {
-        await sb.from('shared_doc').upsert({
-          id: 'singleton',
+        await sb.from('admin_shared_doc').upsert({
+          id: 1,
           content: '',
           version: 0,
           last_edited_by: null,
@@ -91,8 +91,8 @@ export class DocService {
   async persistToDb(): Promise<void> {
     const sb = this.supabaseService.getClient();
     try {
-      await sb.from('shared_doc').upsert({
-        id: 'singleton',
+      await sb.from('admin_shared_doc').upsert({
+        id: 1,
         content: this.docState.content,
         version: this.docState.version,
         last_edited_by: this.docState.lastEditedBy,
