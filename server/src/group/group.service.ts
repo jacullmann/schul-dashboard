@@ -93,13 +93,15 @@ export class GroupService {
     if (!isAuthenticated)
       throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
 
-    const { data: existingRole } = await sb
+    const { data: existingRoles } = await sb
       .from('user_roles')
       .select('id')
       .eq('user_id', userId)
       .eq('role_id', 4) // 'user' role
       .eq('tenant_id', group.id)
-      .maybeSingle();
+      .limit(1);
+
+    const existingRole = existingRoles?.[0];
 
     if (!existingRole) {
       const { error } = await sb
@@ -227,12 +229,29 @@ export class GroupService {
     res: Response,
   ) {
     const sb = this.supabaseService.getClient();
-    const { data: membership } = await sb
+
+    if (globalRole === 'superadmin') {
+      const { data: group } = await sb
+        .from('groups')
+        .select('id, name')
+        .eq('id', groupId)
+        .maybeSingle();
+
+      if (!group) throw new NotFoundException('Gruppe nicht gefunden.');
+
+      this.setAuthToken(res, userId, email, globalRole, group.id);
+      const newCsrfToken = rotateCsrfToken(res);
+      return { ok: true, csrfToken: newCsrfToken };
+    }
+
+    const { data: memberships } = await sb
       .from('user_roles')
       .select('tenant_id, groups(id, name)')
       .eq('user_id', userId)
       .eq('tenant_id', groupId)
-      .maybeSingle();
+      .limit(1);
+
+    const membership = memberships?.[0];
 
     if (!(membership as any)?.groups) {
       throw new ForbiddenException('Zugriff auf diese Gruppe nicht erlaubt.');

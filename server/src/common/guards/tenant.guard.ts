@@ -33,13 +33,14 @@ export class TenantGuard implements CanActivate {
     }
 
     const sb = this.supabaseService.getClient();
-    const { data: membership } = await sb
+    const { data: memberships } = await sb
       .from('user_roles')
       .select('roles(name)')
       .eq('user_id', request.userId)
       .eq('tenant_id', tenantId)
-      .maybeSingle();
+      .limit(1);
 
+    const membership = memberships?.[0];
     const roleName = (membership as any)?.roles?.name;
 
     if (!membership || !roleName) {

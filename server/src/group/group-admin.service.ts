@@ -84,12 +84,14 @@ export class GroupAdminService {
     if (!roleId) throw new BadRequestException('Ungültige Rolle');
 
     const sb = this.supabaseService.getClient();
-    const { data: existing } = await sb
+    const { data: existings } = await sb
       .from('user_roles')
       .select('id, role_id')
       .eq('user_id', targetUserId)
       .eq('tenant_id', tenantId)
-      .maybeSingle();
+      .limit(1);
+
+    const existing = existings?.[0];
 
     if (!existing)
       throw new NotFoundException('Nutzer ist kein Mitglied dieser Gruppe');
@@ -116,12 +118,14 @@ export class GroupAdminService {
       throw new BadRequestException('Du kannst dich nicht selbst entfernen.');
 
     const sb = this.supabaseService.getClient();
-    const { data: targetRole } = await sb
+    const { data: targetRoles } = await sb
       .from('user_roles')
       .select('id, roles(name)')
       .eq('user_id', targetUserId)
       .eq('tenant_id', tenantId)
-      .maybeSingle();
+      .limit(1);
+
+    const targetRole = targetRoles?.[0];
 
     if (!targetRole)
       throw new NotFoundException('Nutzer ist kein Mitglied dieser Gruppe');

@@ -55,20 +55,28 @@ export class ItemsService {
     }
 
     if (filter === 'old') {
-      const conds = [`due_date.lt.${cutoff}`];
-      if (archived.length > 0) conds.push(`id.in.(${archived.join(',')})`);
-      q = q.or(conds.join(','));
+      if (archived.length > 0) {
+        q = q.or(`due_date.lt.${cutoff},id.in.(${archived.join(',')})`);
+      } else {
+        q = q.lt('due_date', cutoff);
+      }
       if (kept.length > 0) q = q.not('id', 'in', `(${kept.join(',')})`);
       q = q.order('due_date', { ascending: false });
     } else {
-      const conds = [`due_date.gte.${cutoff}`];
-      if (kept.length > 0) conds.push(`id.in.(${kept.join(',')})`);
-      q = q.or(conds.join(','));
+      if (kept.length > 0) {
+        q = q.or(`due_date.gte.${cutoff},id.in.(${kept.join(',')})`);
+      } else {
+        q = q.gte('due_date', cutoff);
+      }
       if (archived.length > 0) q = q.not('id', 'in', `(${archived.join(',')})`);
       q = q.order('due_date', { ascending: true });
     }
 
-    const { data: rows } = await q.limit(100);
+    const { data: rows, error } = await q.limit(100);
+
+    if (error) {
+      console.error('Supabase getItems error:', error);
+    }
 
     return (rows || []).map((row: any) => ({
       id: row.id,
