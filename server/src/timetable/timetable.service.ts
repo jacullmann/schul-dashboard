@@ -100,7 +100,7 @@ export class TimetableService {
     try {
       const { data } = await sb
         .from('subjects')
-        .select('id, name')
+        .select('id, name, is_active, courses(id, name)')
         .eq('tenant_id', tenantId)
         .order('name');
       return data || [];
