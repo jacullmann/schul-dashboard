@@ -60,7 +60,7 @@ onMounted(() => {
   border: 1px solid var(--border2);
   border-radius: 16px;
   background: var(--vlbg);
-  box-shadow: var(--shadow-l);
+  box-shadow: var(--menu-shadow);
   z-index: 1200;
   padding: 0;
   transition: all 0.3s ease;
@@ -107,7 +107,7 @@ onMounted(() => {
     transform: translateX(-50%);
     width: calc(100% - 32px);
     bottom: 20px;
-    box-shadow: var(--shadow-l);
+    box-shadow: var(--menu-shadow);
   }
 
   .cookie-actions {

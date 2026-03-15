@@ -106,7 +106,7 @@ watch(() => props.show, (newVal) => {
   width: 90%;
   text-align: left;
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-l);
+  box-shadow: var(--menu-shadow);
 }
 
 .tab-navigation {

@@ -513,7 +513,7 @@ onUnmounted(() => {
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
-    box-shadow: var(--shadow-s);
+    box-shadow: var(--menu-shadow);
     border-left: 1px solid var(--border);
     gap: 0;
   }

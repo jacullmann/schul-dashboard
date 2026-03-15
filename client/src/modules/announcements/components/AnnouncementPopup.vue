@@ -83,7 +83,7 @@ function close() {
   max-width: 500px;
   max-height: 80vh;
   overflow: hidden;
-  box-shadow: var(--shadow-l);
+  box-shadow: var(--menu-shadow);
 }
 
 .popup-header {

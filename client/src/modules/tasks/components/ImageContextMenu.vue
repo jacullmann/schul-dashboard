@@ -75,16 +75,16 @@ onBeforeUnmount(() => {
       :style="styleObject"
       @click.stop
   >
-    <div class="img-menu open">
+    <div class="menu open">
       <button class="menu-btn" @click="emit('upload')">
-        <div class="fixall">
+        <div class="menu-btn-content">
           <Upload />
           Bild hochladen
         </div>
       </button>
 
       <button v-if="canDelete" class="menu-btn danger" @click="emit('delete')">
-        <div class="fixall">
+        <div class="menu-btn-content">
           <Trash2 />
           Löschen
         </div>
@@ -99,57 +99,6 @@ onBeforeUnmount(() => {
   position: fixed;
   z-index: 10001;
   min-width: 180px;
-}
-
-.img-menu {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding:4px;
-  flex-direction: column;
-  display: flex;
-  gap: 4px;
-  box-shadow: var(--shadow-s);
-}
-
-.menu-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--text);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: var(--font-size-sub);
-  transition: background 0.2s ease;
-}
-
-.menu-btn .fixall {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-}
-
-.menu-btn .fixall svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0
-}
-
-.menu-btn:hover {
-  background: var(--gg);
-}
-
-.menu-btn.danger {
-  color: var(--special--red);
-  fill:  var(--special--red);
-}
-
-.menu-btn.danger:hover {
-  background: var(--special--red--background);
 }
 
 .menu-backdrop {

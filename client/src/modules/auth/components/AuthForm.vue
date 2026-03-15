@@ -189,7 +189,6 @@ const {
   background: var(--bg);
   padding: 16px;
   border-radius: var(--border-7);
-  box-shadow: var(--menu-shadow);
 }
 
 .auth-header {

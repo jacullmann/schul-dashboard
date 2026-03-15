@@ -205,7 +205,7 @@ async function onPrimary() {
   background: var(--lbg);
   color: var(--text);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-l);
+  box-shadow: var(--menu-shadow);
 }
 
 .small { font-size:13px; }

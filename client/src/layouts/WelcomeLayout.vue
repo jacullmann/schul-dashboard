@@ -11,6 +11,7 @@ import WelcomeFooter from '@/modules/welcome/components/WelcomeFooter.vue';
 
     <main class="full-c">
       <div class="bg"></div>
+      <div class="hero-bg"></div>
 
       <div class="main-container">
         <router-view />
@@ -35,7 +36,7 @@ import WelcomeFooter from '@/modules/welcome/components/WelcomeFooter.vue';
 
 .header-container {
   width: 100%;
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--menu-shadow);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -55,5 +56,33 @@ import WelcomeFooter from '@/modules/welcome/components/WelcomeFooter.vue';
   padding: 0 16px;
   box-sizing: border-box;
   flex-direction: column;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 95vh;
+  background-image: url('/background_image_v2.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (max-width: 1200px) {
+  .hero-bg {
+    display: none;
+    max-height: 730px;
+  }
+}
+</style>
+
+<style>
+:root.light .hero-bg,
+:root.light-glass .hero-bg {
+  display: none !important;
 }
 </style>

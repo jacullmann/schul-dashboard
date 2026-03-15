@@ -62,14 +62,14 @@
     --font-size-h3: 1.25rem;
     --font-size-h2: 1.5rem;
     --font-size-h1: 2rem;
-    --shadow-s: 0 4px 20px rgba(0, 0, 0, 0.5);
-    --shadow-l: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
     --input-shadow: none;
     --menu-shadow: 0 4px 6px -1px #0000001a;
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
     --skeleton-base: #282828;
     --nav-hover: #b3b3b3;
     --danger-hover: #ff6666;
+    --focus-shadow: 0 0 0 3px #414141;
+    --focus-border: #aaa;
 }
 
 :root.light {
@@ -85,12 +85,12 @@
     --action-hover: #0f0f0f;
     --not-spinning: #bbb;
     --color--white: #000;
-    --shadow-s: none;
-    --shadow-l: none;
     --skeleton-base: #eee;
     --nav-hover: #555;
     --input-shadow: 0 1px 2px 0 #0000000d;
     --menu-shadow: 0 4px 6px -1px #0000001a;
+    --focus-shadow: 0 0 0 3px #ddd;
+    --focus-border: #888;
 }
 
 :root.dark-glass {
@@ -194,11 +194,17 @@ h5 {
         border: 1px solid var(--border2);
         outline: none;
         box-shadow: var(--input-shadow);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .input.hover:hover {
         background: var(--ghost--hover);
         cursor: pointer;
+    }
+
+    .input:focus {
+        border-color: var(--focus-border);
+        box-shadow: var(--focus-shadow);
     }
 
     label {
@@ -449,6 +455,7 @@ footer {
     height: 100%;
     background-color: var(--bg);
     z-index: -2;
+    pointer-events: none;
 }
 
 footer {
