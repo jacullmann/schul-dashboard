@@ -4,6 +4,7 @@ import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrim
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
 import Checkbox from "@/common/components/Checkbox.vue";
+import { Pin } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -50,6 +51,11 @@ function navigateToAuth() {
           <ItemCard>
             <template #checkbox>
               <Checkbox :checked="true" />
+            </template>
+            <template #actions-pre>
+              <button type="button" class="unpin-trigger">
+                <Pin :size="18" fill="currentColor" class="pinned" />
+              </button>
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[0].title') }}</h3>
@@ -176,6 +182,38 @@ function navigateToAuth() {
   min-height: 30px;
 }
 
+.unpin-trigger {
+  background: transparent;
+  color: var(--sub);
+  padding: 8px;
+  border-radius: var(--border-5);
+  display: inline-flex;
+  margin: -8px;
+  margin-right: 4px;
+  transition: 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.unpin-trigger:hover {
+  background: var(--gg);
+  color: var(--text);
+}
+
+.lucide-pin {
+  overflow: visible !important;
+}
+
+.pinned :deep(path:last-child) {
+  transform: translateY(0) scaleY(1);
+  transition: 0.1s ease;
+  transform-origin: bottom;
+}
+
+.unpin-trigger:hover .pinned :deep(path:last-child) {
+  transform: translateY(-8%) scaleY(1);
+}
+
 .item-card-vanishing::before {
   content: "";
   border-radius: var(--border-7) var(--border-7) 0 0;
@@ -298,13 +336,25 @@ function navigateToAuth() {
   }
 }
 
+@media (max-width: 768px) {
+  .headline-serif, .headline-sans {
+    font-size: 85px;
+  }
+}
+
+@media (max-width: 660px) {
+  .headline-serif, .headline-sans {
+    font-size: 75px;
+  }
+}
+
 @media (max-width: 576px) {
   .only-desktop {
     display: none;
   }
 
   .headline-serif, .headline-sans {
-    font-size: 75px;
+    font-size: 65px;
   }
 
   .headline-serif {
@@ -317,22 +367,45 @@ function navigateToAuth() {
   }
 }
 
-@media (max-width: 368px) {
+@media (max-width: 500px) {
   .headline-serif, .headline-sans {
-    font-size: 65px;
+    font-size: 55px;
   }
 }
 
-@media (max-width: 324px) {
+@media (max-width: 432px) {
   .headline-serif, .headline-sans {
-    font-size: 60px
+    font-size: 50px;
   }
 }
 
-@media (max-width: 300px) {
+@media (max-width: 400px) {
   .headline-serif, .headline-sans {
-    font-size: 50px
+    font-size: 45px;
   }
 }
 
+@media (max-width: 360px) {
+  .headline-serif, .headline-sans {
+    font-size: 42px;
+  }
+}
+
+@media (max-width: 340px) {
+  .headline-serif, .headline-sans {
+    font-size: 40px
+  }
+}
+
+@media (max-width: 326px) {
+  .headline-serif, .headline-sans {
+    font-size: 38px
+  }
+}
+
+@media (max-width: 312px) {
+  .headline-serif, .headline-sans {
+    font-size: 36px
+  }
+}
 </style>
