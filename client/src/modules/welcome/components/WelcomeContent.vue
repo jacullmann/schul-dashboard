@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Line from './Line.vue'
+// import Line from './Line.vue'
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
@@ -25,6 +25,25 @@ function navigateToAuth() {
 
 <template>
   <div class="welcome-section">
+    <div class="text-content">
+      <h1 class="headline-serif">{{ t('welcome.hero.headlineSerif') }}</h1>
+      <h1 class="headline-sans" v-html="t('welcome.hero.headlineSans')" />
+      <p class="subline">
+        {{ t('welcome.hero.subline') }}
+        <span class="free">
+          <span class="line-span">
+            {{ t('welcome.hero.sublineHighlight') }}
+            <!--<Line class="line" />--->
+          </span>
+        </span>.
+      </p>
+
+      <div class="action-buttons">
+        <WelcomeButtonPrimary @click="navigateToAuth"/>
+        <WelcomeButtonSecondary @click="onMoreInfoClick" />
+      </div>
+    </div>
+
     <div class="visual-container">
       <div class="example-wrapper">
         <div class="example-dashboard">
@@ -75,24 +94,6 @@ function navigateToAuth() {
         </div>
       </div>
     </div>
-
-    <div class="text-content">
-      <h1 class="headline">{{ t('welcome.hero.headline') }}</h1>
-      <p class="subline">
-        {{ t('welcome.hero.subline') }}
-        <span class="free">
-          <span class="line-span">
-            {{ t('welcome.hero.sublineHighlight') }}
-            <Line class="line" />
-          </span>
-        </span>.
-      </p>
-
-      <div class="action-buttons">
-        <WelcomeButtonSecondary class="btn ghost action-btn" @click="onMoreInfoClick" />
-        <WelcomeButtonPrimary @click="navigateToAuth" class="btn action action-btn"/>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -112,18 +113,18 @@ function navigateToAuth() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  max-width: 1400px;
+  max-width: 1600px;
   width: 100%;
   margin: 0 auto;
   min-height: calc(100vh - 70px - 50px - 2rem);
-  gap: 0;
-  padding: 40px 0;
+  gap: 32px;
+  padding: 64px;
 }
 
 .visual-container {
   flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content: right;
   width:100%;
 }
 
@@ -198,22 +199,39 @@ function navigateToAuth() {
   color: var(--text);
 }
 
-.headline {
-  font-size: 7rem;
-  font-weight: 600;
+.headline-serif {
+  font-size: 6rem;
+  font-weight: 500;
   line-height: 1.1;
-  margin-bottom: 16px;
-  letter-spacing: -0.01em;
-  text-align: right;
+  margin-bottom: 0;
+  letter-spacing: -0.02em;
+  text-align: left;
+  font-family: 'Georgia', serif;
+}
+
+.headline-sans {
+  font-size: 6rem;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 0;
+  text-align: left;
+  font-family: var(--normal-font), sans-serif;
+}
+
+:deep(b) {
+  background: linear-gradient(116deg, #ffa91a 8%, #ff335a 38%, #af00ff 69%, #5600ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .subline {
   font-size: 1.25rem;
   line-height: 1.6;
   margin-bottom: 32px;
-  margin-top: 0;
+  margin-top: 16px;
   color: var(--sub);
-  text-align: right;
+  text-align: left;
 }
 
 
@@ -225,24 +243,33 @@ function navigateToAuth() {
 .action-buttons {
   display: flex;
   gap: 8px;
-  margin-top: 30px;
-  justify-content: flex-end;
+  margin-top: 32px;
+  justify-content: flex-start;
 }
 
-.action-btn {
-  padding: 10px 16px;
-  border-radius: var(--border-4);
-  font-size: var(--font-size-body);
-  font-weight: 600;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
+@media (max-width: 1544px) {
+  .headline-serif, .headline-sans {
+    font-size: 5.5rem;
+  }
+}
+
+@media (max-width: 1433px) {
+  .headline-serif, .headline-sans {
+    font-size: 5rem;
+  }
+}
+
+@media (max-width: 1321px) {
+  .headline-serif, .headline-sans {
+    font-size: 4.4rem;
+  }
 }
 
 @media (max-width: 1200px) {
   .welcome-section {
     flex-direction: column;
     padding: 0;
+    gap: 0;
     min-height: auto;
   }
 
@@ -253,16 +280,17 @@ function navigateToAuth() {
 
   .visual-container {
     order: 1;
+    justify-content: center;
   }
 
-  .headline {
+  .headline-serif, .headline-sans {
     font-size: 100px;
-    text-align: Left;
+    text-align: center;
   }
 
   .subline {
     font-size: 1.4rem;
-    text-align: left;
+    text-align: center;
   }
 
   .action-buttons {
@@ -275,9 +303,12 @@ function navigateToAuth() {
     display: none;
   }
 
-  .headline {
-    margin-top: -24px;
+  .headline-serif, .headline-sans {
     font-size: 75px;
+  }
+
+  .headline-serif {
+    margin-top: -24px;
   }
 
   .action-buttons {
@@ -287,19 +318,19 @@ function navigateToAuth() {
 }
 
 @media (max-width: 368px) {
-  .headline {
+  .headline-serif, .headline-sans {
     font-size: 65px;
   }
 }
 
 @media (max-width: 324px) {
-  .headline {
+  .headline-serif, .headline-sans {
     font-size: 60px
   }
 }
 
 @media (max-width: 300px) {
-  .headline {
+  .headline-serif, .headline-sans {
     font-size: 50px
   }
 }

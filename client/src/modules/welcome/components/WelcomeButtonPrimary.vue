@@ -1,24 +1,29 @@
 <template>
-  <button
-      class="main-dashboard-btn"
-      type="button"
-      draggable="true"
-  >
-    Jetzt loslegen
+  <button class="primary-btn" type="button">
+    {{ t('welcome.hero.cta') }}
   </button>
 </template>
 
 <script setup lang="ts">
+import { useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 </script>
 
 <style scoped>
-.main-dashboard-btn {
-  transition: all 0.25s ease;
-  background-color: var(--text);
+.primary-btn {
+  padding: 10px 16px;
+  border-radius: var(--border-4);
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background: var(--text);
   color: var(--bg);
   border: none;
+  font-weight: 600;
 }
-.main-dashboard-btn:hover {
-  background: var(--sub);
+.primary-btn:hover {
+  background: var(--action-hover);
 }
 </style>

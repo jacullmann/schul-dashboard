@@ -1,24 +1,28 @@
 <template>
-  <button
-      class="main-dashboard-btn"
-      type="button"
-      draggable="true"
-  >
-     Mehr erfahren
+  <button class="secondary-btn" type="button">
+    {{ t('welcome.hero.learnMore') }}
   </button>
 </template>
 
 <script setup lang="ts">
+import { useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 </script>
 
 <style scoped>
-.main-dashboard-btn {
-  transition: all 0.25s ease;
-  background-color: var(--bg);
-  color: var(--text);
+.secondary-btn {
+  padding: 10px 16px;
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background: none;
+  color: var(--sub);
   border: none;
+  font-weight: 500;
 }
-.main-dashboard-btn:hover {
-  background: var(--bg);
+.secondary-btn:hover {
+  color: var(--text);
 }
 </style>

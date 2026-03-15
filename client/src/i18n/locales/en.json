@@ -140,7 +140,8 @@
   },
   "welcome": {
     "hero": {
-      "headline": "School at a Glance",
+      "headlineSerif": "Your School Life",
+      "headlineSans": "In Your <b>Pocket<b/>",
       "subline": "All the info you need, at any time, right in your pocket. Collaborative and ",
       "sublineHighlight": "completely free",
       "visual": {

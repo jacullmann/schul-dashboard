@@ -184,7 +184,8 @@
   },
   "welcome": {
     "hero": {
-      "headline": "Schule im Überblick",
+      "headlineSerif": "Dein Schulleben",
+      "headlineSans": "in deiner <b>Hosentasche</b>",
       "subline": "Alle Infos zu jeder Zeit in deiner Hosentasche. Kollaborativ und ",
       "sublineHighlight": "komplett kostenfrei",
       "visual": {
@@ -202,8 +203,8 @@
           }
         ]
       },
-      "learnMore": "Mehr erfahren",
-      "cta": "Jetzt loslegen"
+      "cta": "Jetzt loslegen",
+      "learnMore": "Mehr erfahren"
     },
     "comparison": {
       "headline": "Papier ist von <b>gestern.</b> Starte heute noch in die <b>Zukunft</b>",
