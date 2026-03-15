@@ -188,8 +188,7 @@ function navigateToAuth() {
   padding: 8px;
   border-radius: var(--border-5);
   display: inline-flex;
-  margin: -8px;
-  margin-right: 4px;
+  margin: -8px 4px -8px -8px;
   transition: 0.15s ease;
   border: none;
   cursor: pointer;

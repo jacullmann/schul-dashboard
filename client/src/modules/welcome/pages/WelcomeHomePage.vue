@@ -9,9 +9,13 @@ function scrollToSection() {
   const targetElement = welcomeSectionRef.value?.$el;
 
   if (targetElement) {
-    targetElement.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start'
+    const yOffset = -40; 
+    const elementPosition = targetElement.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.scrollY + yOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
     });
   }
 }
