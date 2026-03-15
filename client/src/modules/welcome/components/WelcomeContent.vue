@@ -251,6 +251,7 @@ function navigateToAuth() {
   letter-spacing: -0.02em;
   text-align: left;
   font-family: 'Noto Serif', serif;
+  font-size-adjust: 0.5;
 }
 
 .headline-sans {
