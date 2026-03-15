@@ -9,7 +9,7 @@ function scrollToSection() {
   const targetElement = welcomeSectionRef.value?.$el;
 
   if (targetElement) {
-    const yOffset = -40; 
+    const yOffset = -100;
     const elementPosition = targetElement.getBoundingClientRect().top;
     const offsetPosition = elementPosition + window.scrollY + yOffset;
 
