@@ -20,11 +20,12 @@ export class UserService {
 
     if (!updatedUser) throw new NotFoundException('User not found');
 
-    await sb.from('user_activity').insert({
+    const { error: err_i5fxl } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'profile:personalization:update',
       meta: { personalized },
     });
+    if (err_i5fxl) throw new InternalServerErrorException(err_i5fxl.message);
 
     return { ok: true, personalized: updatedUser.personalized };
   }
@@ -43,14 +44,20 @@ export class UserService {
 
     // Parse existing preferences safely, accounting for stringified JSON or objects
     // Fall back to schema defaults if the user has a null/empty preferences column
-    const defaultPreferences = { theme: 'system', language: 'de', personalized: 'true' };
+    const defaultPreferences = {
+      theme: 'system',
+      language: 'de',
+      personalized: 'true',
+    };
     let currentPrefs: Record<string, any> = { ...defaultPreferences };
 
     if (user.preferences) {
       if (typeof user.preferences === 'string') {
         try {
           currentPrefs = { ...currentPrefs, ...JSON.parse(user.preferences) };
-        } catch (e) {}
+        } catch (_e) {
+          // Ignore invalid JSON in existing preferences
+        }
       } else if (typeof user.preferences === 'object') {
         currentPrefs = { ...currentPrefs, ...user.preferences };
       }
@@ -79,11 +86,12 @@ export class UserService {
 
     if (!updatedUser) throw new NotFoundException('User not found');
 
-    await sb.from('user_activity').insert({
+    const { error: err_n0ld2 } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'profile:preferences:update',
       meta: { preferences },
     });
+    if (err_n0ld2) throw new InternalServerErrorException(err_n0ld2.message);
 
     return { ok: true, preferences: updatedUser.preferences };
   }
@@ -114,11 +122,12 @@ export class UserService {
 
     if (!updatedUser) throw new NotFoundException('Nutzer nicht gefunden');
 
-    await sb.from('user_activity').insert({
+    const { error: err_2yf4u } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'profile:setup:complete',
       meta: { enrKurs, wpuKurs1, wpuKurs2, theater },
     });
+    if (err_2yf4u) throw new InternalServerErrorException(err_2yf4u.message);
 
     return {
       ok: true,
@@ -191,11 +200,12 @@ export class UserService {
       )
       .select();
 
-    await sb.from('user_activity').insert({
+    const { error: err_t7zxy } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:visibility:set',
       meta: { itemId, status },
     });
+    if (err_t7zxy) throw new InternalServerErrorException(err_t7zxy.message);
 
     return { ok: true };
   }
@@ -207,18 +217,19 @@ export class UserService {
       .delete()
       .eq('item_id', itemId)
       .eq('user_id', userId);
-    await sb.from('user_activity').insert({
+    const { error: err_nkgjw } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:visibility:remove',
       meta: { itemId },
     });
+    if (err_nkgjw) throw new InternalServerErrorException(err_nkgjw.message);
     return { ok: true };
   }
 
   async logPageLoad(userId: string, userAgent: string) {
     const sb = this.supabaseService.getClient();
     try {
-      await sb.from('user_activity').insert({
+      const { error: err_gnz6e } = await sb.from('user_activity').insert({
         user_id: userId,
         type: 'page:load',
         meta: {
@@ -226,6 +237,7 @@ export class UserService {
           timestamp: new Date().toISOString(),
         },
       });
+      if (err_gnz6e) throw new InternalServerErrorException(err_gnz6e.message);
       return { ok: true };
     } catch {
       return { ok: false };
@@ -242,7 +254,7 @@ export class UserService {
       .maybeSingle();
     if (!item) throw new NotFoundException('Nicht gefunden');
 
-    await sb.from('keep_checked').upsert(
+    const { error: err_pukxk } = await sb.from('keep_checked').upsert(
       {
         item_id: itemId,
         user_id: userId,
@@ -250,6 +262,7 @@ export class UserService {
       },
       { onConflict: 'item_id,user_id' },
     );
+    if (err_pukxk) throw new InternalServerErrorException(err_pukxk.message);
 
     await sb
       .from('user_activity')
@@ -280,7 +293,7 @@ export class UserService {
       .maybeSingle();
     if (!item) throw new NotFoundException('Nicht gefunden');
 
-    await sb.from('pinned_items').upsert(
+    const { error: err_sj9mc } = await sb.from('pinned_items').upsert(
       {
         item_id: itemId,
         user_id: userId,
@@ -288,6 +301,7 @@ export class UserService {
       },
       { onConflict: 'item_id,user_id' },
     );
+    if (err_sj9mc) throw new InternalServerErrorException(err_sj9mc.message);
 
     await sb
       .from('user_activity')

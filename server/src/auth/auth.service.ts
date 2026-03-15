@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ForbiddenException,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -149,7 +150,11 @@ export class AuthService {
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id);
-    await sb.from('mfa_pending_secrets').delete().eq('user_id', user.id);
+    const { error: err_a0k7i } = await sb
+      .from('mfa_pending_secrets')
+      .delete()
+      .eq('user_id', user.id);
+    if (err_a0k7i) throw new InternalServerErrorException(err_a0k7i.message);
 
     const userRoles = user.user_roles as any[];
     const globalRole =
@@ -200,11 +205,12 @@ export class AuthService {
     const isValid = authenticator.check(code, secret);
 
     if (!isValid) {
-      await sb.from('user_activity').insert({
+      const { error: err_jq95x } = await sb.from('user_activity').insert({
         user_id: userId,
         type: 'auth:mfa_login_failed',
         meta: { ip },
       });
+      if (err_jq95x) throw new InternalServerErrorException(err_jq95x.message);
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
       throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
     }
@@ -216,7 +222,11 @@ export class AuthService {
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', userId);
-    await sb.from('mfa_pending_secrets').delete().eq('user_id', userId);
+    const { error: err_n0hht } = await sb
+      .from('mfa_pending_secrets')
+      .delete()
+      .eq('user_id', userId);
+    if (err_n0hht) throw new InternalServerErrorException(err_n0hht.message);
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'auth:mfa_login', meta: {} });
@@ -248,7 +258,11 @@ export class AuthService {
     return { ok: true };
   }
 
-  async register(email: string, password: string, preferences?: Record<string, any>) {
+  async register(
+    email: string,
+    password: string,
+    preferences?: Record<string, any>,
+  ) {
     if (isWeakPassword(password)) {
       throw new BadRequestException(
         'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
@@ -268,7 +282,11 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Set default preferences and merge with user-provided preferences
-    const defaultPreferences = { theme: "system", language: "de", personalized: "true" };
+    const defaultPreferences = {
+      theme: 'system',
+      language: 'de',
+      personalized: 'true',
+    };
     const mergedPreferences = { ...defaultPreferences, ...(preferences || {}) };
 
     const { data: user, error } = await sb
@@ -369,7 +387,11 @@ export class AuthService {
       throw new ForbiddenException('Adminkonten können nicht gelöscht werden.');
     }
 
-    await sb.from('users').delete().eq('id', userId);
+    const { error: err_lfvg5 } = await sb
+      .from('users')
+      .delete()
+      .eq('id', userId);
+    if (err_lfvg5) throw new InternalServerErrorException(err_lfvg5.message);
 
     this.clearAuthToken(res);
     this.clearMfaPendingToken(res);
@@ -395,8 +417,16 @@ export class AuthService {
       .maybeSingle();
     if (!user) throw new BadRequestException('Nutzer nicht gefunden');
 
-    await sb.from('users').update({ email_verified: true }).eq('id', user.id);
-    await sb.from('verifications').delete().eq('email', ver.email);
+    const { error: err_rmh0v } = await sb
+      .from('users')
+      .update({ email_verified: true })
+      .eq('id', user.id);
+    if (err_rmh0v) throw new InternalServerErrorException(err_rmh0v.message);
+    const { error: err_5wa7e } = await sb
+      .from('verifications')
+      .delete()
+      .eq('email', ver.email);
+    if (err_5wa7e) throw new InternalServerErrorException(err_5wa7e.message);
 
     return { ok: true };
   }
@@ -457,7 +487,11 @@ export class AuthService {
     if (dayjs(pr.expires_at).isBefore(dayjs()))
       throw new BadRequestException('Code abgelaufen');
 
-    await sb.from('password_resets').update({ used: true }).eq('id', pr.id);
+    const { error: err_ybmnb } = await sb
+      .from('password_resets')
+      .update({ used: true })
+      .eq('id', pr.id);
+    if (err_ybmnb) throw new InternalServerErrorException(err_ybmnb.message);
 
     const secret = this.configService.get<string>('PASSWORD_RESET_JWT_SECRET')!;
     const resetToken = jwt.sign({ email, purpose: 'password_reset' }, secret, {
@@ -506,7 +540,7 @@ export class AuthService {
       })
       .eq('id', user.id);
 
-    await sb.from('user_activity').insert({
+    const { error: err_b7j06 } = await sb.from('user_activity').insert({
       user_id: user.id,
       type: 'account:password_reset',
       meta: {
@@ -515,6 +549,7 @@ export class AuthService {
         mfaDisabled: true,
       },
     });
+    if (err_b7j06) throw new InternalServerErrorException(err_b7j06.message);
 
     try {
       await this.emailService.sendSecurityEmail(email);
@@ -557,11 +592,12 @@ export class AuthService {
       .from('users')
       .update({ password_hash: newPasswordHash })
       .eq('id', userId);
-    await sb.from('user_activity').insert({
+    const { error: err_h6x8v } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'account:password_change',
       meta: { by: 'self' },
     });
+    if (err_h6x8v) throw new InternalServerErrorException(err_h6x8v.message);
 
     return { ok: true, message: 'Passwort erfolgreich geändert.' };
   }

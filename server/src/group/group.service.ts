@@ -82,13 +82,14 @@ export class GroupService {
     const isValid = await bcrypt.compare(password, hashToCompare);
     const isAuthenticated = group && isValid;
 
-    await sb.from('security_events').insert({
+    const { error: err_djic6 } = await sb.from('security_events').insert({
       event_type: 'group_join',
       event_status: isAuthenticated ? 'success' : 'failure',
       ip_address: ip,
       user_agent: ua,
       metadata: { groupName, groupId: group?.id || null, userId },
     });
+    if (err_djic6) throw new InternalServerErrorException(err_djic6.message);
 
     if (!isAuthenticated)
       throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
@@ -137,13 +138,14 @@ export class GroupService {
       .maybeSingle();
 
     if (existingGroup) {
-      await sb.from('security_events').insert({
+      const { error: err_xv2pz } = await sb.from('security_events').insert({
         event_type: 'group_create',
         event_status: 'failure',
         ip_address: ip,
         user_agent: ua,
         metadata: { groupName },
       });
+      if (err_xv2pz) throw new InternalServerErrorException(err_xv2pz.message);
       throw new ConflictException('Dieser Gruppenname ist bereits vergeben.');
     }
 
@@ -169,7 +171,7 @@ export class GroupService {
       );
     }
 
-    await sb.from('security_events').insert({
+    const { error: err_a1xq9 } = await sb.from('security_events').insert({
       event_type: 'group_create',
       event_status: 'success',
       ip_address: ip,
@@ -180,6 +182,7 @@ export class GroupService {
         createdBy: userId,
       },
     });
+    if (err_a1xq9) throw new InternalServerErrorException(err_a1xq9.message);
 
     this.setAuthToken(res, userId, email, globalRole, newGroup.id);
     const newCsrfToken = rotateCsrfToken(res);
@@ -271,13 +274,14 @@ export class GroupService {
 
   async logout(res: Response, ip: string, ua: string) {
     const sb = this.supabaseService.getClient();
-    await sb.from('security_events').insert({
+    const { error: err_ionkm } = await sb.from('security_events').insert({
       event_type: 'group_logout',
       event_status: 'success',
       ip_address: ip,
       user_agent: ua,
       metadata: {},
     });
+    if (err_ionkm) throw new InternalServerErrorException(err_ionkm.message);
 
     this.clearAuthToken(res);
     clearCsrfCookie(res);

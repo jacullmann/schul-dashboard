@@ -100,11 +100,12 @@ export class GroupAdminService {
       .from('user_roles')
       .update({ role_id: roleId })
       .eq('id', existing.id);
-    await sb.from('user_activity').insert({
+    const { error: err_tklkp } = await sb.from('user_activity').insert({
       user_id: currentUserId,
       type: 'group-admin:change-role',
       meta: { targetUserId, newRole, tenantId },
     });
+    if (err_tklkp) throw new InternalServerErrorException(err_tklkp.message);
 
     return { ok: true, message: `Rolle zu "${newRole}" geändert.` };
   }
@@ -139,11 +140,12 @@ export class GroupAdminService {
       .delete()
       .eq('user_id', targetUserId)
       .eq('tenant_id', tenantId);
-    await sb.from('user_activity').insert({
+    const { error: err_qev18 } = await sb.from('user_activity').insert({
       user_id: currentUserId,
       type: 'group-admin:remove-member',
       meta: { targetUserId, tenantId },
     });
+    if (err_qev18) throw new InternalServerErrorException(err_qev18.message);
 
     return { ok: true, message: 'Mitglied entfernt.' };
   }
@@ -162,12 +164,17 @@ export class GroupAdminService {
       throw new BadRequestException('Dieser Gruppenname ist bereits vergeben.');
     }
 
-    await sb.from('groups').update({ name: name.trim() }).eq('id', tenantId);
-    await sb.from('user_activity').insert({
+    const { error: err_o4luy } = await sb
+      .from('groups')
+      .update({ name: name.trim() })
+      .eq('id', tenantId);
+    if (err_o4luy) throw new InternalServerErrorException(err_o4luy.message);
+    const { error: err_qpwry } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'group-admin:rename-group',
       meta: { tenantId, newName: name.trim() },
     });
+    if (err_qpwry) throw new InternalServerErrorException(err_qpwry.message);
 
     return { ok: true };
   }
@@ -205,11 +212,12 @@ export class GroupAdminService {
       .delete()
       .eq('tenant_id', tenantId)
       .lt('created_at', ninetyDaysAgo);
-    await sb.from('user_activity').insert({
+    const { error: err_doaey } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'group-admin:cleanup',
       meta: { deletedCount: itemIds.length },
     });
+    if (err_doaey) throw new InternalServerErrorException(err_doaey.message);
 
     return {
       ok: true,
@@ -262,11 +270,12 @@ export class GroupAdminService {
 
     if (error) throw new InternalServerErrorException('Fehler beim Speichern');
 
-    await sb.from('user_activity').insert({
+    const { error: err_bv7dv } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'timetable:sub:create',
       meta: { lessonId: sub.lessonId },
     });
+    if (err_bv7dv) throw new InternalServerErrorException(err_bv7dv.message);
 
     return {
       id: data.id,

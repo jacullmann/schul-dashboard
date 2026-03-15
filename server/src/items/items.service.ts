@@ -161,11 +161,12 @@ export class ItemsService {
         'Fehler beim Erstellen des Eintrags',
       );
 
-    await sb.from('user_activity').insert({
+    const { error: err_j4g3x } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:create',
       meta: { id: item.id, type: item.type },
     });
+    if (err_j4g3x) throw new InternalServerErrorException(err_j4g3x.message);
 
     return { ok: true, id: item.id };
   }
@@ -267,7 +268,12 @@ export class ItemsService {
       }
     }
 
-    await sb.from('items').delete().eq('id', item.id).eq('tenant_id', tenantId);
+    const { error: err_tzewj } = await sb
+      .from('items')
+      .delete()
+      .eq('id', item.id)
+      .eq('tenant_id', tenantId);
+    if (err_tzewj) throw new InternalServerErrorException(err_tzewj.message);
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'item:delete', meta: { id: item.id } });
@@ -297,11 +303,12 @@ export class ItemsService {
       .update({ editor_note: noteContent })
       .eq('id', item.id)
       .eq('tenant_id', tenantId);
-    await sb.from('user_activity').insert({
+    const { error: err_o6pcp } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:note:update',
       meta: { itemId: item.id },
     });
+    if (err_o6pcp) throw new InternalServerErrorException(err_o6pcp.message);
 
     return { ok: true, editorNote: noteContent };
   }
@@ -335,11 +342,12 @@ export class ItemsService {
       .update({ images })
       .eq('id', item.id)
       .eq('tenant_id', tenantId);
-    await sb.from('user_activity').insert({
+    const { error: err_vgxbj } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:image:add',
       meta: { itemId: item.id },
     });
+    if (err_vgxbj) throw new InternalServerErrorException(err_vgxbj.message);
 
     return { ok: true, image: withThumb(newImage) };
   }
@@ -396,11 +404,12 @@ export class ItemsService {
       .update({ images })
       .eq('id', item.id)
       .eq('tenant_id', tenantId);
-    await sb.from('user_activity').insert({
+    const { error: err_oj0tc } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:image:delete',
       meta: { itemId: item.id },
     });
+    if (err_oj0tc) throw new InternalServerErrorException(err_oj0tc.message);
 
     return { ok: true };
   }
@@ -413,7 +422,7 @@ export class ItemsService {
     }
 
     const sb = this.supabaseService.getClient();
-    await sb.from('reports').insert({
+    const { error: err_wypce } = await sb.from('reports').insert({
       item_id: itemId,
       item_title: itemTitle,
       category,
@@ -421,12 +430,14 @@ export class ItemsService {
       reporter_id: userId,
       reporter_email: email,
     });
+    if (err_wypce) throw new InternalServerErrorException(err_wypce.message);
 
-    await sb.from('user_activity').insert({
+    const { error: err_at81w } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:report',
       meta: { itemId, category },
     });
+    if (err_at81w) throw new InternalServerErrorException(err_at81w.message);
 
     return { ok: true, message: 'Eintrag erfolgreich gemeldet.' };
   }

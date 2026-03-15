@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import sanitizeHtml from 'sanitize-html';
 
@@ -65,7 +65,11 @@ export class DocService {
     if (this.loaded) return;
     const sb = this.supabaseService.getClient();
     try {
-      const { data } = await sb.from('admin_shared_doc').select('*').maybeSingle();
+      const { data, error: err_u4k6z } = await sb
+        .from('admin_shared_doc')
+        .select('*')
+        .maybeSingle();
+      if (err_u4k6z) throw new InternalServerErrorException(err_u4k6z.message);
       if (data) {
         this.docState = {
           content: data.content ?? '',
@@ -74,13 +78,15 @@ export class DocService {
           lastEditedAt: data.last_edited_at,
         };
       } else {
-        await sb.from('admin_shared_doc').upsert({
+        const { error: err_m5kd6 } = await sb.from('admin_shared_doc').upsert({
           id: 1,
           content: '',
           version: 0,
           last_edited_by: null,
           last_edited_at: null,
         });
+        if (err_m5kd6)
+          throw new InternalServerErrorException(err_m5kd6.message);
       }
       this.loaded = true;
     } catch (err) {
@@ -91,13 +97,14 @@ export class DocService {
   async persistToDb(): Promise<void> {
     const sb = this.supabaseService.getClient();
     try {
-      await sb.from('admin_shared_doc').upsert({
+      const { error: err_gp0rq } = await sb.from('admin_shared_doc').upsert({
         id: 1,
         content: this.docState.content,
         version: this.docState.version,
         last_edited_by: this.docState.lastEditedBy,
         last_edited_at: this.docState.lastEditedAt,
       });
+      if (err_gp0rq) throw new InternalServerErrorException(err_gp0rq.message);
     } catch (err) {
       console.error('[Doc] DB write error:', err);
     }
@@ -125,7 +132,11 @@ export class DocService {
 
   async getHistory() {
     const sb = this.supabaseService.getClient();
-    const { data } = await sb.from('shared_doc').select('*').maybeSingle();
+    const { data, error: err_88r9d } = await sb
+      .from('shared_doc')
+      .select('*')
+      .maybeSingle();
+    if (err_88r9d) throw new InternalServerErrorException(err_88r9d.message);
     return data ?? { content: '', version: 0 };
   }
 }

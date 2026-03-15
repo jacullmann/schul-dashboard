@@ -6,7 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Req,
+  Req as _Req,
   UseGuards,
   Headers,
 } from '@nestjs/common';

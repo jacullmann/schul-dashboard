@@ -41,7 +41,11 @@ export class MfaService {
       throw new BadRequestException('MFA ist bereits aktiviert');
 
     // Delete old pending secret if exists
-    await sb.from('mfa_pending_secrets').delete().eq('user_id', userId);
+    const { error: err_n60hl } = await sb
+      .from('mfa_pending_secrets')
+      .delete()
+      .eq('user_id', userId);
+    if (err_n60hl) throw new InternalServerErrorException(err_n60hl.message);
 
     // Generate new secret
     const secret = authenticator.generateSecret();
@@ -49,11 +53,12 @@ export class MfaService {
 
     // Store pending secret (valid for 15 minutes)
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    await sb.from('mfa_pending_secrets').upsert({
+    const { error: err_qp7sr } = await sb.from('mfa_pending_secrets').upsert({
       user_id: userId,
       encrypted_secret: encryptedSecret,
       expires_at: expiresAt,
     });
+    if (err_qp7sr) throw new InternalServerErrorException(err_qp7sr.message);
 
     // Generate QR code
     const issuer = 'Schul-Dashboard';
@@ -104,7 +109,11 @@ export class MfaService {
       .eq('id', userId);
 
     // Delete pending secret
-    await sb.from('mfa_pending_secrets').delete().eq('user_id', userId);
+    const { error: err_ltuo9 } = await sb
+      .from('mfa_pending_secrets')
+      .delete()
+      .eq('user_id', userId);
+    if (err_ltuo9) throw new InternalServerErrorException(err_ltuo9.message);
 
     await sb
       .from('user_activity')

@@ -1,4 +1,10 @@
-import { IsEmail, IsString, Length, Matches, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  Length,
+  Matches,
+  IsOptional,
+} from 'class-validator';
 
 export class LoginDto {
   @IsEmail({}, { message: 'Ungültige Zugangsdaten' })

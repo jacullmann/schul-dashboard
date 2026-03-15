@@ -83,11 +83,12 @@ export class TodosService {
         'Fehler beim Erstellen des privaten Eintrags',
       );
 
-    await sb.from('user_activity').insert({
+    const { error: err_vz8t0 } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'todo:create',
       meta: { todoId: todo.id },
     });
+    if (err_vz8t0) throw new InternalServerErrorException(err_vz8t0.message);
 
     return {
       id: todo.id,
@@ -131,11 +132,12 @@ export class TodosService {
       .select()
       .single();
 
-    await sb.from('user_activity').insert({
+    const { error: err_y4457 } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'todo:update',
       meta: { todoId: todo.id },
     });
+    if (err_y4457) throw new InternalServerErrorException(err_y4457.message);
 
     return {
       id: updated!.id,
@@ -166,11 +168,12 @@ export class TodosService {
       .select()
       .single();
 
-    await sb.from('user_activity').insert({
+    const { error: err_3ryur } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'todo:toggle',
       meta: { todoId: todo.id, completed: newCompleted },
     });
+    if (err_3ryur) throw new InternalServerErrorException(err_3ryur.message);
 
     return {
       id: updated!.id,
@@ -257,7 +260,9 @@ export class TodosService {
             .from('encrypted_todos')
             .update({ position: p })
             .eq('id', t.id);
-        } catch {}
+        } catch {
+          // Ignore reordering errors for individual items
+        }
       }
       const { data: refreshed } = await sb
         .from('encrypted_todos')

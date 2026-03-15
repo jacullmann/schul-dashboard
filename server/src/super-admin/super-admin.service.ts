@@ -37,9 +37,13 @@ export class SuperAdminService {
     const { count: reportCountTotal } = await sb
       .from('reports')
       .select('*', { count: 'exact', head: true });
-    const { data: itemsByType } = await sb.rpc('get_items_by_type_count', {
-      t_id: tenantId,
-    });
+    const { data: itemsByType, error: err_yokmx } = await sb.rpc(
+      'get_items_by_type_count',
+      {
+        t_id: tenantId,
+      },
+    );
+    if (err_yokmx) throw new InternalServerErrorException(err_yokmx.message);
     const { count: verifiedUsers } = await sb
       .from('users')
       .select('*', { count: 'exact', head: true })
@@ -65,10 +69,14 @@ export class SuperAdminService {
       .gte('created_at', sevenDaysAgo);
 
     // Approximation for top creators logic since 'top_creators' is an RPC or similar in db.ts
-    const { data: topCreators } = await sb.rpc('get_top_creators', {
-      t_id: tenantId,
-      limit_count: 5,
-    });
+    const { data: topCreators, error: err_w4xu5 } = await sb.rpc(
+      'get_top_creators',
+      {
+        t_id: tenantId,
+        limit_count: 5,
+      },
+    );
+    if (err_w4xu5) throw new InternalServerErrorException(err_w4xu5.message);
 
     return {
       userCount: userCount || 0,
@@ -131,7 +139,7 @@ export class SuperAdminService {
       .delete()
       .eq('tenant_id', tenantId)
       .lt('created_at', ninetyDaysAgo);
-    await sb.from('user_activity').insert({
+    const { error: err_de5ut } = await sb.from('user_activity').insert({
       user_id: currentUserId,
       type: 'admin:cleanup:old_items',
       meta: {
@@ -139,6 +147,7 @@ export class SuperAdminService {
         imagesDeleted: publicIdsToDelete.length,
       },
     });
+    if (err_de5ut) throw new InternalServerErrorException(err_de5ut.message);
 
     return {
       ok: true,
@@ -233,23 +242,29 @@ export class SuperAdminService {
     await sb
       .from('banned_users')
       .insert({ user_id: targetUserId, reason: 'N/A' });
-    await sb.from('user_activity').insert({
+    const { error: err_mw0gt } = await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:ban:user',
       meta: { targetUserId },
     });
+    if (err_mw0gt) throw new InternalServerErrorException(err_mw0gt.message);
 
     return { ok: true, isBanned: true };
   }
 
   async unbanUser(targetUserId: string, adminUserId: string) {
     const sb = this.supabaseService.getClient();
-    await sb.from('banned_users').delete().eq('user_id', targetUserId);
-    await sb.from('user_activity').insert({
+    const { error: err_v83u8 } = await sb
+      .from('banned_users')
+      .delete()
+      .eq('user_id', targetUserId);
+    if (err_v83u8) throw new InternalServerErrorException(err_v83u8.message);
+    const { error: err_vxqec } = await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:unban:user',
       meta: { targetUserId },
     });
+    if (err_vxqec) throw new InternalServerErrorException(err_vxqec.message);
     return { ok: true, isBanned: false };
   }
 
@@ -270,7 +285,11 @@ export class SuperAdminService {
       throw new ForbiddenException('Admins können nicht gelöscht werden');
     }
 
-    await sb.from('users').delete().eq('id', targetUserId);
+    const { error: err_avk9d } = await sb
+      .from('users')
+      .delete()
+      .eq('id', targetUserId);
+    if (err_avk9d) throw new InternalServerErrorException(err_avk9d.message);
     return { ok: true };
   }
 
@@ -310,11 +329,12 @@ export class SuperAdminService {
       .delete()
       .eq('user_id', targetUserId)
       .lt('created_at', cutoffDate.toISOString());
-    await sb.from('user_activity').insert({
+    const { error: err_00b3z } = await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:prune_logs',
       meta: { targetUserId },
     });
+    if (err_00b3z) throw new InternalServerErrorException(err_00b3z.message);
     return { ok: true, message: 'Logs bereinigt.' };
   }
 
@@ -355,13 +375,14 @@ export class SuperAdminService {
       .select()
       .single();
 
-    await sb.from('user_activity').insert({
+    const { error: err_cnlyx } = await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: processed
         ? 'admin:report:mark_processed'
         : 'admin:report:mark_unprocessed',
       meta: { reportId },
     });
+    if (err_cnlyx) throw new InternalServerErrorException(err_cnlyx.message);
 
     return {
       ok: true,
@@ -372,12 +393,17 @@ export class SuperAdminService {
 
   async deleteReport(reportId: string, adminUserId: string) {
     const sb = this.supabaseService.getClient();
-    await sb.from('reports').delete().eq('id', reportId);
-    await sb.from('user_activity').insert({
+    const { error: err_zbdh8 } = await sb
+      .from('reports')
+      .delete()
+      .eq('id', reportId);
+    if (err_zbdh8) throw new InternalServerErrorException(err_zbdh8.message);
+    const { error: err_exmo5 } = await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:report:delete',
       meta: { reportId },
     });
+    if (err_exmo5) throw new InternalServerErrorException(err_exmo5.message);
     return { ok: true };
   }
 

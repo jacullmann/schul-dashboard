@@ -24,7 +24,7 @@ import {
 import { Public } from '../common/decorators/public.decorator';
 import {
   CurrentUserId,
-  ActiveGroupId,
+  ActiveGroupId as _ActiveGroupId,
 } from '../common/decorators/current-user.decorator';
 import { MfaPendingGuard } from '../common/guards/mfa-auth.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -65,12 +65,16 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Body() body: RegisterDto) {
-    return this.authService.register(body.email, body.password, body.preferences);
+    return this.authService.register(
+      body.email,
+      body.password,
+      body.preferences,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response) {
     return this.authService.logout(res);
   }
 
