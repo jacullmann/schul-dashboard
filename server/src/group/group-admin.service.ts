@@ -51,12 +51,15 @@ export class GroupAdminService {
       .select('user_id, assigned_at, roles(name)')
       .eq('tenant_id', tenantId);
 
-    const members = (userRoles || []).map((ur: any) => ({
-      userId: ur.user_id,
-      generatedName: generateUserName(ur.user_id, tenantId),
-      role: ur.roles?.name || 'user',
-      joinedAt: ur.assigned_at,
-    }));
+    const members = (userRoles || []).map((ur: any) => {
+      const _ur = ur as Record<string, any>;
+      return {
+        userId: _ur.user_id as string,
+        generatedName: generateUserName(_ur.user_id as string, tenantId),
+        role: _ur.roles?.name || 'user',
+        joinedAt: _ur.assigned_at as string,
+      };
+    });
 
     const roleOrder: Record<string, number> = {
       admin: 0,
@@ -91,7 +94,7 @@ export class GroupAdminService {
       .eq('tenant_id', tenantId)
       .limit(1);
 
-    const existing = existings?.[0];
+    const existing = existings?.[0] as Record<string, any> | undefined;
 
     if (!existing)
       throw new NotFoundException('Nutzer ist kein Mitglied dieser Gruppe');
@@ -105,7 +108,8 @@ export class GroupAdminService {
       type: 'group-admin:change-role',
       meta: { targetUserId, newRole, tenantId },
     });
-    if (err_tklkp) throw new InternalServerErrorException(err_tklkp.message);
+    if (err_tklkp)
+      throw new InternalServerErrorException((err_tklkp as any).message);
 
     return { ok: true, message: `Rolle zu "${newRole}" geändert.` };
   }
@@ -126,12 +130,12 @@ export class GroupAdminService {
       .eq('tenant_id', tenantId)
       .limit(1);
 
-    const targetRole = targetRoles?.[0];
+    const targetRole = targetRoles?.[0] as Record<string, any> | undefined;
 
     if (!targetRole)
       throw new NotFoundException('Nutzer ist kein Mitglied dieser Gruppe');
 
-    if ((targetRole as any).roles?.name === 'admin') {
+    if (targetRole.roles?.name === 'admin') {
       throw new ForbiddenException('Admins können nicht entfernt werden.');
     }
 
@@ -145,7 +149,8 @@ export class GroupAdminService {
       type: 'group-admin:remove-member',
       meta: { targetUserId, tenantId },
     });
-    if (err_qev18) throw new InternalServerErrorException(err_qev18.message);
+    if (err_qev18)
+      throw new InternalServerErrorException((err_qev18 as any).message);
 
     return { ok: true, message: 'Mitglied entfernt.' };
   }
@@ -154,11 +159,11 @@ export class GroupAdminService {
     if (!name) return { ok: true };
 
     const sb = this.supabaseService.getClient();
-    const { data: existing } = await sb
+    const { data: existing } = (await sb
       .from('groups')
       .select('id')
       .eq('name', name)
-      .maybeSingle();
+      .maybeSingle()) as { data: Record<string, any> | null };
 
     if (existing && existing.id !== tenantId) {
       throw new BadRequestException('Dieser Gruppenname ist bereits vergeben.');
@@ -168,13 +173,15 @@ export class GroupAdminService {
       .from('groups')
       .update({ name: name.trim() })
       .eq('id', tenantId);
-    if (err_o4luy) throw new InternalServerErrorException(err_o4luy.message);
+    if (err_o4luy)
+      throw new InternalServerErrorException((err_o4luy as any).message);
     const { error: err_qpwry } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'group-admin:rename-group',
       meta: { tenantId, newName: name.trim() },
     });
-    if (err_qpwry) throw new InternalServerErrorException(err_qpwry.message);
+    if (err_qpwry)
+      throw new InternalServerErrorException((err_qpwry as any).message);
 
     return { ok: true };
   }
@@ -191,10 +198,12 @@ export class GroupAdminService {
 
     const publicIdsToDelete: string[] = [];
     const itemIds = (oldItems || []).map((item) => {
-      (item.images || []).forEach((img: any) => {
-        if (img.publicId) publicIdsToDelete.push(img.publicId);
+      const _item = item as Record<string, any>;
+      ((_item.images as any[]) || []).forEach((img: any) => {
+        const _img = img as Record<string, any>;
+        if (_img.publicId) publicIdsToDelete.push(_img.publicId as string);
       });
-      return item.id;
+      return _item.id;
     });
 
     if (publicIdsToDelete.length > 0) {
@@ -217,7 +226,8 @@ export class GroupAdminService {
       type: 'group-admin:cleanup',
       meta: { deletedCount: itemIds.length },
     });
-    if (err_doaey) throw new InternalServerErrorException(err_doaey.message);
+    if (err_doaey)
+      throw new InternalServerErrorException((err_doaey as any).message);
 
     return {
       ok: true,
@@ -234,19 +244,22 @@ export class GroupAdminService {
       .from('timetable_subs')
       .select('*')
       .eq('tenant_id', tenantId);
-    return (subs || []).map((s) => ({
-      id: s.id,
-      lessonId: s.lesson_id,
-      day: s.day,
-      slot: s.slot,
-      duration: s.duration,
-      subject: s.subject,
-      teacher: s.teacher,
-      room: s.room,
-      cancelled: s.cancelled,
-      hide: s.hide,
-      createdAt: s.created_at,
-    }));
+    return (subs || []).map((s) => {
+      const _s = s as Record<string, any>;
+      return {
+        id: _s.id,
+        lessonId: _s.lesson_id,
+        day: _s.day,
+        slot: _s.slot,
+        duration: _s.duration,
+        subject: _s.subject,
+        teacher: _s.teacher,
+        room: _s.room,
+        cancelled: _s.cancelled,
+        hide: _s.hide,
+        createdAt: _s.created_at,
+      };
+    });
   }
 
   async createTimetableSub(tenantId: string, userId: string, sub: any) {
@@ -275,20 +288,22 @@ export class GroupAdminService {
       type: 'timetable:sub:create',
       meta: { lessonId: sub.lessonId },
     });
-    if (err_bv7dv) throw new InternalServerErrorException(err_bv7dv.message);
+    if (err_bv7dv)
+      throw new InternalServerErrorException((err_bv7dv as any).message);
 
+    const _data = data as Record<string, any>;
     return {
-      id: data.id,
-      lessonId: data.lesson_id,
-      day: data.day,
-      slot: data.slot,
-      duration: data.duration,
-      subject: data.subject,
-      teacher: data.teacher,
-      room: data.room,
-      cancelled: data.cancelled,
-      hide: data.hide,
-      createdAt: data.created_at,
+      id: _data.id,
+      lessonId: _data.lesson_id,
+      day: _data.day,
+      slot: _data.slot,
+      duration: _data.duration,
+      subject: _data.subject,
+      teacher: _data.teacher,
+      room: _data.room,
+      cancelled: _data.cancelled,
+      hide: _data.hide,
+      createdAt: _data.created_at,
     };
   }
 
@@ -325,13 +340,14 @@ export class GroupAdminService {
 
     if (error) throw new InternalServerErrorException('Fehler beim Erstellen');
 
+    const _ann = ann as Record<string, any>;
     return {
-      id: ann.id,
-      content: ann.content,
-      color: ann.color,
-      showAsPopup: ann.show_as_popup,
-      createdBy: ann.created_by,
-      createdAt: ann.created_at,
+      id: _ann.id,
+      content: _ann.content,
+      color: _ann.color,
+      showAsPopup: _ann.show_as_popup,
+      createdBy: _ann.created_by,
+      createdAt: _ann.created_at,
     };
   }
 

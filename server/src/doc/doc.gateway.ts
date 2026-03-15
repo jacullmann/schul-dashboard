@@ -38,12 +38,13 @@ export class DocGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private startPersistTimer(): void {
     if (this.persistTimer) return;
-    this.persistTimer = setInterval(async () => {
-      await this.docService.persistToDb();
-      if (this.connectedAdmins.size === 0 && this.persistTimer) {
-        clearInterval(this.persistTimer);
-        this.persistTimer = null;
-      }
+    this.persistTimer = setInterval(() => {
+      void this.docService.persistToDb().then(() => {
+        if (this.connectedAdmins.size === 0 && this.persistTimer) {
+          clearInterval(this.persistTimer);
+          this.persistTimer = null;
+        }
+      });
     }, 30_000);
   }
 

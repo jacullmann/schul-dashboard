@@ -5,7 +5,6 @@ import {
   ConflictException,
   NotFoundException,
   InternalServerErrorException,
-  BadRequestException,
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { ConfigService } from '@nestjs/config';

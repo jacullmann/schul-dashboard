@@ -62,7 +62,7 @@ export class TimetableService {
           : null,
         courses: l.courses ? { id: l.courses.id, name: l.courses.name } : null,
       }));
-    } catch (err) {
+    } catch (_err) {
       throw new InternalServerErrorException(
         'Fehler beim Laden des Stundenplans',
       );

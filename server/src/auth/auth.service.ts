@@ -15,10 +15,7 @@ import { EmailService } from '../common/email/email.service';
 import { ConfigService } from '@nestjs/config';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { decryptData } from '../common/utils/encryption.util';
-import {
-  rotateCsrfToken,
-  clearCsrfCookie,
-} from '../common/middleware/csrf.middleware';
+import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
 import { MFA_PENDING_COOKIE } from '../common/guards/mfa-auth.guard';
 import { Request, Response } from 'express';
@@ -104,7 +101,7 @@ export class AuthService {
     });
   }
 
-  async login(email: string, password: string, res: Response, ip?: string) {
+  async login(email: string, password: string, res: Response, _ip?: string) {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
       .from('users')
@@ -320,7 +317,7 @@ export class AuthService {
         message:
           'Registriert. Bitte überprüfe deine E-Mail sowie deinen Spamordner.',
       };
-    } catch (mailErr) {
+    } catch (_mailErr) {
       return {
         ok: true,
         message:
@@ -460,7 +457,9 @@ export class AuthService {
 
     try {
       await this.emailService.sendPasswordResetEmail(email, code);
-    } catch (mailErr) {}
+    } catch (_mailErr) {
+      // Ignore mail errors to prevent user enumeration or leakage
+    }
 
     return {
       ok: true,
@@ -553,7 +552,9 @@ export class AuthService {
 
     try {
       await this.emailService.sendSecurityEmail(email);
-    } catch {}
+    } catch {
+      // Security email failure is non-critical for the password reset flow
+    }
 
     return {
       ok: true,

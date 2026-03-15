@@ -23,7 +23,7 @@ export function generateCloudinaryUrl(
   format: string = 'webp',
   isThumb: boolean = false,
 ): string {
-  const versionStr = version ? `v${version}/` : '';
+  const versionStr = version ? `v${version as string}/` : '';
   const extension = format === 'pdf' ? 'jpg' : 'webp';
 
   if (isThumb) {
@@ -33,32 +33,34 @@ export function generateCloudinaryUrl(
 }
 
 export function withThumb(img: any): any {
-  if (img.publicId && (!img.url || img.metadata)) {
-    const meta = img.metadata;
+  const _img = img as Record<string, any>;
+  if (_img.publicId && (!_img.url || _img.metadata)) {
+    const meta = _img.metadata as Record<string, any>;
     return {
       url: generateCloudinaryUrl(
-        img.publicId,
-        meta?.version,
+        _img.publicId as string,
+        meta?.version as unknown,
         meta?.format as string | undefined,
         false,
       ),
       thumbUrl: generateCloudinaryUrl(
-        img.publicId,
-        meta?.version,
+        _img.publicId as string,
+        meta?.version as unknown,
         meta?.format as string | undefined,
         true,
       ),
-      publicId: img.publicId,
-      createdBy: img.createdBy,
-      metadata: img.metadata || undefined,
+      publicId: _img.publicId as string,
+      createdBy: _img.createdBy as string,
+      metadata: _img.metadata || undefined,
     };
   }
 
   return {
-    url: img.url || '',
-    thumbUrl: img.thumbUrl || buildThumbUrl(img.url || ''),
-    publicId: img.publicId,
-    createdBy: img.createdBy,
+    url: (_img.url as string) || '',
+    thumbUrl:
+      (_img.thumbUrl as string) || buildThumbUrl((_img.url as string) || ''),
+    publicId: _img.publicId as string,
+    createdBy: _img.createdBy as string,
   };
 }
 

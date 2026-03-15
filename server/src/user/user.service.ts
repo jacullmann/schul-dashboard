@@ -54,12 +54,21 @@ export class UserService {
     if (user.preferences) {
       if (typeof user.preferences === 'string') {
         try {
-          currentPrefs = { ...currentPrefs, ...JSON.parse(user.preferences) };
-        } catch (_e) {
+          currentPrefs = {
+            ...currentPrefs,
+            ...(JSON.parse(user.preferences) as Record<string, any>),
+          };
+        } catch {
           // Ignore invalid JSON in existing preferences
         }
-      } else if (typeof user.preferences === 'object') {
-        currentPrefs = { ...currentPrefs, ...user.preferences };
+      } else if (
+        typeof user.preferences === 'object' &&
+        !Array.isArray(user.preferences)
+      ) {
+        currentPrefs = {
+          ...currentPrefs,
+          ...(user.preferences as Record<string, any>),
+        };
       }
     }
 
@@ -79,7 +88,7 @@ export class UserService {
 
     const { data: updatedUser } = await sb
       .from('users')
-      .update({ preferences: mergedPreferences })
+      .update({ preferences: mergedPreferences as any })
       .eq('id', userId)
       .select()
       .maybeSingle();

@@ -22,10 +22,7 @@ import {
   ChangePasswordDto,
 } from './dto/auth.dto';
 import { Public } from '../common/decorators/public.decorator';
-import {
-  CurrentUserId,
-  ActiveGroupId as _ActiveGroupId,
-} from '../common/decorators/current-user.decorator';
+import { CurrentUserId } from '../common/decorators/current-user.decorator';
 import { MfaPendingGuard } from '../common/guards/mfa-auth.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
@@ -52,7 +49,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Ip() ip: string,
   ) {
-    const { sub, email } = req.mfaPending;
+    const { sub, email } = req.mfaPending as { sub: string; email: string };
     return this.authService.verifyMfa(body.code, sub, email, res, ip);
   }
 
@@ -83,9 +80,12 @@ export class AuthController {
   @Get('me')
   async getMe(@Req() req: any) {
     // If not authenticated, request.user is undefined
-    const userId = req.userId;
-    const activeGroupId = req.activeGroupId;
-    return this.authService.getMe(userId, activeGroupId);
+    const userId = (req as Record<string, any>).userId as string | undefined;
+    const activeGroupId = (req as Record<string, any>).activeGroupId as
+      | string
+      | null
+      | undefined;
+    return this.authService.getMe(userId || '', activeGroupId || null);
   }
 
   @UseGuards(JwtAuthGuard)

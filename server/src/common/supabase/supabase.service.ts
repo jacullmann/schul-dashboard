@@ -5,11 +5,11 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 @Injectable()
 export class SupabaseService {
   private readonly logger = new Logger(SupabaseService.name);
-  private clientInstance: SupabaseClient | null = null;
+  private clientInstance: SupabaseClient<any> | null = null;
 
   constructor(private readonly configService: ConfigService) {}
 
-  getClient(): SupabaseClient {
+  getClient(): SupabaseClient<any> {
     if (this.clientInstance) {
       return this.clientInstance;
     }
@@ -26,7 +26,7 @@ export class SupabaseService {
       throw new Error('Supabase configuration missing');
     }
 
-    this.clientInstance = createClient(supabaseUrl, supabaseKey);
+    this.clientInstance = createClient<any>(supabaseUrl, supabaseKey);
     return this.clientInstance;
   }
 }

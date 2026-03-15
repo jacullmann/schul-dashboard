@@ -70,7 +70,7 @@ export async function encryptData(
       data: encrypted,
       authTag: authTag.toString('hex'),
     };
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Daten konnten nicht verschlüsselt werden');
   }
 }
@@ -93,7 +93,7 @@ export async function decryptData(
     let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Daten konnten nicht entschlüsselt werden');
   }
 }

@@ -55,7 +55,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
-    if (status >= 500) {
+    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
         `[${request.method}] ${request.url} responded with ${status}\nMessage: ${message}`,
       );

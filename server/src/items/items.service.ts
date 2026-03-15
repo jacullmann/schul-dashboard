@@ -442,7 +442,7 @@ export class ItemsService {
     return { ok: true, message: 'Eintrag erfolgreich gemeldet.' };
   }
 
-  async createUploadSignature() {
+  createUploadSignature() {
     const timestamp = Math.floor(Date.now() / 1000);
     const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET')!;
     const folder =

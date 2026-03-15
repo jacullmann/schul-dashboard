@@ -54,7 +54,9 @@ export class JwtAuthGuard implements CanActivate {
               request.activeGroupId = payload.gId || null;
             }
           }
-        } catch {}
+        } catch {
+          // Ignore invalid token for public routes
+        }
       }
       return true; // Proceed anyway since it's public
     }
