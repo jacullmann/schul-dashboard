@@ -104,6 +104,13 @@ function navigateToAuth() {
 </template>
 
 <style scoped>
+@font-face {
+  font-family: 'Noto Serif';
+  src: url('@/assets/fonts/NotoSerifLatinExtRegular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .line {
   height: 12px;
   width: 100%;
@@ -243,7 +250,7 @@ function navigateToAuth() {
   margin-bottom: 0;
   letter-spacing: -0.02em;
   text-align: left;
-  font-family: 'Georgia', serif;
+  font-family: 'Noto Serif', serif;
 }
 
 .headline-sans {
