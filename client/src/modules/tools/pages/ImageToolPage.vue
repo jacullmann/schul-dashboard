@@ -462,7 +462,7 @@ onUnmounted(() => {
 /* Upload Area */
 .upload-area {
   border: 2px dashed var(--border);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   padding: 16px;
   text-align: center;
   cursor: pointer;
@@ -509,7 +509,7 @@ label {
 }
 .preview-img {
   max-width: 100%;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
 }
 
 /* --- EDITOR MODAL STYLES --- */
@@ -524,7 +524,7 @@ label {
   background: var(--lbg);
   border: 1px solid var(--border);
   padding: 16px;
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   width: 90%;
   max-width: 900px;
   max-height: calc(100vh - 40px);

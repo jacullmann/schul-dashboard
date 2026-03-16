@@ -2,7 +2,7 @@
 import Checkbox from '@/common/components/Checkbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
-import InfoPop from '@/common/components/InfoModalCenter.vue';
+import InfoModal from '@/common/components/InfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import type { Todo } from '@/modules/tasks/types';
 import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
@@ -100,12 +100,12 @@ defineExpose({ loadTodos, addTodo, updateTodo });
       <div class="secure">
         <Lock style="color: var(--text)" :size="24" />
         <h2 style="margin: 0; font-size: var(--font-size-h2); line-height: 24px;">{{ t('school.private.onlyVisibleToYou') }}</h2>
-        <InfoPop
+        <InfoModal
             :tooltip="t('school.private.infopop.tooltip')"
             :title="t('school.private.onlyVisibleToYou')"
         >
           <p v-html="t('school.private.infopop.text')"></p>
-        </InfoPop>
+        </InfoModal>
       </div>
       <div v-if="!user" class="login-prompt">
         <p>{{ t('school.private.requiresAccount') }}</p>

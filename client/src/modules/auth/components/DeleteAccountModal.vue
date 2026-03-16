@@ -114,7 +114,7 @@ const {
 .message {
   font-size: var(--font-size-sub);
   padding: 10px 12px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   text-align: center;
   margin-top: 16px;
 }

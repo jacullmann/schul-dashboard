@@ -39,7 +39,6 @@ function handleChange(event: Event) {
   /* reset any global label styles */
   font: inherit;
   color: inherit;
-  font-weight: inherit;
   margin: 0;
   padding: 0;
 }
@@ -51,7 +50,7 @@ function handleChange(event: Event) {
 .collapse-checkbox .vis-label {
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
   border: 2px solid var(--sub);
   display: inline-block;
   background: transparent;

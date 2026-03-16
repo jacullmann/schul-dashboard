@@ -37,7 +37,9 @@ function startLevel() {
     const candidates = Array.from({ length: totalTiles.value }, (_, i) => i + 1);
     for (let i = candidates.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        const temp = candidates[i]!;
+        candidates[i] = candidates[j]!;
+        candidates[j] = temp;
     }
     
     activeTiles.value = candidates.slice(0, numActiveTiles.value);
@@ -189,7 +191,7 @@ function saveAndExit() {
 
 .test-sub {
   font-size: 1.1rem;
-  color: var(--text-muted);
+  color: var(--sub);
   line-height: 1.5;
 }
 
@@ -220,7 +222,7 @@ function saveAndExit() {
 }
 
 .heart-icon {
-  color: var(--error);
+  color: var(--danger);
   transition: opacity 0.3s, transform 0.3s;
 }
 
@@ -262,8 +264,8 @@ function saveAndExit() {
 }
 
 .tile.wrong {
-  background: var(--error);
-  border-color: var(--error);
+  background: var(--danger);
+  border-color: var(--danger);
   animation: shake 0.4s ease-in-out;
 }
 

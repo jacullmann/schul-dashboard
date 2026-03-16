@@ -343,7 +343,7 @@ input[type="range"] {
   appearance: none;
   width: 100%;
   cursor: pointer;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   height: 4px;
   margin: 0;
   border: none;
@@ -356,7 +356,7 @@ input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   cursor: pointer;
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   border: none;
 }
 
@@ -382,7 +382,7 @@ input[type="range"]::-moz-range-track {
   height: 4px;
   cursor: pointer;
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   border: none;
 }
 

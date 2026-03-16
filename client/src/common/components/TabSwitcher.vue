@@ -186,7 +186,7 @@ useResizeObserver(navBarRef, () => {
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
   padding: 0;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   display: flex;
   isolation: isolate;
   max-width: 100%;
@@ -227,7 +227,7 @@ useResizeObserver(navBarRef, () => {
   bottom: 0;
   left: 0;
   background-color: var(--text);
-  border-radius: calc(var(--border-4) - 1px);
+  border-radius: calc(var(--border-radius-md) - 1px);
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
@@ -240,7 +240,7 @@ useResizeObserver(navBarRef, () => {
   cursor: pointer;
   padding: 10px 12px;
   font-size: 14px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   color: var(--sub);
   white-space: nowrap;
   flex-shrink: 0;

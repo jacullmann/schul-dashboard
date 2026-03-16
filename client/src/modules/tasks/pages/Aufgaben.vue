@@ -14,7 +14,7 @@ import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore } from
 import { useAufgaben } from '@/modules/tasks/composables/useAufgaben';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
 import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";
-import InfoPop from '@/common/components/InfoModalCenter.vue'
+import InfoModal from '@/common/components/InfoModal.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
@@ -181,7 +181,7 @@ function handleArchiveFromMenu(item: HwItem) {
     <div class="hw-header">
       <div class="title-inf">
         <h2>{{ t('school.tasks.title') }}</h2>
-        <InfoPop
+        <InfoModal
             :tooltip="t('school.tasks.infopop.tooltip')"
             :title="t('school.tasks.title')"
         >
@@ -190,7 +190,7 @@ function handleArchiveFromMenu(item: HwItem) {
             <h3 v-html="section.title"></h3>
             <p v-html="section.text"></p>
           </template>
-        </InfoPop>
+        </InfoModal>
 
       </div>
     </div>
@@ -693,7 +693,7 @@ function handleArchiveFromMenu(item: HwItem) {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   border: none;
   padding: 0;
   margin: 0;
@@ -707,7 +707,7 @@ function handleArchiveFromMenu(item: HwItem) {
   inset: 0;
   background: #8883;
   opacity: 1;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   backdrop-filter:blur(4px);
   -webkit-backdrop-filter:blur(4px);
 }
@@ -759,7 +759,7 @@ function handleArchiveFromMenu(item: HwItem) {
   background: transparent;
   color: var(--sub);
   padding: 8px;
-  border-radius: var(--border-5);
+  border-radius: var(--border-radius-lg);
   display: inline-flex;
   margin: -8px;
   margin-right: 4px;
@@ -804,7 +804,7 @@ function handleArchiveFromMenu(item: HwItem) {
   padding: 10px 12px;
   background: var(--gg);
   border: 1px solid var(--border);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   user-select: none;
   -webkit-user-select: none;
 }

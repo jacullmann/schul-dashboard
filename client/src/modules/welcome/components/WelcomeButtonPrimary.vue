@@ -13,7 +13,7 @@ const { t } = useI18n();
 <style scoped>
 .primary-btn {
   padding: 10px 16px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   font-size: var(--font-size-body);
   cursor: pointer;
   position: relative;

@@ -62,7 +62,7 @@ withDefaults(defineProps<{
 .skeleton-title {
   height: 20px;
   width: 240px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   background: var(--skeleton-base);
   animation: var(--animate-pulse);
   margin-bottom: 12px;
@@ -70,7 +70,7 @@ withDefaults(defineProps<{
 
 .skeleton-text {
   height: 16px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   background: var(--skeleton-base);
   animation: var(--animate-pulse);
   margin-bottom: 8px;
@@ -96,7 +96,7 @@ withDefaults(defineProps<{
 .skeleton-image {
   width: 120px;
   height: 120px;
-  border-radius: var(--border-5);
+  border-radius: var(--border-radius-lg);
   background: var(--skeleton-base);
   animation: var(--animate-pulse);
 }

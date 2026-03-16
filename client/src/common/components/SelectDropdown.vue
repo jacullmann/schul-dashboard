@@ -114,7 +114,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   margin-top: 4px;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: var(--border-5);
+  border-radius: var(--border-radius-lg);
   padding: 4px;
   display: flex;
   flex-direction: column;

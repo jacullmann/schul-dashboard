@@ -139,7 +139,7 @@ const resetGame = () => {
   border-radius: 8px;
   width: 150px;
   min-height: 180px;
-  background-color: var(--card);
+  background-color: var(--bg);
 }
 
 .choice-card h3 {

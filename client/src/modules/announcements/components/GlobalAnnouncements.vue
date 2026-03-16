@@ -236,7 +236,7 @@ onMounted(() => {
 .announcement-menu {
   background: var(--lbg);
   border: 1px solid var(--border);
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   padding: 16px;
   width: 90%;
   max-width: 500px;
@@ -267,7 +267,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   margin: -6px;
 }
 
@@ -289,7 +289,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 12px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 12px;

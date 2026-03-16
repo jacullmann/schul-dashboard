@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import InfoPop from '@/common/components/InfoModalCenter.vue'
+import InfoModal from '@/common/components/InfoModal.vue'
 import { useTimetable } from '@/modules/schedule/composables/useTimetable';
 import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/stores/userStore';
@@ -113,7 +113,7 @@ onUnmounted(() => {
     <div>
       <h2 style="margin-top: 0" class="title-inf">
         {{ t('school.tables.timetable.title') }}
-        <InfoPop
+        <InfoModal
             :tooltip="t('school.tables.timetable.infopop.tooltip')"
             :title="t('school.tables.timetable.title')">
 
@@ -127,7 +127,7 @@ onUnmounted(() => {
           </div>
 
 
-        </InfoPop>
+        </InfoModal>
       </h2>
       <div class="status-row">
         <div v-if="loadingSubs || loadingLessons" class="small">{{ t('school.tables.timetable.loading') }}</div>
@@ -239,7 +239,7 @@ onUnmounted(() => {
   border:1px solid var(--border2);
   text-align: center;
   font-weight: bold;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   font-size: var(--font-size-body);
   box-shadow: var(--input-shadow);
 }
@@ -275,7 +275,7 @@ onUnmounted(() => {
 /* GROUP CONTAINER */
 .lesson-group-container {
   background-color: var(--vlbg);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   border:1px solid var(--border2);
   display: flex;
   flex-direction: column;
@@ -394,7 +394,7 @@ onUnmounted(() => {
   padding: 4px 8px;
   background-color: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   font-size: var(--font-size-body);
   color: var(--text);
   box-shadow: var(--input-shadow);

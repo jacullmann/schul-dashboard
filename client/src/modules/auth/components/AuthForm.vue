@@ -188,7 +188,7 @@ const {
   flex-direction: column;
   background: var(--bg);
   padding: 16px;
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
 }
 
 .auth-header {

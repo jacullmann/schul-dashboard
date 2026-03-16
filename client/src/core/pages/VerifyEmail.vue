@@ -153,7 +153,7 @@ onMounted(async () => {
   padding: 16px;
   background: rgba(106, 237, 139, 0.1);
   border: 1px solid rgba(106, 237, 139, 0.3);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   width: 100%;
   max-width: 480px;
   text-align: left;
@@ -175,7 +175,7 @@ onMounted(async () => {
   padding: 20px;
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   width: 100%;
   max-width: 480px;
   text-align: left;

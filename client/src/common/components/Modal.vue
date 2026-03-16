@@ -63,7 +63,7 @@ onBeforeUnmount(() => {
 .modal-card {
   background: var(--lbg);
   border: 1px solid var(--border);
-  border-radius: var(--border-11);
+  border-radius: var(--border-radius-2xl);
   padding: 16px;
   width: calc(100% - 32px);
   max-width: 640px;

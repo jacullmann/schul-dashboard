@@ -99,7 +99,7 @@ async function setPersonalization(value: boolean) {
   right: 0;
   margin-top: 8px;
   padding: 4px 8px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   font-size: var(--font-size-sub);
   background: var(--gg);
   color: var(--text);

@@ -224,9 +224,15 @@ const routes = [
     // ── 404 ─────────────────────────────────────────────────────────────
     {
         path: '/:pathMatch(.*)*',
-        name: 'not-found',
-        component: () => import('@/core/pages/404-Page.vue'),
-        meta: { title: 'navigation.notFound', fullWidth: true },
+        component: () => import('@/layouts/DefaultLayout.vue'),
+        children: [
+            {
+                path: '',
+                name: 'not-found',
+                component: () => import('@/core/pages/404-Page.vue'),
+                meta: { title: 'navigation.notFound', fullWidth: true },
+            }
+        ]
     },
 ];
 

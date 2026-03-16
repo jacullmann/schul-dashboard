@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import InfoPop from '@/common/components/InfoModalCenter.vue';
+import InfoModal from '@/common/components/InfoModal.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import { useI18n } from 'vue-i18n';
 import { useDaltonFinder } from '../composables/useDaltonFinder';
@@ -54,7 +54,7 @@ onMounted(() => {
       <div class="flex align-center">
         <h2 style="margin-top: 0;" class="title-inf">
           {{ t('school.tables.dalton.title') }}
-          <InfoPop
+          <InfoModal
               :tooltip="t('school.tables.dalton.infopop.tooltip')"
               :title="t('school.tables.dalton.title')"
           >
@@ -64,7 +64,7 @@ onMounted(() => {
               <h3 v-html="section.title"></h3>
               <p v-html="section.text"></p>
             </template>
-          </InfoPop>
+          </InfoModal>
         </h2>
       </div>
 
@@ -215,7 +215,7 @@ onMounted(() => {
 
 .table-wrapper {
   overflow-x: auto;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
 }
 
 table {
@@ -244,13 +244,13 @@ th.is-today {
 
 th:first-child {
   border-left: 1px solid var(--border2);
-  border-top-left-radius: var(--border-4);
-  border-bottom-left-radius: var(--border-4);
+  border-top-left-radius: var(--border-radius-md);
+  border-bottom-left-radius: var(--border-radius-md);
 }
 
 th:last-child {
-  border-top-right-radius: var(--border-4);
-  border-bottom-right-radius: var(--border-4);
+  border-top-right-radius: var(--border-radius-md);
+  border-bottom-right-radius: var(--border-radius-md);
 }
 
 td {
@@ -270,13 +270,13 @@ td.is-today {
 
 tr td:first-child {
   border-left: 1px solid var(--border2);
-  border-top-left-radius: var(--border-4);
-  border-bottom-left-radius: var(--border-4);
+  border-top-left-radius: var(--border-radius-md);
+  border-bottom-left-radius: var(--border-radius-md);
 }
 
 tr td:last-child {
-  border-top-right-radius: var(--border-4);
-  border-bottom-right-radius: var(--border-4);
+  border-top-right-radius: var(--border-radius-md);
+  border-bottom-right-radius: var(--border-radius-md);
 }
 
 .t-name {

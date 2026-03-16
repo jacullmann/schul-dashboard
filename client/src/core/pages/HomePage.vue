@@ -276,7 +276,7 @@ onMounted(() => {
   font-size: var(--font-size-sub);
   font-weight: 600;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
 }
 
 .groups-grid {
@@ -293,7 +293,7 @@ onMounted(() => {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   box-shadow: var(--input-shadow);
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
   text-align: left;

@@ -185,7 +185,7 @@ function navigateToAuth() {
 
 .item-card-vanishing {
   background:linear-gradient(var(--vlbg) 0%, transparent 100%);
-  border-radius: var(--border-7) var(--border-7) 0 0;
+  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
   min-height: 30px;
 }
 
@@ -193,7 +193,7 @@ function navigateToAuth() {
   background: transparent;
   color: var(--sub);
   padding: 8px;
-  border-radius: var(--border-5);
+  border-radius: var(--border-radius-lg);
   display: inline-flex;
   margin: -8px 4px -8px -8px;
   transition: 0.15s ease;
@@ -222,7 +222,7 @@ function navigateToAuth() {
 
 .item-card-vanishing::before {
   content: "";
-  border-radius: var(--border-7) var(--border-7) 0 0;
+  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
   min-height: 30px;
   display: flex;
   border: 1px solid transparent;

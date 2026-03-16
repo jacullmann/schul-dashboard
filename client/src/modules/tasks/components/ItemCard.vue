@@ -222,7 +222,7 @@ function onDrop(e: DragEvent) {
 .swipe-container.swipe-active {
   overflow-x: clip;
   overflow-y: visible;
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   z-index: 10;
 }
 
@@ -230,7 +230,7 @@ function onDrop(e: DragEvent) {
 .swipe-background {
   position: absolute;
   inset: 0;
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   padding-left: 12px;
@@ -248,7 +248,7 @@ function onDrop(e: DragEvent) {
   position: relative;
   background: var(--vlbg);
   border: 1px solid var(--border2);
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   padding: 12px;
   box-shadow: var(--input-shadow);
   overflow: visible;
@@ -304,7 +304,7 @@ function onDrop(e: DragEvent) {
   align-items: center;
   justify-content: center;
   padding: 8px;
-  border-radius: var(--border-5);
+  border-radius: var(--border-radius-lg);
   cursor: pointer;
   color: var(--sub);
   transition: background 120ms ease, color 120ms ease;
@@ -339,7 +339,7 @@ function onDrop(e: DragEvent) {
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
-  border-radius: var(--border-7);
+  border-radius: var(--border-radius-xl);
   z-index: 50;
   display: flex;
   align-items: center;

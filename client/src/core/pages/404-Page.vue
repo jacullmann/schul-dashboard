@@ -125,7 +125,7 @@ const goBack = () => {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   box-shadow: var(--input-shadow);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   text-decoration: none;
   transition: all 0.15s ease;
   cursor: pointer;
@@ -144,7 +144,7 @@ const goBack = () => {
   align-items: center;
   justify-content: center;
   background: var(--gg);
-  border-radius: var(--border-3);
+  border-radius: var(--border-radius-md);
   color: var(--text);
 }
 

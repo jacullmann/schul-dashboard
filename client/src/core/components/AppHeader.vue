@@ -286,7 +286,7 @@ onUnmounted(() => {
 .header {
   background-color: var(--bg);
   color: var(--text);
-  padding: var(--header-padding-y) 0;
+  padding: 0;
   height: var(--header-height);
   position: sticky;
   top: 0;
@@ -377,7 +377,7 @@ onUnmounted(() => {
   gap: 4px;
   color: var(--text);
   padding: 4px 8px;
-  border-radius: var(--border-3);
+  border-radius: var(--border-radius-md);
   transition: background-color 0.2s ease;
 }
 
@@ -478,7 +478,7 @@ onUnmounted(() => {
   color: var(--text);
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   transition: background-color 0.3s ease;
   z-index: 1002;
 }

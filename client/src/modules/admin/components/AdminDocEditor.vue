@@ -713,7 +713,7 @@ onMounted(async () => {
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   border: 1px solid var(--border);
   background: var(--lbg);
   color: var(--text);
@@ -891,7 +891,7 @@ onMounted(async () => {
   background: none;
   border: none;
   padding: 7px;
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   color: var(--sub);
   display: flex;
@@ -925,7 +925,7 @@ onMounted(async () => {
   background: var(--gg, #f0f0f0);
   color: var(--text, #333);
   border: 1px solid var(--border, #ddd);
-  border-radius: var(--border-4, 4px);
+  border-radius: var(--border-radius-md, 4px);
   font-size: 12px;
   padding: 5px 6px;
   cursor: pointer;
@@ -963,7 +963,7 @@ onMounted(async () => {
   background: none;
   border: none;
   padding: 6px 7px;
-  border-radius: var(--border-4, 4px);
+  border-radius: var(--border-radius-md, 4px);
   cursor: pointer;
   color: var(--sub);
 }

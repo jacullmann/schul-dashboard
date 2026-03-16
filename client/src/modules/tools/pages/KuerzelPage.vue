@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeftRight } from 'lucide-vue-next'
-import InfoPop from '@/common/components/InfoModalCenter.vue'
+import InfoModal from '@/common/components/InfoModal.vue'
 import { useI18n } from 'vue-i18n'
 import { useKuerzel } from '@/modules/tools/composables/useKuerzel'
 
@@ -24,7 +24,7 @@ const {
     <div class="card-top">
       <h2 style="margin-bottom: 16px" class="title-inf">
         {{ t('school.tables.abbr.title') }}
-        <InfoPop :tooltip="t('school.tables.abbr.infopop.tooltip')" :title="t('school.tables.abbr.title')">
+        <InfoModal :tooltip="t('school.tables.abbr.infopop.tooltip')" :title="t('school.tables.abbr.title')">
           <p style="margin-top: 0;">{{ t('school.tables.abbr.infopop.description') }}</p>
 
           <template v-for="(section, index) in tm('school.tables.abbr.infopop.sections')" :key="index">
@@ -35,7 +35,7 @@ const {
           <div class="info-img-container">
             <img style="margin-bottom: 16px;" alt="Bild" class="info-img" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474358/K%C3%BCrzelfinder_Grafik_vw3do2.webp" />
           </div>
-        </InfoPop>
+        </InfoModal>
       </h2>
     </div>
 
@@ -124,7 +124,7 @@ const {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   box-shadow: var(--input-shadow);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   width: 38px;
   height: 38px;
   cursor: pointer;

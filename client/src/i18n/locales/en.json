@@ -1,7 +1,7 @@
 {
   "global": {
-    "title": "school-dashboard",
-    "fullTitle": "school-dashboard | Free Management Tool For Students",
+    "title": "schul-dashboard",
+    "fullTitle": "schul-dashboard | Free Management Tool For Students",
     "buttons": {
       "save": "Save",
       "confirm": "Confirm",
@@ -44,7 +44,7 @@
     "cookies": {
       "banner": {
         "title": "Cookies",
-        "text": "We use cookies to reliably provide core functions such as login, security, and the operation of the school dashboard. Additionally, we use the privacy-friendly analytics tool Umami (cloud service) to understand how our site is used and to improve it further. Umami works without tracking cookies and does not store any personal data. You can find more information in our privacy policy.",
+        "text": "We use cookies to reliably provide core functions such as login, security, and the operation of the schul-dashboard. Additionally, we use the privacy-friendly analytics tool Umami (cloud service) to understand how our site is used and to improve it further. Umami works without tracking cookies and does not store any personal data. You can find more information in our privacy policy.",
         "action": "Got it"
       }
     },
@@ -167,7 +167,7 @@
       "attribution": "Edited original by Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
     },
     "reasons": {
-      "why": "Why school-dashboard?",
+      "why": "Why schul-dashboard?",
       "byStudentsForStudents": "<span class=\"highlight\">By </span> students <span class=\"highlight\">for </span> students, which means:",
       "reasons": [
         {
@@ -365,7 +365,7 @@
             }
           ]
         },
-        "disclaimer": "School-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
+        "disclaimer": "schul-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
         "personalized": "Personalized",
         "lesson": "Lesson",
         "cancelled": "Cancelled"

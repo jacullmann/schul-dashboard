@@ -88,23 +88,23 @@ watch(() => props.visible, (val) => {
 <template>
   <transition name="fade">
     <div
-        v-if="visible"
-        class="blurit viewer-overlay"
-        @mousemove="onActivity"
-        @click.self="close"
-        @touchstart="onActivity"
-        tabindex="0"
-        @keydown="handleKeydown"
-        ref="overlayRef"
+      v-if="visible"
+      class="blurit viewer-overlay"
+      @mousemove="onActivity"
+      @click.self="close"
+      @touchstart="onActivity"
+      tabindex="0"
+      @keydown="handleKeydown"
+      ref="overlayRef"
     >
       <div class="image-wrapper" @click.self="close">
         <img
-            v-if="currentImage"
-            :src="currentImage.url"
-            class="viewer-img"
-            draggable="false"
-            @click.stop
-        />
+          v-if="currentImage"
+          :src="currentImage.url"
+          class="viewer-img"
+          draggable="false"
+          @click.stop
+          alt=""/>
       </div>
 
       <transition name="fade-controls">
@@ -115,17 +115,17 @@ watch(() => props.visible, (val) => {
           </button>
 
           <button
-              v-if="hasPrev"
-              class="control-btn nav-btn prev"
-              @click.stop="prev"
+            v-if="hasPrev"
+            class="control-btn nav-btn prev"
+            @click.stop="prev"
           >
             <ChevronLeft />
           </button>
 
           <button
-              v-if="hasNext"
-              class="control-btn nav-btn next"
-              @click.stop="next"
+            v-if="hasNext"
+            class="control-btn nav-btn next"
+            @click.stop="next"
           >
             <ChevronRight />
           </button>
@@ -229,7 +229,7 @@ watch(() => props.visible, (val) => {
   color: #fff;
   background: rgba(0, 0, 0, 0.6);
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   font-size: var(--font-size-sub);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);

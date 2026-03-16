@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
-import InfoModalCenter from '@/common/components/InfoModalCenter.vue';
+import InfoModal from '@/common/components/InfoModal.vue';
 import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 
@@ -47,12 +47,12 @@ watch(() => props.show, (newVal) => {
     </template>
 
     <template #title-infopop>
-      <InfoModalCenter tooltip="Melden Info" title="Infos zum Melden von Einträgen">
+      <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
         <h3>Falschinformationen</h3>
         <p>Die Informationen, welche in dem Eintrag genannt werden, oder die hochgeladenen Bilder enthalten falsche oder irreführende Inhalte? Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden, jedoch musst du beschreiben, was nicht stimmt und/oder wie die richtigen Informationen lauten. Versuche dich dabei bitte möglichst kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie geprüft wurde, dem gemeldeten Eintrag angehängt.</p>
         <h3>Unangebrachte/Illegale Inhalte</h3>
         <p>Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen oder geltendes Recht verstoßen, werden umgehend entfernt. Falls genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig ist, beschreibe es bitte möglichst genau, sodass wir etwas unternehmen können. Wenn der Verstoß offensichtlich ist, kannst du uns trotzdem helfen, indem du beschreibst, was nicht stimmt, aber wir untersuchen immer den ganzen Artikel, auch wenn du keinen konkreten Grund nennst.</p>
-      </InfoModalCenter>
+      </InfoModal>
     </template>
 
     <template #content>

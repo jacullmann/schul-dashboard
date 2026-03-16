@@ -238,7 +238,7 @@ const {
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(65, 65, 65, 0.6);
   padding: 8px 16px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -254,7 +254,7 @@ input[type="range"] {
   width: 100%;
   background: transparent;
   cursor: pointer;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   height: 4px;
   margin: 0;
   border: none;
@@ -268,7 +268,7 @@ input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   cursor: pointer;
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   border: none;
 }
 
@@ -294,7 +294,7 @@ input[type="range"]::-moz-range-track {
   height: 4px;
   cursor: pointer;
   background: transparent;
-  border-radius: 999px;
+  border-radius: var(--border-radius-full);
   border: none;
 }
 

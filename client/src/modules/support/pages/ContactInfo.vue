@@ -115,7 +115,7 @@ import {
   background: var(--vlbg);
   border: 1px solid var(--border2);
   box-shadow: var(--input-shadow);
-  border-radius: var(--border-4);
+  border-radius: var(--border-radius-md);
   color: var(--text);
 }
 
