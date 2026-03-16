@@ -56,7 +56,7 @@ const isGroupRoute = computed(() => {
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ffa91a 0, #ff335a 35%, #af00ff 70%, #5600ff 110%);
+  background: var(--gradient-bismuth);
   width: 0;
   transition: width 200ms ease-out;
   position: relative;

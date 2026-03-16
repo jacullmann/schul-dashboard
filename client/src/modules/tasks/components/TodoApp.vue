@@ -237,7 +237,7 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   right: 2px;
   bottom: 2px;
   z-index: -1;
-  background: linear-gradient(120deg, #ffa91a 0, #ff335a 35%, #af00ff 70%, #5600ff 110%);
+  background: var(--gradient-bismuth);
   filter: blur(12px);
   opacity: 0.9;
   display: block !important;

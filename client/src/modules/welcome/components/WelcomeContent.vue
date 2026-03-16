@@ -264,7 +264,7 @@ function navigateToAuth() {
 }
 
 :deep(b) {
-  background: linear-gradient(116deg, #ffa91a 8%, #ff335a 38%, #af00ff 69%, #5600ff 100%);
+  background: var(--gradient-bismuth);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

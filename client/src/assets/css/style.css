@@ -19,6 +19,22 @@
     --color-red: #ef4444;
     --color-green: #6aed8b;
 
+
+    /* Gradients */
+    --direction-bismuth: 116deg;
+    --color-bismuth-yellow: #ffa91a;
+    --color-bismuth-red: #ff335a;
+    --color-bismuth-purple: #af00ff;
+    --color-bismuth-violet: #5600ff;
+    --gradient-bismuth: linear-gradient(
+        var(--direction-bismuth),
+        var(--color-bismuth-yellow) 2.5%,
+        var(--color-bismuth-red) 39.5%,
+        var(--color-bismuth-purple) 77.2%,
+        var(--color-bismuth-violet) 115.2%
+    );
+
+    /* UI */
     --bg: var(--color-onyx);
     --lbg: var(--color-onyx);
     --text: var(--color-white);

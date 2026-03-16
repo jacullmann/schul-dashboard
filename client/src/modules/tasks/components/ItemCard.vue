@@ -264,7 +264,7 @@ function onDrop(e: DragEvent) {
   border: 2px solid transparent;
   background:
       linear-gradient(var(--vlbg), var(--vlbg)),
-      linear-gradient(125deg, #FFA91A 0%, #FF335A 38%, #AF00FF 75%, #5600FF 110%);
+      var(--gradient-bismuth);
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
 }
