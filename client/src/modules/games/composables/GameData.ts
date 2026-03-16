@@ -33,6 +33,30 @@ export const games: Game[] = [
         component: defineAsyncComponent(() => import('../pages/CyberSnare.vue')),
         tags: ['Action', 'Arcade', 'Solo'],
         previewImage: ''
+    },
+    {
+        id: 'memory-game',
+        name: 'Memory',
+        description: 'Finde alle Paare! Ein klassisches Gedächtnisspiel.',
+        component: defineAsyncComponent(() => import('../pages/MemoryGame.vue')),
+        tags: ['Klassiker', 'Gehirntraining', 'Solo'],
+        previewImage: 'https://images.unsplash.com/photo-1601987177651-8edfe6c20009?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
+    },
+    {
+        id: 'snake-game',
+        name: 'Snake',
+        description: 'Friss die Äpfel und lass die Schlange wachsen, aber beiße dich nicht selbst!',
+        component: defineAsyncComponent(() => import('../pages/SnakeGame.vue')),
+        tags: ['Arcade', 'Klassiker', 'Action'],
+        previewImage: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
+    },
+    {
+        id: 'whack-a-mole',
+        name: 'Whack-a-Mole',
+        description: 'Hau den Maulwurf! Teste deine Reaktionsgeschwindigkeit.',
+        component: defineAsyncComponent(() => import('../pages/WhackAMole.vue')),
+        tags: ['Reaktion', 'Spaß', 'Solo'],
+        previewImage: 'https://images.unsplash.com/photo-1456926631375-92c8ce872def?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60'
     }
 ];
 
