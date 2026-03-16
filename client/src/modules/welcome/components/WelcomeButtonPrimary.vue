@@ -18,8 +18,8 @@ const { t } = useI18n();
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  background: var(--text);
-  color: var(--bg);
+  background: var(--text-default);
+  color: var(--bg-canvas);
   border: none;
   font-weight: 600;
 }

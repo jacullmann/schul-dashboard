@@ -178,6 +178,6 @@ onMounted(() => {
 }
 
 .password-toggle:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 </style>

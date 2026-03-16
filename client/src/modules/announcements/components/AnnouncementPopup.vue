@@ -76,7 +76,7 @@ function close() {
 }
 
 .announcement-popup {
-  background: var(--vlbg);
+  background: var(--bg-surface);
   border-radius: 12px;
   padding: 0;
   width: 100%;
@@ -110,14 +110,14 @@ function close() {
 
 .popup-title h3 {
   margin: 0;
-  color: var(--text);
+  color: var(--text-default);
   font-size: 18px;
 }
 
 .popup-close {
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--text-default);
   font-size: 24px;
   cursor: pointer;
   padding: 4px;
@@ -131,15 +131,15 @@ function close() {
 }
 
 .popup-close:hover {
-  background: var(--vlbg);
+  background: var(--bg-surface);
 }
 
 .popup-content {
   padding: 20px;
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1.5;
   font-size: 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
 }
 
 .popup-footer {

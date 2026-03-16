@@ -339,13 +339,13 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 <style scoped>
 .group-admin {
   min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--bg-canvas);
+  color: var(--text-default);
 }
 
 .ga-header {
-  border-bottom: 1px solid var(--border);
-  background: var(--lbg);
+  border-bottom: 1px solid var(--border-canvas);
+  background: var(--bg-canvas);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -377,8 +377,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 }
 
 .ga-back:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .ga-header-title h1 {
@@ -400,7 +400,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   padding: 0 20px;
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
 }
 
 .ga-tab {
@@ -419,11 +419,11 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   transition: color 0.15s;
 }
 
-.ga-tab:hover { color: var(--text); }
+.ga-tab:hover { color: var(--text-default); }
 
 .ga-tab.active {
-  color: var(--text);
-  border-bottom-color: var(--text);
+  color: var(--text-default);
+  border-bottom-color: var(--text-default);
 }
 
 .ga-content {
@@ -468,8 +468,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 }
 
 .stat-tile {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 18px 16px;
@@ -495,7 +495,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--vlbg);
+  background: var(--bg-surface);
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 10px;
   padding: 12px 16px;
@@ -513,8 +513,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 
 /* ─── Settings ───────────────────────────────────────── */
 .settings-card {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 20px;
@@ -572,8 +572,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 10px;
   gap: 12px;
@@ -620,8 +620,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 
 /* ─── Sub Form ───────────────────────────────────────── */
 .sub-form-card {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 12px;
   padding: 20px;
@@ -670,8 +670,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 10px;
   gap: 8px;
@@ -700,12 +700,12 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .sub-row-tag.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.sub-row-tag.muted { background: var(--gg); color: var(--sub); }
+.sub-row-tag.muted { background: var(--bg-interactive-hover); color: var(--sub); }
 
 .sub-row-detail {
   font-size: var(--font-size-sub);
@@ -751,8 +751,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
 .ann-item {
   padding: 14px 16px;
   border-radius: 10px;
-  border-left: 3px solid var(--border);
-  background: var(--vlbg);
+  border-left: 3px solid var(--border-canvas);
+  background: var(--bg-surface);
 }
 
 .ann-info { border-left-color: #3b82f6; }
@@ -791,7 +791,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-icon:hover { background: var(--gg); color: var(--text); }
+.btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -811,8 +811,8 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--text);
-  color: var(--bg);
+  background: var(--text-default);
+  color: var(--bg-canvas);
   padding: 10px 20px;
   border-radius: 10px;
   font-size: var(--font-size-body);

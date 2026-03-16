@@ -227,7 +227,7 @@ onMounted(() => {
 .welcome-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0 0 6px;
   line-height: 1.2;
 }
@@ -266,12 +266,12 @@ onMounted(() => {
 .section-title {
   font-size: var(--font-size-h3);
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0;
 }
 
 .section-badge {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
   color: var(--sub);
   font-size: var(--font-size-sub);
   font-weight: 600;
@@ -290,15 +290,15 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: var(--border-radius-xl);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
   text-align: left;
   width: 100%;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .group-card:disabled {
@@ -311,8 +311,8 @@ onMounted(() => {
 }
 
 .group-card.active {
-  border-color: var(--text);
-  background: var(--text);
+  border-color: var(--text-default);
+  background: var(--text-default);
 }
 
 .group-card-icon {
@@ -326,12 +326,12 @@ onMounted(() => {
 }
 
 .group-card:hover:not(:disabled) .group-card-icon {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .group-card.active .group-card-icon {
-  color: var(--bg);
-  background: var(--text);
+  color: var(--bg-canvas);
+  background: var(--text-default);
 }
 
 .group-card-body {
@@ -345,14 +345,14 @@ onMounted(() => {
 .group-card-name {
   font-weight: 600;
   font-size: var(--font-size-body);
-  color: var(--text);
+  color: var(--text-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .group-card.active .group-card-name {
-  color: var(--bg);
+  color: var(--bg-canvas);
 }
 
 .group-card-meta {
@@ -361,7 +361,7 @@ onMounted(() => {
 }
 
 .group-card.active .group-card-meta {
-  color: var(--gg);
+  color: var(--bg-interactive-hover);
 }
 
 .group-card-role {
@@ -404,8 +404,8 @@ onMounted(() => {
 .empty-state-card {
   text-align: center;
   padding: 48px 24px;
-  background: var(--vlbg);
-  border: 1px dashed var(--border);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-canvas);
   border-radius: 16px;
 }
 
@@ -417,7 +417,7 @@ onMounted(() => {
 .empty-state-card h3 {
   font-size: var(--font-size-h3);
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0 0 8px;
 }
 
@@ -446,8 +446,8 @@ onMounted(() => {
 .spinner {
   width: 28px;
   height: 28px;
-  border: 2px solid var(--border);
-  border-top-color: var(--text);
+  border: 2px solid var(--border-canvas);
+  border-top-color: var(--text-default);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

@@ -112,8 +112,8 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   min-width: 100%;
   max-height: 320px;
   margin-top: 4px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   border-radius: var(--border-radius-lg);
   padding: 4px;
   display: flex;
@@ -126,7 +126,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 }
 
 .lucide-check {
-  color: var(--text);
+  color: var(--text-default);
   flex-shrink: 0;
 }
 

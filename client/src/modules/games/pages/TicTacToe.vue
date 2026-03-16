@@ -112,13 +112,13 @@ const resetGame = () => {
   grid-template-rows: repeat(3, 80px);
   gap: 5px;
   margin-bottom: 20px;
-  background-color: var(--vlbg);
+  background-color: var(--bg-surface);
   padding: 5px;
   border-radius: 8px;
 }
 
 .cell {
-  background-color: var(--bg);
+  background-color: var(--bg-canvas);
   display: flex;
   justify-content: center;
   align-items: center;

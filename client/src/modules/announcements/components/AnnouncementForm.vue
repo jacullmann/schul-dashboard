@@ -73,7 +73,7 @@ async function submit() {
         </select>
       </div>
       <div style="margin-top:8px;">
-        <label style="display:flex; align-items:center; gap:8px; color:var(--text);">
+        <label style="display:flex; align-items:center; gap:8px; color:var(--text-default);">
           <input type="checkbox" v-model="showAsPopup" />
           Als Popup anzeigen für alle benutzer
         </label>

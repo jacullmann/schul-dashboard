@@ -183,8 +183,8 @@ useResizeObserver(navBarRef, () => {
 
 .nav-bar {
   position: relative;
-  background-color: var(--vlbg);
-  border: 1px solid var(--border2);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   padding: 0;
   border-radius: var(--border-radius-md);
   display: flex;
@@ -226,7 +226,7 @@ useResizeObserver(navBarRef, () => {
   top: 0;
   bottom: 0;
   left: 0;
-  background-color: var(--text);
+  background-color: var(--text-default);
   border-radius: calc(var(--border-radius-md) - 1px);
   z-index: 2;
   overflow: hidden;
@@ -248,10 +248,10 @@ useResizeObserver(navBarRef, () => {
 }
 
 .nav-item:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .nav-item.active-text {
-  color: var(--lbg);
+  color: var(--bg-canvas);
 }
 </style>

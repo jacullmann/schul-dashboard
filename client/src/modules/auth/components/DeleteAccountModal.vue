@@ -82,13 +82,13 @@ const {
 
 .user-email {
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   font-weight: 700;
 }
 
 .warning-text {
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1.5;
 }
 
@@ -103,7 +103,7 @@ const {
 
 .checkbox-text {
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   user-select: none;
 }
 

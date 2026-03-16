@@ -58,13 +58,13 @@ const announcementStyle = computed(() => {
 .header {
   width: 100%;
   padding: 12px;
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--bg-canvas);
+  color: var(--text-default);
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
   /* CHANGED: Added position and z-index to stay above the announcement */
   position: relative;
   z-index: 101;
@@ -99,12 +99,12 @@ const announcementStyle = computed(() => {
   white-space: nowrap;
   line-height: 32px;
   font-family: var(--display-font), sans-serif;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .example-announcement {
-  background: var(--vlbg);
-  border-block: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border-block: 1px solid var(--border-surface);
   padding: 10px 12px;
   border-radius: 0;
   font-family: var(--normal-font), sans-serif;

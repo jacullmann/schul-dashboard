@@ -266,7 +266,7 @@ async function saveSub() {
 <style scoped>
 header {
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
   padding-bottom: 1rem;
 }
 
@@ -274,7 +274,7 @@ h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
 }
 .actions {
   margin-top: 1rem;
@@ -305,10 +305,10 @@ label {
 input[type="text"],
 input[type="number"],
 select {
-  background-color: var(--vlbg);
-  border: 1px solid var(--border2);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  color: var(--text);
+  color: var(--text-default);
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 1rem;
@@ -318,7 +318,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: var(--text);
+  border-color: var(--text-default);
 }
 
 input.disabled {
@@ -333,7 +333,7 @@ input.disabled {
   gap: 16px;
   margin-top: 0.5rem;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
 }
 
 .checkbox-container {
@@ -355,8 +355,8 @@ input.disabled {
 .checkmark {
   height: 20px;
   width: 20px;
-  background-color: var(--vlbg);
-  border: 1px solid var(--border2);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 4px;
   margin-right: 10px;
@@ -368,8 +368,8 @@ input.disabled {
 }
 
 .checkbox-container input:checked ~ .checkmark {
-  background-color: var(--text);
-  border-color: var(--text);
+  background-color: var(--text-default);
+  border-color: var(--text-default);
 }
 
 .checkbox-container input:checked ~ .checkmark:after {
@@ -380,7 +380,7 @@ input.disabled {
   top: 2px;
   width: 5px;
   height: 10px;
-  border: solid var(--bg);
+  border: solid var(--bg-canvas);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -403,7 +403,7 @@ input.disabled {
 
 .copy-btn {
   background: transparent;
-  border: 1px solid var(--border2);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   color: var(--sub);
   padding: 4px 10px;
@@ -414,15 +414,15 @@ input.disabled {
 }
 
 .copy-btn:hover {
-  background: var(--vlbg);
-  color: var(--text);
+  background: var(--bg-surface);
+  color: var(--text-default);
 }
 
 pre {
-  background-color: var(--vlbg);
-  border: 1px solid var(--border2);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  color: var(--text);
+  color: var(--text-default);
   padding: 12px;
   border-radius: 8px;
   overflow-x: auto;

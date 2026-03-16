@@ -139,7 +139,7 @@ const resetGame = () => {
   border-radius: 8px;
   width: 150px;
   min-height: 180px;
-  background-color: var(--bg);
+  background-color: var(--bg-canvas);
 }
 
 .choice-card h3 {
@@ -154,7 +154,7 @@ const resetGame = () => {
   justify-content: center;
   align-items: center;
   font-size: 4em;
-  background-color: var(--vlbg);
+  background-color: var(--bg-surface);
   border-radius: 10px;
   transition: background-color 0.5s;
 }
@@ -206,7 +206,7 @@ const resetGame = () => {
   font-weight: bold;
   font-size: 1.1em;
   background-color: #9b59b6;
-  color: var(--text);
+  color: var(--text-default);
   transition: background-color 0.2s, transform 0.1s;
 }
 
@@ -217,7 +217,7 @@ const resetGame = () => {
 
 .btn-reset {
   background-color: #e91e63;
-  color: var(--text);
+  color: var(--text-default);
   padding: 10px 20px;
   border: none;
   border-radius: 8px;

@@ -591,8 +591,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  background: var(--lbg);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--border-canvas);
   gap: 12px;
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -615,7 +615,7 @@ onMounted(async () => {
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 20px;
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .connection-badge .dot {
@@ -646,7 +646,7 @@ onMounted(async () => {
 }
 
 .connection-badge.disconnected {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
   color: var(--sub);
 }
 
@@ -688,10 +688,10 @@ onMounted(async () => {
   height: 26px;
   border-radius: 50%;
   background: var(--ghost--hover);
-  color: var(--text);
+  color: var(--text-default);
   font-size: 10px;
   font-weight: 700;
-  border: 2px solid var(--bg);
+  border: 2px solid var(--bg-canvas);
   cursor: default;
 }
 
@@ -703,7 +703,7 @@ onMounted(async () => {
 .version-badge {
   font-size: var(--font-size-footnote);
   color: var(--sub);
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -714,9 +714,9 @@ onMounted(async () => {
   gap: 5px;
   padding: 5px 12px;
   border-radius: var(--border-radius-md);
-  border: 1px solid var(--border);
-  background: var(--lbg);
-  color: var(--text);
+  border: 1px solid var(--border-canvas);
+  background: var(--bg-canvas);
+  color: var(--text-default);
   font-size: var(--font-size-footnote);
   cursor: pointer;
   transition: background 0.15s;
@@ -771,8 +771,8 @@ onMounted(async () => {
 .outline-sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: var(--vlbg);
-  border-right: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-surface);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -780,7 +780,7 @@ onMounted(async () => {
 
 .outline-header {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -790,7 +790,7 @@ onMounted(async () => {
   margin: 0;
   font-size: var(--font-size-body);
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .reset-btn {
@@ -829,13 +829,13 @@ onMounted(async () => {
   border-radius: 4px;
   cursor: pointer;
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   transition: background 0.15s;
   margin-bottom: 1px;
 }
 
 .toc-item:hover {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .toc-badge {
@@ -865,8 +865,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 6px 16px;
-  background: var(--vlbg);
-  border-bottom: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-surface);
   flex-shrink: 0;
   gap: 8px;
   flex-wrap: wrap;
@@ -899,8 +899,8 @@ onMounted(async () => {
 }
 
 .toolbar-left button:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .toolbar-left button:disabled {
@@ -916,15 +916,15 @@ onMounted(async () => {
 .tb-separator {
   width: 1px;
   height: 18px;
-  background: var(--border2, #ddd);
+  background: var(--border-surface, #ddd);
   margin: 0 6px;
   flex-shrink: 0;
 }
 
 .type-select {
-  background: var(--gg, #f0f0f0);
-  color: var(--text, #333);
-  border: 1px solid var(--border, #ddd);
+  background: var(--bg-interactive-hover, #f0f0f0);
+  color: var(--text-default, #333);
+  border: 1px solid var(--border-canvas, #ddd);
   border-radius: var(--border-radius-md, 4px);
   font-size: 12px;
   padding: 5px 6px;
@@ -969,8 +969,8 @@ onMounted(async () => {
 }
 
 .color-menu-btn:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .color-menu-dropdown {
@@ -979,8 +979,8 @@ onMounted(async () => {
   left: 0;
   z-index: 500;
   /* Visual styling */
-  background: var(--lbg, #fff);
-  border: 1px solid var(--border, #ddd);
+  background: var(--bg-canvas, #fff);
+  border: 1px solid var(--border-canvas, #ddd);
   border-radius: 8px;
   padding: 8px;
   gap: 5px;
@@ -1051,7 +1051,7 @@ onMounted(async () => {
   flex: 1;
   overflow-y: auto;
   padding: 40px 48px;
-  background: var(--bg);
+  background: var(--bg-canvas);
   scroll-behavior: smooth;
 }
 
@@ -1064,7 +1064,7 @@ onMounted(async () => {
 
 :deep(.ghost-block) {
   opacity: 0.35;
-  background: var(--gg) !important;
+  background: var(--bg-interactive-hover) !important;
 }
 
 .block-list-move,
@@ -1086,7 +1086,7 @@ onMounted(async () => {
   justify-content: center;
   gap: 12px;
   height: 200px;
-  border: 2px dashed var(--border2);
+  border: 2px dashed var(--border-surface);
   border-radius: 8px;
   color: var(--sub);
   cursor: pointer;
@@ -1096,8 +1096,8 @@ onMounted(async () => {
 }
 
 .empty-doc:hover {
-  border-color: var(--text);
-  color: var(--text);
+  border-color: var(--text-default);
+  color: var(--text-default);
 }
 
 .empty-icon {

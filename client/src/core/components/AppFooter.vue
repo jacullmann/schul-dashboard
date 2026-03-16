@@ -80,10 +80,10 @@ const year = new Date().getFullYear();
 
 <style scoped>
 .footer {
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--bg-canvas);
+  color: var(--text-default);
   padding: 3rem 0 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
   font-family: var(--display-font), sans-serif;
 }
 
@@ -126,7 +126,7 @@ const year = new Date().getFullYear();
 .brand-text {
   font-size: var(--font-size-h2);
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1;
   margin-bottom: 4px;
 }
@@ -140,7 +140,7 @@ const year = new Date().getFullYear();
 }
 
 .footer-section h3 {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-title);
   font-weight: 700;
   margin: 0 0 0.5rem 0;
@@ -156,7 +156,7 @@ const year = new Date().getFullYear();
 }
 
 .footer-link:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .theme-selector {
@@ -164,7 +164,7 @@ const year = new Date().getFullYear();
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
   padding: 1.5rem 0;
   font-size: var(--font-size-sub);
 }

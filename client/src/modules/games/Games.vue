@@ -108,13 +108,13 @@ const filteredGames = computed(() => {
 }
 
 .game-card {
-  background: var(--bg);
+  background: var(--bg-canvas);
   border-radius: 8px;
   overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-canvas);
 }
 
 .game-card-link:hover .game-card {
@@ -134,7 +134,7 @@ const filteredGames = computed(() => {
 }
 
 .game-name {
-  color: var(--text);
+  color: var(--text-default);
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 1.5em;

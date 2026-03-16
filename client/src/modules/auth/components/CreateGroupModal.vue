@@ -197,11 +197,11 @@ async function submit() {
 }
 
 .password-toggle:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .message {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-sub);
   margin-bottom: 16px;
 }

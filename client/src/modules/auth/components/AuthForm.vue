@@ -186,7 +186,7 @@ const {
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  background: var(--bg-canvas);
   padding: 16px;
   border-radius: var(--border-radius-xl);
 }
@@ -199,7 +199,7 @@ const {
 .card-title {
   font-size: var(--font-size-h2);
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0;
   letter-spacing: -0.01em;
 }
@@ -240,7 +240,7 @@ const {
 }
 
 .password-toggle:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .forgot-password-link {
@@ -256,7 +256,7 @@ const {
 }
 
 .forgot-password-link:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .privacy-row {
@@ -273,7 +273,7 @@ const {
 }
 
 .checkbox-label {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-sub);
   line-height: 18px;
 }
@@ -285,7 +285,7 @@ const {
 }
 
 :deep(.privacy-link:hover) {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .field-error {
@@ -299,7 +299,7 @@ const {
 }
 
 .message {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-sub);
   margin-bottom: 16px;
 }

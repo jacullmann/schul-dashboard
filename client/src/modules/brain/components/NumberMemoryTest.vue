@@ -138,7 +138,7 @@ function saveAndExit() {
   position: absolute;
   inset: 0;
   background-color: var(--bg-surface);
-  color: var(--text);
+  color: var(--text-default);
   padding: 40px 20px;
 }
 
@@ -196,7 +196,7 @@ function saveAndExit() {
   font-size: 6rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--text);
+  color: var(--text-default);
   margin-bottom: 40px;
   word-break: break-all;
   line-height: 1.1;
@@ -205,7 +205,7 @@ function saveAndExit() {
 .progress-bar-container {
   height: 6px;
   width: 100%;
-  background: var(--border);
+  background: var(--border-canvas);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -230,7 +230,7 @@ function saveAndExit() {
   text-align: center;
   margin-top: 24px;
   padding: 16px;
-  background: var(--bg);
+  background: var(--bg-canvas);
 }
 
 .correct-text {
@@ -238,11 +238,11 @@ function saveAndExit() {
 }
 
 .wrong-text {
-  color: var(--error);
+  color: var(--danger);
 }
 
 .wrong-color {
-  color: var(--error);
+  color: var(--danger);
   text-decoration: line-through;
 }
 
@@ -254,11 +254,11 @@ function saveAndExit() {
 }
 
 .back-btn-sec {
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-canvas);
   padding: 12px 24px;
   border-radius: var(--radius, 12px);
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
 }
 </style>

@@ -64,9 +64,9 @@ const ICONS = {
   gap: 8px;
   padding: 12px;
   border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border2);
-  background: var(--vlbg);
-  color: var(--text);
+  border: 1px solid var(--border-surface);
+  background: var(--bg-surface);
+  color: var(--text-default);
   font-size: var(--font-size-body);
   line-height: 1;
   overflow: hidden;
@@ -82,7 +82,7 @@ const ICONS = {
   justify-content: center;
 }
 
-.toast--success .toast-icon { color: var(--p-green); }
+.toast--success .toast-icon { color: var(--success); }
 .toast--error   .toast-icon { color: var(--danger); }
 .toast--warning .toast-icon { color: var(--warn); }
 .toast--info    .toast-icon { color: var(--primary); }
@@ -109,8 +109,8 @@ const ICONS = {
 }
 
 .toast-close:hover {
-  color: var(--text);
-  background: var(--gg);
+  color: var(--text-default);
+  background: var(--bg-interactive-hover);
 }
 
 .toast-enter-active {

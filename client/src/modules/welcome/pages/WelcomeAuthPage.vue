@@ -49,7 +49,7 @@ async function onLoggedIn() {
   position: fixed;
   top: 0;
   left: 0;
-  background: var(--bg);
+  background: var(--bg-canvas);
   z-index: 1000; /* over the welcome layout header/footer */
 }
 
@@ -66,7 +66,7 @@ async function onLoggedIn() {
 .bg-section {
   flex: 1;
   display: none;
-  background-color: var(--border2);
+  background-color: var(--border-surface);
   position: relative;
   overflow: hidden;
 }
@@ -83,7 +83,7 @@ async function onLoggedIn() {
 @media (min-width: 900px) {
   .auth-section {
     flex: 0 0 500px; /* Fixed width on desktop */
-    border-right: 1px solid var(--border);
+    border-right: 1px solid var(--border-canvas);
   }
   .bg-section {
     display: block; /* Show background on large screens */

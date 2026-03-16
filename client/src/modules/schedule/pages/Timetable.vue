@@ -233,10 +233,10 @@ onUnmounted(() => {
 }
 
 .header-cell {
-  background-color:var(--vlbg);
-  color: var(--text);
+  background-color:var(--bg-surface);
+  color: var(--text-default);
   padding: 10px 12px;
-  border:1px solid var(--border2);
+  border:1px solid var(--border-surface);
   text-align: center;
   font-weight: bold;
   border-radius: var(--border-radius-md);
@@ -245,7 +245,7 @@ onUnmounted(() => {
 }
 
 .header-cell.current-day-header {
-  background-color: var(--gg);
+  background-color: var(--bg-interactive-hover);
   border-color: var(--not-spinning);
 }
 
@@ -267,16 +267,16 @@ onUnmounted(() => {
 .slot-number {
   font-weight: bold;
   font-size: var(--font-size-title);
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .slot-time { font-size: var(--font-size-footnote); }
 
 /* GROUP CONTAINER */
 .lesson-group-container {
-  background-color: var(--vlbg);
+  background-color: var(--bg-surface);
   border-radius: var(--border-radius-md);
-  border:1px solid var(--border2);
+  border:1px solid var(--border-surface);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -286,14 +286,14 @@ onUnmounted(() => {
 }
 
 .lesson-group-container.current-day {
-  background-color: var(--gg);
+  background-color: var(--bg-interactive-hover);
   border-color: var(--not-spinning);
 }
 
 /* --- HIGHLIGHT LOGIC --- */
 .lesson-group-container.highlight-active {
-  background-color: var(--text) !important;
-  border-color: var(--text);
+  background-color: var(--text-default) !important;
+  border-color: var(--text-default);
 }
 
 /* SUB LESSON ITEM */
@@ -310,11 +310,11 @@ onUnmounted(() => {
 }
 
 .sub-lesson-item.clickable:hover {
-  background-color: var(--gg);
+  background-color: var(--bg-interactive-hover);
 }
 
 .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border-surface);
 }
 
 .lesson-group-container.current-day .sub-lesson-item.has-border {
@@ -330,7 +330,7 @@ onUnmounted(() => {
 .lesson-subject {
   font-weight: bold;
   font-size: var(--font-size-body);
-  color: var(--text);
+  color: var(--text-default);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -353,16 +353,16 @@ onUnmounted(() => {
 }
 .new-val {
   font-weight: bold;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 /* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
 .lesson-group-container.highlight-active .lesson-subject {
-  color: var(--lbg);
+  color: var(--bg-canvas);
 }
 
 .lesson-group-container.highlight-active .lesson-details {
-  color: var(--gg);
+  color: var(--bg-interactive-hover);
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
@@ -374,7 +374,7 @@ onUnmounted(() => {
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {
-  color: var(--lbg);
+  color: var(--bg-canvas);
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {
@@ -392,11 +392,11 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
-  background-color: var(--vlbg);
-  border: 1px solid var(--border2);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-body);
-  color: var(--text);
+  color: var(--text-default);
   box-shadow: var(--input-shadow);
 }
 

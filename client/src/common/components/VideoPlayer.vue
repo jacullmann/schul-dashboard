@@ -191,7 +191,7 @@ const {
 .time-display {
   font-size: 12px;
   font-family: monospace;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .scrub-bar-container {

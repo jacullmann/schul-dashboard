@@ -349,7 +349,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 .label {
   display: block;
   font-size: var(--font-size-button);
-  color: var(--text);
+  color: var(--text-default);
   margin-bottom: 6px;
 }
 

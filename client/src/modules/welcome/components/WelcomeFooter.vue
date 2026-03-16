@@ -64,9 +64,9 @@ function goToStatus() {
 
 <style scoped>
 .footer {
-  background-color: var(--bg);
+  background-color: var(--bg-canvas);
   padding: 16px 16px 0 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
 }
 
 .container {
@@ -88,7 +88,7 @@ function goToStatus() {
 }
 
 .footer-section h3 {
-  color: var(--text);
+  color: var(--text-default);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -115,11 +115,11 @@ function goToStatus() {
 }
 
 .footer-link:hover {
-  color: var(--text) !important;
+  color: var(--text-default) !important;
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
   padding-block: 16px;
   display: flex;
   flex-direction: column;

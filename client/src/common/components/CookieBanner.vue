@@ -57,9 +57,9 @@ onMounted(() => {
   bottom: 16px;
   right: 16px;
   max-width: 420px;
-  border: 1px solid var(--border2);
+  border: 1px solid var(--border-surface);
   border-radius: 16px;
-  background: var(--vlbg);
+  background: var(--bg-surface);
   box-shadow: var(--menu-shadow);
   z-index: 1200;
   padding: 0;
@@ -75,7 +75,7 @@ onMounted(() => {
 
 .cookie-text {
   font-size: 13px;
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1.6;
 }
 .cookie-text p {
@@ -89,7 +89,7 @@ onMounted(() => {
 }
 
 .data-link:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .cookie-actions {

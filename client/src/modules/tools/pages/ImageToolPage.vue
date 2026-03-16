@@ -461,7 +461,7 @@ onUnmounted(() => {
 
 /* Upload Area */
 .upload-area {
-  border: 2px dashed var(--border);
+  border: 2px dashed var(--border-canvas);
   border-radius: var(--border-radius-md);
   padding: 16px;
   text-align: center;
@@ -470,7 +470,7 @@ onUnmounted(() => {
   margin-bottom: 2rem;
 }
 .upload-area:hover, .upload-area.dragging {
-  border-color: var(--border2);
+  border-color: var(--border-surface);
 }
 
 /* Controls Grid */
@@ -521,8 +521,8 @@ label {
 }
 
 .editor-card {
-  background: var(--lbg);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-canvas);
   padding: 16px;
   border-radius: var(--border-radius-xl);
   width: 90%;
@@ -550,7 +550,7 @@ label {
 .crop-workspace {
   flex: 1;
   position: relative;
-  background: var(--lbg);
+  background: var(--bg-canvas);
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -568,7 +568,7 @@ label {
 .crop-box {
   position: absolute;
   border: 2px solid var(--sub);
-  box-shadow: 0 0 0 9999px color-mix(in oklab, var(--lbg), transparent 40%); /* Dimming effect */
+  box-shadow: 0 0 0 9999px color-mix(in oklab, var(--bg-canvas), transparent 40%); /* Dimming effect */
   cursor: move;
 }
 
@@ -576,7 +576,7 @@ label {
 .resize-handle {
   width: 8px;
   height: 8px;
-  background: var(--text);
+  background: var(--text-default);
   position: absolute;
   z-index: 10;
 }

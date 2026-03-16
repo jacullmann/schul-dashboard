@@ -71,11 +71,11 @@ function getIcon(name: string) {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--text) 0%, rgba(255,255,255,0.7) 100%);
+  background: linear-gradient(135deg, var(--text-default) 0%, rgba(255,255,255,0.7) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: var(--text);
+  color: var(--text-default);
   letter-spacing: -0.02em;
 }
 
@@ -96,11 +96,11 @@ function getIcon(name: string) {
 .test-card {
   position: relative;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-canvas);
   border-radius: 20px;
   padding: 2px;
   text-decoration: none;
-  color: var(--text);
+  color: var(--text-default);
   overflow: hidden;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
   display: flex;
@@ -152,7 +152,7 @@ function getIcon(name: string) {
 .card-content {
   position: relative;
   z-index: 1;
-  background: var(--bg);
+  background: var(--bg-canvas);
   border-radius: 18px;
   padding: 28px;
   width: 100%;
@@ -197,7 +197,7 @@ function getIcon(name: string) {
   justify-content: space-between;
   align-items: center;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
   margin-top: auto;
 }
 
@@ -212,7 +212,7 @@ function getIcon(name: string) {
 .score-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .no-score .score-value {

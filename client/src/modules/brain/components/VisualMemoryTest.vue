@@ -151,7 +151,7 @@ function saveAndExit() {
   position: absolute;
   inset: 0;
   background-color: var(--bg-surface);
-  color: var(--text);
+  color: var(--text-default);
   padding: 40px 20px;
 }
 
@@ -239,8 +239,8 @@ function saveAndExit() {
 }
 
 .tile {
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-canvas);
   border-radius: 12px;
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: default;
@@ -284,11 +284,11 @@ function saveAndExit() {
 }
 
 .back-btn-sec {
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-canvas);
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
 }
 </style>

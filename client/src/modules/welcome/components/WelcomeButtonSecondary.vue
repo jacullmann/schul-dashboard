@@ -23,6 +23,6 @@ const { t } = useI18n();
   font-weight: 500;
 }
 .secondary-btn:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 </style>

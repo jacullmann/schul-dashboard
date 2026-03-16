@@ -61,8 +61,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .modal-card {
-  background: var(--lbg);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-canvas);
   border-radius: var(--border-radius-2xl);
   padding: 16px;
   width: calc(100% - 32px);
@@ -92,6 +92,6 @@ onBeforeUnmount(() => {
 .modal-title-text {
   margin: 0;
   font-size: var(--font-size-h3);
-  color: var(--text);
+  color: var(--text-default);
 }
 </style>

@@ -112,8 +112,8 @@ onBeforeUnmount(() => {
   left: 0;
   margin-top: 8px;
   min-width: 300px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   border-radius: 16px;
   padding: 12px;
   display: flex;

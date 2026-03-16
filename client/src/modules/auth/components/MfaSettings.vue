@@ -404,8 +404,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 12px;
 }
@@ -422,7 +422,7 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 8px;
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
   color: var(--sub);
 }
 
@@ -504,15 +504,15 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
   font-size: var(--font-size-sub);
   font-weight: 600;
   color: var(--sub);
 }
 
 .step.active .step-number {
-  background: var(--text);
-  color: var(--bg);
+  background: var(--text-default);
+  color: var(--bg-canvas);
 }
 
 .step.completed .step-number {
@@ -526,13 +526,13 @@ onUnmounted(() => {
 }
 
 .step.active .step-label {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .step-divider {
   width: 40px;
   height: 2px;
-  background: var(--border2);
+  background: var(--border-surface);
 }
 
 .qr-section,
@@ -583,8 +583,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 4px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 8px;
 }
@@ -592,7 +592,7 @@ onUnmounted(() => {
 .secret-code {
   font-family: 'SF Mono', Monaco, monospace;
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   letter-spacing: 4px;
   padding-left: 8px;
   padding-block: 6px;
@@ -612,8 +612,8 @@ onUnmounted(() => {
 }
 
 .copy-btn:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .timer-info {
@@ -645,17 +645,17 @@ onUnmounted(() => {
   font-family: 'SF Mono', Monaco, monospace;
   letter-spacing: 8px;
   text-align: center;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: 12px;
-  color: var(--text);
+  color: var(--text-default);
   transition: border-color 0.2s;
 }
 
 .code-input:focus {
   outline: none;
-  border-color: var(--text);
+  border-color: var(--text-default);
 }
 
 .code-input.error {
@@ -663,7 +663,7 @@ onUnmounted(() => {
 }
 
 .code-input::placeholder {
-  color: var(--border2);
+  color: var(--border-surface);
   letter-spacing: 8px;
 }
 

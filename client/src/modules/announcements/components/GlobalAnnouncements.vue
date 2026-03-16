@@ -186,13 +186,13 @@ onMounted(() => {
 
 .global-ann {
   padding: 10px 12px;
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-sub);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: var(--menu-shadow);
-  border-bottom: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border-surface);
 }
 
 .global-ann-content {
@@ -230,12 +230,12 @@ onMounted(() => {
 }
 
 .announcement-menu-btn:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .announcement-menu {
-  background: var(--lbg);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-canvas);
   border-radius: var(--border-radius-xl);
   padding: 16px;
   width: 90%;
@@ -255,13 +255,13 @@ onMounted(() => {
 .announcement-menu-header h3 {
   margin: 0;
   font-size: var(--font-size-h3);
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--text-default);
   cursor: pointer;
   padding: 8px;
   display: inline-flex;
@@ -272,7 +272,7 @@ onMounted(() => {
 }
 
 .close-btn:hover {
-  background: var(--vlbg);
+  background: var(--bg-surface);
 }
 
 .announcement-list {
@@ -284,8 +284,8 @@ onMounted(() => {
 }
 
 .announcement-item {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   display: flex;
   align-items: center;
   padding: 12px;
@@ -297,13 +297,13 @@ onMounted(() => {
 }
 
 .announcement-item:hover {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .announcement-item.active {
-  background: var(--text);
-  border-color: var(--text);
-  color: var(--bg);
+  background: var(--text-default);
+  border-color: var(--text-default);
+  color: var(--bg-canvas);
 }
 
 .announcement-item-color {

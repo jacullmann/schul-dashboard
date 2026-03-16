@@ -47,7 +47,7 @@ const formatDate = (dateStr: string) => {
   flex-direction: row;
   align-items: stretch;
   padding-bottom: 32px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
 }
 
 .card:hover .card-image {
@@ -55,7 +55,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .badge-small {
-  color: var(--text);
+  color: var(--text-default);
   font-size: 14px;
   display: inline-block;
   font-weight: normal;
@@ -75,7 +75,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .play-icon-card {
-  color: var(--text);
+  color: var(--text-default);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
 

@@ -158,7 +158,7 @@ async function onPrimary() {
             <button
                 type="button"
                 @click="showPassword = !showPassword"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text);"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text-default);"
                 aria-label="Toggle password visibility"
             >
               <component :is="showPassword ? EyeOff : Eye" :size="20" />
@@ -175,7 +175,7 @@ async function onPrimary() {
             <button
                 type="button"
                 @click="showPassword = !showPassword"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text);"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text-default);"
                 aria-label="Anzeigen/Nicht anzeigen"
             >
               <component :is="showPassword ? EyeOff : Eye" :size="20" />
@@ -202,9 +202,9 @@ async function onPrimary() {
   max-width: 420px;
   padding: 16px;
   border-radius:16px;
-  background: var(--lbg);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: var(--bg-canvas);
+  color: var(--text-default);
+  border: 1px solid var(--border-canvas);
   box-shadow: var(--menu-shadow);
 }
 

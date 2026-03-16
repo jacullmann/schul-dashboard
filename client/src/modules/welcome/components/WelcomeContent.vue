@@ -162,7 +162,7 @@ function navigateToAuth() {
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 22px;
-  color: var(--text);
+  color: var(--text-default);
   font-family: var(--display-font), sans-serif;
 }
 
@@ -175,7 +175,7 @@ function navigateToAuth() {
 
 .example-body {
   margin-top: 8px;
-  color: var(--text);
+  color: var(--text-default);
   word-break: break-word;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -184,7 +184,7 @@ function navigateToAuth() {
 }
 
 .item-card-vanishing {
-  background:linear-gradient(var(--vlbg) 0%, transparent 100%);
+  background:linear-gradient(var(--bg-surface) 0%, transparent 100%);
   border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
   min-height: 30px;
 }
@@ -202,8 +202,8 @@ function navigateToAuth() {
 }
 
 .unpin-trigger:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .lucide-pin {
@@ -226,7 +226,7 @@ function navigateToAuth() {
   min-height: 30px;
   display: flex;
   border: 1px solid transparent;
-  background: linear-gradient(var(--border2) 0%, transparent 100%) border-box;
+  background: linear-gradient(var(--border-surface) 0%, transparent 100%) border-box;
   -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
@@ -240,7 +240,7 @@ function navigateToAuth() {
 
 .text-content {
   flex: 1;
-  color: var(--text);
+  color: var(--text-default);
   container-type: inline-size;
 }
 
@@ -283,7 +283,7 @@ function navigateToAuth() {
 
 .free {
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .action-buttons {

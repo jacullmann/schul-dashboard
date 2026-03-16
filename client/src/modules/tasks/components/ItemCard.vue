@@ -246,8 +246,8 @@ function onDrop(e: DragEvent) {
 /* ─── item-card: identical to original when swipe is idle ─────────────────── */
 .item-card {
   position: relative;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   border-radius: var(--border-radius-xl);
   padding: 12px;
   box-shadow: var(--input-shadow);
@@ -263,7 +263,7 @@ function onDrop(e: DragEvent) {
 .item-card.highlighted {
   border: 2px solid transparent;
   background:
-      linear-gradient(var(--vlbg), var(--vlbg)),
+      linear-gradient(var(--bg-surface), var(--bg-surface)),
       var(--gradient-bismuth);
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
@@ -314,13 +314,13 @@ function onDrop(e: DragEvent) {
 }
 
 .item-menu-trigger:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .item-body {
   margin-top: 8px;
-  color: var(--text);
+  color: var(--text-default);
   word-break: break-word;
   overflow-wrap: anywhere;
   hyphens: auto;

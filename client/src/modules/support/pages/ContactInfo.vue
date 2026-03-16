@@ -81,7 +81,7 @@ import {
 }
 
 .contact-header h2 {
-  color: var(--text);
+  color: var(--text-default);
   margin: 0;
 }
 .contact-sections {
@@ -112,11 +112,11 @@ import {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: var(--border-radius-md);
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .header-content {
@@ -127,7 +127,7 @@ import {
   margin: 0 0 4px 0;
   font-size: var(--font-size-title);
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
   font-family: var(--display-font), sans-serif;
 }
 
@@ -144,7 +144,7 @@ import {
 
 .email-button {
   margin-left: 62px;
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-button);
 }
 
@@ -155,7 +155,7 @@ import {
 }
 
 .email-button:hover .lucide-external-link {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .lucide-external-link :deep(path:first-child),
@@ -177,7 +177,7 @@ svg {
 .location-text,
 .feedback-text {
   margin: 0;
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-body);
   line-height: 1.6;
 }
@@ -188,13 +188,13 @@ svg {
 
 hr {
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
   margin: 0;
 }
 
 .additional-info {
   padding-top: 24px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
 }
 
 .info-card {

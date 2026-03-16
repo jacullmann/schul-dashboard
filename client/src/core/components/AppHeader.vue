@@ -253,7 +253,7 @@ onUnmounted(() => {
             aria-label="Menü öffnen oder schließen"
             v-if="!navOpen"
         >
-          <Menu style="color: var(--text)" :size="26"></Menu>
+          <Menu style="color: var(--text-default)" :size="26"></Menu>
         </button>
       </div>
 
@@ -279,15 +279,15 @@ onUnmounted(() => {
 
 <style scoped>
 .header {
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--bg-canvas);
+  color: var(--text-default);
   padding: 0;
   height: var(--header-height);
   position: sticky;
   top: 0;
   z-index: 1002;
   transition: background-color 0.3s ease;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
   font-family: 'Satoshi', sans-serif;
   display: flex;
   align-items: center;
@@ -324,7 +324,7 @@ onUnmounted(() => {
   align-items: center;
   text-decoration: none;
   gap: 0.6rem;
-  color: var(--text);
+  color: var(--text-default);
   flex: 0 1 auto;
   line-height: 1;
 }
@@ -351,7 +351,7 @@ onUnmounted(() => {
 .logo-separator--desktop {
   font-size: var(--font-size-body);
   font-weight: 400;
-  color: var(--text);
+  color: var(--text-default);
   opacity: 0.4;
   margin: 0 0.2rem;
   user-select: none;
@@ -370,14 +370,14 @@ onUnmounted(() => {
   cursor: pointer;
   align-items: center;
   gap: 4px;
-  color: var(--text);
+  color: var(--text-default);
   padding: 4px 8px;
   border-radius: var(--border-radius-md);
   transition: background-color 0.2s ease;
 }
 
 .group-switcher-btn:hover {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .logo-group-name--desktop span {
@@ -411,7 +411,7 @@ onUnmounted(() => {
   font-size: var(--font-size-body);
   font-weight: 500;
   text-decoration: none;
-  color: var(--text);
+  color: var(--text-default);
   position: relative;
   transition: color 0.18s ease;
   white-space: nowrap;
@@ -470,7 +470,7 @@ onUnmounted(() => {
   right: 1rem;
   background: none;
   border: none;
-  color: var(--text);
+  color: var(--text-default);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: var(--border-radius-md);
@@ -501,7 +501,7 @@ onUnmounted(() => {
     right: 0;
     width: 240px;
     height: 100%;
-    background-color: var(--lbg);
+    background-color: var(--bg-canvas);
     flex-direction: column;
     align-items: flex-start;
     padding-inline: 32px;
@@ -509,7 +509,7 @@ onUnmounted(() => {
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 999;
     box-shadow: var(--menu-shadow);
-    border-left: 1px solid var(--border);
+    border-left: 1px solid var(--border-canvas);
     gap: 0;
   }
 
@@ -521,7 +521,7 @@ onUnmounted(() => {
     font-size: var(--font-size-h3);
     width: 100%;
     padding-block: 32px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-canvas);
   }
 
   .nav-item:last-child {

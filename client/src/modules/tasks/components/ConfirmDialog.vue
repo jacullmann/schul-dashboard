@@ -99,13 +99,13 @@ watch(() => props.show, (newVal) => {
 
 <style scoped>
 .confirm-box {
-  background: var(--lbg);
+  background: var(--bg-canvas);
   padding: 16px;
   border-radius: 16px;
   max-width: 480px;
   width: 90%;
   text-align: left;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-canvas);
   box-shadow: var(--menu-shadow);
 }
 
@@ -119,7 +119,7 @@ watch(() => props.show, (newVal) => {
   margin-bottom: 16px;
   font-weight: 600;
   font-size: 14px;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .reason-input {
@@ -132,16 +132,16 @@ watch(() => props.show, (newVal) => {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .reason-input textarea {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  background: var(--vlbg);
-  color: var(--text);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  color: var(--text-default);
+  border: 1px solid var(--border-surface);
   outline: none;
   min-height: 120px;
   resize: vertical;

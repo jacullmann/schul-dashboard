@@ -68,7 +68,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .back-link:hover {
-  color:var(--text);
+  color:var(--text-default);
 }
 
 .back-link svg {
@@ -84,7 +84,7 @@ watch(() => route.params.id, (newId) => {
 .game-title {
   margin-top: 0;
   margin-bottom: 10px;
-  color: var(--text);
+  color: var(--text-default);
   font-size: 2em;
 }
 
@@ -95,7 +95,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 hr {
-  border-top: 1px solid var(--vlbg);
+  border-top: 1px solid var(--bg-surface);
 }
 
 .game-component-instance {

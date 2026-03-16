@@ -164,8 +164,8 @@ onMounted(() => {
   width: 100%;
   max-width: 380px;
   border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--lbg);
+  border: 1px solid var(--border-canvas);
+  background: var(--bg-canvas);
   padding: 24px;
   box-shadow: var(--menu-shadow);
 }
@@ -191,7 +191,7 @@ onMounted(() => {
 
 .modal-title {
   margin: 0;
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-h3);
   font-weight: 700;
   text-align: center;
@@ -224,16 +224,16 @@ onMounted(() => {
   font-family: 'SF Mono', Monaco, monospace;
   letter-spacing: 10px;
   text-align: center;
-  background: var(--vlbg);
-  border: 2px solid var(--border2);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-surface);
   border-radius: 12px;
-  color: var(--text);
+  color: var(--text-default);
   transition: border-color 0.2s;
 }
 
 .code-input:focus {
   outline: none;
-  border-color: var(--text);
+  border-color: var(--text-default);
 }
 
 .code-input.error {
@@ -251,7 +251,7 @@ onMounted(() => {
 }
 
 .code-input::placeholder {
-  color: var(--border2);
+  color: var(--border-surface);
   letter-spacing: 10px;
 }
 
@@ -292,7 +292,7 @@ onMounted(() => {
 
 .modal-footer {
   padding-top: 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-canvas);
 }
 
 .help-text {
@@ -304,7 +304,7 @@ onMounted(() => {
 }
 
 .help-link {
-  color: var(--text);
+  color: var(--text-default);
   text-decoration: underline;
   transition: opacity 0.2s;
 }

@@ -111,7 +111,7 @@ onMounted(async () => {
 .spinner {
   width: 64px;
   height: 64px;
-  border: 4px solid var(--border2);
+  border: 4px solid var(--border-surface);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -122,7 +122,7 @@ onMounted(async () => {
 }
 
 .success-icon {
-  color: var(--p-green);
+  color: var(--success);
 }
 
 .error-icon {
@@ -133,7 +133,7 @@ onMounted(async () => {
   font-family: var(--display-font), sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0 0 16px 0;
   line-height: 1.2;
 }
@@ -161,13 +161,13 @@ onMounted(async () => {
 
 .info-card-icon {
   flex-shrink: 0;
-  color: var(--p-green);
+  color: var(--success);
   margin-top: 2px;
 }
 
 .info-card-text {
   font-size: 14px;
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1.5;
 }
 
@@ -212,7 +212,7 @@ onMounted(async () => {
   margin-top: 8px;
 }
 .white-text {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 @media (max-width: 768px) {

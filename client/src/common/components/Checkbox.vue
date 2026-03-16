@@ -58,12 +58,12 @@ function handleChange(event: Event) {
 }
 
 .collapse-checkbox input:checked + .vis-label {
-  background: var(--text);
-  border-color: var(--text);
+  background: var(--text-default);
+  border-color: var(--text-default);
 }
 
 .collapse-checkbox .vis-label:hover {
-  border-color: var(--text);
+  border-color: var(--text-default);
 }
 
 .collapse-checkbox .vis-label::after {
@@ -71,7 +71,7 @@ function handleChange(event: Event) {
   position: absolute;
   width: 0;
   height: 0;
-  border: solid var(--lbg);
+  border: solid var(--bg-canvas);
   border-width: 0 2px 2px 0;
   opacity: 0;
   left: 50%;

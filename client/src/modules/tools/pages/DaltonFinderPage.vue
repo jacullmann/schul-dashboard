@@ -229,21 +229,21 @@ table {
 th {
   padding: 10px 12px;
   text-align: center;
-  background: var(--vlbg);
-  color: var(--text);
+  background: var(--bg-surface);
+  color: var(--text-default);
   font-weight: bold;
-  border-top: 1px solid var(--border2);
-  border-bottom: 1px solid var(--border2);
-  border-right: 1px solid var(--border2);
+  border-top: 1px solid var(--border-surface);
+  border-bottom: 1px solid var(--border-surface);
+  border-right: 1px solid var(--border-surface);
 }
 
 th.is-today {
-  background: var(--text);
-  color: var(--bg);
+  background: var(--text-default);
+  color: var(--bg-canvas);
 }
 
 th:first-child {
-  border-left: 1px solid var(--border2);
+  border-left: 1px solid var(--border-surface);
   border-top-left-radius: var(--border-radius-md);
   border-bottom-left-radius: var(--border-radius-md);
 }
@@ -257,19 +257,19 @@ td {
   padding: 10px 12px;
   text-align: left;
   vertical-align: top;
-  background: var(--vlbg);
-  border-top: 1px solid var(--border2);
-  border-bottom: 1px solid var(--border2);
-  border-right: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-surface);
+  border-bottom: 1px solid var(--border-surface);
+  border-right: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
 }
 
 td.is-today {
-  background-color: var(--text);
+  background-color: var(--text-default);
 }
 
 tr td:first-child {
-  border-left: 1px solid var(--border2);
+  border-left: 1px solid var(--border-surface);
   border-top-left-radius: var(--border-radius-md);
   border-bottom-left-radius: var(--border-radius-md);
 }
@@ -281,11 +281,11 @@ tr td:last-child {
 
 .t-name {
   font-weight: 500;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .t-name.is-today {
-  color: var(--bg);
+  color: var(--bg-canvas);
 }
 
 .t-sub {
@@ -297,12 +297,12 @@ tr td:last-child {
 }
 
 .t-sub.is-today {
-  color: var(--gg);
+  color: var(--bg-interactive-hover);
 }
 
 .room-cell {
-  background: var(--vlbg);
-  color: var(--text);
+  background: var(--bg-surface);
+  color: var(--text-default);
   font-weight: 500;
   white-space: nowrap;
   text-align: center;
@@ -311,10 +311,10 @@ tr td:last-child {
 
 /* TEACHER CARD STYLES */
 .teacher-card {
-  background: var(--vlbg);
+  background: var(--bg-surface);
   padding: 12px;
   margin-bottom: 12px;
-  border: 1px solid var(--border2);
+  border: 1px solid var(--border-surface);
   border-radius: 16px;
   box-shadow: var(--input-shadow);
 }
@@ -327,7 +327,7 @@ tr td:last-child {
   font-size: var(--font-size-h3);
   line-height: 1;
   margin: 0 0 4px 0;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .subjects {
@@ -347,7 +347,7 @@ tr td:last-child {
 
   .day-col {
     padding: 8px;
-    border-bottom: 1px solid var(--border2);
+    border-bottom: 1px solid var(--border-surface);
     border-right: none !important;
   }
 
@@ -364,7 +364,7 @@ tr td:last-child {
 
 .day-col {
   padding: 8px;
-  border-right: 1px solid var(--border2);
+  border-right: 1px solid var(--border-surface);
 }
 
 .day-col:last-child {
@@ -374,7 +374,7 @@ tr td:last-child {
 .day-col h4 {
   text-align: center;
   padding-bottom: 4px;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0;
   font-size: var(--font-size-body);
   font-family: var(--normal-font), sans-serif;
@@ -390,7 +390,7 @@ tr td:last-child {
   padding: 0;
   font-size: var(--font-size-body);
   text-align: center;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .day-col li.empty {

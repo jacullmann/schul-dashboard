@@ -102,7 +102,7 @@ async function submit() {
 .label {
   display: block;
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   margin-bottom: 6px;
 }
 

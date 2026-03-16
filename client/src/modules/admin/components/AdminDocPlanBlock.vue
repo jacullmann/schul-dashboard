@@ -221,7 +221,7 @@ watch(() => props.block.content, (newContent) => {
 }
 
 .block-wrapper:hover {
-  background: var(--vlbg, #f5f5f5);
+  background: var(--bg-surface, #f5f5f5);
 }
 
 /* =========================================
@@ -259,8 +259,8 @@ watch(() => props.block.content, (newContent) => {
 }
 
 .drag-handle:hover {
-  background: var(--gg, #eee);
-  color: var(--text, #333);
+  background: var(--bg-interactive-hover, #eee);
+  color: var(--text-default, #333);
   cursor: grab;
 }
 
@@ -284,7 +284,7 @@ watch(() => props.block.content, (newContent) => {
 }
 
 .collapse-toggle:hover {
-  color: var(--text, #333);
+  color: var(--text-default, #333);
 }
 
 /* =========================================
@@ -316,7 +316,7 @@ watch(() => props.block.content, (newContent) => {
   width: 15px;
   height: 15px;
   cursor: pointer;
-  accent-color: var(--text, #333);
+  accent-color: var(--text-default, #333);
 }
 
 .content-area {
@@ -349,7 +349,7 @@ watch(() => props.block.content, (newContent) => {
 .h1 {
   font-size: 1.9em;
   font-weight: 700;
-  color: var(--text, #111);
+  color: var(--text-default, #111);
   line-height: 1.2;
   margin: 12px 0 4px;
 }
@@ -357,33 +357,33 @@ watch(() => props.block.content, (newContent) => {
 .h2 {
   font-size: 1.5em;
   font-weight: 700;
-  color: var(--text, #111);
+  color: var(--text-default, #111);
   margin: 10px 0 4px;
 }
 
 .h3 {
   font-size: 1.2em;
   font-weight: 600;
-  color: var(--text, #111);
+  color: var(--text-default, #111);
   margin: 8px 0 2px;
 }
 
 .h4 {
   font-size: 1.05em;
   font-weight: 600;
-  color: var(--text, #111);
+  color: var(--text-default, #111);
   margin: 6px 0 2px;
 }
 
 .p {
   font-size: 1em;
-  color: var(--text, #333);
+  color: var(--text-default, #333);
   margin: 2px 0;
 }
 
 .ul, .cl {
   font-size: 1em;
-  color: var(--text, #333);
+  color: var(--text-default, #333);
   margin: 1px 0;
 }
 

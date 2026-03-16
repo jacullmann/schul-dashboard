@@ -101,16 +101,16 @@ async function setPersonalization(value: boolean) {
   padding: 4px 8px;
   border-radius: var(--border-radius-md);
   font-size: var(--font-size-sub);
-  background: var(--gg);
-  color: var(--text);
-  border: 1px solid var(--border2);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
+  border: 1px solid var(--border-surface);
   animation: messageSlideIn 200ms ease;
   z-index: 1000;
 }
 
 .message.error {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
   border: 1px solid var(--danger);
 }
 

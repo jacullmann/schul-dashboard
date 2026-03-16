@@ -98,7 +98,7 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   <div class="todo-app-integrated">
     <div class="todo-header">
       <div class="secure">
-        <Lock style="color: var(--text)" :size="24" />
+        <Lock style="color: var(--text-default)" :size="24" />
         <h2 style="margin: 0; font-size: var(--font-size-h2); line-height: 24px;">{{ t('school.private.onlyVisibleToYou') }}</h2>
         <InfoModal
             :tooltip="t('school.private.infopop.tooltip')"
@@ -214,8 +214,8 @@ defineExpose({ loadTodos, addTodo, updateTodo });
 }
 
 .todo-filters .btn.active {
-  background-color: var(--text);
-  color: var(--vlbg);
+  background-color: var(--text-default);
+  color: var(--bg-surface);
 }
 
 .todos {
@@ -267,8 +267,8 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   margin-top: 1rem;
   padding: 10px 12px;
   border-radius: 8px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
 }
 
@@ -281,7 +281,7 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   gap: 0.5rem;
   align-items: center;
   margin-block: 0 1rem;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .loader {

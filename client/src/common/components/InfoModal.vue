@@ -57,12 +57,12 @@ const closeModal = () => (isModalOpen.value = false)
 }
 
 .info-icon-wrapper:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .popover-content {
   font-size: var(--font-size-body);
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1.6;
 }
 

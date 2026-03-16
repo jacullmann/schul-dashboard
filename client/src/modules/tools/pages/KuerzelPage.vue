@@ -121,8 +121,8 @@ const {
   justify-content: center;
 }
 .switch-btn {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: var(--border-radius-md);
   width: 38px;
@@ -136,7 +136,7 @@ const {
 }
 
 .switch-btn:hover {
-  border: 1px solid var(--border2);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
 }
 
@@ -144,7 +144,7 @@ const {
 .switch-icon {
   width: 22px;
   height: 22px;
-  color: var(--text);
+  color: var(--text-default);
   transition: color 0.1s, transform 0.2s ease;
 }
 
@@ -165,7 +165,7 @@ const {
 
 .suggestion-link {
   cursor: pointer;
-  color: var(--text);
+  color: var(--text-default);
   font-weight: bold;
 }
 

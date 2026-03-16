@@ -549,7 +549,7 @@ function handleArchiveFromMenu(item: HwItem) {
 }
 .tiny:hover {
   background: transparent;
-  color: var(--text);
+  color: var(--text-default);
   border: none;
   padding: 0;
 }
@@ -714,7 +714,7 @@ function handleArchiveFromMenu(item: HwItem) {
 
 .img-overlay .overlay-content {
   position: relative;
-  color: var(--text);
+  color: var(--text-default);
   font-weight: 400;
   font-size: var(--font-size-h1);
   z-index: 11;
@@ -769,8 +769,8 @@ function handleArchiveFromMenu(item: HwItem) {
 }
 
 .unpin-trigger:hover {
-  background: var(--gg);
-  color: var(--text);
+  background: var(--bg-interactive-hover);
+  color: var(--text-default);
 }
 
 .pagination-actions {
@@ -802,8 +802,8 @@ function handleArchiveFromMenu(item: HwItem) {
 .editor-note-section {
   margin-top: 8px;
   padding: 10px 12px;
-  background: var(--gg);
-  border: 1px solid var(--border);
+  background: var(--bg-interactive-hover);
+  border: 1px solid var(--border-canvas);
   border-radius: var(--border-radius-md);
   user-select: none;
   -webkit-user-select: none;
@@ -823,10 +823,10 @@ function handleArchiveFromMenu(item: HwItem) {
 
 .editor-note-content {
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   white-space: pre-wrap;
   word-break: break-word;
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .note-placeholder {

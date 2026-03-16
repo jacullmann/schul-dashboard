@@ -75,7 +75,7 @@ const goBack = () => {
   font-family: var(--display-font), sans-serif;
   font-size: 96px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
@@ -85,7 +85,7 @@ const goBack = () => {
   font-family: var(--display-font), sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0 0 12px 0;
 }
 
@@ -105,7 +105,7 @@ const goBack = () => {
   font-family: var(--display-font), sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
   margin: 0 0 16px 0;
   text-align: left;
 }
@@ -122,8 +122,8 @@ const goBack = () => {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   border-radius: var(--border-radius-md);
   text-decoration: none;
@@ -133,7 +133,7 @@ const goBack = () => {
 
 .nav-card:hover {
   background: var(--ghost--hover);
-  border-color: var(--gg);
+  border-color: var(--bg-interactive-hover);
 }
 
 .nav-icon {
@@ -143,9 +143,9 @@ const goBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
   border-radius: var(--border-radius-md);
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .nav-info {
@@ -156,7 +156,7 @@ const goBack = () => {
 .nav-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-default);
   margin-bottom: 2px;
 }
 

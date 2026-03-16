@@ -7,18 +7,20 @@
 }
 
 :root {
+    /* TIER 1 */
     /* Colors */
     --color-onyx: #0f0f0f;
     --color-charcoal: #282828;
     --color-charcoal-highlight: #323232;
     --color-graphite: #414141;
     --color-steel: #666;
+    --color-ghost: #888;
     --color-ash: #aaa;
     --color-white-highlight: #eee;
     --color-white: #ffffff;
     --color-red: #ef4444;
+    --color-yellow: #eab308;
     --color-green: #6aed8b;
-
 
     /* Gradients */
     --direction-bismuth: 116deg;
@@ -34,21 +36,23 @@
         var(--color-bismuth-violet) 115.2%
     );
 
-    /* UI */
-    --bg: var(--color-onyx);
-    --lbg: var(--color-onyx);
-    --text: var(--color-white);
-    --primary: #3f93f8;
-    --p-green: var(--color-green);
+    /* TIER 2 */
+    --bg-canvas: var(--color-onyx);
+    --border-canvas: var(--color-charcoal);
+    --bg-surface: var(--color-charcoal);
+    --bg-interactive-hover: var(--color-graphite);
+    --border-surface: var(--color-graphite);
+    --text-default: var(--color-white);
+    --text-muted: var(--color-ash);
+    --text-subtle: var(--color-ghost);
+    --primary: var(--color-white);
+    --success: var(--color-green);
     --danger: var(--color-red);
-    --warn: #eab308;
-    --border: var(--color-charcoal);
-    --border2: var(--color-graphite);
-    --gg: var(--color-graphite);
+    --warn: var(--color-yellow);
     --sub: var(--color-ash);
     --header-height: 65px;
-    --vlbg: var(--color-charcoal);
     --announcement-height: 0px;
+
     /* Font Familys */
     --display-font: 'Satoshi';
     --normal-font: 'Inter';
@@ -88,14 +92,13 @@
 }
 
 :root.light {
-    --bg: #fff;
-    --lbg: #fff;
-    --text: #000;
-    --border: #ddd;
-    --border2: #ddd;
-    --gg: #eee;
+    --bg-canvas: #fff;
+    --text-default: #000;
+    --border-canvas: #ddd;
+    --border-surface: #ddd;
+    --bg-interactive-hover: #eee;
     --sub: #414141;
-    --vlbg: #fff;
+    --bg-surface: #fff;
     --ghost--hover: #f5f5f5;
     --action-hover: #0f0f0f;
     --not-spinning: #bbb;
@@ -108,13 +111,12 @@
 }
 
 :root.dark-glass {
-    --bg: #0f0f0faa;
-    --lbg: #0f0f0faa;
-    --vlbg: #282828aa;
-    --text: #fff;
-    --border: #414141aa;
-    --border2: #555555aa;
-    --gg: #414141aa;
+    --bg-canvas: #0f0f0faa;
+    --bg-surface: #282828aa;
+    --text-default: #fff;
+    --border-canvas: #414141aa;
+    --border-surface: #555555aa;
+    --bg-interactive-hover: #414141aa;
     --sub: #bbb;
     --ghost--hover: #323232aa;
     --blur: blur(32px) saturate(120%);
@@ -125,25 +127,25 @@
 }
 
 ::selection {
-    color: var(--lbg);
-    background-color: var(--text);
+    color: var(--bg-canvas);
+    background-color: var(--text-default);
 }
 
 ::-moz-selection {
-    color: var(--lbg);
-    background-color: var(--text);
+    color: var(--bg-canvas);
+    background-color: var(--text-default);
 }
 
 input::selection,
 textarea::selection {
-    color: var(--lbg);
-    background-color: var(--text);
+    color: var(--bg-canvas);
+    background-color: var(--text-default);
 }
 
 input::-moz-selection,
 textarea::-moz-selection {
-    color: var(--lbg);
-    background-color: var(--text);
+    color: var(--bg-canvas);
+    background-color: var(--text-default);
 }
 
 * {
@@ -159,7 +161,7 @@ body,
 
 body {
     margin: 0;
-    color: var(--text);
+    color: var(--text-default);
     font-family: var(--normal-font), sans-serif;
     position: relative;
 }
@@ -202,9 +204,9 @@ h5 {
         width: 100%;
         padding: 10px 12px;
         border-radius: var(--border-radius-md);
-        background: var(--vlbg);
-        color: var(--text);
-        border: 1px solid var(--border2);
+        background: var(--bg-surface);
+        color: var(--text-default);
+        border: 1px solid var(--border-surface);
         outline: none;
         box-shadow: var(--input-shadow);
         transition: box-shadow 0.2s ease, border-color 0.2s ease;
@@ -220,9 +222,14 @@ h5 {
         box-shadow: var(--focus-shadow);
     }
 
+    .input::placeholder,
+    textarea::placeholder {
+        color: var(--text-subtle);
+    }
+
     label {
         display: block;
-        color: var(--text);
+        color: var(--text-default);
         font-size: var(--font-size-button);
         margin-bottom: 6px;
     }
@@ -232,8 +239,8 @@ h5 {
         align-items: center;
         gap: 8px;
         padding: 10px 12px;
-        background: var(--text);
-        color: var(--vlbg);
+        background: var(--text-default);
+        color: var(--bg-surface);
         border: 1px solid transparent;
         border-radius: var(--border-radius-md);
         cursor: pointer;
@@ -248,9 +255,9 @@ h5 {
     }
 
     .btn.ghost {
-        background: var(--vlbg);
-        border: 1px solid var(--border2);
-        color: var(--text);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-surface);
+        color: var(--text-default);
         transition: .1s ease;
         box-shadow: var(--input-shadow);
     }
@@ -260,9 +267,9 @@ h5 {
     }
 
     .btn.action {
-        background: var(--text);
-        color: var(--lbg);
-        border: 1px solid var(--text);
+        background: var(--primary);
+        border: 1px solid var(--primary);
+        color: var(--bg-canvas);
     }
 
     .btn.action:hover {
@@ -284,8 +291,8 @@ h5 {
         margin-top: 24px;
         right: 0;
         min-width: 180px;
-        background: var(--vlbg);
-        border: 1px solid var(--border2);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-surface);
         border-radius: var(--border-radius-lg);
         padding: 4px;
         display: flex;
@@ -306,7 +313,7 @@ h5 {
         background: transparent;
         border: none;
         padding: 8px;
-        color: var(--text);
+        color: var(--text-default);
         border-radius: var(--border-radius-md);
         cursor: pointer;
         font-size: var(--font-size-sub);
@@ -329,7 +336,7 @@ h5 {
     }
 
     .menu-btn:hover {
-        background: var(--gg)
+        background: var(--bg-interactive-hover)
     }
 
     .menu-btn.danger {
@@ -346,7 +353,7 @@ h5 {
     }
 
     .menu-divider {
-        border-bottom: 1px solid var(--border2);
+        border-bottom: 1px solid var(--border-surface);
         margin-inline: 4px;
     }
 }
@@ -360,15 +367,15 @@ h5 {
 }
 
 .card.rlc {
-    background: var(--lbg);
-    border: 1px solid var(--border);
+    background: var(--bg-canvas);
+    border: 1px solid var(--border-canvas);
     border-radius: var(--border-radius-xl);
     padding: 16px;
 }
 
 hr {
     border: none;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border-canvas);
     margin: 16px 0;
 }
 
@@ -431,8 +438,8 @@ footer {
 }
 
 .icon-normal {
-    color: var(--text);
-    fill: var(--text);
+    color: var(--text-default);
+    fill: var(--text-default);
 }
 
 .blurit {
@@ -465,7 +472,7 @@ footer {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--bg);
+    background-color: var(--bg-canvas);
     z-index: -2;
     pointer-events: none;
 }
@@ -522,7 +529,7 @@ footer {
 
 @media (max-width: 768px) {
     .svg-background {
-        background: var(--bg);
+        background: var(--bg-canvas);
     }
 
     .card {
@@ -535,13 +542,13 @@ footer {
     .container {
         margin: 0 auto;
         padding: 0;
-        background: var(--bg);
+        background: var(--bg-canvas);
     }
 
     .btn.ghost:hover {
-        background: var(--vlbg);
-        border: 1px solid var(--border2);
-        color: var(--text);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-surface);
+        color: var(--text-default);
     }
 
     .btn.danger:hover {

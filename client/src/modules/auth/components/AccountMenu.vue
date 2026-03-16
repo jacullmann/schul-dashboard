@@ -178,7 +178,7 @@ const {
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--text);
+  color: var(--text-default);
   cursor: pointer;
 }
 
@@ -202,8 +202,8 @@ const {
 }
 
 .popup-inner {
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   border-radius: var(--border-radius-lg);
   padding: 4px;
   display: flex;
@@ -222,7 +222,7 @@ const {
 .user-email {
   font-weight: 600;
   font-size: var(--font-size-sub);
-  color: var(--text);
+  color: var(--text-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,7 +242,7 @@ const {
   background: transparent;
   border: none;
   padding: 8px;
-  color: var(--text);
+  color: var(--text-default);
   border-radius: 8px;
   cursor: pointer;
   font-size: var(--font-size-sub);
@@ -250,7 +250,7 @@ const {
 }
 
 .menu-btn:hover {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .menu-btn.danger {
@@ -343,7 +343,7 @@ const {
 
 .menu-divider {
   height: 1px;
-  background: var(--border2);
+  background: var(--border-surface);
   margin-inline: 4px;
 }
 

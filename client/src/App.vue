@@ -158,15 +158,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: var(--bg-canvas);
   z-index: 10000;
 }
 
 .auth-loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border);
-  border-top-color: var(--text);
+  border: 3px solid var(--border-canvas);
+  border-top-color: var(--text-default);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

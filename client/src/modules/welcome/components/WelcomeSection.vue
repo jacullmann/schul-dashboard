@@ -70,7 +70,7 @@ b {
   font-family: var(--display-font), sans-serif;
   font-size: 32px;
   line-height: 48px;
-  color: var(--text);
+  color: var(--text-default);
   font-weight: 500;
 }
 </style>

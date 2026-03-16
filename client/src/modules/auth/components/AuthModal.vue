@@ -228,7 +228,7 @@ const {
 }
 
 .password-toggle:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .forgot-password-link {
@@ -244,7 +244,7 @@ const {
 }
 
 .forgot-password-link:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .privacy-row {
@@ -261,7 +261,7 @@ const {
 }
 
 .checkbox-label {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-sub);
   line-height: 18px;
 }
@@ -273,7 +273,7 @@ const {
 }
 
 :deep(.privacy-link:hover) {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .field-error {
@@ -287,7 +287,7 @@ const {
 }
 
 .message {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-sub);
   margin-bottom: 16px;
 }

@@ -211,8 +211,8 @@ const getSliderStyle = (current: number, max: number) => {
 <style scoped>
 .news-container {
   font-family: var(--normal-font), sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--bg-canvas);
+  color: var(--text-default);
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -229,8 +229,8 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  border-bottom: 1px solid var(--border-canvas);
+  background: var(--bg-canvas);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -272,15 +272,15 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
 }
 
 .search-icon:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .search-input {
   width: 100%;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  color: var(--text);
+  color: var(--text-default);
   padding: 10px 12px 10px 42px;
   font-size: 0.95rem;
   transition: all 0.1s;
@@ -288,7 +288,7 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
 
 .search-input:focus {
   outline: none;
-  border-color: var(--text);
+  border-color: var(--text-default);
 }
 
 /* --- MAIN LAYOUT --- */
@@ -305,7 +305,7 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
   display: flex;
   gap: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-canvas);
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
@@ -318,13 +318,13 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
 
 .toolbar label {
   font-size: 0.8rem;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 select {
-  background: var(--vlbg);
-  color: var(--text);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  color: var(--text-default);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   padding: 10px 12px;
 }
@@ -403,7 +403,7 @@ input[type="range"]:hover::-moz-range-thumb {
 
 /* --- HOME VIEW --- */
 .badge {
-  color: var(--text);
+  color: var(--text-default);
   font-size: var(--font-size-body);
   width: fit-content;
   margin-bottom:6px;
@@ -444,7 +444,7 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 .play-icon-hero {
-  color: var(--text);
+  color: var(--text-default);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
 
@@ -507,7 +507,7 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 .highlight {
-  color: var(--text);
+  color: var(--text-default);
   text-decoration: underline;
 }
 
@@ -533,7 +533,7 @@ input[type="range"]:hover::-moz-range-thumb {
 .article-body {
   font-size: var(--font-size-title);
   line-height: 1.6;
-  color: var(--text);
+  color: var(--text-default);
   font-family: "Merriweather", serif;
 }
 
@@ -545,11 +545,11 @@ input[type="range"]:hover::-moz-range-thumb {
   font-size: 1.8rem;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .article-body :deep(blockquote) {
-  border-left: 4px solid var(--border);
+  border-left: 4px solid var(--border-canvas);
   margin: 2rem 0;
   padding-left: 1.5rem;
   font-style: italic;
@@ -568,7 +568,7 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 .article-body :deep(strong) {
-  color: var(--text);
+  color: var(--text-default);
   font-weight: 700;
 }
 
@@ -592,7 +592,7 @@ input[type="range"]:hover::-moz-range-thumb {
 .recommendations {
   margin-top: 4rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--border2);
+  border-top: 1px solid var(--border-surface);
 }
 
 /* --- ANIMATIONS --- */

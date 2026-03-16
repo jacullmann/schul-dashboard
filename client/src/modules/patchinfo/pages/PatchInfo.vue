@@ -229,8 +229,8 @@ const backToList = () => {
 /* --- Sidebar --- */
 .sidebar {
   width: 300px;
-  background-color: var(--lbg); /* Fallback color added */
-  border-right: 1px solid var(--border2);
+  background-color: var(--bg-canvas); /* Fallback color added */
+  border-right: 1px solid var(--border-surface);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -239,7 +239,7 @@ const backToList = () => {
 
 .search-wrapper {
   padding: 16px;
-  border-bottom: 1px solid var(--border2);
+  border-bottom: 1px solid var(--border-surface);
 }
 
 .search-input-container {
@@ -258,10 +258,10 @@ const backToList = () => {
 
 .search-input {
   width: 100%;
-  background-color: var(--vlbg);
-  border: 1px solid var(--border2);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  color: var(--text);
+  color: var(--text-default);
   padding: 10px 12px 10px 36px;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -279,24 +279,24 @@ const backToList = () => {
   width: 6px;
 }
 .version-list::-webkit-scrollbar-thumb {
-  background-color: var(--vlbg);
+  background-color: var(--bg-surface);
   border-radius: 3px;
 }
 
 .version-item {
   padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  color:var(--text);
+  border-bottom: 1px solid var(--border-canvas);
+  color:var(--text-default);
 }
 
 .version-item:hover {
-  background-color: var(--vlbg);
+  background-color: var(--bg-surface);
 }
 
 .version-item.active {
-  background-color: var(--text);
-  color:var(--bg);
+  background-color: var(--text-default);
+  color:var(--bg-canvas);
 }
 
 .version-header {
@@ -358,7 +358,7 @@ const backToList = () => {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .sub-title {
@@ -370,8 +370,8 @@ const backToList = () => {
 
 .header-date {
   font-size: 0.9rem;
-  color: var(--text);
-  background-color: var(--gg);
+  color: var(--text-default);
+  background-color: var(--bg-interactive-hover);
   padding: 4px 8px;
   border-radius: 6px;
   white-space: nowrap;
@@ -379,13 +379,13 @@ const backToList = () => {
 
 .divider {
   height: 1px;
-  background-color: var(--gg);
+  background-color: var(--bg-interactive-hover);
   margin: 16px 0;
 }
 
 .description {
   line-height: 1.6;
-  color: var(--text);
+  color: var(--text-default);
   margin-bottom: 24px;
 }
 
@@ -400,7 +400,7 @@ const backToList = () => {
 /* --- Changes Content (Deep Styling) --- */
 /* Reset margin for the container */
 .changes-content {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 /* Style injected Headings */
@@ -412,7 +412,7 @@ const backToList = () => {
   margin-bottom: 0.5em;
   font-weight: 700;
   line-height: 1.3;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .changes-content :deep(h1) { font-size: 2rem; margin-block: 0.5rem; }
@@ -426,7 +426,7 @@ const backToList = () => {
   margin-bottom: 8px;
   margin-top: 0;
   line-height: 1.5;
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .changes-content :deep(p)::before {

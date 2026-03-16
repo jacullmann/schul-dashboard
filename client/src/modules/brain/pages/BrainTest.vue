@@ -98,7 +98,7 @@ function onTestFinish(score: number) {
 }
 
 .back-btn:hover {
-  color: var(--text);
+  color: var(--text-default);
 }
 
 .test-info {
@@ -133,10 +133,10 @@ function onTestFinish(score: number) {
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-canvas);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: var(--shadow-m);
+  box-shadow: var(--menu-shadow);
   position: relative;
   min-height: 400px;
 }

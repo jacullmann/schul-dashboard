@@ -116,7 +116,7 @@ onBeforeUnmount(() => {
 }
 
 .menu-btn:hover:not(:disabled) {
-  background: var(--gg);
+  background: var(--bg-interactive-hover);
 }
 
 .menu-btn:disabled {
@@ -138,8 +138,8 @@ onBeforeUnmount(() => {
   top: 100%;
   min-width: 100%;
   margin-top: 4px;
-  background: var(--vlbg);
-  border: 1px solid var(--border2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-surface);
   border-radius: 12px;
   padding: 4px;
   display: flex;
@@ -151,7 +151,7 @@ onBeforeUnmount(() => {
 }
 
 .check-icon {
-  color: var(--text);
+  color: var(--text-default);
   flex-shrink: 0;
 }
 

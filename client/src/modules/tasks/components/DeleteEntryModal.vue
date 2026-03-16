@@ -53,7 +53,7 @@ p {
   text-align: left;
   margin-block: 0 16px;
   font-size: var(--font-size-body);
-  color: var(--text);
+  color: var(--text-default);
   line-height: 1.5;
 }
 </style>
