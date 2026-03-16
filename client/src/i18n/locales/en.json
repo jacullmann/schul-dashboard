@@ -279,7 +279,8 @@
         "description": "Description (optional)",
         "duedate": "Date",
         "images": "Images",
-        "uploadImages": "Upload Images"
+        "uploadImages": "Upload Images",
+        "successUpload": "Images successfully uploaded"
       },
       "items": {
         "menu": {

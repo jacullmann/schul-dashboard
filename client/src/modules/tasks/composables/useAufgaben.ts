@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
+import { useToast } from '@/common/composables/useToast';
 import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import { isValidType } from '@/modules/tasks/types';
@@ -277,11 +278,11 @@ export function useAufgaben() {
         }
     });
 
-    watch(() => imageUpload.uploading, async (val, oldVal) => {
-        if (oldVal && !val && !imageUpload.uploadError && currentUploadItemId.value) {
+    watch(imageUpload.uploading, async (val, oldVal) => {
+        if (oldVal && !val && !imageUpload.uploadError.value && currentUploadItemId.value) {
             await refreshItem(currentUploadItemId.value);
             currentUploadItemId.value = null;
-            flashMessage('Bild erfolgreich hochgeladen.', false, 3000);
+            useToast().success(t('school.tasks.itemForm.successUpload'));
         }
     });
 

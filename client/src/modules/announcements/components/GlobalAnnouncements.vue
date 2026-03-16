@@ -18,7 +18,7 @@ const currentPopupAnnouncement = ref(null);
 // This component is only rendered when inside a group route (parent handles v-if),
 // but we double-check that we have a group context before loading
 const hasGroupContext = computed(() => {
-  return !!activeGroupId.value && route.matched.some(r => r.path.includes('/groups/:groupId'));
+  return !!activeGroupId.value;
 });
 
 const currentAnnouncement = computed(() => {

@@ -29,14 +29,9 @@ const showSetupModal = ref(false);
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
 
-// Detect if we are currently on a group-scoped route
-const isGroupRoute = computed(() => {
-  return route.matched.some(r => r.path.includes('/groups/:groupId'));
-});
-
-// Logo links to active group items if in group context, otherwise home
+// Logo links to active group items if active group exists, otherwise home
 const logoLink = computed(() => {
-  if (isGroupRoute.value && activeGroupId.value) {
+  if (activeGroupId.value) {
     return `/groups/${activeGroupId.value}/items/all`;
   }
   return '/home';
@@ -153,12 +148,12 @@ onUnmounted(() => {
           <!-- Logo always links to home or active group -->
           <router-link :to="logoLink" class="logo-group" @click="closeNav">
             <Logo class="logo-img" aria-hidden="true" />
-            <span v-if="isGroupRoute && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
+            <span v-if="activeGroupId && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
             <span v-else class="logo-text logo-text--brand">schul-dashboard</span>
           </router-link>
 
-          <!-- Group switcher: only visible on group routes -->
-          <template v-if="isGroupRoute && groupName">
+          <!-- Group switcher: only visible when a group is active -->
+          <template v-if="activeGroupId && groupName">
             <span class="logo-separator--desktop" aria-hidden="true">/</span>
 
             <div class="group-switcher" ref="groupMenuRef">
@@ -199,8 +194,8 @@ onUnmounted(() => {
             <X />
           </button>
 
-          <!-- Group navigation: only when in group context -->
-          <template v-if="isGroupRoute && activeGroupId">
+          <!-- Group navigation: visible when a group is active -->
+          <template v-if="activeGroupId">
             <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
             <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
           </template>
@@ -218,7 +213,7 @@ onUnmounted(() => {
             Admin
           </router-link>
           <router-link
-              v-if="isGroupRoute && isGroupAdmin"
+              v-if="activeGroupId && isGroupAdmin"
               :to="`/groups/${activeGroupId}/admin`"
               class="nav-item"
               @click="closeNav"

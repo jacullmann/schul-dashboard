@@ -330,6 +330,7 @@
         "uploadingImage": "Lade Bild hoch...",
         "successCreate": "Eintrag erfolgreich erstellt",
         "successEdit": "Eintrag erfolgreich bearbeitet",
+        "successUpload": "Bilder erfolgreich hochgeladen",
         "errors": {
           "enrichmentMissing": "Wähle einen Enrichment-Kurs aus",
           "wpuMissing": "Wähle einen WPU-Kurs aus",

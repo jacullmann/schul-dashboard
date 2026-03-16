@@ -3,14 +3,17 @@ import { useRouter } from 'vue-router';
 import { useMediaQuery } from '@vueuse/core';
 import AuthForm from '@/modules/auth/components/AuthForm.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
 const { checkAuthStatus, activeGroupId } = useAppAuth();
+const userStore = useUserStore();
 
 const isDesktop = useMediaQuery('(min-width: 900px)');
 
 async function onLoggedIn() {
   await checkAuthStatus();
+  await userStore.fetchUser();
   if (activeGroupId.value) {
     router.push(`/groups/${activeGroupId.value}/items/all`);
   } else {

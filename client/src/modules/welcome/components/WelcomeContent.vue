@@ -260,6 +260,7 @@ function navigateToAuth() {
 
 .headline-sans {
   font-weight: 900;
+  letter-spacing: -0.01em;
   font-family: var(--normal-font), sans-serif;
 }
 
