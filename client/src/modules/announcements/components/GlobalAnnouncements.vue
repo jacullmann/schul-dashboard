@@ -103,8 +103,8 @@ function colorFor(color) {
     'ok': 'var(--primary)',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
-    'expired': 'var(--gg)',
-    'info': 'var(--vlbg)',
+    'expired': 'var(--bg-interactive-hover)',
+    'info': 'var(--bg-surface)',
   };
   return map[color] || 'var(--sub)';
 }

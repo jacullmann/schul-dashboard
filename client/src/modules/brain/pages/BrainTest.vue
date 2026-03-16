@@ -21,11 +21,17 @@ const highscore = computed(() => {
 const ReactionTimeTest = defineAsyncComponent(() => import('../components/ReactionTimeTest.vue'));
 const NumberMemoryTest = defineAsyncComponent(() => import('../components/NumberMemoryTest.vue'));
 const VisualMemoryTest = defineAsyncComponent(() => import('../components/VisualMemoryTest.vue'));
+const AimTrainerTest = defineAsyncComponent(() => import('../components/AimTrainerTest.vue'));
+const SequenceMemoryTest = defineAsyncComponent(() => import('../components/SequenceMemoryTest.vue'));
+const TypingSpeedTest = defineAsyncComponent(() => import('../components/TypingSpeedTest.vue'));
 
 const testComponent = computed(() => {
   if (testId.value === 'reaction-time') return ReactionTimeTest;
   if (testId.value === 'number-memory') return NumberMemoryTest;
   if (testId.value === 'visual-memory') return VisualMemoryTest;
+  if (testId.value === 'aim-trainer') return AimTrainerTest;
+  if (testId.value === 'sequence-memory') return SequenceMemoryTest;
+  if (testId.value === 'typing-speed') return TypingSpeedTest;
   return null;
 });
 

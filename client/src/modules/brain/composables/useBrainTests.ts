@@ -30,6 +30,33 @@ export const brainTests: BrainTestDefinition[] = [
         scoreType: 'higher',
         color: '#5600ff',
         icon: 'Eye'
+    },
+    {
+        id: 'aim-trainer',
+        title: 'Aim Trainer',
+        description: 'Klicke so schnell wie möglich auf 30 Zielscheiben.',
+        unit: 'ms',
+        scoreType: 'lower',
+        color: '#ffaa00',
+        icon: 'Target'
+    },
+    {
+        id: 'sequence-memory',
+        title: 'Sequenzgedächtnis',
+        description: 'Merke dir das Muster der aufleuchtenden Felder, das mit jedem Level länger wird.',
+        unit: 'Level',
+        scoreType: 'higher',
+        color: '#00ddff',
+        icon: 'Layers'
+    },
+    {
+        id: 'typing-speed',
+        title: 'Schreibgeschwindigkeit',
+        description: 'Tippe den vorgegebenen Text so schnell und fehlerfrei wie möglich ab.',
+        unit: 'WPM',
+        scoreType: 'higher',
+        color: '#00ffaa',
+        icon: 'Keyboard'
     }
 ];
 

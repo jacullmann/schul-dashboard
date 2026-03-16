@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Brain, Zap, Eye } from 'lucide-vue-next';
+import { Brain, Zap, Eye, Target, Layers, Keyboard } from 'lucide-vue-next';
 import { useBrainTests } from '../composables/useBrainTests';
 
 const { brainTests, getScore } = useBrainTests();
@@ -7,7 +7,10 @@ const { brainTests, getScore } = useBrainTests();
 const iconMap = {
   Brain,
   Zap,
-  Eye
+  Eye,
+  Target,
+  Layers,
+  Keyboard
 };
 
 function getIcon(name: string) {
