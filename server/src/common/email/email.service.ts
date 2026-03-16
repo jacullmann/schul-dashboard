@@ -13,7 +13,7 @@ export class EmailService {
     const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
     this.emailFrom =
       this.configService.get<string>('EMAIL_FROM') ||
-      'Schul Dashboard <noreply@schul-dashboard.com>';
+      'schul-dashboard <noreply@schul-dashboard.com>';
 
     if (resendApiKey) {
       this.resendClient = new Resend(resendApiKey);
@@ -46,15 +46,15 @@ export class EmailService {
       subject: 'Bitte bestätige deine E-Mail-Adresse',
       html: `
             <h3>Nur noch ein letzter Schritt</h3>
-            <p>Willkommen beim Schul Dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
-            <p>Klicke auf den Link unten und melde dich mit deinem neuen Account an.</p>
+            <p>Willkommen beim schul-dashboard. Bevor es losgehen kann, musst du noch deine E-Mail-Adresse bestätigen.</p>
+            <p>Klicke auf den Link unten und melde dich mit deinem neuen Konto an.</p>
             <p><a href="${verifyUrl}">E-Mail bestätigen</a></p>
             <p>Der Link ist für 48 Stunden gültig.</p>
-            <p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim Schul Dashboard anmelden und loslegen.</p>
+            <p>Sobald deine E-Mail-Adresse bestätigt wurde, kannst du dich beim schul-dashboard anmelden und loslegen.</p>
             <p>
               Danke, dass du dich für uns entschieden hast.
               <br>
-              Das Schul Dashboard-Team
+              Das schul-dashboard-Team
             </p>
         `,
     });
@@ -82,7 +82,7 @@ export class EmailService {
       subject: 'Passwort zurücksetzen',
       html: `
             <h3>Bestätigungscode</h3>
-            <p>Um dein Passwort zurückzusetzen, gebe folgenden Code auf der Schul Dashboard Seite ein:</p>
+            <p>Um dein Passwort zurückzusetzen, gebe folgenden Code auf der schul-dashboard Seite ein:</p>
             <p><strong>${code}</strong></p>
             <p>Dieser Code ist für 30 Minuten gültig.</p>
             <p>Falls du diesen Code nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
@@ -108,9 +108,9 @@ export class EmailService {
       subject: 'Dein Passwort wurde zurückgesetzt',
       html: `
             <h3>Wichtige Sicherheitsmeldung</h3>
-            <p>Soeben wurde ein erfolgreiches Passwortreset deines Kontos durchgeführt. Wenn die Zwei-Faktor-Authentifizierung für dein Konto aktiviert war, ist es dies nun NICHT mehr.</p>
-            <p>Wenn du die Zwei-Faktor-Authentifizierung wieder aktivieren willst, kannst du dies jederzeit manuell in den Accounteinstellungen tun.</p>
-            <p>Falls du den Passwortreset nicht veranlasst hast, kontaktiere sofort den Support.</p>
+            <p>Soeben wurde erfolgreich das Passwort deines Kontos zurückgesetzt. Wenn die Zwei-Faktor-Authentifizierung für dein Konto aktiviert war, ist es dies nun NICHT mehr.</p>
+            <p>Wenn du die Zwei-Faktor-Authentifizierung wieder aktivieren willst, kannst du dies jederzeit manuell in den Kontoeinstellunge tun.</p>
+            <p>Falls du dein Passwort nicht zurückgesetzt hast, kontaktiere sofort den Support.</p>
         `,
     });
 
