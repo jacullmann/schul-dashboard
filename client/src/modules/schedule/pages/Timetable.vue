@@ -366,7 +366,7 @@ onUnmounted(() => {
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--ccc);
+  border-bottom: 1px solid var(--sub);
 }
 /* Active State: Cross outs need to be visible against white */
 .lesson-group-container.highlight-active .crossed {

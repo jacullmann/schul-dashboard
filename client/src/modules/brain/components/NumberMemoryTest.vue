@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed } from 'vue';
+import { ref, nextTick, computed, onMounted, onUnmounted } from 'vue';
 import { Brain } from 'lucide-vue-next';
 
 const emit = defineEmits<{ (e: 'finish', score: number): void; }>();
@@ -67,6 +67,25 @@ function reset() {
 function saveAndExit() {
     emit('finish', Math.max(0, level.value - 1));
 }
+
+function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+        if (state.value === 'idle') {
+            startLevel();
+        } else if (state.value === 'feedback') {
+            if (isCorrect.value) nextLevel();
+            else endGame();
+        }
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
@@ -77,7 +96,7 @@ function saveAndExit() {
          <div class="icon-wrap"><Brain :size="64" /></div>
          <h1 class="test-heading">Zahlen merken</h1>
          <p class="test-sub">Merk dir die Zahl, die gleich auf dem Bildschirm erscheint.</p>
-         <button class="btn action cta-large mt-4" @click="startLevel()">Start</button>
+         <button class="btn test-btn primary mt-4" @click="startLevel()">Start</button>
       </div>
 
       <div v-if="state === 'showing'" class="center-content showing-content text-center">
@@ -101,7 +120,7 @@ function saveAndExit() {
              placeholder="Zahl eingeben..."
              autofocus
            />
-           <button type="submit" class="btn action cta-large w-full mt-3">Prüfen</button>
+           <button type="submit" class="btn test-btn primary w-full mt-3">Prüfen</button>
          </form>
       </div>
 
@@ -109,13 +128,13 @@ function saveAndExit() {
           <div v-if="isCorrect">
             <h2 class="correct-text test-heading-sm">Richtig!</h2>
             <p class="test-sub">Die Zahl war {{ currentNumber }}.</p>
-            <button class="btn action cta-large mt-4" @click="nextLevel()">Nächstes Level</button>
+            <button class="btn test-btn primary mt-4" @click="nextLevel()">Nächstes Level</button>
           </div>
           <div v-else>
             <h2 class="wrong-text test-heading-sm">Falsch</h2>
             <p class="test-sub">Die richtige Zahl war <strong>{{ currentNumber }}</strong>.</p>
             <p class="test-sub">Deine Eingabe war <strong class="wrong-color">{{ userInput }}</strong>.</p>
-            <button class="btn action cta-large mt-4" @click="endGame()">Weiter</button>
+            <button class="btn test-btn primary mt-4" @click="endGame()">Weiter</button>
           </div>
       </div>
 
@@ -126,8 +145,8 @@ function saveAndExit() {
         <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
         <p class="test-sub">Du konntest dir eine {{ level - 1 }}-stellige Zahl merken.</p>
         <div class="actions mt-4">
-            <button class="btn action cta-large" @click="saveAndExit">Speichern & Beenden</button>
-            <button class="btn secondary back-btn-sec" @click="reset">Nochmal probieren</button>
+            <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
+            <button class="btn test-btn secondary" @click="reset">Nochmal probieren</button>
         </div>
     </div>
   </div>
@@ -137,8 +156,8 @@ function saveAndExit() {
 .test-wrapper {
   position: absolute;
   inset: 0;
-  background-color: var(--bg-surface);
-  color: var(--text-default);
+  background-color: #2b87d1;
+  color: white;
   padding: 40px 20px;
 }
 
@@ -164,7 +183,7 @@ function saveAndExit() {
 }
 
 .icon-wrap {
-  color: var(--primary);
+  color: white;
   margin-bottom: 24px;
   display: flex;
   justify-content: center;
@@ -184,7 +203,7 @@ function saveAndExit() {
 
 .test-sub {
   font-size: 1.1rem;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
 }
 
@@ -196,7 +215,7 @@ function saveAndExit() {
   font-size: 6rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: var(--text-default);
+  color: white;
   margin-bottom: 40px;
   word-break: break-all;
   line-height: 1.1;
@@ -205,14 +224,14 @@ function saveAndExit() {
 .progress-bar-container {
   height: 6px;
   width: 100%;
-  background: var(--border-canvas);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background: var(--primary);
+  background: white;
   width: 100%;
   animation-name: shrink;
   animation-timing-function: linear;
@@ -230,19 +249,31 @@ function saveAndExit() {
   text-align: center;
   margin-top: 24px;
   padding: 16px;
-  background: var(--bg-canvas);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  outline: none;
+}
+
+.number-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.number-input:focus {
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .correct-text {
-  color: var(--success);
+  color: #4bdb6a;
 }
 
 .wrong-text {
-  color: var(--danger);
+  color: #ce2636;
 }
 
 .wrong-color {
-  color: var(--danger);
+  color: #ce2636;
   text-decoration: line-through;
 }
 
@@ -253,12 +284,28 @@ function saveAndExit() {
   flex-wrap: wrap;
 }
 
-.back-btn-sec {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
-  padding: 12px 24px;
-  border-radius: var(--radius, 12px);
+.test-btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-default);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  text-decoration: none;
+}
+
+.test-btn:hover {
+  transform: scale(1.05);
+}
+
+.test-btn.primary {
+  background: white;
+  color: #2b87d1;
+}
+
+.test-btn.secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 </style>

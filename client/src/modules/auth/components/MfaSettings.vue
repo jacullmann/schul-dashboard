@@ -686,10 +686,10 @@ onUnmounted(() => {
   display: flex;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--special--red--background);
-  border: 1px solid var(--special--red);
+  background: var(--danger-background);
+  border: 1px solid var(--danger);
   border-radius: 10px;
-  color: var(--special--red);
+  color: var(--danger);
 }
 
 .warning-box p {
@@ -710,7 +710,7 @@ onUnmounted(() => {
 }
 
 .btn.danger-outline:hover {
-  background: var(--special--red--background);
+  background: var(--danger-background);
 }
 
 .btn.danger {

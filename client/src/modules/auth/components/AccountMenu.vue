@@ -254,11 +254,11 @@ const {
 }
 
 .menu-btn.danger {
-  color: var(--special--red);
+  color: var(--danger);
 }
 
 .menu-btn.danger:hover {
-  background: var(--special--red--background);
+  background: var(--danger-background);
 }
 
 .menu-btn-content {
@@ -355,8 +355,8 @@ const {
 }
 
 .message.error {
-  background: var(--special--red--background);
-  color: var(--special--red);
+  background: var(--danger-background);
+  color: var(--danger);
 }
 
 .message.success {

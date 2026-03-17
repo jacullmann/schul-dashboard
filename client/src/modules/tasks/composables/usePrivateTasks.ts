@@ -3,15 +3,15 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
-import type { Todo } from '@/modules/tasks/types';
+import type { PrivateTask } from '@/modules/tasks/types';
 
-export function useTodoApp() {
+export function usePrivateTasks() {
     const { t } = useI18n();
     const userStore = useUserStore();
     const { user } = storeToRefs(userStore);
 
-    const todos = ref<Todo[]>([]);
-    const displayTodos = ref<Todo[]>([]);
+    const privateTasks = ref<PrivateTask[]>([]);
+    const displayPrivateTasks = ref<PrivateTask[]>([]);
     const loading = ref(false);
     const message = ref('');
     const isError = ref(false);
@@ -30,7 +30,7 @@ export function useTodoApp() {
         }, durationMs);
     }
 
-    const sortDisplayList = (data: Todo[]): Todo[] => {
+    const sortDisplayList = (data: PrivateTask[]): PrivateTask[] => {
         return [...data].sort((a, b) => {
             const posA = a.position || null;
             const posB = b.position || null;
@@ -52,17 +52,17 @@ export function useTodoApp() {
         });
     };
 
-    function addTodo(todo: Todo) {
-        todos.value.unshift(todo);
-        displayTodos.value = sortDisplayList(todos.value);
+    function addPrivateTask(privateTask: PrivateTask) {
+        privateTasks.value.unshift(privateTask);
+        displayPrivateTasks.value = sortDisplayList(privateTasks.value);
     }
 
-    function updateTodo(updatedTodo: Todo) {
-        const index = todos.value.findIndex(t => t.id === updatedTodo.id);
+    function updatePrivateTask(updatedPrivateTask: PrivateTask) {
+        const index = privateTasks.value.findIndex(t => t.id === updatedPrivateTask.id);
         if (index !== -1) {
-            const currentTodo = todos.value[index]!;
-            todos.value[index] = { ...currentTodo, ...updatedTodo };
-            displayTodos.value = sortDisplayList(todos.value);
+            const currentPrivateTask = privateTasks.value[index]!;
+            privateTasks.value[index] = { ...currentPrivateTask, ...updatedPrivateTask };
+            displayPrivateTasks.value = sortDisplayList(privateTasks.value);
         }
     }
 
@@ -72,13 +72,13 @@ export function useTodoApp() {
 
     const closeMenu = () => { openMenuId.value = null; };
 
-    async function loadTodos() {
+    async function loadPrivateTasks() {
         if (!user.value) return;
         loading.value = true;
         try {
             const { data } = await hw.get('/api/todos');
-            todos.value = data;
-            displayTodos.value = sortDisplayList(data);
+            privateTasks.value = data;
+            displayPrivateTasks.value = sortDisplayList(data);
         } catch (error) {
             showMessage(t('school.private.errorLoad'), true);
         } finally {
@@ -86,44 +86,44 @@ export function useTodoApp() {
         }
     }
 
-    // Hier absichtlich displayTodos nicht aktualisieren, da die einträge sonst komisch springen
-    async function toggleTodoCompletion(todo: Todo) {
-        const previousState = todo.completed;
-        todo.completed = !todo.completed;
+    // Hier absichtlich displayPrivateTasks nicht aktualisieren, da die einträge sonst komisch springen
+    async function togglePrivateTaskCompletion(privateTask: PrivateTask) {
+        const previousState = privateTask.completed;
+        privateTask.completed = !privateTask.completed;
         try {
-            const { data } = await hw.patch(`/api/todos/${todo.id}/toggle`);
-            todo.updatedAt = data.updatedAt;
+            const { data } = await hw.patch(`/api/todos/${privateTask.id}/toggle`);
+            privateTask.updatedAt = data.updatedAt;
 
-            // Update the original todo array as well to ensure synchronization
-            const index = todos.value.findIndex(t => t.id === todo.id);
+            // Update the original privateTask array as well to ensure synchronization
+            const index = privateTasks.value.findIndex(t => t.id === privateTask.id);
             if (index !== -1) {
-                const currentTodo = todos.value[index]!;
-                todos.value[index] = {
-                    ...currentTodo,
-                    completed: todo.completed,
-                    updatedAt: todo.updatedAt
+                const currentPrivateTask = privateTasks.value[index]!;
+                privateTasks.value[index] = {
+                    ...currentPrivateTask,
+                    completed: privateTask.completed,
+                    updatedAt: privateTask.updatedAt
                 };
             }
         } catch (error: unknown) {
-            todo.completed = previousState;
+            privateTask.completed = previousState;
             const err = error as { response?: { data?: { error?: string } } };
             showMessage(err.response?.data?.error || t('global.errors.update'), true);
         }
     }
 
-    async function duplicateTodo(todo: Todo) {
+    async function duplicatePrivateTask(privateTask: PrivateTask) {
         loading.value = true;
 
         // We exclude id, createdAt, and updatedAt so the backend creates a fresh entry
         const duplicateData = {
-            title: todo.title, // Optional: adds "(Copy)" to title
-            description: todo.description,
+            title: privateTask.title, // Optional: adds "(Copy)" to title
+            description: privateTask.description,
             completed: false, // Duplicates start as incomplete even if the original is completed
         };
 
         try {
             const { data } = await hw.post('/api/todos', duplicateData);
-            addTodo(data);
+            addPrivateTask(data);
             showMessage(t('school.private.successDuplicate'));
         } catch (error: unknown) {
             const err = error as { response?: { data?: { error?: string } } };
@@ -133,53 +133,53 @@ export function useTodoApp() {
         }
     }
 
-    async function deleteTodo(id: string) {
+    async function deletePrivateTask(id: string) {
         if (!confirm(t('school.private.deleteConfirm'))) return;
-        const todoIndex = todos.value.findIndex(t => t.id === id);
-        if (todoIndex === -1) return;
-        const deletedTodo = todos.value[todoIndex]!;
-        todos.value.splice(todoIndex, 1);
+        const privateTaskIndex = privateTasks.value.findIndex(t => t.id === id);
+        if (privateTaskIndex === -1) return;
+        const deletedPrivateTask = privateTasks.value[privateTaskIndex]!;
+        privateTasks.value.splice(privateTaskIndex, 1);
         try {
             await hw.delete(`/api/todos/${id}`);
-            displayTodos.value = sortDisplayList(todos.value);
+            displayPrivateTasks.value = sortDisplayList(privateTasks.value);
             showMessage(t('school.private.successDelete'));
         } catch (error: unknown) {
-            todos.value.splice(todoIndex, 0, deletedTodo);
+            privateTasks.value.splice(privateTaskIndex, 0, deletedPrivateTask);
             const err = error as { response?: { data?: { error?: string } } };
             showMessage(err.response?.data?.error || t('global.errors.delete'), true);
         }
     }
 
-    async function reorderTodo(todoId: string, prevPosition: string | null, nextPosition: string | null) {
-        const todoIndex = todos.value.findIndex(t => t.id === todoId);
-        if (todoIndex === -1) return;
+    async function reorderPrivateTask(privateTaskId: string, prevPosition: string | null, nextPosition: string | null) {
+        const privateTaskIndex = privateTasks.value.findIndex(t => t.id === privateTaskId);
+        if (privateTaskIndex === -1) return;
 
         // Optimistic UI update: apply a temporary position so the item visually
         // moves immediately without waiting for the server.
         // Moving up:   prevPosition=null (or real), nextPosition=item above → use nextPos prepended
         // Moving down: prevPosition=item below, nextPosition=null (last slot) → use prevPos appended
-        const todo = todos.value[todoIndex]!;
+        const privateTask = privateTasks.value[privateTaskIndex]!;
         if (prevPosition) {
-            todo.position = prevPosition + 'z'; // sits after prevPosition lexicographically
+            privateTask.position = prevPosition + 'z'; // sits after prevPosition lexicographically
         } else if (nextPosition) {
-            todo.position = nextPosition + '0'; // sits before nextPosition
+            privateTask.position = nextPosition + '0'; // sits before nextPosition
         }
 
-        displayTodos.value = sortDisplayList(todos.value);
+        displayPrivateTasks.value = sortDisplayList(privateTasks.value);
 
         try {
-            const { data } = await hw.patch(`/api/todos/${todoId}/reorder`, {
+            const { data } = await hw.patch(`/api/todos/${privateTaskId}/reorder`, {
                 prevPosition,
                 nextPosition
             });
-            const updatedIndex = todos.value.findIndex(t => t.id === todoId);
+            const updatedIndex = privateTasks.value.findIndex(t => t.id === privateTaskId);
             if (updatedIndex !== -1) {
-                const currentTodo = todos.value[updatedIndex]!;
-                todos.value[updatedIndex] = { ...currentTodo, position: data.position, updatedAt: data.updatedAt };
-                displayTodos.value = sortDisplayList(todos.value);
+                const currentPrivateTask = privateTasks.value[updatedIndex]!;
+                privateTasks.value[updatedIndex] = { ...currentPrivateTask, position: data.position, updatedAt: data.updatedAt };
+                displayPrivateTasks.value = sortDisplayList(privateTasks.value);
             }
         } catch (error: unknown) {
-            loadTodos(); // Bei Fehler neu laden
+            loadPrivateTasks(); // Bei Fehler neu laden
             const err = error as { response?: { data?: { error?: string } } };
             showMessage(err.response?.data?.error || t('global.errors.update'), true);
         }
@@ -189,16 +189,16 @@ export function useTodoApp() {
     onMounted(() => {
         document.addEventListener('click', closeMenu);
         if (user.value) {
-            loadTodos();
+            loadPrivateTasks();
         }
     });
 
     watch(user, (newUser) => {
         if (newUser) {
-            loadTodos();
+            loadPrivateTasks();
         } else {
-            todos.value = [];
-            displayTodos.value = [];
+            privateTasks.value = [];
+            displayPrivateTasks.value = [];
         }
     }, { immediate: true });
 
@@ -209,19 +209,19 @@ export function useTodoApp() {
 
     return {
         user,
-        todos,
-        displayTodos,
+        privateTasks,
+        displayPrivateTasks,
         loading,
         message,
         isError,
         openMenuId,
-        loadTodos,
-        addTodo,
-        updateTodo,
+        loadPrivateTasks,
+        addPrivateTask,
+        updatePrivateTask,
         toggleMenu,
-        toggleTodoCompletion,
-        duplicateTodo,
-        deleteTodo,
-        reorderTodo,
+        togglePrivateTaskCompletion,
+        duplicatePrivateTask,
+        deletePrivateTask,
+        reorderPrivateTask,
     };
 }

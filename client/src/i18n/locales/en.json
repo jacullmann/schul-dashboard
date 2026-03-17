@@ -135,7 +135,7 @@
       "newPassword": "Password (min. 8 characters)",
       "confirmPassword": "Confirm Password",
       "forgot": "Forgot password?",
-      "terms": "I agree to the <a href=\"/impressum-&-datenschutz/impressum\" target=\"_blank\" class=\"privacy-link\">Privacy Policy</a> and the <a href=\"/impressum-&-datenschutz/nutzung\" target=\"_blank\" class=\"privacy-link\">Terms of Use</a>"
+      "terms": "I agree to the <a href=\"/legal/impressum\" target=\"_blank\" class=\"privacy-link\">Privacy Policy</a> and the <a href=\"/legal/nutzung\" target=\"_blank\" class=\"privacy-link\">Terms of Use</a>"
     }
   },
   "welcome": {

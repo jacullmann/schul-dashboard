@@ -142,7 +142,8 @@ const quotes: Quote[] = [
   { text: 'I never sleep, cause sleep is the cousin of death'},
   { text: 'Keep Ya Head Up'},
   { text: 'Just remember ALL CAPS when you spell the man name'},
-  { text: 'Death gotta be easy, cause life is hard'}
+  { text: 'Death gotta be easy, cause life is hard'},
+  { text: 'People never get the flowers, while they can still smell em'}
 ];
 
 /**

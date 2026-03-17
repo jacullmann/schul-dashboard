@@ -75,7 +75,7 @@ const {
 }
 
 .warning-box strong {
-  color: var(--special--red);
+  color: var(--danger);
   display: block;
   margin-bottom: 8px;
 }
@@ -120,8 +120,8 @@ const {
 }
 
 .message.error {
-  background: var(--special--red--background);
-  color: var(--special--red);
+  background: var(--danger-background);
+  color: var(--danger);
 }
 
 .message.success {

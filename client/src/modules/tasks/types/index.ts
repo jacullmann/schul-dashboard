@@ -34,7 +34,7 @@ export interface ImageItem {
     };
 }
 
-export interface Todo {
+export interface PrivateTask {
     id: string;
     title: string;
     description: string;

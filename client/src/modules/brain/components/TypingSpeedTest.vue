@@ -16,17 +16,21 @@ const typedText = ref('');
 const startTime = ref(0);
 const endTime = ref(0);
 
-const isFinished = computed(() => typedText.value.length === characters.length);
 
 const wpm = computed(() => {
   if (typedText.value.length === 0) return 0;
-  const timeInMinutes = (endTime.value - startTime.value) / 1000 / 60;
+  const end = endTime.value || Date.now();
+  const timeInMinutes = Math.max((end - startTime.value) / 1000 / 60, 0.0001);
   const wordsTyped = typedText.value.length / 5; // standard WPM calculation
   return Math.round(wordsTyped / timeInMinutes);
 });
 
 function handleKeydown(e: KeyboardEvent) {
   if (state.value !== 'playing') return;
+
+  if (e.key === ' ' || e.key === 'Backspace') {
+    e.preventDefault();
+  }
 
   if (e.key === 'Backspace') {
     typedText.value = typedText.value.slice(0, -1);
@@ -90,7 +94,7 @@ function getCharClass(index: number) {
         <span 
           v-for="(char, index) in characters" 
           :key="index"
-          :class="['char', getCharClass(index), { cursor: index === typedText.value.length }]"
+          :class="['char', getCharClass(index), { cursor: index === typedText.length }]"
         >{{ char }}</span>
       </div>
       <p class="hint">Tippe einfach los. Fehler werden rot markiert, drücke Backspace zum Korrigieren.</p>
@@ -163,6 +167,7 @@ p {
   border-radius: 16px;
   margin-bottom: 20px;
   font-family: monospace;
+  white-space: pre-wrap;
 }
 
 .char {

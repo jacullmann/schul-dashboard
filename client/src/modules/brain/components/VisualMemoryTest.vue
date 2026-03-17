@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Eye, Heart } from 'lucide-vue-next';
 
 const emit = defineEmits<{ (e: 'finish', score: number): void; }>();
@@ -87,6 +87,21 @@ function reset() {
 function saveAndExit() {
     emit('finish', Math.max(0, level.value - 1));
 }
+
+function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+        if (state.value === 'idle') startLevel();
+        else if (state.value === 'result') saveAndExit();
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
@@ -96,7 +111,7 @@ function saveAndExit() {
            <div class="icon-wrap"><Eye :size="64" /></div>
            <h1 class="test-heading">Visuelles Gedächtnis</h1>
            <p class="test-sub">Präge dir das Muster der aufleuchtenden Kacheln ein.</p>
-           <button class="btn action cta-large mt-4" @click="startLevel()">Start</button>
+           <button class="btn test-btn primary mt-4" @click="startLevel()">Start</button>
        </div>
     </div>
 
@@ -138,8 +153,8 @@ function saveAndExit() {
             <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
             <p class="test-sub">Du hast {{ level - 1 }} Level abgeschlossen.</p>
             <div class="actions mt-4">
-                <button class="btn action cta-large" @click="saveAndExit">Speichern & Beenden</button>
-                <button class="btn secondary back-btn-sec" @click="reset">Nochmal spielen</button>
+                <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
+                <button class="btn test-btn secondary" @click="reset">Nochmal spielen</button>
             </div>
         </div>
     </div>
@@ -150,8 +165,8 @@ function saveAndExit() {
 .test-wrapper {
   position: absolute;
   inset: 0;
-  background-color: var(--bg-surface);
-  color: var(--text-default);
+  background-color: #2b87d1;
+  color: white;
   padding: 40px 20px;
 }
 
@@ -177,7 +192,7 @@ function saveAndExit() {
 }
 
 .icon-wrap {
-  color: #5600ff;
+  color: white;
   margin-bottom: 24px;
   display: flex;
   justify-content: center;
@@ -191,7 +206,7 @@ function saveAndExit() {
 
 .test-sub {
   font-size: 1.1rem;
-  color: var(--sub);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
 }
 
@@ -239,8 +254,8 @@ function saveAndExit() {
 }
 
 .tile {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: default;
@@ -248,7 +263,7 @@ function saveAndExit() {
 
 .tile.clickable {
   cursor: pointer;
-  background: color-mix(in srgb, var(--primary) 10%, var(--bg-surface));
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .tile.clickable:hover {
@@ -264,8 +279,8 @@ function saveAndExit() {
 }
 
 .tile.wrong {
-  background: var(--danger);
-  border-color: var(--danger);
+  background: #ce2636;
+  border-color: #ce2636;
   animation: shake 0.4s ease-in-out;
 }
 
@@ -283,12 +298,28 @@ function saveAndExit() {
   flex-wrap: wrap;
 }
 
-.back-btn-sec {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
-  padding: 12px 24px;
+.test-btn {
+  padding: 14px 28px;
   border-radius: 12px;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-default);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  text-decoration: none;
+}
+
+.test-btn:hover {
+  transform: scale(1.05);
+}
+
+.test-btn.primary {
+  background: white;
+  color: #2b87d1;
+}
+
+.test-btn.secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 </style>

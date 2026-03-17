@@ -58,7 +58,7 @@ const routes = [
                     {
                         path: 'items/:type?/:itemId?',
                         name: 'group-items',
-                        component: () => import('@/modules/tasks/pages/Aufgaben.vue'),
+                        component: () => import('@/modules/tasks/pages/Tasks.vue'),
                         props: true,
                         meta: {
                             title: 'school.tasks.title',
@@ -94,7 +94,7 @@ const routes = [
             {
                 path: 'todos',
                 name: 'private-todos',
-                component: () => import('@/modules/tasks/pages/PrivateTodos.vue'),
+                component: () => import('@/modules/tasks/pages/PrivateTasks.vue'),
                 meta: { title: 'navigation.privateTodos' },
             },
             {
@@ -160,7 +160,7 @@ const routes = [
                 meta: { title: 'navigation.brainTest' },
             },
             {
-                path: 'impressum-&-datenschutz',
+                path: 'legal',
                 name: 'impressum-und-datenschutz',
                 component: () =>
                     import('@/modules/legal/pages/LegalPagesWrapper.vue'),
@@ -263,7 +263,12 @@ router.beforeEach(async (to, from, next) => {
 
     // ── Unauthenticated users → welcome ────────────────────────────────
     if (!isPublicRoute && !isLoggedIn.value) {
-        const allowedWithoutAuth = ['/kontakt', '/impressum'];
+        const allowedWithoutAuth = [
+            '/kontakt',
+            '/legal/',
+            '/imagetool',
+            '/brain'
+        ];
         const isAllowed = allowedWithoutAuth.some((p) => to.path.startsWith(p));
         if (!isAllowed) {
             finish();

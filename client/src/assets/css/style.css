@@ -9,6 +9,7 @@
 :root {
     /* TIER 1 */
     /* Colors */
+    --color-black: #000;
     --color-onyx: #0f0f0f;
     --color-charcoal: #282828;
     --color-charcoal-highlight: #323232;
@@ -18,7 +19,9 @@
     --color-ash: #aaa;
     --color-white-highlight: #eee;
     --color-white: #ffffff;
-    --color-red: #ef4444;
+    --color-coral: #f65252;
+    --color-coral-highlight: #ff6666;
+    --color-burgundy: #472e2e;
     --color-yellow: #eab308;
     --color-green: #6aed8b;
 
@@ -46,8 +49,11 @@
     --text-muted: var(--color-ash);
     --text-subtle: var(--color-ghost);
     --primary: var(--color-white);
+    --action: var(--color-white);
     --success: var(--color-green);
-    --danger: var(--color-red);
+    --danger: var(--color-coral);
+    --danger-hover: var(--color-coral-highlight);
+    --danger-background: var(--color-burgundy);
     --warn: var(--color-yellow);
     --sub: var(--color-ash);
     --header-height: 65px;
@@ -58,13 +64,11 @@
     --normal-font: 'Inter';
     --not-spinning: var(--color-steel);
     --spinning: var(--color-white);
-    --ccc: #ccc;
-    --special--red: #f65252;
     --special--green: #4caf50;
-    --special--red--background: rgba(246, 82, 82, 0.1);
     --special--green--background: rgba(76, 175, 80, 0.1);
     --ghost--hover: var(--color-charcoal-highlight);
     --action-hover: var(--color-white-highlight);
+    
     /* Border Radii */
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
@@ -72,6 +76,7 @@
     --border-radius-xl: 16px;
     --border-radius-2xl: 24px;
     --border-radius-full: 999px;
+
     /* Font Sizes */
     --font-size-footnote: 0.7rem;
     --font-size-button: 0.85rem;
@@ -81,33 +86,35 @@
     --font-size-h3: 1.25rem;
     --font-size-h2: 1.5rem;
     --font-size-h1: 2rem;
+
     /* Shadows */
     --input-shadow: none;
     --menu-shadow: 0 4px 6px -1px #0000001a;
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
     --skeleton-base: var(--color-charcoal);
-    --danger-hover: #ff6666;
     --focus-shadow: 0 0 0 3px var(--color-graphite);
     --focus-border: var(--color-ash);
 }
 
 :root.light {
-    --bg-canvas: #fff;
-    --text-default: #000;
+    --bg-canvas: var(--color-white);
+    --text-default: var(--color-black);
+    --text-muted: var(--color-steel);
+    --text-subtle: var(--color-ghost);
     --border-canvas: #ddd;
     --border-surface: #ddd;
     --bg-interactive-hover: #eee;
-    --sub: #414141;
-    --bg-surface: #fff;
+    --sub: var(--color-steel);
+    --bg-surface: var(--color-white);
     --ghost--hover: #f5f5f5;
-    --action-hover: #0f0f0f;
+    --action-hover: var(--color-onyx);
     --not-spinning: #bbb;
     --skeleton-base: #eee;
     /* Shadows */
     --input-shadow: 0 1px 2px 0 #0000000d;
     --menu-shadow: 0 4px 6px -1px #0000001a;
     --focus-shadow: 0 0 0 3px #ddd;
-    --focus-border: #888;
+    --focus-border: var(--color-ghost);
 }
 
 :root.dark-glass {
@@ -340,12 +347,12 @@ h5 {
     }
 
     .menu-btn.danger {
-        color: var(--special--red);
-        fill: var(--special--red);
+        color: var(--danger);
+        fill: var(--danger);
     }
 
     .menu-btn.danger:hover {
-        background: var(--special--red--background);
+        background: var(--danger-background);
     }
 
     .menu-btn.active {

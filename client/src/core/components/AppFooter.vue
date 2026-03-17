@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Logo from '@/common/components/Logo.vue';
-import Notizen from "@/common/components/Notizen.vue";
+import Tagline from "@/common/components/Tagline.vue";
 import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
 import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
 import { useI18n } from 'vue-i18n';
@@ -19,7 +19,7 @@ const year = new Date().getFullYear();
             <Logo class="footer-logo" aria-hidden="true" />
             <span class="brand-text">schul-dashboard</span>
           </div>
-          <Notizen />
+          <Tagline />
           <p class="brand-description">
             Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
           </p>
@@ -38,9 +38,9 @@ const year = new Date().getFullYear();
 
         <div class="footer-section">
           <h3>Rechtliches</h3>
-          <router-link to="/impressum-&-datenschutz/impressum" class="footer-link">{{ t('legal.imprint.title') }}</router-link>
-          <router-link to="/impressum-&-datenschutz/datenschutz" class="footer-link">{{ t('legal.privacy.title') }}</router-link>
-          <router-link to="/impressum-&-datenschutz/nutzung" class="footer-link">{{ t('legal.terms.title') }}</router-link>
+          <router-link to="/legal/impressum" class="footer-link">{{ t('legal.imprint.title') }}</router-link>
+          <router-link to="/legal/datenschutz" class="footer-link">{{ t('legal.privacy.title') }}</router-link>
+          <router-link to="/legal/nutzung" class="footer-link">{{ t('legal.terms.title') }}</router-link>
         </div>
 
         <div class="footer-section">

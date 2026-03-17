@@ -2,7 +2,7 @@
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
-import type { HwItem } from '@/modules/tasks/composables/useAufgaben';
+import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import Modal from '@/common/components/Modal.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
@@ -226,116 +226,118 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <template>
-  <Modal @cancel="emit('cancel')">
-    <template #title>
-      {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') + labelFor(type) }}
-    </template>
+  <form @submit.prevent="submit" novalidate>
+    <Modal @cancel="emit('cancel')">
+      <template #title>
+        {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') + labelFor(type) }}
+      </template>
 
-    <template #content>
-      <div class="row-n top">
-        <div class="col">
-          <label class="label">{{ t('school.tasks.itemForm.title') }}</label>
-          <input ref="titleInputRef" class="input" v-model="title" />
-        </div>
-
-        <div class="col">
-          <label class="label">{{ t('school.tasks.itemForm.subject') }}</label>
-          <SelectDropdown
-              v-model="subjectSel"
-              :options="subjectOptions"
-          />
-        </div>
-
-        <div class="col" v-if="subjectSel === 'enrichment'">
-          <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
-          <SelectDropdown
-              v-model="enrKursSel"
-              :options="enrOptions"
-          />
-        </div>
-
-        <div class="col" v-if="subjectSel === 'wpu1'">
-          <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
-          <SelectDropdown
-              v-model="wpuDiKursSel"
-              :options="wpuDiOptions"
-          />
-        </div>
-
-        <div class="col" v-if="subjectSel === 'wpu2'">
-          <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
-          <SelectDropdown
-              v-model="wpuDoKursSel"
-              :options="wpuDoOptions"
-          />
-        </div>
-      </div>
-
-      <div v-if="subjectSel==='__OTHER__'" class="section">
-        <label class="label">{{ t('school.tasks.itemForm.customSubject') }}</label>
-        <input class="input" v-model="subjectOther"/>
-      </div>
-
-      <div class="section">
-        <label class="label">{{ t('school.tasks.itemForm.description') }}</label>
-        <textarea class="input" rows="4" v-model="description"></textarea>
-      </div>
-
-      <div class="row-n section">
-        <div class="col">
-          <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
-          <input class="input hover" type="date" v-model="dueLocal" />
-
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="label">{{ t('school.tasks.itemForm.images') }}</div>
-        <div class="row-n images">
-          <div
-              v-for="img in imgImages"
-              :key="img.publicId"
-              class="image-item"
-          >
-            <a :href="img.url" target="_blank" rel="noopener">
-              <img
-                  :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
-                  class="thumb"
-                  loading="lazy"
-                  decoding="async"
-                  alt="Vorschau"
-              />
-            </a>
-            <div class="image-actions">
-              <button class="btn danger image-remove" @click="removeImg(img, initial?.id)">X</button>
-            </div>
+      <template #content>
+        <div class="row-n top">
+          <div class="col">
+            <label class="label">{{ t('school.tasks.itemForm.title') }}</label>
+            <input ref="titleInputRef" class="input" v-model="title" />
           </div>
 
-          <button class="btn ghost" @click="uploadImage(!!initial)" :disabled="imgUploading">
-            <LoadingSpinner v-if="imgUploading" size="1.1em" />
-            <span v-else>{{ t('school.tasks.items.menu.uploadImages') }}</span>
+          <div class="col">
+            <label class="label">{{ t('school.tasks.itemForm.subject') }}</label>
+            <SelectDropdown
+                v-model="subjectSel"
+                :options="subjectOptions"
+            />
+          </div>
+
+          <div class="col" v-if="subjectSel === 'enrichment'">
+            <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
+            <SelectDropdown
+                v-model="enrKursSel"
+                :options="enrOptions"
+            />
+          </div>
+
+          <div class="col" v-if="subjectSel === 'wpu1'">
+            <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
+            <SelectDropdown
+                v-model="wpuDiKursSel"
+                :options="wpuDiOptions"
+            />
+          </div>
+
+          <div class="col" v-if="subjectSel === 'wpu2'">
+            <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
+            <SelectDropdown
+                v-model="wpuDoKursSel"
+                :options="wpuDoOptions"
+            />
+          </div>
+        </div>
+
+        <div v-if="subjectSel==='__OTHER__'" class="section">
+          <label class="label">{{ t('school.tasks.itemForm.customSubject') }}</label>
+          <input class="input" v-model="subjectOther"/>
+        </div>
+
+        <div class="section">
+          <label class="label">{{ t('school.tasks.itemForm.description') }}</label>
+          <textarea class="input" rows="4" v-model="description"></textarea>
+        </div>
+
+        <div class="row-n section">
+          <div class="col">
+            <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
+            <input class="input hover" type="date" v-model="dueLocal" />
+
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="label">{{ t('school.tasks.itemForm.images') }}</div>
+          <div class="row-n images">
+            <div
+                v-for="img in imgImages"
+                :key="img.publicId"
+                class="image-item"
+            >
+              <a :href="img.url" target="_blank" rel="noopener">
+                <img
+                    :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
+                    class="thumb"
+                    loading="lazy"
+                    decoding="async"
+                    alt="Vorschau"
+                />
+              </a>
+              <div class="image-actions">
+                <button type="button" class="btn danger image-remove" @click="removeImg(img, initial?.id)">X</button>
+              </div>
+            </div>
+
+            <button type="button" class="btn ghost" @click="uploadImage(!!initial)" :disabled="imgUploading">
+              <LoadingSpinner v-if="imgUploading" size="1.1em" />
+              <span v-else>{{ t('school.tasks.items.menu.uploadImages') }}</span>
+            </button>
+          </div>
+          <div v-if="imgUploading" class="small">{{ t('school.tasks.itemForm.uploadingImage') }}</div>
+          <div v-if="imgUploadError" class="small error">{{ imgUploadError }}</div>
+        </div>
+      </template>
+
+      <template #actions>
+        <div class="row actions">
+          <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
+
+          <button type="button" class="btn ghost" @click="emit('cancel')">
+            {{ t('global.buttons.cancel') }}
+          </button>
+
+          <button type="submit" class="btn action" :disabled="submitting">
+            <LoadingSpinner v-if="submitting" size="1.1em" />
+            <span v-else>{{ initial ? t('global.buttons.save') : t('global.buttons.create') }}</span>
           </button>
         </div>
-        <div v-if="imgUploading" class="small">{{ t('school.tasks.itemForm.uploadingImage') }}</div>
-        <div v-if="imgUploadError" class="small error">{{ imgUploadError }}</div>
-      </div>
-    </template>
-
-    <template #actions>
-      <div class="row actions">
-        <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
-
-        <button class="btn ghost" @click="emit('cancel')">
-          {{ t('global.buttons.cancel') }}
-        </button>
-
-        <button class="btn action" @click="submit" :disabled="submitting">
-          <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>{{ initial ? t('global.buttons.save') : t('global.buttons.create') }}</span>
-        </button>
-      </div>
-    </template>
-  </Modal>
+      </template>
+    </Modal>
+  </form>
 </template>
 
 <style scoped>

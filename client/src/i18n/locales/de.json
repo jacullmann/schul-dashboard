@@ -163,7 +163,7 @@
       "confirmPlaceholder": "wiederhole dein Passwort",
       "revealLabel": "Passwort anzeigen/verstecken",
       "forgot": "Passwort vergessen?",
-      "terms": "Ich stimme der <a href=\"/impressum-&-datenschutz/impressum\" target=\"_blank\" class=\"privacy-link\">Datenschutzerklärung</a> und den <a href=\"/impressum-&-datenschutz/nutzung\" target=\"_blank\" class=\"privacy-link\">Nutzungsbedingungen</a> zu",
+      "terms": "Ich stimme der <a href=\"/legal/impressum\" target=\"_blank\" class=\"privacy-link\">Datenschutzerklärung</a> und den <a href=\"/legal/nutzung\" target=\"_blank\" class=\"privacy-link\">Nutzungsbedingungen</a> zu",
       "successRegister": "Fast geschafft! Wir haben einen Bestätigungslink an deine E-Mail-Adresse geschickt",
       "errors": {
         "emailMissing": "Gib deine E-Mail ein",
@@ -461,7 +461,7 @@
     },
     "private": {
       "entry": "Privater Eintrag",
-      "title": "Private Todos",
+      "title": "Private Einträge",
       "onlyVisibleToYou": "Nur für dich sichtbar",
       "infopop": {
         "tooltip": "Überblick und Funktionen zu privaten Einträgen",

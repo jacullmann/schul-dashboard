@@ -33,7 +33,7 @@ onBeforeUnmount(() => {
           <slot name="title-infopop"></slot>
         </div>
 
-        <button class="btn ghost" @click="$emit('cancel')">
+        <button type="button" class="btn ghost" @click="$emit('cancel')">
           {{ t('global.buttons.close') }}
         </button>
       </div>
@@ -44,12 +44,12 @@ onBeforeUnmount(() => {
 
       <div class="row">
         <slot name="actions">
-          <button class="btn ghost" @click="$emit('cancel')">
+          <button type="button" class="btn ghost" @click="$emit('cancel')">
             {{ t('global.buttons.cancel') }}
           </button>
 
           <slot name="action-btn">
-            <button class="btn action">
+            <button type="button" class="btn action">
               {{ t('global.buttons.confirm') }}
             </button>
           </slot>

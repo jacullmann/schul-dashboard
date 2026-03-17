@@ -6,14 +6,13 @@ import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
 import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
-import OldNewSwitch from "@/modules/tasks/components/NewOldSwitch.vue"
+import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore } from 'lucide-vue-next'
-import { useAufgaben } from '@/modules/tasks/composables/useAufgaben';
+import { useTasks } from '@/modules/tasks/composables/useTasks';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
-import CreateEntryDropdownPseudo from "@/modules/tasks/components/CreateEntryDropdownPseudo.vue";
 import InfoModal from '@/common/components/InfoModal.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
@@ -21,7 +20,7 @@ import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
-import type { HwItem } from '@/modules/tasks/composables/useAufgaben';
+import type { HwItem } from '@/modules/tasks/composables/useTasks';
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
@@ -43,7 +42,7 @@ function handleSwipe(item: HwItem) {
 }
 
 const visibleItems = computed(() => {
-  return limitedItems.value.filter((item) => {
+  return limitedItems.value.filter((item: HwItem) => {
     // Hide item quickly if dismissed this session
     if (dismissedItems.value.has(item.id)) return false;
     
@@ -138,7 +137,7 @@ const {
   subjectOptions,
   getSubjectName,
   getTypeLabel
-} = useAufgaben();
+} = useTasks();
 
 watch([showOldEntries, tab, subjectFilter], () => {
   dismissedItems.value.clear();
@@ -210,13 +209,9 @@ function handleArchiveFromMenu(item: HwItem) {
               :options="subjectOptions"
               extraClass="select-subject"
           />
-          <OldNewSwitch v-model="showOldEntries" />
+          <ArchiveSwitch v-model="showOldEntries" />
           <CreateEntryDropdown
-              v-if="user"
               @select="openCreateFormByType"
-          />
-          <CreateEntryDropdownPseudo
-              v-if="!user"
           />
         </div>
       </div>

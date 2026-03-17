@@ -4,8 +4,8 @@ import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
 import { useI18n } from 'vue-i18n';
-import type { Todo } from '@/modules/tasks/types';
-import { useTodoApp } from '@/modules/tasks/composables/useTodoApp';
+import type { PrivateTask } from '@/modules/tasks/types';
+import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 
@@ -14,26 +14,26 @@ const { t } = useI18n();
 // Definition der Events für den Parent
 const emit = defineEmits<{
   (e: 'create'): void;
-  (e: 'edit', todo: Todo): void;
+  (e: 'edit', privateTask: PrivateTask): void;
 }>();
 
 const {
   user,
-  todos,
-  displayTodos,
+  privateTasks,
+  displayPrivateTasks,
   loading,
   message,
   isError,
   openMenuId,
-  loadTodos,
-  addTodo,
-  updateTodo,
+  loadPrivateTasks,
+  addPrivateTask,
+  updatePrivateTask,
   toggleMenu,
-  toggleTodoCompletion,
-  duplicateTodo,
-  deleteTodo,
-  reorderTodo,
-} = useTodoApp();
+  togglePrivateTaskCompletion,
+  duplicatePrivateTask,
+  deletePrivateTask,
+  reorderPrivateTask,
+} = usePrivateTasks();
 
 const emptyImage = new Image();
 emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -48,55 +48,55 @@ function onDragEnd(event: { newIndex: number; oldIndex: number }) {
   const { newIndex, oldIndex } = event;
   if (newIndex === oldIndex) return;
 
-  const movedItem = displayTodos.value[newIndex];
+  const movedItem = displayPrivateTasks.value[newIndex];
   if (!movedItem) return;
 
-  // Read neighbours from displayTodos for the layout, but look up real positions
-  // from the authoritative todos array to avoid sending optimistic pseudo-positions.
-  const prevDisplay = newIndex > 0 ? displayTodos.value[newIndex - 1] : null;
-  const nextDisplay = newIndex < displayTodos.value.length - 1 ? displayTodos.value[newIndex + 1] : null;
+  // Read neighbours from displayPrivateTasks for the layout, but look up real positions
+  // from the authoritative privateTasks array to avoid sending optimistic pseudo-positions.
+  const prevDisplay = newIndex > 0 ? displayPrivateTasks.value[newIndex - 1] : null;
+  const nextDisplay = newIndex < displayPrivateTasks.value.length - 1 ? displayPrivateTasks.value[newIndex + 1] : null;
 
   const realPosition = (item: { id: string } | null | undefined) => {
     if (!item) return null;
-    const real = todos.value.find(t => t.id === item.id);
+    const real = privateTasks.value.find(t => t.id === item.id);
     return real?.position || null;
   };
 
-  reorderTodo(movedItem.id, realPosition(prevDisplay), realPosition(nextDisplay));
+  reorderPrivateTask(movedItem.id, realPosition(prevDisplay), realPosition(nextDisplay));
 }
 
 function moveItemUp(index: number) {
   if (index <= 0) return;
-  const item = displayTodos.value[index];
-  const itemAbove = displayTodos.value[index - 1];
+  const item = displayPrivateTasks.value[index];
+  const itemAbove = displayPrivateTasks.value[index - 1];
   if (!item || !itemAbove) return;
 
-  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
-  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
+  // Use authoritative positions from privateTasks array, not displayPrivateTasks (may have pseudo-positions)
+  const realPos = (id: string) => privateTasks.value.find(t => t.id === id)?.position || null;
 
-  const twoAbove = index - 2 >= 0 ? displayTodos.value[index - 2] : null;
-  reorderTodo(item.id, twoAbove ? realPos(twoAbove.id) : null, realPos(itemAbove.id));
+  const twoAbove = index - 2 >= 0 ? displayPrivateTasks.value[index - 2] : null;
+  reorderPrivateTask(item.id, twoAbove ? realPos(twoAbove.id) : null, realPos(itemAbove.id));
 }
 
 function moveItemDown(index: number) {
-  if (index >= displayTodos.value.length - 1) return;
-  const item = displayTodos.value[index];
-  const itemBelow = displayTodos.value[index + 1];
+  if (index >= displayPrivateTasks.value.length - 1) return;
+  const item = displayPrivateTasks.value[index];
+  const itemBelow = displayPrivateTasks.value[index + 1];
   if (!item || !itemBelow) return;
 
-  // Use authoritative positions from todos array, not displayTodos (may have pseudo-positions)
-  const realPos = (id: string) => todos.value.find(t => t.id === id)?.position || null;
+  // Use authoritative positions from privateTasks array, not displayPrivateTasks (may have pseudo-positions)
+  const realPos = (id: string) => privateTasks.value.find(t => t.id === id)?.position || null;
 
-  const twoBelow = index + 2 < displayTodos.value.length ? displayTodos.value[index + 2] : null;
-  reorderTodo(item.id, realPos(itemBelow.id), twoBelow ? realPos(twoBelow.id) : null);
+  const twoBelow = index + 2 < displayPrivateTasks.value.length ? displayPrivateTasks.value[index + 2] : null;
+  reorderPrivateTask(item.id, realPos(itemBelow.id), twoBelow ? realPos(twoBelow.id) : null);
 }
 
-defineExpose({ loadTodos, addTodo, updateTodo });
+defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 </script>
 
 <template>
-  <div class="todo-app-integrated">
-    <div class="todo-header">
+  <div class="privateTask-app-integrated">
+    <div class="privateTask-header">
       <div class="secure">
         <Lock style="color: var(--text-default)" :size="24" />
         <h2 style="margin: 0; font-size: var(--font-size-h2); line-height: 24px;">{{ t('school.private.onlyVisibleToYou') }}</h2>
@@ -112,20 +112,20 @@ defineExpose({ loadTodos, addTodo, updateTodo });
       </div>
     </div>
 
-    <div v-if="user" class="todo-list">
+    <div v-if="user" class="privateTask-list">
       <div v-if="loading" class="loader">
         <LoadingSpinner color="#fff" size="24px" />
         <div style="color: var(--sub)">{{ t('school.private.loading') }}</div>
       </div>
 
-      <div v-else-if="todos.length === 0" class="empty-state">
+      <div v-else-if="privateTasks.length === 0" class="empty-state">
         <p>{{ t('school.private.noEntriesFound') }}</p>
       </div>
 
-      <div v-else class="todos-container">
+      <div v-else class="privateTasks-container">
         <draggable
-            :list="displayTodos"
-            class="todos"
+            :list="displayPrivateTasks"
+            class="privateTasks"
             item-key="id"
             handle=".item-card"
             @end="onDragEnd"
@@ -141,27 +141,27 @@ defineExpose({ loadTodos, addTodo, updateTodo });
             :prevent-on-filter="false"
         >
           <ItemCard
-              v-for="(todo, index) in displayTodos"
-              :key="todo.id"
-              :is-collapsed="todo.completed"
-              :title="todo.title"
-              @dblclick="user ? toggleTodoCompletion(todo) : null"
-              @menu-click="toggleMenu(todo.id)"
+              v-for="(privateTask, index) in displayPrivateTasks"
+              :key="privateTask.id"
+              :is-collapsed="privateTask.completed"
+              :title="privateTask.title"
+              @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"
+              @menu-click="toggleMenu(privateTask.id)"
           >
             <template #checkbox>
               <Checkbox
-                  :checked="todo.completed"
-                  @change="toggleTodoCompletion(todo)"
+                  :checked="privateTask.completed"
+                  @change="togglePrivateTaskCompletion(privateTask)"
               />
             </template>
 
             <template #menu>
-              <div v-if="openMenuId === todo.id" class="menu" @click.stop>
-                <button class="menu-btn" @click="$emit('edit', todo); openMenuId = null">
+              <div v-if="openMenuId === privateTask.id" class="menu" @click.stop>
+                <button class="menu-btn" @click="$emit('edit', privateTask); openMenuId = null">
                   <span class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</span>
                 </button>
 
-                <button class="menu-btn" @click="duplicateTodo(todo); openMenuId = null">
+                <button class="menu-btn" @click="duplicatePrivateTask(privateTask); openMenuId = null">
                   <span class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</span>
                 </button>
 
@@ -171,20 +171,20 @@ defineExpose({ loadTodos, addTodo, updateTodo });
                   <span class="menu-btn-content"><ChevronUp :size="16" />{{ t('school.private.menu.up') }}</span>
                 </button>
 
-                <button class="menu-btn" v-if="index < displayTodos.length - 1" @click="moveItemDown(index); openMenuId = null">
+                <button class="menu-btn" v-if="index < displayPrivateTasks.length - 1" @click="moveItemDown(index); openMenuId = null">
                   <span class="menu-btn-content"><ChevronDown :size="16" />{{ t('school.private.menu.down') }}</span>
                 </button>
 
-                <div v-if="index > 0 || index < displayTodos.length - 1" class="menu-divider"></div>
+                <div v-if="index > 0 || index < displayPrivateTasks.length - 1" class="menu-divider"></div>
 
-                <button class="menu-btn danger" @click="deleteTodo(todo.id); openMenuId = null">
+                <button class="menu-btn danger" @click="deletePrivateTask(privateTask.id); openMenuId = null">
                   <span class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</span>
                 </button>
               </div>
             </template>
 
-            <template #body v-if="todo.description">
-              <span>{{ todo.description }}</span>
+            <template #body v-if="privateTask.description">
+              <span>{{ privateTask.description }}</span>
             </template>
           </ItemCard>
         </draggable>
@@ -206,19 +206,19 @@ defineExpose({ loadTodos, addTodo, updateTodo });
   color: var(--sub);
 }
 
-.todo-filters {
+.privateTask-filters {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
-.todo-filters .btn.active {
+.privateTask-filters .btn.active {
   background-color: var(--text-default);
   color: var(--bg-surface);
 }
 
-.todos {
+.privateTasks {
   display: flex;
   flex-direction: column;
   gap: 12px;
