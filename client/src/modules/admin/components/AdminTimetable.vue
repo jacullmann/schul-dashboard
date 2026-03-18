@@ -9,6 +9,7 @@ const { formatDayName, days, timeSlots, getGroupStyle, getDisplayName, defaultDa
 
 const props = defineProps<{
   lessons: Lesson[];
+  selectedLessonId?: string;
 }>();
 
 const emit = defineEmits<{
@@ -121,7 +122,10 @@ onUnmounted(() => {
                 :key="index"
                 class="sub-lesson-item clickable"
                 @click="onSelectLesson(lesson)"
-                :class="{ 'has-border': index < group.length - 1 }"
+                :class="{ 
+                  'has-border': index < group.length - 1,
+                  'selected': lesson.id === selectedLessonId 
+                }"
             >
               <div class="lesson-subject">
                 {{ getDisplayName(lesson) }}
@@ -216,6 +220,16 @@ onUnmounted(() => {
 
 .sub-lesson-item.has-border {
   border-bottom: 1px solid var(--border-surface);
+}
+
+.sub-lesson-item.selected {
+  background-color: var(--text-default);
+}
+.sub-lesson-item.selected .lesson-subject {
+  color: var(--bg-canvas);
+}
+.sub-lesson-item.selected .lesson-details {
+  color: var(--bg-interactive-hover);
 }
 
 .lesson-subject {

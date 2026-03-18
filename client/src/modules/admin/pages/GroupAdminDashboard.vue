@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref, markRaw } from 'vue';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserMinus } from 'lucide-vue-next';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserRoundMinus } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import AdminTimetable from '@/modules/admin/components/AdminTimetable.vue';
 import Checkbox from '@/common/components/Checkbox.vue';
+import type { Lesson } from '@/modules/schedule/types';
+import InfoModal from '@/common/components/InfoModal.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const {
   groupId,
@@ -56,15 +61,27 @@ const subForm = ref({
   subject: '',
   room: '',
   slot: null as number | null,
+  day: null as number | null,
   cancelled: false,
   hide: false,
 });
 
-function onLessonSelected(lesson: any) {
+const selectedLesson = ref<Lesson | null>(null);
+
+function getDisplayName(lesson: Lesson): string {
+  const subjectName = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
+  return subjectName ? subjectName : 'Unbekannt';
+}
+
+function onLessonSelected(lesson: Lesson) {
+  selectedLesson.value = lesson;
   subForm.value.lessonId = lesson.id;
-  subForm.value.subject = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
-  subForm.value.room = lesson.room || '';
-  subForm.value.slot = lesson.slot;
+  subForm.value.subject = '';
+  subForm.value.room = '';
+  subForm.value.slot = null;
+  subForm.value.day = null;
+  subForm.value.cancelled = false;
+  subForm.value.hide = false;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -72,12 +89,14 @@ function handleSaveSub() {
   const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
   if (subForm.value.subject) payload.subject = subForm.value.subject;
   if (subForm.value.room) payload.room = subForm.value.room;
-  if (subForm.value.slot) payload.slot = subForm.value.slot;
+  if (subForm.value.slot !== null) payload.slot = subForm.value.slot;
+  if (subForm.value.day !== null) payload.day = subForm.value.day;
   if (subForm.value.cancelled) payload.cancelled = true;
   if (subForm.value.hide) payload.hide = true;
 
   saveSub(payload).then(() => {
-    subForm.value = { lessonId: '', subject: '', room: '', slot: null, cancelled: false, hide: false };
+    subForm.value = { lessonId: '', subject: '', room: '', slot: null, day: null, cancelled: false, hide: false };
+    selectedLesson.value = null;
   });
 }
 
@@ -153,7 +172,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
           </div>
           <div class="stat-tile">
             <span class="stat-value">{{ stats?.subsCount ?? '–' }}</span>
-            <span class="stat-label">Substitutions</span>
+            <span class="stat-label">Stundenplanänderungen</span>
           </div>
           <div class="stat-tile" :class="{ warn: (stats?.oldItemsCount ?? 0) > 0 }">
             <span class="stat-value">{{ stats?.oldItemsCount ?? '–' }}</span>
@@ -178,14 +197,14 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
             <label>Gruppenname</label>
             <div v-if="!editingGroupName" class="setting-value">
               <span>{{ groupName }}</span>
-              <button class="btn ghost tiny" @click="startEditGroupName">Bearbeiten</button>
+              <button class="btn ghost tiny" @click="startEditGroupName">{{ t('global.buttons.edit') }}</button>
             </div>
             <div v-else class="setting-edit">
               <input v-model="newGroupName" class="input" placeholder="Neuer Gruppenname" @keyup.enter="saveGroupName" />
               <button class="btn action" @click="saveGroupName" :disabled="savingGroupName || !newGroupName.trim()">
-                {{ savingGroupName ? 'Speichert...' : 'Speichern' }}
+                {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
               </button>
-              <button class="btn ghost" @click="cancelEditGroupName">Abbrechen</button>
+              <button class="btn ghost" @click="cancelEditGroupName">{{ t('global.buttons.cancel') }}</button>
             </div>
           </div>
         </div>
@@ -194,7 +213,23 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
       <!-- ═══ MEMBERS ═══ -->
       <div v-if="activeTab === 'members'" class="tab-panel">
         <div class="panel-header">
-          <h2>Mitglieder</h2>
+          <div class="title-inf">
+            <h2>Mitglieder</h2>
+            <InfoModal
+              tooltip="Übersicht des Mitgliedermenüs"
+              title="Mitglieder"
+            >
+              <h3>Verwalte Mitglieder deiner Gruppe</h3>
+              <template>
+                <h3>Mitgliedsliste</h3>
+                <p>Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten der Nutzer zu schützen wird ein automatisch generierter Alias angezeigt. Über das Dropdown-Menü kannst du die Rolle eines Mitglieds ändern.</p>
+                <h3>Rollen ändern</h3>
+                <p>Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen zu erteilen oder zu entziehen, kannst du dies über das Dropdown-Menü, das neben jedem Mitglied steht, tun. </p>
+                <h3>Mitglieder entfernen</h3>
+                <p>Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden.</p>
+              </template>
+            </InfoModal>
+          </div>
           <button class="btn ghost" @click="loadMembers" :disabled="loadingMembers">
             <RefreshCw :size="14" :class="{ 'spin-icon': loadingMembers }" />
             <span>Aktualisieren</span>
@@ -229,7 +264,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
                   title="Aus Gruppe entfernen"
                   :disabled="member.role === 'admin'"
               >
-                <UserMinus :size="15" />
+                <UserRoundMinus :size="15" />
               </button>
             </div>
           </div>
@@ -239,7 +274,21 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
       <!-- ═══ TIMETABLE ═══ -->
       <div v-if="activeTab === 'timetable'" class="tab-panel">
         <div class="panel-header">
-          <h2>Substitutions</h2>
+          <div class="title-inf">
+            <h2>Stundenplanänderungen</h2>
+            <InfoModal
+              tooltip="Übersicht des Adminstundenplanmenüs"
+              title="Stundenplanänderungen"
+            >
+              <h3>Trage Änderungen Live und anschaulich ein</h3>
+              <template>
+                <h3>Stunden auswählen</h3>
+                <p>Klicke in der Stundenplanansicht die Stunden an, die du ändern möchtest.</p>
+                <h3>Änderungen eintragen</h3>
+                <p>Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.</p>
+              </template>
+            </InfoModal>
+          </div>
           <button class="btn ghost" @click="loadSubs" :disabled="loadingSubs">
             <RefreshCw :size="14" :class="{ 'spin-icon': loadingSubs }" />
             <span>Aktualisieren</span>
@@ -247,35 +296,54 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
         </div>
 
         <!-- Create Form -->
-        <h3>Neue Substitution</h3>
-        <div class="sub-form-grid">
-          <input type="hidden" v-model="subForm.lessonId" />
-          <div class="form-field">
-            <label>Fach</label>
-            <input v-model="subForm.subject" placeholder="Optional" class="input" />
+        <h3 v-if="!selectedLesson" style="color: var(--sub); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
+        
+        <div v-if="selectedLesson" class="sub-form-card" style="background: var(--bg-surface); border: 1px solid var(--border-surface); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+          <h3 style="margin-top: 0; margin-bottom: 8px; font-size: var(--font-size-title);">Ausgewählte Stunde</h3>
+          <p style="margin: 0 0 16px 0; color: var(--sub); font-size: var(--font-size-body);">
+            Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> 
+            (Stunde: {{ selectedLesson.slot }}, Raum: {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
+          </p>
+
+          <div class="sub-form-grid">
+            <input type="hidden" v-model="subForm.lessonId" />
+            <div class="form-field">
+              <label>Neues Fach</label>
+              <input v-model="subForm.subject" placeholder="Leer = keine Änd..." class="input" />
+            </div>
+            <div class="form-field">
+              <label>Neuer Raum</label>
+              <input v-model="subForm.room" placeholder="Leer = keine Änd..." class="input" />
+            </div>
+            <div class="form-field">
+              <label>Neue Stunde</label>
+              <input v-model.number="subForm.slot" type="number" placeholder="Leer = keine Änd..." class="input" />
+            </div>
+            <div class="form-field">
+              <label>Neuer Tag (1 = Mo, 5 = Fr)</label>
+              <input v-model.number="subForm.day" type="number" min="1" max="5" placeholder="Leer = keine Änd..." class="input" />
+            </div>
           </div>
-          <div class="form-field">
-            <label>Raum</label>
-            <input v-model="subForm.room" placeholder="Optional" class="input" />
+
+          <div style="display: flex; gap: 24px; margin: 16px 0 24px 0;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-body); cursor: pointer;">
+              <Checkbox v-model="subForm.cancelled" />
+              <span>Ausfall</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-body); cursor: pointer;">
+              <Checkbox v-model="subForm.hide" />
+              <span>Verstecken</span>
+            </label>
           </div>
-          <div class="form-field">
-            <label>Stunde</label>
-            <input v-model.number="subForm.slot" type="number" placeholder="Optional" class="input" />
-          </div>
-          <div class="form-field checkbox-field">
-            <label><Checkbox v-model="subForm.cancelled" /> Ausfall</label>
-          </div>
-          <div class="form-field checkbox-field">
-            <label><Checkbox v-model="subForm.hide" /> Verstecken</label>
-          </div>
+
+          <button class="btn action" @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId">
+            {{ savingSub ? 'Speichert...' : 'Speichern' }}
+          </button>
         </div>
-        <button class="btn action" @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId">
-          {{ savingSub ? 'Speichert...' : 'Speichern' }}
-        </button>
 
         <h3 style="padding: 20px 20px 0 20px; font-size: var(--font-size-title);">Stunde auswählen</h3>
         <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
-        <AdminTimetable v-else :lessons="lessons" @select-lesson="onLessonSelected" style="padding: 20px;" />
+        <AdminTimetable v-else :lessons="lessons" :selectedLessonId="subForm.lessonId" @select-lesson="onLessonSelected" style="padding: 20px;" />
 
         <!-- Existing Subs -->
         <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">Keine Substitutions vorhanden.</div>
@@ -285,6 +353,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
               <span v-if="sub.subject" class="sub-row-tag">{{ sub.subject }}</span>
               <span v-else class="sub-row-tag">Unbekannt</span>
               <span class="sub-row-detail" v-if="sub.slot">Stunde: {{ sub.slot }}</span>
+              <span class="sub-row-detail" v-if="sub.day">Tag: {{ sub.day }}</span>
               <span v-if="sub.cancelled" class="sub-row-tag danger">Ausfall</span>
               <span v-if="sub.hide" class="sub-row-tag muted">Versteckt</span>
               <span v-if="sub.room" class="sub-row-detail">Raum: {{ sub.room }}</span>

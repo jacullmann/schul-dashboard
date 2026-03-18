@@ -24,6 +24,7 @@ export interface Lesson {
 }
 
 export interface Substitution {
+    id: string;
     lessonId: string;
     day?: number;
     slot?: number;
