@@ -14,7 +14,7 @@ export const games: Game[] = [
         id: 'russisch-roulette',
         name: 'Russisch Roulette',
         description: 'Dies ist nur ein Spiel!',
-        component: defineAsyncComponent(() => import('../pages/RussischRoulette.vue')),
+        component: defineAsyncComponent(() => import('../pages/RussianRoulette.vue')),
         tags: ['Strategie', 'Kein Glückspiel', 'Klassiker', 'Russisch'],
         previewImage: 'https://de.freepik.com/vektoren-kostenlos/vektor-realistische-kasino-roulette-rad-draufsicht-lokalisiert-auf-gruenem-pokertisch_11062552.htm#fromView=search&page=1&position=2&uuid=05fcfc04-f997-48e9-8031-923f917d68b0&query=russian+roulette'
     },
@@ -22,7 +22,7 @@ export const games: Game[] = [
         id: 'rock-paper-scissors',
         name: 'Schere, Stein, Papier',
         description: 'Spiele Schere-Stein-Papier gegen einen Computer.',
-        component: defineAsyncComponent(() => import('../pages/Schere-usw.vue')),
+        component: defineAsyncComponent(() => import('../pages/RockPaperScissors.vue')),
         tags: ['Klassiker', 'Duell', 'Solo'],
         previewImage: 'https://de.freepik.com/vektoren-kostenlos/stein-papier-schere-banner_21002766.htm#fromView=search&page=1&position=1&uuid=86425b36-17a5-4ff8-b5d3-c968cadaf645&query=rock+paper+scissors'
     },
