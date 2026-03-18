@@ -7,9 +7,6 @@ export interface Lesson {
     duration: number;
     room: string | null;
     courseId?: string | null;
-    persons?: {
-        id: string;
-    } | null;
     subjects?: {
         id: string;
         name: string;

@@ -89,6 +89,12 @@ export class GroupAdminController {
   }
 
   @TenantRoles('admin', 'moderator')
+  @Get('timetable')
+  getTimetable(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getTimetable(tenantId);
+  }
+
+  @TenantRoles('admin', 'moderator')
   @Get('timetable/subs')
   getTimetableSubs(@ActiveTenantId() tenantId: string) {
     return this.groupAdminService.getTimetableSubs(tenantId);

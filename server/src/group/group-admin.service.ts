@@ -238,6 +238,44 @@ export class GroupAdminService {
   }
 
   // --- Timetable subs ---
+  async getTimetable(tenantId: string) {
+    const sb = this.supabaseService.getClient();
+    const { data: lessons, error } = await sb
+      .from('timetables')
+      .select(
+        `
+          id,
+          day,
+          slot,
+          duration,
+          room,
+          course_id,
+          subjects ( id, name ),
+          courses ( id, name )
+        `,
+      )
+      .eq('tenant_id', tenantId);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        'Fehler beim Laden des Stundenplans',
+      );
+    }
+
+    return (lessons || []).map((l: any) => ({
+      id: l.id,
+      day: l.day,
+      slot: l.slot,
+      duration: l.duration,
+      room: l.room,
+      courseId: l.course_id,
+      subjects: l.subjects
+        ? { id: l.subjects.id, name: l.subjects.name }
+        : null,
+      courses: l.courses ? { id: l.courses.id, name: l.courses.name } : null,
+    }));
+  }
+
   async getTimetableSubs(tenantId: string) {
     const sb = this.supabaseService.getClient();
     const { data: subs } = await sb
@@ -253,7 +291,6 @@ export class GroupAdminService {
         slot: _s.slot,
         duration: _s.duration,
         subject: _s.subject,
-        teacher: _s.teacher,
         room: _s.room,
         cancelled: _s.cancelled,
         hide: _s.hide,
@@ -273,7 +310,6 @@ export class GroupAdminService {
         slot: sub.slot || null,
         duration: sub.duration || null,
         subject: sub.subject || null,
-        teacher: sub.teacher || null,
         room: sub.room || null,
         cancelled: sub.cancelled || false,
         hide: sub.hide || false,
@@ -299,7 +335,6 @@ export class GroupAdminService {
       slot: _data.slot,
       duration: _data.duration,
       subject: _data.subject,
-      teacher: _data.teacher,
       room: _data.room,
       cancelled: _data.cancelled,
       hide: _data.hide,

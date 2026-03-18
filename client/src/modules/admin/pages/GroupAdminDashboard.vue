@@ -2,6 +2,7 @@
 import { ref, markRaw } from 'vue';
 import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserMinus } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+import AdminTimetable from '@/modules/admin/components/AdminTimetable.vue';
 
 const {
   groupId,
@@ -21,6 +22,8 @@ const {
   loadSubs,
   saveSub,
   deleteSub,
+  lessons,
+  loadingLessons,
   announcements,
   creatingAnn,
   createAnnouncement,
@@ -55,6 +58,14 @@ const subForm = ref({
   cancelled: false,
   hide: false,
 });
+
+function onLessonSelected(lesson: any) {
+  subForm.value.lessonId = lesson.id;
+  subForm.value.subject = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
+  subForm.value.room = lesson.room || '';
+  subForm.value.slot = lesson.slot;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 function handleSaveSub() {
   const payload: Record<string, unknown> = { lessonId: subForm.value.lessonId };
@@ -238,10 +249,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
         <div class="sub-form-card">
           <h3>Neue Substitution</h3>
           <div class="sub-form-grid">
-            <div class="form-field">
-              <label>Lesson ID</label>
-              <input v-model="subForm.lessonId" placeholder="UUID" class="input" />
-            </div>
+            <input type="hidden" v-model="subForm.lessonId" />
             <div class="form-field">
               <label>Fach</label>
               <input v-model="subForm.subject" placeholder="Optional" class="input" />
@@ -266,13 +274,20 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
           </button>
         </div>
 
+        <div class="sub-form-card" style="margin-bottom: 24px; padding: 0;">
+          <h3 style="padding: 20px 20px 0 20px; font-size: var(--font-size-title);">Stunde auswählen</h3>
+          <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
+          <AdminTimetable v-else :lessons="lessons" @select-lesson="onLessonSelected" style="padding: 20px;" />
+        </div>
+
         <!-- Existing Subs -->
         <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">Keine Substitutions vorhanden.</div>
         <div v-else class="subs-list">
           <div v-for="sub in subs" :key="sub.id" class="sub-row">
             <div class="sub-row-info">
-              <span class="sub-row-id">{{ sub.lessonId }}</span>
               <span v-if="sub.subject" class="sub-row-tag">{{ sub.subject }}</span>
+              <span v-else class="sub-row-tag">Unbekannt</span>
+              <span class="sub-row-detail" v-if="sub.slot">Stunde: {{ sub.slot }}</span>
               <span v-if="sub.cancelled" class="sub-row-tag danger">Ausfall</span>
               <span v-if="sub.hide" class="sub-row-tag muted">Versteckt</span>
               <span v-if="sub.room" class="sub-row-detail">Raum: {{ sub.room }}</span>

@@ -19,7 +19,6 @@ export class TimetableService {
                 duration,
                 room,
                 course_id,
-                persons ( id, name, title, short ),
                 subjects ( id, name ),
                 courses ( id, name )
             `,
@@ -56,7 +55,6 @@ export class TimetableService {
         duration: l.duration,
         room: l.room,
         courseId: l.course_id,
-        persons: l.persons ? { id: l.persons.id } : null,
         subjects: l.subjects
           ? { id: l.subjects.id, name: l.subjects.name }
           : null,

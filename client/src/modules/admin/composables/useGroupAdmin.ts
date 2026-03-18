@@ -8,6 +8,7 @@ import type {
     TimetableSubstitution,
     AdminAnnouncement
 } from '@/modules/admin/types';
+import type { Lesson } from '@/modules/schedule/types';
 
 export function useGroupAdmin() {
     const route = useRoute();
@@ -33,6 +34,10 @@ export function useGroupAdmin() {
     const subs = ref<TimetableSubstitution[]>([]);
     const loadingSubs = ref(false);
     const savingSub = ref(false);
+
+    // Timetable
+    const lessons = ref<Lesson[]>([]);
+    const loadingLessons = ref(false);
 
     // Announcements
     const announcements = ref<AdminAnnouncement[]>([]);
@@ -117,6 +122,18 @@ export function useGroupAdmin() {
     }
 
     // ─── Timetable Subs ─────────────────────────────────
+
+    async function loadTimetable() {
+        loadingLessons.value = true;
+        try {
+            const { data } = await hw.get('/api/group-admin/timetable');
+            lessons.value = data;
+        } catch {
+            showMessage('Fehler beim Laden des Stundenplans', true);
+        } finally {
+            loadingLessons.value = false;
+        }
+    }
 
     async function loadSubs() {
         loadingSubs.value = true;
@@ -247,6 +264,7 @@ export function useGroupAdmin() {
         loadMembers();
         loadSubs();
         loadAnnouncements();
+        loadTimetable();
     });
 
     return {
@@ -275,6 +293,11 @@ export function useGroupAdmin() {
         loadSubs,
         saveSub,
         deleteSub,
+
+        // Timetable
+        lessons,
+        loadingLessons,
+        loadTimetable,
 
         // Announcements
         announcements,
