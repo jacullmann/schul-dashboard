@@ -4,7 +4,11 @@ import { useUserStore } from '@/stores/userStore';
 import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 
-export function useTimetable() {
+export interface UseTimetableOptions {
+    autoLoad?: boolean;
+}
+
+export function useTimetable(options: UseTimetableOptions = { autoLoad: true }) {
     const { t, locale } = useI18n();
     const userStore = useUserStore();
 
@@ -184,8 +188,10 @@ export function useTimetable() {
     let timer: number | undefined;
     onMounted(() => {
         timer = window.setInterval(updateTime, 1000 * 60);
-        loadTimetable();
-        loadSubstitutions();
+        if (options.autoLoad) {
+            loadTimetable();
+            loadSubstitutions();
+        }
     });
 
     watch(
@@ -197,7 +203,7 @@ export function useTimetable() {
             userStore.user?.theater
         ],
         (newVal, oldVal) => {
-            if (oldVal !== undefined && JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+            if (options.autoLoad && oldVal !== undefined && JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
                 loadTimetable();
             }
         },

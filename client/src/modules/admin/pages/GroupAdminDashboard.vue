@@ -3,6 +3,7 @@ import { ref, markRaw } from 'vue';
 import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, RefreshCw, Trash2, UsersRound, UserMinus } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import AdminTimetable from '@/modules/admin/components/AdminTimetable.vue';
+import Checkbox from '@/common/components/Checkbox.vue';
 
 const {
   groupId,
@@ -246,39 +247,35 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
         </div>
 
         <!-- Create Form -->
-        <div class="sub-form-card">
-          <h3>Neue Substitution</h3>
-          <div class="sub-form-grid">
-            <input type="hidden" v-model="subForm.lessonId" />
-            <div class="form-field">
-              <label>Fach</label>
-              <input v-model="subForm.subject" placeholder="Optional" class="input" />
-            </div>
-            <div class="form-field">
-              <label>Raum</label>
-              <input v-model="subForm.room" placeholder="Optional" class="input" />
-            </div>
-            <div class="form-field">
-              <label>Stunde</label>
-              <input v-model.number="subForm.slot" type="number" placeholder="Optional" class="input" />
-            </div>
-            <div class="form-field checkbox-field">
-              <label><input type="checkbox" v-model="subForm.cancelled" /> Ausfall</label>
-            </div>
-            <div class="form-field checkbox-field">
-              <label><input type="checkbox" v-model="subForm.hide" /> Verstecken</label>
-            </div>
+        <h3>Neue Substitution</h3>
+        <div class="sub-form-grid">
+          <input type="hidden" v-model="subForm.lessonId" />
+          <div class="form-field">
+            <label>Fach</label>
+            <input v-model="subForm.subject" placeholder="Optional" class="input" />
           </div>
-          <button class="btn action" @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId">
-            {{ savingSub ? 'Speichert...' : 'Speichern' }}
-          </button>
+          <div class="form-field">
+            <label>Raum</label>
+            <input v-model="subForm.room" placeholder="Optional" class="input" />
+          </div>
+          <div class="form-field">
+            <label>Stunde</label>
+            <input v-model.number="subForm.slot" type="number" placeholder="Optional" class="input" />
+          </div>
+          <div class="form-field checkbox-field">
+            <label><Checkbox v-model="subForm.cancelled" /> Ausfall</label>
+          </div>
+          <div class="form-field checkbox-field">
+            <label><Checkbox v-model="subForm.hide" /> Verstecken</label>
+          </div>
         </div>
+        <button class="btn action" @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId">
+          {{ savingSub ? 'Speichert...' : 'Speichern' }}
+        </button>
 
-        <div class="sub-form-card" style="margin-bottom: 24px; padding: 0;">
-          <h3 style="padding: 20px 20px 0 20px; font-size: var(--font-size-title);">Stunde auswählen</h3>
-          <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
-          <AdminTimetable v-else :lessons="lessons" @select-lesson="onLessonSelected" style="padding: 20px;" />
-        </div>
+        <h3 style="padding: 20px 20px 0 20px; font-size: var(--font-size-title);">Stunde auswählen</h3>
+        <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
+        <AdminTimetable v-else :lessons="lessons" @select-lesson="onLessonSelected" style="padding: 20px;" />
 
         <!-- Existing Subs -->
         <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">Keine Substitutions vorhanden.</div>
@@ -293,7 +290,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
               <span v-if="sub.room" class="sub-row-detail">Raum: {{ sub.room }}</span>
             </div>
             <button class="btn-icon danger" @click="deleteSub(sub.id)" title="Löschen">
-              <Trash2 :size="15" />
+              <Trash2 :size="16" />
             </button>
           </div>
         </div>
@@ -319,7 +316,7 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
               <option value="danger">Wichtig</option>
             </select>
             <label class="popup-checkbox">
-              <input type="checkbox" v-model="annShowAsPopup" /> Als Popup
+              <Checkbox v-model="annShowAsPopup" /> Als Popup
             </label>
             <button class="btn action" @click="handleCreateAnn" :disabled="!annContent.trim() || creatingAnn">
               {{ creatingAnn ? 'Erstellt...' : 'Veröffentlichen' }}
@@ -631,22 +628,6 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
   width: 130px;
   font-size: var(--font-size-sub);
   padding: 6px 8px;
-}
-
-/* ─── Sub Form ───────────────────────────────────────── */
-.sub-form-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-.sub-form-card h3 {
-  font-size: var(--font-size-title);
-  font-weight: 600;
-  margin: 0 0 16px;
 }
 
 .sub-form-grid {

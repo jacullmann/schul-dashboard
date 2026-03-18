@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import type { Lesson, TimeSlot } from '@/modules/schedule/types';
+import type { Lesson } from '@/modules/schedule/types';
+import { useI18n } from 'vue-i18n';
+import { useTimetable } from '@/modules/schedule/composables/useTimetable';
+
+const { t } = useI18n();
+const { formatDayName, days, timeSlots, getGroupStyle, getDisplayName, defaultDayIndex } = useTimetable({ autoLoad: false });
 
 const props = defineProps<{
   lessons: Lesson[];
@@ -9,46 +14,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'select-lesson', lesson: Lesson): void;
 }>();
-
-const days = [1, 2, 3, 4, 5];
-const totalSlots = 9;
-const lessonDurationMins = 45;
-const startTimeHour = 8;
-const startTimeMinute = 0;
-
-const breaks: Record<number, number> = {
-  2: 25,
-  3: 5,
-  5: 40,
-  7: 10
-};
-
-const formatTime = (totalMinutes: number): string => {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-};
-
-const slotStartMinutes = computed(() => {
-  const map: Record<number, number> = {};
-  let currentMetrics = (startTimeHour * 60) + startTimeMinute;
-  for (let i = 1; i <= totalSlots; i++) {
-    map[i] = currentMetrics;
-    const breakTime = breaks[i] || 0;
-    currentMetrics += lessonDurationMins + breakTime;
-  }
-  return map;
-});
-
-const timeSlots = computed<TimeSlot[]>(() => {
-  const slots: TimeSlot[] = [];
-  for (let i = 1; i <= totalSlots; i++) {
-    const startMins = slotStartMinutes.value[i] ?? 0;
-    const endMins = startMins + lessonDurationMins;
-    slots.push({ slot: i, time: `${formatTime(startMins)} - ${formatTime(endMins)}` });
-  }
-  return slots;
-});
 
 const groupedLessons = computed(() => {
   const groups: Record<string, Lesson[]> = {};
@@ -60,40 +25,30 @@ const groupedLessons = computed(() => {
   return groups;
 });
 
-const getGroupStyle = (groupLessons: Lesson[]) => {
-  if (!groupLessons.length) return {};
-  const firstLesson = groupLessons[0];
-  if (!firstLesson) return {};
-  const maxDuration = Math.max(...groupLessons.map(l => l.duration));
-  const dayIndex = days.indexOf(firstLesson.day);
-  const colStart = dayIndex + 2;
-  const rowStart = firstLesson.slot + 1;
-  return {
-    '--col-desktop': `${colStart} / span 1`,
-    '--col-mobile': `${colStart - 1} / span 1`,
-    gridColumn: `var(--col-desktop)`,
-    gridRow: `${rowStart} / span ${maxDuration}`
-  } as Record<string, string>;
-};
-
-const formatDayName = (day: number): string => {
-  const date = new Date(Date.UTC(2024, 0, day, 12));
-  return new Intl.DateTimeFormat('de', { weekday: 'long' }).format(date);
-};
-
-const getDisplayName = (lesson: Lesson): string => {
-  const subjectName = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
-  return subjectName ? subjectName : 'Unbekannt';
-};
-
 const onSelectLesson = (lesson: Lesson) => {
   emit('select-lesson', lesson);
 };
 
 // Responsiveness logic (same as Timetable.vue)
+const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);
 let resizeObserver: ResizeObserver | null = null;
+
+const scrollToDefaultDay = () => {
+  if (!scrollContainerRef.value) return;
+  if (window.innerWidth <= 500) {
+    const dayIndex = defaultDayIndex.value;
+    const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
+    if (dayHeaders && dayHeaders[dayIndex]) {
+      const header = dayHeaders[dayIndex] as HTMLElement;
+      scrollContainerRef.value.scrollTo({
+        left: header.offsetLeft,
+        behavior: 'auto'
+      });
+    }
+  }
+};
 
 const syncRowHeights = () => {
   if (window.innerWidth >= 501) {
@@ -108,66 +63,74 @@ const syncRowHeights = () => {
   }
 };
 
+const handleResize = () => {
+  scrollToDefaultDay();
+  syncRowHeights();
+};
+
 onMounted(() => {
   setTimeout(() => {
     syncRowHeights();
+    scrollToDefaultDay();
   }, 100);
-  window.addEventListener('resize', syncRowHeights);
+  window.addEventListener('resize', handleResize);
   resizeObserver = new ResizeObserver(() => syncRowHeights());
   if (daysGridWrapperRef.value) resizeObserver.observe(daysGridWrapperRef.value);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', syncRowHeights);
+  window.removeEventListener('resize', handleResize);
   if (resizeObserver) resizeObserver.disconnect();
 });
 </script>
 
 <template>
-  <div class="timetable-grid">
-    <div class="time-col-wrapper" ref="timeColWrapperRef">
-      <div class="header-cell time-header">Std.</div>
-      <div
-          v-for="ts in timeSlots"
-          :key="ts.slot"
-          class="time-slot-label"
-          :style="{ gridRow: ts.slot + 1 }"
-      >
-        <span class="slot-number">{{ ts.slot }}</span>
-        <span class="slot-time">{{ ts.time }}</span>
-      </div>
-    </div>
-
-    <div class="days-scroll-wrapper">
-      <div class="days-grid-wrapper" ref="daysGridWrapperRef">
+  <div class="admin-timetable-wrapper">
+    <div class="timetable-grid">
+      <div class="time-col-wrapper" ref="timeColWrapperRef">
+        <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
         <div
-            v-for="day in days"
-            :key="day"
-            class="header-cell day-header"
+            v-for="ts in timeSlots"
+            :key="ts.slot"
+            class="time-slot-label"
+            :style="{ gridRow: ts.slot + 1 }"
         >
-          {{ formatDayName(day) }}
+          <span class="slot-number">{{ ts.slot }}</span>
+          <span class="slot-time">{{ ts.time }}</span>
         </div>
+      </div>
 
-        <div
-            v-for="(group, key) in groupedLessons"
-            :key="key"
-            class="lesson-group-container"
-            :style="getGroupStyle(group)"
-        >
+      <div class="days-scroll-wrapper" ref="scrollContainerRef">
+        <div class="days-grid-wrapper" ref="daysGridWrapperRef">
           <div
-              v-for="(lesson, index) in group"
-              :key="index"
-              class="sub-lesson-item clickable"
-              @click="onSelectLesson(lesson)"
-              :class="{ 'has-border': index < group.length - 1 }"
+              v-for="day in days"
+              :key="day"
+              class="header-cell day-header"
           >
-            <div class="lesson-subject">
-              {{ getDisplayName(lesson) }}
-            </div>
-            <div class="lesson-details">
-               <span class="detail-group">
-                 {{ lesson.room || '-' }}
-               </span>
+            {{ formatDayName(day) }}
+          </div>
+
+          <div
+              v-for="(group, key) in groupedLessons"
+              :key="key"
+              class="lesson-group-container"
+              :style="getGroupStyle(group)"
+          >
+            <div
+                v-for="(lesson, index) in group"
+                :key="index"
+                class="sub-lesson-item clickable"
+                @click="onSelectLesson(lesson)"
+                :class="{ 'has-border': index < group.length - 1 }"
+            >
+              <div class="lesson-subject">
+                {{ getDisplayName(lesson) }}
+              </div>
+              <div class="lesson-details">
+                 <span class="detail-group">
+                   {{ lesson.room || '-' }}
+                 </span>
+              </div>
             </div>
           </div>
         </div>
@@ -177,6 +140,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.admin-timetable-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
 .timetable-grid {
   display: grid;
   grid-template-columns: 80px repeat(5, 1fr);
@@ -267,6 +236,10 @@ onUnmounted(() => {
 }
 
 @media (max-width: 500px) {
+  .admin-timetable-wrapper {
+    overflow-x: visible;
+  }
+
   .timetable-grid {
     display: flex;
     overflow: hidden;
@@ -287,11 +260,21 @@ onUnmounted(() => {
   }
   .days-scroll-wrapper {
     display: block;
+    position: relative;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     flex: 1;
+    overscroll-behavior-x: none;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
     scrollbar-width: none;
+    -ms-overflow-style: none;
   }
+  .days-scroll-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
   .days-grid-wrapper {
     display: grid;
     grid-template-columns: repeat(5, 100%);
