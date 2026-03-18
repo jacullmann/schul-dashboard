@@ -25,8 +25,8 @@ export class CreateTimetableSubDto {
   lessonId: string;
 
   @IsOptional()
-  @IsString()
-  day?: string;
+  @IsInt()
+  day?: number;
 
   @IsOptional()
   @IsInt()

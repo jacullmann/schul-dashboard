@@ -115,9 +115,16 @@ export function useTimetable(options: UseTimetableOptions = { autoLoad: true }) 
 
                 const merged: Lesson = {
                     ...original,
-                    ...sub,
                     _original: original
                 };
+
+                for (const key of Object.keys(sub)) {
+                    const typedKey = key as keyof Substitution;
+                    if (sub[typedKey] !== null && sub[typedKey] !== undefined && sub[typedKey] !== '') {
+                        // @ts-ignore
+                        merged[typedKey] = sub[typedKey];
+                    }
+                }
 
                 result.push(merged);
             });

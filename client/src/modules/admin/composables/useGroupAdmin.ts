@@ -9,18 +9,18 @@ import type {
     AdminAnnouncement
 } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
+import { useToast } from '@/common/composables/useToast';
 
 export function useGroupAdmin() {
     const route = useRoute();
     const { groupName: authGroupName } = useAppAuth();
+    const { success, error: toastErrorFn } = useToast();
 
     const groupId = computed(() => route.params.groupId as string);
     const groupName = computed(() => authGroupName.value || 'Gruppe');
 
     // UI State
     const activeTab = ref('overview');
-    const message = ref('');
-    const isError = ref(false);
 
     // Stats
     const stats = ref<GroupStats | null>(null);
@@ -54,9 +54,11 @@ export function useGroupAdmin() {
     // ─── Helpers ────────────────────────────────────────
 
     function showMessage(msg: string, error = false) {
-        message.value = msg;
-        isError.value = error;
-        setTimeout(() => { message.value = ''; }, 4000);
+        if (error) {
+            toastErrorFn(msg);
+        } else {
+            success(msg);
+        }
     }
 
     function formatDate(iso: string) {
@@ -271,8 +273,6 @@ export function useGroupAdmin() {
         groupId,
         groupName,
         activeTab,
-        message,
-        isError,
 
         // Stats
         stats,

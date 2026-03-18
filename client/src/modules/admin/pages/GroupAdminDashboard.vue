@@ -14,8 +14,6 @@ const {
   groupId,
   groupName,
   activeTab,
-  message,
-  isError,
   stats,
   members,
   loadingMembers,
@@ -61,6 +59,7 @@ const subForm = ref({
   subject: '',
   room: '',
   slot: null as number | null,
+  duration: null as number | null,
   day: null as number | null,
   cancelled: false,
   hide: false,
@@ -79,6 +78,7 @@ function onLessonSelected(lesson: Lesson) {
   subForm.value.subject = '';
   subForm.value.room = '';
   subForm.value.slot = null;
+  subForm.value.duration = null;
   subForm.value.day = null;
   subForm.value.cancelled = false;
   subForm.value.hide = false;
@@ -90,12 +90,13 @@ function handleSaveSub() {
   if (subForm.value.subject) payload.subject = subForm.value.subject;
   if (subForm.value.room) payload.room = subForm.value.room;
   if (subForm.value.slot !== null) payload.slot = subForm.value.slot;
+  if (subForm.value.duration !== null) payload.duration = subForm.value.duration;
   if (subForm.value.day !== null) payload.day = subForm.value.day;
   if (subForm.value.cancelled) payload.cancelled = true;
   if (subForm.value.hide) payload.hide = true;
 
   saveSub(payload).then(() => {
-    subForm.value = { lessonId: '', subject: '', room: '', slot: null, day: null, cancelled: false, hide: false };
+    subForm.value = { lessonId: '', subject: '', room: '', slot: null, duration: null, day: null, cancelled: false, hide: false };
     selectedLesson.value = null;
   });
 }
@@ -220,14 +221,15 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
               title="Mitglieder"
             >
               <h3>Verwalte Mitglieder deiner Gruppe</h3>
-              <template>
-                <h3>Mitgliedsliste</h3>
-                <p>Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten der Nutzer zu schützen wird ein automatisch generierter Alias angezeigt. Über das Dropdown-Menü kannst du die Rolle eines Mitglieds ändern.</p>
-                <h3>Rollen ändern</h3>
-                <p>Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen zu erteilen oder zu entziehen, kannst du dies über das Dropdown-Menü, das neben jedem Mitglied steht, tun. </p>
-                <h3>Mitglieder entfernen</h3>
-                <p>Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden.</p>
-              </template>
+
+              <h3>Mitgliedsliste</h3>
+              <p>Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten der Nutzer zu schützen wird ein automatisch generierter Alias angezeigt. Über das Dropdown-Menü kannst du die Rolle eines Mitglieds ändern.</p>
+              
+              <h3>Rollen ändern</h3>
+              <p>Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen zu erteilen oder zu entziehen, kannst du dies über das Dropdown-Menü, das neben jedem Mitglied steht, tun. </p>
+              
+              <h3>Mitglieder entfernen</h3>
+              <p>Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden.</p>
             </InfoModal>
           </div>
           <button class="btn ghost" @click="loadMembers" :disabled="loadingMembers">
@@ -281,12 +283,12 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
               title="Stundenplanänderungen"
             >
               <h3>Trage Änderungen Live und anschaulich ein</h3>
-              <template>
-                <h3>Stunden auswählen</h3>
-                <p>Klicke in der Stundenplanansicht die Stunden an, die du ändern möchtest.</p>
-                <h3>Änderungen eintragen</h3>
-                <p>Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.</p>
-              </template>
+
+              <h3>Stunden auswählen</h3>
+              <p>Klicke in der Stundenplanansicht die Stunden an, die du ändern möchtest.</p>
+
+              <h3>Änderungen eintragen</h3>
+              <p>Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.</p>
             </InfoModal>
           </div>
           <button class="btn ghost" @click="loadSubs" :disabled="loadingSubs">
@@ -298,30 +300,34 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
         <!-- Create Form -->
         <h3 v-if="!selectedLesson" style="color: var(--sub); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
         
-        <div v-if="selectedLesson" class="sub-form-card" style="background: var(--bg-surface); border: 1px solid var(--border-surface); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+        <div v-if="selectedLesson">
           <h3 style="margin-top: 0; margin-bottom: 8px; font-size: var(--font-size-title);">Ausgewählte Stunde</h3>
           <p style="margin: 0 0 16px 0; color: var(--sub); font-size: var(--font-size-body);">
             Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> 
-            (Stunde: {{ selectedLesson.slot }}, Raum: {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
+            (Stunde: {{ selectedLesson.slot }}, Letzte Stunde: {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum: {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
           </p>
 
           <div class="sub-form-grid">
             <input type="hidden" v-model="subForm.lessonId" />
             <div class="form-field">
               <label>Neues Fach</label>
-              <input v-model="subForm.subject" placeholder="Leer = keine Änd..." class="input" />
+              <input v-model="subForm.subject" placeholder="Deutsch" class="input" />
             </div>
             <div class="form-field">
               <label>Neuer Raum</label>
-              <input v-model="subForm.room" placeholder="Leer = keine Änd..." class="input" />
+              <input v-model="subForm.room" placeholder="A101" class="input" />
             </div>
             <div class="form-field">
               <label>Neue Stunde</label>
-              <input v-model.number="subForm.slot" type="number" placeholder="Leer = keine Änd..." class="input" />
+              <input v-model.number="subForm.slot" type="number" placeholder="4" class="input" />
+            </div>
+            <div class="form-field">
+              <label>Neue Dauer</label>
+              <input v-model.number="subForm.duration" type="number" min="1" placeholder="2" class="input" />
             </div>
             <div class="form-field">
               <label>Neuer Tag (1 = Mo, 5 = Fr)</label>
-              <input v-model.number="subForm.day" type="number" min="1" max="5" placeholder="Leer = keine Änd..." class="input" />
+              <input v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" class="input" />
             </div>
           </div>
 
@@ -407,13 +413,6 @@ function onRoleChange(member: { userId: string; role: string }, newRole: string)
         </div>
       </div>
     </main>
-
-    <!-- Toast -->
-    <Transition name="toast">
-      <div v-if="message" class="toast" :class="{ error: isError }">
-        {{ message }}
-      </div>
-    </Transition>
   </div>
 </template>
 
