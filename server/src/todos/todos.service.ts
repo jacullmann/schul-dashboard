@@ -212,20 +212,25 @@ export class TodosService {
         .map((t) => t.position)
         .sort();
       let cursor: string | null = null;
-      for (const t of unpositioned) {
+      const unpositionedUpdates = unpositioned.map((t) => {
         const nextAnchor = positioned[0] || null;
         try {
           cursor = generateKeyBetween(cursor, nextAnchor);
         } catch {
           cursor = generateKeyBetween(null, null);
         }
-        await sb
-          .from('encrypted_todos')
-          .update({ position: cursor })
-          .eq('id', t.id);
         positioned.unshift(cursor);
         positioned.sort();
-      }
+        return { id: t.id, position: cursor };
+      });
+      await Promise.all(
+        unpositionedUpdates.map((u) =>
+          sb
+            .from('encrypted_todos')
+            .update({ position: u.position })
+            .eq('id', u.id),
+        ),
+      );
     }
 
     let newPosition: string;
@@ -253,17 +258,30 @@ export class TodosService {
         .eq('completed', false)
         .order('position', { ascending: true });
       let p: string | null = null;
-      for (const t of allIncomplete || []) {
-        try {
-          p = generateKeyBetween(p, null);
-          await sb
-            .from('encrypted_todos')
-            .update({ position: p })
-            .eq('id', t.id);
-        } catch {
-          // Ignore reordering errors for individual items
-        }
-      }
+      const fallbackUpdates = (allIncomplete || [])
+        .map((t) => {
+          try {
+            p = generateKeyBetween(p, null);
+            return { id: t.id, position: p };
+          } catch {
+            return null;
+          }
+        })
+        .filter((u): u is { id: string; position: string } => u !== null);
+
+      await Promise.all(
+        fallbackUpdates.map(async (u) => {
+          try {
+            await sb
+              .from('encrypted_todos')
+              .update({ position: u.position })
+              .eq('id', u.id);
+          } catch {
+            // Ignore reordering errors for individual items
+          }
+        }),
+      );
+
       const { data: refreshed } = await sb
         .from('encrypted_todos')
         .select('position')
