@@ -4,7 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { generateKeyBetween } from 'fractional-indexing';
+import { generateKeyBetween, generateNKeysBetween } from 'fractional-indexing';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { encryptData, decryptData } from '../common/utils/encryption.util';
 
@@ -211,20 +211,23 @@ export class TodosService {
         .filter((t) => t.position)
         .map((t) => t.position)
         .sort();
-      let cursor: string | null = null;
-      for (const t of unpositioned) {
-        const nextAnchor = positioned[0] || null;
-        try {
-          cursor = generateKeyBetween(cursor, nextAnchor);
-        } catch {
-          cursor = generateKeyBetween(null, null);
-        }
+      const nextAnchor = positioned[0] || null;
+      let newKeys: string[] = [];
+      try {
+        newKeys = generateNKeysBetween(null, nextAnchor, unpositioned.length);
+      } catch {
+        newKeys = Array.from({ length: unpositioned.length }, () =>
+          generateKeyBetween(null, null),
+        );
+      }
+
+      for (let i = 0; i < unpositioned.length; i++) {
+        const t = unpositioned[i];
+        const cursor = newKeys[i];
         await sb
           .from('encrypted_todos')
           .update({ position: cursor })
           .eq('id', t.id);
-        positioned.unshift(cursor);
-        positioned.sort();
       }
     }
 
