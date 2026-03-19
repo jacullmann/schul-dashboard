@@ -212,6 +212,7 @@ export class TodosService {
         .map((t) => t.position)
         .sort();
       let cursor: string | null = null;
+      const updates: Promise<any>[] = [];
       for (const t of unpositioned) {
         const nextAnchor = positioned[0] || null;
         try {
@@ -219,13 +220,16 @@ export class TodosService {
         } catch {
           cursor = generateKeyBetween(null, null);
         }
-        await sb
-          .from('encrypted_todos')
-          .update({ position: cursor })
-          .eq('id', t.id);
+        updates.push(
+          sb
+            .from('encrypted_todos')
+            .update({ position: cursor })
+            .eq('id', t.id),
+        );
         positioned.unshift(cursor);
         positioned.sort();
       }
+      await Promise.all(updates);
     }
 
     let newPosition: string;
@@ -253,17 +257,26 @@ export class TodosService {
         .eq('completed', false)
         .order('position', { ascending: true });
       let p: string | null = null;
+      const updates: Promise<any>[] = [];
       for (const t of allIncomplete || []) {
         try {
           p = generateKeyBetween(p, null);
-          await sb
-            .from('encrypted_todos')
-            .update({ position: p })
-            .eq('id', t.id);
+          updates.push(
+            sb
+              .from('encrypted_todos')
+              .update({ position: p })
+              .eq('id', t.id)
+              .then() // ensure it executes and ignores errors like catch did
+              .catch(() => {
+                // Ignore reordering errors for individual items
+              }),
+          );
         } catch {
-          // Ignore reordering errors for individual items
+          // Ignore generator errors
         }
       }
+      await Promise.all(updates);
+
       const { data: refreshed } = await sb
         .from('encrypted_todos')
         .select('position')

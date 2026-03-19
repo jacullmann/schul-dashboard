@@ -5,5 +5,11 @@
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(@noble|@scure|@otplib|fractional-indexing)/)"
+  ],
+  "moduleNameMapper": {
+    "^@scure/(.*)$": "<rootDir>/../node_modules/@scure/$1"
   }
 }
