@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
   width: calc(100% - 32px);
   max-width: 640px;
   max-height: calc(100% - 32px);
-  overflow-y: scroll;
+  overflow-y: auto;
   position: fixed;
   text-align: left;
   z-index: 100001;

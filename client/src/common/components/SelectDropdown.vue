@@ -118,7 +118,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   padding: 4px;
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
+  overflow-y: auto;
   gap: 4px;
   z-index: 999;
   box-shadow: var(--menu-shadow);

@@ -528,7 +528,7 @@ label {
   width: 90%;
   max-width: 900px;
   max-height: calc(100vh - 40px);
-  overflow: scroll;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }

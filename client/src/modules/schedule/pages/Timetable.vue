@@ -206,7 +206,7 @@ onUnmounted(() => {
 
 <style scoped>
 .card {
-  overflow-x: scroll;
+  overflow-x: auto;
 }
 
 .timetable-grid {
