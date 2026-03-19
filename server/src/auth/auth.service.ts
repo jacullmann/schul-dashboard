@@ -20,6 +20,8 @@ import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
 import { MFA_PENDING_COOKIE } from '../common/guards/mfa-auth.guard';
 import { Request, Response } from 'express';
 
+const DUMMY_HASH = bcrypt.hashSync('__dummy__', 10);
+
 function isWeakPassword(password: string): boolean {
   if (password.length < 8) return true;
   const hasLetter = /[a-zA-Z]/.test(password);
@@ -111,12 +113,10 @@ export class AuthService {
       .eq('email', email.toLowerCase())
       .maybeSingle();
 
-    if (!user) {
-      throw new UnauthorizedException('Ungültige Zugangsdaten');
-    }
+    const hashToCompare = user?.password_hash || DUMMY_HASH;
+    const ok = await bcrypt.compare(password, hashToCompare as string);
 
-    const ok = await bcrypt.compare(password, user.password_hash as string);
-    if (!ok) {
+    if (!user || !ok) {
       throw new UnauthorizedException('Ungültige Zugangsdaten');
     }
 
