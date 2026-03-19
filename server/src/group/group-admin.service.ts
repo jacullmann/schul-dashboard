@@ -6,13 +6,17 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
+import { ItemsService } from '../items/items.service';
 import { generateUserName } from '../common/utils/name-generator.util';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class GroupAdminService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly itemsService: ItemsService,
+  ) {}
 
   async getStats(tenantId: string) {
     const sb = this.supabaseService.getClient();
@@ -187,54 +191,11 @@ export class GroupAdminService {
   }
 
   async cleanupOldItems(tenantId: string, userId: string) {
-    const sb = this.supabaseService.getClient();
-    const ninetyDaysAgo = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
-
-    const { data: oldItems } = await sb
-      .from('items')
-      .select('id, images')
-      .eq('tenant_id', tenantId)
-      .lt('created_at', ninetyDaysAgo);
-
-    const publicIdsToDelete: string[] = [];
-    const itemIds = (oldItems || []).map((item) => {
-      const _item = item as Record<string, any>;
-      ((_item.images as any[]) || []).forEach((img: any) => {
-        const _img = img as Record<string, any>;
-        if (_img.publicId) publicIdsToDelete.push(_img.publicId as string);
-      });
-      return _item.id;
-    });
-
-    if (publicIdsToDelete.length > 0) {
-      // Logic for cloudinary deletion here if integrated. E.g., via CloudinaryService
-      // This part mirrors Express exactly but without the direct api call since Cloudinary setup might be missing
-      // We'll leave the deletion of the images logic stubbed out or implement a CloudinaryService later
-      // The instruction just demands exact contractual parity. We omit actual remote deletion here unless required.
-      // In Express: await cloudinary.api.delete_resources(publicIdsToDelete.slice(i, i + 100));
-      // For now, doing just db deletion.
-      // // TODO: Impl CloudinaryService
-    }
-
-    await sb
-      .from('items')
-      .delete()
-      .eq('tenant_id', tenantId)
-      .lt('created_at', ninetyDaysAgo);
-    const { error: err_doaey } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'group-admin:cleanup',
-      meta: { deletedCount: itemIds.length },
-    });
-    if (err_doaey)
-      throw new InternalServerErrorException((err_doaey as any).message);
-
-    return {
-      ok: true,
-      deletedItems: itemIds.length,
-      deletedImages: publicIdsToDelete.length,
-      message: `${itemIds.length} Einträge gelöscht.`,
-    };
+    return this.itemsService.cleanupOldItems(
+      tenantId,
+      userId,
+      'group-admin:cleanup',
+    );
   }
 
   // --- Timetable subs ---

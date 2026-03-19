@@ -12,6 +12,7 @@ import { MfaModule } from './mfa/mfa.module';
 import { DocModule } from './doc/doc.module';
 import { EmailModule } from './common/email/email.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
+import { CloudinaryModule } from './common/cloudinary/cloudinary.module';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { validate } from './config/env.config';
 import { SystemModule } from './system/system.module';
@@ -31,6 +32,7 @@ import { SystemModule } from './system/system.module';
     ]),
     SystemModule,
     SupabaseModule,
+    CloudinaryModule,
     EmailModule,
     AuthModule,
     UserModule,

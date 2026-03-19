@@ -6,8 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
-import { ConfigService } from '@nestjs/config';
-import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryService } from '../common/cloudinary/cloudinary.service';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { withThumb, timeLeftColor } from '../common/utils/model.util';
 import dayjs from 'dayjs';
@@ -16,13 +15,61 @@ import dayjs from 'dayjs';
 export class ItemsService {
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
+
+  async cleanupOldItems(
+    tenantId: string,
+    userId: string,
+    activityType: string,
   ) {
-    cloudinary.config({
-      cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
-      api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
+    const sb = this.supabaseService.getClient();
+    const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+    const ninetyDaysAgo = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
+
+    const { data: oldItems } = await sb
+      .from('items')
+      .select('id, images')
+      .eq('tenant_id', tenantId)
+      .lt('created_at', ninetyDaysAgo);
+
+    const publicIdsToDelete: string[] = [];
+    const itemIds = (oldItems || []).map((item) => {
+      const _item = item as Record<string, any>;
+      ((_item.images as any[]) || []).forEach((img: any) => {
+        const _img = img as Record<string, any>;
+        if (_img.publicId) publicIdsToDelete.push(_img.publicId as string);
+      });
+      return _item.id;
     });
+
+    if (publicIdsToDelete.length > 0) {
+      await this.cloudinaryService.deleteResources(publicIdsToDelete);
+    }
+
+    await sb
+      .from('items')
+      .delete()
+      .eq('tenant_id', tenantId)
+      .lt('created_at', ninetyDaysAgo);
+
+    const { error: err_doaey } = await sb.from('user_activity').insert({
+      user_id: userId,
+      type: activityType,
+      meta: {
+        deletedCount: itemIds.length,
+        imagesDeleted: publicIdsToDelete.length,
+      },
+    });
+    if (err_doaey)
+      throw new InternalServerErrorException((err_doaey as any).message);
+
+    return {
+      ok: true,
+      deletedItems: itemIds.length,
+      deletedImages: publicIdsToDelete.length,
+      message: `${itemIds.length} Einträge und ${publicIdsToDelete.length} Bilder gelöscht.`,
+    };
   }
 
   async getItems(
@@ -260,11 +307,7 @@ export class ItemsService {
     if (item.images?.length > 0) {
       const pids = item.images.map((i: any) => i.publicId).filter(Boolean);
       if (pids.length > 0) {
-        try {
-          await cloudinary.api.delete_resources(pids);
-        } catch (e) {
-          console.error('Cloudinary error', e);
-        }
+        await this.cloudinaryService.deleteResources(pids);
       }
     }
 
@@ -392,11 +435,7 @@ export class ItemsService {
       throw new ForbiddenException('Nicht autorisiert.');
     }
 
-    try {
-      await cloudinary.uploader.destroy(image.publicId);
-    } catch (e) {
-      console.error('Cloudinary error', e);
-    }
+    await this.cloudinaryService.deleteResource(image.publicId);
 
     images.splice(idx, 1);
     await sb
@@ -443,22 +482,6 @@ export class ItemsService {
   }
 
   createUploadSignature() {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET')!;
-    const folder =
-      this.configService.get<string>('CLOUDINARY_FOLDER') || 'hausaufgaben';
-
-    const signature = cloudinary.utils.api_sign_request(
-      { timestamp, folder },
-      apiSecret,
-    );
-
-    return {
-      cloudName: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-      apiKey: this.configService.get<string>('CLOUDINARY_API_KEY'),
-      timestamp,
-      signature,
-      folder,
-    };
+    return this.cloudinaryService.createUploadSignature();
   }
 }

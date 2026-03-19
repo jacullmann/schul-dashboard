@@ -6,14 +6,17 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
-import { v2 as cloudinary } from 'cloudinary';
+import { ItemsService } from '../items/items.service';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class SuperAdminService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly itemsService: ItemsService,
+  ) {}
 
   async getStats(tenantId: string) {
     const sb = this.supabaseService.getClient();
@@ -105,62 +108,11 @@ export class SuperAdminService {
   }
 
   async cleanupOldItems(tenantId: string, currentUserId: string) {
-    const sb = this.supabaseService.getClient();
-    const ninetyDaysAgo = new Date(Date.now() - NINETY_DAYS_MS).toISOString();
-
-    const { data: oldItems } = await sb
-      .from('items')
-      .select('id, images')
-      .eq('tenant_id', tenantId)
-      .lt('created_at', ninetyDaysAgo);
-
-    const publicIdsToDelete: string[] = [];
-    const itemIds = (oldItems || []).map((item) => {
-      const _item = item as Record<string, any>;
-      ((_item.images as any[]) || []).forEach((img: any) => {
-        const _img = img as Record<string, any>;
-        if (_img.publicId) publicIdsToDelete.push(_img.publicId as string);
-      });
-      return _item.id;
-    });
-
-    if (publicIdsToDelete.length > 0) {
-      const batches: string[][] = [];
-      for (let i = 0; i < publicIdsToDelete.length; i += 100) {
-        batches.push(publicIdsToDelete.slice(i, i + 100));
-      }
-      await Promise.all(
-        batches.map(async (batch) => {
-          try {
-            await (cloudinary.api as any).delete_resources(batch);
-          } catch (e) {
-            console.error('Cloudinary batch delete error:', e);
-          }
-        }),
-      );
-    }
-
-    await sb
-      .from('items')
-      .delete()
-      .eq('tenant_id', tenantId)
-      .lt('created_at', ninetyDaysAgo);
-    const { error: err_de5ut } = (await sb.from('user_activity').insert({
-      user_id: currentUserId,
-      type: 'admin:cleanup:old_items',
-      meta: {
-        deletedCount: itemIds.length,
-        imagesDeleted: publicIdsToDelete.length,
-      },
-    })) as { error: any };
-    if (err_de5ut) throw new InternalServerErrorException(err_de5ut.message);
-
-    return {
-      ok: true,
-      deletedItems: itemIds.length,
-      deletedImages: publicIdsToDelete.length,
-      message: `${itemIds.length} Einträge und ${publicIdsToDelete.length} Bilder gelöscht.`,
-    };
+    return this.itemsService.cleanupOldItems(
+      tenantId,
+      currentUserId,
+      'admin:cleanup:old_items',
+    );
   }
 
   async getGroups() {
