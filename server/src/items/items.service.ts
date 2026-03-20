@@ -91,6 +91,8 @@ export class ItemsService {
       createdByName: generateUserName(row.created_by, tenantId),
       timeColor: timeLeftColor(row.due_date),
       editorNote: row.editor_note || '',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     }));
   }
 
@@ -124,6 +126,8 @@ export class ItemsService {
       createdByName: generateUserName(row.created_by, tenantId),
       timeColor: timeLeftColor(row.due_date),
       editorNote: row.editor_note || '',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 

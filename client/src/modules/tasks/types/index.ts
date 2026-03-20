@@ -13,6 +13,8 @@ export interface HwItem {
     createdByName?: string;
     timeColor: string;
     editorNote: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export type ItemType = 'homework' | 'dalton' | 'exam' | 'all';

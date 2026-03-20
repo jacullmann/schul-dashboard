@@ -10,17 +10,20 @@ import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore } from 'lucide-vue-next'
+import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info } from 'lucide-vue-next'
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
 import InfoModal from '@/common/components/InfoModal.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
+import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
 import SelectDropdown from '@/common/components/SelectDropdown.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
+
+const showInfoItem = ref<HwItem | null>(null);
 
 const { t, tm } = useI18n();
 const { width: windowWidth } = useWindowSize();
@@ -304,6 +307,13 @@ function handleArchiveFromMenu(item: HwItem) {
               </span>
             </button>
 
+            <button class="menu-btn" @click="openMenuId = null; showInfoItem = item">
+              <span class="menu-btn-content">
+                <Info />
+                {{ t('school.tasks.items.menu.info') }}
+              </span>
+            </button>
+
             <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
               <span class="menu-btn-content">
                 <Flag />
@@ -472,6 +482,15 @@ function handleArchiveFromMenu(item: HwItem) {
         :loading="deletingImage"
         @confirm="confirmImageDelete"
         @cancel="cancelImageDelete"
+    />
+
+    <ItemInfoModal
+        v-if="showInfoItem"
+        :show="!!showInfoItem"
+        :item="showInfoItem"
+        :is-mod-or-admin="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"
+        :is-super-admin="user?.role === 'superadmin'"
+        @close="showInfoItem = null"
     />
 
     <ImageViewer

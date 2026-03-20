@@ -292,6 +292,14 @@
           "unarchive": "Unarchive",
           "share": "Share",
           "shareConfirm": "Link copied to clipboard!",
+          "info": "Info",
+          "infoModal": {
+            "title": "Entry Info",
+            "createdAt": "Created on",
+            "updatedAt": "Last edited",
+            "createdBy": "Created by",
+            "notEdited": "–"
+          },
           "report": {
             "title": "Report this entry?",
             "name": "Report",

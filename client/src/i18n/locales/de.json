@@ -353,6 +353,14 @@
           "unarchive": "Wiederherstellen",
           "share": "Teilen",
           "shareConfirm": "Link in die Zwischenablage kopiert!",
+          "info": "Info",
+          "infoModal": {
+            "title": "Eintrag-Info",
+            "createdAt": "Erstellt am",
+            "updatedAt": "Zuletzt bearbeitet",
+            "createdBy": "Erstellt von",
+            "notEdited": "–"
+          },
           "report": {
             "title": "Diesen Eintrag melden?",
             "name": "Melden",
