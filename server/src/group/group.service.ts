@@ -189,7 +189,11 @@ export class GroupService {
     return { ok: true, csrfToken: newCsrfToken };
   }
 
-  async getStatus(userId: string | undefined, activeGroupId: string | null) {
+  async getStatus(
+    userId: string | undefined,
+    activeGroupId: string | null,
+    globalRole?: string,
+  ) {
     if (!userId) return { authenticated: false, groups: [] };
 
     const sb = this.supabaseService.getClient();
@@ -209,7 +213,24 @@ export class GroupService {
           generatedName: generateUserName(userId, ur.groups.id),
         }));
 
-      const activeGroup = groups.find((g) => g.id === activeGroupId);
+      let activeGroup = groups.find((g) => g.id === activeGroupId);
+
+      if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
+        const { data: adminGroup } = await sb
+          .from('groups')
+          .select('id, name')
+          .eq('id', activeGroupId)
+          .maybeSingle();
+
+        if (adminGroup) {
+          activeGroup = {
+            id: adminGroup.id,
+            name: adminGroup.name,
+            role: 'superadmin',
+            generatedName: generateUserName(userId, adminGroup.id),
+          };
+        }
+      }
 
       return {
         authenticated: true,

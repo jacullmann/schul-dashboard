@@ -336,23 +336,27 @@ export class GroupAdminService {
 
     // Explicit reference check across all FK-referencing tables to prevent
     // accidental deletion of subjects still in use.
-    const [{ count: timetableCount }, { count: courseCount }, { count: psCount }] =
-      await Promise.all([
-        sb
-          .from('timetables')
-          .select('*', { count: 'exact', head: true })
-          .eq('subject_id', subjectId),
-        sb
-          .from('courses')
-          .select('*', { count: 'exact', head: true })
-          .eq('subject_id', subjectId),
-        sb
-          .from('person_subjects')
-          .select('*', { count: 'exact', head: true })
-          .eq('subject_id', subjectId),
-      ]);
+    const [
+      { count: timetableCount },
+      { count: courseCount },
+      { count: psCount },
+    ] = await Promise.all([
+      sb
+        .from('timetables')
+        .select('*', { count: 'exact', head: true })
+        .eq('subject_id', subjectId),
+      sb
+        .from('courses')
+        .select('*', { count: 'exact', head: true })
+        .eq('subject_id', subjectId),
+      sb
+        .from('person_subjects')
+        .select('*', { count: 'exact', head: true })
+        .eq('subject_id', subjectId),
+    ]);
 
-    const totalRefs = (timetableCount ?? 0) + (courseCount ?? 0) + (psCount ?? 0);
+    const totalRefs =
+      (timetableCount ?? 0) + (courseCount ?? 0) + (psCount ?? 0);
     if (totalRefs > 0) {
       throw new BadRequestException(
         'Fach kann nicht gelöscht werden, da es noch von Stundenplaneinträgen, Kursen oder Personen verwendet wird. Deaktiviere es stattdessen.',
