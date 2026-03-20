@@ -70,3 +70,20 @@ export class CreateAnnouncementDto {
   @IsBoolean()
   showAsPopup?: boolean;
 }
+
+export class CreateSubjectDto {
+  @IsString()
+  @Length(1, 100)
+  name: string;
+}
+
+export class UpdateSubjectDto {
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  name?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+}

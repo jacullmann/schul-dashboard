@@ -2,7 +2,7 @@
 
 // ─── Shared Tab Types ───────────────────────────────────────────
 export type SuperAdminTab = 'overview' | 'users' | 'reports' | 'sorgen' | 'doc';
-export type GroupAdminTab = 'overview' | 'members' | 'timetable' | 'announcements';
+export type GroupAdminTab = 'overview' | 'members' | 'timetable' | 'announcements' | 'subjects';
 
 // ─── Super Admin Stats ──────────────────────────────────────────
 export interface AdminStats {
@@ -102,4 +102,11 @@ export interface AdminAnnouncement {
     color: string;
     showAsPopup?: boolean;
     createdAt: string;
+}
+
+// ─── Subjects ───────────────────────────────────────────────────
+export interface AdminSubject {
+    id: string;
+    name: string;
+    isActive: boolean;
 }

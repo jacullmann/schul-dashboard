@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { markRaw } from 'vue';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, UsersRound } from 'lucide-vue-next';
+import { markRaw, computed } from 'vue';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+import { useUserStore } from '@/stores/userStore';
 
 import GroupAdminOverview from '@/modules/admin/components/GroupAdminOverview.vue';
 import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue';
 import GroupAdminTimetable from '@/modules/admin/components/GroupAdminTimetable.vue';
 import GroupAdminAnnouncements from '@/modules/admin/components/GroupAdminAnnouncements.vue';
+import GroupAdminSubjects from '@/modules/admin/components/GroupAdminSubjects.vue';
 
 const {
   groupId,
@@ -40,11 +42,15 @@ const {
   saveGroupName,
 } = useGroupAdmin();
 
+const { user } = useUserStore();
+const isAdmin = computed(() => user?.tenantRole === 'admin');
+
 const tabs = [
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
   { id: 'members', label: 'Mitglieder', icon: markRaw(UsersRound) },
   { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
+  { id: 'subjects', label: 'Fächer', icon: markRaw(BookOpen) },
 ];
 </script>
 
@@ -123,6 +129,11 @@ const tabs = [
         :creating="creatingAnn"
         @create="(content, color, popup) => createAnnouncement(content, color, popup)"
         @delete="deleteAnnouncement"
+      />
+
+      <GroupAdminSubjects
+        v-if="activeTab === 'subjects'"
+        :is-admin="isAdmin"
       />
     </main>
   </div>

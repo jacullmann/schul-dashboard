@@ -237,6 +237,123 @@ export class GroupAdminService {
     };
   }
 
+  // --- Subjects ---
+
+  async getSubjects(tenantId: string) {
+    const sb = this.supabaseService.getClient();
+    const { data, error } = await sb
+      .from('subjects')
+      .select('id, name, is_active')
+      .eq('tenant_id', tenantId)
+      .order('name');
+
+    if (error)
+      throw new InternalServerErrorException('Fehler beim Laden der Fächer');
+
+    return (data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      isActive: s.is_active,
+    }));
+  }
+
+  async createSubject(tenantId: string, userId: string, name: string) {
+    const sb = this.supabaseService.getClient();
+    const { data, error } = await sb
+      .from('subjects')
+      .insert({ tenant_id: tenantId, name: name.trim(), is_active: true })
+      .select()
+      .single();
+
+    if (error)
+      throw new InternalServerErrorException('Fehler beim Erstellen des Fachs');
+
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:subject:create',
+      meta: { subjectId: data.id, name: name.trim() },
+    });
+
+    const _data = data as Record<string, any>;
+    return { id: _data.id, name: _data.name, isActive: _data.is_active };
+  }
+
+  async updateSubject(
+    tenantId: string,
+    userId: string,
+    subjectId: string,
+    updates: { name?: string; isActive?: boolean },
+  ) {
+    const sb = this.supabaseService.getClient();
+
+    const { data: existing } = await sb
+      .from('subjects')
+      .select('id')
+      .eq('id', subjectId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (!existing) throw new NotFoundException('Fach nicht gefunden');
+
+    const patch: Record<string, any> = {};
+    if (updates.name !== undefined) patch.name = updates.name.trim();
+    if (updates.isActive !== undefined) patch.is_active = updates.isActive;
+
+    if (Object.keys(patch).length === 0)
+      throw new BadRequestException('Keine Änderungen angegeben');
+
+    const { error } = await sb
+      .from('subjects')
+      .update(patch)
+      .eq('id', subjectId)
+      .eq('tenant_id', tenantId);
+
+    if (error)
+      throw new InternalServerErrorException(
+        'Fehler beim Aktualisieren des Fachs',
+      );
+
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:subject:update',
+      meta: { subjectId, ...updates },
+    });
+
+    return { ok: true };
+  }
+
+  async deleteSubject(tenantId: string, userId: string, subjectId: string) {
+    const sb = this.supabaseService.getClient();
+
+    const { data: existing } = await sb
+      .from('subjects')
+      .select('id, name')
+      .eq('id', subjectId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+
+    if (!existing) throw new NotFoundException('Fach nicht gefunden');
+
+    const { error } = await sb
+      .from('subjects')
+      .delete()
+      .eq('id', subjectId)
+      .eq('tenant_id', tenantId);
+
+    if (error)
+      throw new BadRequestException(
+        'Fach kann nicht gelöscht werden, da es noch referenziert wird. Deaktiviere es stattdessen.',
+      );
+
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:subject:delete',
+      meta: { subjectId, name: (existing as any).name },
+    });
+
+    return { ok: true };
+  }
+
   // --- Timetable subs ---
   async getTimetable(tenantId: string) {
     const sb = this.supabaseService.getClient();

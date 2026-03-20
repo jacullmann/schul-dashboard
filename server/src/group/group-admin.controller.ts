@@ -20,6 +20,8 @@ import {
   RenameGroupDto,
   CreateTimetableSubDto,
   CreateAnnouncementDto,
+  CreateSubjectDto,
+  UpdateSubjectDto,
 } from './dto/group-admin.dto';
 
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
@@ -86,6 +88,48 @@ export class GroupAdminController {
     @CurrentUserId() userId: string,
   ) {
     return this.groupAdminService.cleanupOldItems(tenantId, userId);
+  }
+
+  // --- Subjects ---
+
+  @TenantRoles('admin', 'moderator')
+  @Get('subjects')
+  getSubjects(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getSubjects(tenantId);
+  }
+
+  @TenantRoles('admin')
+  @Post('subjects')
+  createSubject(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @Body() body: CreateSubjectDto,
+  ) {
+    return this.groupAdminService.createSubject(tenantId, userId, body.name);
+  }
+
+  @TenantRoles('admin')
+  @Patch('subjects/:id')
+  updateSubject(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+    @Body() body: UpdateSubjectDto,
+  ) {
+    return this.groupAdminService.updateSubject(tenantId, userId, id, {
+      name: body.name,
+      isActive: body.isActive,
+    });
+  }
+
+  @TenantRoles('admin')
+  @Delete('subjects/:id')
+  deleteSubject(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.groupAdminService.deleteSubject(tenantId, userId, id);
   }
 
   @TenantRoles('admin', 'moderator')
