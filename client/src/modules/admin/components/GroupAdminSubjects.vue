@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2, Plus, RefreshCw, X, Check } from 'lucide-vue-next';
 import Checkbox from '@/common/components/Checkbox.vue';
 import { useSubjectAdmin } from '@/modules/admin/composables/useSubjectAdmin';
 import type { AdminSubject } from '@/modules/admin/types';
+
+const { t, te } = useI18n();
 
 const props = defineProps<{
   isAdmin: boolean;
@@ -52,6 +55,11 @@ async function handleCreate() {
   if (!newSubjectName.value.trim()) return;
   await createSubject(newSubjectName.value);
   newSubjectName.value = '';
+}
+
+function subjectLabel(subject: AdminSubject): string {
+  const key = `global.subjects.${subject.name}`;
+  return te(key) ? `${subject.name} (${t(key)})` : subject.name;
 }
 
 onMounted(() => {
@@ -105,7 +113,7 @@ onMounted(() => {
         <!-- Display mode -->
         <template v-if="editingId !== subject.id">
           <div class="subject-info">
-            <span class="subject-name">{{ subject.name }}</span>
+            <span class="subject-name">{{ subjectLabel(subject) }}</span>
             <span class="status-badge" :class="subject.isActive ? 'active' : 'inactive'">
               {{ subject.isActive ? 'Aktiv' : 'Inaktiv' }}
             </span>
@@ -118,10 +126,10 @@ onMounted(() => {
               />
             </label>
             <button class="btn-icon" @click="startRename(subject)" title="Umbenennen">
-              <Pencil :size="14" />
+              <Pencil :size="16" />
             </button>
             <button class="btn-icon danger" @click="deleteSubject(subject.id)" title="Löschen">
-              <Trash2 :size="14" />
+              <Trash2 :size="16" />
             </button>
           </div>
         </template>
@@ -142,10 +150,10 @@ onMounted(() => {
                 :disabled="!editingName.trim() || saving"
                 title="Speichern"
             >
-              <Check :size="15" />
+              <Check :size="16" />
             </button>
             <button class="btn-icon" @click="cancelRename" title="Abbrechen">
-              <X :size="15" />
+              <X :size="16" />
             </button>
           </div>
         </template>
@@ -198,13 +206,6 @@ onMounted(() => {
   max-width: 400px;
 }
 
-.add-form-row .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
 /* Subjects list */
 .subjects-list {
   display: flex;
@@ -216,23 +217,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  border-radius: 10px;
+  border-radius: var(--border-radius-lg);
   gap: 12px;
-  transition: opacity 0.15s;
-}
-
-.subject-row.inactive {
-  opacity: 0.55;
 }
 
 .subject-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -244,21 +240,26 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
+.subject-row.inactive .subject-name {
+  color: var(--text-muted)
+}
+
+
 .status-badge {
-  font-size: 0.7rem;
+  font-size: var(--font-size-footnote);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
-.status-badge.active { color: #22c55e; }
-.status-badge.inactive { color: var(--sub); }
+.status-badge.active { color: var(--text-default); }
+.status-badge.inactive { color: var(--text-muted); }
 
 .subject-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 20px;
   flex-shrink: 0;
 }
 
@@ -266,6 +267,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
+  margin: 0;
 }
 
 /* Edit row */
@@ -286,9 +288,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  padding: 8px;
+  margin: -8px;
+  border-radius: var(--border-radius-md);
   background: transparent;
   border: none;
   color: var(--sub);
@@ -297,8 +299,8 @@ onMounted(() => {
 }
 
 .btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
-.btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.btn-icon.confirm:hover { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+.btn-icon.danger:hover { background: var(--danger-background); color: var(--danger); }
+.btn-icon.confirm:hover { background: rgba(34, 197, 94, 0.1); color: var(--success); }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .empty-hint {
@@ -311,7 +313,7 @@ onMounted(() => {
 .spin-icon { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-@media (max-width: 640px) {
+@media (max-width: 300px) {
   .subject-row { flex-direction: column; align-items: flex-start; gap: 8px; }
   .subject-actions { width: 100%; }
   .add-form-row { flex-wrap: wrap; }
