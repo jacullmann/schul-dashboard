@@ -2,11 +2,11 @@ import { ref } from 'vue';
 import type { Ref } from 'vue';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
+import { useToast } from '@/common/composables/useToast';
 
 export function useHwForms(
     user: Ref<Record<string, unknown> | null>,
     items: Ref<HwItem[]>,
-    flashMessage: (text: string, error?: boolean, durationMs?: number) => void,
     reloadList: () => void
 ) {
     const itemFormType = ref<Exclude<ItemType, 'all'>>('homework');
@@ -19,11 +19,11 @@ export function useHwForms(
     const savingNote = ref(false);
 
     function onItemFormError(msg: string) {
-        flashMessage(msg || 'Bitte Eingaben prüfen.', true);
+        useToast().error(msg || 'Bitte Eingaben prüfen.');
     }
 
     function handleSuccess(msg: string) {
-        flashMessage(msg);
+        useToast().success(msg);
         itemFormKey.value += 1;
         showItemForm.value = false;
         reloadList();
@@ -67,12 +67,12 @@ export function useHwForms(
             const item = items.value.find(i => i.id === itemId);
             if (item) item.editorNote = noteEditContent.value;
 
-            flashMessage('Anmerkung gespeichert.');
+            useToast().success('Anmerkung gespeichert.');
             editingNoteForId.value = null;
             noteEditContent.value = '';
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
-            flashMessage(err.response?.data?.error || 'Fehler beim Speichern der Anmerkung.', true);
+            useToast().error(err.response?.data?.error || 'Fehler beim Speichern der Anmerkung.');
         } finally {
             savingNote.value = false;
         }

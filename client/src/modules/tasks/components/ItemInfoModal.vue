@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Modal from '@/common/components/Modal.vue';
-import { Info } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
@@ -40,7 +39,6 @@ const showUpdated = computed(() => {
 <template>
   <Modal v-if="show" @cancel="$emit('close')">
     <template #title>
-      <Info :size="18" />
       {{ t('school.tasks.items.menu.infoModal.title') }}
     </template>
 

@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
+import { useToast } from '@/common/composables/useToast';
 
 export function usePrivateTasks() {
     const { t } = useI18n();
@@ -13,22 +14,7 @@ export function usePrivateTasks() {
     const privateTasks = ref<PrivateTask[]>([]);
     const displayPrivateTasks = ref<PrivateTask[]>([]);
     const loading = ref(false);
-    const message = ref('');
-    const isError = ref(false);
     const openMenuId = ref<string | null>(null);
-
-    let messageTimerId: ReturnType<typeof setTimeout> | null = null;
-
-    function showMessage(msg: string, error = false, durationMs = 5000) {
-        if (messageTimerId) clearTimeout(messageTimerId);
-        message.value = msg;
-        isError.value = error;
-        messageTimerId = setTimeout(() => {
-            message.value = '';
-            isError.value = false;
-            messageTimerId = null;
-        }, durationMs);
-    }
 
     const sortDisplayList = (data: PrivateTask[]): PrivateTask[] => {
         return [...data].sort((a, b) => {
@@ -80,7 +66,7 @@ export function usePrivateTasks() {
             privateTasks.value = data;
             displayPrivateTasks.value = sortDisplayList(data);
         } catch (error) {
-            showMessage(t('school.private.errorLoad'), true);
+            useToast().error(t('school.private.errorLoad'));
         } finally {
             loading.value = false;
         }
@@ -107,7 +93,7 @@ export function usePrivateTasks() {
         } catch (error: unknown) {
             privateTask.completed = previousState;
             const err = error as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || t('global.errors.update'), true);
+            useToast().error(err.response?.data?.error || t('global.errors.update'));
         }
     }
 
@@ -124,10 +110,10 @@ export function usePrivateTasks() {
         try {
             const { data } = await hw.post('/api/todos', duplicateData);
             addPrivateTask(data);
-            showMessage(t('school.private.successDuplicate'));
+            useToast().success(t('school.private.successDuplicate'));
         } catch (error: unknown) {
             const err = error as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || t('school.private.errorDuplicate'), true);
+            useToast().error(err.response?.data?.error || t('school.private.errorDuplicate'));
         } finally {
             loading.value = false;
         }
@@ -142,11 +128,11 @@ export function usePrivateTasks() {
         try {
             await hw.delete(`/api/todos/${id}`);
             displayPrivateTasks.value = sortDisplayList(privateTasks.value);
-            showMessage(t('school.private.successDelete'));
+            useToast().success(t('school.private.successDelete'));
         } catch (error: unknown) {
             privateTasks.value.splice(privateTaskIndex, 0, deletedPrivateTask);
             const err = error as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || t('global.errors.delete'), true);
+            useToast().error(err.response?.data?.error || t('global.errors.delete'));
         }
     }
 
@@ -181,7 +167,7 @@ export function usePrivateTasks() {
         } catch (error: unknown) {
             loadPrivateTasks(); // Bei Fehler neu laden
             const err = error as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || t('global.errors.update'), true);
+            useToast().error(err.response?.data?.error || t('global.errors.update'));
         }
     }
 
@@ -204,7 +190,6 @@ export function usePrivateTasks() {
 
     onUnmounted(() => {
         document.removeEventListener('click', closeMenu);
-        if (messageTimerId) clearTimeout(messageTimerId);
     });
 
     return {
@@ -212,8 +197,6 @@ export function usePrivateTasks() {
         privateTasks,
         displayPrivateTasks,
         loading,
-        message,
-        isError,
         openMenuId,
         loadPrivateTasks,
         addPrivateTask,

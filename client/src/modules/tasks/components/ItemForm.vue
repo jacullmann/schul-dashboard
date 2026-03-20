@@ -189,10 +189,8 @@ async function submit() {
 
     if (props.initial) {
       await hw.patch(`/api/items/${props.initial.id}`, payload);
-      message.value = t('school.tasks.itemForm.successEdit');
     } else {
       await hw.post('/api/items', payload);
-      message.value = t('school.tasks.itemForm.successCreate');
     }
 
     emit('success');
@@ -399,9 +397,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 }
 .error {
   color: var(--danger);
-}
-.msg-ok {
-  color: var(--primary);
 }
 .msg-error {
   color: var(--danger);

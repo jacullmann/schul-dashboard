@@ -4,6 +4,7 @@ import hw from '@/api/hwApi';
 import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import type { PrivateTask } from '@/modules/tasks/types';
+import { useToast } from '@/common/composables/useToast';
 
 const props = defineProps<{ initial?: PrivateTask }>();
 const emit = defineEmits<{
@@ -43,11 +44,11 @@ async function submit() {
     if (props.initial) {
       const { data } = await hw.put(`/api/todos/${props.initial.id}`, payload);
       responseData = data;
-      message.value = 'Aktualisiert.';
+      useToast().success('Aktualisiert.');
     } else {
       const { data } = await hw.post('/api/todos', payload);
       responseData = data;
-      message.value = 'Erstellt.';
+      useToast().success('Erstellt.');
     }
 
     isError.value = false;
@@ -111,10 +112,6 @@ async function submit() {
 .small {
   font-size: var(--font-size-sub);
   margin-left: auto;
-}
-
-.msg-ok {
-  color: var(--primary);
 }
 
 .msg-error {

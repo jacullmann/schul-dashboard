@@ -75,7 +75,6 @@ const {
   subjectFilter,
   showOldEntries,
   showSetupModal,
-  message, isError,
   itemFormKey,
   visibleCount,
   limitedItems,
@@ -218,8 +217,6 @@ function handleArchiveFromMenu(item: HwItem) {
           />
         </div>
       </div>
-
-      <div v-if="message" class="small message" :class="{ error: isError }">{{ message }}</div>
     </div>
 
     <div class="items">

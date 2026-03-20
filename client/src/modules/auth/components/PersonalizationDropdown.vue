@@ -4,6 +4,7 @@ import { Filter, FilterX } from 'lucide-vue-next';
 import MenuDropdown from '@/common/components/MenuDropdown.vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
+import { useToast } from '@/common/composables/useToast';
 
 const { t } = useI18n();
 
@@ -17,8 +18,6 @@ const emit = defineEmits<{
 }>();
 
 const updating = ref(false);
-const message = ref('');
-const isError = ref(false);
 
 const currentPersonalized = computed(() => props.modelValue);
 
@@ -38,8 +37,6 @@ async function setPersonalization(value: boolean) {
   }
 
   updating.value = true;
-  message.value = '';
-  isError.value = false;
 
   try {
     const { data } = await hw.patch('/api/user/personalization', {
@@ -49,22 +46,11 @@ async function setPersonalization(value: boolean) {
     if (data.ok) {
       emit('update:modelValue', data.personalized);
       emit('change', data.personalized);
-      message.value = value ? 'Personalisierte Kurse aktiviert' : 'Personalisierte Kurse deaktiviert';
-      isError.value = false;
-
-      setTimeout(() => {
-        message.value = '';
-      }, 3000);
+      useToast().success(value ? 'Personalisierte Kurse aktiviert' : 'Personalisierte Kurse deaktiviert');
     }
   } catch (e: unknown) {
     const err = e as { response?: { data?: { error?: string } } };
-    message.value = err.response?.data?.error || 'Fehler beim Aktualisieren';
-    isError.value = true;
-
-    setTimeout(() => {
-      message.value = '';
-      isError.value = false;
-    }, 4000);
+    useToast().error(err.response?.data?.error || 'Fehler beim Aktualisieren');
   } finally {
     updating.value = false;
   }
@@ -79,9 +65,6 @@ async function setPersonalization(value: boolean) {
         :prefix="t('account.menu.personalization') + ':'"
         :disabled="updating"
     />
-    <div v-if="message" class="message" :class="{ error: isError }">
-      {{ message }}
-    </div>
   </div>
 </template>
 
@@ -90,38 +73,5 @@ async function setPersonalization(value: boolean) {
   position: relative;
   display: block;
   width: 100%;
-}
-
-.message {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 8px;
-  padding: 4px 8px;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sub);
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
-  border: 1px solid var(--border-surface);
-  animation: messageSlideIn 200ms ease;
-  z-index: 1000;
-}
-
-.message.error {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
-  border: 1px solid var(--danger);
-}
-
-@keyframes messageSlideIn {
-  from {
-    opacity: 1;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>

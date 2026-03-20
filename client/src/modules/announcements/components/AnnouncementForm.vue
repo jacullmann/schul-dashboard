@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import hw from '@/api/hwApi';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import { useToast } from '@/common/composables/useToast';
 
 const emit = defineEmits(['close', 'success']);
 
@@ -42,7 +43,7 @@ async function submit() {
       color: color.value,
       showAsPopup: showAsPopup.value,
     });
-    message.value = 'Ankündigung erfolgreich angelegt.';
+    useToast().success('Ankündigung erfolgreich angelegt.');
     isError.value = false;
     emit('success');
   } catch (e: unknown) {
