@@ -180,8 +180,9 @@ export function useAppAuth() {
             isAuthenticated: isAuthenticated.value,
         };
 
-        // Optimistic update — immediate UI feedback.
-        activeGroupId.value = groupId;
+        // We NO LONGER optimistically update `activeGroupId` before the network request.
+        // Doing so caused UI components to remount and send data fetching requests (e.g., loads Tasks or Timetable)
+        // against the backend BEFORE the backend actually processed the tenant switch.
 
         switchTarget = groupId;
         switchPromise = (async (): Promise<AuthResult> => {

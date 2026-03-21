@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
-const route = useRoute();
 const { loading, progress, opacity } = useLoadingBar();
 const { activeGroupId } = useAppAuth();
 
@@ -31,7 +29,7 @@ const { activeGroupId } = useAppAuth();
         key="content"
     >
       <router-view v-slot="{ Component }">
-        <component :is="Component" />
+        <component :is="Component" :key="activeGroupId || 'default'" />
       </router-view>
     </div>
   </main>

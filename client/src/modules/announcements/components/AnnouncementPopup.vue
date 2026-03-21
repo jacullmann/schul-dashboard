@@ -1,5 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import Modal from '@/common/components/Modal.vue'
 
 const props = defineProps({
   announcement: {
@@ -10,17 +11,19 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const confirmBtnRef = ref(null)
+const confirmBtnRef = ref<HTMLButtonElement | null>(null)
 
-function onKeyDown(e) {
-  if (e.key === 'Escape' || e.key === 'Enter') {
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Enter') {
     close()
   }
 }
 
 onMounted(() => {
   window.addEventListener('keydown', onKeyDown)
-  confirmBtnRef.value?.focus()
+  setTimeout(() => {
+    confirmBtnRef.value?.focus()
+  }, 50)
 })
 
 onBeforeUnmount(() => {
@@ -28,12 +31,12 @@ onBeforeUnmount(() => {
 })
 
 const color = computed(() => {
-  const map = {
-    'info': '#3f93f8',
-    'warn': '#f59e0b',
-    'danger': '#ef4444'
+  const map: Record<string, string> = {
+    'info': 'var(--text-default)',
+    'warn': 'var(--warn)',
+    'danger': 'var(--danger)'
   }
-  return map[props.announcement.color] || '#3f93f8'
+  return map[props.announcement.color as string] || 'var(--text-default)'
 })
 
 function close() {
@@ -42,63 +45,38 @@ function close() {
 </script>
 
 <template>
-  <div class="popup-overlay" @click.self="close">
-    <div class="announcement-popup" :style="{ borderLeftColor: color }">
-      <div class="popup-header">
-        <div class="popup-title">
-          <div class="popup-color-indicator" :style="{ backgroundColor: color }"></div>
-        </div>
-        <button class="popup-close" @click="close">×</button>
-      </div>
+  <Modal @cancel="close">
+    <template #title>
+      <span class="popup-title">
+        <span class="popup-color-indicator" :style="{ backgroundColor: color }"></span>
+        Ankündigung
+      </span>
+    </template>
+    
+    <template #content>
       <div class="popup-content">
         {{ announcement.content }}
       </div>
-      <div class="popup-footer">
-        <button ref="confirmBtnRef" class="btn" @click="close">Alles klar</button>
-      </div>
-    </div>
-  </div>
+    </template>
+
+    <template #actions>
+      <button 
+        ref="confirmBtnRef" 
+        class="popup-btn" 
+        @click="close" 
+        :style="{ backgroundColor: color }"
+      >
+        Alles klar
+      </button>
+    </template>
+  </Modal>
 </template>
 
 <style scoped>
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-  padding: 20px;
-}
-
-.announcement-popup {
-  background: var(--bg-surface);
-  border-radius: 12px;
-  padding: 0;
-  width: 100%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow: hidden;
-  box-shadow: var(--menu-shadow);
-}
-
-.popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20px 20px 0 20px;
-  gap: 12px;
-}
-
 .popup-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;
 }
 
 .popup-color-indicator {
@@ -108,75 +86,25 @@ function close() {
   flex-shrink: 0;
 }
 
-.popup-title h3 {
-  margin: 0;
-  color: var(--text-default);
-  font-size: 18px;
-}
-
-.popup-close {
-  background: none;
-  border: none;
-  color: var(--text-default);
-  font-size: 24px;
-  cursor: pointer;
-  padding: 4px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  flex-shrink: 0;
-}
-
-.popup-close:hover {
-  background: var(--bg-surface);
-}
-
 .popup-content {
-  padding: 20px;
+  padding-block: 10px;
   color: var(--text-default);
   line-height: 1.5;
   font-size: 14px;
-  border-bottom: 1px solid var(--border-canvas);
 }
 
-.popup-footer {
-  padding: 16px 20px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.popup-footer{
-  color: white;
+.popup-btn {
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--color-white);
 }
 
-.popup-footer .btn:hover {
+.popup-btn:hover {
   opacity: 0.9;
-}
-
-
-@media (max-width: 500px) {
-  .popup-overlay {
-    padding: 16px;
-  }
-
-  .popup-header {
-    padding: 16px 16px 0 16px;
-  }
-
-  .popup-content {
-    padding: 16px;
-  }
-
-  .popup-footer {
-    padding: 12px 16px;
-  }
 }
 </style>
