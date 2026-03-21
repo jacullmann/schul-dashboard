@@ -337,6 +337,10 @@ onMounted(() => {
   color: var(--bg-canvas);
 }
 
+.group-card.active:hover .group-card-icon {
+  color: var(--bg-canvas);
+}
+
 .group-card-body {
   flex: 1;
   min-width: 0;
