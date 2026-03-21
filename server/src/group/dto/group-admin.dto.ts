@@ -69,7 +69,7 @@ export class CreateTimetableSubDto {
 
 export class CreateAnnouncementDto {
   @IsString()
-  @Length(2)
+  @Length(1)
   content: string;
 
   @IsOptional()
