@@ -39,42 +39,53 @@ export const useUserStore = defineStore('user', () => {
         user.value?.tenantRole === 'moderator'
     );
 
+    let fetchPromise: Promise<void> | null = null;
+
     async function fetchUser(): Promise<void> {
-        if (loading.value) return;
-        loading.value = true;
-        try {
-            const { data } = await hw.get('/api/auth/me');
-            if (data.authenticated) {
-                user.value = {
-                    id: data.id,
-                    email: data.email,
-                    role: data.role || 'user',
-                    emailVerified: data.emailVerified,
-                    enrKurs: data.enrKurs,
-                    wpuKurs1: data.wpuKurs1,
-                    wpuKurs2: data.wpuKurs2,
-                    theater: data.theater,
-                    doneSetup: data.doneSetup,
-                    personalized: data.personalized,
-                    mfaEnabled: data.mfaEnabled ?? false,
-                    tenantRole: data.tenantRole ?? null,
-                    preferences: data.preferences
-                };
+        if (fetchPromise) return fetchPromise;
 
-                // Sync preferences if any exist
-                if (data.preferences) {
-                    const { syncFromBackend } = usePreferences();
-                    syncFromBackend(data.preferences);
+        fetchPromise = (async () => {
+            loading.value = true;
+            try {
+                const { data } = await hw.get('/api/auth/me');
+                if (data.authenticated) {
+                    user.value = {
+                        id: data.id,
+                        email: data.email,
+                        role: data.role || 'user',
+                        emailVerified: data.emailVerified,
+                        enrKurs: data.enrKurs,
+                        wpuKurs1: data.wpuKurs1,
+                        wpuKurs2: data.wpuKurs2,
+                        theater: data.theater,
+                        doneSetup: data.doneSetup,
+                        personalized: data.personalized,
+                        mfaEnabled: data.mfaEnabled ?? false,
+                        tenantRole: data.tenantRole ?? null,
+                        preferences: data.preferences
+                    };
+
+                    // Sync preferences if any exist
+                    if (data.preferences) {
+                        const { syncFromBackend } = usePreferences();
+                        syncFromBackend(data.preferences);
+                    }
+
+                } else {
+                    user.value = null;
                 }
-
-            } else {
+            } catch {
                 user.value = null;
+            } finally {
+                loading.value = false;
+                initialized.value = true;
             }
-        } catch {
-            user.value = null;
+        })();
+
+        try {
+            await fetchPromise;
         } finally {
-            loading.value = false;
-            initialized.value = true;
+            fetchPromise = null;
         }
     }
 
