@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t, tm } = useI18n();
 
-const displayQuote = ref<string>('');
+const randomIndex = ref<number | null>(null);
 const isVisible = ref(false);
 
 const getDaysToBerlinBreak = (): number | null => {
@@ -30,15 +30,18 @@ const getDaysToBerlinBreak = (): number | null => {
   return diffDays;
 };
 
+const displayQuote = computed(() => {
+  if (randomIndex.value === null) return '';
+  return t(`global.footer.quotes.${randomIndex.value}`, {
+    daysToHoliday: getDaysToBerlinBreak() ?? '?'
+  });
+});
+
 onMounted(() => {
   const quotes = tm('global.footer.quotes') as string[];
 
   if (quotes && quotes.length > 0) {
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-
-    displayQuote.value = t(`global.footer.quotes.${randomIndex}`, {
-      daysToHoliday: getDaysToBerlinBreak() ?? '?'
-    });
+    randomIndex.value = Math.floor(Math.random() * quotes.length);
 
     setTimeout(() => {
       isVisible.value = true;
