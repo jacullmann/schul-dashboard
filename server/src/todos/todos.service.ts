@@ -221,6 +221,7 @@ export class TodosService {
         .map((t) => t.position)
         .sort();
       let cursor: string | null = null;
+      const unpositionedUpdates = [];
       for (const t of unpositioned) {
         const nextAnchor = positioned[0] || null;
         try {
@@ -228,12 +229,16 @@ export class TodosService {
         } catch {
           cursor = generateKeyBetween(null, null);
         }
-        await sb
-          .from('encrypted_todos')
-          .update({ position: cursor })
-          .eq('id', t.id);
+        unpositionedUpdates.push({
+          id: t.id,
+          user_id: userId,
+          position: cursor,
+        });
         positioned.unshift(cursor);
         positioned.sort();
+      }
+      if (unpositionedUpdates.length > 0) {
+        await sb.from('encrypted_todos').upsert(unpositionedUpdates);
       }
     }
 
@@ -247,7 +252,7 @@ export class TodosService {
       throw new BadRequestException('Ungültige Positionen für Re-Ordering');
     }
 
-    const { data: updated } = await sb
+    let { data: updated } = await sb
       .from('encrypted_todos')
       .update({ position: newPosition })
       .eq('id', id)
@@ -262,23 +267,31 @@ export class TodosService {
         .eq('completed', false)
         .order('position', { ascending: true });
       let p: string | null = null;
+      const rebalanceUpdates = [];
       for (const t of allIncomplete || []) {
         try {
           p = generateKeyBetween(p, null);
-          await sb
-            .from('encrypted_todos')
-            .update({ position: p })
-            .eq('id', t.id);
+          rebalanceUpdates.push({
+            id: t.id,
+            user_id: userId,
+            position: p,
+          });
         } catch {
           // Ignore reordering errors for individual items
         }
       }
-      const { data: refreshed } = await sb
-        .from('encrypted_todos')
-        .select('position')
-        .eq('id', id)
-        .maybeSingle();
-      if (refreshed) newPosition = refreshed.position;
+      if (rebalanceUpdates.length > 0) {
+        const { data: refreshedRows } = await sb
+          .from('encrypted_todos')
+          .upsert(rebalanceUpdates)
+          .select();
+
+        const found = refreshedRows?.find((r) => r.id === id);
+        if (found) {
+          newPosition = found.position;
+          updated = found;
+        }
+      }
     }
 
     return {
