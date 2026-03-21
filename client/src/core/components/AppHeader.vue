@@ -31,9 +31,9 @@ const groupMenuRef = ref<HTMLElement | null>(null);
 
 // Logo links to active group items if active group exists, otherwise home
 const logoLink = computed(() => {
-  if (activeGroupId.value) {
+  /* if (activeGroupId.value) {
     return `/groups/${activeGroupId.value}/items/all`;
-  }
+  } */
   return '/home';
 });
 
