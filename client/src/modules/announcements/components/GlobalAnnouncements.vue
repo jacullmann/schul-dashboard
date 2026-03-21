@@ -49,12 +49,16 @@ const markPopupAsSeen = (announcementId: string) => {
 async function loadAnnouncements() {
   if (!hasGroupContext.value) {
     announcements.value = [];
+    currentIndex.value = 0;
+    closePopup();
     updateAnnouncementHeight();
     return;
   }
   try {
     const { data } = await hw.get('/api/timetable/announcements');
     announcements.value = data;
+    currentIndex.value = 0;
+    closePopup();
     updateAnnouncementHeight();
     checkForNewPopups(data);
   } catch (error) {
@@ -114,8 +118,8 @@ function colorFor(color: string) {
   return map[color] || 'var(--sub)';
 }
 
-// Reload announcements when group context changes
-watch(hasGroupContext, (newVal) => {
+// Reload announcements when active group changes
+watch(activeGroupId, (newVal) => {
   if (newVal) {
     loadAnnouncements();
   } else {
