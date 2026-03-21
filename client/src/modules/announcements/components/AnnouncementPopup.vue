@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import Modal from '@/common/components/Modal.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   announcement: {
@@ -62,11 +65,10 @@ function close() {
     <template #actions>
       <button 
         ref="confirmBtnRef" 
-        class="popup-btn" 
-        @click="close" 
-        :style="{ backgroundColor: color }"
+        class="btn action"
+        @click="close"
       >
-        Alles klar
+        {{ t('global.cookies.banner.action') }}
       </button>
     </template>
   </Modal>
@@ -82,7 +84,7 @@ function close() {
 .popup-color-indicator {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: var(--border-radius-full);
   flex-shrink: 0;
 }
 
@@ -91,20 +93,5 @@ function close() {
   color: var(--text-default);
   line-height: 1.5;
   font-size: 14px;
-}
-
-.popup-btn {
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-left: auto;
-  font-weight: 500;
-  color: var(--color-white);
-}
-
-.popup-btn:hover {
-  opacity: 0.9;
 }
 </style>
