@@ -96,8 +96,6 @@ dt {
   font-size: var(--font-size-sub);
   color: var(--sub);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 dd {

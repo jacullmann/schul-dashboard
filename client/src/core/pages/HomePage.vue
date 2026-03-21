@@ -411,9 +411,7 @@ onMounted(() => {
 .empty-state-card {
   text-align: center;
   padding: 48px 24px;
-  background: var(--bg-surface);
-  border: 1px dashed var(--border-canvas);
-  border-radius: 16px;
+  border-radius: var(--border-radius-xl);
 }
 
 .empty-icon {
@@ -431,10 +429,8 @@ onMounted(() => {
 .empty-state-card p {
   color: var(--sub);
   font-size: var(--font-size-body);
-  margin: 0 0 24px;
   max-width: 360px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 24px;
   line-height: 1.5;
 }
 
