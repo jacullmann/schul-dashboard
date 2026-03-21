@@ -8,7 +8,8 @@
       "add": "Add",
       "cancel": "Cancel",
       "close": "Close",
-      "delete": "Delete"
+      "delete": "Delete",
+      "back": "Back"
     },
     "selection": {
       "placeholder": "Please select",

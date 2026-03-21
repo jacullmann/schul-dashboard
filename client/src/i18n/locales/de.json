@@ -14,7 +14,8 @@
       "skip": "Überspringen",
       "cancel": "Abbrechen",
       "close": "Schließen",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "back": "Zurück"
     },
     "selection": {
       "placeholder": "Bitte wählen",
