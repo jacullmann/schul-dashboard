@@ -20,6 +20,16 @@ export class RenameGroupDto {
   name?: string;
 }
 
+export class UpdateGroupPasswordDto {
+  @IsString()
+  @Length(1, 100)
+  oldPassword: string;
+
+  @IsString()
+  @Length(1, 100)
+  newPassword: string;
+}
+
 export class CreateTimetableSubDto {
   @IsUUID()
   lessonId: string;

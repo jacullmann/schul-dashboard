@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { markRaw, computed } from 'vue';
-import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen } from 'lucide-vue-next';
+import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen, Settings } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 
@@ -9,6 +9,7 @@ import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue'
 import GroupAdminTimetable from '@/modules/admin/components/GroupAdminTimetable.vue';
 import GroupAdminAnnouncements from '@/modules/admin/components/GroupAdminAnnouncements.vue';
 import GroupAdminSubjects from '@/modules/admin/components/GroupAdminSubjects.vue';
+import GroupAdminSettings from '@/modules/admin/components/GroupAdminSettings.vue';
 
 const {
   groupId,
@@ -51,6 +52,7 @@ const tabs = [
   { id: 'timetable', label: 'Stundenplan', icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Ankündigungen', icon: markRaw(Megaphone) },
   { id: 'subjects', label: 'Fächer', icon: markRaw(BookOpen) },
+  { id: 'settings', label: 'Einstellungen', icon: markRaw(Settings) },
 ];
 </script>
 
@@ -134,6 +136,19 @@ const tabs = [
       <GroupAdminSubjects
         v-if="activeTab === 'subjects'"
         :is-admin="isAdmin"
+      />
+
+      <GroupAdminSettings
+        v-if="activeTab === 'settings'"
+        :is-admin="isAdmin"
+        :group-name="groupName"
+        :new-group-name="newGroupName"
+        :editing-group-name="editingGroupName"
+        :saving-group-name="savingGroupName"
+        @start-edit="startEditGroupName"
+        @cancel-edit="cancelEditGroupName"
+        @save-edit="saveGroupName"
+        @update:newGroupName="newGroupName = $event"
       />
     </main>
   </div>

@@ -22,6 +22,7 @@ import {
   CreateAnnouncementDto,
   CreateSubjectDto,
   UpdateSubjectDto,
+  UpdateGroupPasswordDto,
 } from './dto/group-admin.dto';
 
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
@@ -79,6 +80,30 @@ export class GroupAdminController {
     @Body() body: RenameGroupDto,
   ) {
     return this.groupAdminService.renameGroup(tenantId, userId, body.name);
+  }
+
+  @TenantRoles('admin')
+  @Patch('password')
+  updatePassword(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @Body() body: UpdateGroupPasswordDto,
+  ) {
+    return this.groupAdminService.updatePassword(
+      tenantId,
+      userId,
+      body.oldPassword,
+      body.newPassword,
+    );
+  }
+
+  @TenantRoles('admin')
+  @Delete('')
+  deleteGroup(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+  ) {
+    return this.groupAdminService.deleteGroup(tenantId, userId);
   }
 
   @TenantRoles('admin', 'moderator')

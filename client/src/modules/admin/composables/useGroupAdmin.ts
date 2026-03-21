@@ -259,6 +259,33 @@ export function useGroupAdmin() {
         }
     }
 
+    async function updateGroupPassword(oldPassword: string, newPassword: string) {
+        try {
+            await hw.patch('/api/group-admin/password', { oldPassword, newPassword });
+            showMessage('Passwort erfolgreich geändert');
+            return true;
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { message?: string, error?: string } } };
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Fehler beim Ändern des Passworts';
+            showMessage(msg, true);
+            throw new Error(msg);
+        }
+    }
+
+    async function deleteGroup() {
+        try {
+            await hw.delete('/api/group-admin');
+            showMessage('Gruppe erfolgreich gelöscht');
+            // Redirect will be handled by component
+            return true;
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { message?: string, error?: string } } };
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Fehler beim Löschen der Gruppe';
+            showMessage(msg, true);
+            throw new Error(msg);
+        }
+    }
+
     // ─── Init ───────────────────────────────────────────
 
     onMounted(() => {
@@ -317,6 +344,8 @@ export function useGroupAdmin() {
         startEditGroupName,
         cancelEditGroupName,
         saveGroupName,
+        updateGroupPassword,
+        deleteGroup,
 
         // Helpers
         showMessage,

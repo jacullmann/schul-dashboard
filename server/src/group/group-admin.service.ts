@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { generateUserName } from '../common/utils/name-generator.util';
+import * as bcrypt from 'bcryptjs';
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
@@ -182,6 +183,70 @@ export class GroupAdminService {
     });
     if (err_qpwry)
       throw new InternalServerErrorException((err_qpwry as any).message);
+
+    return { ok: true };
+  }
+
+  async updatePassword(
+    tenantId: string,
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const sb = this.supabaseService.getClient();
+    const { data: group } = await sb
+      .from('groups')
+      .select('id, passcode_hash')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (!group) throw new NotFoundException('Gruppe nicht gefunden');
+
+    const isValid = await bcrypt.compare(oldPassword, group.passcode_hash);
+    if (!isValid) {
+      throw new BadRequestException('Das aktuelle Passwort ist falsch.');
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+    const { error: err_update } = await sb
+      .from('groups')
+      .update({ passcode_hash: newHash })
+      .eq('id', tenantId);
+
+    if (err_update)
+      throw new InternalServerErrorException(
+        'Fehler beim Aktualisieren des Passworts.',
+      );
+
+    const { error: err_activity } = await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:password-update',
+      meta: { tenantId },
+    });
+    if (err_activity)
+      throw new InternalServerErrorException((err_activity as any).message);
+
+    return { ok: true };
+  }
+
+  async deleteGroup(tenantId: string, userId: string) {
+    const sb = this.supabaseService.getClient();
+    // Assuming DB has ON DELETE CASCADE configured for tenant_id in related tables
+    const { error: err_delete } = await sb
+      .from('groups')
+      .delete()
+      .eq('id', tenantId);
+
+    if (err_delete)
+      throw new InternalServerErrorException('Fehler beim Löschen der Gruppe.');
+
+    // We can't log activity for user in the same group context if the tenant_id constraint cascades user_roles,
+    // but user_activity is not bound to tenant_id (only user_id), so it's fine.
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:delete-group',
+      meta: { tenantId },
+    });
 
     return { ok: true };
   }
