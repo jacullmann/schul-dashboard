@@ -3,6 +3,7 @@ import { markRaw, computed } from 'vue';
 import { ArrowLeft, LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen, Settings } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 import GroupAdminOverview from '@/modules/admin/components/GroupAdminOverview.vue';
 import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue';
@@ -43,8 +44,10 @@ const {
   saveGroupName,
 } = useGroupAdmin();
 
+const { activeGroupOwnerId } = useAppAuth();
 const userStore = useUserStore();
 const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
+const isOwner = computed(() => !!(userStore.user?.id && activeGroupOwnerId.value === userStore.user.id));
 
 const tabs = [
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
@@ -108,6 +111,7 @@ const tabs = [
         v-if="activeTab === 'members'"
         :members="members"
         :loading="loadingMembers"
+        :is-owner="isOwner"
         @refresh="loadMembers"
         @change-role="(userId, role) => changeRole(userId, role)"
         @remove="(userId, name) => removeMember(userId, name)"
@@ -141,6 +145,7 @@ const tabs = [
       <GroupAdminSettings
         v-if="activeTab === 'settings'"
         :is-admin="isAdmin"
+        :is-owner="isOwner"
         :group-name="groupName"
         :new-group-name="newGroupName"
         :editing-group-name="editingGroupName"

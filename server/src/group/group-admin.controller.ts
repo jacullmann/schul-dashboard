@@ -59,6 +59,20 @@ export class GroupAdminController {
   }
 
   @TenantRoles('admin')
+  @Post('transfer-ownership')
+  transferOwnership(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() currentUserId: string,
+    @Body('targetUserId') targetUserId: string,
+  ) {
+    return this.groupAdminService.transferOwnership(
+      tenantId,
+      currentUserId,
+      targetUserId,
+    );
+  }
+
+  @TenantRoles('admin')
   @Delete('members/:userId')
   removeMember(
     @ActiveTenantId() tenantId: string,

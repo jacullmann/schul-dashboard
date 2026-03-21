@@ -9,6 +9,7 @@ const { t } = useI18n();
 
 const props = defineProps<{
   isAdmin: boolean;
+  isOwner?: boolean;
   groupName: string;
   newGroupName: string;
   editingGroupName: boolean;
@@ -108,7 +109,7 @@ async function confirmDeleteGroup() {
     </div>
 
     <!-- Password settings -->
-    <div v-if="isAdmin" class="settings-card">
+    <div v-if="isOwner" class="settings-card">
       <h3>Passwort ändern</h3>
       
       <div class="form-group">
@@ -171,7 +172,7 @@ async function confirmDeleteGroup() {
     </div>
 
     <!-- Danger Zone: Delete Group -->
-    <div v-if="isAdmin" class="settings-card danger-zone">
+    <div v-if="isOwner" class="settings-card danger-zone">
       <h3 class="danger-title">Danger Zone</h3>
       <p class="danger-desc">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht werden. 

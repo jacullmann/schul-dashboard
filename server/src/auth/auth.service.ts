@@ -18,7 +18,7 @@ import { decryptData } from '../common/utils/encryption.util';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
 import { MFA_PENDING_COOKIE } from '../common/guards/mfa-auth.guard';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 function isWeakPassword(password: string): boolean {
   if (password.length < 8) return true;
@@ -151,7 +151,10 @@ export class AuthService {
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', user.id);
-    if (err_a0k7i) throw new InternalServerErrorException(err_a0k7i.message);
+    if (err_a0k7i)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     const userRoles = user.user_roles as any[];
     const globalRole =
@@ -207,7 +210,10 @@ export class AuthService {
         type: 'auth:mfa_login_failed',
         meta: { ip },
       });
-      if (err_jq95x) throw new InternalServerErrorException(err_jq95x.message);
+      if (err_jq95x)
+        throw new InternalServerErrorException(
+          'Fehler beim Speichern der Benutzeraktivität',
+        );
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
       throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
     }
@@ -223,7 +229,10 @@ export class AuthService {
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', userId);
-    if (err_n0hht) throw new InternalServerErrorException(err_n0hht.message);
+    if (err_n0hht)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'auth:mfa_login', meta: {} });
@@ -297,7 +306,7 @@ export class AuthService {
       .select()
       .single();
 
-    if (error) throw new BadRequestException(error.message);
+    if (error) throw new BadRequestException('Fehler bei der Registrierung');
 
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = dayjs().add(2, 'day').toISOString();
@@ -384,11 +393,26 @@ export class AuthService {
       throw new ForbiddenException('Adminkonten können nicht gelöscht werden.');
     }
 
+    const { data: ownedGroups } = await sb
+      .from('groups')
+      .select('id')
+      .eq('owner_id', userId)
+      .limit(1);
+
+    if (ownedGroups && ownedGroups.length > 0) {
+      throw new BadRequestException(
+        'Du bist Besitzer einer oder mehrerer Gruppen. Bitte übertrage zuerst die Eigentümerschaft oder lösche die Gruppe.',
+      );
+    }
+
     const { error: err_lfvg5 } = await sb
       .from('users')
       .delete()
       .eq('id', userId);
-    if (err_lfvg5) throw new InternalServerErrorException(err_lfvg5.message);
+    if (err_lfvg5)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern des Benutzers',
+      );
 
     this.clearAuthToken(res);
     this.clearMfaPendingToken(res);
@@ -418,12 +442,18 @@ export class AuthService {
       .from('users')
       .update({ email_verified: true })
       .eq('id', user.id);
-    if (err_rmh0v) throw new InternalServerErrorException(err_rmh0v.message);
+    if (err_rmh0v)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern des Benutzers',
+      );
     const { error: err_5wa7e } = await sb
       .from('verifications')
       .delete()
       .eq('email', ver.email);
-    if (err_5wa7e) throw new InternalServerErrorException(err_5wa7e.message);
+    if (err_5wa7e)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     return { ok: true };
   }
@@ -490,7 +520,10 @@ export class AuthService {
       .from('password_resets')
       .update({ used: true })
       .eq('id', pr.id);
-    if (err_ybmnb) throw new InternalServerErrorException(err_ybmnb.message);
+    if (err_ybmnb)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     const secret = this.configService.get<string>('PASSWORD_RESET_JWT_SECRET')!;
     const resetToken = jwt.sign({ email, purpose: 'password_reset' }, secret, {
@@ -548,7 +581,10 @@ export class AuthService {
         mfaDisabled: true,
       },
     });
-    if (err_b7j06) throw new InternalServerErrorException(err_b7j06.message);
+    if (err_b7j06)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     try {
       await this.emailService.sendSecurityEmail(email);
@@ -598,7 +634,10 @@ export class AuthService {
       type: 'account:password_change',
       meta: { by: 'self' },
     });
-    if (err_h6x8v) throw new InternalServerErrorException(err_h6x8v.message);
+    if (err_h6x8v)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, message: 'Passwort erfolgreich geändert.' };
   }
@@ -607,7 +646,7 @@ export class AuthService {
     const sb = this.supabaseService.getClient();
     const { data: userRoles, error } = await sb
       .from('user_roles')
-      .select('tenant_id, groups(id, name), roles(name)')
+      .select('tenant_id, groups(id, name, owner_id), roles(name)')
       .eq('user_id', userId)
       .not('tenant_id', 'is', null);
 
@@ -618,6 +657,7 @@ export class AuthService {
       .map((ur: any) => ({
         id: ur.groups.id,
         name: ur.groups.name,
+        ownerId: ur.groups.owner_id,
         role: ur.roles?.name,
         generatedName: generateUserName(userId, ur.groups.id),
       }));

@@ -88,7 +88,10 @@ export class TodosService {
       type: 'todo:create',
       meta: { todoId: todo.id },
     });
-    if (err_vz8t0) throw new InternalServerErrorException(err_vz8t0.message);
+    if (err_vz8t0)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       id: todo.id,
@@ -137,7 +140,10 @@ export class TodosService {
       type: 'todo:update',
       meta: { todoId: todo.id },
     });
-    if (err_y4457) throw new InternalServerErrorException(err_y4457.message);
+    if (err_y4457)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       id: updated!.id,
@@ -173,7 +179,10 @@ export class TodosService {
       type: 'todo:toggle',
       meta: { todoId: todo.id, completed: newCompleted },
     });
-    if (err_3ryur) throw new InternalServerErrorException(err_3ryur.message);
+    if (err_3ryur)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       id: updated!.id,

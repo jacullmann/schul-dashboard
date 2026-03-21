@@ -110,7 +110,9 @@ export class GroupAdminService {
       meta: { targetUserId, newRole, tenantId },
     });
     if (err_tklkp)
-      throw new InternalServerErrorException((err_tklkp as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, message: `Rolle zu "${newRole}" geändert.` };
   }
@@ -136,8 +138,25 @@ export class GroupAdminService {
     if (!targetRole)
       throw new NotFoundException('Nutzer ist kein Mitglied dieser Gruppe');
 
-    if (targetRole.roles?.name === 'admin') {
-      throw new ForbiddenException('Admins können nicht entfernt werden.');
+    const { data: group } = await sb
+      .from('groups')
+      .select('owner_id')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (group?.owner_id === targetUserId) {
+      throw new ForbiddenException(
+        'Der Besitzer der Gruppe kann nicht entfernt werden.',
+      );
+    }
+
+    if (
+      targetRole.roles?.name === 'admin' &&
+      group?.owner_id !== currentUserId
+    ) {
+      throw new ForbiddenException(
+        'Admins können nur vom Besitzer entfernt werden.',
+      );
     }
 
     await sb
@@ -151,9 +170,77 @@ export class GroupAdminService {
       meta: { targetUserId, tenantId },
     });
     if (err_qev18)
-      throw new InternalServerErrorException((err_qev18 as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, message: 'Mitglied entfernt.' };
+  }
+
+  async transferOwnership(
+    tenantId: string,
+    currentUserId: string,
+    targetUserId: string,
+  ) {
+    if (targetUserId === currentUserId) {
+      throw new BadRequestException('Du bist bereits der Besitzer.');
+    }
+
+    const sb = this.supabaseService.getClient();
+
+    // Check if current user is owner
+    const { data: group } = await sb
+      .from('groups')
+      .select('owner_id')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (!group) throw new NotFoundException('Gruppe nicht gefunden.');
+    if (group.owner_id !== currentUserId) {
+      throw new ForbiddenException(
+        'Nur der aktuelle Besitzer kann die Eigentümerschaft übertragen.',
+      );
+    }
+
+    // Check if target is admin in this group
+    const { data: targetRole } = await sb
+      .from('user_roles')
+      .select('id, roles(name)')
+      .eq('user_id', targetUserId)
+      .eq('tenant_id', tenantId)
+      .limit(1)
+      .maybeSingle();
+
+    // Check targetRole exists and is admin (role_id=2 or roles.name='admin')
+    const roleName = (targetRole as any)?.roles?.name;
+    if (!targetRole || roleName !== 'admin') {
+      throw new BadRequestException(
+        'Der neue Besitzer muss Administrator der Gruppe sein.',
+      );
+    }
+
+    const { error: updateErr } = await sb
+      .from('groups')
+      .update({ owner_id: targetUserId })
+      .eq('id', tenantId);
+
+    if (updateErr) {
+      throw new InternalServerErrorException(
+        'Fehler beim Übertragen der Eigentümerschaft.',
+      );
+    }
+
+    const { error: err_act } = await sb.from('user_activity').insert({
+      user_id: currentUserId,
+      type: 'group-admin:transfer-ownership',
+      meta: { targetUserId, tenantId },
+    });
+    if (err_act)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
+
+    return { ok: true, message: 'Eigentümerschaft erfolgreich übertragen.' };
   }
 
   async renameGroup(tenantId: string, userId: string, name?: string) {
@@ -175,14 +262,18 @@ export class GroupAdminService {
       .update({ name: name.trim() })
       .eq('id', tenantId);
     if (err_o4luy)
-      throw new InternalServerErrorException((err_o4luy as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Gruppe',
+      );
     const { error: err_qpwry } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'group-admin:rename-group',
       meta: { tenantId, newName: name.trim() },
     });
     if (err_qpwry)
-      throw new InternalServerErrorException((err_qpwry as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true };
   }
@@ -196,11 +287,16 @@ export class GroupAdminService {
     const sb = this.supabaseService.getClient();
     const { data: group } = await sb
       .from('groups')
-      .select('id, passcode_hash')
+      .select('id, passcode_hash, owner_id')
       .eq('id', tenantId)
       .maybeSingle();
 
     if (!group) throw new NotFoundException('Gruppe nicht gefunden');
+    if (group.owner_id !== userId) {
+      throw new ForbiddenException(
+        'Nur der Besitzer kann das Passwort ändern.',
+      );
+    }
 
     const isValid = await bcrypt.compare(oldPassword, group.passcode_hash);
     if (!isValid) {
@@ -224,13 +320,28 @@ export class GroupAdminService {
       meta: { tenantId },
     });
     if (err_activity)
-      throw new InternalServerErrorException((err_activity as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true };
   }
 
   async deleteGroup(tenantId: string, userId: string) {
     const sb = this.supabaseService.getClient();
+
+    const { data: group } = await sb
+      .from('groups')
+      .select('owner_id')
+      .eq('id', tenantId)
+      .maybeSingle();
+
+    if (group?.owner_id !== userId) {
+      throw new ForbiddenException(
+        'Nur der Besitzer kann diese Gruppe löschen.',
+      );
+    }
+
     // Assuming DB has ON DELETE CASCADE configured for tenant_id in related tables
     const { error: err_delete } = await sb
       .from('groups')
@@ -292,7 +403,9 @@ export class GroupAdminService {
       meta: { deletedCount: itemIds.length },
     });
     if (err_doaey)
-      throw new InternalServerErrorException((err_doaey as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       ok: true,
@@ -534,7 +647,9 @@ export class GroupAdminService {
       meta: { lessonId: sub.lessonId },
     });
     if (err_bv7dv)
-      throw new InternalServerErrorException((err_bv7dv as any).message);
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     const _data = data as Record<string, any>;
     return {

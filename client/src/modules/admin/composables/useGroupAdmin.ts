@@ -286,6 +286,19 @@ export function useGroupAdmin() {
         }
     }
 
+    async function transferOwnership(targetUserId: string) {
+        if (!confirm('Bist du sicher, dass du die Eigentümerschaft übertragen möchtest? Du verlierst dadurch deine Besitzerrechte.')) return;
+        try {
+            await hw.post('/api/group-admin/transfer-ownership', { targetUserId });
+            showMessage('Eigentümerschaft erfolgreich übertragen');
+            window.location.reload();
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { message?: string, error?: string } } };
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Fehler bei der Übertragung';
+            showMessage(msg, true);
+        }
+    }
+
     // ─── Init ───────────────────────────────────────────
 
     onMounted(() => {
@@ -346,6 +359,7 @@ export function useGroupAdmin() {
         saveGroupName,
         updateGroupPassword,
         deleteGroup,
+        transferOwnership,
 
         // Helpers
         showMessage,

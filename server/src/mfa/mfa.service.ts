@@ -45,7 +45,10 @@ export class MfaService {
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', userId);
-    if (err_n60hl) throw new InternalServerErrorException(err_n60hl.message);
+    if (err_n60hl)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     // Generate new secret
     const secret = authenticator.generateSecret();
@@ -58,7 +61,10 @@ export class MfaService {
       encrypted_secret: encryptedSecret,
       expires_at: expiresAt,
     });
-    if (err_qp7sr) throw new InternalServerErrorException(err_qp7sr.message);
+    if (err_qp7sr)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     // Generate QR code
     const issuer = 'Schul-Dashboard';
@@ -113,7 +119,10 @@ export class MfaService {
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', userId);
-    if (err_ltuo9) throw new InternalServerErrorException(err_ltuo9.message);
+    if (err_ltuo9)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     await sb
       .from('user_activity')

@@ -25,7 +25,10 @@ export class UserService {
       type: 'profile:personalization:update',
       meta: { personalized },
     });
-    if (err_i5fxl) throw new InternalServerErrorException(err_i5fxl.message);
+    if (err_i5fxl)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, personalized: updatedUser.personalized };
   }
@@ -100,7 +103,10 @@ export class UserService {
       type: 'profile:preferences:update',
       meta: { preferences },
     });
-    if (err_n0ld2) throw new InternalServerErrorException(err_n0ld2.message);
+    if (err_n0ld2)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, preferences: updatedUser.preferences };
   }
@@ -136,7 +142,10 @@ export class UserService {
       type: 'profile:setup:complete',
       meta: { enrKurs, wpuKurs1, wpuKurs2, theater },
     });
-    if (err_2yf4u) throw new InternalServerErrorException(err_2yf4u.message);
+    if (err_2yf4u)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       ok: true,
@@ -214,7 +223,10 @@ export class UserService {
       type: 'item:visibility:set',
       meta: { itemId, status },
     });
-    if (err_t7zxy) throw new InternalServerErrorException(err_t7zxy.message);
+    if (err_t7zxy)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true };
   }
@@ -231,7 +243,10 @@ export class UserService {
       type: 'item:visibility:remove',
       meta: { itemId },
     });
-    if (err_nkgjw) throw new InternalServerErrorException(err_nkgjw.message);
+    if (err_nkgjw)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
     return { ok: true };
   }
 
@@ -246,7 +261,10 @@ export class UserService {
           timestamp: new Date().toISOString(),
         },
       });
-      if (err_gnz6e) throw new InternalServerErrorException(err_gnz6e.message);
+      if (err_gnz6e)
+        throw new InternalServerErrorException(
+          'Fehler beim Speichern der Benutzeraktivität',
+        );
       return { ok: true };
     } catch {
       return { ok: false };
@@ -271,7 +289,10 @@ export class UserService {
       },
       { onConflict: 'item_id,user_id' },
     );
-    if (err_pukxk) throw new InternalServerErrorException(err_pukxk.message);
+    if (err_pukxk)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     await sb
       .from('user_activity')
@@ -310,7 +331,10 @@ export class UserService {
       },
       { onConflict: 'item_id,user_id' },
     );
-    if (err_sj9mc) throw new InternalServerErrorException(err_sj9mc.message);
+    if (err_sj9mc)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     await sb
       .from('user_activity')

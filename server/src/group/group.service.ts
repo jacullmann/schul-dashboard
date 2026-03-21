@@ -10,7 +10,7 @@ import { SupabaseService } from '../common/supabase/supabase.service';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
 import {
   rotateCsrfToken,
@@ -88,7 +88,10 @@ export class GroupService {
       user_agent: ua,
       metadata: { groupName, groupId: group?.id || null, userId },
     });
-    if (err_djic6) throw new InternalServerErrorException(err_djic6.message);
+    if (err_djic6)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     if (!isAuthenticated)
       throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
@@ -144,14 +147,21 @@ export class GroupService {
         user_agent: ua,
         metadata: { groupName },
       });
-      if (err_xv2pz) throw new InternalServerErrorException(err_xv2pz.message);
+      if (err_xv2pz)
+        throw new InternalServerErrorException(
+          'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        );
       throw new ConflictException('Dieser Gruppenname ist bereits vergeben.');
     }
 
     const passcodeHash = await bcrypt.hash(password, 12);
     const { data: newGroup, error: createGroupErr } = await sb
       .from('groups')
-      .insert({ name: groupName, passcode_hash: passcodeHash })
+      .insert({
+        name: groupName,
+        passcode_hash: passcodeHash,
+        owner_id: userId,
+      })
       .select('id, name')
       .single();
 
@@ -181,7 +191,10 @@ export class GroupService {
         createdBy: userId,
       },
     });
-    if (err_a1xq9) throw new InternalServerErrorException(err_a1xq9.message);
+    if (err_a1xq9)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     this.setAuthToken(res, userId, email, globalRole, newGroup.id);
     const newCsrfToken = rotateCsrfToken(res);
@@ -200,7 +213,7 @@ export class GroupService {
     try {
       const { data: userRoles } = await sb
         .from('user_roles')
-        .select('tenant_id, groups(id, name), roles(name)')
+        .select('tenant_id, groups(id, name, owner_id), roles(name)')
         .eq('user_id', userId)
         .not('tenant_id', 'is', null);
 
@@ -209,6 +222,7 @@ export class GroupService {
         .map((ur: any) => ({
           id: ur.groups.id,
           name: ur.groups.name,
+          ownerId: ur.groups.owner_id,
           role: ur.roles?.name,
           generatedName: generateUserName(userId, ur.groups.id),
         }));
@@ -218,7 +232,7 @@ export class GroupService {
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb
           .from('groups')
-          .select('id, name')
+          .select('id, name, owner_id')
           .eq('id', activeGroupId)
           .maybeSingle();
 
@@ -226,6 +240,7 @@ export class GroupService {
           activeGroup = {
             id: adminGroup.id,
             name: adminGroup.name,
+            ownerId: adminGroup.owner_id,
             role: 'superadmin',
             generatedName: generateUserName(userId, adminGroup.id),
           };
@@ -235,7 +250,11 @@ export class GroupService {
       return {
         authenticated: true,
         group: activeGroup
-          ? { id: activeGroup.id, name: activeGroup.name }
+          ? {
+              id: activeGroup.id,
+              name: activeGroup.name,
+              ownerId: activeGroup.ownerId,
+            }
           : null,
         groups,
       };
@@ -269,7 +288,7 @@ export class GroupService {
 
     const { data: memberships } = await sb
       .from('user_roles')
-      .select('tenant_id, groups(id, name)')
+      .select('tenant_id, groups(id, name, owner_id)')
       .eq('user_id', userId)
       .eq('tenant_id', groupId)
       .limit(1);
@@ -301,7 +320,10 @@ export class GroupService {
       user_agent: ua,
       metadata: {},
     });
-    if (err_ionkm) throw new InternalServerErrorException(err_ionkm.message);
+    if (err_ionkm)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     this.clearAuthToken(res);
     clearCsrfCookie(res);
