@@ -21,6 +21,7 @@ export interface Lesson {
     courseName?: string;
     _original?: Lesson;
     cancelled?: boolean;
+    isSubstitutedSubject?: boolean;
 }
 
 export interface Substitution {

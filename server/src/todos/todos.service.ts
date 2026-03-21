@@ -88,7 +88,10 @@ export class TodosService {
       type: 'todo:create',
       meta: { todoId: todo.id },
     });
-    if (err_vz8t0) throw new InternalServerErrorException(err_vz8t0.message);
+    if (err_vz8t0)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       id: todo.id,
@@ -137,7 +140,10 @@ export class TodosService {
       type: 'todo:update',
       meta: { todoId: todo.id },
     });
-    if (err_y4457) throw new InternalServerErrorException(err_y4457.message);
+    if (err_y4457)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       id: updated!.id,
@@ -173,7 +179,10 @@ export class TodosService {
       type: 'todo:toggle',
       meta: { todoId: todo.id, completed: newCompleted },
     });
-    if (err_3ryur) throw new InternalServerErrorException(err_3ryur.message);
+    if (err_3ryur)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       id: updated!.id,
@@ -212,24 +221,28 @@ export class TodosService {
         .map((t) => t.position)
         .sort();
       let cursor: string | null = null;
-      const updates: Promise<any>[] = [];
-      for (const t of unpositioned) {
+
+      // RESOLVED: Map positions sequentially first, then fire promises concurrently.
+      const unpositionedUpdates = unpositioned.map((t) => {
         const nextAnchor = positioned[0] || null;
         try {
           cursor = generateKeyBetween(cursor, nextAnchor);
         } catch {
           cursor = generateKeyBetween(null, null);
         }
-        updates.push(
-          sb
-            .from('encrypted_todos')
-            .update({ position: cursor })
-            .eq('id', t.id),
-        );
         positioned.unshift(cursor);
         positioned.sort();
-      }
-      await Promise.all(updates);
+        return { id: t.id, position: cursor };
+      });
+
+      await Promise.all(
+        unpositionedUpdates.map((u) =>
+          sb
+            .from('encrypted_todos')
+            .update({ position: u.position })
+            .eq('id', u.id),
+        ),
+      );
     }
 
     let newPosition: string;
@@ -257,25 +270,31 @@ export class TodosService {
         .eq('completed', false)
         .order('position', { ascending: true });
       let p: string | null = null;
-      const updates: Promise<any>[] = [];
-      for (const t of allIncomplete || []) {
-        try {
-          p = generateKeyBetween(p, null);
-          updates.push(
-            sb
+
+      // RESOLVED: Map positions sequentially first, handling catch states cleanly.
+      const fallbackUpdates = (allIncomplete || [])
+        .map((t) => {
+          try {
+            p = generateKeyBetween(p, null);
+            return { id: t.id, position: p };
+          } catch {
+            return null;
+          }
+        })
+        .filter((u): u is { id: string; position: string } => u !== null);
+
+      await Promise.all(
+        fallbackUpdates.map(async (u) => {
+          try {
+            await sb
               .from('encrypted_todos')
-              .update({ position: p })
-              .eq('id', t.id)
-              .then() // ensure it executes and ignores errors like catch did
-              .catch(() => {
-                // Ignore reordering errors for individual items
-              }),
-          );
-        } catch {
-          // Ignore generator errors
-        }
-      }
-      await Promise.all(updates);
+              .update({ position: u.position })
+              .eq('id', u.id);
+          } catch {
+            // Ignore reordering errors for individual items
+          }
+        }),
+      );
 
       const { data: refreshed } = await sb
         .from('encrypted_todos')

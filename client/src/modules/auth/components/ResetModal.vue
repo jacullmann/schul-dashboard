@@ -3,6 +3,7 @@ import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import hw from '@/api/hwApi';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
+import { useToast } from '@/common/composables/useToast';
 
 const emit = defineEmits(['close', 'success']);
 
@@ -111,9 +112,9 @@ async function onPrimary() {
       const { data } = await hw.post('/api/auth/reset', { resetToken: savedResetToken, password: password.value });
       // MFA wurde deaktiviert
       const msg = data.message || 'Passwort erfolgreich geändert. Du kannst dich nun einloggen.';
-      setMessage(msg, false);
+      useToast().success(msg);
       emit('success');
-      setTimeout(() => emit('close'), 800);
+      emit('close');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(err?.response?.data?.error || 'Fehler beim Zurücksetzen des Passworts.', true);

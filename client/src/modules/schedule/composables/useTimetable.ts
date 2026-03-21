@@ -39,6 +39,10 @@ export function useTimetable(options: UseTimetableOptions = { autoLoad: true }) 
         7: 10
     };
     function getDisplayName(lesson: Lesson): string {
+        if (lesson.isSubstitutedSubject && lesson.subject) {
+            return lesson.subject;
+        }
+
         const subjectName = lesson.subjects?.name || lesson.subject || lesson.subjectAbbr || '';
         const normalizedSubject = subjectName.toLowerCase();
 
@@ -123,6 +127,10 @@ export function useTimetable(options: UseTimetableOptions = { autoLoad: true }) 
                     if (sub[typedKey] !== null && sub[typedKey] !== undefined && sub[typedKey] !== '') {
                         // @ts-ignore
                         merged[typedKey] = sub[typedKey];
+                        
+                        if (typedKey === 'subject') {
+                            merged.isSubstitutedSubject = true;
+                        }
                     }
                 }
 

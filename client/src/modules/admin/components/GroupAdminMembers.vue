@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { RefreshCw, UserRoundMinus } from 'lucide-vue-next';
+import { RefreshCw, UserRoundMinus, Crown } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/admin/types';
+import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+import { computed } from 'vue';
 
 const props = defineProps<{
   members: GroupMember[];
   loading: boolean;
+  isOwner?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -14,7 +17,8 @@ const emit = defineEmits<{
   (e: 'remove', userId: string, name: string): void;
 }>();
 
-const canDemoteAdmin = false;
+const { transferOwnership } = useGroupAdmin();
+const canDemoteAdmin = computed(() => props.isOwner);
 
 function roleLabel(role: string): string {
   const map: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'Mitglied' };
@@ -84,6 +88,14 @@ function onRoleChange(member: GroupMember, newRole: string) {
               :disabled="member.role === 'admin'"
           >
             <UserRoundMinus :size="15" />
+          </button>
+          <button
+              v-if="isOwner && member.role === 'admin'"
+              class="btn-icon transfer-btn"
+              @click="transferOwnership(member.userId)"
+              title="Eigentümerschaft übertragen"
+          >
+            <Crown :size="15" />
           </button>
         </div>
       </div>
@@ -208,6 +220,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
 
 .btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.btn-icon.transfer-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 
 @media (max-width: 640px) {

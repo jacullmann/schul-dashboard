@@ -392,14 +392,23 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          created_at: string;
+          passcode_hash: string;
+          owner_id: string;
         };
         Insert: {
           id?: string;
           name: string;
+          created_at?: string;
+          passcode_hash: string;
+          owner_id: string;
         };
         Update: {
           id?: string;
           name?: string;
+          created_at?: string;
+          passcode_hash?: string;
+          owner_id?: string;
         };
       };
     };

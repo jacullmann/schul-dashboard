@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useMediaQuery } from '@vueuse/core';
 import AuthForm from '@/modules/auth/components/AuthForm.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
+import { ArrowLeft } from 'lucide-vue-next';
 
 const router = useRouter();
 const { checkAuthStatus, activeGroupId } = useAppAuth();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 const isDesktop = useMediaQuery('(min-width: 900px)');
 
@@ -25,6 +28,10 @@ async function onLoggedIn() {
 <template>
   <div class="split-screen">
     <div class="auth-section">
+      <button class="back-link" @click="router.push('/')">
+        <ArrowLeft :size="20" />
+        <span>{{ t('global.buttons.back') }}</span>
+      </button>
       <AuthForm @logged-in="onLoggedIn" />
     </div>
     <div class="bg-section">
@@ -61,6 +68,28 @@ async function onLoggedIn() {
   align-items: center;
   overflow-y: auto;
   border-right: none;
+  position: relative;
+}
+
+.back-link {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-sub);
+  font-weight: 500;
+  transition: color 0.2s ease;
+  padding: 8px;
+}
+
+.back-link:hover {
+  color: var(--text-default);
 }
 
 .bg-section {

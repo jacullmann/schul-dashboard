@@ -31,9 +31,9 @@ const groupMenuRef = ref<HTMLElement | null>(null);
 
 // Logo links to active group items if active group exists, otherwise home
 const logoLink = computed(() => {
-  if (activeGroupId.value) {
+  /* if (activeGroupId.value) {
     return `/groups/${activeGroupId.value}/items/all`;
-  }
+  } */
   return '/home';
 });
 
@@ -43,11 +43,25 @@ function toggleGroupMenu() {
 
 async function onSwitchGroup(id: string) {
   groupMenuOpen.value = false;
-  if (id !== activeGroupId.value) {
+  const oldGroupId = activeGroupId.value;
+  if (id !== oldGroupId) {
     const res = await switchActiveGroup(id);
     if (res.ok) {
-      // Navigate to the new group's main page instead of full reload
-      await router.push(`/groups/${id}/items/all`);
+      // Ensure user store is synced before routing so guards see correct permissions
+      await userStore.fetchUser();
+
+      // Navigate to the same path but with the new group id
+      if (oldGroupId && route.path.startsWith(`/groups/${oldGroupId}`)) {
+        const newPath = route.path.replace(`/groups/${oldGroupId}`, `/groups/${id}`);
+        await router.push(newPath);
+        
+        // If the guard redirected us to /home (e.g. missing permissions), fall back to items/all
+        if (route.path === '/home') {
+          await router.push(`/groups/${id}/items/all`);
+        }
+      } else {
+        await router.push(`/groups/${id}/items/all`);
+      }
     } else {
       console.error("Failed to switch group", res.error);
     }

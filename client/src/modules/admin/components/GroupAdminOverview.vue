@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { Trash2 } from 'lucide-vue-next';
 import type { GroupStats } from '@/modules/admin/types';
-import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n();
 
 const props = defineProps<{
   stats: GroupStats | null;
@@ -16,10 +13,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'cleanup'): void;
-  (e: 'start-edit'): void;
-  (e: 'cancel-edit'): void;
-  (e: 'save-edit'): void;
-  (e: 'update:newGroupName', value: string): void;
 }>();
 </script>
 
@@ -52,31 +45,6 @@ const emit = defineEmits<{
       <button class="btn ghost" @click="emit('cleanup')" :disabled="cleaningUp">
         {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
       </button>
-    </div>
-
-    <!-- Group Settings -->
-    <div class="settings-card">
-      <h3>Gruppen-Einstellungen</h3>
-      <div class="setting-row">
-        <label>Gruppenname</label>
-        <div v-if="!editingGroupName" class="setting-value">
-          <span>{{ groupName }}</span>
-          <button class="btn ghost tiny" @click="emit('start-edit')">{{ t('global.buttons.edit') }}</button>
-        </div>
-        <div v-else class="setting-edit">
-          <input 
-            :value="newGroupName"
-            @input="emit('update:newGroupName', ($event.target as HTMLInputElement).value)"
-            class="input" 
-            placeholder="Neuer Gruppenname" 
-            @keyup.enter="emit('save-edit')" 
-          />
-          <button class="btn action" @click="emit('save-edit')" :disabled="savingGroupName || !newGroupName.trim()">
-            {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
-          </button>
-          <button class="btn ghost" @click="emit('cancel-edit')">{{ t('global.buttons.cancel') }}</button>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -138,54 +106,6 @@ const emit = defineEmits<{
   gap: 8px;
   font-size: var(--font-size-body);
   color: var(--sub);
-}
-
-.settings-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.settings-card h3 {
-  font-size: var(--font-size-title);
-  font-weight: 600;
-  margin: 0 0 16px;
-}
-
-.setting-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.setting-row label {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
-  font-weight: 500;
-}
-
-.setting-value {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.setting-value span {
-  font-weight: 600;
-}
-
-.setting-edit {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.setting-edit .input {
-  flex: 1;
-  max-width: 300px;
 }
 
 @media (max-width: 640px) {

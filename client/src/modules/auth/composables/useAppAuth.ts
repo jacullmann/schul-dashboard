@@ -14,8 +14,9 @@ const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
+const activeGroupOwnerId = ref<string | null>(null);
 const userGroups = ref<
-    Array<{ id: string; name: string; role: string; generatedName?: string }>
+    Array<{ id: string; name: string; role: string; generatedName?: string; ownerId?: string }>
 >([]);
 
 let initPromise: Promise<void> | null = null;
@@ -39,6 +40,7 @@ function clearAuthState(): void {
     isAuthenticated.value = false;
     groupName.value = null;
     activeGroupId.value = null;
+    activeGroupOwnerId.value = null;
     userGroups.value = [];
 
     // Clean up legacy localStorage key from previous code versions.
@@ -51,13 +53,14 @@ function clearAuthState(): void {
 
 function applyStatusData(data: {
     authenticated: boolean;
-    group?: { id: string; name: string } | null;
-    groups?: Array<{ id: string; name: string; role: string; generatedName?: string }>;
+    group?: { id: string; name: string; ownerId?: string } | null;
+    groups?: Array<{ id: string; name: string; role: string; generatedName?: string; ownerId?: string }>;
 }): void {
     isLoggedIn.value = data.authenticated;
     isAuthenticated.value = data.authenticated;
     groupName.value = data.group?.name ?? null;
     activeGroupId.value = data.group?.id ?? null;
+    activeGroupOwnerId.value = data.group?.ownerId ?? null;
     userGroups.value = data.groups ?? [];
 }
 
@@ -177,8 +180,9 @@ export function useAppAuth() {
             isAuthenticated: isAuthenticated.value,
         };
 
-        // Optimistic update — immediate UI feedback.
-        activeGroupId.value = groupId;
+        // We NO LONGER optimistically update `activeGroupId` before the network request.
+        // Doing so caused UI components to remount and send data fetching requests (e.g., loads Tasks or Timetable)
+        // against the backend BEFORE the backend actually processed the tenant switch.
 
         switchTarget = groupId;
         switchPromise = (async (): Promise<AuthResult> => {
@@ -235,6 +239,7 @@ export function useAppAuth() {
         isAuthReady,
         groupName,
         activeGroupId,
+        activeGroupOwnerId,
         userGroups,
         initAuth,
         checkAuthStatus,

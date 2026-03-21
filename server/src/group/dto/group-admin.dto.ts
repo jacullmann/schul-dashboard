@@ -20,6 +20,16 @@ export class RenameGroupDto {
   name?: string;
 }
 
+export class UpdateGroupPasswordDto {
+  @IsString()
+  @Length(1, 100)
+  oldPassword: string;
+
+  @IsString()
+  @Length(1, 100)
+  newPassword: string;
+}
+
 export class CreateTimetableSubDto {
   @IsUUID()
   lessonId: string;
@@ -59,7 +69,7 @@ export class CreateTimetableSubDto {
 
 export class CreateAnnouncementDto {
   @IsString()
-  @Length(2)
+  @Length(1)
   content: string;
 
   @IsOptional()
@@ -69,4 +79,21 @@ export class CreateAnnouncementDto {
   @IsOptional()
   @IsBoolean()
   showAsPopup?: boolean;
+}
+
+export class CreateSubjectDto {
+  @IsString()
+  @Length(1, 100)
+  name: string;
+}
+
+export class UpdateSubjectDto {
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  name?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

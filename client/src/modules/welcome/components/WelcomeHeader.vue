@@ -1,43 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import Logo from "@/common/components/Logo.vue";
-
-// --- Scroll & Resize Logic ---
-const scrollY = ref(0);
-const isLargeScreen = ref(false);
-
-const updateScroll = () => {
-  scrollY.value = window.scrollY;
-};
-
-const updateWidth = () => {
-  isLargeScreen.value = window.innerWidth >= 1200;
-};
-
-onMounted(() => {
-  updateScroll();
-  updateWidth();
-  window.addEventListener('scroll', updateScroll);
-  window.addEventListener('resize', updateWidth);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', updateScroll);
-  window.removeEventListener('resize', updateWidth);
-});
-
-const announcementStyle = computed(() => {
-  const limit = isLargeScreen.value ? 1000 : 600;
-  const offset = Math.max(0, scrollY.value - limit);
-
-  return {
-    position: 'sticky' as const,
-    top: '0',
-    zIndex: '100',
-    marginTop: `-${offset}px`
-  };
-});
 </script>
 
 <template>
@@ -49,9 +12,6 @@ const announcementStyle = computed(() => {
       </RouterLink>
     </div>
   </header>
-  <div class="example-announcement" :style="announcementStyle">
-    <span>Chemie fällt morgen aus</span>
-  </div>
 </template>
 
 <style scoped>
@@ -65,9 +25,6 @@ const announcementStyle = computed(() => {
   align-items: center;
   box-sizing: border-box;
   border-bottom: 1px solid var(--border-canvas);
-  /* CHANGED: Added position and z-index to stay above the announcement */
-  position: relative;
-  z-index: 101;
 }
 
 .header-content-wrapper {
@@ -100,16 +57,6 @@ const announcementStyle = computed(() => {
   line-height: 32px;
   font-family: var(--display-font), sans-serif;
   color: var(--text-default);
-}
-
-.example-announcement {
-  background: var(--bg-surface);
-  border-block: 1px solid var(--border-surface);
-  padding: 10px 12px;
-  border-radius: 0;
-  font-family: var(--normal-font), sans-serif;
-  font-size: 16px;
-  text-align: center;
 }
 
 /*.nav-links {

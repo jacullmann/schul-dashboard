@@ -10,7 +10,6 @@ import { formatSubjectDisplay } from '@/utils/subject-formatter';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import { isValidType } from '@/modules/tasks/types';
 
-import { useHwMessage } from './hw/useHwMessage';
 import { useHwUi } from './hw/useHwUi';
 import { useHwList } from './hw/useHwList';
 import { useHwForms } from './hw/useHwForms';
@@ -38,8 +37,6 @@ export function useTasks() {
     const showPersonalized = computed(() => user.value?.personalized ?? false);
     const showSetupModal = ref(false);
 
-    // Message
-    const { message, isError, flashMessage, clearMessageTimer } = useHwMessage();
 
     // UI states
     const {
@@ -121,7 +118,6 @@ export function useTasks() {
         pinnedItems,
         archivedItems,
         keptItems,
-        flashMessage,
         (msg) => handleSuccess(msg)
     );
 
@@ -145,7 +141,6 @@ export function useTasks() {
     } = useHwForms(
         user,
         items,
-        flashMessage,
         () => reloadList()
     );
 
@@ -172,8 +167,7 @@ export function useTasks() {
     } = useHwImages(
         user,
         imageUpload,
-        refreshItem,
-        flashMessage
+        refreshItem
     );
 
     const subjects = computed(() => subjectStore.availableSubjectKeys);
@@ -310,7 +304,6 @@ export function useTasks() {
 
     onBeforeUnmount(() => {
         document.removeEventListener('click', onDocumentClick);
-        clearMessageTimer();
     });
 
     return {
@@ -324,8 +317,6 @@ export function useTasks() {
         subjectFilter,
         showPersonalized,
         showOldEntries,
-        message,
-        isError,
         itemFormKey,
         visibleCount,
         limitedItems,

@@ -59,6 +59,10 @@ async function handleAuthExpired() {
     }
   }
 }
+
+async function handleTenantChanged() {
+  await userStore.fetchUser();
+}
 function handleCsrfRefreshFailed() {
   if (csrfRedirectInProgress) return;
   csrfRedirectInProgress = true;
@@ -103,6 +107,7 @@ onMounted(() => {
 
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('auth-expired', handleAuthExpired);
+  window.addEventListener('tenant-changed', handleTenantChanged);
   window.addEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
   window.addEventListener('csrf-init-failed', handleCsrfInitFailed);
 
@@ -116,6 +121,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('show-auth-modal', handleShowAuthModal);
   window.removeEventListener('auth-expired', handleAuthExpired);
+  window.removeEventListener('tenant-changed', handleTenantChanged);
   window.removeEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
   window.removeEventListener('csrf-init-failed', handleCsrfInitFailed);
 

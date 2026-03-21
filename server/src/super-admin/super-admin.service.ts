@@ -44,7 +44,9 @@ export class SuperAdminService {
       },
     );
     if (err_yokmx)
-      throw new InternalServerErrorException((err_yokmx as any).message);
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
     const { count: verifiedUsers } = await sb
       .from('users')
       .select('*', { count: 'exact', head: true })
@@ -77,7 +79,10 @@ export class SuperAdminService {
         limit_count: 5,
       },
     )) as { data: any; error: any };
-    if (err_w4xu5) throw new InternalServerErrorException(err_w4xu5.message);
+    if (err_w4xu5)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern des Elements',
+      );
 
     return {
       userCount: userCount || 0,
@@ -153,7 +158,10 @@ export class SuperAdminService {
         imagesDeleted: publicIdsToDelete.length,
       },
     })) as { error: any };
-    if (err_de5ut) throw new InternalServerErrorException(err_de5ut.message);
+    if (err_de5ut)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       ok: true,
@@ -262,7 +270,10 @@ export class SuperAdminService {
       type: 'admin:ban:user',
       meta: { targetUserId },
     })) as { error: any };
-    if (err_mw0gt) throw new InternalServerErrorException(err_mw0gt.message);
+    if (err_mw0gt)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, isBanned: true };
   }
@@ -273,13 +284,19 @@ export class SuperAdminService {
       .from('banned_users')
       .delete()
       .eq('user_id', targetUserId)) as { error: any };
-    if (err_v83u8) throw new InternalServerErrorException(err_v83u8.message);
+    if (err_v83u8)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
     const { error: err_vxqec } = (await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:unban:user',
       meta: { targetUserId },
     })) as { error: any };
-    if (err_vxqec) throw new InternalServerErrorException(err_vxqec.message);
+    if (err_vxqec)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
     return { ok: true, isBanned: false };
   }
 
@@ -300,11 +317,26 @@ export class SuperAdminService {
       throw new ForbiddenException('Admins können nicht gelöscht werden');
     }
 
+    const { data: ownedGroups } = await sb
+      .from('groups')
+      .select('id')
+      .eq('owner_id', targetUserId)
+      .limit(1);
+
+    if (ownedGroups && ownedGroups.length > 0) {
+      throw new BadRequestException(
+        'Benutzerkonto kann nicht gelöscht werden, da der Nutzer Besitzer von Gruppen ist.',
+      );
+    }
+
     const { error: err_avk9d } = (await sb
       .from('users')
       .delete()
       .eq('id', targetUserId)) as { error: any };
-    if (err_avk9d) throw new InternalServerErrorException(err_avk9d.message);
+    if (err_avk9d)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern des Benutzers',
+      );
     return { ok: true };
   }
 
@@ -349,7 +381,10 @@ export class SuperAdminService {
       type: 'admin:prune_logs',
       meta: { targetUserId },
     })) as { error: any };
-    if (err_00b3z) throw new InternalServerErrorException(err_00b3z.message);
+    if (err_00b3z)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
     return { ok: true, message: 'Logs bereinigt.' };
   }
 
@@ -400,7 +435,10 @@ export class SuperAdminService {
         : 'admin:report:mark_unprocessed',
       meta: { reportId },
     })) as { error: any };
-    if (err_cnlyx) throw new InternalServerErrorException(err_cnlyx.message);
+    if (err_cnlyx)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return {
       ok: true,
@@ -415,13 +453,19 @@ export class SuperAdminService {
       .from('reports')
       .delete()
       .eq('id', reportId)) as { error: any };
-    if (err_zbdh8) throw new InternalServerErrorException(err_zbdh8.message);
+    if (err_zbdh8)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
     const { error: err_exmo5 } = (await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:report:delete',
       meta: { reportId },
     })) as { error: any };
-    if (err_exmo5) throw new InternalServerErrorException(err_exmo5.message);
+    if (err_exmo5)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
     return { ok: true };
   }
 

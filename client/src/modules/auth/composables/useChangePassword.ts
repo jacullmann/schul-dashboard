@@ -2,6 +2,7 @@ import { ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
 import type { ChangePasswordErrors } from '@/modules/auth/types';
+import { useToast } from '@/common/composables/useToast';
 
 export function useChangePassword(emit: {
     (e: 'cancel'): void;
@@ -89,10 +90,9 @@ export function useChangePassword(emit: {
                 newPassword: newPassword.value
             });
 
-            setMessage(t('account.menu.changePassword.success'), false);
+            useToast().success(t('account.menu.changePassword.success'));
             emit('success');
-
-            setTimeout(() => emit('cancel'), 1000);
+            emit('cancel');
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
             const errorMsg = err.response?.data?.error || t('account.menu.changePassword.errors.failed');

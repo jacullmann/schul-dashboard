@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, markRaw } from 'vue';
 import {
-  ArrowLeft, LayoutDashboard, Users, Flag, Inbox, FileText as FileTextIcon,
+  ArrowLeft, LayoutDashboard, Users, Flag, FileText as FileTextIcon,
   Lock, Unlock, Trash2, Eraser, Check, RotateCcw, X, FileText
 } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
 import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
+import { useToast } from '@/common/composables/useToast';
 
 import type { Component } from 'vue';
 
@@ -70,8 +71,7 @@ const showActivityFor = ref<string | null>(null);
 const userActivities = ref<Record<string, UserActivity[]>>({});
 const loadingActivities = ref<Record<string, boolean>>({});
 const isCleaningUp = ref(false);
-const message = ref('');
-const isError = ref(false);
+
 
 const unprocessedReports = computed(() => reports.value.filter(r => !r.processed));
 const processedReports = computed(() => reports.value.filter(r => r.processed));
@@ -81,8 +81,8 @@ function fmtDate(iso: string) {
 }
 
 function toast(msg: string, error = false) {
-  message.value = msg; isError.value = error;
-  setTimeout(() => { message.value = ''; }, 4000);
+  if (error) useToast().error(msg);
+  else useToast().success(msg);
 }
 
 // ─── Data Loading ───────────────────────────────────────
@@ -200,9 +200,6 @@ onMounted(() => {
           </router-link>
           <h1 class="sa-title">Super Admin</h1>
         </div>
-        <div v-if="message" class="sa-toast-inline" :class="{ error: isError }">
-          {{ message }}
-        </div>
       </div>
     </header>
 
@@ -244,11 +241,11 @@ onMounted(() => {
                 <div class="stat-val">{{ stats.itemCount }}</div>
                 <div class="stat-lbl">Einträge</div>
               </div>
-              <div class="stat-card" :class="{ alert: stats.reportCount > 0 }">
+              <div class="stat-card" :class="{ alert: (stats.reportCount ?? 0) > 0 }">
                 <div class="stat-val">{{ stats.reportCount }}</div>
                 <div class="stat-lbl">Offene Meldungen</div>
               </div>
-              <div class="stat-card" :class="{ warn: stats.bannedCount > 0 }">
+              <div class="stat-card" :class="{ warn: (stats.bannedCount ?? 0) > 0 }">
                 <div class="stat-val">{{ stats.bannedCount }}</div>
                 <div class="stat-lbl">Gesperrt</div>
               </div>
@@ -275,7 +272,7 @@ onMounted(() => {
             </div>
 
             <!-- Cleanup -->
-            <div v-if="stats.oldItemsCount > 0" class="cleanup-card">
+            <div v-if="(stats.oldItemsCount ?? 0) > 0" class="cleanup-card">
               <div>
                 <strong>Cleanup:</strong> {{ stats.oldItemsCount }} Einträge älter als 90 Tage
               </div>
@@ -479,15 +476,6 @@ onMounted(() => {
   font-weight: 700;
   margin: 0;
 }
-
-.sa-toast-inline {
-  font-size: var(--font-size-sub);
-  padding: 5px 14px;
-  border-radius: 6px;
-  background: rgba(16,185,129,0.15);
-  color: #10b981;
-}
-.sa-toast-inline.error { background: rgba(239,68,68,0.15); color: #ef4444; }
 
 /* ─── Body ───────────────────────────────────────────── */
 .sa-body {

@@ -2,11 +2,12 @@ import { ref, reactive } from 'vue';
 import type { Ref } from 'vue';
 import type { HwItem, ImageItem } from '@/modules/tasks/types';
 
+import { useToast } from '@/common/composables/useToast';
+
 export function useHwImages(
     user: Ref<Record<string, unknown> | null>,
     imageUpload: ReturnType<typeof import('@/modules/tasks/composables/useImageUpload').useImageUpload>,
-    refreshItem: (itemId: string, onUpdate?: (item: HwItem) => void) => Promise<void>,
-    flashMessage: (text: string, error?: boolean, durationMs?: number) => void
+    refreshItem: (itemId: string, onUpdate?: (item: HwItem) => void) => Promise<void>
 ) {
     const showImageViewer = ref(false);
     const viewerImages = ref<HwItem['images']>([]);
@@ -95,12 +96,12 @@ export function useHwImages(
                     imageMenu.item = newData;
                 }
             });
-            flashMessage('Bild gelöscht.', false, 3000);
+            useToast().success('Bild gelöscht.', 3000);
             showImageDeleteConfirm.value = false;
             imageMenu.image = null;
             imageMenu.item = null;
         } catch {
-            flashMessage('Fehler beim Löschen des Bildes.', true, 4000);
+            useToast().error('Fehler beim Löschen des Bildes.', 4000);
         } finally {
             deletingImage.value = false;
         }

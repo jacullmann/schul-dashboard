@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import type { Ref } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
+import { useToast } from '@/common/composables/useToast';
 
 export function useHwActions(
     user: Ref<Record<string, unknown> | null>,
@@ -9,7 +10,6 @@ export function useHwActions(
     pinnedItems: Ref<Set<string>>,
     archivedItems: Ref<Set<string>>,
     keptItems: Ref<Set<string>>,
-    flashMessage: (text: string, error?: boolean, durationMs?: number) => void,
     handleSuccessAction: (msg: string) => void
 ) {
     const showDeleteConfirm = ref(false);
@@ -59,7 +59,7 @@ export function useHwActions(
             } else {
                 checkedItems.value.delete(id);
             }
-            flashMessage('Fehler beim Setzen des Status.', true, 4000);
+            useToast().error('Fehler beim Setzen des Status.', 4000);
         }
     }
 
@@ -114,7 +114,7 @@ export function useHwActions(
             keptItems.value.delete(id);
             if (originalArchived) archivedItems.value.add(id);
             if (originalKept) keptItems.value.add(id);
-            flashMessage('Fehler bei der Statusänderung.', true, 4000);
+            useToast().error('Fehler bei der Statusänderung.', 4000);
         }
     }
 
@@ -147,7 +147,7 @@ export function useHwActions(
                 revertedPins.delete(id);
             }
             pinnedItems.value = revertedPins;
-            flashMessage('Fehler beim Setzen des Status.', true, 4000);
+            useToast().error('Fehler beim Setzen des Status.', 4000);
         }
     }
 
@@ -190,7 +190,7 @@ export function useHwActions(
             handleSuccessAction('Eintrag gelöscht.');
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
-            flashMessage(err.response?.data?.error || 'Fehler beim Löschen.', true);
+            useToast().error(err.response?.data?.error || 'Fehler beim Löschen.');
         } finally {
             deletingEntry.value = false;
         }
@@ -207,7 +207,7 @@ export function useHwActions(
         const item = reportTarget.value;
         const reason = reportReason.value;
         cancelReport();
-        flashMessage('Melde...', false, 10000);
+        useToast().info('Melde...', 10000);
 
         try {
             await hw.post('/api/items/reports', {
@@ -216,10 +216,10 @@ export function useHwActions(
                 category,
                 reason,
             });
-            flashMessage('Eintrag gemeldet.', false, 7000);
+            useToast().success('Eintrag gemeldet.', 7000);
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
-            flashMessage('Fehler beim Melden: ' + (err.response?.data?.error || ''), true, 7000);
+            useToast().error('Fehler beim Melden: ' + (err.response?.data?.error || ''), { duration: 7000 });
         }
     }
 
@@ -248,9 +248,9 @@ export function useHwActions(
         } else {
             try {
                 await navigator.clipboard.writeText(shareUrl);
-                flashMessage('Link in die Zwischenablage kopiert!', false, 3000);
+                useToast().success('Link in die Zwischenablage kopiert!', 3000);
             } catch {
-                flashMessage('Teilen fehlgeschlagen.', true, 3000);
+                useToast().error('Teilen fehlgeschlagen.', 3000);
             }
         }
     }

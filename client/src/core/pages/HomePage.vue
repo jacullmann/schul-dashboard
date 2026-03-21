@@ -140,9 +140,9 @@ onMounted(() => {
             @click="navigateToGroup(group.id)"
             :disabled="navigatingGroupId === group.id"
         >
-          <div class="group-card-icon">
+          <span class="group-card-icon">
             <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
-          </div>
+          </span>
           <div class="group-card-body">
             <span class="group-card-name">{{ group.name }}</span>
             <span class="group-card-meta">
@@ -169,16 +169,16 @@ onMounted(() => {
             @click="navigateToGroup(group.id)"
             :disabled="navigatingGroupId === group.id"
         >
-          <div class="group-card-icon">
+          <span class="group-card-icon">
             <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
-          </div>
-          <div class="group-card-body">
+          </span>
+          <span class="group-card-body">
             <span class="group-card-name">{{ group.name }}</span>
             <span class="group-card-role" :class="'role-' + group.role">
               {{ roleLabel(group.role) }}
             </span>
             <span v-if="group.generatedName" class="group-card-username">{{ group.generatedName }}</span>
-          </div>
+          </span>
           <ChevronRight :size="16" class="group-card-arrow" />
         </button>
       </div>
@@ -315,6 +315,10 @@ onMounted(() => {
   background: var(--text-default);
 }
 
+.group-card.active:hover {
+  background: var(--action-hover)
+}
+
 .group-card-icon {
   display: flex;
   align-items: center;
@@ -331,7 +335,10 @@ onMounted(() => {
 
 .group-card.active .group-card-icon {
   color: var(--bg-canvas);
-  background: var(--text-default);
+}
+
+.group-card.active:hover .group-card-icon {
+  color: var(--bg-canvas);
 }
 
 .group-card-body {
@@ -404,9 +411,7 @@ onMounted(() => {
 .empty-state-card {
   text-align: center;
   padding: 48px 24px;
-  background: var(--bg-surface);
-  border: 1px dashed var(--border-canvas);
-  border-radius: 16px;
+  border-radius: var(--border-radius-xl);
 }
 
 .empty-icon {
@@ -424,10 +429,8 @@ onMounted(() => {
 .empty-state-card p {
   color: var(--sub);
   font-size: var(--font-size-body);
-  margin: 0 0 24px;
   max-width: 360px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 24px;
   line-height: 1.5;
 }
 

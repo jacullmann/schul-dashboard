@@ -68,7 +68,11 @@ export class GroupController {
   @UseGuards(JwtAuthGuard)
   @Get('status')
   getStatus(@Req() req: any) {
-    return this.groupService.getStatus(req.userId, req.activeGroupId || null);
+    return this.groupService.getStatus(
+      req.userId,
+      req.activeGroupId || null,
+      req.user?.globalRole,
+    );
   }
 
   @Post('switch')

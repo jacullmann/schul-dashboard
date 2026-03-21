@@ -91,6 +91,8 @@ export class ItemsService {
       createdByName: generateUserName(row.created_by, tenantId),
       timeColor: timeLeftColor(row.due_date),
       editorNote: row.editor_note || '',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     }));
   }
 
@@ -124,6 +126,8 @@ export class ItemsService {
       createdByName: generateUserName(row.created_by, tenantId),
       timeColor: timeLeftColor(row.due_date),
       editorNote: row.editor_note || '',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 
@@ -166,7 +170,10 @@ export class ItemsService {
       type: 'item:create',
       meta: { id: item.id, type: item.type },
     });
-    if (err_j4g3x) throw new InternalServerErrorException(err_j4g3x.message);
+    if (err_j4g3x)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, id: item.id };
   }
@@ -273,7 +280,10 @@ export class ItemsService {
       .delete()
       .eq('id', item.id)
       .eq('tenant_id', tenantId);
-    if (err_tzewj) throw new InternalServerErrorException(err_tzewj.message);
+    if (err_tzewj)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern des Elements',
+      );
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'item:delete', meta: { id: item.id } });
@@ -308,7 +318,10 @@ export class ItemsService {
       type: 'item:note:update',
       meta: { itemId: item.id },
     });
-    if (err_o6pcp) throw new InternalServerErrorException(err_o6pcp.message);
+    if (err_o6pcp)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, editorNote: noteContent };
   }
@@ -347,7 +360,10 @@ export class ItemsService {
       type: 'item:image:add',
       meta: { itemId: item.id },
     });
-    if (err_vgxbj) throw new InternalServerErrorException(err_vgxbj.message);
+    if (err_vgxbj)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, image: withThumb(newImage) };
   }
@@ -409,7 +425,10 @@ export class ItemsService {
       type: 'item:image:delete',
       meta: { itemId: item.id },
     });
-    if (err_oj0tc) throw new InternalServerErrorException(err_oj0tc.message);
+    if (err_oj0tc)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true };
   }
@@ -430,14 +449,20 @@ export class ItemsService {
       reporter_id: userId,
       reporter_email: email,
     });
-    if (err_wypce) throw new InternalServerErrorException(err_wypce.message);
+    if (err_wypce)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
 
     const { error: err_at81w } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:report',
       meta: { itemId, category },
     });
-    if (err_at81w) throw new InternalServerErrorException(err_at81w.message);
+    if (err_at81w)
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern der Benutzeraktivität',
+      );
 
     return { ok: true, message: 'Eintrag erfolgreich gemeldet.' };
   }

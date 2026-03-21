@@ -337,8 +337,9 @@ router.beforeEach(async (to, from, next) => {
         // Fast client-side membership check before hitting the server.
         // Note: this is advisory — the server will reject unauthorized access
         // regardless. But it saves a round-trip for obvious non-members.
+        if (!userStore.initialized) await userStore.fetchUser();
         const isMember = userGroups.value.some((g) => g.id === routeGroupId);
-        if (!isMember) {
+        if (!isMember && !userStore.isSuperadmin) {
             finish();
             return next({ path: '/home', replace: true });
         }

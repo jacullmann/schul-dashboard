@@ -69,7 +69,10 @@ export class DocService {
         .from('admin_shared_doc')
         .select('*')
         .maybeSingle();
-      if (err_u4k6z) throw new InternalServerErrorException(err_u4k6z.message);
+      if (err_u4k6z)
+        throw new InternalServerErrorException(
+          'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        );
       if (data) {
         this.docState = {
           content: data.content ?? '',
@@ -86,7 +89,9 @@ export class DocService {
           last_edited_at: null,
         });
         if (err_m5kd6)
-          throw new InternalServerErrorException(err_m5kd6.message);
+          throw new InternalServerErrorException(
+            'Ein unerwarteter Datenbankfehler ist aufgetreten',
+          );
       }
       this.loaded = true;
     } catch (err) {
@@ -104,7 +109,10 @@ export class DocService {
         last_edited_by: this.docState.lastEditedBy,
         last_edited_at: this.docState.lastEditedAt,
       });
-      if (err_gp0rq) throw new InternalServerErrorException(err_gp0rq.message);
+      if (err_gp0rq)
+        throw new InternalServerErrorException(
+          'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        );
     } catch (err) {
       console.error('[Doc] DB write error:', err);
     }
@@ -136,7 +144,10 @@ export class DocService {
       .from('shared_doc')
       .select('*')
       .maybeSingle();
-    if (err_88r9d) throw new InternalServerErrorException(err_88r9d.message);
+    if (err_88r9d)
+      throw new InternalServerErrorException(
+        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+      );
     return data ?? { content: '', version: 0 };
   }
 }

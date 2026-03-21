@@ -1,19 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import hw from '@/api/hwApi';
 import AnnouncementPopup from '@/modules/announcements/components/AnnouncementPopup.vue';
 import { X, EllipsisVertical } from 'lucide-vue-next';
 
-const { activeGroupId } = useAppAuth();
-const route = useRoute();
+interface Announcement {
+  id: string;
+  content: string;
+  color: string;
+  showAsPopup: boolean;
+}
 
-const announcements = ref([]);
-const currentIndex = ref(0);
-const showMenu = ref(false);
-const showPopup = ref(false);
-const currentPopupAnnouncement = ref(null);
+const { activeGroupId } = useAppAuth();
+
+const announcements = ref<Announcement[]>([]);
+const currentIndex = ref<number>(0);
+const showMenu = ref<boolean>(false);
+const showPopup = ref<boolean>(false);
+const currentPopupAnnouncement = ref<Announcement | null>(null);
 
 // This component is only rendered when inside a group route (parent handles v-if),
 // but we double-check that we have a group context before loading
@@ -21,11 +26,11 @@ const hasGroupContext = computed(() => {
   return !!activeGroupId.value;
 });
 
-const currentAnnouncement = computed(() => {
-  return announcements.value[currentIndex.value] || {};
+const currentAnnouncement = computed<Announcement>(() => {
+  return announcements.value[currentIndex.value] || { id: '', content: '', color: 'info', showAsPopup: false };
 });
 
-const getSeenPopups = () => {
+const getSeenPopups = (): string[] => {
   try {
     return JSON.parse(localStorage.getItem('seenAnnouncementPopups') || '[]');
   } catch {
@@ -33,7 +38,7 @@ const getSeenPopups = () => {
   }
 };
 
-const markPopupAsSeen = (announcementId) => {
+const markPopupAsSeen = (announcementId: string) => {
   const seen = getSeenPopups();
   if (!seen.includes(announcementId)) {
     seen.push(announcementId);
@@ -44,12 +49,16 @@ const markPopupAsSeen = (announcementId) => {
 async function loadAnnouncements() {
   if (!hasGroupContext.value) {
     announcements.value = [];
+    currentIndex.value = 0;
+    closePopup();
     updateAnnouncementHeight();
     return;
   }
   try {
     const { data } = await hw.get('/api/timetable/announcements');
     announcements.value = data;
+    currentIndex.value = 0;
+    closePopup();
     updateAnnouncementHeight();
     checkForNewPopups(data);
   } catch (error) {
@@ -57,7 +66,7 @@ async function loadAnnouncements() {
   }
 }
 
-function checkForNewPopups(anns) {
+function checkForNewPopups(anns: Announcement[]) {
   const seenPopups = getSeenPopups();
   for (const announcement of anns) {
     if (announcement.showAsPopup && !seenPopups.includes(announcement.id)) {
@@ -78,7 +87,7 @@ function toggleMenu() {
   showMenu.value = !showMenu.value;
 }
 
-function selectAnnouncement(index) {
+function selectAnnouncement(index: number) {
   currentIndex.value = index;
   showMenu.value = false;
 }
@@ -98,8 +107,8 @@ function updateAnnouncementHeight() {
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
 
-function colorFor(color) {
-  const map = {
+function colorFor(color: string) {
+  const map: Record<string, string> = {
     'ok': 'var(--primary)',
     'warn': 'var(--warn)',
     'danger': 'var(--danger)',
@@ -109,8 +118,8 @@ function colorFor(color) {
   return map[color] || 'var(--sub)';
 }
 
-// Reload announcements when group context changes
-watch(hasGroupContext, (newVal) => {
+// Reload announcements when active group changes
+watch(activeGroupId, (newVal) => {
   if (newVal) {
     loadAnnouncements();
   } else {
