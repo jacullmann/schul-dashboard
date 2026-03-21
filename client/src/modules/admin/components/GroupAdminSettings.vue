@@ -59,7 +59,8 @@ const deleteConfirmText = ref('');
 const deletingGroup = ref(false);
 
 async function confirmDeleteGroup() {
-  if (deleteConfirmText.value !== props.groupName) return;
+  const expectedConfirmation = `delete ${props.groupName}`;
+  if (deleteConfirmText.value !== expectedConfirmation) return;
   
   if (!confirm('Sind Sie sicher, dass Sie diese Gruppe unwiderruflich löschen möchten?')) return;
   
@@ -178,16 +179,16 @@ async function confirmDeleteGroup() {
       </p>
       
       <div class="delete-confirmation">
-        <label>Bitte geben Sie <strong>{{ groupName }}</strong> ein, um fortzufahren:</label>
+        <label>Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um fortzufahren:</label>
         <input 
           v-model="deleteConfirmText" 
           type="text" 
           class="input danger-input" 
-          :placeholder="groupName"
+          :placeholder="'delete ' + groupName"
         />
         <button 
           class="btn danger" 
-          :disabled="deleteConfirmText !== groupName || deletingGroup"
+          :disabled="deleteConfirmText !== `delete ${groupName}` || deletingGroup"
           @click="confirmDeleteGroup"
         >
           <LoadingSpinner v-if="deletingGroup" size="1.2em" />
@@ -204,7 +205,7 @@ async function confirmDeleteGroup() {
   animation: fadeUp 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 @keyframes fadeUp {
@@ -220,11 +221,7 @@ async function confirmDeleteGroup() {
 }
 
 .settings-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: 12px;
-  padding: 24px;
+  margin-bottom: 16px;
 }
 
 .settings-card h3 {
@@ -320,12 +317,6 @@ async function confirmDeleteGroup() {
   margin-top: 24px;
 }
 
-/* Danger Zone */
-.danger-zone {
-  border-color: rgba(239, 68, 68, 0.3);
-  background: rgba(239, 68, 68, 0.02);
-}
-
 .danger-title {
   color: var(--danger);
 }
@@ -347,21 +338,6 @@ async function confirmDeleteGroup() {
 .delete-confirmation label {
   font-size: var(--font-size-sub);
   color: var(--text-default);
-}
-
-.delete-confirmation .danger-input {
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.delete-confirmation .danger-input:focus {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.btn.danger {
-  background: var(--danger);
-  color: #fff;
-  border: none;
 }
 
 .btn.danger:hover:not(:disabled) {

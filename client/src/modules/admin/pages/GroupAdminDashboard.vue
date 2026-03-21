@@ -43,8 +43,8 @@ const {
   saveGroupName,
 } = useGroupAdmin();
 
-const { user } = useUserStore();
-const isAdmin = computed(() => user?.tenantRole === 'admin');
+const userStore = useUserStore();
+const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
 
 const tabs = [
   { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard) },
