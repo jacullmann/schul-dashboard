@@ -36,7 +36,7 @@ function handleChange(event: Event) {
   align-items: center;
   cursor: pointer;
   user-select: none;
-  /* reset any global label styles */
+  /* reset global label styles */
   font: inherit;
   color: inherit;
   margin: 0;
