@@ -179,32 +179,24 @@ export class TimetableService {
 
   async getAnnouncementReadStatus(userId: string, tenantId: string): Promise<string[]> {
     const sb = this.supabaseService.getClient();
-    try {
-      // Only return IDs that correspond to announcements in this tenant
-      const { data } = await sb
-        .from('user_announcement_read_status')
-        .select('announcement_id, announcements!inner(tenant_id)')
-        .eq('user_id', userId)
-        .eq('announcements.tenant_id', tenantId);
-      return (data || []).map((r: any) => r.announcement_id as string);
-    } catch {
-      // Non-fatal: if the table doesn't exist yet (pre-migration), return empty list
-      return [];
-    }
+    const { data, error } = await sb
+      .from('user_announcement_read_status')
+      .select('announcement_id, announcements!inner(tenant_id)')
+      .eq('user_id', userId)
+      .eq('announcements.tenant_id', tenantId);
+    if (error) throw new InternalServerErrorException('Failed to load announcement read status');
+    return data.map((r: any) => r.announcement_id as string);
   }
 
   async markAnnouncementRead(userId: string, announcementId: string): Promise<void> {
     const sb = this.supabaseService.getClient();
-    try {
-      await sb
-        .from('user_announcement_read_status')
-        .upsert(
-          { user_id: userId, announcement_id: announcementId },
-          { onConflict: 'user_id,announcement_id' },
-        );
-    } catch {
-      // Non-fatal: silently fail if the table doesn't exist yet (pre-migration)
-    }
+    const { error } = await sb
+      .from('user_announcement_read_status')
+      .upsert(
+        { user_id: userId, announcement_id: announcementId },
+        { onConflict: 'user_id,announcement_id' },
+      );
+    if (error) throw new InternalServerErrorException('Failed to mark announcement as read');
   }
 
   async getTimetableErrors() {
