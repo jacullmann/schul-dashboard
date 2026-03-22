@@ -180,7 +180,7 @@ const { initiateGoogleLogin } = useOAuth();
 
       <button
           type="button"
-          class="btn google-btn"
+          class="btn ghost submit-btn"
           @click="initiateGoogleLogin"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -358,19 +358,5 @@ const { initiateGoogleLogin } = useOAuth();
   flex: 1;
   height: 1px;
   background: var(--border-canvas);
-}
-
-.google-btn {
-  width: 100%;
-  justify-content: center;
-  gap: 10px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  color: var(--text-default);
-  font-weight: 500;
-}
-
-.google-btn:hover {
-  background: var(--bg-interactive-hover);
 }
 </style>
