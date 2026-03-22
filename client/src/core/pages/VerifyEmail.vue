@@ -2,6 +2,9 @@
 import { onMounted, ref } from 'vue';
 import hw from '@/api/hwApi';
 import { CheckCircle2, XCircle, Info, AlertTriangle, ArrowLeft } from 'lucide-vue-next';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const loading = ref(true);
 const ok = ref(false);
@@ -27,18 +30,18 @@ onMounted(async () => {
         <div class="verify-icon loading-icon">
           <div class="spinner"></div>
         </div>
-        <h1 class="verify-title">E-Mail wird verifiziert</h1>
+        <h1 class="verify-title">{{ t('groups.verify.verifying') }}</h1>
         <p class="verify-description">
-          Bitte warte einen Moment, wir verifizieren gerade deine E-Mail...
+          {{ t('groups.verify.wait') }}
         </p>
       </template>
       <template v-else-if="ok">
         <div class="verify-icon success-icon">
           <CheckCircle2 :size="64" />
         </div>
-        <h1 class="verify-title">Erfolgreich verifiziert!</h1>
+        <h1 class="verify-title">{{ t('groups.verify.success') }}</h1>
         <p class="verify-description">
-          Deine E-Mail wurde erfolgreich verifiziert. Du kannst nun alle Funktionen nutzen.
+          {{ t('groups.verify.successDescription') }}
         </p>
 
         <div class="info-card">
@@ -46,7 +49,7 @@ onMounted(async () => {
             <Info :size="20" />
           </div>
           <div class="info-card-text">
-            Du kannst diesen Tab nun schließen und dich mit deinem Konto anmelden.
+            {{ t('groups.verify.closeTab') }}
           </div>
         </div>
       </template>
@@ -54,27 +57,27 @@ onMounted(async () => {
         <div class="verify-icon error-icon">
           <XCircle :size="64" />
         </div>
-        <h1 class="verify-title">Verifizierung fehlgeschlagen</h1>
+        <h1 class="verify-title">{{ t('groups.verify.error') }}</h1>
         <p class="verify-description">
-          Dein Bestätigungslink ist ungültig oder bereits abgelaufen. Versuche es erneut oder kontaktiere unseren Support.
+          {{ t('groups.verify.errorDescription') }}
         </p>
 
         <div class="error-card">
           <div class="error-card-header">
             <AlertTriangle :size="20" />
-            <span>Mögliche Gründe</span>
+            <span>{{ t('groups.verify.possibleCauses') }}</span>
           </div>
           <ul class="error-reasons">
-            <li>Der Link wurde bereits verwendet</li>
-            <li>Der Link ist abgelaufen (Die Gültigkeit des Links ist zeitlich begrenzt)</li>
-            <li>Der Link wurde nicht korrekt kopiert</li>
+            <li>{{ t('groups.verify.causes.usedLink') }}</li>
+            <li>{{ t('groups.verify.causes.expiredLink') }}</li>
+            <li>{{ t('groups.verify.causes.copiedLink') }}</li>
           </ul>
         </div>
 
         <div class="action-section">
           <router-link to="/" class="btn ghost white-text">
             <ArrowLeft :size="18" />
-            Zurück zum Start
+            {{ t('global.buttons.back') }}
           </router-link>
         </div>
       </template>

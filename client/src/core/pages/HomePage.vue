@@ -8,6 +8,9 @@ import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, User
 import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import hw from '@/api/hwApi';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -29,10 +32,10 @@ const displayName = computed(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours();
-  if (h < 6) return 'Gute Nacht';
-  if (h < 12) return 'Guten Morgen';
-  if (h < 18) return 'Guten Tag';
-  return 'Guten Abend';
+  if (h < 6) return 'groups.home.goodNight';
+  if (h < 12) return 'groups.home.goodMorning';
+  if (h < 18) return 'groups.home.goodDay';
+  return 'groups.home.goodEvening';
 });
 
 function roleLabel(role: string): string {
@@ -97,7 +100,7 @@ onMounted(() => {
       <div class="welcome-content">
         <div class="welcome-text">
           <h1 class="welcome-title">
-            {{ greeting }}<span v-if="user">, </span><span v-if="user" class="welcome-name">{{ displayName }}</span>
+            {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="welcome-name">{{ displayName }}</span>
           </h1>
           <p class="welcome-sub">
             {{ isSuperadmin
@@ -111,11 +114,11 @@ onMounted(() => {
         <div class="welcome-actions">
           <button class="btn action" @click="showJoinModal = true">
             <UserRoundPlus :size="16" />
-            <span>Gruppe beitreten</span>
+            <span>{{ t('groups.home.joinGroup') }}</span>
           </button>
           <button class="btn ghost" @click="showCreateModal = true">
             <Plus :size="16" />
-            <span>Neue Gruppe</span>
+            <span>{{ t('groups.home.createGroup') }}</span>
           </button>
           <router-link v-if="isSuperadmin" to="/admin" class="btn ghost">
             <ShieldUser :size="16" />
@@ -128,7 +131,7 @@ onMounted(() => {
     <!-- Superadmin: All Groups -->
     <section v-if="isSuperadmin && allGroups.length > 0" class="groups-section">
       <div class="section-header">
-        <h2 class="section-title">Alle Gruppen</h2>
+        <h2 class="section-title">{{ t('groups.home.allGroups') }}</h2>
         <span class="section-badge">{{ allGroups.length }}</span>
       </div>
       <div class="groups-grid">
@@ -146,7 +149,7 @@ onMounted(() => {
           <div class="group-card-body">
             <span class="group-card-name">{{ group.name }}</span>
             <span class="group-card-meta">
-              {{ group.memberCount ?? '?' }} Mitglieder
+              {{ group.memberCount ?? '?' }} {{ t('groups.home.members') }}
             </span>
           </div>
           <ChevronRight :size="16" class="group-card-arrow" />
@@ -157,7 +160,7 @@ onMounted(() => {
     <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="groups-section">
       <div class="section-header">
-        <h2 class="section-title">{{ isSuperadmin ? 'Meine Gruppen' : 'Deine Gruppen' }}</h2>
+        <h2 class="section-title">{{ t('groups.home.yourGroups') }}</h2>
         <span class="section-badge">{{ userGroups.length }}</span>
       </div>
       <div class="groups-grid">
@@ -188,11 +191,11 @@ onMounted(() => {
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading" class="empty-section">
       <div class="empty-state-card">
         <UsersRound :size="40" class="empty-icon" />
-        <h3>Noch keine Gruppen</h3>
-        <p>Tritt einer bestehenden Gruppe bei oder erstelle eine neue, um loszulegen.</p>
+        <h3>{{ t('groups.home.noGroups') }}</h3>
+        <p>{{ t('groups.home.joinGroupText') }}</p>
         <div class="empty-actions">
-          <button class="btn action" @click="showJoinModal = true">Gruppe beitreten</button>
-          <button class="btn ghost" @click="showCreateModal = true">Neue Gruppe</button>
+          <button class="btn action" @click="showJoinModal = true">{{ t('groups.home.joinGroup') }}</button>
+          <button class="btn ghost" @click="showCreateModal = true">{{ t('groups.home.createGroup') }}</button>
         </div>
       </div>
     </section>

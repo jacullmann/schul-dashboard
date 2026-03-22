@@ -245,9 +245,27 @@
     }
   },
   "groups": {
-    "join": "Gruppe beitreten",
-    "create": "Gruppe erstellen/Neue Gruppe",
-    "myGroups": "Meine Gruppen"
+    "home": {
+      "title": "Start",
+      "goodNight": "Gute Nacht",
+      "goodMorning": "Guten Morgen",
+      "goodDay": "Guten Tag",
+      "goodEvening": "Guten Abend",
+      "joinGroup": "Gruppe beitreten",
+      "createGroup": "Gruppe erstellen",
+      "allGroups": "Alle Gruppen",
+      "yourGroups": "Deine Gruppen",
+      "noGroups": "Noch keine Gruppen",
+      "joinGroupText": "Tritt einer bestehenden Gruppe bei oder erstelle eine neue, um loszulegen.",
+      "members": "Mitglieder"
+    },
+    "roles": {
+      "member": "Mitglied",
+      "moderator": "Moderator",
+      "admin": "Admin",
+      "owner": "Besitzer",
+      "superadmin": "Superadmin"
+    }
   },
   "welcome": {
     "hero": {
@@ -322,6 +340,21 @@
       },
       "disclaimerTitle": "Wichtiger rechtlicher Hinweis!",
       "disclaimer": "Jeder unbefugte Versuch, die Sicherheitsvorkehrungen zu umgehen oder sensitive Daten (inklusive personenbezogener Daten) zu erlangen oder zu kompromittieren, wird lückenlos dokumentiert. Derartige Verstöße werden ausnahmslos und unverzüglich zur Strafanzeige gebracht, unabhängig davon, ob der Versuch erfolgreich war oder ob Daten tatsächlich erlangt wurden."
+    },
+    "verify": {
+      "verifying": "E-Mail wird verifiziert",
+      "wait": "Bitte warte einen Moment, wir verifizieren gerade deine E-Mail...",
+      "success": "Erfolgreich verifiziert!",
+      "successDescription": "Deine E-Mail wurde erfolgreich verifiziert. Du kannst nun alle Funktionen nutzen.",
+      "closeTab": "Du kannst diesen Tab nun schließen und dich mit deinem Konto anmelden.",
+      "error": "Verifizierung fehlgeschlagen",
+      "errorDescription": "Dein Bestätigungslink ist ungültig oder bereits abgelaufen. Versuche es erneut oder kontaktiere unseren Support.",
+      "possibleCauses": "Mögliche Gründe",
+      "causes": {
+        "usedLink": "Der Link wurde bereits verwendet",
+        "expiredLink": "Der Link ist abgelaufen (Die Gültigkeit des Links ist zeitlich begrenzt)",
+        "wrongLink": "Der Link wurde nicht korrekt kopiert"
+      }
     }
   },
   "school": {
