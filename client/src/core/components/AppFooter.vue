@@ -20,52 +20,42 @@ const year = new Date().getFullYear();
             <span class="brand-text">schul-dashboard</span>
           </div>
           <Tagline />
-          <p class="brand-description">
-            Teile deine Erfahrungen mit uns und sorge für eine sichere Umgebung. Wir nehmen Feedback gerne an und versuchen stetig, uns zu verbessern.
-          </p>
         </div>
 
         <div class="footer-section">
           <h3>Navigation</h3>
           <router-link to="/home" class="footer-link">{{ t('groups.home.title') }}</router-link>
           <router-link to="/todos" class="footer-link">{{ t('school.private.title') }}</router-link>
-          <router-link to="/update-history" class="footer-link">Update History</router-link>
           <router-link to="/info-dashboard" class="footer-link">{{ t('info.dashboard.title') }}</router-link>
-          <router-link to="/spiele" class="footer-link">Spiele</router-link>
-          <router-link to="/brain" class="footer-link">Brain-Tests</router-link>
-          <router-link to="/imagetool" class="footer-link">Bildkonvertierungstool</router-link>
+          <router-link to="/spiele" class="footer-link">{{ t('navigation.games') }}</router-link>
+          <router-link to="/brain" class="footer-link">Brain Tests</router-link>
+          <router-link to="/imagetool" class="footer-link">{{ t('navigation.imageTool') }}</router-link>
         </div>
 
         <div class="footer-section">
-          <h3>Rechtliches</h3>
+          <h3>{{ t('legal.title') }}</h3>
           <router-link to="/legal/impressum" class="footer-link">{{ t('legal.imprint.title') }}</router-link>
           <router-link to="/legal/datenschutz" class="footer-link">{{ t('legal.privacy.title') }}</router-link>
           <router-link to="/legal/nutzung" class="footer-link">{{ t('legal.terms.title') }}</router-link>
         </div>
 
         <div class="footer-section">
-          <h3>Kontakt</h3>
+          <h3>{{ t('contact.contact.title') }}</h3>
           <router-link to="/kontakt" class="footer-link">{{ t('contact.contact.title') }}</router-link>
         </div>
 
         <div class="footer-section">
-          <h3>Design</h3>
+          <h3>{{ t('global.design') }}</h3>
           <div class="theme-selector">
             <ThemeDropdown />
           </div>
-          <p class="brand-description">
-            Wähle dein bevorzugtes Design für das Schul-Dashboard aus.
-          </p>
         </div>
 
         <div class="footer-section">
-          <h3>Sprache</h3>
+          <h3>{{ t('global.language') }}</h3>
           <div class="theme-selector">
             <LocaleDropdown />
           </div>
-          <p class="brand-description">
-            Wähle deine bevorzugte Sprache aus.
-          </p>
         </div>
       </div>
     </div>
@@ -129,14 +119,6 @@ const year = new Date().getFullYear();
   color: var(--text-default);
   line-height: 1;
   margin-bottom: 4px;
-}
-
-.brand-description {
-  color: var(--sub);
-  margin-top: 0.5rem;
-  font-size: var(--font-size-body);
-  font-weight: 500;
-  display: none;
 }
 
 .footer-section h3 {

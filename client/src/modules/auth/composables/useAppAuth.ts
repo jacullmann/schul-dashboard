@@ -140,10 +140,10 @@ export function useAppAuth() {
                 await checkAuthStatus();
                 return { ok: true };
             }
-            return { ok: false, error: 'Login fehlgeschlagen' };
+            return { ok: false, error: 'Login failed' };
         } catch (error: unknown) {
             const err = error as { response?: { data?: { error?: string } } };
-            return { ok: false, error: err.response?.data?.error ?? 'Ungültiger Code' };
+            return { ok: false, error: err.response?.data?.error ?? 'Invalid code' };
         }
     }
 
@@ -158,10 +158,10 @@ export function useAppAuth() {
                 await checkAuthStatus();
                 return { ok: true };
             }
-            return { ok: false, error: 'Gruppenerstellung fehlgeschlagen' };
+            return { ok: false, error: 'Group creation failed' };
         } catch (error: unknown) {
             const err = error as { response?: { data?: { error?: string } } };
-            return { ok: false, error: err.response?.data?.error ?? 'Fehler' };
+            return { ok: false, error: err.response?.data?.error ?? 'An error occurred' };
         }
     }
 
@@ -199,7 +199,7 @@ export function useAppAuth() {
                     return { ok: true };
                 }
 
-                throw new Error(data?.error ?? 'Wechsel fehlgeschlagen');
+                throw new Error(data?.error ?? 'Group switch failed');
             } catch (error: unknown) {
                 // Full rollback: restore every piece of state we might have mutated.
                 activeGroupId.value = snapshot.activeGroupId;
@@ -210,7 +210,7 @@ export function useAppAuth() {
 
                 const err = error as { response?: { data?: { error?: string } }; message?: string };
                 const message =
-                    err.response?.data?.error ?? err.message ?? 'Wechsel fehlgeschlagen';
+                    err.response?.data?.error ?? err.message ?? 'Group switch failed';
                 return { ok: false, error: message };
             } finally {
                 switchPromise = null;

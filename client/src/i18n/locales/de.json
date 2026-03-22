@@ -44,7 +44,8 @@
       "unknown": "Unbekannter Fehler",
       "delete": "Fehler beim Löschen",
       "save": "Fehler beim Speichern",
-      "update": "Fehler beim Aktualisieren"
+      "update": "Fehler beim Aktualisieren",
+      "validationFailed": "Bitte Eingaben überprüfen."
     },
     "cookies": {
       "banner": {
@@ -131,6 +132,7 @@
       "light": "Hell"
     },
     "language": "Sprache",
+    "design": "Design",
     "titles": {
       "mr": "Herr",
       "ms": "Frau",
@@ -585,6 +587,9 @@
       "successDuplicate": "Privater Eintrag erfolgreich dupliziert",
       "errorDuplicate": "Fehler beim duplizieren",
       "deleteConfirm": "Möchtest du diesen privaten Eintrag wirklich löschen?",
+      "successCreate": "Privater Eintrag erstellt",
+      "successUpdate": "Privater Eintrag aktualisiert",
+      "newEntry": "Neuer Eintrag",
       "successDelete": "Privater Eintrag erfolgreich gelöscht",
       "todoForm": {
         "title": "Neuer privater Eintrag",
@@ -634,6 +639,7 @@
   },
   "games": {},
   "legal": {
+    "title": "Rechtliches",
     "imprint": {
       "title": "Impressum",
       "info": {

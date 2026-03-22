@@ -69,9 +69,7 @@ export class TimetableService {
         courses: l.courses ? { id: l.courses.id, name: l.courses.name } : null,
       }));
     } catch (_err) {
-      throw new InternalServerErrorException(
-        'Fehler beim Laden des Stundenplans',
-      );
+      throw new InternalServerErrorException('Failed to load timetable');
     }
   }
 
@@ -98,9 +96,7 @@ export class TimetableService {
         createdAt: s.created_at,
       }));
     } catch {
-      throw new InternalServerErrorException(
-        'Fehler beim Laden der Substitutions',
-      );
+      throw new InternalServerErrorException('Failed to load substitutions');
     }
   }
 
@@ -114,7 +110,7 @@ export class TimetableService {
         .order('name');
       return data || [];
     } catch {
-      throw new InternalServerErrorException('Fehler beim Laden der Fächer');
+      throw new InternalServerErrorException('Failed to load subjects');
     }
   }
 
@@ -133,7 +129,7 @@ export class TimetableService {
         title: p.title,
       }));
     } catch {
-      throw new InternalServerErrorException('Fehler beim Laden der Personen');
+      throw new InternalServerErrorException('Failed to load persons');
     }
   }
 
@@ -155,9 +151,7 @@ export class TimetableService {
         frPersonId: r.fr_person_id,
       }));
     } catch {
-      throw new InternalServerErrorException(
-        'Fehler beim Laden der Dalton-Pläne',
-      );
+      throw new InternalServerErrorException('Failed to load Dalton schedules');
     }
   }
 
@@ -179,9 +173,41 @@ export class TimetableService {
         createdAt: a.created_at,
       }));
     } catch {
-      throw new InternalServerErrorException(
-        'Fehler beim Laden der Ankündigungen',
-      );
+      throw new InternalServerErrorException('Failed to load announcements');
     }
+  }
+
+  async getAnnouncementReadStatus(userId: string, tenantId: string): Promise<string[]> {
+    const sb = this.supabaseService.getClient();
+    try {
+      // Only return IDs that correspond to announcements in this tenant
+      const { data } = await sb
+        .from('user_announcement_read_status')
+        .select('announcement_id, announcements!inner(tenant_id)')
+        .eq('user_id', userId)
+        .eq('announcements.tenant_id', tenantId);
+      return (data || []).map((r: any) => r.announcement_id as string);
+    } catch {
+      // Non-fatal: if the table doesn't exist yet (pre-migration), return empty list
+      return [];
+    }
+  }
+
+  async markAnnouncementRead(userId: string, announcementId: string): Promise<void> {
+    const sb = this.supabaseService.getClient();
+    try {
+      await sb
+        .from('user_announcement_read_status')
+        .upsert(
+          { user_id: userId, announcement_id: announcementId },
+          { onConflict: 'user_id,announcement_id' },
+        );
+    } catch {
+      // Non-fatal: silently fail if the table doesn't exist yet (pre-migration)
+    }
+  }
+
+  async getTimetableErrors() {
+    // Placeholder for future error reporting
   }
 }

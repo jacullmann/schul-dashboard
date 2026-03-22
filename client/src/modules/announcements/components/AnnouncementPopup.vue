@@ -52,7 +52,7 @@ function close() {
     <template #title>
       <span class="popup-title">
         <span class="popup-color-indicator" :style="{ backgroundColor: color }"></span>
-        Ankündigung
+        Announcement
       </span>
     </template>
     

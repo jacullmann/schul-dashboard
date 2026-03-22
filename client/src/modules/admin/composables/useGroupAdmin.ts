@@ -14,10 +14,10 @@ import { useToast } from '@/common/composables/useToast';
 export function useGroupAdmin() {
     const route = useRoute();
     const { groupName: authGroupName } = useAppAuth();
-    const { success, error: toastErrorFn } = useToast();
+    const { success, error: toastError } = useToast();
 
     const groupId = computed(() => route.params.groupId as string);
-    const groupName = computed(() => authGroupName.value || 'Gruppe');
+    const groupName = computed(() => authGroupName.value || 'Group');
 
     // UI State
     const activeTab = ref('overview');
@@ -53,9 +53,9 @@ export function useGroupAdmin() {
 
     // ─── Helpers ────────────────────────────────────────
 
-    function showMessage(msg: string, error = false) {
-        if (error) {
-            toastErrorFn(msg);
+    function showMessage(msg: string, isError = false) {
+        if (isError) {
+            toastError(msg);
         } else {
             success(msg);
         }
@@ -76,7 +76,7 @@ export function useGroupAdmin() {
             const { data } = await hw.get('/api/group-admin/stats');
             stats.value = data;
         } catch {
-            showMessage('Fehler beim Laden der Statistiken', true);
+            showMessage('Failed to load statistics', true);
         } finally {
             loadingStats.value = false;
         }
@@ -90,7 +90,7 @@ export function useGroupAdmin() {
             const { data } = await hw.get('/api/group-admin/members');
             members.value = data;
         } catch {
-            showMessage('Fehler beim Laden der Mitglieder', true);
+            showMessage('Failed to load members', true);
         } finally {
             loadingMembers.value = false;
         }
@@ -101,25 +101,24 @@ export function useGroupAdmin() {
             await hw.patch(`/api/group-admin/members/${userId}/role`, { role: newRole });
             const member = members.value.find(m => m.userId === userId);
             if (member) member.role = newRole;
-            showMessage('Rolle geändert');
+            showMessage('Role updated');
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || 'Fehler beim Ändern der Rolle', true);
-            // Reload to revert optimistic change
+            showMessage(err.response?.data?.error || 'Failed to change role', true);
             await loadMembers();
         }
     }
 
     async function removeMember(userId: string, name: string) {
-        if (!confirm(`${name} wirklich aus der Gruppe entfernen?`)) return;
+        if (!confirm(`Remove ${name} from the group?`)) return;
         try {
             await hw.delete(`/api/group-admin/members/${userId}`);
             members.value = members.value.filter(m => m.userId !== userId);
-            showMessage('Mitglied entfernt');
+            showMessage('Member removed');
             loadStats();
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || 'Fehler beim Entfernen', true);
+            showMessage(err.response?.data?.error || 'Failed to remove member', true);
         }
     }
 
@@ -131,7 +130,7 @@ export function useGroupAdmin() {
             const { data } = await hw.get('/api/group-admin/timetable');
             lessons.value = data;
         } catch {
-            showMessage('Fehler beim Laden des Stundenplans', true);
+            showMessage('Failed to load timetable', true);
         } finally {
             loadingLessons.value = false;
         }
@@ -143,7 +142,7 @@ export function useGroupAdmin() {
             const { data } = await hw.get('/api/group-admin/timetable/subs');
             subs.value = data;
         } catch {
-            showMessage('Fehler beim Laden', true);
+            showMessage('Failed to load substitutions', true);
         } finally {
             loadingSubs.value = false;
         }
@@ -155,22 +154,22 @@ export function useGroupAdmin() {
         try {
             await hw.post('/api/group-admin/timetable/subs', subData);
             await loadSubs();
-            showMessage('Substitution gespeichert');
+            showMessage('Substitution saved');
         } catch {
-            showMessage('Fehler beim Speichern', true);
+            showMessage('Failed to save substitution', true);
         } finally {
             savingSub.value = false;
         }
     }
 
     async function deleteSub(id: string) {
-        if (!confirm('Substitution löschen?')) return;
+        if (!confirm('Delete substitution?')) return;
         try {
             await hw.delete(`/api/group-admin/timetable/subs/${id}`);
             subs.value = subs.value.filter(s => s.id !== id);
-            showMessage('Gelöscht');
+            showMessage('Substitution deleted');
         } catch {
-            showMessage('Fehler beim Löschen', true);
+            showMessage('Failed to delete substitution', true);
         }
     }
 
@@ -193,36 +192,36 @@ export function useGroupAdmin() {
                 showAsPopup,
             });
             await loadAnnouncements();
-            showMessage('Ankündigung erstellt');
+            showMessage('Announcement created');
         } catch {
-            showMessage('Fehler beim Erstellen', true);
+            showMessage('Failed to create announcement', true);
         } finally {
             creatingAnn.value = false;
         }
     }
 
     async function deleteAnnouncement(id: string) {
-        if (!confirm('Ankündigung löschen?')) return;
+        if (!confirm('Delete announcement?')) return;
         try {
             await hw.delete(`/api/group-admin/announcements/${id}`);
             announcements.value = announcements.value.filter(a => a.id !== id);
-            showMessage('Gelöscht');
+            showMessage('Announcement deleted');
         } catch {
-            showMessage('Fehler beim Löschen', true);
+            showMessage('Failed to delete announcement', true);
         }
     }
 
     // ─── Cleanup ────────────────────────────────────────
 
     async function cleanupOldItems() {
-        if (!confirm('Alle Einträge älter als 90 Tage löschen?')) return;
+        if (!confirm('Delete all entries older than 90 days?')) return;
         cleaningUp.value = true;
         try {
             const { data } = await hw.delete('/api/group-admin/cleanup/old-items');
-            showMessage(data.message || 'Bereinigung abgeschlossen');
+            showMessage(data.message || 'Cleanup completed');
             await loadStats();
         } catch {
-            showMessage('Fehler bei der Bereinigung', true);
+            showMessage('Cleanup failed', true);
         } finally {
             cleaningUp.value = false;
         }
@@ -247,13 +246,12 @@ export function useGroupAdmin() {
             await hw.patch('/api/group-admin/settings', {
                 name: newGroupName.value.trim()
             });
-            showMessage('Gruppenname geändert');
+            showMessage('Group name updated');
             editingGroupName.value = false;
-            // Force reload to update name everywhere
             window.location.reload();
         } catch (e: unknown) {
             const err = e as { response?: { data?: { error?: string } } };
-            showMessage(err.response?.data?.error || 'Fehler beim Speichern', true);
+            showMessage(err.response?.data?.error || 'Failed to save group name', true);
         } finally {
             savingGroupName.value = false;
         }
@@ -262,11 +260,11 @@ export function useGroupAdmin() {
     async function updateGroupPassword(oldPassword: string, newPassword: string) {
         try {
             await hw.patch('/api/group-admin/password', { oldPassword, newPassword });
-            showMessage('Passwort erfolgreich geändert');
+            showMessage('Password changed successfully');
             return true;
         } catch (e: unknown) {
             const err = e as { response?: { data?: { message?: string, error?: string } } };
-            const msg = err.response?.data?.message || err.response?.data?.error || 'Fehler beim Ändern des Passworts';
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to change password';
             showMessage(msg, true);
             throw new Error(msg);
         }
@@ -275,26 +273,25 @@ export function useGroupAdmin() {
     async function deleteGroup() {
         try {
             await hw.delete('/api/group-admin');
-            showMessage('Gruppe erfolgreich gelöscht');
-            // Redirect will be handled by component
+            showMessage('Group deleted successfully');
             return true;
         } catch (e: unknown) {
             const err = e as { response?: { data?: { message?: string, error?: string } } };
-            const msg = err.response?.data?.message || err.response?.data?.error || 'Fehler beim Löschen der Gruppe';
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to delete group';
             showMessage(msg, true);
             throw new Error(msg);
         }
     }
 
     async function transferOwnership(targetUserId: string) {
-        if (!confirm('Bist du sicher, dass du die Eigentümerschaft übertragen möchtest? Du verlierst dadurch deine Besitzerrechte.')) return;
+        if (!confirm('Are you sure you want to transfer ownership? You will lose your owner rights.')) return;
         try {
             await hw.post('/api/group-admin/transfer-ownership', { targetUserId });
-            showMessage('Eigentümerschaft erfolgreich übertragen');
+            showMessage('Ownership transferred successfully');
             window.location.reload();
         } catch (e: unknown) {
             const err = e as { response?: { data?: { message?: string, error?: string } } };
-            const msg = err.response?.data?.message || err.response?.data?.error || 'Fehler bei der Übertragung';
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Transfer failed';
             showMessage(msg, true);
         }
     }

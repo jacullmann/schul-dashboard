@@ -98,10 +98,10 @@ function handleCsrfRefreshFailed() {
 }
 
 function handleCsrfInitFailed() {
-  console.error('CSRF-Initialisierung fehlgeschlagen. Reload-Confirm anzeigen.');
+  console.error('CSRF initialization failed.');
   const shouldReload = confirm(
-      'Die Verbindung zum Server konnte nicht sicher hergestellt werden. ' +
-      'Seite neu laden?'
+      'A secure connection to the server could not be established. ' +
+      'Reload page?'
   );
   if (shouldReload) {
     window.location.reload();

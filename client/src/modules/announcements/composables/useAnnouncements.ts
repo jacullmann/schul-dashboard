@@ -12,6 +12,8 @@ export function useAnnouncements() {
 
     const announcements = ref<Announcement[]>([]);
     const loading = ref(false);
+    /** Set of announcement IDs the current user has already seen as popups (server-backed). */
+    const readPopupIds = ref<Set<string>>(new Set());
 
     async function loadAnnouncements() {
         loading.value = true;
@@ -25,14 +27,45 @@ export function useAnnouncements() {
         }
     }
 
+    /** Fetches the set of popup-read IDs from the server for the current user. */
+    async function loadReadStatus() {
+        if (!user.value) return;
+        try {
+            const { data } = await hw.get<string[]>('/api/timetable/announcements/read-status');
+            readPopupIds.value = new Set(data);
+        } catch {
+            // Non-fatal: table may not exist yet pre-migration; treat all as unread
+            readPopupIds.value = new Set();
+        }
+    }
+
+    /** Returns true if the user has already seen this announcement popup. */
+    function isPopupRead(announcementId: string): boolean {
+        return readPopupIds.value.has(announcementId);
+    }
+
+    /**
+     * Marks a popup announcement as seen for the current user.
+     * Updates local state immediately for instant UI feedback, then persists to the server.
+     */
+    async function markPopupAsRead(announcementId: string): Promise<void> {
+        if (readPopupIds.value.has(announcementId)) return;
+        readPopupIds.value.add(announcementId);
+        try {
+            await hw.post(`/api/timetable/announcements/${announcementId}/read`);
+        } catch {
+            // Non-fatal: the optimistic local update already closed the popup
+        }
+    }
+
     async function deleteAnnouncement(id: string) {
-        if (confirm('Ankündigung löschen?')) {
+        if (confirm('Delete announcement?')) {
             try {
                 await hw.delete(`/api/group-admin/announcements/${id}`);
                 await loadAnnouncements();
             } catch (e: unknown) {
                 const err = e as { response?: { data?: { error?: string } } };
-                alert(err.response?.data?.error || 'Fehler beim Löschen.');
+                alert(err.response?.data?.error || 'Failed to delete announcement.');
             }
         }
     }
@@ -55,13 +88,18 @@ export function useAnnouncements() {
 
     onMounted(() => {
         loadAnnouncements();
+        loadReadStatus();
     });
 
     return {
         announcements,
         loading,
+        readPopupIds,
+        isPopupRead,
+        markPopupAsRead,
+        loadReadStatus,
         deleteAnnouncement,
         canManage,
-        colorFor
+        colorFor,
     };
 }

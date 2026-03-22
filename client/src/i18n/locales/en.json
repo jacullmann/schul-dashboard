@@ -125,6 +125,15 @@
       "dark": "Dark",
       "light": "Light"
     },
+    "design": "Design",
+    "language": "Language",
+    "errors": {
+      "unknown": "Unknown error",
+      "delete": "Failed to delete",
+      "save": "Failed to save",
+      "update": "Failed to update",
+      "validationFailed": "Please check your input."
+    },
     "titles": {
       "mr": "Mr.",
       "ms": "Ms.",
@@ -468,12 +477,28 @@
       }
     },
     "private": {
+      "title": "Private Entries",
       "entry": "Private Entry",
       "onlyVisibleToYou": "Only visible to you",
       "infopop": {
         "tooltip": "Overview and features for private entries",
         "text": "Unlike regular entries, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>. Thanks to <strong>AES-256 encryption</strong> you don't need to worry about security: only <strong>your password</strong> can be used to access your private entries."
       },
+      "menu": {
+        "up": "Move up",
+        "down": "Move down"
+      },
+      "requiresAccount": "You must be logged in to use private entries.",
+      "loading": "Loading private entries...",
+      "noEntriesFound": "No private entries found.",
+      "errorLoad": "Failed to load private entries",
+      "successCreate": "Private entry created",
+      "successUpdate": "Private entry updated",
+      "successDuplicate": "Private entry duplicated successfully",
+      "errorDuplicate": "Failed to duplicate entry",
+      "deleteConfirm": "Do you really want to delete this private entry?",
+      "successDelete": "Private entry deleted successfully",
+      "newEntry": "New Entry",
       "entryDeleteConfirm": "Private entry successfully deleted",
       "todoForm": {
         "title": "New Private Entry",
@@ -520,7 +545,13 @@
       "footnote": "The album cover images are used solely for identification purposes. The copyright belongs to the respective owners, labels, and artists."
     }
   },
+  "groups": {
+    "home": {
+      "title": "Home"
+    }
+  },
   "legal": {
+    "title": "Legal",
     "imprint": {
       "title": "Imprint",
       "info": {

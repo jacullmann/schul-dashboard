@@ -37,16 +37,17 @@ export class SuperAdminService {
     const { count: reportCountTotal } = await sb
       .from('reports')
       .select('*', { count: 'exact', head: true });
-    const { data: itemsByType, error: err_yokmx } = await sb.rpc(
+
+    // RPC calls: handled gracefully — if the function does not exist in the
+    // database, we fall back to empty data rather than throwing a 500 error.
+    const { data: itemsByTypeRaw, error: itemsByTypeError } = await sb.rpc(
       'get_items_by_type_count',
-      {
-        t_id: tenantId,
-      },
+      { t_id: tenantId },
     );
-    if (err_yokmx)
-      throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
-      );
+    if (itemsByTypeError) {
+      console.warn('RPC get_items_by_type_count unavailable:', itemsByTypeError.message);
+    }
+
     const { count: verifiedUsers } = await sb
       .from('users')
       .select('*', { count: 'exact', head: true })
@@ -71,18 +72,13 @@ export class SuperAdminService {
       .eq('tenant_id', tenantId)
       .gte('created_at', sevenDaysAgo);
 
-    // Approximation for top creators logic since 'top_creators' is an RPC or similar in db.ts
-    const { data: topCreators, error: err_w4xu5 } = (await sb.rpc(
+    const { data: topCreatorsRaw, error: topCreatorsError } = (await sb.rpc(
       'get_top_creators',
-      {
-        t_id: tenantId,
-        limit_count: 5,
-      },
+      { t_id: tenantId, limit_count: 5 },
     )) as { data: any; error: any };
-    if (err_w4xu5)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern des Elements',
-      );
+    if (topCreatorsError) {
+      console.warn('RPC get_top_creators unavailable:', topCreatorsError.message);
+    }
 
     return {
       userCount: userCount || 0,
@@ -92,12 +88,9 @@ export class SuperAdminService {
       reportCountTotal: reportCountTotal || 0,
       reportCountProcessed:
         (reportCountTotal || 0) - (reportCountUnprocessed || 0),
-      itemsByType: (itemsByType || []).map((t: any) => {
-        const _t = t as Record<string, any>;
-        return {
-          _id: _t.type,
-          count: _t.count,
-        };
+      itemsByType: (itemsByTypeRaw || []).map((t: any) => {
+        const row = t as Record<string, any>;
+        return { _id: row.type, count: row.count };
       }),
       verifiedUsers: verifiedUsers || 0,
       unverifiedUsers: (userCount || 0) - (verifiedUsers || 0),
@@ -105,7 +98,7 @@ export class SuperAdminService {
       oldItemsCount: oldItemsCount || 0,
       newUsersThisWeek: newUsersThisWeek || 0,
       newItemsThisWeek: newItemsThisWeek || 0,
-      topCreators: topCreators || [],
+      topCreators: topCreatorsRaw || [],
     };
   }
 
@@ -121,12 +114,12 @@ export class SuperAdminService {
 
     const publicIdsToDelete: string[] = [];
     const itemIds = (oldItems || []).map((item) => {
-      const _item = item as Record<string, any>;
-      ((_item.images as any[]) || []).forEach((img: any) => {
-        const _img = img as Record<string, any>;
-        if (_img.publicId) publicIdsToDelete.push(_img.publicId as string);
+      const row = item as Record<string, any>;
+      ((row.images as any[]) || []).forEach((img: any) => {
+        const imgRow = img as Record<string, any>;
+        if (imgRow.publicId) publicIdsToDelete.push(imgRow.publicId as string);
       });
-      return _item.id;
+      return row.id;
     });
 
     if (publicIdsToDelete.length > 0) {
@@ -150,24 +143,25 @@ export class SuperAdminService {
       .delete()
       .eq('tenant_id', tenantId)
       .lt('created_at', ninetyDaysAgo);
-    const { error: err_de5ut } = (await sb.from('user_activity').insert({
-      user_id: currentUserId,
-      type: 'admin:cleanup:old_items',
-      meta: {
-        deletedCount: itemIds.length,
-        imagesDeleted: publicIdsToDelete.length,
-      },
-    })) as { error: any };
-    if (err_de5ut)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+
+    const { error: activityInsertError } = (await sb
+      .from('user_activity')
+      .insert({
+        user_id: currentUserId,
+        type: 'admin:cleanup:old_items',
+        meta: {
+          deletedCount: itemIds.length,
+          imagesDeleted: publicIdsToDelete.length,
+        },
+      })) as { error: any };
+    if (activityInsertError)
+      throw new InternalServerErrorException('Failed to save user activity');
 
     return {
       ok: true,
       deletedItems: itemIds.length,
       deletedImages: publicIdsToDelete.length,
-      message: `${itemIds.length} Einträge und ${publicIdsToDelete.length} Bilder gelöscht.`,
+      message: `${itemIds.length} entries and ${publicIdsToDelete.length} images deleted.`,
     };
   }
 
@@ -180,12 +174,12 @@ export class SuperAdminService {
 
     const result = await Promise.all(
       (groups || []).map(async (g) => {
-        const _g = g as Record<string, any>;
+        const row = g as Record<string, any>;
         const { count } = await sb
           .from('user_roles')
           .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', _g.id);
-        return { ..._g, memberCount: count || 0 };
+          .eq('tenant_id', row.id);
+        return { ...row, memberCount: count || 0 };
       }),
     );
 
@@ -207,22 +201,22 @@ export class SuperAdminService {
     );
 
     return (users || []).map((u: any) => {
-      const _u = u as Record<string, any>;
+      const row = u as Record<string, any>;
       return {
-        id: _u.id,
-        email: _u.email,
+        id: row.id,
+        email: row.email,
         role:
-          (_u.user_roles as any[])?.find((ur: any) => !ur.tenant_id)?.roles
+          (row.user_roles as any[])?.find((ur: any) => !ur.tenant_id)?.roles
             ?.name || 'user',
-        emailVerified: _u.email_verified,
-        createdAt: _u.created_at,
-        lastLoginAt: _u.last_login_at,
-        enrKurs: _u.enr_kurs,
-        wpuKurs1: _u.wpu_kurs_1,
-        wpuKurs2: _u.wpu_kurs_2,
-        theater: _u.theater,
-        doneSetup: _u.done_setup,
-        isBanned: bannedIds.has(_u.id),
+        emailVerified: row.email_verified,
+        createdAt: row.created_at,
+        lastLoginAt: row.last_login_at,
+        enrKurs: row.enr_kurs,
+        wpuKurs1: row.wpu_kurs_1,
+        wpuKurs2: row.wpu_kurs_2,
+        theater: row.theater,
+        doneSetup: row.done_setup,
+        isBanned: bannedIds.has(row.id),
       };
     });
   }
@@ -236,12 +230,8 @@ export class SuperAdminService {
       .order('created_at', { ascending: false })
       .limit(200);
     return (data || []).map((a) => {
-      const _a = a as Record<string, any>;
-      return {
-        at: _a.created_at,
-        type: _a.type,
-        meta: _a.meta,
-      };
+      const row = a as Record<string, any>;
+      return { at: row.created_at, type: row.type, meta: row.meta };
     });
   }
 
@@ -253,50 +243,49 @@ export class SuperAdminService {
       .eq('id', targetUserId)
       .maybeSingle()) as { data: any };
 
-    if (!target) throw new NotFoundException('Benutzer nicht gefunden');
+    if (!target) throw new NotFoundException('User not found');
     if (
       (target.user_roles as any[])?.some(
         (ur) => ur.roles?.name === 'superadmin',
       )
     ) {
-      throw new BadRequestException('Admins können nicht gesperrt werden.');
+      throw new BadRequestException('Admins cannot be banned.');
     }
 
     await sb
       .from('banned_users')
       .insert({ user_id: targetUserId, reason: 'N/A' });
-    const { error: err_mw0gt } = (await sb.from('user_activity').insert({
+
+    const { error: activityBanError } = (await sb.from('user_activity').insert({
       user_id: adminUserId,
       type: 'admin:ban:user',
       meta: { targetUserId },
     })) as { error: any };
-    if (err_mw0gt)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    if (activityBanError)
+      throw new InternalServerErrorException('Failed to save user activity');
 
     return { ok: true, isBanned: true };
   }
 
   async unbanUser(targetUserId: string, adminUserId: string) {
     const sb = this.supabaseService.getClient();
-    const { error: err_v83u8 } = (await sb
+    const { error: unbanError } = (await sb
       .from('banned_users')
       .delete()
       .eq('user_id', targetUserId)) as { error: any };
-    if (err_v83u8)
-      throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
-      );
-    const { error: err_vxqec } = (await sb.from('user_activity').insert({
-      user_id: adminUserId,
-      type: 'admin:unban:user',
-      meta: { targetUserId },
-    })) as { error: any };
-    if (err_vxqec)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    if (unbanError)
+      throw new InternalServerErrorException('An unexpected database error occurred');
+
+    const { error: activityUnbanError } = (await sb
+      .from('user_activity')
+      .insert({
+        user_id: adminUserId,
+        type: 'admin:unban:user',
+        meta: { targetUserId },
+      })) as { error: any };
+    if (activityUnbanError)
+      throw new InternalServerErrorException('Failed to save user activity');
+
     return { ok: true, isBanned: false };
   }
 
@@ -308,13 +297,13 @@ export class SuperAdminService {
       .eq('id', targetUserId)
       .maybeSingle()) as { data: any };
 
-    if (!target) throw new NotFoundException('Benutzer nicht gefunden');
+    if (!target) throw new NotFoundException('User not found');
     if (
       (target.user_roles as any[])?.some(
         (ur) => ur.roles?.name === 'superadmin',
       )
     ) {
-      throw new ForbiddenException('Admins können nicht gelöscht werden');
+      throw new ForbiddenException('Admins cannot be deleted');
     }
 
     const { data: ownedGroups } = await sb
@@ -325,18 +314,17 @@ export class SuperAdminService {
 
     if (ownedGroups && ownedGroups.length > 0) {
       throw new BadRequestException(
-        'Benutzerkonto kann nicht gelöscht werden, da der Nutzer Besitzer von Gruppen ist.',
+        'Account cannot be deleted because the user owns groups.',
       );
     }
 
-    const { error: err_avk9d } = (await sb
+    const { error: userDeleteError } = (await sb
       .from('users')
       .delete()
       .eq('id', targetUserId)) as { error: any };
-    if (err_avk9d)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern des Benutzers',
-      );
+    if (userDeleteError)
+      throw new InternalServerErrorException('Failed to delete user');
+
     return { ok: true };
   }
 
@@ -376,16 +364,18 @@ export class SuperAdminService {
       .delete()
       .eq('user_id', targetUserId)
       .lt('created_at', cutoffDate.toISOString());
-    const { error: err_00b3z } = (await sb.from('user_activity').insert({
-      user_id: adminUserId,
-      type: 'admin:prune_logs',
-      meta: { targetUserId },
-    })) as { error: any };
-    if (err_00b3z)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
-    return { ok: true, message: 'Logs bereinigt.' };
+
+    const { error: activityPruneError } = (await sb
+      .from('user_activity')
+      .insert({
+        user_id: adminUserId,
+        type: 'admin:prune_logs',
+        meta: { targetUserId },
+      })) as { error: any };
+    if (activityPruneError)
+      throw new InternalServerErrorException('Failed to save user activity');
+
+    return { ok: true, message: 'Logs pruned.' };
   }
 
   async getReports() {
@@ -395,18 +385,18 @@ export class SuperAdminService {
       .select('*')
       .order('created_at', { ascending: false });
     return (reports || []).map((r) => {
-      const _r = r as Record<string, any>;
+      const row = r as Record<string, any>;
       return {
-        id: _r.id,
-        itemId: _r.item_id,
-        itemTitle: _r.item_title,
-        category: _r.category,
-        reason: _r.reason,
-        reportedBy: _r.reporter_id,
-        reporterEmail: _r.reporter_email,
-        processed: _r.processed,
-        processedAt: _r.processed_at,
-        reportedAt: _r.reported_at,
+        id: row.id,
+        itemId: row.item_id,
+        itemTitle: row.item_title,
+        category: row.category,
+        reason: row.reason,
+        reportedBy: row.reporter_id,
+        reporterEmail: row.reporter_email,
+        processed: row.processed,
+        processedAt: row.processed_at,
+        reportedAt: row.reported_at,
       };
     });
   }
@@ -428,17 +418,17 @@ export class SuperAdminService {
       .select()
       .single()) as { data: any };
 
-    const { error: err_cnlyx } = (await sb.from('user_activity').insert({
-      user_id: adminUserId,
-      type: processed
-        ? 'admin:report:mark_processed'
-        : 'admin:report:mark_unprocessed',
-      meta: { reportId },
-    })) as { error: any };
-    if (err_cnlyx)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    const { error: activityReportError } = (await sb
+      .from('user_activity')
+      .insert({
+        user_id: adminUserId,
+        type: processed
+          ? 'admin:report:mark_processed'
+          : 'admin:report:mark_unprocessed',
+        meta: { reportId },
+      })) as { error: any };
+    if (activityReportError)
+      throw new InternalServerErrorException('Failed to save user activity');
 
     return {
       ok: true,
@@ -449,23 +439,23 @@ export class SuperAdminService {
 
   async deleteReport(reportId: string, adminUserId: string) {
     const sb = this.supabaseService.getClient();
-    const { error: err_zbdh8 } = (await sb
+    const { error: reportDeleteError } = (await sb
       .from('reports')
       .delete()
       .eq('id', reportId)) as { error: any };
-    if (err_zbdh8)
-      throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
-      );
-    const { error: err_exmo5 } = (await sb.from('user_activity').insert({
-      user_id: adminUserId,
-      type: 'admin:report:delete',
-      meta: { reportId },
-    })) as { error: any };
-    if (err_exmo5)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    if (reportDeleteError)
+      throw new InternalServerErrorException('An unexpected database error occurred');
+
+    const { error: activityDeleteError } = (await sb
+      .from('user_activity')
+      .insert({
+        user_id: adminUserId,
+        type: 'admin:report:delete',
+        meta: { reportId },
+      })) as { error: any };
+    if (activityDeleteError)
+      throw new InternalServerErrorException('Failed to save user activity');
+
     return { ok: true };
   }
 

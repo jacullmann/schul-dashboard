@@ -111,12 +111,15 @@ async function logout() {
     userStore.clearUser();
     resetMfaState();
     await appAuthLogout();
-    router.push('/welcome');
+    router.push('/');
   }
 }
 
-function onAccountDeleted() {
+async function onAccountDeleted() {
   userStore.clearUser();
+  resetMfaState();
+  await appAuthLogout();
+  router.push('/');
 }
 
 function onAccountDeleteError(msg: string) {

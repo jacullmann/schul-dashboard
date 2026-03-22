@@ -31,7 +31,9 @@ function openEditTodo(todo: PrivateTask) {
 }
 
 function handleTodoSuccess(data?: PrivateTask) {
-  const msg = privateTaskToEdit.value ? 'Eintrag aktualisiert.' : 'Eintrag erstellt.';
+  const msg = privateTaskToEdit.value
+    ? t('school.private.successUpdate')
+    : t('school.private.successCreate');
   toast.success(msg);
   showPrivateTaskForm.value = false;
   if (privateTaskAppRef.value && data) {
@@ -45,7 +47,7 @@ function handleTodoSuccess(data?: PrivateTask) {
 }
 
 function onFormError(msg: string) {
-  toast.error(msg || 'Bitte Eingaben prüfen.');
+  toast.error(msg || t('global.errors.validationFailed'));
 }
 </script>
 
@@ -55,7 +57,7 @@ function onFormError(msg: string) {
       <h2 style="margin: 0">{{ t('school.private.title') }}</h2>
       <button v-if="user" class="btn action" @click="openCreateForm">
         <Plus :size="16" />
-        <span>Neuer Eintrag</span>
+        <span>{{ t('school.private.newEntry') }}</span>
       </button>
     </div>
 

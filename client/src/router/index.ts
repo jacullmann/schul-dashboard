@@ -110,12 +110,6 @@ const routes = [
                 meta: { title: 'contact.contact.title' },
             },
             {
-                path: 'update-history',
-                name: 'update-history',
-                component: () => import('@/modules/patchinfo/pages/PatchInfo.vue'),
-                meta: { title: 'navigation.updateHistory', fullWidth: true },
-            },
-            {
                 path: 'spiele',
                 name: 'games',
                 component: () => import('@/modules/games/Games.vue'),

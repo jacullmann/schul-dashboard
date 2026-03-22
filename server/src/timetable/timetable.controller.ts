@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Optional } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards, Optional } from '@nestjs/common';
 import { TimetableService } from './timetable.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
@@ -41,5 +41,23 @@ export class TimetableController {
   @Get('announcements')
   getAnnouncements(@ActiveTenantId() tenantId: string) {
     return this.timetableService.getAnnouncements(tenantId);
+  }
+
+  /** Returns the list of announcement IDs the current user has already seen as popups. */
+  @Get('announcements/read-status')
+  getAnnouncementReadStatus(
+    @CurrentUserId() userId: string,
+    @ActiveTenantId() tenantId: string,
+  ) {
+    return this.timetableService.getAnnouncementReadStatus(userId, tenantId);
+  }
+
+  /** Marks a specific announcement popup as seen for the current user. */
+  @Post('announcements/:id/read')
+  markAnnouncementRead(
+    @CurrentUserId() userId: string,
+    @Param('id') announcementId: string,
+  ) {
+    return this.timetableService.markAnnouncementRead(userId, announcementId);
   }
 }

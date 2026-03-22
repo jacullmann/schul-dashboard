@@ -72,7 +72,7 @@ export function usePrivateTasks() {
         }
     }
 
-    // Hier absichtlich displayPrivateTasks nicht aktualisieren, da die einträge sonst komisch springen
+    // Intentionally not updating displayPrivateTasks here to avoid entries jumping around visually.
     async function togglePrivateTaskCompletion(privateTask: PrivateTask) {
         const previousState = privateTask.completed;
         privateTask.completed = !privateTask.completed;
@@ -165,7 +165,7 @@ export function usePrivateTasks() {
                 displayPrivateTasks.value = sortDisplayList(privateTasks.value);
             }
         } catch (error: unknown) {
-            loadPrivateTasks(); // Bei Fehler neu laden
+            loadPrivateTasks(); // Reload on error to restore consistent state
             const err = error as { response?: { data?: { error?: string } } };
             useToast().error(err.response?.data?.error || t('global.errors.update'));
         }

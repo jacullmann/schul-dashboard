@@ -67,7 +67,7 @@ export class TodosService {
       userId,
     );
 
-    const { data: todo, error } = await sb
+    const { data: todo, error: todoInsertError } = await sb
       .from('encrypted_todos')
       .insert({
         user_id: userId,
@@ -78,20 +78,18 @@ export class TodosService {
       .select()
       .single();
 
-    if (error)
-      throw new InternalServerErrorException(
-        'Fehler beim Erstellen des privaten Eintrags',
-      );
+    if (todoInsertError)
+      throw new InternalServerErrorException('Failed to create private entry');
 
-    const { error: err_vz8t0 } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'todo:create',
-      meta: { todoId: todo.id },
-    });
-    if (err_vz8t0)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    const { error: activityInsertError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'todo:create',
+        meta: { todoId: todo.id },
+      });
+    if (activityInsertError)
+      throw new InternalServerErrorException('Failed to save user activity');
 
     return {
       id: todo.id,
@@ -117,7 +115,7 @@ export class TodosService {
       .eq('id', id)
       .eq('user_id', userId)
       .maybeSingle();
-    if (!todo) throw new NotFoundException('Privater Eintrag nicht gefunden');
+    if (!todo) throw new NotFoundException('Private entry not found');
 
     const encryptedTitle = await encryptData(title.trim(), userId);
     const encryptedDescription = await encryptData(
@@ -135,15 +133,15 @@ export class TodosService {
       .select()
       .single();
 
-    const { error: err_y4457 } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'todo:update',
-      meta: { todoId: todo.id },
-    });
-    if (err_y4457)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    const { error: activityUpdateError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'todo:update',
+        meta: { todoId: todo.id },
+      });
+    if (activityUpdateError)
+      throw new InternalServerErrorException('Failed to save user activity');
 
     return {
       id: updated!.id,
@@ -164,7 +162,7 @@ export class TodosService {
       .eq('id', id)
       .eq('user_id', userId)
       .maybeSingle();
-    if (!todo) throw new NotFoundException('Privater Eintrag nicht gefunden');
+    if (!todo) throw new NotFoundException('Private entry not found');
 
     const newCompleted = !todo.completed;
     const { data: updated } = await sb
@@ -174,15 +172,15 @@ export class TodosService {
       .select()
       .single();
 
-    const { error: err_3ryur } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'todo:toggle',
-      meta: { todoId: todo.id, completed: newCompleted },
-    });
-    if (err_3ryur)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    const { error: activityToggleError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'todo:toggle',
+        meta: { todoId: todo.id, completed: newCompleted },
+      });
+    if (activityToggleError)
+      throw new InternalServerErrorException('Failed to save user activity');
 
     return {
       id: updated!.id,
@@ -205,7 +203,7 @@ export class TodosService {
       .eq('id', id)
       .eq('user_id', userId)
       .maybeSingle();
-    if (!todo) throw new NotFoundException('Privater Eintrag nicht gefunden');
+    if (!todo) throw new NotFoundException('Private entry not found');
 
     const { data: allTodos } = await sb
       .from('encrypted_todos')
@@ -249,7 +247,7 @@ export class TodosService {
         nextPosition || null,
       );
     } catch {
-      throw new BadRequestException('Ungültige Positionen für Re-Ordering');
+      throw new BadRequestException('Invalid positions for re-ordering');
     }
 
     let { data: updated } = await sb
@@ -309,7 +307,7 @@ export class TodosService {
       .eq('id', id)
       .eq('user_id', userId)
       .maybeSingle();
-    if (!todo) throw new NotFoundException('Privater Eintrag nicht gefunden');
+    if (!todo) throw new NotFoundException('Private entry not found');
 
     await sb
       .from('encrypted_todos')

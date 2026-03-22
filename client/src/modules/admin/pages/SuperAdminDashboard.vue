@@ -13,9 +13,9 @@ import type { Component } from 'vue';
 type NavItem = { id: string; label: string; icon: Component; count: number };
 
 const navItems = ref<NavItem[]>([
-  { id: 'overview', label: 'Übersicht', icon: markRaw(LayoutDashboard), count: 0 },
-  { id: 'users', label: 'Benutzer', icon: markRaw(Users), count: 0 },
-  { id: 'reports', label: 'Meldungen', icon: markRaw(Flag), count: 0 },
+  { id: 'overview', label: 'Overview', icon: markRaw(LayoutDashboard), count: 0 },
+  { id: 'users', label: 'Users', icon: markRaw(Users), count: 0 },
+  { id: 'reports', label: 'Reports', icon: markRaw(Flag), count: 0 },
   { id: 'doc', label: 'Doc', icon: markRaw(FileTextIcon), count: 0 },
 ]);
 
@@ -99,7 +99,7 @@ async function loadStats() {
 
 async function loadAllUsers() {
   try { const { data } = await hw.get('/api/admin/all-users'); allUsers.value = data; }
-  catch { toast('Fehler beim Laden der Benutzer', true); }
+  catch { toast('Failed to load users', true); }
 }
 
 async function loadReports() {
@@ -115,7 +115,7 @@ async function toggleActivity(userId: string) {
     const { data } = await hw.get(`/api/admin/users/${userId}/activity`);
     userActivities.value[userId] = data;
     showActivityFor.value = userId;
-  } catch { toast('Fehler', true); }
+  } catch { toast('Failed to load activity', true); }
   finally { loadingActivities.value[userId] = false; }
 }
 
@@ -124,30 +124,30 @@ async function toggleBan(u: User) {
   try {
     if (u.isBanned) {
       await hw.delete(`/api/admin/users/${u.id}/ban`);
-      u.isBanned = false; toast('Entsperrt');
+      u.isBanned = false; toast('User unbanned');
     } else {
       await hw.post(`/api/admin/users/${u.id}/ban`);
-      u.isBanned = true; toast('Gesperrt');
+      u.isBanned = true; toast('User banned');
     }
     loadStats();
-  } catch { toast('Fehler', true); }
+  } catch { toast('Action failed', true); }
 }
 
 async function deleteUser(id: string) {
-  if (!confirm('Benutzer wirklich löschen?')) return;
+  if (!confirm('Delete this user?')) return;
   try {
     await hw.delete(`/api/admin/users/${id}`);
     allUsers.value = allUsers.value.filter(u => u.id !== id);
-    toast('Gelöscht'); loadStats();
-  } catch { toast('Fehler', true); }
+    toast('User deleted'); loadStats();
+  } catch { toast('Failed to delete user', true); }
 }
 
 async function pruneOldLogs(u: User) {
-  if (!confirm(`Logs von ${u.email} älter als 30 Tage löschen?`)) return;
+  if (!confirm(`Delete logs older than 30 days for ${u.email}?`)) return;
   try {
     await hw.delete(`/api/admin/users/${u.id}/activity/prune`);
-    toast('Logs bereinigt');
-  } catch { toast('Fehler', true); }
+    toast('Logs pruned');
+  } catch { toast('Failed to prune logs', true); }
 }
 
 // ─── Reports ────────────────────────────────────────────
@@ -156,29 +156,29 @@ async function toggleReportProcessed(id: string, currentProcessed: boolean) {
     await hw.patch(`/api/admin/reports/${id}/processed`, { processed: !currentProcessed });
     const r = reports.value.find(x => x.id === id);
     if (r) { r.processed = !currentProcessed; r.processedAt = !currentProcessed ? new Date().toISOString() : null; }
-    toast(!currentProcessed ? 'Als erledigt markiert' : 'Zurückgesetzt');
+    toast(!currentProcessed ? 'Marked as resolved' : 'Reset to open');
     loadStats();
-  } catch { toast('Fehler', true); }
+  } catch { toast('Action failed', true); }
 }
 
 async function deleteReport(id: string) {
-  if (!confirm('Meldung löschen?')) return;
+  if (!confirm('Delete this report?')) return;
   try {
     await hw.delete(`/api/admin/reports/${id}`);
     reports.value = reports.value.filter(r => r.id !== id);
-    toast('Gelöscht'); loadStats();
-  } catch { toast('Fehler', true); }
+    toast('Report deleted'); loadStats();
+  } catch { toast('Failed to delete report', true); }
 }
 
 // ─── Cleanup ────────────────────────────────────────────
 async function cleanupOldItems() {
-  if (!confirm('Alle Einträge älter als 90 Tage löschen?')) return;
+  if (!confirm('Delete all entries older than 90 days?')) return;
   isCleaningUp.value = true;
   try {
     const { data } = await hw.delete('/api/admin/cleanup/old-items');
-    toast(data.message || 'Bereinigt');
+    toast(data.message || 'Cleanup complete');
     loadStats();
-  } catch { toast('Fehler', true); }
+  } catch { toast('Cleanup failed', true); }
   finally { isCleaningUp.value = false; }
 }
 
@@ -228,45 +228,45 @@ onMounted(() => {
 
         <!-- ═══ OVERVIEW ═══ -->
         <template v-if="activeTab === 'overview'">
-          <h2 class="page-title">Dashboard Übersicht</h2>
+          <h2 class="page-title">Dashboard Overview</h2>
 
           <div v-if="loadingStats" class="center-loader"><div class="spinner"></div></div>
           <template v-else-if="stats">
             <div class="stats-grid">
               <div class="stat-card">
                 <div class="stat-val">{{ stats.userCount }}</div>
-                <div class="stat-lbl">Nutzer</div>
+                <div class="stat-lbl">Users</div>
               </div>
               <div class="stat-card">
                 <div class="stat-val">{{ stats.itemCount }}</div>
-                <div class="stat-lbl">Einträge</div>
+                <div class="stat-lbl">Entries</div>
               </div>
               <div class="stat-card" :class="{ alert: (stats.reportCount ?? 0) > 0 }">
                 <div class="stat-val">{{ stats.reportCount }}</div>
-                <div class="stat-lbl">Offene Meldungen</div>
+                <div class="stat-lbl">Open Reports</div>
               </div>
               <div class="stat-card" :class="{ warn: (stats.bannedCount ?? 0) > 0 }">
                 <div class="stat-val">{{ stats.bannedCount }}</div>
-                <div class="stat-lbl">Gesperrt</div>
+                <div class="stat-lbl">Banned</div>
               </div>
             </div>
 
             <div class="sub-stats">
               <div class="sub-stat-group">
-                <h3>Nutzerstatistiken</h3>
+                <h3>User Statistics</h3>
                 <div class="sub-stats-grid">
-                  <div class="sub-stat"><span class="sub-val">{{ stats.verifiedUsers }}</span><span class="sub-lbl">Verifiziert</span></div>
-                  <div class="sub-stat"><span class="sub-val">{{ stats.unverifiedUsers }}</span><span class="sub-lbl">Unverifiziert</span></div>
+                  <div class="sub-stat"><span class="sub-val">{{ stats.verifiedUsers }}</span><span class="sub-lbl">Verified</span></div>
+                  <div class="sub-stat"><span class="sub-val">{{ stats.unverifiedUsers }}</span><span class="sub-lbl">Unverified</span></div>
                   <div class="sub-stat"><span class="sub-val">{{ stats.adminCount }}</span><span class="sub-lbl">Admins</span></div>
-                  <div class="sub-stat"><span class="sub-val">{{ stats.newUsersThisWeek }}</span><span class="sub-lbl">Neu (7 Tage)</span></div>
+                  <div class="sub-stat"><span class="sub-val">{{ stats.newUsersThisWeek }}</span><span class="sub-lbl">New (7 days)</span></div>
                 </div>
               </div>
               <div class="sub-stat-group">
-                <h3>Aktivität (7 Tage)</h3>
+                <h3>Activity (7 days)</h3>
                 <div class="sub-stats-grid">
-                  <div class="sub-stat"><span class="sub-val">{{ stats.newItemsThisWeek }}</span><span class="sub-lbl">Neue Einträge</span></div>
-                  <div class="sub-stat"><span class="sub-val">{{ stats.reportCountTotal }}</span><span class="sub-lbl">Meldungen gesamt</span></div>
-                  <div class="sub-stat"><span class="sub-val">{{ stats.reportCountProcessed }}</span><span class="sub-lbl">Bearbeitet</span></div>
+                  <div class="sub-stat"><span class="sub-val">{{ stats.newItemsThisWeek }}</span><span class="sub-lbl">New Entries</span></div>
+                  <div class="sub-stat"><span class="sub-val">{{ stats.reportCountTotal }}</span><span class="sub-lbl">Total Reports</span></div>
+                  <div class="sub-stat"><span class="sub-val">{{ stats.reportCountProcessed }}</span><span class="sub-lbl">Processed</span></div>
                 </div>
               </div>
             </div>
@@ -274,11 +274,11 @@ onMounted(() => {
             <!-- Cleanup -->
             <div v-if="(stats.oldItemsCount ?? 0) > 0" class="cleanup-card">
               <div>
-                <strong>Cleanup:</strong> {{ stats.oldItemsCount }} Einträge älter als 90 Tage
+                <strong>Cleanup:</strong> {{ stats.oldItemsCount }} entries older than 90 days
               </div>
               <button class="btn ghost" @click="cleanupOldItems" :disabled="isCleaningUp">
                 <Trash2 :size="14" />
-                {{ isCleaningUp ? 'Löscht...' : 'Bereinigen' }}
+                {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
               </button>
             </div>
           </template>
@@ -287,8 +287,8 @@ onMounted(() => {
         <!-- ═══ USERS ═══ -->
         <template v-if="activeTab === 'users'">
           <div class="page-header">
-            <h2 class="page-title">Benutzerverwaltung</h2>
-            <button class="btn ghost" @click="loadAllUsers">Aktualisieren</button>
+            <h2 class="page-title">User Management</h2>
+            <button class="btn ghost" @click="loadAllUsers">Refresh</button>
           </div>
 
           <div class="table-wrap">
@@ -297,8 +297,8 @@ onMounted(() => {
               <tr>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Erstellt</th>
-                <th style="text-align:right">Aktionen</th>
+                <th>Created</th>
+                <th style="text-align:right">Actions</th>
               </tr>
               </thead>
               <tbody>
@@ -309,24 +309,24 @@ onMounted(() => {
                 </td>
                 <td>
                   <span v-if="u.role === 'superadmin'" class="badge badge-purple">Admin</span>
-                  <span v-else-if="u.isBanned" class="badge badge-red">Gesperrt</span>
-                  <span v-else class="badge badge-green">Aktiv</span>
-                  <span v-if="!u.emailVerified" class="badge badge-yellow">Unverifiziert</span>
+                  <span v-else-if="u.isBanned" class="badge badge-red">Banned</span>
+                  <span v-else class="badge badge-green">Active</span>
+                  <span v-if="!u.emailVerified" class="badge badge-yellow">Unverified</span>
                 </td>
                 <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
                 <td>
                   <div class="cell-actions">
-                    <button class="btn-icon" @click="toggleActivity(u.id)" title="Logs">
+                    <button class="btn-icon" @click="toggleActivity(u.id)" title="Activity log">
                       <FileText :size="15" />
                     </button>
-                    <button v-if="u.role !== 'superadmin'" class="btn-icon" @click="toggleBan(u)" :title="u.isBanned ? 'Entsperren' : 'Sperren'">
+                    <button v-if="u.role !== 'superadmin'" class="btn-icon" @click="toggleBan(u)" :title="u.isBanned ? 'Unban' : 'Ban'">
                       <Lock v-if="!u.isBanned" :size="15" />
                       <Unlock v-else :size="15" />
                     </button>
-                    <button class="btn-icon" @click="pruneOldLogs(u)" title="Alte Logs löschen">
+                    <button class="btn-icon" @click="pruneOldLogs(u)" title="Prune old logs">
                       <Eraser :size="15" />
                     </button>
-                    <button v-if="u.role !== 'superadmin'" class="btn-icon danger" @click="deleteUser(u.id)" title="Löschen">
+                    <button v-if="u.role !== 'superadmin'" class="btn-icon danger" @click="deleteUser(u.id)" title="Delete">
                       <Trash2 :size="15" />
                     </button>
                   </div>
@@ -341,7 +341,7 @@ onMounted(() => {
             <div v-if="showActivityFor" class="drawer-overlay" @click.self="showActivityFor = null">
               <div class="drawer-panel">
                 <div class="drawer-header">
-                  <h3>Aktivitätsprotokoll</h3>
+                  <h3>Activity Log</h3>
                   <button class="btn-icon" @click="showActivityFor = null"><X :size="18" /></button>
                 </div>
                 <div v-if="loadingActivities[showActivityFor]" class="center-loader"><div class="spinner"></div></div>
@@ -359,50 +359,50 @@ onMounted(() => {
 
         <!-- ═══ REPORTS ═══ -->
         <template v-if="activeTab === 'reports'">
-          <h2 class="page-title">Gemeldete Inhalte</h2>
+          <h2 class="page-title">Reported Content</h2>
 
-          <div v-if="!reports.length" class="empty-msg">Keine Meldungen vorhanden.</div>
+          <div v-if="!reports.length" class="empty-msg">No reports found.</div>
           <template v-else>
             <div v-if="unprocessedReports.length" class="report-section">
-              <h3 class="sub-heading">Offen ({{ unprocessedReports.length }})</h3>
+              <h3 class="sub-heading">Open ({{ unprocessedReports.length }})</h3>
               <div class="card-grid">
                 <div v-for="r in unprocessedReports" :key="r.id" class="report-card">
                   <div class="report-top">
                     <strong>{{ r.itemTitle }}</strong>
                     <span class="badge" :class="r.category === 'illegal' ? 'badge-red' : 'badge-yellow'">
-                      {{ r.category === 'illegal' ? 'Illegal' : 'Falschinfo' }}
+                      {{ r.category === 'illegal' ? 'Illegal' : 'Misinformation' }}
                     </span>
                   </div>
                   <div class="report-reason" v-if="r.reason">"{{ r.reason }}"</div>
                   <div class="report-meta">
-                    Von: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+                    From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                   </div>
                   <div class="report-actions">
                     <button class="btn ghost tiny" @click="toggleReportProcessed(r.id, false)">
-                      <Check :size="13" /> Erledigt
+                      <Check :size="13" /> Resolve
                     </button>
                     <button class="btn ghost tiny danger" @click="deleteReport(r.id)">
-                      <Trash2 :size="13" /> Löschen
+                      <Trash2 :size="13" /> Delete
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             <div v-if="processedReports.length" class="report-section processed-section">
-              <h3 class="sub-heading muted">Bearbeitet ({{ processedReports.length }})</h3>
+              <h3 class="sub-heading muted">Processed ({{ processedReports.length }})</h3>
               <div class="card-grid">
                 <div v-for="r in processedReports" :key="r.id" class="report-card processed">
                   <div class="report-top">
                     <strong>{{ r.itemTitle }}</strong>
-                    <span class="badge badge-green">Erledigt</span>
+                    <span class="badge badge-green">Resolved</span>
                   </div>
                   <div class="report-meta">{{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}</div>
                   <div class="report-actions">
                     <button class="btn ghost tiny" @click="toggleReportProcessed(r.id, true)">
-                      <RotateCcw :size="13" /> Zurücksetzen
+                      <RotateCcw :size="13" /> Reopen
                     </button>
                     <button class="btn ghost tiny danger" @click="deleteReport(r.id)">
-                      <Trash2 :size="13" /> Löschen
+                      <Trash2 :size="13" /> Delete
                     </button>
                   </div>
                 </div>

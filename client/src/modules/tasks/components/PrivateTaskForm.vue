@@ -4,7 +4,6 @@ import hw from '@/api/hwApi';
 import Modal from '@/common/components/Modal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import type { PrivateTask } from '@/modules/tasks/types';
-import { useToast } from '@/common/composables/useToast';
 
 const props = defineProps<{ initial?: PrivateTask }>();
 const emit = defineEmits<{
@@ -31,32 +30,31 @@ async function submit() {
   isError.value = false;
 
   try {
-    if (!title.value.trim()) throw new Error('Du musst einen Titel hinzufügen.');
-    if (title.value.trim().length > 100) throw new Error('Der Titel ist zu lang (max. 100 Zeichen).');
-    if (description.value.trim().length > 2000) throw new Error('Die Beschreibung ist zu lang (max. 2000 Zeichen).');
+    if (!title.value.trim()) throw new Error('A title is required.');
+    if (title.value.trim().length > 100) throw new Error('Title is too long (max. 100 characters).');
+    if (description.value.trim().length > 2000) throw new Error('Description is too long (max. 2000 characters).');
 
     const payload = {
       title: title.value.trim(),
       description: description.value.trim(),
     };
 
-    let responseData;
+    let responseData: PrivateTask;
     if (props.initial) {
       const { data } = await hw.put(`/api/todos/${props.initial.id}`, payload);
       responseData = data;
-      useToast().success('Aktualisiert.');
     } else {
       const { data } = await hw.post('/api/todos', payload);
       responseData = data;
-      useToast().success('Erstellt.');
     }
 
     isError.value = false;
+    // Delegate success notification to the parent — avoids duplicate toasts.
     emit('success', responseData);
 
   } catch (e: unknown) {
     const err = e as { response?: { data?: { error?: string } }, message?: string };
-    message.value = err.response?.data?.error || err.message || 'Fehler.';
+    message.value = err.response?.data?.error || err.message || 'An error occurred.';
     isError.value = true;
     emit('error', message.value);
   } finally {
@@ -70,18 +68,18 @@ async function submit() {
   <form @submit.prevent="submit" novalidate>
     <Modal @cancel="$emit('cancel')">
       <template #title>
-        {{ initial ? 'Privaten Eintrag bearbeiten' : 'Neuer privater Eintrag' }}
+        {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
       </template>
 
       <template #content>
         <div class="section">
-          <label class="label">Titel</label>
-          <input ref="titleInputRef" class="input" v-model="title" placeholder="Einkaufen gehen..." maxlength="100" />
+          <label class="label">Title</label>
+          <input ref="titleInputRef" class="input" v-model="title" placeholder="Go shopping…" maxlength="100" />
         </div>
 
         <div class="section">
-          <label class="label">Beschreibung (optional)</label>
-          <textarea class="input" rows="4" v-model="description" placeholder="6 Eier..." maxlength="2000"></textarea>
+          <label class="label">Description (optional)</label>
+          <textarea class="input" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000"></textarea>
         </div>
 
         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
@@ -90,7 +88,7 @@ async function submit() {
       <template #action-btn>
         <button type="submit" class="btn action" :disabled="submitting">
           <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>{{ initial ? 'Speichern' : 'Anlegen' }}</span>
+          <span v-else>{{ initial ? 'Save' : 'Create' }}</span>
         </button>
       </template>
     </Modal>
