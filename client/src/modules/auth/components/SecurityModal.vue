@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
+import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import Modal from '@/common/components/Modal.vue';
 
@@ -16,7 +17,8 @@ const emit = defineEmits<{
 
 const { mfaEnabled, fetchMfaStatus, setMfaEnabled } = useMfa();
 const tabs = [
-  { id: 'mfa', label: 'MFA', routePath: '' }
+  { id: 'mfa', label: 'MFA', routePath: '' },
+  { id: 'connected', label: 'Verbundene Konten', routePath: '' },
 ];
 
 const activeTab = ref('mfa');
@@ -61,6 +63,10 @@ onMounted(async () => {
             @mfa-changed="onMfaChanged"
         />
       </div>
+
+      <div v-else-if="activeTab === 'connected'" class="connected-section">
+        <ConnectedAccounts />
+      </div>
     </template>
 
     <template #actions>
@@ -75,6 +81,12 @@ onMounted(async () => {
 }
 
 .mfa-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.connected-section {
   display: flex;
   flex-direction: column;
   gap: 16px;

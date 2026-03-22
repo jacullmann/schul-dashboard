@@ -642,6 +642,51 @@ export class AuthService {
     return { ok: true, message: 'Passwort erfolgreich geändert.' };
   }
 
+  // ─── OAuth helpers (used by OAuthService) ──────────────────────────────
+
+  /**
+   * Issues a full JWT session for a user. Queries the DB for their global role
+   * and first tenant group, then sets the auth_token cookie.
+   * Used by OAuthService after successful Google authentication.
+   */
+  async createUserSession(
+    userId: string,
+    email: string,
+    res: Response,
+  ): Promise<void> {
+    const sb = this.supabaseService.getClient();
+
+    const { data: roleData } = await sb
+      .from('user_roles')
+      .select('roles(name), tenant_id')
+      .eq('user_id', userId);
+
+    const userRoles = (roleData ?? []) as Array<{
+      tenant_id: string | null;
+      roles: { name: string } | null;
+    }>;
+    const globalRole =
+      userRoles.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
+
+    const { data: firstGroup } = await sb
+      .from('user_roles')
+      .select('tenant_id')
+      .eq('user_id', userId)
+      .not('tenant_id', 'is', null)
+      .limit(1)
+      .maybeSingle();
+
+    this.setAuthToken(res, userId, email, globalRole, firstGroup?.tenant_id || null);
+  }
+
+  /**
+   * Issues an MFA-pending token for a user mid-authentication.
+   * Used by OAuthService when Google OAuth identifies a user who has MFA enabled.
+   */
+  issueMfaPendingToken(userId: string, email: string, res: Response): void {
+    this.generateMfaPendingToken(res, userId, email);
+  }
+
   async getGroups(userId: string) {
     const sb = this.supabaseService.getClient();
     const { data: userRoles, error } = await sb

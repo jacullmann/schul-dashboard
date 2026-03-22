@@ -6,6 +6,7 @@ import {
   IsUrl,
   validateSync,
   MinLength,
+  IsOptional,
 } from 'class-validator';
 
 enum Environment {
@@ -50,6 +51,23 @@ class EnvironmentVariables {
   @IsString()
   @MinLength(32)
   MFA_PENDING_JWT_SECRET: string;
+
+  @IsString()
+  @MinLength(32)
+  OAUTH_PENDING_JWT_SECRET: string;
+
+  // Google OAuth (optional — feature is disabled when absent)
+  @IsOptional()
+  @IsString()
+  GOOGLE_OAUTH_CLIENT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  GOOGLE_OAUTH_CLIENT_SECRET?: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  GOOGLE_OAUTH_REDIRECT_URI?: string;
 
   // Security & Encryption
   @IsString()

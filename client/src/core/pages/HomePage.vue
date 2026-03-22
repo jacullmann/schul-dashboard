@@ -306,7 +306,7 @@ onMounted(() => {
 
 .group-card:disabled {
   opacity: 0.7;
-  cursor: wait;
+  cursor: default;
 }
 
 .group-card:hover:not(:disabled) {

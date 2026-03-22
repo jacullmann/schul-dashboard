@@ -15,6 +15,7 @@ import { SupabaseModule } from './common/supabase/supabase.module';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { validate } from './config/env.config';
 import { SystemModule } from './system/system.module';
+import { OAuthModule } from './oauth/oauth.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SystemModule } from './system/system.module';
     SuperAdminModule,
     MfaModule,
     DocModule,
+    OAuthModule,
   ],
   controllers: [],
   providers: [],

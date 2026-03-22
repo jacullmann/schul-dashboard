@@ -5,10 +5,13 @@ import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
 import ToastContainer from '@/common/components/ToastContainer.vue';
 import AuthModal from '@/modules/auth/components/AuthModal.vue';
+import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
+import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useRouter } from 'vue-router';
-import hw, { syncCsrfFromCookie } from '@/api/hwApi';
+import hw, { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
 import { useRoute } from 'vue-router';
 
 const router = useRouter();
@@ -18,6 +21,15 @@ const { user } = storeToRefs(userStore);
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
+const {
+  showLinkModal,
+  showMfaModal,
+  oauthError,
+  handleOAuthReturn,
+  closeLinkModal,
+  closeMfaModal,
+  clearOAuthError,
+} = useOAuth();
 const route = useRoute();
 const isPublicRoute = computed(() =>
     route.path === '/' || route.path === '/auth' || route.path === '/legal'
@@ -105,6 +117,10 @@ watch(user, (newUser, oldUser) => {
 onMounted(() => {
   logPageload();
 
+  // Handle the OAuth redirect return (?auth=success|link-required|mfa-pending|error).
+  // Must run after initAuth() completes (called by router guard before mount).
+  handleOAuthReturn(onAuthSuccess);
+
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('auth-expired', handleAuthExpired);
   window.addEventListener('tenant-changed', handleTenantChanged);
@@ -152,6 +168,34 @@ onUnmounted(() => {
         />
       </Teleport>
 
+      <!-- OAuth: account-linking modal (shown after ?auth=link-required) -->
+      <Teleport to="body">
+        <GoogleLinkModal
+            v-if="showLinkModal"
+            @linked="onAuthSuccess"
+            @cancel="closeLinkModal"
+        />
+      </Teleport>
+
+      <!-- OAuth: MFA overlay (shown after ?auth=mfa-pending, i.e. Google login + MFA enabled) -->
+      <Teleport to="body">
+        <MfaVerifyModal
+            v-if="showMfaModal"
+            @verified="(csrfToken) => { if (csrfToken) setCsrfToken(csrfToken); closeMfaModal(); onAuthSuccess(); }"
+            @cancelled="closeMfaModal"
+        />
+      </Teleport>
+
+      <!-- OAuth: error banner (shown after ?auth=error) -->
+      <Teleport to="body">
+        <Transition name="fade-down">
+          <div v-if="oauthError" class="oauth-error-banner" role="alert">
+            <span>{{ oauthError }}</span>
+            <button class="oauth-error-close" @click="clearOAuthError" aria-label="Schließen">✕</button>
+          </div>
+        </Transition>
+      </Teleport>
+
       <CookieBanner />
       <ToastContainer />
     </template>
@@ -179,5 +223,45 @@ onUnmounted(() => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.oauth-error-banner {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--danger-background);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--border-radius-lg);
+  padding: 10px 16px;
+  font-size: var(--font-size-sub);
+  box-shadow: var(--menu-shadow);
+  white-space: nowrap;
+}
+
+.oauth-error-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+}
+
+.fade-down-enter-active,
+.fade-down-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.fade-down-enter-from,
+.fade-down-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-8px);
 }
 </style>
