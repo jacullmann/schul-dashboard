@@ -10,6 +10,7 @@ export function useHwActions(
     pinnedItems: Ref<Set<string>>,
     archivedItems: Ref<Set<string>>,
     keptItems: Ref<Set<string>>,
+    activeGroupId: Ref<string | null>,
     handleSuccessAction: (msg: string) => void
 ) {
     const showDeleteConfirm = ref(false);
@@ -47,10 +48,11 @@ export function useHwActions(
         }
 
         try {
+            const config = activeGroupId.value ? { headers: { 'x-tenant-id': activeGroupId.value } } : {};
             if (wasChecked) {
-                await hw.delete(`/api/user/items/${id}/check`);
+                await hw.delete(`/api/user/items/${id}/check`, config);
             } else {
-                await hw.post(`/api/user/items/${id}/check`);
+                await hw.post(`/api/user/items/${id}/check`, {}, config);
             }
         } catch {
             // Revert on failure
@@ -103,10 +105,11 @@ export function useHwActions(
         if (!user.value) return true; // local only
 
         try {
+            const config = activeGroupId.value ? { headers: { 'x-tenant-id': activeGroupId.value } } : {};
             if (newStatus === null) {
-                await hw.delete(`/api/user/items/${id}/visibility`);
+                await hw.delete(`/api/user/items/${id}/visibility`, config);
             } else {
-                await hw.post(`/api/user/items/${id}/visibility`, { status: newStatus });
+                await hw.post(`/api/user/items/${id}/visibility`, { status: newStatus }, config);
             }
             return true;
         } catch {
@@ -135,10 +138,11 @@ export function useHwActions(
         pinnedItems.value = newPins;
 
         try {
+            const config = activeGroupId.value ? { headers: { 'x-tenant-id': activeGroupId.value } } : {};
             if (wasPinned) {
-                await hw.delete(`/api/user/items/${id}/pin`);
+                await hw.delete(`/api/user/items/${id}/pin`, config);
             } else {
-                await hw.post(`/api/user/items/${id}/pin`);
+                await hw.post(`/api/user/items/${id}/pin`, {}, config);
             }
         } catch {
             // Revert on failure

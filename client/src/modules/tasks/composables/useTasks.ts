@@ -37,6 +37,8 @@ export function useTasks() {
     const showPersonalized = computed(() => user.value?.personalized ?? false);
     const showSetupModal = ref(false);
 
+    const activeGroupId = computed(() => (route.params.groupId as string) || null);
+
 
     // UI states
     const {
@@ -118,6 +120,7 @@ export function useTasks() {
         pinnedItems,
         archivedItems,
         keptItems,
+        activeGroupId,
         (msg) => handleSuccess(msg)
     );
 
