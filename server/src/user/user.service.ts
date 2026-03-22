@@ -164,28 +164,49 @@ export class UserService {
 
   async getChecks(userId: string) {
     const sb = this.supabaseService.getClient();
-    const { data } = await sb
+    const { data, error } = await sb
       .from('keep_checked')
       .select('item_id')
       .eq('user_id', userId);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        'Fehler beim Laden der abgehakten Einträge',
+      );
+    }
+
     return { itemIds: (data || []).map((d) => d.item_id) };
   }
 
   async getPins(userId: string) {
     const sb = this.supabaseService.getClient();
-    const { data } = await sb
+    const { data, error } = await sb
       .from('pinned_items')
       .select('item_id')
       .eq('user_id', userId);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        'Fehler beim Laden der fixierten Einträge',
+      );
+    }
+
     return { itemIds: (data || []).map((d) => d.item_id) };
   }
 
   async getVisibility(userId: string) {
     const sb = this.supabaseService.getClient();
-    const { data } = await sb
+    const { data, error } = await sb
       .from('user_item_visibility')
       .select('item_id, status')
       .eq('user_id', userId);
+
+    if (error) {
+      throw new InternalServerErrorException(
+        'Fehler beim Laden des Sichtbarkeitsstatus',
+      );
+    }
+
     const archived = [] as string[];
     const kept = [] as string[];
     (data || []).forEach((row) => {
@@ -202,21 +223,32 @@ export class UserService {
     status: string,
   ) {
     const sb = this.supabaseService.getClient();
-    const { data: item } = await sb
+    const { data: item, error: itemError } = await sb
       .from('items')
       .select('id')
       .eq('id', itemId)
       .eq('tenant_id', tenantId)
       .maybeSingle();
-    if (!item) throw new NotFoundException('Nicht gefunden');
 
-    await sb
+    if (itemError) {
+      throw new InternalServerErrorException(
+        'Fehler beim Überprüfen des Eintrags',
+      );
+    }
+    if (!item) throw new NotFoundException('Eintrag nicht gefunden');
+
+    const { error: upsertError } = await sb
       .from('user_item_visibility')
       .upsert(
         { item_id: itemId, user_id: userId, status },
         { onConflict: 'item_id,user_id' },
-      )
-      .select();
+      );
+
+    if (upsertError) {
+      throw new InternalServerErrorException(
+        'Fehler beim Speichern des Sichtbarkeitsstatus',
+      );
+    }
 
     const { error: err_t7zxy } = await sb.from('user_activity').insert({
       user_id: userId,
@@ -233,11 +265,19 @@ export class UserService {
 
   async removeVisibility(itemId: string, userId: string) {
     const sb = this.supabaseService.getClient();
-    await sb
+
+    const { error: deleteError } = await sb
       .from('user_item_visibility')
       .delete()
       .eq('item_id', itemId)
       .eq('user_id', userId);
+
+    if (deleteError) {
+      throw new InternalServerErrorException(
+        'Fehler beim Entfernen des Sichtbarkeitsstatus',
+      );
+    }
+
     const { error: err_nkgjw } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'item:visibility:remove',

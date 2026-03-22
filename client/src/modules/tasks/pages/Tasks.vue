@@ -38,10 +38,13 @@ const tabItems = computed(() => [
 // Local-only dismissed items tracking for immediate UI removal before refresh
 const dismissedItems = ref(new Set<string>());
 
-function handleSwipe(item: HwItem) {
+async function handleSwipe(item: HwItem) {
   dismissedItems.value.add(item.id);
   const cutoffIso = new Date().toISOString();
-  toggleVisibility(item, showOldEntries.value, cutoffIso);
+  const success = await toggleVisibility(item, showOldEntries.value, cutoffIso);
+  if (!success) {
+    dismissedItems.value.delete(item.id);
+  }
 }
 
 const visibleItems = computed(() => {
@@ -169,11 +172,14 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   toggleCheck(item);
 }
 
-function handleArchiveFromMenu(item: HwItem) {
+async function handleArchiveFromMenu(item: HwItem) {
   openMenuId.value = null;
   dismissedItems.value.add(item.id);
   const cutoffIso = new Date().toISOString();
-  toggleVisibility(item, showOldEntries.value, cutoffIso);
+  const success = await toggleVisibility(item, showOldEntries.value, cutoffIso);
+  if (!success) {
+    dismissedItems.value.delete(item.id);
+  }
 }
 </script>
 

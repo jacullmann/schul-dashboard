@@ -66,7 +66,7 @@ export function useHwActions(
     function isArchived(itemId: string) { return archivedItems.value.has(itemId); }
     function isKept(itemId: string) { return keptItems.value.has(itemId); }
 
-    async function toggleVisibility(item: HwItem, isOldEntriesView: boolean, cutoffIso: string) {
+    async function toggleVisibility(item: HwItem, isOldEntriesView: boolean, cutoffIso: string): Promise<boolean> {
         const id = item.id;
         let newStatus: 'archived' | 'kept' | null = null;
         let originalArchived = isArchived(id);
@@ -100,7 +100,7 @@ export function useHwActions(
         if (newStatus === 'archived') archivedItems.value.add(id);
         if (newStatus === 'kept') keptItems.value.add(id);
 
-        if (!user.value) return; // local only
+        if (!user.value) return true; // local only
 
         try {
             if (newStatus === null) {
@@ -108,6 +108,7 @@ export function useHwActions(
             } else {
                 await hw.post(`/api/user/items/${id}/visibility`, { status: newStatus });
             }
+            return true;
         } catch {
             // Revert
             archivedItems.value.delete(id);
@@ -115,6 +116,7 @@ export function useHwActions(
             if (originalArchived) archivedItems.value.add(id);
             if (originalKept) keptItems.value.add(id);
             useToast().error('Fehler bei der Statusänderung.', 4000);
+            return false;
         }
     }
 
