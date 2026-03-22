@@ -676,7 +676,13 @@ export class AuthService {
       .limit(1)
       .maybeSingle();
 
-    this.setAuthToken(res, userId, email, globalRole, firstGroup?.tenant_id || null);
+    this.setAuthToken(
+      res,
+      userId,
+      email,
+      globalRole,
+      firstGroup?.tenant_id || null,
+    );
   }
 
   /**

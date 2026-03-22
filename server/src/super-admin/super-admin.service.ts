@@ -45,7 +45,10 @@ export class SuperAdminService {
       { t_id: tenantId },
     );
     if (itemsByTypeError) {
-      console.warn('RPC get_items_by_type_count unavailable:', itemsByTypeError.message);
+      console.warn(
+        'RPC get_items_by_type_count unavailable:',
+        itemsByTypeError.message,
+      );
     }
 
     const { count: verifiedUsers } = await sb
@@ -77,7 +80,10 @@ export class SuperAdminService {
       { t_id: tenantId, limit_count: 5 },
     )) as { data: any; error: any };
     if (topCreatorsError) {
-      console.warn('RPC get_top_creators unavailable:', topCreatorsError.message);
+      console.warn(
+        'RPC get_top_creators unavailable:',
+        topCreatorsError.message,
+      );
     }
 
     return {
@@ -274,7 +280,9 @@ export class SuperAdminService {
       .delete()
       .eq('user_id', targetUserId)) as { error: any };
     if (unbanError)
-      throw new InternalServerErrorException('An unexpected database error occurred');
+      throw new InternalServerErrorException(
+        'An unexpected database error occurred',
+      );
 
     const { error: activityUnbanError } = (await sb
       .from('user_activity')
@@ -444,7 +452,9 @@ export class SuperAdminService {
       .delete()
       .eq('id', reportId)) as { error: any };
     if (reportDeleteError)
-      throw new InternalServerErrorException('An unexpected database error occurred');
+      throw new InternalServerErrorException(
+        'An unexpected database error occurred',
+      );
 
     const { error: activityDeleteError } = (await sb
       .from('user_activity')

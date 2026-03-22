@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Param, UseGuards, Optional } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  UseGuards,
+  Optional,
+} from '@nestjs/common';
 import { TimetableService } from './timetable.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';

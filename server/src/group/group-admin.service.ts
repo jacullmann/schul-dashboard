@@ -102,11 +102,13 @@ export class GroupAdminService {
       .from('user_roles')
       .update({ role_id: roleId })
       .eq('id', existing.id);
-    const { error: activityChangeRoleError } = await sb.from('user_activity').insert({
-      user_id: currentUserId,
-      type: 'group-admin:change-role',
-      meta: { targetUserId, newRole, tenantId },
-    });
+    const { error: activityChangeRoleError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: currentUserId,
+        type: 'group-admin:change-role',
+        meta: { targetUserId, newRole, tenantId },
+      });
     if (activityChangeRoleError)
       throw new InternalServerErrorException('Failed to save user activity');
 
@@ -156,11 +158,13 @@ export class GroupAdminService {
       .delete()
       .eq('user_id', targetUserId)
       .eq('tenant_id', tenantId);
-    const { error: activityRemoveMemberError } = await sb.from('user_activity').insert({
-      user_id: currentUserId,
-      type: 'group-admin:remove-member',
-      meta: { targetUserId, tenantId },
-    });
+    const { error: activityRemoveMemberError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: currentUserId,
+        type: 'group-admin:remove-member',
+        meta: { targetUserId, tenantId },
+      });
     if (activityRemoveMemberError)
       throw new InternalServerErrorException('Failed to save user activity');
 
@@ -187,7 +191,9 @@ export class GroupAdminService {
 
     if (!group) throw new NotFoundException('Group not found.');
     if (group.owner_id !== currentUserId) {
-      throw new ForbiddenException('Only the current owner can transfer ownership.');
+      throw new ForbiddenException(
+        'Only the current owner can transfer ownership.',
+      );
     }
 
     // Check if target is admin in this group
@@ -202,7 +208,9 @@ export class GroupAdminService {
     // Check targetRole exists and is admin (role_id=2 or roles.name='admin')
     const roleName = (targetRole as any)?.roles?.name;
     if (!targetRole || roleName !== 'admin') {
-      throw new BadRequestException('The new owner must be an administrator of the group.');
+      throw new BadRequestException(
+        'The new owner must be an administrator of the group.',
+      );
     }
 
     const { error: updateErr } = await sb
@@ -214,11 +222,13 @@ export class GroupAdminService {
       throw new InternalServerErrorException('Failed to transfer ownership.');
     }
 
-    const { error: activityTransferError } = await sb.from('user_activity').insert({
-      user_id: currentUserId,
-      type: 'group-admin:transfer-ownership',
-      meta: { targetUserId, tenantId },
-    });
+    const { error: activityTransferError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: currentUserId,
+        type: 'group-admin:transfer-ownership',
+        meta: { targetUserId, tenantId },
+      });
     if (activityTransferError)
       throw new InternalServerErrorException('Failed to save user activity');
 
@@ -245,11 +255,13 @@ export class GroupAdminService {
       .eq('id', tenantId);
     if (groupRenameError)
       throw new InternalServerErrorException('Failed to save group');
-    const { error: activityRenameError } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'group-admin:rename-group',
-      meta: { tenantId, newName: name.trim() },
-    });
+    const { error: activityRenameError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'group-admin:rename-group',
+        meta: { tenantId, newName: name.trim() },
+      });
     if (activityRenameError)
       throw new InternalServerErrorException('Failed to save user activity');
 
@@ -288,11 +300,13 @@ export class GroupAdminService {
     if (groupPasswordUpdateError)
       throw new InternalServerErrorException('Failed to update password');
 
-    const { error: activityPasswordError } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'group-admin:password-update',
-      meta: { tenantId },
-    });
+    const { error: activityPasswordError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'group-admin:password-update',
+        meta: { tenantId },
+      });
     if (activityPasswordError)
       throw new InternalServerErrorException('Failed to save user activity');
 
@@ -367,11 +381,13 @@ export class GroupAdminService {
       .delete()
       .eq('tenant_id', tenantId)
       .lt('created_at', ninetyDaysAgo);
-    const { error: activityCleanupError } = await sb.from('user_activity').insert({
-      user_id: userId,
-      type: 'group-admin:cleanup',
-      meta: { deletedCount: itemIds.length },
-    });
+    const { error: activityCleanupError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'group-admin:cleanup',
+        meta: { deletedCount: itemIds.length },
+      });
     if (activityCleanupError)
       throw new InternalServerErrorException('Failed to save user activity');
 
@@ -603,7 +619,8 @@ export class GroupAdminService {
       .select()
       .single();
 
-    if (error) throw new InternalServerErrorException('Failed to save substitution');
+    if (error)
+      throw new InternalServerErrorException('Failed to save substitution');
 
     const { error: activitySubError } = await sb.from('user_activity').insert({
       user_id: userId,
@@ -659,7 +676,8 @@ export class GroupAdminService {
       .select()
       .single();
 
-    if (error) throw new InternalServerErrorException('Failed to create announcement');
+    if (error)
+      throw new InternalServerErrorException('Failed to create announcement');
 
     const _ann = ann as Record<string, any>;
     return {

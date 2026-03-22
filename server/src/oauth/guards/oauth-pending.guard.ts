@@ -31,7 +31,9 @@ export class OAuthPendingGuard implements CanActivate {
     }
 
     try {
-      const secret = this.configService.get<string>('OAUTH_PENDING_JWT_SECRET')!;
+      const secret = this.configService.get<string>(
+        'OAUTH_PENDING_JWT_SECRET',
+      )!;
       const payload = jwt.verify(token, secret) as OAuthPendingPayload;
 
       if (

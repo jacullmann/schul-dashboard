@@ -177,18 +177,27 @@ export class TimetableService {
     }
   }
 
-  async getAnnouncementReadStatus(userId: string, tenantId: string): Promise<string[]> {
+  async getAnnouncementReadStatus(
+    userId: string,
+    tenantId: string,
+  ): Promise<string[]> {
     const sb = this.supabaseService.getClient();
     const { data, error } = await sb
       .from('user_announcement_read_status')
       .select('announcement_id, announcements!inner(tenant_id)')
       .eq('user_id', userId)
       .eq('announcements.tenant_id', tenantId);
-    if (error) throw new InternalServerErrorException('Failed to load announcement read status');
+    if (error)
+      throw new InternalServerErrorException(
+        'Failed to load announcement read status',
+      );
     return data.map((r: any) => r.announcement_id as string);
   }
 
-  async markAnnouncementRead(userId: string, announcementId: string): Promise<void> {
+  async markAnnouncementRead(
+    userId: string,
+    announcementId: string,
+  ): Promise<void> {
     const sb = this.supabaseService.getClient();
     const { error } = await sb
       .from('user_announcement_read_status')
@@ -196,7 +205,10 @@ export class TimetableService {
         { user_id: userId, announcement_id: announcementId },
         { onConflict: 'user_id,announcement_id' },
       );
-    if (error) throw new InternalServerErrorException('Failed to mark announcement as read');
+    if (error)
+      throw new InternalServerErrorException(
+        'Failed to mark announcement as read',
+      );
   }
 
   async getTimetableErrors() {

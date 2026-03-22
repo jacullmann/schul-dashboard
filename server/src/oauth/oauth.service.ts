@@ -51,7 +51,13 @@ interface GoogleIdTokenPayload {
 // ─── Internal resolution types ────────────────────────────────────────────────
 
 type OAuthResolution =
-  | { type: 'login'; userId: string; email: string; mfaEnabled: boolean; mfaSecret: any }
+  | {
+      type: 'login';
+      userId: string;
+      email: string;
+      mfaEnabled: boolean;
+      mfaSecret: any;
+    }
   | { type: 'link_required'; googleId: string; googleEmail: string }
   | { type: 'new_user'; userId: string; email: string };
 
@@ -81,7 +87,9 @@ export class OAuthService {
     const { state, nonce } = this.setOAuthStateCookie(res);
 
     const clientId = this.configService.get<string>('GOOGLE_OAUTH_CLIENT_ID')!;
-    const redirectUri = this.configService.get<string>('GOOGLE_OAUTH_REDIRECT_URI')!;
+    const redirectUri = this.configService.get<string>(
+      'GOOGLE_OAUTH_REDIRECT_URI',
+    )!;
 
     const params = new URLSearchParams({
       client_id: clientId,
@@ -144,7 +152,10 @@ export class OAuthService {
     // ── 3. Verify ID token ────────────────────────────────────────────────
     let googleProfile: GoogleIdTokenPayload;
     try {
-      googleProfile = await this.verifyGoogleIdToken(tokenResponse.id_token, nonce);
+      googleProfile = await this.verifyGoogleIdToken(
+        tokenResponse.id_token,
+        nonce,
+      );
     } catch (err) {
       this.logger.error('Google ID token verification failed', err);
       return `${frontendUrl}/?auth=error&reason=token_invalid`;
@@ -163,7 +174,11 @@ export class OAuthService {
 
     // ── 5. Act on resolution ──────────────────────────────────────────────
     if (resolution.type === 'link_required') {
-      this.setPendingOAuthToken(res, resolution.googleId, resolution.googleEmail);
+      this.setPendingOAuthToken(
+        res,
+        resolution.googleId,
+        resolution.googleEmail,
+      );
       return `${frontendUrl}/?auth=link-required`;
     }
 
@@ -220,7 +235,10 @@ export class OAuthService {
     }
 
     const bcrypt = await import('bcryptjs');
-    const passwordOk = await bcrypt.compare(password, user.password_hash as string);
+    const passwordOk = await bcrypt.compare(
+      password,
+      user.password_hash as string,
+    );
     if (!passwordOk) {
       throw new UnauthorizedException('Ungültige Zugangsdaten');
     }
@@ -247,15 +265,23 @@ export class OAuthService {
     if (linkError) {
       // Unique constraint violation: already linked (race condition)
       if (linkError.code === '23505') {
-        throw new BadRequestException('Dieses Google-Konto ist bereits mit einem anderen Account verknüpft.');
+        throw new BadRequestException(
+          'Dieses Google-Konto ist bereits mit einem anderen Account verknüpft.',
+        );
       }
-      throw new InternalServerErrorException('Fehler beim Verknüpfen des Kontos.');
+      throw new InternalServerErrorException(
+        'Fehler beim Verknüpfen des Kontos.',
+      );
     }
 
     // Clear pending OAuth cookie and establish full session
     this.clearPendingOAuthToken(res);
     const newCsrfToken = rotateCsrfToken(res);
-    await this.authService.createUserSession(user.id as string, user.email as string, res);
+    await this.authService.createUserSession(
+      user.id as string,
+      user.email as string,
+      res,
+    );
     await this.updateLastLogin(user.id as string);
 
     return { ok: true, csrfToken: newCsrfToken };
@@ -308,7 +334,8 @@ export class OAuthService {
       .select('provider, provider_email')
       .eq('user_id', userId);
 
-    if (error) throw new InternalServerErrorException('Fehler beim Laden der Konten.');
+    if (error)
+      throw new InternalServerErrorException('Fehler beim Laden der Konten.');
 
     const providers = (data ?? []).map((row: any) => ({
       provider: row.provider as string,
@@ -337,7 +364,10 @@ export class OAuthService {
 
     if (oauthRow) {
       const user = (oauthRow as any).users;
-      if (!user) throw new InternalServerErrorException('Verknüpfter Nutzer nicht gefunden.');
+      if (!user)
+        throw new InternalServerErrorException(
+          'Verknüpfter Nutzer nicht gefunden.',
+        );
 
       const { data: ban } = await sb
         .from('banned_users')
@@ -372,7 +402,11 @@ export class OAuthService {
     }
 
     // Step 3: No account exists — create a new one via Google
-    const defaultPreferences = { theme: 'system', language: 'de', personalized: 'true' };
+    const defaultPreferences = {
+      theme: 'system',
+      language: 'de',
+      personalized: 'true',
+    };
 
     const { data: newUser, error: createError } = await sb
       .from('users')
@@ -387,7 +421,9 @@ export class OAuthService {
 
     if (createError || !newUser) {
       this.logger.error('Failed to create OAuth user', createError);
-      throw new InternalServerErrorException('Fehler beim Erstellen des Nutzers.');
+      throw new InternalServerErrorException(
+        'Fehler beim Erstellen des Nutzers.',
+      );
     }
 
     // Persist the OAuth link
@@ -401,7 +437,9 @@ export class OAuthService {
     if (linkError) {
       // Roll back user creation on link failure to avoid orphaned accounts
       await sb.from('users').delete().eq('id', newUser.id);
-      throw new InternalServerErrorException('Fehler beim Verknüpfen des Kontos.');
+      throw new InternalServerErrorException(
+        'Fehler beim Verknüpfen des Kontos.',
+      );
     }
 
     return { type: 'new_user', userId: newUser.id as string, email };
@@ -409,12 +447,18 @@ export class OAuthService {
 
   // ─── Private: Google token exchange ──────────────────────────────────────
 
-  private async exchangeCodeForTokens(code: string): Promise<GoogleTokenResponse> {
+  private async exchangeCodeForTokens(
+    code: string,
+  ): Promise<GoogleTokenResponse> {
     const params = new URLSearchParams({
       code,
       client_id: this.configService.get<string>('GOOGLE_OAUTH_CLIENT_ID')!,
-      client_secret: this.configService.get<string>('GOOGLE_OAUTH_CLIENT_SECRET')!,
-      redirect_uri: this.configService.get<string>('GOOGLE_OAUTH_REDIRECT_URI')!,
+      client_secret: this.configService.get<string>(
+        'GOOGLE_OAUTH_CLIENT_SECRET',
+      )!,
+      redirect_uri: this.configService.get<string>(
+        'GOOGLE_OAUTH_REDIRECT_URI',
+      )!,
       grant_type: 'authorization_code',
     });
 
@@ -425,8 +469,13 @@ export class OAuthService {
     });
 
     if (!response.ok) {
-      const body = await response.json().catch(() => ({})) as Record<string, unknown>;
-      throw new Error(`Google token exchange failed: ${body['error'] ?? response.status}`);
+      const body = (await response.json().catch(() => ({}))) as Record<
+        string,
+        unknown
+      >;
+      throw new Error(
+        `Google token exchange failed: ${body['error'] ?? response.status}`,
+      );
     }
 
     return response.json() as Promise<GoogleTokenResponse>;
