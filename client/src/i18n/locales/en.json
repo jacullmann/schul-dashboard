@@ -206,12 +206,51 @@
     "auth": {
       "login": "Sign In",
       "register": "Register",
+      "loginGoogle": "Sign in with Google",
+      "registerGoogle": "Sign up with Google",
       "email": "Email",
+      "emailPlaceholder": "name{'@'}example.com",
       "password": "Password",
-      "newPassword": "Password (min. 8 characters)",
+      "passwordPlaceholder": "min. 8 characters",
       "confirmPassword": "Confirm Password",
+      "confirmPlaceholder": "repeat your password",
+      "revealLabel": "Reveal/hide password",
       "forgot": "Forgot password?",
-      "terms": "I agree to the <a href=\"/legal/impressum\" target=\"_blank\" class=\"privacy-link\">Privacy Policy</a> and the <a href=\"/legal/nutzung\" target=\"_blank\" class=\"privacy-link\">Terms of Use</a>"
+      "terms": "I agree to the <a href=\"/legal/impressum\" target=\"_blank\" class=\"privacy-link\">Privacy Policy</a> and the <a href=\"/legal/nutzung\" target=\"_blank\" class=\"privacy-link\">Terms of Use</a>",
+      "successRegister": "Almost there! We've send a verification link to your email",
+      "errors": {
+        "emailMissing": "Enter your email",
+        "emailWrong": "The entered email is invalid",
+        "passwordMissing": "Enter your password",
+        "passwordShort": "A password has at least 8 characters",
+        "newShort": "Your password must be at least 8 characters",
+        "confirmMissing": "Confirm your password",
+        "confirmWrong": "The passwords do not match",
+        "termsMissing": "Please accept the privacy policy and terms to continue"
+      }
+    }
+  },
+  "groups": {
+    "home": {
+      "title": "Home",
+      "goodNight": "Good night",
+      "goodMorning": "Good morning",
+      "goodDay": "Good day",
+      "goodEvening": "Good evening",
+      "joinGroup": "Join group",
+      "createGroup": "Create group",
+      "allGroups": "All groups",
+      "yourGroups": "Your groups",
+      "noGroups": "No groups yet",
+      "joinGroupText": "Join an existing group or create a new one to get started.",
+      "members": "members"
+    },
+    "roles": {
+      "member": "Member",
+      "moderator": "Moderator",
+      "admin": "Admin",
+      "owner": "Owner",
+      "superadmin": "Superadmin"
     }
   },
   "welcome": {
@@ -543,11 +582,6 @@
     },
     "kanye": {
       "footnote": "The album cover images are used solely for identification purposes. The copyright belongs to the respective owners, labels, and artists."
-    }
-  },
-  "groups": {
-    "home": {
-      "title": "Home"
     }
   },
   "legal": {

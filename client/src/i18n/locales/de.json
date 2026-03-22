@@ -224,6 +224,8 @@
     "auth": {
       "login": "Anmelden",
       "register": "Registrieren",
+      "loginGoogle": "Mit Google anmelden",
+      "registerGoogle": "Mit Google registrieren",
       "email": "E-Mail",
       "emailPlaceholder": "name{'@'}example.com",
       "password": "Passwort",
