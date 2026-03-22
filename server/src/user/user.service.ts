@@ -231,20 +231,32 @@ export class UserService {
       .maybeSingle();
 
     if (itemError) {
+      console.error('Check item existence error:', itemError);
       throw new InternalServerErrorException(
         'Fehler beim Überprüfen des Eintrags',
       );
     }
     if (!item) throw new NotFoundException('Eintrag nicht gefunden');
 
-    const { error: upsertError } = await sb
+    // Manually handle upsert via delete + insert to avoid potential composite key issues or onConflict bugs
+    const { error: deleteError } = await sb
       .from('user_item_visibility')
-      .upsert(
-        { item_id: itemId, user_id: userId, status },
-        { onConflict: 'item_id,user_id' },
-      );
+      .delete()
+      .eq('item_id', itemId)
+      .eq('user_id', userId);
 
-    if (upsertError) {
+    if (deleteError) {
+      console.error('Manual upsert delete phase error:', deleteError);
+      // We don't necessarily throw here if it was just "not found", 
+      // but Supabase delete error usually means something else went wrong.
+    }
+
+    const { error: insertError } = await sb
+      .from('user_item_visibility')
+      .insert({ item_id: itemId, user_id: userId, status });
+
+    if (insertError) {
+      console.error('Manual upsert insert phase error:', insertError);
       throw new InternalServerErrorException(
         'Fehler beim Speichern des Sichtbarkeitsstatus',
       );
@@ -255,10 +267,12 @@ export class UserService {
       type: 'item:visibility:set',
       meta: { itemId, status },
     });
-    if (err_t7zxy)
+    if (err_t7zxy) {
+      console.error('Activity set visibility error:', err_t7zxy);
       throw new InternalServerErrorException(
         'Fehler beim Speichern der Benutzeraktivität',
       );
+    }
 
     return { ok: true };
   }
@@ -273,6 +287,7 @@ export class UserService {
       .eq('user_id', userId);
 
     if (deleteError) {
+      console.error('Delete visibility error:', deleteError);
       throw new InternalServerErrorException(
         'Fehler beim Entfernen des Sichtbarkeitsstatus',
       );
@@ -283,10 +298,12 @@ export class UserService {
       type: 'item:visibility:remove',
       meta: { itemId },
     });
-    if (err_nkgjw)
+    if (err_nkgjw) {
+      console.error('Activity remove visibility error:', err_nkgjw);
       throw new InternalServerErrorException(
         'Fehler beim Speichern der Benutzeraktivität',
       );
+    }
     return { ok: true };
   }
 
@@ -301,12 +318,15 @@ export class UserService {
           timestamp: new Date().toISOString(),
         },
       });
-      if (err_gnz6e)
+      if (err_gnz6e) {
+        console.error('Activity log page load error:', err_gnz6e);
         throw new InternalServerErrorException(
           'Fehler beim Speichern der Benutzeraktivität',
         );
+      }
       return { ok: true };
-    } catch {
+    } catch (e) {
+      console.error('Catch logPageLoad error:', e);
       return { ok: false };
     }
   }
@@ -321,18 +341,27 @@ export class UserService {
       .maybeSingle();
     if (!item) throw new NotFoundException('Nicht gefunden');
 
-    const { error: err_pukxk } = await sb.from('keep_checked').upsert(
-      {
-        item_id: itemId,
-        user_id: userId,
-        checked_at: new Date().toISOString(),
-      },
-      { onConflict: 'item_id,user_id' },
-    );
-    if (err_pukxk)
+    const { error: err_pukxk_del } = await sb
+      .from('keep_checked')
+      .delete()
+      .eq('item_id', itemId)
+      .eq('user_id', userId);
+
+    if (err_pukxk_del) {
+      console.error('Delete checkItem phase error:', err_pukxk_del);
+    }
+
+    const { error: err_pukxk } = await sb.from('keep_checked').insert({
+      item_id: itemId,
+      user_id: userId,
+      checked_at: new Date().toISOString(),
+    });
+    if (err_pukxk) {
+      console.error('Insert checkItem error:', err_pukxk);
       throw new InternalServerErrorException(
         'Ein unerwarteter Datenbankfehler ist aufgetreten',
       );
+    }
 
     await sb
       .from('user_activity')
@@ -342,11 +371,14 @@ export class UserService {
 
   async uncheckItem(itemId: string, userId: string) {
     const sb = this.supabaseService.getClient();
-    await sb
+    const { error: delErr } = await sb
       .from('keep_checked')
       .delete()
       .eq('item_id', itemId)
       .eq('user_id', userId);
+    if (delErr) {
+      console.error('Uncheck delete error:', delErr);
+    }
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'item:uncheck', meta: { itemId } });
@@ -363,18 +395,27 @@ export class UserService {
       .maybeSingle();
     if (!item) throw new NotFoundException('Nicht gefunden');
 
-    const { error: err_sj9mc } = await sb.from('pinned_items').upsert(
-      {
-        item_id: itemId,
-        user_id: userId,
-        pinned_at: new Date().toISOString(),
-      },
-      { onConflict: 'item_id,user_id' },
-    );
-    if (err_sj9mc)
+    const { error: err_sj9mc_del } = await sb
+      .from('pinned_items')
+      .delete()
+      .eq('item_id', itemId)
+      .eq('user_id', userId);
+
+    if (err_sj9mc_del) {
+      console.error('Delete pinItem phase error:', err_sj9mc_del);
+    }
+
+    const { error: err_sj9mc } = await sb.from('pinned_items').insert({
+      item_id: itemId,
+      user_id: userId,
+      pinned_at: new Date().toISOString(),
+    });
+    if (err_sj9mc) {
+      console.error('Insert pinItem error:', err_sj9mc);
       throw new InternalServerErrorException(
         'Ein unerwarteter Datenbankfehler ist aufgetreten',
       );
+    }
 
     await sb
       .from('user_activity')
@@ -384,11 +425,14 @@ export class UserService {
 
   async unpinItem(itemId: string, userId: string) {
     const sb = this.supabaseService.getClient();
-    await sb
+    const { error: delErr } = await sb
       .from('pinned_items')
       .delete()
       .eq('item_id', itemId)
       .eq('user_id', userId);
+    if (delErr) {
+      console.error('Unpin delete error:', delErr);
+    }
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'item:unpin', meta: { itemId } });
