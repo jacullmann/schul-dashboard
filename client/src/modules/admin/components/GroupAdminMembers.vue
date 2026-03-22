@@ -147,11 +147,11 @@ function onRoleChange(member: GroupMember, newRole: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: var(--bg-surface);
   border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  border-radius: 10px;
+  border-radius: var(--border-radius-lg);
   gap: 12px;
 }
 

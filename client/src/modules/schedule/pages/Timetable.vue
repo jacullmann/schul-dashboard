@@ -220,7 +220,7 @@ onUnmounted(() => {
 .header-cell {
   background-color:var(--bg-surface);
   color: var(--text-default);
-  padding: 10px 12px;
+  padding: 8px 12px;
   border:1px solid var(--border-surface);
   text-align: center;
   font-weight: bold;

@@ -227,7 +227,7 @@ table {
 }
 
 th {
-  padding: 10px 12px;
+  padding: 8px 12px;
   text-align: center;
   background: var(--bg-surface);
   color: var(--text-default);
@@ -254,7 +254,7 @@ th:last-child {
 }
 
 td {
-  padding: 10px 12px;
+  padding: 8px 12px;
   text-align: left;
   vertical-align: top;
   background: var(--bg-surface);

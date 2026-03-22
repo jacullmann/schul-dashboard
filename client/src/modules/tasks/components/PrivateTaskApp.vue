@@ -22,8 +22,6 @@ const {
   privateTasks,
   displayPrivateTasks,
   loading,
-  message,
-  isError,
   openMenuId,
   loadPrivateTasks,
   addPrivateTask,
@@ -190,7 +188,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
         </draggable>
       </div>
     </div>
-    <div v-if="message" class="message" :class="{ error: isError }">{{ message }}</div>
   </div>
 </template>
 
@@ -261,19 +258,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
 .menu-btn:hover .lucide-chevron-down {
   transform: translateY(1px);
-}
-
-.message {
-  margin-top: 1rem;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-}
-
-.message.error {
-  border-color: var(--danger);
 }
 
 .secure {

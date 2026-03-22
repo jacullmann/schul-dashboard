@@ -812,7 +812,7 @@ function handleArchiveFromMenu(item: HwItem) {
 /* Anmerkungen */
 .editor-note-section {
   margin-top: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--bg-interactive-hover);
   border: 1px solid var(--border-canvas);
   border-radius: var(--border-radius-md);

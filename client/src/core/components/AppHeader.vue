@@ -442,14 +442,8 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   background-color: var(--danger);
-  border-radius: 50%;
+  border-radius: var(--border-radius-full);
   flex-shrink: 0;
-}
-
-.menu-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .header-right {

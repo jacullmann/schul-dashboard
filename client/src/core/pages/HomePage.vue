@@ -274,7 +274,7 @@ onMounted(() => {
 }
 
 .section-badge {
-  background: var(--bg-interactive-hover);
+  background: var(--bg-surface);
   color: var(--sub);
   font-size: var(--font-size-sub);
   font-weight: 600;
@@ -326,7 +326,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 8px;
+  margin: 0;
   color: var(--sub);
   flex-shrink: 0;
   transition: color 0.15s ease;

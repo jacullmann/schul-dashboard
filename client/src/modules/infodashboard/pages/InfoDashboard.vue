@@ -281,7 +281,7 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
   border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   color: var(--text-default);
-  padding: 10px 12px 10px 42px;
+  padding: 8px 12px 8px 42px;
   font-size: 0.95rem;
   transition: all 0.1s;
 }
@@ -326,7 +326,7 @@ select {
   color: var(--text-default);
   border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
-  padding: 10px 12px;
+  padding: 8px 12px;
 }
 
 select:hover {

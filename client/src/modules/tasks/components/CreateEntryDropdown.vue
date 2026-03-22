@@ -82,11 +82,11 @@ onBeforeUnmount(() => {
 <template>
   <div class="create-entry-wrapper">
     <button
-        class="btn mg action"
+        class="btn square action"
         @click="toggleMenu"
         ref="buttonRef"
     >
-      <Plus :size="28" />
+      <Plus :size="24" />
     </button>
 
     <div
@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
   right: 0;
 }
 
-.mg {
+.square {
   padding: 4px;
 }
 </style>

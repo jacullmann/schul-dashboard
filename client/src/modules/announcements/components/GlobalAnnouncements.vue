@@ -194,7 +194,7 @@ onMounted(() => {
 }
 
 .global-ann {
-  padding: 10px 12px;
+  padding: 8px 12px;
   color: var(--text-default);
   font-size: var(--font-size-sub);
   display: flex;
@@ -340,7 +340,7 @@ onMounted(() => {
 
 @media (max-width: 500px) {
   .global-ann {
-    padding: 10px 12px;
+    padding: 8px 12px;
   }
 
   .global-ann-content {

@@ -262,7 +262,7 @@ const backToList = () => {
   border: 1px solid var(--border-surface);
   box-shadow: var(--input-shadow);
   color: var(--text-default);
-  padding: 10px 12px 10px 36px;
+  padding: 8px 12px 8px 36px;
   border-radius: 8px;
   font-size: 0.9rem;
   outline: none;

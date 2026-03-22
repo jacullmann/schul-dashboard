@@ -19,8 +19,10 @@
     --color-ash: #aaa;
     --color-white-highlight: #eee;
     --color-white: #ffffff;
+    --color-cinnabar: #ef4444;
     --color-coral: #f65252;
     --color-coral-highlight: #ff6666;
+    --color-cotton-candy: #feeeee;
     --color-burgundy: #472e2e;
     --color-yellow: #eab308;
     --color-green: #6aed8b;
@@ -99,11 +101,15 @@
 :root.light {
     --bg-canvas: var(--color-white);
     --text-default: var(--color-black);
+    --primary: var(--color-black);
+    --action: var(--color-black);
     --text-muted: var(--color-steel);
     --text-subtle: var(--color-ghost);
     --border-canvas: #ddd;
     --border-surface: #ddd;
     --bg-interactive-hover: #eee;
+    --danger: var(--color-cinnabar);
+    --danger-background: var(--color-cotton-candy);
     --sub: var(--color-steel);
     --bg-surface: var(--color-white);
     --ghost--hover: #f5f5f5;
@@ -188,7 +194,7 @@ button {
 }
 
 a {
-    color: var(--primary);
+    color: var(--action);
     text-decoration: none;
 }
 
@@ -209,7 +215,7 @@ h5 {
     select,
     textarea {
         width: 100%;
-        padding: 10px 12px;
+        padding: 8px 12px;
         border-radius: var(--border-radius-md);
         background: var(--bg-surface);
         color: var(--text-default);
@@ -245,7 +251,7 @@ h5 {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 12px;
+        padding: 8px 12px;
         background: var(--text-default);
         color: var(--bg-surface);
         border: 1px solid transparent;
@@ -274,8 +280,8 @@ h5 {
     }
 
     .btn.action {
-        background: var(--primary);
-        border: 1px solid var(--primary);
+        background: var(--action);
+        border: 1px solid var(--action);
         color: var(--bg-canvas);
     }
 
