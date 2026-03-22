@@ -48,6 +48,14 @@ export class TimetableService {
         }
       }
 
+      if (userId) {
+        sb.rpc('upsert_user_tenant_visit', {
+          p_user_id: userId,
+          p_tenant_id: tenantId,
+          p_visit_type: 'timetable',
+        }).then();
+      }
+
       return filteredLessons.map((l: any) => ({
         id: l.id,
         day: l.day,
@@ -74,6 +82,9 @@ export class TimetableService {
         .from('timetable_subs')
         .select('*')
         .eq('tenant_id', tenantId);
+      // Try to determine the user id. Actually getSubs might be called from timetable context
+      // where we wouldn't have user id here easily. If we don't have user_id, it is handled
+      // by getTimetable anyways since getTimetable runs concurrently on the same page.
       return (subs || []).map((s) => ({
         id: s.id,
         lessonId: s.lesson_id,

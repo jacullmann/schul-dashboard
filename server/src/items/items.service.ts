@@ -78,6 +78,15 @@ export class ItemsService {
       console.error('Supabase getItems error:', error);
     }
 
+    if (type === 'all' || !type) {
+      // Fire and forget RPC to update the group visit logic
+      sb.rpc('upsert_user_tenant_visit', {
+        p_user_id: userId,
+        p_tenant_id: tenantId,
+        p_visit_type: 'group',
+      }).then();
+    }
+
     return (rows || []).map((row: any) => ({
       id: row.id,
       type: row.type,

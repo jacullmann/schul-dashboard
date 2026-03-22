@@ -225,9 +225,25 @@ export class GroupService {
           ownerId: ur.groups.owner_id,
           role: ur.roles?.name,
           generatedName: generateUserName(userId, ur.groups.id),
+          hasUnreadContent: false, // Default, updated via RPC later
         }));
 
-      let activeGroup = groups.find((g) => g.id === activeGroupId);
+      // Fetch the unread status for all groups in O(1) time
+      const { data: unreadStatus } = await sb.rpc('get_unread_status', {
+        p_user_id: userId,
+      });
+      if (unreadStatus) {
+        unreadStatus.forEach((status: any) => {
+          const group = groups.find((g: any) => g.id === status.tenant_id);
+          if (group) {
+            group.hasUnreadContent =
+              status.has_unread_announcements ||
+              status.has_unread_timetable_subs;
+          }
+        });
+      }
+
+      let activeGroup: any = groups.find((g: any) => g.id === activeGroupId);
 
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb

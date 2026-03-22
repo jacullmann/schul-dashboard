@@ -16,7 +16,7 @@ const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
 const activeGroupOwnerId = ref<string | null>(null);
 const userGroups = ref<
-    Array<{ id: string; name: string; role: string; generatedName?: string; ownerId?: string }>
+    Array<{ id: string; name: string; role: string; generatedName?: string; ownerId?: string; hasUnreadContent?: boolean }>
 >([]);
 
 let initPromise: Promise<void> | null = null;
@@ -54,7 +54,7 @@ function clearAuthState(): void {
 function applyStatusData(data: {
     authenticated: boolean;
     group?: { id: string; name: string; ownerId?: string } | null;
-    groups?: Array<{ id: string; name: string; role: string; generatedName?: string; ownerId?: string }>;
+    groups?: Array<{ id: string; name: string; role: string; generatedName?: string; ownerId?: string; hasUnreadContent?: boolean }>;
 }): void {
     isLoggedIn.value = data.authenticated;
     isAuthenticated.value = data.authenticated;

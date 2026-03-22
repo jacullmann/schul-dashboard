@@ -188,7 +188,8 @@ onUnmounted(() => {
                     :class="{ active: g.id === activeGroupId }"
                     @click="onSwitchGroup(g.id)"
                 >
-                  {{ g.name }}
+                  <span>{{ g.name }}</span>
+                  <span v-if="g.hasUnreadContent && g.id !== activeGroupId" class="unread-dot"></span>
                 </button>
                 <div class="menu-divider"></div>
                 <router-link
@@ -435,6 +436,20 @@ onUnmounted(() => {
 
 .nav-item:hover {
   color: var(--action-hover);
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--danger);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .header-right {
