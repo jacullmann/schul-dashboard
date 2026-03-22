@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { ChevronDown, Check } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
@@ -24,9 +24,27 @@ const emit = defineEmits<{
 const isOpen = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
 
-const toggleMenu = () => {
+const toggleMenu = async () => {
   if (!props.disabled) {
     isOpen.value = !isOpen.value;
+
+    if (isOpen.value) {
+      // 1. Wait for the v-if to render the dropdown list
+      await nextTick();
+
+      if (wrapperRef.value) {
+        // 2. Find the active item using the class you already set up
+        const selectedElement = wrapperRef.value.querySelector('.active') as HTMLElement | null;
+
+        if (selectedElement) {
+          // 3. Scroll it into view
+          selectedElement.scrollIntoView({
+            block: 'nearest',
+            behavior: 'auto'
+          });
+        }
+      }
+    }
   }
 };
 
@@ -55,12 +73,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
         aria-haspopup="true"
         :aria-expanded="isOpen"
     >
-      <div class="btn-content">
+      <span class="btn-content">
         <span>
           {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
         </span>
         <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': isOpen }" />
-      </div>
+      </span>
     </button>
 
     <div v-if="isOpen" class="select-menu">
@@ -123,11 +141,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   z-index: 999;
   box-shadow: var(--menu-shadow);
   animation: menuFadeIn 160ms ease;
-}
-
-.lucide-check {
-  color: var(--text-default);
-  flex-shrink: 0;
 }
 
 .spacer {
