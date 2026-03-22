@@ -61,26 +61,22 @@ export class ItemsService {
 
     if (filter === 'old') {
       if (archived.length > 0) {
-        // Use double quotes for UUIDs and ISO strings in raw or strings to handle dashes and special characters correctly
-        const archivedIds = archived.map((id) => `"${id}"`).join(',');
-        q = q.or(`due_date.lt."${cutoff}",id.in.(${archivedIds})`);
+        q = q.or(`due_date.lt.${cutoff},id.in.(${archived.join(',')})`);
       } else {
         q = q.lt('due_date', cutoff);
       }
       if (kept.length > 0) {
-        // Use array for in/not in filters with Supabase-js helper methods for automatic formatting
-        q = q.not('id', 'in', kept);
+        q = q.not('id', 'in', `(${kept.join(',')})`);
       }
       q = q.order('due_date', { ascending: false });
     } else {
       if (kept.length > 0) {
-        const keptIds = kept.map((id) => `"${id}"`).join(',');
-        q = q.or(`due_date.gte."${cutoff}",id.in.(${keptIds})`);
+        q = q.or(`due_date.gte.${cutoff},id.in.(${kept.join(',')})`);
       } else {
         q = q.gte('due_date', cutoff);
       }
       if (archived.length > 0) {
-        q = q.not('id', 'in', archived);
+        q = q.not('id', 'in', `(${archived.join(',')})`);
       }
       q = q.order('due_date', { ascending: true });
     }
