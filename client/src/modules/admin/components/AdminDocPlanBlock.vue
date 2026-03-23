@@ -254,7 +254,7 @@ watch(() => props.block.content, (newContent) => {
   border-radius: 4px;
   border: none;
   background: none;
-  color: var(--color-sub, #888);
+  color: var(--color-on-surface-muted, #888);
   cursor: pointer;
 }
 
@@ -274,7 +274,7 @@ watch(() => props.block.content, (newContent) => {
   left: -20px;
   top: 6px;
   cursor: pointer;
-  color: var(--color-sub, #aaa);
+  color: var(--color-on-surface-muted, #aaa);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,7 +296,7 @@ watch(() => props.block.content, (newContent) => {
   text-align: center;
   font-size: 18px;
   line-height: 1.4;
-  color: var(--color-sub, #888);
+  color: var(--color-on-surface-muted, #888);
   margin-right: 6px;
   user-select: none;
   margin-top: 2px;
@@ -334,13 +334,13 @@ watch(() => props.block.content, (newContent) => {
 
 .editable-input:empty::before {
   content: attr(placeholder);
-  color: var(--color-sub, #bbb);
+  color: var(--color-on-surface-muted, #bbb);
   pointer-events: none;
 }
 
 .is-checked .editable-input {
   text-decoration: line-through;
-  color: var(--color-sub, #999);
+  color: var(--color-on-surface-muted, #999);
 }
 
 /* =========================================

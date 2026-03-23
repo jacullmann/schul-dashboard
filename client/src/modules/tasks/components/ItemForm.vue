@@ -389,7 +389,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 .small {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   align-self: center;
 }
 .error {

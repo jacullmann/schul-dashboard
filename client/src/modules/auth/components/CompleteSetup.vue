@@ -137,7 +137,7 @@ async function skip() {
     <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
 
     <template #content>
-      <p class="small" style="color: var(--color-sub)">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
+      <p class="small" style="color: var(--color-on-surface-muted)">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
 
       <div class="form-group">
         <label class="label-text">{{ t('account.menu.courses.enr') }}</label>

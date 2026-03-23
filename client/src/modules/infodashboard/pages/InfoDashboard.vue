@@ -250,7 +250,7 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
 
 .brand-sub {
   font-size: 0.8rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-transform: uppercase;
   letter-spacing: 2px;
 }
@@ -266,7 +266,7 @@ h1, h2, h3, .brand-text, .hero-title, .article-title {
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -466,7 +466,7 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 .hero-excerpt {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-title);
   line-height: 1.6;
   margin: 16px 0;
@@ -474,7 +474,7 @@ input[type="range"]:hover::-moz-range-thumb {
 
 .meta {
   font-size: var(--text-body);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .article-grid, .rec-grid {
@@ -502,7 +502,7 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 .article-meta {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top:16px;
 }
 
@@ -526,7 +526,7 @@ input[type="range"]:hover::-moz-range-thumb {
 .image-attribution, .article-body :deep(attr) {
   display: block;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 8px;
 }
 
@@ -584,7 +584,7 @@ input[type="range"]:hover::-moz-range-thumb {
 
 .video-description {
   font-size: var(--text-title);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 1rem;
   line-height: 1.5;
 }

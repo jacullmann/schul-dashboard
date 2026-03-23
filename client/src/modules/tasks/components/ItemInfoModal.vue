@@ -94,7 +94,7 @@ const showUpdated = computed(() => {
 
 dt {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 500;
 }
 
@@ -106,7 +106,7 @@ dd {
 }
 
 .muted {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 400;
 }
 

@@ -62,7 +62,7 @@ b {
 
 .small-print {
   font-size: 0.7rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin: 0;
 }
 

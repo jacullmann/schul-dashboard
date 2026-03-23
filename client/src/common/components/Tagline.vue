@@ -62,7 +62,7 @@ onMounted(() => {
 <style scoped>
 
 .tagline-text {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
   font-family: var(--font-sans), sans-serif;
   font-style: italic;

@@ -163,7 +163,7 @@ watch(() => props.show, (newVal) => {
 
 .count-small {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   opacity: 0.8;
   padding: 2px 6px;
   border-radius: 4px;

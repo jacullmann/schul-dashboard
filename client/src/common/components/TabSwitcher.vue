@@ -241,7 +241,7 @@ useResizeObserver(navBarRef, () => {
   padding: 8px 12px;
   font-size: var(--text-sub);
   border-radius: var(--radius-md);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   white-space: nowrap;
   flex-shrink: 0;
   transition: color 0.1s;

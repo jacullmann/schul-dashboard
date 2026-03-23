@@ -214,7 +214,7 @@ const {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;
@@ -228,7 +228,7 @@ const {
   background: none;
   border: none;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   text-align: right;
   align-self: flex-end;
@@ -260,7 +260,7 @@ const {
 }
 
 :deep(.privacy-link) {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-decoration: underline;
   transition: color 0.2s ease;
 }

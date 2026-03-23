@@ -164,7 +164,7 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   justify-content: center;

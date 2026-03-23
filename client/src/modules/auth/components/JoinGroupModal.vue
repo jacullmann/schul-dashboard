@@ -157,7 +157,7 @@ async function submit() {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;

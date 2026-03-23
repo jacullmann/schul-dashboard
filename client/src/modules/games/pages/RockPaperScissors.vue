@@ -139,7 +139,7 @@ const resetGame = () => {
 
 .choice-card h3 {
   margin-top: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .icon-box {

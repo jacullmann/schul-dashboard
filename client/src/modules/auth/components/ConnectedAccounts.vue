@@ -154,12 +154,12 @@ function handleLink() {
 
 .provider-email {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .provider-status {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .provider-action {

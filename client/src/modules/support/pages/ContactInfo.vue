@@ -134,7 +134,7 @@ import {
 .section-desc {
   margin: 0;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   line-height: 1.4;
 }
 
@@ -150,7 +150,7 @@ import {
 
 .lucide-external-link {
   overflow: visible !important;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   transition: all 0.1s ease;
 }
 
@@ -201,7 +201,7 @@ hr {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
 }
 

@@ -83,7 +83,7 @@ onMounted(() => {
 }
 
 .data-link {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   transition: color 0.1s ease;
   text-decoration: underline;
 }

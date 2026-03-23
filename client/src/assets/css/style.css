@@ -80,7 +80,6 @@
     --color-focus: var(--color-ash);
 
     /* LEGACY COLORS */
-    --color-sub: var(--color-ash);
     --not-spinning: var(--color-steel);
     --spinning: var(--color-white);
     --special--green: #4caf50;
@@ -153,7 +152,6 @@
     --color-focus: var(--color-ghost);
 
     /* LEGACY COLORS */
-    --color-sub: var(--color-steel);
     --ghost--hover: #f5f5f5;
     --not-spinning: #bbb;
 
@@ -171,7 +169,7 @@
     --color-canvas-border: #414141aa;
     --color-surface-border: #555555aa;
     --color-surface-hover: #414141aa;
-    --color-sub: #bbb;
+    --color-on-surface-muted: #bbb;
     --ghost--hover: #323232aa;
     --blur: blur(32px) saturate(120%);
 }
@@ -248,6 +246,10 @@ h5 {
     font-family: var(--font-display), sans-serif;
     font-weight: 700;
     margin-top: 0;
+}
+
+p {
+    margin: 1em 0;
 }
 
 @layer components {
@@ -443,13 +445,13 @@ hr {
 
 .small {
     font-size: 12px;
-    color: var(--color-sub);
+    color: var(--color-on-surface-muted);
 }
 
 .badge {
     padding: 4px 8px;
     border-radius: var(--radius-md);
-    color: var(--color-sub);
+    color: var(--color-on-surface-muted);
 }
 
 .badge:hover {
@@ -476,7 +478,7 @@ hr {
 }
 
 footer {
-    color: var(--color-sub);
+    color: var(--color-on-surface-muted);
     font-size: var(--text-sub);
 }
 

@@ -18,7 +18,7 @@ const { t } = useI18n();
   position: relative;
   overflow: hidden;
   background: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   border: none;
   font-weight: 500;
 }

@@ -119,7 +119,7 @@ export function useAnnouncements() {
       expired: 'var(--gg)',
       info: 'var(--color-primary)',
     };
-    return map[color] ?? 'var(--color-sub)';
+    return map[color] ?? 'var(--color-on-surface-muted)';
   }
 
   return {

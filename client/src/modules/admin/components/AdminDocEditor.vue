@@ -647,11 +647,11 @@ onMounted(async () => {
 
 .connection-badge.disconnected {
   background: var(--color-surface-hover);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .connection-badge.disconnected .dot {
-  background: var(--color-sub);
+  background: var(--color-on-surface-muted);
 }
 
 .connection-badge.error {
@@ -677,7 +677,7 @@ onMounted(async () => {
 
 .online-label {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .admin-chip {
@@ -697,12 +697,12 @@ onMounted(async () => {
 
 .last-edit {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .version-badge {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   background: var(--color-surface-hover);
   padding: 2px 8px;
   border-radius: 10px;
@@ -796,7 +796,7 @@ onMounted(async () => {
 .reset-btn {
   background: none;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -816,7 +816,7 @@ onMounted(async () => {
 
 .toc-empty {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-style: italic;
   padding: 10px;
 }
@@ -881,7 +881,7 @@ onMounted(async () => {
 .toolbar-label {
   font-size: var(--text-footnote);
   font-weight: 600;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   margin-right: 8px;
@@ -893,7 +893,7 @@ onMounted(async () => {
   padding: 7px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
 }
@@ -910,7 +910,7 @@ onMounted(async () => {
 
 .toolbar-hint {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .tb-separator {
@@ -965,7 +965,7 @@ onMounted(async () => {
   padding: 6px 7px;
   border-radius: var(--radius-md, 4px);
   cursor: pointer;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .color-menu-btn:hover {
@@ -1088,7 +1088,7 @@ onMounted(async () => {
   height: 200px;
   border: 2px dashed var(--color-surface-border);
   border-radius: 8px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   margin-top: 24px;
   font-size: var(--text-body);

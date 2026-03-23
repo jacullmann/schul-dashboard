@@ -158,7 +158,7 @@ const {
 
 .suggestion {
   margin-top: 8px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-style: italic;
   font-size: var(--text-sub);
 }

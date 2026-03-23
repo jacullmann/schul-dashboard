@@ -143,7 +143,7 @@ onMounted(async () => {
 
 .verify-description {
   font-size: 16px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin: 0 0 32px 0;
   max-width: 480px;
   line-height: 1.5;
@@ -198,7 +198,7 @@ onMounted(async () => {
 .error-reasons {
   margin: 0;
   padding-left: 24px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: 14px;
   line-height: 1.8;
 }

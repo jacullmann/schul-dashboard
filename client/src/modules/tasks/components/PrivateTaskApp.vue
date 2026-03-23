@@ -113,7 +113,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     <div v-if="user" class="privateTask-list">
       <div v-if="loading" class="loader">
         <LoadingSpinner color="#fff" size="24px" />
-        <div style="color: var(--color-sub)">{{ t('school.private.loading') }}</div>
+        <div style="color: var(--color-on-surface-muted)">{{ t('school.private.loading') }}</div>
       </div>
 
       <div v-else-if="privateTasks.length === 0" class="empty-state">
@@ -200,7 +200,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .privateTask-filters {

@@ -84,7 +84,7 @@ const filteredGames = computed(() => {
 }
 
 .no-results {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-align: center;
   font-size: 1.2em;
   margin-top: 40px;
@@ -141,7 +141,7 @@ const filteredGames = computed(() => {
 }
 
 .game-description {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: 0.9em;
   margin-bottom: 15px;
   flex-grow: 1;

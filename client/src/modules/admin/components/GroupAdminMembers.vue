@@ -179,7 +179,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
 
 .role-admin { color: #6366f1; }
 .role-moderator { color: #f59e0b; }
-.role-user { color: var(--color-sub); }
+.role-user { color: var(--color-on-surface-muted); }
 
 .member-actions {
   display: flex;
@@ -197,7 +197,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
 }
 
@@ -213,7 +213,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }

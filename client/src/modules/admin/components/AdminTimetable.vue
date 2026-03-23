@@ -179,7 +179,7 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-sub);
 }
 
@@ -245,7 +245,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 2px;
 }
 

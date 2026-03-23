@@ -289,7 +289,7 @@ tr td:last-child {
 }
 
 .t-sub {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-sub);
   margin-top: 2px;
   line-height: 1.2;
@@ -331,7 +331,7 @@ tr td:last-child {
 }
 
 .subjects {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
 }
 
@@ -394,12 +394,12 @@ tr td:last-child {
 }
 
 .day-col li.empty {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .no-results, .placeholder {
   text-align: center;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 16px;
 }
 </style>

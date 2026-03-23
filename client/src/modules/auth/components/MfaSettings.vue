@@ -406,7 +406,7 @@ onUnmounted(() => {
   height: 44px;
   border-radius: 8px;
   background: var(--color-surface-hover);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .status-card.enabled .status-icon {
@@ -422,13 +422,13 @@ onUnmounted(() => {
 
 .status-label {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .status-value {
   font-size: var(--text-body);
   font-weight: 600;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .status-value.enabled {
@@ -437,7 +437,7 @@ onUnmounted(() => {
 
 .description {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   line-height: 1.5;
   margin: 0;
   font-family: var(--font-sans), sans-serif;
@@ -490,7 +490,7 @@ onUnmounted(() => {
   background: var(--color-surface-hover);
   font-size: var(--text-sub);
   font-weight: 600;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .step.active .step-number {
@@ -505,7 +505,7 @@ onUnmounted(() => {
 
 .step-label {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .step.active .step-label {
@@ -527,7 +527,7 @@ onUnmounted(() => {
 
 .instruction {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   line-height: 1.5;
   margin: 0;
   text-align: center;
@@ -557,7 +557,7 @@ onUnmounted(() => {
 
 .manual-label {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin: 0;
 }
 
@@ -588,7 +588,7 @@ onUnmounted(() => {
   padding: 8px;
   background: none;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s;
@@ -605,7 +605,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 6px;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-family: var(--font-sans), sans-serif;
 }
 

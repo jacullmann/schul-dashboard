@@ -52,7 +52,7 @@ const closeModal = () => (isModalOpen.value = false)
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   transition: color 0.15s ease;
 }
 
@@ -62,8 +62,12 @@ const closeModal = () => (isModalOpen.value = false)
 
 .popover-content {
   font-size: var(--text-body);
-  color: var(--color-on-surface);
+  color: var(--color-on-surface-muted);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, strong, b {
+  color: var(--color-on-surface);
 }
 
 .fade-scale-enter-active,

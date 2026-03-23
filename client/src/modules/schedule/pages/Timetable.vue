@@ -245,7 +245,7 @@ onUnmounted(() => {
   align-items: center;
   background-color:transparent;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   white-space: nowrap;
 }
 
@@ -317,14 +317,14 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 2px;
 }
 
 /* CHANGE STYLES */
 .crossed {
   text-decoration: line-through;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-right: 4px;
   font-weight: normal;
 }
@@ -343,7 +343,7 @@ onUnmounted(() => {
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--color-sub);
+  border-bottom: 1px solid var(--color-on-surface-muted);
 }
 /* Active State: Cross outs need to be visible against white */
 .lesson-group-container.highlight-active .crossed {

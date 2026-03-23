@@ -97,15 +97,15 @@ function goToStatus() {
 .footer-section p {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .text-sub {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .footer-link {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-decoration: none;
   transition: color 0.1s ease, opacity 0.2s ease;
   cursor: pointer;

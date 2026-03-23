@@ -116,7 +116,7 @@ function cancel() {
 .link-description {
   margin: 0 0 16px 0;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   line-height: 1.5;
   text-align: center;
 }
@@ -152,7 +152,7 @@ function cancel() {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;

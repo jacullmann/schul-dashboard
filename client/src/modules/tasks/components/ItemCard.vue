@@ -306,7 +306,7 @@ function onDrop(e: DragEvent) {
   padding: 8px;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   transition: background 120ms ease, color 120ms ease;
   margin: -8px;
   background: transparent;

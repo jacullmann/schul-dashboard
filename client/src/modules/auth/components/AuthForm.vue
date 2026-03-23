@@ -241,7 +241,7 @@ defineExpose({ emailInputRef });
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;
@@ -255,7 +255,7 @@ defineExpose({ emailInputRef });
   background: none;
   border: none;
   padding: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   text-align: right;
   align-self: flex-end;
@@ -286,7 +286,7 @@ defineExpose({ emailInputRef });
 }
 
 :deep(.privacy-link) {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-decoration: underline;
   transition: color 0.2s ease;
 }
@@ -334,7 +334,7 @@ defineExpose({ emailInputRef });
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-footnote);
   margin-block: 8px;
 }

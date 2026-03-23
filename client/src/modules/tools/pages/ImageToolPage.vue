@@ -334,7 +334,7 @@ onUnmounted(() => {
           @drop.prevent="handleDrop"
       >
         <p style="margin-top: 0;"><strong>Klicken zum Hochladen</strong> oder Drag & Drop</p>
-        <span style="font-size: var(--text-sub); color: var(--color-sub);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
+        <span style="font-size: var(--text-sub); color: var(--color-on-surface-muted);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
         <input
             type="file"
             ref="fileInputRef"
@@ -388,7 +388,7 @@ onUnmounted(() => {
       </div>
 
       <div class="preview-container" v-show="hasImage">
-        <div style="margin-bottom: 8px; font-size: var(--text-sub); color: var(--color-sub);">
+        <div style="margin-bottom: 8px; font-size: var(--text-sub); color: var(--color-on-surface-muted);">
           Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
         </div>
         <img :src="currentImageSrc" alt="Preview" class="preview-img">
@@ -567,7 +567,7 @@ label {
 /* The Visual Crop Box */
 .crop-box {
   position: absolute;
-  border: 2px solid var(--color-sub);
+  border: 2px solid var(--color-on-surface-muted);
   box-shadow: 0 0 0 9999px color-mix(in oklab, var(--color-canvas), transparent 40%); /* Dimming effect */
   cursor: move;
 }

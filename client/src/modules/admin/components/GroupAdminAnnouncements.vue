@@ -141,13 +141,13 @@ function formatDate(iso: string) {
 
 .ann-item-date {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
 }
 
@@ -160,7 +160,7 @@ function formatDate(iso: string) {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }

@@ -93,7 +93,7 @@ h2 {
   margin-bottom: 5px;
 }
 p {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-bottom: 20px;
 }
 .grid {

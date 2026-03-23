@@ -195,7 +195,7 @@ const tabs = [
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   transition: background 0.15s, color 0.15s;
 }
 
@@ -213,7 +213,7 @@ const tabs = [
 
 .ga-group-name {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 500;
 }
 
@@ -233,7 +233,7 @@ const tabs = [
   padding: 12px 16px;
   background: none;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
   font-weight: 500;
   cursor: pointer;

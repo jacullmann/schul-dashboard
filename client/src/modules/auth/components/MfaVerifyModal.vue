@@ -197,7 +197,7 @@ onMounted(() => {
 
 .instruction {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   line-height: 1.5;
   margin: 0;
   text-align: center;
@@ -288,7 +288,7 @@ onMounted(() => {
 
 .help-text {
   font-size: var(--text-footnote);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-align: center;
   margin: 0;
   line-height: 1.5;

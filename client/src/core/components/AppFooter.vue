@@ -130,7 +130,7 @@ const year = new Date().getFullYear();
 
 .footer-link {
   display: block;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-decoration: none;
   font-size: var(--text-body);
   transition: color 0.2s;
@@ -158,7 +158,7 @@ const year = new Date().getFullYear();
 }
 
 .copyright-text {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin: 0;
 }
 

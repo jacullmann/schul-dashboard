@@ -243,7 +243,7 @@ onMounted(() => {
 }
 
 .welcome-sub {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
   margin: 0;
   line-height: 1.5;
@@ -275,7 +275,7 @@ onMounted(() => {
 
 .section-badge {
   background: var(--color-surface);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-sub);
   font-weight: 600;
   padding: 2px 10px;
@@ -327,7 +327,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   margin: 0;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   flex-shrink: 0;
   transition: color 0.15s ease;
 }
@@ -367,7 +367,7 @@ onMounted(() => {
 
 .group-card-meta {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .group-card.active .group-card-meta {
@@ -383,12 +383,12 @@ onMounted(() => {
 
 .role-admin { color: #6366f1; }
 .role-mod, .role-moderator { color: #f59e0b; }
-.role-user { color: var(--color-sub); }
+.role-user { color: var(--color-on-surface-muted); }
 .role-superadmin { color: var(--color-danger); }
 
 .group-card-username {
   font-size: 0.7rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   opacity: 0.7;
   white-space: nowrap;
   overflow: hidden;
@@ -396,7 +396,7 @@ onMounted(() => {
 }
 
 .group-card-arrow {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -418,7 +418,7 @@ onMounted(() => {
 }
 
 .empty-icon {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-bottom: 16px;
 }
 
@@ -430,7 +430,7 @@ onMounted(() => {
 }
 
 .empty-state-card p {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
   max-width: 360px;
   margin: 0 auto 24px;

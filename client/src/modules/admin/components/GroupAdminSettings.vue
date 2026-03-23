@@ -204,7 +204,7 @@ async function confirmDeleteGroup() {
 }
 
 .readonly-text {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
   margin: 0;
   text-align: center;
@@ -228,7 +228,7 @@ async function confirmDeleteGroup() {
 
 .setting-row label {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 500;
 }
 
@@ -263,7 +263,7 @@ async function confirmDeleteGroup() {
 .form-group label {
   display: block;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 500;
   margin-bottom: 6px;
 }
@@ -286,7 +286,7 @@ async function confirmDeleteGroup() {
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -313,7 +313,7 @@ async function confirmDeleteGroup() {
 
 .danger-desc {
   font-size: var(--text-body);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin: 0 0 20px;
   line-height: 1.5;
 }

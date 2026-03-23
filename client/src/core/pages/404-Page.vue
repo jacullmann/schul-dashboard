@@ -90,8 +90,8 @@ const goBack = () => {
 }
 
 .error-description {
-  font-size: 16px;
-  color: var(--color-sub);
+  font-size: var(--text-body);
+  color: var(--color-on-surface-muted);
   margin: 0 0 48px 0;
   max-width: 500px;
 }
@@ -162,7 +162,7 @@ const goBack = () => {
 
 .nav-desc {
   font-size: 13px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .action-section {

@@ -85,7 +85,7 @@ const emit = defineEmits<{
 
 .stat-label {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .cleanup-bar {
@@ -105,7 +105,7 @@ const emit = defineEmits<{
   align-items: center;
   gap: 8px;
   font-size: var(--text-body);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 @media (max-width: 640px) {

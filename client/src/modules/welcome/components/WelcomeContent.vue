@@ -167,7 +167,7 @@ function navigateToAuth() {
 }
 
 .example-badge {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   padding: 0;
   font-family: var(--font-sans), sans-serif;
   font-size: var(--text-body);
@@ -191,7 +191,7 @@ function navigateToAuth() {
 
 .unpin-trigger {
   background: transparent;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   padding: 8px;
   border-radius: var(--radius-lg);
   display: inline-flex;
@@ -276,7 +276,7 @@ function navigateToAuth() {
   line-height: 1.6;
   margin-bottom: 32px;
   margin-top: 16px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-align: left;
 }
 

@@ -63,7 +63,7 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   gap: 8px;
   margin-bottom: 20px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   transition: color 0.2s;
 }
 
@@ -89,7 +89,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .game-description {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: 1.1em;
   margin-bottom: 20px;
 }
@@ -104,6 +104,6 @@ hr {
 
 .text-center {
   text-align: center;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 </style>

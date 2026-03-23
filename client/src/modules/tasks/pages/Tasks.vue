@@ -539,7 +539,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .subject-badge {
-  color:var(--color-sub);
+  color:var(--color-on-surface-muted);
   padding: 0;
   font-size: var(--text-body);
 }
@@ -547,7 +547,7 @@ async function handleArchiveFromMenu(item: HwItem) {
   padding: 0;
   font-size: var(--text-body);
   font-weight: 700;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   background: transparent;
   border: none;
 }
@@ -743,7 +743,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .empty {
   text-align:center;
-  color:var(--color-sub);
+  color:var(--color-on-surface-muted);
   padding:24px;
   border: none
 }
@@ -761,7 +761,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .unpin-trigger {
   background: transparent;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   padding: 8px;
   border-radius: var(--radius-lg);
   display: inline-flex;
@@ -794,7 +794,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .admin-creator-info {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-sub);
 }
 
@@ -822,7 +822,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 .editor-note-label {
   font-size: var(--text-sub);
   font-weight: 600;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .editor-note-content {
@@ -834,7 +834,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .note-placeholder {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-style: italic;
 }
 

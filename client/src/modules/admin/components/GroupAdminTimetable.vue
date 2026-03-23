@@ -101,11 +101,11 @@ function handleSaveSub() {
     </div>
 
     <!-- Create Form -->
-    <h3 v-if="!selectedLesson" style="color: var(--color-sub); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
+    <h3 v-if="!selectedLesson" style="color: var(--color-on-surface-muted); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
     
     <div v-if="selectedLesson">
       <h3 style="margin-top: 0; margin-bottom: 8px; font-size: var(--text-title);">Ausgewählte Stunde</h3>
-      <p style="margin: 0 0 16px 0; color: var(--color-sub); font-size: var(--text-body);">
+      <p style="margin: 0 0 16px 0; color: var(--color-on-surface-muted); font-size: var(--text-body);">
         Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> 
         (Stunde: {{ selectedLesson.slot }}, Letzte Stunde: {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum: {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
       </p>
@@ -219,7 +219,7 @@ function handleSaveSub() {
 .form-field label {
   display: block;
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-bottom: 4px;
   font-weight: 500;
 }
@@ -269,17 +269,17 @@ function handleSaveSub() {
 }
 
 .sub-row-tag.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.sub-row-tag.muted { background: var(--color-surface-hover); color: var(--color-sub); }
+.sub-row-tag.muted { background: var(--color-surface-hover); color: var(--color-on-surface-muted); }
 
 .sub-row-detail {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
 }
 
@@ -295,7 +295,7 @@ function handleSaveSub() {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }

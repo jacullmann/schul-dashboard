@@ -149,7 +149,7 @@ onMounted(async () => {
 .announcement-menu-btn {
   background: none;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   display: flex;
   align-items: center;

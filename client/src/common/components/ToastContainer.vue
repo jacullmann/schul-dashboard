@@ -99,7 +99,7 @@ const ICONS = {
   border: none;
   padding: 8px;
   cursor: pointer;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   display: flex;
   align-items: center;
   justify-content: center;

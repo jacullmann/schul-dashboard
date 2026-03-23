@@ -146,7 +146,7 @@ h2 {
   margin-bottom: 5px;
 }
 p {
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-bottom: 20px;
 }
 .board {
@@ -190,7 +190,7 @@ p {
 .controls {
   margin-top: 20px;
   font-size: 0.9rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   text-align: center;
 }
 </style>

@@ -119,7 +119,7 @@ const formatDate = (dateStr: string) => {
 
 .card-excerpt {
   font-size: 1rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -131,7 +131,7 @@ const formatDate = (dateStr: string) => {
 
 .card-footer {
   font-size: 0.75rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 8px;
 }
 
