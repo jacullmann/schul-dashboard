@@ -238,8 +238,8 @@ th {
 }
 
 th.is-today {
-  background: var(--color-on-surface);
-  color: var(--color-canvas);
+  background: var(--color-action);
+  color: var(--color-on-action);
 }
 
 th:first-child {
@@ -265,7 +265,7 @@ td {
 }
 
 td.is-today {
-  background-color: var(--color-on-surface);
+  background-color: var(--color-action);
 }
 
 tr td:first-child {
@@ -285,7 +285,7 @@ tr td:last-child {
 }
 
 .t-name.is-today {
-  color: var(--color-canvas);
+  color: var(--color-on-action);
 }
 
 .t-sub {

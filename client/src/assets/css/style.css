@@ -180,25 +180,25 @@
 */
 
 ::selection {
-    color: var(--color-canvas);
-    background-color: var(--color-on-surface);
+    color: var(--color-on-action);
+    background-color: var(--color-action);
 }
 
 ::-moz-selection {
-    color: var(--color-canvas);
-    background-color: var(--color-on-surface);
+    color: var(--color-on-action);
+    background-color: var(--color-action);
 }
 
 input::selection,
 textarea::selection {
-    color: var(--color-canvas);
-    background-color: var(--color-on-surface);
+    color: var(--color-on-action);
+    background-color: var(--color-action);
 }
 
 input::-moz-selection,
 textarea::-moz-selection {
-    color: var(--color-canvas);
-    background-color: var(--color-on-surface);
+    color: var(--color-on-action);
+    background-color: var(--color-action);
 }
 
 * {

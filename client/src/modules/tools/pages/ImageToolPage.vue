@@ -576,7 +576,7 @@ label {
 .resize-handle {
   width: 8px;
   height: 8px;
-  background: var(--color-on-surface);
+  background: var(--color-action);
   position: absolute;
   z-index: 10;
 }

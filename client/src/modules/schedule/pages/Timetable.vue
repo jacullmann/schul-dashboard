@@ -277,7 +277,7 @@ onUnmounted(() => {
 
 /* --- HIGHLIGHT LOGIC --- */
 .lesson-group-container.highlight-active {
-  background-color: var(--color-on-surface) !important;
+  background-color: var(--color-action) !important;
   border-color: var(--color-on-surface);
 }
 
@@ -335,7 +335,7 @@ onUnmounted(() => {
 
 /* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
 .lesson-group-container.highlight-active .lesson-subject {
-  color: var(--color-canvas);
+  color: var(--color-on-action);
 }
 
 .lesson-group-container.highlight-active .lesson-details {
@@ -351,7 +351,7 @@ onUnmounted(() => {
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {
-  color: var(--color-canvas);
+  color: var(--color-on-action);
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {

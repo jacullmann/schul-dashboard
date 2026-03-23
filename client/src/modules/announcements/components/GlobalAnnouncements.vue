@@ -230,9 +230,9 @@ onMounted(async () => {
 }
 
 .announcement-item.active {
-  background: var(--color-on-surface);
-  border-color: var(--color-on-surface);
-  color: var(--color-canvas);
+  background: var(--color-action);
+  border-color: var(--color-action);
+  color: var(--color-on-action);
 }
 
 .announcement-item-color {

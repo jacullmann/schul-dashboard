@@ -314,8 +314,8 @@ onMounted(() => {
 }
 
 .group-card.active {
-  border-color: var(--color-on-surface);
-  background: var(--color-on-surface);
+  border-color: var(--color-action);
+  background: var(--color-action);
 }
 
 .group-card.active:hover {
@@ -337,11 +337,11 @@ onMounted(() => {
 }
 
 .group-card.active .group-card-icon {
-  color: var(--color-canvas);
+  color: var(--color-on-action);
 }
 
 .group-card.active:hover .group-card-icon {
-  color: var(--color-canvas);
+  color: var(--color-on-action);
 }
 
 .group-card-body {

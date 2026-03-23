@@ -223,10 +223,10 @@ onUnmounted(() => {
 }
 
 .sub-lesson-item.selected {
-  background-color: var(--color-on-surface);
+  background-color: var(--color-action);
 }
 .sub-lesson-item.selected .lesson-subject {
-  color: var(--color-canvas);
+  color: var(--color-on-action);
 }
 .sub-lesson-item.selected .lesson-details {
   color: var(--color-surface-hover);

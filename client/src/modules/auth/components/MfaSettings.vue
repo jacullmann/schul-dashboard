@@ -494,8 +494,8 @@ onUnmounted(() => {
 }
 
 .step.active .step-number {
-  background: var(--color-on-surface);
-  color: var(--color-canvas);
+  background: var(--color-action);
+  color: var(--color-on-action);
 }
 
 .step.completed .step-number {

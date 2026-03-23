@@ -226,7 +226,7 @@ useResizeObserver(navBarRef, () => {
   top: 0;
   bottom: 0;
   left: 0;
-  background-color: var(--color-on-surface);
+  background-color: var(--color-action);
   border-radius: calc(var(--radius-md) - 1px);
   z-index: 2;
   overflow: hidden;

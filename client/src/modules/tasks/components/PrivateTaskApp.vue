@@ -211,8 +211,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 }
 
 .privateTask-filters .btn.active {
-  background-color: var(--color-on-surface);
-  color: var(--color-surface);
+  background-color: var(--color-action);
+  color: var(--color-on-action);
 }
 
 .privateTasks {
