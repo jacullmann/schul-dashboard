@@ -29,7 +29,7 @@ function handleChange(event: Event) {
         @change="handleChange"
     />
     <span class="vis-label">
-      <Check class="check-icon" stroke-width="3" />
+      <Check class="check-icon" stroke-width="3" :size="18" />
     </span>
   </label>
 </template>
@@ -73,8 +73,6 @@ function handleChange(event: Event) {
 }
 
 .check-icon {
-  width: 12px;
-  height: 12px;
   color: var(--color-on-action);
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
@@ -82,6 +80,6 @@ function handleChange(event: Event) {
 }
 
 .collapse-checkbox input:checked + .vis-label .check-icon {
-  stroke-dashoffset: 0;
+  stroke-dashoffset: 48;
 }
 </style>
