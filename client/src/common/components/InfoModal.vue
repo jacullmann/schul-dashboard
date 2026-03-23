@@ -61,8 +61,6 @@ const closeModal = () => (isModalOpen.value = false)
 }
 
 .popover-content {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
   line-height: 1.6;
 }
 

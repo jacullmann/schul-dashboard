@@ -50,7 +50,7 @@
     "cookies": {
       "banner": {
         "title": "Cookies",
-        "text": "Wir nutzen Cookies, um grundlegende Funktionen wie Anmeldung, Sicherheit und den Betrieb des Schul-Dashboards zuverlässig bereitzustellen. Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten. Mehr dazu findest du in unserer Datenschutzerklärung.",
+        "text": "Wir nutzen Cookies, um grundlegende Funktionen wie Anmeldung, Sicherheit und den Betrieb des schul-dashboards zuverlässig bereitzustellen. Zusätzlich verwenden wir das datenschutzfreundliche Analyse-Tool Umami (Cloud-Dienst), um zu verstehen, wie unsere Seite genutzt wird und sie weiter zu verbessern. Umami arbeitet ohne Tracking-Cookies und speichert keine personenbezogenen Daten. Mehr dazu findest du in unserer Datenschutzerklärung.",
         "action": "Verstanden"
       }
     },
@@ -84,7 +84,7 @@
         "Ohne Fruchtfleisch!",
         "Pasteurisiert und homogenisiert!",
         "Ohne Zusatzstoffe!",
-        "0 Kalorien – Schul Dashboard",
+        "0 Kalorien – schul-dashboard",
         "All unsere Milch kommt von organischen Kühen!",
         "100% Tierleidfrei!",
         "Diese Website enthält kein echtes Tierfleisch.",

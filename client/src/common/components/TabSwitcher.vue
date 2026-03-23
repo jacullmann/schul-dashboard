@@ -239,7 +239,8 @@ useResizeObserver(navBarRef, () => {
   border: none;
   cursor: pointer;
   padding: 8px 12px;
-  font-size: var(--text-sub);
+  font-size: var(--text-btn);
+  line-height: 1rem;
   border-radius: var(--radius-md);
   color: var(--color-on-surface-muted);
   white-space: nowrap;
