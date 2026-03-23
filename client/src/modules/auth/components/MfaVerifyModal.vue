@@ -5,7 +5,7 @@ import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const emit = defineEmits<{
-  (e: 'verified', csrfToken: string): void;
+  (e: 'verified'): void;
   (e: 'cancelled'): void;
 }>();
 
@@ -38,7 +38,7 @@ async function verify() {
   const result = await verifyMfaLogin(code.value);
 
   if (result.ok) {
-    emit('verified', result.csrfToken || '');
+    emit('verified');
   } else {
     if (result.error?.includes('fehlgeschlagen') || result.error?.includes('expired')) {
       error.value = 'Sitzung abgelaufen. Bitte erneut anmelden.';

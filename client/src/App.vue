@@ -11,7 +11,7 @@ import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useRouter } from 'vue-router';
-import hw, { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
+import hw from '@/api/hwApi';
 import { useRoute } from 'vue-router';
 
 const router = useRouter();
@@ -37,7 +37,6 @@ const isPublicRoute = computed(() =>
 
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 let pageloadLogged = false;
-let csrfRedirectInProgress = false;
 
 function logPageload() {
   if (pageloadLogged || !user.value) return;
@@ -51,7 +50,6 @@ function handleShowAuthModal() {
   openAuthModal().catch(() => {});
 }
 async function onAuthSuccess() {
-  syncCsrfFromCookie();
   await userStore.fetchUser();
   handleAuthSuccess('');
   await nextTick();
@@ -75,38 +73,6 @@ async function handleAuthExpired() {
 async function handleTenantChanged() {
   await userStore.fetchUser();
 }
-function handleCsrfRefreshFailed() {
-  if (csrfRedirectInProgress) return;
-  csrfRedirectInProgress = true;
-
-  console.error('CSRF refresh failed - redirecting to welcome');
-
-  setTimeout(() => {
-    const currentPath = router.currentRoute.value.path;
-    if (currentPath !== '/' && !currentPath.startsWith('/auth')) {
-      router.push('/').finally(() => {
-        setTimeout(() => {
-          csrfRedirectInProgress = false;
-        }, 1000);
-      });
-    } else {
-      setTimeout(() => {
-        csrfRedirectInProgress = false;
-      }, 1000);
-    }
-  }, 100);
-}
-
-function handleCsrfInitFailed() {
-  console.error('CSRF initialization failed.');
-  const shouldReload = confirm(
-      'A secure connection to the server could not be established. ' +
-      'Reload page?'
-  );
-  if (shouldReload) {
-    window.location.reload();
-  }
-}
 
 watch(user, (newUser, oldUser) => {
   if (newUser && !oldUser) {
@@ -124,8 +90,6 @@ onMounted(() => {
   window.addEventListener('show-auth-modal', handleShowAuthModal);
   window.addEventListener('auth-expired', handleAuthExpired);
   window.addEventListener('tenant-changed', handleTenantChanged);
-  window.addEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
-  window.addEventListener('csrf-init-failed', handleCsrfInitFailed);
 
   authCheckInterval = setInterval(() => {
     if (isAuthenticated.value) {
@@ -138,8 +102,6 @@ onUnmounted(() => {
   window.removeEventListener('show-auth-modal', handleShowAuthModal);
   window.removeEventListener('auth-expired', handleAuthExpired);
   window.removeEventListener('tenant-changed', handleTenantChanged);
-  window.removeEventListener('csrf-refresh-failed', handleCsrfRefreshFailed);
-  window.removeEventListener('csrf-init-failed', handleCsrfInitFailed);
 
   if (authCheckInterval) {
     clearInterval(authCheckInterval);
@@ -181,7 +143,7 @@ onUnmounted(() => {
       <Teleport to="body">
         <MfaVerifyModal
             v-if="showMfaModal"
-            @verified="(csrfToken) => { if (csrfToken) setCsrfToken(csrfToken); closeMfaModal(); onAuthSuccess(); }"
+            @verified="() => { closeMfaModal(); onAuthSuccess(); }"
             @cancelled="closeMfaModal"
         />
       </Teleport>

@@ -116,6 +116,14 @@ export class AuthService {
 
     const ok = await bcrypt.compare(password, user.password_hash as string);
     if (!ok) {
+      // Log the failed attempt for security monitoring. We log only when the
+      // user record exists to avoid inserting orphan activity rows; we still
+      // return the same generic error so the email is not confirmed to callers.
+      await sb.from('user_activity').insert({
+        user_id: user.id,
+        type: 'auth:login_failed',
+        meta: { ip: _ip, reason: 'bad_password' },
+      });
       throw new UnauthorizedException('Invalid credentials.');
     }
 
@@ -293,7 +301,14 @@ export class AuthService {
       language: 'de',
       personalized: 'true',
     };
-    const mergedPreferences = { ...defaultPreferences, ...(preferences || {}) };
+    // Only carry over known preference keys to prevent arbitrary data storage.
+    const ALLOWED_PREF_KEYS = new Set(Object.keys(defaultPreferences));
+    const sanitizedPrefs = Object.fromEntries(
+      Object.entries(preferences || {}).filter(([k]) =>
+        ALLOWED_PREF_KEYS.has(k),
+      ),
+    );
+    const mergedPreferences = { ...defaultPreferences, ...sanitizedPrefs };
 
     const { data: user, error } = await sb
       .from('users')

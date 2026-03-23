@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import hw, { setCsrfToken, syncCsrfFromCookie } from '@/api/hwApi';
+import hw from '@/api/hwApi';
 
 // ─── Shared reactive state (module singleton) ─────────────────────────────────
 
@@ -57,9 +57,9 @@ export function useOAuth() {
 
     switch (auth) {
       case 'success':
-        // The auth_token cookie is already set. Trigger the same post-login
-        // hydration the normal login flow uses.
-        syncCsrfFromCookie();
+        // The auth_token and csrf_token cookies are already set by the backend
+        // redirect response. The Axios interceptor reads the CSRF cookie fresh
+        // on every request — no manual sync needed.
         onSuccess();
         break;
 
@@ -92,11 +92,7 @@ export function useOAuth() {
     try {
       const { data } = await hw.post('/api/auth/google/link', { password });
       if (data.ok) {
-        if (data.csrfToken) {
-          setCsrfToken(data.csrfToken);
-        } else {
-          syncCsrfFromCookie();
-        }
+        // Backend sets/rotates the CSRF cookie via Set-Cookie on this response.
         showLinkModal.value = false;
         return { ok: true };
       }

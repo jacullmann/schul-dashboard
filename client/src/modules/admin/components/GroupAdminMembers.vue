@@ -2,7 +2,6 @@
 import { RefreshCw, UserRoundMinus, Crown } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/admin/types';
-import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -15,9 +14,9 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'change-role', userId: string, newRole: string): void;
   (e: 'remove', userId: string, name: string): void;
+  (e: 'transfer-ownership', userId: string): void;
 }>();
 
-const { transferOwnership } = useGroupAdmin();
 const canDemoteAdmin = computed(() => props.isOwner);
 
 function roleLabel(role: string): string {
@@ -92,7 +91,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
           <button
               v-if="isOwner && member.role === 'admin'"
               class="btn-icon transfer-btn"
-              @click="transferOwnership(member.userId)"
+              @click="emit('transfer-ownership', member.userId)"
               title="Eigentümerschaft übertragen"
           >
             <Crown :size="15" />

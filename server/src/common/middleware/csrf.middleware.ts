@@ -64,14 +64,3 @@ export function rotateCsrfToken(res: Response, config: AppConfig): string {
   CsrfMiddleware.setCsrfCookie(res, token, config);
   return token;
 }
-
-/**
- * Clears the CSRF cookie.
- * Must pass the same domain/path options that were used when setting it.
- */
-export function clearCsrfCookie(res: Response, config: AppConfig): void {
-  res.clearCookie(CSRF_COOKIE_NAME, {
-    ...config.baseCookieOptions,
-    httpOnly: false,
-  });
-}

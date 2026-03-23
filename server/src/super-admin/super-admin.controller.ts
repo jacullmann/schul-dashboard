@@ -91,8 +91,13 @@ export class SuperAdminController {
   updateUserRole(
     @Param('id') targetUserId: string,
     @Body() body: UpdateUserRoleDto,
+    @CurrentUserId() adminUserId: string,
   ) {
-    return this.superAdminService.updateUserRole(targetUserId, body.role);
+    return this.superAdminService.updateUserRole(
+      targetUserId,
+      body.role,
+      adminUserId,
+    );
   }
 
   @Delete('users/:id/activity/prune')

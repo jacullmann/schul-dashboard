@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Ip, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { MfaService } from './mfa.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUserId } from '../common/decorators/current-user.decorator';
@@ -19,11 +20,14 @@ export class MfaController {
     return this.mfaService.setup(userId);
   }
 
+  // TOTP codes are 6-digit; limit guessing attempts to 10 per minute.
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('activate')
   activate(@CurrentUserId() userId: string, @Body() body: MfaCodeDto) {
     return this.mfaService.activate(userId, body.code);
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('deactivate')
   deactivate(
     @CurrentUserId() userId: string,

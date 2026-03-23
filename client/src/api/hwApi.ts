@@ -37,12 +37,4 @@ export const ensureCsrf = async (): Promise<void> => {
   }
 };
 
-/**
- * No-op: the request interceptor always reads the CSRF token fresh from the
- * cookie, so there is no local token state to sync or set manually.
- * These exports exist only for call-site compatibility.
- */
-export const syncCsrfFromCookie = (): void => {};
-export const setCsrfToken = (_token: string): void => {};
-
 export default hw;

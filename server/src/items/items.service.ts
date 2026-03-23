@@ -461,7 +461,7 @@ export class ItemsService {
     });
     if (err_wypce)
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
 
     const { error: err_at81w } = await sb.from('user_activity').insert({

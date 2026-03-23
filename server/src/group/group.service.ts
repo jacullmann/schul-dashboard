@@ -12,16 +12,13 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { Response } from 'express';
 import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
-import {
-  rotateCsrfToken,
-  clearCsrfCookie,
-} from '../common/middleware/csrf.middleware';
+import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { generateUserName } from '../common/utils/name-generator.util';
 
 const DUMMY_HASH = bcrypt.hashSync('__dummy__', 10);
 
-/** How recent "unread" content must be (3 days). */
-const UNREAD_THRESHOLD_MS = 3 * 24 * 60 * 60 * 1000;
+/** Epoch used as "never visited" sentinel for user_tenant_state rows that don't exist yet. */
+const EPOCH_ISO = '1970-01-01T00:00:00.000Z';
 
 @Injectable()
 export class GroupService {
@@ -213,36 +210,68 @@ export class GroupService {
           hasUnreadContent: false,
         }));
 
-      // Determine unread status via direct queries (no RPC).
-      // A group is considered to have unread content when there are new
-      // announcements or timetable substitutions within the last 3 days.
+      // Determine unread status per-user:
+      //   Announcements — unread if not present in user_announcement_read_status.
+      //   Timetable subs — unread if created after the user's last timetable visit
+      //                    (tracked in user_tenant_state.last_timetable_visit_at).
       if (groups.length > 0) {
-        const thresholdDate = new Date(
-          Date.now() - UNREAD_THRESHOLD_MS,
-        ).toISOString();
         const tenantIds = groups.map((g) => g.id);
 
-        const [{ data: recentAnnouncements }, { data: recentSubs }] =
-          await Promise.all([
-            sb
-              .from('announcements')
-              .select('tenant_id')
-              .in('tenant_id', tenantIds)
-              .gte('created_at', thresholdDate),
-            sb
-              .from('timetable_subs')
-              .select('tenant_id')
-              .in('tenant_id', tenantIds)
-              .gte('created_at', thresholdDate),
-          ]);
-
-        const tenantIdsWithUnread = new Set<string>([
-          ...(recentAnnouncements || []).map((r: any) => r.tenant_id as string),
-          ...(recentSubs || []).map((r: any) => r.tenant_id as string),
+        // Phase 1: parallel fetch (all announcements, all subs, user visit state)
+        const [
+          { data: allAnnouncements },
+          { data: allSubs },
+          { data: userStates },
+        ] = await Promise.all([
+          sb
+            .from('announcements')
+            .select('id, tenant_id')
+            .in('tenant_id', tenantIds),
+          sb
+            .from('timetable_subs')
+            .select('tenant_id, created_at')
+            .in('tenant_id', tenantIds),
+          sb
+            .from('user_tenant_state')
+            .select('tenant_id, last_timetable_visit_at')
+            .eq('user_id', userId)
+            .in('tenant_id', tenantIds),
         ]);
 
+        // Phase 2: fetch which announcements this user has already read
+        const announcementIds = (allAnnouncements || []).map(
+          (a: any) => a.id as string,
+        );
+        let readIds = new Set<string>();
+        if (announcementIds.length > 0) {
+          const { data: readRows } = await sb
+            .from('user_announcement_read_status')
+            .select('announcement_id')
+            .eq('user_id', userId)
+            .in('announcement_id', announcementIds);
+          readIds = new Set(
+            (readRows || []).map((r: any) => r.announcement_id as string),
+          );
+        }
+
+        // Build per-group last-timetable-visit lookup
+        const lastVisitMap = new Map<string, string>(
+          (userStates || []).map((s: any) => [
+            s.tenant_id as string,
+            (s.last_timetable_visit_at as string) ?? EPOCH_ISO,
+          ]),
+        );
+
         for (const g of groups) {
-          g.hasUnreadContent = tenantIdsWithUnread.has(g.id);
+          const hasUnreadAnn = (allAnnouncements || []).some(
+            (a: any) => a.tenant_id === g.id && !readIds.has(a.id as string),
+          );
+          const lastVisit = lastVisitMap.get(g.id) ?? EPOCH_ISO;
+          const hasNewSubs = (allSubs || []).some(
+            (s: any) =>
+              s.tenant_id === g.id && (s.created_at as string) > lastVisit,
+          );
+          g.hasUnreadContent = hasUnreadAnn || hasNewSubs;
         }
       }
 
@@ -349,7 +378,10 @@ export class GroupService {
     }
 
     this.clearAuthToken(res);
-    clearCsrfCookie(res, this.appConfig);
+    // Rotate (not clear) the CSRF token so the browser immediately has a valid
+    // token for the next request (e.g. the login form POST after logout).
+    // Clearing the cookie would leave a gap until ensureCsrf() re-initialises it.
+    rotateCsrfToken(res, this.appConfig);
     return { ok: true };
   }
 }

@@ -1,6 +1,6 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import hw, { syncCsrfFromCookie, setCsrfToken } from '@/api/hwApi';
+import hw from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { usePreferences } from '@/common/composables/usePreferences';
 
@@ -154,11 +154,8 @@ export function useAuthModal(onLoggedIn: () => void) {
           if (data.requiresMfa) {
             showMfaVerify.value = true;
           } else {
-            if (data.csrfToken) {
-              setCsrfToken(data.csrfToken);
-            } else {
-              syncCsrfFromCookie();
-            }
+            // The backend already set/rotated the CSRF cookie via Set-Cookie.
+            // The Axios interceptor reads it fresh on every request — no manual sync needed.
             onLoggedIn();
           }
         }
@@ -172,13 +169,8 @@ export function useAuthModal(onLoggedIn: () => void) {
     }
   }
 
-  function onMfaVerified(csrfToken: string) {
+  function onMfaVerified() {
     showMfaVerify.value = false;
-    if (csrfToken) {
-      setCsrfToken(csrfToken);
-    } else {
-      syncCsrfFromCookie();
-    }
     resetMfaState();
     onLoggedIn();
   }

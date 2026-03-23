@@ -71,7 +71,7 @@ export class DocService {
         .maybeSingle();
       if (err_u4k6z)
         throw new InternalServerErrorException(
-          'Ein unerwarteter Datenbankfehler ist aufgetreten',
+          'An unexpected database error occurred.',
         );
       if (data) {
         this.docState = {
@@ -90,7 +90,7 @@ export class DocService {
         });
         if (err_m5kd6)
           throw new InternalServerErrorException(
-            'Ein unerwarteter Datenbankfehler ist aufgetreten',
+            'An unexpected database error occurred.',
           );
       }
       this.loaded = true;
@@ -111,7 +111,7 @@ export class DocService {
       });
       if (err_gp0rq)
         throw new InternalServerErrorException(
-          'Ein unerwarteter Datenbankfehler ist aufgetreten',
+          'An unexpected database error occurred.',
         );
     } catch (err) {
       console.error('[Doc] DB write error:', err);
@@ -146,7 +146,7 @@ export class DocService {
       .maybeSingle();
     if (err_88r9d)
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
     return data ?? { content: '', version: 0 };
   }

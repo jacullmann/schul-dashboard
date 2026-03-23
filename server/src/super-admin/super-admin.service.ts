@@ -387,7 +387,15 @@ export class SuperAdminService {
     return { ok: true };
   }
 
-  async updateUserRole(targetUserId: string, role: string) {
+  async updateUserRole(
+    targetUserId: string,
+    role: string,
+    adminUserId: string,
+  ) {
+    if (targetUserId === adminUserId) {
+      throw new BadRequestException('You cannot modify your own global role.');
+    }
+
     const sb = this.supabaseService.getClient();
     if (role === 'superadmin') {
       const { data: existing } = await sb

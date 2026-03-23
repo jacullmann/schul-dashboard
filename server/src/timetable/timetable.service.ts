@@ -204,16 +204,24 @@ export class TimetableService {
     announcementId: string,
   ): Promise<void> {
     const sb = this.supabaseService.getClient();
-    const { error } = await sb
+    // Check-then-insert: avoids relying on a unique constraint that may not exist
+    // in all environments. Idempotent — calling multiple times is safe.
+    const { data: existing } = await sb
       .from('user_announcement_read_status')
-      .upsert(
-        { user_id: userId, announcement_id: announcementId },
-        { onConflict: 'user_id,announcement_id' },
-      );
-    if (error)
-      throw new InternalServerErrorException(
-        'Failed to mark announcement as read',
-      );
+      .select('id')
+      .eq('user_id', userId)
+      .eq('announcement_id', announcementId)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error } = await sb
+        .from('user_announcement_read_status')
+        .insert({ user_id: userId, announcement_id: announcementId });
+      if (error)
+        throw new InternalServerErrorException(
+          'Failed to mark announcement as read',
+        );
+    }
   }
 
   async getTimetableErrors() {

@@ -13,7 +13,7 @@ import { useToast } from '@/common/composables/useToast';
 
 export function useGroupAdmin() {
   const route = useRoute();
-  const { groupName: authGroupName } = useAppAuth();
+  const { groupName: authGroupName, checkAuthStatus } = useAppAuth();
   const { success, error: toastError } = useToast();
 
   const groupId = computed(() => route.params.groupId as string);
@@ -254,7 +254,7 @@ export function useGroupAdmin() {
       });
       showMessage('Group name updated');
       editingGroupName.value = false;
-      window.location.reload();
+      await checkAuthStatus();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       showMessage(
@@ -312,7 +312,7 @@ export function useGroupAdmin() {
     try {
       await hw.post('/api/group-admin/transfer-ownership', { targetUserId });
       showMessage('Ownership transferred successfully');
-      window.location.reload();
+      await checkAuthStatus();
     } catch (e: unknown) {
       const err = e as {
         response?: { data?: { message?: string; error?: string } };

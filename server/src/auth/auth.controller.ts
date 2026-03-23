@@ -10,6 +10,7 @@ import {
   UseGuards,
   Ip,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import type { Request, Response } from 'express';
 import {
@@ -30,6 +31,9 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // 15 login attempts per minute per IP — tight enough to stop brute force,
+  // loose enough for legitimate users on slow connections.
+  @Throttle({ default: { limit: 15, ttl: 60000 } })
   @Public()
   @Post('login')
   async login(
@@ -40,6 +44,8 @@ export class AuthController {
     return this.authService.login(body.email, body.password, res, ip);
   }
 
+  // MFA code submission is similarly brute-force sensitive.
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Public()
   @UseGuards(MfaPendingGuard)
   @Post('mfa/verify')
@@ -59,6 +65,8 @@ export class AuthController {
     return this.authService.cancelMfa(res);
   }
 
+  // Registration: prevent account-creation spam.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('register')
   async register(@Body() body: RegisterDto) {
@@ -103,12 +111,16 @@ export class AuthController {
     return this.authService.verifyEmail(token);
   }
 
+  // Forgot-password: prevent email enumeration amplification and spam.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('forgot')
   async forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.forgotPassword(body.email);
   }
 
+  // Reset-code verification: the 6-char hex code window needs throttling.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('reset/verify')
   async verifyResetToken(@Body() body: ResetPasswordVerifyDto) {

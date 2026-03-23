@@ -43,6 +43,7 @@ const {
   startEditGroupName,
   cancelEditGroupName,
   saveGroupName,
+  transferOwnership,
 } = useGroupAdmin();
 
 const { activeGroupOwnerId } = useAppAuth();
@@ -73,15 +74,7 @@ const navItems: AdminNavItem[] = [
       v-if="activeTab === 'overview'"
       :stats="stats"
       :cleaning-up="cleaningUp"
-      :editing-group-name="editingGroupName"
-      :group-name="groupName"
-      :new-group-name="newGroupName"
-      :saving-group-name="savingGroupName"
       @cleanup="cleanupOldItems"
-      @start-edit="startEditGroupName"
-      @cancel-edit="cancelEditGroupName"
-      @save-edit="saveGroupName"
-      @update:newGroupName="newGroupName = $event"
     />
 
     <GroupAdminMembers
@@ -92,6 +85,7 @@ const navItems: AdminNavItem[] = [
       @refresh="loadMembers"
       @change-role="(userId, role) => changeRole(userId, role)"
       @remove="(userId, name) => removeMember(userId, name)"
+      @transfer-ownership="transferOwnership"
     />
 
     <GroupAdminTimetable

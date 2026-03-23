@@ -3,12 +3,16 @@ import {
   IsBoolean,
   IsOptional,
   IsInt,
+  IsIn,
   IsUUID,
   Length,
 } from 'class-validator';
 
+/** Only 'superadmin' (promote/demote globally) and 'user' (revoke) are
+ *  valid targets for the super-admin role-update endpoint. */
 export class UpdateUserRoleDto {
   @IsString()
+  @IsIn(['superadmin', 'user'])
   role: string;
 }
 

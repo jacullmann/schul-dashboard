@@ -5,10 +5,6 @@ import type { GroupStats } from '@/modules/admin/types';
 const props = defineProps<{
   stats: GroupStats | null;
   cleaningUp: boolean;
-  editingGroupName: boolean;
-  groupName: string;
-  newGroupName: string;
-  savingGroupName: boolean;
 }>();
 
 const emit = defineEmits<{

@@ -96,13 +96,15 @@ export function useMfa() {
   // mfa bei login verifizieren
   async function verifyMfaLogin(
     code: string,
-  ): Promise<{ ok: boolean; csrfToken?: string; error?: string }> {
+  ): Promise<{ ok: boolean; error?: string }> {
     mfaLoading.value = true;
     mfaError.value = null;
 
     try {
-      const { data } = await hw.post('/api/auth/mfa/verify', { code });
-      return { ok: true, csrfToken: data.csrfToken };
+      await hw.post('/api/auth/mfa/verify', { code });
+      // The backend sets the new CSRF token via Set-Cookie on the response;
+      // the Axios interceptor will read it automatically on the next request.
+      return { ok: true };
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
       const errorMsg =
