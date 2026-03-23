@@ -114,23 +114,23 @@ function handleSaveSub() {
         <input type="hidden" v-model="subForm.lessonId" />
         <div class="form-field">
           <label>Neues Fach</label>
-          <input v-model="subForm.subject" placeholder="Deutsch" class="input" />
+          <BaseInput v-model="subForm.subject" placeholder="Deutsch" class="input" />
         </div>
         <div class="form-field">
           <label>Neuer Raum</label>
-          <input v-model="subForm.room" placeholder="A101" class="input" />
+          <BaseInput v-model="subForm.room" placeholder="A101" class="input" />
         </div>
         <div class="form-field">
           <label>Neue Stunde</label>
-          <input v-model.number="subForm.slot" type="number" placeholder="4" class="input" />
+          <BaseInput v-model.number="subForm.slot" type="number" placeholder="4" class="input" />
         </div>
         <div class="form-field">
           <label>Neue Dauer</label>
-          <input v-model.number="subForm.duration" type="number" min="1" placeholder="2" class="input" />
+          <BaseInput v-model.number="subForm.duration" type="number" min="1" placeholder="2" class="input" />
         </div>
         <div class="form-field">
           <label>Neuer Tag (1 = Mo, 5 = Fr)</label>
-          <input v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" class="input" />
+          <BaseInput v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" class="input" />
         </div>
       </div>
 

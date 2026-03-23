@@ -79,7 +79,7 @@ onMounted(() => {
 
     <!-- Search Input -->
     <div class="search-input">
-      <input
+      <BaseInput
           v-model="searchQuery"
           type="text"
           :placeholder="searchMode === 'room' ? t('school.tables.dalton.searchRoom') : t('school.tables.dalton.searchTeacher')"

@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 
 const { t } = useI18n();
 
@@ -92,13 +91,13 @@ async function confirmDeleteGroup() {
           <BaseButton v-if="isAdmin" class="tiny" @click="emit('start-edit')" variant="ghost">{{ t('global.buttons.edit') }}</BaseButton>
         </div>
         <div v-else class="setting-edit">
-          <input 
-            :value="newGroupName"
-            @input="emit('update:newGroupName', ($event.target as HTMLInputElement).value)"
-            class="input" 
-            placeholder="Neuer Gruppenname" 
-            @keyup.enter="emit('save-edit')" 
-            :disabled="!isAdmin"
+          <BaseInput
+              :value="newGroupName"
+              @input="emit('update:newGroupName', ($event.target as HTMLInputElement).value)"
+              class="input"
+              placeholder="Neuer Gruppenname"
+              @keyup.enter="emit('save-edit')"
+              :disabled="!isAdmin"
           />
           <BaseButton @click="emit('save-edit')" :disabled="savingGroupName || !newGroupName.trim() || !isAdmin" variant="action">
             {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
@@ -115,11 +114,11 @@ async function confirmDeleteGroup() {
       <div class="form-group">
         <label>Aktuelles Passwort</label>
         <div class="input-wrapper">
-          <input 
-            :type="showOld ? 'text' : 'password'" 
-            v-model="oldPassword" 
-            class="input"
-            @input="pwdError = ''"
+          <BaseInput
+              :type="showOld ? 'text' : 'password'"
+              v-model="oldPassword"
+              class="input"
+              @input="pwdError = ''"
           />
           <button class="toggle-btn" @click="showOld = !showOld">
             <component :is="showOld ? EyeOff : Eye" :size="18" />
@@ -130,11 +129,11 @@ async function confirmDeleteGroup() {
       <div class="form-group">
         <label>Neues Passwort</label>
         <div class="input-wrapper">
-          <input 
-            :type="showNew ? 'text' : 'password'" 
-            v-model="newPassword" 
-            class="input"
-            @input="pwdError = ''"
+          <BaseInput
+              :type="showNew ? 'text' : 'password'"
+              v-model="newPassword"
+              class="input"
+              @input="pwdError = ''"
           />
           <button class="toggle-btn" @click="showNew = !showNew">
             <component :is="showNew ? EyeOff : Eye" :size="18" />
@@ -145,11 +144,11 @@ async function confirmDeleteGroup() {
       <div class="form-group">
         <label>Neues Passwort bestätigen</label>
         <div class="input-wrapper">
-          <input 
-            :type="showNew2 ? 'text' : 'password'" 
-            v-model="newPassword2" 
-            class="input"
-            @input="pwdError = ''"
+          <BaseInput
+              :type="showNew2 ? 'text' : 'password'"
+              v-model="newPassword2"
+              class="input"
+              @input="pwdError = ''"
           />
           <button class="toggle-btn" @click="showNew2 = !showNew2">
             <component :is="showNew2 ? EyeOff : Eye" :size="18" />
@@ -176,11 +175,11 @@ async function confirmDeleteGroup() {
       
       <div class="delete-confirmation">
         <label>Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um fortzufahren:</label>
-        <input 
-          v-model="deleteConfirmText" 
-          type="text" 
-          class="input danger-input" 
-          :placeholder="'delete ' + groupName"
+        <BaseInput
+            v-model="deleteConfirmText"
+            type="text"
+           class="input danger-input"
+            :placeholder="'delete ' + groupName"
         />
         <BaseButton :disabled="deleteConfirmText !== `delete ${groupName}` || deletingGroup" @click="confirmDeleteGroup" variant="danger" :loading="deletingGroup">
         Gruppe unwiderruflich löschen

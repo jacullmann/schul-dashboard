@@ -384,7 +384,7 @@ onMounted(() => {
 .role-admin { color: #6366f1; }
 .role-mod, .role-moderator { color: #f59e0b; }
 .role-user { color: var(--color-sub); }
-.role-superadmin { color: #ef4444; }
+.role-superadmin { color: var(--color-danger); }
 
 .group-card-username {
   font-size: 0.7rem;

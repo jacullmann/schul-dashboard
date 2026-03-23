@@ -2,7 +2,6 @@
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import hw from '@/api/hwApi';
 import { Eye, EyeOff } from 'lucide-vue-next';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useToast } from '@/common/composables/useToast';
 
 const emit = defineEmits(['close', 'success']);
@@ -134,13 +133,13 @@ async function onPrimary() {
       <div style="margin-top:12px;">
         <div v-if="step === 1">
           <p>Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code.</p>
-          <input ref="emailInputRef" class="input" v-model="email" placeholder="E-Mail" />
+          <BaseInput ref="emailInputRef" class="input" v-model="email" placeholder="E-Mail" />
         </div>
 
         <div v-else-if="step === 2">
           <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
           <div style="display:flex; gap:8px;">
-            <input ref="codeInputRef" class="input" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
+            <BaseInput ref="codeInputRef" class="input" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
             <BaseButton @click="onBack" :disabled="submitting" style="margin-top:8px;" variant="ghost">Zurück</BaseButton>
           </div>
         </div>
@@ -149,7 +148,7 @@ async function onPrimary() {
           <p>Gib dein neues Passwort ein (mind. 8 Zeichen) und bestätige es.</p>
 
           <div style="position: relative;">
-            <input
+            <BaseInput
                 ref="passwordInputRef"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"
@@ -167,7 +166,7 @@ async function onPrimary() {
           </div>
 
           <div style="margin-top:8px; position: relative;">
-            <input
+            <BaseInput
                 class="input"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="password2"

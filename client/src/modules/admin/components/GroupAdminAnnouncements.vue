@@ -140,9 +140,9 @@ function formatDate(iso: string) {
   background: var(--color-surface);
 }
 
-.ann-info { border-left-color: #3b82f6; }
-.ann-warn { border-left-color: #f59e0b; }
-.ann-danger { border-left-color: #ef4444; }
+.ann-info { border-left-color: var(--color-action); }
+.ann-warn { border-left-color: var(--color-warn); }
+.ann-danger { border-left-color: var(--color-danger); }
 
 .ann-item-body {
   font-size: var(--text-body);

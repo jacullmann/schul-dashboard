@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Modal from '@/common/components/Modal.vue';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
@@ -78,7 +77,7 @@ async function submit() {
         <div class="form-group">
           <label for="join-group-name">Gruppenname</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="join-group-name"
                 ref="groupNameInputRef"
                 class="input"
@@ -94,7 +93,7 @@ async function submit() {
         <div class="form-group">
           <label for="join-group-password">Zugangscode</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="join-group-password"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import TabSwitcher from "@/common/components/TabSwitcher.vue";
 import Checkbox from '@/common/components/Checkbox.vue';
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
@@ -73,7 +72,7 @@ defineExpose({ emailInputRef });
         <div class="form-group">
           <label for="auth-email">{{ t('account.auth.email') }}</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="auth-email"
                 ref="emailInputRef"
                 class="input"
@@ -90,7 +89,7 @@ defineExpose({ emailInputRef });
         <div class="form-group">
           <label for="auth-password">{{ t('account.auth.password') }}</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="auth-password"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"
@@ -128,7 +127,7 @@ defineExpose({ emailInputRef });
             <div class="form-group">
               <label for="auth-confirm">{{ t('account.auth.confirmPassword') }}</label>
               <div class="input-wrapper">
-                <input
+                <BaseInput
                     id="auth-confirm"
                     class="input"
                     :type="showPassword ? 'text' : 'password'"

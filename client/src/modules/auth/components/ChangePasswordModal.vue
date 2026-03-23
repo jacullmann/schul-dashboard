@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
 import Modal from '@/common/components/Modal.vue';
 import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
@@ -48,7 +47,7 @@ onMounted(() => {
           {{ t('account.menu.changePassword.currentPassword') }}
         </label>
         <div class="input-wrapper">
-          <input
+          <BaseInput
               ref="currentPasswordRef"
               id="currentPassword"
               class="input"
@@ -76,7 +75,7 @@ onMounted(() => {
           {{ t('account.menu.changePassword.newPassword') }}
         </label>
         <div class="input-wrapper">
-          <input
+          <BaseInput
               id="newPassword"
               class="input"
               :type="showNewPassword ? 'text' : 'password'"
@@ -103,7 +102,7 @@ onMounted(() => {
           {{ t('account.menu.changePassword.confirmPassword') }}
         </label>
         <div class="input-wrapper">
-          <input
+          <BaseInput
               id="newPassword2"
               class="input"
               :type="showNewPassword2 ? 'text' : 'password'"

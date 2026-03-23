@@ -37,7 +37,7 @@ const filteredGames = computed(() => {
     <div class="container-game-grid">
 
       <div class="search-bar">
-        <input
+        <BaseInput
             v-model="searchTag"
             placeholder="Suchen"
             class="input"
@@ -69,7 +69,7 @@ const filteredGames = computed(() => {
       </div>
 
       <div v-if="filteredGames.length === 0" class="no-results">
-        <LucideFrown size="1.2rem"/>
+        <LucideFrown :size="20"/>
         Keine Spiele gefunden
       </div>
     </div>

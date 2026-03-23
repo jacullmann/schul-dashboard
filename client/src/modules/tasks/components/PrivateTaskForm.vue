@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import hw from '@/api/hwApi';
 import Modal from '@/common/components/Modal.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import type { PrivateTask } from '@/modules/tasks/types';
 
 const props = defineProps<{ initial?: PrivateTask }>();
@@ -74,7 +73,7 @@ async function submit() {
       <template #content>
         <div class="section">
           <label class="label">Title</label>
-          <input ref="titleInputRef" class="input" v-model="title" placeholder="Go shopping…" maxlength="100" />
+          <BaseInput ref="titleInputRef" class="input" v-model="title" placeholder="Go shopping…" maxlength="100" />
         </div>
 
         <div class="section">

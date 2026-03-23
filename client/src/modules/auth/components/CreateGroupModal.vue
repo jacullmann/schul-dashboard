@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Modal from '@/common/components/Modal.vue';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
@@ -81,7 +80,7 @@ async function submit() {
         <div class="form-group">
           <label for="group-name">Gruppenname</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="group-name"
                 ref="groupNameInputRef"
                 class="input"
@@ -97,7 +96,7 @@ async function submit() {
         <div class="form-group">
           <label for="group-password">Passwort</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="group-password"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"
@@ -120,7 +119,7 @@ async function submit() {
         <div class="form-group">
           <label for="group-confirm">Passwort bestätigen</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="group-confirm"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"

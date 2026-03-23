@@ -80,7 +80,7 @@ onMounted(() => {
     <!-- Add Subject (admin only) -->
     <div v-if="isAdmin" class="add-form-card">
       <div class="add-form-row">
-        <input
+        <BaseInput
             v-model="newSubjectName"
             class="input add-input"
             placeholder="Neues Fach hinzufügen..."
@@ -88,7 +88,7 @@ onMounted(() => {
             :disabled="saving"
         />
         <BaseButton @click="handleCreate" :disabled="!newSubjectName.trim() || saving" variant="action">
-          <Plus :size="15" />
+          <Plus :size="16" />
           <span>{{ saving ? 'Erstellt...' : 'Hinzufügen' }}</span>
         </BaseButton>
       </div>
@@ -133,7 +133,7 @@ onMounted(() => {
         <!-- Edit mode -->
         <template v-else>
           <div class="edit-row">
-            <input
+            <BaseInput
                 v-model="editingName"
                 class="input edit-input"
                 @keyup.enter="saveRename(subject.id)"

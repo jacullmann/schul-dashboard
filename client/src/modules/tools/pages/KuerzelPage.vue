@@ -42,7 +42,7 @@ const {
     <div class="row">
       <div class="col">
         <small class="nwer">{{ mode==='shortToName' ? 'Kürzel' : 'Name' }}</small>
-        <input
+        <BaseInput
             v-model="inputValue"
             class="input"
             :placeholder="currentPlaceholder"
@@ -74,7 +74,7 @@ const {
 
       <div class="col">
         <small class="nwer">{{ mode==='shortToName' ? t('school.tables.abbr.name') : t('school.tables.abbr.abbr') }}</small>
-        <input
+        <BaseInput
             class="input"
             :value="outputValue"
             readonly

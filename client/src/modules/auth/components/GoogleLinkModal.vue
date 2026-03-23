@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import Modal from '@/common/components/Modal.vue';
@@ -61,7 +60,7 @@ function cancel() {
         <div class="form-group">
           <label for="link-password">Passwort</label>
           <div class="input-wrapper">
-            <input
+            <BaseInput
                 id="link-password"
                 class="input"
                 :type="showPassword ? 'text' : 'password'"

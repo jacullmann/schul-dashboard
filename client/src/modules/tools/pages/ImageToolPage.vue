@@ -364,21 +364,21 @@ onUnmounted(() => {
         </div>
         <div class="control-group">
           <label>Breite (px)</label>
-          <input
+          <BaseInput
               type="number"
               class="input"
               v-model.number="settings.width"
               :placeholder="imageMeta.naturalWidth.toString()"
-          >
+          />
         </div>
         <div class="control-group">
           <label>Höhe (px)</label>
-          <input
+          <BaseInput
               type="number"
               class="input"
               v-model.number="settings.height"
               :placeholder="imageMeta.naturalHeight.toString()"
-          >
+          />
         </div>
       </div>
 
@@ -406,16 +406,16 @@ onUnmounted(() => {
           </BaseButton>
 
           <div class="editor-input-group">
-            <span style="width: 16px;">X:</span> <input type="number" class="input" v-model.number="crop.x" @input="updateCropFromInput">
+            <span style="width: 16px;">X:</span> <BaseInput type="number" class="input" v-model.number="crop.x" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">Y:</span> <input type="number" class="input" v-model.number="crop.y" @input="updateCropFromInput">
+            <span style="width: 16px;">Y:</span> <BaseInput type="number" class="input" v-model.number="crop.y" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">W:</span> <input type="number" class="input" v-model.number="crop.w" @input="updateCropFromInput">
+            <span style="width: 16px;">W:</span> <BaseInput type="number" class="input" v-model.number="crop.w" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">H:</span> <input type="number" class="input" v-model.number="crop.h" @input="updateCropFromInput">
+            <span style="width: 16px;">H:</span> <BaseInput type="number" class="input" v-model.number="crop.h" @input="updateCropFromInput" />
           </div>
         </div>
 

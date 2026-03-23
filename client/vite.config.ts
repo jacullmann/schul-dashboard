@@ -14,6 +14,9 @@ export default defineConfig({
                     if (componentName === 'BaseButton') {
                         return '@/common/components/BaseButton.vue';
                     }
+                    if (componentName === 'BaseInput') {
+                        return '@/common/components/BaseInput.vue';
+                    }
                 }
             ],
             dts: true

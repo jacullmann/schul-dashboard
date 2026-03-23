@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import Modal from '@/common/components/Modal.vue';
@@ -234,7 +233,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         <div class="row-n top">
           <div class="col">
             <label class="label">{{ t('school.tasks.itemForm.title') }}</label>
-            <input ref="titleInputRef" class="input" v-model="title" />
+            <BaseInput ref="titleInputRef" class="input" v-model="title" />
           </div>
 
           <div class="col">
@@ -272,7 +271,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
         <div v-if="subjectSel==='__OTHER__'" class="section">
           <label class="label">{{ t('school.tasks.itemForm.customSubject') }}</label>
-          <input class="input" v-model="subjectOther"/>
+          <BaseInput class="input" v-model="subjectOther" />
         </div>
 
         <div class="section">
@@ -283,7 +282,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         <div class="row-n section">
           <div class="col">
             <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
-            <input class="input hover" type="date" v-model="dueLocal" />
+            <BaseInput class="input hover" type="date" v-model="dueLocal" />
 
           </div>
         </div>
