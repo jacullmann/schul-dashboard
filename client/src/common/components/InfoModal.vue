@@ -66,10 +66,6 @@ const closeModal = () => (isModalOpen.value = false)
   line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6, strong, b {
-  color: var(--color-on-surface);
-}
-
 .fade-scale-enter-active,
 .fade-scale-leave-active {
   transition: 0.2s;
