@@ -28,7 +28,6 @@ onBeforeUnmount(() => {
 
 const content = ref('');
 const color = ref('warn');
-const showAsPopup = ref(false); // NEU: Popup-Option
 const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
@@ -41,7 +40,6 @@ async function submit() {
     await hw.post('/api/group-admin/announcements', {
       content: content.value,
       color: color.value,
-      showAsPopup: showAsPopup.value,
     });
     useToast().success('Ankündigung erfolgreich angelegt.');
     isError.value = false;
@@ -67,24 +65,19 @@ async function submit() {
         <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
       </div>
       <div style="margin-top:8px;">
-        <select class="input" v-model="color">
+        <select class="input hover" v-model="color">
           <option value="info">Info</option>
           <option value="warn">Wichtig</option>
           <option value="danger">Dringend</option>
         </select>
       </div>
-      <div style="margin-top:8px;">
-        <label style="display:flex; align-items:center; gap:8px; color:var(--color-on-surface);">
-          <input type="checkbox" v-model="showAsPopup" />
-          Als Popup anzeigen für alle benutzer
-        </label>
-      </div>
       <div class="row" style="margin-top:12px; align-items:center;">
         <BaseButton @click="submit" :disabled="submitting" variant="action" :loading="submitting">
-        Absenden
-      </BaseButton>
+          Absenden
+        </BaseButton>
         <div v-if="message" class="small" :style="{ color: isError ? 'var(--color-danger)': 'var(--color-primary)' }">{{ message }}</div>
       </div>
     </div>
   </div>
 </template>
+>>>>>>> 343667b (viel refeactor und announcements rework)

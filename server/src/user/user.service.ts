@@ -247,7 +247,7 @@ export class UserService {
 
     if (deleteError) {
       console.error('Manual upsert delete phase error:', deleteError);
-      // We don't necessarily throw here if it was just "not found", 
+      // We don't necessarily throw here if it was just "not found",
       // but Supabase delete error usually means something else went wrong.
     }
 

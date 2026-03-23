@@ -75,10 +75,6 @@ export class CreateAnnouncementDto {
   @IsOptional()
   @IsIn(['info', 'warn', 'danger'])
   color?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  showAsPopup?: boolean;
 }
 
 export class CreateSubjectDto {

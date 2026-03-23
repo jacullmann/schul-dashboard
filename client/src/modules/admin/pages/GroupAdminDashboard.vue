@@ -133,7 +133,7 @@ const tabs = [
         v-if="activeTab === 'announcements'"
         :announcements="announcements"
         :creating="creatingAnn"
-        @create="(content, color, popup) => createAnnouncement(content, color, popup)"
+        @create="(content, color) => createAnnouncement(content, color)"
         @delete="deleteAnnouncement"
       />
 

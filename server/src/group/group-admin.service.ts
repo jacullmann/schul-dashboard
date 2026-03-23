@@ -661,7 +661,6 @@ export class GroupAdminService {
     userId: string,
     content: string,
     color?: string,
-    showAsPopup?: boolean,
   ) {
     const sb = this.supabaseService.getClient();
     const { data: ann, error } = await sb
@@ -670,7 +669,6 @@ export class GroupAdminService {
         tenant_id: tenantId,
         content,
         color: color || 'warn',
-        show_as_popup: showAsPopup || false,
         created_by: userId,
       })
       .select()
@@ -684,7 +682,6 @@ export class GroupAdminService {
       id: _ann.id,
       content: _ann.content,
       color: _ann.color,
-      showAsPopup: _ann.show_as_popup,
       createdBy: _ann.created_by,
       createdAt: _ann.created_at,
     };

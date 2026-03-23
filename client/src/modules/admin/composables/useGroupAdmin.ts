@@ -189,18 +189,13 @@ export function useGroupAdmin() {
     }
   }
 
-  async function createAnnouncement(
-    content: string,
-    color: string,
-    showAsPopup = false,
-  ) {
+  async function createAnnouncement(content: string, color: string) {
     if (!content.trim()) return;
     creatingAnn.value = true;
     try {
       await hw.post('/api/group-admin/announcements', {
         content: content.trim(),
         color,
-        showAsPopup,
       });
       await loadAnnouncements();
       showMessage('Announcement created');

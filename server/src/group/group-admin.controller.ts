@@ -214,7 +214,6 @@ export class GroupAdminController {
       userId,
       body.content,
       body.color,
-      body.showAsPopup,
     );
   }
 

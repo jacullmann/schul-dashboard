@@ -168,7 +168,6 @@ export class TimetableService {
         id: a.id,
         content: a.content,
         color: a.color,
-        showAsPopup: a.show_as_popup,
         createdBy: a.created_by,
         createdAt: a.created_at,
       }));

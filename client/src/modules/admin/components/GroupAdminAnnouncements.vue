@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Trash2 } from 'lucide-vue-next';
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import type { AdminAnnouncement } from '@/modules/admin/types';
 
 const props = defineProps<{
@@ -10,20 +9,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'create', content: string, color: string, showAsPopup: boolean): void;
+  (e: 'create', content: string, color: string): void;
   (e: 'delete', id: string): void;
 }>();
 
 const annContent = ref('');
 const annColor = ref('warn');
-const annShowAsPopup = ref(false);
 
 function handleCreateAnn() {
-  emit('create', annContent.value, annColor.value, annShowAsPopup.value);
+  emit('create', annContent.value, annColor.value);
   annContent.value = '';
-  annShowAsPopup.value = false;
-  // wait, earlier `GroupAdminDashboard.vue` used `.then()`.
-  // The event is handled synchronously, but let's assume the reset is optimistic here.
 }
 
 function formatDate(iso: string) {
@@ -53,9 +48,6 @@ function formatDate(iso: string) {
           <option value="warn">Warnung</option>
           <option value="danger">Wichtig</option>
         </select>
-        <label class="popup-checkbox">
-          <BaseCheckbox v-model="annShowAsPopup" /> Als Popup
-        </label>
         <BaseButton @click="handleCreateAnn" :disabled="!annContent.trim() || creating" variant="action">
           {{ creating ? 'Erstellt...' : 'Veröffentlichen' }}
         </BaseButton>
@@ -117,15 +109,6 @@ function formatDate(iso: string) {
 }
 
 .ann-select { width: 120px; }
-
-.popup-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sub);
-  cursor: pointer;
-  white-space: nowrap;
-}
 
 .ann-list {
   display: flex;

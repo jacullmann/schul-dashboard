@@ -105,7 +105,6 @@ export interface AdminAnnouncement {
   id: string;
   content: string;
   color: string;
-  showAsPopup?: boolean;
   createdAt: string;
 }
 

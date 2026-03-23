@@ -2,46 +2,18 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
-import AnnouncementPopup from '@/modules/announcements/components/AnnouncementPopup.vue';
 import { X, EllipsisVertical } from 'lucide-vue-next';
 
 const { activeGroupId } = useAppAuth();
 
-const {
-  announcements,
-  isPopupRead,
-  markPopupAsRead,
-  loadReadStatus,
-  colorFor,
-} = useAnnouncements();
+const { announcements, colorFor, checkAndNotifyUnread } = useAnnouncements();
 
 const currentIndex = ref<number>(0);
 const showMenu = ref<boolean>(false);
-const showPopup = ref<boolean>(false);
-const currentPopupAnnouncement = ref<typeof announcements.value[number] | null>(null);
 
-const hasGroupContext = computed(() => !!activeGroupId.value);
-
-const currentAnnouncement = computed(() => {
-  return announcements.value[currentIndex.value] ?? { id: '', content: '', color: 'info', showAsPopup: false };
-});
-
-/** After announcements and read-status are loaded, show the first unseen popup. */
-function checkForNewPopups() {
-  for (const ann of announcements.value) {
-    if (ann.showAsPopup && !isPopupRead(ann.id)) {
-      currentPopupAnnouncement.value = ann;
-      showPopup.value = true;
-      markPopupAsRead(ann.id);
-      break;
-    }
-  }
-}
-
-function closePopup() {
-  showPopup.value = false;
-  currentPopupAnnouncement.value = null;
-}
+const currentAnnouncement = computed(
+  () => announcements.value[currentIndex.value] ?? { id: '', content: '', color: 'info' },
+);
 
 function toggleMenu() {
   showMenu.value = !showMenu.value;
@@ -59,37 +31,30 @@ function nextAnnouncement() {
 }
 
 function updateAnnouncementHeight() {
-  if (announcements.value.length && hasGroupContext.value) {
-    document.documentElement.style.setProperty('--announcement-height', '45px');
-  } else {
-    document.documentElement.style.setProperty('--announcement-height', '0px');
-  }
+  const height = announcements.value.length && activeGroupId.value ? '45px' : '0px';
+  document.documentElement.style.setProperty('--announcement-height', height);
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
 
-// Watch for both announcements and readPopupIds to be ready before checking popups
-watch(announcements, (newAnnouncements) => {
-  if (newAnnouncements.length) {
-    updateAnnouncementHeight();
-    checkForNewPopups();
-  } else {
-    updateAnnouncementHeight();
-  }
-});
+// Update layout height whenever the announcement list changes
+watch(announcements, updateAnnouncementHeight);
 
-// Reload when active group changes
-watch(activeGroupId, (newVal) => {
-  if (newVal) {
+// On group change: reload announcements and check for unseen ones
+watch(activeGroupId, async (newVal, oldVal) => {
+  if (newVal && newVal !== oldVal) {
     currentIndex.value = 0;
-    closePopup();
-  } else {
+    showMenu.value = false;
+    await checkAndNotifyUnread();
+  } else if (!newVal) {
     announcements.value = [];
     updateAnnouncementHeight();
   }
 });
 
 onMounted(async () => {
-  await loadReadStatus();
+  if (activeGroupId.value) {
+    await checkAndNotifyUnread();
+  }
   updateAnnouncementHeight();
 });
 </script>
@@ -98,18 +63,18 @@ onMounted(async () => {
   <div class="blurit" v-if="showMenu" @click="showMenu = false">
     <div class="announcement-menu" @click.stop>
       <div class="announcement-menu-header">
-        <h3>All Announcements</h3>
+        <h3>Alle Ankündigungen</h3>
         <button class="close-btn" @click="showMenu = false">
           <X :size="20" />
         </button>
       </div>
       <div class="announcement-list">
         <div
-            v-for="(ann, index) in announcements"
-            :key="ann.id"
-            class="announcement-item"
-            :class="{ active: index === currentIndex }"
-            @click="selectAnnouncement(index)"
+          v-for="(ann, index) in announcements"
+          :key="ann.id"
+          class="announcement-item"
+          :class="{ active: index === currentIndex }"
+          @click="selectAnnouncement(index)"
         >
           <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
           <div class="announcement-item-content">
@@ -122,8 +87,8 @@ onMounted(async () => {
 
   <div class="global-announcements" v-if="announcements.length">
     <div
-        class="global-ann"
-        :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
+      class="global-ann"
+      :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
     >
       <div class="global-ann-content" @click="nextAnnouncement">
         <span class="announcement-text">{{ currentAnnouncement.content }}</span>
@@ -137,12 +102,6 @@ onMounted(async () => {
       </button>
     </div>
   </div>
-
-  <AnnouncementPopup
-      v-if="showPopup && currentPopupAnnouncement"
-      :announcement="currentPopupAnnouncement"
-      @close="closePopup"
-  />
 </template>
 
 <style scoped>

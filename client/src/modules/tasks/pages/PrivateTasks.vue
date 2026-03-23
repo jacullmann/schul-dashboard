@@ -17,7 +17,10 @@ const { user } = storeToRefs(userStore);
 
 const showPrivateTaskForm = ref(false);
 const privateTaskToEdit = ref<PrivateTask | null>(null);
-const privateTaskAppRef = ref<{ addTodo: (todo: PrivateTask) => void; updateTodo: (todo: PrivateTask) => void } | null>(null);
+const privateTaskAppRef = ref<{
+  addPrivateTask: (task: PrivateTask) => void;
+  updatePrivateTask: (task: PrivateTask) => void;
+} | null>(null);
 
 
 function openCreateForm() {
@@ -38,9 +41,9 @@ function handleTodoSuccess(data?: PrivateTask) {
   showPrivateTaskForm.value = false;
   if (privateTaskAppRef.value && data) {
     if (privateTaskToEdit.value) {
-      privateTaskAppRef.value.updateTodo(data);
+      privateTaskAppRef.value.updatePrivateTask(data);
     } else {
-      privateTaskAppRef.value.addTodo(data);
+      privateTaskAppRef.value.addPrivateTask(data);
     }
   }
   privateTaskToEdit.value = null;

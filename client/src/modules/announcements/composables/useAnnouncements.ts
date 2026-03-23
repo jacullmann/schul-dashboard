@@ -1,7 +1,8 @@
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/hwApi';
+import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
 
 export type { Announcement };
@@ -9,13 +10,14 @@ export type { Announcement };
 export function useAnnouncements() {
   const userStore = useUserStore();
   const { user } = storeToRefs(userStore);
+  const toast = useToast();
 
   const announcements = ref<Announcement[]>([]);
   const loading = ref(false);
-  /** Set of announcement IDs the current user has already seen as popups (server-backed). */
-  const readPopupIds = ref<Set<string>>(new Set());
+  /** Server-backed set of announcement IDs the current user has already seen. */
+  const seenIds = ref<Set<string>>(new Set());
 
-  async function loadAnnouncements() {
+  async function loadAnnouncements(): Promise<void> {
     loading.value = true;
     try {
       const { data } = await hw.get<Announcement[]>(
@@ -29,57 +31,87 @@ export function useAnnouncements() {
     }
   }
 
-  /** Fetches the set of popup-read IDs from the server for the current user. */
-  async function loadReadStatus() {
+  async function loadSeenIds(): Promise<void> {
     if (!user.value) return;
     try {
       const { data } = await hw.get<string[]>(
         '/api/timetable/announcements/read-status',
       );
-      readPopupIds.value = new Set(data);
+      seenIds.value = new Set(data);
     } catch {
-      // Non-fatal: table may not exist yet pre-migration; treat all as unread
-      readPopupIds.value = new Set();
+      // Non-fatal: treat all as unseen if the table isn't reachable
+      seenIds.value = new Set();
     }
   }
 
-  /** Returns true if the user has already seen this announcement popup. */
-  function isPopupRead(announcementId: string): boolean {
-    return readPopupIds.value.has(announcementId);
-  }
-
-  /**
-   * Marks a popup announcement as seen for the current user.
-   * Updates local state immediately for instant UI feedback, then persists to the server.
-   */
-  async function markPopupAsRead(announcementId: string): Promise<void> {
-    if (readPopupIds.value.has(announcementId)) return;
-    readPopupIds.value.add(announcementId);
+  async function markAsSeen(announcementId: string): Promise<void> {
+    if (seenIds.value.has(announcementId)) return;
+    seenIds.value.add(announcementId);
     try {
       await hw.post(`/api/timetable/announcements/${announcementId}/read`);
     } catch {
-      // Non-fatal: the optimistic local update already closed the popup
+      // Non-fatal: local optimistic update already prevents re-showing
     }
   }
 
-  async function deleteAnnouncement(id: string) {
-    if (confirm('Delete announcement?')) {
-      try {
-        await hw.delete(`/api/group-admin/announcements/${id}`);
-        await loadAnnouncements();
-      } catch (e: unknown) {
-        const err = e as { response?: { data?: { error?: string } } };
-        alert(err.response?.data?.error || 'Failed to delete announcement.');
-      }
+  /**
+   * Loads announcements and seen-status in parallel to avoid race conditions,
+   * then shows a single toast for any unseen announcements and marks them read.
+   * Only shows a toast when the user is authenticated.
+   */
+  async function checkAndNotifyUnread(): Promise<void> {
+    if (user.value) {
+      await Promise.all([loadAnnouncements(), loadSeenIds()]);
+    } else {
+      // Guest: load announcements for the bar but skip notification
+      await loadAnnouncements();
+      return;
+    }
+
+    const unread = announcements.value.filter((a) => !seenIds.value.has(a.id));
+    if (!unread.length) return;
+
+    const count = unread.length;
+    const firstContent = unread[0]!.content;
+    const preview =
+      firstContent.length > 80 ? firstContent.slice(0, 80) + '…' : firstContent;
+    const msg =
+      count === 1
+        ? `Neue Ankündigung: ${preview}`
+        : `${count} neue Ankündigungen – ${preview}`;
+
+    // Use the highest severity of all unread items
+    const hasDanger = unread.some((a) => a.color === 'danger');
+    const hasWarn = unread.some((a) => a.color === 'warn');
+    const duration = Math.min(10000, 5000 + count * 1000);
+
+    if (hasDanger) {
+      toast.error(msg, duration);
+    } else if (hasWarn) {
+      toast.warning(msg, duration);
+    } else {
+      toast.info(msg, duration);
+    }
+
+    // Mark all as seen (fire-and-forget, parallel)
+    void Promise.all(unread.map((a) => markAsSeen(a.id)));
+  }
+
+  async function deleteAnnouncement(id: string): Promise<void> {
+    if (!confirm('Ankündigung löschen?')) return;
+    try {
+      await hw.delete(`/api/group-admin/announcements/${id}`);
+      announcements.value = announcements.value.filter((a) => a.id !== id);
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } } };
+      toast.error(
+        err.response?.data?.error ||
+          'Ankündigung konnte nicht gelöscht werden.',
+      );
     }
   }
 
-  function canManage(): boolean {
-    if (!user.value) return false;
-    return user.value.role === 'superadmin';
-  }
-
-  const colorFor = (color: string): string => {
+  function colorFor(color: string): string {
     const map: Record<string, string> = {
       ok: 'var(--color-primary)',
       warn: 'var(--color-warn)',
@@ -87,23 +119,15 @@ export function useAnnouncements() {
       expired: 'var(--gg)',
       info: 'var(--color-primary)',
     };
-    return map[color] || 'var(--color-sub)';
-  };
-
-  onMounted(() => {
-    loadAnnouncements();
-    loadReadStatus();
-  });
+    return map[color] ?? 'var(--color-sub)';
+  }
 
   return {
     announcements,
     loading,
-    readPopupIds,
-    isPopupRead,
-    markPopupAsRead,
-    loadReadStatus,
+    loadAnnouncements,
+    checkAndNotifyUnread,
     deleteAnnouncement,
-    canManage,
     colorFor,
   };
 }

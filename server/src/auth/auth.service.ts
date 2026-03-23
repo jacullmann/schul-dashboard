@@ -661,7 +661,7 @@ export class AuthService {
       .select('roles(name), tenant_id')
       .eq('user_id', userId);
 
-    const userRoles = (roleData ?? []) as Array<{
+    const userRoles = (roleData ?? []) as unknown as Array<{
       tenant_id: string | null;
       roles: { name: string } | null;
     }>;
