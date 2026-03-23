@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Info } from 'lucide-vue-next'
-import Modal from '@/common/components/Modal.vue'
+import BaseModal from '@/common/components/BaseModal.vue'
 
 const props = defineProps<{
   title?: string
@@ -24,7 +24,7 @@ const closeModal = () => (isModalOpen.value = false)
 
   <Teleport to="body">
     <Transition name="fade-scale">
-      <Modal v-if="isModalOpen" @cancel="closeModal">
+      <BaseModal v-if="isModalOpen" @cancel="closeModal">
         <template #title>
           <template v-if="props.title">{{ props.title }}</template>
         </template>
@@ -36,7 +36,7 @@ const closeModal = () => (isModalOpen.value = false)
         <template #actions>
           <div style="display: none;"></div>
         </template>
-      </Modal>
+      </BaseModal>
     </Transition>
   </Teleport>
 </template>

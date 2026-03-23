@@ -247,14 +247,10 @@ h5 {
         color: var(--color-on-surface);
         border: 1px solid var(--color-surface-border);
         font-size: var(--text-btn);
+        line-height: 1.2;
         outline: none;
         box-shadow: var(--shadow-input);
         transition: box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .input.hover:hover {
-        background: var(--ghost--hover);
-        cursor: pointer;
     }
 
     .input:focus {
@@ -282,8 +278,9 @@ h5 {
         border: 1px solid;
         border-radius: var(--radius-md);
         font-size: var(--text-btn);
+        line-height: 1.2;
         cursor: pointer;
-        transition: .1s ease;
+        transition: var(--transition-duration-hover) var(--transition-timing-hover);
         white-space: nowrap;
         user-select: none;
         -webkit-user-select: none;
@@ -351,7 +348,7 @@ h5 {
         border-radius: var(--radius-md);
         cursor: pointer;
         font-size: var(--text-sub);
-        transition: background 0.1s;
+        transition: var(--transition-duration-hover) var(--transition-timing-hover);
         user-select: none;
         -webkit-user-select: none;
     }

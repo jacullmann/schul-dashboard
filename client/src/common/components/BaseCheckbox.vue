@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Check } from 'lucide-vue-next'
+
 const props = withDefaults(defineProps<{
   modelValue?: boolean
   checked?: boolean
@@ -26,7 +28,9 @@ function handleChange(event: Event) {
         :checked="modelValue || checked"
         @change="handleChange"
     />
-    <span class="vis-label"></span>
+    <span class="vis-label">
+      <Check class="check-icon" stroke-width="3" />
+    </span>
   </label>
 </template>
 
@@ -51,41 +55,33 @@ function handleChange(event: Event) {
   width: 18px;
   height: 18px;
   border-radius: var(--radius-sm);
-  border: 2px solid var(--color-sub);
-  display: inline-block;
+  border: 2px solid var(--color-on-surface-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   position: relative;
 }
 
-.collapse-checkbox input:checked + .vis-label {
-  background: var(--color-on-surface);
-  border-color: var(--color-on-surface);
-}
-
 .collapse-checkbox .vis-label:hover {
-  border-color: var(--color-on-surface);
+  border-color: var(--color-action);
 }
 
-.collapse-checkbox .vis-label::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border: solid var(--color-canvas);
-  border-width: 0 2px 2px 0;
-  opacity: 0;
-  left: 50%;
-  top: 32%;
-  transform: translate(-50%, -30%) rotate(70deg);
-  transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1),
-  height 0.3s cubic-bezier(0.25, 1, 0.5, 1),
-  transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+.collapse-checkbox input:checked + .vis-label {
+  background: var(--color-action);
+  border-color: var(--color-action);
 }
 
-.collapse-checkbox input:checked + .vis-label::after {
-  opacity: 1;
-  width: 5px;
-  height: 10px;
-  transform: translate(-50%, -45%) rotate(45deg);
+.check-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--color-on-action);
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  transition: stroke-dashoffset 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.collapse-checkbox input:checked + .vis-label .check-icon {
+  stroke-dashoffset: 0;
 }
 </style>

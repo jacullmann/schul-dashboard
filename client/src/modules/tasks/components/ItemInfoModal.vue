@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';
@@ -37,7 +37,7 @@ const showUpdated = computed(() => {
 </script>
 
 <template>
-  <Modal v-if="show" @cancel="$emit('close')">
+  <BaseModal v-if="show" @cancel="$emit('close')">
     <template #title>
       {{ t('school.tasks.items.menu.infoModal.title') }}
     </template>
@@ -74,7 +74,7 @@ const showUpdated = computed(() => {
         {{ t('global.buttons.close') }}
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

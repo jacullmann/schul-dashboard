@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 
 const props = defineProps<{
@@ -26,7 +26,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Modal v-if="show" @cancel="$emit('cancel')">
+  <BaseModal v-if="show" @cancel="$emit('cancel')">
     <template #title>
       Diesen Eintrag löschen?
     </template>
@@ -40,7 +40,7 @@ onBeforeUnmount(() => {
         Eintrag löschen
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

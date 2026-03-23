@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2, Plus, RefreshCw, X, Check } from 'lucide-vue-next';
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import { useSubjectAdmin } from '@/modules/admin/composables/useSubjectAdmin';
 import type { AdminSubject } from '@/modules/admin/types';
 
@@ -116,7 +116,7 @@ onMounted(() => {
           </div>
           <div v-if="isAdmin" class="subject-actions">
             <label class="toggle-label">
-              <Checkbox
+              <BaseCheckbox
                   :model-value="subject.isActive"
                   @change="handleToggleActive(subject, $event)"
               />

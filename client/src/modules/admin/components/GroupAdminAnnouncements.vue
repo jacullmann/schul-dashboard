@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Trash2 } from 'lucide-vue-next';
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import type { AdminAnnouncement } from '@/modules/admin/types';
 
 const props = defineProps<{
@@ -54,7 +54,7 @@ function formatDate(iso: string) {
           <option value="danger">Wichtig</option>
         </select>
         <label class="popup-checkbox">
-          <Checkbox v-model="annShowAsPopup" /> Als Popup
+          <BaseCheckbox v-model="annShowAsPopup" /> Als Popup
         </label>
         <BaseButton @click="handleCreateAnn" :disabled="!annContent.trim() || creating" variant="action">
           {{ creating ? 'Erstellt...' : 'Veröffentlichen' }}

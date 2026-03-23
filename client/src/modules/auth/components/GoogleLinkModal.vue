@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 
 const emit = defineEmits<{
   (e: 'linked'): void;
@@ -39,7 +39,7 @@ function cancel() {
 </script>
 
 <template>
-  <Modal @cancel="cancel">
+  <BaseModal @cancel="cancel">
     <template #title>
       Google-Konto verknüpfen
     </template>
@@ -90,7 +90,7 @@ function cancel() {
         Verknüpfen
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

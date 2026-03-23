@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-import Modal from '@/common/components/Modal.vue'
+import BaseModal from '@/common/components/BaseModal.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -48,7 +48,7 @@ function close() {
 </script>
 
 <template>
-  <Modal @cancel="close">
+  <BaseModal @cancel="close">
     <template #title>
       <span class="popup-title">
         <span class="popup-color-indicator" :style="{ backgroundColor: color }"></span>
@@ -67,7 +67,7 @@ function close() {
         {{ t('global.cookies.banner.action') }}
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

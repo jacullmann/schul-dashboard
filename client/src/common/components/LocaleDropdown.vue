@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePreferences } from '@/common/composables/usePreferences';
-import SelectDropdown, { type UnitOption } from '@/common/components/SelectDropdown.vue';
+import BaseSelect, { type UnitOption } from '@/common/components/BaseSelect.vue';
 
 const localeOptions: UnitOption[] = [
   { value: 'de', label: 'Deutsch' },
@@ -15,7 +15,7 @@ function updateLocale(loc: string) {
 </script>
 
 <template>
-  <SelectDropdown
+  <BaseSelect
       :model-value="currentLanguage"
       :options="localeOptions"
       @update:model-value="updateLocale"

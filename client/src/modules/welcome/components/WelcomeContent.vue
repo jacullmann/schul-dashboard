@@ -3,7 +3,7 @@
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
-import Checkbox from "@/common/components/Checkbox.vue";
+import BaseCheckbox from "@/common/components/BaseCheckbox.vue";
 import { Pin } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -50,7 +50,7 @@ function navigateToAuth() {
         <div class="example-dashboard">
           <ItemCard>
             <template #checkbox>
-              <Checkbox :checked="true" />
+              <BaseCheckbox :checked="true" />
             </template>
             <template #actions-pre>
               <button type="button" class="unpin-trigger">
@@ -64,7 +64,7 @@ function navigateToAuth() {
 
           <ItemCard class="only-desktop">
             <template #checkbox>
-              <Checkbox />
+              <BaseCheckbox />
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[1].title') }}</h3>
@@ -81,7 +81,7 @@ function navigateToAuth() {
 
           <ItemCard>
             <template #checkbox>
-              <Checkbox />
+              <BaseCheckbox />
             </template>
             <template #title>
               <h3 class="example-title">{{ t('welcome.hero.visual.items[2].title') }}</h3>

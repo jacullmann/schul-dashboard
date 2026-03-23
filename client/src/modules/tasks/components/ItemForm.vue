@@ -3,8 +3,8 @@ import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
-import Modal from '@/common/components/Modal.vue';
-import SelectDropdown from '@/common/components/SelectDropdown.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
+import BaseSelect from '@/common/components/BaseSelect.vue';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
@@ -224,7 +224,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 <template>
   <form @submit.prevent="submit" novalidate>
-    <Modal @cancel="emit('cancel')">
+    <BaseModal @cancel="emit('cancel')">
       <template #title>
         {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') + labelFor(type) }}
       </template>
@@ -238,7 +238,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
           <div class="col">
             <label class="label">{{ t('school.tasks.itemForm.subject') }}</label>
-            <SelectDropdown
+            <BaseSelect
                 v-model="subjectSel"
                 :options="subjectOptions"
             />
@@ -246,7 +246,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
           <div class="col" v-if="subjectSel === 'enrichment'">
             <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
-            <SelectDropdown
+            <BaseSelect
                 v-model="enrKursSel"
                 :options="enrOptions"
             />
@@ -254,7 +254,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
           <div class="col" v-if="subjectSel === 'wpu1'">
             <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
-            <SelectDropdown
+            <BaseSelect
                 v-model="wpuDiKursSel"
                 :options="wpuDiOptions"
             />
@@ -262,7 +262,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
           <div class="col" v-if="subjectSel === 'wpu2'">
             <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
-            <SelectDropdown
+            <BaseSelect
                 v-model="wpuDoKursSel"
                 :options="wpuDoOptions"
             />
@@ -282,7 +282,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         <div class="row-n section">
           <div class="col">
             <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
-            <BaseInput class="input hover" type="date" v-model="dueLocal" />
+            <BaseInput class="input" type="date" v-model="dueLocal" />
 
           </div>
         </div>
@@ -331,7 +331,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
       </BaseButton>
         </div>
       </template>
-    </Modal>
+    </BaseModal>
   </form>
 </template>
 

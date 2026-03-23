@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
@@ -17,7 +17,7 @@ import InfoModal from '@/common/components/InfoModal.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
 import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
-import SelectDropdown from '@/common/components/SelectDropdown.vue';
+import BaseSelect from '@/common/components/BaseSelect.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
@@ -212,7 +212,7 @@ async function handleArchiveFromMenu(item: HwItem) {
       <div class="left">
         <div class="row-two">
 
-          <SelectDropdown
+          <BaseSelect
               v-model="subjectFilter"
               :options="subjectOptions"
               extraClass="select-subject"
@@ -244,7 +244,7 @@ async function handleArchiveFromMenu(item: HwItem) {
           @files-dropped="(files) => triggerImageDrop(item, files)"
       >
         <template #checkbox>
-          <Checkbox
+          <BaseCheckbox
               v-if="user"
               :checked="isChecked(item.id)"
               @change="toggleCheck(item)"

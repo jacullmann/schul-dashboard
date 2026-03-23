@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { RefreshCw, Trash2 } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import AdminTimetable from '@/modules/admin/components/AdminTimetable.vue';
 import type { TimetableSubstitution } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
@@ -136,11 +136,11 @@ function handleSaveSub() {
 
       <div style="display: flex; gap: 24px; margin: 16px 0 24px 0;">
         <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-body); cursor: pointer;">
-          <Checkbox v-model="subForm.cancelled" />
+          <BaseCheckbox v-model="subForm.cancelled" />
           <span>Ausfall</span>
         </label>
         <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-body); cursor: pointer;">
-          <Checkbox v-model="subForm.hide" />
+          <BaseCheckbox v-model="subForm.hide" />
           <span>Verstecken</span>
         </label>
       </div>

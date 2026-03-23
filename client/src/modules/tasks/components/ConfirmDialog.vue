@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 
 const MAX_LENGTH = 5000;
@@ -41,7 +41,7 @@ watch(() => props.show, (newVal) => {
 </script>
 
 <template>
-  <Modal v-if="show" @cancel="emit('cancel')">
+  <BaseModal v-if="show" @cancel="emit('cancel')">
     <template #title>
       <h4 style="margin: 0">Diesen Eintrag melden?</h4>
     </template>
@@ -89,7 +89,7 @@ watch(() => props.show, (newVal) => {
         Eintrag melden
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

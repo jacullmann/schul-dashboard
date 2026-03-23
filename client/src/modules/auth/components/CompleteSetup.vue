@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
 import hw from '@/api/hwApi';
-import Modal from '@/common/components/Modal.vue';
-import SelectDropdown from '@/common/components/SelectDropdown.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
+import BaseSelect from '@/common/components/BaseSelect.vue';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
 import { useSubjectStore } from '@/stores/subjectStore';
@@ -133,7 +133,7 @@ async function skip() {
 </script>
 
 <template>
-  <Modal v-if="visible" @cancel="$emit('close')">
+  <BaseModal v-if="visible" @cancel="$emit('close')">
     <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
 
     <template #content>
@@ -141,7 +141,7 @@ async function skip() {
 
       <div class="form-group">
         <label class="label-text">{{ t('account.menu.courses.enr') }}</label>
-        <SelectDropdown
+        <BaseSelect
             v-model="formData.enrKurs"
             :options="enrichmentOptions"
         />
@@ -149,7 +149,7 @@ async function skip() {
 
       <div class="form-group" style="margin-top: 12px;">
         <label class="label-text">{{ t('account.menu.courses.wpu1') }}</label>
-        <SelectDropdown
+        <BaseSelect
             v-model="formData.wpuKurs1"
             :options="wpu1Options"
         />
@@ -157,7 +157,7 @@ async function skip() {
 
       <div class="form-group" style="margin-top: 12px;">
         <label class="label-text">{{ t('account.menu.courses.wpu2') }}</label>
-        <SelectDropdown
+        <BaseSelect
             v-model="formData.wpuKurs2"
             :options="wpu2Options"
         />
@@ -165,7 +165,7 @@ async function skip() {
 
       <div class="form-group" style="margin-top: 12px;">
         <label class="label-text">{{ t('account.menu.courses.wpu3') }}</label>
-        <SelectDropdown
+        <BaseSelect
             v-model="formData.theater"
             :options="theaterOptions"
         />
@@ -189,7 +189,7 @@ async function skip() {
       </BaseButton>
       </div>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

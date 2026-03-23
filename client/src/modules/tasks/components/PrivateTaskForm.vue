@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import hw from '@/api/hwApi';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import type { PrivateTask } from '@/modules/tasks/types';
 
 const props = defineProps<{ initial?: PrivateTask }>();
@@ -65,7 +65,7 @@ async function submit() {
 
 <template>
   <form @submit.prevent="submit" novalidate>
-    <Modal @cancel="$emit('cancel')">
+    <BaseModal @cancel="$emit('cancel')">
       <template #title>
         {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
       </template>
@@ -89,7 +89,7 @@ async function submit() {
         {{ initial ? 'Save' : 'Create' }}
       </BaseButton>
       </template>
-    </Modal>
+    </BaseModal>
   </form>
 </template>
 

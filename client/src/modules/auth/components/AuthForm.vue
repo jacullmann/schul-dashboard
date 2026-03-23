@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import TabSwitcher from "@/common/components/TabSwitcher.vue";
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
@@ -150,7 +150,7 @@ defineExpose({ emailInputRef });
 
             <div class="form-group">
               <label class="privacy-row">
-                <Checkbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
+                <BaseCheckbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
                 <span class="checkbox-label" v-html="t('account.auth.terms')" />
               </label>
 

@@ -4,7 +4,7 @@ import { Search, Play } from 'lucide-vue-next';
 import { useArticleSearch } from '@/modules/infodashboard/composables/useArticleSearch';
 import ArticleCard from '@/modules/infodashboard/components/ArticleCard.vue';
 import VideoPlayer from '@/common/components/VideoPlayer.vue';
-import SelectDropdown from '@/common/components/SelectDropdown.vue';
+import BaseSelect from '@/common/components/BaseSelect.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -80,12 +80,12 @@ const getSliderStyle = (current: number, max: number) => {
       <div v-if="currentView === 'search'" class="toolbar">
         <div class="toolbar-section">
           <label>{{ t('info.dashboard.topic') }}</label>
-          <SelectDropdown v-model="activeTopicFilter" :options="topicOptions" />
+          <BaseSelect v-model="activeTopicFilter" :options="topicOptions" />
         </div>
 
         <div class="toolbar-section">
           <label>{{ t('info.dashboard.sortBy') }}</label>
-          <SelectDropdown v-model="sortOption" :options="sortOptions" />
+          <BaseSelect v-model="sortOption" :options="sortOptions" />
         </div>
 
         <div class="toolbar-section">

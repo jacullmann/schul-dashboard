@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
 
 const { t } = useI18n();
@@ -35,7 +35,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Modal @cancel="$emit('cancel')">
+  <BaseModal @cancel="$emit('cancel')">
     <template #title>
       {{ t('account.menu.changePassword.title') }}
     </template>
@@ -134,7 +134,7 @@ onMounted(() => {
         {{ t('account.menu.changePassword.title') }}
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

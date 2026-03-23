@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
@@ -147,7 +147,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
               @menu-click="toggleMenu(privateTask.id)"
           >
             <template #checkbox>
-              <Checkbox
+              <BaseCheckbox
                   :checked="privateTask.completed"
                   @change="togglePrivateTaskCompletion(privateTask)"
               />

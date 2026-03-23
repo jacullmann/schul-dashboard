@@ -67,7 +67,7 @@ async function submit() {
         <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
       </div>
       <div style="margin-top:8px;">
-        <select class="input hover" v-model="color">
+        <select class="input" v-model="color">
           <option value="info">Info</option>
           <option value="warn">Wichtig</option>
           <option value="danger">Dringend</option>

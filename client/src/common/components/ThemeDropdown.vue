@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { usePreferences } from '@/common/composables/usePreferences';
-import SelectDropdown, { type UnitOption } from '@/common/components/SelectDropdown.vue';
+import BaseSelect, { type UnitOption } from '@/common/components/BaseSelect.vue';
 import { useI18n} from "vue-i18n";
 
 const { t } = useI18n();
@@ -20,7 +20,7 @@ function updateTheme(mode: string) {
 </script>
 
 <template>
-  <SelectDropdown
+  <BaseSelect
       :model-value="currentTheme"
       :options="themeOptions"
       @update:model-value="updateTheme"

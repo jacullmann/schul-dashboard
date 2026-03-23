@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
@@ -70,7 +70,7 @@ async function submit() {
 </script>
 
 <template>
-  <Modal @cancel="$emit('close')">
+  <BaseModal @cancel="$emit('close')">
     <template #title>
       Gruppe erstellen
     </template>
@@ -150,7 +150,7 @@ async function submit() {
         Erstellen
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

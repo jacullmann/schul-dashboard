@@ -141,20 +141,19 @@ const {
       </div>
     </transition>
 
-    <!-- Passwort ändern Modal -->
     <ChangePasswordModal
         v-if="showChangePassword"
         @cancel="showChangePassword = false"
         @success="onPasswordChanged"
     />
-    <!-- Sicherheits-Modal -->
+
     <SecurityModal
         v-if="showSecurity"
         :initial-mfa-enabled="userData?.mfaEnabled"
         @cancel="showSecurity = false"
         @mfa-changed="onMfaChanged"
     />
-    <!-- Account löschen Modal -->
+
     <DeleteAccountModal
         v-if="showDeleteAccount"
         :email="email"

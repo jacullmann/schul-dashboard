@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
-import Modal from '@/common/components/Modal.vue';
+import BaseModal from '@/common/components/BaseModal.vue';
 import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount';
-import Checkbox from '@/common/components/Checkbox.vue';
+import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 
 const { t } = useI18n();
 
@@ -28,7 +28,7 @@ const {
 </script>
 
 <template>
-  <Modal @cancel="$emit('cancel')">
+  <BaseModal @cancel="$emit('cancel')">
     <template #title>
       {{ t('account.menu.deleteAccount.title') }}
     </template>
@@ -43,7 +43,7 @@ const {
         </div>
 
         <label class="checkbox-row">
-          <Checkbox v-model="understoodChecked" />
+          <BaseCheckbox v-model="understoodChecked" />
           <span class="checkbox-text">{{ t('account.menu.deleteAccount.confirm') }}</span>
         </label>
 
@@ -57,7 +57,7 @@ const {
         {{ t('global.buttons.delete') }}
       </BaseButton>
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>
