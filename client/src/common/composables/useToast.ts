@@ -23,9 +23,13 @@ const state = reactive<{ toasts: Toast[] }>({
   toasts: [],
 });
 
-function add(message: string, durationOrOptions?: number | ToastOptions, opts?: ToastOptions): number {
+function add(
+  message: string,
+  durationOrOptions?: number | ToastOptions,
+  opts?: ToastOptions,
+): number {
   const id = _nextId++;
-  
+
   let options: ToastOptions = {};
   if (typeof durationOrOptions === 'number') {
     options = { duration: durationOrOptions, ...opts };
@@ -76,23 +80,47 @@ function clear(): void {
 // Convenience helpers
 type Opts = Omit<ToastOptions, 'type'>;
 
-const success = (message: string, durationOrOpts?: number | Opts, opts?: Opts) => {
-  const options = typeof durationOrOpts === 'number' ? { duration: durationOrOpts, ...opts } : (durationOrOpts || {});
+const success = (
+  message: string,
+  durationOrOpts?: number | Opts,
+  opts?: Opts,
+) => {
+  const options =
+    typeof durationOrOpts === 'number'
+      ? { duration: durationOrOpts, ...opts }
+      : durationOrOpts || {};
   return add(message, { ...options, type: 'success' });
 };
 
-const error = (message: string, durationOrOpts?: number | Opts, opts?: Opts) => {
-  const options = typeof durationOrOpts === 'number' ? { duration: durationOrOpts, ...opts } : (durationOrOpts || {});
+const error = (
+  message: string,
+  durationOrOpts?: number | Opts,
+  opts?: Opts,
+) => {
+  const options =
+    typeof durationOrOpts === 'number'
+      ? { duration: durationOrOpts, ...opts }
+      : durationOrOpts || {};
   return add(message, { ...options, type: 'error' });
 };
 
-const warning = (message: string, durationOrOpts?: number | Opts, opts?: Opts) => {
-  const options = typeof durationOrOpts === 'number' ? { duration: durationOrOpts, ...opts } : (durationOrOpts || {});
+const warning = (
+  message: string,
+  durationOrOpts?: number | Opts,
+  opts?: Opts,
+) => {
+  const options =
+    typeof durationOrOpts === 'number'
+      ? { duration: durationOrOpts, ...opts }
+      : durationOrOpts || {};
   return add(message, { ...options, type: 'warning' });
 };
 
 const info = (message: string, durationOrOpts?: number | Opts, opts?: Opts) => {
-  const options = typeof durationOrOpts === 'number' ? { duration: durationOrOpts, ...opts } : (durationOrOpts || {});
+  const options =
+    typeof durationOrOpts === 'number'
+      ? { duration: durationOrOpts, ...opts }
+      : durationOrOpts || {};
   return add(message, { ...options, type: 'info' });
 };
 

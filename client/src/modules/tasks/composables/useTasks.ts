@@ -19,378 +19,411 @@ import { useHwActions } from './hw/useHwActions';
 export type { HwItem };
 
 export function useTasks() {
-    const route = useRoute();
-    const router = useRouter();
-    const userStore = useUserStore();
-    const subjectStore = useSubjectStore();
-    const imageUpload = useImageUpload();
-    const { user } = storeToRefs(userStore);
-    const { t, te } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
+  const userStore = useUserStore();
+  const subjectStore = useSubjectStore();
+  const imageUpload = useImageUpload();
+  const { user } = storeToRefs(userStore);
+  const { t, te } = useI18n();
 
-    const MAX_TITLE_LENGTH = 50;
-    const MAX_SUBJECT_LENGTH = 100;
+  const MAX_TITLE_LENGTH = 50;
+  const MAX_SUBJECT_LENGTH = 100;
 
-    // Core states
-    const tab = ref<ItemType>(isValidType(route.params.type) ? (route.params.type as ItemType) : 'all');
-    const showOldEntries = ref(false);
-    const subjectFilter = ref('');
-    const showPersonalized = computed(() => user.value?.personalized ?? false);
-    const showSetupModal = ref(false);
+  // Core states
+  const tab = ref<ItemType>(
+    isValidType(route.params.type) ? route.params.type : 'all',
+  );
+  const showOldEntries = ref(false);
+  const subjectFilter = ref('');
+  const showPersonalized = computed(() => user.value?.personalized ?? false);
+  const showSetupModal = ref(false);
 
-    const activeGroupId = computed(() => (route.params.groupId as string) || null);
+  const activeGroupId = computed(
+    () => (route.params.groupId as string) || null,
+  );
 
+  // UI states
+  const {
+    openMenuId,
+    highlightedItemId,
+    expandedDescriptions,
+    revealedImages,
+    isExpanded,
+    toggleDescription,
+    toggleMenu,
+    onDocumentClick,
+    isRevealed,
+    revealImages,
+  } = useHwUi();
 
-    // UI states
-    const {
-        openMenuId,
-        highlightedItemId,
-        expandedDescriptions,
-        revealedImages,
-        isExpanded,
-        toggleDescription,
-        toggleMenu,
-        onDocumentClick,
-        isRevealed,
-        revealImages
-    } = useHwUi();
+  // Pinned
+  const pinnedItems = ref(new Set<string>());
 
-    // Pinned
-    const pinnedItems = ref(new Set<string>());
+  // List
+  const {
+    items,
+    loading: listLoading,
+    checksLoading,
+    initialLoad: hwInitialLoad,
+    visibleCount,
+    checkedItems,
+    archivedItems,
+    keptItems,
+    filteredItems,
+    limitedItems,
+    setVisibleCount,
+    showMore,
+    showLess,
+    loadCheckedForMe,
+    loadVisibilityForMe,
+    reloadList,
+    refreshItem,
+    checkAndScrollToItem,
+  } = useHwList(
+    user,
+    tab,
+    showOldEntries,
+    subjectFilter,
+    pinnedItems,
+    showPersonalized,
+    expandedDescriptions,
+    revealedImages,
+    highlightedItemId,
+  );
 
-    // List
-    const {
-        items,
-        loading: listLoading,
-        checksLoading,
-        initialLoad: hwInitialLoad,
-        visibleCount,
-        checkedItems,
-        archivedItems,
-        keptItems,
-        filteredItems,
-        limitedItems,
-        setVisibleCount,
-        showMore,
-        showLess,
-        loadCheckedForMe,
-        loadVisibilityForMe,
-        reloadList,
-        refreshItem,
-        checkAndScrollToItem
-    } = useHwList(
-        user,
-        tab,
-        showOldEntries,
-        subjectFilter,
-        pinnedItems,
-        showPersonalized,
-        expandedDescriptions,
-        revealedImages,
-        highlightedItemId
-    );
+  // Actions
+  const {
+    showDeleteConfirm,
+    deletingEntry,
+    showReportConfirm,
+    reportReason,
+    pinsLoading,
+    loadPinnedForMe,
+    isChecked,
+    isPinned,
+    isArchived,
+    isKept,
+    toggleCheck,
+    togglePin,
+    toggleVisibility,
+    canEdit,
+    canDelete,
+    canDeleteImage,
+    deleteItem,
+    cancelDelete,
+    confirmDelete,
+    reportItem,
+    doReport,
+    cancelReport,
+    shareItem,
+  } = useHwActions(
+    user,
+    checkedItems,
+    pinnedItems,
+    archivedItems,
+    keptItems,
+    activeGroupId,
+    (msg) => handleSuccess(msg),
+  );
 
-    // Actions
-    const {
-        showDeleteConfirm,
-        deletingEntry,
-        showReportConfirm,
-        reportReason,
-        pinsLoading,
-        loadPinnedForMe,
-        isChecked,
-        isPinned,
-        isArchived,
-        isKept,
-        toggleCheck,
-        togglePin,
-        toggleVisibility,
-        canEdit,
-        canDelete,
-        canDeleteImage,
-        deleteItem,
-        cancelDelete,
-        confirmDelete,
-        reportItem,
-        doReport,
-        cancelReport,
-        shareItem
-    } = useHwActions(
-        user,
-        checkedItems,
-        pinnedItems,
-        archivedItems,
-        keptItems,
-        activeGroupId,
-        (msg) => handleSuccess(msg)
-    );
+  // Forms
+  const {
+    itemFormType,
+    showItemForm,
+    itemToEdit,
+    itemFormKey,
+    editingNoteForId,
+    noteEditContent,
+    savingNote,
+    onItemFormError,
+    handleSuccess,
+    editItem,
+    openCreateFormByType,
+    canEditNote,
+    startEditNote,
+    cancelEditNote,
+    saveNote,
+  } = useHwForms(user, items, () => reloadList());
 
-    // Forms
-    const {
-        itemFormType,
-        showItemForm,
-        itemToEdit,
-        itemFormKey,
-        editingNoteForId,
-        noteEditContent,
-        savingNote,
-        onItemFormError,
-        handleSuccess,
-        editItem,
-        openCreateFormByType,
-        canEditNote,
-        startEditNote,
-        cancelEditNote,
-        saveNote
-    } = useHwForms(
-        user,
-        items,
-        () => reloadList()
-    );
+  // Images
+  const {
+    showImageViewer,
+    viewerImages,
+    viewerStartIndex,
+    imageMenu,
+    showImageDeleteConfirm,
+    deletingImage,
+    currentUploadItemId,
+    openImageViewer,
+    closeImageViewer,
+    handleImageContextMenu,
+    openImageMenu,
+    closeImageMenu,
+    triggerImageUpload,
+    triggerImageDrop,
+    triggerImageDelete,
+    confirmImageDelete,
+    cancelImageDelete,
+    makeThumb,
+  } = useHwImages(user, imageUpload, refreshItem);
 
-    // Images
-    const {
-        showImageViewer,
-        viewerImages,
-        viewerStartIndex,
-        imageMenu,
-        showImageDeleteConfirm,
-        deletingImage,
-        currentUploadItemId,
-        openImageViewer,
-        closeImageViewer,
-        handleImageContextMenu,
-        openImageMenu,
-        closeImageMenu,
-        triggerImageUpload,
-        triggerImageDrop,
-        triggerImageDelete,
-        confirmImageDelete,
-        cancelImageDelete,
-        makeThumb
-    } = useHwImages(
-        user,
-        imageUpload,
-        refreshItem
-    );
+  const subjects = computed(() => subjectStore.availableSubjectKeys);
 
-    const subjects = computed(() => subjectStore.availableSubjectKeys);
+  const loading = computed(
+    () => listLoading.value || checksLoading.value || pinsLoading.value,
+  );
+  const hasLoadedOnce = ref(false);
 
-    const loading = computed(() => listLoading.value || checksLoading.value || pinsLoading.value);
-    const hasLoadedOnce = ref(false);
+  watch(
+    loading,
+    (val) => {
+      if (!val) hasLoadedOnce.value = true;
+    },
+    { immediate: true },
+  );
 
-    watch(loading, (val) => {
-        if (!val) hasLoadedOnce.value = true;
-    }, { immediate: true });
+  const initialLoad = computed(
+    () => !hasLoadedOnce.value || hwInitialLoad.value,
+  );
 
-    const initialLoad = computed(() => !hasLoadedOnce.value || hwInitialLoad.value);
+  const getSubjectName = (subject: string) => {
+    return formatSubjectDisplay(subject, t, te);
+  };
 
-    const getSubjectName = (subject: string) => {
-        return formatSubjectDisplay(subject, t, te);
-    };
+  const getTypeLabel = (type: string) => {
+    if (type === 'homework') return t('school.tasks.types.homework');
+    if (type === 'dalton') return t('school.tasks.types.dalton');
+    if (type === 'exam') return t('school.tasks.types.exam');
+    return type;
+  };
 
-    const getTypeLabel = (type: string) => {
-        if (type === 'homework') return t('school.tasks.types.homework');
-        if (type === 'dalton') return t('school.tasks.types.dalton');
-        if (type === 'exam') return t('school.tasks.types.exam');
-        return type;
-    };
+  const subjectOptions = computed(() => {
+    const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
 
-    const subjectOptions = computed(() => {
-        const defaultOption = { label: t('school.tasks.allsubjects'), value: '' };
+    const dynamicOptions = subjectStore.availableSubjectKeys.map((s) => ({
+      label: getSubjectName(s),
+      value: s,
+    }));
 
-        const dynamicOptions = subjectStore.availableSubjectKeys.map((s) => ({
-            label: getSubjectName(s),
-            value: s,
-        }));
+    return [defaultOption, ...dynamicOptions];
+  });
 
-        return [defaultOption, ...dynamicOptions];
+  function goTab(t_type: ItemType) {
+    router.push({
+      name: 'group-items',
+      params: { ...route.params, type: t_type },
     });
+  }
 
-    function goTab(t_type: ItemType) {
-        router.push({
-            name: 'group-items',
-            params: { ...route.params, type: t_type }
+  function onMenuAction(
+    action: 'images' | 'edit' | 'delete' | 'report',
+    item: HwItem,
+  ) {
+    openMenuId.value = null;
+    if (action === 'images') return triggerImageUpload(item);
+    if (action === 'edit') return editItem(item);
+    if (action === 'delete') return deleteItem(item.id);
+    if (action === 'report') return reportItem(item);
+  }
+
+  function onSetupSuccess(updatedUser: Record<string, unknown>) {
+    if (user.value) {
+      user.value = { ...user.value, ...updatedUser } as typeof user.value;
+    }
+    showSetupModal.value = false;
+  }
+
+  function reload() {
+    return reloadList(route.params.itemId as string, () => {
+      showOldEntries.value = true;
+    });
+  }
+
+  // --- Watchers ---
+
+  watch(
+    () => route.params.type,
+    (v) => {
+      tab.value = isValidType(v) ? v : 'all';
+      reload();
+    },
+  );
+
+  watch(
+    () => route.params.itemId,
+    async (newId) => {
+      if (newId)
+        await checkAndScrollToItem(newId as string, () => {
+          showOldEntries.value = true;
         });
+    },
+  );
+
+  watch(showOldEntries, () => {
+    const targetId = route.params.itemId as string;
+    const exists = items.value.some((i) => i.id === targetId);
+
+    if (targetId && !exists && showOldEntries.value) return;
+
+    if (highlightedItemId.value && route.params.itemId) {
+      router.replace({
+        name: 'group-items',
+        params: { ...route.params, itemId: '' },
+      });
     }
+    reload();
+  });
 
-    function onMenuAction(action: 'images' | 'edit' | 'delete' | 'report', item: HwItem) {
-        openMenuId.value = null;
-        if (action === 'images') return triggerImageUpload(item);
-        if (action === 'edit') return editItem(item);
-        if (action === 'delete') return deleteItem(item.id);
-        if (action === 'report') return reportItem(item);
+  watch(subjectFilter, () => {
+    if (highlightedItemId.value && route.params.itemId) {
+      router.replace({
+        name: 'group-items',
+        params: { ...route.params, itemId: '' },
+      });
     }
+  });
 
-    function onSetupSuccess(updatedUser: Record<string, unknown>) {
-        if (user.value) {
-            user.value = { ...user.value, ...updatedUser } as typeof user.value;
-        }
-        showSetupModal.value = false;
+  watch([subjectFilter, tab, items], () => {
+    if (!route.params.itemId) {
+      setVisibleCount(Math.min(5, filteredItems.value.length || 5));
     }
+  });
 
-    function reload() {
-        return reloadList(route.params.itemId as string, () => {
-            showOldEntries.value = true;
-        });
+  watch(imageUpload.uploading, async (val, oldVal) => {
+    if (
+      oldVal &&
+      !val &&
+      !imageUpload.uploadError.value &&
+      currentUploadItemId.value
+    ) {
+      await refreshItem(currentUploadItemId.value);
+      currentUploadItemId.value = null;
+      useToast().success(t('school.tasks.itemForm.successUpload'));
     }
+  });
 
-    // --- Watchers ---
-
-    watch(() => route.params.type, (v) => {
-        tab.value = isValidType(v) ? (v as ItemType) : 'all';
+  watch(
+    user,
+    async (newUser, oldUser) => {
+      if (newUser && !oldUser) {
+        await Promise.all([
+          loadCheckedForMe(),
+          loadPinnedForMe(),
+          loadVisibilityForMe(),
+        ]);
         reload();
-    });
-
-    watch(() => route.params.itemId, async (newId) => {
-        if (newId) await checkAndScrollToItem(newId as string, () => { showOldEntries.value = true; });
-    });
-
-    watch(showOldEntries, () => {
-        const targetId = route.params.itemId as string;
-        const exists = items.value.some(i => i.id === targetId);
-
-        if (targetId && !exists && showOldEntries.value) return;
-
-        if (highlightedItemId.value && route.params.itemId) {
-            router.replace({
-                name: 'group-items',
-                params: { ...route.params, itemId: '' },
-            });
-        }
+      }
+      if (!newUser && oldUser) {
+        checkedItems.value = new Set();
+        pinnedItems.value = new Set();
+        archivedItems.value = new Set();
+        keptItems.value = new Set();
         reload();
-    });
+      }
+    },
+    { deep: true },
+  );
 
-    watch(subjectFilter, () => {
-        if (highlightedItemId.value && route.params.itemId) {
-            router.replace({
-                name: 'group-items',
-                params: { ...route.params, itemId: '' },
-            });
-        }
-    });
+  // --- Lifecycle ---
 
-    watch([subjectFilter, tab, items], () => {
-        if (!route.params.itemId) {
-            setVisibleCount(Math.min(5, filteredItems.value.length || 5));
-        }
-    });
+  onMounted(async () => {
+    document.addEventListener('click', onDocumentClick);
+    await subjectStore.loadSubjects();
+    await Promise.all([
+      reload(),
+      loadCheckedForMe(),
+      loadPinnedForMe(),
+      loadVisibilityForMe(),
+    ]);
+  });
 
-    watch(imageUpload.uploading, async (val, oldVal) => {
-        if (oldVal && !val && !imageUpload.uploadError.value && currentUploadItemId.value) {
-            await refreshItem(currentUploadItemId.value);
-            currentUploadItemId.value = null;
-            useToast().success(t('school.tasks.itemForm.successUpload'));
-        }
-    });
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', onDocumentClick);
+  });
 
-    watch(user, async (newUser, oldUser) => {
-        if (newUser && !oldUser) {
-            await Promise.all([loadCheckedForMe(), loadPinnedForMe(), loadVisibilityForMe()]);
-            reload();
-        }
-        if (!newUser && oldUser) {
-            checkedItems.value = new Set();
-            pinnedItems.value = new Set();
-            archivedItems.value = new Set();
-            keptItems.value = new Set();
-            reload();
-        }
-    }, { deep: true });
-
-    // --- Lifecycle ---
-
-    onMounted(async () => {
-        document.addEventListener('click', onDocumentClick);
-        await subjectStore.loadSubjects();
-        await Promise.all([reload(), loadCheckedForMe(), loadPinnedForMe(), loadVisibilityForMe()]);
-    });
-
-    onBeforeUnmount(() => {
-        document.removeEventListener('click', onDocumentClick);
-    });
-
-    return {
-        MAX_TITLE_LENGTH,
-        MAX_SUBJECT_LENGTH,
-        showItemForm,
-        itemToEdit,
-        user,
-        subjects,
-        loading,
-        subjectFilter,
-        showPersonalized,
-        showOldEntries,
-        itemFormKey,
-        visibleCount,
-        limitedItems,
-        filteredItems,
-        showReportConfirm,
-        reportReason,
-        tab,
-        openMenuId,
-        isExpanded,
-        toggleDescription,
-        showMore,
-        showLess,
-        toggleMenu,
-        onMenuAction,
-        handleSuccess,
-        onItemFormError,
-        canEdit,
-        canDelete,
-        canDeleteImage,
-        canEditNote,
-        editingNoteForId,
-        noteEditContent,
-        savingNote,
-        startEditNote,
-        cancelEditNote,
-        saveNote,
-        goTab,
-        isChecked,
-        toggleCheck,
-        isPinned,
-        togglePin,
-        isArchived,
-        isKept,
-        toggleVisibility,
-        pinnedItems,
-        archivedItems,
-        keptItems,
-        makeThumb,
-        isRevealed,
-        revealImages,
-        onSetupSuccess,
-        doReport,
-        cancelReport,
-        openCreateFormByType,
-        itemFormType,
-        showDeleteConfirm,
-        confirmDelete,
-        cancelDelete,
-        initialLoad,
-        imageMenu,
-        openImageMenu,
-        closeImageMenu,
-        triggerImageUpload,
-        triggerImageDrop,
-        triggerImageDelete,
-        showImageDeleteConfirm,
-        confirmImageDelete,
-        cancelImageDelete,
-        showImageViewer,
-        viewerImages,
-        viewerStartIndex,
-        openImageViewer,
-        closeImageViewer,
-        showSetupModal,
-        shareItem,
-        highlightedItemId,
-        deletingImage,
-        deletingEntry,
-        handleImageContextMenu,
-        subjectOptions,
-        getSubjectName,
-        getTypeLabel,
-    };
+  return {
+    MAX_TITLE_LENGTH,
+    MAX_SUBJECT_LENGTH,
+    showItemForm,
+    itemToEdit,
+    user,
+    subjects,
+    loading,
+    subjectFilter,
+    showPersonalized,
+    showOldEntries,
+    itemFormKey,
+    visibleCount,
+    limitedItems,
+    filteredItems,
+    showReportConfirm,
+    reportReason,
+    tab,
+    openMenuId,
+    isExpanded,
+    toggleDescription,
+    showMore,
+    showLess,
+    toggleMenu,
+    onMenuAction,
+    handleSuccess,
+    onItemFormError,
+    canEdit,
+    canDelete,
+    canDeleteImage,
+    canEditNote,
+    editingNoteForId,
+    noteEditContent,
+    savingNote,
+    startEditNote,
+    cancelEditNote,
+    saveNote,
+    goTab,
+    isChecked,
+    toggleCheck,
+    isPinned,
+    togglePin,
+    isArchived,
+    isKept,
+    toggleVisibility,
+    pinnedItems,
+    archivedItems,
+    keptItems,
+    makeThumb,
+    isRevealed,
+    revealImages,
+    onSetupSuccess,
+    doReport,
+    cancelReport,
+    openCreateFormByType,
+    itemFormType,
+    showDeleteConfirm,
+    confirmDelete,
+    cancelDelete,
+    initialLoad,
+    imageMenu,
+    openImageMenu,
+    closeImageMenu,
+    triggerImageUpload,
+    triggerImageDrop,
+    triggerImageDelete,
+    showImageDeleteConfirm,
+    confirmImageDelete,
+    cancelImageDelete,
+    showImageViewer,
+    viewerImages,
+    viewerStartIndex,
+    openImageViewer,
+    closeImageViewer,
+    showSetupModal,
+    shareItem,
+    highlightedItemId,
+    deletingImage,
+    deletingEntry,
+    handleImageContextMenu,
+    subjectOptions,
+    getSubjectName,
+    getTypeLabel,
+  };
 }
