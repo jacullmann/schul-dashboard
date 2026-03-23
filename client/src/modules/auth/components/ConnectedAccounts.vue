@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
+import BaseButton from '@/common/components/BaseButton.vue';
 
 const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } = useOAuth();
 
@@ -69,24 +70,25 @@ function handleLink() {
         <div class="provider-action">
           <span v-if="googleLinked()" class="linked-badge">Verknüpft</span>
 
-          <button
+          <BaseButton
               v-if="googleLinked()"
-              class="btn ghost small"
-              :disabled="actionLoading"
+              variant="ghost"
+              class="small"
+              :loading="actionLoading"
               @click="handleUnlink"
           >
-            <LoadingSpinner v-if="actionLoading" size="1em" />
-            <span v-else>Trennen</span>
-          </button>
+            Trennen
+          </BaseButton>
 
-          <button
+          <BaseButton
               v-else
-              class="btn action small"
-              :disabled="actionLoading"
+              variant="action"
+              class="small"
+              :loading="actionLoading"
               @click="handleLink"
           >
             Verknüpfen
-          </button>
+          </BaseButton>
         </div>
       </div>
 
@@ -115,9 +117,9 @@ function handleLink() {
   justify-content: space-between;
   gap: 12px;
   padding: 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-lg);
 }
 
 .provider-info {
@@ -130,8 +132,8 @@ function handleLink() {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-canvas-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,19 +147,19 @@ function handleLink() {
 }
 
 .provider-name {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .provider-email {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
 }
 
 .provider-status {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
 }
 
 .provider-action {
@@ -168,9 +170,9 @@ function handleLink() {
 }
 
 .linked-badge {
-  font-size: var(--font-size-footnote);
+  font-size: var(--text-footnote);
   color: var(--special--green);
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
   padding: 2px 8px;
   border-radius: 999px;
   font-weight: 500;
@@ -178,23 +180,23 @@ function handleLink() {
 
 .btn.small {
   padding: 4px 12px;
-  font-size: var(--font-size-footnote);
+  font-size: var(--text-footnote);
   min-height: 28px;
 }
 
 .feedback {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   padding: 8px 12px;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
 }
 
 .feedback.error {
-  color: var(--danger);
-  background: var(--danger-background);
+  color: var(--color-danger);
+  background: var(--color-danger-surface);
 }
 
 .feedback.success {
   color: var(--special--green);
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
 }
 </style>

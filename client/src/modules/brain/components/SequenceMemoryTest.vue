@@ -72,7 +72,7 @@ function saveAndExit() {
       <Layers :size="64" class="icon" />
       <h2>Sequenzgedächtnis</h2>
       <p>Merke dir das Muster der aufleuchtenden Felder.</p>
-      <button class="btn test-btn primary" @click="startGame">Starten</button>
+      <BaseButton class="test-btn primary" @click="startGame">Starten</BaseButton>
     </div>
 
     <div v-else-if="['showing', 'waiting_input', 'wrong'].includes(state)" class="game-screen">
@@ -100,8 +100,8 @@ function saveAndExit() {
       <p>Du hast es bis Level {{ level }} geschafft.</p>
       <p class="score">Level {{ level - 1 }}</p>
       <div class="actions">
-        <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
-        <button class="btn test-btn secondary" @click="reset">Nochmal</button>
+        <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
+        <BaseButton class="test-btn secondary" @click="reset">Nochmal</BaseButton>
       </div>
     </div>
   </div>

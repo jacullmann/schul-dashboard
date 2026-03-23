@@ -63,15 +63,15 @@ const ICONS = {
   align-items: flex-start;
   gap: 8px;
   padding: 12px;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-surface);
-  background: var(--bg-surface);
-  color: var(--text-default);
-  font-size: var(--font-size-body);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-surface-border);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-size: var(--text-body);
   line-height: 1;
   overflow: hidden;
   pointer-events: all;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
   backdrop-filter: blur(8px);
 }
 
@@ -82,10 +82,10 @@ const ICONS = {
   justify-content: center;
 }
 
-.toast--success .toast-icon { color: var(--success); }
-.toast--error   .toast-icon { color: var(--danger); }
-.toast--warning .toast-icon { color: var(--warn); }
-.toast--info    .toast-icon { color: var(--primary); }
+.toast--success .toast-icon { color: var(--color-success); }
+.toast--error   .toast-icon { color: var(--color-danger); }
+.toast--warning .toast-icon { color: var(--color-warn); }
+.toast--info    .toast-icon { color: var(--color-primary); }
 
 .toast-message {
   flex: 1;
@@ -99,18 +99,18 @@ const ICONS = {
   border: none;
   padding: 8px;
   cursor: pointer;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   transition: color 0.15s ease, background 0.15s ease;
   margin: -8px -8px -8px 0;
 }
 
 .toast-close:hover {
-  color: var(--text-default);
-  background: var(--bg-interactive-hover);
+  color: var(--color-on-surface);
+  background: var(--color-surface-hover);
 }
 
 .toast-enter-active {

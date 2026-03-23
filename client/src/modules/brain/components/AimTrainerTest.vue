@@ -62,7 +62,7 @@ function saveAndExit() {
       <Target :size="64" class="icon" />
       <h2>Aim Trainer</h2>
       <p>Klicke auf 30 Zielscheiben so schnell du kannst.</p>
-      <button class="btn test-btn primary" @click="startGame">Starten</button>
+      <BaseButton class="test-btn primary" @click="startGame">Starten</BaseButton>
     </div>
 
     <div v-else-if="state === 'playing'" class="game-screen" @mousedown.prevent>
@@ -83,8 +83,8 @@ function saveAndExit() {
       <h2>Durchschnittszeit</h2>
       <p class="score">{{ averageTime }} ms</p>
       <div class="actions">
-        <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
-        <button class="btn test-btn secondary" @click="reset">Nochmal</button>
+        <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
+        <BaseButton class="test-btn secondary" @click="reset">Nochmal</BaseButton>
       </div>
     </div>
   </div>

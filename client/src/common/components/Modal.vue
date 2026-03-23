@@ -33,9 +33,9 @@ onBeforeUnmount(() => {
           <slot name="title-infopop"></slot>
         </div>
 
-        <button type="button" class="btn ghost" @click="$emit('cancel')">
+        <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
           {{ t('global.buttons.close') }}
-        </button>
+        </BaseButton>
       </div>
 
       <div class="modal-content">
@@ -44,14 +44,14 @@ onBeforeUnmount(() => {
 
       <div class="row">
         <slot name="actions">
-          <button type="button" class="btn ghost" @click="$emit('cancel')">
+          <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
             {{ t('global.buttons.cancel') }}
-          </button>
+          </BaseButton>
 
           <slot name="action-btn">
-            <button type="button" class="btn action">
+            <BaseButton type="button" variant="action">
               {{ t('global.buttons.confirm') }}
-            </button>
+            </BaseButton>
           </slot>
         </slot>
       </div>
@@ -61,9 +61,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .modal-card {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
-  border-radius: var(--border-radius-2xl);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-canvas-border);
+  border-radius: var(--radius-2xl);
   padding: 16px;
   width: calc(100% - 32px);
   max-width: 640px;
@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
 
 .modal-title-text {
   margin: 0;
-  font-size: var(--font-size-h3);
-  color: var(--text-default);
+  font-size: var(--text-h3);
+  color: var(--color-on-surface);
 }
 </style>

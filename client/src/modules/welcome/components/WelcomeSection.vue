@@ -50,7 +50,7 @@ const { tm } = useI18n();
 }
 
 .info-title {
-  font-family: var(--normal-font), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 1.4rem;
   font-weight: 400;
   margin: 0;
@@ -62,15 +62,15 @@ b {
 
 .small-print {
   font-size: 0.7rem;
-  color: var(--sub);
+  color: var(--color-sub);
   margin: 0;
 }
 
 .info-promises {
-  font-family: var(--display-font), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 32px;
   line-height: 48px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-weight: 500;
 }
 </style>

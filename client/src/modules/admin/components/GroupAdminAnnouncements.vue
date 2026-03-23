@@ -56,9 +56,9 @@ function formatDate(iso: string) {
         <label class="popup-checkbox">
           <Checkbox v-model="annShowAsPopup" /> Als Popup
         </label>
-        <button class="btn action" @click="handleCreateAnn" :disabled="!annContent.trim() || creating">
+        <BaseButton @click="handleCreateAnn" :disabled="!annContent.trim() || creating" variant="action">
           {{ creating ? 'Erstellt...' : 'Veröffentlichen' }}
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -122,7 +122,7 @@ function formatDate(iso: string) {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -136,8 +136,8 @@ function formatDate(iso: string) {
 .ann-item {
   padding: 14px 16px;
   border-radius: 10px;
-  border-left: 3px solid var(--border-canvas);
-  background: var(--bg-surface);
+  border-left: 3px solid var(--color-canvas-border);
+  background: var(--color-surface);
 }
 
 .ann-info { border-left-color: #3b82f6; }
@@ -145,7 +145,7 @@ function formatDate(iso: string) {
 .ann-danger { border-left-color: #ef4444; }
 
 .ann-item-body {
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   line-height: 1.5;
   margin-bottom: 8px;
 }
@@ -157,15 +157,15 @@ function formatDate(iso: string) {
 }
 
 .ann-item-date {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
 }
 
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
 }
 
 .btn-icon {
@@ -177,12 +177,12 @@ function formatDate(iso: string) {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
+.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 

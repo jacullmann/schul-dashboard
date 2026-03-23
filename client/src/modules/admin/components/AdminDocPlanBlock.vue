@@ -221,7 +221,7 @@ watch(() => props.block.content, (newContent) => {
 }
 
 .block-wrapper:hover {
-  background: var(--bg-surface, #f5f5f5);
+  background: var(--color-surface, #f5f5f5);
 }
 
 /* =========================================
@@ -254,13 +254,13 @@ watch(() => props.block.content, (newContent) => {
   border-radius: 4px;
   border: none;
   background: none;
-  color: var(--sub, #888);
+  color: var(--color-sub, #888);
   cursor: pointer;
 }
 
 .drag-handle:hover {
-  background: var(--bg-interactive-hover, #eee);
-  color: var(--text-default, #333);
+  background: var(--color-surface-hover, #eee);
+  color: var(--color-on-surface, #333);
   cursor: grab;
 }
 
@@ -274,7 +274,7 @@ watch(() => props.block.content, (newContent) => {
   left: -20px;
   top: 6px;
   cursor: pointer;
-  color: var(--sub, #aaa);
+  color: var(--color-sub, #aaa);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -284,7 +284,7 @@ watch(() => props.block.content, (newContent) => {
 }
 
 .collapse-toggle:hover {
-  color: var(--text-default, #333);
+  color: var(--color-on-surface, #333);
 }
 
 /* =========================================
@@ -296,7 +296,7 @@ watch(() => props.block.content, (newContent) => {
   text-align: center;
   font-size: 18px;
   line-height: 1.4;
-  color: var(--sub, #888);
+  color: var(--color-sub, #888);
   margin-right: 6px;
   user-select: none;
   margin-top: 2px;
@@ -316,7 +316,7 @@ watch(() => props.block.content, (newContent) => {
   width: 15px;
   height: 15px;
   cursor: pointer;
-  accent-color: var(--text-default, #333);
+  accent-color: var(--color-on-surface, #333);
 }
 
 .content-area {
@@ -334,13 +334,13 @@ watch(() => props.block.content, (newContent) => {
 
 .editable-input:empty::before {
   content: attr(placeholder);
-  color: var(--sub, #bbb);
+  color: var(--color-sub, #bbb);
   pointer-events: none;
 }
 
 .is-checked .editable-input {
   text-decoration: line-through;
-  color: var(--sub, #999);
+  color: var(--color-sub, #999);
 }
 
 /* =========================================
@@ -349,7 +349,7 @@ watch(() => props.block.content, (newContent) => {
 .h1 {
   font-size: 1.9em;
   font-weight: 700;
-  color: var(--text-default, #111);
+  color: var(--color-on-surface, #111);
   line-height: 1.2;
   margin: 12px 0 4px;
 }
@@ -357,33 +357,33 @@ watch(() => props.block.content, (newContent) => {
 .h2 {
   font-size: 1.5em;
   font-weight: 700;
-  color: var(--text-default, #111);
+  color: var(--color-on-surface, #111);
   margin: 10px 0 4px;
 }
 
 .h3 {
   font-size: 1.2em;
   font-weight: 600;
-  color: var(--text-default, #111);
+  color: var(--color-on-surface, #111);
   margin: 8px 0 2px;
 }
 
 .h4 {
   font-size: 1.05em;
   font-weight: 600;
-  color: var(--text-default, #111);
+  color: var(--color-on-surface, #111);
   margin: 6px 0 2px;
 }
 
 .p {
   font-size: 1em;
-  color: var(--text-default, #333);
+  color: var(--color-on-surface, #333);
   margin: 2px 0;
 }
 
 .ul, .cl {
   font-size: 1em;
-  color: var(--text-default, #333);
+  color: var(--color-on-surface, #333);
   margin: 1px 0;
 }
 

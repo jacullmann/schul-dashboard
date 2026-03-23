@@ -112,14 +112,14 @@ onMounted(() => {
           </p>
         </div>
         <div class="welcome-actions">
-          <button class="btn action" @click="showJoinModal = true">
+          <BaseButton @click="showJoinModal = true" variant="action">
             <UserRoundPlus :size="16" />
             <span>{{ t('groups.home.joinGroup') }}</span>
-          </button>
-          <button class="btn ghost" @click="showCreateModal = true">
+          </BaseButton>
+          <BaseButton @click="showCreateModal = true" variant="ghost">
             <Plus :size="16" />
             <span>{{ t('groups.home.createGroup') }}</span>
-          </button>
+          </BaseButton>
           <router-link v-if="isSuperadmin" to="/admin" class="btn ghost">
             <ShieldUser :size="16" />
             <span>Super Admin</span>
@@ -194,8 +194,8 @@ onMounted(() => {
         <h3>{{ t('groups.home.noGroups') }}</h3>
         <p>{{ t('groups.home.joinGroupText') }}</p>
         <div class="empty-actions">
-          <button class="btn action" @click="showJoinModal = true">{{ t('groups.home.joinGroup') }}</button>
-          <button class="btn ghost" @click="showCreateModal = true">{{ t('groups.home.createGroup') }}</button>
+          <BaseButton @click="showJoinModal = true" variant="action">{{ t('groups.home.joinGroup') }}</BaseButton>
+          <BaseButton @click="showCreateModal = true" variant="ghost">{{ t('groups.home.createGroup') }}</BaseButton>
         </div>
       </div>
     </section>
@@ -230,21 +230,21 @@ onMounted(() => {
 .welcome-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0 0 6px;
   line-height: 1.2;
 }
 
 .welcome-name {
-  background: var(--gradient-bismuth);
+  background: var(--background-image-bismuth);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .welcome-sub {
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
   margin: 0;
   line-height: 1.5;
 }
@@ -267,19 +267,19 @@ onMounted(() => {
 }
 
 .section-title {
-  font-size: var(--font-size-h3);
+  font-size: var(--text-h3);
   font-weight: 700;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0;
 }
 
 .section-badge {
-  background: var(--bg-surface);
-  color: var(--sub);
-  font-size: var(--font-size-sub);
+  background: var(--color-surface);
+  color: var(--color-sub);
+  font-size: var(--text-sub);
   font-weight: 600;
   padding: 2px 10px;
-  border-radius: var(--border-radius-full);
+  border-radius: var(--radius-full);
 }
 
 .groups-grid {
@@ -293,15 +293,15 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: var(--border-radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
+  border-radius: var(--radius-xl);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
   text-align: left;
   width: 100%;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .group-card:disabled {
@@ -314,12 +314,12 @@ onMounted(() => {
 }
 
 .group-card.active {
-  border-color: var(--text-default);
-  background: var(--text-default);
+  border-color: var(--color-on-surface);
+  background: var(--color-on-surface);
 }
 
 .group-card.active:hover {
-  background: var(--action-hover)
+  background: var(--color-action-hover)
 }
 
 .group-card-icon {
@@ -327,21 +327,21 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   margin: 0;
-  color: var(--sub);
+  color: var(--color-sub);
   flex-shrink: 0;
   transition: color 0.15s ease;
 }
 
 .group-card:hover:not(:disabled) .group-card-icon {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .group-card.active .group-card-icon {
-  color: var(--bg-canvas);
+  color: var(--color-canvas);
 }
 
 .group-card.active:hover .group-card-icon {
-  color: var(--bg-canvas);
+  color: var(--color-canvas);
 }
 
 .group-card-body {
@@ -354,24 +354,24 @@ onMounted(() => {
 
 .group-card-name {
   font-weight: 600;
-  font-size: var(--font-size-body);
-  color: var(--text-default);
+  font-size: var(--text-body);
+  color: var(--color-on-surface);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .group-card.active .group-card-name {
-  color: var(--bg-canvas);
+  color: var(--color-on-action);
 }
 
 .group-card-meta {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
 }
 
 .group-card.active .group-card-meta {
-  color: var(--bg-interactive-hover);
+  color: var(--color-surface-hover);
 }
 
 .group-card-role {
@@ -383,12 +383,12 @@ onMounted(() => {
 
 .role-admin { color: #6366f1; }
 .role-mod, .role-moderator { color: #f59e0b; }
-.role-user { color: var(--sub); }
+.role-user { color: var(--color-sub); }
 .role-superadmin { color: #ef4444; }
 
 .group-card-username {
   font-size: 0.7rem;
-  color: var(--sub);
+  color: var(--color-sub);
   opacity: 0.7;
   white-space: nowrap;
   overflow: hidden;
@@ -396,7 +396,7 @@ onMounted(() => {
 }
 
 .group-card-arrow {
-  color: var(--sub);
+  color: var(--color-sub);
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -414,24 +414,24 @@ onMounted(() => {
 .empty-state-card {
   text-align: center;
   padding: 48px 24px;
-  border-radius: var(--border-radius-xl);
+  border-radius: var(--radius-xl);
 }
 
 .empty-icon {
-  color: var(--sub);
+  color: var(--color-sub);
   margin-bottom: 16px;
 }
 
 .empty-state-card h3 {
-  font-size: var(--font-size-h3);
+  font-size: var(--text-h3);
   font-weight: 700;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0 0 8px;
 }
 
 .empty-state-card p {
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
   max-width: 360px;
   margin: 0 auto 24px;
   line-height: 1.5;
@@ -452,8 +452,8 @@ onMounted(() => {
 .spinner {
   width: 28px;
   height: 28px;
-  border: 2px solid var(--border-canvas);
-  border-top-color: var(--text-default);
+  border: 2px solid var(--color-canvas-border);
+  border-top-color: var(--color-on-surface);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

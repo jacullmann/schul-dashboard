@@ -45,7 +45,7 @@ onMounted(() => {
       </div>
 
       <div class="cookie-actions">
-        <button class="btn action" @click="accept">{{ t('global.cookies.banner.action') }}</button>
+        <BaseButton @click="accept" variant="action">{{ t('global.cookies.banner.action') }}</BaseButton>
       </div>
     </div>
   </div>
@@ -57,10 +57,10 @@ onMounted(() => {
   bottom: 16px;
   right: 16px;
   max-width: 420px;
-  border: 1px solid var(--border-surface);
+  border: 1px solid var(--color-surface-border);
   border-radius: 16px;
-  background: var(--bg-surface);
-  box-shadow: var(--menu-shadow);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-menu);
   z-index: 1200;
   padding: 0;
   transition: all 0.3s ease;
@@ -75,7 +75,7 @@ onMounted(() => {
 
 .cookie-text {
   font-size: 13px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   line-height: 1.6;
 }
 .cookie-text p {
@@ -83,13 +83,13 @@ onMounted(() => {
 }
 
 .data-link {
-  color: var(--sub);
+  color: var(--color-sub);
   transition: color 0.1s ease;
   text-decoration: underline;
 }
 
 .data-link:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .cookie-actions {
@@ -107,7 +107,7 @@ onMounted(() => {
     transform: translateX(-50%);
     width: calc(100% - 32px);
     bottom: 20px;
-    box-shadow: var(--menu-shadow);
+    box-shadow: var(--shadow-menu);
   }
 
   .cookie-actions {

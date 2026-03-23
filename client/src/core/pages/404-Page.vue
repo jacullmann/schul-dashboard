@@ -48,10 +48,10 @@ const goBack = () => {
       </div>
 
       <div class="action-section">
-        <button @click="goBack" class="btn ghost">
+        <BaseButton @click="goBack" variant="ghost">
          <ArrowLeft :size="18"/>
           Zurück zur letzten Seite
-        </button>
+        </BaseButton>
       </div>
     </div>
   </div>
@@ -72,26 +72,26 @@ const goBack = () => {
 }
 
 .error-code {
-  font-family: var(--display-font), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 96px;
   font-weight: 700;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   line-height: 1;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
 }
 
 .error-title {
-  font-family: var(--display-font), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0 0 12px 0;
 }
 
 .error-description {
   font-size: 16px;
-  color: var(--sub);
+  color: var(--color-sub);
   margin: 0 0 48px 0;
   max-width: 500px;
 }
@@ -102,10 +102,10 @@ const goBack = () => {
 }
 
 .section-title {
-  font-family: var(--display-font), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0 0 16px 0;
   text-align: left;
 }
@@ -122,10 +122,10 @@ const goBack = () => {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
+  border-radius: var(--radius-md);
   text-decoration: none;
   transition: all 0.15s ease;
   cursor: pointer;
@@ -133,7 +133,7 @@ const goBack = () => {
 
 .nav-card:hover {
   background: var(--ghost--hover);
-  border-color: var(--bg-interactive-hover);
+  border-color: var(--color-surface-hover);
 }
 
 .nav-icon {
@@ -143,9 +143,9 @@ const goBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-interactive-hover);
-  border-radius: var(--border-radius-md);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+  color: var(--color-on-surface);
 }
 
 .nav-info {
@@ -156,13 +156,13 @@ const goBack = () => {
 .nav-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin-bottom: 2px;
 }
 
 .nav-desc {
   font-size: 13px;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .action-section {

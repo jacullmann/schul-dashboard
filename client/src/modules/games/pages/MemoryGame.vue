@@ -74,7 +74,7 @@ onMounted(initGame);
     <div v-if="isGameOver" class="game-over">
       <h3>Gewonnen! 🎉</h3>
       <p>Du hast {{ moves }} Züge gebraucht.</p>
-      <button @click="initGame" class="btn">Nochmal spielen</button>
+      <BaseButton @click="initGame">Nochmal spielen</BaseButton>
     </div>
   </div>
 </template>
@@ -85,15 +85,15 @@ onMounted(initGame);
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   border-radius: 8px;
 }
 h2 {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin-bottom: 5px;
 }
 p {
-  color: var(--sub);
+  color: var(--color-sub);
   margin-bottom: 20px;
 }
 .grid {
@@ -134,7 +134,7 @@ p {
   background-color: var(--accent, #42b883);
 }
 .card-back {
-  background-color: var(--bg-surface);
+  background-color: var(--color-surface);
   transform: rotateY(180deg);
   border: 2px solid var(--accent, #42b883);
 }
@@ -145,7 +145,7 @@ p {
 .game-over {
   margin-top: 20px;
   text-align: center;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 .btn {
   margin-top: 10px;

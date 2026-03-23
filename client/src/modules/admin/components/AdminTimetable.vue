@@ -159,15 +159,15 @@ onUnmounted(() => {
 }
 
 .header-cell {
-  background-color: var(--bg-surface);
-  color: var(--text-default);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
   padding: 8px 12px;
-  border: 1px solid var(--border-surface);
+  border: 1px solid var(--color-surface-border);
   text-align: center;
   font-weight: bold;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--input-shadow);
-  font-size: var(--font-size-body);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-input);
+  font-size: var(--text-body);
 }
 
 .time-header { grid-column: 1; grid-row: 1; }
@@ -179,26 +179,26 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: var(--sub);
-  font-size: var(--font-size-sub);
+  color: var(--color-sub);
+  font-size: var(--text-sub);
 }
 
 .slot-number {
   font-weight: bold;
-  color: var(--text-default);
-  font-size: var(--font-size-title);
+  color: var(--color-on-surface);
+  font-size: var(--text-title);
 }
 
-.slot-time { font-size: var(--font-size-footnote); }
+.slot-time { font-size: var(--text-footnote); }
 
 .lesson-group-container {
-  background-color: var(--bg-surface);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--border-surface);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-surface-border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: var(--input-shadow);
+  box-shadow: var(--shadow-input);
 }
 
 .sub-lesson-item {
@@ -215,37 +215,37 @@ onUnmounted(() => {
 }
 
 .sub-lesson-item.clickable:hover {
-  background-color: var(--bg-interactive-hover);
+  background-color: var(--color-surface-hover);
 }
 
 .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--border-surface);
+  border-bottom: 1px solid var(--color-surface-border);
 }
 
 .sub-lesson-item.selected {
-  background-color: var(--text-default);
+  background-color: var(--color-on-surface);
 }
 .sub-lesson-item.selected .lesson-subject {
-  color: var(--bg-canvas);
+  color: var(--color-canvas);
 }
 .sub-lesson-item.selected .lesson-details {
-  color: var(--bg-interactive-hover);
+  color: var(--color-surface-hover);
 }
 
 .lesson-subject {
   font-weight: bold;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
 }
 
 .lesson-details {
   display: flex;
   justify-content: space-between;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   margin-top: 2px;
 }
 

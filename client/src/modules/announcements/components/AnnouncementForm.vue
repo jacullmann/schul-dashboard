@@ -61,7 +61,7 @@ async function submit() {
     <div class="card rlc" style="width:100%; max-width:520px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Neue Ankündigung</h3>
-        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+        <BaseButton @click="$emit('close')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
       </div>
       <div style="margin-top:8px;">
         <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
@@ -74,17 +74,16 @@ async function submit() {
         </select>
       </div>
       <div style="margin-top:8px;">
-        <label style="display:flex; align-items:center; gap:8px; color:var(--text-default);">
+        <label style="display:flex; align-items:center; gap:8px; color:var(--color-on-surface);">
           <input type="checkbox" v-model="showAsPopup" />
           Als Popup anzeigen für alle benutzer
         </label>
       </div>
       <div class="row" style="margin-top:12px; align-items:center;">
-        <button class="btn" @click="submit" :disabled="submitting">
-          <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>Absenden</span>
-        </button>
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)': 'var(--primary)' }">{{ message }}</div>
+        <BaseButton @click="submit" :disabled="submitting" variant="action" :loading="submitting">
+        Absenden
+      </BaseButton>
+        <div v-if="message" class="small" :style="{ color: isError ? 'var(--color-danger)': 'var(--color-primary)' }">{{ message }}</div>
       </div>
     </div>
   </div>

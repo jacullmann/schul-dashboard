@@ -47,7 +47,7 @@ const formatDate = (dateStr: string) => {
   flex-direction: row;
   align-items: stretch;
   padding-bottom: 32px;
-  border-bottom: 1px solid var(--border-canvas);
+  border-bottom: 1px solid var(--color-canvas-border);
 }
 
 .card:hover .card-image {
@@ -55,7 +55,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .badge-small {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-size: 14px;
   display: inline-block;
   font-weight: normal;
@@ -75,7 +75,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .play-icon-card {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
 
@@ -110,7 +110,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .card-title {
-  font-family: var(--display-font), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 1.5rem;
   margin: 6px 0 0 0;
   line-height: 1.3;
@@ -119,7 +119,7 @@ const formatDate = (dateStr: string) => {
 
 .card-excerpt {
   font-size: 1rem;
-  color: var(--sub);
+  color: var(--color-sub);
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -131,7 +131,7 @@ const formatDate = (dateStr: string) => {
 
 .card-footer {
   font-size: 0.75rem;
-  color: var(--sub);
+  color: var(--color-sub);
   margin-top: 8px;
 }
 

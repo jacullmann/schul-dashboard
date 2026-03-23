@@ -97,19 +97,14 @@ const resetGame = () => {
     </div>
 
     <div class="controls" v-if="!isGameOver">
-      <button
-          v-for="choice in choices"
-          :key="choice"
-          @click="makeMove(choice)"
-          class="btn btn-choice"
-      >
+      <BaseButton v-for="choice in choices" :key="choice" @click="makeMove(choice)" class="btn-choice">
         {{ choiceEmojis[choice] }} {{ choice }}
-      </button>
+      </BaseButton>
     </div>
 
-    <button v-if="isGameOver" @click="resetGame" class="btn btn-reset">
+    <BaseButton v-if="isGameOver" @click="resetGame" class="btn-reset">
       Neues Spiel starten
-    </button>
+    </BaseButton>
   </div>
 </template>
 
@@ -139,12 +134,12 @@ const resetGame = () => {
   border-radius: 8px;
   width: 150px;
   min-height: 180px;
-  background-color: var(--bg-canvas);
+  background-color: var(--color-canvas);
 }
 
 .choice-card h3 {
   margin-top: 0;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .icon-box {
@@ -154,7 +149,7 @@ const resetGame = () => {
   justify-content: center;
   align-items: center;
   font-size: 4em;
-  background-color: var(--bg-surface);
+  background-color: var(--color-surface);
   border-radius: 10px;
   transition: background-color 0.5s;
 }
@@ -206,7 +201,7 @@ const resetGame = () => {
   font-weight: bold;
   font-size: 1.1em;
   background-color: #9b59b6;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   transition: background-color 0.2s, transform 0.1s;
 }
 
@@ -217,7 +212,7 @@ const resetGame = () => {
 
 .btn-reset {
   background-color: #e91e63;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   padding: 10px 20px;
   border: none;
   border-radius: 8px;

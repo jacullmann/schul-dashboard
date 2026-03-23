@@ -50,20 +50,20 @@ function handleChange(event: Event) {
 .collapse-checkbox .vis-label {
   width: 18px;
   height: 18px;
-  border-radius: var(--border-radius-sm);
-  border: 2px solid var(--sub);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-sub);
   display: inline-block;
   background: transparent;
   position: relative;
 }
 
 .collapse-checkbox input:checked + .vis-label {
-  background: var(--text-default);
-  border-color: var(--text-default);
+  background: var(--color-on-surface);
+  border-color: var(--color-on-surface);
 }
 
 .collapse-checkbox .vis-label:hover {
-  border-color: var(--text-default);
+  border-color: var(--color-on-surface);
 }
 
 .collapse-checkbox .vis-label::after {
@@ -71,7 +71,7 @@ function handleChange(event: Event) {
   position: absolute;
   width: 0;
   height: 0;
-  border: solid var(--bg-canvas);
+  border: solid var(--color-canvas);
   border-width: 0 2px 2px 0;
   opacity: 0;
   left: 50%;

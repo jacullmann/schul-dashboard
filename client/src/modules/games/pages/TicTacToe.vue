@@ -84,9 +84,9 @@ const resetGame = () => {
       </div>
     </div>
 
-    <button @click="resetGame" class="btn ghost">
+    <BaseButton @click="resetGame" variant="ghost">
       Neues Spiel starten
-    </button>
+    </BaseButton>
   </div>
 </template>
 
@@ -112,13 +112,13 @@ const resetGame = () => {
   grid-template-rows: repeat(3, 80px);
   gap: 5px;
   margin-bottom: 20px;
-  background-color: var(--bg-surface);
+  background-color: var(--color-surface);
   padding: 5px;
   border-radius: 8px;
 }
 
 .cell {
-  background-color: var(--bg-canvas);
+  background-color: var(--color-canvas);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -135,7 +135,7 @@ const resetGame = () => {
 
 
 .winning-cell {
-  background-color: var(--sub) !important;
+  background-color: var(--color-sub) !important;
 }
 
 

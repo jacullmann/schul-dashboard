@@ -167,15 +167,9 @@ const {
     </template>
 
     <template #actions>
-      <button
-          form="auth-form"
-          type="submit"
-          class="btn action submit-btn"
-          :disabled="submitting"
-      >
-        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
-        <span v-else>{{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}</span>
-      </button>
+      <BaseButton form="auth-form" type="submit" class="submit-btn" :disabled="submitting" variant="action" :loading="submitting">
+        {{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}
+      </BaseButton>
     </template>
   </Modal>
 
@@ -221,30 +215,30 @@ const {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;
 }
 
 .password-toggle:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .forgot-password-link {
   background: none;
   border: none;
   padding: 0;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   text-align: right;
   align-self: flex-end;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   margin-top: 8px;
 }
 
 .forgot-password-link:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .privacy-row {
@@ -261,24 +255,24 @@ const {
 }
 
 .checkbox-label {
-  color: var(--text-default);
-  font-size: var(--font-size-sub);
+  color: var(--color-on-surface);
+  font-size: var(--text-sub);
   line-height: 18px;
 }
 
 :deep(.privacy-link) {
-  color: var(--sub);
+  color: var(--color-sub);
   text-decoration: underline;
   transition: color 0.2s ease;
 }
 
 :deep(.privacy-link:hover) {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .field-error {
-  color: var(--danger);
-  font-size: var(--font-size-sub);
+  color: var(--color-danger);
+  font-size: var(--text-sub);
   margin-top: 4px;
 }
 
@@ -287,13 +281,13 @@ const {
 }
 
 .message {
-  color: var(--text-default);
-  font-size: var(--font-size-sub);
+  color: var(--color-on-surface);
+  font-size: var(--text-sub);
   margin-bottom: 16px;
 }
 
 .message.error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .submit-btn {

@@ -51,7 +51,7 @@ const { activeGroupId } = useAppAuth();
 
 .progress-bar {
   height: 100%;
-  background: var(--gradient-bismuth);
+  background: var(--background-image-bismuth);
   width: 0;
   transition: width 200ms ease-out;
   position: relative;

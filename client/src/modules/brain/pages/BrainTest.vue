@@ -95,7 +95,7 @@ function onTestFinish(score: number) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-muted);
+  color: var(--color-on-surface-muted);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -104,7 +104,7 @@ function onTestFinish(score: number) {
 }
 
 .back-btn:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .test-info {
@@ -138,11 +138,11 @@ function onTestFinish(score: number) {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-canvas);
+  background: var(--color-surface);
+  border: 1px solid var(--color-canvas-border);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
   position: relative;
   min-height: 400px;
 }
@@ -158,7 +158,7 @@ function onTestFinish(score: number) {
 }
 
 .not-found p {
-  color: var(--text-muted);
+  color: var(--color-on-surface-muted);
   margin-bottom: 24px;
 }
 

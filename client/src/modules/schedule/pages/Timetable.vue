@@ -218,19 +218,19 @@ onUnmounted(() => {
 }
 
 .header-cell {
-  background-color:var(--bg-surface);
-  color: var(--text-default);
+  background-color:var(--color-surface);
+  color: var(--color-on-surface);
   padding: 8px 12px;
-  border:1px solid var(--border-surface);
+  border:1px solid var(--color-surface-border);
   text-align: center;
   font-weight: bold;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-body);
-  box-shadow: var(--input-shadow);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  box-shadow: var(--shadow-input);
 }
 
 .header-cell.current-day-header {
-  background-color: var(--bg-interactive-hover);
+  background-color: var(--color-surface-hover);
   border-color: var(--not-spinning);
 }
 
@@ -244,41 +244,41 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   background-color:transparent;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   white-space: nowrap;
 }
 
 .slot-number {
   font-weight: bold;
-  font-size: var(--font-size-title);
-  color: var(--text-default);
+  font-size: var(--text-title);
+  color: var(--color-on-surface);
 }
 
-.slot-time { font-size: var(--font-size-footnote); }
+.slot-time { font-size: var(--text-footnote); }
 
 /* GROUP CONTAINER */
 .lesson-group-container {
-  background-color: var(--bg-surface);
-  border-radius: var(--border-radius-md);
-  border:1px solid var(--border-surface);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  border:1px solid var(--color-surface-border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 2;
   transition: background-color 0.3s ease;
-  box-shadow: var(--input-shadow);
+  box-shadow: var(--shadow-input);
 }
 
 .lesson-group-container.current-day {
-  background-color: var(--bg-interactive-hover);
+  background-color: var(--color-surface-hover);
   border-color: var(--not-spinning);
 }
 
 /* --- HIGHLIGHT LOGIC --- */
 .lesson-group-container.highlight-active {
-  background-color: var(--text-default) !important;
-  border-color: var(--text-default);
+  background-color: var(--color-on-surface) !important;
+  border-color: var(--color-on-surface);
 }
 
 /* SUB LESSON ITEM */
@@ -291,7 +291,7 @@ onUnmounted(() => {
 }
 
 .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--border-surface);
+  border-bottom: 1px solid var(--color-surface-border);
 }
 
 .lesson-group-container.current-day .sub-lesson-item.has-border {
@@ -299,15 +299,15 @@ onUnmounted(() => {
 }
 
 .ausfall-label {
-  color: var(--danger);
+  color: var(--color-danger);
   font-weight: bold;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
 }
 
 .lesson-subject {
   font-weight: bold;
-  font-size: var(--font-size-body);
-  color: var(--text-default);
+  font-size: var(--text-body);
+  color: var(--color-on-surface);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -316,34 +316,34 @@ onUnmounted(() => {
 .lesson-details {
   display: flex;
   justify-content: space-between;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   margin-top: 2px;
 }
 
 /* CHANGE STYLES */
 .crossed {
   text-decoration: line-through;
-  color: var(--sub);
+  color: var(--color-sub);
   margin-right: 4px;
   font-weight: normal;
 }
 .new-val {
   font-weight: bold;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 /* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
 .lesson-group-container.highlight-active .lesson-subject {
-  color: var(--bg-canvas);
+  color: var(--color-canvas);
 }
 
 .lesson-group-container.highlight-active .lesson-details {
-  color: var(--bg-interactive-hover);
+  color: var(--color-surface-hover);
 }
 
 .lesson-group-container.highlight-active .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--sub);
+  border-bottom: 1px solid var(--color-sub);
 }
 /* Active State: Cross outs need to be visible against white */
 .lesson-group-container.highlight-active .crossed {
@@ -351,11 +351,11 @@ onUnmounted(() => {
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {
-  color: var(--bg-canvas);
+  color: var(--color-canvas);
 }
 /* Active State: Ausfall text */
 .lesson-group-container.highlight-active .ausfall-label {
-  color: var(--danger) !important;
+  color: var(--color-danger) !important;
 }
 
 .status-row {
@@ -369,12 +369,12 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 4px 8px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-body);
-  color: var(--text-default);
-  box-shadow: var(--input-shadow);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  color: var(--color-on-surface);
+  box-shadow: var(--shadow-input);
 }
 
 /* --- MOBILE TIMETABLE VIEW --- */

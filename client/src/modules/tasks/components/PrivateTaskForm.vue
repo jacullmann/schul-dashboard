@@ -86,10 +86,9 @@ async function submit() {
       </template>
 
       <template #action-btn>
-        <button type="submit" class="btn action" :disabled="submitting">
-          <LoadingSpinner v-if="submitting" size="1.1em" />
-          <span v-else>{{ initial ? 'Save' : 'Create' }}</span>
-        </button>
+        <BaseButton type="submit" :disabled="submitting" variant="action" :loading="submitting">
+        {{ initial ? 'Save' : 'Create' }}
+      </BaseButton>
       </template>
     </Modal>
   </form>
@@ -102,17 +101,17 @@ async function submit() {
 
 .label {
   display: block;
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   margin-bottom: 6px;
 }
 
 .small {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   margin-left: auto;
 }
 
 .msg-error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 </style>

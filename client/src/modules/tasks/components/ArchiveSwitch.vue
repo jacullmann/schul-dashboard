@@ -30,15 +30,11 @@ function handleChange(value: boolean) {
 </script>
 
 <template>
-  <button
-      class="btn ghost"
-      :class="{ 'is-showing-old': props.modelValue }"
-      @click="toggleState"
-  >
+  <BaseButton :class="{ 'is-showing-old': props.modelValue }" @click="toggleState" variant="ghost">
     <span :key="buttonText">
         {{ buttonText }}
       </span>
-  </button>
+  </BaseButton>
 </template>
 
 <style scoped>

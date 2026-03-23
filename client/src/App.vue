@@ -208,15 +208,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   z-index: 10000;
 }
 
 .auth-loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--border-canvas);
-  border-top-color: var(--text-default);
+  border: 3px solid var(--color-canvas-border);
+  border-top-color: var(--color-on-surface);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -234,13 +234,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--danger-background);
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  border-radius: var(--border-radius-lg);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-lg);
   padding: 10px 16px;
-  font-size: var(--font-size-sub);
-  box-shadow: var(--menu-shadow);
+  font-size: var(--text-sub);
+  box-shadow: var(--shadow-menu);
   white-space: nowrap;
 }
 

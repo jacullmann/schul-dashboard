@@ -125,20 +125,15 @@ onMounted(() => {
       </div>
 
       <!-- Allgemeine Fehlermeldung -->
-      <label v-if="message" :style="{ color: isError ? 'var(--danger)' : 'var(--text)' }">
+      <label v-if="message" :style="{ color: isError ? 'var(--color-danger)' : 'var(--text)' }">
         {{ message }}
       </label>
     </template>
 
     <template #action-btn>
-      <button
-          class="btn action"
-          @click="submit"
-          :disabled="submitting"
-      >
-        <LoadingSpinner v-if="submitting" size="1.1em" />
-        <span v-else>{{ t('account.menu.changePassword.title') }}</span>
-      </button>
+      <BaseButton @click="submit" :disabled="submitting" variant="action" :loading="submitting">
+        {{ t('account.menu.changePassword.title') }}
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -157,9 +152,9 @@ onMounted(() => {
 }
 
 .field-error {
-  color: var(--danger);
-  font-size: var(--font-size-sub);
-  font-family: var(--normal-font), sans-serif;
+  color: var(--color-danger);
+  font-size: var(--text-sub);
+  font-family: var(--font-sans), sans-serif;
   margin-top: 6px;
 }
 
@@ -170,7 +165,7 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,6 +173,6 @@ onMounted(() => {
 }
 
 .password-toggle:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 </style>

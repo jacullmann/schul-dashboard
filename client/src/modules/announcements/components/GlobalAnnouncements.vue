@@ -156,13 +156,13 @@ onMounted(async () => {
 
 .global-ann {
   padding: 8px 12px;
-  color: var(--text-default);
-  font-size: var(--font-size-sub);
+  color: var(--color-on-surface);
+  font-size: var(--text-sub);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--menu-shadow);
-  border-bottom: 1px solid var(--border-surface);
+  box-shadow: var(--shadow-menu);
+  border-bottom: 1px solid var(--color-surface-border);
 }
 
 .global-ann-content {
@@ -190,7 +190,7 @@ onMounted(async () => {
 .announcement-menu-btn {
   background: none;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -200,19 +200,19 @@ onMounted(async () => {
 }
 
 .announcement-menu-btn:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .announcement-menu {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
-  border-radius: var(--border-radius-xl);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-canvas-border);
+  border-radius: var(--radius-xl);
   padding: 16px;
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
   overflow: hidden;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
 }
 
 .announcement-menu-header {
@@ -224,25 +224,25 @@ onMounted(async () => {
 
 .announcement-menu-header h3 {
   margin: 0;
-  font-size: var(--font-size-h3);
-  color: var(--text-default);
+  font-size: var(--text-h3);
+  color: var(--color-on-surface);
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   cursor: pointer;
   padding: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   margin: -6px;
 }
 
 .close-btn:hover {
-  background: var(--bg-surface);
+  background: var(--color-surface);
 }
 
 .announcement-list {
@@ -254,26 +254,26 @@ onMounted(async () => {
 }
 
 .announcement-item {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
   display: flex;
   align-items: center;
   padding: 12px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 12px;
-  box-shadow: var(--input-shadow);
+  box-shadow: var(--shadow-input);
 }
 
 .announcement-item:hover {
-  background: var(--bg-interactive-hover);
+  background: var(--color-surface-hover);
 }
 
 .announcement-item.active {
-  background: var(--text-default);
-  border-color: var(--text-default);
-  color: var(--bg-canvas);
+  background: var(--color-on-surface);
+  border-color: var(--color-on-surface);
+  color: var(--color-canvas);
 }
 
 .announcement-item-color {

@@ -42,9 +42,9 @@ const emit = defineEmits<{
         <Trash2 :size="16" />
         <span>{{ stats?.oldItemsCount }} Einträge älter als 90 Tage können gelöscht werden.</span>
       </div>
-      <button class="btn ghost" @click="emit('cleanup')" :disabled="cleaningUp">
+      <BaseButton @click="emit('cleanup')" :disabled="cleaningUp" variant="ghost">
         {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
-      </button>
+      </BaseButton>
     </div>
   </div>
 </template>
@@ -65,9 +65,9 @@ const emit = defineEmits<{
 }
 
 .stat-tile {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 12px;
   padding: 18px 16px;
   display: flex;
@@ -84,15 +84,15 @@ const emit = defineEmits<{
 }
 
 .stat-label {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
 }
 
 .cleanup-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg-surface);
+  background: var(--color-surface);
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 10px;
   padding: 12px 16px;
@@ -104,8 +104,8 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--font-size-body);
-  color: var(--sub);
+  font-size: var(--text-body);
+  color: var(--color-sub);
 }
 
 @media (max-width: 640px) {

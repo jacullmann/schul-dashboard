@@ -62,16 +62,16 @@ withDefaults(defineProps<{
 .skeleton-title {
   height: 20px;
   width: 240px;
-  border-radius: var(--border-radius-full);
-  background: var(--skeleton-base);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas-hover);
   animation: var(--animate-pulse);
   margin-bottom: 12px;
 }
 
 .skeleton-text {
   height: 16px;
-  border-radius: var(--border-radius-full);
-  background: var(--skeleton-base);
+  border-radius: var(--radius-full);
+  background: var(--color-canvas-hover);
   animation: var(--animate-pulse);
   margin-bottom: 8px;
 }
@@ -96,8 +96,8 @@ withDefaults(defineProps<{
 .skeleton-image {
   width: 120px;
   height: 120px;
-  border-radius: var(--border-radius-lg);
-  background: var(--skeleton-base);
+  border-radius: var(--radius-lg);
+  background: var(--color-canvas-hover);
   animation: var(--animate-pulse);
 }
 

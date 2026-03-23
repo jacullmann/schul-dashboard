@@ -183,17 +183,17 @@ useResizeObserver(navBarRef, () => {
 
 .nav-bar {
   position: relative;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-surface);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
   padding: 0;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   display: flex;
   isolation: isolate;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  box-shadow: var(--input-shadow);
+  box-shadow: var(--shadow-input);
 }
 
 .nav-bar::-webkit-scrollbar {
@@ -226,8 +226,8 @@ useResizeObserver(navBarRef, () => {
   top: 0;
   bottom: 0;
   left: 0;
-  background-color: var(--text-default);
-  border-radius: calc(var(--border-radius-md) - 1px);
+  background-color: var(--color-on-surface);
+  border-radius: calc(var(--radius-md) - 1px);
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
@@ -239,19 +239,19 @@ useResizeObserver(navBarRef, () => {
   border: none;
   cursor: pointer;
   padding: 8px 12px;
-  font-size: var(--font-size-sub);
-  border-radius: var(--border-radius-md);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  border-radius: var(--radius-md);
+  color: var(--color-sub);
   white-space: nowrap;
   flex-shrink: 0;
   transition: color 0.1s;
 }
 
 .nav-item:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .nav-item.active-text {
-  color: var(--bg-canvas);
+  color: var(--color-on-action);
 }
 </style>

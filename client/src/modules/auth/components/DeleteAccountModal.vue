@@ -34,9 +34,9 @@ const {
     </template>
 
     <template #content>
-      <div style="margin-top:16px; font-family: var(--normal-font), sans-serif;">
+      <div style="margin-top:16px; font-family: var(--font-sans), sans-serif;">
         <div class="warning-box">
-          <strong style="font-family: var(--normal-font), sans-serif; font-size: var(--font-size-title)">{{ t('account.menu.deleteAccount.warnBox.title')}}</strong>
+          <strong style="font-family: var(--font-sans), sans-serif; font-size: var(--text-title)">{{ t('account.menu.deleteAccount.warnBox.title')}}</strong>
           <div class="user-email">{{ t('contact.contact.email') }}: {{ email }}</div>
           <br>
           <div class="warning-text" v-html="t('account.menu.deleteAccount.warnBox.text')" />
@@ -53,14 +53,9 @@ const {
     </template>
 
     <template #action-btn>
-      <button
-          class="btn danger"
-          @click="confirmDelete"
-          :disabled="submitting || !understoodChecked"
-      >
-        <LoadingSpinner v-if="submitting" size="1.1em" />
-        <span v-else>{{ t('global.buttons.delete') }}</span>
-      </button>
+      <BaseButton @click="confirmDelete" :disabled="submitting || !understoodChecked" variant="danger" :loading="submitting">
+        {{ t('global.buttons.delete') }}
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -75,20 +70,20 @@ const {
 }
 
 .warning-box strong {
-  color: var(--danger);
+  color: var(--color-danger);
   display: block;
   margin-bottom: 8px;
 }
 
 .user-email {
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   font-weight: 700;
 }
 
 .warning-text {
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   line-height: 1.5;
 }
 
@@ -102,8 +97,8 @@ const {
 }
 
 .checkbox-text {
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   user-select: none;
 }
 
@@ -112,20 +107,20 @@ const {
 }
 
 .message {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   padding: 8px 12px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   text-align: center;
   margin-top: 16px;
 }
 
 .message.error {
-  background: var(--danger-background);
-  color: var(--danger);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
 }
 
 .message.success {
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
   color: var(--special--green);
 }
 

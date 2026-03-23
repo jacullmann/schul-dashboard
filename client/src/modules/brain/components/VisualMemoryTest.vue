@@ -111,7 +111,7 @@ onUnmounted(() => {
            <div class="icon-wrap"><Eye :size="64" /></div>
            <h1 class="test-heading">Visuelles Gedächtnis</h1>
            <p class="test-sub">Präge dir das Muster der aufleuchtenden Kacheln ein.</p>
-           <button class="btn test-btn primary mt-4" @click="startLevel()">Start</button>
+           <BaseButton class="test-btn primary mt-4" @click="startLevel()">Start</BaseButton>
        </div>
     </div>
 
@@ -153,8 +153,8 @@ onUnmounted(() => {
             <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
             <p class="test-sub">Du hast {{ level - 1 }} Level abgeschlossen.</p>
             <div class="actions mt-4">
-                <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
-                <button class="btn test-btn secondary" @click="reset">Nochmal spielen</button>
+                <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
+                <BaseButton class="test-btn secondary" @click="reset">Nochmal spielen</BaseButton>
             </div>
         </div>
     </div>
@@ -237,7 +237,7 @@ onUnmounted(() => {
 }
 
 .heart-icon {
-  color: var(--danger);
+  color: var(--color-danger);
   transition: opacity 0.3s, transform 0.3s;
 }
 

@@ -18,13 +18,13 @@ import Logo from "@/common/components/Logo.vue";
 .header {
   width: 100%;
   padding: 12px;
-  background-color: var(--bg-canvas);
-  color: var(--text-default);
+  background-color: var(--color-canvas);
+  color: var(--color-on-surface);
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  border-bottom: 1px solid var(--border-canvas);
+  border-bottom: 1px solid var(--color-canvas-border);
 }
 
 .header-content-wrapper {
@@ -55,8 +55,8 @@ import Logo from "@/common/components/Logo.vue";
   font-size: 1.6rem;
   white-space: nowrap;
   line-height: 32px;
-  font-family: var(--display-font), sans-serif;
-  color: var(--text-default);
+  font-family: var(--font-display), sans-serif;
+  color: var(--color-on-surface);
 }
 
 /*.nav-links {
@@ -77,7 +77,7 @@ import Logo from "@/common/components/Logo.vue";
 
 @media (max-width: 368px) {
   .logo-text {
-    font-size: var(--font-size-h2);
+    font-size: var(--text-h2);
     line-height: 26px;
   }
 

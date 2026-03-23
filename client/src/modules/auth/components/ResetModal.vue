@@ -128,7 +128,7 @@ async function onPrimary() {
     <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort zurücksetzen</h3>
-        <button class="btn ghost" @click="$emit('close')" :disabled="submitting">Schließen</button>
+        <BaseButton @click="$emit('close')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
       </div>
 
       <div style="margin-top:12px;">
@@ -141,7 +141,7 @@ async function onPrimary() {
           <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
           <div style="display:flex; gap:8px;">
             <input ref="codeInputRef" class="input" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
-            <button class="btn ghost" @click="onBack" :disabled="submitting" style="margin-top:8px;">Zurück</button>
+            <BaseButton @click="onBack" :disabled="submitting" style="margin-top:8px;" variant="ghost">Zurück</BaseButton>
           </div>
         </div>
 
@@ -159,7 +159,7 @@ async function onPrimary() {
             <button
                 type="button"
                 @click="showPassword = !showPassword"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text-default);"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
                 aria-label="Toggle password visibility"
             >
               <component :is="showPassword ? EyeOff : Eye" :size="20" />
@@ -176,7 +176,7 @@ async function onPrimary() {
             <button
                 type="button"
                 @click="showPassword = !showPassword"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--text-default);"
+                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
                 aria-label="Anzeigen/Nicht anzeigen"
             >
               <component :is="showPassword ? EyeOff : Eye" :size="20" />
@@ -184,13 +184,12 @@ async function onPrimary() {
           </div>
         </div>
 
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--danger)' : 'var(--primary)' }" style="margin-top:8px;">{{ message }}</div>
+        <div v-if="message" class="small" :style="{ color: isError ? 'var(--color-danger)' : 'var(--color-primary)' }" style="margin-top:8px;">{{ message }}</div>
 
         <div style="margin-top:12px;" class="row">
-          <button class="btn ghost" @click="onPrimary" :disabled="submitting">
-            <LoadingSpinner v-if="submitting" size="1.1em" />
-            <span v-else>{{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}</span>
-          </button>
+          <BaseButton @click="onPrimary" :disabled="submitting" variant="ghost" :loading="submitting">
+        {{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}
+      </BaseButton>
         </div>
       </div>
     </div>
@@ -203,10 +202,10 @@ async function onPrimary() {
   max-width: 420px;
   padding: 16px;
   border-radius:16px;
-  background: var(--bg-canvas);
-  color: var(--text-default);
-  border: 1px solid var(--border-canvas);
-  box-shadow: var(--menu-shadow);
+  background: var(--color-canvas);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-canvas-border);
+  box-shadow: var(--shadow-menu);
 }
 
 .small { font-size:13px; }

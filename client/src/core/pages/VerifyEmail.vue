@@ -114,8 +114,8 @@ onMounted(async () => {
 .spinner {
   width: 64px;
   height: 64px;
-  border: 4px solid var(--border-surface);
-  border-top-color: var(--primary);
+  border: 4px solid var(--color-surface-border);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -125,25 +125,25 @@ onMounted(async () => {
 }
 
 .success-icon {
-  color: var(--success);
+  color: var(--color-success);
 }
 
 .error-icon {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .verify-title {
-  font-family: var(--display-font), sans-serif;
+  font-family: var(--font-display), sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0 0 16px 0;
   line-height: 1.2;
 }
 
 .verify-description {
   font-size: 16px;
-  color: var(--sub);
+  color: var(--color-sub);
   margin: 0 0 32px 0;
   max-width: 480px;
   line-height: 1.5;
@@ -156,7 +156,7 @@ onMounted(async () => {
   padding: 16px;
   background: rgba(106, 237, 139, 0.1);
   border: 1px solid rgba(106, 237, 139, 0.3);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   width: 100%;
   max-width: 480px;
   text-align: left;
@@ -164,13 +164,13 @@ onMounted(async () => {
 
 .info-card-icon {
   flex-shrink: 0;
-  color: var(--success);
+  color: var(--color-success);
   margin-top: 2px;
 }
 
 .info-card-text {
   font-size: 14px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   line-height: 1.5;
 }
 
@@ -178,7 +178,7 @@ onMounted(async () => {
   padding: 20px;
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   width: 100%;
   max-width: 480px;
   text-align: left;
@@ -190,7 +190,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   font-weight: 600;
-  color: var(--danger);
+  color: var(--color-danger);
   margin-bottom: 12px;
   font-size: 15px;
 }
@@ -198,7 +198,7 @@ onMounted(async () => {
 .error-reasons {
   margin: 0;
   padding-left: 24px;
-  color: var(--sub);
+  color: var(--color-sub);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -215,7 +215,7 @@ onMounted(async () => {
   margin-top: 8px;
 }
 .white-text {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 @media (max-width: 768px) {

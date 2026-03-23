@@ -89,8 +89,8 @@ function saveAndExit() {
       <p class="state-desc">{{ descText }}</p>
 
       <div v-if="state === 'result'" class="actions">
-        <button class="btn test-btn primary" @click.stop="saveAndExit">Speichern & Beenden</button>
-        <button class="btn test-btn secondary" @click.stop="reset">Nochmal</button>
+        <BaseButton class="test-btn primary" @click.stop="saveAndExit">Speichern & Beenden</BaseButton>
+        <BaseButton class="test-btn secondary" @click.stop="reset">Nochmal</BaseButton>
       </div>
     </div>
   </div>

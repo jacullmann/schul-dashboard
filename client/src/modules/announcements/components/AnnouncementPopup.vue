@@ -36,8 +36,8 @@ onBeforeUnmount(() => {
 const color = computed(() => {
   const map: Record<string, string> = {
     'info': 'var(--text-default)',
-    'warn': 'var(--warn)',
-    'danger': 'var(--danger)'
+    'warn': 'var(--color-warn)',
+    'danger': 'var(--color-danger)'
   }
   return map[props.announcement.color as string] || 'var(--text-default)'
 })
@@ -63,13 +63,9 @@ function close() {
     </template>
 
     <template #actions>
-      <button 
-        ref="confirmBtnRef" 
-        class="btn action"
-        @click="close"
-      >
+      <BaseButton ref="confirmBtnRef" @click="close" variant="action">
         {{ t('global.cookies.banner.action') }}
-      </button>
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -84,13 +80,13 @@ function close() {
 .popup-color-indicator {
   width: 12px;
   height: 12px;
-  border-radius: var(--border-radius-full);
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
 .popup-content {
   padding-block: 10px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   line-height: 1.5;
   font-size: 14px;
 }

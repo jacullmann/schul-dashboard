@@ -162,38 +162,38 @@ function navigateToAuth() {
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 22px;
-  color: var(--text-default);
-  font-family: var(--display-font), sans-serif;
+  color: var(--color-on-surface);
+  font-family: var(--font-display), sans-serif;
 }
 
 .example-badge {
-  color: var(--sub);
+  color: var(--color-sub);
   padding: 0;
-  font-family: var(--normal-font), sans-serif;
-  font-size: var(--font-size-body);
+  font-family: var(--font-sans), sans-serif;
+  font-size: var(--text-body);
 }
 
 .example-body {
   margin-top: 8px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   word-break: break-word;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  font-family: var(--normal-font), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 16px;
 }
 
 .item-card-vanishing {
-  background:linear-gradient(var(--bg-surface) 0%, transparent 100%);
-  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+  background:linear-gradient(var(--color-surface) 0%, transparent 100%);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   min-height: 30px;
 }
 
 .unpin-trigger {
   background: transparent;
-  color: var(--sub);
+  color: var(--color-sub);
   padding: 8px;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
   display: inline-flex;
   margin: -8px 4px -8px -8px;
   transition: 0.15s ease;
@@ -202,8 +202,8 @@ function navigateToAuth() {
 }
 
 .unpin-trigger:hover {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .lucide-pin {
@@ -222,11 +222,11 @@ function navigateToAuth() {
 
 .item-card-vanishing::before {
   content: "";
-  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   min-height: 30px;
   display: flex;
   border: 1px solid transparent;
-  background: linear-gradient(var(--border-surface) 0%, transparent 100%) border-box;
+  background: linear-gradient(var(--color-surface-border) 0%, transparent 100%) border-box;
   -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
@@ -240,7 +240,7 @@ function navigateToAuth() {
 
 .text-content {
   flex: 1;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   container-type: inline-size;
 }
 
@@ -261,11 +261,11 @@ function navigateToAuth() {
 .headline-sans {
   font-weight: 900;
   letter-spacing: -0.01em;
-  font-family: var(--normal-font), sans-serif;
+  font-family: var(--font-sans), sans-serif;
 }
 
 :deep(b) {
-  background: var(--gradient-bismuth);
+  background: var(--background-image-bismuth);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -276,14 +276,14 @@ function navigateToAuth() {
   line-height: 1.6;
   margin-bottom: 32px;
   margin-top: 16px;
-  color: var(--sub);
+  color: var(--color-sub);
   text-align: left;
 }
 
 
 .free {
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .action-buttons {

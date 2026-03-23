@@ -234,13 +234,9 @@ onUnmounted(() => {
       Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google Authenticator.
     </p>
     <div v-if="!mfaEnabled && !setupMode" class="action-section">
-      <button
-          class="btn action"
-          @click="startSetup"
-          :disabled="loading"
-      >
+      <BaseButton @click="startSetup" :disabled="loading" variant="action">
         2FA aktivieren
-      </button>
+      </BaseButton>
     </div>
 
     <div v-if="setupMode" class="setup-section">
@@ -288,8 +284,8 @@ onUnmounted(() => {
         </div>
 
         <div class="step-actions">
-          <button class="btn ghost" @click="cancelSetup">Abbrechen</button>
-          <button class="btn action" @click="setupStep = 2">Weiter</button>
+          <BaseButton @click="cancelSetup" variant="ghost">Abbrechen</BaseButton>
+          <BaseButton @click="setupStep = 2" variant="action">Weiter</BaseButton>
         </div>
       </div>
 
@@ -322,28 +318,20 @@ onUnmounted(() => {
         </div>
 
         <div class="step-actions">
-          <button class="btn ghost" @click="setupStep = 1">Zurück</button>
-          <button
-              class="btn action"
-              @click="activateMfa"
-              :disabled="verifyCode.length !== 6 || loading"
-          >
-            <LoadingSpinner v-if="loading" color="white" size="1.2em" />
-            <span v-else>Aktivieren</span>
-          </button>
+          <BaseButton @click="setupStep = 1" variant="ghost">Zurück</BaseButton>
+          <BaseButton @click="activateMfa" :disabled="verifyCode.length !== 6 || loading" variant="action" :loading="loading">
+        Aktivieren
+      </BaseButton>
         </div>
       </div>
     </div>
 
     <!-- Deaktivieren Option -->
     <div v-if="mfaEnabled && !deactivateMode" class="action-section">
-      <button
-          class="btn danger-outline"
-          @click="startDeactivate"
-      >
+      <BaseButton class="danger-outline" @click="startDeactivate">
         <ShieldOff :size="18" />
         2FA deaktivieren
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Deaktivieren Mode -->
@@ -378,15 +366,10 @@ onUnmounted(() => {
       </div>
 
       <div class="step-actions">
-        <button class="btn ghost" @click="cancelDeactivate">Abbrechen</button>
-        <button
-            class="btn danger"
-            @click="confirmDeactivate"
-            :disabled="deactivateCode.length !== 6 || loading"
-        >
-          <LoadingSpinner v-if="loading" color="white" size="1.2em" />
-          <span v-else>Deaktivieren</span>
-        </button>
+        <BaseButton @click="cancelDeactivate" variant="ghost">Abbrechen</BaseButton>
+        <BaseButton @click="confirmDeactivate" :disabled="deactivateCode.length !== 6 || loading" variant="danger" :loading="loading">
+        Deaktivieren
+      </BaseButton>
       </div>
     </div>
   </div>
@@ -404,15 +387,15 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 12px;
 }
 
 .status-card.enabled {
   border-color: var(--special--green);
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
 }
 
 .status-icon {
@@ -422,12 +405,12 @@ onUnmounted(() => {
   width: 44px;
   height: 44px;
   border-radius: 8px;
-  background: var(--bg-interactive-hover);
-  color: var(--sub);
+  background: var(--color-surface-hover);
+  color: var(--color-sub);
 }
 
 .status-card.enabled .status-icon {
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
   color: var(--special--green);
 }
 
@@ -438,14 +421,14 @@ onUnmounted(() => {
 }
 
 .status-label {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
 }
 
 .status-value {
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   font-weight: 600;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .status-value.enabled {
@@ -453,11 +436,11 @@ onUnmounted(() => {
 }
 
 .description {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   line-height: 1.5;
   margin: 0;
-  font-family: var(--normal-font), sans-serif;
+  font-family: var(--font-sans), sans-serif;
 }
 
 .action-section {
@@ -504,15 +487,15 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--bg-interactive-hover);
-  font-size: var(--font-size-sub);
+  background: var(--color-surface-hover);
+  font-size: var(--text-sub);
   font-weight: 600;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .step.active .step-number {
-  background: var(--text-default);
-  color: var(--bg-canvas);
+  background: var(--color-on-surface);
+  color: var(--color-canvas);
 }
 
 .step.completed .step-number {
@@ -521,18 +504,18 @@ onUnmounted(() => {
 }
 
 .step-label {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
 }
 
 .step.active .step-label {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .step-divider {
   width: 40px;
   height: 2px;
-  background: var(--border-surface);
+  background: var(--color-surface-border);
 }
 
 .qr-section,
@@ -543,12 +526,12 @@ onUnmounted(() => {
 }
 
 .instruction {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   line-height: 1.5;
   margin: 0;
   text-align: center;
-  font-family: var(--normal-font), sans-serif;;
+  font-family: var(--font-sans), sans-serif;;
 }
 
 .qr-container {
@@ -573,8 +556,8 @@ onUnmounted(() => {
 }
 
 .manual-label {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   margin: 0;
 }
 
@@ -583,16 +566,16 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 4px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 8px;
 }
 
 .secret-code {
   font-family: 'SF Mono', Monaco, monospace;
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   letter-spacing: 4px;
   padding-left: 8px;
   padding-block: 6px;
@@ -605,15 +588,15 @@ onUnmounted(() => {
   padding: 8px;
   background: none;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s;
 }
 
 .copy-btn:hover {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .timer-info {
@@ -621,9 +604,9 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
-  font-family: var(--normal-font), sans-serif;
+  font-size: var(--text-sub);
+  color: var(--color-sub);
+  font-family: var(--font-sans), sans-serif;
 }
 
 .step-actions {
@@ -645,25 +628,25 @@ onUnmounted(() => {
   font-family: 'SF Mono', Monaco, monospace;
   letter-spacing: 8px;
   text-align: center;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 12px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   transition: border-color 0.2s;
 }
 
 .code-input:focus {
   outline: none;
-  border-color: var(--text-default);
+  border-color: var(--color-on-surface);
 }
 
 .code-input.error {
-  border-color: var(--danger);
+  border-color: var(--color-danger);
 }
 
 .code-input::placeholder {
-  color: var(--border-surface);
+  color: var(--color-surface-border);
   letter-spacing: 8px;
 }
 
@@ -672,8 +655,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
-  color: var(--danger);
+  font-size: var(--text-sub);
+  color: var(--color-danger);
 }
 
 .deactivate-section {
@@ -686,15 +669,15 @@ onUnmounted(() => {
   display: flex;
   gap: 12px;
   padding: 12px 16px;
-  background: var(--danger-background);
-  border: 1px solid var(--danger);
+  background: var(--color-danger-surface);
+  border: 1px solid var(--color-danger);
   border-radius: 10px;
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .warning-box p {
   margin: 0;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   line-height: 1.4;
 }
 
@@ -705,17 +688,17 @@ onUnmounted(() => {
 
 .btn.danger-outline {
   background: transparent;
-  border: 1px solid var(--danger);
-  color: var(--danger);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
 }
 
 .btn.danger-outline:hover {
-  background: var(--danger-background);
+  background: var(--color-danger-surface);
 }
 
 .btn.danger {
-  background: var(--danger);
-  border-color: var(--danger);
+  background: var(--color-danger);
+  border-color: var(--color-danger);
   color: #fff;
 }
 

@@ -86,7 +86,7 @@ function getCharClass(index: number) {
       <Keyboard :size="64" class="icon" />
       <h2>Schreibgeschwindigkeit</h2>
       <p>Tippe den vorgegebenen Text so schnell und fehlerfrei wie möglich ab.</p>
-      <button class="btn test-btn primary" @click="startGame">Starten</button>
+      <BaseButton class="test-btn primary" @click="startGame">Starten</BaseButton>
     </div>
 
     <div v-else-if="state === 'playing'" class="game-screen">
@@ -105,8 +105,8 @@ function getCharClass(index: number) {
       <h2>Ergebnis</h2>
       <p class="score">{{ wpm }} WPM</p>
       <div class="actions">
-        <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
-        <button class="btn test-btn secondary" @click="reset">Nochmal</button>
+        <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
+        <BaseButton class="test-btn secondary" @click="reset">Nochmal</BaseButton>
       </div>
     </div>
   </div>

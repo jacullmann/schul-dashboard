@@ -65,21 +65,14 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
 <template>
   <div :class="['menu-wrapper', extraClass]" ref="wrapperRef">
-    <button
-        class="btn ghost"
-        @click="toggleMenu"
-        :disabled="disabled"
-        type="button"
-        aria-haspopup="true"
-        :aria-expanded="isOpen"
-    >
+    <BaseButton @click="toggleMenu" :disabled="disabled" type="button" aria-haspopup="true" :aria-expanded="isOpen" variant="ghost">
       <span class="btn-content">
         <span>
           {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
         </span>
         <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': isOpen }" />
       </span>
-    </button>
+    </BaseButton>
 
     <div v-if="isOpen" class="select-menu">
       <button
@@ -130,16 +123,16 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   min-width: 100%;
   max-height: 320px;
   margin-top: 4px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-lg);
   padding: 4px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   gap: 4px;
   z-index: 999;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
   animation: menuFadeIn 160ms ease;
 }
 

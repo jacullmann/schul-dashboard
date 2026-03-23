@@ -96,7 +96,7 @@ onUnmounted(() => {
          <div class="icon-wrap"><Brain :size="64" /></div>
          <h1 class="test-heading">Zahlen merken</h1>
          <p class="test-sub">Merk dir die Zahl, die gleich auf dem Bildschirm erscheint.</p>
-         <button class="btn test-btn primary mt-4" @click="startLevel()">Start</button>
+         <BaseButton class="test-btn primary mt-4" @click="startLevel()">Start</BaseButton>
       </div>
 
       <div v-if="state === 'showing'" class="center-content showing-content text-center">
@@ -120,7 +120,7 @@ onUnmounted(() => {
              placeholder="Zahl eingeben..."
              autofocus
            />
-           <button type="submit" class="btn test-btn primary w-full mt-3">Prüfen</button>
+           <BaseButton type="submit" class="test-btn primary w-full mt-3">Prüfen</BaseButton>
          </form>
       </div>
 
@@ -128,13 +128,13 @@ onUnmounted(() => {
           <div v-if="isCorrect">
             <h2 class="correct-text test-heading-sm">Richtig!</h2>
             <p class="test-sub">Die Zahl war {{ currentNumber }}.</p>
-            <button class="btn test-btn primary mt-4" @click="nextLevel()">Nächstes Level</button>
+            <BaseButton class="test-btn primary mt-4" @click="nextLevel()">Nächstes Level</BaseButton>
           </div>
           <div v-else>
             <h2 class="wrong-text test-heading-sm">Falsch</h2>
             <p class="test-sub">Die richtige Zahl war <strong>{{ currentNumber }}</strong>.</p>
             <p class="test-sub">Deine Eingabe war <strong class="wrong-color">{{ userInput }}</strong>.</p>
-            <button class="btn test-btn primary mt-4" @click="endGame()">Weiter</button>
+            <BaseButton class="test-btn primary mt-4" @click="endGame()">Weiter</BaseButton>
           </div>
       </div>
 
@@ -145,8 +145,8 @@ onUnmounted(() => {
         <h2 class="test-heading">Level {{ level - 1 }} erreicht!</h2>
         <p class="test-sub">Du konntest dir eine {{ level - 1 }}-stellige Zahl merken.</p>
         <div class="actions mt-4">
-            <button class="btn test-btn primary" @click="saveAndExit">Speichern & Beenden</button>
-            <button class="btn test-btn secondary" @click="reset">Nochmal probieren</button>
+            <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
+            <BaseButton class="test-btn secondary" @click="reset">Nochmal probieren</BaseButton>
         </div>
     </div>
   </div>

@@ -13,16 +13,16 @@ const { t } = useI18n();
 <style scoped>
 .secondary-btn {
   padding: 10px 16px;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   cursor: pointer;
   position: relative;
   overflow: hidden;
   background: none;
-  color: var(--sub);
+  color: var(--color-sub);
   border: none;
   font-weight: 500;
 }
 .secondary-btn:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 </style>

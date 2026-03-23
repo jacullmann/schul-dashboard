@@ -36,7 +36,7 @@ import WelcomeFooter from '@/modules/welcome/components/WelcomeFooter.vue';
 
 .header-container {
   width: 100%;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
   position: sticky;
   top: 0;
   z-index: 100;

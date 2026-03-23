@@ -116,7 +116,7 @@ onBeforeUnmount(() => {
 }
 
 .menu-btn:hover:not(:disabled) {
-  background: var(--bg-interactive-hover);
+  background: var(--color-surface-hover);
 }
 
 .menu-btn:disabled {
@@ -138,20 +138,20 @@ onBeforeUnmount(() => {
   top: 100%;
   min-width: 100%;
   margin-top: 4px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
   border-radius: 12px;
   padding: 4px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   z-index: 1100;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
   animation: menuFadeIn 160ms ease;
 }
 
 .check-icon {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   flex-shrink: 0;
 }
 

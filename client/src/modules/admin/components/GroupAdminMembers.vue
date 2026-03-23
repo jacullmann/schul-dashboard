@@ -53,10 +53,10 @@ function onRoleChange(member: GroupMember, newRole: string) {
           <p>Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden.</p>
         </InfoModal>
       </div>
-      <button class="btn ghost" @click="emit('refresh')" :disabled="loading">
+      <BaseButton @click="emit('refresh')" :disabled="loading" variant="ghost">
         <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
         <span>Aktualisieren</span>
-      </button>
+      </BaseButton>
     </div>
 
     <div v-if="loading && members.length === 0" class="empty-hint">Lädt...</div>
@@ -128,7 +128,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
 }
 
 .title-inf {
@@ -148,10 +148,10 @@ function onRoleChange(member: GroupMember, newRole: string) {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
+  border-radius: var(--radius-lg);
   gap: 12px;
 }
 
@@ -164,7 +164,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
 
 .member-name {
   font-weight: 600;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -179,7 +179,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
 
 .role-admin { color: #6366f1; }
 .role-moderator { color: #f59e0b; }
-.role-user { color: var(--sub); }
+.role-user { color: var(--color-sub); }
 
 .member-actions {
   display: flex;
@@ -190,15 +190,15 @@ function onRoleChange(member: GroupMember, newRole: string) {
 
 .role-select {
   width: 130px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   padding: 6px 8px;
 }
 
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
 }
 
 .spin-icon { animation: spin 0.8s linear infinite; }
@@ -213,12 +213,12 @@ function onRoleChange(member: GroupMember, newRole: string) {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
+.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon.transfer-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }

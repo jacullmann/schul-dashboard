@@ -70,9 +70,9 @@ const showUpdated = computed(() => {
     </template>
 
     <template #actions>
-      <button type="button" class="btn ghost" @click="$emit('close')">
+      <BaseButton type="button" @click="$emit('close')" variant="ghost">
         {{ t('global.buttons.close') }}
-      </button>
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -93,25 +93,25 @@ const showUpdated = computed(() => {
 }
 
 dt {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   font-weight: 500;
 }
 
 dd {
   margin: 0;
-  font-size: var(--font-size-body);
-  color: var(--text-default);
+  font-size: var(--text-body);
+  color: var(--color-on-surface);
   font-weight: 500;
 }
 
 .muted {
-  color: var(--sub);
+  color: var(--color-sub);
   font-weight: 400;
 }
 
 .email {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   margin-left: 2px;
 }
 </style>

@@ -29,10 +29,10 @@ import ImpressumPage from "@/modules/legal/components/Impress.vue";
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-canvas);
+  background-color: var(--color-canvas);
 }
 .down {
-  border-bottom: 2px solid var(--text-default);
+  border-bottom: 2px solid var(--color-on-surface);
   margin-bottom: 30px;
 }
 

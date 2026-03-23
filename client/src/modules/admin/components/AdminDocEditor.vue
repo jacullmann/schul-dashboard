@@ -591,8 +591,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  background: var(--bg-canvas);
-  border-bottom: 1px solid var(--border-canvas);
+  background: var(--color-canvas);
+  border-bottom: 1px solid var(--color-canvas-border);
   gap: 12px;
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -611,11 +611,11 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-footnote);
+  font-size: var(--text-footnote);
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 20px;
-  background: var(--bg-interactive-hover);
+  background: var(--color-surface-hover);
 }
 
 .connection-badge .dot {
@@ -646,12 +646,12 @@ onMounted(async () => {
 }
 
 .connection-badge.disconnected {
-  background: var(--bg-interactive-hover);
-  color: var(--sub);
+  background: var(--color-surface-hover);
+  color: var(--color-sub);
 }
 
 .connection-badge.disconnected .dot {
-  background: var(--sub);
+  background: var(--color-sub);
 }
 
 .connection-badge.error {
@@ -676,8 +676,8 @@ onMounted(async () => {
 }
 
 .online-label {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
 }
 
 .admin-chip {
@@ -688,22 +688,22 @@ onMounted(async () => {
   height: 26px;
   border-radius: 50%;
   background: var(--ghost--hover);
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-size: 10px;
   font-weight: 700;
-  border: 2px solid var(--bg-canvas);
+  border: 2px solid var(--color-canvas);
   cursor: default;
 }
 
 .last-edit {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
 }
 
 .version-badge {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
-  background: var(--bg-interactive-hover);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
+  background: var(--color-surface-hover);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -713,11 +713,11 @@ onMounted(async () => {
   align-items: center;
   gap: 5px;
   padding: 5px 12px;
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--border-canvas);
-  background: var(--bg-canvas);
-  color: var(--text-default);
-  font-size: var(--font-size-footnote);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-canvas-border);
+  background: var(--color-canvas);
+  color: var(--color-on-surface);
+  font-size: var(--text-footnote);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -738,7 +738,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   flex-shrink: 0;
 }
 
@@ -771,8 +771,8 @@ onMounted(async () => {
 .outline-sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-surface);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-surface-border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -780,7 +780,7 @@ onMounted(async () => {
 
 .outline-header {
   padding: 12px 16px;
-  border-bottom: 1px solid var(--border-surface);
+  border-bottom: 1px solid var(--color-surface-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -788,15 +788,15 @@ onMounted(async () => {
 
 .outline-header h3 {
   margin: 0;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   font-weight: 600;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .reset-btn {
   background: none;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
@@ -804,7 +804,7 @@ onMounted(async () => {
 }
 
 .reset-btn:hover {
-  color: var(--danger);
+  color: var(--color-danger);
   background: rgba(246, 82, 82, 0.08);
 }
 
@@ -815,8 +815,8 @@ onMounted(async () => {
 }
 
 .toc-empty {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
   font-style: italic;
   padding: 10px;
 }
@@ -828,14 +828,14 @@ onMounted(async () => {
   padding: 5px 8px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   transition: background 0.15s;
   margin-bottom: 1px;
 }
 
 .toc-item:hover {
-  background: var(--bg-interactive-hover);
+  background: var(--color-surface-hover);
 }
 
 .toc-badge {
@@ -865,8 +865,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 6px 16px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-surface);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-surface-border);
   flex-shrink: 0;
   gap: 8px;
   flex-wrap: wrap;
@@ -879,9 +879,9 @@ onMounted(async () => {
 }
 
 .toolbar-label {
-  font-size: var(--font-size-footnote);
+  font-size: var(--text-footnote);
   font-weight: 600;
-  color: var(--sub);
+  color: var(--color-sub);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   margin-right: 8px;
@@ -891,16 +891,16 @@ onMounted(async () => {
   background: none;
   border: none;
   padding: 7px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
 }
 
 .toolbar-left button:hover {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .toolbar-left button:disabled {
@@ -909,23 +909,23 @@ onMounted(async () => {
 }
 
 .toolbar-hint {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
 }
 
 .tb-separator {
   width: 1px;
   height: 18px;
-  background: var(--border-surface, #ddd);
+  background: var(--color-surface-border, #ddd);
   margin: 0 6px;
   flex-shrink: 0;
 }
 
 .type-select {
-  background: var(--bg-interactive-hover, #f0f0f0);
-  color: var(--text-default, #333);
-  border: 1px solid var(--border-canvas, #ddd);
-  border-radius: var(--border-radius-md, 4px);
+  background: var(--color-surface-hover, #f0f0f0);
+  color: var(--color-on-surface, #333);
+  border: 1px solid var(--color-canvas-border, #ddd);
+  border-radius: var(--radius-md, 4px);
   font-size: 12px;
   padding: 5px 6px;
   cursor: pointer;
@@ -963,14 +963,14 @@ onMounted(async () => {
   background: none;
   border: none;
   padding: 6px 7px;
-  border-radius: var(--border-radius-md, 4px);
+  border-radius: var(--radius-md, 4px);
   cursor: pointer;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .color-menu-btn:hover {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .color-menu-dropdown {
@@ -979,8 +979,8 @@ onMounted(async () => {
   left: 0;
   z-index: 500;
   /* Visual styling */
-  background: var(--bg-canvas, #fff);
-  border: 1px solid var(--border-canvas, #ddd);
+  background: var(--color-canvas, #fff);
+  border: 1px solid var(--color-canvas-border, #ddd);
   border-radius: 8px;
   padding: 8px;
   gap: 5px;
@@ -1051,7 +1051,7 @@ onMounted(async () => {
   flex: 1;
   overflow-y: auto;
   padding: 40px 48px;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   scroll-behavior: smooth;
 }
 
@@ -1064,7 +1064,7 @@ onMounted(async () => {
 
 :deep(.ghost-block) {
   opacity: 0.35;
-  background: var(--bg-interactive-hover) !important;
+  background: var(--color-surface-hover) !important;
 }
 
 .block-list-move,
@@ -1086,18 +1086,18 @@ onMounted(async () => {
   justify-content: center;
   gap: 12px;
   height: 200px;
-  border: 2px dashed var(--border-surface);
+  border: 2px dashed var(--color-surface-border);
   border-radius: 8px;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   margin-top: 24px;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   transition: border-color 0.2s, color 0.2s;
 }
 
 .empty-doc:hover {
-  border-color: var(--text-default);
-  color: var(--text-default);
+  border-color: var(--color-on-surface);
+  color: var(--color-on-surface);
 }
 
 .empty-icon {

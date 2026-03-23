@@ -167,7 +167,7 @@ watch(() => props.visible, (val) => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
   transition: transform 0.2s ease;
 }
 
@@ -229,8 +229,8 @@ watch(() => props.visible, (val) => {
   color: #fff;
   background: rgba(0, 0, 0, 0.6);
   padding: 4px 12px;
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sub);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sub);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }

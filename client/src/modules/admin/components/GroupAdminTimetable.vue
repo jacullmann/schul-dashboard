@@ -94,18 +94,18 @@ function handleSaveSub() {
           <p>Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.</p>
         </InfoModal>
       </div>
-      <button class="btn ghost" @click="emit('refresh')" :disabled="loadingSubs">
+      <BaseButton @click="emit('refresh')" :disabled="loadingSubs" variant="ghost">
         <RefreshCw :size="14" :class="{ 'spin-icon': loadingSubs }" />
         <span>Aktualisieren</span>
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Create Form -->
-    <h3 v-if="!selectedLesson" style="color: var(--sub); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
+    <h3 v-if="!selectedLesson" style="color: var(--color-sub); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
     
     <div v-if="selectedLesson">
-      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: var(--font-size-title);">Ausgewählte Stunde</h3>
-      <p style="margin: 0 0 16px 0; color: var(--sub); font-size: var(--font-size-body);">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: var(--text-title);">Ausgewählte Stunde</h3>
+      <p style="margin: 0 0 16px 0; color: var(--color-sub); font-size: var(--text-body);">
         Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> 
         (Stunde: {{ selectedLesson.slot }}, Letzte Stunde: {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum: {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
       </p>
@@ -135,22 +135,22 @@ function handleSaveSub() {
       </div>
 
       <div style="display: flex; gap: 24px; margin: 16px 0 24px 0;">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-body); cursor: pointer;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-body); cursor: pointer;">
           <Checkbox v-model="subForm.cancelled" />
           <span>Ausfall</span>
         </label>
-        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-body); cursor: pointer;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-body); cursor: pointer;">
           <Checkbox v-model="subForm.hide" />
           <span>Verstecken</span>
         </label>
       </div>
 
-      <button class="btn action" @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId">
+      <BaseButton @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId" variant="action">
         {{ savingSub ? 'Speichert...' : 'Speichern' }}
-      </button>
+      </BaseButton>
     </div>
 
-    <h3 style="padding: 20px 20px 0 20px; font-size: var(--font-size-title);">Stunde auswählen</h3>
+    <h3 style="padding: 20px 20px 0 20px; font-size: var(--text-title);">Stunde auswählen</h3>
     <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
     <AdminTimetable v-else :lessons="lessons" :selectedLessonId="subForm.lessonId" @select-lesson="onLessonSelected" style="padding: 20px;" />
 
@@ -200,7 +200,7 @@ function handleSaveSub() {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
 }
 
 .title-inf {
@@ -218,8 +218,8 @@ function handleSaveSub() {
 
 .form-field label {
   display: block;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   margin-bottom: 4px;
   font-weight: 500;
 }
@@ -228,7 +228,7 @@ function handleSaveSub() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   cursor: pointer;
   padding-top: 20px;
 }
@@ -244,9 +244,9 @@ function handleSaveSub() {
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 10px;
   gap: 8px;
 }
@@ -264,23 +264,23 @@ function handleSaveSub() {
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .sub-row-tag.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.sub-row-tag.muted { background: var(--bg-interactive-hover); color: var(--sub); }
+.sub-row-tag.muted { background: var(--color-surface-hover); color: var(--color-sub); }
 
 .sub-row-detail {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
 }
 
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
 }
 
 .spin-icon { animation: spin 0.8s linear infinite; }
@@ -295,12 +295,12 @@ function handleSaveSub() {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
+.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 

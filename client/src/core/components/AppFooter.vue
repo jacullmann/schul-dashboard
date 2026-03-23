@@ -70,11 +70,11 @@ const year = new Date().getFullYear();
 
 <style scoped>
 .footer {
-  background-color: var(--bg-canvas);
-  color: var(--text-default);
+  background-color: var(--color-canvas);
+  color: var(--color-on-surface);
   padding: 3rem 0 0;
-  border-top: 1px solid var(--border-canvas);
-  font-family: var(--display-font), sans-serif;
+  border-top: 1px solid var(--color-canvas-border);
+  font-family: var(--font-display), sans-serif;
 }
 
 .footer-container {
@@ -114,31 +114,31 @@ const year = new Date().getFullYear();
 }
 
 .brand-text {
-  font-size: var(--font-size-h2);
+  font-size: var(--text-h2);
   font-weight: 700;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   line-height: 1;
   margin-bottom: 4px;
 }
 
 .footer-section h3 {
-  color: var(--text-default);
-  font-size: var(--font-size-title);
+  color: var(--color-on-surface);
+  font-size: var(--text-title);
   font-weight: 700;
   margin: 0 0 0.5rem 0;
 }
 
 .footer-link {
   display: block;
-  color: var(--sub);
+  color: var(--color-sub);
   text-decoration: none;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   transition: color 0.2s;
   font-weight: 500;
 }
 
 .footer-link:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .theme-selector {
@@ -146,9 +146,9 @@ const year = new Date().getFullYear();
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--border-canvas);
+  border-top: 1px solid var(--color-canvas-border);
   padding: 1.5rem 0;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
 }
 
 .footer-bottom-content {
@@ -158,7 +158,7 @@ const year = new Date().getFullYear();
 }
 
 .copyright-text {
-  color: var(--sub);
+  color: var(--color-sub);
   margin: 0;
 }
 

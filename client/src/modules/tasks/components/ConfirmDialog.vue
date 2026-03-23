@@ -85,28 +85,23 @@ watch(() => props.show, (newVal) => {
     </template>
 
     <template #action-btn>
-      <button
-          class="btn danger"
-          @click="$emit('confirm', category)"
-          :disabled="loading || (category === 'falschinfo' && !reason?.trim())"
-      >
-        <LoadingSpinner v-if="loading" size="1.1em" />
-        <span v-else>Eintrag melden</span>
-      </button>
+      <BaseButton @click="$emit('confirm', category)" :disabled="loading || (category === 'falschinfo' && !reason?.trim())" variant="danger" :loading="loading">
+        Eintrag melden
+      </BaseButton>
     </template>
   </Modal>
 </template>
 
 <style scoped>
 .confirm-box {
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   padding: 16px;
   border-radius: 16px;
   max-width: 480px;
   width: 90%;
   text-align: left;
-  border: 1px solid var(--border-canvas);
-  box-shadow: var(--menu-shadow);
+  border: 1px solid var(--color-canvas-border);
+  box-shadow: var(--shadow-menu);
 }
 
 .tab-navigation {
@@ -119,7 +114,7 @@ watch(() => props.show, (newVal) => {
   margin-bottom: 16px;
   font-weight: 600;
   font-size: 14px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .reason-input {
@@ -132,20 +127,20 @@ watch(() => props.show, (newVal) => {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .reason-input textarea {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  background: var(--bg-surface);
-  color: var(--text-default);
-  border: 1px solid var(--border-surface);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-surface-border);
   outline: none;
   min-height: 120px;
   resize: vertical;
-  font-family: var(--normal-font), sans-serif;
+  font-family: var(--font-sans), sans-serif;
   box-sizing: border-box;
 }
 
@@ -155,7 +150,7 @@ watch(() => props.show, (newVal) => {
 }
 
 .btn.danger:disabled:hover {
-  background: var(--danger);
+  background: var(--color-danger);
 }
 
 .counter {
@@ -167,8 +162,8 @@ watch(() => props.show, (newVal) => {
 }
 
 .count-small {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
   opacity: 0.8;
   padding: 2px 6px;
   border-radius: 4px;

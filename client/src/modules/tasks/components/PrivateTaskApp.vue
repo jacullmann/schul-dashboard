@@ -96,8 +96,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   <div class="privateTask-app-integrated">
     <div class="privateTask-header">
       <div class="secure">
-        <Lock style="color: var(--text-default)" :size="24" />
-        <h2 style="margin: 0; font-size: var(--font-size-h2); line-height: 24px;">{{ t('school.private.onlyVisibleToYou') }}</h2>
+        <Lock style="color: var(--color-on-surface)" :size="24" />
+        <h2 style="margin: 0; font-size: var(--text-h2); line-height: 24px;">{{ t('school.private.onlyVisibleToYou') }}</h2>
         <InfoModal
             :tooltip="t('school.private.infopop.tooltip')"
             :title="t('school.private.onlyVisibleToYou')"
@@ -113,7 +113,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     <div v-if="user" class="privateTask-list">
       <div v-if="loading" class="loader">
         <LoadingSpinner color="#fff" size="24px" />
-        <div style="color: var(--sub)">{{ t('school.private.loading') }}</div>
+        <div style="color: var(--color-sub)">{{ t('school.private.loading') }}</div>
       </div>
 
       <div v-else-if="privateTasks.length === 0" class="empty-state">
@@ -200,7 +200,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .privateTask-filters {
@@ -211,8 +211,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 }
 
 .privateTask-filters .btn.active {
-  background-color: var(--text-default);
-  color: var(--bg-surface);
+  background-color: var(--color-on-surface);
+  color: var(--color-surface);
 }
 
 .privateTasks {
@@ -234,7 +234,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   right: 2px;
   bottom: 2px;
   z-index: -1;
-  background: var(--gradient-bismuth);
+  background: var(--background-image-bismuth);
   filter: blur(12px);
   opacity: 0.9;
   display: block !important;
@@ -265,7 +265,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   gap: 0.5rem;
   align-items: center;
   margin-block: 0 1rem;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .loader {

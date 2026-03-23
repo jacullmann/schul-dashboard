@@ -52,17 +52,17 @@ const closeModal = () => (isModalOpen.value = false)
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--sub);
+  color: var(--color-sub);
   transition: color 0.15s ease;
 }
 
 .info-icon-wrapper:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .popover-content {
-  font-size: var(--font-size-body);
-  color: var(--text-default);
+  font-size: var(--text-body);
+  color: var(--color-on-surface);
   line-height: 1.6;
 }
 

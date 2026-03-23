@@ -56,7 +56,7 @@ async function onLoggedIn() {
   position: fixed;
   top: 0;
   left: 0;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   z-index: 1000; /* over the welcome layout header/footer */
 }
 
@@ -80,22 +80,22 @@ async function onLoggedIn() {
   gap: 8px;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   font-weight: 500;
   transition: color 0.2s ease;
   padding: 8px;
 }
 
 .back-link:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .bg-section {
   flex: 1;
   display: none;
-  background-color: var(--border-surface);
+  background-color: var(--color-surface-border);
   position: relative;
   overflow: hidden;
 }
@@ -112,7 +112,7 @@ async function onLoggedIn() {
 @media (min-width: 900px) {
   .auth-section {
     flex: 0 0 500px; /* Fixed width on desktop */
-    border-right: 1px solid var(--border-canvas);
+    border-right: 1px solid var(--color-canvas-border);
   }
   .bg-section {
     display: block; /* Show background on large screens */

@@ -306,14 +306,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
                 />
               </a>
               <div class="image-actions">
-                <button type="button" class="btn danger image-remove" @click="removeImg(img, initial?.id)">X</button>
+                <BaseButton type="button" class="image-remove" @click="removeImg(img, initial?.id)" variant="danger">X</BaseButton>
               </div>
             </div>
 
-            <button type="button" class="btn ghost" @click="uploadImage(!!initial)" :disabled="imgUploading">
-              <LoadingSpinner v-if="imgUploading" size="1.1em" />
-              <span v-else>{{ t('school.tasks.items.menu.uploadImages') }}</span>
-            </button>
+            <BaseButton type="button" @click="uploadImage(!!initial)" :disabled="imgUploading" variant="ghost" :loading="imgUploading">
+        {{ t('school.tasks.items.menu.uploadImages') }}
+      </BaseButton>
           </div>
           <div v-if="imgUploading" class="small">{{ t('school.tasks.itemForm.uploadingImage') }}</div>
           <div v-if="imgUploadError" class="small error">{{ imgUploadError }}</div>
@@ -324,14 +323,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         <div class="row actions">
           <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
 
-          <button type="button" class="btn ghost" @click="emit('cancel')">
+          <BaseButton type="button" @click="emit('cancel')" variant="ghost">
             {{ t('global.buttons.cancel') }}
-          </button>
+          </BaseButton>
 
-          <button type="submit" class="btn action" :disabled="submitting">
-            <LoadingSpinner v-if="submitting" size="1.1em" />
-            <span v-else>{{ initial ? t('global.buttons.save') : t('global.buttons.create') }}</span>
-          </button>
+          <BaseButton type="submit" :disabled="submitting" variant="action" :loading="submitting">
+        {{ initial ? t('global.buttons.save') : t('global.buttons.create') }}
+      </BaseButton>
         </div>
       </template>
     </Modal>
@@ -348,8 +346,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
 .label {
   display: block;
-  font-size: var(--font-size-button);
-  color: var(--text-default);
+  font-size: var(--text-btn);
+  color: var(--color-on-surface);
   margin-bottom: 6px;
 }
 
@@ -361,7 +359,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
   position: relative;
   width: 120px;
   height: 120px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   overflow: hidden;
   background: rgba(26, 26, 26, 0.5);
   backdrop-filter: blur(8px) brightness(95%);
@@ -391,14 +389,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 }
 
 .small {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   align-self: center;
 }
 .error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 .msg-error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 </style>

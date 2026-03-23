@@ -81,7 +81,7 @@ import {
 }
 
 .contact-header h2 {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin: 0;
 }
 .contact-sections {
@@ -112,11 +112,11 @@ import {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: var(--border-radius-md);
-  color: var(--text-default);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
+  border-radius: var(--radius-md);
+  color: var(--color-on-surface);
 }
 
 .header-content {
@@ -125,16 +125,16 @@ import {
 
 .header-content h3 {
   margin: 0 0 4px 0;
-  font-size: var(--font-size-title);
+  font-size: var(--text-title);
   font-weight: 600;
-  color: var(--text-default);
-  font-family: var(--display-font), sans-serif;
+  color: var(--color-on-surface);
+  font-family: var(--font-display), sans-serif;
 }
 
 .section-desc {
   margin: 0;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   line-height: 1.4;
 }
 
@@ -144,18 +144,18 @@ import {
 
 .email-button {
   margin-left: 62px;
-  color: var(--text-default);
-  font-size: var(--font-size-button);
+  color: var(--color-on-surface);
+  font-size: var(--text-btn);
 }
 
 .lucide-external-link {
   overflow: visible !important;
-  color: var(--sub);
+  color: var(--color-sub);
   transition: all 0.1s ease;
 }
 
 .email-button:hover .lucide-external-link {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .lucide-external-link :deep(path:first-child),
@@ -177,8 +177,8 @@ svg {
 .location-text,
 .feedback-text {
   margin: 0;
-  color: var(--text-default);
-  font-size: var(--font-size-body);
+  color: var(--color-on-surface);
+  font-size: var(--text-body);
   line-height: 1.6;
 }
 
@@ -188,21 +188,21 @@ svg {
 
 hr {
   border: none;
-  border-top: 1px solid var(--border-canvas);
+  border-top: 1px solid var(--color-canvas-border);
   margin: 0;
 }
 
 .additional-info {
   padding-top: 24px;
-  border-top: 1px solid var(--border-canvas);
+  border-top: 1px solid var(--color-canvas-border);
 }
 
 .info-card {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
 }
 
 @media (max-width: 768px) {
@@ -211,7 +211,7 @@ hr {
   }
 
   .section-header h3 {
-    font-size: var(--font-size-body);
+    font-size: var(--text-body);
     margin: 0;
   }
 

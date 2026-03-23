@@ -77,13 +77,13 @@ export function useAnnouncements() {
 
     const colorFor = (color: string): string => {
         const map: Record<string, string> = {
-            'ok': 'var(--primary)',
-            'warn': 'var(--warn)',
-            'danger': 'var(--danger)',
+            'ok': 'var(--color-primary)',
+            'warn': 'var(--color-warn)',
+            'danger': 'var(--color-danger)',
             'expired': 'var(--gg)',
-            'info': 'var(--primary)',
+            'info': 'var(--color-primary)',
         };
-        return map[color] || 'var(--sub)';
+        return map[color] || 'var(--color-sub)';
     };
 
     onMounted(() => {

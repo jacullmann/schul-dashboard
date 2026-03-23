@@ -55,10 +55,10 @@ function onFormError(msg: string) {
   <div class="card">
     <div class="page-header">
       <h2 style="margin: 0">{{ t('school.private.title') }}</h2>
-      <button v-if="user" class="btn action" @click="openCreateForm">
+      <BaseButton v-if="user" @click="openCreateForm" variant="action">
         <Plus :size="16" />
         <span>{{ t('school.private.newEntry') }}</span>
-      </button>
+      </BaseButton>
     </div>
 
     <div class="private-entries-container">

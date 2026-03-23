@@ -89,7 +89,7 @@ async function confirmDeleteGroup() {
         <label>Name</label>
         <div v-if="!editingGroupName" class="setting-value">
           <span>{{ groupName }}</span>
-          <button v-if="isAdmin" class="btn ghost tiny" @click="emit('start-edit')">{{ t('global.buttons.edit') }}</button>
+          <BaseButton v-if="isAdmin" class="tiny" @click="emit('start-edit')" variant="ghost">{{ t('global.buttons.edit') }}</BaseButton>
         </div>
         <div v-else class="setting-edit">
           <input 
@@ -100,10 +100,10 @@ async function confirmDeleteGroup() {
             @keyup.enter="emit('save-edit')" 
             :disabled="!isAdmin"
           />
-          <button class="btn action" @click="emit('save-edit')" :disabled="savingGroupName || !newGroupName.trim() || !isAdmin">
+          <BaseButton @click="emit('save-edit')" :disabled="savingGroupName || !newGroupName.trim() || !isAdmin" variant="action">
             {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
-          </button>
-          <button class="btn ghost" @click="emit('cancel-edit')">{{ t('global.buttons.cancel') }}</button>
+          </BaseButton>
+          <BaseButton @click="emit('cancel-edit')" variant="ghost">{{ t('global.buttons.cancel') }}</BaseButton>
         </div>
       </div>
     </div>
@@ -160,14 +160,9 @@ async function confirmDeleteGroup() {
       <p v-if="pwdError" class="error-text">{{ pwdError }}</p>
 
       <div class="actions">
-        <button 
-          class="btn action" 
-          @click="changePassword" 
-          :disabled="changingPassword || !oldPassword || !newPassword || newPassword !== newPassword2"
-        >
-          <LoadingSpinner v-if="changingPassword" size="1.2em" />
-          <span v-else>Passwort ändern</span>
-        </button>
+        <BaseButton @click="changePassword" :disabled="changingPassword || !oldPassword || !newPassword || newPassword !== newPassword2" variant="action" :loading="changingPassword">
+        Passwort ändern
+      </BaseButton>
       </div>
     </div>
 
@@ -187,14 +182,9 @@ async function confirmDeleteGroup() {
           class="input danger-input" 
           :placeholder="'delete ' + groupName"
         />
-        <button 
-          class="btn danger" 
-          :disabled="deleteConfirmText !== `delete ${groupName}` || deletingGroup"
-          @click="confirmDeleteGroup"
-        >
-          <LoadingSpinner v-if="deletingGroup" size="1.2em" />
-          <span v-else>Gruppe unwiderruflich löschen</span>
-        </button>
+        <BaseButton :disabled="deleteConfirmText !== `delete ${groupName}` || deletingGroup" @click="confirmDeleteGroup" variant="danger" :loading="deletingGroup">
+        Gruppe unwiderruflich löschen
+      </BaseButton>
       </div>
     </div>
 
@@ -215,8 +205,8 @@ async function confirmDeleteGroup() {
 }
 
 .readonly-text {
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
   margin: 0;
   text-align: center;
 }
@@ -226,7 +216,7 @@ async function confirmDeleteGroup() {
 }
 
 .settings-card h3 {
-  font-size: var(--font-size-title);
+  font-size: var(--text-title);
   font-weight: 600;
   margin: 0 0 20px;
 }
@@ -238,8 +228,8 @@ async function confirmDeleteGroup() {
 }
 
 .setting-row label {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   font-weight: 500;
 }
 
@@ -251,7 +241,7 @@ async function confirmDeleteGroup() {
 
 .setting-value span {
   font-weight: 600;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
 }
 
 .setting-edit {
@@ -273,8 +263,8 @@ async function confirmDeleteGroup() {
 
 .form-group label {
   display: block;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   font-weight: 500;
   margin-bottom: 6px;
 }
@@ -297,7 +287,7 @@ async function confirmDeleteGroup() {
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,12 +295,12 @@ async function confirmDeleteGroup() {
 }
 
 .toggle-btn:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .error-text {
-  color: var(--danger);
-  font-size: var(--font-size-sub);
+  color: var(--color-danger);
+  font-size: var(--text-sub);
   margin: 0 0 16px;
 }
 
@@ -319,12 +309,12 @@ async function confirmDeleteGroup() {
 }
 
 .danger-title {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .danger-desc {
-  font-size: var(--font-size-body);
-  color: var(--sub);
+  font-size: var(--text-body);
+  color: var(--color-sub);
   margin: 0 0 20px;
   line-height: 1.5;
 }
@@ -337,8 +327,8 @@ async function confirmDeleteGroup() {
 }
 
 .delete-confirmation label {
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
 }
 
 .btn.danger:hover:not(:disabled) {

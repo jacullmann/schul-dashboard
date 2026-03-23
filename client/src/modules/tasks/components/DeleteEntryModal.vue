@@ -36,14 +36,9 @@ onBeforeUnmount(() => {
     </template>
 
     <template #action-btn>
-      <button
-          class="btn danger"
-          @click="emit('confirm')"
-          :disabled="loading"
-      >
-        <LoadingSpinner v-if="loading" size="1.1em" />
-        <span v-else>Eintrag löschen</span>
-      </button>
+      <BaseButton @click="emit('confirm')" :disabled="loading" variant="danger" :loading="loading">
+        Eintrag löschen
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -52,8 +47,8 @@ onBeforeUnmount(() => {
 p {
   text-align: left;
   margin-block: 0 16px;
-  font-size: var(--font-size-body);
-  color: var(--text-default);
+  font-size: var(--text-body);
+  color: var(--color-on-surface);
   line-height: 1.5;
 }
 </style>

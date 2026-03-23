@@ -178,7 +178,7 @@ const {
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   cursor: pointer;
 }
 
@@ -202,14 +202,14 @@ const {
 }
 
 .popup-inner {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-lg);
   padding: 4px;
   display: flex;
   flex-direction: column;
   min-width: 320px;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
 }
 
 .user-section {
@@ -221,8 +221,8 @@ const {
 
 .user-email {
   font-weight: 600;
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,23 +242,23 @@ const {
   background: transparent;
   border: none;
   padding: 8px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   border-radius: 8px;
   cursor: pointer;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   transition: background 0.2s ease;
 }
 
 .menu-btn:hover {
-  background: var(--bg-interactive-hover);
+  background: var(--color-surface-hover);
 }
 
 .menu-btn.danger {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .menu-btn.danger:hover {
-  background: var(--danger-background);
+  background: var(--color-danger-surface);
 }
 
 .menu-btn-content {
@@ -343,24 +343,24 @@ const {
 
 .menu-divider {
   height: 1px;
-  background: var(--border-surface);
+  background: var(--color-surface-border);
   margin-inline: 4px;
 }
 
 .message {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   padding: 8px;
   border-radius: 4px;
   text-align: center;
 }
 
 .message.error {
-  background: var(--danger-background);
-  color: var(--danger);
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
 }
 
 .message.success {
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
   color: var(--special--green);
 }
 

@@ -334,7 +334,7 @@ onUnmounted(() => {
           @drop.prevent="handleDrop"
       >
         <p style="margin-top: 0;"><strong>Klicken zum Hochladen</strong> oder Drag & Drop</p>
-        <span style="font-size: var(--font-size-sub); color: var(--sub);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
+        <span style="font-size: var(--text-sub); color: var(--color-sub);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
         <input
             type="file"
             ref="fileInputRef"
@@ -383,12 +383,12 @@ onUnmounted(() => {
       </div>
 
       <div class="row button-group" v-if="hasImage">
-        <button @click="openEditor" class="btn ghost">Bearbeiten</button>
-        <button @click="convertAndDownload" class="btn action">Konvertieren</button>
+        <BaseButton @click="openEditor" variant="ghost">Bearbeiten</BaseButton>
+        <BaseButton @click="convertAndDownload" variant="action">Konvertieren</BaseButton>
       </div>
 
       <div class="preview-container" v-show="hasImage">
-        <div style="margin-bottom: 8px; font-size: var(--font-size-sub); color: var(--sub);">
+        <div style="margin-bottom: 8px; font-size: var(--text-sub); color: var(--color-sub);">
           Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
         </div>
         <img :src="currentImageSrc" alt="Preview" class="preview-img">
@@ -398,12 +398,12 @@ onUnmounted(() => {
     <div class="blurit" :class="{ open: isEditorOpen }">
       <div class="editor-card">
         <div class="editor-toolbar">
-          <button class="btn ghost" style="flex: 0; padding: 10px;" @click="rotateImage(-90)">
+          <BaseButton style="flex: 0; padding: 10px;" @click="rotateImage(-90)" variant="ghost">
             <RotateCcw :size="16"/>
-          </button>
-          <button class="btn ghost" style="flex: 0; padding: 10px;" @click="rotateImage(90)">
+          </BaseButton>
+          <BaseButton style="flex: 0; padding: 10px;" @click="rotateImage(90)" variant="ghost">
             <RotateCw :size="16"/>
-          </button>
+          </BaseButton>
 
           <div class="editor-input-group">
             <span style="width: 16px;">X:</span> <input type="number" class="input" v-model.number="crop.x" @input="updateCropFromInput">
@@ -440,8 +440,8 @@ onUnmounted(() => {
         </div>
 
         <div class="row">
-          <button class="btn ghost" @click="closeEditor">Abbrechen</button>
-          <button class="btn action" @click="applyEdits">Anwenden</button>
+          <BaseButton @click="closeEditor" variant="ghost">Abbrechen</BaseButton>
+          <BaseButton @click="applyEdits" variant="action">Anwenden</BaseButton>
         </div>
       </div>
     </div>
@@ -461,8 +461,8 @@ onUnmounted(() => {
 
 /* Upload Area */
 .upload-area {
-  border: 2px dashed var(--border-canvas);
-  border-radius: var(--border-radius-md);
+  border: 2px dashed var(--color-canvas-border);
+  border-radius: var(--radius-md);
   padding: 16px;
   text-align: center;
   cursor: pointer;
@@ -470,7 +470,7 @@ onUnmounted(() => {
   margin-bottom: 2rem;
 }
 .upload-area:hover, .upload-area.dragging {
-  border-color: var(--border-surface);
+  border-color: var(--color-surface-border);
 }
 
 /* Controls Grid */
@@ -492,7 +492,7 @@ onUnmounted(() => {
 }
 
 label {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   margin-bottom: 6px;
 }
 
@@ -509,7 +509,7 @@ label {
 }
 .preview-img {
   max-width: 100%;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
 }
 
 /* --- EDITOR MODAL STYLES --- */
@@ -521,10 +521,10 @@ label {
 }
 
 .editor-card {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-canvas);
+  background: var(--color-canvas);
+  border: 1px solid var(--color-canvas-border);
   padding: 16px;
-  border-radius: var(--border-radius-xl);
+  border-radius: var(--radius-xl);
   width: 90%;
   max-width: 900px;
   max-height: calc(100vh - 40px);
@@ -543,14 +543,14 @@ label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
 }
 
 /* Canvas Container for Cropping */
 .crop-workspace {
   flex: 1;
   position: relative;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -567,8 +567,8 @@ label {
 /* The Visual Crop Box */
 .crop-box {
   position: absolute;
-  border: 2px solid var(--sub);
-  box-shadow: 0 0 0 9999px color-mix(in oklab, var(--bg-canvas), transparent 40%); /* Dimming effect */
+  border: 2px solid var(--color-sub);
+  box-shadow: 0 0 0 9999px color-mix(in oklab, var(--color-canvas), transparent 40%); /* Dimming effect */
   cursor: move;
 }
 
@@ -576,7 +576,7 @@ label {
 .resize-handle {
   width: 8px;
   height: 8px;
-  background: var(--text-default);
+  background: var(--color-on-surface);
   position: absolute;
   z-index: 10;
 }

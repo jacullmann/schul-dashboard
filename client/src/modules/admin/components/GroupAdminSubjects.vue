@@ -71,10 +71,10 @@ onMounted(() => {
   <div class="tab-panel">
     <div class="panel-header">
       <h2>Fächer</h2>
-      <button class="btn ghost" @click="loadSubjects" :disabled="loading">
+      <BaseButton @click="loadSubjects" :disabled="loading" variant="ghost">
         <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
         <span>Aktualisieren</span>
-      </button>
+      </BaseButton>
     </div>
 
     <!-- Add Subject (admin only) -->
@@ -87,14 +87,10 @@ onMounted(() => {
             @keyup.enter="handleCreate"
             :disabled="saving"
         />
-        <button
-            class="btn action"
-            @click="handleCreate"
-            :disabled="!newSubjectName.trim() || saving"
-        >
+        <BaseButton @click="handleCreate" :disabled="!newSubjectName.trim() || saving" variant="action">
           <Plus :size="15" />
           <span>{{ saving ? 'Erstellt...' : 'Hinzufügen' }}</span>
-        </button>
+        </BaseButton>
       </div>
     </div>
 
@@ -187,7 +183,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
 }
 
 /* Add form */
@@ -218,10 +214,10 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
+  border-radius: var(--radius-lg);
   gap: 12px;
 }
 
@@ -234,27 +230,27 @@ onMounted(() => {
 
 .subject-name {
   font-weight: 600;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .subject-row.inactive .subject-name {
-  color: var(--text-muted)
+  color: var(--color-on-surface-muted)
 }
 
 
 .status-badge {
-  font-size: var(--font-size-footnote);
+  font-size: var(--text-footnote);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
-.status-badge.active { color: var(--text-default); }
-.status-badge.inactive { color: var(--text-muted); }
+.status-badge.active { color: var(--color-on-surface); }
+.status-badge.inactive { color: var(--color-on-surface-muted); }
 
 .subject-actions {
   display: flex;
@@ -290,24 +286,24 @@ onMounted(() => {
   justify-content: center;
   padding: 8px;
   margin: -8px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   background: transparent;
   border: none;
-  color: var(--sub);
+  color: var(--color-sub);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
-.btn-icon.danger:hover { background: var(--danger-background); color: var(--danger); }
-.btn-icon.confirm:hover { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
+.btn-icon.danger:hover { background: var(--color-danger-surface); color: var(--color-danger); }
+.btn-icon.confirm:hover { background: rgba(34, 197, 94, 0.1); color: var(--color-success); }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .empty-hint {
   text-align: center;
   padding: 32px;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
 }
 
 .spin-icon { animation: spin 0.8s linear infinite; }

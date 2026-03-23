@@ -93,7 +93,7 @@ onUnmounted(() => {
     <div v-if="isGameOver" class="game-over">
       <h3>Zeit abgelaufen! ⏰</h3>
       <p>Du hast {{ score }} Punkte erreicht.</p>
-      <button @click="startGame" class="btn">Nochmal spielen</button>
+      <BaseButton @click="startGame">Nochmal spielen</BaseButton>
     </div>
   </div>
 </template>
@@ -104,18 +104,18 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   border-radius: 8px;
 }
 h2 {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin-bottom: 5px;
 }
 .stats {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-weight: bold;
 }
 .grid {
@@ -165,7 +165,7 @@ h2 {
 .game-over {
   margin-top: 20px;
   text-align: center;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 .btn {
   margin-top: 10px;

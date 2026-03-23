@@ -87,15 +87,9 @@ function cancel() {
     </template>
 
     <template #action-btn>
-      <button
-          type="submit"
-          form="link-form"
-          class="btn action"
-          :disabled="!password || submitting"
-      >
-        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
-        <span v-else>Verknüpfen</span>
-      </button>
+      <BaseButton type="submit" form="link-form" :disabled="!password || submitting" variant="action" :loading="submitting">
+        Verknüpfen
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -113,8 +107,8 @@ function cancel() {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,8 +116,8 @@ function cancel() {
 
 .link-description {
   margin: 0 0 16px 0;
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   line-height: 1.5;
   text-align: center;
 }
@@ -141,9 +135,9 @@ function cancel() {
 }
 
 .form-group label {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   font-weight: 500;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .input-wrapper {
@@ -159,19 +153,19 @@ function cancel() {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;
 }
 
 .password-toggle:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .error-msg {
-  font-size: var(--font-size-sub);
-  color: var(--danger);
+  font-size: var(--text-sub);
+  color: var(--color-danger);
   margin-top: 4px;
 }
 </style>

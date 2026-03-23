@@ -121,15 +121,9 @@ async function submit() {
     </template>
 
     <template #actions>
-      <button
-          form="join-group-form"
-          type="submit"
-          class="btn action submit-btn"
-          :disabled="submitting || !isValid"
-      >
-        <LoadingSpinner v-if="submitting" color="white" size="1.2em" />
-        <span v-else>Beitreten</span>
-      </button>
+      <BaseButton form="join-group-form" type="submit" class="submit-btn" :disabled="submitting || !isValid" variant="action" :loading="submitting">
+        Beitreten
+      </BaseButton>
     </template>
   </Modal>
 </template>
@@ -164,24 +158,24 @@ async function submit() {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: var(--sub);
+  color: var(--color-sub);
   display: flex;
   align-items: center;
   transition: color 0.1s ease;
 }
 
 .password-toggle:hover {
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 
 .message {
-  color: var(--text-default);
-  font-size: var(--font-size-sub);
+  color: var(--color-on-surface);
+  font-size: var(--text-sub);
   margin-bottom: 16px;
 }
 
 .message.error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .submit-btn {

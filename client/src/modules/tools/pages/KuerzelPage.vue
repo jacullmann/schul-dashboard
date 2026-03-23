@@ -121,10 +121,10 @@ const {
   justify-content: center;
 }
 .switch-btn {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
-  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
+  border-radius: var(--radius-md);
   width: 38px;
   height: 38px;
   cursor: pointer;
@@ -136,15 +136,15 @@ const {
 }
 
 .switch-btn:hover {
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
 }
 
 
 .switch-icon {
   width: 22px;
   height: 22px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   transition: color 0.1s, transform 0.2s ease;
 }
 
@@ -158,14 +158,14 @@ const {
 
 .suggestion {
   margin-top: 8px;
-  color: var(--sub);
+  color: var(--color-sub);
   font-style: italic;
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
 }
 
 .suggestion-link {
   cursor: pointer;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-weight: bold;
 }
 

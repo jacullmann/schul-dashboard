@@ -338,9 +338,9 @@ async function handleArchiveFromMenu(item: HwItem) {
         <template #body v-if="item.description.length">
           <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
           <span v-else-if="item.description.length">{{ item.description }}</span>
-          <button v-if="item.description.length > 200" class="btn tiny ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
+          <BaseButton v-if="item.description.length > 200" class="tiny" variant="ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
             {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
-          </button>
+          </BaseButton>
         </template>
 
         <template #content-after>
@@ -387,13 +387,9 @@ async function handleArchiveFromMenu(item: HwItem) {
           >
             <div class="editor-note-header">
               <span class="editor-note-label">{{ t('school.tasks.notes.note') }}</span>
-              <button
-                  v-if="canEditNote()"
-                  class="btn ghost tiny"
-                  @click.stop="startEditNote(item)"
-              >
+              <BaseButton v-if="canEditNote()" class="tiny" @click.stop="startEditNote(item)" variant="ghost">
                 {{ t('global.buttons.edit') }}
-              </button>
+              </BaseButton>
             </div>
 
             <div v-if="editingNoteForId !== item.id" class="editor-note-content">
@@ -410,21 +406,12 @@ async function handleArchiveFromMenu(item: HwItem) {
                     maxlength="2000"
                 ></textarea>
               <div class="editor-note-actions">
-                <button
-                    class="btn action"
-                    @click.stop="saveNote(item.id)"
-                    :disabled="savingNote"
-                >
-                  <LoadingSpinner v-if="savingNote" size="1.1em" />
-                  <span v-else>{{ t('global.buttons.save') }}</span>
-                </button>
-                <button
-                    class="btn ghost"
-                    @click.stop="cancelEditNote()"
-                    :disabled="savingNote"
-                >
+                <BaseButton @click.stop="saveNote(item.id)" :disabled="savingNote" variant="action" :loading="savingNote">
+        {{ t('global.buttons.save') }}
+      </BaseButton>
+                <BaseButton @click.stop="cancelEditNote()" :disabled="savingNote" variant="ghost">
                   {{ t('global.buttons.cancel') }}
-                </button>
+                </BaseButton>
               </div>
             </div>
           </div>
@@ -435,8 +422,8 @@ async function handleArchiveFromMenu(item: HwItem) {
       <div v-if="!loading && !filteredItems.length" class="card empty">{{ t('school.tasks.items.view.noEntriesFound') }}</div>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
-        <button v-if="visibleCount < filteredItems.length" class="btn ghost" @click="showMore">{{ t('global.buttons.showMore') }}</button>
-        <button v-if="visibleCount > 5" class="btn ghost" @click="showLess">{{ t('global.buttons.showLess') }}</button>
+        <BaseButton v-if="visibleCount < filteredItems.length" @click="showMore" variant="ghost">{{ t('global.buttons.showMore') }}</BaseButton>
+        <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{ t('global.buttons.showLess') }}</BaseButton>
       </div>
     </div>
 
@@ -552,21 +539,21 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .subject-badge {
-  color:var(--sub);
+  color:var(--color-sub);
   padding: 0;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
 }
 .tiny {
   padding: 0;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   font-weight: 700;
-  color: var(--sub);
+  color: var(--color-sub);
   background: transparent;
   border: none;
 }
 .tiny:hover {
   background: transparent;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   border: none;
   padding: 0;
 }
@@ -710,7 +697,7 @@ async function handleArchiveFromMenu(item: HwItem) {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   border: none;
   padding: 0;
   margin: 0;
@@ -724,16 +711,16 @@ async function handleArchiveFromMenu(item: HwItem) {
   inset: 0;
   background: #8883;
   opacity: 1;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   backdrop-filter:blur(4px);
   -webkit-backdrop-filter:blur(4px);
 }
 
 .img-overlay .overlay-content {
   position: relative;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-weight: 400;
-  font-size: var(--font-size-h1);
+  font-size: var(--text-h1);
   z-index: 11;
   pointer-events: none;
 }
@@ -756,7 +743,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .empty {
   text-align:center;
-  color:var(--sub);
+  color:var(--color-sub);
   padding:24px;
   border: none
 }
@@ -769,14 +756,14 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .message.error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .unpin-trigger {
   background: transparent;
-  color: var(--sub);
+  color: var(--color-sub);
   padding: 8px;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
   display: inline-flex;
   margin: -8px;
   margin-right: 4px;
@@ -786,8 +773,8 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .unpin-trigger:hover {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .pagination-actions {
@@ -807,8 +794,8 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .admin-creator-info {
-  color: var(--sub);
-  font-size: var(--font-size-sub);
+  color: var(--color-sub);
+  font-size: var(--text-sub);
 }
 
 .creator-email {
@@ -819,9 +806,9 @@ async function handleArchiveFromMenu(item: HwItem) {
 .editor-note-section {
   margin-top: 8px;
   padding: 8px 12px;
-  background: var(--bg-interactive-hover);
-  border: 1px solid var(--border-canvas);
-  border-radius: var(--border-radius-md);
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-canvas-border);
+  border-radius: var(--radius-md);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -833,21 +820,21 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .editor-note-label {
-  font-size: var(--font-size-sub);
+  font-size: var(--text-sub);
   font-weight: 600;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 
 .editor-note-content {
-  font-size: var(--font-size-sub);
-  color: var(--text-default);
+  font-size: var(--text-sub);
+  color: var(--color-on-surface);
   white-space: pre-wrap;
   word-break: break-word;
-  background: var(--bg-interactive-hover);
+  background: var(--color-surface-hover);
 }
 
 .note-placeholder {
-  color: var(--sub);
+  color: var(--color-sub);
   font-style: italic;
 }
 

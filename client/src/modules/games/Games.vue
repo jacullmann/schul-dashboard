@@ -84,7 +84,7 @@ const filteredGames = computed(() => {
 }
 
 .no-results {
-  color: var(--sub);
+  color: var(--color-sub);
   text-align: center;
   font-size: 1.2em;
   margin-top: 40px;
@@ -108,13 +108,13 @@ const filteredGames = computed(() => {
 }
 
 .game-card {
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   border-radius: 8px;
   overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border-canvas);
+  border: 1px solid var(--color-canvas-border);
 }
 
 .game-card-link:hover .game-card {
@@ -134,14 +134,14 @@ const filteredGames = computed(() => {
 }
 
 .game-name {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 1.5em;
 }
 
 .game-description {
-  color: var(--sub);
+  color: var(--color-sub);
   font-size: 0.9em;
   margin-bottom: 15px;
   flex-grow: 1;

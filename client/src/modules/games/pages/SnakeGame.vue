@@ -123,7 +123,7 @@ onUnmounted(() => {
 
     <div v-if="isGameOver" class="game-over">
       <h3>Game Over! 💥</h3>
-      <button @click="initGame" class="btn">Neu starten</button>
+      <BaseButton @click="initGame">Neu starten</BaseButton>
     </div>
 
     <div class="controls">
@@ -138,21 +138,21 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background: var(--bg-canvas);
+  background: var(--color-canvas);
   border-radius: 8px;
 }
 h2 {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   margin-bottom: 5px;
 }
 p {
-  color: var(--sub);
+  color: var(--color-sub);
   margin-bottom: 20px;
 }
 .board {
   position: relative;
-  background-color: var(--bg-surface);
-  border: 2px solid var(--border-canvas);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-canvas-border);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -173,7 +173,7 @@ p {
 .game-over {
   margin-top: 20px;
   text-align: center;
-  color: var(--text-default);
+  color: var(--color-on-surface);
 }
 .btn {
   margin-top: 10px;
@@ -190,7 +190,7 @@ p {
 .controls {
   margin-top: 20px;
   font-size: 0.9rem;
-  color: var(--sub);
+  color: var(--color-sub);
   text-align: center;
 }
 </style>

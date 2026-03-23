@@ -63,12 +63,12 @@ watch(() => route.params.id, (newId) => {
   align-items: center;
   gap: 8px;
   margin-bottom: 20px;
-  color: var(--sub);
+  color: var(--color-sub);
   transition: color 0.2s;
 }
 
 .back-link:hover {
-  color:var(--text-default);
+  color:var(--color-on-surface);
 }
 
 .back-link svg {
@@ -84,18 +84,18 @@ watch(() => route.params.id, (newId) => {
 .game-title {
   margin-top: 0;
   margin-bottom: 10px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   font-size: 2em;
 }
 
 .game-description {
-  color: var(--sub);
+  color: var(--color-sub);
   font-size: 1.1em;
   margin-bottom: 20px;
 }
 
 hr {
-  border-top: 1px solid var(--bg-surface);
+  border-top: 1px solid var(--color-surface);
 }
 
 .game-component-instance {
@@ -104,6 +104,6 @@ hr {
 
 .text-center {
   text-align: center;
-  color: var(--sub);
+  color: var(--color-sub);
 }
 </style>

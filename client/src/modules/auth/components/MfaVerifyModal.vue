@@ -118,21 +118,12 @@ onMounted(() => {
         </div>
 
         <div class="modal-actions">
-          <button
-              class="btn ghost"
-              @click="cancel"
-              :disabled="loading"
-          >
+          <BaseButton @click="cancel" :disabled="loading" variant="ghost">
             Abbrechen
-          </button>
-          <button
-              class="btn action"
-              @click="verify"
-              :disabled="code.length !== 6 || loading"
-          >
-            <LoadingSpinner v-if="loading" color="white" size="1.2em" />
-            <span v-else>Bestätigen</span>
-          </button>
+          </BaseButton>
+          <BaseButton @click="verify" :disabled="code.length !== 6 || loading" variant="action" :loading="loading">
+        Bestätigen
+      </BaseButton>
         </div>
 
         <div class="modal-footer">
@@ -164,10 +155,10 @@ onMounted(() => {
   width: 100%;
   max-width: 380px;
   border-radius: 16px;
-  border: 1px solid var(--border-canvas);
-  background: var(--bg-canvas);
+  border: 1px solid var(--color-canvas-border);
+  background: var(--color-canvas);
   padding: 24px;
-  box-shadow: var(--menu-shadow);
+  box-shadow: var(--shadow-menu);
 }
 
 .modal-header {
@@ -185,14 +176,14 @@ onMounted(() => {
   width: 56px;
   height: 56px;
   border-radius: 14px;
-  background: var(--special--green--background);
+  background: var(--color-success-surface);
   color: var(--special--green);
 }
 
 .modal-title {
   margin: 0;
-  color: var(--text-default);
-  font-size: var(--font-size-h3);
+  color: var(--color-on-surface);
+  font-size: var(--text-h3);
   font-weight: 700;
   text-align: center;
 }
@@ -205,8 +196,8 @@ onMounted(() => {
 }
 
 .instruction {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   line-height: 1.5;
   margin: 0;
   text-align: center;
@@ -224,20 +215,20 @@ onMounted(() => {
   font-family: 'SF Mono', Monaco, monospace;
   letter-spacing: 10px;
   text-align: center;
-  background: var(--bg-surface);
-  border: 2px solid var(--border-surface);
+  background: var(--color-surface);
+  border: 2px solid var(--color-surface-border);
   border-radius: 12px;
-  color: var(--text-default);
+  color: var(--color-on-surface);
   transition: border-color 0.2s;
 }
 
 .code-input:focus {
   outline: none;
-  border-color: var(--text-default);
+  border-color: var(--color-on-surface);
 }
 
 .code-input.error {
-  border-color: var(--danger);
+  border-color: var(--color-danger);
 }
 
 .code-input.shake {
@@ -251,7 +242,7 @@ onMounted(() => {
 }
 
 .code-input::placeholder {
-  color: var(--border-surface);
+  color: var(--color-surface-border);
   letter-spacing: 10px;
 }
 
@@ -265,8 +256,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
-  color: var(--danger);
+  font-size: var(--text-sub);
+  color: var(--color-danger);
 }
 
 .attempts-warning {
@@ -274,8 +265,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: var(--font-size-sub);
-  color: var(--danger);
+  font-size: var(--text-sub);
+  color: var(--color-danger);
 }
 
 .modal-actions {
@@ -292,19 +283,19 @@ onMounted(() => {
 
 .modal-footer {
   padding-top: 16px;
-  border-top: 1px solid var(--border-canvas);
+  border-top: 1px solid var(--color-canvas-border);
 }
 
 .help-text {
-  font-size: var(--font-size-footnote);
-  color: var(--sub);
+  font-size: var(--text-footnote);
+  color: var(--color-sub);
   text-align: center;
   margin: 0;
   line-height: 1.5;
 }
 
 .help-link {
-  color: var(--text-default);
+  color: var(--color-on-surface);
   text-decoration: underline;
   transition: opacity 0.2s;
 }

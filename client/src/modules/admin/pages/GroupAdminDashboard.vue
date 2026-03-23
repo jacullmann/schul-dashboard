@@ -162,13 +162,13 @@ const tabs = [
 <style scoped>
 .group-admin {
   min-height: 100vh;
-  background: var(--bg-canvas);
-  color: var(--text-default);
+  background: var(--color-canvas);
+  color: var(--color-on-surface);
 }
 
 .ga-header {
-  border-bottom: 1px solid var(--border-canvas);
-  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--color-canvas-border);
+  background: var(--color-canvas);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -195,13 +195,13 @@ const tabs = [
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  color: var(--sub);
+  color: var(--color-sub);
   transition: background 0.15s, color 0.15s;
 }
 
 .ga-back:hover {
-  background: var(--bg-interactive-hover);
-  color: var(--text-default);
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
 }
 
 .ga-header-title h1 {
@@ -212,8 +212,8 @@ const tabs = [
 }
 
 .ga-group-name {
-  font-size: var(--font-size-sub);
-  color: var(--sub);
+  font-size: var(--text-sub);
+  color: var(--color-sub);
   font-weight: 500;
 }
 
@@ -223,7 +223,7 @@ const tabs = [
   padding: 0 20px;
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid var(--border-canvas);
+  border-bottom: 1px solid var(--color-canvas-border);
 }
 
 .ga-tab {
@@ -233,8 +233,8 @@ const tabs = [
   padding: 12px 16px;
   background: none;
   border: none;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
   font-weight: 500;
   cursor: pointer;
   border-bottom: 2px solid transparent;
@@ -242,11 +242,11 @@ const tabs = [
   transition: color 0.15s;
 }
 
-.ga-tab:hover { color: var(--text-default); }
+.ga-tab:hover { color: var(--color-on-surface); }
 
 .ga-tab.active {
-  color: var(--text-default);
-  border-bottom-color: var(--text-default);
+  color: var(--color-on-surface);
+  border-bottom-color: var(--color-on-surface);
 }
 
 .ga-content {

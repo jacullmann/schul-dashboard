@@ -81,13 +81,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="create-entry-wrapper">
-    <button
-        class="btn square action"
-        @click="toggleMenu"
-        ref="buttonRef"
-    >
+    <BaseButton class="square" @click="toggleMenu" ref="buttonRef" variant="action">
       <Plus :size="24" />
-    </button>
+    </BaseButton>
 
     <div
         v-if="isOpen"

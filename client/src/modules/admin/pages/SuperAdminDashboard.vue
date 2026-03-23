@@ -276,10 +276,10 @@ onMounted(() => {
               <div>
                 <strong>Cleanup:</strong> {{ stats.oldItemsCount }} entries older than 90 days
               </div>
-              <button class="btn ghost" @click="cleanupOldItems" :disabled="isCleaningUp">
+              <BaseButton @click="cleanupOldItems" :disabled="isCleaningUp" variant="ghost">
                 <Trash2 :size="14" />
                 {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
-              </button>
+              </BaseButton>
             </div>
           </template>
         </template>
@@ -288,7 +288,7 @@ onMounted(() => {
         <template v-if="activeTab === 'users'">
           <div class="page-header">
             <h2 class="page-title">User Management</h2>
-            <button class="btn ghost" @click="loadAllUsers">Refresh</button>
+            <BaseButton @click="loadAllUsers" variant="ghost">Refresh</BaseButton>
           </div>
 
           <div class="table-wrap">
@@ -378,12 +378,12 @@ onMounted(() => {
                     From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
                   </div>
                   <div class="report-actions">
-                    <button class="btn ghost tiny" @click="toggleReportProcessed(r.id, false)">
+                    <BaseButton class="tiny" @click="toggleReportProcessed(r.id, false)" variant="ghost">
                       <Check :size="13" /> Resolve
-                    </button>
-                    <button class="btn ghost tiny danger" @click="deleteReport(r.id)">
+                    </BaseButton>
+                    <BaseButton class="tiny" @click="deleteReport(r.id)" variant="ghost">
                       <Trash2 :size="13" /> Delete
-                    </button>
+                    </BaseButton>
                   </div>
                 </div>
               </div>
@@ -398,12 +398,12 @@ onMounted(() => {
                   </div>
                   <div class="report-meta">{{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}</div>
                   <div class="report-actions">
-                    <button class="btn ghost tiny" @click="toggleReportProcessed(r.id, true)">
+                    <BaseButton class="tiny" @click="toggleReportProcessed(r.id, true)" variant="ghost">
                       <RotateCcw :size="13" /> Reopen
-                    </button>
-                    <button class="btn ghost tiny danger" @click="deleteReport(r.id)">
+                    </BaseButton>
+                    <BaseButton class="tiny" @click="deleteReport(r.id)" variant="ghost">
                       <Trash2 :size="13" /> Delete
-                    </button>
+                    </BaseButton>
                   </div>
                 </div>
               </div>
@@ -428,15 +428,15 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--bg-canvas);
-  color: var(--text-default);
+  background: var(--color-canvas);
+  color: var(--color-on-surface);
 }
 
 /* ─── Header ─────────────────────────────────────────── */
 .sa-header {
   height: 56px;
-  border-bottom: 1px solid var(--border-canvas);
-  background: var(--bg-canvas);
+  border-bottom: 1px solid var(--color-canvas-border);
+  background: var(--color-canvas);
   flex-shrink: 0;
   position: sticky;
   top: 0;
@@ -466,10 +466,10 @@ onMounted(() => {
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  color: var(--sub);
+  color: var(--color-sub);
   transition: all 0.15s;
 }
-.sa-back:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
+.sa-back:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
 
 .sa-title {
   font-size: 1.15rem;
@@ -488,8 +488,8 @@ onMounted(() => {
 .sa-sidebar {
   width: 220px;
   flex-shrink: 0;
-  border-right: 1px solid var(--border-canvas);
-  background: var(--bg-canvas);
+  border-right: 1px solid var(--color-canvas-border);
+  background: var(--color-canvas);
   padding: 12px 8px;
   overflow-y: auto;
 }
@@ -504,16 +504,16 @@ onMounted(() => {
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--sub);
-  font-size: var(--font-size-body);
+  color: var(--color-sub);
+  font-size: var(--text-body);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.12s;
   text-align: left;
   width: 100%;
 }
-.sa-nav-item:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
-.sa-nav-item.active { background: var(--ghost--hover); color: var(--text-default); font-weight: 600; }
+.sa-nav-item:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
+.sa-nav-item.active { background: var(--ghost--hover); color: var(--color-on-surface); font-weight: 600; }
 
 .sa-nav-icon { flex-shrink: 0; }
 .sa-nav-label { flex: 1; }
@@ -523,8 +523,8 @@ onMounted(() => {
   font-weight: 600;
   padding: 1px 7px;
   border-radius: 8px;
-  background: var(--bg-interactive-hover);
-  color: var(--sub);
+  background: var(--color-surface-hover);
+  color: var(--color-sub);
 }
 .sa-nav-badge.danger { background: rgba(239,68,68,0.2); color: #ef4444; }
 
@@ -549,9 +549,9 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 12px;
   padding: 18px 16px;
   text-align: center;
@@ -560,48 +560,48 @@ onMounted(() => {
 .stat-card.warn { border-color: rgba(245,158,11,0.3); }
 
 .stat-val { font-size: 1.6rem; font-weight: 700; line-height: 1; }
-.stat-lbl { font-size: var(--font-size-sub); color: var(--sub); margin-top: 4px; }
+.stat-lbl { font-size: var(--text-sub); color: var(--color-sub); margin-top: 4px; }
 
 .sub-stats { display: flex; flex-direction: column; gap: 24px; margin-bottom: 28px; }
-.sub-stat-group h3 { font-size: var(--font-size-title); font-weight: 600; margin: 0 0 12px; }
+.sub-stat-group h3 { font-size: var(--text-title); font-weight: 600; margin: 0 0 12px; }
 .sub-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
 
 .sub-stat {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 10px;
   padding: 12px;
   text-align: center;
 }
 .sub-val { font-size: 1.15rem; font-weight: 700; display: block; }
-.sub-lbl { font-size: var(--font-size-sub); color: var(--sub); }
+.sub-lbl { font-size: var(--text-sub); color: var(--color-sub); }
 
 .cleanup-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  background: var(--bg-surface);
+  background: var(--color-surface);
   border: 1px solid rgba(245,158,11,0.3);
   border-radius: 10px;
-  font-size: var(--font-size-body);
+  font-size: var(--text-body);
   gap: 12px;
 }
 .cleanup-card .btn { display: inline-flex; align-items: center; gap: 6px; }
 
 /* ─── Table ──────────────────────────────────────────── */
-.table-wrap { overflow-x: auto; border: 1px solid var(--border-surface); box-shadow: var(--input-shadow); border-radius: 12px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--color-surface-border); box-shadow: var(--shadow-input); border-radius: 12px; }
 
 .data-table { width: 100%; border-collapse: collapse; }
-.data-table th, .data-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border-canvas); }
-.data-table th { background: var(--bg-surface); color: var(--sub); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.data-table th, .data-table td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--color-canvas-border); }
+.data-table th { background: var(--color-surface); color: var(--color-sub); font-weight: 500; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .data-table tr:last-child td { border-bottom: none; }
 .row-banned { opacity: 0.6; }
 
 .cell-email { font-weight: 500; }
-.cell-id { font-size: 0.65rem; color: var(--sub); font-family: monospace; }
-.cell-date { font-size: var(--font-size-sub); color: var(--sub); white-space: nowrap; }
+.cell-id { font-size: 0.65rem; color: var(--color-sub); font-family: monospace; }
+.cell-date { font-size: var(--text-sub); color: var(--color-sub); white-space: nowrap; }
 .cell-actions { display: flex; gap: 2px; justify-content: flex-end; }
 
 .badge { padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right: 4px; }
@@ -614,19 +614,19 @@ onMounted(() => {
 .btn-icon {
   display: flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: 6px;
-  background: transparent; border: none; color: var(--sub);
+  background: transparent; border: none; color: var(--color-sub);
   cursor: pointer; transition: all 0.12s;
 }
-.btn-icon:hover { background: var(--bg-interactive-hover); color: var(--text-default); }
+.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
 .btn-icon.danger:hover { background: rgba(239,68,68,0.1); color: #ef4444; }
 
 .btn.tiny { padding: 4px 10px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px; }
 .btn.tiny.danger { color: #ef4444; }
 
-.empty-msg { text-align: center; color: var(--sub); padding: 40px; }
+.empty-msg { text-align: center; color: var(--color-sub); padding: 40px; }
 
 .sub-heading { font-size: 0.95rem; font-weight: 600; margin: 0 0 12px; }
-.sub-heading.muted { color: var(--sub); }
+.sub-heading.muted { color: var(--color-sub); }
 
 /* ─── Reports ───────────────────────────────── */
 .report-section { margin-bottom: 32px; }
@@ -640,17 +640,17 @@ onMounted(() => {
 }
 
 .report-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-surface);
-  box-shadow: var(--input-shadow);
+  background: var(--color-surface);
+  border: 1px solid var(--color-surface-border);
+  box-shadow: var(--shadow-input);
   border-radius: 10px;
   padding: 14px 16px;
 }
 .report-card.processed { opacity: 0.8; }
 
 .report-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.report-reason { color: var(--sub); font-size: var(--font-size-body); line-height: 1.4; margin-bottom: 8px; }
-.report-meta { font-size: var(--font-size-sub); color: var(--sub); margin-bottom: 10px; }
+.report-reason { color: var(--color-sub); font-size: var(--text-body); line-height: 1.4; margin-bottom: 8px; }
+.report-meta { font-size: var(--text-sub); color: var(--color-sub); margin-bottom: 10px; }
 .report-actions { display: flex; gap: 6px; }
 
 /* ─── Drawer ─────────────────────────────────────────── */
@@ -663,8 +663,8 @@ onMounted(() => {
 
 .drawer-panel {
   width: 400px; max-width: 90vw;
-  background: var(--bg-canvas);
-  border-left: 1px solid var(--border-canvas);
+  background: var(--color-canvas);
+  border-left: 1px solid var(--color-canvas-border);
   padding: 20px;
   height: 100%;
   overflow-y: auto;
@@ -683,24 +683,24 @@ onMounted(() => {
 .drawer-leave-to .drawer-panel { transform: translateX(100%); }
 
 .log-list { list-style: none; padding: 0; }
-.log-list li { border-bottom: 1px solid var(--border-canvas); padding: 10px 0; }
-.log-time { font-size: 0.75rem; color: var(--sub); display: block; }
+.log-list li { border-bottom: 1px solid var(--color-canvas-border); padding: 10px 0; }
+.log-time { font-size: 0.75rem; color: var(--color-sub); display: block; }
 .log-type { font-weight: 500; }
-.log-meta { background: var(--bg-surface); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color: var(--sub); margin-top: 4px; overflow-x: auto; }
+.log-meta { background: var(--color-surface); padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; color: var(--color-sub); margin-top: 4px; overflow-x: auto; }
 
 /* ─── Doc ────────────────────────────────────────────── */
 .doc-wrapper { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 /* ─── Misc ───────────────────────────────────────────── */
 .center-loader { display: flex; justify-content: center; padding: 40px; }
-.spinner { width: 24px; height: 24px; border: 2px solid var(--border-canvas); border-top-color: var(--text-default); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.spinner { width: 24px; height: 24px; border: 2px solid var(--color-canvas-border); border-top-color: var(--color-on-surface); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ─── Responsive ─────────────────────────────────────── */
 @media (max-width: 900px) {
   .sa-body { flex-direction: column; }
   .sa-sidebar {
-    width: 100%; border-right: none; border-bottom: 1px solid var(--border-canvas);
+    width: 100%; border-right: none; border-bottom: 1px solid var(--color-canvas-border);
     padding: 8px; overflow-x: auto;
   }
   .sa-nav { flex-direction: row; gap: 4px; }
