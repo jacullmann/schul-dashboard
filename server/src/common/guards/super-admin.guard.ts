@@ -12,7 +12,7 @@ export class SuperAdminGuard implements CanActivate {
     const user = request.user;
 
     if (!user || user.globalRole !== 'superadmin') {
-      throw new ForbiddenException('Superadmin-Rechte erforderlich');
+      throw new ForbiddenException('Super-admin privileges required.');
     }
 
     return true;

@@ -1,11 +1,8 @@
 import { ref } from 'vue';
-import axios from 'axios';
-import hw, { setCsrfToken } from '@/api/hwApi';
+import hw, { ensureCsrf } from '@/api/hwApi';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_ENDPOINT = '/api/groups/status';
-const MAX_CSRF_RETRIES = 3;
-const CSRF_RETRY_DELAY_MS = 1_000;
 
 // ─── Shared reactive state (module singleton) ─────────────────────────────────
 
@@ -27,7 +24,6 @@ const userGroups = ref<
 >([]);
 
 let initPromise: Promise<void> | null = null;
-let authExpiredListenerRegistered = false;
 
 // ─── Active group-switch guard ────────────────────────────────────────────────
 // Prevents parallel switch calls (e.g. rapid navigation between group routes).
@@ -50,11 +46,10 @@ function clearAuthState(): void {
   activeGroupOwnerId.value = null;
   userGroups.value = [];
 
-  // Clean up legacy localStorage key from previous code versions.
   try {
     localStorage.removeItem('active_tenant_id');
   } catch {
-    // localStorage may be unavailable (e.g. incognito in some browsers).
+    // localStorage may be unavailable (e.g. certain private-browsing modes).
   }
 }
 
@@ -92,48 +87,19 @@ export function useAppAuth() {
     }
   }
 
-  async function initAuth(): Promise<void> {
+  async function initAuth() {
     if (isAuthReady.value) return;
     if (initPromise) return initPromise;
 
     initPromise = (async () => {
-      const baseUrl =
-        typeof import.meta !== 'undefined' && import.meta.env
-          ? import.meta.env.VITE_HW_API_BASE
-          : '';
-
-      let csrfInitialized = false;
-      for (let attempt = 1; attempt <= MAX_CSRF_RETRIES; attempt++) {
-        try {
-          const { data } = await axios.get(
-            `${baseUrl || ''}/api/system/csrf/init`,
-            { withCredentials: true },
-          );
-          if (data.csrfToken) {
-            setCsrfToken(data.csrfToken);
-            csrfInitialized = true;
-            break;
-          }
-        } catch {
-          if (attempt < MAX_CSRF_RETRIES) {
-            await new Promise((r) => setTimeout(r, CSRF_RETRY_DELAY_MS));
-          }
-        }
-      }
-
-      if (!csrfInitialized) {
-        window.dispatchEvent(new CustomEvent('csrf-init-failed'));
+      try {
+        await ensureCsrf();
+        const { data } = await hw.get(STATUS_ENDPOINT);
+        applyStatusData(data);
+      } catch {
         clearAuthState();
+      } finally {
         isAuthReady.value = true;
-        return;
-      }
-
-      await checkAuthStatus();
-      isAuthReady.value = true;
-
-      if (!authExpiredListenerRegistered) {
-        window.addEventListener('auth-expired', clearAuthState);
-        authExpiredListenerRegistered = true;
       }
     })();
 
@@ -152,15 +118,22 @@ export function useAppAuth() {
         password,
       });
       if ((status === 200 || status === 201) && data.ok) {
-        if (data.csrfToken) setCsrfToken(data.csrfToken);
-        // Full server sync — the JWT now encodes the new active tenant.
+        // Server already set the new CSRF cookie via Set-Cookie header.
         await checkAuthStatus();
         return { ok: true };
       }
-      return { ok: false, error: 'Login failed' };
+      return { ok: false, error: 'Failed to join group.' };
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
-      return { ok: false, error: err.response?.data?.error ?? 'Invalid code' };
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+      };
+      return {
+        ok: false,
+        error:
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'Invalid code.',
+      };
     }
   }
 
@@ -174,16 +147,20 @@ export function useAppAuth() {
         password,
       });
       if ((status === 200 || status === 201) && data.ok) {
-        if (data.csrfToken) setCsrfToken(data.csrfToken);
         await checkAuthStatus();
         return { ok: true };
       }
-      return { ok: false, error: 'Group creation failed' };
+      return { ok: false, error: 'Group creation failed.' };
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
+      const err = error as {
+        response?: { data?: { message?: string; error?: string } };
+      };
       return {
         ok: false,
-        error: err.response?.data?.error ?? 'An error occurred',
+        error:
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'An error occurred.',
       };
     }
   }
@@ -194,7 +171,7 @@ export function useAppAuth() {
       return switchPromise;
     }
 
-    // Snapshot full state for complete rollback on failure.
+    // Snapshot full state for a complete rollback on failure.
     const snapshot = {
       activeGroupId: activeGroupId.value,
       groupName: groupName.value,
@@ -203,9 +180,10 @@ export function useAppAuth() {
       isAuthenticated: isAuthenticated.value,
     };
 
-    // We NO LONGER optimistically update `activeGroupId` before the network request.
-    // Doing so caused UI components to remount and send data fetching requests (e.g., loads Tasks or Timetable)
-    // against the backend BEFORE the backend actually processed the tenant switch.
+    // We deliberately do NOT optimistically update `activeGroupId` before the
+    // network round-trip completes.  Doing so causes downstream data-fetching
+    // components to issue requests against the old tenant before the backend
+    // has processed the switch.
 
     switchTarget = groupId;
     switchPromise = (async (): Promise<AuthResult> => {
@@ -215,8 +193,7 @@ export function useAppAuth() {
         });
 
         if ((status === 200 || status === 201) && data.ok) {
-          if (data.csrfToken) setCsrfToken(data.csrfToken);
-          // Canonical server sync — updates groupName, userGroups, etc.
+          // Canonical server sync — refreshes groupName, userGroups, etc.
           await checkAuthStatus();
           window.dispatchEvent(
             new CustomEvent('tenant-changed', { detail: { groupId } }),
@@ -224,9 +201,9 @@ export function useAppAuth() {
           return { ok: true };
         }
 
-        throw new Error(data?.error ?? 'Group switch failed');
+        throw new Error(data?.error ?? 'Group switch failed.');
       } catch (error: unknown) {
-        // Full rollback: restore every piece of state we might have mutated.
+        // Full rollback: restore every piece of state.
         activeGroupId.value = snapshot.activeGroupId;
         groupName.value = snapshot.groupName;
         userGroups.value = snapshot.userGroups;
@@ -234,11 +211,14 @@ export function useAppAuth() {
         isAuthenticated.value = snapshot.isAuthenticated;
 
         const err = error as {
-          response?: { data?: { error?: string } };
+          response?: { data?: { message?: string; error?: string } };
           message?: string;
         };
         const message =
-          err.response?.data?.error ?? err.message ?? 'Group switch failed';
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          err.message ??
+          'Group switch failed.';
         return { ok: false, error: message };
       } finally {
         switchPromise = null;

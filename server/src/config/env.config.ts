@@ -2,12 +2,15 @@ import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
   IsNumber,
+  IsOptional,
   IsString,
   IsUrl,
-  validateSync,
   MinLength,
-  IsOptional,
+  validateSync,
 } from 'class-validator';
+import { Global, Injectable, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CookieOptions } from 'express';
 
 enum Environment {
   Development = 'development',
@@ -19,6 +22,7 @@ class EnvironmentVariables {
   @IsEnum(Environment)
   NODE_ENV: Environment = Environment.Development;
 
+  @IsOptional()
   @IsString()
   VERSION: string;
 
@@ -28,10 +32,12 @@ class EnvironmentVariables {
   @IsString()
   CORS_ORIGIN: string;
 
+  @IsString()
+  COOKIE_DOMAIN: string;
+
   @IsUrl({ require_tld: false })
   CLIENT_VERIFY_URL: string;
 
-  // Supabase
   @IsUrl({ require_tld: false })
   SUPABASE_URL: string;
 
@@ -39,7 +45,6 @@ class EnvironmentVariables {
   @MinLength(20)
   SUPABASE_SERVICE_ROLE_KEY: string;
 
-  // JWT Secrets
   @IsString()
   @MinLength(32)
   USER_JWT_SECRET: string;
@@ -56,7 +61,6 @@ class EnvironmentVariables {
   @MinLength(32)
   OAUTH_PENDING_JWT_SECRET: string;
 
-  // Google OAuth (optional — feature is disabled when absent)
   @IsOptional()
   @IsString()
   GOOGLE_OAUTH_CLIENT_ID?: string;
@@ -69,14 +73,12 @@ class EnvironmentVariables {
   @IsUrl({ require_tld: false })
   GOOGLE_OAUTH_REDIRECT_URI?: string;
 
-  // Security & Encryption
   @IsString()
   ENCRYPTION_KEY: string;
 
   @IsString()
   USER_KEY_PEPPER: string;
 
-  // Cloudinary
   @IsString()
   CLOUDINARY_API_KEY: string;
 
@@ -89,7 +91,6 @@ class EnvironmentVariables {
   @IsString()
   CLOUDINARY_FOLDER: string;
 
-  // Email (Resend)
   @IsString()
   RESEND_API_KEY: string;
 
@@ -106,7 +107,141 @@ export function validate(config: Record<string, unknown>) {
   });
 
   if (errors.length > 0) {
-    throw new Error(`Config Validation Error: ${errors.toString()}`);
+    throw new Error(`Config validation error: ${errors.toString()}`);
   }
   return validatedConfig;
 }
+
+@Injectable()
+export class AppConfig {
+  constructor(
+    private readonly configService: ConfigService<EnvironmentVariables>,
+  ) {}
+
+  // ─── Environment ──────────────────────────────────────────────────────────
+
+  get isProduction(): boolean {
+    return this.nodeEnv === Environment.Production;
+  }
+
+  get nodeEnv(): string {
+    return this.configService.get('NODE_ENV')!;
+  }
+
+  get port(): number {
+    return this.configService.get<number>('PORT') ?? 3000;
+  }
+
+  get corsOrigin(): string {
+    return this.configService.get('CORS_ORIGIN')!;
+  }
+
+  get clientVerifyUrl(): string {
+    return this.configService.get('CLIENT_VERIFY_URL')!;
+  }
+
+  // ─── Cookies ──────────────────────────────────────────────────────────────
+
+  get cookieDomain(): string {
+    return this.configService.get('COOKIE_DOMAIN')!;
+  }
+
+  /** Base cookie options shared by all cookies in this application. */
+  get baseCookieOptions(): CookieOptions {
+    return {
+      domain: this.cookieDomain,
+      path: '/',
+      secure: true,
+      sameSite: 'lax',
+    };
+  }
+
+  // ─── JWT secrets ──────────────────────────────────────────────────────────
+
+  /** Primary user session JWT secret. */
+  get jwtSecret(): string {
+    return this.configService.get('USER_JWT_SECRET')!;
+  }
+
+  /** Short-lived MFA-pending token secret. */
+  get mfaPendingJwtSecret(): string {
+    return this.configService.get('MFA_PENDING_JWT_SECRET')!;
+  }
+
+  /** Short-lived OAuth-pending token secret (state cookie + pending link). */
+  get oauthPendingJwtSecret(): string {
+    return this.configService.get('OAUTH_PENDING_JWT_SECRET')!;
+  }
+
+  /** Short-lived password-reset token secret. */
+  get passwordResetJwtSecret(): string {
+    return this.configService.get('PASSWORD_RESET_JWT_SECRET')!;
+  }
+
+  // ─── Google OAuth ─────────────────────────────────────────────────────────
+
+  get googleClientId(): string {
+    return this.configService.get('GOOGLE_OAUTH_CLIENT_ID')!;
+  }
+
+  get googleClientSecret(): string {
+    return this.configService.get('GOOGLE_OAUTH_CLIENT_SECRET')!;
+  }
+
+  get googleRedirectUri(): string {
+    return this.configService.get('GOOGLE_OAUTH_REDIRECT_URI')!;
+  }
+
+  // ─── Supabase ─────────────────────────────────────────────────────────────
+
+  get supabaseUrl(): string {
+    return this.configService.get('SUPABASE_URL')!;
+  }
+
+  get supabaseServiceRoleKey(): string {
+    return this.configService.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  }
+
+  // ─── Email (Resend) ───────────────────────────────────────────────────────
+
+  get resendApiKey(): string {
+    return this.configService.get('RESEND_API_KEY')!;
+  }
+
+  get emailFrom(): string {
+    return (
+      this.configService.get('EMAIL_FROM') ||
+      'schul-dashboard <noreply@schul-dashboard.com>'
+    );
+  }
+
+  // ─── Cloudinary ───────────────────────────────────────────────────────────
+
+  get cloudinaryCloudName(): string {
+    return this.configService.get('CLOUDINARY_CLOUD_NAME')!;
+  }
+
+  get cloudinaryApiKey(): string {
+    return this.configService.get('CLOUDINARY_API_KEY')!;
+  }
+
+  get cloudinaryApiSecret(): string {
+    return this.configService.get('CLOUDINARY_API_SECRET')!;
+  }
+
+  get cloudinaryFolder(): string {
+    return this.configService.get('CLOUDINARY_FOLDER') || 'hausaufgaben';
+  }
+}
+
+/**
+ * Global configuration module — imported once in AppModule.
+ * AppConfig is available everywhere without explicit per-module imports.
+ */
+@Global()
+@Module({
+  imports: [ConfigModule],
+  providers: [AppConfig],
+  exports: [AppConfig],
+})
+export class AppConfigModule {}

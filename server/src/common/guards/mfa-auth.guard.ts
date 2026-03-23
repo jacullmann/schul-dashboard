@@ -4,8 +4,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+import { AppConfig } from '../../config/env.config';
 
 export const MFA_PENDING_COOKIE = 'mfa_pending_token';
 
@@ -17,7 +17,7 @@ export interface MfaPendingPayload {
 
 @Injectable()
 export class MfaPendingGuard implements CanActivate {
-  constructor(private configService: ConfigService) {}
+  constructor(private appConfig: AppConfig) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
@@ -25,14 +25,16 @@ export class MfaPendingGuard implements CanActivate {
 
     if (!token || typeof token !== 'string') {
       throw new UnauthorizedException({
-        error: 'Authentifizierung fehlgeschlagen',
+        error: 'Authentication failed.',
         requiresMfaPending: true,
       });
     }
 
     try {
-      const secret = this.configService.get<string>('MFA_PENDING_JWT_SECRET')!;
-      const payload = jwt.verify(token, secret) as MfaPendingPayload;
+      const payload = jwt.verify(
+        token,
+        this.appConfig.mfaPendingJwtSecret,
+      ) as MfaPendingPayload;
 
       if (payload.purpose !== 'mfa_pending' || !payload.sub || !payload.email) {
         throw new Error();
@@ -46,7 +48,7 @@ export class MfaPendingGuard implements CanActivate {
       return true;
     } catch {
       throw new UnauthorizedException({
-        error: 'Authentifizierung fehlgeschlagen',
+        error: 'Authentication failed.',
         requiresMfaPending: true,
       });
     }

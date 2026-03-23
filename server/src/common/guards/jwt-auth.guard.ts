@@ -5,15 +5,14 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Reflector } from '@nestjs/core';
+import { AppConfig } from '../../config/env.config';
 
 export const COOKIE_NAME = 'auth_token';
 export const IS_PUBLIC_KEY = 'isPublic';
 
-// Legacy shape from Express
 export interface AuthTokenPayload {
   sub: string;
   email: string;
@@ -24,9 +23,9 @@ export interface AuthTokenPayload {
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
-    private configService: ConfigService,
-    private supabaseService: SupabaseService,
-    private reflector: Reflector,
+    private readonly appConfig: AppConfig,
+    private readonly supabaseService: SupabaseService,
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,46 +38,49 @@ export class JwtAuthGuard implements CanActivate {
     const token = request.cookies[COOKIE_NAME];
 
     if (isPublic) {
+      // For public routes, decode the user if a valid token is present so that
+      // handlers can access optional user context without enforcing auth.
       if (token && typeof token === 'string') {
         try {
-          const secret = this.configService.get<string>('USER_JWT_SECRET');
-          if (secret) {
-            const payload = jwt.verify(token, secret) as AuthTokenPayload;
-            if (payload.sub && payload.email) {
-              request.user = {
-                sub: payload.sub,
-                email: payload.email,
-                globalRole: payload.gRole || 'user',
-              };
-              request.userId = payload.sub;
-              request.activeGroupId = payload.gId || null;
-            }
+          const payload = jwt.verify(
+            token,
+            this.appConfig.jwtSecret,
+          ) as AuthTokenPayload;
+          if (payload.sub && payload.email) {
+            request.user = {
+              sub: payload.sub,
+              email: payload.email,
+              globalRole: payload.gRole || 'user',
+            };
+            request.userId = payload.sub;
+            request.activeGroupId = payload.gId || null;
           }
         } catch {
-          // Ignore invalid token for public routes
+          // Ignore invalid token for public routes.
         }
       }
-      return true; // Proceed anyway since it's public
+      return true;
     }
 
     if (!token || typeof token !== 'string') {
       throw new UnauthorizedException({
-        error: 'Authentifizierung erforderlich',
+        error: 'Authentication required.',
         requiresAuth: true,
       });
     }
 
     try {
-      const secret = this.configService.get<string>('USER_JWT_SECRET')!;
-      const payload = jwt.verify(token, secret) as AuthTokenPayload;
+      const payload = jwt.verify(
+        token,
+        this.appConfig.jwtSecret,
+      ) as AuthTokenPayload;
 
       if (!payload.sub || !payload.email) {
-        throw new Error();
+        throw new Error('Invalid payload.');
       }
 
       const supabase = this.supabaseService.getClient();
 
-      // Ban check
       const { data: ban } = await supabase
         .from('banned_users')
         .select('id')
@@ -86,10 +88,11 @@ export class JwtAuthGuard implements CanActivate {
         .maybeSingle();
 
       if (ban) {
-        throw new ForbiddenException({ error: 'Account gesperrt' });
+        throw new ForbiddenException({
+          error: 'Your account has been suspended.',
+        });
       }
 
-      // Populate user context
       request.user = {
         sub: payload.sub,
         email: payload.email,
@@ -98,15 +101,11 @@ export class JwtAuthGuard implements CanActivate {
       request.userId = payload.sub;
       request.activeGroupId = payload.gId || null;
 
-      // Notice: If specific role checks are needed (e.g., 'superadmin' or tenant role list),
-      // we will handle them in separate RolesGuard to mimic `requireAuth(secret, supabase, 'superadmin')`,
-      // or directly use another Guard on specific routes.
-
       return true;
     } catch (err: any) {
       if (err instanceof ForbiddenException) throw err;
       throw new UnauthorizedException({
-        error: 'Auth-Token ungültig oder abgelaufen',
+        error: 'Auth token is invalid or has expired.',
         requiresAuth: true,
       });
     }

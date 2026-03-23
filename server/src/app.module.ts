@@ -1,3 +1,4 @@
+import { APP_GUARD } from '@nestjs/core';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -13,9 +14,10 @@ import { DocModule } from './doc/doc.module';
 import { EmailModule } from './common/email/email.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
-import { validate } from './config/env.config';
+import { AppConfigModule, validate } from './config/env.config';
 import { SystemModule } from './system/system.module';
 import { OAuthModule } from './oauth/oauth.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { OAuthModule } from './oauth/oauth.module';
         limit: 400,
       },
     ]),
+    // AppConfigModule is @Global() — AppConfig is available in all modules.
+    AppConfigModule,
     SystemModule,
     SupabaseModule,
     EmailModule,
@@ -45,7 +49,10 @@ import { OAuthModule } from './oauth/oauth.module';
     OAuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    // JwtAuthGuard protects all routes by default; use @Public() to opt out.
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

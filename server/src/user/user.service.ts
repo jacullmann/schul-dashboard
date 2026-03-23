@@ -26,9 +26,7 @@ export class UserService {
       meta: { personalized },
     });
     if (err_i5fxl)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Error saving user activity.');
 
     return { ok: true, personalized: updatedUser.personalized };
   }
@@ -104,9 +102,7 @@ export class UserService {
       meta: { preferences },
     });
     if (err_n0ld2)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Error saving user activity.');
 
     return { ok: true, preferences: updatedUser.preferences };
   }
@@ -135,7 +131,7 @@ export class UserService {
       .select()
       .maybeSingle();
 
-    if (!updatedUser) throw new NotFoundException('Nutzer nicht gefunden');
+    if (!updatedUser) throw new NotFoundException('User not found.');
 
     const { error: err_2yf4u } = await sb.from('user_activity').insert({
       user_id: userId,
@@ -143,9 +139,7 @@ export class UserService {
       meta: { enrKurs, wpuKurs1, wpuKurs2, theater },
     });
     if (err_2yf4u)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Error saving user activity.');
 
     return {
       ok: true,
@@ -170,9 +164,7 @@ export class UserService {
       .eq('user_id', userId);
 
     if (error) {
-      throw new InternalServerErrorException(
-        'Fehler beim Laden der abgehakten Einträge',
-      );
+      throw new InternalServerErrorException('Error loading checked items.');
     }
 
     return { itemIds: (data || []).map((d) => d.item_id) };
@@ -186,9 +178,7 @@ export class UserService {
       .eq('user_id', userId);
 
     if (error) {
-      throw new InternalServerErrorException(
-        'Fehler beim Laden der fixierten Einträge',
-      );
+      throw new InternalServerErrorException('Error loading pinned items.');
     }
 
     return { itemIds: (data || []).map((d) => d.item_id) };
@@ -203,7 +193,7 @@ export class UserService {
 
     if (error) {
       throw new InternalServerErrorException(
-        'Fehler beim Laden des Sichtbarkeitsstatus',
+        'Error loading visibility status.',
       );
     }
 
@@ -232,11 +222,9 @@ export class UserService {
 
     if (itemError) {
       console.error('Check item existence error:', itemError);
-      throw new InternalServerErrorException(
-        'Fehler beim Überprüfen des Eintrags',
-      );
+      throw new InternalServerErrorException('Error verifying item.');
     }
-    if (!item) throw new NotFoundException('Eintrag nicht gefunden');
+    if (!item) throw new NotFoundException('Item not found.');
 
     // Manually handle upsert via delete + insert to avoid potential composite key issues or onConflict bugs
     const { error: deleteError } = await sb
@@ -257,9 +245,7 @@ export class UserService {
 
     if (insertError) {
       console.error('Manual upsert insert phase error:', insertError);
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern des Sichtbarkeitsstatus',
-      );
+      throw new InternalServerErrorException('Error saving visibility status.');
     }
 
     const { error: err_t7zxy } = await sb.from('user_activity').insert({
@@ -269,9 +255,7 @@ export class UserService {
     });
     if (err_t7zxy) {
       console.error('Activity set visibility error:', err_t7zxy);
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Error saving user activity.');
     }
 
     return { ok: true };
@@ -289,7 +273,7 @@ export class UserService {
     if (deleteError) {
       console.error('Delete visibility error:', deleteError);
       throw new InternalServerErrorException(
-        'Fehler beim Entfernen des Sichtbarkeitsstatus',
+        'Error removing visibility status.',
       );
     }
 
@@ -300,9 +284,7 @@ export class UserService {
     });
     if (err_nkgjw) {
       console.error('Activity remove visibility error:', err_nkgjw);
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Error saving user activity.');
     }
     return { ok: true };
   }
@@ -320,9 +302,7 @@ export class UserService {
       });
       if (err_gnz6e) {
         console.error('Activity log page load error:', err_gnz6e);
-        throw new InternalServerErrorException(
-          'Fehler beim Speichern der Benutzeraktivität',
-        );
+        throw new InternalServerErrorException('Error saving user activity.');
       }
       return { ok: true };
     } catch (e) {
@@ -339,7 +319,7 @@ export class UserService {
       .eq('id', itemId)
       .eq('tenant_id', tenantId)
       .maybeSingle();
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
 
     const { error: err_pukxk_del } = await sb
       .from('keep_checked')
@@ -359,7 +339,7 @@ export class UserService {
     if (err_pukxk) {
       console.error('Insert checkItem error:', err_pukxk);
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
     }
 
@@ -393,7 +373,7 @@ export class UserService {
       .eq('id', itemId)
       .eq('tenant_id', tenantId)
       .maybeSingle();
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
 
     const { error: err_sj9mc_del } = await sb
       .from('pinned_items')
@@ -413,7 +393,7 @@ export class UserService {
     if (err_sj9mc) {
       console.error('Insert pinItem error:', err_sj9mc);
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
     }
 

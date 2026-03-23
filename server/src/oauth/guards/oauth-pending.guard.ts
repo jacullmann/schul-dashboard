@@ -4,8 +4,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
+import { AppConfig } from '../../config/env.config';
 
 export const OAUTH_PENDING_COOKIE = 'oauth_pending_token';
 
@@ -17,7 +17,7 @@ export interface OAuthPendingPayload {
 
 @Injectable()
 export class OAuthPendingGuard implements CanActivate {
-  constructor(private configService: ConfigService) {}
+  constructor(private appConfig: AppConfig) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
@@ -25,16 +25,16 @@ export class OAuthPendingGuard implements CanActivate {
 
     if (!token || typeof token !== 'string') {
       throw new UnauthorizedException({
-        error: 'Authentifizierung fehlgeschlagen',
+        error: 'Authentication failed.',
         requiresOAuthPending: true,
       });
     }
 
     try {
-      const secret = this.configService.get<string>(
-        'OAUTH_PENDING_JWT_SECRET',
-      )!;
-      const payload = jwt.verify(token, secret) as OAuthPendingPayload;
+      const payload = jwt.verify(
+        token,
+        this.appConfig.oauthPendingJwtSecret,
+      ) as OAuthPendingPayload;
 
       if (
         payload.purpose !== 'oauth_pending' ||
@@ -52,7 +52,7 @@ export class OAuthPendingGuard implements CanActivate {
       return true;
     } catch {
       throw new UnauthorizedException({
-        error: 'Authentifizierung fehlgeschlagen',
+        error: 'Authentication failed.',
         requiresOAuthPending: true,
       });
     }

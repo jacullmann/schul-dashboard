@@ -31,9 +31,7 @@ export class RolesGuard implements CanActivate {
     const tenantRole = request.tenantRole;
 
     if (!tenantRole || !requiredRoles.includes(tenantRole)) {
-      throw new ForbiddenException(
-        'Keine ausreichenden Berechtigungen in dieser Gruppe',
-      );
+      throw new ForbiddenException('Insufficient permissions for this group.');
     }
 
     return true;

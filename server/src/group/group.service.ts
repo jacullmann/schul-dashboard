@@ -7,7 +7,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
-import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '../config/env.config';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { Response } from 'express';
@@ -20,11 +20,14 @@ import { generateUserName } from '../common/utils/name-generator.util';
 
 const DUMMY_HASH = bcrypt.hashSync('__dummy__', 10);
 
+/** How recent "unread" content must be (3 days). */
+const UNREAD_THRESHOLD_MS = 3 * 24 * 60 * 60 * 1000;
+
 @Injectable()
 export class GroupService {
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService,
+    private readonly appConfig: AppConfig,
   ) {}
 
   private setAuthToken(
@@ -34,29 +37,26 @@ export class GroupService {
     globalRole: string,
     activeGroupId: string | null,
   ) {
-    const secret = this.configService.get<string>('USER_JWT_SECRET')!;
     const payload = {
       sub: userId,
       email,
       gRole: globalRole || 'user',
       gId: activeGroupId || null,
     };
-    const token = jwt.sign(payload, secret, { expiresIn: '7d' });
+    const token = jwt.sign(payload, this.appConfig.jwtSecret, {
+      expiresIn: '7d',
+    });
     res.cookie(COOKIE_NAME, token, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 
   private clearAuthToken(res: Response) {
     res.clearCookie(COOKIE_NAME, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
     });
   }
 
@@ -81,43 +81,40 @@ export class GroupService {
     const isValid = await bcrypt.compare(password, hashToCompare);
     const isAuthenticated = group && isValid;
 
-    const { error: err_djic6 } = await sb.from('security_events').insert({
+    const { error: secEventErr } = await sb.from('security_events').insert({
       event_type: 'group_join',
       event_status: isAuthenticated ? 'success' : 'failure',
       ip_address: ip,
       user_agent: ua,
       metadata: { groupName, groupId: group?.id || null, userId },
     });
-    if (err_djic6)
+    if (secEventErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
     if (!isAuthenticated)
-      throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
+      throw new UnauthorizedException('Invalid group name or password.');
 
     const { data: existingRoles } = await sb
       .from('user_roles')
       .select('id')
       .eq('user_id', userId)
-      .eq('role_id', 4) // 'user' role
+      .eq('role_id', 4)
       .eq('tenant_id', group.id)
       .limit(1);
 
-    const existingRole = existingRoles?.[0];
-
-    if (!existingRole) {
-      const { error } = await sb
+    if (!existingRoles?.[0]) {
+      const { error: roleErr } = await sb
         .from('user_roles')
         .insert({ user_id: userId, role_id: 4, tenant_id: group.id });
-      if (error)
-        throw new InternalServerErrorException(
-          'Fehler beim Beitritt zur Gruppe.',
-        );
+      if (roleErr)
+        throw new InternalServerErrorException('Failed to join group.');
     }
 
     this.setAuthToken(res, userId, email, globalRole, group.id);
-    const newCsrfToken = rotateCsrfToken(res);
+    const newCsrfToken = rotateCsrfToken(res, this.appConfig);
 
     return { ok: true, csrfToken: newCsrfToken };
   }
@@ -140,18 +137,14 @@ export class GroupService {
       .maybeSingle();
 
     if (existingGroup) {
-      const { error: err_xv2pz } = await sb.from('security_events').insert({
+      await sb.from('security_events').insert({
         event_type: 'group_create',
         event_status: 'failure',
         ip_address: ip,
         user_agent: ua,
         metadata: { groupName },
       });
-      if (err_xv2pz)
-        throw new InternalServerErrorException(
-          'Ein unerwarteter Datenbankfehler ist aufgetreten',
-        );
-      throw new ConflictException('Dieser Gruppenname ist bereits vergeben.');
+      throw new ConflictException('This group name is already taken.');
     }
 
     const passcodeHash = await bcrypt.hash(password, 12);
@@ -166,21 +159,17 @@ export class GroupService {
       .single();
 
     if (createGroupErr || !newGroup?.id) {
-      throw new InternalServerErrorException(
-        'Gruppe konnte nicht erstellt werden.',
-      );
+      throw new InternalServerErrorException('Failed to create group.');
     }
 
     const { error: insertErr } = await sb
       .from('user_roles')
       .insert({ user_id: userId, role_id: 2, tenant_id: newGroup.id });
     if (insertErr) {
-      throw new InternalServerErrorException(
-        'Fehler bei der Zuweisung der Administratorrechte.',
-      );
+      throw new InternalServerErrorException('Failed to assign admin role.');
     }
 
-    const { error: err_a1xq9 } = await sb.from('security_events').insert({
+    await sb.from('security_events').insert({
       event_type: 'group_create',
       event_status: 'success',
       ip_address: ip,
@@ -191,13 +180,9 @@ export class GroupService {
         createdBy: userId,
       },
     });
-    if (err_a1xq9)
-      throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
-      );
 
     this.setAuthToken(res, userId, email, globalRole, newGroup.id);
-    const newCsrfToken = rotateCsrfToken(res);
+    const newCsrfToken = rotateCsrfToken(res, this.appConfig);
 
     return { ok: true, csrfToken: newCsrfToken };
   }
@@ -220,31 +205,51 @@ export class GroupService {
       const groups = (userRoles || [])
         .filter((ur: any) => ur.groups?.id)
         .map((ur: any) => ({
-          id: ur.groups.id,
-          name: ur.groups.name,
-          ownerId: ur.groups.owner_id,
-          role: ur.roles?.name,
+          id: ur.groups.id as string,
+          name: ur.groups.name as string,
+          ownerId: ur.groups.owner_id as string,
+          role: ur.roles?.name as string,
           generatedName: generateUserName(userId, ur.groups.id),
-          hasUnreadContent: false, // Default, updated via RPC later
+          hasUnreadContent: false,
         }));
 
-      // Fetch the unread status for all groups in O(1) time
-      const { data: unreadStatus } = await sb.rpc('get_unread_status', {
-        p_user_id: userId,
-      });
-      if (unreadStatus) {
-        unreadStatus.forEach((status: any) => {
-          const group = groups.find((g: any) => g.id === status.tenant_id);
-          if (group) {
-            group.hasUnreadContent =
-              status.has_unread_announcements ||
-              status.has_unread_timetable_subs;
-          }
-        });
+      // Determine unread status via direct queries (no RPC).
+      // A group is considered to have unread content when there are new
+      // announcements or timetable substitutions within the last 3 days.
+      if (groups.length > 0) {
+        const thresholdDate = new Date(
+          Date.now() - UNREAD_THRESHOLD_MS,
+        ).toISOString();
+        const tenantIds = groups.map((g) => g.id);
+
+        const [{ data: recentAnnouncements }, { data: recentSubs }] =
+          await Promise.all([
+            sb
+              .from('announcements')
+              .select('tenant_id')
+              .in('tenant_id', tenantIds)
+              .gte('created_at', thresholdDate),
+            sb
+              .from('timetable_subs')
+              .select('tenant_id')
+              .in('tenant_id', tenantIds)
+              .gte('created_at', thresholdDate),
+          ]);
+
+        const tenantIdsWithUnread = new Set<string>([
+          ...(recentAnnouncements || []).map((r: any) => r.tenant_id as string),
+          ...(recentSubs || []).map((r: any) => r.tenant_id as string),
+        ]);
+
+        for (const g of groups) {
+          g.hasUnreadContent = tenantIdsWithUnread.has(g.id);
+        }
       }
 
-      let activeGroup: any = groups.find((g: any) => g.id === activeGroupId);
+      let activeGroup: (typeof groups)[number] | null =
+        groups.find((g) => g.id === activeGroupId) ?? null;
 
+      // Super-admins can be active in groups they are not a member of.
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb
           .from('groups')
@@ -254,11 +259,12 @@ export class GroupService {
 
         if (adminGroup) {
           activeGroup = {
-            id: adminGroup.id,
-            name: adminGroup.name,
-            ownerId: adminGroup.owner_id,
+            id: adminGroup.id as string,
+            name: adminGroup.name as string,
+            ownerId: adminGroup.owner_id as string,
             role: 'superadmin',
-            generatedName: generateUserName(userId, adminGroup.id),
+            generatedName: generateUserName(userId, adminGroup.id as string),
+            hasUnreadContent: false,
           };
         }
       }
@@ -295,10 +301,10 @@ export class GroupService {
         .eq('id', groupId)
         .maybeSingle();
 
-      if (!group) throw new NotFoundException('Gruppe nicht gefunden.');
+      if (!group) throw new NotFoundException('Group not found.');
 
       this.setAuthToken(res, userId, email, globalRole, group.id);
-      const newCsrfToken = rotateCsrfToken(res);
+      const newCsrfToken = rotateCsrfToken(res, this.appConfig);
       return { ok: true, csrfToken: newCsrfToken };
     }
 
@@ -312,7 +318,7 @@ export class GroupService {
     const membership = memberships?.[0];
 
     if (!(membership as any)?.groups) {
-      throw new ForbiddenException('Zugriff auf diese Gruppe nicht erlaubt.');
+      throw new ForbiddenException('You do not have access to this group.');
     }
 
     this.setAuthToken(
@@ -322,27 +328,28 @@ export class GroupService {
       globalRole,
       (membership as any).groups.id,
     );
-    const newCsrfToken = rotateCsrfToken(res);
+    const newCsrfToken = rotateCsrfToken(res, this.appConfig);
 
     return { ok: true, csrfToken: newCsrfToken };
   }
 
   async logout(res: Response, ip: string, ua: string) {
     const sb = this.supabaseService.getClient();
-    const { error: err_ionkm } = await sb.from('security_events').insert({
+    const { error: secEventErr } = await sb.from('security_events').insert({
       event_type: 'group_logout',
       event_status: 'success',
       ip_address: ip,
       user_agent: ua,
       metadata: {},
     });
-    if (err_ionkm)
+    if (secEventErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
     this.clearAuthToken(res);
-    clearCsrfCookie(res);
+    clearCsrfCookie(res, this.appConfig);
     return { ok: true };
   }
 }

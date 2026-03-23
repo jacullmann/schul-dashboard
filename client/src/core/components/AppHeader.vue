@@ -10,7 +10,6 @@ import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import { X, Menu, ChevronDown } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
-import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
 
@@ -72,12 +71,6 @@ function handleClickOutside(event: MouseEvent) {
   if (groupMenuOpen.value && groupMenuRef.value && !groupMenuRef.value.contains(event.target as Node)) {
     groupMenuOpen.value = false;
   }
-}
-
-const { openAuthModal } = useGlobalAuthModal();
-
-function handleLoginClick() {
-  openAuthModal().catch(() => {});
 }
 
 const toggleNav = () => {
@@ -256,10 +249,6 @@ onUnmounted(() => {
             @personalization-changed="onPersonalizationChanged"
             @mfa-changed="onMfaChanged"
         />
-
-        <BaseButton v-else class="cta-button" @click="handleLoginClick" variant="action">
-          {{ t('account.auth.login') }}
-        </BaseButton>
 
         <button
             @click="toggleNav"

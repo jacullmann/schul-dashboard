@@ -23,7 +23,7 @@ export class MfaService {
       .eq('id', userId)
       .maybeSingle();
 
-    if (!user) throw new NotFoundException('Nutzer nicht gefunden');
+    if (!user) throw new NotFoundException('User not found.');
 
     return { ok: true, mfaEnabled: !!user.mfa_enabled };
   }
@@ -36,37 +36,35 @@ export class MfaService {
       .eq('id', userId)
       .maybeSingle();
 
-    if (!user) throw new NotFoundException('Nutzer nicht gefunden');
+    if (!user) throw new NotFoundException('User not found.');
     if (user.mfa_enabled)
-      throw new BadRequestException('MFA ist bereits aktiviert');
+      throw new BadRequestException('MFA is already enabled.');
 
-    // Delete old pending secret if exists
-    const { error: err_n60hl } = await sb
+    const { error: deleteErr } = await sb
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', userId);
-    if (err_n60hl)
+    if (deleteErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
-    // Generate new secret
     const secret = authenticator.generateSecret();
     const encryptedSecret = await encryptData(secret, userId);
 
-    // Store pending secret (valid for 15 minutes)
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    const { error: err_qp7sr } = await sb.from('mfa_pending_secrets').upsert({
+    const { error: upsertErr } = await sb.from('mfa_pending_secrets').upsert({
       user_id: userId,
       encrypted_secret: encryptedSecret,
       expires_at: expiresAt,
     });
-    if (err_qp7sr)
+    if (upsertErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
-    // Generate QR code
     const issuer = 'Schul-Dashboard';
     const accountName = user.email as string;
     const otpauthUrl = authenticator.keyuri(accountName, issuer, secret);
@@ -86,7 +84,6 @@ export class MfaService {
   async activate(userId: string, code: string) {
     const sb = this.supabaseService.getClient();
 
-    // Fetch pending secret
     const { data: pending } = await sb
       .from('mfa_pending_secrets')
       .select('encrypted_secret')
@@ -95,40 +92,38 @@ export class MfaService {
 
     if (!pending) {
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
-      throw new BadRequestException('Authentifizierung fehlgeschlagen');
+      throw new BadRequestException('Authentication failed.');
     }
 
-    // Decrypt and verify code
     const secret = await decryptData(pending.encrypted_secret, userId);
     const isValid = authenticator.check(code, secret);
 
     if (!isValid) {
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
-      throw new BadRequestException('Authentifizierung fehlgeschlagen');
+      throw new BadRequestException('Authentication failed.');
     }
 
-    // Enable MFA: store encrypted secret on user
     const encryptedSecret = await encryptData(secret, userId);
     await sb
       .from('users')
       .update({ mfa_enabled: true, mfa_secret: encryptedSecret })
       .eq('id', userId);
 
-    // Delete pending secret
-    const { error: err_ltuo9 } = await sb
+    const { error: deleteErr } = await sb
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', userId);
-    if (err_ltuo9)
+    if (deleteErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'mfa:activated', meta: {} });
 
-    return { ok: true, message: 'MFA erfolgreich aktiviert' };
+    return { ok: true, message: 'MFA activated successfully.' };
   }
 
   async deactivate(userId: string, code: string, ip?: string) {
@@ -139,23 +134,21 @@ export class MfaService {
       .eq('id', userId)
       .maybeSingle();
 
-    if (!user) throw new NotFoundException('Nutzer nicht gefunden');
+    if (!user) throw new NotFoundException('User not found.');
 
     if (!user.mfa_enabled || !user.mfa_secret) {
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
-      throw new BadRequestException('Authentifizierung fehlgeschlagen');
+      throw new BadRequestException('Authentication failed.');
     }
 
-    // Decrypt and verify code
     const secret = await decryptData(user.mfa_secret, userId);
     const isValid = authenticator.check(code, secret);
 
     if (!isValid) {
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
-      throw new BadRequestException('Authentifizierung fehlgeschlagen');
+      throw new BadRequestException('Authentication failed.');
     }
 
-    // Disable MFA
     await sb
       .from('users')
       .update({ mfa_enabled: false, mfa_secret: null })
@@ -165,6 +158,6 @@ export class MfaService {
       .from('user_activity')
       .insert({ user_id: userId, type: 'mfa:deactivated', meta: { ip } });
 
-    return { ok: true, message: 'MFA erfolgreich deaktiviert' };
+    return { ok: true, message: 'MFA deactivated successfully.' };
   }
 }

@@ -6,8 +6,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
-import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
+import { AppConfig } from '../config/env.config';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { withThumb, timeLeftColor } from '../common/utils/model.util';
 import dayjs from 'dayjs';
@@ -16,12 +16,12 @@ import dayjs from 'dayjs';
 export class ItemsService {
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService,
+    private readonly appConfig: AppConfig,
   ) {
     cloudinary.config({
-      cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
-      api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
+      cloud_name: this.appConfig.cloudinaryCloudName,
+      api_key: this.appConfig.cloudinaryApiKey,
+      api_secret: this.appConfig.cloudinaryApiSecret,
     });
   }
 
@@ -88,12 +88,17 @@ export class ItemsService {
     }
 
     if (type === 'all' || !type) {
-      // Fire and forget RPC to update the group visit logic
-      sb.rpc('upsert_user_tenant_visit', {
-        p_user_id: userId,
-        p_tenant_id: tenantId,
-        p_visit_type: 'group',
-      }).then();
+      // Fire-and-forget: record the user's last group visit timestamp.
+      sb.from('user_tenant_state')
+        .upsert(
+          {
+            user_id: userId,
+            tenant_id: tenantId,
+            last_group_visit_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id,tenant_id' },
+        )
+        .then();
     }
 
     return (rows || []).map((row: any) => ({
@@ -123,7 +128,7 @@ export class ItemsService {
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!row) throw new NotFoundException('Eintrag nicht gefunden');
+    if (!row) throw new NotFoundException('Item not found.');
 
     const { data: creator } = await sb
       .from('users')
@@ -153,7 +158,7 @@ export class ItemsService {
     const rawImages = payload.images || [];
     for (const img of rawImages) {
       if (!img.publicId)
-        throw new BadRequestException('Fehlendes publicId im Bild');
+        throw new BadRequestException('Missing publicId in image.');
     }
 
     const images = rawImages.map((img: any) => ({
@@ -179,9 +184,7 @@ export class ItemsService {
       .single();
 
     if (error || !item)
-      throw new InternalServerErrorException(
-        'Fehler beim Erstellen des Eintrags',
-      );
+      throw new InternalServerErrorException('Failed to create item.');
 
     const { error: err_j4g3x } = await sb.from('user_activity').insert({
       user_id: userId,
@@ -189,9 +192,7 @@ export class ItemsService {
       meta: { id: item.id, type: item.type },
     });
     if (err_j4g3x)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Failed to save user activity.');
 
     return { ok: true, id: item.id };
   }
@@ -205,29 +206,26 @@ export class ItemsService {
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
     if (item.created_by !== userId)
-      throw new ForbiddenException(
-        'Nur der Ersteller kann diesen Eintrag bearbeiten.',
-      );
+      throw new ForbiddenException('Only the creator can edit this item.');
 
     if (payload.dueDate) {
       const due = dayjs(payload.dueDate);
       if (due.isBefore(dayjs().subtract(2, 'day')))
-        throw new BadRequestException(
-          'Datum liegt zu weit in der Vergangenheit',
-        );
+        throw new BadRequestException('Date is too far in the past.');
       if (due.isAfter(dayjs().add(365, 'day')))
-        throw new BadRequestException('Datum liegt zu weit in der Zukunft');
+        throw new BadRequestException('Date is too far in the future.');
     }
 
     if (payload.images) {
       if (payload.images.length > 12)
-        throw new BadRequestException('Max 12 Bilder');
+        throw new BadRequestException('Maximum 12 images allowed.');
       const userCount = payload.images.filter(
         (i: any) => i.createdBy === userId || !i.createdBy,
       ).length;
-      if (userCount > 8) throw new BadRequestException('Max 8 eigene Bilder');
+      if (userCount > 8)
+        throw new BadRequestException('Maximum 8 personal images allowed.');
     }
 
     const update: any = {};
@@ -274,7 +272,7 @@ export class ItemsService {
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
 
     const isSuperadmin = globalRole === 'superadmin';
     const isGroupAdmin = tenantRole === 'admin' || tenantRole === 'moderator';
@@ -299,9 +297,7 @@ export class ItemsService {
       .eq('id', item.id)
       .eq('tenant_id', tenantId);
     if (err_tzewj)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern des Elements',
-      );
+      throw new InternalServerErrorException('Failed to save item.');
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'item:delete', meta: { id: item.id } });
@@ -323,7 +319,7 @@ export class ItemsService {
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
 
     const noteContent = editorNote.trim();
     await sb
@@ -337,9 +333,7 @@ export class ItemsService {
       meta: { itemId: item.id },
     });
     if (err_o6pcp)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Failed to save user activity.');
 
     return { ok: true, editorNote: noteContent };
   }
@@ -353,13 +347,15 @@ export class ItemsService {
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
 
     const images = item.images || [];
-    if (images.length >= 12) throw new BadRequestException('Max 12 Bilder');
+    if (images.length >= 12)
+      throw new BadRequestException('Maximum 12 images allowed.');
 
     const userCount = images.filter((i: any) => i.createdBy === userId).length;
-    if (userCount >= 8) throw new BadRequestException('Max 8 eigene Bilder');
+    if (userCount >= 8)
+      throw new BadRequestException('Maximum 8 personal images allowed.');
 
     const newImage: any = {
       publicId: imgBody.publicId,
@@ -379,9 +375,7 @@ export class ItemsService {
       meta: { itemId: item.id },
     });
     if (err_vgxbj)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Failed to save user activity.');
 
     return { ok: true, image: withThumb(newImage) };
   }
@@ -402,7 +396,7 @@ export class ItemsService {
       .eq('tenant_id', tenantId)
       .maybeSingle();
 
-    if (!item) throw new NotFoundException('Nicht gefunden');
+    if (!item) throw new NotFoundException('Not found.');
 
     let publicId: string;
     try {
@@ -414,7 +408,7 @@ export class ItemsService {
     const images = item.images || [];
     const idx = images.findIndex((i: any) => i.publicId === publicId);
 
-    if (idx === -1) throw new NotFoundException('Bild nicht gefunden');
+    if (idx === -1) throw new NotFoundException('Image not found.');
 
     const image = images[idx];
     const isSuperadmin = globalRole === 'superadmin';
@@ -444,9 +438,7 @@ export class ItemsService {
       meta: { itemId: item.id },
     });
     if (err_oj0tc)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Failed to save user activity.');
 
     return { ok: true };
   }
@@ -455,7 +447,7 @@ export class ItemsService {
     const { itemId, itemTitle, category, reason } = payload;
 
     if (category === 'falschinfo' && (!reason || !reason.trim())) {
-      throw new BadRequestException('Bitte füge einen Grund hinzu.');
+      throw new BadRequestException('Please provide a reason.');
     }
 
     const sb = this.supabaseService.getClient();
@@ -478,27 +470,22 @@ export class ItemsService {
       meta: { itemId, category },
     });
     if (err_at81w)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+      throw new InternalServerErrorException('Failed to save user activity.');
 
-    return { ok: true, message: 'Eintrag erfolgreich gemeldet.' };
+    return { ok: true, message: 'Item reported successfully.' };
   }
 
   createUploadSignature() {
     const timestamp = Math.floor(Date.now() / 1000);
-    const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET')!;
-    const folder =
-      this.configService.get<string>('CLOUDINARY_FOLDER') || 'hausaufgaben';
-
+    const folder = this.appConfig.cloudinaryFolder;
     const signature = cloudinary.utils.api_sign_request(
       { timestamp, folder },
-      apiSecret,
+      this.appConfig.cloudinaryApiSecret,
     );
 
     return {
-      cloudName: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-      apiKey: this.configService.get<string>('CLOUDINARY_API_KEY'),
+      cloudName: this.appConfig.cloudinaryCloudName,
+      apiKey: this.appConfig.cloudinaryApiKey,
       timestamp,
       signature,
       folder,

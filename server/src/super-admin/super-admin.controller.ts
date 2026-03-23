@@ -51,6 +51,11 @@ export class SuperAdminController {
     return this.superAdminService.getGroups();
   }
 
+  @Delete('groups/:id')
+  deleteGroup(@Param('id') groupId: string) {
+    return this.superAdminService.deleteGroup(groupId);
+  }
+
   @Get('all-users')
   getAllUsers() {
     return this.superAdminService.getAllUsers();

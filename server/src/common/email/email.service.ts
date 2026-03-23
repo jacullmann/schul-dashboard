@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import { AppConfig } from '../../config/env.config';
 
 @Injectable()
 export class EmailService {
@@ -9,35 +9,31 @@ export class EmailService {
   private readonly emailConfigured: boolean;
   private readonly emailFrom: string;
 
-  constructor(private readonly configService: ConfigService) {
-    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
-    this.emailFrom =
-      this.configService.get<string>('EMAIL_FROM') ||
-      'schul-dashboard <noreply@schul-dashboard.com>';
+  constructor(private readonly appConfig: AppConfig) {
+    const resendApiKey = this.appConfig.resendApiKey;
+    this.emailFrom = this.appConfig.emailFrom;
 
     if (resendApiKey) {
       this.resendClient = new Resend(resendApiKey);
       this.emailConfigured = true;
       this.resendClient.domains
         .list()
-        .then(() => this.logger.log('Resend API erreichbar und konfiguriert.'))
+        .then(() => this.logger.log('Resend API reachable and configured.'))
         .catch((err) =>
           this.logger.error(
-            'Resend API Test fehlgeschlagen:',
+            'Resend API test failed:',
             err instanceof Error ? err.stack : String(err),
           ),
         );
     } else {
       this.emailConfigured = false;
-      this.logger.warn(
-        'RESEND_API_KEY nicht gesetzt. E-Mails können nicht versendet werden.',
-      );
+      this.logger.warn('RESEND_API_KEY not set. Emails cannot be sent.');
     }
   }
 
   async sendVerificationEmail(to: string, verifyUrl: string): Promise<unknown> {
     if (!this.emailConfigured || !this.resendClient) {
-      throw new Error('E-Mail-Service nicht konfiguriert');
+      throw new Error('Email service not configured.');
     }
 
     const { data, error } = await this.resendClient.emails.send({
@@ -61,7 +57,7 @@ export class EmailService {
 
     if (error) {
       this.logger.error('Resend verification email error:', error);
-      throw new Error(`E-Mail-Versand fehlgeschlagen: ${error.message}`);
+      throw new Error(`Email delivery failed: ${error.message}`);
     }
     if (data && 'id' in data) {
       this.logger.log(
@@ -73,7 +69,7 @@ export class EmailService {
 
   async sendPasswordResetEmail(to: string, code: string): Promise<unknown> {
     if (!this.emailConfigured || !this.resendClient) {
-      throw new Error('E-Mail-Service nicht konfiguriert');
+      throw new Error('Email service not configured.');
     }
 
     const { data, error } = await this.resendClient.emails.send({
@@ -91,7 +87,7 @@ export class EmailService {
 
     if (error) {
       this.logger.error('Resend password reset email error:', error);
-      throw new Error(`E-Mail-Versand fehlgeschlagen: ${error.message}`);
+      throw new Error(`Email delivery failed: ${error.message}`);
     }
 
     return data;
@@ -99,7 +95,7 @@ export class EmailService {
 
   async sendSecurityEmail(to: string): Promise<unknown> {
     if (!this.emailConfigured || !this.resendClient) {
-      throw new Error('E-Mail-Service nicht konfiguriert');
+      throw new Error('Email service not configured.');
     }
 
     const { data, error } = await this.resendClient.emails.send({
@@ -116,7 +112,7 @@ export class EmailService {
 
     if (error) {
       this.logger.error('Security email error:', error);
-      throw new Error(`E-Mail-Versand fehlgeschlagen: ${error.message}`);
+      throw new Error(`Email delivery failed: ${error.message}`);
     }
 
     return data;

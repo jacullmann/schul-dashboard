@@ -38,18 +38,20 @@ export class SuperAdminService {
       .from('reports')
       .select('*', { count: 'exact', head: true });
 
-    // RPC calls: handled gracefully — if the function does not exist in the
-    // database, we fall back to empty data rather than throwing a 500 error.
-    const { data: itemsByTypeRaw, error: itemsByTypeError } = await sb.rpc(
-      'get_items_by_type_count',
-      { t_id: tenantId },
+    // Aggregate item counts by type directly from the items table.
+    const { data: allItemTypes } = await sb
+      .from('items')
+      .select('type')
+      .eq('tenant_id', tenantId);
+    const typeCountMap = ((allItemTypes || []) as { type: string }[]).reduce<
+      Record<string, number>
+    >((acc, row) => {
+      acc[row.type] = (acc[row.type] ?? 0) + 1;
+      return acc;
+    }, {});
+    const itemsByTypeRaw = Object.entries(typeCountMap).map(
+      ([type, count]) => ({ type, count }),
     );
-    if (itemsByTypeError) {
-      console.warn(
-        'RPC get_items_by_type_count unavailable:',
-        itemsByTypeError.message,
-      );
-    }
 
     const { count: verifiedUsers } = await sb
       .from('users')
@@ -75,16 +77,21 @@ export class SuperAdminService {
       .eq('tenant_id', tenantId)
       .gte('created_at', sevenDaysAgo);
 
-    const { data: topCreatorsRaw, error: topCreatorsError } = (await sb.rpc(
-      'get_top_creators',
-      { t_id: tenantId, limit_count: 5 },
-    )) as { data: any; error: any };
-    if (topCreatorsError) {
-      console.warn(
-        'RPC get_top_creators unavailable:',
-        topCreatorsError.message,
-      );
-    }
+    // Aggregate top creators directly from the items table.
+    const { data: allCreators } = await sb
+      .from('items')
+      .select('created_by')
+      .eq('tenant_id', tenantId);
+    const creatorCountMap = (
+      (allCreators || []) as { created_by: string }[]
+    ).reduce<Record<string, number>>((acc, row) => {
+      acc[row.created_by] = (acc[row.created_by] ?? 0) + 1;
+      return acc;
+    }, {});
+    const topCreatorsRaw = Object.entries(creatorCountMap)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([userId, count]) => ({ userId, count }));
 
     return {
       userCount: userCount || 0,
@@ -94,10 +101,7 @@ export class SuperAdminService {
       reportCountTotal: reportCountTotal || 0,
       reportCountProcessed:
         (reportCountTotal || 0) - (reportCountUnprocessed || 0),
-      itemsByType: (itemsByTypeRaw || []).map((t: any) => {
-        const row = t as Record<string, any>;
-        return { _id: row.type, count: row.count };
-      }),
+      itemsByType: itemsByTypeRaw.map((t) => ({ _id: t.type, count: t.count })),
       verifiedUsers: verifiedUsers || 0,
       unverifiedUsers: (userCount || 0) - (verifiedUsers || 0),
       adminCount: adminCount || 0,
@@ -175,21 +179,70 @@ export class SuperAdminService {
     const sb = this.supabaseService.getClient();
     const { data: groups } = await sb
       .from('groups')
-      .select('id, name, created_at')
+      .select('id, name, owner_id, created_at')
       .order('created_at', { ascending: false });
 
+    if (!groups || groups.length === 0) return [];
+
+    // Collect all owner IDs and fetch their emails in one query.
+    const ownerIds = [
+      ...new Set((groups as any[]).map((g: any) => g.owner_id as string)),
+    ];
+    const { data: owners } = await sb
+      .from('users')
+      .select('id, email')
+      .in('id', ownerIds);
+    const ownerMap = new Map(
+      (owners || []).map((o: any) => [o.id as string, o.email as string]),
+    );
+
     const result = await Promise.all(
-      (groups || []).map(async (g) => {
-        const row = g as Record<string, any>;
-        const { count } = await sb
-          .from('user_roles')
-          .select('*', { count: 'exact', head: true })
-          .eq('tenant_id', row.id);
-        return { ...row, memberCount: count || 0 };
+      (groups as any[]).map(async (g: any) => {
+        const [{ count: memberCount }, { count: itemCount }] =
+          await Promise.all([
+            sb
+              .from('user_roles')
+              .select('*', { count: 'exact', head: true })
+              .eq('tenant_id', g.id),
+            sb
+              .from('items')
+              .select('*', { count: 'exact', head: true })
+              .eq('tenant_id', g.id),
+          ]);
+        return {
+          id: g.id as string,
+          name: g.name as string,
+          ownerId: g.owner_id as string,
+          ownerEmail: ownerMap.get(g.owner_id as string) ?? null,
+          createdAt: g.created_at as string,
+          memberCount: memberCount ?? 0,
+          itemCount: itemCount ?? 0,
+        };
       }),
     );
 
     return result;
+  }
+
+  async deleteGroup(
+    groupId: string,
+  ): Promise<{ ok: true; deletedGroupId: string }> {
+    const sb = this.supabaseService.getClient();
+
+    const { data: group } = await sb
+      .from('groups')
+      .select('id, name')
+      .eq('id', groupId)
+      .maybeSingle();
+
+    if (!group) throw new NotFoundException('Group not found.');
+
+    const { error } = await sb.from('groups').delete().eq('id', groupId);
+    if (error) {
+      throw new InternalServerErrorException('Failed to delete group.');
+    }
+
+    return { ok: true, deletedGroupId: groupId };
   }
 
   async getAllUsers() {
@@ -258,9 +311,7 @@ export class SuperAdminService {
       throw new BadRequestException('Admins cannot be banned.');
     }
 
-    await sb
-      .from('banned_users')
-      .insert({ user_id: targetUserId, reason: 'N/A' });
+    await sb.from('banned_users').insert({ user_id: targetUserId });
 
     const { error: activityBanError } = (await sb.from('user_activity').insert({
       user_id: adminUserId,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 
@@ -23,6 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const { updateGroupPassword, deleteGroup } = useGroupAdmin();
+const router = useRouter();
 
 // Password state
 const oldPassword = ref('');
@@ -67,7 +69,7 @@ async function confirmDeleteGroup() {
   deletingGroup.value = true;
   try {
     await deleteGroup();
-    window.location.href = '/account/groups';
+    router.push('/home');
   } catch {
     deletingGroup.value = false;
   }

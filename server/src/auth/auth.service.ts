@@ -12,7 +12,7 @@ import { authenticator } from '@otplib/preset-v11';
 import * as jwt from 'jsonwebtoken';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { EmailService } from '../common/email/email.service';
-import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '../config/env.config';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { decryptData } from '../common/utils/encryption.util';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
@@ -27,15 +27,20 @@ function isWeakPassword(password: string): boolean {
   return !(hasLetter && hasNumber);
 }
 
+const WEAK_PASSWORD_MSG =
+  'Password must be at least 8 characters long and contain letters and numbers.';
+
 @Injectable()
 export class AuthService {
   constructor(
-    private supabaseService: SupabaseService,
-    private emailService: EmailService,
-    private configService: ConfigService,
+    private readonly supabaseService: SupabaseService,
+    private readonly emailService: EmailService,
+    private readonly appConfig: AppConfig,
   ) {
     authenticator.options = { step: 30, window: 1 };
   }
+
+  // ─── Private: cookie helpers ─────────────────────────────────────────────
 
   private setAuthToken(
     res: Response,
@@ -44,7 +49,6 @@ export class AuthService {
     globalRole: string,
     activeGroupId: string | null,
   ) {
-    const secret = this.configService.get<string>('USER_JWT_SECRET')!;
     const payload = {
       sub: userId,
       email,
@@ -52,12 +56,12 @@ export class AuthService {
       gId: activeGroupId || null,
     };
 
-    const token = jwt.sign(payload, secret, { expiresIn: '7d' });
+    const token = jwt.sign(payload, this.appConfig.jwtSecret, {
+      expiresIn: '7d',
+    });
     res.cookie(COOKIE_NAME, token, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
@@ -67,39 +71,34 @@ export class AuthService {
     userId: string,
     email: string,
   ) {
-    const secret = this.configService.get<string>('MFA_PENDING_JWT_SECRET')!;
     const token = jwt.sign(
       { sub: userId, email, purpose: 'mfa_pending' },
-      secret,
+      this.appConfig.mfaPendingJwtSecret,
       { expiresIn: '5m' },
     );
 
     res.cookie(MFA_PENDING_COOKIE, token, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
       maxAge: 5 * 60 * 1000,
     });
   }
 
   private clearMfaPendingToken(res: Response) {
     res.clearCookie(MFA_PENDING_COOKIE, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
     });
   }
 
   private clearAuthToken(res: Response) {
     res.clearCookie(COOKIE_NAME, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
     });
   }
+
+  // ─── Public: login ────────────────────────────────────────────────────────
 
   async login(email: string, password: string, res: Response, _ip?: string) {
     const sb = this.supabaseService.getClient();
@@ -112,16 +111,18 @@ export class AuthService {
       .maybeSingle();
 
     if (!user) {
-      throw new UnauthorizedException('Ungültige Zugangsdaten');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
     const ok = await bcrypt.compare(password, user.password_hash as string);
     if (!ok) {
-      throw new UnauthorizedException('Ungültige Zugangsdaten');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
     if (!user.email_verified) {
-      throw new UnauthorizedException('Bitte E-Mail zuerst verifizieren');
+      throw new UnauthorizedException(
+        'Please verify your email address first.',
+      );
     }
 
     const { data: ban } = await sb
@@ -130,31 +131,29 @@ export class AuthService {
       .eq('user_id', user.id)
       .maybeSingle();
     if (ban) {
-      throw new ForbiddenException('Dein Account ist gesperrt.');
+      throw new ForbiddenException('Your account has been suspended.');
     }
 
     if (user.mfa_enabled && user.mfa_secret) {
       this.generateMfaPendingToken(res, user.id as string, email);
-      return {
-        ok: true,
-        requiresMfa: true,
-        message: 'MFA-Verifizierung erforderlich',
-      };
+      return { ok: true, requiresMfa: true };
     }
 
-    const newCsrfToken = rotateCsrfToken(res);
+    rotateCsrfToken(res, this.appConfig);
     await sb
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', user.id);
-    const { error: err_a0k7i } = await sb
+
+    const { error: mfaDeleteErr } = await sb
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', user.id);
-    if (err_a0k7i)
+    if (mfaDeleteErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
     const userRoles = user.user_roles as any[];
     const globalRole =
@@ -176,8 +175,10 @@ export class AuthService {
       firstGroup?.tenant_id || null,
     );
 
-    return { ok: true, csrfToken: newCsrfToken };
+    return { ok: true };
   }
+
+  // ─── Public: MFA verification ─────────────────────────────────────────────
 
   async verifyMfa(
     code: string,
@@ -198,41 +199,40 @@ export class AuthService {
     if (!user || !user.mfa_enabled || !user.mfa_secret) {
       this.clearMfaPendingToken(res);
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
-      throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
+      throw new UnauthorizedException('Authentication failed.');
     }
 
     const secret = await decryptData(user.mfa_secret, userId);
     const isValid = authenticator.check(code, secret);
 
     if (!isValid) {
-      const { error: err_jq95x } = await sb.from('user_activity').insert({
+      await sb.from('user_activity').insert({
         user_id: userId,
         type: 'auth:mfa_login_failed',
         meta: { ip },
       });
-      if (err_jq95x)
-        throw new InternalServerErrorException(
-          'Fehler beim Speichern der Benutzeraktivität',
-        );
       await new Promise((r) => setTimeout(r, 100 + Math.random() * 100));
-      throw new UnauthorizedException('Authentifizierung fehlgeschlagen');
+      throw new UnauthorizedException('Authentication failed.');
     }
 
     this.clearMfaPendingToken(res);
-    const newCsrfToken = rotateCsrfToken(res);
+    rotateCsrfToken(res, this.appConfig);
 
     await sb
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', userId);
-    const { error: err_n0hht } = await sb
+
+    const { error: mfaDeleteErr } = await sb
       .from('mfa_pending_secrets')
       .delete()
       .eq('user_id', userId);
-    if (err_n0hht)
+    if (mfaDeleteErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
+
     await sb
       .from('user_activity')
       .insert({ user_id: userId, type: 'auth:mfa_login', meta: {} });
@@ -240,6 +240,7 @@ export class AuthService {
     const userRoles = user.user_roles as any[];
     const globalRole =
       userRoles?.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
+
     const { data: firstGroup } = await sb
       .from('user_roles')
       .select('tenant_id')
@@ -256,7 +257,7 @@ export class AuthService {
       firstGroup?.tenant_id || null,
     );
 
-    return { ok: true, csrfToken: newCsrfToken };
+    return { ok: true };
   }
 
   cancelMfa(res: Response) {
@@ -264,15 +265,15 @@ export class AuthService {
     return { ok: true };
   }
 
+  // ─── Public: registration ─────────────────────────────────────────────────
+
   async register(
     email: string,
     password: string,
     preferences?: Record<string, any>,
   ) {
     if (isWeakPassword(password)) {
-      throw new BadRequestException(
-        'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
-      );
+      throw new BadRequestException(WEAK_PASSWORD_MSG);
     }
 
     const sb = this.supabaseService.getClient();
@@ -282,12 +283,11 @@ export class AuthService {
       .eq('email', email.toLowerCase())
       .maybeSingle();
     if (exists) {
-      throw new BadRequestException('E-Mail bereits registriert');
+      throw new BadRequestException('Email address is already registered.');
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Set default preferences and merge with user-provided preferences
     const defaultPreferences = {
       theme: 'system',
       language: 'de',
@@ -306,7 +306,7 @@ export class AuthService {
       .select()
       .single();
 
-    if (error) throw new BadRequestException('Fehler bei der Registrierung');
+    if (error) throw new BadRequestException('Registration failed.');
 
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = dayjs().add(2, 'day').toISOString();
@@ -314,33 +314,34 @@ export class AuthService {
       .from('verifications')
       .insert({ email: user.email, token, expires_at: expiresAt });
 
-    const clientVerifyUrl =
-      this.configService.get<string>('CLIENT_VERIFY_URL') ||
-      `http://localhost:5173/verify`;
-    const verifyUrl = `${clientVerifyUrl}?token=${token}`;
+    const verifyUrl = `${this.appConfig.clientVerifyUrl}?token=${token}`;
 
     try {
       await this.emailService.sendVerificationEmail(user.email, verifyUrl);
       return {
         ok: true,
         message:
-          'Registriert. Bitte überprüfe deine E-Mail sowie deinen Spamordner.',
+          'Registration successful. Please check your inbox and spam folder.',
       };
     } catch (_mailErr) {
       return {
         ok: true,
         message:
-          'Registriert. E-Mail konnte nicht versendet werden. Bitte später erneut oder Support kontaktieren.',
+          'Registration successful but the confirmation email could not be sent.',
       };
     }
   }
 
+  // ─── Public: logout ───────────────────────────────────────────────────────
+
   logout(res: Response) {
     this.clearAuthToken(res);
     this.clearMfaPendingToken(res);
-    const newCsrfToken = rotateCsrfToken(res);
-    return { ok: true, csrfToken: newCsrfToken };
+    rotateCsrfToken(res, this.appConfig);
+    return { ok: true };
   }
+
+  // ─── Public: profile ──────────────────────────────────────────────────────
 
   async getMe(userId: string, activeGroupId: string | null) {
     if (!userId) return { authenticated: false };
@@ -379,6 +380,8 @@ export class AuthService {
     };
   }
 
+  // ─── Public: account deletion ─────────────────────────────────────────────
+
   async deleteMe(userId: string, res: Response) {
     const sb = this.supabaseService.getClient();
     const { data: user } = await sb
@@ -386,11 +389,11 @@ export class AuthService {
       .select('id, user_roles(roles(name))')
       .eq('id', userId)
       .maybeSingle();
-    if (!user) throw new BadRequestException('Nutzer nicht gefunden');
+    if (!user) throw new BadRequestException('User not found.');
 
     const userRoles = user.user_roles as any[];
     if (userRoles?.some((ur) => ur.roles?.name === 'superadmin')) {
-      throw new ForbiddenException('Adminkonten können nicht gelöscht werden.');
+      throw new ForbiddenException('Admin accounts cannot be deleted.');
     }
 
     const { data: ownedGroups } = await sb
@@ -401,24 +404,25 @@ export class AuthService {
 
     if (ownedGroups && ownedGroups.length > 0) {
       throw new BadRequestException(
-        'Du bist Besitzer einer oder mehrerer Gruppen. Bitte übertrage zuerst die Eigentümerschaft oder lösche die Gruppe.',
+        'You own at least one group. Transfer or delete the group before deleting your account.',
       );
     }
 
-    const { error: err_lfvg5 } = await sb
+    const { error: deleteErr } = await sb
       .from('users')
       .delete()
       .eq('id', userId);
-    if (err_lfvg5)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern des Benutzers',
-      );
+    if (deleteErr) {
+      throw new InternalServerErrorException('Failed to delete account.');
+    }
 
     this.clearAuthToken(res);
     this.clearMfaPendingToken(res);
-    rotateCsrfToken(res);
+    rotateCsrfToken(res, this.appConfig);
     return { ok: true };
   }
+
+  // ─── Public: email verification ───────────────────────────────────────────
 
   async verifyEmail(token: string) {
     const sb = this.supabaseService.getClient();
@@ -427,36 +431,39 @@ export class AuthService {
       .select('*')
       .eq('token', token)
       .maybeSingle();
-    if (!ver) throw new BadRequestException('Ungültiger Token');
+    if (!ver) throw new BadRequestException('Invalid verification token.');
     if (dayjs(ver.expires_at).isBefore(dayjs()))
-      throw new BadRequestException('Token abgelaufen');
+      throw new BadRequestException('Verification token has expired.');
 
     const { data: user } = await sb
       .from('users')
       .select('id')
       .eq('email', ver.email)
       .maybeSingle();
-    if (!user) throw new BadRequestException('Nutzer nicht gefunden');
+    if (!user) throw new BadRequestException('User not found.');
 
-    const { error: err_rmh0v } = await sb
+    const { error: verifyErr } = await sb
       .from('users')
       .update({ email_verified: true })
       .eq('id', user.id);
-    if (err_rmh0v)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern des Benutzers',
-      );
-    const { error: err_5wa7e } = await sb
+    if (verifyErr) {
+      throw new InternalServerErrorException('Failed to verify email.');
+    }
+
+    const { error: deleteErr } = await sb
       .from('verifications')
       .delete()
       .eq('email', ver.email);
-    if (err_5wa7e)
+    if (deleteErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
     return { ok: true };
   }
+
+  // ─── Public: password reset ───────────────────────────────────────────────
 
   async forgotPassword(email: string) {
     email = email.toLowerCase();
@@ -467,9 +474,10 @@ export class AuthService {
       .eq('email', email)
       .maybeSingle();
     if (!user) {
+      // Return the same message regardless to prevent user enumeration.
       return {
         ok: true,
-        message: 'Wenn die E-Mail existiert, wurde ein Code versendet.',
+        message: 'If the email exists, a recovery email has been sent.',
       };
     }
 
@@ -487,13 +495,13 @@ export class AuthService {
 
     try {
       await this.emailService.sendPasswordResetEmail(email, code);
-    } catch (_mailErr) {
-      // Ignore mail errors to prevent user enumeration or leakage
+    } catch {
+      // Swallow mail errors to prevent user enumeration.
     }
 
     return {
       ok: true,
-      message: 'Wenn die E-Mail existiert, wurde ein Code versendet.',
+      message: 'If the email exists, a recovery email has been sent.',
     };
   }
 
@@ -512,44 +520,43 @@ export class AuthService {
       .limit(1)
       .maybeSingle();
 
-    if (!pr) throw new BadRequestException('Ungültiger Code');
+    if (!pr) throw new BadRequestException('Invalid reset code.');
     if (dayjs(pr.expires_at).isBefore(dayjs()))
-      throw new BadRequestException('Code abgelaufen');
+      throw new BadRequestException('Reset code has expired.');
 
-    const { error: err_ybmnb } = await sb
+    const { error: markUsedErr } = await sb
       .from('password_resets')
       .update({ used: true })
       .eq('id', pr.id);
-    if (err_ybmnb)
+    if (markUsedErr) {
       throw new InternalServerErrorException(
-        'Ein unerwarteter Datenbankfehler ist aufgetreten',
+        'An unexpected database error occurred.',
       );
+    }
 
-    const secret = this.configService.get<string>('PASSWORD_RESET_JWT_SECRET')!;
-    const resetToken = jwt.sign({ email, purpose: 'password_reset' }, secret, {
-      expiresIn: '15m',
-    });
+    const resetToken = jwt.sign(
+      { email, purpose: 'password_reset' },
+      this.appConfig.passwordResetJwtSecret,
+      { expiresIn: '15m' },
+    );
 
     return { ok: true, resetToken };
   }
 
   async resetPassword(resetToken: string, password: string) {
     if (isWeakPassword(password)) {
-      throw new BadRequestException(
-        'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
-      );
+      throw new BadRequestException(WEAK_PASSWORD_MSG);
     }
 
-    const secret = this.configService.get<string>('PASSWORD_RESET_JWT_SECRET')!;
     let payload: any;
     try {
-      payload = jwt.verify(resetToken, secret);
+      payload = jwt.verify(resetToken, this.appConfig.passwordResetJwtSecret);
     } catch {
-      throw new BadRequestException('Ungültiger oder abgelaufener Reset-Token');
+      throw new BadRequestException('Invalid or expired reset token.');
     }
 
     if (payload?.purpose !== 'password_reset' || !payload?.email) {
-      throw new BadRequestException('Ungültiger Reset-Token');
+      throw new BadRequestException('Invalid reset token.');
     }
 
     const email = String(payload.email).toLowerCase();
@@ -560,7 +567,7 @@ export class AuthService {
       .eq('email', email)
       .maybeSingle();
 
-    if (!user) throw new BadRequestException('Nutzer nicht gefunden');
+    if (!user) throw new BadRequestException('User not found.');
 
     const passwordHash = await bcrypt.hash(password, 12);
     await sb
@@ -572,7 +579,7 @@ export class AuthService {
       })
       .eq('id', user.id);
 
-    const { error: err_b7j06 } = await sb.from('user_activity').insert({
+    const { error: activityErr } = await sb.from('user_activity').insert({
       user_id: user.id,
       type: 'account:password_reset',
       meta: {
@@ -581,20 +588,19 @@ export class AuthService {
         mfaDisabled: true,
       },
     });
-    if (err_b7j06)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    if (activityErr) {
+      throw new InternalServerErrorException('Error saving user activity.');
+    }
 
     try {
       await this.emailService.sendSecurityEmail(email);
     } catch {
-      // Security email failure is non-critical for the password reset flow
+      // Security notification failure is non-critical.
     }
 
     return {
       ok: true,
-      message: 'Passwort wurde geändert. MFA wurde deaktiviert.',
+      message: 'Password reset successfully. MFA has been disabled.',
     };
   }
 
@@ -604,9 +610,7 @@ export class AuthService {
     newPassword: string,
   ) {
     if (isWeakPassword(newPassword)) {
-      throw new BadRequestException(
-        'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
-      );
+      throw new BadRequestException(WEAK_PASSWORD_MSG);
     }
 
     const sb = this.supabaseService.getClient();
@@ -615,34 +619,34 @@ export class AuthService {
       .select('id, password_hash')
       .eq('id', userId)
       .maybeSingle();
-    if (!user) throw new BadRequestException('Nutzer nicht gefunden');
+    if (!user) throw new BadRequestException('User not found.');
 
     const isCorrect = await bcrypt.compare(
       currentPassword,
       user.password_hash as string,
     );
     if (!isCorrect)
-      throw new ForbiddenException('Aktuelles Passwort ist falsch');
+      throw new ForbiddenException('Current password is incorrect.');
 
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
     await sb
       .from('users')
       .update({ password_hash: newPasswordHash })
       .eq('id', userId);
-    const { error: err_h6x8v } = await sb.from('user_activity').insert({
+
+    const { error: activityErr } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'account:password_change',
       meta: { by: 'self' },
     });
-    if (err_h6x8v)
-      throw new InternalServerErrorException(
-        'Fehler beim Speichern der Benutzeraktivität',
-      );
+    if (activityErr) {
+      throw new InternalServerErrorException('Error saving user activity.');
+    }
 
-    return { ok: true, message: 'Passwort erfolgreich geändert.' };
+    return { ok: true, message: 'Password changed successfully.' };
   }
 
-  // ─── OAuth helpers (used by OAuthService) ──────────────────────────────
+  // ─── OAuth helpers (used by OAuthService) ────────────────────────────────
 
   /**
    * Issues a full JWT session for a user. Queries the DB for their global role
@@ -701,7 +705,7 @@ export class AuthService {
       .eq('user_id', userId)
       .not('tenant_id', 'is', null);
 
-    if (error) throw new BadRequestException('Fehler beim Laden der Gruppen');
+    if (error) throw new BadRequestException('Error loading groups.');
 
     const groups = (userRoles || [])
       .filter((ur: any) => ur.groups?.id)

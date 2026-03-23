@@ -7,22 +7,22 @@ import {
 } from 'class-validator';
 
 export class LoginDto {
-  @IsEmail({}, { message: 'Ungültige Zugangsdaten' })
+  @IsEmail({}, { message: 'Invalid credentials.' })
   email: string;
 
-  @IsString({ message: 'Ungültige Zugangsdaten' })
-  @Length(8, 255, { message: 'Ungültige Zugangsdaten' })
+  @IsString({ message: 'Invalid credentials.' })
+  @Length(8, 255, { message: 'Invalid credentials.' })
   password: string;
 }
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Ungültige E-Mail-Adresse' })
+  @IsEmail({}, { message: 'Invalid email address.' })
   email: string;
 
   @IsString()
   @Length(8, 255, {
     message:
-      'Das Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
+      'Password must be at least 8 characters long and contain letters and numbers.',
   })
   password: string;
 
@@ -33,7 +33,9 @@ export class RegisterDto {
 export class VerifyMfaDto {
   @IsString()
   @Length(6, 6)
-  @Matches(/^\d{6}$/, { message: 'MFA Code muss genau 6 Ziffern enthalten' })
+  @Matches(/^\d{6}$/, {
+    message: 'MFA Code must be exactly 6 characters long.',
+  })
   code: string;
 }
 
@@ -58,7 +60,7 @@ export class ResetPasswordDto {
   @IsString()
   @Length(8, 255, {
     message:
-      'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
+      'Password must be at least 8 characters long and contain letters and numbers.',
   })
   password: string;
 }
@@ -71,7 +73,7 @@ export class ChangePasswordDto {
   @IsString()
   @Length(8, 255, {
     message:
-      'Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.',
+      'Password must be at least 8 characters long and contain letters and numbers.',
   })
   newPassword: string;
 }

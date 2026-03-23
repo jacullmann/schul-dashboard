@@ -8,9 +8,9 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ConfigService } from '@nestjs/config';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { DocService } from './doc.service';
+import { AppConfig } from '../config/env.config';
 import * as jwt from 'jsonwebtoken';
 
 interface AuthPayload {
@@ -32,7 +32,7 @@ export class DocGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly docService: DocService,
-    private readonly configService: ConfigService,
+    private readonly appConfig: AppConfig,
     private readonly supabaseService: SupabaseService,
   ) {}
 
@@ -67,7 +67,7 @@ export class DocGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      const authSecret = this.configService.get<string>('USER_JWT_SECRET')!;
+      const authSecret = this.appConfig.jwtSecret;
       const payload = jwt.verify(userToken, authSecret) as AuthPayload;
       if (!payload?.sub || !payload?.email) {
         client.disconnect();

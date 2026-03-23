@@ -8,9 +8,9 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
-import { ConfigService } from '@nestjs/config';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { AuthService } from '../auth/auth.service';
+import { AppConfig } from '../config/env.config';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { OAUTH_PENDING_COOKIE } from './guards/oauth-pending.guard';
 import { Request, Response } from 'express';
@@ -73,7 +73,7 @@ export class OAuthService {
 
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService,
+    private readonly appConfig: AppConfig,
     private readonly authService: AuthService,
   ) {}
 
@@ -86,14 +86,9 @@ export class OAuthService {
   buildGoogleAuthUrl(res: Response): string {
     const { state, nonce } = this.setOAuthStateCookie(res);
 
-    const clientId = this.configService.get<string>('GOOGLE_OAUTH_CLIENT_ID')!;
-    const redirectUri = this.configService.get<string>(
-      'GOOGLE_OAUTH_REDIRECT_URI',
-    )!;
-
     const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
+      client_id: this.appConfig.googleClientId,
+      redirect_uri: this.appConfig.googleRedirectUri,
       response_type: 'code',
       scope: 'openid email',
       state,
@@ -119,9 +114,8 @@ export class OAuthService {
     req: Request,
     res: Response,
   ): Promise<string> {
-    const frontendUrl = this.getFrontendUrl();
+    const frontendUrl = this.appConfig.corsOrigin;
 
-    // User denied consent on Google's screen
     if (errorParam === 'access_denied') {
       this.clearOAuthStateCookie(res);
       return `${frontendUrl}/?auth=error&reason=access_denied`;
@@ -185,7 +179,6 @@ export class OAuthService {
     if (resolution.type === 'login' || resolution.type === 'new_user') {
       const { userId, email } = resolution;
 
-      // MFA check for existing users
       if (
         resolution.type === 'login' &&
         resolution.mfaEnabled &&
@@ -195,9 +188,9 @@ export class OAuthService {
         return `${frontendUrl}/?auth=mfa-pending`;
       }
 
-      // Normal session issuance
       await this.authService.createUserSession(userId, email, res);
       await this.updateLastLogin(userId);
+      rotateCsrfToken(res, this.appConfig);
       return `${frontendUrl}/?auth=success`;
     }
 
@@ -206,11 +199,6 @@ export class OAuthService {
 
   // ─── Public: link Google to existing account ─────────────────────────────
 
-  /**
-   * Called when a user with an existing email/password account wants to link
-   * their Google identity. Requires a valid pending_oauth_token cookie and
-   * their current account password.
-   */
   async linkGoogleAccount(
     googleId: string,
     googleEmail: string,
@@ -219,7 +207,6 @@ export class OAuthService {
   ): Promise<{ ok: true; csrfToken: string }> {
     const sb = this.supabaseService.getClient();
 
-    // Verify password against existing account
     const { data: user } = await sb
       .from('users')
       .select('id, email, password_hash, email_verified')
@@ -227,11 +214,13 @@ export class OAuthService {
       .maybeSingle();
 
     if (!user) {
-      throw new UnauthorizedException('Ungültige Zugangsdaten');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
     if (!user.password_hash) {
-      throw new BadRequestException('Dieses Konto hat kein Passwort gesetzt.');
+      throw new BadRequestException(
+        'This account does not have a password set.',
+      );
     }
 
     const bcrypt = await import('bcryptjs');
@@ -240,11 +229,13 @@ export class OAuthService {
       user.password_hash as string,
     );
     if (!passwordOk) {
-      throw new UnauthorizedException('Ungültige Zugangsdaten');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
     if (!user.email_verified) {
-      throw new UnauthorizedException('Bitte E-Mail zuerst verifizieren');
+      throw new UnauthorizedException(
+        'Please verify your email address first.',
+      );
     }
 
     const { data: ban } = await sb
@@ -252,9 +243,8 @@ export class OAuthService {
       .select('id')
       .eq('user_id', user.id)
       .maybeSingle();
-    if (ban) throw new ForbiddenException('Dein Account ist gesperrt.');
+    if (ban) throw new ForbiddenException('Your account has been suspended.');
 
-    // Persist the OAuth link — UNIQUE constraint prevents duplicates
     const { error: linkError } = await sb.from('oauth_accounts').insert({
       user_id: user.id,
       provider: 'google',
@@ -263,20 +253,16 @@ export class OAuthService {
     });
 
     if (linkError) {
-      // Unique constraint violation: already linked (race condition)
       if (linkError.code === '23505') {
         throw new BadRequestException(
-          'Dieses Google-Konto ist bereits mit einem anderen Account verknüpft.',
+          'This Google account is already linked to another account.',
         );
       }
-      throw new InternalServerErrorException(
-        'Fehler beim Verknüpfen des Kontos.',
-      );
+      throw new InternalServerErrorException('Failed to link account.');
     }
 
-    // Clear pending OAuth cookie and establish full session
     this.clearPendingOAuthToken(res);
-    const newCsrfToken = rotateCsrfToken(res);
+    const newCsrfToken = rotateCsrfToken(res, this.appConfig);
     await this.authService.createUserSession(
       user.id as string,
       user.email as string,
@@ -289,24 +275,19 @@ export class OAuthService {
 
   // ─── Public: unlink Google from account ──────────────────────────────────
 
-  /**
-   * Removes the Google OAuth link from a user's account.
-   * Blocked if the user has no password (would lock them out).
-   */
   async unlinkGoogleAccount(userId: string): Promise<{ ok: true }> {
     const sb = this.supabaseService.getClient();
 
-    // Lockout prevention: user must have a password to unlink OAuth
     const { data: user } = await sb
       .from('users')
       .select('password_hash')
       .eq('id', userId)
       .maybeSingle();
 
-    if (!user) throw new BadRequestException('Nutzer nicht gefunden');
+    if (!user) throw new BadRequestException('User not found.');
     if (!user.password_hash) {
       throw new BadRequestException(
-        'Bitte zuerst ein Passwort setzen, bevor du Google trennst.',
+        'Please set a password before unlinking your Google account.',
       );
     }
 
@@ -317,7 +298,7 @@ export class OAuthService {
       .eq('provider', 'google');
 
     if (error) {
-      throw new InternalServerErrorException('Fehler beim Trennen des Kontos.');
+      throw new InternalServerErrorException('Failed to unlink account.');
     }
 
     return { ok: true };
@@ -335,7 +316,7 @@ export class OAuthService {
       .eq('user_id', userId);
 
     if (error)
-      throw new InternalServerErrorException('Fehler beim Laden der Konten.');
+      throw new InternalServerErrorException('Failed to load linked accounts.');
 
     const providers = (data ?? []).map((row: any) => ({
       provider: row.provider as string,
@@ -354,7 +335,6 @@ export class OAuthService {
     const sb = this.supabaseService.getClient();
     const email = googleEmail.toLowerCase();
 
-    // Step 1: Look for an existing OAuth link by Google's stable `sub`
     const { data: oauthRow } = await sb
       .from('oauth_accounts')
       .select('user_id, users(id, email, mfa_enabled, mfa_secret)')
@@ -366,7 +346,7 @@ export class OAuthService {
       const user = (oauthRow as any).users;
       if (!user)
         throw new InternalServerErrorException(
-          'Verknüpfter Nutzer nicht gefunden.',
+          'Linked user account not found.',
         );
 
       const { data: ban } = await sb
@@ -374,7 +354,7 @@ export class OAuthService {
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (ban) throw new ForbiddenException('Dein Account ist gesperrt.');
+      if (ban) throw new ForbiddenException('Your account has been suspended.');
 
       return {
         type: 'login',
@@ -385,7 +365,6 @@ export class OAuthService {
       };
     }
 
-    // Step 2: Check for an existing email/password account with matching email
     const { data: existingUser } = await sb
       .from('users')
       .select('id, email')
@@ -393,15 +372,9 @@ export class OAuthService {
       .maybeSingle();
 
     if (existingUser) {
-      // Silent auto-linking is dangerous — require password confirmation
-      return {
-        type: 'link_required',
-        googleId,
-        googleEmail: email,
-      };
+      return { type: 'link_required', googleId, googleEmail: email };
     }
 
-    // Step 3: No account exists — create a new one via Google
     const defaultPreferences = {
       theme: 'system',
       language: 'de',
@@ -413,7 +386,7 @@ export class OAuthService {
       .insert({
         email,
         password_hash: null,
-        email_verified: true, // Google already verified the email
+        email_verified: true,
         preferences: defaultPreferences,
       })
       .select('id, email')
@@ -421,12 +394,9 @@ export class OAuthService {
 
     if (createError || !newUser) {
       this.logger.error('Failed to create OAuth user', createError);
-      throw new InternalServerErrorException(
-        'Fehler beim Erstellen des Nutzers.',
-      );
+      throw new InternalServerErrorException('Failed to create user account.');
     }
 
-    // Persist the OAuth link
     const { error: linkError } = await sb.from('oauth_accounts').insert({
       user_id: newUser.id,
       provider: 'google',
@@ -435,11 +405,8 @@ export class OAuthService {
     });
 
     if (linkError) {
-      // Roll back user creation on link failure to avoid orphaned accounts
       await sb.from('users').delete().eq('id', newUser.id);
-      throw new InternalServerErrorException(
-        'Fehler beim Verknüpfen des Kontos.',
-      );
+      throw new InternalServerErrorException('Failed to link Google account.');
     }
 
     return { type: 'new_user', userId: newUser.id as string, email };
@@ -452,13 +419,9 @@ export class OAuthService {
   ): Promise<GoogleTokenResponse> {
     const params = new URLSearchParams({
       code,
-      client_id: this.configService.get<string>('GOOGLE_OAUTH_CLIENT_ID')!,
-      client_secret: this.configService.get<string>(
-        'GOOGLE_OAUTH_CLIENT_SECRET',
-      )!,
-      redirect_uri: this.configService.get<string>(
-        'GOOGLE_OAUTH_REDIRECT_URI',
-      )!,
+      client_id: this.appConfig.googleClientId,
+      client_secret: this.appConfig.googleClientSecret,
+      redirect_uri: this.appConfig.googleRedirectUri,
       grant_type: 'authorization_code',
     });
 
@@ -483,51 +446,42 @@ export class OAuthService {
 
   // ─── Private: ID token verification ──────────────────────────────────────
 
-  /**
-   * Verifies a Google ID token using Google's published JWKS.
-   * Validates: signature, iss, aud, exp, email_verified, nonce.
-   * Uses Node.js built-in `crypto` for JWK→key conversion — no extra deps.
-   */
   private async verifyGoogleIdToken(
     idToken: string,
     expectedNonce: string,
   ): Promise<GoogleIdTokenPayload> {
-    // Decode the header to find the signing key ID
     const [headerB64] = idToken.split('.');
-    if (!headerB64) throw new UnauthorizedException('Malformed ID token');
+    if (!headerB64) throw new UnauthorizedException('Malformed ID token.');
 
     const header = JSON.parse(
       Buffer.from(headerB64, 'base64url').toString('utf8'),
     ) as { kid?: string; alg?: string };
 
     if (header.alg !== 'RS256') {
-      throw new UnauthorizedException('Unexpected ID token algorithm');
+      throw new UnauthorizedException('Unexpected ID token algorithm.');
     }
 
     const jwks = await this.getGoogleJwks();
     const jwk = jwks.keys.find((k) => k.kid === header.kid);
-    if (!jwk) throw new UnauthorizedException('Unknown ID token signing key');
+    if (!jwk) throw new UnauthorizedException('Unknown ID token signing key.');
 
-    // Convert JWK to a Node.js KeyObject — no third-party lib needed
     const publicKey = crypto.createPublicKey({
       key: jwk as unknown as crypto.JsonWebKey,
       format: 'jwk',
     });
 
-    const clientId = this.configService.get<string>('GOOGLE_OAUTH_CLIENT_ID')!;
-
     const payload = jwt.verify(idToken, publicKey, {
       algorithms: ['RS256'],
-      audience: clientId,
+      audience: this.appConfig.googleClientId,
       issuer: ['https://accounts.google.com', 'accounts.google.com'],
     }) as GoogleIdTokenPayload;
 
     if (!payload.email_verified) {
-      throw new UnauthorizedException('Google email not verified');
+      throw new UnauthorizedException('Google email is not verified.');
     }
 
     if (payload.nonce !== expectedNonce) {
-      throw new UnauthorizedException('ID token nonce mismatch');
+      throw new UnauthorizedException('ID token nonce mismatch.');
     }
 
     return payload;
@@ -556,25 +510,19 @@ export class OAuthService {
 
   // ─── Private: OAuth state cookie (CSRF + nonce) ───────────────────────────
 
-  /**
-   * Generates state and nonce, signs them into a short-lived JWT stored in an
-   * HttpOnly cookie. SameSite=lax allows the cookie to survive Google's
-   * top-level GET redirect back to our callback endpoint.
-   */
   private setOAuthStateCookie(res: Response): { state: string; nonce: string } {
     const state = crypto.randomBytes(32).toString('hex');
     const nonce = crypto.randomBytes(32).toString('hex');
-    const secret = this.configService.get<string>('OAUTH_PENDING_JWT_SECRET')!;
 
-    const token = jwt.sign({ state, nonce, purpose: 'oauth_state' }, secret, {
-      expiresIn: '10m',
-    });
+    const token = jwt.sign(
+      { state, nonce, purpose: 'oauth_state' },
+      this.appConfig.oauthPendingJwtSecret,
+      { expiresIn: '10m' },
+    );
 
     res.cookie(OAUTH_STATE_COOKIE, token, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'lax',
       maxAge: 10 * 60 * 1000,
     });
 
@@ -583,17 +531,11 @@ export class OAuthService {
 
   private clearOAuthStateCookie(res: Response): void {
     res.clearCookie(OAUTH_STATE_COOKIE, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'lax',
     });
   }
 
-  /**
-   * Reads the state cookie, verifies the JWT and the state parameter, clears
-   * the cookie (one-time use), and returns the nonce for ID token validation.
-   */
   private verifyAndClearOAuthState(
     req: Request,
     res: Response,
@@ -601,11 +543,10 @@ export class OAuthService {
   ): string {
     const token = req.cookies[OAUTH_STATE_COOKIE];
     if (!token || typeof token !== 'string') {
-      throw new UnauthorizedException('OAuth state cookie missing');
+      throw new UnauthorizedException('OAuth state cookie missing.');
     }
 
-    const secret = this.configService.get<string>('OAUTH_PENDING_JWT_SECRET')!;
-    const payload = jwt.verify(token, secret) as {
+    const payload = jwt.verify(token, this.appConfig.oauthPendingJwtSecret) as {
       state: string;
       nonce: string;
       purpose: string;
@@ -613,7 +554,7 @@ export class OAuthService {
 
     if (payload.purpose !== 'oauth_state' || payload.state !== stateParam) {
       this.clearOAuthStateCookie(res);
-      throw new UnauthorizedException('OAuth state mismatch');
+      throw new UnauthorizedException('OAuth state mismatch.');
     }
 
     this.clearOAuthStateCookie(res);
@@ -622,37 +563,28 @@ export class OAuthService {
 
   // ─── Private: pending OAuth token (for link-required flow) ───────────────
 
-  /**
-   * Stores the verified Google identity in a short-lived HttpOnly cookie while
-   * the user completes the account-linking step (entering their password).
-   */
   private setPendingOAuthToken(
     res: Response,
     googleId: string,
     googleEmail: string,
   ): void {
-    const secret = this.configService.get<string>('OAUTH_PENDING_JWT_SECRET')!;
     const token = jwt.sign(
       { googleId, googleEmail, purpose: 'oauth_pending' },
-      secret,
+      this.appConfig.oauthPendingJwtSecret,
       { expiresIn: '10m' },
     );
 
     res.cookie(OAUTH_PENDING_COOKIE, token, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
       maxAge: 10 * 60 * 1000,
     });
   }
 
   private clearPendingOAuthToken(res: Response): void {
     res.clearCookie(OAUTH_PENDING_COOKIE, {
+      ...this.appConfig.baseCookieOptions,
       httpOnly: true,
-      secure: true,
-      path: '/',
-      sameSite: 'none',
     });
   }
 
@@ -664,11 +596,5 @@ export class OAuthService {
       .from('users')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', userId);
-  }
-
-  private getFrontendUrl(): string {
-    return (
-      this.configService.get<string>('CORS_ORIGIN') || 'http://localhost:5173'
-    );
   }
 }

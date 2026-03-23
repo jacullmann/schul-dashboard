@@ -49,11 +49,17 @@ export class TimetableService {
       }
 
       if (userId) {
-        sb.rpc('upsert_user_tenant_visit', {
-          p_user_id: userId,
-          p_tenant_id: tenantId,
-          p_visit_type: 'timetable',
-        }).then();
+        // Fire-and-forget: record the user's last timetable visit timestamp.
+        sb.from('user_tenant_state')
+          .upsert(
+            {
+              user_id: userId,
+              tenant_id: tenantId,
+              last_timetable_visit_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id,tenant_id' },
+          )
+          .then();
       }
 
       return filteredLessons.map((l: any) => ({

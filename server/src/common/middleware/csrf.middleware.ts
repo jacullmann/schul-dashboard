@@ -1,44 +1,30 @@
 import { Injectable, NestMiddleware, ForbiddenException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import * as crypto from 'crypto';
+import { AppConfig } from '../../config/env.config';
 
-export const CSRF_COOKIE_NAME = 'csrf_token';
 export const CSRF_HEADER_NAME = 'x-csrf-token';
-
-export function generateCsrfToken(): string {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-export function setCsrfCookie(res: Response, token: string): void {
-  res.cookie(CSRF_COOKIE_NAME, token, {
-    httpOnly: false,
-    secure: true,
-    path: '/',
-    sameSite: 'none',
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
-}
-
-export function clearCsrfCookie(res: Response): void {
-  res.clearCookie(CSRF_COOKIE_NAME, {
-    httpOnly: false,
-    secure: true,
-    path: '/',
-    sameSite: 'none',
-  });
-}
-
-export function rotateCsrfToken(res: Response): string {
-  const token = generateCsrfToken();
-  setCsrfCookie(res, token);
-  return token;
-}
+const CSRF_COOKIE_NAME = 'csrf_token';
 
 @Injectable()
 export class CsrfMiddleware implements NestMiddleware {
+  constructor(private readonly config: AppConfig) {}
+
+  /**
+   * Sets (or refreshes) the CSRF cookie on the given response.
+   * The cookie is intentionally non-HttpOnly so that the browser-side JS can
+   * read it and attach it as the `x-csrf-token` request header.
+   */
+  static setCsrfCookie(res: Response, token: string, config: AppConfig): void {
+    res.cookie(CSRF_COOKIE_NAME, token, {
+      ...config.baseCookieOptions,
+      httpOnly: false,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+  }
+
   use(req: Request, res: Response, next: NextFunction) {
-    const method = req.method.toUpperCase();
-    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method.toUpperCase())) {
       return next();
     }
 
@@ -46,34 +32,46 @@ export class CsrfMiddleware implements NestMiddleware {
     const headerToken = req.headers[CSRF_HEADER_NAME];
 
     if (!cookieToken || !headerToken) {
-      // Throw exception formatted for our Exception filter
-      throw new ForbiddenException({ error: 'CSRF-Token fehlt' });
+      throw new ForbiddenException('CSRF token missing.');
     }
 
-    if (typeof cookieToken !== 'string' || typeof headerToken !== 'string') {
-      throw new ForbiddenException({ error: 'Ungültiges CSRF-Token Format' });
-    }
+    try {
+      const cookieBuf = Buffer.from(cookieToken as string);
+      const headerBuf = Buffer.from(headerToken as string);
 
-    const cookieTokenBuffer = Buffer.from(cookieToken, 'utf8');
-    const headerTokenBuffer = Buffer.from(headerToken, 'utf8');
+      // Buffers must be the same byte-length for timingSafeEqual.
+      // If lengths differ the tokens are clearly different, so reject immediately.
+      if (cookieBuf.length !== headerBuf.length) {
+        throw new Error('length mismatch');
+      }
 
-    const cookieHash = crypto
-      .createHash('sha256')
-      .update(cookieTokenBuffer)
-      .digest();
-    const headerHash = crypto
-      .createHash('sha256')
-      .update(headerTokenBuffer)
-      .digest();
-
-    const isValid =
-      crypto.timingSafeEqual(cookieHash, headerHash) &&
-      cookieToken.length === headerToken.length;
-
-    if (!isValid) {
-      throw new ForbiddenException({ error: 'CSRF-Token ungültig' });
+      const isMatch = crypto.timingSafeEqual(cookieBuf, headerBuf);
+      if (!isMatch) throw new Error('mismatch');
+    } catch {
+      throw new ForbiddenException('Invalid CSRF token.');
     }
 
     next();
   }
+}
+
+/**
+ * Generates a new CSRF token, sets the cookie, and returns the token string.
+ * Call this whenever the authentication state changes (login, logout, group switch).
+ */
+export function rotateCsrfToken(res: Response, config: AppConfig): string {
+  const token = crypto.randomBytes(32).toString('hex');
+  CsrfMiddleware.setCsrfCookie(res, token, config);
+  return token;
+}
+
+/**
+ * Clears the CSRF cookie.
+ * Must pass the same domain/path options that were used when setting it.
+ */
+export function clearCsrfCookie(res: Response, config: AppConfig): void {
+  res.clearCookie(CSRF_COOKIE_NAME, {
+    ...config.baseCookieOptions,
+    httpOnly: false,
+  });
 }
