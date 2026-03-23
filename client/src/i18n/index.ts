@@ -4,39 +4,39 @@ import en from '@/i18n/locales/en.json';
 
 const LOCALE_KEY = 'user-locale';
 const SUPPORTED_LOCALES = ['de', 'en'] as const;
-type SupportedLocale = typeof SUPPORTED_LOCALES[number];
+type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 function getInitialLocale(): SupportedLocale {
-    try {
-        const saved = localStorage.getItem(LOCALE_KEY) as SupportedLocale | null;
-        if (saved && SUPPORTED_LOCALES.includes(saved)) {
-            return saved;
-        }
-
-        const browserLang = navigator.language?.split('-')[0] as SupportedLocale;
-        if (SUPPORTED_LOCALES.includes(browserLang)) {
-            localStorage.setItem(LOCALE_KEY, browserLang);
-            return browserLang;
-        }
-    } catch (error) {
-        console.warn('Could not access localStorage:', error);
+  try {
+    const saved = localStorage.getItem(LOCALE_KEY) as SupportedLocale | null;
+    if (saved && SUPPORTED_LOCALES.includes(saved)) {
+      return saved;
     }
 
-    // Deutsch als Fallback
-    try {
-        localStorage.setItem(LOCALE_KEY, 'de');
-    } catch {}
-    return 'de';
+    const browserLang = navigator.language?.split('-')[0] as SupportedLocale;
+    if (SUPPORTED_LOCALES.includes(browserLang)) {
+      localStorage.setItem(LOCALE_KEY, browserLang);
+      return browserLang;
+    }
+  } catch (error) {
+    console.warn('Could not access localStorage:', error);
+  }
+
+  // Deutsch als Fallback
+  try {
+    localStorage.setItem(LOCALE_KEY, 'de');
+  } catch {}
+  return 'de';
 }
 
 const i18n = createI18n({
-    legacy: false,
-    locale: getInitialLocale(),
-    fallbackLocale: 'de',
-    messages: {
-        de,
-        en,
-    },
+  legacy: false,
+  locale: getInitialLocale(),
+  fallbackLocale: 'de',
+  messages: {
+    de,
+    en,
+  },
 });
 
 export default i18n;

@@ -35,7 +35,7 @@ export function useOAuth() {
   function initiateGoogleLogin(): void {
     const base =
       typeof import.meta !== 'undefined' && import.meta.env
-        ? import.meta.env.VITE_HW_API_BASE ?? ''
+        ? (import.meta.env.VITE_HW_API_BASE ?? '')
         : '';
     window.location.href = `${base}/api/auth/google`;
   }
@@ -75,7 +75,8 @@ export function useOAuth() {
 
       case 'error': {
         const reason = params.get('reason') ?? 'server_error';
-        oauthError.value = ERROR_MESSAGES[reason] ?? ERROR_MESSAGES['server_error'];
+        oauthError.value =
+          ERROR_MESSAGES[reason] ?? ERROR_MESSAGES['server_error'];
         break;
       }
     }
@@ -112,7 +113,9 @@ export function useOAuth() {
   /**
    * Unlinks the Google OAuth provider from the current account.
    */
-  async function unlinkGoogleAccount(): Promise<{ ok: true } | { ok: false; error: string }> {
+  async function unlinkGoogleAccount(): Promise<
+    { ok: true } | { ok: false; error: string }
+  > {
     try {
       await hw.delete('/api/auth/google/unlink');
       return { ok: true };
@@ -130,7 +133,9 @@ export function useOAuth() {
    */
   async function fetchLinkedProviders(): Promise<LinkedProvider[]> {
     try {
-      const { data } = await hw.get<{ providers: LinkedProvider[] }>('/api/auth/providers');
+      const { data } = await hw.get<{ providers: LinkedProvider[] }>(
+        '/api/auth/providers',
+      );
       return data.providers ?? [];
     } catch {
       return [];

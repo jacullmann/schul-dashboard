@@ -1,1 +1,1 @@
-console.log("Example use");
+console.log('Example use');

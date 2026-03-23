@@ -5,46 +5,53 @@ const authResolve = ref<((token: string) => void) | null>(null);
 const authReject = ref<((reason?: any) => void) | null>(null);
 
 export function useGlobalAuthModal() {
-    function openAuthModal(): Promise<string> {
-        console.log('[AuthModal] openAuthModal called. Current state:', isAuthModalOpen.value);
-        if (isAuthModalOpen.value) {
-            console.warn('[AuthModal] Modal was already marked as open. Forcing remount to fix visibility.');
-            isAuthModalOpen.value = false;
-            setTimeout(() => {
-                isAuthModalOpen.value = true;
-            }, 10);
-            return Promise.resolve('');
-        }
-
+  function openAuthModal(): Promise<string> {
+    console.log(
+      '[AuthModal] openAuthModal called. Current state:',
+      isAuthModalOpen.value,
+    );
+    if (isAuthModalOpen.value) {
+      console.warn(
+        '[AuthModal] Modal was already marked as open. Forcing remount to fix visibility.',
+      );
+      isAuthModalOpen.value = false;
+      setTimeout(() => {
         isAuthModalOpen.value = true;
-        console.log('[AuthModal] State set to open.');
-        return new Promise((resolve, reject) => {
-            authResolve.value = resolve;
-            authReject.value = reject;
-        });
+      }, 10);
+      return Promise.resolve('');
     }
 
-    function closeAuthModal() {
-        console.log('[AuthModal] closeAuthModal called.');
-        isAuthModalOpen.value = false;
-        if (authReject.value) {
-            authReject.value(new Error('Das Authmodal wurde fehlerhaft geschlossen.'));
-        }
-        authResolve.value = null;
-        authReject.value = null;
-    }
+    isAuthModalOpen.value = true;
+    console.log('[AuthModal] State set to open.');
+    return new Promise((resolve, reject) => {
+      authResolve.value = resolve;
+      authReject.value = reject;
+    });
+  }
 
-    function onAuthSuccess(token: string) {
-        if (authResolve.value) {
-            authResolve.value(token);
-        }
-        closeAuthModal();
+  function closeAuthModal() {
+    console.log('[AuthModal] closeAuthModal called.');
+    isAuthModalOpen.value = false;
+    if (authReject.value) {
+      authReject.value(
+        new Error('Das Authmodal wurde fehlerhaft geschlossen.'),
+      );
     }
+    authResolve.value = null;
+    authReject.value = null;
+  }
 
-    return {
-        isAuthModalOpen,
-        openAuthModal,
-        closeAuthModal,
-        onAuthSuccess
-    };
+  function onAuthSuccess(token: string) {
+    if (authResolve.value) {
+      authResolve.value(token);
+    }
+    closeAuthModal();
+  }
+
+  return {
+    isAuthModalOpen,
+    openAuthModal,
+    closeAuthModal,
+    onAuthSuccess,
+  };
 }
