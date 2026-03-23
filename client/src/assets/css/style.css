@@ -18,7 +18,8 @@
     --color-graphite: #414141;
     --color-steel: #666;
     --color-ghost: #888;
-    --color-ash: #aaa;
+    --color-ash: #ccc;
+    --color-cloud: #ddd;
     --color-white-highlight: #eee;
     --color-white: #ffffff;
     --color-cinnabar: #ef4444;
@@ -78,7 +79,7 @@
 
     --color-focus: var(--color-ash);
 
-    /* Legacy Colors */
+    /* LEGACY COLORS */
     --color-sub: var(--color-ash);
     --not-spinning: var(--color-steel);
     --spinning: var(--color-white);
@@ -107,17 +108,17 @@
     --radius-full: 999px;
 
 
-    /* Shadows */
+    /* SHADOWS */
     --shadow-input: none;
     --shadow-menu: 0 4px 6px -1px #0000001a;
     --shadow-focus: 0 0 0 3px var(--color-graphite);
 
-    /* Transitions */
+    /* TRANSITIONS */
     --transition-duration-hover: 100ms;
 
     --transition-timing-hover: ease;
 
-    /* Animations */
+    /* ANIMATIONS */
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
 
     /* CUSTOM DIMENSIONS */
@@ -126,31 +127,43 @@
 }
 
 :root.light {
+    /* COLORS */
     --color-canvas: var(--color-white);
-    --color-primary: var(--color-black);
-    --color-action: var(--color-black);
+    --color-canvas-hover: var(--color-white-highlight);
+    --color-canvas-border: var(--color-cloud);
+
+    --color-surface: var(--color-white);
+    --color-surface-hover: var(--color-white-highlight);
+    --color-surface-border: var(--color-cloud);
+
     --color-on-surface: var(--color-black);
     --color-on-surface-muted: var(--color-steel);
     --color-on-surface-subtle: var(--color-ghost);
+
+    --color-primary: var(--color-black);
+
+    --color-action: var(--color-black);
+    --color-action-hover: var(--color-onyx);
     --color-on-action: var(--color-white);
-    --color-canvas-border: #ddd;
-    --color-surface-border: #ddd;
-    --color-surface-hover: #eee;
+
     --color-danger: var(--color-cinnabar);
     --color-danger-surface: var(--color-cotton-candy);
+
+
+    --color-focus: var(--color-ghost);
+
+    /* LEGACY COLORS */
     --color-sub: var(--color-steel);
-    --color-surface: var(--color-white);
     --ghost--hover: #f5f5f5;
-    --color-action-hover: var(--color-onyx);
     --not-spinning: #bbb;
-    --color-canvas-hover: #eee;
-    /* Shadows */
+
+    /* SHADOWS */
     --shadow-input: 0 1px 2px 0 #0000000d;
     --shadow-menu: 0 4px 6px -1px #0000001a;
     --shadow-focus: 0 0 0 3px #ddd;
-    --color-focus: var(--color-ghost);
 }
 
+/*
 :root.dark-glass {
     --color-canvas: #0f0f0faa;
     --color-surface: #282828aa;
@@ -166,6 +179,7 @@
 :root.light-glass {
     --blur: blur(32px) saturate(120%);
 }
+*/
 
 ::selection {
     color: var(--color-canvas);
@@ -247,7 +261,7 @@ h5 {
         color: var(--color-on-surface);
         border: 1px solid var(--color-surface-border);
         font-size: var(--text-btn);
-        line-height: 1.2;
+        line-height: 1rem;
         outline: none;
         box-shadow: var(--shadow-input);
         transition: box-shadow 0.2s ease, border-color 0.2s ease;
@@ -278,7 +292,7 @@ h5 {
         border: 1px solid;
         border-radius: var(--radius-md);
         font-size: var(--text-btn);
-        line-height: 1.2;
+        line-height: 1rem;
         cursor: pointer;
         transition: var(--transition-duration-hover) var(--transition-timing-hover);
         white-space: nowrap;

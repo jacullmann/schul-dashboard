@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .create-entry-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
 }
 
 .menu {
