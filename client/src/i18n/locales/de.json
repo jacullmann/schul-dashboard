@@ -526,7 +526,7 @@
         "enterTeacherName": "Bitte Lehrer*innenname eingeben",
         "noTeacherFound": "Keine Lehrer*innen gefunden"
       },
-      "timetable": {
+      "schedule": {
         "title": "Stundenplan",
         "infopop": {
           "tooltip": "Überblick und Funktionen zum Stundenplan",

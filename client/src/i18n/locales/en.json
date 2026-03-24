@@ -472,10 +472,10 @@
         "enterTeacherName": "Please enter a teacher name",
         "noTeacherFound": "No teachers found"
       },
-      "timetable": {
-        "title": "Timetable",
+      "schedule": {
+        "title": "Schedule",
         "infopop": {
-          "tooltip": "Overview and features for the timetable",
+          "tooltip": "Overview and features for the schedule",
           "description": "The digital version of the schedule.",
           "sections": [
             {
@@ -484,7 +484,7 @@
             },
             {
               "title": "Live updates",
-              "text": "Substitutions, cancellations, room changes, etc. are promptly transferred by the admin team and immediately shown in the digital timetable."
+              "text": "Substitutions, cancellations, room changes, etc. are promptly transferred by the admin team and immediately shown in the digital schedule."
             }
           ]
         },
