@@ -4,12 +4,12 @@ import { useUserStore } from '@/stores/userStore';
 import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 
-export interface UseTimetableOptions {
+export interface UseScheduleOptions {
   autoLoad?: boolean;
 }
 
-export function useTimetable(
-  options: UseTimetableOptions = { autoLoad: true },
+export function useSchedule(
+  options: UseScheduleOptions = { autoLoad: true },
 ) {
   const { t, locale } = useI18n();
   const userStore = useUserStore();
@@ -79,23 +79,23 @@ export function useTimetable(
 
   async function loadSubstitutions() {
     try {
-      const { data } = await hw.get('/api/timetable/subs');
+      const { data } = await hw.get('/api/schedule/subs');
       substitutions.value = data;
     } catch (error) {
-      console.error('Fehler beim Laden der Substitutions:', error);
+      console.error('Error loading substitutions:', error);
       substitutions.value = [];
     } finally {
       loadingSubs.value = false;
     }
   }
 
-  async function loadTimetable() {
+  async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const { data } = await hw.get('/api/timetable');
+      const { data } = await hw.get('/api/schedule');
       lessons.value = data;
     } catch (error) {
-      console.error('Fehler beim Laden des Stundenplans:', error);
+      console.error('Error loading schedule:', error);
       lessons.value = [];
     } finally {
       loadingLessons.value = false;
@@ -216,7 +216,7 @@ export function useTimetable(
   onMounted(() => {
     timer = window.setInterval(updateTime, 1000 * 60);
     if (options.autoLoad) {
-      loadTimetable();
+      loadSchedule();
       loadSubstitutions();
     }
   });
@@ -235,7 +235,7 @@ export function useTimetable(
         oldVal !== undefined &&
         JSON.stringify(newVal) !== JSON.stringify(oldVal)
       ) {
-        loadTimetable();
+        loadSchedule();
       }
     },
     { deep: false },
@@ -253,7 +253,6 @@ export function useTimetable(
     {} as Record<number, number>,
   );
 
-  // New computed property to get the value of the current day
   const currentDay = computed(() => {
     const dayIndex = (now.value.getDay() + 6) % 7; // Monday = 0, Sunday = 6
     if (dayIndex >= 0 && dayIndex < days.length) {

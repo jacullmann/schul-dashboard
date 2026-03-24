@@ -17,31 +17,31 @@ const goBack = () => {
   <div class="card not-found-container">
     <div class="not-found-content">
       <div class="error-code">404</div>
-      <h1 class="error-title">Seite nicht gefunden</h1>
+      <h1 class="error-title">Page not found</h1>
       <p class="error-description">
-        Die aufgerufene Adresse ist ungültig oder nicht mehr verfügbar.
+        The page you're looking for doesn't exist or isn't available.
       </p>
 
       <div class="navigation-section">
-        <h3 class="section-title">Wichtige Bereiche</h3>
+        <h3 class="section-title">Main Sections</h3>
         <div class="nav-grid">
           <router-link to="/items/all" class="nav-card">
             <div class="nav-icon">
               <FileText :size="24"/>
             </div>
             <div class="nav-info">
-              <div class="nav-title">Aufgaben</div>
-              <div class="nav-desc">Aufgaben und Klassenarbeiten</div>
+              <div class="nav-title">Tasks</div>
+              <div class="nav-desc">Tasks and tests</div>
             </div>
           </router-link>
 
-          <router-link to="/stundenplan" class="nav-card">
+          <router-link to="/schedule" class="nav-card">
             <div class="nav-icon">
               <CalendarDays :size="24"/>
             </div>
             <div class="nav-info">
-              <div class="nav-title">Stundenplan</div>
-              <div class="nav-desc">Persönlicher Zeitplan</div>
+              <div class="nav-title">Schedule</div>
+              <div class="nav-desc">Your schedule</div>
             </div>
           </router-link>
         </div>
@@ -50,7 +50,7 @@ const goBack = () => {
       <div class="action-section">
         <BaseButton @click="goBack" variant="ghost">
          <ArrowLeft :size="18"/>
-          Zurück zur letzten Seite
+          Go back
         </BaseButton>
       </div>
     </div>

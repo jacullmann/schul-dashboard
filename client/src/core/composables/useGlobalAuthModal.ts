@@ -34,7 +34,7 @@ export function useGlobalAuthModal() {
     isAuthModalOpen.value = false;
     if (authReject.value) {
       authReject.value(
-        new Error('Das Authmodal wurde fehlerhaft geschlossen.'),
+        new Error('Auth Modal has been closed incorrectly.'),
       );
     }
     authResolve.value = null;

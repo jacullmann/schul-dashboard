@@ -6,48 +6,48 @@ import {
   UseGuards,
   Optional,
 } from '@nestjs/common';
-import { TimetableService } from './timetable.service';
+import { ScheduleService } from './schedule.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
 import { ActiveTenantId } from '../common/decorators/tenant.decorator';
 import { CurrentUserId } from '../common/decorators/current-user.decorator';
 
 @UseGuards(JwtAuthGuard, TenantGuard)
-@Controller('timetable')
-export class TimetableController {
-  constructor(private readonly timetableService: TimetableService) {}
+@Controller('schedule')
+export class ScheduleController {
+  constructor(private readonly scheduleService: ScheduleService) {}
 
   @Get()
-  getTimetable(
+  getSchedule(
     @ActiveTenantId() tenantId: string,
     @Optional() @CurrentUserId() userId?: string,
   ) {
-    return this.timetableService.getTimetable(tenantId, userId);
+    return this.scheduleService.getSchedule(tenantId, userId);
   }
 
   @Get('subs')
   getSubs(@ActiveTenantId() tenantId: string) {
-    return this.timetableService.getSubs(tenantId);
+    return this.scheduleService.getSubs(tenantId);
   }
 
   @Get('subjects')
   getSubjects(@ActiveTenantId() tenantId: string) {
-    return this.timetableService.getSubjects(tenantId);
+    return this.scheduleService.getSubjects(tenantId);
   }
 
   @Get('persons')
   getPersons(@ActiveTenantId() tenantId: string) {
-    return this.timetableService.getPersons(tenantId);
+    return this.scheduleService.getPersons(tenantId);
   }
 
   @Get('dalton-schedule')
   getDaltonSchedule(@ActiveTenantId() tenantId: string) {
-    return this.timetableService.getDaltonSchedule(tenantId);
+    return this.scheduleService.getDaltonSchedule(tenantId);
   }
 
   @Get('announcements')
   getAnnouncements(@ActiveTenantId() tenantId: string) {
-    return this.timetableService.getAnnouncements(tenantId);
+    return this.scheduleService.getAnnouncements(tenantId);
   }
 
   /** Returns the list of announcement IDs the current user has already seen as popups. */
@@ -56,7 +56,7 @@ export class TimetableController {
     @CurrentUserId() userId: string,
     @ActiveTenantId() tenantId: string,
   ) {
-    return this.timetableService.getAnnouncementReadStatus(userId, tenantId);
+    return this.scheduleService.getAnnouncementReadStatus(userId, tenantId);
   }
 
   /** Marks a specific announcement popup as seen for the current user. */
@@ -65,6 +65,6 @@ export class TimetableController {
     @CurrentUserId() userId: string,
     @Param('id') announcementId: string,
   ) {
-    return this.timetableService.markAnnouncementRead(userId, announcementId);
+    return this.scheduleService.markAnnouncementRead(userId, announcementId);
   }
 }

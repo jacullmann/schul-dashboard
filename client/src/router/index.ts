@@ -92,11 +92,11 @@ const routes = [
             },
           },
           {
-            path: 'timetable',
-            name: 'group-timetable',
-            component: () => import('@/modules/schedule/pages/Timetable.vue'),
+            path: 'schedule',
+            name: 'group-schedule',
+            component: () => import('@/modules/schedule/pages/Schedule.vue'),
             meta: {
-              title: 'school.tables.timetable.title',
+              title: 'school.tables.schedule.title',
               requiresTenant: true,
               groupContext: true,
             },

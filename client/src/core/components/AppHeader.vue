@@ -170,7 +170,7 @@ onUnmounted(() => {
               <button
                   class="group-switcher-btn logo-group-name--desktop"
                   @click="toggleGroupMenu"
-                  title="Gruppe wechseln"
+                  title="Change group"
               >
                 <span>{{ groupName }}</span>
                 <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': groupMenuOpen }" />
@@ -193,7 +193,7 @@ onUnmounted(() => {
                     class="menu-btn action"
                     @click="groupMenuOpen = false"
                 >
-                  + Neue Gruppe
+                  + New group
                 </router-link>
               </div>
             </div>
@@ -201,14 +201,14 @@ onUnmounted(() => {
         </div>
 
         <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
-          <button @click="closeNav" class="nav-close-button" aria-label="Menü schließen">
+          <button @click="closeNav" class="nav-close-button" aria-label="Close menu">
             <X />
           </button>
 
           <!-- Group navigation: visible when a group is active -->
           <template v-if="activeGroupId">
             <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
-            <router-link :to="`/groups/${activeGroupId}/stundenplan`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
+            <router-link :to="`/groups/${activeGroupId}/timetable`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
           </template>
 
           <!-- User navigation: always visible -->
@@ -221,7 +221,7 @@ onUnmounted(() => {
               class="nav-item admin-link"
               @click="closeNav"
           >
-            Admin
+            Superadmin Dashboard
           </router-link>
           <router-link
               v-if="activeGroupId && isGroupAdmin"
@@ -229,7 +229,7 @@ onUnmounted(() => {
               class="nav-item"
               @click="closeNav"
           >
-            Verwaltung
+            Manage Group
           </router-link>
         </nav>
       </div>
@@ -253,7 +253,7 @@ onUnmounted(() => {
         <button
             @click="toggleNav"
             :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
-            aria-label="Menü öffnen oder schließen"
+            aria-label="Toggle menu"
             v-if="!navOpen"
         >
           <Menu style="color: var(--color-on-surface)" :size="26"></Menu>

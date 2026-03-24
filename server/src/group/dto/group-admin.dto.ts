@@ -30,7 +30,7 @@ export class UpdateGroupPasswordDto {
   newPassword: string;
 }
 
-export class CreateTimetableSubDto {
+export class CreateScheduleSubDto {
   @IsUUID()
   lessonId: string;
 

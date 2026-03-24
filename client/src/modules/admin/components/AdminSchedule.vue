@@ -2,10 +2,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { Lesson } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
-import { useTimetable } from '@/modules/schedule/composables/useTimetable';
+import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 
 const { t } = useI18n();
-const { formatDayName, days, timeSlots, getGroupStyle, getDisplayName, defaultDayIndex } = useTimetable({ autoLoad: false });
+const { formatDayName, days, timeSlots, getGroupStyle, getDisplayName, defaultDayIndex } = useSchedule({ autoLoad: false });
 
 const props = defineProps<{
   lessons: Lesson[];
@@ -30,7 +30,7 @@ const onSelectLesson = (lesson: Lesson) => {
   emit('select-lesson', lesson);
 };
 
-// Responsiveness logic (same as Timetable.vue)
+// Responsiveness logic (same as Schedule.vue)
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);
@@ -89,7 +89,7 @@ onUnmounted(() => {
   <div class="admin-timetable-wrapper">
     <div class="timetable-grid">
       <div class="time-col-wrapper" ref="timeColWrapperRef">
-        <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
+        <div class="header-cell time-header">{{ t('school.tables.schedule.lesson') }}</div>
         <div
             v-for="ts in timeSlots"
             :key="ts.slot"
@@ -122,9 +122,9 @@ onUnmounted(() => {
                 :key="index"
                 class="sub-lesson-item clickable"
                 @click="onSelectLesson(lesson)"
-                :class="{ 
+                :class="{
                   'has-border': index < group.length - 1,
-                  'selected': lesson.id === selectedLessonId 
+                  'selected': lesson.id === selectedLessonId
                 }"
             >
               <div class="lesson-subject">

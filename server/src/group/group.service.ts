@@ -212,8 +212,8 @@ export class GroupService {
 
       // Determine unread status per-user:
       //   Announcements — unread if not present in user_announcement_read_status.
-      //   Timetable subs — unread if created after the user's last timetable visit
-      //                    (tracked in user_tenant_state.last_timetable_visit_at).
+      //   Schedule subs — unread if created after the user's last schedule visit
+      //                    (tracked in user_tenant_state.last_schedule_visit_at).
       if (groups.length > 0) {
         const tenantIds = groups.map((g) => g.id);
 
@@ -228,12 +228,12 @@ export class GroupService {
             .select('id, tenant_id')
             .in('tenant_id', tenantIds),
           sb
-            .from('timetable_subs')
+            .from('schedule_subs')
             .select('tenant_id, created_at')
             .in('tenant_id', tenantIds),
           sb
             .from('user_tenant_state')
-            .select('tenant_id, last_timetable_visit_at')
+            .select('tenant_id, last_schedule_visit_at')
             .eq('user_id', userId)
             .in('tenant_id', tenantIds),
         ]);
@@ -254,11 +254,11 @@ export class GroupService {
           );
         }
 
-        // Build per-group last-timetable-visit lookup
+        // Build per-group last-schedule-visit lookup
         const lastVisitMap = new Map<string, string>(
           (userStates || []).map((s: any) => [
             s.tenant_id as string,
-            (s.last_timetable_visit_at as string) ?? EPOCH_ISO,
+            (s.last_schedule_visit_at as string) ?? EPOCH_ISO,
           ]),
         );
 

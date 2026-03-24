@@ -41,9 +41,8 @@ const greeting = computed(() => {
 function roleLabel(role: string): string {
   const map: Record<string, string> = {
     admin: 'Admin',
-    mod: 'Moderator',
     moderator: 'Moderator',
-    user: 'Mitglied',
+    user: 'Member',
     superadmin: 'Super Admin',
   };
   return map[role] || role;
@@ -120,10 +119,6 @@ onMounted(() => {
             <Plus :size="16" />
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
-          <router-link v-if="isSuperadmin" to="/admin" class="btn ghost">
-            <ShieldUser :size="16" />
-            <span>Super Admin</span>
-          </router-link>
         </div>
       </div>
     </section>

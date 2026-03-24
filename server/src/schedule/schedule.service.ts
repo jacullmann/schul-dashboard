@@ -1,16 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
-import { filterLessonsForUser } from '../common/utils/timetable.util';
+import { filterLessonsForUser } from '../common/utils/schedule.util';
 
 @Injectable()
-export class TimetableService {
+export class ScheduleService {
   constructor(private readonly supabaseService: SupabaseService) {}
 
-  async getTimetable(tenantId: string, userId: string | undefined) {
+  async getSchedule(tenantId: string, userId: string | undefined) {
     const sb = this.supabaseService.getClient();
     try {
       const { data: lessons } = await sb
-        .from('timetables')
+        .from('schedules')
         .select(
           `
                 id,
@@ -49,13 +49,13 @@ export class TimetableService {
       }
 
       if (userId) {
-        // Fire-and-forget: record the user's last timetable visit timestamp.
+        // Fire-and-forget: record the user's last schedule visit timestamp.
         sb.from('user_tenant_state')
           .upsert(
             {
               user_id: userId,
               tenant_id: tenantId,
-              last_timetable_visit_at: new Date().toISOString(),
+              last_schedule_visit_at: new Date().toISOString(),
             },
             { onConflict: 'user_id,tenant_id' },
           )
@@ -75,7 +75,7 @@ export class TimetableService {
         courses: l.courses ? { id: l.courses.id, name: l.courses.name } : null,
       }));
     } catch (_err) {
-      throw new InternalServerErrorException('Failed to load timetable');
+      throw new InternalServerErrorException('Failed to load schedule');
     }
   }
 
@@ -83,12 +83,9 @@ export class TimetableService {
     const sb = this.supabaseService.getClient();
     try {
       const { data: subs } = await sb
-        .from('timetable_subs')
+        .from('schedule_substitutions')
         .select('*')
         .eq('tenant_id', tenantId);
-      // Try to determine the user id. Actually getSubs might be called from timetable context
-      // where we wouldn't have user id here easily. If we don't have user_id, it is handled
-      // by getTimetable anyways since getTimetable runs concurrently on the same page.
       return (subs || []).map((s) => ({
         id: s.id,
         lessonId: s.lesson_id,
@@ -222,9 +219,5 @@ export class TimetableService {
           'Failed to mark announcement as read',
         );
     }
-  }
-
-  async getTimetableErrors() {
-    // Placeholder for future error reporting
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import InfoModal from '@/common/components/InfoModal.vue'
-import { useTimetable } from '@/modules/schedule/composables/useTimetable';
+import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useI18n } from 'vue-i18n';
 
 const { t, tm } = useI18n();
@@ -18,7 +18,7 @@ const {
   getGroupStyle,
   defaultDayIndex,
   formatDayName
-} = useTimetable();
+} = useSchedule();
 
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
@@ -81,7 +81,7 @@ onMounted(() => {
   resizeObserver = new ResizeObserver(() => {
     syncRowHeights();
   });
-  
+
   if (daysGridWrapperRef.value) {
     resizeObserver.observe(daysGridWrapperRef.value);
   }
@@ -99,13 +99,13 @@ onUnmounted(() => {
   <div class="card p-0" style="overflow: hidden;">
     <div>
       <h2 style="margin-top: 0" class="title-inf">
-        {{ t('school.tables.timetable.title') }}
+        {{ t('school.tables.schedule.title') }}
         <InfoModal
-            :tooltip="t('school.tables.timetable.infopop.tooltip')"
-            :title="t('school.tables.timetable.title')">
+            :tooltip="t('school.tables.schedule.infopop.tooltip')"
+            :title="t('school.tables.schedule.title')">
 
-          <h3>{{ t('school.tables.timetable.infopop.description') }}</h3>
-          <div v-for="(section, index) in tm('school.tables.timetable.infopop.sections')" :key="index">
+          <h3>{{ t('school.tables.schedule.infopop.description') }}</h3>
+          <div v-for="(section, index) in tm('school.tables.schedule.infopop.sections')" :key="index">
             <h3>{{ section.title }}</h3>
             <p>{{ section.text }}</p>
           </div>
@@ -117,15 +117,15 @@ onUnmounted(() => {
         </InfoModal>
       </h2>
       <div class="status-row">
-        <div v-if="loadingSubs || loadingLessons" class="small">{{ t('school.tables.timetable.loading') }}</div>
+        <div v-if="loadingSubs || loadingLessons" class="small">{{ t('school.tables.schedule.loading') }}</div>
         <div v-else-if="isPersonalized" class="personalized-badge">
-          {{ t('school.tables.timetable.personalized') }}
+          {{ t('school.tables.schedule.personalized') }}
         </div>
       </div>
     </div>
     <div class="timetable-grid">
       <div class="time-col-wrapper" ref="timeColWrapperRef">
-        <div class="header-cell time-header">{{ t('school.tables.timetable.lesson') }}</div>
+        <div class="header-cell time-header">{{ t('school.tables.schedule.lesson') }}</div>
         <div
             v-for="ts in timeSlots"
             :key="ts.slot"
@@ -168,7 +168,7 @@ onUnmounted(() => {
             >
               <div v-if="lesson.cancelled">
                 <div class="lesson-subject crossed">{{ getDisplayName(lesson) }}</div>
-                <div class="ausfall-label">{{ t('school.tables.timetable.cancelled') }}</div>
+                <div class="ausfall-label">{{ t('school.tables.schedule.cancelled') }}</div>
                 <div class="lesson-details">
                   <span class="crossed">{{ lesson.room }}</span>
                 </div>
@@ -429,7 +429,7 @@ onUnmounted(() => {
     grid-template-rows: auto repeat(9, minmax(35px, auto));
     gap: 8px;
   }
-  
+
   .header-cell.day-header,
   .lesson-group-container {
     scroll-snap-align: start;

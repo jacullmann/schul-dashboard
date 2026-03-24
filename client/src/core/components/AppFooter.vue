@@ -27,21 +27,21 @@ const year = new Date().getFullYear();
           <router-link to="/home" class="footer-link">{{ t('groups.home.title') }}</router-link>
           <router-link to="/todos" class="footer-link">{{ t('school.private.title') }}</router-link>
           <router-link to="/info-dashboard" class="footer-link">{{ t('info.dashboard.title') }}</router-link>
-          <router-link to="/spiele" class="footer-link">{{ t('navigation.games') }}</router-link>
+          <router-link to="/games" class="footer-link">{{ t('navigation.games') }}</router-link>
           <router-link to="/brain" class="footer-link">Brain Tests</router-link>
           <router-link to="/imagetool" class="footer-link">{{ t('navigation.imageTool') }}</router-link>
         </div>
 
         <div class="footer-section">
           <h3>{{ t('legal.title') }}</h3>
-          <router-link to="/legal/impressum" class="footer-link">{{ t('legal.imprint.title') }}</router-link>
-          <router-link to="/legal/datenschutz" class="footer-link">{{ t('legal.privacy.title') }}</router-link>
-          <router-link to="/legal/nutzung" class="footer-link">{{ t('legal.terms.title') }}</router-link>
+          <router-link to="/legal/impress" class="footer-link">{{ t('legal.imprint.title') }}</router-link>
+          <router-link to="/legal/privacy-policy" class="footer-link">{{ t('legal.privacy.title') }}</router-link>
+          <router-link to="/legal/terms" class="footer-link">{{ t('legal.terms.title') }}</router-link>
         </div>
 
         <div class="footer-section">
           <h3>{{ t('contact.contact.title') }}</h3>
-          <router-link to="/kontakt" class="footer-link">{{ t('contact.contact.title') }}</router-link>
+          <router-link to="/contact" class="footer-link">{{ t('contact.contact.title') }}</router-link>
         </div>
 
         <div class="footer-section">

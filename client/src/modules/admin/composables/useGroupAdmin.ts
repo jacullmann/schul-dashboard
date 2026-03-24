@@ -5,7 +5,7 @@ import hw from '@/api/hwApi';
 import type {
   GroupMember,
   GroupStats,
-  TimetableSubstitution,
+  ScheduleSubstitution,
   AdminAnnouncement,
 } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
@@ -30,12 +30,12 @@ export function useGroupAdmin() {
   const members = ref<GroupMember[]>([]);
   const loadingMembers = ref(false);
 
-  // Timetable subs
-  const subs = ref<TimetableSubstitution[]>([]);
+  // Schedule substitutions
+  const subs = ref<ScheduleSubstitution[]>([]);
   const loadingSubs = ref(false);
   const savingSub = ref(false);
 
-  // Timetable
+  // Schedule
   const lessons = ref<Lesson[]>([]);
   const loadingLessons = ref(false);
 
@@ -127,15 +127,15 @@ export function useGroupAdmin() {
     }
   }
 
-  // ─── Timetable Subs ─────────────────────────────────
+  // ─── Schedule Substitutions ─────────────────────────
 
-  async function loadTimetable() {
+  async function loadSchedule() {
     loadingLessons.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/timetable');
+      const { data } = await hw.get('/api/group-admin/schedule');
       lessons.value = data;
     } catch {
-      showMessage('Failed to load timetable', true);
+      showMessage('Failed to load schedule', true);
     } finally {
       loadingLessons.value = false;
     }
@@ -144,7 +144,7 @@ export function useGroupAdmin() {
   async function loadSubs() {
     loadingSubs.value = true;
     try {
-      const { data } = await hw.get('/api/group-admin/timetable/subs');
+      const { data } = await hw.get('/api/group-admin/schedule/subs');
       subs.value = data;
     } catch {
       showMessage('Failed to load substitutions', true);
@@ -157,7 +157,7 @@ export function useGroupAdmin() {
     if (!subData.lessonId) return;
     savingSub.value = true;
     try {
-      await hw.post('/api/group-admin/timetable/subs', subData);
+      await hw.post('/api/group-admin/schedule/subs', subData);
       await loadSubs();
       showMessage('Substitution saved');
     } catch {
@@ -170,7 +170,7 @@ export function useGroupAdmin() {
   async function deleteSub(id: string) {
     if (!confirm('Delete substitution?')) return;
     try {
-      await hw.delete(`/api/group-admin/timetable/subs/${id}`);
+      await hw.delete(`/api/group-admin/schedule/subs/${id}`);
       subs.value = subs.value.filter((s) => s.id !== id);
       showMessage('Substitution deleted');
     } catch {
@@ -182,7 +182,7 @@ export function useGroupAdmin() {
 
   async function loadAnnouncements() {
     try {
-      const { data } = await hw.get('/api/timetable/announcements');
+      const { data } = await hw.get('/api/schedule/announcements');
       announcements.value = data;
     } catch {
       /* ignore */
@@ -332,7 +332,7 @@ export function useGroupAdmin() {
     loadMembers();
     loadSubs();
     loadAnnouncements();
-    loadTimetable();
+    loadSchedule();
   });
 
   return {
@@ -360,10 +360,10 @@ export function useGroupAdmin() {
     saveSub,
     deleteSub,
 
-    // Timetable
+    // Schedule
     lessons,
     loadingLessons,
-    loadTimetable,
+    loadSchedule,
 
     // Announcements
     announcements,

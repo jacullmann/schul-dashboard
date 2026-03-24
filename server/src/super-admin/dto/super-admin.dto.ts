@@ -27,7 +27,7 @@ export class CreateSubjectDto {
   name: string;
 }
 
-export class AdminCreateTimetableSubDto {
+export class AdminCreateScheduleSubDto {
   @IsUUID()
   lessonId: string;
 

@@ -37,7 +37,7 @@ function add(
     options = durationOrOptions;
   }
 
-  // Best practice: Default duration based on message length for better UX/accessibility
+  // Default duration based on message length for better UX/accessibility
   // Base time 2500ms + 50ms per character
   const defaultDuration = 2500 + message.length * 50;
 

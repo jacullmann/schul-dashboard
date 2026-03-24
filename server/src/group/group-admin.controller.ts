@@ -18,7 +18,7 @@ import { CurrentUserId } from '../common/decorators/current-user.decorator';
 import {
   ChangeMemberRoleDto,
   RenameGroupDto,
-  CreateTimetableSubDto,
+  CreateScheduleSubDto,
   CreateAnnouncementDto,
   CreateSubjectDto,
   UpdateSubjectDto,
@@ -172,34 +172,34 @@ export class GroupAdminController {
   }
 
   @TenantRoles('admin', 'moderator')
-  @Get('timetable')
-  getTimetable(@ActiveTenantId() tenantId: string) {
-    return this.groupAdminService.getTimetable(tenantId);
+  @Get('schedule')
+  getSchedule(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getSchedule(tenantId);
   }
 
   @TenantRoles('admin', 'moderator')
-  @Get('timetable/subs')
-  getTimetableSubs(@ActiveTenantId() tenantId: string) {
-    return this.groupAdminService.getTimetableSubs(tenantId);
+  @Get('schedule/subs')
+  getScheduleSubs(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getScheduleSubs(tenantId);
   }
 
   @TenantRoles('admin', 'moderator')
-  @Post('timetable/subs')
-  createTimetableSub(
+  @Post('schedule/subs')
+  createScheduleSub(
     @ActiveTenantId() tenantId: string,
     @CurrentUserId() userId: string,
-    @Body() body: CreateTimetableSubDto,
+    @Body() body: CreateScheduleSubDto,
   ) {
-    return this.groupAdminService.createTimetableSub(tenantId, userId, body);
+    return this.groupAdminService.createScheduleSub(tenantId, userId, body);
   }
 
   @TenantRoles('admin', 'moderator')
-  @Delete('timetable/subs/:id')
-  deleteTimetableSub(
+  @Delete('schedule/subs/:id')
+  deleteScheduleSub(
     @ActiveTenantId() tenantId: string,
     @Param('id') id: string,
   ) {
-    return this.groupAdminService.deleteTimetableSub(tenantId, id);
+    return this.groupAdminService.deleteScheduleSub(tenantId, id);
   }
 
   @TenantRoles('admin', 'moderator')

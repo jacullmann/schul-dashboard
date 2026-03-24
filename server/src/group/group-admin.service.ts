@@ -24,7 +24,7 @@ export class GroupAdminService {
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId);
     const { data: subsData } = await sb
-      .from('timetable_subs')
+      .from('schedule_substitutions')
       .select('id')
       .eq('tenant_id', tenantId);
     const { count: oldItemsCount } = await sb
@@ -497,12 +497,12 @@ export class GroupAdminService {
     // Explicit reference check across all FK-referencing tables to prevent
     // accidental deletion of subjects still in use.
     const [
-      { count: timetableCount },
+      { count: scheduleCount },
       { count: courseCount },
       { count: psCount },
     ] = await Promise.all([
       sb
-        .from('timetables')
+        .from('schedules')
         .select('*', { count: 'exact', head: true })
         .eq('subject_id', subjectId),
       sb
@@ -516,10 +516,10 @@ export class GroupAdminService {
     ]);
 
     const totalRefs =
-      (timetableCount ?? 0) + (courseCount ?? 0) + (psCount ?? 0);
+      (scheduleCount ?? 0) + (courseCount ?? 0) + (psCount ?? 0);
     if (totalRefs > 0) {
       throw new BadRequestException(
-        'Subject cannot be deleted because it is still referenced by timetable entries, courses, or persons. Deactivate it instead.',
+        'Subject cannot be deleted because it is still referenced by schedule entries, courses, or persons. Deactivate it instead.',
       );
     }
 
@@ -541,11 +541,11 @@ export class GroupAdminService {
     return { ok: true };
   }
 
-  // --- Timetable subs ---
-  async getTimetable(tenantId: string) {
+  // --- Schedule substitutions ---
+  async getSchedule(tenantId: string) {
     const sb = this.supabaseService.getClient();
     const { data: lessons, error } = await sb
-      .from('timetables')
+      .from('schedules')
       .select(
         `
           id,
@@ -561,7 +561,7 @@ export class GroupAdminService {
       .eq('tenant_id', tenantId);
 
     if (error) {
-      throw new InternalServerErrorException('Failed to load timetable');
+      throw new InternalServerErrorException('Failed to load schedule');
     }
 
     return (lessons || []).map((l: any) => ({
@@ -578,10 +578,10 @@ export class GroupAdminService {
     }));
   }
 
-  async getTimetableSubs(tenantId: string) {
+  async getScheduleSubs(tenantId: string) {
     const sb = this.supabaseService.getClient();
     const { data: subs } = await sb
-      .from('timetable_subs')
+      .from('schedule_substitutions')
       .select('*')
       .eq('tenant_id', tenantId);
     return (subs || []).map((s) => {
@@ -601,10 +601,10 @@ export class GroupAdminService {
     });
   }
 
-  async createTimetableSub(tenantId: string, userId: string, sub: any) {
+  async createScheduleSub(tenantId: string, userId: string, sub: any) {
     const sb = this.supabaseService.getClient();
     const { data, error } = await sb
-      .from('timetable_subs')
+      .from('schedule_substitutions')
       .insert({
         tenant_id: tenantId,
         lesson_id: sub.lessonId,
@@ -624,7 +624,7 @@ export class GroupAdminService {
 
     const { error: activitySubError } = await sb.from('user_activity').insert({
       user_id: userId,
-      type: 'timetable:sub:create',
+      type: 'schedule:sub:create',
       meta: { lessonId: sub.lessonId },
     });
     if (activitySubError)
@@ -645,10 +645,10 @@ export class GroupAdminService {
     };
   }
 
-  async deleteTimetableSub(tenantId: string, id: string) {
+  async deleteScheduleSub(tenantId: string, id: string) {
     const sb = this.supabaseService.getClient();
     await sb
-      .from('timetable_subs')
+      .from('schedule_substitutions')
       .delete()
       .eq('id', id)
       .eq('tenant_id', tenantId);

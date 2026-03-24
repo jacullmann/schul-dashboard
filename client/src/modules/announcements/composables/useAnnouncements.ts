@@ -21,7 +21,7 @@ export function useAnnouncements() {
     loading.value = true;
     try {
       const { data } = await hw.get<Announcement[]>(
-        '/api/timetable/announcements',
+        '/api/schedule/announcements',
       );
       announcements.value = data;
     } catch (e) {
@@ -35,7 +35,7 @@ export function useAnnouncements() {
     if (!user.value) return;
     try {
       const { data } = await hw.get<string[]>(
-        '/api/timetable/announcements/read-status',
+        '/api/schedule/announcements/read-status',
       );
       seenIds.value = new Set(data);
     } catch {
@@ -48,7 +48,7 @@ export function useAnnouncements() {
     if (seenIds.value.has(announcementId)) return;
     seenIds.value.add(announcementId);
     try {
-      await hw.post(`/api/timetable/announcements/${announcementId}/read`);
+      await hw.post(`/api/schedule/announcements/${announcementId}/read`);
     } catch {
       // Non-fatal: local optimistic update already prevents re-showing
     }

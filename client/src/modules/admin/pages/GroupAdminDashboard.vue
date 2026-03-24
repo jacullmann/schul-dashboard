@@ -8,7 +8,7 @@ import AdminLayout, { type AdminNavItem } from '@/modules/admin/components/Admin
 
 import GroupAdminOverview from '@/modules/admin/components/GroupAdminOverview.vue';
 import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue';
-import GroupAdminTimetable from '@/modules/admin/components/GroupAdminTimetable.vue';
+import GroupAdminSchedule from '@/modules/admin/components/GroupAdminSchedule.vue';
 import GroupAdminAnnouncements from '@/modules/admin/components/GroupAdminAnnouncements.vue';
 import GroupAdminSubjects from '@/modules/admin/components/GroupAdminSubjects.vue';
 import GroupAdminSettings from '@/modules/admin/components/GroupAdminSettings.vue';
@@ -54,7 +54,7 @@ const isOwner = computed(() => !!(userStore.user?.id && activeGroupOwnerId.value
 const navItems: AdminNavItem[] = [
   { id: 'overview',      label: 'Overview',     icon: markRaw(LayoutDashboard) },
   { id: 'members',       label: 'Members',        icon: markRaw(UsersRound) },
-  { id: 'timetable',     label: 'Timetable',    icon: markRaw(CalendarDays) },
+  { id: 'schedule',      label: 'Schedule',     icon: markRaw(CalendarDays) },
   { id: 'announcements', label: 'Announcements',icon: markRaw(Megaphone) },
   { id: 'subjects',      label: 'Subjects',     icon: markRaw(BookOpen) },
   { id: 'settings',      label: 'Settings',     icon: markRaw(Settings) },
@@ -88,8 +88,8 @@ const navItems: AdminNavItem[] = [
       @transfer-ownership="transferOwnership"
     />
 
-    <GroupAdminTimetable
-      v-if="activeTab === 'timetable'"
+    <GroupAdminSchedule
+      v-if="activeTab === 'schedule'"
       :subs="subs"
       :loading-subs="loadingSubs"
       :lessons="lessons"

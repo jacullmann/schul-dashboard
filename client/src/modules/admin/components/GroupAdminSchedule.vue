@@ -3,12 +3,12 @@ import { ref } from 'vue';
 import { RefreshCw, Trash2 } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
 import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
-import AdminTimetable from '@/modules/admin/components/AdminTimetable.vue';
-import type { TimetableSubstitution } from '@/modules/admin/types';
+import AdminSchedule from '@/modules/admin/components/AdminSchedule.vue';
+import type { ScheduleSubstitution } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
 
 const props = defineProps<{
-  subs: TimetableSubstitution[];
+  subs: ScheduleSubstitution[];
   loadingSubs: boolean;
   lessons: Lesson[];
   loadingLessons: boolean;

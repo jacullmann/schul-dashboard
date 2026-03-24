@@ -19,7 +19,7 @@ import {
   UpdateUserRoleDto,
   ProcessReportDto,
   CreateSubjectDto,
-  AdminCreateTimetableSubDto,
+  AdminCreateScheduleSubDto,
 } from './dto/super-admin.dto';
 
 // Global super-admin routes: user management, reports, global stats
@@ -153,27 +153,27 @@ export class SuperAdminController {
   }
 
   @UseGuards(TenantGuard)
-  @Get('timetable/subs')
-  getTimetableSubs(@ActiveTenantId() tenantId: string) {
-    return this.groupAdminService.getTimetableSubs(tenantId);
+  @Get('schedule/subs')
+  getScheduleSubs(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getScheduleSubs(tenantId);
   }
 
   @UseGuards(TenantGuard)
-  @Post('timetable/subs')
-  createTimetableSub(
+  @Post('schedule/subs')
+  createScheduleSub(
     @ActiveTenantId() tenantId: string,
     @CurrentUserId() userId: string,
-    @Body() body: AdminCreateTimetableSubDto,
+    @Body() body: AdminCreateScheduleSubDto,
   ) {
-    return this.groupAdminService.createTimetableSub(tenantId, userId, body);
+    return this.groupAdminService.createScheduleSub(tenantId, userId, body);
   }
 
   @UseGuards(TenantGuard)
-  @Delete('timetable/subs/:id')
-  deleteTimetableSub(
+  @Delete('schedule/subs/:id')
+  deleteScheduleSub(
     @ActiveTenantId() tenantId: string,
     @Param('id') id: string,
   ) {
-    return this.groupAdminService.deleteTimetableSub(tenantId, id);
+    return this.groupAdminService.deleteScheduleSub(tenantId, id);
   }
 }

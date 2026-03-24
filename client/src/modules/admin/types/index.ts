@@ -5,7 +5,7 @@ export type SuperAdminTab = 'overview' | 'users' | 'reports' | 'sorgen' | 'doc';
 export type GroupAdminTab =
   | 'overview'
   | 'members'
-  | 'timetable'
+  | 'schedule'
   | 'announcements'
   | 'subjects';
 
@@ -85,8 +85,8 @@ export interface AdminSorge {
   createdAt: string;
 }
 
-// ─── Timetable Substitutions ────────────────────────────────────
-export interface TimetableSubstitution {
+// ─── Schedule Substitutions ─────────────────────────────────────
+export interface ScheduleSubstitution {
   id: string;
   lessonId: string;
   day?: string;

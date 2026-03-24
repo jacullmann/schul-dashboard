@@ -7,7 +7,7 @@ import { UserModule } from './user/user.module';
 import { TodosModule } from './todos/todos.module';
 import { GroupModule } from './group/group.module';
 import { ItemsModule } from './items/items.module';
-import { TimetableModule } from './timetable/timetable.module';
+import { ScheduleModule } from './schedule/schedule.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { MfaModule } from './mfa/mfa.module';
 import { DocModule } from './doc/doc.module';
@@ -42,7 +42,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     TodosModule,
     GroupModule,
     ItemsModule,
-    TimetableModule,
+    ScheduleModule,
     SuperAdminModule,
     MfaModule,
     DocModule,
