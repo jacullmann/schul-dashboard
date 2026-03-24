@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { FileText, CalendarDays, ArrowLeft } from "lucide-vue-next";
+import { LayoutDashboard, Lock, ArrowLeft } from "lucide-vue-next";
 
 const router = useRouter();
 
@@ -23,25 +23,24 @@ const goBack = () => {
       </p>
 
       <div class="navigation-section">
-        <h3 class="section-title">Main Sections</h3>
         <div class="nav-grid">
-          <router-link to="/items/all" class="nav-card">
+          <router-link to="/home" class="nav-card">
             <div class="nav-icon">
-              <FileText :size="24"/>
+              <LayoutDashboard :size="24"/>
             </div>
             <div class="nav-info">
-              <div class="nav-title">Tasks</div>
-              <div class="nav-desc">Tasks and tests</div>
+              <div class="nav-title">Homepage</div>
+              <div class="nav-desc">Overview over your groups.</div>
             </div>
           </router-link>
 
           <router-link to="/schedule" class="nav-card">
             <div class="nav-icon">
-              <CalendarDays :size="24"/>
+              <Lock :size="24"/>
             </div>
             <div class="nav-info">
-              <div class="nav-title">Schedule</div>
-              <div class="nav-desc">Your schedule</div>
+                <div class="nav-title">Private Todos</div>
+              <div class="nav-desc">Your private todos.</div>
             </div>
           </router-link>
         </div>
