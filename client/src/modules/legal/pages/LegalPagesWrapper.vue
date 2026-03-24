@@ -14,21 +14,21 @@ const router = useRouter();
 
 // 1. Definition der Tabs
 const tabs: NavItem[] = [
-  { id: 'impressum', label: 'Impressum', routePath: 'impressum' },
-  { id: 'datenschutz', label: 'Datenschutz', routePath: 'datenschutz' },
-  { id: 'nutzung', label: 'Nutzungsbedingungen', routePath: 'nutzung' },
+  { id: 'impress', label: 'Impress', routePath: 'impress' },
+  { id: 'privacy-policy', label: 'Privacy Policy', routePath: 'privacy-policy' },
+  { id: 'terms', label: 'Terms', routePath: 'terms' },
 ];
 
 
 const activeTabId = computed(() => {
-  if (route.path.endsWith('/impressum')) {
-    return 'impressum';
+  if (route.path.endsWith('/impress')) {
+    return 'impress';
   }
-  if (route.path.endsWith('/datenschutz')) {
-    return 'datenschutz';
+  if (route.path.endsWith('/privacy-policy')) {
+    return 'privacy-policy';
   }
-  if (route.path.endsWith('/nutzung')) {
-    return 'nutzung';
+  if (route.path.endsWith('/terms')) {
+    return 'terms';
   }
 
   if (route.path.endsWith('/legal/')) {
