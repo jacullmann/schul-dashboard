@@ -208,7 +208,7 @@ onUnmounted(() => {
           <!-- Group navigation: visible when a group is active -->
           <template v-if="activeGroupId">
             <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
-            <router-link :to="`/groups/${activeGroupId}/timetable`" class="nav-item" @click="closeNav">{{ t('school.tables.timetable.title') }}</router-link>
+            <router-link :to="`/groups/${activeGroupId}/schedule`" class="nav-item" @click="closeNav">{{ t('school.tables.schedule.title') }}</router-link>
           </template>
 
           <!-- User navigation: always visible -->
