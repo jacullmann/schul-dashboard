@@ -27,9 +27,35 @@ const routes = [
       },
       {
         path: 'legal',
-        name: 'welcome-legal',
+        name: 'legal',
         component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
-        meta: { title: 'navigation.legal' },
+        children: [
+          {
+            path: 'impressum',
+            name: 'impressum',
+            component: () => import('@/modules/legal/components/Impress.vue'),
+            meta: { title: 'legal.imprint.title' },
+          },
+          {
+            path: 'privacy-policy',
+            name: 'privacy-policy',
+            component: () =>
+              import('@/modules/legal/components/PrivacyPolicy.vue'),
+            meta: { title: 'legal.privacy.title' },
+          },
+          {
+            path: 'terms',
+            name: 'terms',
+            component: () => import('@/modules/legal/components/Terms.vue'),
+            meta: { title: 'legal.terms.title' },
+          },
+        ],
+      },
+      {
+        path: 'contact',
+        name: 'contact',
+        component: () => import('@/modules/support/pages/ContactInfo.vue'),
+        meta: { title: 'contact.contact.title' },
       },
     ],
   },
@@ -66,8 +92,8 @@ const routes = [
             },
           },
           {
-            path: 'stundenplan',
-            name: 'group-stundenplan',
+            path: 'timetable',
+            name: 'group-timetable',
             component: () => import('@/modules/schedule/pages/Timetable.vue'),
             meta: {
               title: 'school.tables.timetable.title',
@@ -97,35 +123,17 @@ const routes = [
         meta: { title: 'navigation.privateTodos' },
       },
       {
-        path: 'kuerzel',
-        name: 'kürzelfinder',
-        component: () => import('@/modules/tools/pages/KuerzelPage.vue'),
-        meta: { title: 'school.tables.abbr.title' },
-      },
-      {
-        path: 'kontakt',
-        name: 'contact',
-        component: () => import('@/modules/support/pages/ContactInfo.vue'),
-        meta: { title: 'contact.contact.title' },
-      },
-      {
-        path: 'spiele',
+        path: 'games',
         name: 'games',
         component: () => import('@/modules/games/Games.vue'),
         meta: { title: 'navigation.games' },
       },
       {
-        path: 'spiele/:id',
+        path: 'games/:id',
         name: 'GameDetail',
         component: () => import('@/modules/games/GameDetail.vue'),
         props: true,
         meta: { title: 'navigation.gameDetail' },
-      },
-      {
-        path: 'daltonraumfinder',
-        name: 'daltonraumfinder',
-        component: () => import('@/modules/tools/pages/DaltonFinderPage.vue'),
-        meta: { title: 'school.tables.dalton.title' },
       },
       {
         path: 'imagetool',
@@ -151,32 +159,6 @@ const routes = [
         name: 'brain-test',
         component: () => import('@/modules/brain/pages/BrainTest.vue'),
         meta: { title: 'navigation.brainTest' },
-      },
-      {
-        path: 'legal',
-        name: 'impressum-und-datenschutz',
-        component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
-        children: [
-          {
-            path: 'impressum',
-            name: 'impressum',
-            component: () => import('@/modules/legal/components/Impress.vue'),
-            meta: { title: 'legal.imprint.title' },
-          },
-          {
-            path: 'datenschutz',
-            name: 'datenschutz',
-            component: () =>
-              import('@/modules/legal/components/PrivacyPolicy.vue'),
-            meta: { title: 'legal.privacy.title' },
-          },
-          {
-            path: 'nutzung',
-            name: 'nutzung',
-            component: () => import('@/modules/legal/components/Terms.vue'),
-            meta: { title: 'legal.terms.title' },
-          },
-        ],
       },
     ],
   },
@@ -206,12 +188,6 @@ const routes = [
       },
     ],
   },
-
-  // ── Legacy Redirects ────────────────────────────────────────────────
-  { path: '/get-started', redirect: '/home' },
-  { path: '/admin-dashboard', redirect: '/admin' },
-  { path: '/hausaufgaben/verify', redirect: '/verify' },
-  { path: '/stundenplan', redirect: '/home' },
 
   // ── 404 ─────────────────────────────────────────────────────────────
   {
@@ -244,30 +220,24 @@ const { isLoggedIn, isAuthReady, initAuth, activeGroupId, userGroups } =
 router.beforeEach(async (to, from, next) => {
   if (to.path !== from.path) start();
 
-  // Ensure auth is initialised exactly once on first navigation.
+  // Ensure auth is initialized exactly once on first navigation.
   if (!isAuthReady.value) await initAuth();
 
   const isPublicRoute =
     to.path === '/' ||
     to.path.startsWith('/auth') ||
-    to.path === '/legal' ||
-    to.path === '/verify';
+    to.path.startsWith('/legal') ||
+    to.path === '/verify' ||
+    to.path === '/contact';
 
   // ── Unauthenticated users → welcome ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
-    const allowedWithoutAuth = ['/kontakt', '/legal/', '/imagetool', '/brain'];
-    const isAllowed = allowedWithoutAuth.some((p) => to.path.startsWith(p));
-    if (!isAllowed) {
-      finish();
-      return next({ path: '/', replace: true });
-    }
+    finish();
+    return next({ path: '/', replace: true });
   }
 
   // ── Authenticated users → away from welcome/public routes ──────────
-  if (
-    (to.path === '/' || to.path === '/auth' || to.path === '/legal') &&
-    isLoggedIn.value
-  ) {
+  if ((to.path === '/' || to.path.startsWith('/auth')) && isLoggedIn.value) {
     finish();
     return next({
       path: activeGroupId.value
