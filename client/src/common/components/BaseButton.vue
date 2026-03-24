@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 
 export interface Props {
@@ -8,22 +9,52 @@ export interface Props {
   disabled?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   type: 'button',
   variant: 'default',
   loading: false,
-  disabled: false
+  disabled: false,
 });
+
+const variantClasses: Record<NonNullable<Props['variant']>, string> = {
+  default: '',
+  ghost: [
+    'bg-surface text-on-surface border-surface-border',
+    'shadow-input',
+    'hover:bg-[var(--ghost--hover)]',
+  ].join(' '),
+  action: [
+    'bg-action text-on-action border-action',
+    'hover:bg-action-hover hover:border-action-hover',
+  ].join(' '),
+  danger: [
+    'bg-danger text-on-danger border-danger',
+    'hover:bg-danger-hover',
+  ].join(' '),
+};
+
+const classes = computed(() => variantClasses[props.variant ?? 'default']);
 </script>
 
 <template>
-  <button 
-    class="btn" 
-    :class="variant !== 'default' ? variant : ''" 
-    :type="type" 
+  <button
+    :type="type"
     :disabled="disabled || loading"
+    :class="classes"
+    class="
+      inline-flex items-center gap-2
+      px-3 py-2
+      border border-current rounded-md
+      text-btn leading-4
+      cursor-pointer select-none
+      whitespace-nowrap
+      transition-[background-color,border-color,color]
+      duration-[var(--transition-duration-hover)]
+      ease-[var(--transition-timing-hover)]
+      disabled:opacity-50 disabled:cursor-not-allowed
+    "
   >
     <LoadingSpinner v-if="loading" size="1em" />
-    <slot v-else></slot>
+    <slot v-else />
   </button>
 </template>
