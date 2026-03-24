@@ -131,7 +131,7 @@ const goBack = () => {
 }
 
 .nav-card:hover {
-  background: var(--ghost--hover);
+  background: var(--color-surface-hover-subtle);
   border-color: var(--color-surface-hover);
 }
 

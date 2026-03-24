@@ -305,7 +305,7 @@ onMounted(() => {
 }
 
 .group-card:hover:not(:disabled) {
-  background: var(--ghost--hover);
+  background: var(--color-surface-hover-subtle);
 }
 
 .group-card.active {

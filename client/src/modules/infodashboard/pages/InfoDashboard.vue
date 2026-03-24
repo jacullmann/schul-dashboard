@@ -330,7 +330,7 @@ select {
 }
 
 select:hover {
-  background: var(--ghost--hover);
+  background: var(--color-surface-hover-subtle);
 }
 
 .section-heading {

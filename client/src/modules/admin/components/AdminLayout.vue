@@ -220,7 +220,7 @@ const activeTab = computed({
 }
 
 .adm-nav-item.active {
-  background: var(--ghost--hover);
+  background: var(--color-surface-hover-subtle);
   color: var(--color-on-surface);
   font-weight: 600;
 }

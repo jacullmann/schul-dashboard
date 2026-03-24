@@ -21,7 +21,7 @@ const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   ghost: [
     'bg-surface text-on-surface border-surface-border',
     'shadow-input',
-    'hover:bg-[var(--ghost--hover)]',
+    'hover:bg-surface-hover-subtle',
   ].join(' '),
   action: [
     'bg-action text-on-action border-action',
@@ -44,13 +44,11 @@ const classes = computed(() => variantClasses[props.variant ?? 'default']);
     class="
       inline-flex items-center gap-2
       px-3 py-2
-      border border-current rounded-md
+      border rounded-md
       text-btn leading-4
       cursor-pointer select-none
       whitespace-nowrap
-      transition-[background-color,border-color,color]
-      duration-[var(--transition-duration-hover)]
-      ease-[var(--transition-timing-hover)]
+      transition-colors duration-hover ease-hover
       disabled:opacity-50 disabled:cursor-not-allowed
     "
   >

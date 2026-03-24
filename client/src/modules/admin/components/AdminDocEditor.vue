@@ -687,7 +687,7 @@ onMounted(async () => {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--ghost--hover);
+  background: var(--color-surface-hover-subtle);
   color: var(--color-on-surface);
   font-size: 10px;
   font-weight: 700;
@@ -723,7 +723,7 @@ onMounted(async () => {
 }
 
 .save-btn:hover:not(:disabled) {
-  background: var(--ghost--hover);
+  background: var(--color-surface-hover-subtle);
 }
 
 .save-btn:disabled {
@@ -934,7 +934,7 @@ onMounted(async () => {
 }
 
 .type-select:hover:not(:disabled) {
-  background: var(--ghost--hover, #e8e8e8);
+  background: var(--color-surface-hover-subtle, #e8e8e8);
 }
 
 .type-select:disabled {
