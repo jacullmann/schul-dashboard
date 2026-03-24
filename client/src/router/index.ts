@@ -28,7 +28,7 @@ const routes = [
       {
         path: 'legal',
         name: 'welcome-legal',
-        component: () => import('@/modules/welcome/pages/WelcomeLegalPage.vue'),
+        component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
         meta: { title: 'navigation.legal' },
       },
     ],
