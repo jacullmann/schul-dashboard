@@ -119,7 +119,7 @@ onUnmounted(() => {
 
 <template>
   <div class="full">
-    <template v-if="!isAuthReady && !isPublicRoute">
+    <template v-if="!isAuthReady">
       <div key="loading" class="auth-loading-screen">
         <div class="loader-spinner"></div>
       </div>
