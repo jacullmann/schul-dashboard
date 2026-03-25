@@ -191,7 +191,7 @@ function onDrop(e: DragEvent) {
           <div style="display:flex; align-items:center; gap:8px;">
             <slot name="checkbox"></slot>
             <slot name="title">
-              <h3 v-if="title" class="text-title overflow-hidden text-ellipsis whitespace-nowrap leading-6 -my-[3px]" :title="title">{{ title }}</h3>
+              <h3 v-if="title" class="!text-title overflow-hidden text-ellipsis whitespace-nowrap !leading-6 !-my-[3px]" :title="title">{{ title }}</h3>
             </slot>
           </div>
 

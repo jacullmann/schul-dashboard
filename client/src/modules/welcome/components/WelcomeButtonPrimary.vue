@@ -1,5 +1,8 @@
 <template>
-  <button class="primary-btn" type="button">
+  <button
+    class="px-4 py-2 rounded-md text-body cursor-pointer relative overflow-hidden bg-action text-on-action border-none font-semibold transition-hover hover:bg-action-hover leading-[1.3]"
+    type="button"
+  >
     {{ t('welcome.hero.cta') }}
   </button>
 </template>
@@ -9,21 +12,3 @@ import { useI18n} from "vue-i18n";
 
 const { t } = useI18n();
 </script>
-
-<style scoped>
-.primary-btn {
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  font-size: var(--text-body);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  background: var(--color-action);
-  color: var(--color-on-action);
-  border: none;
-  font-weight: 600;
-}
-.primary-btn:hover {
-  background: var(--color-action-hover);
-}
-</style>
