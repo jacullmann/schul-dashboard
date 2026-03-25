@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
-import BaseModal from '@/common/components/BaseModal.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Pencil, Trash2, Plus, RefreshCw, X, Check } from 'lucide-vue-next';
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import { useSubjectAdmin } from '@/modules/admin/composables/useSubjectAdmin';
 import type { AdminSubject } from '@/modules/admin/types';
 
@@ -82,7 +81,7 @@ onMounted(() => {
       <div class="add-form-row">
         <BaseInput
             v-model="newSubjectName"
-            class="input add-input"
+            class="add-input"
             placeholder="Neues Fach hinzufügen..."
             @keyup.enter="handleCreate"
             :disabled="saving"
@@ -135,7 +134,7 @@ onMounted(() => {
           <div class="edit-row">
             <BaseInput
                 v-model="editingName"
-                class="input edit-input"
+                class="edit-input"
                 @keyup.enter="saveRename(subject.id)"
                 @keyup.escape="cancelRename"
                 autofocus

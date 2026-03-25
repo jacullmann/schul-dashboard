@@ -66,7 +66,6 @@ function changeCurrentBlockType(type: string) {
 // Lokaler Block-State
 const blocks = ref<Block[]>([]);
 const currentFocusId = ref<string | null>(null);
-let selfUpdateTimer: ReturnType<typeof setTimeout> | null = null;
 let isSelfUpdate = false;
 
 // --- Serialization/Deserialization (Kept same as provided) ---
@@ -243,7 +242,8 @@ function addBlock(type: BlockType = 'p') {
 function removeBlock(id: string) {
   const idx = blocks.value.findIndex(b => b.id === id);
   if (idx === -1) return;
-  if (idx > 0) focusBlock(blocks.value[idx - 1].id);
+  const prev = blocks.value[idx - 1];
+  if (prev) focusBlock(prev.id);
   blocks.value.splice(idx, 1);
   pushBlocksToServer();
 }
@@ -275,6 +275,7 @@ function handleEnter(index: number, e: KeyboardEvent) {
   e.preventDefault();
   // With the new flat list + v-show structure, 'index' is the real index in 'blocks'
   const block = blocks.value[index];
+  if (!block) return;
 
   let nextType: BlockType = 'p';
   if (block.type === 'ul') nextType = 'ul';
@@ -295,7 +296,7 @@ function handleEnter(index: number, e: KeyboardEvent) {
 
 function handleBackspace(index: number, e: KeyboardEvent) {
   const block = blocks.value[index];
-  if (block.content === '' && blocks.value.length > 1) {
+  if (block && block.content === '' && blocks.value.length > 1) {
     e.preventDefault();
     removeBlock(block.id);
   }
@@ -341,10 +342,17 @@ const connectionLabels: Record<string, string> = {
   error: 'Auth-Fehler',
 };
 
-function emailToInitials(email: string): string {
-  const local = email.split('@')[0];
-  const parts = local.split(/[._-]/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+function emailToInitials(email: string | undefined): string {
+  if (!email) return '??';
+  const local = email.split('@')[0] || '';
+  const parts = local.split(/[._-]/).filter(p => !!p);
+  if (parts.length >= 2) {
+    const p1 = parts[0];
+    const p2 = parts[1];
+    if (p1?.[0] && p2?.[0]) {
+      return (p1[0] + p2[0]).toUpperCase();
+    }
+  }
   return local.slice(0, 2).toUpperCase();
 }
 function formatTime(iso: string): string {
@@ -487,16 +495,20 @@ onMounted(async () => {
               </div>
             </div>
 
-            <select class="type-select" :disabled="!currentFocusId"
-                    :value="currentBlockType"
-                    @change="changeCurrentBlockType(($event.target as HTMLSelectElement).value)">
-              <option value="p">Text</option>
-              <option value="h1">Überschrift 1</option>
-              <option value="h2">Überschrift 2</option>
-              <option value="h3">Überschrift 3</option>
-              <option value="ul">Liste</option>
-              <option value="cl">Checkliste</option>
-            </select>
+            <BaseSelect
+              extraClass="type-select"
+              :disabled="!currentFocusId"
+              :modelValue="currentBlockType"
+              @update:modelValue="changeCurrentBlockType"
+              :options="[
+                { label: 'Text', value: 'p' },
+                { label: 'Überschrift 1', value: 'h1' },
+                { label: 'Überschrift 2', value: 'h2' },
+                { label: 'Überschrift 3', value: 'h3' },
+                { label: 'Liste', value: 'ul' },
+                { label: 'Checkliste', value: 'cl' },
+              ]"
+            />
           </div>
           <div class="toolbar-right">
             <span class="toolbar-hint">Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span>

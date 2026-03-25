@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue';
 import hw from '@/api/hwApi';
-import BaseModal from '@/common/components/BaseModal.vue';
-import BaseSelect from '@/common/components/BaseSelect.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
 import { useSubjectStore } from '@/stores/subjectStore';
 import { getSubjectKey } from '@/types/subjects';

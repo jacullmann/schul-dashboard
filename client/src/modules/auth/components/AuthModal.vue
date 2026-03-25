@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import TabSwitcher from "@/common/components/TabSwitcher.vue";
-import BaseModal from '@/common/components/BaseModal.vue';
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
 import { Eye, EyeOff } from 'lucide-vue-next';
@@ -72,7 +70,6 @@ const {
               <BaseInput
                   id="auth-email"
                   ref="emailInputRef"
-                  class="input"
                   v-model="email"
                   :placeholder="t('account.auth.emailPlaceholder')"
                   type="email"
@@ -89,7 +86,6 @@ const {
             <div class="input-wrapper">
               <BaseInput
                   id="auth-password"
-                  class="input"
                   :type="showPassword ? 'text' : 'password'"
                   v-model="password"
                   :placeholder="t('account.auth.passwordPlaceholder')"
@@ -127,7 +123,6 @@ const {
                 <div class="input-wrapper">
                   <BaseInput
                       id="auth-confirm"
-                      class="input"
                       :type="showPassword ? 'text' : 'password'"
                       v-model="passwordConfirm"
                       :placeholder="t('account.auth.confirmPlaceholder')"

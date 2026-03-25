@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import hw from '@/api/hwApi';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useToast } from '@/common/composables/useToast';
+
+import type { ComponentInstance } from 'vue';
 
 const emit = defineEmits(['close', 'success']);
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const textareaRef = ref<ComponentInstance<any> | null>(null);
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape' && !submitting.value) {
@@ -62,14 +63,17 @@ async function submit() {
         <BaseButton @click="$emit('close')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
       </div>
       <div style="margin-top:8px;">
-        <textarea ref="textareaRef" class="input" rows="4" v-model="content" placeholder="Inhalt"></textarea>
+        <BaseInput as="textarea" ref="textareaRef" rows="4" v-model="content" placeholder="Inhalt"></BaseInput>
       </div>
       <div style="margin-top:8px;">
-        <select class="input hover" v-model="color">
-          <option value="info">Info</option>
-          <option value="warn">Wichtig</option>
-          <option value="danger">Dringend</option>
-        </select>
+        <BaseSelect
+          v-model="color"
+          :options="[
+            { label: 'Info', value: 'info' },
+            { label: 'Wichtig', value: 'warn' },
+            { label: 'Dringend', value: 'danger' },
+          ]"
+        />
       </div>
       <div class="row" style="margin-top:12px; align-items:center;">
         <BaseButton @click="submit" :disabled="submitting" variant="action" :loading="submitting">
@@ -80,4 +84,3 @@ async function submit() {
     </div>
   </div>
 </template>
->>>>>>> 343667b (viel refeactor und announcements rework)

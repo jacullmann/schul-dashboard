@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import { useI18n } from 'vue-i18n';
-import BaseModal from '@/common/components/BaseModal.vue';
 import { useDeleteAccount } from '@/modules/auth/composables/useDeleteAccount';
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 
 const { t } = useI18n();
 

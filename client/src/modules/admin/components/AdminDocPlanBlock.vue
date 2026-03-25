@@ -175,18 +175,19 @@ watch(() => props.block.content, (newContent) => {
 
         <div class="tb-divider"></div>
 
-        <select
-            :value="block.type"
-            @change="$emit('change-type', ($event.target as HTMLSelectElement).value)"
+        <BaseSelect
+            :modelValue="block.type"
+            @update:modelValue="(val: string) => $emit('change-type', val)"
             title="Block-Typ"
-        >
-          <option value="p">Text</option>
-          <option value="h1">Überschrift 1</option>
-          <option value="h2">Überschrift 2</option>
-          <option value="h3">Überschrift 3</option>
-          <option value="ul">Liste</option>
-          <option value="cl">Checkliste</option>
-        </select>
+            :options="[
+              { label: 'Text', value: 'p' },
+              { label: 'Überschrift 1', value: 'h1' },
+              { label: 'Überschrift 2', value: 'h2' },
+              { label: 'Überschrift 3', value: 'h3' },
+              { label: 'Liste', value: 'ul' },
+              { label: 'Checkliste', value: 'cl' },
+            ]"
+        />
       </div>
 
       <div
@@ -431,19 +432,24 @@ watch(() => props.block.content, (newContent) => {
   flex-shrink: 0;
 }
 
-.floating-toolbar select {
+.floating-toolbar :deep(.menu-wrapper) {
   background: #2a2a2a;
   color: #ddd;
   border: none;
   border-radius: 3px;
   font-size: 11px;
-  padding: 3px 4px;
   cursor: pointer;
   outline: none;
 }
 
-.floating-toolbar select:hover {
-  background: #3a3a3a;
+.floating-toolbar :deep(.menu-wrapper .btn) {
+  padding: 3px 4px;
+  height: auto;
+  min-height: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
 }
 
 /* =========================================

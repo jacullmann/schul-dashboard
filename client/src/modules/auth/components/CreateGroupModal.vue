@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import BaseModal from '@/common/components/BaseModal.vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
@@ -83,7 +82,6 @@ async function submit() {
             <BaseInput
                 id="group-name"
                 ref="groupNameInputRef"
-                class="input"
                 v-model="groupName"
                 placeholder="Name der Gruppe"
                 type="text"
@@ -98,7 +96,6 @@ async function submit() {
           <div class="input-wrapper">
             <BaseInput
                 id="group-password"
-                class="input"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="password"
                 placeholder="Passwort"
@@ -121,7 +118,6 @@ async function submit() {
           <div class="input-wrapper">
             <BaseInput
                 id="group-confirm"
-                class="input"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="passwordConfirm"
                 placeholder="Passwort wiederholen"

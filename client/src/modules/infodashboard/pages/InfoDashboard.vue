@@ -4,7 +4,6 @@ import { Search, Play } from 'lucide-vue-next';
 import { useArticleSearch } from '@/modules/infodashboard/composables/useArticleSearch';
 import ArticleCard from '@/modules/infodashboard/components/ArticleCard.vue';
 import VideoPlayer from '@/common/components/VideoPlayer.vue';
-import BaseSelect from '@/common/components/BaseSelect.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();

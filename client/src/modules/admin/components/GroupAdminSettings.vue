@@ -96,7 +96,6 @@ async function confirmDeleteGroup() {
           <BaseInput
               :value="newGroupName"
               @input="emit('update:newGroupName', ($event.target as HTMLInputElement).value)"
-              class="input"
               placeholder="Neuer Gruppenname"
               @keyup.enter="emit('save-edit')"
               :disabled="!isAdmin"
@@ -119,7 +118,6 @@ async function confirmDeleteGroup() {
           <BaseInput
               :type="showOld ? 'text' : 'password'"
               v-model="oldPassword"
-              class="input"
               @input="pwdError = ''"
           />
           <button class="toggle-btn" @click="showOld = !showOld">
@@ -134,7 +132,6 @@ async function confirmDeleteGroup() {
           <BaseInput
               :type="showNew ? 'text' : 'password'"
               v-model="newPassword"
-              class="input"
               @input="pwdError = ''"
           />
           <button class="toggle-btn" @click="showNew = !showNew">
@@ -149,7 +146,6 @@ async function confirmDeleteGroup() {
           <BaseInput
               :type="showNew2 ? 'text' : 'password'"
               v-model="newPassword2"
-              class="input"
               @input="pwdError = ''"
           />
           <button class="toggle-btn" @click="showNew2 = !showNew2">
@@ -180,7 +176,7 @@ async function confirmDeleteGroup() {
         <BaseInput
             v-model="deleteConfirmText"
             type="text"
-           class="input danger-input"
+           class="danger-input"
             :placeholder="'delete ' + groupName"
         />
         <BaseButton :disabled="deleteConfirmText !== `delete ${groupName}` || deletingGroup" @click="confirmDeleteGroup" variant="danger" :loading="deletingGroup">
@@ -330,10 +326,6 @@ async function confirmDeleteGroup() {
 .delete-confirmation label {
   font-size: var(--text-sub);
   color: var(--color-on-surface);
-}
-
-.btn.danger:hover:not(:disabled) {
-  background: #dc2626; /* slightly darker red */
 }
 
 @media (max-width: 640px) {

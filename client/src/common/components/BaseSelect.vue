@@ -29,15 +29,12 @@ const toggleMenu = async () => {
     isOpen.value = !isOpen.value;
 
     if (isOpen.value) {
-      // 1. Wait for the v-if to render the dropdown list
       await nextTick();
 
       if (wrapperRef.value) {
-        // 2. Find the active item using the class you already set up
         const selectedElement = wrapperRef.value.querySelector('.active') as HTMLElement | null;
 
         if (selectedElement) {
-          // 3. Scroll it into view
           selectedElement.scrollIntoView({
             block: 'nearest',
             behavior: 'auto'

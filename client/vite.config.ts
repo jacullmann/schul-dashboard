@@ -10,12 +10,21 @@ export default defineConfig({
         tailwindcss(),
         Components({
             resolvers: [
-                (componentName) => {
+                (componentName: string) => {
                     if (componentName === 'BaseButton') {
                         return '@/common/components/BaseButton.vue';
                     }
                     if (componentName === 'BaseInput') {
                         return '@/common/components/BaseInput.vue';
+                    }
+                    if (componentName === 'BaseSelect') {
+                        return '@/common/components/BaseSelect.vue';
+                    }
+                    if (componentName === 'BaseModal') {
+                        return '@/common/components/BaseModal.vue';
+                    }
+                    if (componentName === 'BaseCheckbox') {
+                        return '@/common/components/BaseCheckbox.vue';
                     }
                 }
             ],

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import BaseModal from '@/common/components/BaseModal.vue';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 import type { HwItem } from '@/modules/tasks/types';

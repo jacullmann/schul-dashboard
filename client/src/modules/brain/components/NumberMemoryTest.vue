@@ -118,7 +118,7 @@ onUnmounted(() => {
              pattern="[0-9]*"
              class="number-input input" 
              placeholder="Zahl eingeben..."
-             autofocus
+           autofocus
            />
            <BaseButton type="submit" class="test-btn primary w-full mt-3">Prüfen</BaseButton>
          </form>

@@ -50,12 +50,14 @@ const triggerUpload = () => fileInputRef.value?.click();
 
 const handleFileChange = (e: Event) => {
   const input = e.target as HTMLInputElement;
-  if (input.files?.length) loadFile(input.files[0]);
+  const file = input.files?.[0];
+  if (file) loadFile(file);
 };
 
 const handleDrop = (e: DragEvent) => {
   isDraggingFile.value = false;
-  if (e.dataTransfer?.files.length) loadFile(e.dataTransfer.files[0]);
+  const file = e.dataTransfer?.files[0];
+  if (file) loadFile(file);
 };
 
 const loadFile = (file: File) => {
@@ -347,11 +349,14 @@ onUnmounted(() => {
       <div class="controls" :class="{ active: hasImage }">
         <div class="control-group">
           <label>Ausgabeformat</label>
-          <select class="btn ghost" v-model="settings.format">
-            <option value="image/jpeg">JPEG</option>
-            <option value="image/png">PNG</option>
-            <option value="image/webp">WebP</option>
-          </select>
+          <BaseSelect
+            v-model="settings.format"
+            :options="[
+              { label: 'JPEG', value: 'image/jpeg' },
+              { label: 'PNG', value: 'image/png' },
+              { label: 'WebP', value: 'image/webp' },
+            ]"
+          />
         </div>
         <div class="control-group">
           <label>Qualität: {{ settings.quality }} %</label>
@@ -366,7 +371,6 @@ onUnmounted(() => {
           <label>Breite (px)</label>
           <BaseInput
               type="number"
-              class="input"
               v-model.number="settings.width"
               :placeholder="imageMeta.naturalWidth.toString()"
           />
@@ -375,7 +379,6 @@ onUnmounted(() => {
           <label>Höhe (px)</label>
           <BaseInput
               type="number"
-              class="input"
               v-model.number="settings.height"
               :placeholder="imageMeta.naturalHeight.toString()"
           />
@@ -406,16 +409,16 @@ onUnmounted(() => {
           </BaseButton>
 
           <div class="editor-input-group">
-            <span style="width: 16px;">X:</span> <BaseInput type="number" class="input" v-model.number="crop.x" @input="updateCropFromInput" />
+            <span style="width: 16px;">X:</span> <BaseInput type="number" v-model.number="crop.x" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">Y:</span> <BaseInput type="number" class="input" v-model.number="crop.y" @input="updateCropFromInput" />
+            <span style="width: 16px;">Y:</span> <BaseInput type="number" v-model.number="crop.y" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">W:</span> <BaseInput type="number" class="input" v-model.number="crop.w" @input="updateCropFromInput" />
+            <span style="width: 16px;">W:</span> <BaseInput type="number" v-model.number="crop.w" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">H:</span> <BaseInput type="number" class="input" v-model.number="crop.h" @input="updateCropFromInput" />
+            <span style="width: 16px;">H:</span> <BaseInput type="number" v-model.number="crop.h" @input="updateCropFromInput" />
           </div>
         </div>
 

@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
 import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
@@ -17,7 +15,6 @@ import InfoModal from '@/common/components/InfoModal.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
 import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
-import BaseSelect from '@/common/components/BaseSelect.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
@@ -398,13 +395,13 @@ async function handleArchiveFromMenu(item: HwItem) {
             </div>
 
             <div v-else class="editor-note-edit">
-                <textarea
-                    class="input"
+                <BaseInput
+                    as="textarea"
                     v-model="noteEditContent"
                     rows="3"
                     placeholder="Anmerkung eingeben..."
                     maxlength="2000"
-                ></textarea>
+                ></BaseInput>
               <div class="editor-note-actions">
                 <BaseButton @click.stop="saveNote(item.id)" :disabled="savingNote" variant="action" :loading="savingNote">
         {{ t('global.buttons.save') }}

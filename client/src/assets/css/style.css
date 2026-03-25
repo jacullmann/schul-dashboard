@@ -97,8 +97,15 @@
     --shadow-focus:                0 0 0 3px var(--color-graphite);
 
     /* ── Transitions ────────────────────────────────────────── */
+    /* Hover */
     --duration-hover:              100ms;
     --ease-hover:                  ease;
+    --transition-hover:            color var(--duration-hover) var(--ease-hover), background-color var(--duration-hover) var(--ease-hover), border-color var(--duration-hover) var(--ease-hover);
+
+    /* Focus */
+    --duration-focus:              200ms;
+    --ease-focus:                  ease;
+    --transition-focus:            box-shadow var(--duration-focus) var(--ease-focus), border-color var(--duration-focus) var(--ease-focus);
 
     /* ── Custom dimensions ──────────────────────────────────── */
     --header-height:               65px;
@@ -220,6 +227,11 @@
     /* TRANSITIONS */
     --duration-hover: 100ms;
     --ease-hover: ease;
+    --transition-hover: color var(--duration-hover) var(--ease-hover), background-color var(--duration-hover) var(--ease-hover), border-color var(--duration-hover) var(--ease-hover);
+
+    --duration-focus: 200ms;
+    --ease-focus: ease;
+    --transition-focus: box-shadow var(--duration-focus) var(--ease-focus), border-color var(--duration-focus) var(--ease-focus);
 
     /* ANIMATIONS */
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;

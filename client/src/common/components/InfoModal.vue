@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Info } from 'lucide-vue-next'
-import BaseModal from '@/common/components/BaseModal.vue'
 
 const props = defineProps<{
   title?: string

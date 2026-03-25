@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
-import BaseModal from '@/common/components/BaseModal.vue';
 import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
 
 const { t } = useI18n();
@@ -50,7 +49,6 @@ onMounted(() => {
           <BaseInput
               ref="currentPasswordRef"
               id="currentPassword"
-              class="input"
               :type="showCurrentPassword ? 'text' : 'password'"
               v-model="currentPassword"
               :placeholder="t('account.menu.changePassword.currentPlaceholder')"
@@ -77,7 +75,6 @@ onMounted(() => {
         <div class="input-wrapper">
           <BaseInput
               id="newPassword"
-              class="input"
               :type="showNewPassword ? 'text' : 'password'"
               v-model="newPassword"
               :placeholder="t('account.menu.changePassword.newPlaceholder')"
@@ -104,7 +101,6 @@ onMounted(() => {
         <div class="input-wrapper">
           <BaseInput
               id="newPassword2"
-              class="input"
               :type="showNewPassword2 ? 'text' : 'password'"
               v-model="newPassword2"
               :placeholder="t('account.menu.changePassword.confirmPlaceholder')"

@@ -4,7 +4,6 @@ import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
 import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
-import BaseModal from '@/common/components/BaseModal.vue';
 
 const props = defineProps<{
   initialMfaEnabled?: boolean;

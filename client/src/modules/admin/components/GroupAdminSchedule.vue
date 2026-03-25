@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { RefreshCw, Trash2 } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import AdminSchedule from '@/modules/admin/components/AdminSchedule.vue';
 import type { ScheduleSubstitution } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
@@ -114,23 +113,23 @@ function handleSaveSub() {
         <input type="hidden" v-model="subForm.lessonId" />
         <div class="form-field">
           <label>Neues Fach</label>
-          <BaseInput v-model="subForm.subject" placeholder="Deutsch" class="input" />
+          <BaseInput v-model="subForm.subject" placeholder="Deutsch" />
         </div>
         <div class="form-field">
           <label>Neuer Raum</label>
-          <BaseInput v-model="subForm.room" placeholder="A101" class="input" />
+          <BaseInput v-model="subForm.room" placeholder="A101" />
         </div>
         <div class="form-field">
           <label>Neue Stunde</label>
-          <BaseInput v-model.number="subForm.slot" type="number" placeholder="4" class="input" />
+          <BaseInput v-model.number="subForm.slot" type="number" placeholder="4" />
         </div>
         <div class="form-field">
           <label>Neue Dauer</label>
-          <BaseInput v-model.number="subForm.duration" type="number" min="1" placeholder="2" class="input" />
+          <BaseInput v-model.number="subForm.duration" type="number" min="1" placeholder="2" />
         </div>
         <div class="form-field">
           <label>Neuer Tag (1 = Mo, 5 = Fr)</label>
-          <BaseInput v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" class="input" />
+          <BaseInput v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" />
         </div>
       </div>
 
@@ -152,7 +151,7 @@ function handleSaveSub() {
 
     <h3 style="padding: 20px 20px 0 20px; font-size: var(--text-title);">Stunde auswählen</h3>
     <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
-    <AdminTimetable v-else :lessons="lessons" :selectedLessonId="subForm.lessonId" @select-lesson="onLessonSelected" style="padding: 20px;" />
+    <AdminSchedule v-else :lessons="lessons" :selectedLessonId="subForm.lessonId" @select-lesson="onLessonSelected" style="padding: 20px;" />
 
     <!-- Existing Subs -->
     <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">Keine Substitutions vorhanden.</div>

@@ -3,8 +3,6 @@ import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
 import hw from '@/api/hwApi';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
-import BaseModal from '@/common/components/BaseModal.vue';
-import BaseSelect from '@/common/components/BaseSelect.vue';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
@@ -233,7 +231,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
         <div class="row-n top">
           <div class="col">
             <label class="label">{{ t('school.tasks.itemForm.title') }}</label>
-            <BaseInput ref="titleInputRef" class="input" v-model="title" />
+            <BaseInput ref="titleInputRef" v-model="title" />
           </div>
 
           <div class="col">
@@ -271,18 +269,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 
         <div v-if="subjectSel==='__OTHER__'" class="section">
           <label class="label">{{ t('school.tasks.itemForm.customSubject') }}</label>
-          <BaseInput class="input" v-model="subjectOther" />
+          <BaseInput v-model="subjectOther" />
         </div>
 
         <div class="section">
           <label class="label">{{ t('school.tasks.itemForm.description') }}</label>
-          <textarea class="input" rows="4" v-model="description"></textarea>
+          <BaseInput as="textarea" rows="4" v-model="description"></BaseInput>
         </div>
 
         <div class="row-n section">
           <div class="col">
             <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
-            <BaseInput class="input" type="date" v-model="dueLocal" />
+            <BaseInput type="date" v-model="dueLocal" />
 
           </div>
         </div>

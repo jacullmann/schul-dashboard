@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
-import BaseButton from '@/common/components/BaseButton.vue';
 
 const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } = useOAuth();
 

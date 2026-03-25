@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import BaseCheckbox from '@/common/components/BaseCheckbox.vue';
 import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
 import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';

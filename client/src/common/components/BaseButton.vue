@@ -48,7 +48,7 @@ const classes = computed(() => variantClasses[props.variant ?? 'default']);
       text-btn leading-4
       cursor-pointer select-none
       whitespace-nowrap
-      transition-colors duration-hover ease-hover
+      transition-hover
       disabled:opacity-50 disabled:cursor-not-allowed
     "
   >

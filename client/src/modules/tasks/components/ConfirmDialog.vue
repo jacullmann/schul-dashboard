@@ -2,8 +2,6 @@
 import { ref, watch, computed } from 'vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
-import BaseModal from '@/common/components/BaseModal.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 
 const MAX_LENGTH = 5000;
 
@@ -71,13 +69,14 @@ watch(() => props.show, (newVal) => {
         <label for="reportReason">
           {{ category === 'falschinfo' ? 'Begründung (erforderlich)' : 'Was genau ist das Problem? (optional)' }}
         </label>
-        <textarea
+        <BaseInput
+            as="textarea"
             id="reportReason"
-            :value="reason"
-            @input="$emit('update:reason', ($event.target as HTMLTextAreaElement).value)"
+            :model-value="reason"
+            @update:model-value="$emit('update:reason', $event)"
             :placeholder="category === 'falschinfo' ? 'Begründung...' : 'Beschreibung...'"
             :required="category === 'falschinfo'"
-            :maxlength="MAX_LENGTH"  ></textarea>
+            :maxlength="MAX_LENGTH"  ></BaseInput>
         <div class="counter">
           <p class="count-small">{{ reasonLength }} / {{ MAX_LENGTH }}</p>
         </div>

@@ -70,16 +70,17 @@ function onRoleChange(member: GroupMember, newRole: string) {
           </span>
         </div>
         <div class="member-actions">
-          <select
-              class="input role-select"
-              :value="member.role"
-              @change="onRoleChange(member, ($event.target as HTMLSelectElement).value)"
+          <BaseSelect
+              extraClass="role-select"
+              :modelValue="member.role"
+              @update:modelValue="(val: string) => onRoleChange(member, val)"
               :disabled="member.role === 'admin' && !canDemoteAdmin"
-          >
-            <option value="user">Mitglied</option>
-            <option value="moderator">Moderator</option>
-            <option value="admin">Admin</option>
-          </select>
+              :options="[
+                { label: 'Mitglied', value: 'user' },
+                { label: 'Moderator', value: 'moderator' },
+                { label: 'Admin', value: 'admin' },
+              ]"
+          />
           <button
               class="btn-icon danger"
               @click="emit('remove', member.userId, member.generatedName)"

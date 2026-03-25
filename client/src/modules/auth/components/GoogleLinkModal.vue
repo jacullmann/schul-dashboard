@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
-import BaseModal from '@/common/components/BaseModal.vue';
 
 const emit = defineEmits<{
   (e: 'linked'): void;
@@ -62,7 +61,6 @@ function cancel() {
           <div class="input-wrapper">
             <BaseInput
                 id="link-password"
-                class="input"
                 :type="showPassword ? 'text' : 'password'"
                 v-model="password"
                 placeholder="Dein Passwort"

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue';
-import BaseModal from '@/common/components/BaseModal.vue';
-import LoadingSpinner from '@/common/components/LoadingSpinner.vue';
 
 const props = defineProps<{
   show: boolean;

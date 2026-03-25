@@ -40,7 +40,6 @@ const filteredGames = computed(() => {
         <BaseInput
             v-model="searchTag"
             placeholder="Suchen"
-            class="input"
         />
       </div>
       <div class="game-grid">

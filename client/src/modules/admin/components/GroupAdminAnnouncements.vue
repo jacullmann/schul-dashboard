@@ -36,18 +36,23 @@ function formatDate(iso: string) {
     </div>
 
     <div class="ann-form-card">
-      <textarea
+      <BaseInput
+          as="textarea"
           v-model="annContent"
-          class="input ann-textarea"
+          class="ann-textarea"
           placeholder="Neue Ankündigung verfassen..."
           rows="3"
-      ></textarea>
+      ></BaseInput>
       <div class="ann-form-footer">
-        <select v-model="annColor" class="input ann-select">
-          <option value="info">Info</option>
-          <option value="warn">Warnung</option>
-          <option value="danger">Wichtig</option>
-        </select>
+        <BaseSelect
+          v-model="annColor"
+          extraClass="ann-select"
+          :options="[
+            { label: 'Info', value: 'info' },
+            { label: 'Warnung', value: 'warn' },
+            { label: 'Wichtig', value: 'danger' },
+          ]"
+        />
         <BaseButton @click="handleCreateAnn" :disabled="!annContent.trim() || creating" variant="action">
           {{ creating ? 'Erstellt...' : 'Veröffentlichen' }}
         </BaseButton>

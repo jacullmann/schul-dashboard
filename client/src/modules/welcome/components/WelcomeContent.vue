@@ -3,7 +3,6 @@
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
-import BaseCheckbox from "@/common/components/BaseCheckbox.vue";
 import { Pin } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

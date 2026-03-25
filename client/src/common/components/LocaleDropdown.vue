@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePreferences } from '@/common/composables/usePreferences';
-import BaseSelect, { type UnitOption } from '@/common/components/BaseSelect.vue';
+import { type UnitOption } from '@/common/components/BaseSelect.vue';
 
 const localeOptions: UnitOption[] = [
   { value: 'de', label: 'Deutsch' },
