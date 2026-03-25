@@ -11,11 +11,13 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppLogo: typeof import('./src/common/components/AppLogo.vue')['default']
     BaseButton: typeof import('./src/common/components/BaseButton.vue')['default']
     BaseCheckbox: typeof import('./src/common/components/BaseCheckbox.vue')['default']
     BaseInput: typeof import('./src/common/components/BaseInput.vue')['default']
     BaseModal: typeof import('./src/common/components/BaseModal.vue')['default']
     BaseSelect: typeof import('./src/common/components/BaseSelect.vue')['default']
+    BaseSpinner: typeof import('./src/common/components/BaseSpinner.vue')['default']
     CookieBanner: typeof import('./src/common/components/CookieBanner.vue')['default']
     InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']
     LoadingSpinner: typeof import('./src/common/components/LoadingSpinner.vue')['default']

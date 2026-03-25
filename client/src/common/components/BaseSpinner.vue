@@ -22,13 +22,12 @@ const activeColor = computed(() => {
 
 <template>
   <span
-      class="inline-block rounded-full border-solid animate-spin"
+      class="inline-block rounded-full border-solid border-current border-t-transparent animate-spin [animation-duration:750ms]"
       :style="{
         width: size,
         height: size,
         borderWidth: borderThickness,
-        borderColor: activeColor,
-        animationDuration: '0.8s'
+        color: activeColor,
       }"
       role="status"
       aria-label="Loading..."
