@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, Lock, ArrowLeft } from '@lucide/vue';
+import { LayoutDashboard, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
 
 const router = useRouter();
 
@@ -26,21 +26,41 @@ const goBack = () => {
         <div class="nav-grid">
           <router-link to="/home" class="nav-card">
             <div class="nav-icon">
-              <LayoutDashboard :size="24"/>
+              <LayoutDashboard :size="24" />
             </div>
             <div class="nav-info">
               <div class="nav-title">Homepage</div>
-              <div class="nav-desc">Overview over your groups.</div>
+              <div class="nav-desc">Overview of your groups</div>
+            </div>
+          </router-link>
+
+          <router-link to="/tasks" class="nav-card">
+            <div class="nav-icon">
+              <ListTodo :size="24" />
+            </div>
+            <div class="nav-info">
+              <div class="nav-title">Tasks</div>
+              <div class="nav-desc">Homework, assignments and exams</div>
             </div>
           </router-link>
 
           <router-link to="/schedule" class="nav-card">
             <div class="nav-icon">
-              <Lock :size="24"/>
+              <CalendarDays :size="24" />
             </div>
             <div class="nav-info">
-                <div class="nav-title">Private Todos</div>
-              <div class="nav-desc">Your private todos.</div>
+              <div class="nav-title">Schedule</div>
+              <div class="nav-desc">All of your lessons</div>
+            </div>
+          </router-link>
+
+          <router-link to="/todos" class="nav-card">
+            <div class="nav-icon">
+              <Lock :size="24" />
+            </div>
+            <div class="nav-info">
+              <div class="nav-title">Private Tasks</div>
+              <div class="nav-desc">Your private list of tasks</div>
             </div>
           </router-link>
         </div>
@@ -48,7 +68,7 @@ const goBack = () => {
 
       <div class="action-section">
         <BaseButton @click="goBack" variant="ghost">
-         <ArrowLeft :size="18"/>
+          <ArrowLeft :size="18" />
           Go back
         </BaseButton>
       </div>
@@ -124,15 +144,14 @@ const goBack = () => {
   background: var(--color-surface);
   border: 1px solid var(--color-surface-border);
   box-shadow: var(--shadow-input);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   text-decoration: none;
   transition: all 0.15s ease;
   cursor: pointer;
 }
 
 .nav-card:hover {
-  background: var(--color-surface-hover-subtle);
-  border-color: var(--color-surface-hover);
+  background-color: var(--color-surface-hover-subtle);
 }
 
 .nav-icon {
