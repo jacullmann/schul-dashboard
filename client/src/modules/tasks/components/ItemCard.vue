@@ -135,13 +135,21 @@ function onDrop(e: DragEvent) {
 
 <template>
   <!-- Outer wrapper: handles height collapse after dismiss -->
-  <div ref="containerRef" class="swipe-container" :class="{ 'swipe-active': swipeable && (isSwiping || isDismissing || swipeOffset > 0) }">
+  <div
+      ref="containerRef"
+      class="relative"
+      :class="swipeable && (isSwiping || isDismissing || swipeOffset > 0)
+        ? 'overflow-x-clip overflow-y-visible rounded-xl z-10'
+        : ''"
+  >
 
     <!-- Background — only rendered + visible while swiping -->
     <div
         v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
-        class="swipe-background"
-        :class="swipeAction === 'keep' ? 'bg-keep' : 'bg-archive'"
+        class="absolute inset-0 rounded-xl flex items-center pl-3 pointer-events-none"
+        :style="swipeAction === 'keep'
+          ? 'background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+          : 'background: linear-gradient(135deg, #e53935 0%, #c62828 100%)'"
         aria-hidden="true"
     >
       <ArchiveRestore v-if="swipeAction === 'keep'" :size="24" color="#fff" />
@@ -151,32 +159,44 @@ function onDrop(e: DragEvent) {
     <!-- Card — slides on swipe, otherwise completely unchanged -->
     <div
         ref="cardRef"
-        class="item-card"
-        :class="{ collapsed: isCollapsed, highlighted: highlighted, 'drag-over': isDragOver }"
-        :style="cardStyle"
+        class="relative bg-surface border border-surface-border rounded-xl p-3 shadow-input overflow-visible cursor-default touch-pan-y"
+        :class="{
+          'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]': isCollapsed,
+          'border-2 border-transparent': highlighted,
+          'border-primary shadow-[0_0_0_2px_var(--color-primary)]': isDragOver,
+        }"
+        :style="[
+          cardStyle,
+          highlighted
+            ? {
+                background: 'linear-gradient(var(--color-surface), var(--color-surface)) padding-box, var(--background-image-bismuth) border-box',
+                border: '2px solid transparent',
+              }
+            : undefined,
+        ]"
         @dragenter.prevent="onDragEnter"
         @dragover.prevent="onDragOver"
         @dragleave.prevent="onDragLeave"
         @drop.prevent="onDrop"
     >
-      <div v-if="isDragOver" class="drop-overlay">
-        <div class="drop-content">
+      <div v-if="isDragOver" class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center text-white">
+        <div class="flex flex-col items-center gap-2 font-medium text-body">
           <UploadCloud :size="32" />
           <span>Bilder ablegen zum Hochladen</span>
         </div>
       </div>
 
-      <div class="item-main">
-        <div class="item-meta">
+      <div class="relative flex justify-between items-start gap-2 select-none">
+        <div class="flex-1 min-w-0">
           <div style="display:flex; align-items:center; gap:8px;">
             <slot name="checkbox"></slot>
             <slot name="title">
-              <h3 v-if="title" class="item-title" :title="title">{{ title }}</h3>
+              <h3 v-if="title" class="text-title overflow-hidden text-ellipsis whitespace-nowrap leading-6 -my-[3px]" :title="title">{{ title }}</h3>
             </slot>
           </div>
 
           <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-            <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n item-badges" style="overflow: hidden;">
+            <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n mt-1 items-center" style="overflow: hidden;">
               <slot name="badges"></slot>
             </div>
           </transition>
@@ -188,7 +208,7 @@ function onDrop(e: DragEvent) {
           <button
               v-if="showMenuTrigger"
               type="button"
-              class="item-menu-trigger"
+              class="inline-flex items-center justify-center p-2 rounded-lg cursor-pointer text-on-surface-muted transition-hover -m-2 bg-transparent border-none hover:bg-surface-hover hover:text-on-surface"
               @click.stop="(e) => $emit('menu-click', e)"
           >
             <slot name="menu-icon">
@@ -201,8 +221,8 @@ function onDrop(e: DragEvent) {
       </div>
 
       <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-        <div v-show="!isCollapsed" class="item-collapsible-wrapper" style="overflow: hidden;">
-          <div v-if="$slots.body" class="item-body">
+        <div v-show="!isCollapsed" class="opacity-100" style="overflow: hidden;">
+          <div v-if="$slots.body" class="mt-2 text-on-surface break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text">
             <slot name="body"></slot>
           </div>
           <slot name="content-after"></slot>
@@ -211,153 +231,3 @@ function onDrop(e: DragEvent) {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Container: transparent by default — no clipping so dropdown menus are not cut off */
-.swipe-container {
-  position: relative;
-}
-
-/* Active swipe container */
-.swipe-container.swipe-active {
-  overflow-x: clip;
-  overflow-y: visible;
-  border-radius: var(--radius-xl);
-  z-index: 10;
-}
-
-/* Background shown only while swiping */
-.swipe-background {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  padding-left: 12px;
-  pointer-events: none;
-}
-.swipe-background.bg-archive {
-  background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
-}
-.swipe-background.bg-keep {
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-}
-
-/* ─── item-card: identical to original when swipe is idle ─────────────────── */
-.item-card {
-  position: relative;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-xl);
-  padding: 12px;
-  box-shadow: var(--shadow-input);
-  overflow: visible;
-  cursor: default;
-  touch-action: pan-y;
-}
-.item-card.collapsed {
-  transition:
-      padding 300ms cubic-bezier(0.78, 0, 0.22, 1),
-      max-height 300ms cubic-bezier(0.78, 0, 0.22, 1);
-}
-.item-card.highlighted {
-  border: 2px solid transparent;
-  background:
-      linear-gradient(var(--color-surface), var(--color-surface)),
-      var(--background-image-bismuth);
-  background-clip: padding-box, border-box;
-  background-origin: padding-box, border-box;
-}
-
-.item-main {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.item-meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.item-title {
-  margin: -3px 0;
-  font-size: var(--text-title);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 24px;
-}
-
-.item-badges {
-  margin-top: 4px;
-  gap: 8px;
-  align-items: center;
-}
-
-.item-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  color: var(--color-on-surface-muted);
-  transition: background 120ms ease, color 120ms ease;
-  margin: -8px;
-  background: transparent;
-  border: none;
-}
-
-.item-menu-trigger:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface);
-}
-
-.item-body {
-  margin-top: 8px;
-  color: var(--color-on-surface);
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  hyphens: auto;
-  white-space: pre-wrap;
-  user-select: text;
-  -webkit-user-select: text;
-  cursor: text;
-}
-
-.item-collapsible-wrapper {
-  opacity: 1;
-}
-
-.drop-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  border-radius: var(--radius-xl);
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.item-card.drag-over {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary);
-}
-
-.drop-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: var(--text-body);
-}
-</style>
