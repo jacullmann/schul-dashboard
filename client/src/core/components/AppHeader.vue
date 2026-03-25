@@ -4,12 +4,12 @@ import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import Logo from '@/common/components/Logo.vue';
+import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import { X, Menu, ChevronDown } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import BaseSpinner from "@/common/components/BaseSpinner.vue";
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
 
@@ -157,7 +157,7 @@ onUnmounted(() => {
         <div class="logo-group-container">
           <!-- Logo always links to home or active group -->
           <router-link :to="logoLink" class="logo-group" @click="closeNav">
-            <Logo class="logo-img" aria-hidden="true" />
+            <AppLogo class="logo-img" aria-hidden="true" />
             <span v-if="activeGroupId && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
             <span v-else class="logo-text logo-text--brand">schul-dashboard</span>
           </router-link>
@@ -236,7 +236,7 @@ onUnmounted(() => {
 
       <div class="header-right">
         <div v-if="loading" class="loading-placeholder">
-          <LoadingSpinner />
+          <BaseSpinner />
         </div>
         <AccountMenu
             v-else-if="user"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Logo from '@/common/components/Logo.vue';
+import AppLogo from '@/common/components/AppLogo.vue';
 import Tagline from "@/common/components/Tagline.vue";
 import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
 import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
@@ -16,7 +16,7 @@ const year = new Date().getFullYear();
       <div class="footer-grid">
         <div class="footer-section footer-brand">
           <div class="brand-header">
-            <Logo class="footer-logo" aria-hidden="true" />
+            <AppLogo class="footer-logo" aria-hidden="true" />
             <span class="brand-text">schul-dashboard</span>
           </div>
           <Tagline />

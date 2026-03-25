@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import Logo from "@/common/components/Logo.vue";
+import AppLogo from "@/common/components/AppLogo.vue";
 </script>
 
 <template>
   <header class="header">
     <div class="header-content-wrapper">
       <RouterLink to="/" class="logo-container">
-        <Logo class="logo-img" aria-label="Website Logo"/>
+        <AppLogo class="logo-img" aria-label="Website Logo"/>
         <span class="logo-text">schul-dashboard</span>
       </RouterLink>
     </div>

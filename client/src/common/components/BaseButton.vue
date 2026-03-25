@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import LoadingSpinner from './LoadingSpinner.vue';
+import BaseSpinner from './BaseSpinner.vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
@@ -52,7 +52,7 @@ const classes = computed(() => variantClasses[props.variant ?? 'default']);
       disabled:opacity-50 disabled:cursor-not-allowed
     "
   >
-    <LoadingSpinner v-if="loading" size="1em" />
+    <BaseSpinner v-if="loading" :on="variant" size="1em" />
     <slot v-else />
   </button>
 </template>

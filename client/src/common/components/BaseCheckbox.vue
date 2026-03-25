@@ -29,7 +29,7 @@ function handleChange(event: Event) {
         @change="handleChange"
     />
     <span class="vis-label">
-      <Check class="check-icon" stroke-width="3" :size="18" />
+      <Check class="check-icon" stroke-width="3" />
     </span>
   </label>
 </template>
@@ -73,6 +73,14 @@ function handleChange(event: Event) {
 }
 
 .check-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  max-width: none;
+  flex-shrink: 0;
   color: var(--color-on-action);
   stroke-dasharray: 24;
   stroke-dashoffset: 24;

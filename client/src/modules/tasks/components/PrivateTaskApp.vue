@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LoadingSpinner from "@/common/components/LoadingSpinner.vue";
+import BaseSpinner from "@/common/components/BaseSpinner.vue";
 import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
 import InfoModal from '@/common/components/InfoModal.vue';
 import { useI18n } from 'vue-i18n';
@@ -111,7 +111,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
     <div v-if="user" class="privateTask-list">
       <div v-if="loading" class="loader">
-        <LoadingSpinner color="#fff" size="24px" />
+        <BaseSpinner color="#fff" size="24px" />
         <div style="color: var(--color-on-surface-muted)">{{ t('school.private.loading') }}</div>
       </div>
 
