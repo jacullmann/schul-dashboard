@@ -13,8 +13,12 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppLogo: typeof import('./src/common/components/AppLogo.vue')['default']
     BaseButton: typeof import('./src/common/components/BaseButton.vue')['default']
+    BaseCard: typeof import('./src/common/components/BaseMenu.vue')['default']
     BaseCheckbox: typeof import('./src/common/components/BaseCheckbox.vue')['default']
     BaseInput: typeof import('./src/common/components/BaseInput.vue')['default']
+    BaseMenu: typeof import('./src/common/components/BaseMenu.vue')['default']
+    BaseMenuButton: typeof import('./src/common/components/BaseMenuButton.vue')['default']
+    BaseMenuDivider: typeof import('./src/common/components/BaseMenuDivider.vue')['default']
     BaseModal: typeof import('./src/common/components/BaseModal.vue')['default']
     BaseSelect: typeof import('./src/common/components/BaseSelect.vue')['default']
     BaseSpinner: typeof import('./src/common/components/BaseSpinner.vue')['default']

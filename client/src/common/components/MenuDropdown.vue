@@ -55,7 +55,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="menu-wrapper" ref="wrapperRef">
+  <div class="relative w-full" ref="wrapperRef">
     <button
         class="menu-btn"
         @click="toggleMenu"
@@ -75,15 +75,15 @@ onBeforeUnmount(() => {
           {{ prefix ? prefix + ' ' : '' }}{{ selectedOption?.label || '' }}
         </span>
 
-        <ChevronDown :size="16" :class="{ 'chevron-open': isOpen }" />
+        <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
       </div>
     </button>
 
-    <div
+    <BaseMenu
         v-if="isOpen"
-        class="dropdown-menu"
+        class="top-full max-h-80 mt-1"
     >
-      <button
+      <BaseMenuButton
           v-for="option in options"
           :key="option.value"
           class="menu-btn"
@@ -91,30 +91,21 @@ onBeforeUnmount(() => {
           @click="selectOption(option.value)"
           type="button"
           :disabled="disabled"
+          :isSelect="true"
+          :active="modelValue === option.value"
       >
-        <div class="menu-btn-content">
-          <component
-              v-if="option.icon"
-              :is="option.icon"
-              :size="16"
-          />
-          {{ option.label }}
-        </div>
-
-        <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
-        <span class="w-4 shrink-0" v-else></span>
-      </button>
-    </div>
+        <component
+            v-if="option.icon"
+            :is="option.icon"
+            :size="16"
+        />
+        {{ option.label }}
+      </BaseMenuButton>
+    </BaseMenu>
   </div>
 </template>
 
 <style scoped>
-.menu-wrapper {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
-
 .menu-btn:hover:not(:disabled) {
   background: var(--color-surface-hover);
 }
@@ -122,47 +113,5 @@ onBeforeUnmount(() => {
 .menu-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.lucide-chevron-down {
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.chevron-open {
-  transform: rotate(180deg);
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  min-width: 100%;
-  margin-top: 4px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: 12px;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 1100;
-  box-shadow: var(--shadow-menu);
-  animation: menuFadeIn 160ms ease;
-}
-
-.check-icon {
-  color: var(--color-on-surface);
-  flex-shrink: 0;
-}
-
-@keyframes menuFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 </style>

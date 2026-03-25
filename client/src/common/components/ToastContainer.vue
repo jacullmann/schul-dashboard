@@ -20,7 +20,7 @@ const ICONS = {
           v-for="toast in toasts"
           :key="toast.id"
           class="toast"
-          :class="`toast--${toast.type}`"
+          :class="`toast-${toast.type}`"
           role="alert"
           :aria-atomic="true"
         >
@@ -72,7 +72,6 @@ const ICONS = {
   overflow: hidden;
   pointer-events: all;
   box-shadow: var(--shadow-menu);
-  backdrop-filter: blur(8px);
 }
 
 .toast-icon {
@@ -82,10 +81,10 @@ const ICONS = {
   justify-content: center;
 }
 
-.toast--success .toast-icon { color: var(--color-success); }
-.toast--error   .toast-icon { color: var(--color-danger); }
-.toast--warning .toast-icon { color: var(--color-warn); }
-.toast--info    .toast-icon { color: var(--color-primary); }
+.toast-success .toast-icon { color: var(--color-success); }
+.toast-error   .toast-icon { color: var(--color-danger); }
+.toast-warning .toast-icon { color: var(--color-warn); }
+.toast-info    .toast-icon { color: var(--color-primary); }
 
 .toast-message {
   flex: 1;

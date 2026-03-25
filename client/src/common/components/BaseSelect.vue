@@ -62,16 +62,23 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 
 <template>
   <div class="relative" :class="extraClass" ref="wrapperRef">
-    <BaseButton @click="toggleMenu" :disabled="disabled" type="button" class="w-full" aria-haspopup="true" :aria-expanded="isOpen" variant="ghost">
-      <span class="btn-content">
-        <span>
-          {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
-        </span>
-        <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': isOpen }" />
+    <BaseButton
+        @click="toggleMenu"
+        :disabled="disabled"
+        type="button"
+        class="w-full"
+        aria-haspopup="true"
+        :aria-expanded="isOpen"
+        variant="ghost"
+    >
+      <span class="truncate">
+        {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
       </span>
+      
+      <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
     </BaseButton>
 
-    <div v-if="isOpen" class="select-menu">
+    <BaseMenu v-if="isOpen" class="top-full max-h-80 mt-1">
       <button
           v-for="option in options"
           :key="option.value"
@@ -84,55 +91,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
         <Check v-if="modelValue === option.value" :size="16"  />
         <span class="w-4 shrink-0" v-else></span>
       </button>
-    </div>
+    </BaseMenu>
   </div>
 </template>
-
-<style scoped>
-.btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-  width: 100%;
-}
-
-.chevron {
-  margin-left: auto;
-  transition: transform 0.2s ease;
-}
-
-.chevron-open {
-  transform: rotate(180deg);
-}
-
-.select-menu {
-  position: absolute;
-  top: 100%;
-  min-width: 100%;
-  max-height: 320px;
-  margin-top: 4px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-lg);
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  gap: 4px;
-  z-index: 999;
-  box-shadow: var(--shadow-menu);
-  animation: menuFadeIn 160ms ease;
-}
-
-@keyframes menuFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-</style>
