@@ -8,9 +8,7 @@ export interface UseScheduleOptions {
   autoLoad?: boolean;
 }
 
-export function useSchedule(
-  options: UseScheduleOptions = { autoLoad: true },
-) {
+export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const { t, locale } = useI18n();
   const userStore = useUserStore();
 

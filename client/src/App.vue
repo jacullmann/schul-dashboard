@@ -80,6 +80,13 @@ watch(user, (newUser, oldUser) => {
   }
 });
 
+// Remove initial loader when auth is ready
+watch(isAuthReady, (ready) => {
+  if (ready && typeof window !== 'undefined' && window.__removeInitialLoader) {
+    window.__removeInitialLoader();
+  }
+});
+
 onMounted(() => {
   logPageload();
 
@@ -113,11 +120,11 @@ onUnmounted(() => {
 <template>
   <div class="full">
     <template v-if="!isAuthReady && !isPublicRoute">
-      <div class="auth-loading-screen">
-        <div class="auth-loading-spinner"></div>
+      <div key="loading" class="auth-loading-screen">
+        <div class="loader-spinner"></div>
       </div>
     </template>
-    <template v-else>
+    <template v-else key="content">
       <router-view v-slot="{ Component }">
         <component :is="Component" />
       </router-view>
@@ -170,20 +177,20 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-canvas);
+  background: #000000;
   z-index: 10000;
 }
 
-.auth-loading-spinner {
+.loader-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--color-canvas-border);
-  border-top-color: var(--color-on-surface);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #ffffff;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spinner-rotate 1s linear infinite;
 }
 
-@keyframes spin {
+@keyframes spinner-rotate {
   to { transform: rotate(360deg); }
 }
 
