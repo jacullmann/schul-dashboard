@@ -76,7 +76,7 @@ onMounted(async () => {
           :class="{ active: index === currentIndex }"
           @click="selectAnnouncement(index)"
         >
-          <div class="announcement-item-color" :style="{ backgroundColor: colorFor(ann.color) }"></div>
+          <div class="announcement-item-color" :class="colorFor(ann.color)"></div>
           <div class="announcement-item-content">
             <span>{{ ann.content }}</span>
           </div>
@@ -88,7 +88,7 @@ onMounted(async () => {
   <div class="global-announcements" v-if="announcements.length">
     <div
       class="global-ann"
-      :style="{ backgroundColor: colorFor(currentAnnouncement.color) }"
+      :class="colorFor(currentAnnouncement.color)"
     >
       <div class="global-ann-content" @click="nextAnnouncement">
         <span class="announcement-text">{{ currentAnnouncement.content }}</span>
@@ -258,11 +258,22 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 
-@media (max-width: 500px) {
-  .global-ann {
-    padding: 8px 12px;
-  }
+.is-info, .is-default {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
 
+.is-warn {
+  background-color: var(--color-warn);
+  color: var(--color-on-warn);
+}
+
+.is-danger {
+  background-color: var(--color-danger);
+  color: var(--color-on-danger);
+}
+
+@media (max-width: 500px) {
   .global-ann-content {
     gap: 4px;
   }

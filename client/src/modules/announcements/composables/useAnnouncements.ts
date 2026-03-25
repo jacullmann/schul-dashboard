@@ -112,14 +112,8 @@ export function useAnnouncements() {
   }
 
   function colorFor(color: string): string {
-    const map: Record<string, string> = {
-      ok: 'var(--color-primary)',
-      warn: 'var(--color-warn)',
-      danger: 'var(--color-danger)',
-      expired: 'var(--gg)',
-      info: 'var(--color-primary)',
-    };
-    return map[color] ?? 'var(--color-on-surface-muted)';
+    const list = ['info', 'warn', 'danger'];
+    return list.includes(color) ? `is-${color}` : 'is-default';
   }
 
   return {

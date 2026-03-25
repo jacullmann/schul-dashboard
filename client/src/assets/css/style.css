@@ -253,7 +253,7 @@
     --color-surface-border: var(--color-cloud);
 
     --color-on-surface: var(--color-black);
-    --color-on-surface-muted: var(--color-steel);
+    --color-on-surface-muted: var(--color-graphite);
     --color-on-surface-subtle: var(--color-ghost);
 
     --color-primary: var(--color-black);
@@ -265,7 +265,6 @@
     --color-danger: var(--color-cinnabar);
     --color-on-danger: var(--color-white);
     --color-danger-surface: var(--color-cotton-candy);
-
 
     --color-focus: var(--color-ghost);
 
