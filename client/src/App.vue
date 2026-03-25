@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted, nextTick, computed } from 'vue';
+import { watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
@@ -12,7 +12,6 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useRouter } from 'vue-router';
 import hw from '@/api/hwApi';
-import { useRoute } from 'vue-router';
 
 const router = useRouter();
 
@@ -30,10 +29,6 @@ const {
   closeMfaModal,
   clearOAuthError,
 } = useOAuth();
-const route = useRoute();
-const isPublicRoute = computed(() =>
-    route.path === '/' || route.path === '/auth' || route.path === '/legal'
-);
 
 let authCheckInterval: ReturnType<typeof setInterval> | null = null;
 let pageloadLogged = false;
@@ -121,7 +116,7 @@ onUnmounted(() => {
   <div class="full">
     <template v-if="!isAuthReady">
       <div key="loading" class="auth-loading-screen">
-        <div class="loader-spinner"></div>
+        <BaseSpinner on="ghost" size="40px" />
       </div>
     </template>
     <template v-else key="content">
@@ -177,21 +172,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
+  background: var(--color-canvas);
   z-index: 10000;
-}
-
-.loader-spinner {
-  width: 40px;
-  height: 40px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spinner-rotate 1s linear infinite;
-}
-
-@keyframes spinner-rotate {
-  to { transform: rotate(360deg); }
 }
 
 .oauth-error-banner {

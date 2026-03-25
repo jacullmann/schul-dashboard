@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, markRaw } from 'vue';
 import {
-  LayoutDashboard, Users, Flag, FileText as FileTextIcon,
-  Lock, Unlock, Trash2, Eraser, Check, RotateCcw, X, FileText,
+  LayoutDashboard,
+  Users,
+  Flag,
+  FileText as FileTextIcon,
+  Lock,
+  Unlock,
+  Trash2,
+  Eraser,
+  Check,
+  RotateCcw,
+  X,
+  FileText,
   Layers,
 } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
@@ -10,14 +20,17 @@ import AdminLayout from '@/modules/admin/components/AdminLayout.vue';
 import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
 import { useToast } from '@/common/composables/useToast';
 
-import type { Component } from 'vue';
-
 const { success: toastSuccess, error: toastError } = useToast();
 
 const activeTab = ref('overview');
 
 const navItems = computed(() => [
-  { id: 'overview', label: 'Overview', icon: markRaw(LayoutDashboard), count: 0 },
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: markRaw(LayoutDashboard),
+    count: 0,
+  },
   { id: 'users', label: 'Users', icon: markRaw(Users), count: 0 },
   {
     id: 'reports',
@@ -96,8 +109,12 @@ const userActivities = ref<Record<string, UserActivity[]>>({});
 const loadingActivities = ref<Record<string, boolean>>({});
 const isCleaningUp = ref(false);
 
-const unprocessedReports = computed(() => reports.value.filter((r) => !r.processed));
-const processedReports = computed(() => reports.value.filter((r) => r.processed));
+const unprocessedReports = computed(() =>
+  reports.value.filter((r) => !r.processed),
+);
+const processedReports = computed(() =>
+  reports.value.filter((r) => r.processed),
+);
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('de-DE', {
@@ -201,7 +218,8 @@ async function deleteUser(id: string) {
 }
 
 async function pruneOldLogs(u: User) {
-  if (!confirm(`Delete activity logs older than 30 days for ${u.email}?`)) return;
+  if (!confirm(`Delete activity logs older than 30 days for ${u.email}?`))
+    return;
   try {
     await hw.delete(`/api/admin/users/${u.id}/activity/prune`);
     toastSuccess('Logs pruned.');
@@ -295,7 +313,9 @@ onMounted(() => {
     <template v-if="activeTab === 'overview'">
       <h2 class="page-title">Dashboard Overview</h2>
 
-      <div v-if="loadingStats" class="center-loader"><div class="spinner" /></div>
+      <div v-if="loadingStats" class="center-loader">
+        <BaseSpinner on="ghost" size="24px" />
+      </div>
       <template v-else-if="stats">
         <div class="stats-grid">
           <div class="stat-card">
@@ -306,11 +326,17 @@ onMounted(() => {
             <div class="stat-val">{{ stats.itemCount }}</div>
             <div class="stat-lbl">Entries</div>
           </div>
-          <div class="stat-card" :class="{ alert: (stats.reportCount ?? 0) > 0 }">
+          <div
+            class="stat-card"
+            :class="{ alert: (stats.reportCount ?? 0) > 0 }"
+          >
             <div class="stat-val">{{ stats.reportCount }}</div>
             <div class="stat-lbl">Open Reports</div>
           </div>
-          <div class="stat-card" :class="{ warn: (stats.bannedCount ?? 0) > 0 }">
+          <div
+            class="stat-card"
+            :class="{ warn: (stats.bannedCount ?? 0) > 0 }"
+          >
             <div class="stat-val">{{ stats.bannedCount }}</div>
             <div class="stat-lbl">Banned</div>
           </div>
@@ -359,9 +385,14 @@ onMounted(() => {
 
         <div v-if="(stats.oldItemsCount ?? 0) > 0" class="cleanup-card">
           <div>
-            <strong>Cleanup:</strong> {{ stats.oldItemsCount }} entries older than 90 days
+            <strong>Cleanup:</strong> {{ stats.oldItemsCount }} entries older
+            than 90 days
           </div>
-          <BaseButton @click="cleanupOldItems" :disabled="isCleaningUp" variant="ghost">
+          <BaseButton
+            @click="cleanupOldItems"
+            :disabled="isCleaningUp"
+            variant="ghost"
+          >
             <Trash2 :size="14" />
             {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
           </BaseButton>
@@ -387,21 +418,35 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in allUsers" :key="u.id" :class="{ 'row-banned': u.isBanned }">
+            <tr
+              v-for="u in allUsers"
+              :key="u.id"
+              :class="{ 'row-banned': u.isBanned }"
+            >
               <td>
                 <div class="cell-email">{{ u.email }}</div>
                 <div class="cell-id">{{ u.id }}</div>
               </td>
               <td>
-                <span v-if="u.role === 'superadmin'" class="badge badge-purple">Admin</span>
-                <span v-else-if="u.isBanned" class="badge badge-red">Banned</span>
+                <span v-if="u.role === 'superadmin'" class="badge badge-purple"
+                  >Admin</span
+                >
+                <span v-else-if="u.isBanned" class="badge badge-red"
+                  >Banned</span
+                >
                 <span v-else class="badge badge-green">Active</span>
-                <span v-if="!u.emailVerified" class="badge badge-yellow">Unverified</span>
+                <span v-if="!u.emailVerified" class="badge badge-yellow"
+                  >Unverified</span
+                >
               </td>
               <td class="cell-date">{{ fmtDate(u.createdAt) }}</td>
               <td>
                 <div class="cell-actions">
-                  <button class="btn-icon" @click="toggleActivity(u.id)" title="Activity log">
+                  <button
+                    class="btn-icon"
+                    @click="toggleActivity(u.id)"
+                    title="Activity log"
+                  >
                     <FileText :size="15" />
                   </button>
                   <button
@@ -413,7 +458,11 @@ onMounted(() => {
                     <Lock v-if="!u.isBanned" :size="15" />
                     <Unlock v-else :size="15" />
                   </button>
-                  <button class="btn-icon" @click="pruneOldLogs(u)" title="Prune old logs">
+                  <button
+                    class="btn-icon"
+                    @click="pruneOldLogs(u)"
+                    title="Prune old logs"
+                  >
                     <Eraser :size="15" />
                   </button>
                   <button
@@ -445,14 +494,21 @@ onMounted(() => {
                 <X :size="18" />
               </button>
             </div>
-            <div v-if="loadingActivities[showActivityFor]" class="center-loader">
-              <div class="spinner" />
+            <div
+              v-if="loadingActivities[showActivityFor]"
+              class="center-loader"
+            >
+              <BaseSpinner on="ghost" size="24px" />
             </div>
             <ul v-else class="log-list">
               <li v-for="(act, i) in userActivities[showActivityFor]" :key="i">
-                <span class="log-time">{{ new Date(act.at).toLocaleString() }}</span>
+                <span class="log-time">{{
+                  new Date(act.at).toLocaleString()
+                }}</span>
                 <span class="log-type">{{ act.type }}</span>
-                <pre class="log-meta">{{ JSON.stringify(act.meta, null, 2) }}</pre>
+                <pre class="log-meta">{{
+                  JSON.stringify(act.meta, null, 2)
+                }}</pre>
               </li>
             </ul>
           </div>
@@ -469,43 +525,78 @@ onMounted(() => {
         <div v-if="unprocessedReports.length" class="report-section">
           <h3 class="sub-heading">Open ({{ unprocessedReports.length }})</h3>
           <div class="card-grid">
-            <div v-for="r in unprocessedReports" :key="r.id" class="report-card">
+            <div
+              v-for="r in unprocessedReports"
+              :key="r.id"
+              class="report-card"
+            >
               <div class="report-top">
                 <strong>{{ r.itemTitle }}</strong>
                 <span
                   class="badge"
-                  :class="r.category === 'illegal' ? 'badge-red' : 'badge-yellow'"
+                  :class="
+                    r.category === 'illegal' ? 'badge-red' : 'badge-yellow'
+                  "
                 >
                   {{ r.category === 'illegal' ? 'Illegal' : 'Misinformation' }}
                 </span>
               </div>
               <div class="report-reason" v-if="r.reason">"{{ r.reason }}"</div>
-              <div class="report-meta">From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}</div>
+              <div class="report-meta">
+                From: {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+              </div>
               <div class="report-actions">
-                <BaseButton class="tiny" @click="toggleReportProcessed(r.id, false)" variant="ghost">
+                <BaseButton
+                  class="tiny"
+                  @click="toggleReportProcessed(r.id, false)"
+                  variant="ghost"
+                >
                   <Check :size="13" /> Resolve
                 </BaseButton>
-                <BaseButton class="tiny" @click="deleteReport(r.id)" variant="ghost">
+                <BaseButton
+                  class="tiny"
+                  @click="deleteReport(r.id)"
+                  variant="ghost"
+                >
                   <Trash2 :size="13" /> Delete
                 </BaseButton>
               </div>
             </div>
           </div>
         </div>
-        <div v-if="processedReports.length" class="report-section processed-section">
-          <h3 class="sub-heading muted">Processed ({{ processedReports.length }})</h3>
+        <div
+          v-if="processedReports.length"
+          class="report-section processed-section"
+        >
+          <h3 class="sub-heading muted">
+            Processed ({{ processedReports.length }})
+          </h3>
           <div class="card-grid">
-            <div v-for="r in processedReports" :key="r.id" class="report-card processed">
+            <div
+              v-for="r in processedReports"
+              :key="r.id"
+              class="report-card processed"
+            >
               <div class="report-top">
                 <strong>{{ r.itemTitle }}</strong>
                 <span class="badge badge-green">Resolved</span>
               </div>
-              <div class="report-meta">{{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}</div>
+              <div class="report-meta">
+                {{ r.reporterEmail }} · {{ fmtDate(r.reportedAt) }}
+              </div>
               <div class="report-actions">
-                <BaseButton class="tiny" @click="toggleReportProcessed(r.id, true)" variant="ghost">
+                <BaseButton
+                  class="tiny"
+                  @click="toggleReportProcessed(r.id, true)"
+                  variant="ghost"
+                >
                   <RotateCcw :size="13" /> Reopen
                 </BaseButton>
-                <BaseButton class="tiny" @click="deleteReport(r.id)" variant="ghost">
+                <BaseButton
+                  class="tiny"
+                  @click="deleteReport(r.id)"
+                  variant="ghost"
+                >
                   <Trash2 :size="13" /> Delete
                 </BaseButton>
               </div>
@@ -522,7 +613,9 @@ onMounted(() => {
         <BaseButton @click="loadGroups" variant="ghost">Refresh</BaseButton>
       </div>
 
-      <div v-if="loadingGroups" class="center-loader"><div class="spinner" /></div>
+      <div v-if="loadingGroups" class="center-loader">
+        <BaseSpinner on="ghost" size="24px" />
+      </div>
       <div v-else-if="!groups.length" class="empty-msg">No groups found.</div>
       <div v-else class="table-wrap">
         <table class="data-table">
@@ -610,15 +703,40 @@ onMounted(() => {
   text-align: center;
 }
 
-.stat-card.alert { border-color: rgba(239, 68, 68, 0.3); }
-.stat-card.warn { border-color: rgba(245, 158, 11, 0.3); }
+.stat-card.alert {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.stat-card.warn {
+  border-color: rgba(245, 158, 11, 0.3);
+}
 
-.stat-val { font-size: 1.6rem; font-weight: 700; line-height: 1; }
-.stat-lbl { font-size: var(--text-sub); color: var(--color-on-surface-muted); margin-top: 4px; }
+.stat-val {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: var(--text-sub);
+  color: var(--color-on-surface-muted);
+  margin-top: 4px;
+}
 
-.sub-stats { display: flex; flex-direction: column; gap: 24px; margin-bottom: 28px; }
-.sub-stat-group h3 { font-size: var(--text-title); font-weight: 600; margin: 0 0 12px; }
-.sub-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.sub-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.sub-stat-group h3 {
+  font-size: var(--text-title);
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.sub-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
 
 .sub-stat {
   background: var(--color-surface);
@@ -629,8 +747,15 @@ onMounted(() => {
   text-align: center;
 }
 
-.sub-val { font-size: 1.15rem; font-weight: 700; display: block; }
-.sub-lbl { font-size: var(--text-sub); color: var(--color-on-surface-muted); }
+.sub-val {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: block;
+}
+.sub-lbl {
+  font-size: var(--text-sub);
+  color: var(--color-on-surface-muted);
+}
 
 .cleanup-card {
   display: flex;
@@ -652,7 +777,10 @@ onMounted(() => {
   border-radius: 12px;
 }
 
-.data-table { width: 100%; border-collapse: collapse; }
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 .data-table th,
 .data-table td {
   padding: 11px 14px;
@@ -661,26 +789,62 @@ onMounted(() => {
 }
 .data-table th {
   background: var(--color-surface);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 500;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.data-table tr:last-child td { border-bottom: none; }
-.row-banned { opacity: 0.6; }
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.row-banned {
+  opacity: 0.6;
+}
 
-.cell-email { font-weight: 500; }
-.cell-id { font-size: 0.65rem; color: var(--color-on-surface-muted); font-family: monospace; }
-.cell-date { font-size: var(--text-sub); color: var(--color-on-surface-muted); white-space: nowrap; }
-.cell-actions { display: flex; gap: 2px; justify-content: flex-end; }
+.cell-email {
+  font-weight: 500;
+}
+.cell-id {
+  font-size: 0.65rem;
+  color: var(--color-on-surface-muted);
+  font-family: monospace;
+}
+.cell-date {
+  font-size: var(--text-sub);
+  color: var(--color-on-surface-muted);
+  white-space: nowrap;
+}
+.cell-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
 
 /* ─── Badges ─────────────────────────────────────────────────────────────────── */
-.badge { padding: 2px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right: 4px; }
-.badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.badge-yellow { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-.badge-red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-.badge-purple { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+.badge {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-right: 4px;
+}
+.badge-green {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.badge-yellow {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+.badge-red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.badge-purple {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
 
 /* ─── Icon buttons ───────────────────────────────────────────────────────────── */
 .btn-icon {
@@ -692,20 +856,41 @@ onMounted(() => {
   border-radius: 6px;
   background: transparent;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   cursor: pointer;
   transition: all 0.12s;
 }
 
-.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
-.btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.btn.tiny { padding: 4px 10px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px; }
-.btn.tiny.danger { color: #ef4444; }
+.btn-icon:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
+}
+.btn-icon.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.btn.tiny {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn.tiny.danger {
+  color: #ef4444;
+}
 
 /* ─── Reports ───────────────────────────────── */
-.report-section { margin-bottom: 32px; }
-.processed-section { opacity: 0.7; }
-.processed-section:hover { opacity: 1; transition: opacity 0.2s; }
+.report-section {
+  margin-bottom: 32px;
+}
+.processed-section {
+  opacity: 0.7;
+}
+.processed-section:hover {
+  opacity: 1;
+  transition: opacity 0.2s;
+}
 
 .card-grid {
   display: grid;
@@ -721,11 +906,30 @@ onMounted(() => {
   padding: 14px 16px;
 }
 
-.report-card.processed { opacity: 0.8; }
-.report-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.report-reason { color: var(--color-on-surface-muted); font-size: var(--text-body); line-height: 1.4; margin-bottom: 8px; }
-.report-meta { font-size: var(--text-sub); color: var(--color-on-surface-muted); margin-bottom: 10px; }
-.report-actions { display: flex; gap: 6px; }
+.report-card.processed {
+  opacity: 0.8;
+}
+.report-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.report-reason {
+  color: var(--color-on-surface-muted);
+  font-size: var(--text-body);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.report-meta {
+  font-size: var(--text-sub);
+  color: var(--color-on-surface-muted);
+  margin-bottom: 10px;
+}
+.report-actions {
+  display: flex;
+  gap: 6px;
+}
 
 /* ─── Drawer ─────────────────────────────────────────────────────────────────── */
 .drawer-overlay {
@@ -747,50 +951,98 @@ onMounted(() => {
   overflow-y: auto;
 }
 
-.drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.drawer-header h3 { margin: 0; }
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.drawer-header h3 {
+  margin: 0;
+}
 
-.drawer-enter-active { transition: opacity 0.2s; }
-.drawer-enter-active .drawer-panel { transition: transform 0.25s ease; }
-.drawer-enter-from { opacity: 0; }
-.drawer-enter-from .drawer-panel { transform: translateX(100%); }
-.drawer-leave-active { transition: opacity 0.3s; }
-.drawer-leave-active .drawer-panel { transition: transform 0.25s ease; }
-.drawer-leave-to { opacity: 0; }
-.drawer-leave-to .drawer-panel { transform: translateX(100%); }
+.drawer-enter-active {
+  transition: opacity 0.2s;
+}
+.drawer-enter-active .drawer-panel {
+  transition: transform 0.25s ease;
+}
+.drawer-enter-from {
+  opacity: 0;
+}
+.drawer-enter-from .drawer-panel {
+  transform: translateX(100%);
+}
+.drawer-leave-active {
+  transition: opacity 0.3s;
+}
+.drawer-leave-active .drawer-panel {
+  transition: transform 0.25s ease;
+}
+.drawer-leave-to {
+  opacity: 0;
+}
+.drawer-leave-to .drawer-panel {
+  transform: translateX(100%);
+}
 
-.log-list { list-style: none; padding: 0; margin: 0; }
-.log-list li { border-bottom: 1px solid var(--color-canvas-border); padding: 10px 0; }
-.log-time { font-size: 0.75rem; color: var(--color-on-surface-muted); display: block; }
-.log-type { font-weight: 500; }
+.log-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.log-list li {
+  border-bottom: 1px solid var(--color-canvas-border);
+  padding: 10px 0;
+}
+.log-time {
+  font-size: 0.75rem;
+  color: var(--color-on-surface-muted);
+  display: block;
+}
+.log-type {
+  font-weight: 500;
+}
 .log-meta {
   background: var(--color-surface);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   margin-top: 4px;
   overflow-x: auto;
 }
 
 /* ─── Doc ────────────────────────────────────────────────────────────────────── */
-.doc-wrapper { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-
-/* ─── Misc ───────────────────────────────────────────────────────────────────── */
-.center-loader { display: flex; justify-content: center; padding: 40px; }
-.spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--color-canvas-border);
-  border-top-color: var(--color-on-surface);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+.doc-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.empty-msg { text-align: center; color: var(--color-sub); padding: 40px; }
-.sub-heading { font-size: 0.95rem; font-weight: 600; margin: 0 0 12px; }
-.sub-heading.muted { color: var(--color-sub); }
-.tiny { display: inline-flex; align-items: center; gap: 4px; }
+/* ─── Misc ───────────────────────────────────────────────────────────────────── */
+.center-loader {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.empty-msg {
+  text-align: center;
+  color: var(--color-on-surface-muted);
+  padding: 40px;
+}
+.sub-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.sub-heading.muted {
+  color: var(--color-on-surface-muted);
+}
+.tiny {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
 </style>
