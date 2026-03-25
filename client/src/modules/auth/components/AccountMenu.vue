@@ -227,6 +227,10 @@ const {
   gap: 4px;
 }
 
+.menu-btn {
+  padding: 0;
+}
+
 .lucide-graduation-cap {
   transform: rotate(0);
   transition: 0.1s ease;

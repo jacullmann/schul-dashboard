@@ -269,48 +269,48 @@ async function handleArchiveFromMenu(item: HwItem) {
         <template #menu>
           <div v-if="openMenuId === item.id" class="menu" @click.stop>
             <BaseMenuButton v-if="user" @click="onMenuAction('images', item)">
-              <Upload />
+              <Upload :size="16" />
               {{ t('school.tasks.items.menu.uploadImages') }}
             </BaseMenuButton>
 
             <BaseMenuButton v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
-              <Pencil />
+              <Pencil :size="16" />
               {{ t('global.buttons.edit') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canEdit(item.createdBy) || user" />
 
             <BaseMenuButton v-if="user" @click="togglePin(item)">
-              <Pin v-if="!isPinned(item.id)" class="unpinned" />
-              <Pin fill="currentColor" v-else class="pinned" />
+              <Pin v-if="!isPinned(item.id)" class="unpinned" :size="16" />
+              <Pin fill="currentColor" v-else class="pinned" :size="16" />
               {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
             </BaseMenuButton>
 
             <BaseMenuButton v-if="user" @click="handleArchiveFromMenu(item)">
-              <ArchiveRestore v-if="showOldEntries" />
-              <Archive v-else />
+              <ArchiveRestore v-if="showOldEntries" :size="16" />
+              <Archive v-else :size="16" />
               {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
             </BaseMenuButton>
 
             <BaseMenuButton @click="shareItem(item)">
-              <Send />
+              <Send :size="16" />
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
             <BaseMenuButton @click="openMenuId = null; showInfoItem = item">
-              <Info />
+              <Info :size="16" />
               {{ t('school.tasks.items.menu.info') }}
             </BaseMenuButton>
 
             <BaseMenuButton title="Melden" @click="onMenuAction('report', item)">
-              <Flag />
+              <Flag :size="16" />
               {{ t('school.tasks.items.menu.report.name') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canDelete(item.createdBy)" />
 
             <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
-              <Trash2 />
+              <Trash2 :size="16" />
               {{ t('global.buttons.delete') }}
             </BaseMenuButton>
           </div>

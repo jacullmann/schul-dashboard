@@ -70,12 +70,12 @@ onBeforeUnmount(() => {
   >
     <BaseMenu>
       <BaseMenuButton @click="emit('upload')">
-        <Upload />
+        <Upload :size="16" />
         {{ t('school.tasks.items.menu.uploadImages') }}
       </BaseMenuButton>
 
-      <BaseMenuButton v-if="canDelete" @click="emit('delete')">
-        <Trash2 />
+      <BaseMenuButton variant="danger" v-if="canDelete" @click="emit('delete')">
+        <Trash2 :size="16" />
         {{ t('global.buttons.delete') }}
       </BaseMenuButton>
     </BaseMenu>
