@@ -46,7 +46,7 @@ const filteredGames = computed(() => {
         <router-link
             v-for="game in filteredGames"
             :key="game.id"
-            :to="`/spiele/${game.id}`"
+            :to="`/games/${game.id}`"
             class="game-card-link"
         >
           <div class="game-card">
