@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
-import BaseSpinner from '@/common/components/BaseSpinner.vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 
 const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } = useOAuth();
@@ -49,7 +48,7 @@ function handleLink() {
 <template>
   <div class="connected-accounts">
     <div v-if="loading" class="loading-row">
-      <BaseSpinner size="1.2em" />
+      <BaseSpinner on="ghost" size="1.2em" />
     </div>
 
     <template v-else>

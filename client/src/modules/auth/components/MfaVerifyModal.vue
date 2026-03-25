@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
 import { ShieldCheck, AlertCircle, AlertTriangle } from 'lucide-vue-next';
-import BaseSpinner from '@/common/components/BaseSpinner.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const emit = defineEmits<{

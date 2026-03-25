@@ -9,7 +9,6 @@ import {
   AlertCircle,
   AlertTriangle
 } from 'lucide-vue-next';
-import BaseSpinner from '@/common/components/BaseSpinner.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const props = defineProps<{

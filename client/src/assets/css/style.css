@@ -45,6 +45,7 @@
     --color-surface-hover:         var(--color-graphite);
     --color-surface-hover-subtle:  var(--color-charcoal-highlight);
     --color-surface-border:        var(--color-graphite);
+    --color-surface-hover-border:  var(--color-steel);
     --color-on-surface:            var(--color-white);
     --color-on-surface-muted:      var(--color-ash);
     --color-on-surface-subtle:     var(--color-ghost);
@@ -164,6 +165,7 @@
     --color-surface-hover: var(--color-graphite);
     --color-surface-hover-subtle: var(--color-charcoal-highlight);
     --color-surface-border: var(--color-graphite);
+    --color-surface-hover-border: var(--color-steel);
 
     --color-on-surface: var(--color-white);
     --color-on-surface-muted: var(--color-ash);
@@ -193,8 +195,6 @@
     --color-focus: var(--color-ash);
 
     /* LEGACY COLORS */
-    --not-spinning: var(--color-steel);
-    --spinning: var(--color-white);
     --special--green: #4caf50;
 
     /* TYPOGRAPHY */
@@ -251,6 +251,7 @@
     --color-surface-hover: var(--color-white-highlight);
     --color-surface-hover-subtle: #f5f5f5;
     --color-surface-border: var(--color-cloud);
+    --color-surface-hover-border: #bbb;
 
     --color-on-surface: var(--color-black);
     --color-on-surface-muted: var(--color-graphite);
@@ -267,9 +268,6 @@
     --color-danger-surface: var(--color-cotton-candy);
 
     --color-focus: var(--color-ghost);
-
-    /* LEGACY COLORS */
-    --not-spinning: #bbb;
 
     /* SHADOWS */
     --shadow-input: 0 1px 2px 0 #0000000d;

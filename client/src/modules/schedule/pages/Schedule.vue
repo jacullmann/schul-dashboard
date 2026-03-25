@@ -231,7 +231,7 @@ onUnmounted(() => {
 
 .header-cell.current-day-header {
   background-color: var(--color-surface-hover);
-  border-color: var(--not-spinning);
+  border-color: var(--color-surface-hover-border);
 }
 
 .time-header { grid-column: 1; grid-row: 1; }
@@ -272,7 +272,7 @@ onUnmounted(() => {
 
 .lesson-group-container.current-day {
   background-color: var(--color-surface-hover);
-  border-color: var(--not-spinning);
+  border-color: var(--color-surface-hover-border);
 }
 
 /* --- HIGHLIGHT LOGIC --- */
@@ -295,7 +295,7 @@ onUnmounted(() => {
 }
 
 .lesson-group-container.current-day .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--not-spinning);
+  border-bottom: 1px solid var(--color-surface-hover-border);
 }
 
 .ausfall-label {
@@ -347,7 +347,7 @@ onUnmounted(() => {
 }
 /* Active State: Cross outs need to be visible against white */
 .lesson-group-container.highlight-active .crossed {
-  color: var(--not-spinning);
+  color: var(--color-surface-hover-border);
 }
 /* Active State: New values need to match the dark text theme but stand out */
 .lesson-group-container.highlight-active .new-val {

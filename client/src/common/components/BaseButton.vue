@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import BaseSpinner from './BaseSpinner.vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';

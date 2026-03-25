@@ -9,7 +9,6 @@ import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import { X, Menu, ChevronDown } from 'lucide-vue-next';
 import hw from '@/api/hwApi';
-import BaseSpinner from "@/common/components/BaseSpinner.vue";
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
 
@@ -236,7 +235,7 @@ onUnmounted(() => {
 
       <div class="header-right">
         <div v-if="loading" class="loading-placeholder">
-          <BaseSpinner />
+          <BaseSpinner on="ghost" class="size-8 max-[480px]:size-[26px]" />
         </div>
         <AccountMenu
             v-else-if="user"
