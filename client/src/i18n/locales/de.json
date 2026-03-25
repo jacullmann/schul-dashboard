@@ -501,31 +501,6 @@
       }
     },
     "tables": {
-      "dalton": {
-        "title": "Daltonraumfinder",
-        "infopop": {
-          "tooltip": "Überblick und Funktionen zum Daltonraumfinder",
-          "description": "Finde den passenden Raum in wenigen Sekunden.",
-          "sections": [
-            {
-              "title": "Raumsuche",
-              "text": "Sehe für jeden Raum ein, an welchem Tag welche/r Lehrer*in dort ist."
-            },
-            {
-              "title": "Lehrer*innensuche",
-              "text": "Suche nach bestimmten Lehrer*innen und lasse dir anzeigen, wann sie in welchen Räumen sind oder gib ein Fach ein, für das du Hilfe brauchst, und finde jede/n zugehörige/n Fachlehrer*in und die Räume, die sie belegen."
-            }
-          ]
-        },
-        "roomSearch": "Raumsuche",
-        "searchRoom": "Raum suchen...",
-        "room": "Raum",
-        "noRoomFound": "Keine Räume gefunden.",
-        "teacherSearch": "Lehrer*innensuche",
-        "searchTeacher": "Lehrer*in suchen...",
-        "enterTeacherName": "Bitte Lehrer*innenname eingeben",
-        "noTeacherFound": "Keine Lehrer*innen gefunden"
-      },
       "schedule": {
         "title": "Stundenplan",
         "infopop": {
@@ -548,27 +523,6 @@
         "lesson": "Stunde",
         "cancelled": "Entfällt"
       },
-      "abbr": {
-        "title": "Kürzelfinder",
-        "infopop": {
-          "tooltip": "Überblick und Funktionen zum Kürzelfinder",
-          "description": "Finde ganz einfach heraus, welcher Name hinter welchem Kürzel steckt oder wer welches Kürzel hat.",
-          "sections": [
-            {
-              "title": "Kürzelübersetzer",
-              "text": "Gib das unbekannte Kürzel in das Textfeld ein und erhalte den zugehörigen Namen."
-            },
-            {
-              "title": "Kürzelfinder",
-              "text": "Klicke auf das Tauschsymbol, um den Modus zu wechseln. Nun kannst du einen Namen eingeben und erhältst das passende Kürzel."
-            }
-          ]
-        },
-        "abbr": "Kürzel",
-        "name": "Name",
-        "didYouMean1": "Meintest du ",
-        "didYouMean2": "?"
-      }
     },
     "private": {
       "entry": "Privater Eintrag",

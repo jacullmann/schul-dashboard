@@ -6,22 +6,15 @@ export interface AdminNavItem {
   id: string;
   label: string;
   icon: Component;
-  /** Optional badge count shown next to the label. */
   count?: number;
-  /** When true the badge is styled as a danger indicator. */
   danger?: boolean;
 }
 
 const props = defineProps<{
-  /** Page / section title shown in the header. */
   title: string;
-  /** Optional subtitle (e.g. current group name). */
   subtitle?: string | null;
-  /** Route to navigate to when the back button is clicked. */
   backTo: string;
-  /** Navigation items rendered in the sidebar. */
   navItems: AdminNavItem[];
-  /** ID of the currently active section. */
   activeTab: string;
 }>();
 

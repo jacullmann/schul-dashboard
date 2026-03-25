@@ -447,31 +447,6 @@
       }
     },
     "tables": {
-      "dalton": {
-        "title": "Dalton Room Finder",
-        "infopop": {
-          "tooltip": "Overview and features for the Dalton Room Finder",
-          "description": "Find the right room in seconds.",
-          "sections": [
-            {
-              "title": "Room search",
-              "text": "See which teacher is in which room on which day."
-            },
-            {
-              "title": "Teacher search",
-              "text": "Search for specific teachers and see when they are in which rooms, or enter a subject you need help with and find every corresponding teacher and the rooms they occupy."
-            }
-          ]
-        },
-        "roomSearch": "Room Search",
-        "searchRoom": "Search room...",
-        "room": "Room",
-        "noRoomFound": "No rooms found.",
-        "teacherSearch": "Teacher Search",
-        "searchTeacher": "Search teacher...",
-        "enterTeacherName": "Please enter a teacher name",
-        "noTeacherFound": "No teachers found"
-      },
       "schedule": {
         "title": "Schedule",
         "infopop": {
@@ -493,27 +468,6 @@
         "lesson": "Lesson",
         "cancelled": "Cancelled"
       },
-      "abbr": {
-        "title": "Abbreviation Finder",
-        "infopop": {
-          "tooltip": "Overview and features for the Abbreviation Finder",
-          "description": "Easily find out which name is behind which abbreviation or who has which abbreviation.",
-          "sections": [
-            {
-              "title": "Abbreviation translator",
-              "text": "Enter the unknown abbreviation in the text field and get the corresponding name."
-            },
-            {
-              "title": "Abbreviation finder",
-              "text": "Click the swap icon to switch modes. You can now enter a name and get the matching abbreviation."
-            }
-          ]
-        },
-        "abbr": "Abbreviation",
-        "name": "Name",
-        "didYouMean1": "Did you mean ",
-        "didYouMean2": "?"
-      }
     },
     "private": {
       "title": "Private Entries",

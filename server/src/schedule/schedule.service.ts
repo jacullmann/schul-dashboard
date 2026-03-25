@@ -117,47 +117,6 @@ export class ScheduleService {
     }
   }
 
-  async getPersons(tenantId: string) {
-    const sb = this.supabaseService.getClient();
-    try {
-      const { data } = await sb
-        .from('persons')
-        .select('id, name, short, title')
-        .eq('tenant_id', tenantId)
-        .order('name');
-      return (data || []).map((p) => ({
-        id: p.id,
-        name: p.name,
-        short: p.short,
-        title: p.title,
-      }));
-    } catch {
-      throw new InternalServerErrorException('Failed to load persons');
-    }
-  }
-
-  async getDaltonSchedule(tenantId: string) {
-    const sb = this.supabaseService.getClient();
-    try {
-      const { data } = await sb
-        .from('dalton_schedule')
-        .select('*')
-        .eq('tenant_id', tenantId);
-      return (data || []).map((r) => ({
-        id: r.id,
-        room: r.room,
-        size: r.size,
-        moPersonId: r.mo_person_id,
-        diPersonId: r.di_person_id,
-        miPersonId: r.mi_person_id,
-        doPersonId: r.do_person_id,
-        frPersonId: r.fr_person_id,
-      }));
-    } catch {
-      throw new InternalServerErrorException('Failed to load Dalton schedules');
-    }
-  }
-
   async getAnnouncements(tenantId: string) {
     const sb = this.supabaseService.getClient();
     try {

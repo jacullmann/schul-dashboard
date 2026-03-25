@@ -35,16 +35,6 @@ export class ScheduleController {
     return this.scheduleService.getSubjects(tenantId);
   }
 
-  @Get('persons')
-  getPersons(@ActiveTenantId() tenantId: string) {
-    return this.scheduleService.getPersons(tenantId);
-  }
-
-  @Get('dalton-schedule')
-  getDaltonSchedule(@ActiveTenantId() tenantId: string) {
-    return this.scheduleService.getDaltonSchedule(tenantId);
-  }
-
   @Get('announcements')
   getAnnouncements(@ActiveTenantId() tenantId: string) {
     return this.scheduleService.getAnnouncements(tenantId);
