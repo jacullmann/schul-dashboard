@@ -102,7 +102,7 @@ onBeforeUnmount(() => {
         </div>
 
         <Check v-if="modelValue === option.value" :size="16" class="check-icon" />
-        <span class="spacer" v-else></span>
+        <span class="w-4 shrink-0" v-else></span>
       </button>
     </div>
   </div>
@@ -152,11 +152,6 @@ onBeforeUnmount(() => {
 
 .check-icon {
   color: var(--color-on-surface);
-  flex-shrink: 0;
-}
-
-.spacer {
-  width: 16px;
   flex-shrink: 0;
 }
 

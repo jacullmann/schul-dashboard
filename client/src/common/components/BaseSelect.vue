@@ -61,8 +61,8 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <template>
-  <div :class="['menu-wrapper', extraClass]" ref="wrapperRef">
-    <BaseButton @click="toggleMenu" :disabled="disabled" type="button" aria-haspopup="true" :aria-expanded="isOpen" variant="ghost">
+  <div class="relative" :class="extraClass" ref="wrapperRef">
+    <BaseButton @click="toggleMenu" :disabled="disabled" type="button" class="w-full" aria-haspopup="true" :aria-expanded="isOpen" variant="ghost">
       <span class="btn-content">
         <span>
           {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
@@ -82,21 +82,13 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
       >
         {{ option.label }}
         <Check v-if="modelValue === option.value" :size="16"  />
-        <span class="spacer" v-else></span>
+        <span class="w-4 shrink-0" v-else></span>
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.menu-wrapper {
-  position: relative;
-}
-
-.btn {
-  width: 100%;
-}
-
 .btn-content {
   display: flex;
   align-items: center;
@@ -131,11 +123,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
   z-index: 999;
   box-shadow: var(--shadow-menu);
   animation: menuFadeIn 160ms ease;
-}
-
-.spacer {
-  width: 16px;
-  flex-shrink: 0;
 }
 
 @keyframes menuFadeIn {
