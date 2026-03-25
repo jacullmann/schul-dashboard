@@ -11,9 +11,25 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    BaseButton: typeof import('@/common/components/BaseButton.vue')['default']
-    BaseInput: typeof import('@/common/components/BaseInput.vue')['default']
+    BaseButton: typeof import('./src/common/components/BaseButton.vue')['default']
+    BaseCheckbox: typeof import('./src/common/components/BaseCheckbox.vue')['default']
+    BaseInput: typeof import('./src/common/components/BaseInput.vue')['default']
+    BaseModal: typeof import('./src/common/components/BaseModal.vue')['default']
+    BaseSelect: typeof import('./src/common/components/BaseSelect.vue')['default']
+    CookieBanner: typeof import('./src/common/components/CookieBanner.vue')['default']
+    InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']
+    LoadingSpinner: typeof import('./src/common/components/LoadingSpinner.vue')['default']
+    LocaleDropdown: typeof import('./src/common/components/LocaleDropdown.vue')['default']
+    LocaleMenuDropdown: typeof import('./src/common/components/LocaleMenuDropdown.vue')['default']
+    Logo: typeof import('./src/common/components/Logo.vue')['default']
+    MenuDropdown: typeof import('./src/common/components/MenuDropdown.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TabSwitcher: typeof import('./src/common/components/TabSwitcher.vue')['default']
+    Tagline: typeof import('./src/common/components/Tagline.vue')['default']
+    ThemeDropdown: typeof import('./src/common/components/ThemeDropdown.vue')['default']
+    ThemeMenuDropdown: typeof import('./src/common/components/ThemeMenuDropdown.vue')['default']
+    ToastContainer: typeof import('./src/common/components/ToastContainer.vue')['default']
+    VideoPlayer: typeof import('./src/common/components/VideoPlayer.vue')['default']
   }
 }
