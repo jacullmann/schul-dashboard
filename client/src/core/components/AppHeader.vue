@@ -16,9 +16,16 @@ const { t } = useI18n();
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
-const { user, loading, needsSetup, hasShownSetup, isGroupAdmin } = storeToRefs(userStore);
+const { user, loading, needsSetup, hasShownSetup, isGroupAdmin } =
+  storeToRefs(userStore);
 
-const { groupName, userGroups, activeGroupId, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
+const {
+  groupName,
+  userGroups,
+  activeGroupId,
+  switchActiveGroup,
+  logout: appAuthLogout,
+} = useAppAuth();
 const router = useRouter();
 const route = useRoute();
 
@@ -50,9 +57,12 @@ async function onSwitchGroup(id: string) {
 
       // Navigate to the same path but with the new group id
       if (oldGroupId && route.path.startsWith(`/groups/${oldGroupId}`)) {
-        const newPath = route.path.replace(`/groups/${oldGroupId}`, `/groups/${id}`);
+        const newPath = route.path.replace(
+          `/groups/${oldGroupId}`,
+          `/groups/${id}`,
+        );
         await router.push(newPath);
-        
+
         // If the guard redirected us to /home (e.g. missing permissions), fall back to items/all
         if (route.path === '/home') {
           await router.push(`/groups/${id}/items/all`);
@@ -61,13 +71,17 @@ async function onSwitchGroup(id: string) {
         await router.push(`/groups/${id}/items/all`);
       }
     } else {
-      console.error("Failed to switch group", res.error);
+      console.error('Failed to switch group', res.error);
     }
   }
 }
 
 function handleClickOutside(event: MouseEvent) {
-  if (groupMenuOpen.value && groupMenuRef.value && !groupMenuRef.value.contains(event.target as Node)) {
+  if (
+    groupMenuOpen.value &&
+    groupMenuRef.value &&
+    !groupMenuRef.value.contains(event.target as Node)
+  ) {
     groupMenuOpen.value = false;
   }
 }
@@ -157,8 +171,14 @@ onUnmounted(() => {
           <!-- Logo always links to home or active group -->
           <router-link :to="logoLink" class="logo-group" @click="closeNav">
             <AppLogo class="logo-img" aria-hidden="true" />
-            <span v-if="activeGroupId && groupName" class="logo-text logo-text--group">{{ groupName }}</span>
-            <span v-else class="logo-text logo-text--brand">schul-dashboard</span>
+            <span
+              v-if="activeGroupId && groupName"
+              class="logo-text logo-text--group"
+              >{{ groupName }}</span
+            >
+            <span v-else class="logo-text logo-text--brand"
+              >schul-dashboard</span
+            >
           </router-link>
 
           <!-- Group switcher: only visible when a group is active -->
@@ -167,30 +187,37 @@ onUnmounted(() => {
 
             <div class="group-switcher" ref="groupMenuRef">
               <button
-                  class="group-switcher-btn logo-group-name--desktop"
-                  @click="toggleGroupMenu"
-                  title="Change group"
+                class="group-switcher-btn logo-group-name--desktop"
+                @click="toggleGroupMenu"
+                title="Change group"
               >
                 <span>{{ groupName }}</span>
-                <ChevronDown :size="16" class="chevron" :class="{ 'chevron-open': groupMenuOpen }" />
+                <ChevronDown
+                  :size="16"
+                  class="chevron"
+                  :class="{ 'chevron-open': groupMenuOpen }"
+                />
               </button>
 
               <div v-if="groupMenuOpen" class="menu">
                 <button
-                    v-for="g in userGroups"
-                    :key="g.id"
-                    class="menu-btn"
-                    :class="{ active: g.id === activeGroupId }"
-                    @click="onSwitchGroup(g.id)"
+                  v-for="g in userGroups"
+                  :key="g.id"
+                  class="menu-btn"
+                  :class="{ active: g.id === activeGroupId }"
+                  @click="onSwitchGroup(g.id)"
                 >
                   <span>{{ g.name }}</span>
-                  <span v-if="g.hasUnreadContent && g.id !== activeGroupId" class="unread-dot"></span>
+                  <span
+                    v-if="g.hasUnreadContent && g.id !== activeGroupId"
+                    class="unread-dot"
+                  ></span>
                 </button>
                 <div class="menu-divider"></div>
                 <router-link
-                    to="/home"
-                    class="menu-btn action"
-                    @click="groupMenuOpen = false"
+                  to="/home"
+                  class="menu-btn action"
+                  @click="groupMenuOpen = false"
                 >
                   + New group
                 </router-link>
@@ -200,33 +227,53 @@ onUnmounted(() => {
         </div>
 
         <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
-          <button @click="closeNav" class="nav-close-button" aria-label="Close menu">
+          <button
+            @click="closeNav"
+            class="nav-close-button"
+            aria-label="Close menu"
+          >
             <X />
           </button>
 
           <!-- Group navigation: visible when a group is active -->
           <template v-if="activeGroupId">
-            <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-item" @click="closeNav">{{ t('school.tasks.title') }}</router-link>
-            <router-link :to="`/groups/${activeGroupId}/schedule`" class="nav-item" @click="closeNav">{{ t('school.tables.schedule.title') }}</router-link>
+            <router-link
+              :to="`/groups/${activeGroupId}/items/all`"
+              class="nav-item"
+              @click="closeNav"
+              >{{ t('school.tasks.title') }}</router-link
+            >
+            <router-link
+              :to="`/groups/${activeGroupId}/schedule`"
+              class="nav-item"
+              @click="closeNav"
+              >{{ t('school.tables.schedule.title') }}</router-link
+            >
           </template>
 
           <!-- User navigation: always visible -->
-          <router-link to="/todos" class="nav-item" @click="closeNav" v-if="user">Private Todos</router-link>
+          <router-link
+            to="/todos"
+            class="nav-item"
+            @click="closeNav"
+            v-if="user"
+            >{{ t('school.private.title') }}</router-link
+          >
 
           <!-- Admin links -->
           <router-link
-              v-if="user?.role === 'superadmin'"
-              to="/admin"
-              class="nav-item admin-link"
-              @click="closeNav"
+            v-if="user?.role === 'superadmin'"
+            to="/admin"
+            class="nav-item admin-link"
+            @click="closeNav"
           >
             Superadmin Dashboard
           </router-link>
           <router-link
-              v-if="activeGroupId && isGroupAdmin"
-              :to="`/groups/${activeGroupId}/admin`"
-              class="nav-item"
-              @click="closeNav"
+            v-if="activeGroupId && isGroupAdmin"
+            :to="`/groups/${activeGroupId}/admin`"
+            class="nav-item"
+            @click="closeNav"
           >
             Manage Group
           </router-link>
@@ -238,22 +285,22 @@ onUnmounted(() => {
           <BaseSpinner on="ghost" class="size-8 max-[480px]:size-[26px]" />
         </div>
         <AccountMenu
-            v-else-if="user"
-            :email="user.email"
-            :user-data="user"
-            @deleted="onAccountDeleted"
-            @error="onAccountDeleteError"
-            @open-setup="openSetupModal"
-            @logout="logout"
-            @personalization-changed="onPersonalizationChanged"
-            @mfa-changed="onMfaChanged"
+          v-else-if="user"
+          :email="user.email"
+          :user-data="user"
+          @deleted="onAccountDeleted"
+          @error="onAccountDeleteError"
+          @open-setup="openSetupModal"
+          @logout="logout"
+          @personalization-changed="onPersonalizationChanged"
+          @mfa-changed="onMfaChanged"
         />
 
         <button
-            @click="toggleNav"
-            :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
-            aria-label="Toggle menu"
-            v-if="!navOpen"
+          @click="toggleNav"
+          :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
+          aria-label="Toggle menu"
+          v-if="!navOpen"
         >
           <Menu style="color: var(--color-on-surface)" :size="26"></Menu>
         </button>
@@ -263,18 +310,18 @@ onUnmounted(() => {
     </div>
 
     <CompleteSetup
-        v-if="user && showSetupModal"
-        :visible="showSetupModal"
-        :is-setup="user && !user.doneSetup"
-        :initial-data="{
-          enrKurs: user.enrKurs || null,
-          wpuKurs1: user.wpuKurs1 || null,
-          wpuKurs2: user.wpuKurs2 || null,
-          theater: user.theater || 0
-        }"
-        @close="showSetupModal = false"
-        @success="onSetupSuccess"
-        @update:user="onSetupSuccess"
+      v-if="user && showSetupModal"
+      :visible="showSetupModal"
+      :is-setup="user && !user.doneSetup"
+      :initial-data="{
+        enrKurs: user.enrKurs || null,
+        wpuKurs1: user.wpuKurs1 || null,
+        wpuKurs2: user.wpuKurs2 || null,
+        theater: user.theater || 0,
+      }"
+      @close="showSetupModal = false"
+      @success="onSetupSuccess"
+      @update:user="onSetupSuccess"
     />
   </header>
 </template>
@@ -469,8 +516,12 @@ onUnmounted(() => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .nav-close-button {

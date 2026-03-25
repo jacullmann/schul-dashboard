@@ -526,7 +526,7 @@
     },
     "private": {
       "entry": "Privater Eintrag",
-      "title": "Private Einträge",
+      "title": "Private Aufgaben",
       "onlyVisibleToYou": "Nur für dich sichtbar",
       "infopop": {
         "tooltip": "Überblick und Funktionen zu privaten Einträgen",
