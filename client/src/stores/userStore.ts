@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import hw from '@/api/hwApi';
 import { usePreferences } from '@/common/composables/usePreferences';
 
-interface UserData {
+export interface UserData {
   id: string;
   email: string;
   role: string;

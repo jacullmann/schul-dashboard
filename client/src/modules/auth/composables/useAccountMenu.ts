@@ -6,6 +6,8 @@ import {
   onBeforeUnmount,
   type Ref,
 } from 'vue';
+import type { UserData } from '@/stores/userStore';
+import { useToast } from '@/common/composables/useToast';
 
 const AVATAR_COLORS = [
   '#AA47BD',
@@ -29,11 +31,9 @@ function getColorIndexFromEmail(email: string): number {
   return charCode % AVATAR_COLORS.length;
 }
 
-import type { SetupContext } from 'vue';
-
 export function useAccountMenu(
-  props: { email: string; userData: Record<string, unknown> | null },
-  emit: SetupContext['emit'],
+  props: { email: string; userData: UserData | null },
+  emit: (event: any, ...args: any[]) => void,
   refs: {
     root: Ref<HTMLElement | null>;
     popupInner: Ref<HTMLElement | null>;
@@ -61,21 +61,14 @@ export function useAccountMenu(
   }
 
   const open = ref(false);
-  const errorMsg = ref('');
-  const successMsg = ref('');
+  const toast = useToast();
   const showChangePassword = ref(false);
   const showDeleteAccount = ref(false);
   const showSecurity = ref(false);
   const popupStyle = ref<Record<string, string>>({});
 
-  function clearMessages() {
-    errorMsg.value = '';
-    successMsg.value = '';
-  }
-
   function close() {
     open.value = false;
-    clearMessages();
   }
 
   function handleLogout() {
@@ -106,14 +99,12 @@ export function useAccountMenu(
     emit('deleted');
   }
   function onDeleteError(msg: string) {
+    toast.error(msg);
     emit('error', msg);
   }
 
   function onPasswordChanged() {
-    successMsg.value = 'Passwort erfolgreich geändert!';
-    setTimeout(() => {
-      successMsg.value = '';
-    }, 3000);
+    toast.success('Passwort erfolgreich geändert!');
   }
 
   async function positionPopup() {
@@ -167,7 +158,6 @@ export function useAccountMenu(
       await nextTick();
       refs.firstMenuBtnRef.value?.focus();
     }
-    clearMessages();
   }
 
   function onDocClick(e: MouseEvent) {
@@ -203,8 +193,6 @@ export function useAccountMenu(
     personalizationSetting,
     onPersonalizationChange,
     open,
-    errorMsg,
-    successMsg,
     showChangePassword,
     showDeleteAccount,
     showSecurity,

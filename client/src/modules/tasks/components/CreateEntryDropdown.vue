@@ -80,66 +80,31 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="create-entry-wrapper">
-    <BaseButton class="square" @click="toggleMenu" ref="buttonRef" variant="action">
+  <div class="relative inline-flex">
+    <BaseButton class="p-1" @click="toggleMenu" ref="buttonRef" variant="action">
       <Plus :size="24" />
     </BaseButton>
 
-    <div
+    <BaseMenu
         v-if="isOpen"
-        class="menu"
-        :class="{ 'align-right': alignRight }"
+        class="mt-2"
+        :class="{ 'left-auto right-0': alignRight }"
         ref="menuRef"
     >
-      <button
-          class="menu-btn"
-          @click="selectType('homework')"
-      >
-        <div class="menu-btn-content">
-          <FileText :size="16" />
-          {{ t('school.tasks.types.homework') }}
-        </div>
-      </button>
+      <BaseMenuButton @click="selectType('homework')">
+        <FileText :size="16" />
+        {{ t('school.tasks.types.homework') }}
+      </BaseMenuButton>
 
-      <button
-          class="menu-btn"
-          @click="selectType('dalton')"
-      >
-        <div class="menu-btn-content">
-          <NotebookText :size="16" />
-          {{ t('school.tasks.types.dalton') }}
-        </div>
-      </button>
+      <BaseMenuButton @click="selectType('dalton')">
+        <NotebookText :size="16" />
+        {{ t('school.tasks.types.dalton') }}
+      </BaseMenuButton>
 
-      <button
-          class="menu-btn"
-          @click="selectType('exam')"
-      >
-        <div class="menu-btn-content">
-          <BookOpenText :size="16" />
-          {{ t('school.tasks.types.exam') }}
-        </div>
-      </button>
-    </div>
+      <BaseMenuButton @click="selectType('exam')">
+        <BookOpenText :size="16" />
+        {{ t('school.tasks.types.exam') }}
+      </BaseMenuButton>
+    </BaseMenu>
   </div>
 </template>
-
-<style scoped>
-.create-entry-wrapper {
-  position: relative;
-  display: inline-flex;
-}
-
-.menu {
-  margin-top: 8px;
-}
-
-.menu.align-right {
-  left: auto;
-  right: 0;
-}
-
-.square {
-  padding: 4px;
-}
-</style>

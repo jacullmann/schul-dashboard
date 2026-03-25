@@ -74,23 +74,22 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
       <span class="truncate">
         {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
       </span>
-      
+
       <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
     </BaseButton>
 
     <BaseMenu v-if="isOpen" class="top-full max-h-80 mt-1">
-      <button
+      <BaseMenuButton
           v-for="option in options"
           :key="option.value"
-          class="menu-btn"
-          :class="{ active: modelValue === option.value }"
+          :class="{ 'font-semibold': modelValue === option.value }"
           @click="selectOption(option.value)"
           type="button"
+          :isSelect="true"
+          :active="modelValue === option.value"
       >
         {{ option.label }}
-        <Check v-if="modelValue === option.value" :size="16"  />
-        <span class="w-4 shrink-0" v-else></span>
-      </button>
+      </BaseMenuButton>
     </BaseMenu>
   </div>
 </template>

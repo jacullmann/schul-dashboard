@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Upload, Trash2 } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   x: number;
@@ -12,7 +15,6 @@ const emit = defineEmits(['close', 'upload', 'delete']);
 
 const menuRef = ref<HTMLElement | null>(null);
 
-// Start hidden to avoid flicker during calculation
 const styleObject = reactive({
   top: props.y + 'px',
   left: props.x + 'px',
@@ -37,27 +39,18 @@ onMounted(async () => {
 
   let newX = props.x;
   let newY = props.y;
-  const padding = 10; // Space from edge
+  const padding = 10;
 
-  // 1. Check Horizontal (Right edge)
-  // If opening at X would push the menu off-screen...
   if (newX + rect.width > winWidth) {
-    // ...shift it to the left so it ends at window edge (minus padding)
     newX = winWidth - rect.width - padding;
   }
-  // Optional: Prevent it from going off the left edge
   if (newX < padding) newX = padding;
 
-  // 2. Check Vertical (Bottom edge)
-  // If opening at Y would push the menu off-screen...
   if (newY + rect.height > winHeight) {
-    // ...shift it up
     newY = winHeight - rect.height - padding;
   }
-  // Optional: Prevent it from going off the top edge
   if (newY < padding) newY = padding;
 
-  // Apply corrected coordinates and show the menu
   styleObject.left = `${newX}px`;
   styleObject.top = `${newY}px`;
   styleObject.opacity = '1';
@@ -71,40 +64,21 @@ onBeforeUnmount(() => {
 <template>
   <div
       ref="menuRef"
-      class="img-menu-wrapper"
+      class="position-fixed z-10001 min-w-[180px]"
       :style="styleObject"
       @click.stop
   >
-    <div class="menu open">
-      <button class="menu-btn" @click="emit('upload')">
-        <div class="menu-btn-content">
-          <Upload />
-          Bild hochladen
-        </div>
-      </button>
+    <BaseMenu>
+      <BaseMenuButton @click="emit('upload')">
+        <Upload />
+        {{ t('school.tasks.items.menu.uploadImages') }}
+      </BaseMenuButton>
 
-      <button v-if="canDelete" class="menu-btn danger" @click="emit('delete')">
-        <div class="menu-btn-content">
-          <Trash2 />
-          Löschen
-        </div>
-      </button>
-    </div>
+      <BaseMenuButton v-if="canDelete" @click="emit('delete')">
+        <Trash2 />
+        {{ t('global.buttons.delete') }}
+      </BaseMenuButton>
+    </BaseMenu>
   </div>
-  <div class="menu-backdrop" @click="emit('close')" @contextmenu.prevent="emit('close')"></div>
+  <div class="position-fixed inset-0 z-10000" @click="emit('close')" @contextmenu.prevent="emit('close')"></div>
 </template>
-
-<style scoped>
-.img-menu-wrapper {
-  position: fixed;
-  z-index: 10001;
-  min-width: 180px;
-}
-
-.menu-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: transparent;
-}
-</style>

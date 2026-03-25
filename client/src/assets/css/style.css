@@ -523,11 +523,6 @@ p {
     .menu-btn.active {
         font-weight: 600;
     }
-
-    .menu-divider {
-        border-bottom: 1px solid var(--color-surface-border);
-        margin-inline: 4px;
-    }
 }
 
 .container {

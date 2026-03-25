@@ -9,12 +9,13 @@ import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import { useI18n } from 'vue-i18n';
 import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu';
+import type { UserData } from '@/stores/userStore';
 
 const { t } = useI18n();
 
 const props = defineProps<{
   email: string;
-  userData: Record<string, unknown> | null;
+  userData: UserData | null;
 }>();
 
 const emit = defineEmits<{
@@ -36,8 +37,6 @@ const {
   personalizationSetting,
   onPersonalizationChange,
   open,
-  errorMsg,
-  successMsg,
   showChangePassword,
   showDeleteAccount,
   showSecurity,
@@ -70,73 +69,67 @@ const {
             <div class="user-section">
               <div class="user-email" :title="email">{{ email }}</div>
             </div>
-            <div class="menu-divider"></div>
 
-            <ThemeMenuDropdown />
+            <BaseMenuDivider />
 
-            <LocaleMenuDropdown />
+            <ThemeMenuDropdown class="menu-btn" />
 
-            <button
-                ref="firstMenuBtnRef"
+            <LocaleMenuDropdown class="menu-btn" />
+
+            <BaseMenuButton
                 class="menu-btn"
+                ref="firstMenuBtnRef"
                 @click="openSetup"
             >
-              <span class="menu-btn-content">
-                <LucideGraduationCap :size="16"/>
-                {{ t('account.menu.courses.title') }}
-              </span>
-            </button>
+              <LucideGraduationCap :size="16"/>
+              {{ t('account.menu.courses.title') }}
+            </BaseMenuButton>
 
             <PersonalizationDropdown
+                class="menu-btn"
                 v-model="personalizationSetting"
                 @change="onPersonalizationChange"
             />
-            <div class="menu-divider"></div>
-            <button
+
+            <BaseMenuDivider />
+
+            <BaseMenuButton
                 class="menu-btn"
                 @click="openSecurity"
             >
-              <span class="menu-btn-content">
-                <ShieldCheck :size="16"/>
-                {{ t('account.menu.security.title') }}
-              </span>
-            </button>
+              <ShieldCheck :size="16"/>
+              {{ t('account.menu.security.title') }}
+            </BaseMenuButton>
 
-            <button
+            <BaseMenuButton
                 class="menu-btn"
                 @click="openChangePassword"
             >
-              <span class="menu-btn-content">
-                <LucideKeyRound :size="16"/>
-                {{ t('account.menu.changePassword.title') }}
-              </span>
-            </button>
+              <LucideKeyRound :size="16"/>
+              {{ t('account.menu.changePassword.title') }}
+            </BaseMenuButton>
 
-            <button
+            <BaseMenuButton
                 class="menu-btn"
                 @click="handleLogout"
             >
-              <span class="menu-btn-content">
-                <LogOut :size="16"/>
-                {{ t('account.menu.logout') }}
-              </span>
-            </button>
-            <div class="menu-divider"></div>
+              <LogOut :size="16"/>
+              {{ t('account.menu.logout') }}
+            </BaseMenuButton>
+
+            <BaseMenuDivider />
+
             <div class="danger-section">
-              <button
-                  class="menu-btn danger"
-                  @click="startDelete"
+              <BaseMenuButton
+                  class="menu-btn"
+                  variant="danger"
+                    @click="startDelete"
               >
-                <span class="menu-btn-content">
-                  <Trash2 :size="16"/>
-                  {{ t('account.menu.deleteAccount.title') }}
-                </span>
-              </button>
+                <Trash2 :size="16"/>
+                {{ t('account.menu.deleteAccount.title') }}
+              </BaseMenuButton>
             </div>
           </div>
-
-          <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
-          <div v-if="successMsg" class="message success">{{ successMsg }}</div>
         </div>
       </div>
     </transition>
@@ -234,46 +227,6 @@ const {
   gap: 4px;
 }
 
-.menu-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 8px;
-  color: var(--color-on-surface);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: var(--text-sub);
-  transition: background 0.2s ease;
-}
-
-.menu-btn:hover {
-  background: var(--color-surface-hover);
-}
-
-.menu-btn.danger {
-  color: var(--color-danger);
-}
-
-.menu-btn.danger:hover {
-  background: var(--color-danger-surface);
-}
-
-.menu-btn-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  line-height: 1;
-}
-
-.menu-btn-content svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  overflow: visible !important;
-}
-
 .lucide-graduation-cap {
   transform: rotate(0);
   transition: 0.1s ease;
@@ -338,29 +291,6 @@ const {
 .menu-btn:hover .lucide-trash-2 :deep(path:nth-child(4)),
 .menu-btn:hover .lucide-trash-2 :deep(path:nth-child(5)) {
   transform: translateY(-1px) translateX(1px) rotate(10deg);
-}
-
-.menu-divider {
-  height: 1px;
-  background: var(--color-surface-border);
-  margin-inline: 4px;
-}
-
-.message {
-  font-size: var(--text-sub);
-  padding: 8px;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.message.error {
-  background: var(--color-danger-surface);
-  color: var(--color-danger);
-}
-
-.message.success {
-  background: var(--color-success-surface);
-  color: var(--special--green);
 }
 
 .pop-enter-active, .pop-leave-active {

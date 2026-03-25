@@ -213,7 +213,9 @@ onUnmounted(() => {
                     class="unread-dot"
                   ></span>
                 </button>
-                <div class="menu-divider"></div>
+
+                <BaseMenuDivider />
+
                 <router-link
                   to="/home"
                   class="menu-btn action"

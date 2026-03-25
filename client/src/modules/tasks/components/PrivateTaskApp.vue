@@ -153,29 +153,34 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
             <template #menu>
               <div v-if="openMenuId === privateTask.id" class="menu" @click.stop>
-                <button class="menu-btn" @click="$emit('edit', privateTask); openMenuId = null">
-                  <span class="menu-btn-content"><Pencil :size="16" />{{ t('global.buttons.edit') }}</span>
-                </button>
+                <BaseMenuButton @click="$emit('edit', privateTask); openMenuId = null">
+                  <Pencil :size="16" />
+                  {{ t('global.buttons.edit') }}
+                </BaseMenuButton>
 
-                <button class="menu-btn" @click="duplicatePrivateTask(privateTask); openMenuId = null">
-                  <span class="menu-btn-content"><Copy :size="16" />{{ t('global.buttons.duplicate') }}</span>
-                </button>
+                <BaseMenuButton @click="duplicatePrivateTask(privateTask); openMenuId = null">
+                  <Copy :size="16" />
+                  {{ t('global.buttons.duplicate') }}
+                </BaseMenuButton>
 
-                <div class="menu-divider"></div>
+                <BaseMenuDivider />
 
-                <button class="menu-btn" v-if="index > 0" @click="moveItemUp(index); openMenuId = null">
-                  <span class="menu-btn-content"><ChevronUp :size="16" />{{ t('school.private.menu.up') }}</span>
-                </button>
+                <BaseMenuButton v-if="index > 0" class="menu-btn" @click="moveItemUp(index); openMenuId = null">
+                  <ChevronUp :size="16" />
+                  {{ t('school.private.menu.up') }}
+                </BaseMenuButton>
 
-                <button class="menu-btn" v-if="index < displayPrivateTasks.length - 1" @click="moveItemDown(index); openMenuId = null">
-                  <span class="menu-btn-content"><ChevronDown :size="16" />{{ t('school.private.menu.down') }}</span>
-                </button>
+                <BaseMenuButton v-if="index < displayPrivateTasks.length - 1" class="menu-btn" @click="moveItemDown(index); openMenuId = null">
+                  <ChevronDown :size="16" />
+                  {{ t('school.private.menu.down') }}
+                </BaseMenuButton>
 
-                <div v-if="index > 0 || index < displayPrivateTasks.length - 1" class="menu-divider"></div>
+                <BaseMenuDivider v-if="index > 0 || index < displayPrivateTasks.length - 1" />
 
-                <button class="menu-btn danger" @click="deletePrivateTask(privateTask.id); openMenuId = null">
-                  <span class="menu-btn-content"><Trash2 :size="16" />{{ t('global.buttons.delete') }}</span>
-                </button>
+                <BaseMenuButton variant="danger" @click="deletePrivateTask(privateTask.id); openMenuId = null">
+                  <Trash2 :size="16" />
+                  {{ t('global.buttons.delete') }}
+                </BaseMenuButton>
               </div>
             </template>
 

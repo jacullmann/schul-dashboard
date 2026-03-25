@@ -268,67 +268,51 @@ async function handleArchiveFromMenu(item: HwItem) {
 
         <template #menu>
           <div v-if="openMenuId === item.id" class="menu" @click.stop>
-            <button class="menu-btn" v-if="user" @click="onMenuAction('images', item)">
-              <span class="menu-btn-content">
-                <Upload />
-                {{ t('school.tasks.items.menu.uploadImages') }}
-              </span>
-            </button>
+            <BaseMenuButton v-if="user" @click="onMenuAction('images', item)">
+              <Upload />
+              {{ t('school.tasks.items.menu.uploadImages') }}
+            </BaseMenuButton>
 
-            <button class="menu-btn" v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
-              <span class="menu-btn-content">
-                <Pencil />
-                {{ t('global.buttons.edit') }}
-              </span>
-            </button>
+            <BaseMenuButton v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
+              <Pencil />
+              {{ t('global.buttons.edit') }}
+            </BaseMenuButton>
 
-            <div class="menu-divider" v-if="canEdit(item.createdBy) || user"></div>
+            <BaseMenuDivider v-if="canEdit(item.createdBy) || user" />
 
-            <button class="menu-btn" v-if="user" @click="togglePin(item)">
-              <span class="menu-btn-content">
-                <Pin v-if="!isPinned(item.id)" class="unpinned" />
-                <Pin fill="currentColor" v-else class="pinned" />
-                {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
-              </span>
-            </button>
+            <BaseMenuButton v-if="user" @click="togglePin(item)">
+              <Pin v-if="!isPinned(item.id)" class="unpinned" />
+              <Pin fill="currentColor" v-else class="pinned" />
+              {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
+            </BaseMenuButton>
 
-            <button class="menu-btn" v-if="user" @click="handleArchiveFromMenu(item)">
-              <span class="menu-btn-content">
-                <ArchiveRestore v-if="showOldEntries" />
-                <Archive v-else />
-                {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
-              </span>
-            </button>
+            <BaseMenuButton v-if="user" @click="handleArchiveFromMenu(item)">
+              <ArchiveRestore v-if="showOldEntries" />
+              <Archive v-else />
+              {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
+            </BaseMenuButton>
 
-            <button class="menu-btn" @click="shareItem(item)">
-              <span class="menu-btn-content">
-                <Send />
-                {{ t('school.tasks.items.menu.share') }}
-              </span>
-            </button>
+            <BaseMenuButton @click="shareItem(item)">
+              <Send />
+              {{ t('school.tasks.items.menu.share') }}
+            </BaseMenuButton>
 
-            <button class="menu-btn" @click="openMenuId = null; showInfoItem = item">
-              <span class="menu-btn-content">
-                <Info />
-                {{ t('school.tasks.items.menu.info') }}
-              </span>
-            </button>
+            <BaseMenuButton @click="openMenuId = null; showInfoItem = item">
+              <Info />
+              {{ t('school.tasks.items.menu.info') }}
+            </BaseMenuButton>
 
-            <button class="menu-btn" title="Melden" @click="onMenuAction('report', item)">
-              <span class="menu-btn-content">
-                <Flag />
-                {{ t('school.tasks.items.menu.report.name') }}
-              </span>
-            </button>
+            <BaseMenuButton title="Melden" @click="onMenuAction('report', item)">
+              <Flag />
+              {{ t('school.tasks.items.menu.report.name') }}
+            </BaseMenuButton>
 
-            <div class="menu-divider" v-if="canDelete(item.createdBy)"></div>
+            <BaseMenuDivider v-if="canDelete(item.createdBy)" />
 
-            <button class="menu-btn danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
-              <span class="menu-btn-content">
-                <Trash2 />
-                {{ t('global.buttons.delete') }}
-              </span>
-            </button>
+            <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
+              <Trash2 />
+              {{ t('global.buttons.delete') }}
+            </BaseMenuButton>
           </div>
         </template>
 
