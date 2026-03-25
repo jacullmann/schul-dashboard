@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import PrivateTaskApp from '@/modules/tasks/components/PrivateTaskApp.vue';
 import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
-import { Plus } from 'lucide-vue-next';
+import { Plus } from '@lucide/vue';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';

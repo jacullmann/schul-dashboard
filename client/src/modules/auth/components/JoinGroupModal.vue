@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Eye, EyeOff } from 'lucide-vue-next';
+import { Eye, EyeOff } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
 

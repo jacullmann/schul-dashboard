@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { Upload, Trash2 } from 'lucide-vue-next';
+import { Upload, Trash2 } from '@lucide/vue';
 
 const props = defineProps<{
   x: number;

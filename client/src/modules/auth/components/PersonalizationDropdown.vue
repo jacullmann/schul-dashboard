@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Filter, FilterX } from 'lucide-vue-next';
+import { Filter, FilterX } from '@lucide/vue';
 import MenuDropdown from '@/common/components/MenuDropdown.vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Search, Play } from 'lucide-vue-next';
+import { Search, Play } from '@lucide/vue';
 import { useArticleSearch } from '@/modules/infodashboard/composables/useArticleSearch';
 import ArticleCard from '@/modules/infodashboard/components/ArticleCard.vue';
 import VideoPlayer from '@/common/components/VideoPlayer.vue';

@@ -4,7 +4,7 @@ import { VueDraggableNext } from 'vue-draggable-next';
 import {
   ChevronDown, Bold, Palette, Save, AlertTriangle, AlertCircle, RotateCcw,
   Heading1, Heading2, Type, List, CheckSquare, FileText
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 import PlanBlock from '@/modules/admin/components/AdminDocPlanBlock.vue';
 import { useDocEditor } from '@/modules/admin/composables/useDocEditor';

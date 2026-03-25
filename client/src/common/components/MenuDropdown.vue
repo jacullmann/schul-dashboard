@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { ChevronDown, Check } from 'lucide-vue-next';
+import { ChevronDown, Check } from '@lucide/vue';
 
 export interface MenuOption {
   value: string;

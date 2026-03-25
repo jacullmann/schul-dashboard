@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from "lucide-vue-next";
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from '@lucide/vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
 import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDropdown.vue';

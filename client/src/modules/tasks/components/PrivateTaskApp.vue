@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from 'lucide-vue-next';
+import { Pencil, Copy, Trash2, Lock, ChevronUp, ChevronDown } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';

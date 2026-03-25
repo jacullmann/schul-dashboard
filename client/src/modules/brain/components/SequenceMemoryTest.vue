@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Layers, AlertTriangle } from 'lucide-vue-next';
+import { Layers, AlertTriangle } from '@lucide/vue';
 
 const emit = defineEmits<{
   (e: 'finish', score: number): void;

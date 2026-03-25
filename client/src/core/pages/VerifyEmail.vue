@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import hw from '@/api/hwApi';
-import { CheckCircle2, XCircle, Info, AlertTriangle, ArrowLeft } from 'lucide-vue-next';
+import { CheckCircle2, XCircle, Info, AlertTriangle, ArrowLeft } from '@lucide/vue';
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft } from '@lucide/vue';
 
 export interface AdminNavItem {
   id: string;

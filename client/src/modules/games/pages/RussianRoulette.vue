@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { Skull, RefreshCw, Crosshair, Settings, ShieldCheck, Flame, Plus, Minus } from 'lucide-vue-next';
+import { Skull, RefreshCw, Crosshair, Settings, ShieldCheck, Flame, Plus, Minus } from '@lucide/vue';
 
 // --- State ---
 const chamberSize = ref(6);

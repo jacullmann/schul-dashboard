@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Brain, Zap, Eye, Target, Layers, Keyboard } from 'lucide-vue-next';
+import { Brain, Zap, Eye, Target, Layers, Keyboard } from '@lucide/vue';
 import { useBrainTests } from '../composables/useBrainTests';
 
 const { brainTests, getScore } = useBrainTests();

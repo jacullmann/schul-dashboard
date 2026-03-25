@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Keyboard, Clock } from 'lucide-vue-next';
+import { Keyboard, Clock } from '@lucide/vue';
 
 const emit = defineEmits<{
   (e: 'finish', score: number): void;

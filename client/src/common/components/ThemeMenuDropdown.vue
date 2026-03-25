@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { usePreferences } from '@/common/composables/usePreferences';
-import { Sun, Moon, SunMoon } from 'lucide-vue-next';
+import { Sun, Moon, SunMoon } from '@lucide/vue';
 import MenuDropdown, { type MenuOption } from '@/common/components/MenuDropdown.vue';
 import { useI18n} from "vue-i18n";
 

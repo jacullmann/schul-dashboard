@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { games } from '@/modules/games/composables/GameData';
 import { useRouter } from 'vue-router';
-import { LucideFrown } from "lucide-vue-next";
+import { LucideFrown } from '@lucide/vue';
 
 const router = useRouter();
 

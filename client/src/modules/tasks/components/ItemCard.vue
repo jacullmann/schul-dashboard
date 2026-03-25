@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from 'lucide-vue-next';
+import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from '@lucide/vue';
 import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
 
 const props = withDefaults(defineProps<{

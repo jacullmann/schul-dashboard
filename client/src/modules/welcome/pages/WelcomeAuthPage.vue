@@ -5,7 +5,7 @@ import { useMediaQuery } from '@vueuse/core';
 import AuthForm from '@/modules/auth/components/AuthForm.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft } from '@lucide/vue';
 
 const router = useRouter();
 const { checkAuthStatus, activeGroupId } = useAppAuth();

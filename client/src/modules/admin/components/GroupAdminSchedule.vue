@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { RefreshCw, Trash2 } from 'lucide-vue-next';
+import { RefreshCw, Trash2 } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import AdminSchedule from '@/modules/admin/components/AdminSchedule.vue';
 import type { ScheduleSubstitution } from '@/modules/admin/types';

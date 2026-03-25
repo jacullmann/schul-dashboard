@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Pencil, Trash2, Plus, RefreshCw, X, Check } from 'lucide-vue-next';
+import { Pencil, Trash2, Plus, RefreshCw, X, Check } from '@lucide/vue';
 import { useSubjectAdmin } from '@/modules/admin/composables/useSubjectAdmin';
 import type { AdminSubject } from '@/modules/admin/types';
 

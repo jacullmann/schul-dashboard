@@ -5,7 +5,7 @@ import {
   MessageSquare,
   ExternalLink,
   Info
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 </script>
 
 <template>

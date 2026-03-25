@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Zap, Clock, AlertTriangle, MoreHorizontal } from 'lucide-vue-next';
+import { Zap, Clock, AlertTriangle, MoreHorizontal } from '@lucide/vue';
 
 const emit = defineEmits<{
   (e: 'finish', score: number): void;

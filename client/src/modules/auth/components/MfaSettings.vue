@@ -8,7 +8,7 @@ import {
   Clock,
   AlertCircle,
   AlertTriangle
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const props = defineProps<{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, Lock, ArrowLeft } from "lucide-vue-next";
+import { LayoutDashboard, Lock, ArrowLeft } from '@lucide/vue';
 
 const router = useRouter();
 

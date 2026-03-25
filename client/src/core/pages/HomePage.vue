@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, UsersRound } from 'lucide-vue-next';
+import { UserRoundPlus, Plus, ShieldUser, Folder, FolderOpen, ChevronRight, UsersRound } from '@lucide/vue';
 import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import hw from '@/api/hwApi';

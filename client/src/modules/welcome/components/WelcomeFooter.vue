@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExternalLink } from "lucide-vue-next";
+import { ExternalLink } from '@lucide/vue';
 import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
 import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
 import { useI18n } from "vue-i18n";

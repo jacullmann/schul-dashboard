@@ -7,7 +7,7 @@ import {
   Volume2,
   VolumeX,
   FastForward
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { ref } from 'vue';
 import { useVideoPlayer } from '@/modules/infodashboard/composables/useVideoPlayer';
 

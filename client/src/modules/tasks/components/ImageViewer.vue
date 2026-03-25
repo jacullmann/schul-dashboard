@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
-import { X, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { X, ChevronLeft, ChevronRight } from '@lucide/vue';
 
 const props = defineProps<{
   visible: boolean;

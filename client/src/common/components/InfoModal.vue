@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Info } from 'lucide-vue-next'
+import { Info } from '@lucide/vue'
 
 const props = defineProps<{
   title?: string

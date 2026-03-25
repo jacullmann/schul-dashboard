@@ -4,7 +4,7 @@ import {
   GripVertical, Trash2,
   ChevronDown, ChevronRight,
   Bold, Palette
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 const props = defineProps<{
   block: {

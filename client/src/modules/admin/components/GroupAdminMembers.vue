@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RefreshCw, UserRoundMinus, Crown } from 'lucide-vue-next';
+import { RefreshCw, UserRoundMinus, Crown } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/admin/types';
 import { computed } from 'vue';

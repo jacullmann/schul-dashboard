@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
-import { ShieldCheck, AlertCircle, AlertTriangle } from 'lucide-vue-next';
+import { ShieldCheck, AlertCircle, AlertTriangle } from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const emit = defineEmits<{

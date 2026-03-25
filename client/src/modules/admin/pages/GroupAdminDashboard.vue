@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { markRaw, computed } from 'vue';
-import { LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen, Settings } from 'lucide-vue-next';
+import { LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen, Settings } from '@lucide/vue';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';

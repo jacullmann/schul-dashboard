@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Target, Clock } from 'lucide-vue-next';
+import { Target, Clock } from '@lucide/vue';
 
 const emit = defineEmits<{
   (e: 'finish', score: number): void;

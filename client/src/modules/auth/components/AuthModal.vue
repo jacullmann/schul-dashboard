@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n';
 import TabSwitcher from "@/common/components/TabSwitcher.vue";
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
-import { Eye, EyeOff } from 'lucide-vue-next';
+import { Eye, EyeOff } from '@lucide/vue';
 import { useAuthModal } from '@/modules/auth/composables/useAuthModal';
 
 const { t } = useI18n();

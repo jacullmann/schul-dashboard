@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
-import { ArrowLeft, Trophy } from 'lucide-vue-next';
+import { ArrowLeft, Trophy } from '@lucide/vue';
 import { useBrainTests } from '../composables/useBrainTests';
 
 const route = useRoute();

@@ -8,7 +8,7 @@ import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import TabSwitcher from '@/common/components/TabSwitcher.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info } from 'lucide-vue-next'
+import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info } from '@lucide/vue'
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
 import InfoModal from '@/common/components/InfoModal.vue'

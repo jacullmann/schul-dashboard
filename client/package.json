@@ -11,11 +11,11 @@
     "format": "prettier --write \"src/**/*.{ts,vue,css}\""
   },
   "dependencies": {
+    "@lucide/vue": "^1.7.0",
     "@tailwindcss/vite": "^4.2.2",
     "@vueuse/core": "^14.2.1",
     "axios": "^1.7.2",
     "dompurify": "^3.3.1",
-    "lucide-vue-next": "^0.546.0",
     "marked": "^16.4.1",
     "pinia": "^2.1.7",
     "socket.io-client": "^4.8.3",

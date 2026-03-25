@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Eye, EyeOff } from 'lucide-vue-next';
+import { Eye, EyeOff } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import { useChangePassword } from '@/modules/auth/composables/useChangePassword';
 

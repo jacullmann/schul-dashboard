@@ -7,7 +7,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
-import { X, Menu, ChevronDown } from 'lucide-vue-next';
+import { X, Menu, ChevronDown } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';

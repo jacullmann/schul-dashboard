@@ -14,7 +14,7 @@ import {
   X,
   FileText,
   Layers,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import hw from '@/api/hwApi';
 import AdminLayout from '@/modules/admin/components/AdminLayout.vue';
 import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';

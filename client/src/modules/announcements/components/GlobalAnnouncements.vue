@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
-import { X, EllipsisVertical } from 'lucide-vue-next';
+import { X, EllipsisVertical } from '@lucide/vue';
 
 const { activeGroupId } = useAppAuth();
 

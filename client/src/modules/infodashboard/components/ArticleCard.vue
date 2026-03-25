@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Play } from 'lucide-vue-next';
+import { Play } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import type { Article } from '@/modules/infodashboard/types';
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RotateCw, RotateCcw } from 'lucide-vue-next';
+import { RotateCw, RotateCcw } from '@lucide/vue';
 import { ref, reactive, computed, nextTick, onUnmounted } from 'vue';
 
 // --- Types ---

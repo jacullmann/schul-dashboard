@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useToast } from '@/common/composables/useToast';
-import { Check, AlertTriangle, Info, X } from 'lucide-vue-next';
+import { Check, AlertTriangle, Info, X } from '@lucide/vue';
 
 const { toasts, dismiss } = useToast();
 

@@ -3,7 +3,7 @@
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
-import { Pin } from 'lucide-vue-next';
+import { Pin } from '@lucide/vue';
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 

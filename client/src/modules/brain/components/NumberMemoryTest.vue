@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick, computed, onMounted, onUnmounted } from 'vue';
-import { Brain } from 'lucide-vue-next';
+import { Brain } from '@lucide/vue';
 
 const emit = defineEmits<{ (e: 'finish', score: number): void; }>();
 
