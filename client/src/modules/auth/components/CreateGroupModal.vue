@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Eye, EyeOff } from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
 
@@ -19,7 +18,6 @@ const groupNameInputRef = ref<HTMLInputElement | null>(null);
 const groupName = ref('');
 const password = ref('');
 const passwordConfirm = ref('');
-const showPassword = ref(false);
 const submitting = ref(false);
 const errorMsg = ref('');
 
@@ -77,62 +75,40 @@ async function submit() {
     <template #content>
       <form id="create-group-form" @submit.prevent="submit" class="form-content" novalidate>
         <div class="form-group">
-          <label for="group-name">Gruppenname</label>
-          <div class="input-wrapper">
-            <BaseInput
-                id="group-name"
-                ref="groupNameInputRef"
-                v-model="groupName"
-                placeholder="Name der Gruppe"
-                type="text"
-                autocomplete="off"
-                @input="clearError"
-            />
-          </div>
+          <BaseLabel for="group-name">Gruppenname</BaseLabel>
+          <BaseInput
+              id="group-name"
+              ref="groupNameInputRef"
+              v-model="groupName"
+              placeholder="Name der Gruppe"
+              type="text"
+              autocomplete="off"
+              @input="clearError"
+          />
         </div>
 
         <div class="form-group">
-          <label for="group-password">Passwort</label>
-          <div class="input-wrapper">
-            <BaseInput
-                id="group-password"
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                placeholder="Passwort"
-                autocomplete="new-password"
-                @input="clearError"
-            />
-            <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="password-toggle"
-                aria-label="Passwort anzeigen/verbergen"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="20" />
-            </button>
-          </div>
+          <BaseLabel for="group-password">Passwort</BaseLabel>
+          <BaseInput
+              id="group-password"
+              type="password"
+              v-model="password"
+              placeholder="Passwort"
+              autocomplete="new-password"
+              @input="clearError"
+          />
         </div>
 
         <div class="form-group">
-          <label for="group-confirm">Passwort bestätigen</label>
-          <div class="input-wrapper">
-            <BaseInput
-                id="group-confirm"
-                :type="showPassword ? 'text' : 'password'"
-                v-model="passwordConfirm"
-                placeholder="Passwort wiederholen"
-                autocomplete="new-password"
-                @input="clearError"
-            />
-            <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="password-toggle"
-                aria-label="Passwort anzeigen/verbergen"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="20" />
-            </button>
-          </div>
+          <BaseLabel for="group-confirm">Passwort bestätigen</BaseLabel>
+          <BaseInput
+              id="group-confirm"
+              type="password"
+              v-model="passwordConfirm"
+              placeholder="Passwort wiederholen"
+              autocomplete="new-password"
+              @input="clearError"
+          />
         </div>
 
         <div v-if="errorMsg" class="message error">
@@ -159,30 +135,6 @@ async function submit() {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-}
-
-.input-wrapper {
-  display: flex;
-  flex-direction: row;
-  position: relative;
-  align-items: center;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  color: var(--color-on-surface-muted);
-  display: flex;
-  align-items: center;
-  transition: color 0.1s ease;
-}
-
-.password-toggle:hover {
-  color: var(--color-on-surface);
 }
 
 .message {

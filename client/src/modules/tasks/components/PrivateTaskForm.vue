@@ -71,13 +71,13 @@ async function submit() {
 
       <template #content>
         <div class="section">
-          <label class="label">Title</label>
-          <BaseInput ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
+          <BaseLabel for="private-task-title-input">Title</BaseLabel>
+          <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
         </div>
 
         <div class="section">
-          <label class="label">Description (optional)</label>
-          <BaseInput as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000"></BaseInput>
+          <BaseLabel for="private-task-description-input">Description (optional)</BaseLabel>
+          <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000"></BaseInput>
         </div>
 
         <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>

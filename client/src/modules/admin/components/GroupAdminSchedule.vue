@@ -112,36 +112,34 @@ function handleSaveSub() {
       <div class="sub-form-grid">
         <input type="hidden" v-model="subForm.lessonId" />
         <div class="form-field">
-          <label>Neues Fach</label>
-          <BaseInput v-model="subForm.subject" placeholder="Deutsch" />
+          <BaseLabel for="sub-subject">Neues Fach</BaseLabel>
+          <BaseInput id="sub-subject" v-model="subForm.subject" placeholder="Deutsch" />
         </div>
         <div class="form-field">
-          <label>Neuer Raum</label>
-          <BaseInput v-model="subForm.room" placeholder="A101" />
+          <BaseLabel for="sub-room">Neuer Raum</BaseLabel>
+          <BaseInput id="sub-room" v-model="subForm.room" placeholder="A101" />
         </div>
         <div class="form-field">
-          <label>Neue Stunde</label>
-          <BaseInput v-model.number="subForm.slot" type="number" placeholder="4" />
+          <BaseLabel for="sub-slot">Neue Stunde</BaseLabel>
+          <BaseInput id="sub-slot" v-model.number="subForm.slot" type="number" placeholder="4" />
         </div>
         <div class="form-field">
-          <label>Neue Dauer</label>
-          <BaseInput v-model.number="subForm.duration" type="number" min="1" placeholder="2" />
+          <BaseLabel for="sub-duration">Neue Dauer</BaseLabel>
+          <BaseInput id="sub-duration" v-model.number="subForm.duration" type="number" min="1" placeholder="2" />
         </div>
         <div class="form-field">
-          <label>Neuer Tag (1 = Mo, 5 = Fr)</label>
-          <BaseInput v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" />
+          <BaseLabel for="sub-day">Neuer Tag (1 = Mo, 5 = Fr)</BaseLabel>
+          <BaseInput id="sub-day" v-model.number="subForm.day" type="number" min="1" max="5" placeholder="2" />
         </div>
       </div>
 
-      <div style="display: flex; gap: 24px; margin: 16px 0 24px 0;">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-body); cursor: pointer;">
-          <BaseCheckbox v-model="subForm.cancelled" />
+      <div class="flex gap-6 mt-4 mb-6">
+        <BaseCheckbox v-model="subForm.cancelled">
           <span>Ausfall</span>
-        </label>
-        <label style="display: flex; align-items: center; gap: 8px; font-size: var(--text-body); cursor: pointer;">
-          <BaseCheckbox v-model="subForm.hide" />
+        </BaseCheckbox>
+        <BaseCheckbox v-model="subForm.hide">
           <span>Verstecken</span>
-        </label>
+        </BaseCheckbox>
       </div>
 
       <BaseButton @click="handleSaveSub" :disabled="savingSub || !subForm.lessonId" variant="action">

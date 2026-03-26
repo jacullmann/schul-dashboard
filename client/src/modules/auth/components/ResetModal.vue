@@ -2,7 +2,6 @@
 import { ref, onMounted, watch, nextTick } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
-import { Eye, EyeOff } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
 import { useI18n } from 'vue-i18n';
 
@@ -18,7 +17,6 @@ const password2 = ref('');
 const submitting = ref(false);
 const message = ref('');
 const isError = ref(false);
-const showPassword = ref(false);
 let savedResetToken = '';
 
 const emailInputRef = ref<HTMLInputElement | null>(null);
@@ -132,13 +130,13 @@ async function onPrimary() {
     <template #content>
       <div v-if="step === 1">
         <p>Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code.</p>
-        <BaseInput ref="emailInputRef" v-model="email" placeholder="E-Mail" />
+        <BaseInput id="reset-email" ref="emailInputRef" v-model="email" placeholder="E-Mail" />
       </div>
 
       <div v-else-if="step === 2">
         <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
         <div style="display:flex; gap:8px;">
-          <BaseInput ref="codeInputRef" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
+          <BaseInput id="reset-code" ref="codeInputRef" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
           <BaseButton @click="onBack" :disabled="submitting" style="margin-top:8px;" variant="ghost">{{ t('global.buttons.back') }}</BaseButton>
         </div>
       </div>
@@ -148,35 +146,21 @@ async function onPrimary() {
 
         <div style="position: relative;">
           <BaseInput
+              id="reset-password"
               ref="passwordInputRef"
-              :type="showPassword ? 'text' : 'password'"
+              type="password"
               v-model="password"
               placeholder="Neues Passwort"
           />
-          <button
-              type="button"
-              @click="showPassword = !showPassword"
-              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
-              aria-label="Toggle password visibility"
-          >
-            <component :is="showPassword ? EyeOff : Eye" :size="20" />
-          </button>
         </div>
 
         <div style="margin-top:8px; position: relative;">
           <BaseInput
-              :type="showPassword ? 'text' : 'password'"
+              id="reset-password-confirm"
+              type="password"
               v-model="password2"
               placeholder="Neues Passwort wiederholen"
           />
-          <button
-              type="button"
-              @click="showPassword = !showPassword"
-              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
-              aria-label="Anzeigen/Nicht anzeigen"
-          >
-            <component :is="showPassword ? EyeOff : Eye" :size="20" />
-          </button>
         </div>
       </div>
 

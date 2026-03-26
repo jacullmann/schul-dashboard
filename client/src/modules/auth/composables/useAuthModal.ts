@@ -23,7 +23,6 @@ export function useAuthModal(onLoggedIn: () => void) {
   const submitting = ref(false);
   const message = ref('');
   const isError = ref(false);
-  const showPassword = ref(false);
   const showReset = ref(false);
   const showMfaVerify = ref(false);
 
@@ -227,7 +226,6 @@ export function useAuthModal(onLoggedIn: () => void) {
     submitting,
     message,
     isError,
-    showPassword,
     showReset,
     showMfaVerify,
     emailInputRef,

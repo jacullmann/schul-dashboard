@@ -137,32 +137,36 @@ async function skip() {
       <p class="small" style="color: var(--color-on-surface-muted)">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
 
       <div class="form-group">
-        <label class="label-text">{{ t('account.menu.courses.enr') }}</label>
+        <BaseLabel for="enr">{{ t('account.menu.courses.enr') }}</BaseLabel>
         <BaseSelect
+            id="enr"
             v-model="formData.enrKurs"
             :options="enrichmentOptions"
         />
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">{{ t('account.menu.courses.wpu1') }}</label>
+        <BaseLabel for="wpu1">{{ t('account.menu.courses.wpu1') }}</BaseLabel>
         <BaseSelect
+            id="wpu1"
             v-model="formData.wpuKurs1"
             :options="wpu1Options"
         />
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">{{ t('account.menu.courses.wpu2') }}</label>
+        <BaseLabel for="wpu2">{{ t('account.menu.courses.wpu2') }}</BaseLabel>
         <BaseSelect
+            id="wpu2"
             v-model="formData.wpuKurs2"
             :options="wpu2Options"
         />
       </div>
 
       <div class="form-group" style="margin-top: 12px;">
-        <label class="label-text">{{ t('account.menu.courses.wpu3') }}</label>
+        <BaseLabel for="theater">{{ t('account.menu.courses.wpu3') }}</BaseLabel>
         <BaseSelect
+            id="theater"
             v-model="formData.theater"
             :options="theaterOptions"
         />

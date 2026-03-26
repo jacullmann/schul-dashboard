@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Eye, EyeOff } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 
@@ -12,7 +11,6 @@ const emit = defineEmits<{
 const { linkGoogleAccount } = useOAuth();
 
 const password = ref('');
-const showPassword = ref(false);
 const submitting = ref(false);
 const errorMsg = ref('');
 
@@ -58,25 +56,15 @@ function cancel() {
       <form id="link-form" @submit.prevent="submit" class="link-form" novalidate>
         <div class="form-group">
           <label for="link-password">Passwort</label>
-          <div class="input-wrapper">
-            <BaseInput
-                id="link-password"
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                placeholder="Dein Passwort"
-                autocomplete="current-password"
-                autofocus
-                @input="errorMsg = ''"
-            />
-            <button
-                type="button"
-                class="password-toggle"
-                @click="showPassword = !showPassword"
-                :aria-label="showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="18" />
-            </button>
-          </div>
+          <BaseInput
+              id="link-password"
+              type="password"
+              v-model="password"
+              placeholder="Dein Passwort"
+              autocomplete="current-password"
+              autofocus
+              @input="errorMsg = ''"
+          />
         </div>
 
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
@@ -134,29 +122,6 @@ function cancel() {
 .form-group label {
   font-size: var(--text-sub);
   font-weight: 500;
-  color: var(--color-on-surface);
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  color: var(--color-on-surface-muted);
-  display: flex;
-  align-items: center;
-  transition: color 0.1s ease;
-}
-
-.password-toggle:hover {
   color: var(--color-on-surface);
 }
 

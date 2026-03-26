@@ -183,10 +183,6 @@ const updateCropFromInput = () => {
 
 // --- Drag & Resize Logic ---
 
-// Global listeners are always attached; handlers guard against inactive drag state
-useEventListener(window, 'mousemove', handleGlobalMouseMove);
-useEventListener(window, 'mouseup', handleGlobalMouseUp);
-
 const startDrag = (e: MouseEvent, direction: string | false) => {
   if (direction) {
     resizeDir = direction;
@@ -246,6 +242,10 @@ const handleGlobalMouseUp = () => {
   isDragging = false;
   resizeDir = '';
 };
+
+// Global listeners are always attached; handlers guard against inactive drag state
+useEventListener(window, 'mousemove', handleGlobalMouseMove);
+useEventListener(window, 'mouseup', handleGlobalMouseUp);
 
 // --- Image Manipulation ---
 
@@ -339,8 +339,9 @@ const updateImageSource = (newSrc: string) => {
 
       <div class="controls" :class="{ active: hasImage }">
         <div class="control-group">
-          <label>Ausgabeformat</label>
+          <BaseLabel for="image-format-select">Ausgabeformat</BaseLabel>
           <BaseSelect
+            id="image-format-select"
             v-model="settings.format"
             :options="[
               { label: 'JPEG', value: 'image/jpeg' },
@@ -350,8 +351,9 @@ const updateImageSource = (newSrc: string) => {
           />
         </div>
         <div class="control-group">
-          <label>Qualität: {{ settings.quality }} %</label>
+          <BaseLabel for="image-quality-range">Qualität: {{ settings.quality }} %</BaseLabel>
           <input
+              id="image-quality-range"
               type="range"
               min="1"
               max="100"
@@ -359,16 +361,18 @@ const updateImageSource = (newSrc: string) => {
           >
         </div>
         <div class="control-group">
-          <label>Breite (px)</label>
+          <BaseLabel for="image-width-input">Breite (px)</BaseLabel>
           <BaseInput
+              id="image-width-input"
               type="number"
               v-model.number="settings.width"
               :placeholder="imageMeta.naturalWidth.toString()"
           />
         </div>
         <div class="control-group">
-          <label>Höhe (px)</label>
+          <BaseLabel for="image-height-input">Höhe (px)</BaseLabel>
           <BaseInput
+              id="image-height-input"
               type="number"
               v-model.number="settings.height"
               :placeholder="imageMeta.naturalHeight.toString()"
@@ -402,16 +406,16 @@ const updateImageSource = (newSrc: string) => {
           </BaseButton>
 
           <div class="editor-input-group">
-            <span style="width: 16px;">X:</span> <BaseInput type="number" v-model.number="crop.x" @input="updateCropFromInput" />
+            <label for="editor-crop-x-input" style="width: 16px; margin-bottom: 0;">X:</label> <BaseInput id="editor-crop-x-input" type="number" v-model.number="crop.x" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">Y:</span> <BaseInput type="number" v-model.number="crop.y" @input="updateCropFromInput" />
+            <label for="editor-crop-y-input" style="width: 16px; margin-bottom: 0;">Y:</label> <BaseInput id="editor-crop-y-input" type="number" v-model.number="crop.y" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">W:</span> <BaseInput type="number" v-model.number="crop.w" @input="updateCropFromInput" />
+            <label for="editor-crop-w-input" style="width: 16px; margin-bottom: 0;">W:</label> <BaseInput id="editor-crop-w-input" type="number" v-model.number="crop.w" @input="updateCropFromInput" />
           </div>
           <div class="editor-input-group">
-            <span style="width: 16px;">H:</span> <BaseInput type="number" v-model.number="crop.h" @input="updateCropFromInput" />
+            <label for="editor-crop-h-input" style="width: 16px; margin-bottom: 0;">H:</label> <BaseInput id="editor-crop-h-input" type="number" v-model.number="crop.h" @input="updateCropFromInput" />
           </div>
         </div>
 

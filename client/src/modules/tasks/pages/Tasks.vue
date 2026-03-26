@@ -3,7 +3,7 @@ import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
-import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
+import ReportModal from '@/modules/tasks/components/ReportModal.vue'
 import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
@@ -381,6 +381,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
             <div v-else class="editor-note-edit">
                 <BaseInput
+                    id="editor-note-input"
                     as="textarea"
                     v-model="noteEditContent"
                     rows="3"
@@ -389,8 +390,8 @@ async function handleArchiveFromMenu(item: HwItem) {
                 ></BaseInput>
               <div class="editor-note-actions">
                 <BaseButton @click.stop="saveNote(item.id)" :disabled="savingNote" variant="action" :loading="savingNote">
-        {{ t('global.buttons.save') }}
-      </BaseButton>
+                  {{ t('global.buttons.save') }}
+                </BaseButton>
                 <BaseButton @click.stop="cancelEditNote()" :disabled="savingNote" variant="ghost">
                   {{ t('global.buttons.cancel') }}
                 </BaseButton>
@@ -432,7 +433,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         @cancel="closeImageMenu"
     />
 
-    <ConfirmDialog
+    <ReportModal
         :show="showReportConfirm"
         message=""
         :show-reason-input="true"

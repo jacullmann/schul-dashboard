@@ -230,39 +230,43 @@ onMounted(() => {
       </template>
 
       <template #content>
-        <div class="row-n top">
+        <div class="row-n gap-4">
           <div class="col">
-            <label class="label">{{ t('school.tasks.itemForm.title') }}</label>
-            <BaseInput ref="titleInputRef" v-model="title" />
+            <BaseLabel for="title">{{ t('school.tasks.itemForm.title') }}</BaseLabel>
+            <BaseInput ref="titleInputRef" id="title" v-model="title" />
           </div>
 
           <div class="col">
-            <label class="label">{{ t('school.tasks.itemForm.subject') }}</label>
+            <BaseLabel for="subject">{{ t('school.tasks.itemForm.subject') }}</BaseLabel>
             <BaseSelect
+                id="subject"
                 v-model="subjectSel"
                 :options="subjectOptions"
             />
           </div>
 
           <div class="col" v-if="subjectSel === 'enrichment'">
-            <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
+            <BaseLabel for="enrKursSel">{{ t('school.tasks.itemForm.course') }}</BaseLabel>
             <BaseSelect
+                id="enrKursSel"
                 v-model="enrKursSel"
                 :options="enrOptions"
             />
           </div>
 
           <div class="col" v-if="subjectSel === 'wpu1'">
-            <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
+            <BaseLabel for="wpuDiKursSel">{{ t('school.tasks.itemForm.course') }}</BaseLabel>
             <BaseSelect
+                id="wpuDiKursSel"
                 v-model="wpuDiKursSel"
                 :options="wpuDiOptions"
             />
           </div>
 
           <div class="col" v-if="subjectSel === 'wpu2'">
-            <label class="label">{{ t('school.tasks.itemForm.course') }}</label>
+            <BaseLabel for="wpuDoKursSel">{{ t('school.tasks.itemForm.course') }}</BaseLabel>
             <BaseSelect
+                id="wpuDoKursSel"
                 v-model="wpuDoKursSel"
                 :options="wpuDoOptions"
             />
@@ -270,35 +274,34 @@ onMounted(() => {
         </div>
 
         <div v-if="subjectSel==='__OTHER__'" class="section">
-          <label class="label">{{ t('school.tasks.itemForm.customSubject') }}</label>
-          <BaseInput v-model="subjectOther" />
+          <BaseLabel for="subjectOther">{{ t('school.tasks.itemForm.customSubject') }}</BaseLabel>
+          <BaseInput id="subjectOther" v-model="subjectOther" />
         </div>
 
         <div class="section">
-          <label class="label">{{ t('school.tasks.itemForm.description') }}</label>
-          <BaseInput as="textarea" rows="4" v-model="description"></BaseInput>
+          <BaseLabel for="description">{{ t('school.tasks.itemForm.description') }}</BaseLabel>
+          <BaseInput id="description" as="textarea" rows="4" v-model="description"></BaseInput>
         </div>
 
         <div class="row-n section">
           <div class="col">
-            <label class="label">{{ t('school.tasks.itemForm.dueDate') }}</label>
-            <BaseInput type="date" v-model="dueLocal" />
-
+            <BaseLabel for="dueDate">{{ t('school.tasks.itemForm.dueDate') }}</BaseLabel>
+            <BaseInput id="dueDate" type="date" v-model="dueLocal" />
           </div>
         </div>
 
         <div class="section">
-          <div class="label">{{ t('school.tasks.itemForm.images') }}</div>
-          <div class="row-n images">
+          <BaseLabel for="images">{{ t('school.tasks.itemForm.images') }}</BaseLabel>
+          <div id="images" class="row-n gap-2 justify-start">
             <div
                 v-for="img in imgImages"
                 :key="img.publicId"
-                class="image-item"
+                class="relative w-120 h-120 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
             >
               <a :href="img.url" target="_blank" rel="noopener">
                 <img
                     :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
-                    class="thumb"
+                    class="block w-full h-full object-cover"
                     loading="lazy"
                     decoding="async"
                     alt="Vorschau"
@@ -339,42 +342,13 @@ onMounted(() => {
 .section {
   margin-top: 16px;
 }
-.top {
-  gap: 16px;
-}
 
-.label {
-  display: block;
-  font-size: var(--text-btn);
-  color: var(--color-on-surface);
-  margin-bottom: 6px;
-}
-
-.images {
-  gap: 8px;
-  justify-content: flex-start;
-}
-.image-item {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: rgba(26, 26, 26, 0.5);
-  backdrop-filter: blur(8px) brightness(95%);
-  -webkit-backdrop-filter: blur(8px) brightness(95%);
-}
-.thumb {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 .image-actions {
   position: absolute;
   top: 4px;
   right: 4px;
 }
+
 .image-remove {
   padding: 4px 8px;
   font-size: 12px;

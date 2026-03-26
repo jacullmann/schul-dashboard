@@ -3,7 +3,6 @@ import { useI18n } from 'vue-i18n';
 import BaseTabs from "@/common/components/BaseTabs.vue";
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
-import { Eye, EyeOff } from '@lucide/vue';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useAuthModal } from '@/modules/auth/composables/useAuthModal';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
@@ -24,7 +23,6 @@ const {
   submitting,
   message,
   isError,
-  showPassword,
   showReset,
   showMfaVerify,
   emailInputRef,
@@ -67,7 +65,7 @@ const { initiateGoogleLogin } = useOAuth();
 
       <form id="auth-form" @submit.prevent="submit" class="form-content" novalidate>
         <div class="form-group">
-          <label for="auth-email">{{ t('account.auth.email') }}</label>
+          <BaseLabel for="auth-email">{{ t('account.auth.email') }}</BaseLabel>
           <div class="input-wrapper">
             <BaseInput
                 id="auth-email"
@@ -83,25 +81,15 @@ const { initiateGoogleLogin } = useOAuth();
         </div>
 
         <div class="form-group">
-          <label for="auth-password">{{ t('account.auth.password') }}</label>
-          <div class="input-wrapper">
-            <BaseInput
-                id="auth-password"
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                :placeholder="t('account.auth.passwordPlaceholder')"
-                autocomplete="current-password"
-                @input="clearFieldError('password')"
-            />
-            <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="password-toggle"
-                :aria-label="t('account.auth.revealLabel')"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="20" />
-            </button>
-          </div>
+          <BaseLabel for="auth-password">{{ t('account.auth.password') }}</BaseLabel>
+          <BaseInput
+              id="auth-password"
+              type="password"
+              v-model="password"
+              :placeholder="t('account.auth.passwordPlaceholder')"
+              autocomplete="current-password"
+              @input="clearFieldError('password')"
+          />
 
           <div v-if="errors.password" class="field-error">{{ errors.password }}</div>
 
@@ -120,25 +108,15 @@ const { initiateGoogleLogin } = useOAuth();
         <Transition @enter="enter" @after-enter="afterEnter" @leave="leave">
           <div v-if="mode === 'register'" class="register-fields-wrapper">
             <div class="form-group">
-              <label for="auth-confirm">{{ t('account.auth.confirmPassword') }}</label>
-              <div class="input-wrapper">
-                <BaseInput
-                    id="auth-confirm"
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="passwordConfirm"
-                    :placeholder="t('account.auth.confirmPlaceholder')"
-                    autocomplete="new-password"
-                    @input="clearFieldError('passwordConfirm')"
-                />
-                <button
-                    type="button"
-                    @click="showPassword = !showPassword"
-                    class="password-toggle"
-                    :aria-label="t('account.auth.revealLabel')"
-                >
-                  <component :is="showPassword ? EyeOff : Eye" :size="20" />
-                </button>
-              </div>
+              <BaseLabel for="auth-confirm">{{ t('account.auth.confirmPassword') }}</BaseLabel>
+              <BaseInput
+                  id="auth-confirm"
+                  type="password"
+                  v-model="passwordConfirm"
+                  :placeholder="t('account.auth.confirmPlaceholder')"
+                  autocomplete="new-password"
+                  @input="clearFieldError('passwordConfirm')"
+              />
               <div v-if="errors.passwordConfirm" class="field-error">{{ errors.passwordConfirm }}</div>
             </div>
 
@@ -218,30 +196,6 @@ const { initiateGoogleLogin } = useOAuth();
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-}
-
-.input-wrapper {
-  display: flex;
-  flex-direction: row;
-  position: relative;
-  align-items: center;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  color: var(--color-on-surface-muted);
-  display: flex;
-  align-items: center;
-  transition: color 0.1s ease;
-}
-
-.password-toggle:hover {
-  color: var(--color-on-surface);
 }
 
 .forgot-password-link {

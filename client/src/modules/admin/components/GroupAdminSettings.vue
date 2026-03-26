@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { Eye, EyeOff } from '@lucide/vue';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 
 const { t } = useI18n();
@@ -30,9 +29,6 @@ const router = useRouter();
 const oldPassword = ref('');
 const newPassword = ref('');
 const newPassword2 = ref('');
-const showOld = ref(false);
-const showNew = ref(false);
-const showNew2 = ref(false);
 const changingPassword = ref(false);
 const pwdError = ref('');
 
@@ -87,13 +83,14 @@ async function confirmDeleteGroup() {
     <div class="settings-card">
       <h3>Gruppenname</h3>
       <div class="setting-row">
-        <label>Name</label>
+        <BaseLabel for="group-name">Name</BaseLabel>
         <div v-if="!editingGroupName" class="setting-value">
           <span>{{ groupName }}</span>
           <BaseButton v-if="isAdmin" class="tiny" @click="emit('start-edit')" variant="ghost">{{ t('global.buttons.edit') }}</BaseButton>
         </div>
         <div v-else class="setting-edit">
           <BaseInput
+              id="group-name"
               :value="newGroupName"
               @input="emit('update:newGroupName', ($event.target as HTMLInputElement).value)"
               placeholder="Neuer Gruppenname"
@@ -113,53 +110,41 @@ async function confirmDeleteGroup() {
       <h3>Passwort ändern</h3>
       
       <div class="form-group">
-        <label>Aktuelles Passwort</label>
-        <div class="input-wrapper">
-          <BaseInput
-              :type="showOld ? 'text' : 'password'"
-              v-model="oldPassword"
-              @input="pwdError = ''"
-          />
-          <button class="toggle-btn" @click="showOld = !showOld">
-            <component :is="showOld ? EyeOff : Eye" :size="18" />
-          </button>
-        </div>
+        <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
+        <BaseInput
+            id="old-password"
+            type="password"
+            v-model="oldPassword"
+            @input="pwdError = ''"
+        />
       </div>
       
       <div class="form-group">
-        <label>Neues Passwort</label>
-        <div class="input-wrapper">
-          <BaseInput
-              :type="showNew ? 'text' : 'password'"
-              v-model="newPassword"
-              @input="pwdError = ''"
-          />
-          <button class="toggle-btn" @click="showNew = !showNew">
-            <component :is="showNew ? EyeOff : Eye" :size="18" />
-          </button>
-        </div>
+        <BaseLabel for="new-password">Neues Passwort</BaseLabel>
+        <BaseInput
+            id="new-password"
+            type="password"
+            v-model="newPassword"
+            @input="pwdError = ''"
+        />
       </div>
       
       <div class="form-group">
-        <label>Neues Passwort bestätigen</label>
-        <div class="input-wrapper">
-          <BaseInput
-              :type="showNew2 ? 'text' : 'password'"
-              v-model="newPassword2"
-              @input="pwdError = ''"
-          />
-          <button class="toggle-btn" @click="showNew2 = !showNew2">
-            <component :is="showNew2 ? EyeOff : Eye" :size="18" />
-          </button>
-        </div>
+        <BaseLabel for="new-password-confirm">Neues Passwort bestätigen</BaseLabel>
+        <BaseInput
+            id="new-password-confirm"
+            type="password"
+            v-model="newPassword2"
+            @input="pwdError = ''"
+        />
       </div>
 
       <p v-if="pwdError" class="error-text">{{ pwdError }}</p>
 
       <div class="actions">
         <BaseButton @click="changePassword" :disabled="changingPassword || !oldPassword || !newPassword || newPassword !== newPassword2" variant="action" :loading="changingPassword">
-        Passwort ändern
-      </BaseButton>
+          Passwort ändern
+        </BaseButton>
       </div>
     </div>
 
@@ -172,16 +157,17 @@ async function confirmDeleteGroup() {
       </p>
       
       <div class="delete-confirmation">
-        <label>Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um fortzufahren:</label>
+        <BaseLabel for="delete-confirm">Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um fortzufahren:</BaseLabel>
         <BaseInput
+            id="delete-confirm"
             v-model="deleteConfirmText"
             type="text"
            class="danger-input"
             :placeholder="'delete ' + groupName"
         />
         <BaseButton :disabled="deleteConfirmText !== `delete ${groupName}` || deletingGroup" @click="confirmDeleteGroup" variant="danger" :loading="deletingGroup">
-        Gruppe unwiderruflich löschen
-      </BaseButton>
+          Gruppe unwiderruflich löschen
+        </BaseButton>
       </div>
     </div>
 
@@ -264,35 +250,6 @@ async function confirmDeleteGroup() {
   color: var(--color-on-surface-muted);
   font-weight: 500;
   margin-bottom: 6px;
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-wrapper .input {
-  width: 100%;
-  padding-right: 40px;
-}
-
-.toggle-btn {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  color: var(--color-on-surface-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s;
-}
-
-.toggle-btn:hover {
-  color: var(--color-on-surface);
 }
 
 .error-text {

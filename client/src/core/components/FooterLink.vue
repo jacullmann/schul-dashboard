@@ -7,7 +7,7 @@ defineProps<{
 <template>
   <router-link
     :to="to"
-    class="block text-on-surface-muted no-underline text-body transition-colors duration-200 font-medium hover:text-on-surface"
+    class="block !text-on-surface-muted no-underline text-body transition-colors duration-200 font-medium hover:text-on-surface"
   >
     <slot />
   </router-link>

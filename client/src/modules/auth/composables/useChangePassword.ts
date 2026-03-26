@@ -14,10 +14,6 @@ export function useChangePassword(emit: {
   const newPassword = ref('');
   const newPassword2 = ref('');
 
-  const showCurrentPassword = ref(false);
-  const showNewPassword = ref(false);
-  const showNewPassword2 = ref(false);
-
   const submitting = ref(false);
   const message = ref('');
   const isError = ref(false);
@@ -112,9 +108,6 @@ export function useChangePassword(emit: {
     currentPassword,
     newPassword,
     newPassword2,
-    showCurrentPassword,
-    showNewPassword,
-    showNewPassword2,
     submitting,
     message,
     isError,
