@@ -8,7 +8,7 @@ const props = defineProps<{
   initialIndex: number;
 }>();
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['cancel']);
 
 const currentIndex = ref(props.initialIndex);
 const controlsVisible = ref(true);
@@ -45,13 +45,13 @@ function prev() {
   }
 }
 
-function close() {
-  emit('close');
+function cancel() {
+  emit('cancel');
 }
 
 // Keyboard Navigation
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') close();
+  if (e.key === 'Escape') cancel();
   if (e.key === 'ArrowRight') next();
   if (e.key === 'ArrowLeft') prev();
 }
@@ -91,13 +91,13 @@ watch(() => props.visible, (val) => {
       v-if="visible"
       class="blurit viewer-overlay"
       @mousemove="onActivity"
-      @click.self="close"
+      @click.self="cancel"
       @touchstart="onActivity"
       tabindex="0"
       @keydown="handleKeydown"
       ref="overlayRef"
     >
-      <div class="image-wrapper" @click.self="close">
+      <div class="image-wrapper" @click.self="cancel">
         <img
           v-if="currentImage"
           :src="currentImage.url"
@@ -109,8 +109,7 @@ watch(() => props.visible, (val) => {
 
       <transition name="fade-controls">
         <div v-show="controlsVisible" class="controls-ui">
-
-          <button class="control-btn close-btn" @click.stop="close">
+          <button class="control-btn close-btn" @click.stop="cancel">
             <X />
           </button>
 

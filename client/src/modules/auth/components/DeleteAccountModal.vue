@@ -39,10 +39,9 @@ const {
           <div class="warning-text" v-html="t('account.menu.deleteAccount.warnBox.text')" />
         </div>
 
-        <label class="checkbox-row">
-          <BaseCheckbox v-model="understoodChecked" />
-          <span class="checkbox-text">{{ t('account.menu.deleteAccount.confirm') }}</span>
-        </label>
+        <BaseCheckbox v-model="understoodChecked">
+          {{ t('account.menu.deleteAccount.confirm') }}
+        </BaseCheckbox>
 
         <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
         <div v-if="successMsg" class="message success">{{ successMsg }}</div>
@@ -82,21 +81,6 @@ const {
   font-size: var(--text-sub);
   color: var(--color-on-surface);
   line-height: 1.5;
-}
-
-.checkbox-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.checkbox-text {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface);
-  user-select: none;
 }
 
 .action-buttons {

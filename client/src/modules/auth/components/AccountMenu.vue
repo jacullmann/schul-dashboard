@@ -7,6 +7,7 @@ import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDr
 import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
 import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
+import Avatar from '@/modules/auth/components/Avatar.vue';
 import { useI18n } from 'vue-i18n';
 import { useAccountMenu } from '@/modules/auth/composables/useAccountMenu';
 import type { UserData } from '@/stores/userStore';
@@ -32,8 +33,6 @@ const popupInner = ref<HTMLElement | null>(null);
 const firstMenuBtnRef = ref<HTMLButtonElement | null>(null);
 
 const {
-  avatarLetter,
-  avatarColor,
   personalizationSetting,
   onPersonalizationChange,
   open,
@@ -55,84 +54,86 @@ const {
 </script>
 
 <template>
-  <div class="account-menu" ref="root">
-    <div class="icon-btn" @click="toggle" :aria-expanded="open" :title="'Account-Menü'">
-      <div class="avatar-circle" :style="{ backgroundColor: avatarColor }">
-        {{ avatarLetter }}
+  <div class="relative flex h-8 max-[480px]:h-[26px]" ref="root">
+    <Avatar
+        class="icon-btn"
+        :email="email"
+        @click="toggle"
+        :aria-expanded="open"
+        :title="'Account menu'"
+    />
+
+    <BaseMenu
+        v-if="open"
+        class="fixed pointer-events-auto z-1400 max-[480px]:justify-center max-[480px]:flex max-[480px]:flex-col origin-top-left max-[480px]:origin-top min-w-[320px] max-[480px]:w-full"
+        :style="popupStyle"
+        @click.stop
+        role="menu"
+        aria-label="Account menu"
+        :ref="(el: any) => popupInner = el?.$el"
+    >
+      <div class="flex px-2 py-1">
+        <div class="font-semibold text-sub text-on-surface overflow-hidden text-ellipsis whitespace-nowrap flex-1" :title="email">{{ email }}</div>
       </div>
-    </div>
 
-    <transition name="pop">
-      <div v-if="open" class="popup" :style="popupStyle" @click.stop>
-        <div class="popup-inner" role="menu" aria-label="Account menu" ref="popupInner">
-          <div class="menu-actions">
-            <div class="user-section">
-              <div class="user-email" :title="email">{{ email }}</div>
-            </div>
+      <BaseMenuDivider />
 
-            <BaseMenuDivider />
+      <ThemeMenuDropdown class="icon-trigger" />
 
-            <ThemeMenuDropdown class="menu-btn" />
+      <LocaleMenuDropdown class="icon-trigger" />
 
-            <LocaleMenuDropdown class="menu-btn" />
+      <BaseMenuButton
+          class="icon-trigger"
+          ref="firstMenuBtnRef"
+          @click="openSetup"
+      >
+        <LucideGraduationCap :size="16"/>
+        {{ t('account.menu.courses.title') }}
+      </BaseMenuButton>
 
-            <BaseMenuButton
-                class="menu-btn"
-                ref="firstMenuBtnRef"
-                @click="openSetup"
-            >
-              <LucideGraduationCap :size="16"/>
-              {{ t('account.menu.courses.title') }}
-            </BaseMenuButton>
+      <PersonalizationDropdown
+          class="icon-trigger"
+          v-model="personalizationSetting"
+          @change="onPersonalizationChange"
+      />
 
-            <PersonalizationDropdown
-                class="menu-btn"
-                v-model="personalizationSetting"
-                @change="onPersonalizationChange"
-            />
+      <BaseMenuDivider />
 
-            <BaseMenuDivider />
+      <BaseMenuButton
+          class="icon-trigger"
+          @click="openSecurity"
+      >
+        <ShieldCheck :size="16"/>
+        {{ t('account.menu.security.title') }}
+      </BaseMenuButton>
 
-            <BaseMenuButton
-                class="menu-btn"
-                @click="openSecurity"
-            >
-              <ShieldCheck :size="16"/>
-              {{ t('account.menu.security.title') }}
-            </BaseMenuButton>
+      <BaseMenuButton
+          class="icon-trigger"
+          @click="openChangePassword"
+      >
+        <LucideKeyRound :size="16"/>
+        {{ t('account.menu.changePassword.title') }}
+      </BaseMenuButton>
 
-            <BaseMenuButton
-                class="menu-btn"
-                @click="openChangePassword"
-            >
-              <LucideKeyRound :size="16"/>
-              {{ t('account.menu.changePassword.title') }}
-            </BaseMenuButton>
+      <BaseMenuButton
+          class="icon-trigger"
+          @click="handleLogout"
+      >
+        <LogOut :size="16"/>
+        {{ t('account.menu.logout') }}
+      </BaseMenuButton>
 
-            <BaseMenuButton
-                class="menu-btn"
-                @click="handleLogout"
-            >
-              <LogOut :size="16"/>
-              {{ t('account.menu.logout') }}
-            </BaseMenuButton>
+      <BaseMenuDivider />
 
-            <BaseMenuDivider />
-
-            <div class="danger-section">
-              <BaseMenuButton
-                  class="menu-btn"
-                  variant="danger"
-                    @click="startDelete"
-              >
-                <Trash2 :size="16"/>
-                {{ t('account.menu.deleteAccount.title') }}
-              </BaseMenuButton>
-            </div>
-          </div>
-        </div>
-      </div>
-    </transition>
+      <BaseMenuButton
+          class="icon-trigger"
+          variant="danger"
+          @click="startDelete"
+      >
+        <Trash2 :size="16"/>
+        {{ t('account.menu.deleteAccount.title') }}
+      </BaseMenuButton>
+    </BaseMenu>
 
     <ChangePasswordModal
         v-if="showChangePassword"
@@ -158,86 +159,13 @@ const {
 </template>
 
 <style scoped>
-.account-menu {
-  position: relative;
-  display: inline-block;
-  height: 32px;
-}
-
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  color: var(--color-on-surface);
-  cursor: pointer;
-}
-
-.avatar-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 16px;
-  color: #fff;
-  user-select: none;
-}
-
-.popup {
-  z-index: 1400;
-  position: fixed;
-  pointer-events: auto;
-}
-
-.popup-inner {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-lg);
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  min-width: 320px;
-  box-shadow: var(--shadow-menu);
-}
-
-.user-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-}
-
-.user-email {
-  font-weight: 600;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-}
-
-.menu-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.menu-btn {
-  padding: 0;
-}
-
 .lucide-graduation-cap {
   transform: rotate(0);
   transition: 0.1s ease;
   transform-origin: 80% 70%;
 }
 
-.menu-btn:hover .lucide-graduation-cap {
+.icon-trigger:hover .lucide-graduation-cap {
   transform: rotate(10deg);
 }
 
@@ -247,7 +175,7 @@ const {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-graduation-cap :deep(path:nth-child(2)) {
+.icon-trigger:hover .lucide-graduation-cap :deep(path:nth-child(2)) {
   transform: rotate(-10deg) translateX(0.7px) translateY(0.5px);
 }
 
@@ -257,7 +185,7 @@ const {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-shield-check :deep(path:last-child) {
+.icon-trigger:hover .lucide-shield-check :deep(path:last-child) {
   stroke-dashoffset: 0;
 }
 
@@ -266,7 +194,7 @@ const {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-key-round {
+.icon-trigger:hover .lucide-key-round {
   transform: translate(-1px, 1px);
 }
 
@@ -276,8 +204,8 @@ const {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-log-out :deep(path:first-child),
-.menu-btn:hover .lucide-log-out :deep(path:nth-child(2)) {
+.icon-trigger:hover .lucide-log-out :deep(path:first-child),
+.icon-trigger:hover .lucide-log-out :deep(path:nth-child(2)) {
   transform: translateX(2px);
 }
 
@@ -292,55 +220,8 @@ const {
   transform-origin: 80% 30%;
 }
 
-.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(4)),
-.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(5)) {
+.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(4)),
+.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(5)) {
   transform: translateY(-1px) translateX(1px) rotate(10deg);
-}
-
-.pop-enter-active, .pop-leave-active {
-  transition: transform 120ms cubic-bezier(.2,.9,.2,1), opacity 120ms ease;
-  transform-origin: top left;
-}
-
-.pop-enter-from {
-  transform: translateY(-8px) scale(0.98);
-  opacity: 0;
-}
-
-.pop-enter-to {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-.pop-leave-from {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-.pop-leave-to {
-  transform: translateY(-8px) scale(0.98);
-  opacity: 0;
-}
-
-@media (max-width: 480px) {
-  .popup-inner {
-    min-width: 100%;
-  }
-  .popup {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .pop-enter-active, .pop-leave-active {
-    transform-origin: top center;
-  }
-  .avatar-circle {
-    width: 26px;
-    height: 26px;
-    font-size: 14px;
-  }
-  .account-menu {
-    height: 26px;
-  }
 }
 </style>

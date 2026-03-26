@@ -9,28 +9,6 @@ import {
 import type { UserData } from '@/stores/userStore';
 import { useToast } from '@/common/composables/useToast';
 
-const AVATAR_COLORS = [
-  '#AA47BD',
-  '#7B1FA2',
-  '#77919D',
-  '#455A65',
-  '#EC417A',
-  '#C1175C',
-  '#0388D2',
-  '#0098A7',
-  '#004D40',
-  '#EF6C00',
-  '#F6511E',
-];
-
-function getColorIndexFromEmail(email: string): number {
-  if (!email || email.length === 0) return 0;
-  const charToHash = email.length >= 2 ? email[1] : email[0];
-  if (!charToHash) return 0;
-  const charCode = charToHash.charCodeAt(0);
-  return charCode % AVATAR_COLORS.length;
-}
-
 export function useAccountMenu(
   props: { email: string; userData: UserData | null },
   emit: (event: any, ...args: any[]) => void,
@@ -40,17 +18,6 @@ export function useAccountMenu(
     firstMenuBtnRef: Ref<HTMLButtonElement | null>;
   },
 ) {
-  const avatarLetter = computed(() => {
-    return props.email && props.email.length > 0 && props.email[0]
-      ? props.email[0].toUpperCase()
-      : '?';
-  });
-
-  const avatarColor = computed(() => {
-    const index = getColorIndexFromEmail(props.email);
-    return AVATAR_COLORS[index];
-  });
-
   const personalizationSetting = computed({
     get: () => props.userData?.personalized ?? true,
     set: () => {},
@@ -188,8 +155,6 @@ export function useAccountMenu(
   });
 
   return {
-    avatarLetter,
-    avatarColor,
     personalizationSetting,
     onPersonalizationChange,
     open,

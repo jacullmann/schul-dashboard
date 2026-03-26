@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import TabSwitcher from "@/common/components/TabSwitcher.vue";
+import BaseTabs from "@/common/components/BaseTabs.vue";
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
 import { Eye, EyeOff } from '@lucide/vue';
@@ -9,7 +9,7 @@ import { useAuthModal } from '@/modules/auth/composables/useAuthModal';
 const { t } = useI18n();
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: 'cancel'): void;
   (e: 'logged-in'): void;
 }>();
 
@@ -42,7 +42,7 @@ const {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('close')">
+  <BaseModal @cancel="$emit('cancel')">
     <template #title>
       {{ mode === 'login' ? t('account.auth.login') : t('account.auth.register') }}
     </template>
@@ -56,7 +56,7 @@ const {
 
       <template v-else>
         <div class="tab-wrapper">
-          <TabSwitcher
+          <BaseTabs
               :items="tabs"
               :active-id="mode"
               @change="handleTabChange"
@@ -169,7 +169,7 @@ const {
 
   <ResetModal
       v-if="showReset"
-      @close="showReset = false"
+      @cancel="showReset = false"
       @success="onResetSuccess"
   />
 </template>

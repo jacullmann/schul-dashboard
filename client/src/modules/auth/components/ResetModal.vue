@@ -4,7 +4,7 @@ import hw from '@/api/hwApi';
 import { Eye, EyeOff } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
 
-const emit = defineEmits(['close', 'success']);
+const emit = defineEmits(['cancel', 'success']);
 
 const step = ref(1);
 const email = ref('');
@@ -23,7 +23,7 @@ const passwordInputRef = ref<HTMLInputElement | null>(null);
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape' && !submitting.value) {
-    emit('close');
+    emit('cancel');
   }
   if (e.key === 'Enter' && !submitting.value) {
     onPrimary();
@@ -113,7 +113,7 @@ async function onPrimary() {
       const msg = data.message || 'Passwort erfolgreich geändert. Du kannst dich nun einloggen.';
       useToast().success(msg);
       emit('success');
-      emit('close');
+      emit('cancel');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       setMessage(err?.response?.data?.error || 'Fehler beim Zurücksetzen des Passworts.', true);
@@ -127,7 +127,7 @@ async function onPrimary() {
     <div class="card rlc modal">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Passwort zurücksetzen</h3>
-        <BaseButton @click="$emit('close')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
+        <BaseButton @click="$emit('cancel')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
       </div>
 
       <div style="margin-top:12px;">

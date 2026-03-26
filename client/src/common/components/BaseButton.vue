@@ -40,16 +40,9 @@ const classes = computed(() => variantClasses[props.variant ?? 'default']);
     :type="type"
     :disabled="disabled || loading"
     :class="classes"
-    class="
-      inline-flex items-center gap-2
-      px-3 py-2
-      border rounded-md
-      text-btn leading-4
-      cursor-pointer select-none
-      whitespace-nowrap
-      transition-hover
-      disabled:opacity-50 disabled:cursor-not-allowed
-    "
+    class="inline-flex items-center gap-2 px-3 py-2 border rounded-md text-btn leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    :aria-busy="loading"
+    :aria-disabled="disabled"
   >
     <BaseSpinner v-if="loading" :on="variant" size="1em" />
     <slot v-else />

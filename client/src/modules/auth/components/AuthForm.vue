@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import TabSwitcher from "@/common/components/TabSwitcher.vue";
+import BaseTabs from "@/common/components/BaseTabs.vue";
 import ResetModal from "@/modules/auth/components/ResetModal.vue";
 import MfaVerifyModal from "@/modules/auth/components/MfaVerifyModal.vue";
 import { Eye, EyeOff } from '@lucide/vue';
@@ -60,7 +60,7 @@ defineExpose({ emailInputRef });
 
     <template v-else>
       <div class="tab-wrapper">
-        <TabSwitcher
+        <BaseTabs
             :items="tabs"
             :active-id="mode"
             @change="handleTabChange"
@@ -145,10 +145,9 @@ defineExpose({ emailInputRef });
             </div>
 
             <div class="form-group">
-              <label class="privacy-row">
-                <BaseCheckbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')" />
-                <span class="checkbox-label" v-html="t('account.auth.terms')" />
-              </label>
+              <BaseCheckbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')">
+                <span v-html="t('account.auth.terms')" />
+              </BaseCheckbox>
 
               <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
             </div>
@@ -178,7 +177,7 @@ defineExpose({ emailInputRef });
 
     <ResetModal
         v-if="showReset"
-        @close="showReset = false"
+        @cancel="showReset = false"
         @success="onResetSuccess"
     />
   </div>
@@ -261,24 +260,6 @@ defineExpose({ emailInputRef });
 
 .forgot-password-link:hover {
   color: var(--color-on-surface);
-}
-
-.privacy-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  font: inherit;
-  color: inherit;
-  margin: 0;
-  padding: 0;
-}
-
-.checkbox-label {
-  color: var(--color-on-surface);
-  font-size: var(--text-sub);
-  line-height: 18px;
 }
 
 :deep(.privacy-link) {

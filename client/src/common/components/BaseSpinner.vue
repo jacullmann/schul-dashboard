@@ -22,7 +22,7 @@ const activeColor = computed(() => {
 
 <template>
   <span
-      class="inline-block rounded-full border-solid border-current border-t-transparent animate-spin [animation-duration:750ms]"
+      class="inline-block rounded-full border-solid border-current border-t-transparent animate-spin [animation-duration:750ms] motion-reduce:animate-[spin_3s_linear_infinite]"
       :style="{
         width: size,
         height: size,
@@ -30,6 +30,7 @@ const activeColor = computed(() => {
         color: activeColor,
       }"
       role="status"
+      aria-live="polite"
       aria-label="Loading..."
   ></span>
 </template>

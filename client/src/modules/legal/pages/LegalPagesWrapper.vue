@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onMounted} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import TabSwitcher from '@/common/components/TabSwitcher.vue';
+import BaseTabs from '@/common/components/BaseTabs.vue';
 
 interface NavItem {
   id: string;
@@ -54,7 +54,7 @@ onMounted(() => {
 <template>
   <div class="card">
     <div class="row" style="margin-bottom:16px;">
-      <TabSwitcher
+      <BaseTabs
           :items="tabs"
           :active-id="activeTabId"
           @change="handleTabChange"

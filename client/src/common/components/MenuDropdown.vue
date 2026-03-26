@@ -56,37 +56,34 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="relative w-full" ref="wrapperRef">
-    <button
-        class="menu-btn"
+    <BaseMenuButton
         @click="toggleMenu"
         :disabled="disabled"
         type="button"
         aria-haspopup="true"
         :aria-expanded="isOpen"
     >
-      <div class="menu-btn-content">
-        <component
-            v-if="selectedOption?.icon"
-            :is="selectedOption.icon"
-            :size="16"
-        />
+      <component
+          v-if="selectedOption?.icon"
+          :is="selectedOption.icon"
+          :size="16"
+      />
 
-        <span>
-          {{ prefix ? prefix + ' ' : '' }}{{ selectedOption?.label || '' }}
-        </span>
+      <span>
+        {{ prefix ? prefix + ' ' : '' }}{{ selectedOption?.label || '' }}
+      </span>
 
-        <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
-      </div>
-    </button>
+      <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
+    </BaseMenuButton>
 
     <BaseMenu
         v-if="isOpen"
-        class="top-full max-h-80 mt-1"
+        class="top-full min-w-full max-h-80 mt-1"
     >
       <BaseMenuButton
           v-for="option in options"
           :key="option.value"
-          class="menu-btn"
+          class="disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed"
           :class="{ active: modelValue === option.value }"
           @click="selectOption(option.value)"
           type="button"
@@ -104,14 +101,3 @@ onBeforeUnmount(() => {
     </BaseMenu>
   </div>
 </template>
-
-<style scoped>
-.menu-btn:hover:not(:disabled) {
-  background: var(--color-surface-hover);
-}
-
-.menu-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

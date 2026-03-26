@@ -91,9 +91,9 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 </script>
 
 <template>
-  <div class="privateTask-app-integrated">
-    <div class="privateTask-header">
-      <div class="secure">
+  <div class="private-task-app-integrated">
+    <div class="private-task-header">
+      <div class="flex gap-2 items-center text-on-surface mb-4">
         <Lock style="color: var(--color-on-surface)" :size="24" />
         <h2 style="margin: 0; font-size: var(--text-h2); line-height: 24px;">{{ t('school.private.onlyVisibleToYou') }}</h2>
         <InfoModal
@@ -103,25 +103,25 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
           <p v-html="t('school.private.infopop.text')"></p>
         </InfoModal>
       </div>
-      <div v-if="!user" class="login-prompt">
+      <div v-if="!user" class="p-8 text-center">
         <p>{{ t('school.private.requiresAccount') }}</p>
       </div>
     </div>
 
-    <div v-if="user" class="privateTask-list">
-      <div v-if="loading" class="loader">
+    <div v-if="user" class="private-task-list">
+      <div v-if="loading" class="flex flex-col items-center gap-3 p-8">
         <BaseSpinner on="ghost" size="24px" />
         <div style="color: var(--color-on-surface-muted)">{{ t('school.private.loading') }}</div>
       </div>
 
-      <div v-else-if="privateTasks.length === 0" class="empty-state">
+      <div v-else-if="privateTasks.length === 0" class="p-12 text-center text-on-surface-muted">
         <p>{{ t('school.private.noEntriesFound') }}</p>
       </div>
 
-      <div v-else class="privateTasks-container">
+      <div v-else class="private-tasks-container">
         <draggable
             :list="displayPrivateTasks"
-            class="privateTasks"
+            class="flex flex-col gap-3"
             item-key="id"
             handle=".item-card"
             @end="onDragEnd"
@@ -152,7 +152,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             </template>
 
             <template #menu>
-              <div v-if="openMenuId === privateTask.id" class="menu" @click.stop>
+              <BaseMenu v-if="openMenuId === privateTask.id" @click.stop>
                 <BaseMenuButton @click="$emit('edit', privateTask); openMenuId = null">
                   <Pencil :size="16" />
                   {{ t('global.buttons.edit') }}
@@ -165,12 +165,12 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
                 <BaseMenuDivider />
 
-                <BaseMenuButton v-if="index > 0" class="menu-btn" @click="moveItemUp(index); openMenuId = null">
+                <BaseMenuButton v-if="index > 0" class="icon-trigger" @click="moveItemUp(index); openMenuId = null">
                   <ChevronUp :size="16" />
                   {{ t('school.private.menu.up') }}
                 </BaseMenuButton>
 
-                <BaseMenuButton v-if="index < displayPrivateTasks.length - 1" class="menu-btn" @click="moveItemDown(index); openMenuId = null">
+                <BaseMenuButton v-if="index < displayPrivateTasks.length - 1" class="icon-trigger" @click="moveItemDown(index); openMenuId = null">
                   <ChevronDown :size="16" />
                   {{ t('school.private.menu.down') }}
                 </BaseMenuButton>
@@ -181,7 +181,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                   <Trash2 :size="16" />
                   {{ t('global.buttons.delete') }}
                 </BaseMenuButton>
-              </div>
+              </BaseMenu>
             </template>
 
             <template #body v-if="privateTask.description">
@@ -195,33 +195,16 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 </template>
 
 <style scoped>
-.login-prompt {
-  text-align: center;
-  padding: 2rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--color-on-surface-muted);
-}
-
-.privateTask-filters {
+.private-task-filters {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
-.privateTask-filters .btn.active {
+.private-task-filters .btn.active {
   background-color: var(--color-action);
   color: var(--color-on-action);
-}
-
-.privateTasks {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 }
 
 .ghost .item-card {
@@ -249,7 +232,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   transition: transform 0.1s ease;
 }
 
-.menu-btn:hover .lucide-chevron-up {
+.icon-trigger:hover .lucide-chevron-up {
   transform: translateY(-1px);
 }
 
@@ -259,24 +242,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   transition: transform 0.1s ease;
 }
 
-.menu-btn:hover .lucide-chevron-down {
+.icon-trigger:hover .lucide-chevron-down {
   transform: translateY(1px);
-}
-
-.secure {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-block: 0 1rem;
-  color: var(--color-on-surface);
-}
-
-.loader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 2rem;
 }
 </style>
 

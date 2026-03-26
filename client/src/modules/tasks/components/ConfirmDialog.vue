@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
-import TabSwitcher from '@/common/components/TabSwitcher.vue';
+import BaseTabs from '@/common/components/BaseTabs.vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 
 const MAX_LENGTH = 5000;
@@ -58,7 +58,7 @@ watch(() => props.show, (newVal) => {
 
       <!-- TabSwitcher Navigation -->
       <div class="tab-navigation">
-        <TabSwitcher
+        <BaseTabs
             :items="tabItems"
             :active-id="category"
             @change="handleTabChange"

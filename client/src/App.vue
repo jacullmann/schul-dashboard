@@ -3,7 +3,7 @@ import { watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
-import ToastContainer from '@/common/components/ToastContainer.vue';
+import BaseToast from '@/common/components/BaseToast.vue';
 import AuthModal from '@/modules/auth/components/AuthModal.vue';
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
@@ -127,7 +127,7 @@ onUnmounted(() => {
       <Teleport to="body">
         <AuthModal
             v-if="isAuthModalOpen"
-            @close="closeAuthModal"
+            @cancel="closeAuthModal"
             @logged-in="onAuthSuccess"
         />
       </Teleport>
@@ -161,7 +161,7 @@ onUnmounted(() => {
       </Teleport>
 
       <CookieBanner />
-      <ToastContainer />
+      <BaseToast />
     </template>
   </div>
 </template>

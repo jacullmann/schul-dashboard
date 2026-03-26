@@ -58,20 +58,10 @@ async function setPersonalization(value: boolean) {
 </script>
 
 <template>
-  <div class="personalization-wrapper">
-    <MenuDropdown
-        v-model="dropdownValue"
-        :options="options"
-        :prefix="t('account.menu.personalization') + ':'"
-        :disabled="updating"
-    />
-  </div>
+  <MenuDropdown
+      v-model="dropdownValue"
+      :options="options"
+      :prefix="t('account.menu.personalization') + ':'"
+      :disabled="updating"
+  />
 </template>
-
-<style scoped>
-.personalization-wrapper {
-  position: relative;
-  display: block;
-  width: 100%;
-}
-</style>

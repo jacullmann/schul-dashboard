@@ -11,13 +11,13 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['cancel'])
 
 const confirmBtnRef = ref<HTMLButtonElement | null>(null)
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
-    close()
+    cancel()
   }
 }
 
@@ -41,13 +41,13 @@ const color = computed(() => {
   return map[props.announcement.color as string] || 'var(--text-default)'
 })
 
-function close() {
-  emit('close')
+function cancel() {
+  emit('cancel')
 }
 </script>
 
 <template>
-  <BaseModal @cancel="close">
+  <BaseModal @cancel="cancel">
     <template #title>
       <span class="popup-title">
         <span class="popup-color-indicator" :style="{ backgroundColor: color }"></span>
@@ -62,7 +62,7 @@ function close() {
     </template>
 
     <template #actions>
-      <BaseButton ref="confirmBtnRef" @click="close" variant="action">
+      <BaseButton ref="confirmBtnRef" @click="cancel" variant="action">
         {{ t('global.cookies.banner.action') }}
       </BaseButton>
     </template>

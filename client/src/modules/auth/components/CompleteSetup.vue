@@ -46,7 +46,7 @@ const props = defineProps<{
 }>();
 
 // update:user emittiert die aktualisierten User-Daten zurück zum Parent
-const emit = defineEmits(['close', 'success', 'update:user']);
+const emit = defineEmits(['cancel', 'success', 'update:user']);
 
 const submitting = ref(false);
 const skipping = ref(false);
@@ -85,7 +85,7 @@ async function submitData(dataToSend: Record<string, string | number | null>) {
     // Die aktualisierten User-Daten an den Parent schicken
     emit('update:user', data.user);
     emit('success');
-    emit('close');
+    emit('cancel');
   } catch (e: unknown) {
     console.error('Setup failed:', e);
     const err = e as { response?: { data?: { error?: string } } };
@@ -130,7 +130,7 @@ async function skip() {
 </script>
 
 <template>
-  <BaseModal v-if="visible" @cancel="$emit('close')">
+  <BaseModal v-if="visible" @cancel="$emit('cancel')">
     <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
 
     <template #content>
@@ -177,7 +177,7 @@ async function skip() {
         {{ t('global.buttons.skip') }}
       </BaseButton>
 
-        <BaseButton v-else @click="$emit('close')" variant="ghost">
+        <BaseButton v-else @click="$emit('cancel')" variant="ghost">
           {{ t('global.buttons.cancel') }}
         </BaseButton>
 

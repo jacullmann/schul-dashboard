@@ -78,7 +78,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
       <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
     </BaseButton>
 
-    <BaseMenu v-if="isOpen" class="top-full max-h-80 mt-1">
+    <BaseMenu v-if="isOpen" class="top-full min-w-full max-h-80 mt-1">
       <BaseMenuButton
           v-for="option in options"
           :key="option.value"

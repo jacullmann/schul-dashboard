@@ -5,13 +5,13 @@ import { useToast } from '@/common/composables/useToast';
 
 import type { ComponentInstance } from 'vue';
 
-const emit = defineEmits(['close', 'success']);
+const emit = defineEmits(['cancel', 'success']);
 
 const textareaRef = ref<ComponentInstance<any> | null>(null);
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape' && !submitting.value) {
-    emit('close');
+    emit('cancel');
   }
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !submitting.value) {
     submit();
@@ -60,7 +60,7 @@ async function submit() {
     <div class="card rlc" style="width:100%; max-width:520px;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Neue Ankündigung</h3>
-        <BaseButton @click="$emit('close')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
+        <BaseButton @click="$emit('cancel')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
       </div>
       <div style="margin-top:8px;">
         <BaseInput as="textarea" ref="textareaRef" rows="4" v-model="content" placeholder="Inhalt"></BaseInput>

@@ -23,10 +23,10 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="blurit" @click.self="$emit('cancel')" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-header">
-        <div class="modal-title">
-          <h3 id="modal-title" class="modal-title-text">
+    <div class="bg-canvas border border-canvas-border rounded-2xl p-4 w-[calc(100%-32px)] max-w-[640px] max-h-[calc(100%-32px)] overflow-y-auto position-fixed text-left z-100001" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="flex flex-start justify-between gap-2 mb-4">
+        <div class="flex items-center justify-start gap-[6px]">
+          <h3 id="modal-title" class="text-h3 text-on-surface m-0">
             <slot name="title"></slot>
           </h3>
 
@@ -58,40 +58,3 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.modal-card {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-canvas-border);
-  border-radius: var(--radius-2xl);
-  padding: 16px;
-  width: calc(100% - 32px);
-  max-width: 640px;
-  max-height: calc(100% - 32px);
-  overflow-y: auto;
-  position: fixed;
-  text-align: left;
-  z-index: 100001;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 16px;
-  align-items: flex-start;
-}
-
-.modal-title {
-  gap: 6px;
-  align-items: center;
-  display: flex;
-  justify-content: left;
-}
-
-.modal-title-text {
-  margin: 0;
-  font-size: var(--text-h3);
-  color: var(--color-on-surface);
-}
-</style>

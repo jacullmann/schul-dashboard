@@ -34,7 +34,6 @@ const showSetupModal = ref(false);
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
 
-// Logo links to active group items if active group exists, otherwise home
 const logoLink = computed(() => {
   /* if (activeGroupId.value) {
     return `/groups/${activeGroupId.value}/items/all`;
@@ -199,31 +198,29 @@ onUnmounted(() => {
                 />
               </button>
 
-              <div v-if="groupMenuOpen" class="menu">
-                <button
+              <BaseMenu v-if="groupMenuOpen">
+                <BaseMenuButton
                   v-for="g in userGroups"
                   :key="g.id"
-                  class="menu-btn"
                   :class="{ active: g.id === activeGroupId }"
                   @click="onSwitchGroup(g.id)"
                 >
                   <span>{{ g.name }}</span>
                   <span
                     v-if="g.hasUnreadContent && g.id !== activeGroupId"
-                    class="unread-dot"
+                    class="size-2 rounded-full bg-danger shrink-0"
                   ></span>
-                </button>
+                </BaseMenuButton>
 
                 <BaseMenuDivider />
 
-                <router-link
-                  to="/home"
-                  class="menu-btn action"
-                  @click="groupMenuOpen = false"
+                <BaseMenuButton
+                  @click="groupMenuOpen = false; router.push('/home')"
+                  class="action"
                 >
-                  + New group
-                </router-link>
-              </div>
+                  New group
+                </BaseMenuButton>
+              </BaseMenu>
             </div>
           </template>
         </div>
@@ -304,7 +301,7 @@ onUnmounted(() => {
           aria-label="Toggle menu"
           v-if="!navOpen"
         >
-          <Menu style="color: var(--color-on-surface)" :size="26"></Menu>
+          <Menu class="text-on-surface" :size="26"></Menu>
         </button>
       </div>
 
@@ -321,7 +318,7 @@ onUnmounted(() => {
         wpuKurs2: user.wpuKurs2 || null,
         theater: user.theater || 0,
       }"
-      @close="showSetupModal = false"
+      @cancel="showSetupModal = false"
       @success="onSetupSuccess"
       @update:user="onSetupSuccess"
     />
@@ -472,14 +469,6 @@ onUnmounted(() => {
 
 .nav-item:hover {
   color: var(--color-action-hover);
-}
-
-.unread-dot {
-  width: 8px;
-  height: 8px;
-  background-color: var(--color-danger);
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
 }
 
 .header-right {

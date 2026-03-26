@@ -6,7 +6,7 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: 'cancel'): void;
 }>();
 
 const router = useRouter();
@@ -51,7 +51,7 @@ async function submit() {
         await userStore.fetchUser();
       } catch {}
 
-      emit('close');
+      emit('cancel');
       await router.push(`/groups/${activeGroupId.value}/items/all`);
     } else {
       errorMsg.value = res.error || 'Zugriff verweigert. Code prüfen.';
@@ -66,7 +66,7 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('close')">
+  <BaseModal @cancel="$emit('cancel')">
     <template #title>
       Gruppe beitreten
     </template>

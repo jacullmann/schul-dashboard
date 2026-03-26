@@ -81,7 +81,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="relative inline-flex">
-    <BaseButton class="p-1" @click="toggleMenu" ref="buttonRef" variant="action">
+    <BaseButton class="px-1 py-1" @click="toggleMenu" ref="buttonRef" variant="action">
       <Plus :size="24" />
     </BaseButton>
 

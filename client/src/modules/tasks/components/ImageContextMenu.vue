@@ -11,7 +11,7 @@ const props = defineProps<{
   canDelete: boolean;
 }>();
 
-const emit = defineEmits(['close', 'upload', 'delete']);
+const emit = defineEmits(['cancel', 'upload', 'delete']);
 
 const menuRef = ref<HTMLElement | null>(null);
 
@@ -23,7 +23,7 @@ const styleObject = reactive({
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
-    emit('close');
+    emit('cancel');
   }
 }
 
@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
       :style="styleObject"
       @click.stop
   >
-    <BaseMenu>
+    <BaseMenu class="min-w-[180px]">
       <BaseMenuButton @click="emit('upload')">
         <Upload :size="16" />
         {{ t('school.tasks.items.menu.uploadImages') }}
@@ -80,5 +80,5 @@ onBeforeUnmount(() => {
       </BaseMenuButton>
     </BaseMenu>
   </div>
-  <div class="position-fixed inset-0 z-10000" @click="emit('close')" @contextmenu.prevent="emit('close')"></div>
+  <div class="position-fixed inset-0 z-10000" @click="emit('cancel')" @contextmenu.prevent="emit('cancel')"></div>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import TabSwitcher from '@/common/components/TabSwitcher.vue';
+import BaseTabs from '@/common/components/BaseTabs.vue';
 import MfaSettings from '@/modules/auth/components/MfaSettings.vue';
 import ConnectedAccounts from '@/modules/auth/components/ConnectedAccounts.vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
@@ -10,7 +10,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'close'): void;
+  (e: 'cancel'): void;
   (e: 'mfaChanged', enabled: boolean): void;
 }>();
 
@@ -48,7 +48,7 @@ onMounted(async () => {
 
     <template #content>
       <div class="tab-wrapper">
-        <TabSwitcher
+        <BaseTabs
             :items="tabs"
             :active-id="activeTab"
             @change="handleTabChange"

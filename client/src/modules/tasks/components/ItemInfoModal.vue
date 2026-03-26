@@ -10,7 +10,7 @@ const props = defineProps<{
   isSuperAdmin?: boolean;
 }>();
 
-defineEmits(['close']);
+defineEmits(['cancel']);
 
 const { t, locale } = useI18n();
 
@@ -36,7 +36,7 @@ const showUpdated = computed(() => {
 </script>
 
 <template>
-  <BaseModal v-if="show" @cancel="$emit('close')">
+  <BaseModal v-if="show" @cancel="$emit('cancel')">
     <template #title>
       {{ t('school.tasks.items.menu.infoModal.title') }}
     </template>
@@ -69,7 +69,7 @@ const showUpdated = computed(() => {
     </template>
 
     <template #actions>
-      <BaseButton type="button" @click="$emit('close')" variant="ghost">
+      <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
         {{ t('global.buttons.close') }}
       </BaseButton>
     </template>

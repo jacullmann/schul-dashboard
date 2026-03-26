@@ -7,7 +7,7 @@ import ConfirmDialog from '@/modules/tasks/components/ConfirmDialog.vue'
 import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
-import TabSwitcher from '@/common/components/TabSwitcher.vue';
+import BaseTabs from '@/common/components/BaseTabs.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info } from '@lucide/vue'
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
@@ -158,7 +158,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
     '.img-clickable',
     '.img-overlay',
     '.unpin-trigger',
-    '.menu',
+    '[role=menu]',
     '.checkbox'
   ].join(', ');
 
@@ -199,7 +199,7 @@ async function handleArchiveFromMenu(item: HwItem) {
       </div>
     </div>
 
-    <TabSwitcher
+    <BaseTabs
         :items="tabItems"
         :active-id="tab"
         @change="(id) => goTab(id as any)"
@@ -267,53 +267,53 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #menu>
-          <div v-if="openMenuId === item.id" class="menu" @click.stop>
-            <BaseMenuButton v-if="user" @click="onMenuAction('images', item)">
+          <BaseMenu v-if="openMenuId === item.id" @click.stop>
+            <BaseMenuButton v-if="user" class="icon-trigger" @click="onMenuAction('images', item)">
               <Upload :size="16" />
               {{ t('school.tasks.items.menu.uploadImages') }}
             </BaseMenuButton>
 
-            <BaseMenuButton v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
+            <BaseMenuButton v-if="canEdit(item.createdBy)" class="icon-trigger" @click="onMenuAction('edit', item)">
               <Pencil :size="16" />
               {{ t('global.buttons.edit') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canEdit(item.createdBy) || user" />
 
-            <BaseMenuButton v-if="user" @click="togglePin(item)">
+            <BaseMenuButton v-if="user" class="icon-trigger" @click="togglePin(item)">
               <Pin v-if="!isPinned(item.id)" class="unpinned" :size="16" />
               <Pin fill="currentColor" v-else class="pinned" :size="16" />
               {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
             </BaseMenuButton>
 
-            <BaseMenuButton v-if="user" @click="handleArchiveFromMenu(item)">
+            <BaseMenuButton v-if="user" class="icon-trigger" @click="handleArchiveFromMenu(item)">
               <ArchiveRestore v-if="showOldEntries" :size="16" />
               <Archive v-else :size="16" />
               {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
             </BaseMenuButton>
 
-            <BaseMenuButton @click="shareItem(item)">
+            <BaseMenuButton class="icon-trigger" @click="shareItem(item)">
               <Send :size="16" />
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
-            <BaseMenuButton @click="openMenuId = null; showInfoItem = item">
+            <BaseMenuButton class="icon-trigger" @click="openMenuId = null; showInfoItem = item">
               <Info :size="16" />
               {{ t('school.tasks.items.menu.info') }}
             </BaseMenuButton>
 
-            <BaseMenuButton title="Melden" @click="onMenuAction('report', item)">
+            <BaseMenuButton title="Melden" class="icon-trigger" @click="onMenuAction('report', item)">
               <Flag :size="16" />
               {{ t('school.tasks.items.menu.report.name') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canDelete(item.createdBy)" />
 
-            <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
+            <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" class="icon-trigger" @click="onMenuAction('delete', item)">
               <Trash2 :size="16" />
               {{ t('global.buttons.delete') }}
             </BaseMenuButton>
-          </div>
+          </BaseMenu>
         </template>
 
         <template #body v-if="item.description.length">
@@ -428,7 +428,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         :can-delete="imageMenu.image && imageMenu.item ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy) : false"
         @upload="triggerImageUpload"
         @delete="triggerImageDelete"
-        @close="closeImageMenu"
+        @cancel="closeImageMenu"
     />
 
     <ConfirmDialog
@@ -461,17 +461,17 @@ async function handleArchiveFromMenu(item: HwItem) {
         :item="showInfoItem"
         :is-mod-or-admin="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"
         :is-super-admin="user?.role === 'superadmin'"
-        @close="showInfoItem = null"
+        @cancel="showInfoItem = null"
     />
 
     <ImageViewer
         :visible="showImageViewer"
         :images="viewerImages"
         :initial-index="viewerStartIndex"
-        @close="closeImageViewer"
+        @cancel="closeImageViewer"
     />
 
-    <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || null, wpuKurs1: user.wpuKurs1 || null, wpuKurs2: user.wpuKurs2 || null, theater: user.theater || 0 }" @close="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
+    <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || null, wpuKurs1: user.wpuKurs1 || null, wpuKurs2: user.wpuKurs2 || null, theater: user.theater || 0 }" @cancel="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 
@@ -551,16 +551,16 @@ async function handleArchiveFromMenu(item: HwItem) {
   transform-origin: bottom;
 }
 
-.menu-btn:hover .pinned :deep(path:last-child),
+.icon-trigger:hover .pinned :deep(path:last-child),
 .unpin-trigger:hover .pinned :deep(path:last-child) {
   transform: translateY(-8%) scaleY(1);
 }
 
-.menu-btn:hover .unpinned :deep(path:last-child) {
+.icon-trigger:hover .unpinned :deep(path:last-child) {
   transform: translateY(8%) scaleY(1);
 }
 
-.menu-btn:hover .unpinned :deep(path:first-child) {
+.icon-trigger:hover .unpinned :deep(path:first-child) {
   transform: translateY(0) scaleY(0.7);
 }
 
@@ -570,7 +570,7 @@ async function handleArchiveFromMenu(item: HwItem) {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-send {
+.icon-trigger:hover .lucide-send {
   transform: translate(1px, -1px);
 
 }
@@ -585,8 +585,8 @@ async function handleArchiveFromMenu(item: HwItem) {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-upload :deep(path:first-child),
-.menu-btn:hover .lucide-upload :deep(path:nth-child(2)) {
+.icon-trigger:hover .lucide-upload :deep(path:first-child),
+.icon-trigger:hover .lucide-upload :deep(path:nth-child(2)) {
   transform: translateY(-2px);
 }
 
@@ -596,7 +596,7 @@ async function handleArchiveFromMenu(item: HwItem) {
   transition: 0.1s ease;
 }
 
-.menu-btn:hover .lucide-pencil {
+.icon-trigger:hover .lucide-pencil {
   transform: translateY(-1px) rotate(5deg);
 }
 
@@ -606,7 +606,7 @@ async function handleArchiveFromMenu(item: HwItem) {
   transform-origin: 15% 90%;
 }
 
-.menu-btn:hover .lucide-flag {
+.icon-trigger:hover .lucide-flag {
   transform: rotate(-5deg);
 }
 
@@ -625,8 +625,8 @@ async function handleArchiveFromMenu(item: HwItem) {
   transform-origin: 80% 30%;
 }
 
-.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(4)),
-.menu-btn:hover .lucide-trash-2 :deep(path:nth-child(5)) {
+.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(4)),
+.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(5)) {
   transform: translateY(-1px) translateX(1px) rotate(10deg);
 }
 

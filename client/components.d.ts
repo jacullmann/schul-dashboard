@@ -28,11 +28,11 @@ declare module 'vue' {
     MenuDropdown: typeof import('./src/common/components/MenuDropdown.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TabSwitcher: typeof import('./src/common/components/TabSwitcher.vue')['default']
+    BaseTabs: typeof import('@/common/components/BaseTabs.vue')['default']
     Tagline: typeof import('./src/common/components/Tagline.vue')['default']
     ThemeDropdown: typeof import('./src/common/components/ThemeDropdown.vue')['default']
     ThemeMenuDropdown: typeof import('./src/common/components/ThemeMenuDropdown.vue')['default']
-    ToastContainer: typeof import('./src/common/components/ToastContainer.vue')['default']
+    BaseToast: typeof import('@/common/components/BaseToast.vue')['default']
     VideoPlayer: typeof import('./src/common/components/VideoPlayer.vue')['default']
   }
 }

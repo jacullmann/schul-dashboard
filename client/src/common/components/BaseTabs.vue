@@ -131,9 +131,9 @@ useResizeObserver(navBarRef, () => {
 </script>
 
 <template>
-  <div class="wrapper">
+  <div class="flex items-center justify-start w-full">
     <nav class="nav-bar" ref="navBarRef" aria-label="Tabs">
-      <!-- Background Layer (Die graue Schrift) -->
+      <!-- Background Layer (the grey font) -->
       <div class="nav-layer background-layer" role="tablist">
         <button
             v-for="(item, index) in items"
@@ -153,7 +153,7 @@ useResizeObserver(navBarRef, () => {
 
       <!-- Pill Mask -->
       <div class="highlight-pill" :style="pillStyle" aria-hidden="true">
-        <!-- Foreground Layer (Die dunkle Schrift, 1:1 Kopie der Liste) -->
+        <!-- Foreground Layer (the dark font, 1:1 copy of the list) -->
         <div class="nav-layer foreground-layer" :style="innerListStyle">
           <button
               v-for="item in items"
@@ -170,17 +170,6 @@ useResizeObserver(navBarRef, () => {
 </template>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-}
-
-.wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-}
-
 .nav-bar {
   position: relative;
   background-color: var(--color-surface);

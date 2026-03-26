@@ -19,25 +19,53 @@ function handleChange(event: Event) {
   emit('update:modelValue', target.checked)
   emit('change', event)
 }
+
+function handleLabelClick(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (target.closest('a')) {
+    event.stopPropagation()
+  }
+}
 </script>
 
 <template>
   <label class="collapse-checkbox">
     <input
         type="checkbox"
+        class="sr-only"
         :checked="modelValue || checked"
         @change="handleChange"
     />
-    <span class="vis-label">
+    <span class="vis-label" aria-hidden="true">
       <Check class="check-icon" stroke-width="3" />
+    </span>
+    <span
+        v-if="$slots.default"
+        class="text-sub leading-[18px] flex-1"
+        @click="handleLabelClick"
+    >
+      <slot />
     </span>
   </label>
 </template>
 
 <style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 .collapse-checkbox {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
   cursor: pointer;
   user-select: none;
   /* reset global label styles */
