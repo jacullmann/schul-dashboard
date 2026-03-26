@@ -164,16 +164,16 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="p-4 bg-surface border-r border-surface-border flex flex-col justify-between items-center"
+    class="fixed h-screen p-3 bg-surface border-r border-surface-border flex flex-col justify-between items-center"
   >
-    <div class="gap-8">
+    <div class="flex flex-col gap-8">y
         <SidebarButton>
           <PanelLeft :size="24" />
         </SidebarButton>
         <SidebarButton>
           <CirclePlus :size="24" />
         </SidebarButton>
-      <div class="gap-4">
+      <div class="flex flex-col gap-4">
         <SidebarButton @click="router.push('/home')">
           <House :size="24" />
         </SidebarButton>
