@@ -12,14 +12,13 @@ const { loading, progress, opacity } = useLoadingBar();
 const { activeGroupId } = useAppAuth();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-
 </script>
 
 <template>
   <div class="flex min-h-screen w-full">
     <AppSidebar v-if="user" />
 
-    <div class="layout-wrapper flex-1" :class="{ 'has-sidebar': user }">
+    <div class="flex-1 min-w-0">
       <AppHeader />
       <GlobalAnnouncements v-if="activeGroupId" />
 
