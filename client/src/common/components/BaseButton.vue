@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
@@ -14,6 +14,8 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   disabled: false,
 });
+
+const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   default: '',
@@ -33,10 +35,18 @@ const variantClasses: Record<NonNullable<Props['variant']>, string> = {
 };
 
 const classes = computed(() => variantClasses[props.variant ?? 'default']);
+
+defineExpose({
+  focus: () => buttonEl.value?.focus(),
+  blur: () => buttonEl.value?.blur(),
+  click: () => buttonEl.value?.click(),
+  el: buttonEl,
+});
 </script>
 
 <template>
   <button
+    ref="buttonEl"
     :type="type"
     :disabled="disabled || loading"
     :class="classes"

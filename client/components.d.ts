@@ -21,6 +21,8 @@ declare module 'vue' {
     BaseModal: typeof import('./src/common/components/BaseModal.vue')['default']
     BaseSelect: typeof import('./src/common/components/BaseSelect.vue')['default']
     BaseSpinner: typeof import('./src/common/components/BaseSpinner.vue')['default']
+    BaseTabs: typeof import('./src/common/components/BaseTabs.vue')['default']
+    BaseToast: typeof import('./src/common/components/BaseToast.vue')['default']
     CookieBanner: typeof import('./src/common/components/CookieBanner.vue')['default']
     InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']
     LocaleDropdown: typeof import('./src/common/components/LocaleDropdown.vue')['default']
@@ -28,11 +30,9 @@ declare module 'vue' {
     MenuDropdown: typeof import('./src/common/components/MenuDropdown.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    BaseTabs: typeof import('@/common/components/BaseTabs.vue')['default']
     Tagline: typeof import('./src/common/components/Tagline.vue')['default']
     ThemeDropdown: typeof import('./src/common/components/ThemeDropdown.vue')['default']
     ThemeMenuDropdown: typeof import('./src/common/components/ThemeMenuDropdown.vue')['default']
-    BaseToast: typeof import('@/common/components/BaseToast.vue')['default']
     VideoPlayer: typeof import('./src/common/components/VideoPlayer.vue')['default']
   }
 }

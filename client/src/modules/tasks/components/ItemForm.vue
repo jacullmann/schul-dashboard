@@ -6,6 +6,7 @@ import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
+import type BaseInput from '@/common/components/BaseInput.vue';
 
 const { t, te } = useI18n();
 const subjectStore = useSubjectStore();
@@ -210,7 +211,7 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape') emit('cancel');
 }
 
-const titleInputRef = ref<HTMLInputElement | null>(null);
+const titleInputRef = ref<InstanceType<typeof BaseInput> | null>(null);
 
 onMounted(() => {
   imgInit(props.initial?.images || []);

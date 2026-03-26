@@ -6,7 +6,7 @@ import WelcomeSection from '@/modules/welcome/components/WelcomeSection.vue';
 const welcomeSectionRef = ref<InstanceType<typeof WelcomeSection> | null>(null);
 
 function scrollToSection() {
-  const targetElement = welcomeSectionRef.value?.$el;
+  const targetElement = welcomeSectionRef.value?.el.value;
 
   if (targetElement) {
     const yOffset = -100;

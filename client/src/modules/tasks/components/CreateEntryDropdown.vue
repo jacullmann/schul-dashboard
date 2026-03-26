@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { NotebookText, FileText, BookOpenText, Plus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
+import type BaseMenu from '@/common/components/BaseMenu.vue';
 
 const { t } = useI18n();
 
@@ -14,7 +15,7 @@ const emit = defineEmits<{
 const isOpen = ref(false);
 const alignRight = ref(false);
 const buttonRef = ref<HTMLButtonElement | null>(null);
-const menuRef = ref<HTMLDivElement | null>(null);
+const menuRef = ref<InstanceType<typeof BaseMenu> | null>(null);
 
 async function toggleMenu() {
   isOpen.value = !isOpen.value;
@@ -27,7 +28,7 @@ async function toggleMenu() {
 function updateMenuPosition() {
   if (!menuRef.value || !buttonRef.value) return;
 
-  const menu = menuRef.value;
+  const menu = menuRef.value.el.value as HTMLElement;
   const button = buttonRef.value;
   const buttonRect = button.getBoundingClientRect();
   const menuWidth = menu.offsetWidth;

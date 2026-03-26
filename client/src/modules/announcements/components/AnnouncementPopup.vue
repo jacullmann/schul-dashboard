@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type BaseButton from '@/common/components/BaseButton.vue'
 
 const { t } = useI18n()
 
@@ -13,7 +14,7 @@ const props = defineProps({
 
 const emit = defineEmits(['cancel'])
 
-const confirmBtnRef = ref<HTMLButtonElement | null>(null)
+const confirmBtnRef = ref<InstanceType<typeof BaseButton> | null>(null)
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
