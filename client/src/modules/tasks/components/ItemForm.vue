@@ -296,7 +296,7 @@ onMounted(() => {
             <div
                 v-for="img in imgImages"
                 :key="img.publicId"
-                class="relative w-120 h-120 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
+                class="relative w-30 h-30 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
             >
               <a :href="img.url" target="_blank" rel="noopener">
                 <img

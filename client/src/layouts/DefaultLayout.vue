@@ -1,40 +1,49 @@
 <script setup lang="ts">
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
+import AppSidebar from '@/core/components/AppSidebar.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useUserStore } from '@/stores/userStore';
+import { storeToRefs } from 'pinia';
 
 const { loading, progress, opacity } = useLoadingBar();
 const { activeGroupId } = useAppAuth();
+const userStore = useUserStore();
+const { user } = storeToRefs(userStore);
 
 </script>
 
 <template>
-  <AppHeader />
-  <GlobalAnnouncements v-if="activeGroupId" />
+  <AppSidebar v-if="user" />
 
-  <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
-    <div class="progress-bar" :style="{ width: progress + '%' }">
-      <div class="peg"></div>
+  <div class="layout-wrapper" :class="{ 'has-sidebar': user }">
+    <AppHeader />
+    <GlobalAnnouncements v-if="activeGroupId" />
+
+    <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
+      <div class="progress-bar" :style="{ width: progress + '%' }">
+        <div class="peg"></div>
+      </div>
     </div>
+
+    <main class="full-c">
+      <div class="bg"></div>
+
+      <div
+          :class="{ 'container': !$route.meta.fullWidth }"
+          class="main-content"
+          key="content"
+      >
+        <router-view v-slot="{ Component }">
+          <component :is="Component" :key="activeGroupId || 'default'" />
+        </router-view>
+      </div>
+    </main>
+
+    <AppFooter />
   </div>
-
-  <main class="full-c">
-    <div class="bg"></div>
-
-    <div
-        :class="{ 'container': !$route.meta.fullWidth }"
-        class="main-content"
-        key="content"
-    >
-      <router-view v-slot="{ Component }">
-        <component :is="Component" :key="activeGroupId || 'default'" />
-      </router-view>
-    </div>
-  </main>
-
-  <AppFooter />
 </template>
 
 <style scoped>
