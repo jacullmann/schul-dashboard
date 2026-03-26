@@ -62,23 +62,28 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
+    <div
       ref="menuRef"
-      class="absolute z-10001 min-w-[180px]"
+      class="fixed z-[10001] min-w-[180px]"
       :style="styleObject"
       @click.stop
-  >
-    <BaseMenu class="min-w-[180px]">
-      <BaseMenuButton @click="emit('upload')">
-        <Upload :size="16" />
-        {{ t('school.tasks.items.menu.uploadImages') }}
-      </BaseMenuButton>
+    >
+      <BaseMenu class="min-w-[180px]">
+        <BaseMenuButton @click="emit('upload')">
+          <Upload :size="16" />
+          {{ t('school.tasks.items.menu.uploadImages') }}
+        </BaseMenuButton>
 
-      <BaseMenuButton variant="danger" v-if="canDelete" @click="emit('delete')">
-        <Trash2 :size="16" />
-        {{ t('global.buttons.delete') }}
-      </BaseMenuButton>
-    </BaseMenu>
-  </div>
-  <div class="position-fixed inset-0 z-10000" @click="emit('cancel')" @contextmenu.prevent="emit('cancel')"></div>
+        <BaseMenuButton variant="danger" v-if="canDelete" @click="emit('delete')">
+          <Trash2 :size="16" />
+          {{ t('global.buttons.delete') }}
+        </BaseMenuButton>
+      </BaseMenu>
+    </div>
+    
+    <div
+      class="fixed inset-0 z-[10000] cursor-default"
+      @click="emit('cancel')"
+      @contextmenu.prevent="emit('cancel')"
+    ></div>
 </template>

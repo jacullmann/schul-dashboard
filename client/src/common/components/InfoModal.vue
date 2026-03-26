@@ -74,13 +74,13 @@ const closeModal = () => (isModalOpen.value = false)
   opacity: 0;
 }
 
-.fade-scale-enter-active :deep(.modal-card),
-.fade-scale-leave-active :deep(.modal-card) {
+.fade-scale-enter-active :deep([role="dialog"]),
+.fade-scale-leave-active :deep([role="dialog"]) {
   transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.fade-scale-enter-from :deep(.modal-card),
-.fade-scale-leave-to :deep(.modal-card) {
+.fade-scale-enter-from :deep([role="dialog"]),
+.fade-scale-leave-to :deep([role="dialog"]) {
   transform: scale(0);
 }
 </style>

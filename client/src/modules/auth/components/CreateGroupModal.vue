@@ -150,10 +150,6 @@ async function submit() {
 </template>
 
 <style scoped>
-:deep(.modal-card) {
-  max-width: 420px;
-}
-
 .form-content {
   display: flex;
   flex-direction: column;
@@ -208,11 +204,5 @@ async function submit() {
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-@media (max-width: 500px) {
-  :deep(.modal-card) {
-    max-width: 100%;
-  }
 }
 </style>

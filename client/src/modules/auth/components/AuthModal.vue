@@ -175,11 +175,6 @@ const {
 </template>
 
 <style scoped>
-/* Constrain to login-size width */
-:deep(.modal-card) {
-  max-width: 420px;
-}
-
 .tab-wrapper {
   margin-bottom: 24px;
 }
@@ -293,11 +288,5 @@ const {
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-@media (max-width: 500px) {
-  :deep(.modal-card) {
-    max-width: 100%;
-  }
 }
 </style>
