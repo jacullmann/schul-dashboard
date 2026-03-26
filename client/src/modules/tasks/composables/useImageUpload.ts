@@ -200,7 +200,6 @@ export function useImageUpload() {
         // remove locally
         images.value = images.value.filter((i) => i.publicId !== img.publicId);
 
-        console.log('Bild erfolgreich gelöscht:', img.publicId);
         uploadError.value = 'Bild erfolgreich gelöscht.';
         setTimeout(() => (uploadError.value = ''), 3000);
       } catch (e: unknown) {

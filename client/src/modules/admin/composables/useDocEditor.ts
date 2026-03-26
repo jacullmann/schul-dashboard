@@ -87,13 +87,11 @@ export function useDocEditor() {
 
     // Verbindungsevents
     socket.on('connect', () => {
-      console.log('[DocEditor] Socket verbunden:', socket?.id);
       connectionState.value = 'connected';
       conflictDetected.value = false;
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('[DocEditor] Socket getrennt:', reason);
       connectionState.value = 'disconnected';
       onlineAdmins.value = [];
     });

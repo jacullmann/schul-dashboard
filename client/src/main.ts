@@ -19,5 +19,8 @@ app.config.errorHandler = (err, instance, info) => {
     console.error('Component:', instance);
     console.error('Info:', info);
   //}
+  // TODO: Integrate with Sentry or similar error reporting service for production
+  // Example: Sentry.captureException(err, { contexts: { vue: { info } } });
 };
+
 app.mount('#app');

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// import Line from './Line.vue'
 import WelcomeButtonPrimary from "@/modules/welcome/components/WelcomeButtonPrimary.vue";
 import WelcomeButtonSecondary from "@/modules/welcome/components/WelcomeButtonSecondary.vue";
 import ItemCard from "@/modules/tasks/components/ItemCard.vue";
@@ -33,7 +32,6 @@ function navigateToAuth() {
         <span class="free">
           <span class="line-span">
             {{ t('welcome.hero.sublineHighlight') }}
-            <!--<Line class="line" />--->
           </span>
         </span>.
       </p>

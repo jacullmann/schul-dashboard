@@ -1,1 +1,4 @@
-console.log('Example');
+export function useExample() {
+  // TODO: Implement
+}
+

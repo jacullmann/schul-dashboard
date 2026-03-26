@@ -54,7 +54,7 @@ const { user } = storeToRefs(userStore);
   left: 0;
   width: 100%;
   height: 3px;
-  z-index: 10000;
+  z-index: calc(var(--z-header) + 1);
   pointer-events: none;
   transition: opacity 0.4s ease;
 }

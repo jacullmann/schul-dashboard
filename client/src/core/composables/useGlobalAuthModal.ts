@@ -6,14 +6,7 @@ const authReject = ref<((reason?: any) => void) | null>(null);
 
 export function useGlobalAuthModal() {
   function openAuthModal(): Promise<string> {
-    console.log(
-      '[AuthModal] openAuthModal called. Current state:',
-      isAuthModalOpen.value,
-    );
     if (isAuthModalOpen.value) {
-      console.warn(
-        '[AuthModal] Modal was already marked as open. Forcing remount to fix visibility.',
-      );
       isAuthModalOpen.value = false;
       setTimeout(() => {
         isAuthModalOpen.value = true;
@@ -22,7 +15,6 @@ export function useGlobalAuthModal() {
     }
 
     isAuthModalOpen.value = true;
-    console.log('[AuthModal] State set to open.');
     return new Promise((resolve, reject) => {
       authResolve.value = resolve;
       authReject.value = reject;
@@ -30,7 +22,6 @@ export function useGlobalAuthModal() {
   }
 
   function closeAuthModal() {
-    console.log('[AuthModal] closeAuthModal called.');
     isAuthModalOpen.value = false;
     if (authReject.value) {
       authReject.value(new Error('Auth Modal has been closed incorrectly.'));

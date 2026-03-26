@@ -78,8 +78,10 @@ watch(user, (newUser, oldUser) => {
 
 // Remove initial loader when auth is ready
 watch(isAuthReady, (ready) => {
-  if (ready && typeof window !== 'undefined' && window.__removeInitialLoader) {
-    window.__removeInitialLoader();
+  if (ready && typeof window !== 'undefined' && window.__removeInitialLoadingScreen) {
+    requestAnimationFrame(() => {
+      window.__removeInitialLoadingScreen?.();
+    });
   }
 });
 
@@ -170,7 +172,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   background: var(--color-canvas);
-  z-index: 10000;
+  z-index: var(--z-auth-loading);
 }
 
 .oauth-error-banner {
@@ -178,7 +180,7 @@ onUnmounted(() => {
   top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
+  z-index: calc(var(--z-auth-loading) - 1);
   display: flex;
   align-items: center;
   gap: 12px;

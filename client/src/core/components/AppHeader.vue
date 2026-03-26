@@ -326,7 +326,7 @@ onUnmounted(() => {
   height: var(--header-height);
   position: sticky;
   top: 0;
-  z-index: 1002;
+  z-index: var(--z-header);
   transition: background-color 0.3s ease;
   border-bottom: 1px solid var(--color-canvas-border);
   font-family: 'Satoshi', sans-serif;
@@ -495,7 +495,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 998;
+  z-index: var(--z-modal-overlay);
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -520,7 +520,7 @@ onUnmounted(() => {
   padding: 0.5rem;
   border-radius: var(--radius-md);
   transition: background-color 0.3s ease;
-  z-index: 1002;
+  z-index: var(--z-header);
 }
 
 .nav-close-button:hover {
@@ -552,7 +552,7 @@ onUnmounted(() => {
     padding-inline: 32px;
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: 999;
+    z-index: var(--z-mobile-nav);
     box-shadow: var(--shadow-menu);
     border-left: 1px solid var(--color-canvas-border);
     gap: 0;

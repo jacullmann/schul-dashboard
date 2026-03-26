@@ -49,7 +49,7 @@ const ICONS = {
   position: fixed;
   top: 24px;
   right: 24px;
-  z-index: 99999;
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column-reverse;
   gap: 8px;
