@@ -4,7 +4,7 @@ import { ref } from 'vue';
 const rootEl = ref<HTMLDivElement | null>(null);
 
 defineExpose({
-  el: rootEl
+  el: rootEl,
 });
 </script>
 

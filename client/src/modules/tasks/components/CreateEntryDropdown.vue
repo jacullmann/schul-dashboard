@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, unref } from 'vue';
 import { NotebookText, FileText, BookOpenText, Plus } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 import type BaseMenu from '@/common/components/BaseMenu.vue';
@@ -28,7 +28,9 @@ async function toggleMenu() {
 function updateMenuPosition() {
   if (!menuRef.value || !buttonRef.value) return;
 
-  const menu = menuRef.value.el.value as HTMLElement;
+  const menu = unref(menuRef.value.el);
+  if (!menu) return;
+  
   const button = buttonRef.value;
   const buttonRect = button.getBoundingClientRect();
   const menuWidth = menu.offsetWidth;

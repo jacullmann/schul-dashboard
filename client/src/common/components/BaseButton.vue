@@ -37,10 +37,10 @@ const variantClasses: Record<NonNullable<Props['variant']>, string> = {
 const classes = computed(() => variantClasses[props.variant ?? 'default']);
 
 defineExpose({
+  el: buttonEl,
   focus: () => buttonEl.value?.focus(),
   blur: () => buttonEl.value?.blur(),
   click: () => buttonEl.value?.click(),
-  el: buttonEl,
 });
 </script>
 
