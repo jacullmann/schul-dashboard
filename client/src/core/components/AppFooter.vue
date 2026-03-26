@@ -13,9 +13,9 @@ const year = new Date().getFullYear();
 </script>
 
 <template>
-  <footer class="bg-canvas text-on-surface pt-12 border-t border-canvas-border md:px-4 md:pt-4">
-    <div class="container pb-10 md:pb-8 max-w-[1300px]">
-      <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr] lg:grid-cols-2 md:grid-cols-1 gap-4">
+  <footer class="bg-canvas text-on-surface pt-12 border-t border-canvas-border max-md:px-4 max-md:pt-4">
+    <div class="container pb-10 max-md:pb-8 max-w-[1300px]">
+      <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr] max-lg:grid-cols-2 max-md:grid-cols-1 gap-4">
         <FooterSection content-class="gap-2" class="max-lg:col-span-full">
           <div class="flex items-center gap-3 mb-1">
             <AppLogo class="h-[28px] w-auto" aria-hidden="true" />
@@ -58,7 +58,7 @@ const year = new Date().getFullYear();
     </div>
 
     <div class="border-t border-canvas-border font-sub">
-      <div class="max-w-[1300px] flex justify-between items-center md:flex-col md:items-start md:gap-3">
+      <div class="max-w-[1300px] flex justify-between items-center max-md:flex-col max-md:items-start max-md:gap-3">
         <p class="text-on-surface-muted m-0">© {{ year }} {{ t('global.title') }}</p>
       </div>
     </div>

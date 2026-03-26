@@ -14,7 +14,7 @@ withDefaults(defineProps<Props>(), {
   <section class="flex flex-col gap-3">
     <h3
       v-if="title"
-      class="text-on-surface font-title font-bold m-0 mb-2 lg:mt-8"
+      class="text-on-surface font-title font-bold m-0 mb-2 max-lg:mt-8"
     >
       {{ title }}
     </h3>
