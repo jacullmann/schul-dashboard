@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, unref } from 'vue';
 import WelcomeContent from '@/modules/welcome/components/WelcomeContent.vue';
 import WelcomeSection from '@/modules/welcome/components/WelcomeSection.vue';
 
 const welcomeSectionRef = ref<InstanceType<typeof WelcomeSection> | null>(null);
 
 function scrollToSection() {
-  const targetElement = welcomeSectionRef.value?.el.value;
+  const targetElement = unref(welcomeSectionRef.value?.el);
 
   if (targetElement) {
     const yOffset = -100;

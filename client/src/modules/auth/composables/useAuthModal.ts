@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import hw from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { usePreferences } from '@/common/composables/usePreferences';
+import type BaseInput from '@/common/components/BaseInput.vue';
 
 export function useAuthModal(onLoggedIn: () => void) {
   const { t } = useI18n();
@@ -26,7 +27,7 @@ export function useAuthModal(onLoggedIn: () => void) {
   const showReset = ref(false);
   const showMfaVerify = ref(false);
 
-  const emailInputRef = ref<HTMLInputElement | null>(null);
+  const emailInputRef = ref<InstanceType<typeof BaseInput> | null>(null);
 
   const errors = reactive<{
     email?: string;
