@@ -635,5 +635,15 @@
     "auth": "Authentifizierung",
     "privateTodos": "Meine Einträge"
   },
+  "sidebar": {
+    "expand": "Erweitern",
+    "collapse": "Einklappen",
+    "create": "Erstellen",
+    "home": "Start",
+    "tasks": "Aufgaben",
+    "schedule": "Stundenplan",
+    "groups": "Gruppen",
+    "security": "Sicherheit"
+  },
   "about": {}
 }

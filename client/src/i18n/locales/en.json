@@ -579,5 +579,15 @@
     "auth": "Authentication",
     "privateTodos": "Private Entries"
   },
+  "sidebar": {
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "create": "Create",
+    "home": "Home",
+    "tasks": "Tasks",
+    "schedule": "Schedule",
+    "groups": "Groups",
+    "security": "Security"
+  },
   "about": {}
 }

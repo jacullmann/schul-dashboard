@@ -12,13 +12,14 @@ import {
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi.ts';
-import { useEventListener } from '@vueuse/core';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
 import { useRouter } from 'vue-router';
 import { useMfa } from '@/modules/auth/composables/useMfa.ts';
 import SidebarButton from '@/core/components/SidebarButton.vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
@@ -28,6 +29,11 @@ const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
 
 const showSetupModal = ref(false);
+const isExpanded = ref(false);
+
+function toggleExpanded() {
+  isExpanded.value = !isExpanded.value;
+}
 
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
@@ -90,33 +96,67 @@ onUnmounted(() => {
 
 <template>
   <aside
-    class="sticky top-0 h-screen p-3 bg-surface border-r border-surface-border flex flex-col justify-between items-center shrink-0"
+    class="sidebar sticky top-0 h-screen p-3 bg-surface border-r border-surface-border flex flex-col justify-between shrink-0 overflow-hidden"
+    :class="isExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'"
   >
-    <div class="flex flex-col gap-8">
-      <SidebarButton>
-        <PanelLeft :size="24" />
+    <div class="flex flex-col gap-2">
+      <!-- Toggle button -->
+      <SidebarButton
+        :label="t('sidebar.collapse')"
+        :expanded="isExpanded"
+        @click="toggleExpanded"
+        class="mb-4"
+      >
+        <PanelLeft
+          :size="24"
+          class="toggle-icon"
+          :class="{ 'rotate-180': isExpanded }"
+        />
       </SidebarButton>
-      <SidebarButton>
+
+      <!-- Quick Action -->
+      <SidebarButton :label="t('sidebar.create')" :expanded="isExpanded">
         <CirclePlus :size="24" />
       </SidebarButton>
-      <div class="flex flex-col gap-4">
-        <SidebarButton @click="router.push('/home')">
+
+      <div class="flex flex-col gap-1 mt-4">
+        <SidebarButton
+          :label="t('sidebar.home')"
+          :expanded="isExpanded"
+          @click="router.push('/home')"
+        >
           <House :size="24" />
         </SidebarButton>
 
-        <SidebarButton @click="router.push(`/groups/${activeGroupId}/items/all`)">
+        <SidebarButton
+          :label="t('sidebar.tasks')"
+          :expanded="isExpanded"
+          @click="router.push(`/groups/${activeGroupId}/items/all`)"
+        >
           <ListTodo :size="24" />
         </SidebarButton>
 
-        <SidebarButton @click="router.push(`/groups/${activeGroupId}/schedule`)">
+        <SidebarButton
+          :label="t('sidebar.schedule')"
+          :expanded="isExpanded"
+          @click="router.push(`/groups/${activeGroupId}/schedule`)"
+        >
           <CalendarDays :size="24" />
         </SidebarButton>
 
-        <SidebarButton @click="router.push('/home')">
+        <SidebarButton
+          :label="t('sidebar.groups')"
+          :expanded="isExpanded"
+          @click="router.push('/home')"
+        >
           <UsersRound :size="24" />
         </SidebarButton>
 
-        <SidebarButton @click="router.push('/todos')">
+        <SidebarButton
+          :label="t('sidebar.security')"
+          :expanded="isExpanded"
+          @click="router.push('/todos')"
+        >
           <Lock :size="24" />
         </SidebarButton>
       </div>
@@ -135,3 +175,22 @@ onUnmounted(() => {
     />
   </aside>
 </template>
+
+<style scoped>
+.sidebar {
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: stretch;
+}
+
+.sidebar-collapsed {
+  width: 60px;
+}
+
+.sidebar-expanded {
+  width: 220px;
+}
+
+.toggle-icon {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
