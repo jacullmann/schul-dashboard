@@ -2,12 +2,11 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
-
-import type { ComponentInstance } from 'vue';
+import type BaseInput from '@/common/components/BaseInput.vue';
 
 const emit = defineEmits(['cancel', 'success']);
 
-const textareaRef = ref<ComponentInstance<any> | null>(null);
+const textareaRef = ref<InstanceType<typeof BaseInput> | null>(null);
 
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === 'Escape' && !submitting.value) {
