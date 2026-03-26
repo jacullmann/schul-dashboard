@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import { useEventListener } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import type BaseButton from '@/common/components/BaseButton.vue'
 
@@ -22,15 +23,12 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
+useEventListener(window, 'keydown', onKeyDown)
+
 onMounted(() => {
-  window.addEventListener('keydown', onKeyDown)
   setTimeout(() => {
     confirmBtnRef.value?.focus()
   }, 50)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown)
 })
 
 const color = computed(() => {

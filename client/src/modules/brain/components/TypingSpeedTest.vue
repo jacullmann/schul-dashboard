@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import { Keyboard, Clock } from '@lucide/vue';
 
 const emit = defineEmits<{
@@ -65,13 +66,7 @@ function saveAndExit() {
   emit('finish', wpm.value);
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
+useEventListener(window, 'keydown', handleKeydown);
 
 function getCharClass(index: number) {
   if (index >= typedText.value.length) return 'untyped';

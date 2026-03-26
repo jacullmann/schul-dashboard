@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed } from 'vue';
 import { Upload, Trash2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
+import { useEventListener, useElementBounding, useWindowSize } from '@vueuse/core';
 
 const { t } = useI18n();
 
@@ -15,49 +16,24 @@ const emit = defineEmits(['cancel', 'upload', 'delete']);
 
 const menuRef = ref<HTMLElement | null>(null);
 
-const styleObject = reactive({
-  top: props.y + 'px',
-  left: props.x + 'px',
-  opacity: '0',
+const { width: menuW, height: menuH } = useElementBounding(menuRef);
+const { width: winW, height: winH } = useWindowSize();
+
+const padding = 10;
+
+const styleObject = computed(() => {
+  const x = Math.min(Math.max(padding, props.x), winW.value - menuW.value - padding);
+  const y = Math.min(Math.max(padding, props.y), winH.value - menuH.value - padding);
+  return {
+    top: `${y}px`,
+    left: `${x}px`,
+    // Stay hidden until bounding data is available to avoid initial flash at wrong position
+    opacity: menuW.value > 0 ? '1' : '0',
+  };
 });
 
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    emit('cancel');
-  }
-}
-
-onMounted(async () => {
-  window.addEventListener('keydown', onKeyDown);
-  await nextTick();
-
-  if (!menuRef.value) return;
-
-  const rect = menuRef.value.getBoundingClientRect();
-  const winWidth = window.innerWidth;
-  const winHeight = window.innerHeight;
-
-  let newX = props.x;
-  let newY = props.y;
-  const padding = 10;
-
-  if (newX + rect.width > winWidth) {
-    newX = winWidth - rect.width - padding;
-  }
-  if (newX < padding) newX = padding;
-
-  if (newY + rect.height > winHeight) {
-    newY = winHeight - rect.height - padding;
-  }
-  if (newY < padding) newY = padding;
-
-  styleObject.left = `${newX}px`;
-  styleObject.top = `${newY}px`;
-  styleObject.opacity = '1';
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
+useEventListener(window, 'keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') emit('cancel');
 });
 </script>
 
@@ -80,7 +56,7 @@ onBeforeUnmount(() => {
         </BaseMenuButton>
       </BaseMenu>
     </div>
-    
+
     <div
       class="fixed inset-0 z-[10000] cursor-default"
       @click="emit('cancel')"

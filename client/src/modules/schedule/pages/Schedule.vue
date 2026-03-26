@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import { useResizeObserver, useWindowSize } from '@vueuse/core';
 import InfoModal from '@/common/components/InfoModal.vue'
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 import { useI18n } from 'vue-i18n';
@@ -23,45 +24,37 @@ const {
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);
-let resizeObserver: ResizeObserver | null = null;
+
+const { width: windowWidth } = useWindowSize();
 
 const syncRowHeights = () => {
-  if (window.innerWidth >= 501) {
+  if (windowWidth.value >= 501) {
     if (timeColWrapperRef.value) {
       timeColWrapperRef.value.style.gridTemplateRows = '';
     }
     return;
   }
   if (daysGridWrapperRef.value && timeColWrapperRef.value) {
-    const computed = window.getComputedStyle(daysGridWrapperRef.value);
-    timeColWrapperRef.value.style.gridTemplateRows = computed.gridTemplateRows;
+    const styles = window.getComputedStyle(daysGridWrapperRef.value);
+    timeColWrapperRef.value.style.gridTemplateRows = styles.gridTemplateRows;
   }
 };
 
 const scrollToDefaultDay = () => {
-  if (!scrollContainerRef.value) return;
-  // If we are on mobile (viewport <= 500px)
-  if (window.innerWidth <= 500) {
-    const dayIndex = defaultDayIndex.value;
-    const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
-    if (dayHeaders && dayHeaders[dayIndex]) {
-      const header = dayHeaders[dayIndex] as HTMLElement;
-      scrollContainerRef.value.scrollTo({
-        left: header.offsetLeft,
-        behavior: 'auto'
-      });
-    }
+  if (!scrollContainerRef.value || windowWidth.value > 500) return;
+  const dayIndex = defaultDayIndex.value;
+  const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
+  if (dayHeaders[dayIndex]) {
+    const header = dayHeaders[dayIndex] as HTMLElement;
+    scrollContainerRef.value.scrollTo({ left: header.offsetLeft, behavior: 'auto' });
   }
 };
 
-const handleResize = () => {
-  scrollToDefaultDay();
-  syncRowHeights();
-};
+// Re-sync row heights whenever the days grid is resized
+useResizeObserver(daysGridWrapperRef, syncRowHeights);
 
 watch(loadingLessons, (newVal) => {
   if (!newVal) {
-    // Wait for DOM to render
     setTimeout(() => {
       syncRowHeights();
       scrollToDefaultDay();
@@ -75,22 +68,6 @@ onMounted(() => {
       syncRowHeights();
       scrollToDefaultDay();
     }, 100);
-  }
-  window.addEventListener('resize', handleResize);
-
-  resizeObserver = new ResizeObserver(() => {
-    syncRowHeights();
-  });
-
-  if (daysGridWrapperRef.value) {
-    resizeObserver.observe(daysGridWrapperRef.value);
-  }
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  if (resizeObserver) {
-    resizeObserver.disconnect();
   }
 });
 </script>

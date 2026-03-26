@@ -1,4 +1,5 @@
 import { ref, onMounted, onUnmounted, type Ref } from 'vue';
+import { useEventListener } from '@vueuse/core';
 
 export function useVideoPlayer(
   videoRef: Ref<HTMLVideoElement | null>,
@@ -257,20 +258,15 @@ export function useVideoPlayer(
     isFullscreen.value = !!document.fullscreenElement;
   };
 
+  useEventListener(wrapperRef, 'keydown', handleGlobalKeydown);
+  useEventListener(document, 'fullscreenchange', handleFullscreenChange);
+
   onMounted(() => {
-    if (wrapperRef.value) {
-      // Set tabindex to make it focusable so it can receive keyboard events
-      wrapperRef.value.setAttribute('tabindex', '0');
-      wrapperRef.value.addEventListener('keydown', handleGlobalKeydown);
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    // Set tabindex to make the wrapper focusable so it can receive keyboard events
+    if (wrapperRef.value) wrapperRef.value.setAttribute('tabindex', '0');
   });
 
   onUnmounted(() => {
-    if (wrapperRef.value) {
-      wrapperRef.value.removeEventListener('keydown', handleGlobalKeydown);
-    }
-    document.removeEventListener('fullscreenchange', handleFullscreenChange);
     clearTimeout(controlsTimeout);
     clearTimeout(volumeTimeout);
     cancelAnimationFrame(animationFrameId);

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RotateCw, RotateCcw } from '@lucide/vue';
-import { ref, reactive, computed, nextTick, onUnmounted } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
+import { useElementBounding, useEventListener } from '@vueuse/core';
 
 // --- Types ---
 interface CropState {
@@ -18,6 +19,7 @@ interface ImageMeta {
 // --- State ---
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const editorImageRef = ref<HTMLImageElement | null>(null);
+const workspaceRef = ref<HTMLElement | null>(null);
 
 const currentImageSrc = ref('');
 const hasImage = computed(() => !!currentImageSrc.value);
@@ -36,7 +38,17 @@ const settings = reactive({
 const isEditorOpen = ref(false);
 const isCropInitialized = ref(false);
 const crop = reactive<CropState>({ x: 0, y: 0, w: 0, h: 0 });
-const editorScale = ref(1); // Ratio of Visual Size : Natural Size
+
+// Reactive element bounds — update via ResizeObserver, return 0 when unmounted
+const { width: imgRenderedWidth, left: imgLeft, top: imgTop } = useElementBounding(editorImageRef);
+const { left: workspaceLeft, top: workspaceTop } = useElementBounding(workspaceRef);
+
+// editorScale reacts to the image's rendered width — no imperative DOM reads needed
+const editorScale = computed(() =>
+  imageMeta.naturalWidth > 0 && imgRenderedWidth.value > 0
+    ? imgRenderedWidth.value / imageMeta.naturalWidth
+    : 1,
+);
 
 // Dragging Logic State
 let isDragging = false;
@@ -116,36 +128,26 @@ const convertAndDownload = () => {
 
 // --- Editor Logic ---
 
-const openEditor = async () => {
+// Initialize crop box once the editor image is in the DOM and has non-zero dimensions
+watch(imgRenderedWidth, (width) => {
+  if (width > 0 && isEditorOpen.value && !isCropInitialized.value) {
+    const initW = imageMeta.naturalWidth * 0.5;
+    const initH = imageMeta.naturalHeight * 0.5;
+    const initX = (imageMeta.naturalWidth - initW) / 2;
+    const initY = (imageMeta.naturalHeight - initH) / 2;
+    setCrop(initX, initY, initW, initH);
+    isCropInitialized.value = true;
+  }
+});
+
+const openEditor = () => {
   isEditorOpen.value = true;
-  // Wait for modal to render so we can calculate image position/size
-  await nextTick();
-  // Small delay to ensure image layout is stable
-  setTimeout(initCropTool, 100);
+  isCropInitialized.value = false;
 };
 
 const closeEditor = () => {
   isEditorOpen.value = false;
   isCropInitialized.value = false;
-};
-
-const initCropTool = () => {
-  if (!editorImageRef.value) return;
-
-  const imgEl = editorImageRef.value;
-  const rect = imgEl.getBoundingClientRect();
-
-  // Calculate Scale: How many pixels on screen = 1 pixel in natural image
-  editorScale.value = rect.width / imageMeta.naturalWidth;
-
-  // Initialize Box at 50% size, centered
-  const initW = imageMeta.naturalWidth * 0.5;
-  const initH = imageMeta.naturalHeight * 0.5;
-  const initX = (imageMeta.naturalWidth - initW) / 2;
-  const initY = (imageMeta.naturalHeight - initH) / 2;
-
-  setCrop(initX, initY, initW, initH);
-  isCropInitialized.value = true;
 };
 
 // Core function to update crop state with bounds checking
@@ -161,21 +163,16 @@ const setCrop = (x: number, y: number, w: number, h: number) => {
   crop.h = Math.round(h);
 };
 
-// Computed style for the visual box
+// Computed style for the visual crop box
+// Offset the box by the image's position within the workspace (handles padding/centering)
 const cropBoxStyle = computed(() => {
-  if (!editorImageRef.value) return {};
-
-  // Convert Natural Coordinates -> CSS Pixels
-  const left = (crop.x * editorScale.value) + editorImageRef.value.offsetLeft;
-  const top = (crop.y * editorScale.value) + editorImageRef.value.offsetTop;
-  const width = crop.w * editorScale.value;
-  const height = crop.h * editorScale.value;
-
+  const relLeft = imgLeft.value - workspaceLeft.value;
+  const relTop = imgTop.value - workspaceTop.value;
   return {
-    left: `${left}px`,
-    top: `${top}px`,
-    width: `${width}px`,
-    height: `${height}px`
+    left: `${(crop.x * editorScale.value) + relLeft}px`,
+    top: `${(crop.y * editorScale.value) + relTop}px`,
+    width: `${crop.w * editorScale.value}px`,
+    height: `${crop.h * editorScale.value}px`,
   };
 });
 
@@ -185,6 +182,11 @@ const updateCropFromInput = () => {
 };
 
 // --- Drag & Resize Logic ---
+
+// Global listeners are always attached; handlers guard against inactive drag state
+useEventListener(window, 'mousemove', handleGlobalMouseMove);
+useEventListener(window, 'mouseup', handleGlobalMouseUp);
+
 const startDrag = (e: MouseEvent, direction: string | false) => {
   if (direction) {
     resizeDir = direction;
@@ -199,10 +201,6 @@ const startDrag = (e: MouseEvent, direction: string | false) => {
 
   // Snapshot current state
   boxStart = { ...crop };
-
-  // Add global listeners
-  window.addEventListener('mousemove', handleGlobalMouseMove);
-  window.addEventListener('mouseup', handleGlobalMouseUp);
 };
 
 const handleGlobalMouseMove = (e: MouseEvent) => {
@@ -246,9 +244,7 @@ const handleGlobalMouseMove = (e: MouseEvent) => {
 
 const handleGlobalMouseUp = () => {
   isDragging = false;
-  resizeDir = ''; // Reset direction
-  window.removeEventListener('mousemove', handleGlobalMouseMove);
-  window.removeEventListener('mouseup', handleGlobalMouseUp);
+  resizeDir = '';
 };
 
 // --- Image Manipulation ---
@@ -307,19 +303,14 @@ const updateImageSource = (newSrc: string) => {
     settings.width = i.naturalWidth;
     settings.height = i.naturalHeight;
 
-    // If editor is open (e.g. rotation), re-init crop tool
+    // If editor is open (e.g. rotation), reset so the imgRenderedWidth watcher re-initializes
     if (isEditorOpen.value) {
-      setTimeout(initCropTool, 50);
+      isCropInitialized.value = false;
     }
   };
   i.src = newSrc;
 };
 
-// Cleanup
-onUnmounted(() => {
-  window.removeEventListener('mousemove', handleGlobalMouseMove);
-  window.removeEventListener('mouseup', handleGlobalMouseUp);
-});
 </script>
 
 <template>

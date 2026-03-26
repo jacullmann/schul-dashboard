@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useEventListener, onClickOutside } from '@vueuse/core';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
@@ -75,15 +76,9 @@ async function onSwitchGroup(id: string) {
   }
 }
 
-function handleClickOutside(event: MouseEvent) {
-  if (
-    groupMenuOpen.value &&
-    groupMenuRef.value &&
-    !groupMenuRef.value.contains(event.target as Node)
-  ) {
-    groupMenuOpen.value = false;
-  }
-}
+onClickOutside(groupMenuRef, () => {
+  groupMenuOpen.value = false;
+});
 
 const toggleNav = () => {
   navOpen.value = !navOpen.value;
@@ -140,9 +135,9 @@ function onSetupSuccess(updatedUser: any) {
   showSetupModal.value = false;
 }
 
+useEventListener(document, 'keydown', handleEscape);
+
 onMounted(() => {
-  document.addEventListener('keydown', handleEscape);
-  document.addEventListener('click', handleClickOutside);
   if (!userStore.initialized) {
     userStore.fetchUser();
   }
@@ -156,8 +151,6 @@ watch(needsSetup, (needs) => {
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscape);
-  document.removeEventListener('click', handleClickOutside);
   document.body.style.overflow = '';
 });
 </script>

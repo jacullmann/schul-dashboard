@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
 
 export interface Course {
@@ -67,9 +68,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     reset();
   }
 
-  if (typeof window !== 'undefined') {
-    window.addEventListener('tenant-changed', onTenantChanged);
-  }
+  useEventListener(window, 'tenant-changed', onTenantChanged);
 
   return {
     subjects,

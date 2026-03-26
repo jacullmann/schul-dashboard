@@ -1,5 +1,5 @@
 import { ref, watch, type Ref } from 'vue';
-import { usePointerSwipe } from '@vueuse/core';
+import { usePointerSwipe, useElementBounding } from '@vueuse/core';
 
 export interface SwipeToDismissOptions {
   /** Fraction of element width needed to trigger dismiss (0–1). Default: 0.35 */
@@ -22,7 +22,8 @@ export function useSwipeToDismiss(
 
   let gestureLockedHorizontal = false;
   let gestureDecided = false;
-  let elementWidth = 0;
+
+  const { width: elementWidth } = useElementBounding(target);
 
   const { distanceX, distanceY } = usePointerSwipe(target, {
     threshold: 0,
@@ -30,7 +31,6 @@ export function useSwipeToDismiss(
       if (isDismissing.value) return;
       gestureLockedHorizontal = false;
       gestureDecided = false;
-      elementWidth = target.value?.offsetWidth ?? 300;
       isSwiping.value = true;
     },
     onSwipe() {
@@ -60,9 +60,9 @@ export function useSwipeToDismiss(
 
       const offset = swipeOffset.value;
 
-      if (offset > elementWidth * threshold && gestureLockedHorizontal) {
+      if (offset > elementWidth.value * threshold && gestureLockedHorizontal) {
         isDismissing.value = true;
-        swipeOffset.value = elementWidth + 20;
+        swipeOffset.value = elementWidth.value + 20;
 
         // After the slide-out CSS transition ends, trigger the height collapse
         const el = target.value;

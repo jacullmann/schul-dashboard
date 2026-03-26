@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import { Eye, Heart } from '@lucide/vue';
 
 const emit = defineEmits<{ (e: 'finish', score: number): void; }>();
@@ -95,13 +96,7 @@ function handleKeydown(e: KeyboardEvent) {
     }
 }
 
-onMounted(() => {
-    window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown);
-});
+useEventListener(window, 'keydown', handleKeydown);
 </script>
 
 <template>

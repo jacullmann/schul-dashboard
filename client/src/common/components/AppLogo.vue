@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
+import { useEventListener } from '@vueuse/core';
 
 const day = ref<number>(new Date().getDate());
 const dayString = computed(() => String(day.value));
-
-let intervalId: ReturnType<typeof setInterval>;
 
 function updateDay() {
   const currentDay = new Date().getDate();
@@ -19,17 +18,12 @@ function handleVisibilityChange() {
   }
 }
 
-onMounted(() => {
-  updateDay();
-  // Check every minute if the date changed
-  intervalId = setInterval(updateDay, 60000);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-});
+useEventListener(document, 'visibilitychange', handleVisibilityChange);
 
-onUnmounted(() => {
-  clearInterval(intervalId);
-  document.removeEventListener('visibilitychange', handleVisibilityChange);
-});
+const intervalId = setInterval(updateDay, 60000);
+updateDay();
+
+onUnmounted(() => clearInterval(intervalId));
 </script>
 
 <template>

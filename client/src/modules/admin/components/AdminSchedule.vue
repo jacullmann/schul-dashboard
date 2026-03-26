@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useResizeObserver, useWindowSize } from '@vueuse/core';
 import type { Lesson } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
@@ -34,54 +35,39 @@ const onSelectLesson = (lesson: Lesson) => {
 const scrollContainerRef = ref<HTMLElement | null>(null);
 const timeColWrapperRef = ref<HTMLElement | null>(null);
 const daysGridWrapperRef = ref<HTMLElement | null>(null);
-let resizeObserver: ResizeObserver | null = null;
 
-const scrollToDefaultDay = () => {
-  if (!scrollContainerRef.value) return;
-  if (window.innerWidth <= 500) {
-    const dayIndex = defaultDayIndex.value;
-    const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
-    if (dayHeaders && dayHeaders[dayIndex]) {
-      const header = dayHeaders[dayIndex] as HTMLElement;
-      scrollContainerRef.value.scrollTo({
-        left: header.offsetLeft,
-        behavior: 'auto'
-      });
-    }
-  }
-};
+const { width: windowWidth } = useWindowSize();
 
 const syncRowHeights = () => {
-  if (window.innerWidth >= 501) {
+  if (windowWidth.value >= 501) {
     if (timeColWrapperRef.value) {
       timeColWrapperRef.value.style.gridTemplateRows = '';
     }
     return;
   }
   if (daysGridWrapperRef.value && timeColWrapperRef.value) {
-    const computed = window.getComputedStyle(daysGridWrapperRef.value);
-    timeColWrapperRef.value.style.gridTemplateRows = computed.gridTemplateRows;
+    const styles = window.getComputedStyle(daysGridWrapperRef.value);
+    timeColWrapperRef.value.style.gridTemplateRows = styles.gridTemplateRows;
   }
 };
 
-const handleResize = () => {
-  scrollToDefaultDay();
-  syncRowHeights();
+const scrollToDefaultDay = () => {
+  if (!scrollContainerRef.value || windowWidth.value > 500) return;
+  const dayIndex = defaultDayIndex.value;
+  const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
+  if (dayHeaders[dayIndex]) {
+    const header = dayHeaders[dayIndex] as HTMLElement;
+    scrollContainerRef.value.scrollTo({ left: header.offsetLeft, behavior: 'auto' });
+  }
 };
+
+useResizeObserver(daysGridWrapperRef, syncRowHeights);
 
 onMounted(() => {
   setTimeout(() => {
     syncRowHeights();
     scrollToDefaultDay();
   }, 100);
-  window.addEventListener('resize', handleResize);
-  resizeObserver = new ResizeObserver(() => syncRowHeights());
-  if (daysGridWrapperRef.value) resizeObserver.observe(daysGridWrapperRef.value);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  if (resizeObserver) resizeObserver.disconnect();
 });
 </script>
 

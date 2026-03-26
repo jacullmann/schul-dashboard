@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, nextTick } from 'vue';
+import { onClickOutside } from '@vueuse/core';
 import { ChevronDown, Check } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
@@ -50,14 +51,9 @@ const selectOption = (value: string) => {
   isOpen.value = false;
 };
 
-const handleClickOutside = (event: MouseEvent) => {
-  if (wrapperRef.value && !wrapperRef.value.contains(event.target as Node)) {
-    isOpen.value = false;
-  }
-};
-
-onMounted(() => document.addEventListener('click', handleClickOutside));
-onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside));
+onClickOutside(wrapperRef, () => {
+  isOpen.value = false;
+});
 </script>
 
 <template>

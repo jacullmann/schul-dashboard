@@ -1,4 +1,5 @@
 import { ref, reactive, type Ref } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import { sfx } from '@/modules/games/composables/useCyberSnareAudio';
 import type { GameState, UpgradeDef, MetaStats } from '@/modules/games/types';
 
@@ -1014,6 +1015,8 @@ export function useCyberSnare() {
     }
   }
 
+  let stopListeners: (() => void)[] = [];
+
   function init(
     canvasRef: Ref<HTMLCanvasElement | null>,
     monitorRef: Ref<HTMLElement | null>,
@@ -1024,26 +1027,23 @@ export function useCyberSnare() {
     ctx = canvas.getContext('2d');
     resize();
 
-    window.addEventListener('resize', resize);
-    window.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onEnd);
-    window.addEventListener('touchstart', onStart, { passive: false });
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onEnd);
+    stopListeners = [
+      useEventListener(window, 'resize', resize),
+      useEventListener(window, 'mousedown', onStart),
+      useEventListener(window, 'mousemove', onMove),
+      useEventListener(window, 'mouseup', onEnd),
+      useEventListener(window, 'touchstart', onStart, { passive: false }),
+      useEventListener(window, 'touchmove', onMove, { passive: false }),
+      useEventListener(window, 'touchend', onEnd),
+    ];
 
     animId = requestAnimationFrame(loop);
   }
 
   function destroy() {
     cancelAnimationFrame(animId);
-    window.removeEventListener('resize', resize);
-    window.removeEventListener('mousedown', onStart);
-    window.removeEventListener('mousemove', onMove);
-    window.removeEventListener('mouseup', onEnd);
-    window.removeEventListener('touchstart', onStart);
-    window.removeEventListener('touchmove', onMove);
-    window.removeEventListener('touchend', onEnd);
+    stopListeners.forEach(stop => stop());
+    stopListeners = [];
   }
 
   return {

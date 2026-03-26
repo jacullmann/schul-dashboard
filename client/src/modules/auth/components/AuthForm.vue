@@ -42,8 +42,6 @@ const {
 } = useAuthModal(() => emit('logged-in'));
 
 const { initiateGoogleLogin } = useOAuth();
-
-defineExpose({ emailInputRef });
 </script>
 
 <template>
