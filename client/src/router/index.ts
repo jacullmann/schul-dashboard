@@ -250,7 +250,11 @@ router.beforeEach(async (to, from, next) => {
   // ── Document title ─────────────────────────────────────────────────
   if (to.meta.title) {
     const translated = i18n.global.t(to.meta.title as string);
-    document.title = to.path === '/' ? translated : `${translated} | Dashboard`;
+    if (to.path === '/') {
+      document.title = translated || 'schul-dashboard | Free Management Tool For Students';
+    } else {
+      document.title = `${translated} | Dashboard`;
+    }
   } else {
     document.title = 'Dashboard';
   }
