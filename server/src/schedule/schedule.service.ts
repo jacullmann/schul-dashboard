@@ -83,7 +83,7 @@ export class ScheduleService {
     const sb = this.supabaseService.getClient();
     try {
       const { data: subs } = await sb
-        .from('schedule_substitutions')
+        .from('schedule_subs')
         .select('*')
         .eq('tenant_id', tenantId);
       return (subs || []).map((s) => ({

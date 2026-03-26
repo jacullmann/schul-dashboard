@@ -24,7 +24,7 @@ export class GroupAdminService {
       .select('*', { count: 'exact', head: true })
       .eq('tenant_id', tenantId);
     const { data: subsData } = await sb
-      .from('schedule_substitutions')
+      .from('schedule_subs')
       .select('id')
       .eq('tenant_id', tenantId);
     const { count: oldItemsCount } = await sb
@@ -581,7 +581,7 @@ export class GroupAdminService {
   async getScheduleSubs(tenantId: string) {
     const sb = this.supabaseService.getClient();
     const { data: subs } = await sb
-      .from('schedule_substitutions')
+      .from('schedule_subs')
       .select('*')
       .eq('tenant_id', tenantId);
     return (subs || []).map((s) => {
@@ -604,7 +604,7 @@ export class GroupAdminService {
   async createScheduleSub(tenantId: string, userId: string, sub: any) {
     const sb = this.supabaseService.getClient();
     const { data, error } = await sb
-      .from('schedule_substitutions')
+      .from('schedule_subs')
       .insert({
         tenant_id: tenantId,
         lesson_id: sub.lessonId,
@@ -648,7 +648,7 @@ export class GroupAdminService {
   async deleteScheduleSub(tenantId: string, id: string) {
     const sb = this.supabaseService.getClient();
     await sb
-      .from('schedule_substitutions')
+      .from('schedule_subs')
       .delete()
       .eq('id', id)
       .eq('tenant_id', tenantId);

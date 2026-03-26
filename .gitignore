@@ -1,5 +1,3 @@
-# Root .gitignore for schul-dashboard
-
 # Dependencies
 node_modules/
 
@@ -23,6 +21,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+.env.production
+.env.development
 
 # Logs
 logs/
