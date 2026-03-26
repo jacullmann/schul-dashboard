@@ -3,6 +3,9 @@ import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import hw from '@/api/hwApi';
 import { Eye, EyeOff } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits(['cancel', 'success']);
 
@@ -123,87 +126,69 @@ async function onPrimary() {
 </script>
 
 <template>
-  <div class="blurit">
-    <div class="card rlc modal">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">Passwort zurücksetzen</h3>
-        <BaseButton @click="$emit('cancel')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
+  <BaseModal @cancel="emit('cancel')">
+    <template #title>
+      Passwort zurücksetzen
+    </template>
+
+    <template #content>
+      <div v-if="step === 1">
+        <p>Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code.</p>
+        <BaseInput ref="emailInputRef" v-model="email" placeholder="E-Mail" />
       </div>
 
-      <div style="margin-top:12px;">
-        <div v-if="step === 1">
-          <p>Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code.</p>
-          <BaseInput ref="emailInputRef" v-model="email" placeholder="E-Mail" />
+      <div v-else-if="step === 2">
+        <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
+        <div style="display:flex; gap:8px;">
+          <BaseInput ref="codeInputRef" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
+          <BaseButton @click="onBack" :disabled="submitting" style="margin-top:8px;" variant="ghost">{{ t('global.buttons.back') }}</BaseButton>
+        </div>
+      </div>
+
+      <div v-else-if="step === 3">
+        <p>Gib dein neues Passwort ein (mind. 8 Zeichen) und bestätige es.</p>
+
+        <div style="position: relative;">
+          <BaseInput
+              ref="passwordInputRef"
+              :type="showPassword ? 'text' : 'password'"
+              v-model="password"
+              placeholder="Neues Passwort"
+          />
+          <button
+              type="button"
+              @click="showPassword = !showPassword"
+              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
+              aria-label="Toggle password visibility"
+          >
+            <component :is="showPassword ? EyeOff : Eye" :size="20" />
+          </button>
         </div>
 
-        <div v-else-if="step === 2">
-          <p>Gib den Code ein, den du per E-Mail erhalten hast.</p>
-          <div style="display:flex; gap:8px;">
-            <BaseInput ref="codeInputRef" v-model="code" placeholder="6-stelliger Code" style="flex-grow:1; margin-top:8px;" />
-            <BaseButton @click="onBack" :disabled="submitting" style="margin-top:8px;" variant="ghost">Zurück</BaseButton>
-          </div>
+        <div style="margin-top:8px; position: relative;">
+          <BaseInput
+              :type="showPassword ? 'text' : 'password'"
+              v-model="password2"
+              placeholder="Neues Passwort wiederholen"
+          />
+          <button
+              type="button"
+              @click="showPassword = !showPassword"
+              style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
+              aria-label="Anzeigen/Nicht anzeigen"
+          >
+            <component :is="showPassword ? EyeOff : Eye" :size="20" />
+          </button>
         </div>
+      </div>
 
-        <div v-else-if="step === 3">
-          <p>Gib dein neues Passwort ein (mind. 8 Zeichen) und bestätige es.</p>
+      <div v-if="message" class="text-sub" :style="{ color: isError ? 'var(--color-danger)' : 'var(--color-primary)' }" style="margin-top:8px;">{{ message }}</div>
+    </template>
 
-          <div style="position: relative;">
-            <BaseInput
-                ref="passwordInputRef"
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password"
-                placeholder="Neues Passwort"
-            />
-            <button
-                type="button"
-                @click="showPassword = !showPassword"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
-                aria-label="Toggle password visibility"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="20" />
-            </button>
-          </div>
-
-          <div style="margin-top:8px; position: relative;">
-            <BaseInput
-                :type="showPassword ? 'text' : 'password'"
-                v-model="password2"
-                placeholder="Neues Passwort wiederholen"
-            />
-            <button
-                type="button"
-                @click="showPassword = !showPassword"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; color: var(--color-on-surface);"
-                aria-label="Anzeigen/Nicht anzeigen"
-            >
-              <component :is="showPassword ? EyeOff : Eye" :size="20" />
-            </button>
-          </div>
-        </div>
-
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--color-danger)' : 'var(--color-primary)' }" style="margin-top:8px;">{{ message }}</div>
-
-        <div style="margin-top:12px;" class="row">
-          <BaseButton @click="onPrimary" :disabled="submitting" variant="ghost" :loading="submitting">
+    <template #action-btn>
+      <BaseButton type="submit" @click="onPrimary" :disabled="submitting" variant="action" :loading="submitting">
         {{ step === 1 ? 'Code anfordern' : step === 2 ? 'Code prüfen' : 'Passwort setzen' }}
       </BaseButton>
-        </div>
-      </div>
-    </div>
-  </div>
+    </template>
+  </BaseModal>
 </template>
-
-<style scoped>
-.modal {
-  width: 100%;
-  max-width: 420px;
-  padding: 16px;
-  border-radius:16px;
-  background: var(--color-canvas);
-  color: var(--color-on-surface);
-  border: 1px solid var(--color-canvas-border);
-  box-shadow: var(--shadow-menu);
-}
-
-.small { font-size:13px; }
-</style>

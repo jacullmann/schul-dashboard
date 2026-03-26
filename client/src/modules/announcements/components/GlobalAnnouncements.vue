@@ -60,14 +60,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="blurit" v-if="showMenu" @click="showMenu = false">
-    <div class="announcement-menu" @click.stop>
-      <div class="announcement-menu-header">
-        <h3>Alle Ankündigungen</h3>
-        <button class="close-btn" @click="showMenu = false">
-          <X :size="20" />
-        </button>
-      </div>
+  <BaseModal v-if="showMenu" @cancel="showMenu = false">
+    <template #title>
+      Alle Ankündigungen
+    </template>
+
+    <template #content>
       <div class="announcement-list">
         <div
           v-for="(ann, index) in announcements"
@@ -82,8 +80,8 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+  </BaseModal>
 
   <div class="global-announcements" v-if="announcements.length">
     <div
@@ -160,18 +158,6 @@ onMounted(async () => {
 
 .announcement-menu-btn:hover {
   color: var(--color-on-surface);
-}
-
-.announcement-menu {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-canvas-border);
-  border-radius: var(--radius-xl);
-  padding: 16px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow: hidden;
-  box-shadow: var(--shadow-menu);
 }
 
 .announcement-menu-header {

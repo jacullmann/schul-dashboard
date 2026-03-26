@@ -49,7 +49,7 @@ onBeforeUnmount(() => {
           </BaseButton>
 
           <slot name="action-btn">
-            <BaseButton type="button" variant="action">
+            <BaseButton type="submit" variant="action">
               {{ t('global.buttons.confirm') }}
             </BaseButton>
           </slot>

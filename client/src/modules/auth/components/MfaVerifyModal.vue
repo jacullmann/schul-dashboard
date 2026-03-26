@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
-import { ShieldCheck, AlertCircle, AlertTriangle } from '@lucide/vue';
+import { AlertCircle, AlertTriangle } from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
 const emit = defineEmits<{
@@ -70,130 +70,66 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="blurit">
-    <div class="modal-wrapper">
-      <div class="card rlc modal-card">
-        <div class="modal-header">
-          <div class="header-icon">
-            <ShieldCheck :size="28" />
-          </div>
-          <h3 class="modal-title">Zwei-Faktor-Authentifizierung</h3>
+  <BaseModal @cancel="cancel">
+    <template #title>
+      Zwei-Faktor-Authentifizierung
+    </template>
+
+    <template #content>
+      <p class="instruction">
+        Gib den 6-stelligen Code aus deiner Authenticator-App ein,
+        um die fortzufahren.
+      </p>
+
+      <div class="code-input-wrapper">
+        <input
+            ref="codeInputRef"
+            v-model="code"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            placeholder="000000"
+            class="code-input"
+            :class="{ error: error, shake: shakeInput }"
+            :disabled="loading"
+            @input="handleInput"
+            @keyup.enter="verify"
+        />
+      </div>
+
+      <transition name="fade">
+        <div v-if="error" class="error-message">
+          <AlertCircle :size="14" />
+          {{ error }}
         </div>
+      </transition>
 
-        <div class="modal-body">
-          <p class="instruction">
-            Gib den 6-stelligen Code aus deiner Authenticator-App ein,
-            um die fortzufahren.
-          </p>
+      <div v-if="attemptsRemaining !== null && attemptsRemaining <= 3" class="attempts-warning">
+        <AlertTriangle :size="14" />
+        Noch {{ attemptsRemaining }} Versuche
+      </div>
 
-          <div class="code-input-wrapper">
-            <input
-                ref="codeInputRef"
-                v-model="code"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="6"
-                placeholder="000000"
-                class="code-input"
-                :class="{ error: error, shake: shakeInput }"
-                :disabled="loading"
-                @input="handleInput"
-                @keyup.enter="verify"
-            />
-          </div>
+      <div class="modal-footer">
+        <p class="help-text">
+          Du hast Probleme, die 2-Faktor-Authentifizierung abzuschließen?
+          <br />
+          <a href="mailto:kontakt@schul-dashboard.com" class="help-link">
+            Kontaktiere uns gerne über den Support
+          </a>
+        </p>
+      </div>
+    </template>
 
-          <transition name="fade">
-            <div v-if="error" class="error-message">
-              <AlertCircle :size="14" />
-              {{ error }}
-            </div>
-          </transition>
-
-          <div v-if="attemptsRemaining !== null && attemptsRemaining <= 3" class="attempts-warning">
-            <AlertTriangle :size="14" />
-            Noch {{ attemptsRemaining }} Versuche
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <BaseButton @click="cancel" :disabled="loading" variant="ghost">
-            Abbrechen
-          </BaseButton>
-          <BaseButton @click="verify" :disabled="code.length !== 6 || loading" variant="action" :loading="loading">
+    <template #action-btn>
+      <BaseButton @click="verify" :disabled="code.length !== 6 || loading" type="submit" variant="action" :loading="loading">
         Bestätigen
       </BaseButton>
-        </div>
-
-        <div class="modal-footer">
-          <p class="help-text">
-            Du hast Probleme, die 2-Faktor-Authentifizierung abzuschließen?
-            <br />
-            <a href="mailto:kontakt@schul-dashboard.com" class="help-link">
-              Kontaktiere uns gerne über den Support
-            </a>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.modal-wrapper {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 16px;
-}
-
-.modal-card {
-  width: 100%;
-  max-width: 380px;
-  border-radius: 16px;
-  border: 1px solid var(--color-canvas-border);
-  background: var(--color-canvas);
-  padding: 24px;
-  box-shadow: var(--shadow-menu);
-}
-
-.modal-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.header-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: var(--color-success-surface);
-  color: var(--special--green);
-}
-
-.modal-title {
-  margin: 0;
-  color: var(--color-on-surface);
-  font-size: var(--text-h3);
-  font-weight: 700;
-  text-align: center;
-}
-
-.modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
 .instruction {
   font-size: var(--text-sub);
   color: var(--color-on-surface-muted);
@@ -314,10 +250,6 @@ onMounted(() => {
 }
 
 @media (max-width: 400px) {
-  .modal-card {
-    padding: 20px;
-  }
-
   .code-input {
     width: 100%;
     max-width: 200px;

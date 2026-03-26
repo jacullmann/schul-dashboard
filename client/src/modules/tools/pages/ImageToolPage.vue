@@ -398,8 +398,10 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div class="blurit" :class="{ open: isEditorOpen }">
-      <div class="editor-card">
+    <BaseModal v-if="isEditorOpen" @cancel="closeEditor">
+      <template #title>Bildbearbeitung</template>
+      
+      <template #content>
         <div class="editor-toolbar">
           <BaseButton style="flex: 0; padding: 10px;" @click="rotateImage(-90)" variant="ghost">
             <RotateCcw :size="16"/>
@@ -441,13 +443,12 @@ onUnmounted(() => {
             <div class="resize-handle handle-w"  @mousedown.stop.prevent="startDrag($event, 'w')"></div>
           </div>
         </div>
+      </template>
 
-        <div class="row">
-          <BaseButton @click="closeEditor" variant="ghost">Abbrechen</BaseButton>
-          <BaseButton @click="applyEdits" variant="action">Anwenden</BaseButton>
-        </div>
-      </div>
-    </div>
+      <template #action-btn>
+        <BaseButton @click="applyEdits" type="submit" variant="action">Anwenden</BaseButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -513,27 +514,6 @@ label {
 .preview-img {
   max-width: 100%;
   border-radius: var(--radius-md);
-}
-
-/* --- EDITOR MODAL STYLES --- */
-.blurit {
-  display: none;
-}
-.blurit.open {
-  display: flex;
-}
-
-.editor-card {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-canvas-border);
-  padding: 16px;
-  border-radius: var(--radius-xl);
-  width: 90%;
-  max-width: 900px;
-  max-height: calc(100vh - 40px);
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
 }
 
 .editor-toolbar {
