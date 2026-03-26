@@ -41,7 +41,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <BaseModal>
+  <BaseModal @cancel="emit('cancel')">
     <template #title>
       Sicherheit
     </template>

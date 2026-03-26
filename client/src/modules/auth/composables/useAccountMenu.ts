@@ -34,29 +34,29 @@ export function useAccountMenu(
   const showSecurity = ref(false);
   const popupStyle = ref<Record<string, string>>({});
 
-  function close() {
+  function cancel() {
     open.value = false;
   }
 
   function handleLogout() {
     emit('logout');
-    close();
+    cancel();
   }
   function openSetup() {
     emit('openSetup');
-    close();
+    cancel();
   }
   function openChangePassword() {
     showChangePassword.value = true;
-    close();
+    cancel();
   }
   function openSecurity() {
     showSecurity.value = true;
-    close();
+    cancel();
   }
   function startDelete() {
     showDeleteAccount.value = true;
-    close();
+    cancel();
   }
 
   function onMfaChanged(enabled: boolean) {
@@ -130,12 +130,12 @@ export function useAccountMenu(
   function onDocClick(e: MouseEvent) {
     if (!refs.root.value) return;
     if (!refs.root.value.contains(e.target as Node)) {
-      close();
+      cancel();
     }
   }
 
   function onKey(e: KeyboardEvent) {
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape') cancel();
   }
 
   function onResize() {
@@ -172,6 +172,6 @@ export function useAccountMenu(
     onAccountDeleted,
     onDeleteError,
     toggle,
-    close,
+    cancel,
   };
 }
