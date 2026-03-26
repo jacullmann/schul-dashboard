@@ -1,4 +1,5 @@
-import { onMounted, onBeforeUnmount, watch, computed, ref } from 'vue';
+import { onMounted, watch, computed, ref } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
@@ -327,8 +328,9 @@ export function useTasks() {
 
   // --- Lifecycle ---
 
+  useEventListener(document, 'click', onDocumentClick);
+
   onMounted(async () => {
-    document.addEventListener('click', onDocumentClick);
     await subjectStore.loadSubjects();
     await Promise.all([
       reload(),
@@ -336,10 +338,6 @@ export function useTasks() {
       loadPinnedForMe(),
       loadVisibilityForMe(),
     ]);
-  });
-
-  onBeforeUnmount(() => {
-    document.removeEventListener('click', onDocumentClick);
   });
 
   return {

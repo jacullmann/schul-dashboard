@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useEventListener } from '@vueuse/core';
 
 const gridSize = 20;
 const cellSize = 20;
@@ -91,13 +92,13 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
+useEventListener(window, 'keydown', handleKeydown);
+
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
   initGame();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
   if (gameLoop.value) clearInterval(gameLoop.value);
 });
 </script>

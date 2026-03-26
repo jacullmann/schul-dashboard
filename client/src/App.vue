@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
@@ -89,9 +90,9 @@ onMounted(() => {
   // Must run after initAuth() completes (called by router guard before mount).
   handleOAuthReturn(onAuthSuccess);
 
-  window.addEventListener('show-auth-modal', handleShowAuthModal);
-  window.addEventListener('auth-expired', handleAuthExpired);
-  window.addEventListener('tenant-changed', handleTenantChanged);
+  useEventListener(window, 'show-auth-modal', handleShowAuthModal);
+  useEventListener(window, 'auth-expired', handleAuthExpired);
+  useEventListener(window, 'tenant-changed', handleTenantChanged);
 
   authCheckInterval = setInterval(() => {
     if (isAuthenticated.value) {
@@ -101,10 +102,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener('show-auth-modal', handleShowAuthModal);
-  window.removeEventListener('auth-expired', handleAuthExpired);
-  window.removeEventListener('tenant-changed', handleTenantChanged);
-
   if (authCheckInterval) {
     clearInterval(authCheckInterval);
     authCheckInterval = null;

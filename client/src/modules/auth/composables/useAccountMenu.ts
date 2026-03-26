@@ -1,11 +1,9 @@
 import {
   ref,
   computed,
-  nextTick,
-  onMounted,
-  onBeforeUnmount,
   type Ref,
 } from 'vue';
+import { onClickOutside, useEventListener, useElementBounding, useWindowSize } from '@vueuse/core';
 import type { UserData } from '@/stores/userStore';
 import { useToast } from '@/common/composables/useToast';
 
@@ -32,7 +30,42 @@ export function useAccountMenu(
   const showChangePassword = ref(false);
   const showDeleteAccount = ref(false);
   const showSecurity = ref(false);
-  const popupStyle = ref<Record<string, string>>({});
+
+  // Reactive bounds — auto-update via ResizeObserver; return 0 when element is null/unmounted
+  const { left: btnLeft, top: btnTop, right: btnRight, bottom: btnBottom, height: btnHeight } = useElementBounding(refs.root);
+  const { width: popupW, height: popupH } = useElementBounding(refs.popupInner);
+  const { width: vw, height: vh } = useWindowSize();
+
+  const popupStyle = computed<Record<string, string>>(() => {
+    if (!open.value) return {};
+
+    if (vw.value <= 480) {
+      return {
+        position: 'fixed',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        top: `${Math.max(64, btnBottom.value + 8)}px`,
+        width: 'min(92vw, 300px)',
+      };
+    }
+
+    let left = btnLeft.value;
+    let top = btnBottom.value + 8;
+
+    if (left + popupW.value > vw.value - 8) {
+      left = Math.max(8, vw.value - popupW.value - 8);
+    }
+    if (top + popupH.value > vh.value - 8) {
+      top = Math.max(8, btnTop.value - popupH.value - 8);
+    }
+
+    return {
+      position: 'fixed',
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`,
+      width: `${Math.min(300, popupW.value || 300)}px`,
+    };
+  });
 
   function cancel() {
     open.value = false;
@@ -74,84 +107,19 @@ export function useAccountMenu(
     toast.success('Passwort erfolgreich geändert!');
   }
 
-  async function positionPopup() {
-    await nextTick();
-    const rootEl = refs.root.value;
-    const popupEl = refs.popupInner.value;
-    if (!rootEl || !popupEl) return;
-
-    const iconBtn = rootEl.querySelector('.icon-btn');
-    if (!iconBtn) return;
-
-    const btnRect = iconBtn.getBoundingClientRect();
-    const popupRect = popupEl.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    if (vw <= 480) {
-      popupStyle.value = {
-        position: 'fixed',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        top: `${Math.max(64, btnRect.top + btnRect.height + 8)}px`,
-        width: 'min(92vw, 300px)',
-      };
-      return;
-    }
-
-    let left = btnRect.left;
-    let top = btnRect.top + btnRect.height + 8;
-
-    if (left + popupRect.width > vw - 8) {
-      left = Math.max(8, vw - popupRect.width - 8);
-    }
-
-    if (top + popupRect.height > vh - 8) {
-      top = Math.max(8, btnRect.top - popupRect.height - 8);
-    }
-
-    popupStyle.value = {
-      position: 'fixed',
-      left: `${Math.round(left)}px`,
-      top: `${Math.round(top)}px`,
-      width: `${Math.min(300, popupRect.width || 300)}px`,
-    };
-  }
-
   async function toggle() {
     open.value = !open.value;
     if (open.value) {
-      await positionPopup();
-      await nextTick();
+      // Wait one tick for the popup to mount so firstMenuBtnRef is available
+      await Promise.resolve();
       refs.firstMenuBtnRef.value?.focus();
     }
   }
 
-  function onDocClick(e: MouseEvent) {
-    if (!refs.root.value) return;
-    if (!refs.root.value.contains(e.target as Node)) {
-      cancel();
-    }
-  }
+  onClickOutside(refs.root, cancel);
 
-  function onKey(e: KeyboardEvent) {
+  useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     if (e.key === 'Escape') cancel();
-  }
-
-  function onResize() {
-    if (open.value) positionPopup();
-  }
-
-  onMounted(() => {
-    window.addEventListener('resize', onResize);
-    document.addEventListener('click', onDocClick);
-    document.addEventListener('keydown', onKey);
-  });
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('resize', onResize);
-    document.removeEventListener('click', onDocClick);
-    document.removeEventListener('keydown', onKey);
   });
 
   return {

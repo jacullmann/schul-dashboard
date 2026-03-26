@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
 import type BaseInput from '@/common/components/BaseInput.vue';
@@ -17,13 +18,10 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-  textareaRef.value?.focus();
-});
+useEventListener(window, 'keydown', onKeyDown);
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
+onMounted(() => {
+  textareaRef.value?.focus();
 });
 
 const content = ref('');

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
@@ -213,12 +214,12 @@ function onKeyDown(e: KeyboardEvent) {
 
 const titleInputRef = ref<InstanceType<typeof BaseInput> | null>(null);
 
+useEventListener(window, 'keydown', onKeyDown);
+
 onMounted(() => {
   imgInit(props.initial?.images || []);
-  window.addEventListener('keydown', onKeyDown);
   titleInputRef.value?.focus();
 });
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown));
 </script>
 
 <template>

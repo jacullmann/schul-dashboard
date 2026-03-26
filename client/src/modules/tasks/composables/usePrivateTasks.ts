@@ -1,4 +1,5 @@
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/hwApi';
@@ -194,9 +195,10 @@ export function usePrivateTasks() {
     }
   }
 
+  useEventListener(document, 'click', closeMenu);
+
   // Set up event listeners and watchers
   onMounted(() => {
-    document.addEventListener('click', closeMenu);
     if (user.value) {
       loadPrivateTasks();
     }
@@ -214,10 +216,6 @@ export function usePrivateTasks() {
     },
     { immediate: true },
   );
-
-  onUnmounted(() => {
-    document.removeEventListener('click', closeMenu);
-  });
 
   return {
     user,

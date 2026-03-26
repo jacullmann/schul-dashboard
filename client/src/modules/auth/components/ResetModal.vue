@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
+import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
 import { Eye, EyeOff } from '@lucide/vue';
 import { useToast } from '@/common/composables/useToast';
@@ -40,13 +41,10 @@ watch(step, async () => {
   if (step.value === 3) passwordInputRef.value?.focus();
 });
 
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-  emailInputRef.value?.focus();
-});
+useEventListener(window, 'keydown', onKeyDown);
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
+onMounted(() => {
+  emailInputRef.value?.focus();
 });
 
 function setMessage(txt: string, error = false) {

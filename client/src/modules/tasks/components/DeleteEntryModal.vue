@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount } from 'vue';
+import { useEventListener } from '@vueuse/core';
 
 const props = defineProps<{
   show: boolean;
@@ -14,13 +14,7 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
-});
+useEventListener(window, 'keydown', onKeyDown);
 </script>
 
 <template>

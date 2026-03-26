@@ -1,23 +1,13 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useEventListener } from '@vueuse/core';
 
 const { t } = useI18n();
 
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    emit('cancel');
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeyDown);
+useEventListener(window, 'keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') emit('cancel');
 });
 </script>
 

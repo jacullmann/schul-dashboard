@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, computed } from 'vue';
+import { useEventListener, useElementBounding } from '@vueuse/core';
 
 interface Props {
   beforeImage?: string;
@@ -17,41 +18,25 @@ const containerRef = ref<HTMLElement | null>(null);
 const sliderPosition = ref(props.initialPosition);
 const isDragging = ref(false);
 
+const { left: containerLeft, width: containerWidth } = useElementBounding(containerRef);
+
 const updatePosition = (clientX: number) => {
-  if (!containerRef.value) return;
-  const rect = containerRef.value.getBoundingClientRect();
-  const x = clientX - rect.left;
-  sliderPosition.value = Math.max(0, Math.min(100, (x / rect.width) * 100));
+  const x = clientX - containerLeft.value;
+  sliderPosition.value = Math.max(0, Math.min(100, (x / containerWidth.value) * 100));
 };
 
 const startDrag = () => (isDragging.value = true);
-const stopDrag = () => (isDragging.value = false);
 
 const onMove = (e: MouseEvent | TouchEvent) => {
   if (!isDragging.value) return;
-  // Type guard to handle MouseEvent vs TouchEvent safely
-  let clientX: number;
-  if ('touches' in e) {
-    clientX = e.touches[0].clientX;
-  } else {
-    clientX = e.clientX;
-  }
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
   updatePosition(clientX);
 };
 
-onMounted(() => {
-  window.addEventListener('mouseup', stopDrag);
-  window.addEventListener('touchend', stopDrag);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('touchmove', onMove);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('mouseup', stopDrag);
-  window.removeEventListener('touchend', stopDrag);
-  window.removeEventListener('mousemove', onMove);
-  window.removeEventListener('touchmove', onMove);
-});
+useEventListener(window, 'mouseup', () => (isDragging.value = false));
+useEventListener(window, 'touchend', () => (isDragging.value = false));
+useEventListener(window, 'mousemove', onMove);
+useEventListener(window, 'touchmove', onMove);
 
 const foregroundStyle = computed(() => ({
   clipPath: `polygon(0 0, ${sliderPosition.value}% 0, ${sliderPosition.value}% 100%, 0 100%)`
@@ -102,12 +87,10 @@ const handleStyle = computed(() => ({
 .compare-container {
   position: relative;
   width: 100%;
-  /* Removed height: 100% so it can adapt to image height naturally */
   overflow: hidden;
   cursor: ew-resize;
   user-select: none;
   touch-action: none;
-  /* Ensures the container respects the image aspect ratio */
   display: inline-block;
   vertical-align: top;
 }
@@ -121,17 +104,11 @@ const handleStyle = computed(() => ({
   border-radius:8px;
 }
 
-/* FIX: The background image is now relative.
-  This forces the container to expand to fit the image's height.
-*/
 .img-background {
   position: relative;
   height: auto;
 }
 
-/* FIX: The foreground image remains absolute
-  to sit directly on top of the background.
-*/
 .img-foreground {
   position: absolute;
   top: 0;
