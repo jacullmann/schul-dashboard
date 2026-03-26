@@ -267,7 +267,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #menu>
-          <BaseMenu v-if="openMenuId === item.id" @click.stop>
+          <BaseMenu v-if="openMenuId === item.id" class="right-0 mt-6" @click.stop>
             <BaseMenuButton v-if="user" class="icon-trigger" @click="onMenuAction('images', item)">
               <Upload :size="16" />
               {{ t('school.tasks.items.menu.uploadImages') }}
