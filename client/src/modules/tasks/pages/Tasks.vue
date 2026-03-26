@@ -268,48 +268,48 @@ async function handleArchiveFromMenu(item: HwItem) {
 
         <template #menu>
           <BaseMenu v-if="openMenuId === item.id" class="right-0 mt-6" @click.stop>
-            <BaseMenuButton v-if="user" class="icon-trigger" @click="onMenuAction('images', item)">
+            <BaseMenuButton v-if="user" @click="onMenuAction('images', item)">
               <Upload :size="16" />
               {{ t('school.tasks.items.menu.uploadImages') }}
             </BaseMenuButton>
 
-            <BaseMenuButton v-if="canEdit(item.createdBy)" class="icon-trigger" @click="onMenuAction('edit', item)">
+            <BaseMenuButton v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
               <Pencil :size="16" />
               {{ t('global.buttons.edit') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canEdit(item.createdBy) || user" />
 
-            <BaseMenuButton v-if="user" class="icon-trigger" @click="togglePin(item)">
+            <BaseMenuButton v-if="user" @click="togglePin(item)">
               <Pin v-if="!isPinned(item.id)" class="unpinned" :size="16" />
               <Pin fill="currentColor" v-else class="pinned" :size="16" />
               {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
             </BaseMenuButton>
 
-            <BaseMenuButton v-if="user" class="icon-trigger" @click="handleArchiveFromMenu(item)">
+            <BaseMenuButton v-if="user" @click="handleArchiveFromMenu(item)">
               <ArchiveRestore v-if="showOldEntries" :size="16" />
               <Archive v-else :size="16" />
               {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
             </BaseMenuButton>
 
-            <BaseMenuButton class="icon-trigger" @click="shareItem(item)">
+            <BaseMenuButton @click="shareItem(item)">
               <Send :size="16" />
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
-            <BaseMenuButton class="icon-trigger" @click="openMenuId = null; showInfoItem = item">
+            <BaseMenuButton @click="openMenuId = null; showInfoItem = item">
               <Info :size="16" />
               {{ t('school.tasks.items.menu.info') }}
             </BaseMenuButton>
 
-            <BaseMenuButton title="Melden" class="icon-trigger" @click="onMenuAction('report', item)">
+            <BaseMenuButton title="Melden" @click="onMenuAction('report', item)">
               <Flag :size="16" />
               {{ t('school.tasks.items.menu.report.name') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canDelete(item.createdBy)" />
 
-            <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" class="icon-trigger" @click="onMenuAction('delete', item)">
+            <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
               <Trash2 :size="16" />
               {{ t('global.buttons.delete') }}
             </BaseMenuButton>
@@ -343,7 +343,8 @@ async function handleArchiveFromMenu(item: HwItem) {
                       @click.stop.prevent="revealImages(item.id)"
                       @contextmenu.stop.prevent
                   >
-                    <div class="overlay-blur"></div><div class="overlay-content">+{{ item.images.length - (imagesPerRow - 1) }}</div>
+                    <span class="overlay-blur"></span>
+                    <span class="overlay-content">+{{ item.images.length - (imagesPerRow - 1) }}</span>
                   </button>
                 </div>
               </template>
@@ -539,100 +540,8 @@ async function handleArchiveFromMenu(item: HwItem) {
   padding: 0;
 }
 
-.lucide-pin {
-  overflow: visible !important;
-}
-
-.pinned :deep(path:last-child),
-.unpinned :deep(path:last-child),
-.unpinned :deep(path:first-child) {
-  transform: translateY(0) scaleY(1);
-  transition: 0.1s ease;
-  transform-origin: bottom;
-}
-
-.icon-trigger:hover .pinned :deep(path:last-child),
-.unpin-trigger:hover .pinned :deep(path:last-child) {
-  transform: translateY(-8%) scaleY(1);
-}
-
-.icon-trigger:hover .unpinned :deep(path:last-child) {
-  transform: translateY(8%) scaleY(1);
-}
-
-.icon-trigger:hover .unpinned :deep(path:first-child) {
-  transform: translateY(0) scaleY(0.7);
-}
-
-.lucide-send {
-  overflow: visible !important;
-  transform: translateY(0);
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-send {
-  transform: translate(1px, -1px);
-
-}
-
-.lucide-upload {
-  overflow: visible !important;
-}
-
-.lucide-upload :deep(path:first-child),
-.lucide-upload :deep(path:nth-child(2)) {
-  transform: translateY(0);
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-upload :deep(path:first-child),
-.icon-trigger:hover .lucide-upload :deep(path:nth-child(2)) {
-  transform: translateY(-2px);
-}
-
-.lucide-pencil {
-  overflow: visible !important;
-  transform: translateY(0) rotate(0);
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-pencil {
-  transform: translateY(-1px) rotate(5deg);
-}
-
-.lucide-flag {
-  transform: rotate(0);
-  transition: 0.1s ease;
-  transform-origin: 15% 90%;
-}
-
-.icon-trigger:hover .lucide-flag {
-  transform: rotate(-5deg);
-}
-
-.lucide-trash-2 {
-  overflow: visible !important;
-}
-
-.lucide-trash-2 :deep(path:nth-child(3)) {
-  height: 6px;
-}
-
-.lucide-trash-2 :deep(path:nth-child(4)),
-.lucide-trash-2 :deep(path:nth-child(5)) {
-  transform: translateY(0) translateX(0) rotate(0);
-  transition: 0.1s ease;
-  transform-origin: 80% 30%;
-}
-
-.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(4)),
-.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(5)) {
-  transform: translateY(-1px) translateX(1px) rotate(10deg);
-}
-
 .item-images {
   margin-top:8px;
-
 }
 
 .images-row {

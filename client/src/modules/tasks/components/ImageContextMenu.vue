@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
 <template>
   <div
       ref="menuRef"
-      class="position-fixed z-10001 min-w-[180px]"
+      class="absolute z-10001 min-w-[180px]"
       :style="styleObject"
       @click.stop
   >

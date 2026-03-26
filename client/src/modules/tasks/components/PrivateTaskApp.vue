@@ -165,12 +165,12 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
                 <BaseMenuDivider />
 
-                <BaseMenuButton v-if="index > 0" class="icon-trigger" @click="moveItemUp(index); openMenuId = null">
+                <BaseMenuButton v-if="index > 0" @click="moveItemUp(index); openMenuId = null">
                   <ChevronUp :size="16" />
                   {{ t('school.private.menu.up') }}
                 </BaseMenuButton>
 
-                <BaseMenuButton v-if="index < displayPrivateTasks.length - 1" class="icon-trigger" @click="moveItemDown(index); openMenuId = null">
+                <BaseMenuButton v-if="index < displayPrivateTasks.length - 1" @click="moveItemDown(index); openMenuId = null">
                   <ChevronDown :size="16" />
                   {{ t('school.private.menu.down') }}
                 </BaseMenuButton>
@@ -224,26 +224,6 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   filter: blur(12px);
   opacity: 0.9;
   display: block !important;
-}
-
-.lucide-chevron-up {
-  overflow: visible;
-  transform: translateY(0);
-  transition: transform 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-chevron-up {
-  transform: translateY(-1px);
-}
-
-.lucide-chevron-down {
-  overflow: visible;
-  transform: translateY(0);
-  transition: transform 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-chevron-down {
-  transform: translateY(1px);
 }
 </style>
 

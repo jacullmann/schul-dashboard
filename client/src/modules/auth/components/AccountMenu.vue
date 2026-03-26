@@ -78,12 +78,11 @@ const {
 
       <BaseMenuDivider />
 
-      <ThemeMenuDropdown class="icon-trigger" />
+      <ThemeMenuDropdown />
 
-      <LocaleMenuDropdown class="icon-trigger" />
+      <LocaleMenuDropdown />
 
       <BaseMenuButton
-          class="icon-trigger"
           ref="firstMenuBtnRef"
           @click="openSetup"
       >
@@ -92,7 +91,6 @@ const {
       </BaseMenuButton>
 
       <PersonalizationDropdown
-          class="icon-trigger"
           v-model="personalizationSetting"
           @change="onPersonalizationChange"
       />
@@ -100,7 +98,6 @@ const {
       <BaseMenuDivider />
 
       <BaseMenuButton
-          class="icon-trigger"
           @click="openSecurity"
       >
         <ShieldCheck :size="16"/>
@@ -108,7 +105,6 @@ const {
       </BaseMenuButton>
 
       <BaseMenuButton
-          class="icon-trigger"
           @click="openChangePassword"
       >
         <LucideKeyRound :size="16"/>
@@ -116,7 +112,6 @@ const {
       </BaseMenuButton>
 
       <BaseMenuButton
-          class="icon-trigger"
           @click="handleLogout"
       >
         <LogOut :size="16"/>
@@ -126,7 +121,6 @@ const {
       <BaseMenuDivider />
 
       <BaseMenuButton
-          class="icon-trigger"
           variant="danger"
           @click="startDelete"
       >
@@ -157,71 +151,3 @@ const {
     />
   </div>
 </template>
-
-<style scoped>
-.lucide-graduation-cap {
-  transform: rotate(0);
-  transition: 0.1s ease;
-  transform-origin: 80% 70%;
-}
-
-.icon-trigger:hover .lucide-graduation-cap {
-  transform: rotate(10deg);
-}
-
-.lucide-graduation-cap :deep(path:nth-child(2)) {
-  transform: rotate(0) translateX(0) translateY(0);
-  transform-origin: inherit !important;
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-graduation-cap :deep(path:nth-child(2)) {
-  transform: rotate(-10deg) translateX(0.7px) translateY(0.5px);
-}
-
-.lucide-shield-check :deep(path:last-child) {
-  stroke-dasharray: 9;
-  stroke-dashoffset: 9;
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-shield-check :deep(path:last-child) {
-  stroke-dashoffset: 0;
-}
-
-.lucide-key-round {
-  transform: translate(0);
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-key-round {
-  transform: translate(-1px, 1px);
-}
-
-.lucide-log-out :deep(path:first-child),
-.lucide-log-out :deep(path:nth-child(2)) {
-  transform: translateX(0);
-  transition: 0.1s ease;
-}
-
-.icon-trigger:hover .lucide-log-out :deep(path:first-child),
-.icon-trigger:hover .lucide-log-out :deep(path:nth-child(2)) {
-  transform: translateX(2px);
-}
-
-.lucide-trash-2 :deep(path:nth-child(3)) {
-  height: 6px;
-}
-
-.lucide-trash-2 :deep(path:nth-child(4)),
-.lucide-trash-2 :deep(path:nth-child(5)) {
-  transform: translateY(0) translateX(0) rotate(0);
-  transition: 0.1s ease;
-  transform-origin: 80% 30%;
-}
-
-.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(4)),
-.icon-trigger:hover .lucide-trash-2 :deep(path:nth-child(5)) {
-  transform: translateY(-1px) translateX(1px) rotate(10deg);
-}
-</style>
