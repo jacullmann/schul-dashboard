@@ -16,33 +16,35 @@ const { user } = storeToRefs(userStore);
 </script>
 
 <template>
-  <AppSidebar v-if="user" />
+  <div class="flex min-h-screen w-full">
+    <AppSidebar v-if="user" />
 
-  <div class="layout-wrapper" :class="{ 'has-sidebar': user }">
-    <AppHeader />
-    <GlobalAnnouncements v-if="activeGroupId" />
+    <div class="layout-wrapper flex-1" :class="{ 'has-sidebar': user }">
+      <AppHeader />
+      <GlobalAnnouncements v-if="activeGroupId" />
 
-    <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
-      <div class="progress-bar" :style="{ width: progress + '%' }">
-        <div class="peg"></div>
+      <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
+        <div class="progress-bar" :style="{ width: progress + '%' }">
+          <div class="peg"></div>
+        </div>
       </div>
+
+      <main class="full-c">
+        <div class="bg"></div>
+
+        <div
+            :class="{ 'container': !$route.meta.fullWidth }"
+            class="main-content"
+            key="content"
+        >
+          <router-view v-slot="{ Component }">
+            <component :is="Component" :key="activeGroupId || 'default'" />
+          </router-view>
+        </div>
+      </main>
+
+      <AppFooter />
     </div>
-
-    <main class="full-c">
-      <div class="bg"></div>
-
-      <div
-          :class="{ 'container': !$route.meta.fullWidth }"
-          class="main-content"
-          key="content"
-      >
-        <router-view v-slot="{ Component }">
-          <component :is="Component" :key="activeGroupId || 'default'" />
-        </router-view>
-      </div>
-    </main>
-
-    <AppFooter />
   </div>
 </template>
 
