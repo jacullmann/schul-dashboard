@@ -68,7 +68,8 @@ function onAccountDeleteError(msg: string) {
 
 function handleNavigation(path: string) {
   router.push(path);
-  if (window.innerWidth < 768) { // 768px is Tailwind's 'md' breakpoint
+  if (window.innerWidth < 768) {
+    // 768px is Tailwind's 'md' breakpoint
     isExpanded.value = false;
   }
 }
@@ -104,9 +105,9 @@ onUnmounted(() => {
     :class="[
       'md:sticky md:top-0',
       isExpanded ? 'md:w-52' : 'md:w-14',
-      
+
       'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-52 max-md:shadow-xl',
-      isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'
+      isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
     ]"
   >
     <div class="flex flex-col gap-4 w-full">
@@ -115,7 +116,7 @@ onUnmounted(() => {
         :expanded="isExpanded"
         @click="toggleExpanded"
       >
-        <PanelLeft :size="20" /> 
+        <PanelLeft :size="20" />
       </SidebarButton>
 
       <SidebarButton :label="t('sidebar.create')" :expanded="isExpanded">
@@ -139,10 +140,35 @@ onUnmounted(() => {
           <ListTodo :size="20" />
         </SidebarButton>
 
-        </div>
+        <SidebarButton
+          :label="t('sidebar.schedule')"
+          :expanded="isExpanded"
+          @click="handleNavigation(`/groups/${activeGroupId}/schedule`)"
+        >
+          <CalendarDays :size="20" />
+        </SidebarButton>
+
+        <SidebarButton
+          :label="t('sidebar.groups')"
+          :expanded="isExpanded"
+          @click="handleNavigation('/home')"
+        >
+          <UsersRound :size="20" />
+        </SidebarButton>
+
+        <SidebarButton
+          :label="t('sidebar.security')"
+          :expanded="isExpanded"
+          @click="handleNavigation('/todos')"
+        >
+          <Lock :size="20" />
+        </SidebarButton>
+      </div>
     </div>
 
-    <div class="flex w-full transition-all duration-200 justify-start ml-[2px] max-[480px]:ml-[5px]">
+    <div
+      class="flex w-full transition-all duration-200 justify-start ml-[2px] max-[480px]:ml-[5px]"
+    >
       <AccountMenu
         v-if="user"
         :email="user.email"
