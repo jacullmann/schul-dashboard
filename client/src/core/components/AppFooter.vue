@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import AppLogo from '@/common/components/AppLogo.vue';
 import Tagline from "@/common/components/Tagline.vue";
-import ThemeDropdown from "@/common/components/ThemeDropdown.vue";
-import LocaleDropdown from "@/common/components/LocaleDropdown.vue";
 import FooterSection from "./FooterSection.vue";
 import FooterLink from "./FooterLink.vue";
 import { useI18n } from 'vue-i18n';
@@ -15,7 +13,7 @@ const year = new Date().getFullYear();
 <template>
   <footer class="bg-canvas text-on-surface pt-12 border-t border-canvas-border max-md:px-4 max-md:pt-4">
     <div class="container pb-10 max-md:pb-8 max-w-[1300px]">
-      <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr] max-lg:grid-cols-2 max-md:grid-cols-1 gap-4">
+      <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr] max-lg:grid-cols-2 max-md:grid-cols-1 gap-4">
         <FooterSection content-class="gap-2" class="max-lg:col-span-full">
           <div class="flex items-center gap-3 mb-1">
             <AppLogo class="h-[28px] w-auto" aria-hidden="true" />
@@ -41,18 +39,6 @@ const year = new Date().getFullYear();
 
         <FooterSection :title="t('contact.contact.title')">
           <FooterLink to="/contact">{{ t('contact.contact.title') }}</FooterLink>
-        </FooterSection>
-
-        <FooterSection :title="t('global.design')">
-          <div class="mt-2">
-            <ThemeDropdown />
-          </div>
-        </FooterSection>
-
-        <FooterSection :title="t('global.language')">
-          <div class="mt-2">
-            <LocaleDropdown />
-          </div>
         </FooterSection>
       </div>
     </div>
