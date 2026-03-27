@@ -12,8 +12,7 @@ const { t } = useI18n();
 <template>
   <footer class="bg-canvas px-4 pt-4 border-t border-canvas-border">
     <div class="max-w-[1300px] mx-auto p-0">
-      <div class="footer-columns flex flex-start gap-16 flex-wrap max-md:gap-8">
-
+      <div class="grid grid-cols-4 max-lg:grid-cols-2 max-md:grid-cols-1 flex flex-start gap-16 flex-wrap max-md:gap-8">
         <FooterSection>
           <h3>{{ t('welcome.footer.disclaimer.title') }}</h3>
           <p class="text-sub">
