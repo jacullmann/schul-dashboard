@@ -7,50 +7,18 @@ defineProps<{
 
 <template>
   <button
-    class="sidebar-btn text-on-surface rounded-md bg-transparent hover:bg-surface-hover cursor-pointer border-0 outline-none w-full"
-    :class="expanded ? 'px-3 py-2' : 'p-2'"
+    class="group gap-0 items-center flex p-2 text-on-surface rounded-md bg-transparent hover:bg-surface-hover transition-hover cursor-pointer border-0 outline-none w-full"
   >
-    <span class="icon-slot shrink-0">
+    <span class="shrink-0">
       <slot />
     </span>
 
     <span
       v-if="label"
-      class="label-text text-sub font-medium whitespace-nowrap overflow-hidden"
-      :class="expanded ? 'label-visible' : 'label-hidden'"
+      class="transition-[max-width,opacity,margin-left] duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] text-on-surface-muted group-hover:text-on-surface transition-hover text-sub leading-5 font-regular whitespace-nowrap overflow-hidden"
+      :class="expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'"
     >
       {{ label }}
     </span>
   </button>
 </template>
-
-<style scoped>
-.sidebar-btn {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  transition:
-    background-color var(--duration-hover) var(--ease-hover),
-    color var(--duration-hover) var(--ease-hover),
-    padding 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.label-text {
-  transition:
-    max-width 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
-    margin-left 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.label-visible {
-  max-width: 160px;
-  opacity: 1;
-  margin-left: 10px;
-}
-
-.label-hidden {
-  max-width: 0;
-  opacity: 0;
-  margin-left: 0;
-}
-</style>

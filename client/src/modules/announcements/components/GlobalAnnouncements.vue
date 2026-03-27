@@ -104,11 +104,9 @@ onMounted(async () => {
 
 <style scoped>
 .global-announcements {
-  position: fixed;
+  position: sticky;
   top: var(--header-height);
-  left: 0;
-  width: 100%;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .global-ann {

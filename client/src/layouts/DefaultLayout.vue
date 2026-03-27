@@ -79,8 +79,6 @@ const { user } = storeToRefs(userStore);
 }
 
 .main-content {
-  margin-top: var(--announcement-height);
-  transition: margin-top 0.3s ease;
   width: 100%;
 }
 </style>

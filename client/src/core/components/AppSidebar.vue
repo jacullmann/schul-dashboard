@@ -12,7 +12,7 @@ import {
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi.ts';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
 import { useRouter } from 'vue-router';
 import { useMfa } from '@/modules/auth/composables/useMfa.ts';
@@ -23,12 +23,11 @@ const { t } = useI18n();
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
-const { user, needsSetup, hasShownSetup } = storeToRefs(userStore);
+const { user } = storeToRefs(userStore);
 
 const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
 
-const showSetupModal = ref(false);
 const isExpanded = ref(false);
 
 function toggleExpanded() {
@@ -67,22 +66,6 @@ function onAccountDeleteError(msg: string) {
   console.error('Account delete error:', msg);
 }
 
-function openSetupModal() {
-  if (user.value) showSetupModal.value = true;
-}
-
-function onSetupSuccess(updatedUser: any) {
-  userStore.updateUser(updatedUser);
-  showSetupModal.value = false;
-}
-
-watch(needsSetup, (needs) => {
-  if (needs && !hasShownSetup.value) {
-    showSetupModal.value = true;
-    userStore.markSetupShown();
-  }
-});
-
 onMounted(() => {
   if (!userStore.initialized) {
     userStore.fetchUser();
@@ -96,27 +79,21 @@ onUnmounted(() => {
 
 <template>
   <aside
-    class="sidebar sticky top-0 h-screen p-3 bg-surface border-r border-surface-border flex flex-col justify-between shrink-0 overflow-hidden"
-    :class="isExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'"
+    class="sidebar transition-[width] duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] items-stretch sticky top-0 h-screen p-3 bg-surface border-r border-surface-border flex flex-col justify-between shrink-0 overflow-hidden"
+    :class="isExpanded ? 'w-52' : 'w-12'"
   >
     <div class="flex flex-col gap-2">
-      <!-- Toggle button -->
       <SidebarButton
         :label="t('sidebar.collapse')"
         :expanded="isExpanded"
         @click="toggleExpanded"
         class="mb-4"
       >
-        <PanelLeft
-          :size="24"
-          class="toggle-icon"
-          :class="{ 'rotate-180': isExpanded }"
-        />
+        <PanelLeft :size="20" />
       </SidebarButton>
 
-      <!-- Quick Action -->
       <SidebarButton :label="t('sidebar.create')" :expanded="isExpanded">
-        <CirclePlus :size="24" />
+        <CirclePlus :size="20" />
       </SidebarButton>
 
       <div class="flex flex-col gap-1 mt-4">
@@ -125,7 +102,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           @click="router.push('/home')"
         >
-          <House :size="24" />
+          <House :size="20" />
         </SidebarButton>
 
         <SidebarButton
@@ -133,7 +110,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           @click="router.push(`/groups/${activeGroupId}/items/all`)"
         >
-          <ListTodo :size="24" />
+          <ListTodo :size="20" />
         </SidebarButton>
 
         <SidebarButton
@@ -141,7 +118,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           @click="router.push(`/groups/${activeGroupId}/schedule`)"
         >
-          <CalendarDays :size="24" />
+          <CalendarDays :size="20" />
         </SidebarButton>
 
         <SidebarButton
@@ -149,7 +126,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           @click="router.push('/home')"
         >
-          <UsersRound :size="24" />
+          <UsersRound :size="20" />
         </SidebarButton>
 
         <SidebarButton
@@ -157,7 +134,7 @@ onUnmounted(() => {
           :expanded="isExpanded"
           @click="router.push('/todos')"
         >
-          <Lock :size="24" />
+          <Lock :size="20" />
         </SidebarButton>
       </div>
     </div>
@@ -168,29 +145,9 @@ onUnmounted(() => {
       :user-data="user"
       @deleted="onAccountDeleted"
       @error="onAccountDeleteError"
-      @open-setup="openSetupModal"
       @logout="logout"
       @personalization-changed="onPersonalizationChanged"
       @mfa-changed="onMfaChanged"
     />
   </aside>
 </template>
-
-<style scoped>
-.sidebar {
-  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  align-items: stretch;
-}
-
-.sidebar-collapsed {
-  width: 60px;
-}
-
-.sidebar-expanded {
-  width: 220px;
-}
-
-.toggle-icon {
-  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-</style>

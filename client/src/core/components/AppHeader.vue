@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useEventListener, onClickOutside } from '@vueuse/core';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -7,7 +7,6 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import { X, Menu, ChevronDown } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa';
@@ -17,7 +16,7 @@ const { t } = useI18n();
 const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
-const { user, loading, needsSetup, hasShownSetup, isGroupAdmin } =
+const { user, loading, isGroupAdmin } =
   storeToRefs(userStore);
 
 const {
@@ -31,7 +30,6 @@ const router = useRouter();
 const route = useRoute();
 
 const navOpen = ref(false);
-const showSetupModal = ref(false);
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
 
@@ -126,15 +124,6 @@ function onAccountDeleteError(msg: string) {
   console.error('Account delete error:', msg);
 }
 
-function openSetupModal() {
-  if (user.value) showSetupModal.value = true;
-}
-
-function onSetupSuccess(updatedUser: any) {
-  userStore.updateUser(updatedUser);
-  showSetupModal.value = false;
-}
-
 useEventListener(document, 'keydown', handleEscape);
 
 onMounted(() => {
@@ -143,12 +132,6 @@ onMounted(() => {
   }
 });
 
-watch(needsSetup, (needs) => {
-  if (needs && !hasShownSetup.value) {
-    showSetupModal.value = true;
-    userStore.markSetupShown();
-  }
-});
 
 onUnmounted(() => {
   document.body.style.overflow = '';
@@ -282,7 +265,6 @@ onUnmounted(() => {
           :user-data="user"
           @deleted="onAccountDeleted"
           @error="onAccountDeleteError"
-          @open-setup="openSetupModal"
           @logout="logout"
           @personalization-changed="onPersonalizationChanged"
           @mfa-changed="onMfaChanged"
@@ -300,21 +282,6 @@ onUnmounted(() => {
 
       <div v-if="navOpen" class="nav-overlay" @click="closeNav"></div>
     </div>
-
-    <CompleteSetup
-      v-if="user && showSetupModal"
-      :visible="showSetupModal"
-      :is-setup="user && !user.doneSetup"
-      :initial-data="{
-        enrKurs: user.enrKurs || null,
-        wpuKurs1: user.wpuKurs1 || null,
-        wpuKurs2: user.wpuKurs2 || null,
-        theater: user.theater || 0,
-      }"
-      @cancel="showSetupModal = false"
-      @success="onSetupSuccess"
-      @update:user="onSetupSuccess"
-    />
   </header>
 </template>
 

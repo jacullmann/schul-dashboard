@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from '@lucide/vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
+import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
 import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDropdown.vue';
 import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
@@ -22,7 +23,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'deleted'): void;
   (e: 'error', msg: string): void;
-  (e: 'openSetup'): void;
   (e: 'logout'): void;
   (e: 'personalizationChanged', value: boolean): void;
   (e: 'mfaChanged', value: boolean): void;
@@ -39,6 +39,7 @@ const {
   showChangePassword,
   showDeleteAccount,
   showSecurity,
+  showSetup,
   popupStyle,
   handleLogout,
   openSetup,
@@ -51,6 +52,11 @@ const {
   onDeleteError,
   toggle
 } = useAccountMenu(props, emit, { root, popupInner, firstMenuBtnRef });
+
+function onSetupSuccess(updatedUser: any) {
+  emit('personalizationChanged', updatedUser?.personalized ?? true);
+  showSetup.value = false;
+}
 </script>
 
 <template>
@@ -148,6 +154,21 @@ const {
         @cancel="showDeleteAccount = false"
         @deleted="onAccountDeleted"
         @error="onDeleteError"
+    />
+
+    <CompleteSetup
+        v-if="showSetup && userData"
+        :visible="showSetup"
+        :is-setup="!userData.doneSetup"
+        :initial-data="{
+          enrKurs: userData.enrKurs || null,
+          wpuKurs1: userData.wpuKurs1 || null,
+          wpuKurs2: userData.wpuKurs2 || null,
+          theater: userData.theater || 0,
+        }"
+        @cancel="showSetup = false"
+        @success="showSetup = false"
+        @update:user="onSetupSuccess"
     />
   </div>
 </template>

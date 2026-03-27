@@ -1,9 +1,10 @@
+import { ref, computed, type Ref } from 'vue';
 import {
-  ref,
-  computed,
-  type Ref,
-} from 'vue';
-import { onClickOutside, useEventListener, useElementBounding, useWindowSize } from '@vueuse/core';
+  onClickOutside,
+  useEventListener,
+  useElementBounding,
+  useWindowSize,
+} from '@vueuse/core';
 import type { UserData } from '@/stores/userStore';
 import { useToast } from '@/common/composables/useToast';
 
@@ -30,9 +31,16 @@ export function useAccountMenu(
   const showChangePassword = ref(false);
   const showDeleteAccount = ref(false);
   const showSecurity = ref(false);
+  const showSetup = ref(false);
 
   // Reactive bounds — auto-update via ResizeObserver; return 0 when element is null/unmounted
-  const { left: btnLeft, top: btnTop, right: btnRight, bottom: btnBottom, height: btnHeight } = useElementBounding(refs.root);
+  const {
+    left: btnLeft,
+    top: btnTop,
+    right: btnRight,
+    bottom: btnBottom,
+    height: btnHeight,
+  } = useElementBounding(refs.root);
   const { width: popupW, height: popupH } = useElementBounding(refs.popupInner);
   const { width: vw, height: vh } = useWindowSize();
 
@@ -76,7 +84,7 @@ export function useAccountMenu(
     cancel();
   }
   function openSetup() {
-    emit('openSetup');
+    showSetup.value = true;
     cancel();
   }
   function openChangePassword() {
@@ -129,6 +137,7 @@ export function useAccountMenu(
     showChangePassword,
     showDeleteAccount,
     showSecurity,
+    showSetup,
     popupStyle,
     handleLogout,
     openSetup,
