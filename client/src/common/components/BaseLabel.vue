@@ -6,18 +6,9 @@ defineProps<{
 </script>
 
 <template>
-  <label
-      class="block text-on-surface-muted font-btn mb-[6px]"
-      :for="for"
-  >
+  <label class="block text-on-surface-muted text-btn mb-[6px]" :for="for">
     <slot />
 
-    <span
-        v-if="required"
-        class="text-danger ml-1"
-        aria-hidden="true"
-    >
-      *
-    </span>
+    <span v-if="required" class="text-danger ml-1" aria-hidden="true"> * </span>
   </label>
 </template>

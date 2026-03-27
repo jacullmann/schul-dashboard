@@ -24,7 +24,6 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { resetMfaState } = useMfa();
-
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 
@@ -43,10 +42,6 @@ function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
 }
 
-function onMfaChanged(enabled: boolean) {
-  userStore.setMfaEnabled(enabled);
-}
-
 async function logout() {
   try {
     await hw.post('/api/auth/logout');
@@ -58,17 +53,6 @@ async function logout() {
     await appAuthLogout();
     router.push('/');
   }
-}
-
-async function onAccountDeleted() {
-  userStore.clearUser();
-  resetMfaState();
-  await appAuthLogout();
-  router.push('/');
-}
-
-function onAccountDeleteError(msg: string) {
-  console.error('Account delete error:', msg);
 }
 
 function handleNavigation(path: string) {
@@ -192,11 +176,8 @@ onUnmounted(() => {
         v-if="user"
         :email="user.email"
         :user-data="user"
-        @deleted="onAccountDeleted"
-        @error="onAccountDeleteError"
         @logout="logout"
         @personalization-changed="onPersonalizationChanged"
-        @mfa-changed="onMfaChanged"
       />
     </div>
   </aside>

@@ -671,7 +671,11 @@
       "games": "Spiele und Unterhaltung",
       "createEntry": "Neuen Eintrag zur Aufgabenliste hinzufügen",
       "joinGroup": "Einer bestehenden Gruppe beitreten",
-      "createGroup": "Eine neue Gruppe erstellen"
+      "createGroup": "Eine neue Gruppe erstellen",
+      "editCourses": "Deine Kursauswahl anpassen",
+      "security": "Zwei-Faktor-Authentifizierung und Sicherheit",
+      "changePassword": "Dein Kontopasswort aktualisieren",
+      "logout": "Sicher von deinem Konto abmelden"
     }
   },
   "about": {}

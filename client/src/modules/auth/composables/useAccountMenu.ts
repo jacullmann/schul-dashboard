@@ -6,7 +6,7 @@ import {
   useWindowSize,
 } from '@vueuse/core';
 import type { UserData } from '@/stores/userStore';
-import { useToast } from '@/common/composables/useToast';
+import { useAccountModals } from './useAccountModals';
 
 export function useAccountMenu(
   props: { email: string; userData: UserData | null },
@@ -17,6 +17,8 @@ export function useAccountMenu(
     firstMenuBtnRef: Ref<HTMLButtonElement | null>;
   },
 ) {
+  const accountModals = useAccountModals();
+
   const personalizationSetting = computed({
     get: () => props.userData?.personalized ?? true,
     set: () => {},
@@ -27,11 +29,6 @@ export function useAccountMenu(
   }
 
   const open = ref(false);
-  const toast = useToast();
-  const showChangePassword = ref(false);
-  const showDeleteAccount = ref(false);
-  const showSecurity = ref(false);
-  const showSetup = ref(false);
 
   // Reactive bounds — auto-update via ResizeObserver; return 0 when element is null/unmounted
   const {
@@ -83,36 +80,25 @@ export function useAccountMenu(
     emit('logout');
     cancel();
   }
+
   function openSetup() {
-    showSetup.value = true;
+    accountModals.openSetup();
     cancel();
   }
+
   function openChangePassword() {
-    showChangePassword.value = true;
+    accountModals.openChangePassword();
     cancel();
   }
+
   function openSecurity() {
-    showSecurity.value = true;
+    accountModals.openSecurity();
     cancel();
   }
+
   function startDelete() {
-    showDeleteAccount.value = true;
+    accountModals.openDeleteAccount();
     cancel();
-  }
-
-  function onMfaChanged(enabled: boolean) {
-    emit('mfaChanged', enabled);
-  }
-  function onAccountDeleted() {
-    emit('deleted');
-  }
-  function onDeleteError(msg: string) {
-    toast.error(msg);
-    emit('error', msg);
-  }
-
-  function onPasswordChanged() {
-    toast.success('Passwort erfolgreich geändert!');
   }
 
   async function toggle() {
@@ -134,20 +120,12 @@ export function useAccountMenu(
     personalizationSetting,
     onPersonalizationChange,
     open,
-    showChangePassword,
-    showDeleteAccount,
-    showSecurity,
-    showSetup,
     popupStyle,
     handleLogout,
     openSetup,
     openChangePassword,
     openSecurity,
     startDelete,
-    onMfaChanged,
-    onPasswordChanged,
-    onAccountDeleted,
-    onDeleteError,
     toggle,
     cancel,
   };

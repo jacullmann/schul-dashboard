@@ -9,15 +9,12 @@ import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { X, Menu, ChevronDown } from '@lucide/vue';
 import hw from '@/api/hwApi';
-import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { resetMfaState } = useMfa();
 
 const userStore = useUserStore();
-const { user, loading, isGroupAdmin } =
-  storeToRefs(userStore);
+const { user, loading, isGroupAdmin } = storeToRefs(userStore);
 
 const {
   groupName,
@@ -92,10 +89,6 @@ function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
 }
 
-function onMfaChanged(enabled: boolean) {
-  userStore.setMfaEnabled(enabled);
-}
-
 const handleEscape = (event: KeyboardEvent) => {
   if (event.key === 'Escape' && navOpen.value) closeNav();
 };
@@ -107,21 +100,9 @@ async function logout() {
     console.error('Logout failed:', err);
   } finally {
     userStore.clearUser();
-    resetMfaState();
     await appAuthLogout();
     router.push('/');
   }
-}
-
-async function onAccountDeleted() {
-  userStore.clearUser();
-  resetMfaState();
-  await appAuthLogout();
-  router.push('/');
-}
-
-function onAccountDeleteError(msg: string) {
-  console.error('Account delete error:', msg);
 }
 
 useEventListener(document, 'keydown', handleEscape);
@@ -263,11 +244,8 @@ onUnmounted(() => {
           v-else-if="user"
           :email="user.email"
           :user-data="user"
-          @deleted="onAccountDeleted"
-          @error="onAccountDeleteError"
           @logout="logout"
           @personalization-changed="onPersonalizationChanged"
-          @mfa-changed="onMfaChanged"
         />
 
         <button

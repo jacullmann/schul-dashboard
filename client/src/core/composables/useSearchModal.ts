@@ -1,25 +1,16 @@
-import { ref } from 'vue';
+import { useModalStore } from '@/stores/modalStore';
 
-// Module-level singleton — shared across all composable call-sites.
-const isSearchOpen = ref(false);
-
+/**
+ * Thin composable wrapper around the modal store's search-modal slice.
+ * Keeps the public API identical so existing call-sites need no changes.
+ */
 export function useSearchModal() {
-  function openSearch() {
-    isSearchOpen.value = true;
-  }
-
-  function closeSearch() {
-    isSearchOpen.value = false;
-  }
-
-  function toggleSearch() {
-    isSearchOpen.value = !isSearchOpen.value;
-  }
+  const store = useModalStore();
 
   return {
-    isSearchOpen,
-    openSearch,
-    closeSearch,
-    toggleSearch,
+    isSearchOpen: store.searchOpen as Readonly<typeof store.searchOpen>,
+    openSearch: store.openSearch,
+    closeSearch: store.closeSearch,
+    toggleSearch: store.toggleSearch,
   };
 }

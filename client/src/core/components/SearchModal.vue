@@ -18,14 +18,25 @@ import {
   Search,
   ChevronRight,
   ArrowUpRight,
+  LucideGraduationCap,
+  LucideKeyRound,
+  ShieldCheck,
+  LogOut,
 } from '@lucide/vue';
+import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
+import { useMfa } from '@/modules/auth/composables/useMfa';
+import { useUserStore } from '@/stores/userStore';
+import hw from '@/api/hwApi';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
 const { t } = useI18n();
 const router = useRouter();
-const { activeGroupId } = useAppAuth();
+const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const { openItemForm } = useItemForm();
+const { openSetup, openSecurity, openChangePassword } = useAccountModals();
+const userStore = useUserStore();
+const { resetMfaState } = useMfa();
 
 const query = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -101,7 +112,10 @@ const allResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.createEntry'),
     category: 'action',
     icon: CirclePlus,
-    action: () => { openItemForm(); emit('cancel'); },
+    action: () => {
+      openItemForm();
+      emit('cancel');
+    },
     shortcut: 'N',
   },
   {
@@ -120,7 +134,63 @@ const allResults = computed<SearchResult[]>(() => [
     icon: UserPlus,
     action: () => navigate('/home'),
   },
+  // Account Actions
+  {
+    id: 'edit-courses',
+    label: t('account.menu.courses.title'),
+    description: t('search.descriptions.editCourses'),
+    category: 'action',
+    icon: LucideGraduationCap,
+    action: () => {
+      openSetup();
+      emit('cancel');
+    },
+  },
+  {
+    id: 'security',
+    label: t('account.menu.security.title'),
+    description: t('search.descriptions.security'),
+    category: 'action',
+    icon: ShieldCheck,
+    action: () => {
+      openSecurity();
+      emit('cancel');
+    },
+  },
+  {
+    id: 'change-password',
+    label: t('account.menu.changePassword.title'),
+    description: t('search.descriptions.changePassword'),
+    category: 'action',
+    icon: LucideKeyRound,
+    action: () => {
+      openChangePassword();
+      emit('cancel');
+    },
+  },
+  {
+    id: 'logout',
+    label: t('account.menu.logout'),
+    description: t('search.descriptions.logout'),
+    category: 'action',
+    icon: LogOut,
+    action: logout,
+  },
 ]);
+
+async function logout() {
+  emit('cancel');
+  try {
+    await hw.post('/api/auth/logout');
+  } catch (err) {
+    console.error('Logout failed:', err);
+  } finally {
+    userStore.clearUser();
+    resetMfaState();
+    await appAuthLogout();
+    router.push('/');
+  }
+}
 
 // Fuzzy-ish filtering: match every character of query in order within label/description
 function matchesQuery(item: SearchResult, q: string): boolean {
@@ -200,7 +270,7 @@ onMounted(() => {
     class="blurit"
     @click.self="$emit('cancel')"
     aria-hidden="true"
-    style="z-index: 100002;"
+    style="z-index: 100002"
   >
     <!-- Modal panel -->
     <div
@@ -208,11 +278,18 @@ onMounted(() => {
       aria-modal="true"
       :aria-label="t('search.modal.title')"
       class="search-modal bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-[560px] overflow-hidden fixed text-left"
-      style="z-index: 100003; top: 50%; left: 50%; transform: translate(-50%, -50%);"
+      style="
+        z-index: 100003;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      "
       @keydown="handleKeydown"
     >
       <!-- Search input -->
-      <div class="flex items-center gap-3 px-4 py-3 border-b border-surface-border">
+      <div
+        class="flex items-center gap-3 px-4 py-3 border-b border-surface-border"
+      >
         <Search :size="18" class="text-on-surface-subtle shrink-0" />
         <input
           id="search-modal-input"
@@ -232,7 +309,9 @@ onMounted(() => {
         <!-- Pages section -->
         <template v-if="pageResults.length">
           <div class="px-4 py-1.5">
-            <span class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider">
+            <span
+              class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
+            >
               {{ t('search.modal.categoryPages') }}
             </span>
           </div>
@@ -240,7 +319,11 @@ onMounted(() => {
             v-for="item in pageResults"
             :key="item.id"
             class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none bg-transparent text-left transition-colors"
-            :class="selectedIndex === globalIndex(item) ? 'bg-surface-hover' : 'hover:bg-surface-hover-subtle'"
+            :class="
+              selectedIndex === globalIndex(item)
+                ? 'bg-surface-hover'
+                : 'hover:bg-surface-hover-subtle'
+            "
             @click="item.action()"
             @mouseenter="selectIndex(globalIndex(item))"
           >
@@ -251,11 +334,15 @@ onMounted(() => {
             </span>
 
             <span class="flex-1 min-w-0">
-              <span class="block text-sub font-medium text-on-surface leading-tight">{{ item.label }}</span>
+              <span
+                class="block text-sub font-medium text-on-surface leading-tight"
+                >{{ item.label }}</span
+              >
               <span
                 v-if="item.description"
                 class="block text-footnote text-on-surface-muted truncate mt-0.5"
-              >{{ item.description }}</span>
+                >{{ item.description }}</span
+              >
             </span>
 
             <ArrowUpRight
@@ -269,7 +356,9 @@ onMounted(() => {
         <!-- Actions section -->
         <template v-if="actionResults.length">
           <div class="px-4 py-1.5" :class="pageResults.length ? 'mt-2' : ''">
-            <span class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider">
+            <span
+              class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
+            >
               {{ t('search.modal.categoryActions') }}
             </span>
           </div>
@@ -277,7 +366,11 @@ onMounted(() => {
             v-for="item in actionResults"
             :key="item.id"
             class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none bg-transparent text-left transition-colors"
-            :class="selectedIndex === globalIndex(item) ? 'bg-surface-hover' : 'hover:bg-surface-hover-subtle'"
+            :class="
+              selectedIndex === globalIndex(item)
+                ? 'bg-surface-hover'
+                : 'hover:bg-surface-hover-subtle'
+            "
             @click="item.action()"
             @mouseenter="selectIndex(globalIndex(item))"
           >
@@ -288,11 +381,15 @@ onMounted(() => {
             </span>
 
             <span class="flex-1 min-w-0">
-              <span class="block text-sub font-medium text-on-surface leading-tight">{{ item.label }}</span>
+              <span
+                class="block text-sub font-medium text-on-surface leading-tight"
+                >{{ item.label }}</span
+              >
               <span
                 v-if="item.description"
                 class="block text-footnote text-on-surface-muted truncate mt-0.5"
-              >{{ item.description }}</span>
+                >{{ item.description }}</span
+              >
             </span>
 
             <span class="flex items-center gap-2 shrink-0">
@@ -317,13 +414,16 @@ onMounted(() => {
         >
           <Search :size="28" class="text-on-surface-subtle mb-1" />
           <p class="text-sub text-on-surface-muted m-0">
-            {{ t('global.search.noResults') }} <strong class="text-on-surface">„{{ query }}"</strong>
+            {{ t('global.search.noResults') }}
+            <strong class="text-on-surface">„{{ query }}"</strong>
           </p>
         </div>
       </div>
 
       <!-- Footer hint -->
-      <div class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-surface-muted">
+      <div
+        class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-surface-muted"
+      >
         <span class="flex items-center gap-1">
           <BaseKbd>↑</BaseKbd>
           <BaseKbd>↓</BaseKbd>

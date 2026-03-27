@@ -1,46 +1,24 @@
-import { ref } from 'vue';
+import { useModalStore } from '@/stores/modalStore';
 
-const isAuthModalOpen = ref(false);
-const authResolve = ref<((token: string) => void) | null>(null);
-const authReject = ref<((reason?: any) => void) | null>(null);
-
+/**
+ * Thin composable wrapper around the modal store's auth-modal slice.
+ * Keeps the public API identical so existing call-sites need no changes.
+ */
 export function useGlobalAuthModal() {
-  function openAuthModal(): Promise<string> {
-    if (isAuthModalOpen.value) {
-      isAuthModalOpen.value = false;
-      setTimeout(() => {
-        isAuthModalOpen.value = true;
-      }, 10);
-      return Promise.resolve('');
-    }
-
-    isAuthModalOpen.value = true;
-    return new Promise((resolve, reject) => {
-      authResolve.value = resolve;
-      authReject.value = reject;
-    });
-  }
-
-  function closeAuthModal() {
-    isAuthModalOpen.value = false;
-    if (authReject.value) {
-      authReject.value(new Error('Auth Modal has been closed incorrectly.'));
-    }
-    authResolve.value = null;
-    authReject.value = null;
-  }
-
-  function onAuthSuccess(token: string) {
-    if (authResolve.value) {
-      authResolve.value(token);
-    }
-    closeAuthModal();
-  }
+  const store = useModalStore();
 
   return {
-    isAuthModalOpen,
-    openAuthModal,
-    closeAuthModal,
-    onAuthSuccess,
+    /** Reactive flag — true while the auth modal is mounted. */
+    isAuthModalOpen: store.authModalOpen as Readonly<
+      typeof store.authModalOpen
+    >,
+    /** Opens the modal and returns a Promise that resolves on successful login. */
+    openAuthModal: store.openAuthModal,
+    closeAuthModal: store.closeAuthModal,
+    /**
+     * Call this after a successful login attempt so the Promise returned by
+     * `openAuthModal` resolves and the modal closes.
+     */
+    onAuthSuccess: store.resolveAuthModal,
   };
 }
