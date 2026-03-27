@@ -101,10 +101,10 @@ onUnmounted(() => {
   </button>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen py-3 px-2.5 bg-surface border-r border-surface-border z-[5000000]"
+    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-1 bg-surface border-r border-surface-border z-[5000000]"
     :class="[
       'md:sticky md:top-0',
-      isExpanded ? 'md:w-52' : 'md:w-14',
+      isExpanded ? 'md:w-52' : 'md:w-11',
 
       'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-52 max-md:shadow-xl',
       isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',

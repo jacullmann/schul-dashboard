@@ -113,18 +113,21 @@
     --announcement-height: 0px;
 
     /* ── Z-index scale ──────────────────────────────────────── */
-    --z-background:                -2;
-    --z-fixed-bg:                  -1;
+    --z-below:                     -10;
+    --z-hide:                      -1;
+
     --z-base:                      1;
+    --z-docked:                    10;
+
     --z-dropdown:                  100;
-    --z-header:                    1002;
-    --z-mobile-nav:                999;
-    --z-modal-overlay:             998;
-    --z-modal:                     1400;
-    --z-auth-loading:              10000;
-    --z-initial-loading:           99999;
-    --z-image-viewer:              100002;
-    --z-toast:                     99999;
+    --z-sticky:                    200;
+    --z-modal-overlay:             298;
+    --z-mobile-nav:                299;
+    --z-header:                    300;
+    --z-modal:                     1000;
+    --z-toast:                     5000;
+    --z-auth-loading:              9000;
+    --z-critical:                 10000;
 
     /* ── Animations ────────────────────────────────────────── */
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
