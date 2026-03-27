@@ -384,8 +384,8 @@
         "archiveNote": "You are currently viewing old entries"
       },
       "itemForm": {
-        "newEntry": "New Entry – ",
-        "editEntry": "Edit Entry – ",
+        "newEntry": "New Entry",
+        "editEntry": "Edit Entry",
         "title": "Title",
         "subject": "Subject",
         "customSubject": "Custom Subject",

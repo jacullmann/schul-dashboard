@@ -421,8 +421,8 @@
         "noNotes": "Keine Anmerkung vorhanden"
       },
       "itemForm": {
-        "newEntry": "Neuer Eintrag – ",
-        "editEntry": "Eintrag bearbeiten – ",
+        "newEntry": "Neuer Eintrag",
+        "editEntry": "Eintrag bearbeiten",
         "title": "Titel",
         "subject": "Fach",
         "customSubject": "Benutzerdefiniertes Fach",
