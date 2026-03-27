@@ -79,10 +79,10 @@ onUnmounted(() => {
 
 <template>
   <aside
-    class="sidebar transition-[width] duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] items-center sticky top-0 h-screen py-3 bg-surface border-r border-surface-border flex flex-col justify-between shrink-0 overflow-hidden"
+    class="sidebar transition-[width] duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] items-center sticky top-0 h-screen py-3 px-2.5 bg-surface border-r border-surface-border flex flex-col justify-between shrink-0 overflow-hidden"
     :class="isExpanded ? 'w-52' : 'w-14'"
   >
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4 w-full">
       <SidebarButton
         :label="t('sidebar.collapse')"
         :expanded="isExpanded"
@@ -95,7 +95,7 @@ onUnmounted(() => {
         <CirclePlus :size="20" />
       </SidebarButton>
 
-      <div class="flex flex-col gap-0">
+      <div class="flex flex-col gap-0 w-full">
         <SidebarButton
           :label="t('sidebar.home')"
           :expanded="isExpanded"
@@ -138,15 +138,17 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <AccountMenu
-      v-if="user"
-      :email="user.email"
-      :user-data="user"
-      @deleted="onAccountDeleted"
-      @error="onAccountDeleteError"
-      @logout="logout"
-      @personalization-changed="onPersonalizationChanged"
-      @mfa-changed="onMfaChanged"
-    />
+    <div class="flex w-full transition-all duration-300 justify-start ml-[2px] max-[480px]:ml-[5px]">
+      <AccountMenu
+        v-if="user"
+        :email="user.email"
+        :user-data="user"
+        @deleted="onAccountDeleted"
+        @error="onAccountDeleteError"
+        @logout="logout"
+        @personalization-changed="onPersonalizationChanged"
+        @mfa-changed="onMfaChanged"
+      />
+    </div>
   </aside>
 </template>
