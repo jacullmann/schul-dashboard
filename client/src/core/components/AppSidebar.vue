@@ -122,17 +122,23 @@ onUnmounted(() => {
         <PanelLeft :size="20" />
       </SidebarButton>
 
-      <SidebarButton :label="t('sidebar.create')" :expanded="isExpanded">
-        <CirclePlus :size="20" />
-      </SidebarButton>
+      <div class="flex flex-col gap-0 w-full">
+        <SidebarButton
+          :label="t('sidebar.create')"
+          :expanded="isExpanded"
+          @click="handleNavigation('/create')"
+        >
+          <CirclePlus :size="20" />
+        </SidebarButton>
 
-      <SidebarButton
-        :label="t('sidebar.search')"
-        :expanded="isExpanded"
-        @click="showSearch = true"
-      >
-        <Search :size="20" />
-      </SidebarButton>
+        <SidebarButton
+          :label="t('sidebar.search')"
+          :expanded="isExpanded"
+          @click="showSearch = true"
+        >
+          <Search :size="20" />
+        </SidebarButton>
+      </div>
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton

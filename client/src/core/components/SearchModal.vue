@@ -222,11 +222,7 @@ onMounted(() => {
           spellcheck="false"
           class="flex-1 bg-transparent border-none outline-none text-on-surface text-body placeholder:text-on-surface-subtle"
         />
-        <kbd
-          class="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded text-footnote text-on-surface-subtle border border-surface-border font-mono"
-        >
-          Esc
-        </kbd>
+        <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
       </div>
 
       <!-- Results -->
@@ -247,7 +243,7 @@ onMounted(() => {
             @mouseenter="selectIndex(globalIndex(item))"
           >
             <span
-              class="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-surface-border text-on-surface-muted"
+              class="shrink-0 flex items-center justify-center w-8 h-8 text-on-surface-muted"
             >
               <component :is="item.icon" :size="16" />
             </span>
@@ -298,12 +294,11 @@ onMounted(() => {
             </span>
 
             <span class="flex items-center gap-2 shrink-0">
-              <kbd
+              <BaseKbd
                 v-if="item.shortcut && selectedIndex === globalIndex(item)"
-                class="flex items-center px-1.5 py-0.5 rounded text-footnote text-on-surface-subtle border border-surface-border font-mono"
               >
                 {{ item.shortcut }}
-              </kbd>
+              </BaseKbd>
               <ChevronRight
                 v-if="selectedIndex === globalIndex(item)"
                 :size="14"
@@ -328,12 +323,12 @@ onMounted(() => {
       <!-- Footer hint -->
       <div class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-footnote text-on-surface-subtle">
         <span class="flex items-center gap-1">
-          <kbd class="inline-flex items-center px-1 py-0.5 rounded border border-surface-border font-mono text-footnote">↑</kbd>
-          <kbd class="inline-flex items-center px-1 py-0.5 rounded border border-surface-border font-mono text-footnote">↓</kbd>
+          <BaseKbd>↑</BaseKbd>
+          <BaseKbd>↓</BaseKbd>
           {{ t('search.modal.hintNavigate') }}
         </span>
         <span class="flex items-center gap-1">
-          <kbd class="inline-flex items-center px-1.5 py-0.5 rounded border border-surface-border font-mono text-footnote">↵</kbd>
+          <BaseKbd>↵</BaseKbd>
           {{ t('search.modal.hintConfirm') }}
         </span>
       </div>
