@@ -232,7 +232,7 @@ onMounted(() => {
         <!-- Pages section -->
         <template v-if="pageResults.length">
           <div class="px-4 py-1.5">
-            <span class="text-footnote text-on-surface-subtle font-semibold uppercase tracking-wider">
+            <span class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider">
               {{ t('search.modal.categoryPages') }}
             </span>
           </div>
@@ -247,14 +247,14 @@ onMounted(() => {
             <span
               class="shrink-0 flex items-center justify-center w-8 h-8 text-on-surface-muted"
             >
-              <component :is="item.icon" :size="16" />
+              <component :is="item.icon" :size="20" />
             </span>
 
             <span class="flex-1 min-w-0">
               <span class="block text-sub font-medium text-on-surface leading-tight">{{ item.label }}</span>
               <span
                 v-if="item.description"
-                class="block text-footnote text-on-surface-subtle truncate mt-0.5"
+                class="block text-footnote text-on-surface-muted truncate mt-0.5"
               >{{ item.description }}</span>
             </span>
 
@@ -269,7 +269,7 @@ onMounted(() => {
         <!-- Actions section -->
         <template v-if="actionResults.length">
           <div class="px-4 py-1.5" :class="pageResults.length ? 'mt-2' : ''">
-            <span class="text-footnote text-on-surface-subtle font-semibold uppercase tracking-wider">
+            <span class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider">
               {{ t('search.modal.categoryActions') }}
             </span>
           </div>
@@ -284,14 +284,14 @@ onMounted(() => {
             <span
               class="shrink-0 flex items-center justify-center w-8 h-8 text-on-surface-muted"
             >
-              <component :is="item.icon" :size="16" />
+              <component :is="item.icon" :size="20" />
             </span>
 
             <span class="flex-1 min-w-0">
               <span class="block text-sub font-medium text-on-surface leading-tight">{{ item.label }}</span>
               <span
                 v-if="item.description"
-                class="block text-footnote text-on-surface-subtle truncate mt-0.5"
+                class="block text-footnote text-on-surface-muted truncate mt-0.5"
               >{{ item.description }}</span>
             </span>
 
@@ -323,7 +323,7 @@ onMounted(() => {
       </div>
 
       <!-- Footer hint -->
-      <div class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-surface-subtle">
+      <div class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-surface-muted">
         <span class="flex items-center gap-1">
           <BaseKbd>↑</BaseKbd>
           <BaseKbd>↓</BaseKbd>
