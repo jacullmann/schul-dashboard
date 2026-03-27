@@ -88,20 +88,20 @@ onUnmounted(() => {
 <template>
   <div
     v-if="isExpanded"
-    class="md:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+    class="md:hidden fixed inset-0 bg-black/50 z-[40000] transition-opacity duration-300"
     @click="isExpanded = false"
   ></div>
 
   <button
     v-if="!isExpanded"
-    class="md:hidden fixed top-3 left-2.5 z-40 p-2 text-on-surface bg-surface rounded-md border border-surface-border shadow-sm hover:bg-surface-hover transition-colors"
+    class="md:hidden fixed top-3 left-2.5 z-[40000} p-2 text-on-surface bg-surface rounded-md border border-surface-border shadow-sm hover:bg-surface-hover transition-colors"
     @click="toggleExpanded"
   >
     <PanelLeft :size="20" />
   </button>
 
   <aside
-    class="sidebar transition-all duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen py-3 px-2.5 bg-surface border-r border-surface-border z-50"
+    class="sidebar transition-all duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen py-3 px-2.5 bg-surface border-r border-surface-border z-[5000000]"
     :class="[
       'md:sticky md:top-0',
       isExpanded ? 'md:w-52' : 'md:w-14',
