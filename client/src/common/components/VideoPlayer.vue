@@ -92,13 +92,13 @@ const {
 
       <div class="controls-row">
         <div class="controls-left">
-          <button class="player-btn" @click="togglePlay" :aria-label="isPlaying ? 'Pausieren' : 'Abspielen'">
+          <button type="button" class="player-btn" @click="togglePlay" :aria-label="isPlaying ? 'Pausieren' : 'Abspielen'">
             <Pause v-if="isPlaying" fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth/>
             <Play v-else fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth/>
           </button>
 
           <div class="volume-control-group" @mouseenter="handleVolumeEnter" @mouseleave="handleVolumeLeave">
-            <button class="player-btn" @click="toggleMute" :aria-label="volume === 0 ? 'Ton einschalten' : 'Stummschalten'">
+            <button type="button" class="player-btn" @click="toggleMute" :aria-label="volume === 0 ? 'Ton einschalten' : 'Stummschalten'">
               <VolumeX v-if="volume === 0" fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth aria-hidden="true" />
               <Volume2 v-else :size="24" fill="currentColor" :stroke-width="2" absoluteStrokeWidth aria-hidden="true" />
             </button>
@@ -121,7 +121,7 @@ const {
         </div>
 
         <div class="controls-right">
-          <button class="player-btn" @click="toggleFullscreen" :aria-label="isFullscreen ? 'Vollbildmodus beenden' : 'Vollbildmodus aktivieren'">
+          <button type="button" class="player-btn" @click="toggleFullscreen" :aria-label="isFullscreen ? 'Vollbildmodus beenden' : 'Vollbildmodus aktivieren'">
             <Minimize v-if="isFullscreen" :size="24" :stroke-width="2" absoluteStrokeWidth/>
             <Maximize v-else :size="24" :stroke-width="2" absoluteStrokeWidth/>
           </button>

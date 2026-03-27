@@ -32,6 +32,7 @@ const ICONS = {
 
           <button
             v-if="toast.dismissible"
+            type="button"
             class="toast-close"
             :aria-label="'Dismiss notification'"
             @click="dismiss(toast.id)"

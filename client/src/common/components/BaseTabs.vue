@@ -22,6 +22,9 @@ const emit = defineEmits<{
   (e: 'change', id: string): void
 }>();
 
+// Group radios by unique ID to allow multiple BaseTabs instances on one page
+const groupId = `tabs-${Math.random().toString(36).substring(2, 9)}`;
+
 // -- Data --
 const itemRefs = ref<(HTMLElement | null)[]>([]);
 const navBarRef = ref<HTMLElement | null>(null);
@@ -94,31 +97,6 @@ const scrollToActive = () => {
   }
 };
 
-// Keyboard navigation (a11y)
-const handleKeydown = (e: KeyboardEvent, index: number) => {
-  let newIndex = index;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    e.preventDefault();
-    newIndex = (index + 1) % props.items.length;
-  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    newIndex = (index - 1 + props.items.length) % props.items.length;
-  } else if (e.key === 'Home') {
-    e.preventDefault();
-    newIndex = 0;
-  } else if (e.key === 'End') {
-    e.preventDefault();
-    newIndex = props.items.length - 1;
-  }
-
-  if (newIndex !== index) {
-    selectItem(newIndex);
-    nextTick(() => {
-      itemRefs.value[newIndex]?.focus();
-    });
-  }
-};
-
 // -- Lifecycle --
 onMounted(() => {
   updateMetrics();
@@ -132,40 +110,42 @@ useResizeObserver(navBarRef, () => {
 
 <template>
   <div class="flex items-center justify-start w-full">
-    <nav class="nav-bar" ref="navBarRef" aria-label="Tabs">
-      <!-- Background Layer (the grey font) -->
-      <div class="nav-layer background-layer" role="tablist">
-        <button
+    <div class="nav-bar" ref="navBarRef">
+      <!-- Hidden Radio Inputs for Logic & Accessibility -->
+      <div class="nav-layer background-layer" role="radiogroup">
+        <label
             v-for="(item, index) in items"
-            :key="`bg-${item.id}`"
+            :key="item.id"
             :ref="(el) => { if (el) itemRefs[index] = el as HTMLElement }"
             class="nav-item"
-            role="tab"
-            :aria-selected="selectedIndex === index"
-            :tabindex="selectedIndex === index ? 0 : -1"
-            :id="`tab-${item.id}`"
-            @click="selectItem(index)"
-            @keydown="handleKeydown($event, index)"
+            :class="{ 'active': activeId === item.id }"
         >
+          <input
+              type="radio"
+              :name="groupId"
+              :value="item.id"
+              :checked="activeId === item.id"
+              class="sr-only"
+              @change="selectItem(index)"
+          />
           {{ item.label }}
-        </button>
+        </label>
       </div>
 
-      <!-- Pill Mask -->
+      <!-- Mask Layer (Pill Animation) -->
       <div class="highlight-pill" :style="pillStyle" aria-hidden="true">
-        <!-- Foreground Layer (the dark font, 1:1 copy of the list) -->
+        <!-- Text duplication for the inverted color mask effect -->
         <div class="nav-layer foreground-layer" :style="innerListStyle">
-          <button
+          <span
               v-for="item in items"
               :key="`fg-${item.id}`"
               class="nav-item active-text"
-              tabindex="-1"
           >
             {{ item.label }}
-          </button>
+          </span>
         </div>
       </div>
-    </nav>
+    </div>
   </div>
 </template>
 
@@ -243,5 +223,17 @@ useResizeObserver(navBarRef, () => {
 
 .nav-item.active-text {
   color: var(--color-on-action);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 </style>
