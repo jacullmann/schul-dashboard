@@ -15,7 +15,7 @@ defineProps<{
 
     <span
       v-if="label"
-      class="transition-[max-width,opacity,margin-left] duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] text-on-surface-muted group-hover:text-on-surface transition-hover text-sub leading-5 font-regular whitespace-nowrap overflow-hidden"
+      class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] text-on-surface-muted group-hover:text-on-surface transition-hover text-sub leading-5 font-regular whitespace-nowrap overflow-hidden"
       :class="expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0'"
     >
       {{ label }}
