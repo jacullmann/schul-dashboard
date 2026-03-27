@@ -12,6 +12,7 @@ import {
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useSearchModal } from '@/core/composables/useSearchModal';
+import { useItemForm } from '@/core/composables/useItemForm';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi.ts';
 import { onMounted, onUnmounted, ref } from 'vue';
@@ -32,6 +33,7 @@ const router = useRouter();
 
 const isExpanded = ref(false);
 const { openSearch } = useSearchModal();
+const { openItemForm } = useItemForm();
 
 function toggleExpanded() {
   isExpanded.value = !isExpanded.value;
@@ -126,7 +128,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.create')"
           :expanded="isExpanded"
-          @click="handleNavigation('/create')"
+          @click="openItemForm()"
         >
           <CirclePlus :size="20" />
         </SidebarButton>

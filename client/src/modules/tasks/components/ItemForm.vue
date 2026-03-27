@@ -3,32 +3,36 @@ import { onMounted, ref, watch, computed } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
 import type { HwItem } from '@/modules/tasks/composables/useTasks';
+import type { ItemType } from '@/modules/tasks/types';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
-import type BaseInput from '@/common/components/BaseInput.vue';
 
 const { t, te } = useI18n();
 const subjectStore = useSubjectStore();
 
 const props = defineProps<{
-  type: 'homework' | 'dalton' | 'exam';
+  /** Pre-selected entry type when creating; ignored when editing. */
+  initialType?: Exclude<ItemType, 'all'>;
   initial?: HwItem | null;
 }>();
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void; }>();
 
+// ── Type tabs ──────────────────────────────────────────────────────────────
+const typeTabItems = computed(() => [
+  { id: 'homework', label: t('school.tasks.types.homework') },
+  { id: 'dalton',   label: t('school.tasks.types.dalton')   },
+  { id: 'exam',     label: t('school.tasks.types.exam')     },
+]);
+
+// When editing, type is fixed to the item's type. When creating, it starts at
+// the provided initialType (default: 'homework') and can be changed via tabs.
+const activeType = ref<Exclude<ItemType, 'all'>>(
+  props.initial ? props.initial.type : (props.initialType ?? 'homework'),
+);
+
 const { images: imgImages, uploading: imgUploading, uploadError: imgUploadError, init: imgInit, makeThumb, uploadImage, removeImg } = useImageUpload();
-
-const labelFor = (type: 'homework' | 'dalton' | 'exam') => {
-  const map = {
-    'homework': t('school.tasks.types.homework'),
-    'dalton': t('school.tasks.types.dalton'),
-    'exam': t('school.tasks.types.exam'),
-  } as const;
-  return map[type];
-};
-
 
 const getInitialSubjectParts = () => {
   const initial = props.initial?.subject;
@@ -148,7 +152,6 @@ async function submit() {
   };
 
   try {
-
     const subject = resolveSubject();
 
     if (!subject || !subject.length) {
@@ -178,7 +181,7 @@ async function submit() {
     if (selectedDate > maxDate) throw new Error(t('school.tasks.itemForm.errors.dateNew'));
 
     const payload = {
-      type: props.type,
+      type: activeType.value,
       title: cleanTitle,
       subject,
       description: cleanDesc,
@@ -226,11 +229,20 @@ onMounted(() => {
   <form @submit.prevent="submit" novalidate>
     <BaseModal @cancel="emit('cancel')">
       <template #title>
-        {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') + labelFor(type) }}
+        {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') }}
       </template>
 
       <template #content>
-        <div class="row-n gap-4">
+        <!-- Type selector — only shown when creating, not editing -->
+        <div v-if="!initial" class="section-first">
+          <BaseTabs
+            :items="typeTabItems"
+            :active-id="activeType"
+            @change="(id) => (activeType = id as Exclude<ItemType, 'all'>)"
+          />
+        </div>
+
+        <div class="row-n gap-4" :class="{ 'section': !initial }">
           <div class="col">
             <BaseLabel for="title">{{ t('school.tasks.itemForm.title') }}</BaseLabel>
             <BaseInput ref="titleInputRef" id="title" v-model="title" />
@@ -339,6 +351,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.section-first {
+  margin-bottom: 16px;
+}
+
 .section {
   margin-top: 16px;
 }

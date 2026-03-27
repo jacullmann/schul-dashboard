@@ -4,6 +4,7 @@ import { useEventListener } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
+import { useItemForm } from '@/core/composables/useItemForm';
 import {
   House,
   ListTodo,
@@ -24,6 +25,7 @@ const emit = defineEmits<{ (e: 'cancel'): void }>();
 const { t } = useI18n();
 const router = useRouter();
 const { activeGroupId } = useAppAuth();
+const { openItemForm } = useItemForm();
 
 const query = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -99,7 +101,7 @@ const allResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.createEntry'),
     category: 'action',
     icon: CirclePlus,
-    action: () => navigate(`/groups/${activeGroupId.value}/items/all`),
+    action: () => { openItemForm(); emit('cancel'); },
     shortcut: 'N',
   },
   {

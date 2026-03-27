@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
-import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
 import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
 import ReportModal from '@/modules/tasks/components/ReportModal.vue'
@@ -8,9 +7,9 @@ import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
 import BaseTabs from '@/common/components/BaseTabs.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info } from '@lucide/vue'
+import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info, Plus } from '@lucide/vue'
 import { useTasks } from '@/modules/tasks/composables/useTasks';
-import CreateEntryDropdown from '@/modules/tasks/components/CreateEntryDropdown.vue';
+import { useItemForm } from '@/core/composables/useItemForm';
 import InfoModal from '@/common/components/InfoModal.vue'
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
 import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
@@ -64,18 +63,12 @@ const imagesPerRow = computed(() => {
 });
 
 const {
-  MAX_TITLE_LENGTH,
-  MAX_SUBJECT_LENGTH,
-  showItemForm,
-  itemToEdit,
   user,
-  subjects,
   loading,
   initialLoad,
   subjectFilter,
   showOldEntries,
   showSetupModal,
-  itemFormKey,
   visibleCount,
   limitedItems,
   filteredItems,
@@ -89,8 +82,6 @@ const {
   showLess,
   toggleMenu,
   onMenuAction,
-  handleSuccess,
-  onItemFormError,
   canEdit,
   canDelete,
   canDeleteImage,
@@ -113,8 +104,6 @@ const {
   onSetupSuccess,
   doReport,
   cancelReport,
-  openCreateFormByType,
-  itemFormType,
   showDeleteConfirm,
   confirmDelete,
   cancelDelete,
@@ -140,6 +129,8 @@ const {
   getSubjectName,
   getTypeLabel
 } = useTasks();
+
+const { openItemForm } = useItemForm();
 
 watch([showOldEntries, tab, subjectFilter], () => {
   dismissedItems.value.clear();
@@ -208,16 +199,22 @@ async function handleArchiveFromMenu(item: HwItem) {
     <div class="controls">
       <div class="left">
         <div class="row-two">
-
           <BaseSelect
               v-model="subjectFilter"
               :options="subjectOptions"
               extraClass="select-subject"
           />
+
           <ArchiveSwitch v-model="showOldEntries" />
-          <CreateEntryDropdown
-              @select="openCreateFormByType"
-          />
+
+          <BaseButton
+            class="aspect-square !p-1"
+            variant="action"
+            :aria-label="t('school.tasks.itemForm.newEntry')"
+            @click="openItemForm()"
+          >
+            <Plus :size="20" />
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -409,19 +406,6 @@ async function handleArchiveFromMenu(item: HwItem) {
         <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{ t('global.buttons.showLess') }}</BaseButton>
       </div>
     </div>
-
-    <ItemForm
-        v-if="showItemForm"
-        :key="itemFormKey"
-        :type="itemFormType"
-        :subjects="subjects"
-        :initial="itemToEdit"
-        :max-title-length="MAX_TITLE_LENGTH"
-        :max-subject-length="MAX_SUBJECT_LENGTH"
-        @cancel="showItemForm=false"
-        @success="handleSuccess(t('school.tasks.itemForm.successEdit'))"
-        @error="onItemFormError"
-    />
 
     <ImageContextMenu
         v-if="imageMenu.visible"

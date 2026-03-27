@@ -28,8 +28,6 @@ export function useTasks() {
   const { user } = storeToRefs(userStore);
   const { t, te } = useI18n();
 
-  const MAX_TITLE_LENGTH = 50;
-  const MAX_SUBJECT_LENGTH = 100;
 
   // Core states
   const tab = ref<ItemType>(
@@ -125,20 +123,15 @@ export function useTasks() {
     archivedItems,
     keptItems,
     activeGroupId,
-    (msg) => handleSuccess(msg),
+    (msg) => useToast().success(msg),
   );
 
   // Forms
   const {
-    itemFormType,
-    showItemForm,
-    itemToEdit,
-    itemFormKey,
     editingNoteForId,
     noteEditContent,
     savingNote,
     onItemFormError,
-    handleSuccess,
     editItem,
     openCreateFormByType,
     canEditNote,
@@ -341,17 +334,13 @@ export function useTasks() {
   });
 
   return {
-    MAX_TITLE_LENGTH,
-    MAX_SUBJECT_LENGTH,
-    showItemForm,
-    itemToEdit,
     user,
     subjects,
     loading,
     subjectFilter,
     showPersonalized,
     showOldEntries,
-    itemFormKey,
+    showSetupModal,
     visibleCount,
     limitedItems,
     filteredItems,
@@ -365,7 +354,6 @@ export function useTasks() {
     showLess,
     toggleMenu,
     onMenuAction,
-    handleSuccess,
     onItemFormError,
     canEdit,
     canDelete,
@@ -395,7 +383,6 @@ export function useTasks() {
     doReport,
     cancelReport,
     openCreateFormByType,
-    itemFormType,
     showDeleteConfirm,
     confirmDelete,
     cancelDelete,
@@ -414,7 +401,6 @@ export function useTasks() {
     viewerStartIndex,
     openImageViewer,
     closeImageViewer,
-    showSetupModal,
     shareItem,
     highlightedItemId,
     deletingImage,

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { useEventListener, useMagicKeys, whenever } from '@vueuse/core';
+import { useI18n } from 'vue-i18n';
+import { useToast } from '@/common/composables/useToast';
+import { useEventListener, onKeyStroke } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
@@ -11,6 +13,8 @@ import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
 import { useSearchModal } from '@/core/composables/useSearchModal';
 import SearchModal from '@/core/components/SearchModal.vue';
+import ItemForm from '@/modules/tasks/components/ItemForm.vue';
+import { useItemForm } from '@/core/composables/useItemForm';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useRouter } from 'vue-router';
@@ -23,11 +27,31 @@ const { user } = storeToRefs(userStore);
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
 const { isSearchOpen, openSearch, closeSearch } = useSearchModal();
+const { isItemFormOpen, itemToEdit, itemFormKey, initialType, closeItemForm, notifySuccess } = useItemForm();
+const { t } = useI18n();
 
-// Global Ctrl+K / Cmd+K Search shortcut
-const keys = useMagicKeys();
-whenever(keys['Meta+K']!, openSearch);
-whenever(keys['Ctrl+K']!, openSearch);
+function onItemFormSuccess() {
+  useToast().success(t('school.tasks.itemForm.successEdit'));
+  notifySuccess();
+}
+
+// Global Ctrl+K / Cmd+K → Search
+onKeyStroke(['k', 'K'], (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    openSearch();
+  }
+});
+
+// Global N → Create new entry (only when no input/textarea/modal is focused)
+onKeyStroke(['n', 'N'], (e) => {
+  const tag = (e.target as HTMLElement)?.tagName?.toUpperCase();
+  const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable;
+  if (!isEditable && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    useItemForm().openItemForm();
+  }
+});
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const {
   showLinkModal,
@@ -172,6 +196,18 @@ onUnmounted(() => {
         <SearchModal
             v-if="isSearchOpen"
             @cancel="closeSearch"
+        />
+      </Teleport>
+
+      <!-- Global item form (N key, + button, or search create action) -->
+      <Teleport to="body">
+        <ItemForm
+            v-if="isItemFormOpen"
+            :key="itemFormKey"
+            :initial-type="initialType"
+            :initial="itemToEdit"
+            @cancel="closeItemForm"
+            @success="onItemFormSuccess"
         />
       </Teleport>
 
