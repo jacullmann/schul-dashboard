@@ -7,7 +7,7 @@ defineProps<{
 
 <template>
   <button
-    class="group gap-0 items-center flex p-2 m-[-8px] text-on-surface rounded-md bg-transparent hover:bg-surface-hover transition-hover cursor-pointer border-0 outline-none w-full"
+    class="group gap-0 items-center flex p-2 text-on-surface rounded-md bg-transparent hover:bg-surface-hover transition-hover cursor-pointer border-0 outline-none w-full"
   >
     <span class="shrink-0">
       <slot />
