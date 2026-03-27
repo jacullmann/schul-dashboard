@@ -80,9 +80,9 @@ onUnmounted(() => {
 <template>
   <aside
     class="sidebar transition-[width] duration-300 ease-[cubic-bezier(0.4, 0, 0.2, 1)] items-stretch sticky top-0 h-screen p-3 bg-surface border-r border-surface-border flex flex-col justify-between shrink-0 overflow-hidden"
-    :class="isExpanded ? 'w-52' : 'w-12'"
+    :class="isExpanded ? 'w-52' : 'w-14'"
   >
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-8">
       <SidebarButton
         :label="t('sidebar.collapse')"
         :expanded="isExpanded"
@@ -96,7 +96,7 @@ onUnmounted(() => {
         <CirclePlus :size="20" />
       </SidebarButton>
 
-      <div class="flex flex-col gap-1 mt-4">
+      <div class="flex flex-col gap-4 mt-4">
         <SidebarButton
           :label="t('sidebar.home')"
           :expanded="isExpanded"
