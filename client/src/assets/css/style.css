@@ -335,13 +335,6 @@ p {
         color: var(--color-on-surface-subtle);
     }
 
-    label {
-        display: block;
-        color: var(--color-on-surface);
-        font-size: var(--text-btn);
-        margin-bottom: 6px;
-    }
-
     .btn {
         display: inline-flex;
         align-items: center;

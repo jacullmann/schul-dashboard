@@ -55,7 +55,7 @@ function cancel() {
 
       <form id="link-form" @submit.prevent="submit" class="link-form" novalidate>
         <div class="form-group">
-          <label for="link-password">Passwort</label>
+          <BaseLabel for="link-password">Passwort</BaseLabel>
           <BaseInput
               id="link-password"
               type="password"
