@@ -11,7 +11,7 @@ import {
   Search,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-import SearchModal from '@/core/components/SearchModal.vue';
+import { useSearchModal } from '@/core/composables/useSearchModal';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi.ts';
 import { onMounted, onUnmounted, ref } from 'vue';
@@ -31,7 +31,7 @@ const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
 
 const isExpanded = ref(false);
-const showSearch = ref(false);
+const { openSearch } = useSearchModal();
 
 function toggleExpanded() {
   isExpanded.value = !isExpanded.value;
@@ -134,7 +134,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.search')"
           :expanded="isExpanded"
-          @click="showSearch = true"
+          @click="openSearch"
         >
           <Search :size="20" />
         </SidebarButton>
@@ -198,6 +198,4 @@ onUnmounted(() => {
       />
     </div>
   </aside>
-
-  <SearchModal v-if="showSearch" @cancel="showSearch = false" />
 </template>

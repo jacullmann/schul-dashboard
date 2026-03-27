@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { useEventListener } from '@vueuse/core';
+import { useEventListener, useMagicKeys, whenever } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from './stores/userStore';
 import CookieBanner from "@/common/components/CookieBanner.vue";
@@ -9,6 +9,8 @@ import AuthModal from '@/modules/auth/components/AuthModal.vue';
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import { useGlobalAuthModal } from '@/core/composables/useGlobalAuthModal';
+import { useSearchModal } from '@/core/composables/useSearchModal';
+import SearchModal from '@/core/components/SearchModal.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useRouter } from 'vue-router';
@@ -20,6 +22,12 @@ const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 
 const { isAuthModalOpen, openAuthModal, closeAuthModal, onAuthSuccess: handleAuthSuccess } = useGlobalAuthModal();
+const { isSearchOpen, openSearch, closeSearch } = useSearchModal();
+
+// Global Ctrl+K / Cmd+K Search shortcut
+const keys = useMagicKeys();
+whenever(keys['Meta+K']!, openSearch);
+whenever(keys['Ctrl+K']!, openSearch);
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const {
   showLinkModal,
@@ -157,6 +165,14 @@ onUnmounted(() => {
             <button class="oauth-error-close" @click="clearOAuthError" aria-label="Schließen">✕</button>
           </div>
         </Transition>
+      </Teleport>
+
+      <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->
+      <Teleport to="body">
+        <SearchModal
+            v-if="isSearchOpen"
+            @cancel="closeSearch"
+        />
       </Teleport>
 
       <CookieBanner />

@@ -205,12 +205,12 @@ onMounted(() => {
       role="dialog"
       aria-modal="true"
       :aria-label="t('search.modal.title')"
-      class="search-modal bg-canvas border border-canvas-border rounded-2xl w-[calc(100%-32px)] max-w-[560px] overflow-hidden fixed text-left"
+      class="search-modal bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-[560px] overflow-hidden fixed text-left"
       style="z-index: 100003; top: 50%; left: 50%; transform: translate(-50%, -50%);"
       @keydown="handleKeydown"
     >
       <!-- Search input -->
-      <div class="flex items-center gap-3 px-4 py-3 border-b border-canvas-border">
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-surface-border">
         <Search :size="18" class="text-on-surface-subtle shrink-0" />
         <input
           id="search-modal-input"
@@ -280,7 +280,7 @@ onMounted(() => {
             @mouseenter="selectIndex(globalIndex(item))"
           >
             <span
-              class="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-surface border border-surface-border text-on-surface-muted"
+              class="shrink-0 flex items-center justify-center w-8 h-8 text-on-surface-muted"
             >
               <component :is="item.icon" :size="16" />
             </span>
@@ -321,7 +321,7 @@ onMounted(() => {
       </div>
 
       <!-- Footer hint -->
-      <div class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-footnote text-on-surface-subtle">
+      <div class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-surface-subtle">
         <span class="flex items-center gap-1">
           <BaseKbd>↑</BaseKbd>
           <BaseKbd>↓</BaseKbd>
