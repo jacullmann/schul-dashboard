@@ -639,11 +639,40 @@
     "expand": "Erweitern",
     "collapse": "Einklappen",
     "create": "Erstellen",
+    "search": "Suchen",
     "home": "Start",
     "tasks": "Aufgaben",
     "schedule": "Stundenplan",
     "groups": "Gruppen",
     "security": "Sicherheit"
+  },
+  "search": {
+    "modal": {
+      "title": "Schnellsuche",
+      "placeholder": "Seiten und Aktionen suchen…",
+      "categoryPages": "Seiten",
+      "categoryActions": "Aktionen",
+      "hintNavigate": "Navigieren",
+      "hintConfirm": "Öffnen"
+    },
+    "items": {
+      "brainTests": "Gehirntests",
+      "games": "Spiele",
+      "createEntry": "Neuen Eintrag erstellen",
+      "joinGroup": "Gruppe beitreten",
+      "createGroup": "Gruppe erstellen"
+    },
+    "descriptions": {
+      "home": "Zur Startseite",
+      "tasks": "Aufgaben, Hausaufgaben & Prüfungen",
+      "schedule": "Stundenplan anzeigen",
+      "groups": "Gruppen verwalten",
+      "brainTests": "Kognitive Tests und Übungen",
+      "games": "Spiele und Unterhaltung",
+      "createEntry": "Neuen Eintrag zur Aufgabenliste hinzufügen",
+      "joinGroup": "Einer bestehenden Gruppe beitreten",
+      "createGroup": "Eine neue Gruppe erstellen"
+    }
   },
   "about": {}
 }

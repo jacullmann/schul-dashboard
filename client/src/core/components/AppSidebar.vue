@@ -8,8 +8,10 @@ import {
   CalendarDays,
   UsersRound,
   Lock,
+  Search,
 } from '@lucide/vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
+import SearchModal from '@/core/components/SearchModal.vue';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi.ts';
 import { onMounted, onUnmounted, ref } from 'vue';
@@ -29,6 +31,7 @@ const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
 
 const isExpanded = ref(false);
+const showSearch = ref(false);
 
 function toggleExpanded() {
   isExpanded.value = !isExpanded.value;
@@ -123,6 +126,14 @@ onUnmounted(() => {
         <CirclePlus :size="20" />
       </SidebarButton>
 
+      <SidebarButton
+        :label="t('sidebar.search')"
+        :expanded="isExpanded"
+        @click="showSearch = true"
+      >
+        <Search :size="20" />
+      </SidebarButton>
+
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
           :label="t('sidebar.home')"
@@ -181,4 +192,6 @@ onUnmounted(() => {
       />
     </div>
   </aside>
+
+  <SearchModal v-if="showSearch" @cancel="showSearch = false" />
 </template>

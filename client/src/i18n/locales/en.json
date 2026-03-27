@@ -583,11 +583,40 @@
     "expand": "Expand",
     "collapse": "Collapse",
     "create": "Create",
+    "search": "Search",
     "home": "Home",
     "tasks": "Tasks",
     "schedule": "Schedule",
     "groups": "Groups",
     "security": "Security"
+  },
+  "search": {
+    "modal": {
+      "title": "Quick Search",
+      "placeholder": "Search pages and actions…",
+      "categoryPages": "Pages",
+      "categoryActions": "Actions",
+      "hintNavigate": "to navigate",
+      "hintConfirm": "to open"
+    },
+    "items": {
+      "brainTests": "Brain Tests",
+      "games": "Games",
+      "createEntry": "Create new entry",
+      "joinGroup": "Join group",
+      "createGroup": "Create group"
+    },
+    "descriptions": {
+      "home": "Go to the start page",
+      "tasks": "Tasks, homework & exams",
+      "schedule": "View class schedule",
+      "groups": "Manage your groups",
+      "brainTests": "Cognitive tests and exercises",
+      "games": "Games and entertainment",
+      "createEntry": "Add a new entry to the task list",
+      "joinGroup": "Join an existing group",
+      "createGroup": "Create a new group"
+    }
   },
   "about": {}
 }
