@@ -213,7 +213,7 @@ async function handleArchiveFromMenu(item: HwItem) {
             :aria-label="t('school.tasks.itemForm.newEntry')"
             @click="openItemForm()"
           >
-            <Plus :size="20" />
+            <Plus :size="24" />
           </BaseButton>
         </div>
       </div>

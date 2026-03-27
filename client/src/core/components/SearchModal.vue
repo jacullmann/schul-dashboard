@@ -318,11 +318,11 @@ onMounted(() => {
           <button
             v-for="item in pageResults"
             :key="item.id"
-            class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none bg-transparent text-left transition-colors"
+            class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
             :class="
               selectedIndex === globalIndex(item)
                 ? 'bg-surface-hover'
-                : 'hover:bg-surface-hover-subtle'
+                : 'bg-transparent hover:bg-surface-hover-subtle'
             "
             @click="item.action()"
             @mouseenter="selectIndex(globalIndex(item))"
@@ -365,11 +365,11 @@ onMounted(() => {
           <button
             v-for="item in actionResults"
             :key="item.id"
-            class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none bg-transparent text-left transition-colors"
+            class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
             :class="
               selectedIndex === globalIndex(item)
                 ? 'bg-surface-hover'
-                : 'hover:bg-surface-hover-subtle'
+                : 'bg-transparent hover:bg-surface-hover-subtle'
             "
             @click="item.action()"
             @mouseenter="selectIndex(globalIndex(item))"
