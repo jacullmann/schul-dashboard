@@ -126,7 +126,7 @@ onUnmounted(() => {
 
         <!-- Clicking on brand links to home -->
         <!-- On desktop the brand logo is shown -->
-        <router-link :to="logoLink" class="logo-group hidden !md:inline">
+        <router-link :to="logoLink" class="logo-group !hidden !md:flex">
           <AppLogo class="logo-img" aria-hidden="true" />
         </router-link>
 
