@@ -4,10 +4,16 @@ import ScheduleLessonItem from './ScheduleLessonItem.vue';
 defineProps<{
   group: any[];
   groupKey: string;
-  isActive: boolean;
-  isCurrentDay: boolean;
+  isActive?: boolean;
+  isCurrentDay?: boolean;
+  isClickable?: boolean;
+  selectedLessonId?: string;
   getDisplayName: (l: any) => string;
   getGroupStyle: (g: any[]) => any;
+}>();
+
+defineEmits<{
+  (e: 'select-lesson', lesson: any): void;
 }>();
 </script>
 
@@ -25,7 +31,10 @@ defineProps<{
       :key="index"
       :lesson="lesson"
       :has-border="index < group.length - 1"
+      :is-clickable="isClickable"
+      :is-selected="selectedLessonId === lesson.id"
       :get-display-name="getDisplayName"
+      @select="$emit('select-lesson', $event)"
     />
   </div>
 </template>

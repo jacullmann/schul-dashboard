@@ -73,7 +73,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-canvas border border-canvas-border rounded-xl p-0 overflow-hidden">
+  <div class="p-0 overflow-hidden">
     <div class="p-4 pb-2">
       <ScheduleHeader 
         :loading="!!(loadingSubs || loadingLessons)" 
