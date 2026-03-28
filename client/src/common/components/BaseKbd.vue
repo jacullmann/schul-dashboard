@@ -18,6 +18,9 @@ kbd {
   font-size: 0.75rem;
   line-height: 0.875rem;
   padding: 2px 6px;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
