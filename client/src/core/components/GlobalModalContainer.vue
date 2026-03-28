@@ -25,6 +25,7 @@ import AuthModal from '@/modules/auth/components/AuthModal.vue';
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import SearchModal from '@/core/components/SearchModal.vue';
+import GroupSwitchModal from '@/core/components/GroupSwitchModal.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
@@ -56,6 +57,7 @@ const {
 const {
   authModalOpen,
   searchOpen,
+  groupSwitchOpen,
   itemFormOpen,
   itemFormKey,
   itemToEdit,
@@ -172,6 +174,11 @@ function onAccountDeleteError(msg: string) {
   <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->
   <Teleport to="body">
     <SearchModal v-if="searchOpen" @cancel="modalStore.closeSearch()" />
+  </Teleport>
+
+  <!-- Global group switch modal -->
+  <Teleport to="body">
+    <GroupSwitchModal v-if="groupSwitchOpen" @cancel="modalStore.closeGroupSwitch()" />
   </Teleport>
 
   <!-- Global item form (N key, + button, or search create action) -->

@@ -43,6 +43,16 @@ export function useAppShortcuts() {
     }
   });
 
+  // Ctrl/Cmd+G → Group Switch
+  onKeyStroke(['g', 'G'], (e: KeyboardEvent) => {
+    if (!userStore.user) return;
+
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      modalStore.openGroupSwitch();
+    }
+  });
+
   // Ctrl/Cmd+Shift+D → Toggle Sidebar
   onKeyStroke(['d', 'D'], (e: KeyboardEvent) => {
     if (!userStore.user) return;

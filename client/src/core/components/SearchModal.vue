@@ -9,12 +9,13 @@ import {
   House,
   ListTodo,
   CalendarDays,
+  Lock,
   UsersRound,
   Brain,
   Gamepad2,
   CirclePlus,
   LogIn,
-  UserPlus,
+  UserRoundPlus,
   Search,
   ChevronRight,
   ArrowUpRight,
@@ -85,6 +86,14 @@ const allResults = computed<SearchResult[]>(() => [
     action: () => navigate(`/groups/${activeGroupId.value}/schedule`),
   },
   {
+    id: 'private',
+    label: t('sidebar.private'),
+    description: t('search.descriptions.private'),
+    category: 'page',
+    icon: Lock,
+    action: () => navigate('/todos'),
+  },
+  {
     id: 'groups',
     label: t('sidebar.groups'),
     description: t('search.descriptions.groups'),
@@ -134,6 +143,18 @@ const allResults = computed<SearchResult[]>(() => [
     shortcut: ['alt', 'n'],
   },
   {
+    id: 'switch-group',
+    label: t('search.items.switchGroup'),
+    description: t('search.descriptions.switchGroup'),
+    category: 'action',
+    icon: UsersRound,
+    action: () => {
+      modalStore.openGroupSwitch();
+      emit('cancel');
+    },
+    shortcut: ['ctrl', 'g'],
+  },
+  {
     id: 'join-group',
     label: t('search.items.joinGroup'),
     description: t('search.descriptions.joinGroup'),
@@ -146,7 +167,7 @@ const allResults = computed<SearchResult[]>(() => [
     label: t('search.items.createGroup'),
     description: t('search.descriptions.createGroup'),
     category: 'action',
-    icon: UserPlus,
+    icon: UserRoundPlus,
     action: () => navigate('/home'),
   },
   // Account Actions

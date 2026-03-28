@@ -57,6 +57,16 @@ export const useModalStore = defineStore('modals', () => {
     searchOpen.value = !searchOpen.value;
   }
 
+  // ── Group Switch modal ────────────────────────────────────────────────────
+  const groupSwitchOpen = ref(false);
+
+  function openGroupSwitch() {
+    groupSwitchOpen.value = true;
+  }
+  function closeGroupSwitch() {
+    groupSwitchOpen.value = false;
+  }
+
   // ── Item form ─────────────────────────────────────────────────────────────
   const itemFormOpen = ref(false);
   const itemFormKey = ref(0);
@@ -143,6 +153,11 @@ export const useModalStore = defineStore('modals', () => {
     openSearch,
     closeSearch,
     toggleSearch,
+
+    // Group Switch modal
+    groupSwitchOpen,
+    openGroupSwitch,
+    closeGroupSwitch,
 
     // Item form
     itemFormOpen,
