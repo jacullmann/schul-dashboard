@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -235,15 +235,30 @@ function activateSelected() {
   filteredResults.value[selectedIndex.value]?.action();
 }
 
+async function scrollToSelected() {
+  await nextTick();
+  
+  const el = document.getElementById(`search-result-${selectedIndex.value}`);
+  if (el) {
+    el.scrollIntoView({ 
+      behavior: 'auto', 
+      block: 'nearest' 
+    });
+  }
+}
+
 function handleKeydown(e: KeyboardEvent) {
   const len = filteredResults.value.length;
   if (!len) return;
+  
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     selectedIndex.value = (selectedIndex.value + 1) % len;
+    scrollToSelected();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     selectedIndex.value = (selectedIndex.value - 1 + len) % len;
+    scrollToSelected();
   } else if (e.key === 'Enter') {
     e.preventDefault();
     activateSelected();
@@ -288,9 +303,9 @@ onMounted(() => {
     >
       <!-- Search input -->
       <div
-        class="flex items-center gap-3 px-4 py-3 border-b border-surface-border"
+        class="flex items-center gap-3 p-4 border-b border-surface-border"
       >
-        <Search :size="18" class="text-on-surface-subtle shrink-0" />
+        <Search :size="20" class="text-on-surface-subtle shrink-0" />
         <input
           id="search-modal-input"
           ref="inputRef"
@@ -299,7 +314,7 @@ onMounted(() => {
           :placeholder="t('search.modal.placeholder')"
           autocomplete="off"
           spellcheck="false"
-          class="flex-1 bg-transparent border-none outline-none text-on-surface text-body placeholder:text-on-surface-subtle"
+          class="flex-1 p-0 rounded-none bg-transparent border-none outline-none text-on-surface text-body placeholder:text-on-surface-subtle"
         />
         <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
       </div>
@@ -316,6 +331,7 @@ onMounted(() => {
             </span>
           </div>
           <button
+            :id="'search-result-' + globalIndex(item)"
             v-for="item in pageResults"
             :key="item.id"
             class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
@@ -363,6 +379,7 @@ onMounted(() => {
             </span>
           </div>
           <button
+            :id="'search-result-' + globalIndex(item)"
             v-for="item in actionResults"
             :key="item.id"
             class="search-result-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"

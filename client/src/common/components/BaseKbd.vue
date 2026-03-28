@@ -15,8 +15,9 @@ kbd {
   box-shadow: 0 2px 0 #242424, 0 3px 2px #0006;
   border-radius: 6px;
   font-family: monospace;
-  font-size: 0.85em;
-  padding: 3px 6px;
+  font-size: 0.75rem;
+  line-height: 0.875rem;
+  padding: 2px 6px;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
