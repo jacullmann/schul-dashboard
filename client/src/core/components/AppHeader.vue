@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-import { ChevronDown } from '@lucide/vue';
+import { ChevronDown, Plus } from '@lucide/vue';
 import hw from '@/api/hwApi';
 
 const userStore = useUserStore();
@@ -93,7 +93,6 @@ onMounted(() => {
   }
 });
 
-
 onUnmounted(() => {
   document.body.style.overflow = '';
 });
@@ -107,31 +106,25 @@ onUnmounted(() => {
           <!-- Logo always links to home or active group -->
           <router-link :to="logoLink" class="logo-group">
             <AppLogo class="logo-img" aria-hidden="true" />
-            <span
-              v-if="activeGroupId && groupName"
-              class="logo-text logo-text--group"
-              >{{ groupName }}</span
-            >
-            <span v-else class="logo-text logo-text--brand"
+            <!-- If there is no active group, the brand name is shown -->
+            <span v-if="!(activeGroupId && groupName)" class="logo-text"
               >schul-dashboard</span
             >
           </router-link>
 
-          <!-- Group switcher: only visible when a group is active -->
+          <!-- Dropdown to switch between groups -->
           <template v-if="activeGroupId && groupName">
-            <span class="logo-separator--desktop" aria-hidden="true">/</span>
-
             <div class="group-switcher" ref="groupMenuRef">
               <button
-                class="group-switcher-btn logo-group-name--desktop"
+                class="flex items-center gap-1 group cursor-pointer"
                 @click="toggleGroupMenu"
                 title="Change group"
               >
-                <span>{{ groupName }}</span>
+                <span class="logo-text">{{ groupName }}</span>
                 <ChevronDown
                   :size="16"
-                  class="chevron"
-                  :class="{ 'chevron-open': groupMenuOpen }"
+                  class="transition-transform duration-200 ease-in-out text-on-surface-muted group-hover:text-on-surface transition-hover"
+                  :class="{ 'rotate-180': groupMenuOpen }"
                 />
               </button>
 
@@ -152,9 +145,12 @@ onUnmounted(() => {
                 <BaseMenuDivider />
 
                 <BaseMenuButton
-                  @click="groupMenuOpen = false; router.push('/home')"
-                  class="action"
+                  @click="
+                    groupMenuOpen = false;
+                    router.push('/home');
+                  "
                 >
+                  <Plus :size="16" />
                   New group
                 </BaseMenuButton>
               </BaseMenu>
@@ -216,7 +212,7 @@ onUnmounted(() => {
 .logo-group-container {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 8px;
 }
 
 .logo-group {
@@ -240,47 +236,13 @@ onUnmounted(() => {
   transition: opacity 0.2s ease;
 }
 
-.logo-text--group {
-  display: none;
-}
-
-.logo-text--brand {
-  display: inline;
-}
-
-.logo-separator--desktop {
-  font-size: var(--text-body);
-  font-weight: 400;
-  color: var(--color-on-surface);
-  opacity: 0.4;
-  margin: 0 0.2rem;
-  user-select: none;
-}
-
 .group-switcher {
   position: relative;
   display: inline-block;
   margin-left: 0.2rem;
 }
 
-.group-switcher-btn {
-  background: transparent;
-  border: none;
-  display: flex;
-  cursor: pointer;
-  align-items: center;
-  gap: 4px;
-  color: var(--color-on-surface);
-  padding: 4px 8px;
-  border-radius: var(--radius-md);
-  transition: background-color 0.2s ease;
-}
-
-.group-switcher-btn:hover {
-  background: var(--color-surface-hover);
-}
-
-.logo-group-name--desktop span {
+.logo-group-name span {
   font-size: var(--text-body);
   font-weight: 600;
   opacity: 0.85;
@@ -289,17 +251,6 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-.chevron {
-  transition: transform 0.2s ease;
-  opacity: 0.7;
-}
-
-.chevron-open {
-  transform: rotate(180deg);
-}
-
-
 
 @keyframes fadeIn {
   from {
@@ -323,18 +274,9 @@ onUnmounted(() => {
     display: inline;
   }
 
-  .logo-text--brand {
-    display: none;
-  }
-
   .header-container {
     padding-left: 16px;
     padding-right: 16px;
-  }
-
-  .logo-separator--desktop,
-  .logo-group-name--desktop {
-    display: none;
   }
 }
 
