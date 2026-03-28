@@ -108,10 +108,10 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="sticky flex items-center bg-canvas text-on-surface border-b border-canvas-border font-display p-0 t-0 h-[var(--header-height)] z-header"
+    class="sticky flex items-center bg-canvas text-on-surface border-b border-canvas-border font-display p-0 top-0 h-[var(--header-height)] z-[var(--z-header)]"
   >
     <div
-      class="relative h-full flex justify-between items-center gap-4 max-[1000px]:px-4 max-w-[1300px]"
+      class="relative h-full w-full flex justify-between items-center gap-4 max-[1000px]:px-4 max-w-[1300px]"
     >
       <div class="flex items-center gap-2.5">
         <!-- On mobile the sidebar button replaces the brand logo -->
@@ -140,12 +140,11 @@ onUnmounted(() => {
         </router-link>
 
         <!-- Dropdown to switch between groups -->
-        <template v-if="activeGroupId && groupName">
+        <div v-if="activeGroupId && groupName" class="relative flex items-center" ref="groupMenuRef">
           <button
             class="flex items-center gap-1 group cursor-pointer"
             @click="toggleGroupMenu"
             title="Change group"
-            ref="groupMenuRef"
           >
             <span class="logo-text">{{ groupName }}</span>
             <ChevronDown
@@ -155,7 +154,7 @@ onUnmounted(() => {
             />
           </button>
 
-          <BaseMenu v-if="groupMenuOpen">
+          <BaseMenu v-if="groupMenuOpen" class="top-full mt-2 left-0">
             <BaseMenuButton
               v-for="g in userGroups"
               :key="g.id"
@@ -181,7 +180,7 @@ onUnmounted(() => {
               New group
             </BaseMenuButton>
           </BaseMenu>
-        </template>
+        </div>
       </div>
 
       <div v-if="loading" class="loading-placeholder">

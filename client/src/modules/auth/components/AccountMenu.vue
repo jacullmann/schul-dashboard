@@ -51,7 +51,7 @@ const {
 
     <BaseMenu
         v-if="open"
-        class="fixed pointer-events-auto z-1400 max-[480px]:justify-center max-[480px]:flex max-[480px]:flex-col origin-top-left max-[480px]:origin-top min-w-[320px] max-[480px]:w-full"
+        class="fixed pointer-events-auto z-[var(--z-modal)] max-[480px]:justify-center max-[480px]:flex max-[480px]:flex-col origin-top-left max-[480px]:origin-top min-w-[320px] max-[480px]:w-full"
         :style="popupStyle"
         @click.stop
         role="menu"
