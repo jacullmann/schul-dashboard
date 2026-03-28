@@ -131,6 +131,13 @@
 
     /* ── Animations ────────────────────────────────────────── */
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
+
+    /* ── Kbd ───────────────────────────────────────────────── */
+    --color-kbd-bg: #353535;
+    --color-kbd-text: #ccc;
+    --color-kbd-border: #4a4a4a;
+    --color-kbd-border-bottom: #242424;
+    --color-kbd-shadow: #0006;
 }
 
 @font-face {
@@ -187,6 +194,13 @@
     --shadow-input: 0 1px 2px 0 #0000000d;
     --shadow-menu: 0 4px 6px -1px #0000001a;
     --shadow-focus-ring: 0 0 0 3px #ddd;
+
+    /* KBD */
+    --color-kbd-bg: #f6f6f6;
+    --color-kbd-text: #282828;
+    --color-kbd-border: #d5d5d5;
+    --color-kbd-border-bottom: #959595;
+    --color-kbd-shadow: #0003;
 }
 
 /*

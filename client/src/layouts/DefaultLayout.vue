@@ -18,7 +18,7 @@ const { user } = storeToRefs(userStore);
   <div class="flex min-h-screen w-full">
     <AppSidebar v-if="user" />
 
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 flex flex-col bg-canvas">
       <AppHeader />
       <GlobalAnnouncements v-if="activeGroupId" />
 
@@ -28,8 +28,7 @@ const { user } = storeToRefs(userStore);
         </div>
       </div>
 
-      <main class="full-c">
-        <div class="bg"></div>
+      <main class="full-c flex-1">
 
         <div
             :class="{ 'container': !$route.meta.fullWidth }"
