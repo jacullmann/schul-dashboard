@@ -92,11 +92,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    v-if="isExpanded"
-    class="md:hidden fixed inset-0 bg-black/50 z-[40000] transition-opacity duration-200"
-    @click="isExpanded = false"
-  ></div>
+  <transition
+    enter-active-class="transition-opacity duration-200"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-200"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
+  >
+    <div
+      v-if="isExpanded"
+      class="md:hidden fixed inset-0 bg-black/50 z-[40000]"
+      @click="isExpanded = false"
+    ></div>
+  </transition>
 
   <aside
     class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-1 bg-surface border-r border-surface-border z-[5000000]"
