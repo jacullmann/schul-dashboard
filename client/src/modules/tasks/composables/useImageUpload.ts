@@ -9,6 +9,7 @@ export type { ImageItem };
 const images = ref<ImageItem[]>([]);
 const uploading = ref(false);
 const uploadError = ref('');
+const uploadSuccess = ref(false);
 
 export function useImageUpload() {
   // --- Actions ---
@@ -20,6 +21,7 @@ export function useImageUpload() {
     images.value = [...initialImages];
     uploading.value = false;
     uploadError.value = '';
+    uploadSuccess.value = false;
   }
 
   /**
@@ -54,6 +56,7 @@ export function useImageUpload() {
   ) {
     uploading.value = true;
     uploadError.value = '';
+    uploadSuccess.value = false;
 
     if (files.length === 0) {
       uploading.value = false;
@@ -126,6 +129,7 @@ export function useImageUpload() {
               // Add the returned image (with correct createdBy + dynamically built URLs) to local state
               images.value.push(data.image);
               uploadError.value = '';
+              uploadSuccess.value = true;
             } catch (e: unknown) {
               console.error('Failed to save image to item:', e);
               const err = e as { response?: { data?: { error?: string } } };
@@ -141,6 +145,7 @@ export function useImageUpload() {
               createdBy: '',
               metadata,
             });
+            uploadSuccess.value = true;
           }
         } else {
           console.error('Cloudinary Upload failed', json);
@@ -163,6 +168,7 @@ export function useImageUpload() {
   async function uploadImage(isEditMode: boolean, itemId?: string) {
     uploading.value = true;
     uploadError.value = '';
+    uploadSuccess.value = false;
 
     const input = document.createElement('input');
     input.type = 'file';
@@ -215,6 +221,7 @@ export function useImageUpload() {
     images,
     uploading,
     uploadError,
+    uploadSuccess,
     init,
     makeThumb,
     uploadImage,

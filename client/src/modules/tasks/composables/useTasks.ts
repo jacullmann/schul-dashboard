@@ -284,15 +284,18 @@ export function useTasks() {
   });
 
   watch(imageUpload.uploading, async (val, oldVal) => {
-    if (
-      oldVal &&
-      !val &&
-      !imageUpload.uploadError.value &&
-      currentUploadItemId.value
-    ) {
-      await refreshItem(currentUploadItemId.value);
+    if (oldVal && !val && currentUploadItemId.value) {
+      if (imageUpload.uploadSuccess.value) {
+        await refreshItem(currentUploadItemId.value);
+      }
+
+      if (imageUpload.uploadError.value) {
+        useToast().error(imageUpload.uploadError.value);
+      } else if (imageUpload.uploadSuccess.value) {
+        useToast().success(t('school.tasks.itemForm.successUpload'));
+      }
+
       currentUploadItemId.value = null;
-      useToast().success(t('school.tasks.itemForm.successUpload'));
     }
   });
 
