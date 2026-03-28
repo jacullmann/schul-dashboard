@@ -24,7 +24,7 @@ import {
   SunMoon,
   Languages,
   LucideKeyRound,
-  ShieldCheck,
+  Shield,
   LogOut,
   PanelLeft,
 } from '@lucide/vue';
@@ -229,7 +229,7 @@ const allResults = computed<SearchResult[]>(() => [
     label: t('account.menu.security.title'),
     description: t('search.descriptions.security'),
     category: 'action',
-    icon: ShieldCheck,
+    icon: Shield,
     action: () => {
       openSecurity();
       emit('cancel');

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, ShieldCheck } from '@lucide/vue';
+import { Trash2, LogOut, LucideGraduationCap, LucideKeyRound, Shield } from '@lucide/vue';
 import PersonalizationDropdown from '@/modules/auth/components/PersonalizationDropdown.vue';
 import ThemeMenuDropdown from '@/common/components/ThemeMenuDropdown.vue';
 import LocaleMenuDropdown from '@/common/components/LocaleMenuDropdown.vue';
@@ -86,7 +86,7 @@ const {
       <BaseMenuButton
           @click="openSecurity"
       >
-        <ShieldCheck :size="16"/>
+        <Shield :size="16"/>
         {{ t('account.menu.security.title') }}
       </BaseMenuButton>
 

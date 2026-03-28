@@ -54,15 +54,30 @@ async function logout() {
     resetMfaState();
     await appAuthLogout();
     router.push('/');
+    collapseIfMobile();
+  }
+}
+
+function collapseIfMobile() {
+  if (window.innerWidth < 768) {
+    // 768px is Tailwind's 'md' breakpoint
+    modalStore.setSidebarExpanded(false);
   }
 }
 
 function handleNavigation(path: string) {
   router.push(path);
-  if (window.innerWidth < 768) {
-    // 768px is Tailwind's 'md' breakpoint
-    modalStore.setSidebarExpanded(false);
-  }
+  collapseIfMobile();
+}
+
+function handleSearch() {
+  openSearch();
+  collapseIfMobile();
+}
+
+function handleCreate() {
+  openItemForm();
+  collapseIfMobile();
 }
 
 onMounted(() => {
@@ -114,7 +129,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.create')"
           :expanded="isExpanded"
-          @click="openItemForm()"
+          @click="handleCreate"
         >
           <CirclePlus :size="20" />
         </SidebarButton>
@@ -122,7 +137,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.search')"
           :expanded="isExpanded"
-          @click="openSearch"
+          @click="handleSearch"
         >
           <Search :size="20" />
         </SidebarButton>

@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useEventListener, onClickOutside } from '@vueuse/core';
+import { onClickOutside } from '@vueuse/core';
 import { useRouter, useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-import { X, Menu, ChevronDown } from '@lucide/vue';
+import { ChevronDown } from '@lucide/vue';
 import hw from '@/api/hwApi';
-import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n();
 
 const userStore = useUserStore();
-const { user, loading, isGroupAdmin } = storeToRefs(userStore);
+const { user, loading } = storeToRefs(userStore);
 
 const {
   groupName,
@@ -26,7 +23,6 @@ const {
 const router = useRouter();
 const route = useRoute();
 
-const navOpen = ref(false);
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
 
@@ -75,23 +71,9 @@ onClickOutside(groupMenuRef, () => {
   groupMenuOpen.value = false;
 });
 
-const toggleNav = () => {
-  navOpen.value = !navOpen.value;
-  document.body.style.overflow = navOpen.value ? 'hidden' : '';
-};
-
-const closeNav = () => {
-  navOpen.value = false;
-  document.body.style.overflow = '';
-};
-
 function onPersonalizationChanged(value: boolean) {
   userStore.updateUser({ personalized: value });
 }
-
-const handleEscape = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && navOpen.value) closeNav();
-};
 
 async function logout() {
   try {
@@ -101,11 +83,9 @@ async function logout() {
   } finally {
     userStore.clearUser();
     await appAuthLogout();
-    router.push('/');
+    await router.push('/');
   }
 }
-
-useEventListener(document, 'keydown', handleEscape);
 
 onMounted(() => {
   if (!userStore.initialized) {
@@ -125,7 +105,7 @@ onUnmounted(() => {
       <div class="header-left">
         <div class="logo-group-container">
           <!-- Logo always links to home or active group -->
-          <router-link :to="logoLink" class="logo-group" @click="closeNav">
+          <router-link :to="logoLink" class="logo-group">
             <AppLogo class="logo-img" aria-hidden="true" />
             <span
               v-if="activeGroupId && groupName"
@@ -181,84 +161,18 @@ onUnmounted(() => {
             </div>
           </template>
         </div>
-
-        <nav :class="['nav-links', { 'nav-links-open': navOpen }]">
-          <button
-            @click="closeNav"
-            class="nav-close-button"
-            aria-label="Close menu"
-          >
-            <X />
-          </button>
-
-          <!-- Group navigation: visible when a group is active -->
-          <template v-if="activeGroupId">
-            <router-link
-              :to="`/groups/${activeGroupId}/items/all`"
-              class="nav-item"
-              @click="closeNav"
-              >{{ t('school.tasks.title') }}</router-link
-            >
-            <router-link
-              :to="`/groups/${activeGroupId}/schedule`"
-              class="nav-item"
-              @click="closeNav"
-              >{{ t('school.tables.schedule.title') }}</router-link
-            >
-          </template>
-
-          <!-- User navigation: always visible -->
-          <router-link
-            to="/todos"
-            class="nav-item"
-            @click="closeNav"
-            v-if="user"
-            >{{ t('school.private.title') }}</router-link
-          >
-
-          <!-- Admin links -->
-          <router-link
-            v-if="user?.role === 'superadmin'"
-            to="/admin"
-            class="nav-item admin-link"
-            @click="closeNav"
-          >
-            Superadmin Dashboard
-          </router-link>
-          <router-link
-            v-if="activeGroupId && isGroupAdmin"
-            :to="`/groups/${activeGroupId}/admin`"
-            class="nav-item"
-            @click="closeNav"
-          >
-            Manage Group
-          </router-link>
-        </nav>
       </div>
 
-      <div class="header-right">
-        <div v-if="loading" class="loading-placeholder">
-          <BaseSpinner on="ghost" class="size-8 max-[480px]:size-[26px]" />
-        </div>
-        <AccountMenu
-          v-else-if="user"
-          :email="user.email"
-          :user-data="user"
-          @logout="logout"
-          @personalization-changed="onPersonalizationChanged"
-        />
-
-        <button
-          @click="toggleNav"
-          :class="['hamburger-menu', { 'hamburger-menu--open': navOpen }]"
-          aria-label="Toggle menu"
-          v-if="!navOpen"
-        >
-          <Menu class="text-on-surface" :size="26"></Menu>
-        </button>
+      <div v-if="loading" class="loading-placeholder">
+        <BaseSpinner on="ghost" class="size-8 max-[480px]:size-[26px]" />
       </div>
-
-      <div v-if="navOpen" class="nav-overlay" @click="closeNav"></div>
+      <AccountMenu
+        v-else-if="user"
+        :email="user.email"
+        :user-data="user"
+        @logout="logout"
+        @personalization-changed="onPersonalizationChanged"
+      />
     </div>
   </header>
 </template>
@@ -385,64 +299,7 @@ onUnmounted(() => {
   transform: rotate(180deg);
 }
 
-.nav-links {
-  display: flex;
-  gap: 1.5rem;
-  transition: all 0.2s ease;
-  align-items: center;
-  height: 100%;
-}
 
-.nav-item {
-  font-size: var(--text-body);
-  font-weight: 500;
-  text-decoration: none;
-  color: var(--color-on-surface);
-  position: relative;
-  transition: color 0.18s ease;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-}
-
-.nav-item:hover {
-  color: var(--color-action-hover);
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  height: 100%;
-}
-
-.cta-button {
-  font-size: var(--text-footnote);
-  padding: 8px;
-}
-
-.hamburger-menu {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  z-index: 1010;
-  position: relative;
-  padding: 0;
-}
-
-.nav-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: var(--z-modal-overlay);
-  animation: fadeIn 0.3s ease-out;
-}
 
 @keyframes fadeIn {
   from {
@@ -453,71 +310,7 @@ onUnmounted(() => {
   }
 }
 
-.nav-close-button {
-  display: none;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  color: var(--color-on-surface);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--radius-md);
-  transition: background-color 0.3s ease;
-  z-index: var(--z-header);
-}
-
-.nav-close-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
 @media (max-width: 1000px) {
-  .header-right {
-    gap: 1rem;
-  }
-
-  .hamburger-menu {
-    display: flex;
-  }
-
-  .nav-close-button {
-    display: block;
-  }
-
-  .nav-links {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 240px;
-    height: 100%;
-    background-color: var(--color-canvas);
-    flex-direction: column;
-    align-items: flex-start;
-    padding-inline: 32px;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: var(--z-mobile-nav);
-    box-shadow: var(--shadow-menu);
-    border-left: 1px solid var(--color-canvas-border);
-    gap: 0;
-  }
-
-  .nav-links-open {
-    transform: translateX(0);
-  }
-
-  .nav-item {
-    font-size: var(--text-h3);
-    width: 100%;
-    padding-block: 32px;
-    border-bottom: 1px solid var(--color-canvas-border);
-  }
-
-  .nav-item:last-child {
-    border-bottom: none;
-  }
-
   .logo-img {
     height: 26px;
   }

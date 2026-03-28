@@ -123,7 +123,7 @@ function setSelectedIndex(idx: number) {
           :placeholder="placeholder"
           autocomplete="off"
           spellcheck="false"
-          class="flex-1 p-0 rounded-none bg-transparent border-none outline-none text-on-surface text-body placeholder:text-on-surface-subtle"
+          class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle"
         />
         <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
       </div>
