@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onKeyStroke } from '@vueuse/core';
+import { useModalStore } from '@/stores/modalStore';
 import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
@@ -11,7 +13,32 @@ import { storeToRefs } from 'pinia';
 const { loading, progress, opacity } = useLoadingBar();
 const { activeGroupId } = useAppAuth();
 const userStore = useUserStore();
+const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
+
+// Ctrl/Cmd+K → Search
+onKeyStroke(['k', 'K'], (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    modalStore.openSearch();
+  }
+});
+
+// N → Create new entry (only when no input/textarea/content-editable focused)
+onKeyStroke(['n', 'N'], (e) => {
+  const tag = (e.target as HTMLElement)?.tagName?.toUpperCase();
+  const isEditable =
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    (e.target as HTMLElement)?.isContentEditable;
+  if (!isEditable && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    modalStore.openItemForm();
+  }
+});
+
 </script>
 
 <template>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { useResizeObserver, useWindowSize } from '@vueuse/core';
-import InfoModal from '@/common/components/InfoModal.vue'
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
-import { useI18n } from 'vue-i18n';
 
-const { t, tm } = useI18n();
+import ScheduleHeader from '../components/ScheduleHeader.vue';
+import ScheduleTimeColumn from '../components/ScheduleTimeColumn.vue';
+import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
+
 const {
   isPersonalized,
   loadingSubs,
@@ -50,7 +51,6 @@ const scrollToDefaultDay = () => {
   }
 };
 
-// Re-sync row heights whenever the days grid is resized
 useResizeObserver(daysGridWrapperRef, syncRowHeights);
 
 watch(loadingLessons, (newVal) => {
@@ -73,108 +73,42 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="card p-0" style="overflow: hidden;">
-    <div>
-      <h2 style="margin-top: 0" class="title-inf">
-        {{ t('school.tables.schedule.title') }}
-        <InfoModal
-            :tooltip="t('school.tables.schedule.infopop.tooltip')"
-            :title="t('school.tables.schedule.title')">
-
-          <h3>{{ t('school.tables.schedule.infopop.description') }}</h3>
-          <div v-for="(section, index) in tm('school.tables.schedule.infopop.sections')" :key="index">
-            <h3>{{ section.title }}</h3>
-            <p>{{ section.text }}</p>
-          </div>
-          <div class="info-img-container">
-            <img alt="Bild" src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474359/Stundenplan_Ausfall_Grafik_b34pcq.webp" class="info-img"/>
-          </div>
-
-
-        </InfoModal>
-      </h2>
-      <div class="status-row">
-        <div v-if="loadingSubs || loadingLessons" class="small">{{ t('school.tables.schedule.loading') }}</div>
-        <div v-else-if="isPersonalized" class="personalized-badge">
-          {{ t('school.tables.schedule.personalized') }}
-        </div>
-      </div>
+  <div class="bg-canvas border border-canvas-border rounded-xl p-0 overflow-hidden">
+    <div class="p-4 pb-2">
+      <ScheduleHeader 
+        :loading="!!(loadingSubs || loadingLessons)" 
+        :is-personalized="!!isPersonalized" 
+      />
     </div>
-    <div class="timetable-grid">
-      <div class="time-col-wrapper" ref="timeColWrapperRef">
-        <div class="header-cell time-header">{{ t('school.tables.schedule.lesson') }}</div>
-        <div
-            v-for="ts in timeSlots"
-            :key="ts.slot"
-            class="time-slot-label"
-            :style="{ gridRow: ts.slot + 1 }"
-        >
-          <span class="slot-number">{{ ts.slot }}</span>
-          <span class="slot-time">{{ ts.time }}</span>
-        </div>
+
+    <div class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none p-2 pt-0">
+      
+      <div ref="timeColWrapperRef" class="min-[501px]:contents">
+        <ScheduleTimeColumn :time-slots="timeSlots" />
       </div>
 
-      <div class="days-scroll-wrapper" ref="scrollContainerRef">
-        <div class="days-grid-wrapper" ref="daysGridWrapperRef">
+      <div ref="scrollContainerRef" class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full max-[500px]:[scrollbar-width:none] min-[501px]:contents">
+        <div ref="daysGridWrapperRef" class="max-[500px]:grid max-[500px]:grid-cols-[repeat(5,100%)] max-[500px]:grid-rows-[auto_repeat(9,minmax(35px,auto))] max-[500px]:gap-2 min-[501px]:contents">
+          
           <div
-              v-for="day in days"
-              :key="day"
-              class="header-cell day-header"
-              :class="{'current-day-header': day === currentDay}"
+            v-for="day in days"
+            :key="day"
+            class="day-header bg-surface text-on-surface p-2 border border-surface-border text-center font-bold rounded-md text-body shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
+            :class="{'bg-surface-hover border-surface-hover-border': day === currentDay}"
           >
             {{ formatDayName(day) }}
           </div>
 
-          <div
-              v-for="(group, key) in groupedLessons"
-              :key="key"
-              class="lesson-group-container"
-              :class="{
-                'highlight-active': key === activeOrNextGroupKey,
-                'current-day': group[0]?.day === currentDay
-                }"
-              :style="getGroupStyle(group)"
-          >
-            <div
-                v-for="(lesson, index) in group"
-                :key="index"
-                class="sub-lesson-item"
-                :class="{
-                  'has-border': index < group.length - 1
-                }"
-            >
-              <div v-if="lesson.cancelled">
-                <div class="lesson-subject crossed">{{ getDisplayName(lesson) }}</div>
-                <div class="ausfall-label">{{ t('school.tables.schedule.cancelled') }}</div>
-                <div class="lesson-details">
-                  <span class="crossed">{{ lesson.room }}</span>
-                </div>
-              </div>
-
-              <div v-else>
-                <div class="lesson-subject">
-                  <span v-if="getDisplayName(lesson) !== getDisplayName(lesson._original!)" class="crossed">
-                    {{ getDisplayName(lesson._original!) }}
-                  </span>
-                  <span :class="{ 'new-val': getDisplayName(lesson) !== getDisplayName(lesson._original!) }">
-                    {{ getDisplayName(lesson) }}
-                  </span>
-                </div>
-
-                <div class="lesson-details">
-                  <span class="detail-group">
-                    <span v-if="lesson.room !== lesson._original?.room" class="crossed">
-                       {{ lesson._original?.room }}
-                    </span>
-                    <span :class="{ 'new-val': lesson.room !== lesson._original?.room }">
-                       {{ lesson.room }}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          </div>
+          <ScheduleLessonGroup
+            v-for="(group, key) in groupedLessons"
+            :key="key"
+            :group="group"
+            :group-key="String(key)"
+            :is-active="key === activeOrNextGroupKey"
+            :is-current-day="group[0]?.day === currentDay"
+            :get-display-name="getDisplayName"
+            :get-group-style="getGroupStyle"
+          />
         </div>
       </div>
     </div>
@@ -182,252 +116,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.card {
-  overflow-x: auto;
-}
-
-.timetable-grid {
-  display: grid;
-  grid-template-columns: 80px repeat(5, 1fr);
-  grid-template-rows: auto repeat(9, auto);
-  gap: 8px;
-  align-items: stretch;
-}
-
-.header-cell {
-  background-color:var(--color-surface);
-  color: var(--color-on-surface);
-  padding: 8px 12px;
-  border:1px solid var(--color-surface-border);
-  text-align: center;
-  font-weight: bold;
-  border-radius: var(--radius-md);
-  font-size: var(--text-body);
-  box-shadow: var(--shadow-input);
-}
-
-.header-cell.current-day-header {
-  background-color: var(--color-surface-hover);
-  border-color: var(--color-surface-hover-border);
-}
-
-.time-header { grid-column: 1; grid-row: 1; }
-.day-header { grid-row: 1; min-width: 150px;}
-
-.time-slot-label {
-  grid-column: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color:transparent;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  white-space: nowrap;
-}
-
-.slot-number {
-  font-weight: bold;
-  font-size: var(--text-title);
-  color: var(--color-on-surface);
-}
-
-.slot-time { font-size: var(--text-footnote); }
-
-/* GROUP CONTAINER */
-.lesson-group-container {
-  background-color: var(--color-surface);
-  border-radius: var(--radius-md);
-  border:1px solid var(--color-surface-border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 2;
-  transition: background-color 0.3s ease;
-  box-shadow: var(--shadow-input);
-}
-
-.lesson-group-container.current-day {
-  background-color: var(--color-surface-hover);
-  border-color: var(--color-surface-hover-border);
-}
-
-/* --- HIGHLIGHT LOGIC --- */
-.lesson-group-container.highlight-active {
-  background-color: var(--color-action) !important;
-  border-color: var(--color-on-surface);
-}
-
-/* SUB LESSON ITEM */
-.sub-lesson-item {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 6px 8px;
-}
-
-.sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--color-surface-border);
-}
-
-.lesson-group-container.current-day .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--color-surface-hover-border);
-}
-
-.ausfall-label {
-  color: var(--color-danger);
-  font-weight: bold;
-  font-size: var(--text-body);
-}
-
-.lesson-subject {
-  font-weight: bold;
-  font-size: var(--text-body);
-  color: var(--color-on-surface);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.lesson-details {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  margin-top: 2px;
-}
-
-/* CHANGE STYLES */
-.crossed {
-  text-decoration: line-through;
-  color: var(--color-on-surface-muted);
-  margin-right: 4px;
-  font-weight: normal;
-}
-.new-val {
-  font-weight: bold;
-  color: var(--color-on-surface);
-}
-
-/* OVERRIDES FOR ACTIVE (WHITE BACKGROUND) STATE */
-.lesson-group-container.highlight-active .lesson-subject {
-  color: var(--color-on-action);
-}
-
-.lesson-group-container.highlight-active .lesson-details {
-  color: var(--color-surface-hover);
-}
-
-.lesson-group-container.highlight-active .sub-lesson-item.has-border {
-  border-bottom: 1px solid var(--color-on-surface-muted);
-}
-/* Active State: Cross outs need to be visible against white */
-.lesson-group-container.highlight-active .crossed {
-  color: var(--color-surface-hover-border);
-}
-/* Active State: New values need to match the dark text theme but stand out */
-.lesson-group-container.highlight-active .new-val {
-  color: var(--color-on-action);
-}
-/* Active State: Ausfall text */
-.lesson-group-container.highlight-active .ausfall-label {
-  color: var(--color-danger) !important;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.personalized-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-md);
-  font-size: var(--text-body);
-  color: var(--color-on-surface);
-  box-shadow: var(--shadow-input);
-}
-
-/* --- MOBILE TIMETABLE VIEW --- */
-@media (max-width: 500px) {
-  .timetable-grid {
-    display: flex;
-    overflow: hidden; /* nothing escapes parent */
-    grid-template-columns: none;
-    grid-template-rows: none;
-    gap: 8px; /* space between fixed column and scrollable track */
-  }
-
-  .time-col-wrapper {
-    display: grid;
-    /* Allow rows to size naturally based on content while matching the right side */
-    grid-template-rows: auto repeat(9, auto);
-    width: 80px;
-    flex-shrink: 0;
-    gap: 8px;
-    z-index: 5;
-    background: transparent;
-  }
-
-  /* Make sure previous sticky values are overridden */
-  .header-cell.time-header,
-  .time-slot-label {
-    position: static;
-  }
-
-  .days-scroll-wrapper {
-    display: block;
-    position: relative;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    flex: 1; /* fills remaining width */
-    overscroll-behavior-x: none; /* Stops iOS rubber-banding */
-    -webkit-overflow-scrolling: touch;
-    height: 100%;
-    /* Hide scrollbar for native app feel */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .days-scroll-wrapper::-webkit-scrollbar {
-    display: none;
-  }
-
-  .days-grid-wrapper {
-    display: grid;
-    /* 5 days, each takes 100% of wrapper */
-    grid-template-columns: repeat(5, 100%);
-    grid-template-rows: auto repeat(9, minmax(35px, auto));
-    gap: 8px;
-  }
-
-  .header-cell.day-header,
-  .lesson-group-container {
-    scroll-snap-align: start;
-    scroll-margin-left: 0;
-  }
-
-  /* Reposition columns to be 1 to 5 instead of 2 to 6, matching the new independent grid! */
-  .lesson-group-container {
-    grid-column: var(--col-mobile) !important;
-  }
-}
-
-/* On Desktop fallback, return them directly to the main Grid so nothing breaks */
-@media (min-width: 501px) {
-  .time-col-wrapper,
-  .days-scroll-wrapper,
-  .days-grid-wrapper {
-    display: contents;
-  }
-  .lesson-group-container {
-    grid-column: var(--col-desktop) !important;
-  }
+.max-\[500px\]\:\[scrollbar-width\:none\]::-webkit-scrollbar {
+  display: none;
 }
 </style>

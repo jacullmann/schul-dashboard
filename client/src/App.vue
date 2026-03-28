@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted } from 'vue';
-import { useEventListener, onKeyStroke } from '@vueuse/core';
+import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
@@ -18,29 +18,6 @@ const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
-
-// ── Keyboard shortcuts ────────────────────────────────────────────────────
-
-// Ctrl/Cmd+K → Search
-onKeyStroke(['k', 'K'], (e) => {
-  if (e.ctrlKey || e.metaKey) {
-    e.preventDefault();
-    modalStore.openSearch();
-  }
-});
-
-// N → Create new entry (only when no input/textarea/content-editable focused)
-onKeyStroke(['n', 'N'], (e) => {
-  const tag = (e.target as HTMLElement)?.tagName?.toUpperCase();
-  const isEditable =
-    tag === 'INPUT' ||
-    tag === 'TEXTAREA' ||
-    (e.target as HTMLElement)?.isContentEditable;
-  if (!isEditable && !e.ctrlKey && !e.metaKey && !e.altKey) {
-    e.preventDefault();
-    modalStore.openItemForm();
-  }
-});
 
 // ── Auth lifecycle helpers ─────────────────────────────────────────────────
 
