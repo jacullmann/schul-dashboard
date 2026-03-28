@@ -114,8 +114,9 @@ onUnmounted(() => {
       class="relative h-full flex justify-between items-center gap-4 max-[1000px]:px-4 max-w-[1300px]"
     >
       <div class="flex items-center gap-2.5">
+        <!-- On mobile the sidebar button replaces the brand logo -->
         <button
-          class="md:hidden relative p-2 m-[-8px] mr-0 ml-[-4px] text-on-surface bg-transparent rounded-md hover:bg-surface transition-hover"
+          class="md:hidden relative p-2 m-[-8px] mr-0 text-on-surface bg-transparent rounded-md hover:bg-surface transition-hover"
           @click="toggleExpanded"
           :aria-expanded="isExpanded"
           aria-label="Toggle navigation menu"
@@ -123,13 +124,19 @@ onUnmounted(() => {
           <PanelLeft :size="20" />
         </button>
 
-        <!-- Logo always links to home or active group -->
-        <router-link :to="logoLink" class="logo-group">
-          <AppLogo class="logo-img hidden md:block" aria-hidden="true" />
-          <!-- If there is no active group, the brand name is shown -->
-          <span v-if="!(activeGroupId && groupName)" class="logo-text"
-            >schul-dashboard</span
-          >
+        <!-- Clicking on brand links to home -->
+        <!-- On desktop the brand logo is shown -->
+        <router-link :to="logoLink" class="logo-group !hidden !md:block">
+          <AppLogo class="logo-img" aria-hidden="true" />
+        </router-link>
+
+        <!-- If there is no active group, the brand name is shown -->
+        <router-link
+          :to="logoLink"
+          v-if="!(activeGroupId && groupName)"
+          class="logo-group"
+        >
+          <span class="logo-text">schul-dashboard</span>
         </router-link>
 
         <!-- Dropdown to switch between groups -->
