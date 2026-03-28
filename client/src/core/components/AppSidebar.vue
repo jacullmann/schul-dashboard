@@ -13,9 +13,10 @@ import {
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
 import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useItemForm } from '@/core/composables/useItemForm';
+import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
 import hw from '@/api/hwApi.ts';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
 import { useRouter } from 'vue-router';
 import { useMfa } from '@/modules/auth/composables/useMfa.ts';
@@ -30,12 +31,13 @@ const { user } = storeToRefs(userStore);
 const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
 
-const isExpanded = ref(false);
+const modalStore = useModalStore();
+const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
 const { openSearch } = useSearchModal();
 const { openItemForm } = useItemForm();
 
 function toggleExpanded() {
-  isExpanded.value = !isExpanded.value;
+  modalStore.toggleSidebar();
 }
 
 function onPersonalizationChanged(value: boolean) {
@@ -59,7 +61,7 @@ function handleNavigation(path: string) {
   router.push(path);
   if (window.innerWidth < 768) {
     // 768px is Tailwind's 'md' breakpoint
-    isExpanded.value = false;
+    modalStore.setSidebarExpanded(false);
   }
 }
 

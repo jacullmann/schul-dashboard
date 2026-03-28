@@ -22,7 +22,9 @@ import {
   LucideKeyRound,
   ShieldCheck,
   LogOut,
+  PanelLeft,
 } from '@lucide/vue';
+import { useModalStore } from '@/stores/modalStore';
 import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
@@ -37,6 +39,7 @@ const { openItemForm } = useItemForm();
 const { openSetup, openSecurity, openChangePassword } = useAccountModals();
 const userStore = useUserStore();
 const { resetMfaState } = useMfa();
+const modalStore = useModalStore();
 
 const query = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -51,7 +54,7 @@ interface SearchResult {
   category: ResultCategory;
   icon: any;
   action: () => void;
-  shortcut?: string;
+  shortcut?: string[];
 }
 
 // Define all searchable items
@@ -105,6 +108,18 @@ const allResults = computed<SearchResult[]>(() => [
     icon: Gamepad2,
     action: () => navigate('/games'),
   },
+  {
+    id: 'toggle-sidebar',
+    label: t('sidebar.toggle'),
+    description: t('search.descriptions.toggleSidebar'),
+    category: 'action',
+    icon: PanelLeft,
+    action: () => {
+      modalStore.toggleSidebar();
+      emit('cancel');
+    },
+    shortcut: ['ctrl', 'shift', 'd'],
+  },
   // Actions
   {
     id: 'create-entry',
@@ -116,7 +131,7 @@ const allResults = computed<SearchResult[]>(() => [
       openItemForm();
       emit('cancel');
     },
-    shortcut: 'N',
+    shortcut: ['alt', 'n'],
   },
   {
     id: 'join-group',
@@ -410,11 +425,10 @@ onMounted(() => {
             </span>
 
             <span class="flex items-center gap-2 shrink-0">
-              <BaseKbd
+              <BaseKbdGroup
                 v-if="item.shortcut && selectedIndex === globalIndex(item)"
-              >
-                {{ item.shortcut }}
-              </BaseKbd>
+                :keys="item.shortcut"
+              />
               <ChevronRight
                 v-if="selectedIndex === globalIndex(item)"
                 :size="14"

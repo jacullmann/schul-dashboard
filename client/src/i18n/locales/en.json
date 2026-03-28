@@ -582,6 +582,7 @@
   "sidebar": {
     "expand": "Expand",
     "collapse": "Collapse",
+    "toggle": "Toggle Sidebar",
     "create": "Create",
     "search": "Search",
     "home": "Home",
@@ -616,6 +617,7 @@
       "createEntry": "Add a new entry to the task list",
       "joinGroup": "Join an existing group",
       "createGroup": "Create a new group",
+      "toggleSidebar": "Expand/collapse the sidebar",
       "editCourses": "Customize your course selection",
       "security": "Two-factor authentication and security settings",
       "changePassword": "Update your account password",

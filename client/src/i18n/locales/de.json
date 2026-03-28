@@ -638,6 +638,7 @@
   "sidebar": {
     "expand": "Erweitern",
     "collapse": "Einklappen",
+    "toggle": "Seitenleiste umschalten",
     "create": "Erstellen",
     "search": "Suchen",
     "home": "Start",
@@ -672,6 +673,7 @@
       "createEntry": "Neuen Eintrag zur Aufgabenliste hinzufügen",
       "joinGroup": "Einer bestehenden Gruppe beitreten",
       "createGroup": "Eine neue Gruppe erstellen",
+      "toggleSidebar": "Seitenleiste ein- oder ausklappen",
       "editCourses": "Deine Kursauswahl anpassen",
       "security": "Zwei-Faktor-Authentifizierung und Sicherheit",
       "changePassword": "Dein Kontopasswort aktualisieren",

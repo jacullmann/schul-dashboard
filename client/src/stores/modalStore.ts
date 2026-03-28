@@ -113,6 +113,17 @@ export const useModalStore = defineStore('modals', () => {
     showDeleteAccount.value = true;
   }
 
+  // ── Sidebar ───────────────────────────────────────────────────────────────
+  const sidebarExpanded = ref(false);
+
+  function toggleSidebar() {
+    sidebarExpanded.value = !sidebarExpanded.value;
+  }
+
+  function setSidebarExpanded(val: boolean) {
+    sidebarExpanded.value = val;
+  }
+
   function closeAllAccountModals() {
     showChangePassword.value = false;
     showSecurity.value = false;
@@ -154,5 +165,9 @@ export const useModalStore = defineStore('modals', () => {
     openSetup,
     openDeleteAccount,
     closeAllAccountModals,
+    // Sidebar
+    sidebarExpanded,
+    toggleSidebar,
+    setSidebarExpanded,
   };
 });

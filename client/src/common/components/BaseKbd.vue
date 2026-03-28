@@ -11,7 +11,6 @@ kbd {
   background-color: var(--color-kbd-bg);
   color: var(--color-kbd-text);
   border: 1px solid var(--color-kbd-border);
-  border-bottom: 1px solid var(--color-kbd-border-bottom);
   box-shadow: 0 2px 0 var(--color-kbd-border-bottom), 0 3px 2px var(--color-kbd-shadow);
   border-radius: 6px;
   font-family: monospace;
