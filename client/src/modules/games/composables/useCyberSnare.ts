@@ -1042,7 +1042,7 @@ export function useCyberSnare() {
 
   function destroy() {
     cancelAnimationFrame(animId);
-    stopListeners.forEach(stop => stop());
+    stopListeners.forEach((stop) => stop());
     stopListeners = [];
   }
 

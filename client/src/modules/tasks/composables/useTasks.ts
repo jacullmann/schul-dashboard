@@ -28,7 +28,6 @@ export function useTasks() {
   const { user } = storeToRefs(userStore);
   const { t, te } = useI18n();
 
-
   // Core states
   const tab = ref<ItemType>(
     isValidType(route.params.type) ? route.params.type : 'all',

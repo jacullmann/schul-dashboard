@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted} from 'vue';
+import {computed} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import BaseTabs from '@/common/components/BaseTabs.vue';
 
@@ -14,15 +14,15 @@ const router = useRouter();
 
 // 1. Definition der Tabs
 const tabs: NavItem[] = [
-  { id: 'impress', label: 'Impress', routePath: 'impress' },
+  { id: 'imprint', label: 'Imprint', routePath: 'imprint' },
   { id: 'privacy-policy', label: 'Privacy Policy', routePath: 'privacy-policy' },
   { id: 'terms', label: 'Terms', routePath: 'terms' },
 ];
 
 
 const activeTabId = computed(() => {
-  if (route.path.endsWith('/impress')) {
-    return 'impress';
+  if (route.path.endsWith('/imprint')) {
+    return 'imprint';
   }
   if (route.path.endsWith('/privacy-policy')) {
     return 'privacy-policy';
@@ -31,10 +31,7 @@ const activeTabId = computed(() => {
     return 'terms';
   }
 
-  if (route.path.endsWith('/legal/')) {
-    return 'impressum';
-  }
-  return '';
+  return 'imprint';
 });
 
 
@@ -42,13 +39,9 @@ const handleTabChange = (newId: string) => {
   const selectedTab = tabs.find(tab => tab.id === newId);
 
   if (selectedTab) {
-    router.push(selectedTab.routePath);
+    router.push({ name: selectedTab.routePath });
   }
 };
-
-onMounted(() => {
-  handleTabChange(route.path);
-})
 </script>
 
 <template>

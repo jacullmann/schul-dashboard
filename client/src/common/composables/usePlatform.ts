@@ -8,7 +8,7 @@ import { ref } from 'vue';
  */
 export function usePlatform() {
   const isBrowser = typeof window !== 'undefined';
-  
+
   const nav = isBrowser ? window.navigator : ({} as Navigator);
   const ua = (isBrowser ? nav.userAgent : '').toLowerCase();
   const platform = (isBrowser ? (nav as any).platform || '' : '').toLowerCase();
@@ -17,7 +17,7 @@ export function usePlatform() {
   const isMac = platform.includes('mac') || ua.includes('macintosh');
   const isWindows = platform.includes('win') || ua.includes('windows');
   const isLinux = platform.includes('linux') || ua.includes('linux');
-  
+
   const isIOS = /iphone|ipad|ipod/.test(ua);
   const isAndroid = /android/.test(ua);
   const isMobile = isIOS || isAndroid || /mobile/.test(ua);
@@ -29,7 +29,9 @@ export function usePlatform() {
   const isEdge = /edg/.test(ua) || /edge/.test(ua);
 
   // Input capabilities
-  const isTouch = ref(isBrowser && ('ontouchstart' in window || nav.maxTouchPoints > 0));
+  const isTouch = ref(
+    isBrowser && ('ontouchstart' in window || nav.maxTouchPoints > 0),
+  );
 
   /**
    * Shortcut symbols for UI display (e.g., ⌘ vs Ctrl)
@@ -47,7 +49,7 @@ export function usePlatform() {
   return {
     // Environment
     isBrowser,
-    
+
     // OS
     isMac,
     isWindows,
@@ -55,16 +57,16 @@ export function usePlatform() {
     isIOS,
     isAndroid,
     isMobile,
-    
+
     // Browser
     isChrome,
     isSafari,
     isFirefox,
     isEdge,
-    
+
     // Capabilities
     isTouch,
-    
+
     // UI Helpers
     shortcutSymbol,
     shortcutLabel,

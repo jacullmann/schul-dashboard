@@ -26,7 +26,7 @@ export function useAppShortcuts() {
   // Ctrl/Cmd+K → Search
   onKeyStroke(['k', 'K'], (e: KeyboardEvent) => {
     if (!userStore.user) return;
-    
+
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       modalStore.openSearch();

@@ -234,7 +234,7 @@
       "confirmPlaceholder": "wiederhole dein Passwort",
       "revealLabel": "Passwort anzeigen/verstecken",
       "forgot": "Passwort vergessen?",
-      "terms": "Ich stimme der <a href=\"/legal/impressum\" target=\"_blank\" class=\"privacy-link\">Datenschutzerklärung</a> und den <a href=\"/legal/nutzung\" target=\"_blank\" class=\"privacy-link\">Nutzungsbedingungen</a> zu",
+      "terms": "Ich stimme der <a href=\"/legal/privacy-policy\" target=\"_blank\" class=\"privacy-link\">Datenschutzerklärung</a> und den <a href=\"/legal/terms\" target=\"_blank\" class=\"privacy-link\">Nutzungsbedingungen</a> zu",
       "successRegister": "Fast geschafft! Wir haben einen Bestätigungslink an deine E-Mail-Adresse geschickt",
       "errors": {
         "emailMissing": "Gib deine E-Mail ein",

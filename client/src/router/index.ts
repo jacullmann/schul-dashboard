@@ -29,10 +29,11 @@ const routes = [
         path: 'legal',
         name: 'legal',
         component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
+        redirect: '/legal/imprint',
         children: [
           {
-            path: 'impressum',
-            name: 'impressum',
+            path: 'imprint',
+            name: 'imprint',
             component: () => import('@/modules/legal/components/Impress.vue'),
             meta: { title: 'legal.imprint.title' },
           },
@@ -251,7 +252,8 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.title) {
     const translated = i18n.global.t(to.meta.title as string);
     if (to.path === '/') {
-      document.title = translated || 'schul-dashboard | Free Management Tool For Students';
+      document.title =
+        translated || 'schul-dashboard | Free Management Tool For Students';
     } else {
       document.title = `${translated} | Dashboard`;
     }

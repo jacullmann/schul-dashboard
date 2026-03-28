@@ -139,8 +139,8 @@ const goBack = () => {
 .nav-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 12px;
+  padding: 12px;
   background: var(--color-surface);
   border: 1px solid var(--color-surface-border);
   box-shadow: var(--shadow-input);
@@ -161,9 +161,7 @@ const goBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface-hover);
-  border-radius: var(--radius-md);
-  color: var(--color-on-surface);
+  color: var(--color-on-surface-muted);
 }
 
 .nav-info {

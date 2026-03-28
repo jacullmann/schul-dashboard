@@ -31,8 +31,6 @@ import {
         </a>
       </div>
 
-      <hr>
-
       <div class="contact-section">
         <div class="section-header">
           <div class="icon-wrapper">
@@ -47,8 +45,6 @@ import {
           <p class="location-text">Berlin, Deutschland</p>
         </div>
       </div>
-
-      <hr>
 
       <div class="contact-section">
         <div class="section-header">
@@ -112,10 +108,6 @@ import {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: var(--radius-md);
   color: var(--color-on-surface);
 }
 
@@ -158,18 +150,6 @@ import {
   color: var(--color-on-surface);
 }
 
-.lucide-external-link :deep(path:first-child),
-.lucide-external-link :deep(path:nth-child(2)) {
-  transform: translate(0, 0);
-  transition: all 0.1s ease;
-}
-
-
-.email-button:hover .lucide-external-link :deep(path:first-child),
-.email-button:hover .lucide-external-link :deep(path:nth-child(2)) {
-  transform: translate(2px, -2px);
-}
-
 svg {
   flex-shrink: 0;
 }
@@ -184,12 +164,6 @@ svg {
 
 .location-text {
   font-weight: 500;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid var(--color-canvas-border);
-  margin: 0;
 }
 
 .additional-info {

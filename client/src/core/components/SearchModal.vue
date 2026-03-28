@@ -11,7 +11,9 @@ import {
   Lock,
   UsersRound,
   Brain,
-  Gamepad2,
+  Gamepad,
+  Newspaper,
+  Crop,
   CirclePlus,
   LogIn,
   UserRoundPlus,
@@ -19,6 +21,8 @@ import {
   ChevronRight,
   ArrowUpRight,
   LucideGraduationCap,
+  SunMoon,
+  Languages,
   LucideKeyRound,
   ShieldCheck,
   LogOut,
@@ -114,9 +118,26 @@ const allResults = computed<SearchResult[]>(() => [
     label: t('search.items.games'),
     description: t('search.descriptions.games'),
     category: 'page',
-    icon: Gamepad2,
+    icon: Gamepad,
     action: () => navigate('/games'),
   },
+  {
+    id: 'info-dashboard',
+    label: t('search.items.infoDashboard'),
+    description: t('search.descriptions.infoDashboard'),
+    category: 'page',
+    icon: Newspaper,
+    action: () => navigate('/info-dashboard'),
+  },
+  {
+    id: 'image-tool',
+    label: t('search.items.imageTool'),
+    description: t('search.descriptions.imageTool'),
+    category: 'page',
+    icon: Crop,
+    action: () => navigate('/imagetool'),
+  },
+  // Actions
   {
     id: 'toggle-sidebar',
     label: t('sidebar.toggle'),
@@ -129,7 +150,6 @@ const allResults = computed<SearchResult[]>(() => [
     },
     shortcut: ['ctrl', 'shift', 'd'],
   },
-  // Actions
   {
     id: 'create-entry',
     label: t('search.items.createEntry'),
@@ -179,6 +199,28 @@ const allResults = computed<SearchResult[]>(() => [
     icon: LucideGraduationCap,
     action: () => {
       openSetup();
+      emit('cancel');
+    },
+  },
+  {
+    id: 'change-theme',
+    label: t('account.menu.theme.title'),
+    description: t('search.descriptions.changeTheme'),
+    category: 'action',
+    icon: SunMoon,
+    action: () => {
+      modalStore.openThemeSwitch();
+      emit('cancel');
+    },
+  },
+  {
+    id: 'change-language',
+    label: t('account.menu.language.title'),
+    description: t('search.descriptions.changeLanguage'),
+    category: 'action',
+    icon: Languages,
+    action: () => {
+      modalStore.openLanguageSwitch();
       emit('cancel');
     },
   },

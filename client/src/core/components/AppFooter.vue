@@ -32,7 +32,7 @@ const year = new Date().getFullYear();
         </FooterSection>
 
         <FooterSection :title="t('legal.title')">
-          <FooterLink to="/legal/impress">{{ t('legal.imprint.title') }}</FooterLink>
+          <FooterLink to="/legal/imprint">{{ t('legal.imprint.title') }}</FooterLink>
           <FooterLink to="/legal/privacy-policy">{{ t('legal.privacy.title') }}</FooterLink>
           <FooterLink to="/legal/terms">{{ t('legal.terms.title') }}</FooterLink>
         </FooterSection>

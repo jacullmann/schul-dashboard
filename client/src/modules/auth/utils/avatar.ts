@@ -27,7 +27,8 @@ function getColorIndexFromEmail(email: string): number {
  * @returns An object containing `letter` and `color`.
  */
 export function getAvatarData(email: string) {
-  const letter = email && email.length > 0 ? email.charAt(0).toUpperCase() : '?';
+  const letter =
+    email && email.length > 0 ? email.charAt(0).toUpperCase() : '?';
   const color = AVATAR_COLORS[getColorIndexFromEmail(email)] || '#777';
 
   return { letter, color };

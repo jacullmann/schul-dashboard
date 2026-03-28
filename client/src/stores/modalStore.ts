@@ -67,6 +67,26 @@ export const useModalStore = defineStore('modals', () => {
     groupSwitchOpen.value = false;
   }
 
+  // ── Theme Switch modal ────────────────────────────────────────────────────
+  const themeSwitchOpen = ref(false);
+
+  function openThemeSwitch() {
+    themeSwitchOpen.value = true;
+  }
+  function closeThemeSwitch() {
+    themeSwitchOpen.value = false;
+  }
+
+  // ── Language Switch modal ─────────────────────────────────────────────────
+  const languageSwitchOpen = ref(false);
+
+  function openLanguageSwitch() {
+    languageSwitchOpen.value = true;
+  }
+  function closeLanguageSwitch() {
+    languageSwitchOpen.value = false;
+  }
+
   // ── Item form ─────────────────────────────────────────────────────────────
   const itemFormOpen = ref(false);
   const itemFormKey = ref(0);
@@ -158,6 +178,16 @@ export const useModalStore = defineStore('modals', () => {
     groupSwitchOpen,
     openGroupSwitch,
     closeGroupSwitch,
+
+    // Theme Switch modal
+    themeSwitchOpen,
+    openThemeSwitch,
+    closeThemeSwitch,
+
+    // Language Switch modal
+    languageSwitchOpen,
+    openLanguageSwitch,
+    closeLanguageSwitch,
 
     // Item form
     itemFormOpen,

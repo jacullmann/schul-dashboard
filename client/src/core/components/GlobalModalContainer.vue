@@ -26,6 +26,8 @@ import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import SearchModal from '@/core/components/SearchModal.vue';
 import GroupSwitchModal from '@/core/components/GroupSwitchModal.vue';
+import ThemeSwitchModal from '@/core/components/ThemeSwitchModal.vue';
+import LanguageSwitchModal from '@/core/components/LanguageSwitchModal.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
@@ -58,6 +60,8 @@ const {
   authModalOpen,
   searchOpen,
   groupSwitchOpen,
+  themeSwitchOpen,
+  languageSwitchOpen,
   itemFormOpen,
   itemFormKey,
   itemToEdit,
@@ -179,6 +183,16 @@ function onAccountDeleteError(msg: string) {
   <!-- Global group switch modal -->
   <Teleport to="body">
     <GroupSwitchModal v-if="groupSwitchOpen" @cancel="modalStore.closeGroupSwitch()" />
+  </Teleport>
+
+  <!-- Theme switch modal -->
+  <Teleport to="body">
+    <ThemeSwitchModal v-if="themeSwitchOpen" @cancel="modalStore.closeThemeSwitch()" />
+  </Teleport>
+
+  <!-- Language switch modal -->
+  <Teleport to="body">
+    <LanguageSwitchModal v-if="languageSwitchOpen" @cancel="modalStore.closeLanguageSwitch()" />
   </Teleport>
 
   <!-- Global item form (N key, + button, or search create action) -->
