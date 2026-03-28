@@ -98,14 +98,6 @@ onUnmounted(() => {
     @click="isExpanded = false"
   ></div>
 
-  <button
-    v-if="!isExpanded"
-    class="md:hidden fixed top-3 left-2.5 z-[40000] p-2 text-on-surface bg-surface rounded-md border border-surface-border shadow-sm hover:bg-surface-hover transition-colors"
-    @click="toggleExpanded"
-  >
-    <PanelLeft :size="20" />
-  </button>
-
   <aside
     class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-1 bg-surface border-r border-surface-border z-[5000000]"
     :class="[

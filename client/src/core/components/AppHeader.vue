@@ -7,8 +7,9 @@ import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
 import AccountMenu from '@/modules/auth/components/AccountMenu.vue';
-import { ChevronDown, Plus } from '@lucide/vue';
+import { PanelLeft, ChevronDown, Plus } from '@lucide/vue';
 import hw from '@/api/hwApi';
+import { useModalStore } from '@/stores/modalStore';
 
 const userStore = useUserStore();
 const { user, loading } = storeToRefs(userStore);
@@ -22,6 +23,13 @@ const {
 } = useAppAuth();
 const router = useRouter();
 const route = useRoute();
+
+const modalStore = useModalStore();
+const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
+
+function toggleExpanded() {
+  modalStore.toggleSidebar();
+}
 
 const groupMenuOpen = ref(false);
 const groupMenuRef = ref<HTMLElement | null>(null);
@@ -99,64 +107,74 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header class="header">
-    <div class="header-container container">
-      <div class="header-left">
-        <div class="logo-group-container">
-          <!-- Logo always links to home or active group -->
-          <router-link :to="logoLink" class="logo-group">
-            <AppLogo class="logo-img" aria-hidden="true" />
-            <!-- If there is no active group, the brand name is shown -->
-            <span v-if="!(activeGroupId && groupName)" class="logo-text"
-              >schul-dashboard</span
+  <header
+    class="sticky flex items-center bg-canvas text-on-surface border-b border-canvas-border font-display p-0 t-0 h-[var(--header-height)] z-header"
+  >
+    <div
+      class="relative h-full flex justify-between items-center gap-4 max-[1000px]:px-4 max-w-[1300px]"
+    >
+      <div class="flex items-center gap-2.5">
+        <button
+          class="md:hidden relative p-2 m-[-8px] mr-0 ml-[-4px] text-on-surface bg-transparent rounded-md hover:bg-surface transition-hover"
+          @click="toggleExpanded"
+          :aria-expanded="isExpanded"
+          aria-label="Toggle navigation menu"
+        >
+          <PanelLeft :size="20" />
+        </button>
+
+        <!-- Logo always links to home or active group -->
+        <router-link :to="logoLink" class="logo-group">
+          <AppLogo class="logo-img hidden md:block" aria-hidden="true" />
+          <!-- If there is no active group, the brand name is shown -->
+          <span v-if="!(activeGroupId && groupName)" class="logo-text"
+            >schul-dashboard</span
+          >
+        </router-link>
+
+        <!-- Dropdown to switch between groups -->
+        <template v-if="activeGroupId && groupName">
+          <button
+            class="flex items-center gap-1 group cursor-pointer"
+            @click="toggleGroupMenu"
+            title="Change group"
+            ref="groupMenuRef"
+          >
+            <span class="logo-text">{{ groupName }}</span>
+            <ChevronDown
+              :size="16"
+              class="transition-transform duration-200 ease-in-out text-on-surface-muted group-hover:text-on-surface transition-hover"
+              :class="{ 'rotate-180': groupMenuOpen }"
+            />
+          </button>
+
+          <BaseMenu v-if="groupMenuOpen">
+            <BaseMenuButton
+              v-for="g in userGroups"
+              :key="g.id"
+              :class="{ active: g.id === activeGroupId }"
+              @click="onSwitchGroup(g.id)"
             >
-          </router-link>
+              <span>{{ g.name }}</span>
+              <span
+                v-if="g.hasUnreadContent && g.id !== activeGroupId"
+                class="size-2 rounded-full bg-danger shrink-0"
+              ></span>
+            </BaseMenuButton>
 
-          <!-- Dropdown to switch between groups -->
-          <template v-if="activeGroupId && groupName">
-            <div class="group-switcher" ref="groupMenuRef">
-              <button
-                class="flex items-center gap-1 group cursor-pointer"
-                @click="toggleGroupMenu"
-                title="Change group"
-              >
-                <span class="logo-text">{{ groupName }}</span>
-                <ChevronDown
-                  :size="16"
-                  class="transition-transform duration-200 ease-in-out text-on-surface-muted group-hover:text-on-surface transition-hover"
-                  :class="{ 'rotate-180': groupMenuOpen }"
-                />
-              </button>
+            <BaseMenuDivider />
 
-              <BaseMenu v-if="groupMenuOpen">
-                <BaseMenuButton
-                  v-for="g in userGroups"
-                  :key="g.id"
-                  :class="{ active: g.id === activeGroupId }"
-                  @click="onSwitchGroup(g.id)"
-                >
-                  <span>{{ g.name }}</span>
-                  <span
-                    v-if="g.hasUnreadContent && g.id !== activeGroupId"
-                    class="size-2 rounded-full bg-danger shrink-0"
-                  ></span>
-                </BaseMenuButton>
-
-                <BaseMenuDivider />
-
-                <BaseMenuButton
-                  @click="
-                    groupMenuOpen = false;
-                    router.push('/home');
-                  "
-                >
-                  <Plus :size="16" />
-                  New group
-                </BaseMenuButton>
-              </BaseMenu>
-            </div>
-          </template>
-        </div>
+            <BaseMenuButton
+              @click="
+                groupMenuOpen = false;
+                router.push('/home');
+              "
+            >
+              <Plus :size="16" />
+              New group
+            </BaseMenuButton>
+          </BaseMenu>
+        </template>
       </div>
 
       <div v-if="loading" class="loading-placeholder">
@@ -174,47 +192,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.header {
-  background-color: var(--color-canvas);
-  color: var(--color-on-surface);
-  padding: 0;
-  height: var(--header-height);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
-  transition: background-color 0.3s ease;
-  border-bottom: 1px solid var(--color-canvas-border);
-  font-family: 'Satoshi', sans-serif;
-  display: flex;
-  align-items: center;
-}
-
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  position: relative;
-  height: 100%;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  height: 100%;
-}
-
-.container {
-  max-width: 1300px;
-}
-
-.logo-group-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .logo-group {
   display: flex;
   align-items: center;
@@ -272,11 +249,6 @@ onUnmounted(() => {
 
   .logo-text--group {
     display: inline;
-  }
-
-  .header-container {
-    padding-left: 16px;
-    padding-right: 16px;
   }
 }
 
