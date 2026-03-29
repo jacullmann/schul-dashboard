@@ -140,7 +140,11 @@ onUnmounted(() => {
         </router-link>
 
         <!-- Dropdown to switch between groups -->
-        <div v-if="activeGroupId && groupName" class="relative flex items-center" ref="groupMenuRef">
+        <div
+          v-if="activeGroupId && groupName"
+          class="relative flex items-center"
+          ref="groupMenuRef"
+        >
           <button
             class="flex items-center gap-1 group cursor-pointer"
             @click="toggleGroupMenu"
@@ -158,14 +162,15 @@ onUnmounted(() => {
             <BaseMenuButton
               v-for="g in userGroups"
               :key="g.id"
-              :class="{ active: g.id === activeGroupId }"
+              :isSelect="true"
+              :active="g.id === activeGroupId"
               @click="onSwitchGroup(g.id)"
             >
               <span>{{ g.name }}</span>
-              <span
+
+              <NotificationDot
                 v-if="g.hasUnreadContent && g.id !== activeGroupId"
-                class="size-2 rounded-full bg-danger shrink-0"
-              ></span>
+              />
             </BaseMenuButton>
 
             <BaseMenuDivider />

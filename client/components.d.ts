@@ -33,6 +33,7 @@ declare module 'vue' {
     LocaleDropdown: typeof import('./src/common/components/LocaleDropdown.vue')['default']
     LocaleMenuDropdown: typeof import('./src/common/components/LocaleMenuDropdown.vue')['default']
     MenuDropdown: typeof import('./src/common/components/MenuDropdown.vue')['default']
+    NotificationDot: typeof import('./src/common/components/NotificationDot.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tagline: typeof import('./src/common/components/Tagline.vue')['default']

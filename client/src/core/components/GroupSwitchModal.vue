@@ -82,10 +82,9 @@ function handleSelect(index: number) {
           @click="onSwitchGroup(group.id)"
           @mouseenter="setSelectedIndex(index)"
         >
-          <span
+          <NotificationDot
             v-if="group.hasUnreadContent && group.id !== activeGroupId"
-            class="size-2 rounded-full bg-danger shrink-0 mx-2"
-          ></span>
+          />
 
           <ArrowUpRight
             v-if="selectedIndex === index"
