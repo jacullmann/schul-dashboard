@@ -30,6 +30,10 @@ export function useGroupAdmin() {
   const members = ref<GroupMember[]>([]);
   const loadingMembers = ref(false);
 
+  // Banned Users
+  const bannedUsers = ref<{ userId: string; generatedName: string; bannedAt: string }[]>([]);
+  const loadingBannedUsers = ref(false);
+
   // Schedule substitutions
   const subs = ref<ScheduleSubstitution[]>([]);
   const loadingSubs = ref(false);

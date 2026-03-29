@@ -7,6 +7,7 @@ import {
   ListTodo,
   CalendarDays,
   UsersRound,
+  SlidersHorizontal,
   Lock,
   Search,
 } from '@lucide/vue';
@@ -26,7 +27,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const { resetMfaState } = useMfa();
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
+const { user, isGroupAdmin } = storeToRefs(userStore);
 
 const { activeGroupId, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
@@ -178,7 +179,16 @@ onUnmounted(() => {
         </SidebarButton>
 
         <SidebarButton
-          :label="t('sidebar.security')"
+          v-if="activeGroupId && isGroupAdmin"
+          :label="t('sidebar.admin')"
+          :expanded="isExpanded"
+          @click="handleNavigation(`/groups/${activeGroupId}/admin`)"
+        >
+          <SlidersHorizontal :size="20" />
+        </SidebarButton>
+
+        <SidebarButton
+          :label="t('sidebar.private')"
           :expanded="isExpanded"
           @click="handleNavigation('/todos')"
         >
