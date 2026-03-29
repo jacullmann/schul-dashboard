@@ -10,6 +10,7 @@ import {
   CalendarDays,
   Lock,
   UsersRound,
+  SlidersHorizontal,
   Brain,
   Gamepad,
   Newspaper,
@@ -60,6 +61,7 @@ interface SearchResult {
   icon: any;
   action: () => void;
   shortcut?: string[];
+  condition?: boolean;
 }
 
 // Define all searchable items
@@ -80,6 +82,7 @@ const allResults = computed<SearchResult[]>(() => [
     category: 'page',
     icon: ListTodo,
     action: () => navigate(`/groups/${activeGroupId.value}/items/all`),
+    condition: !!activeGroupId.value,
   },
   {
     id: 'schedule',
@@ -88,6 +91,7 @@ const allResults = computed<SearchResult[]>(() => [
     category: 'page',
     icon: CalendarDays,
     action: () => navigate(`/groups/${activeGroupId.value}/schedule`),
+    condition: !!activeGroupId.value,
   },
   {
     id: 'private',
@@ -104,6 +108,15 @@ const allResults = computed<SearchResult[]>(() => [
     category: 'page',
     icon: UsersRound,
     action: () => navigate('/home'),
+  },
+  {
+    id: 'admin',
+    label: t('sidebar.admin'),
+    description: t('search.descriptions.admin'),
+    category: 'page',
+    icon: SlidersHorizontal,
+    action: () => navigate(`/groups/${activeGroupId.value}/admin`),
+    condition: userStore.isGroupAdmin && !!activeGroupId.value,
   },
   {
     id: 'brain',
@@ -285,7 +298,9 @@ function matchesQuery(item: SearchResult, q: string): boolean {
 }
 
 const filteredResults = computed(() =>
-  allResults.value.filter((item) => matchesQuery(item, query.value)),
+  allResults.value
+    .filter((item) => item.condition ?? true)
+    .filter((item) => matchesQuery(item, query.value)),
 );
 
 const pageResults = computed(() =>

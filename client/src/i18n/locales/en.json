@@ -595,6 +595,7 @@
     "tasks": "Tasks",
     "schedule": "Schedule",
     "groups": "Groups",
+    "admin": "Admin",
     "private": "Private Tasks"
   },
   "search": {
@@ -621,6 +622,7 @@
       "tasks": "Tasks, homework & exams",
       "schedule": "View class schedule",
       "groups": "Manage your groups",
+      "admin": "Administrator Settings",
       "private": "Manage your private tasks",
       "brainTests": "Cognitive tests and exercises",
       "games": "Games and entertainment",

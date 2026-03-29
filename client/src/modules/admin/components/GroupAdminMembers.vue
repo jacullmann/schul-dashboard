@@ -131,45 +131,38 @@ function confirmRemove() {
 
     <div class="panel-header" style="margin-top: 32px;">
       <div class="title-inf">
-        <h2>Gebannte Nutzer</h2>
+        <h2>Banned Users</h2>
       </div>
     </div>
     
-    <div v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)" class="empty-hint">Lädt...</div>
-    <div v-else-if="!bannedUsers || bannedUsers.length === 0" class="empty-hint">Keine gebannten Nutzer.</div>
+    <div v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)" class="empty-hint">Loading...</div>
+    <div v-else-if="!bannedUsers || bannedUsers.length === 0" class="empty-hint">No banned users.</div>
     <div v-else class="members-list">
       <div v-for="user in bannedUsers" :key="user.userId" class="member-row">
         <div class="member-info">
           <span class="member-name">{{ user.generatedName }}</span>
-          <span class="member-role-badge role-user">Gebannt am {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span>
+          <span class="member-role-badge role-user">Banned On {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span>
         </div>
         <div class="member-actions">
-          <BaseButton variant="secondary" @click="emit('revert-ban', user.userId)">
-            Entbannen
+          <BaseButton variant="ghost" @click="emit('revert-ban', user.userId)">
+            Unban
           </BaseButton>
         </div>
       </div>
     </div>
 
-    <BaseModal
-      v-if="removeModal.isOpen"
-      title="Mitglied entfernen"
-      @close="closeRemoveModal"
-    >
-      <div class="remove-modal-content">
-        <p>Möchtest du <strong>{{ removeModal.userName }}</strong> wirklich aus der Gruppe entfernen?</p>
-        <p class="hint">Der Nutzer kann der Gruppe jederzeit wieder beitreten, sofern er die Anmeldedaten kennt.</p>
+    <BaseModal v-if="removeModal.isOpen" @cancel="closeRemoveModal">
+      <template #title>Remove Member</template>
+
+      <template #content>
+        <p>Are you sure you want to remove <strong>{{ removeModal.userName }}</strong> from the group?</p>
+        <p>Users can rejoin at any time if they have the credentials for your group. To block them from doing so you can ban them.</p>
         
-        <label class="ban-checkbox">
-          <input type="checkbox" v-model="removeModal.ban" />
-          <span>Nutzer permanent bannen</span>
-        </label>
-        
-        <div class="modal-actions">
-          <BaseButton variant="secondary" @click="closeRemoveModal">Abbrechen</BaseButton>
-          <BaseButton variant="danger" @click="confirmRemove">Entfernen</BaseButton>
-        </div>
-      </div>
+        <BaseCheckbox v-model="removeModal.ban" :label="`Ban ${removeModal.userName} permanently`" />
+      </template>
+      <template #action-btn>
+        <BaseButton variant="danger" @click="confirmRemove">Remove</BaseButton>
+      </template>
     </BaseModal>
   </div>
 </template>
@@ -293,53 +286,6 @@ function confirmRemove() {
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon.transfer-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.remove-modal-content {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.remove-modal-content p {
-  margin: 0;
-  color: var(--color-on-surface);
-  line-height: 1.5;
-}
-
-.remove-modal-content .hint {
-  font-size: var(--text-sm);
-  color: var(--color-on-surface-muted);
-}
-
-.ban-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  padding: 8px 12px;
-  background: var(--color-surface-hover);
-  border-radius: var(--radius-md);
-  margin-bottom: 8px;
-}
-
-.ban-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.ban-checkbox span {
-  font-weight: 500;
-  color: var(--color-on-surface);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-}
 
 @media (max-width: 640px) {
   .member-row { flex-direction: column; align-items: flex-start; gap: 8px; }

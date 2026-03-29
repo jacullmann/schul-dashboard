@@ -651,6 +651,7 @@
     "tasks": "Aufgaben",
     "schedule": "Stundenplan",
     "groups": "Gruppen",
+    "admin": "Admin",
     "private": "Private Aufgaben"
   },
   "search": {
@@ -677,6 +678,7 @@
       "tasks": "Aufgaben, Hausaufgaben & Prüfungen",
       "schedule": "Stundenplan anzeigen",
       "groups": "Gruppen verwalten",
+      "admin": "Administrator Einstellungen",
       "private": "Eigene private Aufgaben verwalten",
       "brainTests": "Kognitive Tests und Übungen",
       "games": "Spiele und Unterhaltung",
