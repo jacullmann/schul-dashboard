@@ -1,9 +1,10 @@
 FROM node:24 AS builder
 WORKDIR /app
+ENV NODE_ENV=development
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN ./node_modules/.bin/nest build
+RUN npm run build
 
 FROM node:24-slim AS runner
 WORKDIR /app
