@@ -78,6 +78,19 @@ export class GroupService {
     const isValid = await bcrypt.compare(password, hashToCompare);
     const isAuthenticated = group && isValid;
 
+    if (group) {
+      const { data: ban } = await sb
+        .from('group_bans')
+        .select('id')
+        .eq('tenant_id', group.id)
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (ban && ban.length > 0) {
+        throw new ForbiddenException('You have been banned from this group.');
+      }
+    }
+
     const { error: secEventErr } = await sb.from('security_events').insert({
       event_type: 'group_join',
       event_status: isAuthenticated ? 'success' : 'failure',

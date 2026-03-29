@@ -114,16 +114,40 @@ export function useGroupAdmin() {
     }
   }
 
-  async function removeMember(userId: string, name: string) {
-    if (!confirm(`Remove ${name} from the group?`)) return;
+  async function removeMember(userId: string, name: string, ban = false) {
     try {
-      await hw.delete(`/api/group-admin/members/${userId}`);
+      await hw.delete(`/api/group-admin/members/${userId}?ban=${ban}`);
       members.value = members.value.filter((m) => m.userId !== userId);
-      showMessage('Member removed');
+      showMessage(ban ? 'Member removed and banned' : 'Member removed');
       loadStats();
+      if (ban) loadBannedUsers();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       showMessage(err.response?.data?.error || 'Failed to remove member', true);
+    }
+  }
+
+  // ─── Banned Users ───────────────────────────────────
+
+  async function loadBannedUsers() {
+    loadingBannedUsers.value = true;
+    try {
+      const { data } = await hw.get('/api/group-admin/banned-users');
+      bannedUsers.value = data;
+    } catch {
+      showMessage('Failed to load banned users', true);
+    } finally {
+      loadingBannedUsers.value = false;
+    }
+  }
+
+  async function revertBan(userId: string) {
+    try {
+      await hw.delete(`/api/group-admin/banned-users/${userId}`);
+      bannedUsers.value = bannedUsers.value.filter((u) => u.userId !== userId);
+      showMessage('Ban reverted');
+    } catch {
+      showMessage('Failed to revert ban', true);
     }
   }
 
@@ -330,6 +354,7 @@ export function useGroupAdmin() {
   onMounted(() => {
     loadStats();
     loadMembers();
+    loadBannedUsers();
     loadSubs();
     loadAnnouncements();
     loadSchedule();
@@ -351,6 +376,12 @@ export function useGroupAdmin() {
     loadMembers,
     changeRole,
     removeMember,
+
+    // Banned Users
+    bannedUsers,
+    loadingBannedUsers,
+    loadBannedUsers,
+    revertBan,
 
     // Subs
     subs,

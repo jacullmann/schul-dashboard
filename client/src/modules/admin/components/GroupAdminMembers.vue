@@ -2,18 +2,21 @@
 import { RefreshCw, UserRoundMinus, Crown } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import type { GroupMember } from '@/modules/admin/types';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
   members: GroupMember[];
+  bannedUsers?: { userId: string; generatedName: string; bannedAt: string }[];
   loading: boolean;
+  loadingBanned?: boolean;
   isOwner?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'change-role', userId: string, newRole: string): void;
-  (e: 'remove', userId: string, name: string): void;
+  (e: 'remove', userId: string, name: string, ban: boolean): void;
+  (e: 'revert-ban', userId: string): void;
   (e: 'transfer-ownership', userId: string): void;
 }>();
 
@@ -28,6 +31,31 @@ function onRoleChange(member: GroupMember, newRole: string) {
   if (newRole !== member.role) {
     emit('change-role', member.userId, newRole);
   }
+}
+
+const removeModal = ref({
+  isOpen: false,
+  userId: '',
+  userName: '',
+  ban: false
+});
+
+function openRemoveModal(userId: string, name: string) {
+  removeModal.value = {
+    isOpen: true,
+    userId,
+    userName: name,
+    ban: false
+  };
+}
+
+function closeRemoveModal() {
+  removeModal.value.isOpen = false;
+}
+
+function confirmRemove() {
+  emit('remove', removeModal.value.userId, removeModal.value.userName, removeModal.value.ban);
+  closeRemoveModal();
 }
 </script>
 
@@ -83,7 +111,7 @@ function onRoleChange(member: GroupMember, newRole: string) {
           />
           <button
               class="btn-icon danger"
-              @click="emit('remove', member.userId, member.generatedName)"
+              @click="openRemoveModal(member.userId, member.generatedName)"
               title="Aus Gruppe entfernen"
               :disabled="member.role === 'admin'"
           >
@@ -100,6 +128,49 @@ function onRoleChange(member: GroupMember, newRole: string) {
         </div>
       </div>
     </div>
+
+    <div class="panel-header" style="margin-top: 32px;">
+      <div class="title-inf">
+        <h2>Gebannte Nutzer</h2>
+      </div>
+    </div>
+    
+    <div v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)" class="empty-hint">Lädt...</div>
+    <div v-else-if="!bannedUsers || bannedUsers.length === 0" class="empty-hint">Keine gebannten Nutzer.</div>
+    <div v-else class="members-list">
+      <div v-for="user in bannedUsers" :key="user.userId" class="member-row">
+        <div class="member-info">
+          <span class="member-name">{{ user.generatedName }}</span>
+          <span class="member-role-badge role-user">Gebannt am {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span>
+        </div>
+        <div class="member-actions">
+          <BaseButton variant="secondary" @click="emit('revert-ban', user.userId)">
+            Entbannen
+          </BaseButton>
+        </div>
+      </div>
+    </div>
+
+    <BaseModal
+      v-if="removeModal.isOpen"
+      title="Mitglied entfernen"
+      @close="closeRemoveModal"
+    >
+      <div class="remove-modal-content">
+        <p>Möchtest du <strong>{{ removeModal.userName }}</strong> wirklich aus der Gruppe entfernen?</p>
+        <p class="hint">Der Nutzer kann der Gruppe jederzeit wieder beitreten, sofern er die Anmeldedaten kennt.</p>
+        
+        <label class="ban-checkbox">
+          <input type="checkbox" v-model="removeModal.ban" />
+          <span>Nutzer permanent bannen</span>
+        </label>
+        
+        <div class="modal-actions">
+          <BaseButton variant="secondary" @click="closeRemoveModal">Abbrechen</BaseButton>
+          <BaseButton variant="danger" @click="confirmRemove">Entfernen</BaseButton>
+        </div>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -222,6 +293,53 @@ function onRoleChange(member: GroupMember, newRole: string) {
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon.transfer-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.remove-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.remove-modal-content p {
+  margin: 0;
+  color: var(--color-on-surface);
+  line-height: 1.5;
+}
+
+.remove-modal-content .hint {
+  font-size: var(--text-sm);
+  color: var(--color-on-surface-muted);
+}
+
+.ban-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 12px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
+.ban-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.ban-checkbox span {
+  font-weight: 500;
+  color: var(--color-on-surface);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
 
 @media (max-width: 640px) {
   .member-row { flex-direction: column; align-items: flex-start; gap: 8px; }

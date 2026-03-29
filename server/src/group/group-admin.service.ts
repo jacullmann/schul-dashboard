@@ -45,6 +45,38 @@ export class GroupAdminService {
     };
   }
 
+  async getBannedUsers(tenantId: string) {
+    const sb = this.supabaseService.getClient();
+    const { data: bans } = await sb
+      .from('group_bans')
+      .select('user_id, banned_at')
+      .eq('tenant_id', tenantId);
+
+    const bannedUsers = (bans || []).map((b: any) => ({
+      userId: b.user_id as string,
+      generatedName: generateUserName(b.user_id as string, tenantId),
+      bannedAt: b.banned_at as string,
+    }));
+    return bannedUsers;
+  }
+
+  async revertBan(tenantId: string, currentUserId: string, targetUserId: string) {
+    const sb = this.supabaseService.getClient();
+    await sb
+      .from('group_bans')
+      .delete()
+      .eq('user_id', targetUserId)
+      .eq('tenant_id', tenantId);
+    
+    await sb.from('user_activity').insert({
+      user_id: currentUserId,
+      type: 'group-admin:revert-ban',
+      meta: { targetUserId, tenantId },
+    });
+      
+    return { ok: true, message: 'Ban reverted.' };
+  }
+
   async getMembers(tenantId: string) {
     const sb = this.supabaseService.getClient();
     const { data: userRoles } = await sb
@@ -119,6 +151,7 @@ export class GroupAdminService {
     tenantId: string,
     currentUserId: string,
     targetUserId: string,
+    ban: boolean = false,
   ) {
     if (targetUserId === currentUserId)
       throw new BadRequestException('You cannot remove yourself.');
@@ -158,6 +191,15 @@ export class GroupAdminService {
       .delete()
       .eq('user_id', targetUserId)
       .eq('tenant_id', tenantId);
+
+    if (ban) {
+      await sb.from('group_bans').insert({
+        user_id: targetUserId,
+        tenant_id: tenantId,
+        banned_by: currentUserId,
+      });
+    }
+
     const { error: activityRemoveMemberError } = await sb
       .from('user_activity')
       .insert({

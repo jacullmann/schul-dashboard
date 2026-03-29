@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { GroupAdminService } from './group-admin.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -78,11 +79,13 @@ export class GroupAdminController {
     @ActiveTenantId() tenantId: string,
     @Param('userId') targetUserId: string,
     @CurrentUserId() currentUserId: string,
+    @Query('ban') ban?: string,
   ) {
     return this.groupAdminService.removeMember(
       tenantId,
       currentUserId,
       targetUserId,
+      ban === 'true',
     );
   }
 

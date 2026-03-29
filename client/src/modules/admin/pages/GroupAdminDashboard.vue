@@ -23,6 +23,9 @@ const {
   loadMembers,
   changeRole,
   removeMember,
+  bannedUsers,
+  loadingBannedUsers,
+  revertBan,
   subs,
   loadingSubs,
   savingSub,
@@ -81,10 +84,13 @@ const navItems: AdminNavItem[] = [
       v-if="activeTab === 'members'"
       :members="members"
       :loading="loadingMembers"
+      :banned-users="bannedUsers"
+      :loading-banned="loadingBannedUsers"
       :is-owner="isOwner"
       @refresh="loadMembers"
       @change-role="(userId, role) => changeRole(userId, role)"
-      @remove="(userId, name) => removeMember(userId, name)"
+      @remove="(userId, name, ban) => removeMember(userId, name, ban)"
+      @revert-ban="(userId) => revertBan(userId)"
       @transfer-ownership="transferOwnership"
     />
 
