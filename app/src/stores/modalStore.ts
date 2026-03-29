@@ -46,45 +46,21 @@ export const useModalStore = defineStore('modals', () => {
 
   // ── Search modal ──────────────────────────────────────────────────────────
   const searchOpen = ref(false);
+  const searchMode = ref<'default' | 'group' | 'theme' | 'language'>('default');
 
-  function openSearch() {
+  function openSearch(mode: 'default' | 'group' | 'theme' | 'language' = 'default') {
+    searchMode.value = mode;
     searchOpen.value = true;
   }
   function closeSearch() {
     searchOpen.value = false;
   }
   function toggleSearch() {
-    searchOpen.value = !searchOpen.value;
-  }
-
-  // ── Group Switch modal ────────────────────────────────────────────────────
-  const groupSwitchOpen = ref(false);
-
-  function openGroupSwitch() {
-    groupSwitchOpen.value = true;
-  }
-  function closeGroupSwitch() {
-    groupSwitchOpen.value = false;
-  }
-
-  // ── Theme Switch modal ────────────────────────────────────────────────────
-  const themeSwitchOpen = ref(false);
-
-  function openThemeSwitch() {
-    themeSwitchOpen.value = true;
-  }
-  function closeThemeSwitch() {
-    themeSwitchOpen.value = false;
-  }
-
-  // ── Language Switch modal ─────────────────────────────────────────────────
-  const languageSwitchOpen = ref(false);
-
-  function openLanguageSwitch() {
-    languageSwitchOpen.value = true;
-  }
-  function closeLanguageSwitch() {
-    languageSwitchOpen.value = false;
+    if (searchOpen.value) {
+      closeSearch();
+    } else {
+      openSearch('default');
+    }
   }
 
   // ── Item form ─────────────────────────────────────────────────────────────
@@ -170,24 +146,10 @@ export const useModalStore = defineStore('modals', () => {
 
     // Search modal
     searchOpen,
+    searchMode,
     openSearch,
     closeSearch,
     toggleSearch,
-
-    // Group Switch modal
-    groupSwitchOpen,
-    openGroupSwitch,
-    closeGroupSwitch,
-
-    // Theme Switch modal
-    themeSwitchOpen,
-    openThemeSwitch,
-    closeThemeSwitch,
-
-    // Language Switch modal
-    languageSwitchOpen,
-    openLanguageSwitch,
-    closeLanguageSwitch,
 
     // Item form
     itemFormOpen,

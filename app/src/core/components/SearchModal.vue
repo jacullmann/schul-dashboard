@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -28,28 +28,56 @@ import {
   Shield,
   LogOut,
   PanelLeft,
+  Moon,
+  Sun,
+  Check,
+  ArrowLeft,
 } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import { useUserStore } from '@/stores/userStore';
+import { usePreferences } from '@/common/composables/usePreferences';
 import hw from '@/api/hwApi';
 import BaseCommandPalette from '@/common/components/BaseCommandPalette.vue';
 import BaseCommandPaletteItem from '@/common/components/BaseCommandPaletteItem.vue';
 import BaseKbdGroup from '@/common/components/BaseKbdGroup.vue';
+import NotificationDot from '@/common/components/NotificationDot.vue';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
 const { t } = useI18n();
 const router = useRouter();
-const { activeGroupId, logout: appAuthLogout } = useAppAuth();
+const route = useRoute();
+const { activeGroupId, userGroups, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
 const { openItemForm } = useItemForm();
 const { openSetup, openSecurity, openChangePassword } = useAccountModals();
 const userStore = useUserStore();
 const { resetMfaState } = useMfa();
 const modalStore = useModalStore();
+const { currentTheme, currentLanguage, setPreference } = usePreferences();
 
 const query = ref('');
+
+// Switch modes handling
+const mode = computed(() => modalStore.searchMode);
+
+function setMode(newMode: 'default' | 'group' | 'theme' | 'language') {
+  query.value = '';
+  modalStore.searchMode = newMode;
+}
+
+// Ensure backspace clears mode if query is empty
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Backspace' && query.value === '' && mode.value !== 'default') {
+    setMode('default');
+    e.preventDefault();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DEFAULT MODE
+// ---------------------------------------------------------------------------
 
 type ResultCategory = 'page' | 'action';
 
@@ -64,8 +92,7 @@ interface SearchResult {
   condition?: boolean;
 }
 
-// Define all searchable items
-const allResults = computed<SearchResult[]>(() => [
+const defaultResults = computed<SearchResult[]>(() => [
   // Pages
   {
     id: 'home',
@@ -181,10 +208,7 @@ const allResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.switchGroup'),
     category: 'action',
     icon: UsersRound,
-    action: () => {
-      modalStore.openGroupSwitch();
-      emit('cancel');
-    },
+    action: () => setMode('group'),
     shortcut: ['ctrl', 'g'],
   },
   {
@@ -221,10 +245,7 @@ const allResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.changeTheme'),
     category: 'action',
     icon: SunMoon,
-    action: () => {
-      modalStore.openThemeSwitch();
-      emit('cancel');
-    },
+    action: () => setMode('theme'),
   },
   {
     id: 'change-language',
@@ -232,10 +253,7 @@ const allResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.changeLanguage'),
     category: 'action',
     icon: Languages,
-    action: () => {
-      modalStore.openLanguageSwitch();
-      emit('cancel');
-    },
+    action: () => setMode('language'),
   },
   {
     id: 'security',
@@ -283,7 +301,12 @@ async function logout() {
   }
 }
 
-// Fuzzy-ish filtering: match every character of query in order within label/description
+function navigate(path: string) {
+  router.push(path);
+  emit('cancel');
+}
+
+// Fuzzy-ish filtering for default results
 function matchesQuery(item: SearchResult, q: string): boolean {
   if (!q) return true;
   const haystack = `${item.label} ${item.description ?? ''}`.toLowerCase();
@@ -297,118 +320,340 @@ function matchesQuery(item: SearchResult, q: string): boolean {
   return true;
 }
 
-const filteredResults = computed(() =>
-  allResults.value
+const filteredDefaultResults = computed(() =>
+  defaultResults.value
     .filter((item) => item.condition ?? true)
     .filter((item) => matchesQuery(item, query.value)),
 );
 
-const pageResults = computed(() =>
-  filteredResults.value.filter((r) => r.category === 'page'),
+const defaultPageResults = computed(() =>
+  filteredDefaultResults.value.filter((r) => r.category === 'page'),
 );
-const actionResults = computed(() =>
-  filteredResults.value.filter((r) => r.category === 'action'),
+const defaultActionResults = computed(() =>
+  filteredDefaultResults.value.filter((r) => r.category === 'action'),
 );
 
-function navigate(path: string) {
-  router.push(path);
+function globalIndex(item: SearchResult): number {
+  return filteredDefaultResults.value.indexOf(item);
+}
+
+// ---------------------------------------------------------------------------
+// GROUP MODE
+// ---------------------------------------------------------------------------
+
+const filteredGroups = computed(() => {
+  if (!query.value) return userGroups.value;
+  const q = query.value.toLowerCase();
+  return userGroups.value.filter((g) => g.name.toLowerCase().includes(q));
+});
+
+async function onSwitchGroup(id: string) {
+  emit('cancel');
+  const oldGroupId = activeGroupId.value;
+  if (id !== oldGroupId) {
+    const res = await switchActiveGroup(id);
+    if (res.ok) {
+      await userStore.fetchUser();
+
+      if (oldGroupId && route.path.startsWith(`/groups/${oldGroupId}`)) {
+        const newPath = route.path.replace(
+          `/groups/${oldGroupId}`,
+          `/groups/${id}`,
+        );
+        await router.push(newPath);
+
+        if (route.path === '/home') {
+          await router.push(`/groups/${id}/items/all`);
+        }
+      } else {
+        await router.push(`/groups/${id}/items/all`);
+      }
+    } else {
+      console.error('Failed to switch group', res.error);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// THEME MODE
+// ---------------------------------------------------------------------------
+
+const themeOptions = computed(() => [
+  { id: 'system', label: t('global.theme.system'), icon: SunMoon },
+  { id: 'dark', label: t('global.theme.dark'), icon: Moon },
+  { id: 'light', label: t('global.theme.light'), icon: Sun },
+]);
+
+const filteredThemes = computed(() => {
+  if (!query.value) return themeOptions.value;
+  const q = query.value.toLowerCase();
+  return themeOptions.value.filter((o) => o.label.toLowerCase().includes(q));
+});
+
+function onSwitchTheme(id: string) {
+  setPreference('theme', id as any);
   emit('cancel');
 }
 
-function handleSelect(index: number) {
-  filteredResults.value[index]?.action();
+// ---------------------------------------------------------------------------
+// LANGUAGE MODE
+// ---------------------------------------------------------------------------
+
+const languageOptions = [
+  { id: 'de', label: 'Deutsch', icon: Languages },
+  { id: 'en', label: 'English', icon: Languages },
+];
+
+const filteredLanguages = computed(() => {
+  if (!query.value) return languageOptions;
+  const q = query.value.toLowerCase();
+  return languageOptions.filter((o) => o.label.toLowerCase().includes(q));
+});
+
+function onSwitchLanguage(id: string) {
+  setPreference('language', id as any);
+  emit('cancel');
 }
 
-function globalIndex(item: SearchResult): number {
-  return filteredResults.value.indexOf(item);
+// ---------------------------------------------------------------------------
+// COMPUTED PROPS FOR COMMAND PALETTE
+// ---------------------------------------------------------------------------
+
+const paletteProps = computed(() => {
+  if (mode.value === 'group') {
+    return {
+      itemCount: filteredGroups.value.length,
+      placeholder: t('search.items.switchGroup'),
+      title: t('search.items.switchGroup'),
+      icon: UsersRound,
+      prefix: 'group-result-',
+    };
+  }
+  if (mode.value === 'theme') {
+    return {
+      itemCount: filteredThemes.value.length,
+      placeholder: t('search.descriptions.changeTheme'),
+      title: t('account.menu.theme.title'),
+      icon: SunMoon,
+      prefix: 'theme-result-',
+    };
+  }
+  if (mode.value === 'language') {
+    return {
+      itemCount: filteredLanguages.value.length,
+      placeholder: t('search.descriptions.changeLanguage'),
+      title: t('account.menu.language.title'),
+      icon: Languages,
+      prefix: 'language-result-',
+    };
+  }
+  // default
+  return {
+    itemCount: filteredDefaultResults.value.length,
+    placeholder: t('search.modal.placeholder'),
+    title: t('search.modal.title'),
+    icon: Search,
+    prefix: 'search-result-',
+  };
+});
+
+function handleSelect(index: number) {
+  if (mode.value === 'group') {
+    const group = filteredGroups.value[index];
+    if (group) onSwitchGroup(group.id);
+  } else if (mode.value === 'theme') {
+    const theme = filteredThemes.value[index];
+    if (theme) onSwitchTheme(theme.id);
+  } else if (mode.value === 'language') {
+    const lang = filteredLanguages.value[index];
+    if (lang) onSwitchLanguage(lang.id);
+  } else {
+    // default
+    filteredDefaultResults.value[index]?.action();
+  }
 }
 </script>
 
 <template>
-  <BaseCommandPalette
-    v-model="query"
-    :item-count="filteredResults.length"
-    :placeholder="t('search.modal.placeholder')"
-    :title="t('search.modal.title')"
-    :icon="Search"
-    id-prefix="search-result-"
-    @select="handleSelect"
-    @cancel="$emit('cancel')"
-  >
-    <template #default="{ selectedIndex, setSelectedIndex }">
-      <!-- Pages section -->
-      <template v-if="pageResults.length">
-        <div class="px-4 py-1.5">
-          <span
-            class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
-          >
-            {{ t('search.modal.categoryPages') }}
-          </span>
-        </div>
-        <BaseCommandPaletteItem
-          v-for="item in pageResults"
-          :key="item.id"
-          :id="'search-result-' + globalIndex(item)"
-          :active="selectedIndex === globalIndex(item)"
-          :label="item.label"
-          :description="item.description"
-          :icon="item.icon"
-          @click="item.action()"
-          @mouseenter="setSelectedIndex(globalIndex(item))"
-        >
-          <ArrowUpRight
-            v-if="selectedIndex === globalIndex(item)"
-            :size="14"
-            class="shrink-0 text-on-surface-subtle"
-          />
-        </BaseCommandPaletteItem>
-      </template>
+  <div @keydown.capture="onKeydown">
+    <BaseCommandPalette
+      v-model="query"
+      :item-count="paletteProps.itemCount"
+      :placeholder="paletteProps.placeholder"
+      :title="paletteProps.title"
+      :icon="paletteProps.icon"
+      :id-prefix="paletteProps.prefix"
+      @select="handleSelect"
+      @cancel="$emit('cancel')"
+    >
+      <template #default="{ selectedIndex, setSelectedIndex }">
+        <!-- GROUP MODE -->
+        <template v-if="mode === 'group'">
+          <div class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1">
+            <button @click="setMode('default')" class="hover:text-on-surface transition-colors inline-flex items-center" aria-label="Zurück">
+              <ArrowLeft :size="14" class="mr-1"/> {{ t('global.back', 'Back') }}
+            </button>
+            <span class="opacity-50">/</span>
+            <span>{{ t('search.items.switchGroup') }}</span>
+          </div>
+          <template v-if="filteredGroups.length">
+            <BaseCommandPaletteItem
+              v-for="(group, index) in filteredGroups"
+              :key="group.id"
+              :id="'group-result-' + index"
+              :active="selectedIndex === index"
+              :label="group.name"
+              :avatar-text="group.name.charAt(0).toUpperCase()"
+              @click="onSwitchGroup(group.id)"
+              @mouseenter="setSelectedIndex(index)"
+            >
+              <NotificationDot
+                v-if="group.hasUnreadContent && group.id !== activeGroupId"
+              />
+              <ArrowUpRight
+                v-if="selectedIndex === index"
+                :size="14"
+                class="shrink-0 text-on-surface-subtle"
+              />
+            </BaseCommandPaletteItem>
+          </template>
+        </template>
 
-      <!-- Actions section -->
-      <template v-if="actionResults.length">
-        <div class="px-4 py-1.5" :class="pageResults.length ? 'mt-2' : ''">
-          <span
-            class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
-          >
-            {{ t('search.modal.categoryActions') }}
-          </span>
-        </div>
-        <BaseCommandPaletteItem
-          v-for="item in actionResults"
-          :key="item.id"
-          :id="'search-result-' + globalIndex(item)"
-          :active="selectedIndex === globalIndex(item)"
-          :label="item.label"
-          :description="item.description"
-          :icon="item.icon"
-          @click="item.action()"
-          @mouseenter="setSelectedIndex(globalIndex(item))"
-        >
-          <span class="flex items-center gap-2 shrink-0">
-            <BaseKbdGroup
-              v-if="item.shortcut && selectedIndex === globalIndex(item)"
-              :keys="item.shortcut"
-            />
-            <ChevronRight
-              v-if="selectedIndex === globalIndex(item)"
-              :size="14"
-              class="text-on-surface-subtle"
-            />
-          </span>
-        </BaseCommandPaletteItem>
-      </template>
+        <!-- THEME MODE -->
+        <template v-else-if="mode === 'theme'">
+          <div class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1">
+            <button @click="setMode('default')" class="hover:text-on-surface transition-colors inline-flex items-center" aria-label="Zurück">
+              <ArrowLeft :size="14" class="mr-1"/> {{ t('global.back', 'Back') }}
+            </button>
+            <span class="opacity-50">/</span>
+            <span>{{ t('account.menu.theme.title') }}</span>
+          </div>
+          <template v-if="filteredThemes.length">
+            <BaseCommandPaletteItem
+              v-for="(opt, index) in filteredThemes"
+              :key="opt.id"
+              :id="'theme-result-' + index"
+              :active="selectedIndex === index"
+              :label="opt.label"
+              :icon="opt.icon"
+              @click="onSwitchTheme(opt.id)"
+              @mouseenter="setSelectedIndex(index)"
+            >
+              <Check
+                v-if="currentTheme === opt.id"
+                :size="16"
+                class="shrink-0 text-on-surface"
+              />
+            </BaseCommandPaletteItem>
+          </template>
+        </template>
 
-      <!-- Empty state -->
-      <div
-        v-if="!filteredResults.length"
-        class="px-4 py-10 flex flex-col items-center gap-2 text-center"
-      >
-        <Search :size="28" class="text-on-surface-subtle mb-1" />
-        <p class="text-sub text-on-surface-muted m-0">
-          {{ t('global.search.noResults') }}
-          <strong class="text-on-surface">„{{ query }}"</strong>
-        </p>
-      </div>
-    </template>
-  </BaseCommandPalette>
+        <!-- LANGUAGE MODE -->
+        <template v-else-if="mode === 'language'">
+          <div class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1">
+            <button @click="setMode('default')" class="hover:text-on-surface transition-colors inline-flex items-center" aria-label="Zurück">
+              <ArrowLeft :size="14" class="mr-1"/> {{ t('global.back', 'Back') }}
+            </button>
+            <span class="opacity-50">/</span>
+            <span>{{ t('account.menu.language.title') }}</span>
+          </div>
+          <template v-if="filteredLanguages.length">
+            <BaseCommandPaletteItem
+              v-for="(opt, index) in filteredLanguages"
+              :key="opt.id"
+              :id="'language-result-' + index"
+              :active="selectedIndex === index"
+              :label="opt.label"
+              :icon="opt.icon"
+              @click="onSwitchLanguage(opt.id)"
+              @mouseenter="setSelectedIndex(index)"
+            >
+              <Check
+                v-if="currentLanguage === opt.id"
+                :size="16"
+                class="shrink-0 text-on-surface"
+              />
+            </BaseCommandPaletteItem>
+          </template>
+        </template>
+
+        <!-- DEFAULT MODE -->
+        <template v-else>
+          <!-- Pages section -->
+          <template v-if="defaultPageResults.length">
+            <div class="px-4 py-1.5">
+              <span
+                class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
+              >
+                {{ t('search.modal.categoryPages') }}
+              </span>
+            </div>
+            <BaseCommandPaletteItem
+              v-for="item in defaultPageResults"
+              :key="item.id"
+              :id="'search-result-' + globalIndex(item)"
+              :active="selectedIndex === globalIndex(item)"
+              :label="item.label"
+              :description="item.description"
+              :icon="item.icon"
+              @click="item.action()"
+              @mouseenter="setSelectedIndex(globalIndex(item))"
+            >
+              <ArrowUpRight
+                v-if="selectedIndex === globalIndex(item)"
+                :size="14"
+                class="shrink-0 text-on-surface-subtle"
+              />
+            </BaseCommandPaletteItem>
+          </template>
+
+          <!-- Actions section -->
+          <template v-if="defaultActionResults.length">
+            <div class="px-4 py-1.5" :class="defaultPageResults.length ? 'mt-2' : ''">
+              <span
+                class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
+              >
+                {{ t('search.modal.categoryActions') }}
+              </span>
+            </div>
+            <BaseCommandPaletteItem
+              v-for="item in defaultActionResults"
+              :key="item.id"
+              :id="'search-result-' + globalIndex(item)"
+              :active="selectedIndex === globalIndex(item)"
+              :label="item.label"
+              :description="item.description"
+              :icon="item.icon"
+              @click="item.action()"
+              @mouseenter="setSelectedIndex(globalIndex(item))"
+            >
+              <span class="flex items-center gap-2 shrink-0">
+                <BaseKbdGroup
+                  v-if="item.shortcut && selectedIndex === globalIndex(item)"
+                  :keys="item.shortcut"
+                />
+                <ChevronRight
+                  v-if="selectedIndex === globalIndex(item)"
+                  :size="14"
+                  class="text-on-surface-subtle"
+                />
+              </span>
+            </BaseCommandPaletteItem>
+          </template>
+        </template>
+
+        <!-- Empty state -->
+        <div
+          v-if="paletteProps.itemCount === 0"
+          class="px-4 py-10 flex flex-col items-center gap-2 text-center"
+        >
+          <Search :size="28" class="text-on-surface-subtle mb-1" />
+          <p class="text-sub text-on-surface-muted m-0">
+            {{ t('global.search.noResults') }}
+            <strong class="text-on-surface">„{{ query }}"</strong>
+          </p>
+        </div>
+      </template>
+    </BaseCommandPalette>
+  </div>
 </template>

@@ -49,7 +49,7 @@ export function useAppShortcuts() {
 
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
-      modalStore.openGroupSwitch();
+      modalStore.openSearch('group');
     }
   });
 

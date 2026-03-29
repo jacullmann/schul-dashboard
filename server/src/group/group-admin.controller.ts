@@ -43,6 +43,26 @@ export class GroupAdminController {
     return this.groupAdminService.getMembers(tenantId);
   }
 
+  @TenantRoles('admin', 'moderator')
+  @Get('banned-users')
+  getBannedUsers(@ActiveTenantId() tenantId: string) {
+    return this.groupAdminService.getBannedUsers(tenantId);
+  }
+
+  @TenantRoles('admin')
+  @Delete('banned-users/:userId')
+  revertBan(
+    @ActiveTenantId() tenantId: string,
+    @Param('userId') targetUserId: string,
+    @CurrentUserId() currentUserId: string,
+  ) {
+    return this.groupAdminService.revertBan(
+      tenantId,
+      currentUserId,
+      targetUserId,
+    );
+  }
+
   @TenantRoles('admin')
   @Patch('members/:userId/role')
   changeMemberRole(
