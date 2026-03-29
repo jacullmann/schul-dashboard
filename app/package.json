@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:mock": "node mock-server.js && vite --host",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,vue}\" --fix",

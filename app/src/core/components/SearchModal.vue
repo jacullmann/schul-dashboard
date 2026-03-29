@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -217,7 +217,10 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.joinGroup'),
     category: 'action',
     icon: LogIn,
-    action: () => navigate('/home'),
+    action: () => {
+      modalStore.openJoinGroup();
+      emit('cancel');
+    },
   },
   {
     id: 'create-group',
@@ -225,7 +228,10 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.createGroup'),
     category: 'action',
     icon: UserRoundPlus,
-    action: () => navigate('/home'),
+    action: () => {
+      modalStore.openCreateGroup();
+      emit('cancel');
+    },
   },
   // Account Actions
   {

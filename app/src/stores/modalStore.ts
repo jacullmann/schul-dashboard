@@ -48,7 +48,9 @@ export const useModalStore = defineStore('modals', () => {
   const searchOpen = ref(false);
   const searchMode = ref<'default' | 'group' | 'theme' | 'language'>('default');
 
-  function openSearch(mode: 'default' | 'group' | 'theme' | 'language' = 'default') {
+  function openSearch(
+    mode: 'default' | 'group' | 'theme' | 'language' = 'default',
+  ) {
     searchMode.value = mode;
     searchOpen.value = true;
   }
@@ -61,6 +63,24 @@ export const useModalStore = defineStore('modals', () => {
     } else {
       openSearch('default');
     }
+  }
+
+  // ── Group Modals ──────────────────────────────────────────────────────────
+  const createGroupOpen = ref(false);
+  const joinGroupOpen = ref(false);
+
+  function openCreateGroup() {
+    createGroupOpen.value = true;
+  }
+  function closeCreateGroup() {
+    createGroupOpen.value = false;
+  }
+
+  function openJoinGroup() {
+    joinGroupOpen.value = true;
+  }
+  function closeJoinGroup() {
+    joinGroupOpen.value = false;
   }
 
   // ── Item form ─────────────────────────────────────────────────────────────
@@ -150,6 +170,14 @@ export const useModalStore = defineStore('modals', () => {
     openSearch,
     closeSearch,
     toggleSearch,
+
+    // Group Modals
+    createGroupOpen,
+    joinGroupOpen,
+    openCreateGroup,
+    closeCreateGroup,
+    openJoinGroup,
+    closeJoinGroup,
 
     // Item form
     itemFormOpen,

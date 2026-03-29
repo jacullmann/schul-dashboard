@@ -38,6 +38,13 @@ const greeting = computed(() => {
   return 'groups.home.goodEvening';
 });
 
+const roleColors: Record<string, string> = {
+  admin: 'text-[#6366f1]',
+  moderator: 'text-[#f59e0b]',
+  user: 'text-on-surface-muted',
+  superadmin: 'text-danger',
+};
+
 function roleLabel(role: string): string {
   const map: Record<string, string> = {
     admin: 'Admin',
@@ -93,10 +100,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="home-page">
+  <div class="p-4 md:p-0">
     <!-- Welcome Banner -->
-    <section class="welcome-banner">
-      <div class="welcome-content">
+    <section class="mb-8">
+      <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
         <div class="welcome-text">
           <h1 class="welcome-title">
             {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="welcome-name">{{ displayName }}</span>
@@ -110,7 +117,9 @@ onMounted(() => {
             }}
           </p>
         </div>
-        <div class="welcome-actions">
+
+        <!-- Regular User: Join/Create Group -->
+        <div class="welcome-actions" v-if="userGroups.length > 0">
           <BaseButton @click="showJoinModal = true" variant="action">
             <UserRoundPlus :size="16" />
             <span>{{ t('groups.home.joinGroup') }}</span>
@@ -123,71 +132,42 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- Superadmin: All Groups -->
-    <section v-if="isSuperadmin && allGroups.length > 0" class="groups-section">
-      <div class="section-header">
-        <h2 class="section-title">{{ t('groups.home.allGroups') }}</h2>
-        <span class="section-badge">{{ allGroups.length }}</span>
-      </div>
-      <div class="groups-grid">
-        <button
-            v-for="group in allGroups"
-            :key="group.id"
-            class="group-card"
-            :class="{ active: group.id === activeGroupId }"
-            @click="navigateToGroup(group.id)"
-            :disabled="navigatingGroupId === group.id"
-        >
-          <span class="group-card-icon">
-            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
-          </span>
-          <div class="group-card-body">
-            <span class="group-card-name">{{ group.name }}</span>
-            <span class="group-card-meta">
-              {{ group.memberCount ?? '?' }} {{ t('groups.home.members') }}
-            </span>
-          </div>
-          <ChevronRight :size="16" class="group-card-arrow" />
-        </button>
-      </div>
-    </section>
-
     <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="groups-section">
       <div class="section-header">
         <h2 class="section-title">{{ t('groups.home.yourGroups') }}</h2>
-        <span class="section-badge">{{ userGroups.length }}</span>
+        <span class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5">{{ userGroups.length }}</span>
       </div>
-      <div class="groups-grid">
+      <div class="flex flex-col gap-2">
         <button
             v-for="group in userGroups"
             :key="group.id"
-            class="group-card"
+            class="group-card group"
             :class="{ active: group.id === activeGroupId }"
             @click="navigateToGroup(group.id)"
             :disabled="navigatingGroupId === group.id"
         >
-          <span class="group-card-icon">
+          <span class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface">
             <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
           </span>
           <span class="group-card-body">
-            <span class="group-card-name">{{ group.name }}</span>
-            <span class="group-card-role" :class="'role-' + group.role">
+            <span class="font-semibold text-body text-on-surface group-[.active]:text-on-action overflow-hidden text-ellipsis whitespace-nowrap">{{ group.name }}</span>
+            <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
               {{ roleLabel(group.role) }}
             </span>
-            <span v-if="group.generatedName" class="group-card-username">{{ group.generatedName }}</span>
+            <span v-if="group.generatedName" class="text-footnote text-on-surface-muted group-[.active]:text-on-action-muted whitespace-nowrap overflow-hidden text-ellipsis">{{ group.generatedName }}</span>
           </span>
-          <ChevronRight :size="16" class="group-card-arrow" />
+          <ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" />
         </button>
       </div>
     </section>
 
     <!-- Empty State -->
-    <section v-if="!isSuperadmin && userGroups.length === 0 && !loading" class="empty-section">
-      <div class="empty-state-card">
+    <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
+      <div class="px-6 py-12 text-center flex flex-col items-center">
         <UsersRound :size="40" class="empty-icon" />
         <h3>{{ t('groups.home.noGroups') }}</h3>
-        <p>{{ t('groups.home.joinGroupText') }}</p>
+        <p class="max-w-96">{{ t('groups.home.joinGroupText') }}</p>
         <div class="empty-actions">
           <BaseButton @click="showJoinModal = true" variant="action">{{ t('groups.home.joinGroup') }}</BaseButton>
           <BaseButton @click="showCreateModal = true" variant="ghost">{{ t('groups.home.createGroup') }}</BaseButton>
@@ -207,21 +187,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.home-page {
-  padding: 0;
-}
-
-.welcome-banner {
-  margin-bottom: 32px;
-}
-
-.welcome-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-}
-
 .welcome-title {
   font-size: 1.75rem;
   font-weight: 700;
@@ -262,25 +227,10 @@ onMounted(() => {
 }
 
 .section-title {
-  font-size: var(--text-h3);
+  font-size: var(--text-h2);
   font-weight: 700;
   color: var(--color-on-surface);
   margin: 0;
-}
-
-.section-badge {
-  background: var(--color-surface);
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-sub);
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
-}
-
-.groups-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .group-card {
@@ -317,47 +267,12 @@ onMounted(() => {
   background: var(--color-action-hover)
 }
 
-.group-card-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  color: var(--color-on-surface-muted);
-  flex-shrink: 0;
-  transition: color 0.15s ease;
-}
-
-.group-card:hover:not(:disabled) .group-card-icon {
-  color: var(--color-on-surface);
-}
-
-.group-card.active .group-card-icon {
-  color: var(--color-on-action);
-}
-
-.group-card.active:hover .group-card-icon {
-  color: var(--color-on-action);
-}
-
 .group-card-body {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.group-card-name {
-  font-weight: 600;
-  font-size: var(--text-body);
-  color: var(--color-on-surface);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.group-card.active .group-card-name {
-  color: var(--color-on-action);
 }
 
 .group-card-meta {
@@ -369,67 +284,9 @@ onMounted(() => {
   color: var(--color-surface-hover);
 }
 
-.group-card-role {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.role-admin { color: #6366f1; }
-.role-mod, .role-moderator { color: #f59e0b; }
-.role-user { color: var(--color-on-surface-muted); }
-.role-superadmin { color: var(--color-danger); }
-
-.group-card-username {
-  font-size: 0.7rem;
-  color: var(--color-on-surface-muted);
-  opacity: 0.7;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.group-card-arrow {
-  color: var(--color-on-surface-muted);
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.group-card:hover:not(:disabled) .group-card-arrow {
-  opacity: 1;
-  transform: translateX(2px);
-}
-
-.empty-section {
-  margin-top: 40px;
-}
-
-.empty-state-card {
-  text-align: center;
-  padding: 48px 24px;
-  border-radius: var(--radius-xl);
-}
-
 .empty-icon {
   color: var(--color-on-surface-muted);
   margin-bottom: 16px;
-}
-
-.empty-state-card h3 {
-  font-size: var(--text-h3);
-  font-weight: 700;
-  color: var(--color-on-surface);
-  margin: 0 0 8px;
-}
-
-.empty-state-card p {
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-  max-width: 360px;
-  margin: 0 auto 24px;
-  line-height: 1.5;
 }
 
 .empty-actions {
@@ -456,15 +313,6 @@ onMounted(() => {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 640px) {
-  .home-page {
-    padding: 16px;
-  }
-
-  .welcome-content {
-    flex-direction: column;
-    gap: 16px;
-  }
-
   .welcome-title {
     font-size: 1.4rem;
   }
@@ -482,11 +330,6 @@ onMounted(() => {
 
   .group-card {
     padding: 12px 14px;
-  }
-
-  .group-card-icon {
-    width: 36px;
-    height: 36px;
   }
 }
 </style>

@@ -30,6 +30,8 @@ import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.v
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
+import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
+import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -64,6 +66,8 @@ const {
   showSecurity,
   showSetup,
   showDeleteAccount,
+  createGroupOpen,
+  joinGroupOpen,
 } = storeToRefs(modalStore);
 
 // ── Auth modal callbacks ───────────────────────────────────────────────────
@@ -222,6 +226,16 @@ function onAccountDeleteError(msg: string) {
       @cancel="modalStore.showSetup = false"
       @success="modalStore.showSetup = false"
       @update:user="onSetupSuccess"
+    />
+
+    <CreateGroupModal
+      v-if="createGroupOpen"
+      @cancel="modalStore.closeCreateGroup()"
+    />
+
+    <JoinGroupModal
+      v-if="joinGroupOpen"
+      @cancel="modalStore.closeJoinGroup()"
     />
   </Teleport>
 </template>

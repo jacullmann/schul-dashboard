@@ -53,6 +53,7 @@
     --color-action: var(--color-white);
     --color-action-hover: var(--color-white-highlight);
     --color-on-action: var(--color-onyx);
+    --color-on-action-muted: var(--color-graphite);
     --color-action-disabled: var(--color-ash);
     --color-on-action-disabled: var(--color-graphite);
     /* Danger */
@@ -183,6 +184,7 @@
     --color-action: var(--color-black);
     --color-action-hover: var(--color-charcoal);
     --color-on-action: var(--color-white);
+    --color-on-action-muted: var(--color-ash);
 
     --color-danger: var(--color-cinnabar);
     --color-on-danger: var(--color-white);
