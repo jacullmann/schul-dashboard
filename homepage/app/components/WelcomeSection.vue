@@ -8,7 +8,9 @@ const { t, tm } = useI18n();
   <section id="welcome-section" class="info-section">
     <div class="info-container">
       <h3 class="info-title" v-html="t('comparison.headline')" />
-      <ImageComparison />
+      <ClientOnly>
+        <ImageComparison />
+      </ClientOnly>
       <p class="small-print">{{ t('comparison.attribution') }}</p>
     </div>
 
