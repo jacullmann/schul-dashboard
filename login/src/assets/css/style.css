@@ -1,3 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  --color-black: #000;
+  --color-onyx: #0f0f0f;
+  --color-charcoal: #282828;
+  --color-charcoal-highlight: #323232;
+  --color-graphite: #414141;
+  --color-steel: #666;
+  --color-ghost: #888;
+  --color-ash: #ccc;
+  --color-cloud: #ddd;
+  --color-white-highlight: #eee;
+  --color-white: #ffffff;
+  --color-cinnabar: #ef4444;
+  --color-coral: #f65252;
+  --color-coral-highlight: #ff6666;
+  --color-cotton-candy: #feeeee;
+  --color-burgundy: #472e2e;
+  --color-yellow: #eab308;
+  --color-green: #6aed8b;
+  --color-bismuth-yellow: #ffa91a;
+  --color-bismuth-red: #ff335a;
+  --color-bismuth-purple: #af00ff;
+  --color-bismuth-violet: #5600ff;
+
+  --color-canvas: var(--color-onyx);
+  --color-canvas-hover: var(--color-charcoal);
+  --color-canvas-border: var(--color-charcoal);
+  --color-on-canvas: var(--color-white);
+  --color-surface: var(--color-charcoal);
+  --color-surface-hover: var(--color-graphite);
+  --color-surface-hover-subtle: var(--color-charcoal-highlight);
+  --color-surface-border: var(--color-graphite);
+  --color-surface-hover-border: var(--color-steel);
+  --color-on-surface: var(--color-white);
+  --color-on-surface-muted: var(--color-ash);
+  --color-on-surface-subtle: var(--color-ghost);
+  --color-action: var(--color-white);
+  --color-action-hover: var(--color-white-highlight);
+  --color-on-action: var(--color-onyx);
+  --color-on-action-muted: var(--color-graphite);
+  --color-danger: var(--color-coral);
+  --color-on-danger: var(--color-white);
+  --color-success: var(--color-green);
+  --color-primary: var(--color-white);
+  --color-focus: var(--color-ash);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Inter', sans-serif;
+
+  --text-footnote: 0.7rem;
+  --text-btn: 0.8333rem;
+  --text-body: 1rem;
+  --text-sub: 0.875rem;
+  --text-title: 1.125rem;
+  --text-h3: 1.25rem;
+  --text-h2: 1.5rem;
+  --text-h1: 2rem;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 999px;
+
+  --shadow-input: 0 1px 2px 0 #0000000d;
+  --shadow-menu: 0 4px 6px -1px #0000001a;
+  --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
+
+  --duration-hover: 100ms;
+  --ease-hover: ease;
+  --transition-hover: color var(--duration-hover) var(--ease-hover),
+      background-color var(--duration-hover) var(--ease-hover),
+      border-color var(--duration-hover) var(--ease-hover);
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;

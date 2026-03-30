@@ -11,36 +11,28 @@ const routes = [
   {
     path: '/',
     redirect: () => {
-      // Redirect to homepage SSR app
-      const homepage = import.meta.env.VITE_HOMEPAGE_URL || 'http://localhost:3001';
-      window.location.href = homepage;
+      window.location.href = import.meta.env.VITE_HOMEPAGE_URL;
       return { path: '/' };
     },
   },
   {
     path: '/auth',
     redirect: () => {
-      // Redirect to login app
-      const loginApp = import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174';
-      window.location.href = loginApp;
+      window.location.href = import.meta.env.VITE_LOGIN_URL;
       return { path: '/auth' };
     },
   },
   {
     path: '/legal',
     redirect: () => {
-      // Redirect to homepage for legal pages
-      const homepage = import.meta.env.VITE_HOMEPAGE_URL || 'http://localhost:3001';
-      window.location.href = `${homepage}/legal`;
+      window.location.href = `${import.meta.env.VITE_HOMEPAGE_URL}/legal`;
       return { path: '/legal' };
     },
   },
   {
     path: '/contact',
     redirect: () => {
-      // Redirect to homepage for contact
-      const homepage = import.meta.env.VITE_HOMEPAGE_URL || 'http://localhost:3001';
-      window.location.href = `${homepage}/contact`;
+      window.location.href = `${import.meta.env.VITE_HOMEPAGE_URL}/contact`;
       return { path: '/contact' };
     },
   },
