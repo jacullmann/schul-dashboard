@@ -22,7 +22,6 @@ const privateTaskAppRef = ref<{
   updatePrivateTask: (task: PrivateTask) => void;
 } | null>(null);
 
-
 function openCreateForm() {
   privateTaskToEdit.value = null;
   showPrivateTaskForm.value = true;
@@ -56,38 +55,30 @@ function onFormError(msg: string) {
 
 <template>
   <div class="card">
-    <div class="page-header">
-      <h2 style="margin: 0">{{ t('school.private.title') }}</h2>
-      <BaseButton v-if="user" @click="openCreateForm" variant="action">
-        <Plus :size="16" />
-        <span>{{ t('school.private.newEntry') }}</span>
-      </BaseButton>
-    </div>
+    <PageHeader>
+      {{ t('school.private.title') }}
+      <template #action>
+        <BaseButton v-if="user" @click="openCreateForm" variant="action">
+          <Plus :size="16" />
+          <span>{{ t('school.private.newEntry') }}</span>
+        </BaseButton>
+      </template>
+    </PageHeader>
 
     <div class="private-entries-container">
       <PrivateTaskApp
-          ref="privateTaskAppRef"
-          @create="openCreateForm"
-          @edit="openEditTodo"
+        ref="privateTaskAppRef"
+        @create="openCreateForm"
+        @edit="openEditTodo"
       />
     </div>
 
     <PrivateTaskForm
-        v-if="showPrivateTaskForm"
-        :initial="privateTaskToEdit || undefined"
-        @cancel="showPrivateTaskForm = false"
-        @success="handleTodoSuccess"
-        @error="onFormError"
+      v-if="showPrivateTaskForm"
+      :initial="privateTaskToEdit || undefined"
+      @cancel="showPrivateTaskForm = false"
+      @success="handleTodoSuccess"
+      @error="onFormError"
     />
-
   </div>
 </template>
-
-<style scoped>
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-</style>

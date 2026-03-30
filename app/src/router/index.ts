@@ -229,8 +229,7 @@ router.beforeEach(async (to, from, next) => {
     to.path.startsWith('/auth') ||
     to.path.startsWith('/legal') ||
     to.path === '/verify' ||
-    to.path === '/contact' ||
-    to.path === '/home';
+    to.path === '/contact';
 
   // ── Unauthenticated users → welcome ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
@@ -264,7 +263,7 @@ router.beforeEach(async (to, from, next) => {
 
   // ── User store init ────────────────────────────────────────────────
   const userStore = useUserStore();
-  if (isLoggedIn.value && !userStore.initialized) {
+  if (isLoggedIn.value && !isPublicRoute && !userStore.initialized) {
     try {
       await userStore.fetchUser();
     } catch {

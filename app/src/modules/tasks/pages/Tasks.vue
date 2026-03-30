@@ -6,7 +6,6 @@ import ReportModal from '@/modules/tasks/components/ReportModal.vue'
 import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
 import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
-import BaseTabs from '@/common/components/BaseTabs.vue';
 import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info, Plus } from '@lucide/vue'
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -173,9 +172,9 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 <template>
   <div class="card">
-    <div class="hw-header">
-      <div class="title-inf">
-        <h2>{{ t('school.tasks.title') }}</h2>
+    <PageHeader>
+      {{ t('school.tasks.title') }}
+      <template #info>
         <InfoModal
             :tooltip="t('school.tasks.infopop.tooltip')"
             :title="t('school.tasks.title')"
@@ -186,13 +185,13 @@ async function handleArchiveFromMenu(item: HwItem) {
             <p v-html="section.text"></p>
           </template>
         </InfoModal>
-
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <BaseTabs
         :items="tabItems"
         :active-id="tab"
+        class="mb-4"
         @change="(id) => goTab(id as any)"
     />
 
@@ -208,7 +207,7 @@ async function handleArchiveFromMenu(item: HwItem) {
           <ArchiveSwitch v-model="showOldEntries" />
 
           <BaseButton
-            class="aspect-square !p-1"
+            class="aspect-square p-1!"
             variant="action"
             :aria-label="t('school.tasks.itemForm.newEntry')"
             @click="openItemForm()"
@@ -462,22 +461,6 @@ async function handleArchiveFromMenu(item: HwItem) {
 </template>
 
 <style scoped>
-.hw-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  flex-direction: column;
-  text-align: left;
-}
-
-.hw-header h2 {
-  margin: 0 0 2px 0;
-}
-
-:deep(.nav-bar) {
-  margin: 16px 0;
-}
-
 .controls {
   display:flex;
   justify-content:space-between;

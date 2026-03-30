@@ -73,15 +73,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-0 overflow-hidden">
-    <div class="p-4 pb-2">
-      <ScheduleHeader 
-        :loading="!!(loadingSubs || loadingLessons)" 
-        :is-personalized="!!isPersonalized" 
-      />
-    </div>
+  <div class="p-4 md:p-0 overflow-x-auto">
+    <ScheduleHeader 
+      :loading="!!(loadingSubs || loadingLessons)" 
+      :is-personalized="!!isPersonalized" 
+    />
 
-    <div class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none p-2 pt-0">
+    <div class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none">
       
       <div ref="timeColWrapperRef" class="min-[501px]:contents">
         <ScheduleTimeColumn :time-slots="timeSlots" />

@@ -109,9 +109,7 @@ onMounted(() => {
             {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="welcome-name">{{ displayName }}</span>
           </h1>
           <p class="welcome-sub">
-            {{ isSuperadmin
-              ? 'Du hast Zugriff auf alle Gruppen. Wähle eine aus oder verwalte das System.'
-              : userGroups.length
+            {{ userGroups.length
                   ? 'Wähle eine Gruppe aus, um loszulegen.'
                   : 'Tritt einer Gruppe bei oder erstelle eine neue.'
             }}
@@ -142,7 +140,7 @@ onMounted(() => {
         <button
             v-for="group in userGroups"
             :key="group.id"
-            class="group-card group"
+            class="group-card group flex items-center w-full gap-2 p-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 cursor-default [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
             :class="{ active: group.id === activeGroupId }"
             @click="navigateToGroup(group.id)"
             :disabled="navigatingGroupId === group.id"
@@ -150,13 +148,19 @@ onMounted(() => {
           <span class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface">
             <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
           </span>
-          <span class="group-card-body">
-            <span class="font-semibold text-body text-on-surface group-[.active]:text-on-action overflow-hidden text-ellipsis whitespace-nowrap">{{ group.name }}</span>
+          <span class="flex flex-col flex-1 gap-0.5">
+            <div class="flex items-center gap-1.5 overflow-hidden">
+              <span class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate">
+                {{ group.name }}
+              </span>
+              <NotificationDot v-if="group.hasUnreadContent" />
+            </div>
             <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
               {{ roleLabel(group.role) }}
             </span>
             <span v-if="group.generatedName" class="text-footnote text-on-surface-muted group-[.active]:text-on-action-muted whitespace-nowrap overflow-hidden text-ellipsis">{{ group.generatedName }}</span>
           </span>
+
           <ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" />
         </button>
       </div>
@@ -231,57 +235,6 @@ onMounted(() => {
   font-weight: 700;
   color: var(--color-on-surface);
   margin: 0;
-}
-
-.group-card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: var(--radius-xl);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-  text-align: left;
-  width: 100%;
-  color: var(--color-on-surface);
-}
-
-.group-card:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.group-card:hover:not(:disabled) {
-  background: var(--color-surface-hover-subtle);
-}
-
-.group-card.active {
-  border-color: var(--color-action);
-  background: var(--color-action);
-}
-
-.group-card.active:hover {
-  background: var(--color-action-hover)
-}
-
-.group-card-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.group-card-meta {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-}
-
-.group-card.active .group-card-meta {
-  color: var(--color-surface-hover);
 }
 
 .empty-icon {
