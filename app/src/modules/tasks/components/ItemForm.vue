@@ -32,7 +32,41 @@ const activeType = ref<Exclude<ItemType, 'all'>>(
   props.initial ? props.initial.type : (props.initialType ?? 'homework'),
 );
 
-const { images: imgImages, uploading: imgUploading, uploadError: imgUploadError, init: imgInit, makeThumb, uploadImage, removeImg } = useImageUpload();
+const { images: imgImages, uploading: imgUploading, uploadError: imgUploadError, init: imgInit, makeThumb, uploadImage, removeImg, uploadFiles } = useImageUpload();
+
+const isDragging = ref(false);
+const dragCounter = ref(0);
+
+const handleDragEnter = (e: DragEvent) => {
+  e.preventDefault();
+  dragCounter.value++;
+  isDragging.value = true;
+};
+
+const handleDragLeave = (e: DragEvent) => {
+  e.preventDefault();
+  dragCounter.value--;
+  if (dragCounter.value === 0) {
+    isDragging.value = false;
+  }
+};
+
+const handleDragOver = (e: DragEvent) => {
+  e.preventDefault();
+};
+
+const handleDrop = async (e: DragEvent) => {
+  e.preventDefault();
+  dragCounter.value = 0;
+  isDragging.value = false;
+  const files = e.dataTransfer?.files;
+  if (!files || files.length === 0) return;
+  
+  const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if (imageFiles.length === 0) return;
+  
+  await uploadFiles(imageFiles, !!props.initial, props.initial?.id);
+};
 
 const getInitialSubjectParts = () => {
   const initial = props.initial?.subject;
@@ -226,13 +260,33 @@ onMounted(() => {
 </script>
 
 <template>
-  <form @submit.prevent="submit" novalidate>
+  <form
+    @submit.prevent="submit"
+    novalidate
+    @dragenter="handleDragEnter"
+    @dragleave="handleDragLeave"
+    @dragover="handleDragOver"
+    @drop="handleDrop"
+    class="relative"
+  >
     <BaseModal @cancel="emit('cancel')">
       <template #title>
         {{ initial ? t('school.tasks.itemForm.editEntry') : t('school.tasks.itemForm.newEntry') }}
       </template>
 
       <template #content>
+        <!-- Drag & Drop Overlay -->
+        <div
+          v-if="isDragging"
+          class="absolute inset-0 z-50 flex items-center justify-center bg-canvas/80 backdrop-blur-sm border-2 border-dashed border-primary rounded-2xl pointer-events-none"
+        >
+          <div class="text-center p-6">
+            <div class="text-h2 mb-2">📸</div>
+            <div class="text-h3 font-bold text-primary">
+              {{ t('school.tasks.itemForm.dropToUpload') || 'Bilder hier ablegen' }}
+            </div>
+          </div>
+        </div>
         <!-- Type selector — only shown when creating, not editing -->
         <div v-if="!initial" class="section-first">
           <BaseTabs
@@ -310,7 +364,7 @@ onMounted(() => {
                 :key="img.publicId"
                 class="relative w-30 h-30 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
             >
-              <a :href="img.url" target="_blank" rel="noopener">
+              <BaseLink :to="img.url">
                 <img
                     :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
                     class="block w-full h-full object-cover"
@@ -318,7 +372,7 @@ onMounted(() => {
                     decoding="async"
                     alt="Vorschau"
                 />
-              </a>
+              </BaseLink>
               <div class="image-actions">
                 <BaseButton type="button" class="image-remove" @click="removeImg(img, initial?.id)" variant="danger">X</BaseButton>
               </div>

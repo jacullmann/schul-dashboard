@@ -273,13 +273,7 @@ label {
 
 a,
 button {
-    -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-}
-
-a {
-    color: var(--color-action);
-    text-decoration: none;
 }
 
 h1,

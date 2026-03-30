@@ -9,9 +9,7 @@ const props = defineProps({
   },
 });
 
-const tag = computed(() => {
-  `h${props.level}`;
-});
+const tag = computed(() => `h${props.level}`);
 
 const classes = computed(() => {
   return {

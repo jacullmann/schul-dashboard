@@ -222,7 +222,7 @@
       "confirmPlaceholder": "repeat your password",
       "revealLabel": "Reveal/hide password",
       "forgot": "Forgot password?",
-      "terms": "I agree to the <a href=\"/legal/privacy-policy\" target=\"_blank\" class=\"privacy-link\">Privacy Policy</a> and the <a href=\"/legal/terms\" target=\"_blank\" class=\"privacy-link\">Terms of Use</a>",
+      "terms": "I agree to the {privacy} and {terms}",
       "successRegister": "Almost there! We've send a verification link to your email",
       "errors": {
         "emailMissing": "Enter your email",
@@ -399,6 +399,7 @@
         "duedate": "Date",
         "images": "Images",
         "uploadImages": "Upload Images",
+        "dropToUpload": "Drop images here",
         "successUpload": "Images successfully uploaded"
       },
       "items": {

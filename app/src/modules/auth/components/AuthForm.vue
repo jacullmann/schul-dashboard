@@ -122,7 +122,14 @@ const { initiateGoogleLogin } = useOAuth();
 
             <div class="form-group">
               <BaseCheckbox v-model="acceptedPrivacy" @change="clearFieldError('privacy')">
-                <span v-html="t('account.auth.terms')" />
+                <i18n-t keypath="account.auth.terms">
+                  <template #privacy>
+                    <BaseLink to="/legal/privacy-policy">{{ t('legal.privacy.title') }}</BaseLink>
+                  </template>
+                  <template #terms>
+                    <BaseLink to="/legal/terms">{{ t('legal.terms.title') }}</BaseLink>
+                  </template>
+                </i18n-t>
               </BaseCheckbox>
 
               <div v-if="errors.privacy" class="field-error privacy-error">{{ errors.privacy }}</div>
@@ -211,16 +218,6 @@ const { initiateGoogleLogin } = useOAuth();
 }
 
 .forgot-password-link:hover {
-  color: var(--color-on-surface);
-}
-
-:deep(.privacy-link) {
-  color: var(--color-on-surface-muted);
-  text-decoration: underline;
-  transition: color 0.2s ease;
-}
-
-:deep(.privacy-link:hover) {
   color: var(--color-on-surface);
 }
 

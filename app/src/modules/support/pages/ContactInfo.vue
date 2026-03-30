@@ -25,10 +25,12 @@ import {
             <p class="section-desc">Primärer Kanal für Support und Feedback</p>
           </div>
         </div>
-        <a href="mailto:kontakt@schul-dashboard.com" class="email-button btn ghost">
-          <span>kontakt@schul-dashboard.com</span>
-          <ExternalLink :size="16" />
-        </a>
+        <BaseLink to="mailto:kontakt@schul-dashboard.com" class="md:ml-[62px] min-[500px]:ml-12 ml-0 w-full justify-between">
+          <BaseButton variant="ghost" class="max-[500px]:w-full max-[500px]:justify-between">
+            <span>kontakt@schul-dashboard.com</span>
+            <ExternalLink :size="16" />
+          </BaseButton>
+        </BaseLink>
       </div>
 
       <div class="contact-section">
@@ -134,22 +136,6 @@ import {
   margin-left: 62px;
 }
 
-.email-button {
-  margin-left: 62px;
-  color: var(--color-on-surface);
-  font-size: var(--text-btn);
-}
-
-.lucide-external-link {
-  overflow: visible !important;
-  color: var(--color-on-surface-muted);
-  transition: all 0.1s ease;
-}
-
-.email-button:hover .lucide-external-link {
-  color: var(--color-on-surface);
-}
-
 svg {
   flex-shrink: 0;
 }
@@ -216,12 +202,6 @@ svg {
 
   .info-content {
     margin-left: 0;
-  }
-
-  .email-button {
-    margin-left: 0;
-    width: 100%;
-    justify-content: space-between;
   }
 }
 </style>

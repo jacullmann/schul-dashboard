@@ -240,7 +240,7 @@
       "confirmPlaceholder": "wiederhole dein Passwort",
       "revealLabel": "Passwort anzeigen/verstecken",
       "forgot": "Passwort vergessen?",
-      "terms": "Ich stimme der <a href=\"/legal/privacy-policy\" target=\"_blank\" class=\"privacy-link\">Datenschutzerklärung</a> und den <a href=\"/legal/terms\" target=\"_blank\" class=\"privacy-link\">Nutzungsbedingungen</a> zu",
+      "terms": "Ich stimme der {privacy} und den {terms} zu",
       "successRegister": "Fast geschafft! Wir haben einen Bestätigungslink an deine E-Mail-Adresse geschickt",
       "errors": {
         "emailMissing": "Gib deine E-Mail ein",
@@ -403,6 +403,8 @@
           }
         ]
       },
+      "createEntry": "Eintrag erstellen",
+      "resetFilters": "Filter zurücksetzen",
       "types": {
         "homework": "Hausaufgabe",
         "dalton": "Dalton",
@@ -436,6 +438,7 @@
         "dueDate": "Datum",
         "images": "Bilder",
         "uploadingImage": "Lade Bild hoch...",
+        "dropToUpload": "Bilder hier ablegen",
         "successCreate": "Eintrag erfolgreich erstellt",
         "successEdit": "Eintrag erfolgreich bearbeitet",
         "successUpload": "Bilder erfolgreich hochgeladen",
@@ -500,8 +503,9 @@
           }
         },
         "view": {
-          "noEntriesFound": "Keine Einträge gefunden",
-          "noEntriesInView": "Keine Einträge in der aktuellen Ansicht."
+          "noEntries": "Keine Einträge gefunden",
+          "noEntriesMessage": "Füge einen neuen Eintrag hinzu oder ",
+          "noEntriesInViewMessage": "Keine Einträge in der aktuellen Ansicht. Ändere deine Filter oder füge einen neuen Eintrag hinzu"
         }
       }
     },

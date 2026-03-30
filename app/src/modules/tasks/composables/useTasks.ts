@@ -233,6 +233,14 @@ export function useTasks() {
     });
   }
 
+  function resetFilters() {
+    subjectFilter.value = '';
+    showOldEntries.value = false;
+    if (tab.value !== 'all') {
+      goTab('all');
+    }
+  }
+
   // --- Watchers ---
 
   watch(
@@ -411,5 +419,6 @@ export function useTasks() {
     subjectOptions,
     getSubjectName,
     getTypeLabel,
+    resetFilters,
   };
 }

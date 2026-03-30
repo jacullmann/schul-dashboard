@@ -168,15 +168,12 @@ onMounted(() => {
 
     <!-- Empty State -->
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
-      <div class="px-6 py-12 text-center flex flex-col items-center">
-        <UsersRound :size="40" class="empty-icon" />
-        <h3>{{ t('groups.home.noGroups') }}</h3>
-        <p class="max-w-96">{{ t('groups.home.joinGroupText') }}</p>
-        <div class="empty-actions">
-          <BaseButton @click="showJoinModal = true" variant="action">{{ t('groups.home.joinGroup') }}</BaseButton>
-          <BaseButton @click="showCreateModal = true" variant="ghost">{{ t('groups.home.createGroup') }}</BaseButton>
-        </div>
-      </div>
+      <BaseEmptyState :icon="UsersRound" :primary-action="() => showJoinModal = true" :secondary-action="() => showCreateModal = true">
+        <template #title>{{ t('groups.home.noGroups') }}</template>
+        <template #message>{{ t('groups.home.joinGroupText') }}</template>
+        <template #primary-action-label>{{ t('groups.home.joinGroup') }}</template>
+        <template #secondary-action-label>{{ t('groups.home.createGroup') }}</template>
+      </BaseEmptyState>
     </section>
 
     <!-- Loading -->
@@ -235,17 +232,6 @@ onMounted(() => {
   font-weight: 700;
   color: var(--color-on-surface);
   margin: 0;
-}
-
-.empty-icon {
-  color: var(--color-on-surface-muted);
-  margin-bottom: 16px;
-}
-
-.empty-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
 }
 
 .loading-state {

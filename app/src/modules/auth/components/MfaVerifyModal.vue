@@ -114,9 +114,9 @@ onMounted(() => {
         <p class="help-text">
           Du hast Probleme, die 2-Faktor-Authentifizierung abzuschließen?
           <br />
-          <a href="mailto:kontakt@schul-dashboard.com" class="help-link">
+          <BaseLink to="mailto:kontakt@schul-dashboard.com">
             Kontaktiere uns gerne über den Support
-          </a>
+          </BaseLink>
         </p>
       </div>
     </template>

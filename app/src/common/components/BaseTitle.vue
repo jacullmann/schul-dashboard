@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center gap-1.5">
-    <BaseHeading level="2" class="text-h2 font-bold font-display m-0 text-on-surface">
+    <BaseHeading level="2">
       <slot></slot>
     </BaseHeading>
 

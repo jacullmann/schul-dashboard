@@ -126,7 +126,8 @@ const {
   handleImageContextMenu,
   subjectOptions,
   getSubjectName,
-  getTypeLabel
+  getTypeLabel,
+  resetFilters
 } = useTasks();
 
 const { openItemForm } = useItemForm();
@@ -218,7 +219,7 @@ async function handleArchiveFromMenu(item: HwItem) {
       </div>
     </div>
 
-    <div class="items">
+    <div class="flex flex-col gap-3 mt-4">
       <ItemSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <ItemCard
@@ -397,8 +398,12 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
       </ItemCard>
 
-      <div v-if="!loading && !limitedItems.length && filteredItems.length" class="card empty">{{ t('school.tasks.items.view.noEntriesInView') }}</div>
-      <div v-if="!loading && !filteredItems.length" class="card empty">{{ t('school.tasks.items.view.noEntriesFound') }}</div>
+      <BaseEmptyState v-if="!loading && !limitedItems.length" @primary-action="openItemForm()" @secondary-action="resetFilters">
+       <template #title>{{ t('school.tasks.items.view.noEntries') }}</template>
+       <template #message>{{ filteredItems.length ? t('school.tasks.items.view.noEntriesInViewMessage') : t('school.tasks.items.view.noEntriesMessage') }}</template>
+       <template #primary-action-label>{{ t('school.tasks.createEntry') }}</template>
+       <template #secondary-action-label>{{ t('school.tasks.resetFilters') }}</template>
+      </BaseEmptyState>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
         <BaseButton v-if="visibleCount < filteredItems.length" @click="showMore" variant="ghost">{{ t('global.buttons.showMore') }}</BaseButton>
@@ -479,13 +484,6 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .select-subject {
   min-width: 150px;
-}
-
-.items {
-  margin-top: 16px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
 }
 
 .subject-badge {
