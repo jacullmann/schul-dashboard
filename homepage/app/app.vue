@@ -1,6 +1,15 @@
+<script setup lang="ts">
+import { onMounted } from 'vue';
+import { initializeTheme } from '~/composables/useTheme';
+
+onMounted(() => {
+  initializeTheme();
+});
+</script>
+
 <template>
-  <div>
-    <NuxtRouteAnnouncer />
-    <NuxtWelcome />
-  </div>
+  <NuxtRouteAnnouncer />
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>

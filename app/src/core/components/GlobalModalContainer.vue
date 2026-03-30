@@ -21,7 +21,7 @@ import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import hw from '@/api/hwApi';
 
-import AuthModal from '@/modules/auth/components/AuthModal.vue';
+
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import SearchModal from '@/core/components/SearchModal.vue';
@@ -56,7 +56,7 @@ const {
 // State refs (storeToRefs preserves reactivity for template bindings).
 // Note: actions cannot be extracted via storeToRefs — use modalStore.action() directly.
 const {
-  authModalOpen,
+
   searchOpen,
   itemFormOpen,
   itemFormKey,
@@ -70,13 +70,7 @@ const {
   joinGroupOpen,
 } = storeToRefs(modalStore);
 
-// ── Auth modal callbacks ───────────────────────────────────────────────────
 
-async function onAuthSuccess() {
-  await userStore.fetchUser();
-  modalStore.resolveAuthModal('');
-  await nextTick();
-}
 
 // ── Item form callbacks ────────────────────────────────────────────────────
 
@@ -125,14 +119,7 @@ function onAccountDeleteError(msg: string) {
 </script>
 
 <template>
-  <!-- Auth modal -->
-  <Teleport to="body">
-    <AuthModal
-      v-if="authModalOpen"
-      @cancel="modalStore.closeAuthModal()"
-      @logged-in="onAuthSuccess"
-    />
-  </Teleport>
+
 
   <!-- OAuth: account-linking modal (shown after ?auth=link-required) -->
   <Teleport to="body">

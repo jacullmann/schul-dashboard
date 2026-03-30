@@ -22,17 +22,17 @@ function getInitialLocale(): SupportedLocale {
     console.warn('Could not access localStorage:', error);
   }
 
-  // Deutsch als Fallback
+  // English as Fallback
   try {
-    localStorage.setItem(LOCALE_KEY, 'de');
+    localStorage.setItem(LOCALE_KEY, 'en');
   } catch {}
-  return 'de';
+  return 'en';
 }
 
 const i18n = createI18n({
   legacy: false,
   locale: getInitialLocale(),
-  fallbackLocale: 'de',
+  fallbackLocale: 'en',
   messages: {
     de,
     en,

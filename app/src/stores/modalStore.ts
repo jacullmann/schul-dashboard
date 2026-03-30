@@ -11,38 +11,7 @@ import type { ItemType } from '@/modules/tasks/types';
 // ---------------------------------------------------------------------------
 
 export const useModalStore = defineStore('modals', () => {
-  // ── Auth modal ────────────────────────────────────────────────────────────
-  const authModalOpen = ref(false);
-  const _authResolve = ref<((token: string) => void) | null>(null);
-  const _authReject = ref<((reason?: unknown) => void) | null>(null);
 
-  function openAuthModal(): Promise<string> {
-    if (authModalOpen.value) {
-      // Re-open by briefly toggling — same behaviour as before.
-      authModalOpen.value = false;
-      setTimeout(() => {
-        authModalOpen.value = true;
-      }, 10);
-      return Promise.resolve('');
-    }
-    authModalOpen.value = true;
-    return new Promise((resolve, reject) => {
-      _authResolve.value = resolve;
-      _authReject.value = reject;
-    });
-  }
-
-  function closeAuthModal() {
-    authModalOpen.value = false;
-    _authReject.value?.(new Error('Auth modal closed.'));
-    _authResolve.value = null;
-    _authReject.value = null;
-  }
-
-  function resolveAuthModal(token: string) {
-    _authResolve.value?.(token);
-    closeAuthModal();
-  }
 
   // ── Search modal ──────────────────────────────────────────────────────────
   const searchOpen = ref(false);
@@ -158,11 +127,7 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   return {
-    // Auth modal
-    authModalOpen,
-    openAuthModal,
-    closeAuthModal,
-    resolveAuthModal,
+
 
     // Search modal
     searchOpen,

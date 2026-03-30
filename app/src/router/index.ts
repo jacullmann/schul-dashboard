@@ -7,58 +7,42 @@ import i18n from '@/i18n';
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 const routes = [
-  // ── Welcome Layout ─────────────────────────────────────────────────
+  // ── Public routes redirect to external apps ────────────────────────
   {
     path: '/',
-    component: () => import('@/layouts/WelcomeLayout.vue'),
-    meta: { title: 'global.fullTitle', fullWidth: true },
-    children: [
-      {
-        path: '',
-        name: 'welcome-home',
-        component: () => import('@/modules/welcome/pages/WelcomeHomePage.vue'),
-        meta: { title: 'global.fullTitle' },
-      },
-      {
-        path: 'auth',
-        name: 'welcome-auth',
-        component: () => import('@/modules/welcome/pages/WelcomeAuthPage.vue'),
-        meta: { title: 'navigation.auth' },
-      },
-      {
-        path: 'legal',
-        name: 'legal',
-        component: () => import('@/modules/legal/pages/LegalPagesWrapper.vue'),
-        redirect: '/legal/imprint',
-        children: [
-          {
-            path: 'imprint',
-            name: 'imprint',
-            component: () => import('@/modules/legal/components/Impress.vue'),
-            meta: { title: 'legal.imprint.title' },
-          },
-          {
-            path: 'privacy-policy',
-            name: 'privacy-policy',
-            component: () =>
-              import('@/modules/legal/components/PrivacyPolicy.vue'),
-            meta: { title: 'legal.privacy.title' },
-          },
-          {
-            path: 'terms',
-            name: 'terms',
-            component: () => import('@/modules/legal/components/Terms.vue'),
-            meta: { title: 'legal.terms.title' },
-          },
-        ],
-      },
-      {
-        path: 'contact',
-        name: 'contact',
-        component: () => import('@/modules/support/pages/ContactInfo.vue'),
-        meta: { title: 'contact.contact.title' },
-      },
-    ],
+    redirect: () => {
+      // Redirect to homepage SSR app
+      const homepage = import.meta.env.VITE_HOMEPAGE_URL || 'http://localhost:3001';
+      window.location.href = homepage;
+      return { path: '/' };
+    },
+  },
+  {
+    path: '/auth',
+    redirect: () => {
+      // Redirect to login app
+      const loginApp = import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174';
+      window.location.href = loginApp;
+      return { path: '/auth' };
+    },
+  },
+  {
+    path: '/legal',
+    redirect: () => {
+      // Redirect to homepage for legal pages
+      const homepage = import.meta.env.VITE_HOMEPAGE_URL || 'http://localhost:3001';
+      window.location.href = `${homepage}/legal`;
+      return { path: '/legal' };
+    },
+  },
+  {
+    path: '/contact',
+    redirect: () => {
+      // Redirect to homepage for contact
+      const homepage = import.meta.env.VITE_HOMEPAGE_URL || 'http://localhost:3001';
+      window.location.href = `${homepage}/contact`;
+      return { path: '/contact' };
+    },
   },
 
   // ── Default Layout (header + footer) ────────────────────────────────
@@ -179,7 +163,7 @@ const routes = [
   // ── Verify Email ────────────────────────────────────────────────────
   {
     path: '/verify',
-    component: () => import('@/layouts/WelcomeLayout.vue'),
+    component: () => import('@/layouts/SimpleLayout.vue'),
     children: [
       {
         path: '',
@@ -226,19 +210,21 @@ router.beforeEach(async (to, from, next) => {
 
   const isPublicRoute =
     to.path === '/' ||
-    to.path.startsWith('/auth') ||
+    to.path === '/auth' ||
     to.path.startsWith('/legal') ||
-    to.path === '/verify' ||
-    to.path === '/contact';
+    to.path === '/contact' ||
+    to.path === '/verify';
 
-  // ── Unauthenticated users → welcome ────────────────────────────────
+  // ── Unauthenticated users → login app ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
     finish();
-    return next({ path: '/', replace: true });
+    const loginApp = import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174';
+    window.location.href = loginApp;
+    return;
   }
 
-  // ── Authenticated users → away from welcome/public routes ──────────
-  if ((to.path === '/' || to.path.startsWith('/auth')) && isLoggedIn.value) {
+  // ── Authenticated users → away from public routes ──────────
+  if ((to.path === '/' || to.path === '/auth') && isLoggedIn.value) {
     finish();
     return next({
       path: activeGroupId.value

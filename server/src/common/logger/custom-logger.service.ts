@@ -1,75 +1,45 @@
 import { Injectable, LoggerService, LogLevel } from '@nestjs/common';
-import * as path from 'path';
-import * as rfs from 'rotating-file-stream';
-import * as fs from 'fs';
 
 @Injectable()
 export class CustomLoggerService implements LoggerService {
-  private fileLogger: rfs.RotatingFileStream;
-  private readonly defaultLogLevels: LogLevel[] = [
-    'log',
-    'error',
-    'warn',
-    'debug',
-    'verbose',
-    'fatal',
-  ];
-
-  constructor() {
-    const logDirectory = path.join(process.cwd(), 'logs');
-    if (!fs.existsSync(logDirectory)) {
-      fs.mkdirSync(logDirectory, { recursive: true });
-    }
-
-    this.fileLogger = rfs.createStream('nest-server.log', {
-      interval: '1d', // rotate daily
-      path: logDirectory,
-      maxFiles: 14, // keep logs for 14 days
-    });
-  }
-
-  private writeLog(level: LogLevel, message: any, context?: string) {
+  private writeLog(level: LogLevel, message: any, context?: string): void {
     const timestamp = new Date().toISOString();
     const contextPrefix = context ? `[${context}] ` : '';
-    const formattedMessage = `[${timestamp}] [${level.toUpperCase()}] ${contextPrefix}${message}\n`;
+    const formatted = `[${timestamp}] [${level.toUpperCase()}] ${contextPrefix}${message}`;
 
-    // Console output
     if (level === 'error' || level === 'fatal') {
-      console.error(formattedMessage.trim());
+      console.error(formatted);
     } else if (level === 'warn') {
-      console.warn(formattedMessage.trim());
+      console.warn(formatted);
     } else {
-      console.log(formattedMessage.trim());
+      console.log(formatted);
     }
-
-    // File output
-    this.fileLogger.write(formattedMessage);
   }
 
-  log(message: any, context?: string) {
+  log(message: any, context?: string): void {
     this.writeLog('log', message, context);
   }
 
-  error(message: any, trace?: string, context?: string) {
+  error(message: any, trace?: string, context?: string): void {
     this.writeLog('error', message, context);
     if (trace) {
       this.writeLog('error', `Trace: ${trace}`, context);
     }
   }
 
-  warn(message: any, context?: string) {
+  warn(message: any, context?: string): void {
     this.writeLog('warn', message, context);
   }
 
-  debug(message: any, context?: string) {
+  debug(message: any, context?: string): void {
     this.writeLog('debug', message, context);
   }
 
-  verbose(message: any, context?: string) {
+  verbose(message: any, context?: string): void {
     this.writeLog('verbose', message, context);
   }
 
-  fatal(message: any, context?: string) {
+  fatal(message: any, context?: string): void {
     this.writeLog('fatal', message, context);
   }
 }

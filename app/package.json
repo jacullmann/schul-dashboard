@@ -1,11 +1,10 @@
 {
-  "name": "bewerten-frontend",
+  "name": "schul-dashboard-app",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "dev:mock": "node mock-server.js && vite --host",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,vue}\" --fix",

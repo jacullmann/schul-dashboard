@@ -31,15 +31,13 @@ function logPageload() {
   });
 }
 
-function handleShowAuthModal() {
-  modalStore.openAuthModal().catch(() => {});
-}
+
 
 async function handleAuthExpired() {
   userStore.clearUser();
   const stillAuthenticated = await checkAuthStatus();
   if (stillAuthenticated) {
-    modalStore.openAuthModal().catch(() => {});
+    window.location.href = import.meta.env.VITE_LOGIN_URL;
   } else {
     const currentPath = router.currentRoute.value.path;
     if (currentPath !== '/' && !currentPath.startsWith('/auth')) {
@@ -78,10 +76,10 @@ onMounted(() => {
   // Must run after initAuth() which is called by the router guard before mount.
   handleOAuthReturn(async () => {
     await userStore.fetchUser();
-    modalStore.resolveAuthModal('');
+
   });
 
-  useEventListener(window, 'show-auth-modal', handleShowAuthModal);
+
   useEventListener(window, 'auth-expired', handleAuthExpired);
   useEventListener(window, 'tenant-changed', handleTenantChanged);
 

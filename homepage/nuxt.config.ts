@@ -1,6 +1,139 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   ssr: true,
+
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/sitemap',
+  ],
+
+
+
+  app: {
+    head: {
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1',
+      title: 'schul-dashboard – The collaborative school management system',
+      meta: [
+        { name: 'description', content: 'schul-dashboard is the free, ad-free school management system for students. Developed by students for students. Homework, timetable, and more – all in one place.' },
+        { name: 'keywords', content: 'School Dashboard, School Management, Homework, Timetable, Student App, School Administration, free, by students for students' },
+        { name: 'author', content: 'schul-dashboard' },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'language', content: 'en' },
+        { name: 'revisit-after', content: '7 days' },
+        
+        // Open Graph / Social
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: 'https://schul-dashboard.com' },
+        { property: 'og:title', content: 'schul-dashboard – Free School Management for Students' },
+        { property: 'og:description', content: 'The collaborative school management system. Developed by students for students.' },
+        { property: 'og:image', content: 'https://schul-dashboard.com/og-image.png' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:locale', content: 'en_US' },
+        { property: 'og:site_name', content: 'schul-dashboard' },
+        
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:url', content: 'https://schul-dashboard.com' },
+        { name: 'twitter:title', content: 'schul-dashboard – Free School Management' },
+        { name: 'twitter:description', content: 'The collaborative school dashboard by students for students.' },
+        { name: 'twitter:image', content: 'https://schul-dashboard.com/og-image.png' },
+        
+        // Theme & Display
+        { name: 'theme-color', content: '#0f0f0f' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        
+        // Google
+        { name: 'google-site-verification', content: 'EWIYTbU2hlYorTqIulVfAyKjArTsWmgQ9O9g0Tb0L8c' },
+      ],
+      link: [
+        { rel: 'canonical', href: 'https://schul-dashboard.com' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/schul-dashboard_favicon_v7.svg?v=15' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Serif:wght@400;500&display=swap',
+        },
+      ],
+      script: [
+        // JSON-LD Schema
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'WebSite',
+                '@id': 'https://schul-dashboard.com/#website',
+                'url': 'https://schul-dashboard.com',
+                'name': 'schul-dashboard',
+                'description': 'The collaborative school management system for students',
+                'inLanguage': 'en-US',
+              },
+              {
+                '@type': 'WebApplication',
+                '@id': 'https://schul-dashboard.com/#webapp',
+                'url': 'https://schul-dashboard.com',
+                'name': 'schul-dashboard',
+                'description': 'The free school management system by students for students',
+                'applicationCategory': 'EducationalApplication',
+                'inLanguage': 'en-US',
+                'operatingSystem': 'Web',
+                'offers': {
+                  '@type': 'Offer',
+                  'price': '0',
+                  'priceCurrency': 'EUR',
+                },
+                'author': {
+                  '@type': 'Organization',
+                  'name': 'schul-dashboard',
+                  'url': 'https://schul-dashboard.com',
+                },
+              },
+              {
+                '@type': 'Organization',
+                '@id': 'https://schul-dashboard.com/#organization',
+                'name': 'schul-dashboard',
+                'url': 'https://schul-dashboard.com',
+                'logo': 'https://schul-dashboard.com/schul-dashboard_logo.svg',
+                'description': 'Free school administration by students for students',
+              },
+            ],
+          }),
+        },
+      ],
+    },
+  },
+
+  sitemap: {
+    enabled: true,
+    urls: [
+      'https://schul-dashboard.com',
+      'https://schul-dashboard.com/legal/imprint',
+      'https://schul-dashboard.com/legal/privacy-policy',
+      'https://schul-dashboard.com/legal/terms',
+      'https://schul-dashboard.com/contact',
+    ],
+    sitemaps: true,
+  },
+
+  runtimeConfig: {
+    public: {
+      // URL of the login app — override via NUXT_PUBLIC_LOGIN_URL env var
+      loginUrl: 'http://localhost:5174',
+      // URL of the main dashboard app
+      appUrl: 'http://localhost:5173',
+    },
+  },
+
+  devServer: {
+    port: 3001,
+  },
 })
+

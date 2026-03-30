@@ -1,0 +1,644 @@
+{
+  "global": {
+    "title": "schul-dashboard",
+    "fullTitle": "schul-dashboard | Free Management Tool For Students",
+    "buttons": {
+      "save": "Save",
+      "confirm": "Confirm",
+      "add": "Add",
+      "cancel": "Cancel",
+      "close": "Close",
+      "delete": "Delete",
+      "back": "Back"
+    },
+    "selection": {
+      "placeholder": "Please select",
+      "yes": "Yes",
+      "no": "No",
+      "other": "Other..."
+    },
+    "search": {
+      "placeholder": "Search",
+      "result": "Result",
+      "resultPlural": "Results"
+    },
+    "weekdays": {
+      "full": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      },
+      "abbr": {
+        "monday": "Mon",
+        "tuesday": "Tue",
+        "wednesday": "Wed",
+        "thursday": "Thu",
+        "friday": "Fri",
+        "saturday": "Sat",
+        "sunday": "Sun"
+      }
+    },
+    "cookies": {
+      "banner": {
+        "title": "Cookies",
+        "text": "We use cookies to reliably provide core functions such as login, security, and the operation of the schul-dashboard. Additionally, we use the privacy-friendly analytics tool Umami (cloud service) to understand how our site is used and to improve it further. Umami works without tracking cookies and does not store any personal data. You can find more information in our privacy policy.",
+        "action": "Got it"
+      }
+    },
+    "header": {},
+    "footer": {
+      "removeDevice": "Sign out this device",
+      "quotes": [
+        "I miss the old Kanye",
+        "Keep your head up. Only {daysToHoliday} days left until the holidays",
+        "Easy. Better. Organized. Dashboard!",
+        "Paper is a thing of the past. Go digital!",
+        "#EatTheRich",
+        "Even bad days only have 24 hours",
+        "Is water wet?",
+        "Faster than German bureaucracy (at least)",
+        "The Swiss Army Knife for school",
+        "Wake Up Mr. West!",
+        "listen to the kids",
+        "and then?",
+        "Who is the king of rap?",
+        "Ich bin ein Berliner!",
+        "No one has the intention to erect a wall.",
+        "I have a dream",
+        "Because humans make mistakes.",
+        "Upload your chaos to the cloud!",
+        "Spend more time with your family—schul-dashboard",
+        "Never wash without soap",
+        "Now playing in cinemas!",
+        "Ho ho ho!",
+        "No pulp!",
+        "Pasteurized and homogenized!",
+        "Without additives!",
+        "0 calories—schul-dashboard",
+        "All our milk comes from organic cows!",
+        "100% cruelty-free!",
+        "This website contains no real animal meat.",
+        "Low in fat and long-lasting!",
+        "Certified voluntary child labor—schul-dashboard",
+        "100-day money-back guarantee!",
+        "When life gives you lemons, squirt the juice in your opponents' eyes.",
+        "100% Fairtrade code lines from certified cultivation!",
+        "in a minute /ɪn ə ˈmɪnɪt/, phrase: an undetermined point in the future, but probably never",
+        "If I start 5 minutes before the deadline, it only takes me 5 minutes.",
+        "42",
+        "When the Revolution Comes...",
+        "I can see dead people",
+        "Who will survive in America?",
+        "Everything you forbid becomes interesting.",
+        "The cake is a lie.",
+        "Did you turn it off and on again?",
+        "May contain traces of nuts.",
+        "Run, Forrest, run!",
+        "Wir schaffen das!",
+        "Das Internet ist für uns alle Neuland.",
+        "Tastes better than it looks.",
+        "Fragt nicht, was euer Land für euch tun kann – geht in den Krieg und sterbt.",
+        "Ich lerne, also bin ich.",
+        "Alle wollen die Welt verändern, aber keiner sich selbst.",
+        "Dashboard benutzen oder Dashboard nicht benutzen, das ist hier die Frage.",
+        "I'm going to make him an offer he can't refuse",
+        "One small step for man, one giant leap for studentkind—schul-dashboard",
+        "um... sort of",
+        "Can't tell me nothing",
+        "This is family business and this is for the family that can't be with us",
+        "Little was known of Sierra Leone and how it connects to the diamonds we own",
+        "What's going on",
+        "I never sleep, cause sleep is the cousin of death",
+        "Keep Ya Head Up",
+        "Just remember ALL CAPS when you spell the man name",
+        "Death gotta be easy, cause life is hard",
+        "People never get the flowers, while they can still smell em"
+      ]
+    },
+    "theme": {
+      "theme": "Theme",
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "design": "Design",
+    "language": "Language",
+    "errors": {
+      "unknown": "Unknown error",
+      "delete": "Failed to delete",
+      "save": "Failed to save",
+      "update": "Failed to update",
+      "validationFailed": "Please check your input."
+    },
+    "titles": {
+      "mr": "Mr.",
+      "ms": "Ms.",
+      "abbr": {
+        "mr": "Mr.",
+        "ms": "Ms."
+      }
+    },
+    "subjects": {
+      "german": "German",
+      "french": "French",
+      "math": "Math",
+      "english": "English",
+      "enrichment": "Enrichment",
+      "wpu1": "Elective 1",
+      "wpu2": "Elective 2",
+      "theater": "Theater",
+      "cs": "Computer Science",
+      "latin": "Latin",
+      "chemistry": "Chemistry",
+      "politics": "Politics",
+      "history": "History",
+      "art": "Art",
+      "pe": "PE",
+      "classHour": "Class Hour",
+      "ethics": "Ethics",
+      "geography": "Geography",
+      "physics": "Physics",
+      "music": "Music",
+      "biology": "Biology",
+      "philosophy": "Philosophy",
+      "religion": "Religion"
+    }
+  },
+  "account": {
+    "menu": {
+      "courses": {
+        "title": "Edit Courses",
+        "description": "Select which subjects you are enrolled in to get better results.",
+        "enr": "Enrichment",
+        "wpu1": "Elective on Tuesday",
+        "wpu2": "Elective on Thursday",
+        "wpu3": "Theater"
+      },
+      "personalization": "Personalized Courses",
+      "theme": {
+        "title": "Theme"
+      },
+      "language": {
+        "title": "Language"
+      },
+      "security": {
+        "title": "Security",
+        "2fa": "Two-Factor Authentication",
+        "activated": "Activated",
+        "deactivated": "Deactivated",
+        "description": "Two-factor authentication provides additional protection for your account. You will need any 2FA app, such as Google Authenticator."
+      },
+      "changePassword": {
+        "title": "Change Password",
+        "description": "Please enter your current password.",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password (min. 8 characters)",
+        "confirmPasswort": "Confirm New Password"
+      },
+      "logout": "Sign Out",
+      "deleteAccount": {
+        "title": "Delete Account",
+        "warnbox": {
+          "title": "Permanently delete account?",
+          "text": "If you delete your account, it will be permanently removed along with all your settings. However, uploaded entries, images, or announcements will be retained. If you also want to remove these, you must delete them manually before closing your account.<br><br>You can create a new account at any time, but previously added content will no longer be linked to your account, so you will no longer be able to access it."
+        },
+        "confirm": "I understand that I am permanently deleting my account."
+      }
+    },
+    "auth": {
+      "login": "Sign In",
+      "register": "Register",
+      "loginGoogle": "Sign in with Google",
+      "registerGoogle": "Sign up with Google",
+      "email": "Email",
+      "emailPlaceholder": "name{'@'}example.com",
+      "password": "Password",
+      "passwordPlaceholder": "min. 8 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPlaceholder": "repeat your password",
+      "revealLabel": "Reveal/hide password",
+      "forgot": "Forgot password?",
+      "terms": "I agree to the <a href=\"/legal/privacy-policy\" target=\"_blank\" class=\"privacy-link\">Privacy Policy</a> and the <a href=\"/legal/terms\" target=\"_blank\" class=\"privacy-link\">Terms of Use</a>",
+      "successRegister": "Almost there! We've send a verification link to your email",
+      "errors": {
+        "emailMissing": "Enter your email",
+        "emailWrong": "The entered email is invalid",
+        "passwordMissing": "Enter your password",
+        "passwordShort": "A password has at least 8 characters",
+        "newShort": "Your password must be at least 8 characters",
+        "confirmMissing": "Confirm your password",
+        "confirmWrong": "The passwords do not match",
+        "termsMissing": "Please accept the privacy policy and terms to continue"
+      }
+    }
+  },
+  "groups": {
+    "home": {
+      "title": "Home",
+      "goodNight": "Good night",
+      "goodMorning": "Good morning",
+      "goodDay": "Good day",
+      "goodEvening": "Good evening",
+      "joinGroup": "Join group",
+      "createGroup": "Create group",
+      "yourGroups": "Your groups",
+      "noGroups": "No groups yet",
+      "joinGroupText": "Join an existing group or create a new one to get started.",
+      "members": "members"
+    },
+    "roles": {
+      "member": "Member",
+      "moderator": "Moderator",
+      "admin": "Admin",
+      "owner": "Owner",
+      "superadmin": "Superadmin"
+    }
+  },
+  "welcome": {
+    "hero": {
+      "headlineSerif": "Your School Life",
+      "headlineSans": "In Your <b>Pocket<b/>",
+      "subline": "All the info you need, at any time, right in your pocket. Collaborative and ",
+      "sublineHighlight": "completely free",
+      "visual": {
+        "items": [
+          {
+            "title": "Read Chapter 3"
+          },
+          {
+            "title": "Notes for the test"
+          },
+          {
+            "title": "Book exercises",
+            "text": "Complete p. 137 exercises 4b and 5 in writing"
+          }
+        ]
+      },
+      "learnMore": "Learn more",
+      "cta": "Get started"
+    },
+    "comparison": {
+      "headline": "Paper is so <span class=\"highlight\">yesterday.</span> Start your journey into the <span class=\"highlight\">future</span> today",
+      "attribution": "Edited original by Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
+    },
+    "reasons": {
+      "why": "Why schul-dashboard?",
+      "byStudentsForStudents": "<span class=\"highlight\">By </span> students <span class=\"highlight\">for </span> students, which means:",
+      "reasons": [
+        {
+          "number": "0",
+          "text": " euros"
+        },
+        {
+          "number": "0",
+          "text": " ads"
+        },
+        {
+          "number": "0",
+          "text": " data sold"
+        },
+        {
+          "number": "100%",
+          "text": " attention to detail"
+        }
+      ]
+    },
+    "footer": {
+      "disclaimer": {
+        "title": "Notice",
+        "text": "This is a protected and private application. Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be documented without exception. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained."
+      },
+      "navigation": {
+        "landingPage": "Home",
+        "status": "Status"
+      },
+      "byStudentsForStudents": "This is a private project by students for students"
+    },
+    "auth": {
+      "title": "Authentication",
+      "name": "Name",
+      "passcode": "Access Code",
+      "terms": "Accept Terms of Use and Privacy Policy",
+      "serverStatus": {
+        "good": "Server reachable",
+        "ok": "Unexpected server response",
+        "notOk": "Server connection interrupted",
+        "error": "Server unreachable"
+      },
+      "disclaimerTitle": "Important Legal Notice!",
+      "disclaimer": "Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be fully documented. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained."
+    }
+  },
+  "school": {
+    "tasks": {
+      "title": "Tasks",
+      "infopop": {
+        "tooltip": "Overview and features for tasks",
+        "description": "Work collaboratively with others and keep track of everything.",
+        "sections": [
+          {
+            "title": "Entries",
+            "text": "Anyone with an account can add an entry. Whether it's a <strong>homework assignment</strong>, <strong>Dalton task</strong>, or <strong>exam</strong> – anything you need to keep track of for school can be uploaded. All entries are public and visible at any time, so you can track together with others."
+          },
+          {
+            "title": "Adding entries",
+            "text": "To add an entry, click the <strong>+</strong> and select the type. Homework, Dalton tasks, and exams are always public; private entries are encrypted and only visible to you. Fill out the form and select the subject and due date. Optionally, related images can be uploaded such as board photos, model solutions, notes, study sheets, etc."
+          },
+          {
+            "title": "Uploading images",
+            "text": "Images can also be uploaded to other people's entries if relevant; click the <strong>3-dot menu</strong>, select <strong>Upload images</strong> and choose the desired images. To remove your own images, <strong>hold</strong> the image <strong>pressed</strong> or <strong>right-click</strong> on your image and select <strong>Delete</strong> from the menu."
+          },
+          {
+            "title": "Reporting misinformation",
+            "text": "Entries should generally be accurate, but if you discover incorrect information in someone else's entry, you can click \"Report\" in the 3-dot menu and submit a correction under \"Misinformation\". Your message will then be reviewed and attached as a note to the reported entry."
+          },
+          {
+            "title": "Tracking completed tasks",
+            "text": "If you have an account, you can check off any entry you've completed using the <strong>checkbox</strong>. Your progress is saved in the cloud and the entry is minimized to make room for open tasks. This way you can immediately see what you still need to do."
+          },
+          {
+            "title": "Personalized courses",
+            "text": "If you've saved which courses/electives you're enrolled in on your account, you can automatically hide entries for other subjects. You can adjust your selection in your <strong>account settings</strong>. If you still want to see all entries, you can also disable this option in your account settings."
+          },
+          {
+            "title": "Archive",
+            "text": "Entries older than <strong>24 hours</strong> are automatically hidden to keep the view tidy. If you're looking for an older entry, you can click the <strong>Archive</strong> button and view entries up to <strong>30 days</strong> old."
+          }
+        ]
+      },
+      "types": {
+        "homework": "Homework",
+        "dalton": "Dalton",
+        "exam": "Exam"
+      },
+      "tabs": {
+        "all": "All",
+        "homework": "Homework",
+        "dalton": "Dalton",
+        "exams": "Exams",
+        "private": "Private"
+      },
+      "allsubjects": "All Subjects",
+      "archive": {
+        "archive": "Archive",
+        "closeArchive": "Close Archive",
+        "archiveNote": "You are currently viewing old entries"
+      },
+      "itemForm": {
+        "newEntry": "New Entry",
+        "editEntry": "Edit Entry",
+        "title": "Title",
+        "subject": "Subject",
+        "customSubject": "Custom Subject",
+        "course": "Course",
+        "description": "Description (optional)",
+        "duedate": "Date",
+        "images": "Images",
+        "uploadImages": "Upload Images",
+        "successUpload": "Images successfully uploaded"
+      },
+      "items": {
+        "menu": {
+          "uploadImages": "Upload Images",
+          "edit": "Edit",
+          "pin": "Pin",
+          "unpin": "Unpin",
+          "archive": "Archive",
+          "unarchive": "Unarchive",
+          "share": "Share",
+          "shareConfirm": "Link copied to clipboard!",
+          "info": "Info",
+          "infoModal": {
+            "title": "Entry Info",
+            "createdAt": "Created on",
+            "updatedAt": "Last edited",
+            "createdBy": "Created by",
+            "notEdited": "–"
+          },
+          "report": {
+            "title": "Report this entry?",
+            "name": "Report",
+            "infopop": {
+              "title": "Reporting entries",
+              "tooltip": "Information about reporting entries",
+              "sections": [
+                {
+                  "title": "Misinformation",
+                  "text": "The information mentioned in the entry or the uploaded images contain false or misleading content? Such entries can have notes with corrections attached, but you must describe what is wrong and/or what the correct information is. Please try to be as brief and clear as possible. Your message will be reviewed and attached to the reported entry once approved."
+                },
+                {
+                  "title": "Inappropriate/Illegal Content",
+                  "text": "Entries and uploaded images that violate our terms of use or applicable law will be removed immediately. If more detailed knowledge about the background of a statement/image is needed, please describe it as precisely as possible so we can take action. Even if the violation is obvious, you can still help us by describing what is wrong – but we always review the entire entry, even if you don't provide a specific reason."
+                }
+              ]
+            },
+            "selectReason": "Select the reason:",
+            "illegalLabel": "What exactly is the problem? (optional)",
+            "illegalPlaceholder": "Description...",
+            "falseLabel": "Correction (required)",
+            "falsePlaceholder": "Correction...",
+            "action": "Report Entry"
+          },
+          "delete": {
+            "title": "Delete this entry?",
+            "description": "If you delete this entry, it and all associated images will be permanently deleted.",
+            "action": "Delete Entry"
+          }
+        }
+      }
+    },
+    "tables": {
+      "schedule": {
+        "title": "Schedule",
+        "infopop": {
+          "tooltip": "Overview and features for the schedule",
+          "description": "The digital version of the schedule.",
+          "sections": [
+            {
+              "title": "Personalized courses",
+              "text": "If you've saved which courses/electives you're enrolled in on your account, you can automatically hide all lessons that don't apply to you. You can adjust your selection in your account settings. If you still want to see all lessons, you can also disable this option in your account settings."
+            },
+            {
+              "title": "Live updates",
+              "text": "Substitutions, cancellations, room changes, etc. are promptly transferred by the admin team and immediately shown in the digital schedule."
+            }
+          ]
+        },
+        "disclaimer": "schul-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
+        "personalized": "Personalized",
+        "lesson": "Lesson",
+        "cancelled": "Cancelled"
+      }
+    },
+    "private": {
+      "title": "Private Tasks",
+      "entry": "Private Entry",
+      "onlyVisibleToYou": "Only visible to you",
+      "infopop": {
+        "tooltip": "Overview and features for private entries",
+        "text": "Unlike regular entries, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>. Thanks to <strong>AES-256 encryption</strong> you don't need to worry about security: only <strong>your password</strong> can be used to access your private entries."
+      },
+      "menu": {
+        "up": "Move up",
+        "down": "Move down"
+      },
+      "requiresAccount": "You must be logged in to use private entries.",
+      "loading": "Loading private entries...",
+      "noEntriesFound": "No private entries found.",
+      "errorLoad": "Failed to load private entries",
+      "successCreate": "Private entry created",
+      "successUpdate": "Private entry updated",
+      "successDuplicate": "Private entry duplicated successfully",
+      "errorDuplicate": "Failed to duplicate entry",
+      "deleteConfirm": "Do you really want to delete this private entry?",
+      "successDelete": "Private entry deleted successfully",
+      "newEntry": "New Entry",
+      "entryDeleteConfirm": "Private entry successfully deleted",
+      "todoForm": {
+        "title": "New Private Entry",
+        "titlePlaceholder": "Go grocery shopping...",
+        "descriptionPlaceholder": "6 eggs..."
+      }
+    },
+    "dashboard": {
+      "title": "Dashboard"
+    }
+  },
+  "tools": {
+  },
+  "info": {
+    "dashboard": {
+      "title": "Info Dashboard",
+      "description": "Exciting stories from around the globe",
+      "categories": {
+        "politics": "Politics",
+        "science": "Science",
+        "technology": "Technology",
+        "culture": "Culture",
+        "economy": "Economy"
+      },
+      "recommendations": "You might also be interested in",
+      "topic": "Topic:",
+      "allTopics": "All Topics",
+      "sortBy": "Sort by:",
+      "sortMethods": {
+        "relevance": "Relevance",
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "shortest": "Shortest read time"
+      },
+      "maxTime": "Max. read time:"
+    },
+    "articles": {
+      "1": {
+        "title": "No one has the intention of building a fence",
+        "excerpt": "\"No one has the intention of building a wall.\" That's what they said 60 years ago. Then a wall was built. Today it's a fence, and instead of the socialists, the CDU wants to build it."
+      }
+    },
+    "kanye": {
+      "footnote": "The album cover images are used solely for identification purposes. The copyright belongs to the respective owners, labels, and artists."
+    }
+  },
+  "legal": {
+    "title": "Legal",
+    "imprint": {
+      "title": "Imprint",
+      "info": {
+        "name": "Deniz Keskin",
+        "address": "12045 Berlin"
+      },
+      "disclaimer": "This application is a purely private, non-commercial student project."
+    },
+    "privacy": {
+      "title": "Privacy Policy"
+    },
+    "terms": {
+      "title": "Terms of Use"
+    }
+  },
+  "contact": {
+    "contact": {
+      "title": "Contact",
+      "email": "Email",
+      "location": "Location",
+      "feedback": "Feedback"
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "updateHistory": "Update History",
+    "games": "Game Overview",
+    "gameDetail": "Game",
+    "imageTool": "Image Tool",
+    "brainLibrary": "Brain Training",
+    "brainTest": "Brain Test",
+    "superAdmin": "Super Admin",
+    "verifyEmail": "Email Verification",
+    "notFound": "404",
+    "groupAdmin": "Group Administration",
+    "legal": "Legal",
+    "auth": "Authentication",
+    "privateTodos": "Private Entries"
+  },
+  "sidebar": {
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "toggle": "Toggle Sidebar",
+    "create": "Create",
+    "search": "Search",
+    "home": "Home",
+    "tasks": "Tasks",
+    "schedule": "Schedule",
+    "groups": "Groups",
+    "admin": "Admin",
+    "private": "Private Tasks"
+  },
+  "search": {
+    "modal": {
+      "title": "Quick Search",
+      "placeholder": "Search pages and actions…",
+      "categoryPages": "Pages",
+      "categoryActions": "Actions",
+      "hintNavigate": "to navigate",
+      "hintConfirm": "to open"
+    },
+    "items": {
+      "brainTests": "Brain Tests",
+      "games": "Games",
+      "createEntry": "Create new entry",
+      "joinGroup": "Join group",
+      "createGroup": "Create group",
+      "infoDashboard": "Info Dashboard",
+      "imageTool": "Image Tool",
+      "switchGroup": "Switch group"
+    },
+    "descriptions": {
+      "home": "Go to the start page",
+      "tasks": "Tasks, homework & exams",
+      "schedule": "View class schedule",
+      "groups": "Manage your groups",
+      "admin": "Administrator Settings",
+      "private": "Manage your private tasks",
+      "brainTests": "Cognitive tests and exercises",
+      "games": "Games and entertainment",
+      "infoDashboard": "Exciting stories and facts",
+      "imageTool": "Crop and edit images",
+      "createEntry": "Add a new entry to the task list",
+      "switchGroup": "Switch between your groups",
+      "joinGroup": "Join an existing group",
+      "createGroup": "Create a new group",
+      "toggleSidebar": "Expand/collapse the sidebar",
+      "editCourses": "Customize your course selection",
+      "changeTheme": "Change the app's appearance",
+      "changeLanguage": "Change the app's language",
+      "security": "Two-factor authentication and security settings",
+      "changePassword": "Update your account password",
+      "logout": "Securely sign out of your account"
+    }
+  },
+  "about": {}
+}
