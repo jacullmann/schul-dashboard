@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Simple layout for verification and error pages
 </script>
 
 <template>

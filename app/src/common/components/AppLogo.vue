@@ -1,31 +1,3 @@
-<script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
-import { useEventListener } from '@vueuse/core';
-
-const day = ref<number>(new Date().getDate());
-const dayString = computed(() => String(day.value));
-
-function updateDay() {
-  const currentDay = new Date().getDate();
-  if (day.value !== currentDay) {
-    day.value = currentDay;
-  }
-}
-
-function handleVisibilityChange() {
-  if (document.visibilityState === 'visible') {
-    updateDay();
-  }
-}
-
-useEventListener(document, 'visibilitychange', handleVisibilityChange);
-
-const intervalId = setInterval(updateDay, 60000);
-updateDay();
-
-onUnmounted(() => clearInterval(intervalId));
-</script>
-
 <template>
   <svg
       v-bind="$attrs"
@@ -70,7 +42,7 @@ onUnmounted(() => clearInterval(intervalId));
       style="font-weight: 900; font-size: 560px; line-height: 1.1; font-family: Inter, sans-serif; letter-spacing: 0; fill: var(--color-onyx); fill-opacity: 1; stroke-width:0; stroke-linecap: square; text-anchor: middle; paint-order: stroke markers fill"
       id="date"
     >
-      <tspan x="512" y="880" text-anchor="middle">{{ dayString }}</tspan>
+      <tspan x="512" y="880" text-anchor="middle">30</tspan>
     </text>
   </svg>
 </template>

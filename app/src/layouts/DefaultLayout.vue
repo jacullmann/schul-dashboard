@@ -4,12 +4,10 @@ import AppHeader from '@/core/components/AppHeader.vue';
 import AppFooter from '@/core/components/AppFooter.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
-import { useLoadingBar } from '@/common/composables/loadingState';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
 import { storeToRefs } from 'pinia';
 
-const { loading, progress, opacity } = useLoadingBar();
 const { activeGroupId } = useAppAuth();
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
@@ -25,12 +23,6 @@ useAppShortcuts();
     <div class="flex-1 min-w-0 flex flex-col bg-canvas">
       <AppHeader />
       <GlobalAnnouncements v-if="activeGroupId" />
-
-      <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
-        <div class="progress-bar" :style="{ width: progress + '%' }">
-          <div class="peg"></div>
-        </div>
-      </div>
 
       <main class="full-c flex-1">
         <div
@@ -50,35 +42,6 @@ useAppShortcuts();
 </template>
 
 <style scoped>
-.progress-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  z-index: calc(var(--z-header) + 1);
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-
-.progress-bar {
-  height: 100%;
-  background: var(--background-image-bismuth);
-  width: 0;
-  transition: width 200ms ease-out;
-  position: relative;
-}
-
-.peg {
-  display: block;
-  position: absolute;
-  right: 0;
-  width: 100px;
-  height: 100%;
-  box-shadow: 0 0 10px #af00ff, 0 0 5px #af00ff;
-  opacity: 1;
-  transform: rotate(3deg) translate(0px, -4px);
-}
 
 .main-content {
   width: 100%;

@@ -4,37 +4,58 @@ import { useLoadingBar } from '@/common/composables/loadingState';
 import { useUserStore } from '@/stores/userStore';
 import i18n from '@/i18n';
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
-
 const routes = [
-  // ── Public routes redirect to external apps ────────────────────────
   {
     path: '/',
-    redirect: () => {
-      window.location.href = import.meta.env.VITE_HOMEPAGE_URL;
-      return { path: '/' };
-    },
+    redirect: '/home',
   },
   {
-    path: '/auth',
-    redirect: () => {
-      window.location.href = import.meta.env.VITE_LOGIN_URL;
-      return { path: '/auth' };
-    },
+    path: '/login',
+    component: () => import('@/layouts/LoginLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'login',
+        component: () => import('@/modules/auth/pages/LoginPage.vue'),
+        meta: { title: 'account.auth.login' },
+      },
+    ],
   },
   {
-    path: '/legal',
-    redirect: () => {
-      window.location.href = `${import.meta.env.VITE_HOMEPAGE_URL}/legal`;
-      return { path: '/legal' };
-    },
+    path: '/register',
+    component: () => import('@/layouts/LoginLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'register',
+        component: () => import('@/modules/auth/pages/RegisterPage.vue'),
+        meta: { title: 'account.auth.register' },
+      },
+    ],
   },
   {
-    path: '/contact',
-    redirect: () => {
-      window.location.href = `${import.meta.env.VITE_HOMEPAGE_URL}/contact`;
-      return { path: '/contact' };
-    },
+    path: '/verify-mfa',
+    component: () => import('@/layouts/LoginLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'verify-mfa',
+        component: () => import('@/modules/auth/pages/MfaPage.vue'),
+        meta: { title: 'account.mfa.verify.title' },
+      },
+    ],
+  },
+  {
+    path: '/forgot-password',
+    component: () => import('@/layouts/LoginLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'forgot-password',
+        component: () => import('@/modules/auth/pages/ForgotPasswordPage.vue'),
+        meta: { title: 'account.auth.reset.title' },
+      },
+    ],
   },
 
   // ── Default Layout (header + footer) ────────────────────────────────
@@ -202,17 +223,20 @@ router.beforeEach(async (to, from, next) => {
 
   const isPublicRoute =
     to.path === '/' ||
-    to.path === '/auth' ||
-    to.path.startsWith('/legal') ||
-    to.path === '/contact' ||
-    to.path === '/verify';
+    to.path === '/login' ||
+    to.path === '/register' ||
+    to.path === '/mfa-verification' ||
+    to.path === '/reset-password' ||
+    to.path === '/forgott-password' ||
+    to.path.startsWith('/verify')
 
-  // ── Unauthenticated users → login app ────────────────────────────────
+  // ── Unauthenticated users → login page (internal) ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
     finish();
-    const loginApp = import.meta.env.VITE_LOGIN_URL || 'http://localhost:5174';
-    window.location.href = loginApp;
-    return;
+    return next({
+      path: '/login',
+      replace: true,
+    });
   }
 
   // ── Authenticated users → away from public routes ──────────

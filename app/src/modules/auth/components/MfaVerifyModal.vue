@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { AlertCircle, AlertTriangle } from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
+import CenteredAuthModal from '@/common/components/CenteredAuthModal.vue';
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'verified'): void;
@@ -27,7 +31,6 @@ function handleInput(event: Event) {
   }
 }
 
-// Verifizieren
 async function verify() {
   if (code.value.length !== 6 || loading.value) return;
 
@@ -39,11 +42,12 @@ async function verify() {
   if (result.ok) {
     emit('verified');
   } else {
-    if (result.error?.includes('fehlgeschlagen') || result.error?.includes('expired')) {
-      error.value = 'Sitzung abgelaufen. Bitte erneut anmelden.';
+    const isExpired = result.error?.includes('expired') || result.error?.includes('abgelaufen');
+    if (isExpired) {
+      error.value = t('account.mfa.verify.errors.sessionExpired');
       setTimeout(() => emit('cancelled'), 2000);
     } else {
-      error.value = result.error || 'Authentifizierung fehlgeschlagen';
+      error.value = result.error || t('account.mfa.verify.errors.failed');
     }
     code.value = '';
     shakeInput.value = true;
@@ -55,13 +59,11 @@ async function verify() {
   loading.value = false;
 }
 
-// Abbrechen
 async function cancel() {
   await cancelMfaLogin();
   emit('cancelled');
 }
 
-// Direkt Fokus
 onMounted(() => {
   nextTick(() => {
     codeInputRef.value?.focus();
@@ -70,173 +72,84 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseModal @cancel="cancel">
-    <template #title>
-      Zwei-Faktor-Authentifizierung
-    </template>
-
-    <template #content>
-      <p class="instruction">
-        Gib den 6-stelligen Code aus deiner Authenticator-App ein,
-        um die fortzufahren.
+  <CenteredAuthModal
+    :title="t('account.mfa.verify.title')"
+    :close-on-backdrop="false"
+    @close="cancel"
+  >
+    <div class="space-y-4">
+      <p class="text-sub text-on-surface-muted text-center">
+        {{ t('account.mfa.verify.instruction') }}
       </p>
 
-      <div class="code-input-wrapper">
+      <div class="flex justify-center">
         <input
-            ref="codeInputRef"
-            v-model="code"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="6"
-            placeholder="000000"
-            class="code-input"
-            :class="{ error: error, shake: shakeInput }"
-            :disabled="loading"
-            @input="handleInput"
-            @keyup.enter="verify"
+          ref="codeInputRef"
+          v-model="code"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          placeholder="000000"
+          class="w-[180px] px-4 py-3 text-h3 font-mono text-center bg-surface text-on-surface border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
+          :class="{ 'border-danger': error, 'shake': shakeInput }"
+          :disabled="loading"
+          @input="handleInput"
+          @keyup.enter="verify"
         />
       </div>
 
       <transition name="fade">
-        <div v-if="error" class="error-message">
-          <AlertCircle :size="14" />
+        <div v-if="error" class="flex items-center justify-center gap-2 text-danger text-sub">
+          <AlertCircle :size="16" />
           {{ error }}
         </div>
       </transition>
 
-      <div v-if="attemptsRemaining !== null && attemptsRemaining <= 3" class="attempts-warning">
-        <AlertTriangle :size="14" />
-        Noch {{ attemptsRemaining }} Versuche
-      </div>
+      <transition name="fade">
+        <div v-if="attemptsRemaining !== null && attemptsRemaining <= 3" class="flex items-center justify-center gap-2 text-danger text-sub">
+          <AlertTriangle :size="16" />
+          {{ t('account.mfa.verify.attemptsRemaining', attemptsRemaining) }}
+        </div>
+      </transition>
 
-      <div class="modal-footer">
-        <p class="help-text">
-          Du hast Probleme, die 2-Faktor-Authentifizierung abzuschließen?
+      <div class="pt-4 border-t border-canvas-border">
+        <p class="text-footnote text-on-surface-muted text-center m-0 leading-relaxed">
+          {{ t('account.mfa.verify.support.text') }}
           <br />
-          <BaseLink to="mailto:kontakt@schul-dashboard.com">
-            Kontaktiere uns gerne über den Support
-          </BaseLink>
+          <a href="mailto:kontakt@schul-dashboard.com" class="text-on-surface underline hover:opacity-75 transition-opacity">
+            {{ t('account.mfa.verify.support.link') }}
+          </a>
         </p>
       </div>
-    </template>
+    </div>
 
-    <template #action-btn>
-      <BaseButton @click="verify" :disabled="code.length !== 6 || loading" type="submit" variant="action" :loading="loading">
-        Bestätigen
+    <template #actions>
+      <BaseButton type="button" variant="ghost" @click="cancel">
+        {{ t('global.buttons.cancel') }}
+      </BaseButton>
+      <BaseButton
+        type="button"
+        variant="action"
+        @click="verify"
+        :disabled="code.length !== 6 || loading"
+        :loading="loading"
+      >
+        {{ t('global.buttons.confirm') }}
       </BaseButton>
     </template>
-  </BaseModal>
+  </CenteredAuthModal>
 </template>
 
 <style scoped>
-.instruction {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  line-height: 1.5;
-  margin: 0;
-  text-align: center;
-}
-
-.code-input-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.code-input {
-  width: 180px;
-  padding: 14px 16px;
-  font-size: 28px;
-  font-family: 'SF Mono', Monaco, monospace;
-  letter-spacing: 10px;
-  text-align: center;
-  background: var(--color-surface);
-  border: 2px solid var(--color-surface-border);
-  border-radius: 12px;
-  color: var(--color-on-surface);
-  transition: border-color 0.2s;
-}
-
-.code-input:focus {
-  outline: none;
-  border-color: var(--color-on-surface);
-}
-
-.code-input.error {
-  border-color: var(--color-danger);
-}
-
-.code-input.shake {
-  animation: shake 0.4s ease-in-out;
-}
-
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20%, 60% { transform: translateX(-8px); }
   40%, 80% { transform: translateX(8px); }
 }
 
-.code-input::placeholder {
-  color: var(--color-surface-border);
-  letter-spacing: 10px;
-}
-
-.code-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.error-message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: var(--text-sub);
-  color: var(--color-danger);
-}
-
-.attempts-warning {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: var(--text-sub);
-  color: var(--color-danger);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.modal-actions .btn {
-  min-width: 100px;
-  justify-content: center;
-}
-
-.modal-footer {
-  padding-top: 16px;
-  border-top: 1px solid var(--color-canvas-border);
-}
-
-.help-text {
-  font-size: var(--text-footnote);
-  color: var(--color-on-surface-muted);
-  text-align: center;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.help-link {
-  color: var(--color-on-surface);
-  text-decoration: underline;
-  transition: opacity 0.2s;
-}
-
-.help-link:hover {
-  opacity: 0.8;
+.shake {
+  animation: shake 0.4s ease-in-out;
 }
 
 .fade-enter-active,
@@ -247,14 +160,5 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-@media (max-width: 400px) {
-  .code-input {
-    width: 100%;
-    max-width: 200px;
-    font-size: 24px;
-    letter-spacing: 8px;
-  }
 }
 </style>

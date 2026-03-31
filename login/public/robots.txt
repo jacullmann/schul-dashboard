@@ -1,3 +1,0 @@
-# No indexing for login/authentication app
-User-agent: *
-Disallow: /

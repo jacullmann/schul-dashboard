@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
+import { useLoadingBar } from '@/common/composables/loadingState';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
 import CookieBanner from '@/common/components/CookieBanner.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
@@ -18,6 +19,7 @@ const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
+const { loading, progress, opacity } = useLoadingBar();
 
 // ── Auth lifecycle helpers ─────────────────────────────────────────────────
 
@@ -37,11 +39,11 @@ async function handleAuthExpired() {
   userStore.clearUser();
   const stillAuthenticated = await checkAuthStatus();
   if (stillAuthenticated) {
-    window.location.href = import.meta.env.VITE_LOGIN_URL;
+    await router.push('/login');
   } else {
     const currentPath = router.currentRoute.value.path;
-    if (currentPath !== '/' && !currentPath.startsWith('/auth')) {
-      await router.push('/');
+    if (currentPath !== '/' && !currentPath.startsWith('/login') && !currentPath.startsWith('/auth')) {
+      await router.push('/login');
     }
   }
 }
@@ -98,6 +100,13 @@ onUnmounted(() => {
 
 <template>
   <div class="full">
+    <!-- Global Loading Bar (visible on all routes) -->
+    <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
+      <div class="progress-bar" :style="{ width: progress + '%' }">
+        <div class="peg"></div>
+      </div>
+    </div>
+
     <template v-if="!isAuthReady">
       <div key="loading" class="auth-loading-screen">
         <BaseSpinner on="ghost" size="40px" />
@@ -127,5 +136,45 @@ onUnmounted(() => {
   justify-content: center;
   background: var(--color-canvas);
   z-index: var(--z-auth-loading);
+}
+
+.progress-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  width: 100%;
+  background: transparent;
+  z-index: 9999;
+  pointer-events: none;
+  transition: all .2s ease;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--background-image-bismuth);
+  transition: width 200ms ease-out;
+  position: relative;
+}
+
+.peg {
+  display: block;
+  position: absolute;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #af00ff, 0 0 5px #af00ff;
+  opacity: 1;
+  transform: rotate(3deg) translate(0px, -4px);
+}
+
+@keyframes peg-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 </style>

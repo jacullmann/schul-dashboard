@@ -44,7 +44,7 @@
   left: 0;
   width: 100%;
   height: 95vh;
-  background-image: url('/background_image_v2.webp');
+  background-image: url('/background_image.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

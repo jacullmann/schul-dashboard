@@ -233,6 +233,53 @@
         "confirmMissing": "Confirm your password",
         "confirmWrong": "The passwords do not match",
         "termsMissing": "Please accept the privacy policy and terms to continue"
+      },
+      "orContinueWith": "or",
+      "resetSuccess": "Password successfully reset. Please log in.",
+      "loginCancelled": "Login cancelled.",
+      "reset": {
+        "title": "Reset Password",
+        "step1": { "description": "Enter your registered email. We'll send a 6-digit code." },
+        "step2": { "description": "Enter the code you received by email." },
+        "step3": { "description": "Enter your new password (min. 8 characters) and confirm it." },
+        "placeholders": {
+          "email": "Email",
+          "code": "6-digit code",
+          "newPassword": "New password",
+          "confirmPassword": "Repeat new password"
+        },
+        "actions": {
+          "requestCode": "Request Code",
+          "verifyCode": "Verify Code",
+          "setPassword": "Set Password"
+        },
+        "errors": {
+          "invalidEmail": "Please enter a valid email address.",
+          "codeSent": "If the email exists, a code has been sent.",
+          "requestFailed": "Error requesting code.",
+          "invalidCode": "Please enter a 6-digit code.",
+          "codeVerified": "Code confirmed. Please enter your new password.",
+          "codeExpired": "Invalid or expired code.",
+          "passwordShort": "Password must be at least 8 characters long.",
+          "passwordMismatch": "Passwords do not match.",
+          "noToken": "No valid reset token. Please request a new code.",
+          "resetFailed": "Error resetting password."
+        }
+      }
+    },
+    "mfa": {
+      "verify": {
+        "title": "Two-Factor Authentication",
+        "instruction": "Enter the 6-digit code from your authenticator app to continue.",
+        "attemptsRemaining": "No attempts remaining | {n} attempt remaining | {n} attempts remaining",
+        "support": {
+          "text": "Having trouble completing two-factor authentication?",
+          "link": "Contact us via support"
+        },
+        "errors": {
+          "sessionExpired": "Session expired. Please log in again.",
+          "failed": "Authentication failed"
+        }
       }
     }
   },
