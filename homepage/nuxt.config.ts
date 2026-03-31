@@ -52,7 +52,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'canonical', href: 'https://schul-dashboard.com' },
-        { rel: 'icon', type: 'image/svg+xml', href: '/schul-dashboard_favicon_v7.svg?v=15' },
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },

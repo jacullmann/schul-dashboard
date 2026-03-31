@@ -1,16 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-
-const day = ref<number | null>(null);
-const dayString = computed(() => (day.value !== null ? String(day.value) : ''));
-
-onMounted(() => {
-  day.value = new Date().getDate();
-  setInterval(() => {
-    const d = new Date().getDate();
-    if (day.value !== d) day.value = d;
-  }, 5_000);
-});
 </script>
 
 <template>
@@ -54,7 +42,7 @@ onMounted(() => {
     <text
       style="font-weight: 900; font-size: 560px; font-family: Inter, sans-serif; fill: var(--color-onyx); text-anchor: middle;"
     >
-      <tspan x="512" y="880" text-anchor="middle">{{ dayString }}</tspan>
+      <tspan x="512" y="880" text-anchor="middle">30</tspan>
     </text>
   </svg>
 </template>
