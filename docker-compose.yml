@@ -43,7 +43,7 @@ services:
     environment:
       API_PROXY_TARGET: http://server:3000
     ports:
-      - "3001:3000"
+      - "3001:3001"
     depends_on:
       - server
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
     environment:
       VITE_HW_API_BASE: http://server:3000
     ports:
-      - "5174:5173"
+      - "5174:5174"
     depends_on:
       - server
     restart: unless-stopped

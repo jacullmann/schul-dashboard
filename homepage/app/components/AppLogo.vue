@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 const day = ref<number | null>(null);
 const dayString = computed(() => (day.value !== null ? String(day.value) : ''));
 
-if (import.meta.client) {
+onMounted(() => {
   day.value = new Date().getDate();
   setInterval(() => {
     const d = new Date().getDate();
     if (day.value !== d) day.value = d;
-  }, 60_000);
-}
+  }, 5_000);
+});
 </script>
 
 <template>

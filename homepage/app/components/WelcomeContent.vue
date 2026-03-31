@@ -8,7 +8,7 @@ defineProps<{ onMoreInfoClick: () => void }>();
 const config = useRuntimeConfig();
 
 function formatDate(dateString: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(dateString));
+  return new Intl.DateTimeFormat('de', { dateStyle: 'short' }).format(new Date(dateString));
 }
 </script>
 
