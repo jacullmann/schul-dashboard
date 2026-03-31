@@ -10,11 +10,8 @@ async function handleMfaVerified() {
   try {
     await userStore.fetchUser();
   } catch {
-    // Continue even if fetch fails
   }
-  await router.push({
-    name: 'home'
-  });
+  await router.push('/home');
 }
 
 async function handleMfaCancelled() {

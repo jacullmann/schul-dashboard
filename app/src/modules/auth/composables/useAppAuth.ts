@@ -180,11 +180,6 @@ export function useAppAuth() {
       isAuthenticated: isAuthenticated.value,
     };
 
-    // We deliberately do NOT optimistically update `activeGroupId` before the
-    // network round-trip completes.  Doing so causes downstream data-fetching
-    // components to issue requests against the old tenant before the backend
-    // has processed the switch.
-
     switchTarget = groupId;
     switchPromise = (async (): Promise<AuthResult> => {
       try {

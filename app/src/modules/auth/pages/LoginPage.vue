@@ -29,7 +29,7 @@ const {
       await userStore.fetchUser();
     } catch {
     }
-    await router.push({ name: 'home' });
+    await router.push('/home');
   },
   async () => {
     await router.push('/verify-mfa');
@@ -49,9 +49,8 @@ onMounted(() => {
     try {
       await userStore.fetchUser();
     } catch {
-      // Continue even if fetch fails
     }
-    await router.push({ name: 'home' });
+    await router.push('/home');
   });
 });
 </script>
