@@ -125,10 +125,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      // URL of the login app — override via NUXT_PUBLIC_LOGIN_URL env var
-      loginUrl: 'http://localhost:5174',
-      // URL of the main dashboard app
-      appUrl: 'http://localhost:5173',
+      loginUrl: '',
+      appUrl: '',
+      hwApiBase: '',
     },
   },
 
