@@ -1,4 +1,4 @@
-import { ref, computed, type Ref } from 'vue';
+import { ref, computed, nextTick, type Ref } from 'vue';
 import {
   onClickOutside,
   useEventListener,
@@ -14,7 +14,7 @@ export function useAccountMenu(
   refs: {
     root: Ref<HTMLElement | null>;
     popupInner: Ref<HTMLElement | null>;
-    firstMenuBtnRef: Ref<HTMLButtonElement | null>;
+    firstMenuBtnRef: Ref<{ focus: () => void } | null>;
   },
 ) {
   const accountModals = useAccountModals();
@@ -104,8 +104,8 @@ export function useAccountMenu(
   async function toggle() {
     open.value = !open.value;
     if (open.value) {
-      // Wait one tick for the popup to mount so firstMenuBtnRef is available
-      await Promise.resolve();
+      // Wait for Vue to finish the reactive DOM update before accessing the ref
+      await nextTick();
       refs.firstMenuBtnRef.value?.focus();
     }
   }

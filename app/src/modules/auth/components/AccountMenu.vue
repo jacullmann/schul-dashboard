@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 const root = ref<HTMLElement | null>(null);
 const popupInner = ref<HTMLElement | null>(null);
-const firstMenuBtnRef = ref<HTMLButtonElement | null>(null);
+const firstMenuBtnRef = ref<{ focus: () => void } | null>(null);
 
 const {
   personalizationSetting,

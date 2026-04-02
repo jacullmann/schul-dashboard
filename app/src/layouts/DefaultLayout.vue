@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useAppShortcuts } from '@/core/composables/useAppShortcuts';
 import AppHeader from '@/core/components/AppHeader.vue';
-import AppFooter from '@/core/components/AppFooter.vue';
 import AppSidebar from '@/core/components/AppSidebar.vue';
 import GlobalAnnouncements from '@/modules/announcements/components/GlobalAnnouncements.vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -35,8 +34,6 @@ useAppShortcuts();
           </router-view>
         </div>
       </main>
-
-      <AppFooter />
     </div>
   </div>
 </template>

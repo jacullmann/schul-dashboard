@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import  { computed } from 'vue';
 import { ExternalLink } from '@lucide/vue';
-import { useTheme, applyTheme, type ThemeMode } from '~/composables/useTheme';
+import { useTheme, type ThemeMode } from '~/composables/useTheme';
 
-const { t, locale } = useI18n();
-const { selectedThemeMode } = useTheme();
-const { $setLocale } = useNuxtApp();
+const { t, setLocale } = useI18n();
+const { selectedThemeMode, setTheme } = useTheme();
 
 const themeOptions = computed(() => [
   { value: 'system', label: t('theme.system') },
@@ -19,13 +17,17 @@ const localeOptions = [
   { value: 'en', label: 'English' },
 ];
 
-function setTheme(e: Event) {
-  applyTheme((e.target as HTMLSelectElement).value as ThemeMode);
+const currentLocale = computed(() => {
+  const { locale } = useI18n();
+  return locale.value;
+});
+
+function handleThemeChange(e: Event) {
+  setTheme((e.target as HTMLSelectElement).value as ThemeMode);
 }
 
-function setLocale(e: Event) {
-  ($setLocale as (l: string) => void)((e.target as HTMLSelectElement).value);
-  locale.value = (e.target as HTMLSelectElement).value as 'de' | 'en';
+function handleLocaleChange(e: Event) {
+  setLocale((e.target as HTMLSelectElement).value);
 }
 </script>
 
@@ -43,7 +45,11 @@ function setLocale(e: Event) {
         <h3 class="footer-title">Navigation</h3>
         <nav class="footer-links">
           <NuxtLink to="/" class="footer-link">{{ t('footer.navigation.landingPage') }}</NuxtLink>
+          <NuxtLink to="/about" class="footer-link">{{ t('footer.navigation.about') }}</NuxtLink>
+          <NuxtLink to="/contact" class="footer-link">{{ t('footer.navigation.contact') }}</NuxtLink>
           <NuxtLink to="/legal/imprint" class="footer-link">{{ t('footer.navigation.imprint') }}</NuxtLink>
+          <NuxtLink to="/legal/privacy-policy" class="footer-link">{{ t('footer.navigation.privacy') }}</NuxtLink>
+          <NuxtLink to="/legal/terms" class="footer-link">{{ t('footer.navigation.terms') }}</NuxtLink>
           <a
             href="https://stats.uptimerobot.com/m8tUrWG3Zz"
             target="_blank"
@@ -56,10 +62,9 @@ function setLocale(e: Event) {
         </nav>
       </div>
 
-      <!-- Theme -->
       <div class="footer-section">
         <h3 class="footer-title">{{ t('footer.design') }}</h3>
-        <select class="footer-select" :value="selectedThemeMode" @change="setTheme">
+        <select class="footer-select" :value="selectedThemeMode" @change="handleThemeChange">
           <option v-for="opt in themeOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </option>
@@ -69,7 +74,7 @@ function setLocale(e: Event) {
       <!-- Language -->
       <div class="footer-section">
         <h3 class="footer-title">{{ t('footer.language') }}</h3>
-        <select class="footer-select" :value="locale" @change="setLocale">
+        <select class="footer-select" :value="currentLocale" @change="handleLocaleChange">
           <option v-for="opt in localeOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </option>
@@ -101,16 +106,11 @@ function setLocale(e: Event) {
 }
 
 @media (max-width: 1024px) {
-  .footer-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
+  .footer-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 .footer-section {

@@ -1,17 +1,25 @@
 <script setup lang="ts">
-import { Check } from '@lucide/vue'
+import { ref } from 'vue';
+import { Check } from '@lucide/vue';
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   active?: boolean;
   isSelect?: boolean;
   variant?: 'default' | 'danger';
 }>(), {
   variant: 'default',
-})
+});
+
+const buttonEl = ref<HTMLButtonElement | null>(null);
+
+defineExpose({
+  focus: () => buttonEl.value?.focus(),
+});
 </script>
 
 <template>
   <button
+      ref="buttonEl"
       type="button"
       class="flex justify-between items-center w-full text-left bg-transparent border-0 p-2 rounded-md cursor-pointer text-sub transition-hover user-select-none"
       :class="[

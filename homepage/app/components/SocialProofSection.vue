@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-
 const { t, tm } = useI18n();
 </script>
 
 <template>
   <section id="welcome-section" class="info-section">
     <div class="info-container">
-      <h3 class="info-title" v-html="t('comparison.headline')" />
+      <h3 class="info-title">
+        {{ t('comparison.headline.before') }}<span class="highlight">{{ t('comparison.headline.highlight1') }}</span>{{ t('comparison.headline.mid') }}<span class="highlight">{{ t('comparison.headline.highlight2') }}</span>{{ t('comparison.headline.end') }}
+      </h3>
       <ClientOnly>
         <ImageComparison />
       </ClientOnly>
@@ -15,7 +15,9 @@ const { t, tm } = useI18n();
     </div>
 
     <div class="info-container">
-      <h3 class="info-title" v-html="t('reasons.byStudentsForStudents')" />
+      <h3 class="info-title">
+        <span class="highlight">{{ t('reasons.byStudentsForStudents.highlight1') }}</span>{{ t('reasons.byStudentsForStudents.mid') }}<span class="highlight">{{ t('reasons.byStudentsForStudents.highlight2') }}</span>{{ t('reasons.byStudentsForStudents.suffix') }}
+      </h3>
       <h3 class="info-title">{{ t('reasons.why') }}</h3>
       <div class="info-promises">
         <div v-for="(reason, i) in (tm('reasons.reasons') as Array<{ number: string; text: string }>)" :key="i">

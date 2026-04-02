@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-
 const { t } = useI18n();
 
 defineProps<{ onMoreInfoClick: () => void }>();
@@ -13,11 +11,13 @@ function formatDate(dateString: string) {
 </script>
 
 <template>
-  <div class="welcome-section">
-    <!-- Text -->
+  <div class="hero-section">
+    <!-- Copy -->
     <div class="text-content">
       <h1 class="headline-serif">{{ t('hero.headlineSerif') }}</h1>
-      <h1 class="headline-sans" v-html="t('hero.headlineSans')" />
+      <h1 class="headline-sans">
+        {{ t('hero.headlineSans.before') }} <b>{{ t('hero.headlineSans.highlight') }}</b>
+      </h1>
       <p class="subline">
         {{ t('hero.subline') }}
         <span class="highlight-wrap">
@@ -26,10 +26,12 @@ function formatDate(dateString: string) {
       </p>
 
       <div class="action-buttons">
-        <a :href="config.public.loginUrl">
-          <WelcomeButtonPrimary />
+        <a :href="config.public.loginUrl" class="btn-primary">
+          {{ t('hero.cta') }}
         </a>
-        <WelcomeButtonSecondary @click="onMoreInfoClick" />
+        <button type="button" class="btn-secondary" @click="onMoreInfoClick">
+          {{ t('hero.learnMore') }}
+        </button>
       </div>
     </div>
 
@@ -37,7 +39,6 @@ function formatDate(dateString: string) {
     <div class="visual-container">
       <div class="example-wrapper">
         <div class="example-dashboard">
-          <!-- Demo card 1: checked -->
           <div class="demo-card">
             <span class="demo-checkbox checked" aria-hidden="true">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -49,7 +50,6 @@ function formatDate(dateString: string) {
             </div>
           </div>
 
-          <!-- Demo card 2 (desktop only) -->
           <div class="demo-card only-desktop">
             <span class="demo-checkbox" aria-hidden="true" />
             <div class="demo-card-body">
@@ -58,7 +58,6 @@ function formatDate(dateString: string) {
             </div>
           </div>
 
-          <!-- Demo card 3 -->
           <div class="demo-card">
             <span class="demo-checkbox" aria-hidden="true" />
             <div class="demo-card-body">
@@ -76,7 +75,7 @@ function formatDate(dateString: string) {
 </template>
 
 <style scoped>
-.welcome-section {
+.hero-section {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -115,7 +114,7 @@ function formatDate(dateString: string) {
   font-family: var(--font-sans), sans-serif;
 }
 
-:deep(b) {
+b {
   background: var(--background-image-bismuth);
   -webkit-background-clip: text;
   background-clip: text;
@@ -141,7 +140,44 @@ function formatDate(dateString: string) {
   margin-top: 32px;
 }
 
-/* Visual section */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-action);
+  color: var(--color-on-action);
+  font-size: var(--text-body);
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--duration-hover) var(--ease-hover);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-action-hover);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-on-surface-muted);
+  font-size: var(--text-body);
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: color var(--duration-hover) var(--ease-hover);
+}
+
+.btn-secondary:hover {
+  color: var(--color-on-surface);
+}
+
+/* Visual */
 .visual-container {
   flex: 1;
   display: flex;
@@ -222,9 +258,8 @@ function formatDate(dateString: string) {
   min-height: 30px;
 }
 
-/* Responsive */
 @media (max-width: 1200px) {
-  .welcome-section {
+  .hero-section {
     flex-direction: column;
     padding: 0;
     gap: 0;
@@ -262,12 +297,7 @@ function formatDate(dateString: string) {
 }
 
 @media (max-width: 576px) {
-  .only-desktop {
-    display: none;
-  }
-
-  .headline-serif {
-    margin-top: -24px;
-  }
+  .only-desktop { display: none; }
+  .headline-serif { margin-top: -24px; }
 }
 </style>

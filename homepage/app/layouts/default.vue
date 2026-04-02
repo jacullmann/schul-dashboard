@@ -4,7 +4,7 @@
 <template>
   <div class="page-shell">
     <header class="header-container">
-      <WelcomeHeader />
+      <TheHeader />
     </header>
 
     <main class="main-content">
@@ -14,7 +14,7 @@
       </div>
     </main>
 
-    <WelcomeFooter />
+    <TheFooter />
   </div>
 </template>
 
@@ -57,9 +57,7 @@
 }
 
 @media (max-width: 1200px) {
-  .hero-bg {
-    display: none;
-  }
+  .hero-bg { display: none; }
 }
 
 .main-inner {

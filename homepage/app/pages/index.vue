@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-
 const { t } = useI18n();
 
 useSeoMeta({
@@ -10,12 +8,13 @@ useSeoMeta({
   ogDescription: () => t('hero.subline') + ' ' + t('hero.sublineHighlight'),
 });
 
-function scrollToSection() {
-  document.getElementById('welcome-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function scrollToFeatures() {
+  document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 </script>
 
 <template>
-  <WelcomeContent :on-more-info-click="scrollToSection" />
-  <WelcomeSection />
+  <HeroSection :on-more-info-click="scrollToFeatures" />
+  <FeaturesSection id="features-section" />
+  <SocialProofSection />
 </template>

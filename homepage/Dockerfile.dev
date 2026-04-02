@@ -4,7 +4,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-ENV HOST=0.0.0.0
-ENV PORT=3001
+COPY . .
 
 CMD ["npm", "run", "dev"]

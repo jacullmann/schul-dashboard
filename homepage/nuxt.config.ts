@@ -1,15 +1,27 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
   ssr: true,
 
   modules: [
+    '@vueuse/nuxt',
     '@nuxtjs/tailwindcss',
     '@nuxtjs/sitemap',
+    '@nuxtjs/i18n',
   ],
 
-
+  i18n: {
+    defaultLocale: 'en',
+    locales: [
+      { code: 'de', name: 'Deutsch', file: 'de.json' },
+      { code: 'en', name: 'English', file: 'en.json' },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root'
+    }
+  },
 
   app: {
     head: {
@@ -23,8 +35,6 @@ export default defineNuxtConfig({
         { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
         { name: 'language', content: 'en' },
         { name: 'revisit-after', content: '7 days' },
-        
-        // Open Graph / Social
         { property: 'og:type', content: 'website' },
         { property: 'og:url', content: 'https://schul-dashboard.com' },
         { property: 'og:title', content: 'schul-dashboard – Free School Management for Students' },
@@ -34,20 +44,14 @@ export default defineNuxtConfig({
         { property: 'og:image:height', content: '630' },
         { property: 'og:locale', content: 'en_US' },
         { property: 'og:site_name', content: 'schul-dashboard' },
-        
-        // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:url', content: 'https://schul-dashboard.com' },
         { name: 'twitter:title', content: 'schul-dashboard – Free School Management' },
         { name: 'twitter:description', content: 'The collaborative school dashboard by students for students.' },
         { name: 'twitter:image', content: 'https://schul-dashboard.com/og-image.png' },
-        
-        // Theme & Display
         { name: 'theme-color', content: '#0f0f0f' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-        
-        // Google
         { name: 'google-site-verification', content: 'EWIYTbU2hlYorTqIulVfAyKjArTsWmgQ9O9g0Tb0L8c' },
       ],
       link: [
@@ -62,7 +66,6 @@ export default defineNuxtConfig({
         },
       ],
       script: [
-        // JSON-LD Schema
         {
           type: 'application/ld+json',
           innerHTML: JSON.stringify({
@@ -114,11 +117,12 @@ export default defineNuxtConfig({
   sitemap: {
     enabled: true,
     urls: [
-      'https://schul-dashboard.com',
-      'https://schul-dashboard.com/legal/imprint',
-      'https://schul-dashboard.com/legal/privacy-policy',
-      'https://schul-dashboard.com/legal/terms',
-      'https://schul-dashboard.com/contact',
+      { loc: 'https://schul-dashboard.com', priority: 1.0, changefreq: 'weekly' },
+      { loc: 'https://schul-dashboard.com/about', priority: 0.8, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/contact', priority: 0.7, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/legal/imprint', priority: 0.3, changefreq: 'yearly' },
+      { loc: 'https://schul-dashboard.com/legal/privacy-policy', priority: 0.3, changefreq: 'yearly' },
+      { loc: 'https://schul-dashboard.com/legal/terms', priority: 0.3, changefreq: 'yearly' },
     ],
     sitemaps: true,
   },
@@ -136,4 +140,5 @@ export default defineNuxtConfig({
     port: 3001,
   },
 })
+
 

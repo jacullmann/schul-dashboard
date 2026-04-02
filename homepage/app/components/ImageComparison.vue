@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useEventListener, useElementBounding } from '@vueuse/core';
+import { ref, computed, onMounted } from 'vue';
+import { useElementBounding } from '@vueuse/core';
 
 interface Props {
   beforeImage?: string;
@@ -23,17 +23,34 @@ const isDragging = ref(false);
 const { left: containerLeft, width: containerWidth } = useElementBounding(containerRef);
 
 const updatePosition = (clientX: number) => {
+  if (containerWidth.value === 0) return;
   const x = clientX - containerLeft.value;
   sliderPosition.value = Math.max(0, Math.min(100, (x / containerWidth.value) * 100));
 };
 
-useEventListener(window, 'mouseup', () => (isDragging.value = false));
-useEventListener(window, 'touchend', () => (isDragging.value = false));
-useEventListener(window, 'mousemove', (e: MouseEvent) => {
-  if (isDragging.value) updatePosition(e.clientX);
-});
-useEventListener(window, 'touchmove', (e: TouchEvent) => {
-  if (isDragging.value) updatePosition(e.touches[0].clientX);
+onMounted(() => {
+  if (typeof window === 'undefined') return;
+
+  const handleMouseUp = () => (isDragging.value = false);
+  const handleTouchEnd = () => (isDragging.value = false);
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging.value) updatePosition(e.clientX);
+  };
+  const handleTouchMove = (e: TouchEvent) => {
+    if (isDragging.value && e.touches[0]) updatePosition(e.touches[0].clientX);
+  };
+
+  window.addEventListener('mouseup', handleMouseUp);
+  window.addEventListener('touchend', handleTouchEnd);
+  window.addEventListener('mousemove', handleMouseMove);
+  window.addEventListener('touchmove', handleTouchMove);
+
+  return () => {
+    window.removeEventListener('mouseup', handleMouseUp);
+    window.removeEventListener('touchend', handleTouchEnd);
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('touchmove', handleTouchMove);
+  };
 });
 
 const foregroundStyle = computed(() => ({
