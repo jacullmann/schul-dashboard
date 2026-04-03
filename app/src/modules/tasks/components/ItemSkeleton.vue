@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
+
 withDefaults(defineProps<{
   count?: number;
   imageCount?: number;
@@ -9,113 +11,29 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <div class="skeleton-container">
+  <div class="flex flex-col gap-9 p-3">
     <div
         v-for="n in count"
         :key="n"
-        class="item-card skeleton-item"
     >
-      <div class="item-main">
-        <div class="item-meta">
-          <div>
-            <div class="skeleton-title"></div>
-          </div>
+      <BaseSkeleton width="60" height="20px" class="mb-3" />
 
-          <div class="row-n item-badges">
-            <div class="skeleton-text skeleton-info"></div>
-          </div>
-        </div>
+      <BaseSkeleton width="40" height="16px" class="mb-3" />
 
-      </div>
+      <BaseSkeleton width="full" height="16px" class="mb-2" />
+      <BaseSkeleton width="full" height="16px" class="mb-2" />
+      <BaseSkeleton width="[70%]" height="16px" class="mb-2" />
 
-      <div class="item-body">
-        <div class="skeleton-text skeleton-line-1"></div>
-        <div class="skeleton-text skeleton-line-2"></div>
-        <div class="skeleton-text skeleton-line-3"></div>
-      </div>
-
-      <div class="item-images">
-        <div class="images-row">
-          <div
-              v-for="img in imageCount"
-              :key="img"
-              class="skeleton-image"
-          ></div>
-        </div>
+      <div class="mt-2 flex gap-2">
+        <BaseSkeleton
+            v-for="img in imageCount"
+            :key="img"
+            width="[calc(max(50%-4px, 250px))]"
+            height="[calc(max(50%-4px, 250px))]"
+            radius="lg"
+            class="aspect-square"
+            />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.skeleton-container {
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
-  padding: 12px;
-}
-
-.skeleton-item {
-  animation: var(--animate-pulse);
-}
-
-.skeleton-title {
-  height: 20px;
-  width: 240px;
-  border-radius: var(--radius-full);
-  background: var(--color-canvas-hover);
-  animation: var(--animate-pulse);
-  margin-bottom: 12px;
-}
-
-.skeleton-text {
-  height: 16px;
-  border-radius: var(--radius-full);
-  background: var(--color-canvas-hover);
-  animation: var(--animate-pulse);
-  margin-bottom: 8px;
-}
-
-.skeleton-info {
-  width: 160px;
-  margin-bottom: 12px;
-}
-
-.skeleton-line-1 {
-  width: 100%;
-}
-
-.skeleton-line-2 {
-  width: 100%;
-}
-
-.skeleton-line-3 {
-  width: 70%;
-}
-
-.skeleton-image {
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-lg);
-  background: var(--color-canvas-hover);
-  animation: var(--animate-pulse);
-}
-
-.item-images {
-  margin-top: 8px;
-}
-
-.images-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-@media (max-width: 500px) {
-  .skeleton-image {
-    width: calc(50% - 4px);
-    aspect-ratio: 1 / 1;
-    height: auto;
-  }
-}
-</style>

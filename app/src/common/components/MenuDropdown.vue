@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { onClickOutside } from '@vueuse/core';
-import { ChevronDown, Check } from '@lucide/vue';
+import { ChevronDown } from '@lucide/vue';
 
 export interface MenuOption {
   value: string;

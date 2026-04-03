@@ -44,7 +44,6 @@ const toggleMenu = async () => {
     if (isOpen.value) {
       await nextTick();
 
-      // 4. Update querySelector to look inside the teleported floatingRef
       if (floatingRef.value) {
         const selectedElement = floatingRef.value.querySelector('.active') as HTMLElement | null;
 
@@ -64,7 +63,6 @@ const selectOption = (value: string) => {
   isOpen.value = false;
 };
 
-// 5. Ignore clicks inside the teleported menu so it doesn't immediately close
 onClickOutside(wrapperRef, () => {
   isOpen.value = false;
 }, { ignore: [floatingRef] });

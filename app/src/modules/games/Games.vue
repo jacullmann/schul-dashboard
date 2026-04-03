@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { games } from '@/modules/games/composables/GameData';
-import { useRouter } from 'vue-router';
 import { LucideFrown } from '@lucide/vue';
-
-const router = useRouter();
 
 const searchTag = ref('');
 
@@ -38,6 +35,7 @@ const filteredGames = computed(() => {
 
       <div class="search-bar">
         <BaseInput
+            id="search-input"
             v-model="searchTag"
             placeholder="Suchen"
         />
