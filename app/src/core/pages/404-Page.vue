@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { LayoutDashboard, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const router = useRouter();
+
+const { activeGroupId } = useAppAuth();
 
 const goBack = () => {
   if (window.history.length > 1) {
@@ -34,7 +37,7 @@ const goBack = () => {
             </div>
           </router-link>
 
-          <router-link to="/tasks" class="nav-card">
+          <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-card">
             <div class="nav-icon">
               <ListTodo :size="24" />
             </div>
@@ -44,7 +47,7 @@ const goBack = () => {
             </div>
           </router-link>
 
-          <router-link to="/schedule" class="nav-card">
+          <router-link :to="`/groups/${activeGroupId}/schedule`" class="nav-card">
             <div class="nav-icon">
               <CalendarDays :size="24" />
             </div>

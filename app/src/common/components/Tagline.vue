@@ -51,21 +51,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <h2
-      class="tagline-text"
-      :class="{ 'visible': isVisible }"
+  <p
+      v-if="isVisible"
+      class="text-on-surface-muted text-body font-sans italic font-medium m-0"
   >
     {{ displayQuote }}
-  </h2>
+  </p>
 </template>
-
-<style scoped>
-
-.tagline-text {
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-  font-family: var(--font-sans), sans-serif;
-  font-style: italic;
-  font-weight: 500;
-}
-</style>
