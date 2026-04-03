@@ -11,6 +11,8 @@ declare module '*.vue' {
   export default component;
 }
 
-interface Window {
-  __removeInitialLoadingScreen?: () => void;
+declare global {
+  interface Window {
+    __removeInitialLoadingScreen?: () => void;
+  }
 }

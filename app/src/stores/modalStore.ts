@@ -11,8 +11,6 @@ import type { ItemType } from '@/modules/tasks/types';
 // ---------------------------------------------------------------------------
 
 export const useModalStore = defineStore('modals', () => {
-
-
   // ── Search modal ──────────────────────────────────────────────────────────
   const searchOpen = ref(false);
   const searchMode = ref<'default' | 'group' | 'theme' | 'language'>('default');
@@ -95,7 +93,9 @@ export const useModalStore = defineStore('modals', () => {
   const privateTaskToEdit = ref<PrivateTask | null>(null);
 
   /** Registry of success callbacks (e.g. page-level update hooks). */
-  const _privateTaskFormSuccessCallbacks = new Set<(task: PrivateTask) => void>();
+  const _privateTaskFormSuccessCallbacks = new Set<
+    (task: PrivateTask) => void
+  >();
 
   function openPrivateTaskForm() {
     privateTaskToEdit.value = null;
@@ -118,9 +118,37 @@ export const useModalStore = defineStore('modals', () => {
     closePrivateTaskForm();
   }
 
-  function onPrivateTaskFormSuccess(cb: (task: PrivateTask) => void): () => void {
+  function onPrivateTaskFormSuccess(
+    cb: (task: PrivateTask) => void,
+  ): () => void {
     _privateTaskFormSuccessCallbacks.add(cb);
     return () => _privateTaskFormSuccessCallbacks.delete(cb);
+  }
+
+  // ── Announcement form ───────────────────────────────────────────────────────
+  const announcementFormOpen = ref(false);
+  const announcementFormKey = ref(0);
+
+  /** Registry of success callbacks (e.g. page-level reload hooks). */
+  const _announcementFormSuccessCallbacks = new Set<() => void>();
+
+  function openAnnouncementForm() {
+    announcementFormKey.value += 1;
+    announcementFormOpen.value = true;
+  }
+
+  function closeAnnouncementForm() {
+    announcementFormOpen.value = false;
+  }
+
+  function notifyAnnouncementFormSuccess() {
+    _announcementFormSuccessCallbacks.forEach((cb) => cb());
+    closeAnnouncementForm();
+  }
+
+  function onAnnouncementFormSuccess(cb: () => void): () => void {
+    _announcementFormSuccessCallbacks.add(cb);
+    return () => _announcementFormSuccessCallbacks.delete(cb);
   }
 
   // ── Account modals ────────────────────────────────────────────────────────
@@ -161,8 +189,6 @@ export const useModalStore = defineStore('modals', () => {
   }
 
   return {
-
-
     // Search modal
     searchOpen,
     searchMode,
@@ -198,6 +224,14 @@ export const useModalStore = defineStore('modals', () => {
     closePrivateTaskForm,
     notifyPrivateTaskFormSuccess,
     onPrivateTaskFormSuccess,
+
+    // Announcement form
+    announcementFormOpen,
+    announcementFormKey,
+    openAnnouncementForm,
+    closeAnnouncementForm,
+    notifyAnnouncementFormSuccess,
+    onAnnouncementFormSuccess,
 
     // Account modals
     showChangePassword,

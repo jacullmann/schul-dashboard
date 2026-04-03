@@ -390,7 +390,7 @@ onMounted(() => {
             <BaseLabel for="title" :required="true">{{
               t('school.tasks.itemForm.title')
             }}</BaseLabel>
-            <BaseInput ref="titleInputRef" id="title" v-model="title" :aria-describedby="titleError" />
+            <BaseInput ref="titleInputRef" id="title" v-model="title" :aria-describedby="titleError ? 'title-error' : undefined" />
           </BaseFormGroup>
 
           <BaseFormGroup id="subject" :error="subjectError">
@@ -401,7 +401,7 @@ onMounted(() => {
               id="subject"
               v-model="subjectSel"
               :options="subjectOptions"
-              :aria-describedby="subjectError"
+              :aria-describedby="subjectError ? 'subject-error' : undefined"
             />
           </BaseFormGroup>
 
@@ -413,7 +413,7 @@ onMounted(() => {
               id="enrKursSel"
               v-model="enrKursSel"
               :options="enrOptions"
-              :aria-describedby="enrError"
+              :aria-describedby="enrError ? 'enrKursSel-error' : undefined"
             />
           </BaseFormGroup>
 
@@ -425,7 +425,7 @@ onMounted(() => {
               id="wpu1KursSel"
               v-model="wpu1KursSel"
               :options="wpu1Options"
-              :aria-describedby="wpu1Error"
+              :aria-describedby="wpu1Error ? 'wpu1KursSel-error' : undefined"
             />
           </BaseFormGroup>
 
@@ -437,7 +437,7 @@ onMounted(() => {
               id="wpu2KursSel"
               v-model="wpu2KursSel"
               :options="wpu2Options"
-              :aria-describedby="wpu2Error"
+              :aria-describedby="wpu2Error ? 'wpu2KursSel-error' : undefined"
             />
           </BaseFormGroup>
 
@@ -445,7 +445,7 @@ onMounted(() => {
             <BaseLabel for="subjectOther" :required="true">{{
               t('school.tasks.itemForm.customSubject')
             }}</BaseLabel>
-            <BaseInput id="subjectOther" v-model="subjectOther" :aria-describedby="subjectOtherError"/>
+            <BaseInput id="subjectOther" v-model="subjectOther" :aria-describedby="subjectOtherError ? 'subjectOther-error' : undefined"/>
           </BaseFormGroup>
 
           <BaseFormGroup id="description" :error="descriptionError">
@@ -457,7 +457,7 @@ onMounted(() => {
               as="textarea"
               rows="4"
               v-model="description"
-              :aria-describedby="descriptionError"
+              :aria-describedby="descriptionError ? 'description-error' : undefined"
             ></BaseInput>
           </BaseFormGroup>
 
@@ -465,7 +465,7 @@ onMounted(() => {
             <BaseLabel for="dueDate" :required="true">{{
               t('school.tasks.itemForm.dueDate')
             }}</BaseLabel>
-            <BaseInput id="dueDate" type="date" v-model="dueLocal" :aria-describedby="dueDateError" />
+            <BaseInput id="dueDate" type="date" v-model="dueLocal" :aria-describedby="dueDateError ? 'dueDate-error' : undefined" />
           </BaseFormGroup>
 
           <BaseFormGroup id="images" :error="imgUploadError">

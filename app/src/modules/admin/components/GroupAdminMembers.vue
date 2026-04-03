@@ -61,9 +61,10 @@ function confirmRemove() {
 
 <template>
   <div class="tab-panel">
-    <div class="panel-header">
-      <div class="title-inf">
-        <h2>Mitglieder</h2>
+    <PageHeader>
+      Mitglieder
+
+      <template #info>
         <InfoModal
           tooltip="Übersicht des Mitgliedermenüs"
           title="Mitglieder"
@@ -79,12 +80,15 @@ function confirmRemove() {
           <h3>Mitglieder entfernen</h3>
           <p>Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden.</p>
         </InfoModal>
-      </div>
-      <BaseButton @click="emit('refresh')" :disabled="loading" variant="ghost">
-        <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
-        <span>Aktualisieren</span>
-      </BaseButton>
-    </div>
+      </template>
+
+      <template #action>
+        <BaseButton @click="emit('refresh')" :disabled="loading" variant="ghost">
+          <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
+          <span>Aktualisieren</span>
+        </BaseButton>
+      </template>
+    </PageHeader>
 
     <div v-if="loading && members.length === 0" class="empty-hint">Lädt...</div>
     <div v-else-if="members.length === 0" class="empty-hint">Keine Mitglieder gefunden.</div>
@@ -129,11 +133,9 @@ function confirmRemove() {
       </div>
     </div>
 
-    <div class="panel-header" style="margin-top: 32px;">
-      <div class="title-inf">
-        <h2>Banned Users</h2>
-      </div>
-    </div>
+    <PageHeader class="mt-8">
+      Banned Users
+    </PageHeader>
     
     <div v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)" class="empty-hint">Loading...</div>
     <div v-else-if="!bannedUsers || bannedUsers.length === 0" class="empty-hint">No banned users.</div>
@@ -173,26 +175,6 @@ function confirmRemove() {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.panel-header h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.panel-header .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sub);
 }
 
 .title-inf {

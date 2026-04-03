@@ -57,6 +57,19 @@ export function useAppShortcuts() {
     }
   });
 
+  // Alt+A → Create new announcement (admins only)
+  onKeyStroke(['a', 'A'], (e: KeyboardEvent) => {
+    if (!userStore.user) return;
+    if (!userStore.isGroupAdmin && !userStore.isSuperadmin) return;
+
+    if (e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      withGroup(() => {
+        modalStore.openAnnouncementForm();
+      });
+    }
+  });
+
   // Ctrl/Cmd+G → Group Switch
   onKeyStroke(['g', 'G'], (e: KeyboardEvent) => {
     if (!userStore.user) return;

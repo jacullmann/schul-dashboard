@@ -77,9 +77,10 @@ function handleSaveSub() {
 
 <template>
   <div class="tab-panel">
-    <div class="panel-header">
-      <div class="title-inf">
-        <h2>Stundenplanänderungen</h2>
+    <PageHeader>
+      Stundenplanänderungen
+
+      <template #info>
         <InfoModal
           tooltip="Übersicht des Adminstundenplanmenüs"
           title="Stundenplanänderungen"
@@ -92,12 +93,15 @@ function handleSaveSub() {
           <h3>Änderungen eintragen</h3>
           <p>Schreibe in die passenden Textfelder die neuen Daten. Falls ein Wert gleichbleiben soll, kannst du das Feld freilassen. Mit den entsprechenden Checkboxen kannst du auch markieren ob Stunden ausfallen oder Stunden ganz verbergen.</p>
         </InfoModal>
-      </div>
-      <BaseButton @click="emit('refresh')" :disabled="loadingSubs" variant="ghost">
-        <RefreshCw :size="14" :class="{ 'spin-icon': loadingSubs }" />
-        <span>Aktualisieren</span>
-      </BaseButton>
-    </div>
+      </template>
+
+      <template #action>
+        <BaseButton @click="emit('refresh')" :disabled="loadingSubs" variant="ghost">
+          <RefreshCw :size="14" :class="{ 'spin-icon': loadingSubs }" />
+          <span>Aktualisieren</span>
+        </BaseButton>
+      </template>
+    </PageHeader>
 
     <!-- Create Form -->
     <h3 v-if="!selectedLesson" style="color: var(--color-on-surface-muted); margin-bottom: 24px;">Bitte wählen Sie eine Stunde aus dem Stundenplan.</h3>
@@ -178,26 +182,6 @@ function handleSaveSub() {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.panel-header h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.panel-header .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sub);
 }
 
 .title-inf {

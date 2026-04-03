@@ -32,6 +32,7 @@ import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue
 import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
+import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -71,6 +72,8 @@ const {
   privateTaskFormOpen,
   privateTaskFormKey,
   privateTaskToEdit,
+  announcementFormOpen,
+  announcementFormKey,
 } = storeToRefs(modalStore);
 
 
@@ -83,11 +86,16 @@ function onItemFormSuccess() {
 }
 
 function onPrivateTaskFormSuccess(task: any) {
-  const msg = modalStore.privateTaskToEdit 
-    ? t('school.private.successUpdate') 
+  const msg = modalStore.privateTaskToEdit
+    ? t('school.private.successUpdate')
     : t('school.private.successCreate');
   toast.success(msg);
   modalStore.notifyPrivateTaskFormSuccess(task);
+}
+
+function onAnnouncementFormSuccess() {
+  toast.success('Ankündigung erfolgreich veröffentlicht!');
+  modalStore.notifyAnnouncementFormSuccess();
 }
 
 // ── Account modal callbacks ────────────────────────────────────────────────
@@ -200,6 +208,16 @@ async function onAuthSuccess() {
       :initial="privateTaskToEdit || undefined"
       @cancel="modalStore.closePrivateTaskForm()"
       @success="onPrivateTaskFormSuccess"
+    />
+  </Teleport>
+
+  <!-- Global announcement form (admin only, Alt+A) -->
+  <Teleport to="body">
+    <AnnouncementForm
+      v-if="announcementFormOpen"
+      :key="announcementFormKey"
+      @cancel="modalStore.closeAnnouncementForm()"
+      @success="onAnnouncementFormSuccess"
     />
   </Teleport>
 

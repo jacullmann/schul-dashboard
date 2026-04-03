@@ -47,7 +47,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
     const monday = new Date(d);
     monday.setHours(0, 0, 0, 0);
-    monday.setDate(d.getDate() + offsetToMonday[jsDay]);
+    monday.setDate(d.getDate() + (offsetToMonday[jsDay] ?? 0));
 
     const map: Record<number, number> = {};
     days.forEach((day, idx) => {
@@ -167,7 +167,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
             sub[typedKey] !== undefined &&
             sub[typedKey] !== ''
           ) {
-            // @ts-ignore
+            // @ts-expect-error
             merged[typedKey] = sub[typedKey];
 
             if (typedKey === 'subject') {

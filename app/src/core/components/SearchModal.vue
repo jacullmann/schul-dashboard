@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useItemForm } from '@/core/composables/useItemForm';
 import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
+import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 import {
   House,
   ListTodo,
@@ -54,6 +55,7 @@ const route = useRoute();
 const { activeGroupId, userGroups, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
 const { openItemForm } = useItemForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
+const { openAnnouncementForm } = useAnnouncementForm();
 const { openSetup, openSecurity, openChangePassword } = useAccountModals();
 const userStore = useUserStore();
 const { resetMfaState } = useMfa();
@@ -223,6 +225,21 @@ const defaultResults = computed<SearchResult[]>(() => [
       emit('cancel');
     },
     shortcut: ['alt', 'p'],
+  },
+  {
+    id: 'create-announcement',
+    label: 'Ankündigung erstellen',
+    description: 'Eine neue Ankündigung für deine Gruppe veröffentlichen.',
+    category: 'action',
+    icon: Newspaper,
+    action: () => {
+      withGroup(() => {
+        openAnnouncementForm();
+      });
+      emit('cancel');
+    },
+    shortcut: ['alt', 'a'],
+    condition: isAnyGroupAdmin.value,
   },
   {
     id: 'switch-group',

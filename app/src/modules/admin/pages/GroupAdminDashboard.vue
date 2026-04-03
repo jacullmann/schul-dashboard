@@ -35,8 +35,7 @@ const {
   lessons,
   loadingLessons,
   announcements,
-  creatingAnn,
-  createAnnouncement,
+  loadAnnouncements,
   deleteAnnouncement,
   cleaningUp,
   cleanupOldItems,
@@ -109,8 +108,7 @@ const navItems: AdminNavItem[] = [
     <GroupAdminAnnouncements
       v-if="activeTab === 'announcements'"
       :announcements="announcements"
-      :creating="creatingAnn"
-      @create="(content, color) => createAnnouncement(content, color)"
+      @refresh="loadAnnouncements"
       @delete="deleteAnnouncement"
     />
 

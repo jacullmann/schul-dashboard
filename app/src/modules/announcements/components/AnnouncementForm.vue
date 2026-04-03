@@ -1,51 +1,52 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useEventListener } from '@vueuse/core';
 import hw from '@/api/hwApi';
-import { useToast } from '@/common/composables/useToast';
-import type BaseInput from '@/common/components/BaseInput.vue';
+import { useI18n } from 'vue-i18n';
 
-const emit = defineEmits(['cancel', 'success']);
+const { t } = useI18n();
 
-const textareaRef = ref<InstanceType<typeof BaseInput> | null>(null);
+const emit = defineEmits<{
+  (e: 'cancel'): void;
+  (e: 'success'): void;
+}>();
 
-function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && !submitting.value) {
-    emit('cancel');
-  }
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !submitting.value) {
-    submit();
-  }
-}
+const annContent = ref('');
+const annColor = ref('warn');
 
-useEventListener(window, 'keydown', onKeyDown);
+const submitting = ref(false);
+const contentError = ref('');
+const submitError = ref('');
+
+const contentInputRef = ref<HTMLTextAreaElement | null>(null);
 
 onMounted(() => {
-  textareaRef.value?.focus();
+  contentInputRef.value?.focus();
 });
 
-const content = ref('');
-const color = ref('warn');
-const submitting = ref(false);
-const message = ref('');
-const isError = ref(false);
-
 async function submit() {
+  contentError.value = '';
+  submitError.value = '';
+
+  if (!annContent.value.trim()) {
+    contentError.value = 'Eine Ankündigung darf nicht leer sein.';
+    return;
+  }
+  if (annContent.value.trim().length > 1000) {
+    contentError.value = 'Die Ankündigung ist zu lang (max. 1000 Zeichen).';
+    return;
+  }
+
   submitting.value = true;
-  message.value = '';
-  isError.value = false;
   try {
     await hw.post('/api/group-admin/announcements', {
-      content: content.value,
-      color: color.value,
+      content: annContent.value.trim(),
+      color: annColor.value,
     });
-    useToast().success('Ankündigung erfolgreich angelegt.');
-    isError.value = false;
     emit('success');
   } catch (e: unknown) {
-    const err = e as { response?: { data?: { error?: string } } };
-    message.value = err.response?.data?.error || 'Fehler beim Anlegen.';
-    isError.value = true;
+    const err = e as { response?: { data?: { error?: string } }; message?: string };
+    submitError.value =
+      err.response?.data?.error ?? err.message ?? 'Ein unerwarteter Fehler ist aufgetreten.';
   } finally {
     submitting.value = false;
   }
@@ -53,31 +54,48 @@ async function submit() {
 </script>
 
 <template>
-  <div class="card rlc" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
-    <div class="card rlc" style="width:100%; max-width:520px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">Neue Ankündigung</h3>
-        <BaseButton @click="$emit('cancel')" :disabled="submitting" variant="ghost">Schließen</BaseButton>
-      </div>
-      <div style="margin-top:8px;">
-        <BaseInput as="textarea" ref="textareaRef" rows="4" v-model="content" placeholder="Inhalt"></BaseInput>
-      </div>
-      <div style="margin-top:8px;">
-        <BaseSelect
-          v-model="color"
-          :options="[
-            { label: 'Info', value: 'info' },
-            { label: 'Wichtig', value: 'warn' },
-            { label: 'Dringend', value: 'danger' },
-          ]"
-        />
-      </div>
-      <div class="row" style="margin-top:12px; align-items:center;">
-        <BaseButton @click="submit" :disabled="submitting" variant="action" :loading="submitting">
-          Absenden
+  <form @submit.prevent="submit" novalidate>
+    <BaseModal @cancel="$emit('cancel')">
+      <template #title>
+        Neue Ankündigung
+      </template>
+
+      <template #content>
+        <BaseForm :error="submitError">
+          <BaseFormGroup id="announcement-content-input" :error="contentError">
+            <BaseLabel for="announcement-content-input" :required="true">Ankündigung</BaseLabel>
+            <BaseInput
+              id="announcement-content-input"
+              as="textarea"
+              ref="contentInputRef"
+              v-model="annContent"
+              placeholder="Verfasse deine Nachricht..."
+              rows="3"
+              maxlength="1000"
+              :aria-describedby="contentError ? 'announcement-content-input-error' : undefined"
+            />
+          </BaseFormGroup>
+
+          <BaseFormGroup id="announcement-importance-input">
+            <BaseLabel for="announcement-importance-input" :required="true">Wichtigkeit</BaseLabel>
+            <BaseSelect
+              id="announcement-importance-input"
+              v-model="annColor"
+              :options="[
+                { label: 'Info', value: 'info' },
+                { label: 'Warnung', value: 'warn' },
+                { label: 'Wichtig', value: 'danger' },
+              ]"
+            />
+          </BaseFormGroup>
+        </BaseForm>
+      </template>
+
+      <template #action-btn>
+        <BaseButton @click="submit" variant="action" :loading="submitting">
+          {{ t('global.buttons.add') }}
         </BaseButton>
-        <div v-if="message" class="small" :style="{ color: isError ? 'var(--color-danger)': 'var(--color-primary)' }">{{ message }}</div>
-      </div>
-    </div>
-  </div>
+      </template>
+    </BaseModal>
+  </form>
 </template>

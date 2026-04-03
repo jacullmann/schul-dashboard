@@ -68,18 +68,22 @@ onMounted(() => {
 
 <template>
   <div class="tab-panel">
-    <div class="panel-header">
-      <h2>Fächer</h2>
-      <BaseButton @click="loadSubjects" :disabled="loading" variant="ghost">
-        <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
-        <span>Aktualisieren</span>
-      </BaseButton>
-    </div>
+    <PageHeader>
+      Fächer
+
+      <template #action>
+        <BaseButton @click="loadSubjects" :disabled="loading" variant="ghost">
+          <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
+          <span>Aktualisieren</span>
+        </BaseButton>
+      </template>
+    </PageHeader>
 
     <!-- Add Subject (admin only) -->
     <div v-if="isAdmin" class="add-form-card">
       <div class="add-form-row">
         <BaseInput
+            id="new-subject-name-input"
             v-model="newSubjectName"
             class="add-input"
             placeholder="Neues Fach hinzufügen..."
@@ -133,6 +137,7 @@ onMounted(() => {
         <template v-else>
           <div class="edit-row">
             <BaseInput
+                :id="'edit-subject-' + subject.id"
                 v-model="editingName"
                 class="edit-input"
                 @keyup.enter="saveRename(subject.id)"
@@ -163,26 +168,6 @@ onMounted(() => {
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.panel-header h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.panel-header .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sub);
 }
 
 /* Add form */

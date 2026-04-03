@@ -1,63 +1,44 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Trash2 } from '@lucide/vue';
+import { CirclePlus, Trash2 } from '@lucide/vue';
 import type { AdminAnnouncement } from '@/modules/admin/types';
+import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 
-const props = defineProps<{
+defineProps<{
   announcements: AdminAnnouncement[];
-  creating: boolean;
 }>();
 
 const emit = defineEmits<{
-  (e: 'create', content: string, color: string): void;
   (e: 'delete', id: string): void;
+  (e: 'refresh'): void;
 }>();
 
-const annContent = ref('');
-const annColor = ref('warn');
+const { openAnnouncementForm, onFormSuccess } = useAnnouncementForm();
 
-function handleCreateAnn() {
-  emit('create', annContent.value, annColor.value);
-  annContent.value = '';
-}
+// Refresh the list automatically after a successful creation
+onFormSuccess(() => {
+  emit('refresh');
+});
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('de-DE', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
   });
 }
 </script>
 
 <template>
   <div class="tab-panel">
-    <div class="panel-header">
-      <h2>Ankündigungen</h2>
-    </div>
+    <PageHeader>
+      Ankündigungen
 
-    <div class="ann-form-card">
-      <BaseInput
-          as="textarea"
-          v-model="annContent"
-          class="ann-textarea"
-          placeholder="Neue Ankündigung verfassen..."
-          rows="3"
-      ></BaseInput>
-      <div class="ann-form-footer">
-        <BaseSelect
-          v-model="annColor"
-          extraClass="ann-select"
-          :options="[
-            { label: 'Info', value: 'info' },
-            { label: 'Warnung', value: 'warn' },
-            { label: 'Wichtig', value: 'danger' },
-          ]"
-        />
-        <BaseButton @click="handleCreateAnn" :disabled="!annContent.trim() || creating" variant="action">
-          {{ creating ? 'Erstellt...' : 'Veröffentlichen' }}
+      <template #action>
+        <BaseButton variant="action" @click="openAnnouncementForm">
+          <CirclePlus :size="16" />
+          Neue Ankündigung
         </BaseButton>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div v-if="announcements.length === 0" class="empty-hint">Keine Ankündigungen vorhanden.</div>
     <div v-else class="ann-list">
@@ -81,39 +62,6 @@ function formatDate(iso: string) {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.panel-header h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.ann-form-card {
-  margin-bottom: 24px;
-}
-
-.ann-textarea {
-  width: 100%;
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
-  margin-bottom: 10px;
-}
-
-.ann-form-footer {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.ann-select { width: 120px; }
 
 .ann-list {
   display: flex;
@@ -173,8 +121,4 @@ function formatDate(iso: string) {
 .btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
 .btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
-
-@media (max-width: 640px) {
-  .ann-form-footer { flex-wrap: wrap; }
-}
 </style>

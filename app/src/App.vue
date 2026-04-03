@@ -4,7 +4,6 @@ import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
-import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
@@ -15,7 +14,6 @@ import hw from '@/api/hwApi';
 
 const router = useRouter();
 const userStore = useUserStore();
-const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
 const { isAuthenticated, isAuthReady, checkAuthStatus } = useAppAuth();
 const { handleOAuthReturn } = useOAuth();
@@ -100,7 +98,6 @@ onUnmounted(() => {
 
 <template>
   <div class="full">
-    <!-- Global Loading Bar (visible on all routes) -->
     <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
       <div class="progress-bar" :style="{ width: progress + '%' }">
         <div class="peg"></div>
@@ -118,7 +115,6 @@ onUnmounted(() => {
         <component :is="Component" />
       </router-view>
 
-      <!-- All globally-managed modals live here -->
       <GlobalModalContainer />
 
       <CookieBanner />

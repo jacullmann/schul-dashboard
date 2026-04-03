@@ -2,7 +2,7 @@
 
 <template>
   <div class="flex justify-between items-center gap-4 mb-4">
-    <BaseTitle>
+    <BaseTitle :level="2">
       <slot></slot>
 
       <template #info>

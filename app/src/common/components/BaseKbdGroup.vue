@@ -18,14 +18,14 @@ const getDisplayKey = (key: string): string => {
   
   const mapping: Record<string, string> = {
     // Modifiers
-    'control': isMac ? '⌃' : 'Ctrl',
-    'ctrl': isMac ? '⌃' : 'Ctrl',
+    'control': shortcutSymbol,
+    'ctrl': shortcutSymbol,
     'meta': isMac ? '⌘' : 'Win',
     'cmd': '⌘',
     'command': '⌘',
-    'alt': isMac ? '⌥' : 'Alt',
-    'option': '⌥',
-    'shift': isMac ? '⇧' : 'Shift',
+    'alt': optionSymbol,
+    'option': optionSymbol,
+    'shift': shiftSymbol,
     
     // Special Keys
     'enter': '↵',
@@ -36,8 +36,8 @@ const getDisplayKey = (key: string): string => {
     'tab': '⇥',
   };
 
-  const displayValue = mapping[k] || key;
-  return displayValue.length === 1 ? displayValue.toUpperCase() : displayValue;
+  const val = mapping[k] || key;
+  return val.length === 1 ? val.toUpperCase() : val;
 };
 </script>
 
