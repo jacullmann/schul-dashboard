@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useResizeObserver, useWindowSize } from '@vueuse/core';
 import { useSchedule } from '@/modules/schedule/composables/useSchedule';
 
 import ScheduleHeader from '../components/ScheduleHeader.vue';
 import ScheduleTimeColumn from '../components/ScheduleTimeColumn.vue';
 import ScheduleLessonGroup from '../components/ScheduleLessonGroup.vue';
+import ScheduleCellSkeleton from '../components/ScheduleCellSkeleton.vue';
 
 const {
   isPersonalized,
@@ -71,6 +72,16 @@ onMounted(() => {
     }, 100);
   }
 });
+
+/** Flat list of skeleton cell positions: 5 columns × 7 rows. */
+const skeletonCells = computed(() =>
+  days.flatMap((_, dayIdx) =>
+    Array.from({ length: 7 }, (_, rowIdx) => ({
+      col: dayIdx + 1,
+      row: rowIdx + 1,
+    }))
+  )
+);
 </script>
 
 <template>
@@ -99,16 +110,28 @@ onMounted(() => {
             <span class="block text-xs font-normal opacity-60 mt-0.5">{{ weekDates[day] }}</span>
           </div>
 
-          <ScheduleLessonGroup
-            v-for="(group, key) in groupedLessons"
-            :key="key"
-            :group="group"
-            :group-key="String(key)"
-            :is-active="key === activeOrNextGroupKey"
-            :is-current-day="group[0]?.day === currentDay"
-            :get-display-name="getDisplayName"
-            :get-group-style="getGroupStyle"
-          />
+          <!-- Skeleton: 5 days × 7 rows while lessons are loading -->
+          <template v-if="loadingLessons">
+            <ScheduleCellSkeleton
+              v-for="cell in skeletonCells"
+              :key="`skel-${cell.col}-${cell.row}`"
+              :col="cell.col"
+              :row="cell.row"
+            />
+          </template>
+
+          <template v-else>
+            <ScheduleLessonGroup
+              v-for="(group, key) in groupedLessons"
+              :key="key"
+              :group="group"
+              :group-key="String(key)"
+              :is-active="key === activeOrNextGroupKey"
+              :is-current-day="group[0]?.day === currentDay"
+              :get-display-name="getDisplayName"
+              :get-group-style="getGroupStyle"
+            />
+          </template>
         </div>
       </div>
     </div>
