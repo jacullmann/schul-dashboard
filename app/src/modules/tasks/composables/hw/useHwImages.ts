@@ -49,9 +49,6 @@ export function useHwImages(
     item: HwItem,
     img: ImageItem,
   ) {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      navigator.vibrate(50);
-    }
     openImageMenu(event, item, img);
   }
 

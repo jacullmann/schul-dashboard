@@ -136,6 +136,10 @@ watch([showOldEntries, tab, subjectFilter], () => {
   dismissedItems.value.clear();
 });
 
+function vibrateOnHold() {
+  navigator.vibrate?.(20);
+}
+
 function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
   if (!user.value) return;
   const target = event.target as HTMLElement;
@@ -328,6 +332,7 @@ async function handleArchiveFromMenu(item: HwItem) {
                 <div v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
                      :key="img.publicId"
                      class="thumb thumb-with-overlay-wrapper"
+                     @touchstart.passive="vibrateOnHold"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <button type="button" class="img-clickable" @click.stop="openImageViewer(item, idx)">
@@ -350,6 +355,7 @@ async function handleArchiveFromMenu(item: HwItem) {
                 <div v-for="(img, idx) in item.images"
                      :key="img.publicId"
                      class="thumb"
+                     @touchstart.passive="vibrateOnHold"
                      @contextmenu.prevent="handleImageContextMenu($event, item, img)"
                 >
                   <button type="button" class="img-clickable" @click.stop="openImageViewer(item, idx)">
