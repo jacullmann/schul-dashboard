@@ -16,14 +16,17 @@ const overlayRef = ref<HTMLElement | null>(null);
 let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Sync internal index when opening
-watch(() => props.visible, (val) => {
-  if (val) {
-    currentIndex.value = props.initialIndex;
-    showControls();
-    // Focus for keyboard support
-    nextTick(() => overlayRef.value?.focus());
-  }
-});
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      currentIndex.value = props.initialIndex;
+      showControls();
+      // Focus for keyboard support
+      nextTick(() => overlayRef.value?.focus());
+    }
+  },
+);
 
 const currentImage = computed(() => props.images[currentIndex.value]);
 const hasNext = computed(() => currentIndex.value < props.images.length - 1);
@@ -76,22 +79,25 @@ onBeforeUnmount(() => {
 });
 
 // Disables Scrolling while viewing Image
-watch(() => props.visible, (val) => {
-  if (val) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-  }
-});
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  },
+);
 </script>
 
 <template>
   <transition name="fade">
-    <div
+    <BaseBackdrop
       v-if="visible"
-      class="blurit viewer-overlay"
+      class="z-100002"
       @mousemove="onActivity"
-      @click.self="cancel"
+      @cancel="cancel"
       @touchstart="onActivity"
       tabindex="0"
       @keydown="handleKeydown"
@@ -104,7 +110,8 @@ watch(() => props.visible, (val) => {
           class="viewer-img"
           draggable="false"
           @click.stop
-          alt=""/>
+          alt=""
+        />
       </div>
 
       <transition name="fade-controls">
@@ -134,26 +141,11 @@ watch(() => props.visible, (val) => {
           </div>
         </div>
       </transition>
-    </div>
+    </BaseBackdrop>
   </transition>
 </template>
 
 <style scoped>
-/* We use 'blurit' from global styles for the background/backdrop.
-   We keep viewer-overlay for layout but remove the hardcoded background.
-*/
-.viewer-overlay {
-  position: fixed;
-  inset: 0;
-  /* background: rgba(0, 0, 0, 0.95);  <-- Removed to let blurit handle it */
-  z-index: 100002; /* Higher than ItemForm (100001) */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  outline: none;
-  user-select: none;
-}
-
 .image-wrapper {
   width: 100%;
   height: 100%;
@@ -235,19 +227,23 @@ watch(() => props.visible, (val) => {
 }
 
 /* Transitions */
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 
-.fade-controls-enter-active, .fade-controls-leave-active {
+.fade-controls-enter-active,
+.fade-controls-leave-active {
   transition: opacity 0.3s ease;
 }
 
-.fade-controls-enter-from, .fade-controls-leave-to {
+.fade-controls-enter-from,
+.fade-controls-leave-to {
   opacity: 0;
 }
 </style>

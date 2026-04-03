@@ -33,14 +33,14 @@ watch(
   () => props.itemCount,
   () => {
     selectedIndex.value = 0;
-  }
+  },
 );
 
 watch(
   () => props.modelValue,
   () => {
     selectedIndex.value = 0;
-  }
+  },
 );
 
 async function scrollToSelected() {
@@ -60,7 +60,8 @@ function handleKeydown(e: KeyboardEvent) {
     scrollToSelected();
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    selectedIndex.value = (selectedIndex.value - 1 + props.itemCount) % props.itemCount;
+    selectedIndex.value =
+      (selectedIndex.value - 1 + props.itemCount) % props.itemCount;
     scrollToSelected();
   } else if (e.key === 'Enter') {
     e.preventDefault();
@@ -86,17 +87,12 @@ function setSelectedIndex(idx: number) {
 </script>
 
 <template>
-  <div
-    class="blurit"
-    @click.self="$emit('cancel')"
-    aria-hidden="true"
-    style="z-index: 100002"
-  >
+  <BaseBackdrop class="z-100002" @cancel="$emit('cancel')">
     <div
       role="dialog"
       aria-modal="true"
       :aria-label="title"
-      class="command-palette-modal bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-[560px] overflow-hidden fixed text-left"
+      class="command-palette-modal bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left"
       style="
         z-index: 100003;
         top: 50%;
@@ -123,7 +119,7 @@ function setSelectedIndex(idx: number) {
       </div>
 
       <!-- Results -->
-      <div class="max-h-[420px] overflow-y-auto py-2">
+      <div class="max-h-105 overflow-y-auto py-2">
         <slot
           :selected-index="selectedIndex"
           :set-selected-index="setSelectedIndex"
@@ -145,7 +141,7 @@ function setSelectedIndex(idx: number) {
         </span>
       </div>
     </div>
-  </div>
+  </BaseBackdrop>
 </template>
 
 <style scoped>

@@ -27,8 +27,7 @@ const {
   async () => {
     try {
       await userStore.fetchUser();
-    } catch {
-    }
+    } catch {}
     await router.push('/home');
   },
   async () => {
@@ -48,30 +47,32 @@ onMounted(() => {
   handleOAuthReturn(async () => {
     try {
       await userStore.fetchUser();
-    } catch {
-    }
+    } catch {}
     await router.push('/home');
   });
 });
 </script>
 
 <template>
-  <div class="flex items-center justify-center px-4 py-6">
+  <div class="flex w-full items-center justify-center">
     <div class="w-full max-w-[420px]">
       <div class="text-center mb-8">
-        <h1 class="text-h2 font-semibold text-on-surface">
+        <BaseHeading :level="1">
           {{ t('account.auth.login') }}
-        </h1>
+        </BaseHeading>
         <p class="text-sub text-on-surface-muted mt-2">
-          {{ t('account.auth.loginDescription', { defaultValue: 'Welcome back' }) }}
+          {{
+            t('account.auth.loginDescription', { defaultValue: 'Welcome back' })
+          }}
         </p>
       </div>
-      <form @submit.prevent="handleSubmit" class="space-y-4 mb-6" novalidate>
-        <div>
-          <label for="login-email" class="block text-body font-medium text-on-surface mb-2">
-            {{ t('account.auth.email') }}
-          </label>
-          <div class="relative">
+
+      <BaseForm :submit="handleSubmit" :cancellable="false" class="mb-6">
+        <template #content>
+          <BaseFormGroup id="login-email" :error="errors.email">
+            <BaseLabel for="login-email">
+              {{ t('account.auth.email') }}
+            </BaseLabel>
             <BaseInput
               id="login-email"
               ref="emailInputRef"
@@ -81,17 +82,14 @@ onMounted(() => {
               autocomplete="email"
               required
               @input="clearFieldError('email')"
+              :aria-describedby="errors.email ? 'login-email-error' : undefined"
             />
-          </div>
-          <div v-if="errors.email" class="text-danger text-sub mt-1">
-            {{ errors.email }}
-          </div>
-        </div>
-        <div>
-          <label for="login-password" class="block text-body font-medium text-on-surface mb-2">
-            {{ t('account.auth.password') }}
-          </label>
-          <div class="relative">
+          </BaseFormGroup>
+
+          <BaseFormGroup id="login-password" :error="errors.password">
+            <BaseLabel for="login-password">
+              {{ t('account.auth.password') }}
+            </BaseLabel>
             <BaseInput
               id="login-password"
               v-model="password"
@@ -100,39 +98,45 @@ onMounted(() => {
               autocomplete="current-password"
               required
               @input="clearFieldError('password')"
+              :aria-describedby="
+                errors.password ? 'login-password-error' : undefined
+              "
             />
+          </BaseFormGroup>
+
+          <div class="flex justify-end">
+            <BaseLink to="/forgot-password">
+              {{ t('account.auth.forgot') }}
+            </BaseLink>
           </div>
-          <div v-if="errors.password" class="text-danger text-sub mt-1">
-            {{ errors.password }}
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <router-link
-            to="/forgot-password"
-            class="text-sub text-on-surface-muted hover:text-on-surface transition-colors"
+
+          <transition name="fade">
+            <div
+              v-if="message"
+              class="text-sub p-3 rounded-md"
+              :class="
+                isError
+                  ? 'bg-danger-surface text-danger'
+                  : 'bg-success-surface text-success'
+              "
+            >
+              {{ message }}
+            </div>
+          </transition>
+        </template>
+
+        <template #action-btn>
+          <BaseButton
+            type="submit"
+            variant="action"
+            :loading="submitting"
+            class="w-full justify-center"
           >
-            {{ t('account.auth.forgot') }}
-          </router-link>
-        </div>
-        <transition name="fade">
-          <div
-            v-if="message"
-            class="text-sub p-3 rounded-md"
-            :class="isError ? 'bg-danger-surface text-danger' : 'bg-success-surface text-success'"
-          >
-            {{ message }}
-          </div>
-        </transition>
-        <BaseButton
-          type="submit"
-          variant="action"
-          :disabled="submitting"
-          :loading="submitting"
-          class="w-full justify-center"
-        >
-          {{ t('account.auth.login') }}
-        </BaseButton>
-      </form>
+            {{ t('account.auth.login') }}
+          </BaseButton>
+        </template>
+      </BaseForm>
+
       <div class="flex items-center gap-3 mb-6">
         <div class="flex-1 h-px bg-canvas-border" />
         <span class="text-footnote text-on-surface-muted">
@@ -151,7 +155,11 @@ onMounted(() => {
       </BaseButton>
       <div class="text-center mt-8">
         <p class="text-sub text-on-surface-muted">
-          {{ t('account.auth.noAccount', { defaultValue: "Don't have an account?" }) }}
+          {{
+            t('account.auth.noAccount', {
+              defaultValue: "Don't have an account?",
+            })
+          }}
           <button
             type="button"
             @click="navigateToRegister"

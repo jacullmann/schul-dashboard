@@ -21,11 +21,9 @@ const {
   errors,
   clearFieldError,
   submit: submitRegister,
-} = useRegister(
-  async () => {
-    await router.push('/login');
-  },
-);
+} = useRegister(async () => {
+  await router.push('/login');
+});
 
 async function handleSubmit() {
   await submitRegister();
@@ -37,26 +35,27 @@ function navigateToLogin() {
 </script>
 
 <template>
-  <div class="flex items-center justify-center px-4 py-6">
+  <div class="flex w-full items-center justify-center">
     <div class="w-full max-w-[420px]">
-      <!-- Title -->
       <div class="text-center mb-8">
-        <h1 class="text-h2 font-semibold text-on-surface">
+        <BaseHeading :level="1">
           {{ t('account.auth.register') }}
-        </h1>
+        </BaseHeading>
         <p class="text-sub text-on-surface-muted mt-2">
-          {{ t('account.auth.registerDescription', { defaultValue: 'Create your account' }) }}
+          {{
+            t('account.auth.registerDescription', {
+              defaultValue: 'Create your account',
+            })
+          }}
         </p>
       </div>
 
-      <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="space-y-4 mb-6" novalidate>
-        <!-- Email Field -->
-        <div>
-          <label for="register-email" class="block text-body font-medium text-on-surface mb-2">
-            {{ t('account.auth.email') }}
-          </label>
-          <div class="relative">
+      <BaseForm :submit="handleSubmit" :cancellable="false" class="mb-6">
+        <template #content>
+          <BaseFormGroup id="register-email" :error="errors.email">
+            <BaseLabel for="register-email">
+              {{ t('account.auth.email') }}
+            </BaseLabel>
             <BaseInput
               id="register-email"
               ref="emailInputRef"
@@ -66,19 +65,16 @@ function navigateToLogin() {
               autocomplete="email"
               required
               @input="clearFieldError('email')"
+              :aria-describedby="
+                errors.email ? 'register-email-error' : undefined
+              "
             />
-          </div>
-          <div v-if="errors.email" class="text-danger text-sub mt-1">
-            {{ errors.email }}
-          </div>
-        </div>
+          </BaseFormGroup>
 
-        <!-- Password Field -->
-        <div>
-          <label for="register-password" class="block text-body font-medium text-on-surface mb-2">
-            {{ t('account.auth.password') }}
-          </label>
-          <div class="relative">
+          <BaseFormGroup id="register-password" :error="errors.password">
+            <BaseLabel for="register-password">
+              {{ t('account.auth.password') }}
+            </BaseLabel>
             <BaseInput
               id="register-password"
               v-model="password"
@@ -87,19 +83,16 @@ function navigateToLogin() {
               autocomplete="new-password"
               required
               @input="clearFieldError('password')"
+              :aria-describedby="
+                errors.password ? 'register-password-error' : undefined
+              "
             />
-          </div>
-          <div v-if="errors.password" class="text-danger text-sub mt-1">
-            {{ errors.password }}
-          </div>
-        </div>
+          </BaseFormGroup>
 
-        <!-- Confirm Password Field -->
-        <div>
-          <label for="register-confirm" class="block text-body font-medium text-on-surface mb-2">
-            {{ t('account.auth.confirmPassword') }}
-          </label>
-          <div class="relative">
+          <BaseFormGroup id="register-confirm" :error="errors.passwordConfirm">
+            <BaseLabel for="register-confirm">
+              {{ t('account.auth.confirmPassword') }}
+            </BaseLabel>
             <BaseInput
               id="register-confirm"
               v-model="passwordConfirm"
@@ -108,73 +101,63 @@ function navigateToLogin() {
               autocomplete="new-password"
               required
               @input="clearFieldError('passwordConfirm')"
+              :aria-describedby="
+                errors.passwordConfirm ? 'register-confirm-error' : undefined
+              "
             />
-          </div>
-          <div v-if="errors.passwordConfirm" class="text-danger text-sub mt-1">
-            {{ errors.passwordConfirm }}
-          </div>
-        </div>
+          </BaseFormGroup>
 
-        <!-- Terms & Privacy Checkbox -->
-        <div>
-          <label class="flex items-start gap-2 cursor-pointer">
+          <BaseFormGroup id="register-privacy" :error="errors.privacy">
             <BaseCheckbox
               v-model="acceptedPrivacy"
               class="mt-1"
               @change="clearFieldError('privacy')"
-            />
-            <span class="text-sub text-on-surface">
+              :aria-describedby="
+                errors.privacy ? 'register-privacy-error' : undefined
+              "
+            >
               <i18n-t keypath="account.auth.terms">
                 <template #privacy>
-                  <a
-                    href="/legal/privacy-policy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-on-surface underline hover:opacity-75 transition-opacity"
-                  >
+                  <BaseLink to="/legal/privacy-policy">
                     {{ t('legal.privacy.title') }}
-                  </a>
+                  </BaseLink>
                 </template>
                 <template #terms>
-                  <a
-                    href="/legal/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-on-surface underline hover:opacity-75 transition-opacity"
-                  >
+                  <BaseLink to="/legal/terms">
                     {{ t('legal.terms.title') }}
-                  </a>
+                  </BaseLink>
                 </template>
               </i18n-t>
-            </span>
-          </label>
-          <div v-if="errors.privacy" class="text-danger text-sub mt-1 ml-8">
-            {{ errors.privacy }}
-          </div>
-        </div>
+            </BaseCheckbox>
+          </BaseFormGroup>
 
-        <!-- Message Display -->
-        <transition name="fade">
-          <div
-            v-if="message"
-            class="text-sub p-3 rounded-md"
-            :class="isError ? 'bg-danger-surface text-danger' : 'bg-success-surface text-success'"
+          <transition name="fade">
+            <div
+              v-if="message"
+              class="text-sub p-3 rounded-md"
+              :class="
+                isError
+                  ? 'bg-danger-surface text-danger'
+                  : 'bg-success-surface text-success'
+              "
+            >
+              {{ message }}
+            </div>
+          </transition>
+        </template>
+
+        <template #action-btn>
+          <BaseButton
+            type="submit"
+            variant="action"
+            :disabled="submitting"
+            :loading="submitting"
+            class="w-full justify-center"
           >
-            {{ message }}
-          </div>
-        </transition>
-
-        <!-- Submit Button -->
-        <BaseButton
-          type="submit"
-          variant="action"
-          :disabled="submitting"
-          :loading="submitting"
-          class="w-full justify-center"
-        >
-          {{ t('account.auth.register') }}
-        </BaseButton>
-      </form>
+            {{ t('account.auth.register') }}
+          </BaseButton>
+        </template>
+      </BaseForm>
 
       <!-- OAuth Divider -->
       <div class="flex items-center gap-3 mb-6">
@@ -199,7 +182,11 @@ function navigateToLogin() {
       <!-- Switch to Login -->
       <div class="text-center mt-8">
         <p class="text-sub text-on-surface-muted">
-          {{ t('account.auth.haveAccount', { defaultValue: 'Already have an account?' }) }}
+          {{
+            t('account.auth.haveAccount', {
+              defaultValue: 'Already have an account?',
+            })
+          }}
           <button
             type="button"
             @click="navigateToLogin"

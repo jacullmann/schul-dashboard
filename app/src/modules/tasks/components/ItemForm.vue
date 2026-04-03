@@ -377,7 +377,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <BaseForm :error="submitError">
+        <BaseFormContent :error="submitError">
           <BaseFormGroup v-if="!initial" id="type">
             <BaseTabs
               :items="typeTabItems"
@@ -514,7 +514,7 @@ onMounted(() => {
               {{ t('school.tasks.itemForm.uploadingImage') }}
             </div>
           </BaseFormGroup>
-        </BaseForm>
+        </BaseFormContent>
       </template>
 
       <template #action-btn>

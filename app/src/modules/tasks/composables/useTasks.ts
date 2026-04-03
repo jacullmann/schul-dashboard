@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useSubjectStore } from '@/stores/subjectStore';
+import { useModalStore } from '@/stores/modalStore';
 import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/composables/useToast';
@@ -24,6 +25,7 @@ export function useTasks() {
   const router = useRouter();
   const userStore = useUserStore();
   const subjectStore = useSubjectStore();
+  const modalStore = useModalStore();
   const imageUpload = useImageUpload();
   const { user } = storeToRefs(userStore);
   const { t, te } = useI18n();
@@ -35,7 +37,6 @@ export function useTasks() {
   const showOldEntries = ref(false);
   const subjectFilter = ref('');
   const showPersonalized = computed(() => user.value?.personalized ?? false);
-  const showSetupModal = ref(false);
 
   const activeGroupId = computed(
     () => (route.params.groupId as string) || null,
@@ -220,13 +221,6 @@ export function useTasks() {
     if (action === 'report') return reportItem(item);
   }
 
-  function onSetupSuccess(updatedUser: Record<string, unknown>) {
-    if (user.value) {
-      user.value = { ...user.value, ...updatedUser } as typeof user.value;
-    }
-    showSetupModal.value = false;
-  }
-
   function reload() {
     return reloadList(route.params.itemId as string, () => {
       showOldEntries.value = true;
@@ -350,7 +344,6 @@ export function useTasks() {
     subjectFilter,
     showPersonalized,
     showOldEntries,
-    showSetupModal,
     visibleCount,
     limitedItems,
     filteredItems,
@@ -389,7 +382,7 @@ export function useTasks() {
     makeThumb,
     isRevealed,
     revealImages,
-    onSetupSuccess,
+    onSetupSuccess: () => modalStore.openSetup(),
     doReport,
     cancelReport,
     openCreateFormByType,

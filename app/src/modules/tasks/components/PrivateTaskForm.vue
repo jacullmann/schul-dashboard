@@ -78,7 +78,7 @@ async function submit() {
       </template>
 
       <template #content>
-        <BaseForm :error="submitError">
+        <BaseFormContent :error="submitError">
           <BaseFormGroup id="private-task-title-input" :error="titleError">
             <BaseLabel for="private-task-title-input" :required="true">Title</BaseLabel>
             <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
@@ -88,7 +88,7 @@ async function submit() {
             <BaseLabel for="private-task-description-input" :required="false">Description</BaseLabel>
             <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000" />
           </BaseFormGroup>
-        </BaseForm>
+        </BaseFormContent>
       </template>
 
       <template #action-btn>

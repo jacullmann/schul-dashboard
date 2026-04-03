@@ -61,7 +61,7 @@ async function submit() {
       </template>
 
       <template #content>
-        <BaseForm :error="submitError">
+        <BaseFormContent :error="submitError">
           <BaseFormGroup id="announcement-content-input" :error="contentError">
             <BaseLabel for="announcement-content-input" :required="true">Ankündigung</BaseLabel>
             <BaseInput
@@ -88,7 +88,7 @@ async function submit() {
               ]"
             />
           </BaseFormGroup>
-        </BaseForm>
+        </BaseFormContent>
       </template>
 
       <template #action-btn>

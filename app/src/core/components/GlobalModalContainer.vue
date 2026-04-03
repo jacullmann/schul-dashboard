@@ -20,7 +20,6 @@ import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import hw from '@/api/hwApi';
 
-
 import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import SearchModal from '@/core/components/SearchModal.vue';
@@ -33,6 +32,7 @@ import CompleteSetup from '@/modules/auth/components/CompleteSetup.vue';
 import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
 import AnnouncementForm from '@/modules/announcements/components/AnnouncementForm.vue';
+import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -57,7 +57,6 @@ const {
 // State refs (storeToRefs preserves reactivity for template bindings).
 // Note: actions cannot be extracted via storeToRefs — use modalStore.action() directly.
 const {
-
   searchOpen,
   itemFormOpen,
   itemFormKey,
@@ -74,9 +73,10 @@ const {
   privateTaskToEdit,
   announcementFormOpen,
   announcementFormKey,
+  imageViewerOpen,
+  imageViewerImages,
+  imageViewerInitialIndex,
 } = storeToRefs(modalStore);
-
-
 
 // ── Item form callbacks ────────────────────────────────────────────────────
 
@@ -110,7 +110,9 @@ function onMfaChanged(enabled: boolean) {
 }
 
 function onSetupSuccess(updatedUser: any) {
-  userStore.updateUser({ personalized: updatedUser?.personalized ?? true });
+  if (updatedUser) {
+    userStore.updateUser(updatedUser);
+  }
   modalStore.showSetup = false;
 }
 
@@ -142,8 +144,6 @@ async function onAuthSuccess() {
 </script>
 
 <template>
-
-
   <!-- OAuth: account-linking modal (shown after ?auth=link-required) -->
   <Teleport to="body">
     <GoogleLinkModal
@@ -218,6 +218,16 @@ async function onAuthSuccess() {
       :key="announcementFormKey"
       @cancel="modalStore.closeAnnouncementForm()"
       @success="onAnnouncementFormSuccess"
+    />
+  </Teleport>
+
+  <!-- Global image viewer -->
+  <Teleport to="body">
+    <ImageViewer
+      :visible="imageViewerOpen"
+      :images="imageViewerImages"
+      :initial-index="imageViewerInitialIndex"
+      @cancel="modalStore.closeImageViewer()"
     />
   </Teleport>
 

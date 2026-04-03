@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { HwItem, PrivateTask } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
+import type { ImageItem } from '@/modules/tasks/types';
 
 // ---------------------------------------------------------------------------
 // Modal Store — single source of truth for all globally-managed modal state.
@@ -151,6 +152,26 @@ export const useModalStore = defineStore('modals', () => {
     return () => _announcementFormSuccessCallbacks.delete(cb);
   }
 
+  // ── Image viewer ──────────────────────────────────────────────────
+  const imageViewerOpen = ref(false);
+  const imageViewerImages = ref<ImageItem[]>([]);
+  const imageViewerInitialIndex = ref(0);
+
+  function openImageViewer(images: ImageItem[], initialIndex = 0) {
+    imageViewerImages.value = images;
+    imageViewerInitialIndex.value = initialIndex;
+    imageViewerOpen.value = true;
+  }
+
+  function closeImageViewer() {
+    imageViewerOpen.value = false;
+    // Delay clearing so the fade-out transition can finish
+    setTimeout(() => {
+      imageViewerImages.value = [];
+      imageViewerInitialIndex.value = 0;
+    }, 300);
+  }
+
   // ── Account modals ────────────────────────────────────────────────────────
   const showChangePassword = ref(false);
   const showSecurity = ref(false);
@@ -232,6 +253,13 @@ export const useModalStore = defineStore('modals', () => {
     closeAnnouncementForm,
     notifyAnnouncementFormSuccess,
     onAnnouncementFormSuccess,
+
+    // Image viewer
+    imageViewerOpen,
+    imageViewerImages,
+    imageViewerInitialIndex,
+    openImageViewer,
+    closeImageViewer,
 
     // Account modals
     showChangePassword,

@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
 import ImageContextMenu from '@/modules/tasks/components/ImageContextMenu.vue';
-import ImageViewer from '@/modules/tasks/components/ImageViewer.vue';
-import ReportModal from '@/modules/tasks/components/ReportModal.vue'
-import ArchiveSwitch from "@/modules/tasks/components/ArchiveSwitch.vue"
-import CompleteSetup from "@/modules/auth/components/CompleteSetup.vue";
+import ReportModal from '@/modules/tasks/components/ReportModal.vue';
+import ArchiveSwitch from '@/modules/tasks/components/ArchiveSwitch.vue';
 import ItemSkeleton from '@/modules/tasks/components/ItemSkeleton.vue';
-import { Upload, Pencil, Send, Flag, Trash2, Pin, Archive, ArchiveRestore, Info, Plus } from '@lucide/vue'
+import {
+  Upload,
+  Pencil,
+  Send,
+  Flag,
+  Trash2,
+  Pin,
+  Archive,
+  ArchiveRestore,
+  Info,
+  Plus,
+} from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
-import InfoModal from '@/common/components/InfoModal.vue'
+import { useImageViewer } from '@/core/composables/useImageViewer';
+import InfoModal from '@/common/components/InfoModal.vue';
 import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
-import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue'
+import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue';
 import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
@@ -46,7 +56,7 @@ const visibleItems = computed(() => {
   return limitedItems.value.filter((item: HwItem) => {
     // Hide item quickly if dismissed this session
     if (dismissedItems.value.has(item.id)) return false;
-    
+
     // In old entries: skip conditionally if we want custom UI hiding...?
     // Oh wait, if we are in old entries, un-archiving the item should just hide it too
     // until the page reloads (it magically becomes unarchived and potentially a "new" entry if its date qualifies).
@@ -67,7 +77,6 @@ const {
   initialLoad,
   subjectFilter,
   showOldEntries,
-  showSetupModal,
   visibleCount,
   limitedItems,
   filteredItems,
@@ -100,7 +109,6 @@ const {
   makeThumb,
   isRevealed,
   revealImages,
-  onSetupSuccess,
   doReport,
   cancelReport,
   showDeleteConfirm,
@@ -114,11 +122,7 @@ const {
   showImageDeleteConfirm,
   confirmImageDelete,
   cancelImageDelete,
-  showImageViewer,
-  viewerImages,
-  viewerStartIndex,
-  openImageViewer,
-  closeImageViewer,
+  openImageViewer: openImageViewerLocal,
   shareItem,
   highlightedItemId,
   deletingImage,
@@ -127,10 +131,16 @@ const {
   subjectOptions,
   getSubjectName,
   getTypeLabel,
-  resetFilters
+  resetFilters,
 } = useTasks();
 
 const { openItemForm } = useItemForm();
+const { openImageViewer } = useImageViewer();
+
+function openImageViewerForItem(item: HwItem, index: number) {
+  openImageViewerLocal(item, index);
+  openImageViewer(item.images, index);
+}
 
 watch([showOldEntries, tab, subjectFilter], () => {
   dismissedItems.value.clear();
@@ -150,7 +160,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
     '.img-overlay',
     '.unpin-trigger',
     '[role=menu]',
-    '.checkbox'
+    '.checkbox',
   ].join(', ');
 
   if (target.closest(ignoreSelectors)) {
@@ -177,11 +187,14 @@ async function handleArchiveFromMenu(item: HwItem) {
       {{ t('school.tasks.title') }}
       <template #info>
         <InfoModal
-            :tooltip="t('school.tasks.infopop.tooltip')"
-            :title="t('school.tasks.title')"
+          :tooltip="t('school.tasks.infopop.tooltip')"
+          :title="t('school.tasks.title')"
         >
           <h3>{{ t('school.tasks.infopop.description') }}</h3>
-          <template v-for="(section, index) in tm('school.tasks.infopop.sections')" :key="index">
+          <template
+            v-for="(section, index) in tm('school.tasks.infopop.sections')"
+            :key="index"
+          >
             <h3 v-html="section.title"></h3>
             <p v-html="section.text"></p>
           </template>
@@ -190,19 +203,19 @@ async function handleArchiveFromMenu(item: HwItem) {
     </PageHeader>
 
     <BaseTabs
-        :items="tabItems"
-        :active-id="tab"
-        class="mb-4"
-        @change="(id) => goTab(id as any)"
+      :items="tabItems"
+      :active-id="tab"
+      class="mb-4"
+      @change="(id) => goTab(id as any)"
     />
 
     <div class="controls">
       <div class="left">
         <div class="row-two">
           <BaseSelect
-              v-model="subjectFilter"
-              :options="subjectOptions"
-              extraClass="select-subject"
+            v-model="subjectFilter"
+            :options="subjectOptions"
+            extraClass="select-subject"
           />
 
           <ArchiveSwitch v-model="showOldEntries" />
@@ -223,54 +236,76 @@ async function handleArchiveFromMenu(item: HwItem) {
       <ItemSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
 
       <ItemCard
-          v-else
-          v-for="item in visibleItems"
-          :key="item.id"
-          :id="'item-' + item.id"
-          :is-collapsed="isChecked(item.id)"
-          :highlighted="highlightedItemId === item.id"
-          :title="item.title"
-          :swipeable="true"
-          :swipe-action="showOldEntries ? 'keep' : 'archive'"
-          @swiped="handleSwipe(item)"
-          @dblclick="handleItemDoubleClick(item, $event)"
-          @menu-click="toggleMenu(item.id)"
-          @files-dropped="(files) => triggerImageDrop(item, files)"
+        v-else
+        v-for="item in visibleItems"
+        :key="item.id"
+        :id="'item-' + item.id"
+        :is-collapsed="isChecked(item.id)"
+        :highlighted="highlightedItemId === item.id"
+        :title="item.title"
+        :swipeable="true"
+        :swipe-action="showOldEntries ? 'keep' : 'archive'"
+        @swiped="handleSwipe(item)"
+        @dblclick="handleItemDoubleClick(item, $event)"
+        @menu-click="toggleMenu(item.id)"
+        @files-dropped="(files) => triggerImageDrop(item, files)"
       >
         <template #checkbox>
           <BaseCheckbox
-              v-if="user"
-              :checked="isChecked(item.id)"
-              @change="toggleCheck(item)"
+            v-if="user"
+            :checked="isChecked(item.id)"
+            @change="toggleCheck(item)"
           />
         </template>
 
         <template #badges>
           <div class="badge subject-badge">
-            <template v-if="tab === 'all'">{{ getTypeLabel(item.type) }} • </template>{{ getSubjectName(item.subject) }} • {{ new Date(item.dueDate).toLocaleDateString() }}
+            <template v-if="tab === 'all'"
+              >{{ getTypeLabel(item.type) }} • </template
+            >{{ getSubjectName(item.subject) }} •
+            {{ new Date(item.dueDate).toLocaleDateString() }}
           </div>
           <div
-            v-if="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"
+            v-if="
+              user?.role === 'superadmin' ||
+              user?.tenantRole === 'admin' ||
+              user?.tenantRole === 'moderator'
+            "
             class="admin-creator-info"
           >
-            {{ item.createdByName || 'Unbekannt' }}<span v-if="user?.role === 'superadmin'" class="creator-email"> ({{ item.createdByEmail }})</span>
+            {{ item.createdByName || 'Unbekannt'
+            }}<span v-if="user?.role === 'superadmin'" class="creator-email">
+              ({{ item.createdByEmail }})</span
+            >
           </div>
         </template>
 
         <template #actions-pre>
-          <button type="button" v-if="isPinned(item.id)" class="unpin-trigger" @click.stop="togglePin(item)">
+          <button
+            type="button"
+            v-if="isPinned(item.id)"
+            class="unpin-trigger"
+            @click.stop="togglePin(item)"
+          >
             <Pin :size="18" fill="currentColor" class="pinned" />
           </button>
         </template>
 
         <template #menu>
-          <BaseMenu v-if="openMenuId === item.id" class="right-0 mt-6" @click.stop>
+          <BaseMenu
+            v-if="openMenuId === item.id"
+            class="right-0 mt-6"
+            @click.stop
+          >
             <BaseMenuButton v-if="user" @click="onMenuAction('images', item)">
               <Upload :size="16" />
               {{ t('school.tasks.items.menu.uploadImages') }}
             </BaseMenuButton>
 
-            <BaseMenuButton v-if="canEdit(item.createdBy)" @click="onMenuAction('edit', item)">
+            <BaseMenuButton
+              v-if="canEdit(item.createdBy)"
+              @click="onMenuAction('edit', item)"
+            >
               <Pencil :size="16" />
               {{ t('global.buttons.edit') }}
             </BaseMenuButton>
@@ -280,13 +315,21 @@ async function handleArchiveFromMenu(item: HwItem) {
             <BaseMenuButton v-if="user" @click="togglePin(item)">
               <Pin v-if="!isPinned(item.id)" class="unpinned" :size="16" />
               <Pin fill="currentColor" v-else class="pinned" :size="16" />
-              {{ isPinned(item.id) ? t('school.tasks.items.menu.unpin') : t('school.tasks.items.menu.pin')}}
+              {{
+                isPinned(item.id)
+                  ? t('school.tasks.items.menu.unpin')
+                  : t('school.tasks.items.menu.pin')
+              }}
             </BaseMenuButton>
 
             <BaseMenuButton v-if="user" @click="handleArchiveFromMenu(item)">
               <ArchiveRestore v-if="showOldEntries" :size="16" />
               <Archive v-else :size="16" />
-              {{ showOldEntries ? t('school.tasks.items.menu.unarchive') : t('school.tasks.items.menu.archive') }}
+              {{
+                showOldEntries
+                  ? t('school.tasks.items.menu.unarchive')
+                  : t('school.tasks.items.menu.archive')
+              }}
             </BaseMenuButton>
 
             <BaseMenuButton @click="shareItem(item)">
@@ -294,19 +337,31 @@ async function handleArchiveFromMenu(item: HwItem) {
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
-            <BaseMenuButton @click="openMenuId = null; showInfoItem = item">
+            <BaseMenuButton
+              @click="
+                openMenuId = null;
+                showInfoItem = item;
+              "
+            >
               <Info :size="16" />
               {{ t('school.tasks.items.menu.info') }}
             </BaseMenuButton>
 
-            <BaseMenuButton title="Melden" @click="onMenuAction('report', item)">
+            <BaseMenuButton
+              title="Melden"
+              @click="onMenuAction('report', item)"
+            >
               <Flag :size="16" />
               {{ t('school.tasks.items.menu.report.name') }}
             </BaseMenuButton>
 
             <BaseMenuDivider v-if="canDelete(item.createdBy)" />
 
-            <BaseMenuButton variant="danger" v-if="canDelete(item.createdBy)" @click="onMenuAction('delete', item)">
+            <BaseMenuButton
+              variant="danger"
+              v-if="canDelete(item.createdBy)"
+              @click="onMenuAction('delete', item)"
+            >
               <Trash2 :size="16" />
               {{ t('global.buttons.delete') }}
             </BaseMenuButton>
@@ -314,9 +369,20 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #body v-if="item.description.length">
-          <span v-if="!isExpanded(item.id)">{{ item.description.slice(0, 200) }}<span v-if="item.description.length > 200">…</span></span>
-          <span v-else-if="item.description.length">{{ item.description }}</span>
-          <BaseButton v-if="item.description.length > 200" class="tiny" variant="ghost" @click="toggleDescription(item.id)" style="margin-left:8px;">
+          <span v-if="!isExpanded(item.id)"
+            >{{ item.description.slice(0, 200)
+            }}<span v-if="item.description.length > 200">…</span></span
+          >
+          <span v-else-if="item.description.length">{{
+            item.description
+          }}</span>
+          <BaseButton
+            v-if="item.description.length > 200"
+            class="tiny"
+            variant="ghost"
+            @click="toggleDescription(item.id)"
+            style="margin-left: 8px"
+          >
             {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
           </BaseButton>
         </template>
@@ -325,35 +391,64 @@ async function handleArchiveFromMenu(item: HwItem) {
           <div v-if="item.images && item.images.length" class="item-images">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
-                <div v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
-                     :key="img.publicId"
-                     class="thumb thumb-with-overlay-wrapper"
-                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
+                <div
+                  v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
+                  :key="img.publicId"
+                  class="thumb thumb-with-overlay-wrapper"
+                  @contextmenu.prevent="
+                    handleImageContextMenu($event, item, img)
+                  "
                 >
-                  <button type="button" class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url || '')" loading="lazy" draggable="false" alt="Vorschau" />
+                  <button
+                    type="button"
+                    class="img-clickable"
+                    @click.stop="openImageViewerForItem(item, idx)"
+                  >
+                    <img
+                      :src="img.thumbUrl || makeThumb(img.url || '')"
+                      loading="lazy"
+                      draggable="false"
+                      alt="Vorschau"
+                    />
                   </button>
 
                   <button
-                      v-if="idx === imagesPerRow - 1 && item.images.length > imagesPerRow"
-                      class="img-overlay"
-                      @click.stop.prevent="revealImages(item.id)"
-                      @contextmenu.stop.prevent
+                    v-if="
+                      idx === imagesPerRow - 1 &&
+                      item.images.length > imagesPerRow
+                    "
+                    class="img-overlay"
+                    @click.stop.prevent="revealImages(item.id)"
+                    @contextmenu.stop.prevent
                   >
                     <span class="overlay-blur"></span>
-                    <span class="overlay-content">+{{ item.images.length - (imagesPerRow - 1) }}</span>
+                    <span class="overlay-content"
+                      >+{{ item.images.length - (imagesPerRow - 1) }}</span
+                    >
                   </button>
                 </div>
               </template>
 
               <template v-else>
-                <div v-for="(img, idx) in item.images"
-                     :key="img.publicId"
-                     class="thumb"
-                     @contextmenu.prevent="handleImageContextMenu($event, item, img)"
+                <div
+                  v-for="(img, idx) in item.images"
+                  :key="img.publicId"
+                  class="thumb"
+                  @contextmenu.prevent="
+                    handleImageContextMenu($event, item, img)
+                  "
                 >
-                  <button type="button" class="img-clickable" @click.stop="openImageViewer(item, idx)">
-                    <img :src="img.thumbUrl || makeThumb(img.url || '')" loading="lazy" draggable="false"  alt=""/>
+                  <button
+                    type="button"
+                    class="img-clickable"
+                    @click.stop="openImageViewerForItem(item, idx)"
+                  >
+                    <img
+                      :src="img.thumbUrl || makeThumb(img.url || '')"
+                      loading="lazy"
+                      draggable="false"
+                      alt=""
+                    />
                   </button>
                 </div>
               </template>
@@ -361,35 +456,56 @@ async function handleArchiveFromMenu(item: HwItem) {
           </div>
 
           <div
-              v-if="item.editorNote || user?.role === 'superadmin'"
-              class="editor-note-section"
+            v-if="item.editorNote || user?.role === 'superadmin'"
+            class="editor-note-section"
           >
             <div class="editor-note-header">
-              <span class="editor-note-label">{{ t('school.tasks.notes.note') }}</span>
-              <BaseButton v-if="canEditNote()" class="tiny" @click.stop="startEditNote(item)" variant="ghost">
+              <span class="editor-note-label">{{
+                t('school.tasks.notes.note')
+              }}</span>
+              <BaseButton
+                v-if="canEditNote()"
+                class="tiny"
+                @click.stop="startEditNote(item)"
+                variant="ghost"
+              >
                 {{ t('global.buttons.edit') }}
               </BaseButton>
             </div>
 
-            <div v-if="editingNoteForId !== item.id" class="editor-note-content">
+            <div
+              v-if="editingNoteForId !== item.id"
+              class="editor-note-content"
+            >
               <span v-if="item.editorNote">{{ item.editorNote }}</span>
-              <span v-else class="note-placeholder">{{ t('school.tasks.notes.noNotes') }}</span>
+              <span v-else class="note-placeholder">{{
+                t('school.tasks.notes.noNotes')
+              }}</span>
             </div>
 
             <div v-else class="editor-note-edit">
-                <BaseInput
-                    id="editor-note-input"
-                    as="textarea"
-                    v-model="noteEditContent"
-                    rows="3"
-                    placeholder="Anmerkung eingeben..."
-                    maxlength="2000"
-                ></BaseInput>
+              <BaseInput
+                id="editor-note-input"
+                as="textarea"
+                v-model="noteEditContent"
+                rows="3"
+                placeholder="Anmerkung eingeben..."
+                maxlength="2000"
+              ></BaseInput>
               <div class="editor-note-actions">
-                <BaseButton @click.stop="saveNote(item.id)" :disabled="savingNote" variant="action" :loading="savingNote">
+                <BaseButton
+                  @click.stop="saveNote(item.id)"
+                  :disabled="savingNote"
+                  variant="action"
+                  :loading="savingNote"
+                >
                   {{ t('global.buttons.save') }}
                 </BaseButton>
-                <BaseButton @click.stop="cancelEditNote()" :disabled="savingNote" variant="ghost">
+                <BaseButton
+                  @click.stop="cancelEditNote()"
+                  :disabled="savingNote"
+                  variant="ghost"
+                >
                   {{ t('global.buttons.cancel') }}
                 </BaseButton>
               </div>
@@ -398,88 +514,106 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
       </ItemCard>
 
-      <BaseEmptyState v-if="!loading && !limitedItems.length" @primary-action="openItemForm()" @secondary-action="resetFilters">
-       <template #title>{{ t('school.tasks.items.view.noEntries') }}</template>
-       <template #message>{{ filteredItems.length ? t('school.tasks.items.view.noEntriesInViewMessage') : t('school.tasks.items.view.noEntriesMessage') }}</template>
-       <template #primary-action-label>{{ t('school.tasks.createEntry') }}</template>
-       <template #secondary-action-label>{{ t('school.tasks.resetFilters') }}</template>
+      <BaseEmptyState
+        v-if="!loading && !limitedItems.length"
+        @primary-action="openItemForm()"
+        @secondary-action="resetFilters"
+      >
+        <template #title>{{ t('school.tasks.items.view.noEntries') }}</template>
+        <template #message>{{
+          filteredItems.length
+            ? t('school.tasks.items.view.noEntriesInViewMessage')
+            : t('school.tasks.items.view.noEntriesMessage')
+        }}</template>
+        <template #primary-action-label>{{
+          t('school.tasks.createEntry')
+        }}</template>
+        <template #secondary-action-label>{{
+          t('school.tasks.resetFilters')
+        }}</template>
       </BaseEmptyState>
 
       <div v-if="filteredItems.length > 5" class="pagination-actions">
-        <BaseButton v-if="visibleCount < filteredItems.length" @click="showMore" variant="ghost">{{ t('global.buttons.showMore') }}</BaseButton>
-        <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{ t('global.buttons.showLess') }}</BaseButton>
+        <BaseButton
+          v-if="visibleCount < filteredItems.length"
+          @click="showMore"
+          variant="ghost"
+          >{{ t('global.buttons.showMore') }}</BaseButton
+        >
+        <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{
+          t('global.buttons.showLess')
+        }}</BaseButton>
       </div>
     </div>
 
     <ImageContextMenu
-        v-if="imageMenu.visible"
-        :x="imageMenu.x"
-        :y="imageMenu.y"
-        :can-delete="imageMenu.image && imageMenu.item ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy) : false"
-        @upload="triggerImageUpload"
-        @delete="triggerImageDelete"
-        @cancel="closeImageMenu"
+      v-if="imageMenu.visible"
+      :x="imageMenu.x"
+      :y="imageMenu.y"
+      :can-delete="
+        imageMenu.image && imageMenu.item
+          ? canDeleteImage(imageMenu.item.createdBy, imageMenu.image.createdBy)
+          : false
+      "
+      @upload="triggerImageUpload"
+      @delete="triggerImageDelete"
+      @cancel="closeImageMenu"
     />
 
     <ReportModal
-        :show="showReportConfirm"
-        message=""
-        :show-reason-input="true"
-        v-model:reason="reportReason"
-        @confirm="doReport"
-        @cancel="cancelReport"
+      :show="showReportConfirm"
+      message=""
+      :show-reason-input="true"
+      v-model:reason="reportReason"
+      @confirm="doReport"
+      @cancel="cancelReport"
     />
 
     <DeleteEntryModal
-        :show="showDeleteConfirm"
-        :loading="deletingEntry"
-        @confirm="confirmDelete"
-        @cancel="cancelDelete"
+      :show="showDeleteConfirm"
+      :loading="deletingEntry"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
     />
 
     <DeleteImageModal
-        v-if="showImageDeleteConfirm"
-        :show="showImageDeleteConfirm"
-        :loading="deletingImage"
-        @confirm="confirmImageDelete"
-        @cancel="cancelImageDelete"
+      v-if="showImageDeleteConfirm"
+      :show="showImageDeleteConfirm"
+      :loading="deletingImage"
+      @confirm="confirmImageDelete"
+      @cancel="cancelImageDelete"
     />
 
     <ItemInfoModal
-        v-if="showInfoItem"
-        :show="!!showInfoItem"
-        :item="showInfoItem"
-        :is-mod-or-admin="user?.role === 'superadmin' || user?.tenantRole === 'admin' || user?.tenantRole === 'moderator'"
-        :is-super-admin="user?.role === 'superadmin'"
-        @cancel="showInfoItem = null"
+      v-if="showInfoItem"
+      :show="!!showInfoItem"
+      :item="showInfoItem"
+      :is-mod-or-admin="
+        user?.role === 'superadmin' ||
+        user?.tenantRole === 'admin' ||
+        user?.tenantRole === 'moderator'
+      "
+      :is-super-admin="user?.role === 'superadmin'"
+      @cancel="showInfoItem = null"
     />
-
-    <ImageViewer
-        :visible="showImageViewer"
-        :images="viewerImages"
-        :initial-index="viewerStartIndex"
-        @cancel="closeImageViewer"
-    />
-
-    <CompleteSetup v-if="user" :visible="showSetupModal" :is-setup="user && !user.doneSetup" :initial-data="{ enrKurs: user.enrKurs || null, wpuKurs1: user.wpuKurs1 || null, wpuKurs2: user.wpuKurs2 || null, theater: user.theater || 0 }" @cancel="showSetupModal = false" @success="onSetupSuccess" @update:user="onSetupSuccess" />
   </div>
 </template>
 
 <style scoped>
 .controls {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .controls .left {
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-  height: 100%
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  height: 100%;
 }
 
 .select-subject {
@@ -487,7 +621,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .subject-badge {
-  color:var(--color-on-surface-muted);
+  color: var(--color-on-surface-muted);
   padding: 0;
   font-size: var(--text-body);
 }
@@ -507,39 +641,39 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .item-images {
-  margin-top:8px;
+  margin-top: 8px;
 }
 
 .images-row {
   display: grid;
   grid-template-columns: repeat(v-bind(imagesPerRow), 1fr);
-  gap:8px;
-  position:relative;
+  gap: 8px;
+  position: relative;
 }
 
 .thumb {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius:8px;
-  overflow:hidden;
-  border:none;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: rgba(0,0,0,0.12);
-  position:relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.12);
+  position: relative;
   -webkit-touch-callout: none; /* Disables iOS system menu */
-  -webkit-user-select: none;   /* Safari / Chrome */
-  -moz-user-select: none;      /* Firefox */
-  -ms-user-select: none;       /* IE/Edge */
-  user-select: none;           /* Standard */
+  -webkit-user-select: none; /* Safari / Chrome */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
+  user-select: none; /* Standard */
 }
 
 .thumb img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
   -webkit-user-drag: none;
 }
 
@@ -568,8 +702,8 @@ async function handleArchiveFromMenu(item: HwItem) {
   background: #8883;
   opacity: 1;
   border-radius: var(--radius-md);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .img-overlay .overlay-content {
@@ -598,14 +732,14 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .empty {
-  text-align:center;
-  color:var(--color-on-surface-muted);
-  padding:24px;
-  border: none
+  text-align: center;
+  color: var(--color-on-surface-muted);
+  padding: 24px;
+  border: none;
 }
 
 .message {
-  font-weight:600;
+  font-weight: 600;
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-all;
@@ -703,7 +837,7 @@ async function handleArchiveFromMenu(item: HwItem) {
   gap: 8px;
 }
 
-@media (max-width: 500px ) {
+@media (max-width: 500px) {
   .row-two {
     flex-direction: row;
     align-items: flex-start;

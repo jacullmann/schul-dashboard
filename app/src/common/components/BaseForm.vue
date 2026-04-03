@@ -1,35 +1,34 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-  error?: string;
-}>(), {
-  error: '',
-});
+import { useI18n} from 'vue-i18n';
 
-const slots = defineSlots<{
-  default(): unknown;
-}>();
+const { t } = useI18n();
+
+const props = withDefaults(defineProps<{
+  submit: () => void
+  cancellable?: boolean
+}>(), {
+  cancellable: true
+});
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <slot></slot>
+  <form @submit.prevent="submit" novalidate>
+    <BaseFormContent>
+      <slot name="content"></slot>
+    </BaseFormContent>
 
-    <transition
-      enter-active-class="transition duration-150 ease-out"
-      enter-from-class="opacity-0 -translate-y-1"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 -translate-y-1"
-    >
-      <span
-        v-if="error"
-        class="text-danger text-sub font-sans leading-[1.4] m-0"
-        role="alert"
-        aria-live="polite"
-      >
-        {{ error }}
-      </span>
-    </transition>
-  </div>
+    <BaseRow justify="end" class="mt-4">
+      <slot name="actions">
+        <BaseButton v-if="cancellable" type="button" @click="$emit('cancel')" variant="ghost">
+          {{ t('global.buttons.cancel') }}
+        </BaseButton>
+
+        <slot name="action-btn">
+          <BaseButton type="submit" variant="action" :class="{'w-full': !cancellable}">
+            {{ t('global.buttons.confirm') }}
+          </BaseButton>
+        </slot>
+      </slot>
+    </BaseRow>
+  </form>
 </template>
