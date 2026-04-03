@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
-import { onClickOutside } from '@vueuse/core';
-import { ChevronDown, Check } from '@lucide/vue';
+import { ref, nextTick, computed } from 'vue';
+import { onClickOutside, useElementBounding } from '@vueuse/core';
+import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -24,6 +24,18 @@ const emit = defineEmits<{
 
 const isOpen = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
+const floatingRef = ref<HTMLElement | null>(null);
+
+const { left, bottom, width } = useElementBounding(wrapperRef);
+
+const floatingStyles = computed(() => ({
+  position: 'fixed' as const,
+  top: `${bottom.value + 4}px`,
+  left: `${left.value}px`,
+  width: `${width.value}px`,
+  // Modal is 100001, so we go slightly higher
+  zIndex: 100002,
+}));
 
 const toggleMenu = async () => {
   if (!props.disabled) {
@@ -32,8 +44,9 @@ const toggleMenu = async () => {
     if (isOpen.value) {
       await nextTick();
 
-      if (wrapperRef.value) {
-        const selectedElement = wrapperRef.value.querySelector('.active') as HTMLElement | null;
+      // 4. Update querySelector to look inside the teleported floatingRef
+      if (floatingRef.value) {
+        const selectedElement = floatingRef.value.querySelector('.active') as HTMLElement | null;
 
         if (selectedElement) {
           selectedElement.scrollIntoView({
@@ -51,9 +64,10 @@ const selectOption = (value: string) => {
   isOpen.value = false;
 };
 
+// 5. Ignore clicks inside the teleported menu so it doesn't immediately close
 onClickOutside(wrapperRef, () => {
   isOpen.value = false;
-});
+}, { ignore: [floatingRef] });
 </script>
 
 <template>
@@ -75,18 +89,25 @@ onClickOutside(wrapperRef, () => {
       <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
     </BaseButton>
 
-    <BaseMenu v-if="isOpen" class="top-full min-w-full max-h-80 mt-1">
-      <BaseMenuButton
-          v-for="option in options"
-          :key="option.value"
-          :class="{ 'font-semibold': modelValue === option.value }"
-          @click="selectOption(option.value)"
-          type="button"
-          :isSelect="true"
-          :active="modelValue === option.value"
+    <Teleport to="body">
+      <BaseMenu 
+        v-if="isOpen" 
+        ref="floatingRef"
+        :style="floatingStyles"
+        class="max-h-80 z-[9999]" 
       >
-        {{ option.label }}
-      </BaseMenuButton>
-    </BaseMenu>
+        <BaseMenuButton
+            v-for="option in options"
+            :key="option.value"
+            :class="{ 'font-semibold': modelValue === option.value }"
+            @click="selectOption(option.value)"
+            type="button"
+            :isSelect="true"
+            :active="modelValue === option.value"
+        >
+          {{ option.label }}
+        </BaseMenuButton>
+      </BaseMenu>
+    </Teleport>
   </div>
 </template>
