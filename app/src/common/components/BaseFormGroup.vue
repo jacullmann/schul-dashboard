@@ -29,15 +29,15 @@ const errorId = computed(() => `${props.id}-error`);
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-1"
     >
-      <p
+      <span
         v-if="error"
         :id="errorId"
-        class="text-sub font-sans leading-[1.4] m-0 text-danger"
+        class="text-danger text-sub font-sans leading-[1.4] m-0"
         role="alert"
         aria-live="polite"
       >
         {{ error }}
-      </p>
+      </span>
     </transition>
   </div>
 </template>

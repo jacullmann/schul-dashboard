@@ -442,7 +442,7 @@
         "subject": "Subject",
         "customSubject": "Custom Subject",
         "course": "Course",
-        "description": "Description (optional)",
+        "description": "Description",
         "duedate": "Date",
         "images": "Images",
         "uploadImages": "Upload Images",

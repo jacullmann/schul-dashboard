@@ -13,9 +13,9 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <div class="blurit" @click.self="$emit('cancel')" aria-hidden="true">
-    <div class="bg-canvas border border-canvas-border rounded-2xl p-4 w-[calc(100%-32px)] max-w-[640px] max-h-[calc(100%-32px)] overflow-y-auto fixed text-left z-[100001]" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="bg-canvas border border-canvas-border rounded-2xl p-4 w-[calc(100%-32px)] max-w-160 max-h-[calc(100%-32px)] overflow-y-auto fixed text-left z-100001" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <BaseRow justify="between" class="mb-4">
-        <BaseTitle>
+        <BaseTitle :level="3">
           <slot name="title"></slot>
 
           <template #info>

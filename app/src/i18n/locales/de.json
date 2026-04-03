@@ -481,7 +481,7 @@
         "subject": "Fach",
         "customSubject": "Benutzerdefiniertes Fach",
         "course": "Kurs",
-        "description": "Beschreibung (optional)",
+        "description": "Beschreibung",
         "dueDate": "Datum",
         "images": "Bilder",
         "uploadingImage": "Lade Bild hoch...",
