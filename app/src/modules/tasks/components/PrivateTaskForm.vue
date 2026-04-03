@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import hw from '@/api/hwApi';
 import type { PrivateTask } from '@/modules/tasks/types';
+import BaseFormGroup from '@/common/components/BaseFormGroup.vue';
 
 const props = defineProps<{ initial?: PrivateTask }>();
 const emit = defineEmits<{
@@ -14,8 +15,9 @@ const title = ref(props.initial?.title || '');
 const description = ref(props.initial?.description || '');
 
 const submitting = ref(false);
-const message = ref('');
-const isError = ref(false);
+const titleError = ref('');
+const descriptionError = ref('');
+const submitError = ref('');
 const titleInputRef = ref<HTMLInputElement | null>(null);
 
 onMounted(() => {
@@ -23,15 +25,26 @@ onMounted(() => {
 });
 
 async function submit() {
+  titleError.value = '';
+  descriptionError.value = '';
+  submitError.value = '';
+
+  if (!title.value.trim()) {
+    titleError.value = 'A title is required.';
+    return;
+  }
+  if (title.value.trim().length > 100) {
+    titleError.value = 'Title is too long (max. 100 characters).';
+    return;
+  }
+  if (description.value.trim().length > 2000) {
+    descriptionError.value = 'Description is too long (max. 2000 characters).';
+    return;
+  }
+
   submitting.value = true;
-  message.value = '';
-  isError.value = false;
 
   try {
-    if (!title.value.trim()) throw new Error('A title is required.');
-    if (title.value.trim().length > 100) throw new Error('Title is too long (max. 100 characters).');
-    if (description.value.trim().length > 2000) throw new Error('Description is too long (max. 2000 characters).');
-
     const payload = {
       title: title.value.trim(),
       description: description.value.trim(),
@@ -46,15 +59,12 @@ async function submit() {
       responseData = data;
     }
 
-    isError.value = false;
-    // Delegate success notification to the parent — avoids duplicate toasts.
     emit('success', responseData);
 
   } catch (e: unknown) {
-    const err = e as { response?: { data?: { error?: string } }, message?: string };
-    message.value = err.response?.data?.error || err.message || 'An error occurred.';
-    isError.value = true;
-    emit('error', message.value);
+    const err = e as { response?: { data?: { error?: string } }; message?: string };
+    submitError.value = err.response?.data?.error ?? err.message ?? 'An unexpected error occurred.';
+    emit('error', submitError.value);
   } finally {
     submitting.value = false;
   }
@@ -70,17 +80,17 @@ async function submit() {
       </template>
 
       <template #content>
-        <div class="section">
-          <BaseLabel for="private-task-title-input">Title</BaseLabel>
-          <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
-        </div>
+        <BaseForm :error="submitError">
+          <BaseFormGroup id="private-task-title-input" :error="titleError">
+            <BaseLabel for="private-task-title-input">Title</BaseLabel>
+            <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
+          </BaseFormGroup>
 
-        <div class="section">
-          <BaseLabel for="private-task-description-input">Description (optional)</BaseLabel>
-          <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000"></BaseInput>
-        </div>
-
-        <div v-if="message" class="small" :class="isError ? 'msg-error' : 'msg-ok'">{{ message }}</div>
+          <BaseFormGroup id="private-task-description-input" :error="descriptionError">
+            <BaseLabel for="private-task-description-input">Description</BaseLabel>
+            <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000" />
+          </BaseFormGroup>
+        </BaseForm>
       </template>
 
       <template #action-btn>
@@ -91,25 +101,3 @@ async function submit() {
     </BaseModal>
   </form>
 </template>
-
-<style scoped>
-.section {
-  margin-bottom: 16px;
-}
-
-.label {
-  display: block;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface);
-  margin-bottom: 6px;
-}
-
-.small {
-  font-size: var(--text-sub);
-  margin-left: auto;
-}
-
-.msg-error {
-  color: var(--color-danger);
-}
-</style>

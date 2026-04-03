@@ -156,8 +156,7 @@ const dueLocal = ref(
 );
 
 const submitting = ref(false);
-const message = ref('');
-const isError = ref(false);
+const submitError = ref('');
 
 const subjectOptions = computed(() => {
   const opts = subjectStore.availableSubjectKeys.map((s) => {
@@ -203,8 +202,7 @@ const wpu2Options = computed(() =>
 
 async function submit() {
   submitting.value = true;
-  message.value = '';
-  isError.value = false;
+  submitError.value = '';
 
   // Reset all specific form errors
   titleError.value = '';
@@ -311,18 +309,19 @@ async function submit() {
 
     emit('success');
   } catch (e: unknown) {
-    isError.value = true;
-
     // This catches actual server errors during the API call
     const err = e as {
       response?: { status?: number; data?: { error?: string } };
       message?: string;
     };
-    
+
     if (err.response?.status === 400) {
-      message.value = err.response?.data?.error || 'Bitte überprüfe deine Eingaben.';
+      submitError.value =
+        err.response?.data?.error || 'Bitte überprüfe deine Eingaben.';
     } else {
-      message.value = err.message || 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
+      submitError.value =
+        err.message ||
+        'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.';
     }
   } finally {
     submitting.value = false;
@@ -378,7 +377,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <BaseForm>
+        <BaseForm :error="submitError">
           <BaseFormGroup v-if="!initial" id="type">
             <BaseTabs
               :items="typeTabItems"
