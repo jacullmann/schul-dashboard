@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, nextTick } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
-import BaseKbd from '@/common/components/BaseKbd.vue';
+import { Search } from '@lucide/vue';
 
 const props = withDefaults(
   defineProps<{
@@ -10,7 +10,6 @@ const props = withDefaults(
     itemCount: number;
     placeholder?: string;
     title?: string;
-    icon?: any;
     idPrefix?: string;
   }>(),
   {
@@ -108,12 +107,7 @@ function setSelectedIndex(idx: number) {
     >
       <!-- Search input -->
       <div class="flex items-center gap-3 p-4 border-b border-surface-border">
-        <component
-          :is="icon"
-          v-if="icon"
-          :size="20"
-          class="text-on-surface-subtle shrink-0"
-        />
+        <Search :size="20" class="text-on-surface-subtle shrink-0" />
         <input
           :id="`${idPrefix}input`"
           ref="inputRef"

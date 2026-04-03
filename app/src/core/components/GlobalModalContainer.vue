@@ -9,7 +9,6 @@
  * Business logic (logout, callbacks, etc.) lives here rather than in App.vue
  * so App.vue can stay purely focused on app-lifecycle concerns.
  */
-import { nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/common/composables/useToast';
@@ -127,6 +126,10 @@ async function onAccountDeleted() {
 
 function onAccountDeleteError(msg: string) {
   toast.error(msg);
+}
+
+async function onAuthSuccess() {
+  await userStore.fetchUser();
 }
 </script>
 

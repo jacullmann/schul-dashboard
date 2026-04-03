@@ -446,7 +446,6 @@ const paletteProps = computed(() => {
       itemCount: filteredGroups.value.length,
       placeholder: t('search.items.switchGroup'),
       title: t('search.items.switchGroup'),
-      icon: UsersRound,
       prefix: 'group-result-',
     };
   }
@@ -455,7 +454,6 @@ const paletteProps = computed(() => {
       itemCount: filteredThemes.value.length,
       placeholder: t('search.descriptions.changeTheme'),
       title: t('account.menu.theme.title'),
-      icon: SunMoon,
       prefix: 'theme-result-',
     };
   }
@@ -464,7 +462,6 @@ const paletteProps = computed(() => {
       itemCount: filteredLanguages.value.length,
       placeholder: t('search.descriptions.changeLanguage'),
       title: t('account.menu.language.title'),
-      icon: Languages,
       prefix: 'language-result-',
     };
   }
@@ -473,7 +470,6 @@ const paletteProps = computed(() => {
     itemCount: filteredDefaultResults.value.length,
     placeholder: t('search.modal.placeholder'),
     title: t('search.modal.title'),
-    icon: Search,
     prefix: 'search-result-',
   };
 });
@@ -502,7 +498,6 @@ function handleSelect(index: number) {
       :item-count="paletteProps.itemCount"
       :placeholder="paletteProps.placeholder"
       :title="paletteProps.title"
-      :icon="paletteProps.icon"
       :id-prefix="paletteProps.prefix"
       @select="handleSelect"
       @cancel="$emit('cancel')"
