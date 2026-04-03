@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useItemForm } from '@/core/composables/useItemForm';
+import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 import {
   House,
   ListTodo,
@@ -51,6 +52,7 @@ const router = useRouter();
 const route = useRoute();
 const { activeGroupId, userGroups, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
 const { openItemForm } = useItemForm();
+const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openSetup, openSecurity, openChangePassword } = useAccountModals();
 const userStore = useUserStore();
 const { resetMfaState } = useMfa();
@@ -201,6 +203,19 @@ const defaultResults = computed<SearchResult[]>(() => [
       emit('cancel');
     },
     shortcut: ['alt', 'n'],
+    condition: !!activeGroupId.value,
+  },
+  {
+    id: 'create-private-entry',
+    label: t('search.items.createPrivateEntry'),
+    description: t('search.descriptions.createPrivateEntry'),
+    category: 'action',
+    icon: Lock,
+    action: () => {
+      openPrivateTaskForm();
+      emit('cancel');
+    },
+    shortcut: ['alt', 'p'],
   },
   {
     id: 'switch-group',

@@ -8,7 +8,6 @@ const props = defineProps<{ initial?: PrivateTask }>();
 const emit = defineEmits<{
   (e: 'cancel'): void;
   (e: 'success', data: PrivateTask): void;
-  (e: 'error', msg: string): void
 }>();
 
 const title = ref(props.initial?.title || '');
@@ -64,7 +63,6 @@ async function submit() {
   } catch (e: unknown) {
     const err = e as { response?: { data?: { error?: string } }; message?: string };
     submitError.value = err.response?.data?.error ?? err.message ?? 'An unexpected error occurred.';
-    emit('error', submitError.value);
   } finally {
     submitting.value = false;
   }
@@ -82,12 +80,12 @@ async function submit() {
       <template #content>
         <BaseForm :error="submitError">
           <BaseFormGroup id="private-task-title-input" :error="titleError">
-            <BaseLabel for="private-task-title-input">Title</BaseLabel>
+            <BaseLabel for="private-task-title-input" :required="true">Title</BaseLabel>
             <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
           </BaseFormGroup>
 
           <BaseFormGroup id="private-task-description-input" :error="descriptionError">
-            <BaseLabel for="private-task-description-input">Description</BaseLabel>
+            <BaseLabel for="private-task-description-input" :required="false">Description</BaseLabel>
             <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000" />
           </BaseFormGroup>
         </BaseForm>

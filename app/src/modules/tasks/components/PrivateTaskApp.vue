@@ -6,14 +6,12 @@ import type { PrivateTask } from '@/modules/tasks/types';
 import { usePrivateTasks } from '@/modules/tasks/composables/usePrivateTasks';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import ItemCard from '@/modules/tasks/components/ItemCard.vue';
+import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
+import { onUnmounted } from 'vue';
 
 const { t } = useI18n();
 
-// Definition der Events für den Parent
-const emit = defineEmits<{
-  (e: 'create'): void;
-  (e: 'edit', privateTask: PrivateTask): void;
-}>();
+const { openEditPrivateTaskForm, onFormSuccess } = usePrivateTaskForm();
 
 const {
   user,
@@ -30,6 +28,15 @@ const {
   deletePrivateTask,
   reorderPrivateTask,
 } = usePrivateTasks();
+
+onUnmounted(onFormSuccess((task: PrivateTask) => {
+  const exists = privateTasks.value.some(t => t.id === task.id);
+  if (exists) {
+    updatePrivateTask(task);
+  } else {
+    addPrivateTask(task);
+  }
+}));
 
 const emptyImage = new Image();
 emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -152,8 +159,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
             </template>
 
             <template #menu>
-              <BaseMenu v-if="openMenuId === privateTask.id" @click.stop>
-                <BaseMenuButton @click="$emit('edit', privateTask); openMenuId = null">
+              <BaseMenu v-if="openMenuId === privateTask.id" class="right-0 mt-6" @click.stop>
+                <BaseMenuButton @click="openEditPrivateTaskForm(privateTask); openMenuId = null">
                   <Pencil :size="16" />
                   {{ t('global.buttons.edit') }}
                 </BaseMenuButton>

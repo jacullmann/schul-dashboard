@@ -26,6 +26,7 @@ import GoogleLinkModal from '@/modules/auth/components/GoogleLinkModal.vue';
 import MfaVerifyModal from '@/modules/auth/components/MfaVerifyModal.vue';
 import SearchModal from '@/core/components/SearchModal.vue';
 import ItemForm from '@/modules/tasks/components/ItemForm.vue';
+import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
 import ChangePasswordModal from '@/modules/auth/components/ChangePasswordModal.vue';
 import SecurityModal from '@/modules/auth/components/SecurityModal.vue';
 import DeleteAccountModal from '@/modules/auth/components/DeleteAccountModal.vue';
@@ -68,6 +69,9 @@ const {
   showDeleteAccount,
   createGroupOpen,
   joinGroupOpen,
+  privateTaskFormOpen,
+  privateTaskFormKey,
+  privateTaskToEdit,
 } = storeToRefs(modalStore);
 
 
@@ -77,6 +81,14 @@ const {
 function onItemFormSuccess() {
   toast.success(t('school.tasks.itemForm.successEdit'));
   modalStore.notifyItemFormSuccess();
+}
+
+function onPrivateTaskFormSuccess(task: any) {
+  const msg = modalStore.privateTaskToEdit 
+    ? t('school.private.successUpdate') 
+    : t('school.private.successCreate');
+  toast.success(msg);
+  modalStore.notifyPrivateTaskFormSuccess(task);
 }
 
 // ── Account modal callbacks ────────────────────────────────────────────────
@@ -174,6 +186,17 @@ function onAccountDeleteError(msg: string) {
       :initial="itemToEdit"
       @cancel="modalStore.closeItemForm()"
       @success="onItemFormSuccess"
+    />
+  </Teleport>
+
+  <!-- Global private task form -->
+  <Teleport to="body">
+    <PrivateTaskForm
+      v-if="privateTaskFormOpen"
+      :key="privateTaskFormKey"
+      :initial="privateTaskToEdit || undefined"
+      @cancel="modalStore.closePrivateTaskForm()"
+      @success="onPrivateTaskFormSuccess"
     />
   </Teleport>
 

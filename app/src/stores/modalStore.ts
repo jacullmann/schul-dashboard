@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { HwItem } from '@/modules/tasks/types';
+import type { HwItem, PrivateTask } from '@/modules/tasks/types';
 import type { ItemType } from '@/modules/tasks/types';
 
 // ---------------------------------------------------------------------------
@@ -89,6 +89,40 @@ export const useModalStore = defineStore('modals', () => {
     return () => _itemFormSuccessCallbacks.delete(cb);
   }
 
+  // ── Private task form ──────────────────────────────────────────────────────
+  const privateTaskFormOpen = ref(false);
+  const privateTaskFormKey = ref(0);
+  const privateTaskToEdit = ref<PrivateTask | null>(null);
+
+  /** Registry of success callbacks (e.g. page-level update hooks). */
+  const _privateTaskFormSuccessCallbacks = new Set<(task: PrivateTask) => void>();
+
+  function openPrivateTaskForm() {
+    privateTaskToEdit.value = null;
+    privateTaskFormKey.value += 1;
+    privateTaskFormOpen.value = true;
+  }
+
+  function openEditPrivateTaskForm(task: PrivateTask) {
+    privateTaskToEdit.value = task;
+    privateTaskFormKey.value += 1;
+    privateTaskFormOpen.value = true;
+  }
+
+  function closePrivateTaskForm() {
+    privateTaskFormOpen.value = false;
+  }
+
+  function notifyPrivateTaskFormSuccess(task: PrivateTask) {
+    _privateTaskFormSuccessCallbacks.forEach((cb) => cb(task));
+    closePrivateTaskForm();
+  }
+
+  function onPrivateTaskFormSuccess(cb: (task: PrivateTask) => void): () => void {
+    _privateTaskFormSuccessCallbacks.add(cb);
+    return () => _privateTaskFormSuccessCallbacks.delete(cb);
+  }
+
   // ── Account modals ────────────────────────────────────────────────────────
   const showChangePassword = ref(false);
   const showSecurity = ref(false);
@@ -154,6 +188,16 @@ export const useModalStore = defineStore('modals', () => {
     closeItemForm,
     notifyItemFormSuccess,
     onItemFormSuccess,
+
+    // Private task form
+    privateTaskFormOpen,
+    privateTaskFormKey,
+    privateTaskToEdit,
+    openPrivateTaskForm,
+    openEditPrivateTaskForm,
+    closePrivateTaskForm,
+    notifyPrivateTaskFormSuccess,
+    onPrivateTaskFormSuccess,
 
     // Account modals
     showChangePassword,

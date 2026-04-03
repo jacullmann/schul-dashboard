@@ -43,6 +43,16 @@ export function useAppShortcuts() {
     }
   });
 
+  // Alt+P → Create new private entry
+  onKeyStroke(['p', 'P'], (e: KeyboardEvent) => {
+    if (!userStore.user) return;
+
+    if (e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      modalStore.openPrivateTaskForm();
+    }
+  });
+
   // Ctrl/Cmd+G → Group Switch
   onKeyStroke(['g', 'G'], (e: KeyboardEvent) => {
     if (!userStore.user) return;

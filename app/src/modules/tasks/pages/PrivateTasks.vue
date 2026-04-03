@@ -1,56 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import PrivateTaskApp from '@/modules/tasks/components/PrivateTaskApp.vue';
-import PrivateTaskForm from '@/modules/tasks/components/PrivateTaskForm.vue';
 import { Plus } from '@lucide/vue';
-import type { PrivateTask } from '@/modules/tasks/types';
 import { useI18n } from 'vue-i18n';
-import { useToast } from '@/common/composables/useToast';
+import { usePrivateTaskForm } from '@/core/composables/usePrivateTaskForm';
 
 const { t } = useI18n();
-const toast = useToast();
+
+const { openPrivateTaskForm } = usePrivateTaskForm();
 
 const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
-
-const showPrivateTaskForm = ref(false);
-const privateTaskToEdit = ref<PrivateTask | null>(null);
-const privateTaskAppRef = ref<{
-  addPrivateTask: (task: PrivateTask) => void;
-  updatePrivateTask: (task: PrivateTask) => void;
-} | null>(null);
-
-function openCreateForm() {
-  privateTaskToEdit.value = null;
-  showPrivateTaskForm.value = true;
-}
-
-function openEditTodo(todo: PrivateTask) {
-  privateTaskToEdit.value = todo;
-  showPrivateTaskForm.value = true;
-}
-
-function handleTodoSuccess(data?: PrivateTask) {
-  const msg = privateTaskToEdit.value
-    ? t('school.private.successUpdate')
-    : t('school.private.successCreate');
-  toast.success(msg);
-  showPrivateTaskForm.value = false;
-  if (privateTaskAppRef.value && data) {
-    if (privateTaskToEdit.value) {
-      privateTaskAppRef.value.updatePrivateTask(data);
-    } else {
-      privateTaskAppRef.value.addPrivateTask(data);
-    }
-  }
-  privateTaskToEdit.value = null;
-}
-
-function onFormError(msg: string) {
-  toast.error(msg || t('global.errors.validationFailed'));
-}
 </script>
 
 <template>
@@ -58,7 +19,7 @@ function onFormError(msg: string) {
     <PageHeader>
       {{ t('school.private.title') }}
       <template #action>
-        <BaseButton v-if="user" @click="openCreateForm" variant="action">
+        <BaseButton v-if="user" @click="openPrivateTaskForm" variant="action">
           <Plus :size="16" />
           <span>{{ t('school.private.newEntry') }}</span>
         </BaseButton>
@@ -66,19 +27,7 @@ function onFormError(msg: string) {
     </PageHeader>
 
     <div class="private-entries-container">
-      <PrivateTaskApp
-        ref="privateTaskAppRef"
-        @create="openCreateForm"
-        @edit="openEditTodo"
-      />
+      <PrivateTaskApp />
     </div>
-
-    <PrivateTaskForm
-      v-if="showPrivateTaskForm"
-      :initial="privateTaskToEdit || undefined"
-      @cancel="showPrivateTaskForm = false"
-      @success="handleTodoSuccess"
-      @error="onFormError"
-    />
   </div>
 </template>
