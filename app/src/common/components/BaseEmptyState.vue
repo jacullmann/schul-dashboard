@@ -15,13 +15,13 @@ const props = defineProps({
     <p class="max-w-96">
       <slot name="message"></slot>
     </p>
-    <div class="flex justify-center gap-2">
+    <BaseRow justify="center">
       <BaseButton :@click="primaryAction" variant="action">
         <slot name="primary-action-label"></slot>
       </BaseButton>
       <BaseButton :@click="secondaryAction" variant="ghost">
         <slot name="secondary-action-label"></slot>
       </BaseButton>
-    </div>
+    </BaseRow>
   </div>
 </template>

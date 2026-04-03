@@ -14,25 +14,23 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 <template>
   <div class="blurit" @click.self="$emit('cancel')" aria-hidden="true">
     <div class="bg-canvas border border-canvas-border rounded-2xl p-4 w-[calc(100%-32px)] max-w-[640px] max-h-[calc(100%-32px)] overflow-y-auto fixed text-left z-[100001]" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="flex flex-start justify-between gap-2 mb-4">
-        <div class="flex items-center justify-start gap-[6px]">
-          <h3 id="modal-title" class="text-h3 text-on-surface m-0">
-            <slot name="title"></slot>
-          </h3>
+      <BaseRow justify="between" class="mb-4">
+        <BaseTitle>
+          <slot name="title"></slot>
 
-          <slot name="title-infopop"></slot>
-        </div>
+          <template #info>
+            <slot name="title-infopop"></slot>
+          </template>
+        </BaseTitle>
 
         <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
           {{ t('global.buttons.close') }}
         </BaseButton>
-      </div>
+      </BaseRow>
 
-      <div class="modal-content">
-        <slot name="content"></slot>
-      </div>
+      <slot name="content"></slot>
 
-      <div class="row">
+      <BaseRow justify="end" class="mt-4">
         <slot name="actions">
           <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
             {{ t('global.buttons.cancel') }}
@@ -44,7 +42,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
             </BaseButton>
           </slot>
         </slot>
-      </div>
+      </BaseRow>
     </div>
   </div>
 </template>

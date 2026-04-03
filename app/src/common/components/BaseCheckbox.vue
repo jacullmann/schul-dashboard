@@ -44,7 +44,7 @@ function handleLabelClick(event: MouseEvent) {
         class="text-sub leading-[18px] flex-1"
         @click="handleLabelClick"
     >
-      <slot />
+      <slot></slot>
     </span>
   </label>
 </template>

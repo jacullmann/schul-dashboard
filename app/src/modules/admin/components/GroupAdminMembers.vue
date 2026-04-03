@@ -158,7 +158,7 @@ function confirmRemove() {
         <p>Are you sure you want to remove <strong>{{ removeModal.userName }}</strong> from the group?</p>
         <p>Users can rejoin at any time if they have the credentials for your group. To block them from doing so you can ban them.</p>
         
-        <BaseCheckbox v-model="removeModal.ban" :label="`Ban ${removeModal.userName} permanently`" />
+        <BaseCheckbox v-model="removeModal.ban">Ban <strong>{{ removeModal.userName }}</strong> permanently</BaseCheckbox>
       </template>
       <template #action-btn>
         <BaseButton variant="danger" @click="confirmRemove">Remove</BaseButton>
