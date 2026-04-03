@@ -12,6 +12,7 @@ const {
   loadingSubs,
   loadingLessons,
   days,
+  weekDates,
   timeSlots,
   groupedLessons,
   currentDay,
@@ -94,7 +95,8 @@ onMounted(() => {
             class="day-header bg-surface text-on-surface p-2 border border-surface-border text-center font-bold rounded-md text-body shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
             :class="{'bg-surface-hover border-surface-hover-border': day === currentDay}"
           >
-            {{ formatDayName(day) }}
+            <span class="block leading-tight">{{ formatDayName(day) }}</span>
+            <span class="block text-xs font-normal opacity-60 mt-0.5">{{ weekDates[day] }}</span>
           </div>
 
           <ScheduleLessonGroup

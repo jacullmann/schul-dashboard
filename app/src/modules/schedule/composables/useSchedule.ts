@@ -23,6 +23,41 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   const days = [1, 2, 3, 4, 5];
 
+  /**
+   * Returns a map of schedule-day-number → calendar date for the week that is
+   * currently displayed.  The displayed week is the ISO week that contains
+   * `now`, but once Friday has ended (i.e. Saturday 00:00+) we advance one
+   * week so the header already shows next week's dates.
+   */
+  const weekDates = computed<Record<number, number>>(() => {
+    const d = now.value;
+    const jsDay = d.getDay(); // 0 = Sun … 6 = Sat
+
+    // Offset from Monday for each JS day-of-week value.
+    // Saturday (6) and Sunday (0) both point to the *next* Monday.
+    const offsetToMonday: Record<number, number> = {
+      0: 1, // Sun  → next Mon (+1)
+      1: 0, // Mon  → same Mon ( 0)
+      2: -1, // Tue  → Mon (-1)
+      3: -2, // Wed  → Mon (-2)
+      4: -3, // Thu  → Mon (-3)
+      5: -4, // Fri  → Mon (-4)
+      6: 1, // Sat  → next Mon (+1)
+    };
+
+    const monday = new Date(d);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(d.getDate() + offsetToMonday[jsDay]);
+
+    const map: Record<number, number> = {};
+    days.forEach((day, idx) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + idx);
+      map[day] = date.getDate();
+    });
+    return map;
+  });
+
   const formatDayName = (day: number): string => {
     const date = new Date(Date.UTC(2024, 0, day, 12)); // 2024-01-01 is Monday
     return new Intl.DateTimeFormat(locale.value, { weekday: 'long' }).format(
@@ -367,6 +402,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
     loadingSubs,
     loadingLessons,
     days,
+    weekDates,
     timeSlots,
     groupedLessons,
     currentDay,
