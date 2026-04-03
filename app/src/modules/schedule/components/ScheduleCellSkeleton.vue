@@ -14,8 +14,11 @@ defineProps<{
     width="full"
     height="full"
     radius="md"
+    class="max-[500px]:![grid-column:var(--col-mobile)]"
     :style="{
-      gridColumn: `${col + 1} / span 1`,
+      '--col-desktop': `${col + 1} / span 1`,
+      '--col-mobile': `${col} / span 1`,
+      gridColumn: 'var(--col-desktop)',
       gridRow: `${row + 1} / span 1`,
     }"
   />
