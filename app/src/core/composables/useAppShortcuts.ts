@@ -1,6 +1,7 @@
 import { onKeyStroke } from '@vueuse/core';
 import { useModalStore } from '@/stores/modalStore';
 import { useUserStore } from '@/stores/userStore';
+import { useGroupAction } from '@/core/composables/useGroupAction';
 
 /**
  * Global application shortcuts
@@ -8,6 +9,7 @@ import { useUserStore } from '@/stores/userStore';
 export function useAppShortcuts() {
   const modalStore = useModalStore();
   const userStore = useUserStore();
+  const { withGroup } = useGroupAction();
 
   /*
   const isEditable = (e: KeyboardEvent): boolean => {
@@ -39,7 +41,9 @@ export function useAppShortcuts() {
 
     if (e.altKey && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
-      modalStore.openItemForm();
+      withGroup(() => {
+        modalStore.openItemForm();
+      });
     }
   });
 

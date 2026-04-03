@@ -44,6 +44,7 @@ import BaseCommandPalette from '@/common/components/BaseCommandPalette.vue';
 import BaseCommandPaletteItem from '@/common/components/BaseCommandPaletteItem.vue';
 import BaseKbdGroup from '@/common/components/BaseKbdGroup.vue';
 import NotificationDot from '@/common/components/NotificationDot.vue';
+import { useGroupAction } from '@/core/composables/useGroupAction';
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
@@ -58,6 +59,13 @@ const userStore = useUserStore();
 const { resetMfaState } = useMfa();
 const modalStore = useModalStore();
 const { currentTheme, currentLanguage, setPreference } = usePreferences();
+const { withGroup } = useGroupAction();
+
+const isAnyGroupAdmin = computed(() => {
+  if (userStore.isSuperadmin) return true;
+  if (userStore.isGroupAdmin) return true;
+  return userGroups.value?.some(g => g.role === 'admin' || g.role === 'moderator');
+});
 
 const query = ref('');
 
@@ -110,8 +118,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.tasks'),
     category: 'page',
     icon: ListTodo,
-    action: () => navigate(`/groups/${activeGroupId.value}/items/all`),
-    condition: !!activeGroupId.value,
+    action: () => withGroup(() => navigate(`/groups/${activeGroupId.value}/items/all`)),
   },
   {
     id: 'schedule',
@@ -119,8 +126,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.schedule'),
     category: 'page',
     icon: CalendarDays,
-    action: () => navigate(`/groups/${activeGroupId.value}/schedule`),
-    condition: !!activeGroupId.value,
+    action: () => withGroup(() => navigate(`/groups/${activeGroupId.value}/schedule`)),
   },
   {
     id: 'private',
@@ -144,8 +150,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.admin'),
     category: 'page',
     icon: SlidersHorizontal,
-    action: () => navigate(`/groups/${activeGroupId.value}/admin`),
-    condition: userStore.isGroupAdmin && !!activeGroupId.value,
+    action: () => withGroup(() => navigate(`/groups/${activeGroupId.value}/admin`)),
+    condition: isAnyGroupAdmin.value,
   },
   {
     id: 'brain',
@@ -199,11 +205,12 @@ const defaultResults = computed<SearchResult[]>(() => [
     category: 'action',
     icon: CirclePlus,
     action: () => {
-      openItemForm();
+      withGroup(() => {
+        openItemForm();
+      });
       emit('cancel');
     },
     shortcut: ['alt', 'n'],
-    condition: !!activeGroupId.value,
   },
   {
     id: 'create-private-entry',

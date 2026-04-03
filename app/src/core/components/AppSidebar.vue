@@ -23,6 +23,8 @@ import { useRouter } from 'vue-router';
 import { useMfa } from '@/modules/auth/composables/useMfa.ts';
 import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
+import { useGroupAction } from '@/core/composables/useGroupAction';
+import { computed } from 'vue';
 
 const { t } = useI18n();
 const { resetMfaState } = useMfa();
@@ -34,15 +36,22 @@ const legalLinks = [
   { to: '/contact', label: t('contact.contact.title') },
 ];
 const userStore = useUserStore();
-const { user, isGroupAdmin } = storeToRefs(userStore);
+const { user, isGroupAdmin, isSuperadmin } = storeToRefs(userStore);
 
-const { activeGroupId, logout: appAuthLogout } = useAppAuth();
+const { activeGroupId, userGroups, logout: appAuthLogout } = useAppAuth();
 const router = useRouter();
 
 const modalStore = useModalStore();
 const { sidebarExpanded: isExpanded } = storeToRefs(modalStore);
 const { openSearch } = useSearchModal();
 const { openItemForm } = useItemForm();
+const { withGroup } = useGroupAction();
+
+const isAnyGroupAdmin = computed(() => {
+  if (isSuperadmin?.value) return true;
+  if (isGroupAdmin?.value) return true;
+  return userGroups.value?.some(g => g.role === 'admin' || g.role === 'moderator');
+});
 
 function toggleExpanded() {
   modalStore.toggleSidebar();
@@ -84,8 +93,10 @@ function handleSearch() {
 }
 
 function handleCreate() {
-  openItemForm();
   collapseIfMobile();
+  withGroup(() => {
+    openItemForm();
+  });
 }
 
 onMounted(() => {
@@ -164,7 +175,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.tasks')"
           :expanded="isExpanded"
-          @click="handleNavigation(`/groups/${activeGroupId}/items/all`)"
+          @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/items/all`))"
         >
           <ListTodo :size="20" />
         </SidebarButton>
@@ -172,7 +183,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.schedule')"
           :expanded="isExpanded"
-          @click="handleNavigation(`/groups/${activeGroupId}/schedule`)"
+          @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/schedule`))"
         >
           <CalendarDays :size="20" />
         </SidebarButton>
@@ -186,10 +197,10 @@ onUnmounted(() => {
         </SidebarButton>
 
         <SidebarButton
-          v-if="activeGroupId && isGroupAdmin"
+          v-if="isAnyGroupAdmin"
           :label="t('sidebar.admin')"
           :expanded="isExpanded"
-          @click="handleNavigation(`/groups/${activeGroupId}/admin`)"
+          @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))"
         >
           <SlidersHorizontal :size="20" />
         </SidebarButton>
