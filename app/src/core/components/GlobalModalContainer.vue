@@ -259,10 +259,7 @@ async function onAuthSuccess() {
       :visible="showSetup"
       :is-setup="!user.doneSetup"
       :initial-data="{
-        enrKurs: user.enrKurs || null,
-        wpuKurs1: user.wpuKurs1 || null,
-        wpuKurs2: user.wpuKurs2 || null,
-        theater: user.theater || 0,
+        courses: user.courses || [],
       }"
       @cancel="modalStore.showSetup = false"
       @success="modalStore.showSetup = false"

@@ -33,18 +33,19 @@ export class ScheduleService {
         const { data: user } = await sb
           .from('users')
           .select(
-            'personalized, done_setup, enr_kurs, wpu_kurs_1, wpu_kurs_2, theater',
+            'personalized, done_setup',
           )
           .eq('id', userId)
           .maybeSingle();
 
         if (user?.personalized && user?.done_setup) {
-          filteredLessons = filterLessonsForUser(lessons, {
-            enrKurs: user.enr_kurs as string | null,
-            wpuKurs1: user.wpu_kurs_1 as string | null,
-            wpuKurs2: user.wpu_kurs_2 as string | null,
-            theater: user.theater as number,
-          });
+          const { data: userCourses } = await sb
+            .from('user_courses')
+            .select('course_id')
+            .eq('user_id', userId);
+
+          const courseIds = (userCourses || []).map((uc: any) => uc.course_id);
+          filteredLessons = filterLessonsForUser(lessons, courseIds);
         }
       }
 
@@ -108,7 +109,7 @@ export class ScheduleService {
     try {
       const { data } = await sb
         .from('subjects')
-        .select('id, name, is_active, courses(id, name)')
+        .select('id, name, is_active, category, courses(id, name)')
         .eq('tenant_id', tenantId)
         .order('name');
       return data || [];

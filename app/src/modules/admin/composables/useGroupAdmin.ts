@@ -31,7 +31,9 @@ export function useGroupAdmin() {
   const loadingMembers = ref(false);
 
   // Banned Users
-  const bannedUsers = ref<{ userId: string; generatedName: string; bannedAt: string }[]>([]);
+  const bannedUsers = ref<
+    { userId: string; generatedName: string; bannedAt: string }[]
+  >([]);
   const loadingBannedUsers = ref(false);
 
   // Schedule substitutions

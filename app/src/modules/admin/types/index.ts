@@ -48,10 +48,6 @@ export interface AdminUser {
   createdAt: string;
   lastLogin?: string;
   activityCount?: number;
-  enrKurs?: number;
-  wpuKurs1?: number;
-  wpuKurs2?: number;
-  theater?: number;
 }
 
 // ─── Group Members ──────────────────────────────────────────────

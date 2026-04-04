@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from "@/stores/userStore";
+import { useModalStore } from '@/stores/modalStore';
 
 const emit = defineEmits<{
   (e: 'cancel'): void;
@@ -11,6 +12,7 @@ const emit = defineEmits<{
 const router = useRouter();
 const auth = useAppAuth();
 const userStore = useUserStore();
+const modalStore = useModalStore();
 const { activeGroupId } = useAppAuth();
 
 const groupNameInputRef = ref<HTMLInputElement | null>(null);
@@ -51,6 +53,7 @@ async function submit() {
 
       emit('cancel');
       await router.push(`/groups/${activeGroupId.value}/items/all`);
+      modalStore.showSetup = true;
     } else {
       errorMsg.value = res.error || 'Zugriff verweigert. Code prüfen.';
     }

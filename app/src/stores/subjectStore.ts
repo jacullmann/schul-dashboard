@@ -12,6 +12,7 @@ export interface Subject {
   id: string;
   name: string;
   is_active: boolean;
+  category: 'core' | 'elective' | 'extra';
   courses?: Course[];
 }
 
@@ -48,19 +49,12 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     return subjects.value.filter((s) => s.is_active).map((s) => s.name);
   });
 
-  const enrCourses = computed(() => {
-    const match = subjects.value.find((s) => s.name === 'enrichment');
-    return match?.courses || [];
+  const electiveSubjects = computed(() => {
+    return subjects.value.filter(s => s.category === 'elective' && s.courses && s.courses.length >= 1);
   });
 
-  const wpu1Courses = computed(() => {
-    const match = subjects.value.find((s) => s.name === 'wpu1');
-    return match?.courses || [];
-  });
-
-  const wpu2Courses = computed(() => {
-    const match = subjects.value.find((s) => s.name === 'wpu2');
-    return match?.courses || [];
+  const extraSubjects = computed(() => {
+    return subjects.value.filter(s => s.category === 'extra' && s.courses && s.courses.length >= 1);
   });
 
   // Listen for tenant changes and reset cached subjects
@@ -77,8 +71,7 @@ export const useSubjectStore = defineStore('subjectStore', () => {
     loadSubjects,
     reset,
     availableSubjectKeys,
-    enrCourses,
-    wpu1Courses,
-    wpu2Courses,
+    electiveSubjects,
+    extraSubjects,
   };
 });

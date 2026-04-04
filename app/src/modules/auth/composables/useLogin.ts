@@ -4,10 +4,7 @@ import hw from '@/api/hwApi';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 import type BaseInput from '@/common/components/BaseInput.vue';
 
-export function useLogin(
-  onLoggedIn: () => void,
-  onMfaRequired: () => void,
-) {
+export function useLogin(onLoggedIn: () => void, onMfaRequired: () => void) {
   const { t } = useI18n();
   const { resetMfaState } = useMfa();
 

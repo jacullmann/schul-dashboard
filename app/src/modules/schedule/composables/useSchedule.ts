@@ -257,10 +257,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   watch(
     () => [
       userStore.user?.personalized,
-      userStore.user?.enrKurs,
-      userStore.user?.wpuKurs1,
-      userStore.user?.wpuKurs2,
-      userStore.user?.theater,
+      userStore.user?.courses,
     ],
     (newVal, oldVal) => {
       if (

@@ -4,9 +4,7 @@ import hw from '@/api/hwApi';
 import { usePreferences } from '@/common/composables/usePreferences';
 import type BaseInput from '@/common/components/BaseInput.vue';
 
-export function useRegister(
-  onRegistered: () => void,
-) {
+export function useRegister(onRegistered: () => void) {
   const { t } = useI18n();
   const { currentTheme, currentLanguage } = usePreferences();
 

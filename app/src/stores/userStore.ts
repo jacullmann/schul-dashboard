@@ -8,10 +8,7 @@ export interface UserData {
   email: string;
   role: string;
   emailVerified: boolean;
-  enrKurs: string | null;
-  wpuKurs1: string | null;
-  wpuKurs2: string | null;
-  theater: number;
+  courses: { subjectId: string; courseId: string; }[];
   doneSetup: boolean;
   personalized: boolean;
   mfaEnabled: boolean;
@@ -57,10 +54,7 @@ export const useUserStore = defineStore('user', () => {
             email: data.email,
             role: data.role || 'user',
             emailVerified: data.emailVerified,
-            enrKurs: data.enrKurs,
-            wpuKurs1: data.wpuKurs1,
-            wpuKurs2: data.wpuKurs2,
-            theater: data.theater,
+            courses: data.courses || [],
             doneSetup: data.doneSetup,
             personalized: data.personalized,
             mfaEnabled: data.mfaEnabled ?? false,

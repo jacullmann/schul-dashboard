@@ -377,6 +377,16 @@ export class AuthService {
       userRoles?.find((ur) => ur.tenant_id === activeGroupId)?.roles?.name ||
       null;
 
+    const { data: userCourses } = await sb
+      .from('user_courses')
+      .select('subject_id, course_id')
+      .eq('user_id', userId);
+
+    const mappedCourses = (userCourses || []).map((uc: any) => ({
+      subjectId: uc.subject_id,
+      courseId: uc.course_id
+    }));
+
     return {
       authenticated: true,
       id: user.id,
@@ -384,10 +394,7 @@ export class AuthService {
       role: globalRoleName,
       tenantRole: tenantRoleName,
       emailVerified: !!user.email_verified,
-      enrKurs: user.enr_kurs,
-      wpuKurs1: user.wpu_kurs_1,
-      wpuKurs2: user.wpu_kurs_2,
-      theater: user.theater,
+      courses: mappedCourses,
       doneSetup: !!user.done_setup,
       personalized: user.personalized !== false,
       mfaEnabled: !!user.mfa_enabled,

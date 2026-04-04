@@ -250,7 +250,7 @@ export class SuperAdminService {
     const { data: users } = await sb
       .from('users')
       .select(
-        'id, email, user_roles(tenant_id, roles(name)), email_verified, created_at, last_login_at, enr_kurs, wpu_kurs_1, wpu_kurs_2, theater, done_setup',
+        'id, email, user_roles(tenant_id, roles(name)), email_verified, created_at, last_login_at, done_setup',
       );
     const { data: bannedData } = await sb
       .from('banned_users')
@@ -270,10 +270,6 @@ export class SuperAdminService {
         emailVerified: row.email_verified,
         createdAt: row.created_at,
         lastLoginAt: row.last_login_at,
-        enrKurs: row.enr_kurs,
-        wpuKurs1: row.wpu_kurs_1,
-        wpuKurs2: row.wpu_kurs_2,
-        theater: row.theater,
         doneSetup: row.done_setup,
         isBanned: bannedIds.has(row.id),
       };

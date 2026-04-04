@@ -51,10 +51,7 @@ export class UserController {
     return this.userService.updateSetup(
       user.sub,
       user.globalRole,
-      body.enrKurs,
-      body.wpuKurs1,
-      body.wpuKurs2,
-      body.theater,
+      body.courses,
     );
   }
 

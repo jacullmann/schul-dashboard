@@ -3,6 +3,7 @@ import type { Ref } from 'vue';
 import type { HwItem, ItemType } from '@/modules/tasks/types';
 import { getSubjectKey } from '@/types/subjects';
 import hw from '@/api/hwApi';
+import { useSubjectStore } from '@/stores/subjectStore';
 
 export function useHwList(
   user: Ref<Record<string, unknown> | null>,
@@ -15,6 +16,7 @@ export function useHwList(
   revealedImages: Ref<Set<string>>,
   highlightedItemId: Ref<string | null>,
 ) {
+  const subjectStore = useSubjectStore();
   const items = ref<HwItem[]>([]);
   const loading = ref(true);
   const initialLoad = ref(true);
@@ -59,31 +61,26 @@ export function useHwList(
           );
     }
 
-    if (showPersonalized.value && user.value?.doneSetup) {
-      const enrName = String(user.value.enrKurs);
-      const wpu1Name = String(user.value.wpuKurs1);
-      const wpu2Name = String(user.value.wpuKurs2);
-
+    if (showPersonalized.value && user.value?.doneSetup && Array.isArray(user.value.courses)) {
       const userSubjects = new Set<string>();
-      if (enrName && enrName !== '0' && enrName !== 'null') {
-        userSubjects.add(`enrichment - ${enrName}`);
-      }
-      if (wpu1Name && wpu1Name !== '0') {
-        userSubjects.add(`wpu1 - ${wpu1Name}`);
-      }
-      if (wpu2Name && wpu2Name !== '0') {
-        userSubjects.add(`wpu2 - ${wpu2Name}`);
-      }
+      
+      user.value.courses.forEach((c: any) => {
+        const subject = subjectStore.subjects.find((s) => s.id === c.subjectId);
+        if (!subject) return;
+        const course = subject.courses?.find((csc) => csc.id === c.courseId);
+        if (course) {
+          userSubjects.add(`${subject.name} - ${course.name}`);
+        }
+      });
 
       list = list.filter((item) => {
         const subjectLower = item.subject.toLowerCase();
-        if (
-          subjectLower.startsWith('enrichment') ||
-          subjectLower.startsWith('wpu (di)') ||
-          subjectLower.startsWith('wpu (do)') ||
-          subjectLower.startsWith('wpu1') ||
-          subjectLower.startsWith('wpu2')
-        ) {
+        // Check if the item's subject starts with a category that implies a course matching.
+        // We can do a simpler check: if this item is for a subject that has sub-courses (like WPU), check if user has it.
+        const subjectName = subjectLower.split(' - ')[0]?.trim();
+        const categoryMatch = subjectStore.subjects.find(s => s.name.toLowerCase() === subjectName);
+        
+        if (categoryMatch && categoryMatch.category !== 'core' && categoryMatch.courses && categoryMatch.courses.length > 0) {
           return userSubjects.has(item.subject);
         }
         return true;
@@ -188,7 +185,7 @@ export function useHwList(
     routeParamsItemId?: string,
     forceOldEntries?: () => void,
   ) {
-    if (tab.value === 'PRIVATE') {
+    if ((tab.value as string) === 'PRIVATE') {
       loading.value = false;
       items.value = [];
       expandedDescriptions.value = new Set();

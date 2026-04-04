@@ -15,9 +15,7 @@ export function useImageViewer() {
     imageViewerImages: store.imageViewerImages as Readonly<
       typeof store.imageViewerImages
     >,
-    imageViewerInitialIndex: store.imageViewerInitialIndex as Readonly<
-      typeof store.imageViewerInitialIndex
-    >,
+    imageViewerInitialIndex: store.imageViewerInitialIndex,
     openImageViewer: (images: ImageItem[], initialIndex?: number) =>
       store.openImageViewer(images, initialIndex),
     closeImageViewer: store.closeImageViewer,

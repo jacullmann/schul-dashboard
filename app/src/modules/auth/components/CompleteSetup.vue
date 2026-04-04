@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import hw from '@/api/hwApi';
 import { useI18n } from 'vue-i18n';
 import { useSubjectStore } from '@/stores/subjectStore';
@@ -21,27 +21,9 @@ const getCourseLabel = (courseName: string): string => {
     .replace(/^Frau\s+/, `${ms} `);
 };
 
-// Option Definitions
-const enrichmentOptions = computed(() => {
-    return subjectStore.enrCourses.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-});
-
-const wpu1Options = computed(() => {
-    return subjectStore.wpu1Courses.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-});
-
-const wpu2Options = computed(() => {
-    return subjectStore.wpu2Courses.map(k => ({ label: getCourseLabel(k.name), value: k.id }));
-});
-
-const theaterOptions = [
-  { label: t('global.selection.yes'), value: '1' },
-  { label: t('global.selection.no'), value: '2' },
-];
-
 const props = defineProps<{
   visible: boolean; // Steuert die Anzeige der Komponente
-  initialData: { enrKurs: string | null; wpuKurs1: string | null; wpuKurs2: string | null; theater: number; };
+  initialData: { courses: { subjectId: string; courseId: string; }[] };
   isSetup: boolean; // true, wenn es das initiale Setup ist (doneSetup=false)
 }>();
 
@@ -52,32 +34,64 @@ const submitting = ref(false);
 const skipping = ref(false);
 const error = ref('');
 
-
-const formData = reactive({
-  // Initialisiere mit den Props-Werten oder leerem String
-  enrKurs: props.initialData.enrKurs || "",
-  wpuKurs1: props.initialData.wpuKurs1 || "",
-  wpuKurs2: props.initialData.wpuKurs2 || "",
-  theater: props.initialData.theater.toString()
-});
+const selections = reactive<Record<string, string>>({});
 
 // Watcher, um formData zu aktualisieren, wenn sich initialData ändert (z.B. beim manuellen Öffnen)
 watch(() => props.initialData, (newVal) => {
-  formData.enrKurs = newVal.enrKurs || "";
-  formData.wpuKurs1 = newVal.wpuKurs1 || "";
-  formData.wpuKurs2 = newVal.wpuKurs2 || "";
-  formData.theater = newVal.theater.toString();
+  for (const subject of subjectStore.electiveSubjects) {
+     selections[subject.id] = "";
+  }
+  for (const subject of subjectStore.extraSubjects) {
+     selections[subject.id] = "NONE";
+  }
+  if (newVal?.courses) {
+    newVal.courses.forEach(c => {
+      selections[c.subjectId] = c.courseId;
+    });
+  }
 }, { immediate: true });
 
+onMounted(() => {
+  subjectStore.loadSubjects().then(() => {
+    // re-init selections fully once loaded
+    for (const subject of subjectStore.electiveSubjects) {
+      if (!selections[subject.id]) selections[subject.id] = "";
+    }
+    for (const subject of subjectStore.extraSubjects) {
+      if (!selections[subject.id]) selections[subject.id] = "NONE";
+    }
+    // overlay initial data
+    if (props.initialData?.courses) {
+      props.initialData.courses.forEach(c => {
+        selections[c.subjectId] = c.courseId;
+      });
+    }
+  });
+});
+
+const getOptionsForSubject = (subjectId: string, isExtra: boolean) => {
+  const subject = subjectStore.subjects.find(s => s.id === subjectId);
+  const opts = (subject?.courses || []).map(c => ({
+    label: getCourseLabel(c.name),
+    value: c.id
+  }));
+  if (isExtra) {
+    opts.unshift({ label: t('global.selection.no'), value: "NONE" });
+  }
+  return opts;
+};
 
 // Prüfung, ob alle Felder ausgewählt sind (nur für das initiale Setup relevant)
 const isValid = computed(() => {
-  // Beim Speichern MUSS jeder Kurs ausgewählt sein (Wert nicht leer)
-  return formData.enrKurs !== "" && formData.wpuKurs1 !== "" && formData.wpuKurs2 !== "" && formData.theater !== "0";
+  // Beim Speichern MUSS jedes Elective ausgewählt sein
+  for (const subject of subjectStore.electiveSubjects) {
+    if (!selections[subject.id]) return false;
+  }
+  return true;
 });
 
 
-async function submitData(dataToSend: Record<string, string | number | null>) {
+async function submitData(dataToSend: { courses: { subjectId: string; courseId: string }[] }) {
   error.value = '';
   try {
     const { data } = await hw.patch('/api/user/setup', dataToSend);
@@ -99,33 +113,27 @@ async function submitData(dataToSend: Record<string, string | number | null>) {
 // Hier soll die aktuelle Auswahl gesendet werden
 async function save() {
   if (props.isSetup && !isValid.value) {
-    error.value = 'Bitte alle Kurse auswählen.';
+    error.value = 'Bitte alle Pflichtkurse auswählen.';
     return;
   }
   submitting.value = true;
 
-  // Sende Strings oder Nullwerte
-  const dataToSend = {
-    enrKurs: formData.enrKurs === "" ? null : formData.enrKurs,
-    wpuKurs1: formData.wpuKurs1 === "" ? null : formData.wpuKurs1,
-    wpuKurs2: formData.wpuKurs2 === "" ? null : formData.wpuKurs2,
-    theater: parseInt(formData.theater),
-  };
+  const validCourses: {subjectId: string, courseId: string}[] = [];
 
-  await submitData(dataToSend);
+  for (const subjectId of Object.keys(selections)) {
+    const courseId = selections[subjectId];
+    if (courseId && courseId !== "NONE") {
+      validCourses.push({ subjectId, courseId });
+    }
+  }
+
+  await submitData({ courses: validCourses });
 }
 
 // Hier soll gesendet werden für alle drei sachen null
 async function skip() {
   skipping.value = true;
-  const dataToSend = {
-    enrKurs: null,
-    wpuKurs1: null,
-    wpuKurs2: null,
-    theater: 0,
-  };
-
-  await submitData(dataToSend);
+  await submitData({ courses: [] });
 }
 </script>
 
@@ -134,43 +142,34 @@ async function skip() {
     <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
 
     <template #content>
-      <p class="text-sub text-on-surface-muted">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
+      <p class="text-sub text-on-surface-muted mb-6">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
 
-      <BaseFormGroup id="enr">
-        <BaseLabel for="enr">{{ t('account.menu.courses.enr') }}</BaseLabel>
-        <BaseSelect
-            id="enr"
-            v-model="formData.enrKurs"
-            :options="enrichmentOptions"
-        />
-      </BaseFormGroup>
+      <div v-if="subjectStore.loading" class="text-sub text-on-surface-muted mb-6">
+        Loading...
+      </div>
+      <div v-else class="flex flex-col gap-5">
+        <!-- Electives -->
+        <BaseFormGroup v-for="subject in subjectStore.electiveSubjects" :key="subject.id" :id="subject.id">
+          <BaseLabel :for="subject.id">{{ getCourseLabel(subject.name) }}</BaseLabel>
+          <BaseSelect
+              :id="subject.id"
+              :model-value="selections[subject.id] ?? ''"
+              @update:model-value="(v) => selections[subject.id] = v"
+              :options="getOptionsForSubject(subject.id, false)"
+          />
+        </BaseFormGroup>
 
-      <BaseFormGroup id="wpu1">
-        <BaseLabel for="wpu1">{{ t('account.menu.courses.wpu1') }}</BaseLabel>
-        <BaseSelect
-            id="wpu1"
-            v-model="formData.wpuKurs1"
-            :options="wpu1Options"
-        />
-      </BaseFormGroup>
-
-      <BaseFormGroup id="wpu2">
-        <BaseLabel for="wpu2">{{ t('account.menu.courses.wpu2') }}</BaseLabel>
-        <BaseSelect
-            id="wpu2"
-            v-model="formData.wpuKurs2"
-            :options="wpu2Options"
-        />
-      </BaseFormGroup>
-
-      <BaseFormGroup id="theater">
-        <BaseLabel for="theater">{{ t('account.menu.courses.wpu3') }}</BaseLabel>
-        <BaseSelect
-            id="theater"
-            v-model="formData.theater"
-            :options="theaterOptions"
-        />
-      </BaseFormGroup>
+        <!-- Extras -->
+        <BaseFormGroup v-for="subject in subjectStore.extraSubjects" :key="subject.id" :id="subject.id">
+          <BaseLabel :for="subject.id">{{ getCourseLabel(subject.name) }}</BaseLabel>
+          <BaseSelect
+              :id="subject.id"
+              :model-value="selections[subject.id] ?? ''"
+              @update:model-value="(v) => selections[subject.id] = v"
+              :options="getOptionsForSubject(subject.id, true)"
+          />
+        </BaseFormGroup>
+      </div>
     </template>
 
     <template #cancel-text>

@@ -110,22 +110,14 @@ export class UserService {
   async updateSetup(
     userId: string,
     globalRole: string,
-    enrKurs?: string,
-    wpuKurs1?: string,
-    wpuKurs2?: string,
-    theater: number = 0,
+    courses: { subjectId: string; courseId: string }[],
   ) {
     const sb = this.supabaseService.getClient();
-    const isDone = Boolean(enrKurs && wpuKurs1 && wpuKurs2 && theater > 0);
 
     const { data: updatedUser } = await sb
       .from('users')
       .update({
-        enr_kurs: enrKurs || null,
-        wpu_kurs_1: wpuKurs1 || null,
-        wpu_kurs_2: wpuKurs2 || null,
-        theater,
-        done_setup: isDone,
+        done_setup: true,
       })
       .eq('id', userId)
       .select()
@@ -133,10 +125,32 @@ export class UserService {
 
     if (!updatedUser) throw new NotFoundException('User not found.');
 
+    const { error: delErr } = await sb
+      .from('user_courses')
+      .delete()
+      .eq('user_id', userId);
+
+    if (delErr) {
+      console.error('Delete user_courses error', delErr);
+    }
+
+    if (courses && courses.length > 0) {
+      const inserts = courses.map((c) => ({
+        user_id: userId,
+        subject_id: c.subjectId,
+        course_id: c.courseId,
+      }));
+      const { error: insErr } = await sb.from('user_courses').insert(inserts);
+      if (insErr) {
+        console.error('Insert user_courses error', insErr);
+        throw new InternalServerErrorException('Error saving courses.');
+      }
+    }
+
     const { error: err_2yf4u } = await sb.from('user_activity').insert({
       user_id: userId,
       type: 'profile:setup:complete',
-      meta: { enrKurs, wpuKurs1, wpuKurs2, theater },
+      meta: { courses },
     });
     if (err_2yf4u)
       throw new InternalServerErrorException('Error saving user activity.');
@@ -147,10 +161,7 @@ export class UserService {
         id: updatedUser.id,
         email: updatedUser.email,
         role: globalRole,
-        enrKurs: updatedUser.enr_kurs,
-        wpuKurs1: updatedUser.wpu_kurs_1,
-        wpuKurs2: updatedUser.wpu_kurs_2,
-        theater: updatedUser.theater,
+        courses,
         doneSetup: updatedUser.done_setup,
       },
     };

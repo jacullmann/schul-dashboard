@@ -180,7 +180,7 @@ const courseOptions = computed(() => {
   if (!match || !match.courses) return [];
   return match.courses.map((c) => ({
     label: getCourseLabel(c.name),
-    value: c.id,
+    value: c.name,
   }));
 });
 
