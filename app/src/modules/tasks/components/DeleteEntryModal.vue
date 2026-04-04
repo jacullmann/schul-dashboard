@@ -18,7 +18,7 @@ useEventListener(window, 'keydown', onKeyDown);
 </script>
 
 <template>
-  <BaseModal v-if="show" @cancel="$emit('cancel')" :submit="emit('confirm')" :loading="loading" :danger="true">
+  <BaseModal v-if="show" @cancel="$emit('cancel')" :submit="() => emit('confirm')" :loading="loading" :danger="true">
     <template #title>
       Diesen Eintrag löschen?
     </template>

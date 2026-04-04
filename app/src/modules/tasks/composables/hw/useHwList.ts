@@ -61,15 +61,22 @@ export function useHwList(
           );
     }
 
-    if (showPersonalized.value && user.value?.doneSetup && Array.isArray(user.value.courses)) {
+    if (
+      showPersonalized.value &&
+      user.value?.doneSetup &&
+      Array.isArray(user.value.courses)
+    ) {
       const userSubjects = new Set<string>();
-      
+
       user.value.courses.forEach((c: any) => {
         const subject = subjectStore.subjects.find((s) => s.id === c.subjectId);
         if (!subject) return;
         const course = subject.courses?.find((csc) => csc.id === c.courseId);
         if (course) {
           userSubjects.add(`${subject.name} - ${course.name}`);
+          if (subject.category === 'extra' && subject.courses?.length === 1) {
+            userSubjects.add(subject.name);
+          }
         }
       });
 
@@ -78,9 +85,16 @@ export function useHwList(
         // Check if the item's subject starts with a category that implies a course matching.
         // We can do a simpler check: if this item is for a subject that has sub-courses (like WPU), check if user has it.
         const subjectName = subjectLower.split(' - ')[0]?.trim();
-        const categoryMatch = subjectStore.subjects.find(s => s.name.toLowerCase() === subjectName);
-        
-        if (categoryMatch && categoryMatch.category !== 'core' && categoryMatch.courses && categoryMatch.courses.length > 0) {
+        const categoryMatch = subjectStore.subjects.find(
+          (s) => s.name.toLowerCase() === subjectName,
+        );
+
+        if (
+          categoryMatch &&
+          categoryMatch.category !== 'core' &&
+          categoryMatch.courses &&
+          categoryMatch.courses.length > 0
+        ) {
           return userSubjects.has(item.subject);
         }
         return true;

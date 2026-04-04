@@ -172,7 +172,10 @@ const getCourseLabel = (courseName: string): string => {
 
 const selectedSubjectHasCourses = computed(() => {
   const match = subjectStore.subjects.find((s) => s.name === subjectSel.value);
-  return match && match.courses && match.courses.length > 0;
+  if (!match || !match.courses) return false;
+  if (match.category === 'core') return false;
+  if (match.category === 'extra') return match.courses.length >= 2;
+  return match.courses.length >= 1;
 });
 
 const courseOptions = computed(() => {
