@@ -681,32 +681,33 @@ export class AuthService {
   ): Promise<void> {
     const sb = this.supabaseService.getClient();
 
-    const { data: roleData } = await sb
-      .from('user_roles')
-      .select('roles(name), tenant_id')
-      .eq('user_id', userId);
+    const { data: user } = await sb
+      .from('users')
+      .select('preferences, user_roles(roles(name), tenant_id)')
+      .eq('id', userId)
+      .single();
 
-    const userRoles = (roleData ?? []) as unknown as Array<{
-      tenant_id: string | null;
-      roles: { name: string } | null;
-    }>;
+    const userRoles = (user?.user_roles ?? []) as any[];
+    const prefs = (user?.preferences as Record<string, any>) || {};
+    const defaultGroupId = prefs.defaultGroupId;
+
+    let activeGroupId = null;
+    if (defaultGroupId && userRoles.some((ur) => ur.tenant_id === defaultGroupId)) {
+      activeGroupId = defaultGroupId;
+    } else {
+      const firstGroup = userRoles.find((ur) => ur.tenant_id);
+      activeGroupId = firstGroup?.tenant_id || null;
+    }
+
     const globalRole =
       userRoles.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
-
-    const { data: firstGroup } = await sb
-      .from('user_roles')
-      .select('tenant_id')
-      .eq('user_id', userId)
-      .not('tenant_id', 'is', null)
-      .limit(1)
-      .maybeSingle();
 
     this.setAuthToken(
       res,
       userId,
       email,
       globalRole,
-      firstGroup?.tenant_id || null,
+      activeGroupId,
     );
   }
 
@@ -741,3 +742,4 @@ export class AuthService {
     return { groups };
   }
 }
+

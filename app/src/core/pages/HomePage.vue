@@ -3,10 +3,9 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
+import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { UserRoundPlus, Plus, Folder, FolderOpen, ChevronRight, UsersRound } from '@lucide/vue';
-import JoinGroupModal from '@/modules/auth/components/JoinGroupModal.vue';
-import CreateGroupModal from '@/modules/auth/components/CreateGroupModal.vue';
 import hw from '@/api/hwApi';
 import { useI18n } from "vue-i18n";
 
@@ -14,11 +13,10 @@ const { t } = useI18n();
 
 const router = useRouter();
 const userStore = useUserStore();
+const modalStore = useModalStore();
 const { user } = storeToRefs(userStore);
 const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
 
-const showJoinModal = ref(false);
-const showCreateModal = ref(false);
 const loading = ref(false);
 const navigatingGroupId = ref<string | null>(null);
 const allGroups = ref<Array<{ id: string; name: string; memberCount: number; created_at: string }>>([]);
@@ -104,11 +102,11 @@ onMounted(() => {
     <!-- Welcome Banner -->
     <section class="mb-8">
       <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
-        <div class="welcome-text">
-          <h1 class="welcome-title">
-            {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="welcome-name">{{ displayName }}</span>
+        <div>
+          <h1 class="text-2xl sm:text-[1.75rem] font-bold text-on-surface mb-1.5 leading-tight">
+            {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="bg-[image:var(--background-image-bismuth)] bg-clip-text text-transparent">{{ displayName }}</span>
           </h1>
-          <p class="welcome-sub">
+          <p class="text-body text-on-surface-muted m-0 leading-relaxed">
             {{ userGroups.length
                   ? 'Wähle eine Gruppe aus, um loszulegen.'
                   : 'Tritt einer Gruppe bei oder erstelle eine neue.'
@@ -117,12 +115,12 @@ onMounted(() => {
         </div>
 
         <!-- Regular User: Join/Create Group -->
-        <div class="welcome-actions" v-if="userGroups.length > 0">
-          <BaseButton @click="showJoinModal = true" variant="action">
+        <div class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0" v-if="userGroups.length > 0">
+          <BaseButton @click="modalStore.openJoinGroup()" variant="action">
             <UserRoundPlus :size="16" />
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
-          <BaseButton @click="showCreateModal = true" variant="ghost">
+          <BaseButton @click="modalStore.openCreateGroup()" variant="ghost">
             <Plus :size="16" />
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
@@ -131,16 +129,16 @@ onMounted(() => {
     </section>
 
     <!-- Regular User: My Groups -->
-    <section v-if="userGroups.length > 0" class="groups-section">
-      <div class="section-header">
-        <h2 class="section-title">{{ t('groups.home.yourGroups') }}</h2>
+    <section v-if="userGroups.length > 0" class="mb-9">
+      <div class="flex items-center gap-2.5 mb-4">
+        <h2 class="text-h2 font-bold text-on-surface m-0">{{ t('groups.home.yourGroups') }}</h2>
         <span class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5">{{ userGroups.length }}</span>
       </div>
       <div class="flex flex-col gap-2">
         <button
             v-for="group in userGroups"
             :key="group.id"
-            class="group-card group flex items-center w-full gap-2 p-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 cursor-default [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
+            class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
             :class="{ active: group.id === activeGroupId }"
             @click="navigateToGroup(group.id)"
             :disabled="navigatingGroupId === group.id"
@@ -168,7 +166,7 @@ onMounted(() => {
 
     <!-- Empty State -->
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
-      <BaseEmptyState :icon="UsersRound" :primary-action="() => showJoinModal = true" :secondary-action="() => showCreateModal = true">
+      <BaseEmptyState :icon="UsersRound" :primary-action="() => modalStore.openJoinGroup()" :secondary-action="() => modalStore.openCreateGroup()">
         <template #title>{{ t('groups.home.noGroups') }}</template>
         <template #message>{{ t('groups.home.joinGroupText') }}</template>
         <template #primary-action-label>{{ t('groups.home.joinGroup') }}</template>
@@ -177,98 +175,8 @@ onMounted(() => {
     </section>
 
     <!-- Loading -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
+    <div v-if="loading" class="flex justify-center p-10">
+      <div class="w-7 h-7 border-2 border-canvas-border border-t-on-surface rounded-full animate-spin"></div>
     </div>
-
-    <!-- Modals -->
-    <JoinGroupModal v-if="showJoinModal" @cancel="showJoinModal = false" />
-    <CreateGroupModal v-if="showCreateModal" @cancel="showCreateModal = false" />
   </div>
 </template>
-
-<style scoped>
-.welcome-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-on-surface);
-  margin: 0 0 6px;
-  line-height: 1.2;
-}
-
-.welcome-name {
-  background: var(--background-image-bismuth);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.welcome-sub {
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-  margin: 0;
-  line-height: 1.5;
-}
-
-.welcome-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.groups-section {
-  margin-bottom: 36px;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.section-title {
-  font-size: var(--text-h2);
-  font-weight: 700;
-  color: var(--color-on-surface);
-  margin: 0;
-}
-
-.loading-state {
-  display: flex;
-  justify-content: center;
-  padding: 40px;
-}
-
-.spinner {
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--color-canvas-border);
-  border-top-color: var(--color-on-surface);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-@media (max-width: 640px) {
-  .welcome-title {
-    font-size: 1.4rem;
-  }
-
-  .welcome-actions {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .welcome-actions .btn {
-    flex: 1;
-    justify-content: center;
-    min-width: 0;
-  }
-
-  .group-card {
-    padding: 12px 14px;
-  }
-}
-</style>
