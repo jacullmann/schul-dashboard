@@ -191,14 +191,13 @@ async function leaveGroup(group: any) {
             <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
               {{ roleLabel(group.role) }}
             </span>
-            <span v-if="group.generatedName" class="text-footnote text-on-surface-muted group-[.active]:text-on-action-muted whitespace-nowrap overflow-hidden text-ellipsis">{{ group.generatedName }}</span>
           </span>
 
           <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" / -->
 
-          <BaseMenuButton @click.stop="openMenuId = openMenuId === group.id ? null : group.id" class="rounded-full">
+          <div type="button" @click.stop="openMenuId = openMenuId === group.id ? null : group.id" class="rounded-full p-2 bg-transparent hover:bg-surface-hover transition-hover cursor-pointer">
             <MoreHorizontal :size="16" />
-          </BaseMenuButton>
+          </div>
 
           <BaseMenu v-if="openMenuId === group.id" class="right-0 mt-6" @click.stop>
             <BaseMenuButton v-if="group.id !== defaultGroupId" @click="setDefaultGroup(group.id)">

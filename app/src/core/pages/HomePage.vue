@@ -156,7 +156,6 @@ onMounted(() => {
             <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
               {{ roleLabel(group.role) }}
             </span>
-            <span v-if="group.generatedName" class="text-footnote text-on-surface-muted group-[.active]:text-on-action-muted whitespace-nowrap overflow-hidden text-ellipsis">{{ group.generatedName }}</span>
           </span>
 
           <ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" />
