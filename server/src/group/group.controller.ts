@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Param,
   Body,
   Req,
   Res,
@@ -89,6 +91,16 @@ export class GroupController {
       body.groupId,
       res,
     );
+  }
+
+  @Delete(':id/leave')
+  @HttpCode(200)
+  leaveGroup(
+    @CurrentUser() user: AuthUser,
+    @Param('id') groupId: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.groupService.leaveGroup(user.sub, groupId, user.gId, res);
   }
 
   @Post('logout')

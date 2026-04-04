@@ -72,7 +72,7 @@ const routes = [
       {
         path: 'groups',
         name: 'groups',
-        component: () => import('@/core/pages/HomePage.vue'),
+        component: () => import('@/core/pages/GroupsPage.vue'),
         meta: { title: 'navigation.groups' },
       },
 

@@ -376,6 +376,90 @@ export class GroupService {
     return { ok: true, csrfToken: newCsrfToken };
   }
 
+  async leaveGroup(
+    userId: string,
+    groupId: string,
+    activeGroupId: string | null,
+    res: Response,
+  ) {
+    const sb = this.supabaseService.getClient();
+
+    const { data: group } = await sb
+      .from('groups')
+      .select('owner_id')
+      .eq('id', groupId)
+      .maybeSingle();
+
+    if (!group) throw new NotFoundException('Group not found.');
+
+    if (group.owner_id === userId) {
+      throw new ForbiddenException('The owner cannot leave the group.');
+    }
+
+    const { data: targetRole } = await sb
+      .from('user_roles')
+      .select('id, roles(name)')
+      .eq('user_id', userId)
+      .eq('tenant_id', groupId)
+      .limit(1)
+      .maybeSingle();
+
+    if ((targetRole as any)?.roles?.name === 'admin') {
+      throw new ForbiddenException(
+        'Admins cannot leave the group directly. You must be demoted or removed by the owner.',
+      );
+    }
+
+    const { error: deleteRoleErr } = await sb
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId)
+      .eq('tenant_id', groupId);
+
+    if (deleteRoleErr) {
+      throw new InternalServerErrorException('Failed to leave group.');
+    }
+
+    const { data: courses } = await sb
+      .from('courses')
+      .select('id')
+      .eq('tenant_id', groupId);
+    const courseIds = (courses || []).map((c: any) => c.id);
+    if (courseIds.length > 0) {
+      await sb
+        .from('user_courses')
+        .delete()
+        .eq('user_id', userId)
+        .in('course_id', courseIds);
+    }
+
+    await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group:leave',
+      meta: { groupId },
+    });
+
+    if (activeGroupId === groupId) {
+      const { data: userRoles } = await sb
+        .from('user_roles')
+        .select('roles(name), tenant_id')
+        .eq('user_id', userId);
+
+      const ur = (userRoles || []) as any[];
+      const globalRole = ur.find((r) => !r.tenant_id)?.roles?.name || 'user';
+      const { data: user } = await sb
+        .from('users')
+        .select('email')
+        .eq('id', userId)
+        .single();
+
+      this.setAuthToken(res, userId, user.email, globalRole, null);
+    }
+
+    rotateCsrfToken(res, this.appConfig);
+    return { ok: true };
+  }
+
   async logout(res: Response, ip: string, ua: string) {
     const sb = this.supabaseService.getClient();
     const { error: secEventErr } = await sb.from('security_events').insert({
