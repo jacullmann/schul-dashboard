@@ -209,28 +209,24 @@ async function handleArchiveFromMenu(item: HwItem) {
       @change="(id) => goTab(id as any)"
     />
 
-    <div class="controls">
-      <div class="left">
-        <div class="row-two">
-          <BaseSelect
-            v-model="subjectFilter"
-            :options="subjectOptions"
-            extraClass="select-subject"
-          />
+    <BaseRow>
+      <BaseSelect
+        v-model="subjectFilter"
+        :options="subjectOptions"
+        extraClass="select-subject"
+      />
 
-          <ArchiveSwitch v-model="showOldEntries" />
+      <ArchiveSwitch v-model="showOldEntries" />
 
-          <BaseButton
-            class="aspect-square p-1!"
-            variant="action"
-            :aria-label="t('school.tasks.itemForm.newEntry')"
-            @click="openItemForm()"
-          >
-            <Plus :size="24" />
-          </BaseButton>
-        </div>
-      </div>
-    </div>
+      <BaseButton
+        class="aspect-square p-1!"
+        variant="action"
+        :aria-label="t('school.tasks.itemForm.newEntry')"
+        @click="openItemForm()"
+      >
+        <Plus :size="24" />
+      </BaseButton>
+    </BaseRow>
 
     <div class="flex flex-col gap-3 mt-4">
       <ItemSkeleton v-if="loading && initialLoad" :count="5" :image-count="2" />
@@ -516,8 +512,8 @@ async function handleArchiveFromMenu(item: HwItem) {
 
       <BaseEmptyState
         v-if="!loading && !limitedItems.length"
-        @primary-action="openItemForm()"
-        @secondary-action="resetFilters"
+        :primary-action="openItemForm"
+        :secondary-action="resetFilters"
       >
         <template #title>{{ t('school.tasks.items.view.noEntries') }}</template>
         <template #message>{{
@@ -533,7 +529,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         }}</template>
       </BaseEmptyState>
 
-      <div v-if="filteredItems.length > 5" class="pagination-actions">
+      <div v-if="filteredItems.length > 5" class="mt-1 flex justify-center gap-3">
         <BaseButton
           v-if="visibleCount < filteredItems.length"
           @click="showMore"
@@ -600,22 +596,6 @@ async function handleArchiveFromMenu(item: HwItem) {
 </template>
 
 <style scoped>
-.controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.controls .left {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  height: 100%;
-}
-
 .select-subject {
   min-width: 150px;
 }
@@ -767,22 +747,6 @@ async function handleArchiveFromMenu(item: HwItem) {
   color: var(--color-on-surface);
 }
 
-.pagination-actions {
-  margin-top: 4px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.row-two {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: row;
-  gap: 8px;
-  position: relative;
-}
-
 .admin-creator-info {
   color: var(--color-on-surface-muted);
   font-size: var(--text-sub);
@@ -835,16 +799,5 @@ async function handleArchiveFromMenu(item: HwItem) {
 .editor-note-actions {
   display: flex;
   gap: 8px;
-}
-
-@media (max-width: 500px) {
-  .row-two {
-    flex-direction: row;
-    align-items: flex-start;
-    margin-top: 0;
-    margin-bottom: 0;
-    flex-wrap: wrap;
-    justify-content: left;
-  }
 }
 </style>
