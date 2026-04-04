@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 import { useLogin } from '@/modules/auth/composables/useLogin';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useI18n } from 'vue-i18n';
 import { onMounted } from 'vue';
 
@@ -12,6 +13,7 @@ const userStore = useUserStore();
 const { t } = useI18n();
 const { handleOAuthReturn } = useOAuth();
 const { initiateGoogleLogin } = useOAuth();
+const { checkAuthStatus } = useAppAuth();
 
 const {
   email,
@@ -26,6 +28,7 @@ const {
 } = useLogin(
   async () => {
     try {
+      await checkAuthStatus();
       await userStore.fetchUser();
     } catch {}
     await router.push('/home');
@@ -46,6 +49,7 @@ function navigateToRegister() {
 onMounted(() => {
   handleOAuthReturn(async () => {
     try {
+      await checkAuthStatus();
       await userStore.fetchUser();
     } catch {}
     await router.push('/home');

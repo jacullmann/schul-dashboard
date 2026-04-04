@@ -40,7 +40,7 @@ async function handleAuthExpired() {
     await router.push('/login');
   } else {
     const currentPath = router.currentRoute.value.path;
-    if (currentPath !== '/' && !currentPath.startsWith('/login') && !currentPath.startsWith('/auth')) {
+    if (currentPath !== '/' && !currentPath.startsWith('/login') && !currentPath.startsWith('/auth') && !currentPath.startsWith('/verify')) {
       await router.push('/login');
     }
   }
@@ -75,6 +75,7 @@ onMounted(() => {
   // Handle OAuth redirect (?auth=success|link-required|mfa-pending|error).
   // Must run after initAuth() which is called by the router guard before mount.
   handleOAuthReturn(async () => {
+    await checkAuthStatus();
     await userStore.fetchUser();
 
   });

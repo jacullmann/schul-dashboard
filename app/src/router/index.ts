@@ -225,9 +225,9 @@ router.beforeEach(async (to, from, next) => {
     to.path === '/' ||
     to.path === '/login' ||
     to.path === '/register' ||
-    to.path === '/mfa-verification' ||
+    to.path === '/verify-mfa' ||
     to.path === '/reset-password' ||
-    to.path === '/forgott-password' ||
+    to.path === '/forgot-password' ||
     to.path.startsWith('/verify');
 
   // ── Unauthenticated users → login page (internal) ────────────────────────────────
