@@ -7,10 +7,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
-import * as jwt from 'jsonwebtoken';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { AuthService } from '../auth/auth.service';
 import { AppConfig } from '../config/env.config';
+import { JwtService } from '../common/jwt/jwt.service';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
 import { OAUTH_PENDING_COOKIE } from './guards/oauth-pending.guard';
 import { Request, Response } from 'express';
@@ -75,6 +75,7 @@ export class OAuthService {
     private readonly supabaseService: SupabaseService,
     private readonly appConfig: AppConfig,
     private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
   ) {}
 
   // ─── Public: initiate OAuth flow ─────────────────────────────────────────
@@ -470,7 +471,7 @@ export class OAuthService {
       format: 'jwk',
     });
 
-    const payload = jwt.verify(idToken, publicKey, {
+    const payload = this.jwtService.verifyRsaToken(idToken, publicKey, {
       algorithms: ['RS256'],
       audience: this.appConfig.googleClientId,
       issuer: ['https://accounts.google.com', 'accounts.google.com'],
@@ -514,9 +515,8 @@ export class OAuthService {
     const state = crypto.randomBytes(32).toString('hex');
     const nonce = crypto.randomBytes(32).toString('hex');
 
-    const token = jwt.sign(
+    const token = this.jwtService.signOAuthPendingToken(
       { state, nonce, purpose: 'oauth_state' },
-      this.appConfig.oauthPendingJwtSecret,
       { expiresIn: '10m' },
     );
 
@@ -546,7 +546,7 @@ export class OAuthService {
       throw new UnauthorizedException('OAuth state cookie missing.');
     }
 
-    const payload = jwt.verify(token, this.appConfig.oauthPendingJwtSecret) as {
+    const payload = this.jwtService.verifyOAuthPendingToken(token) as {
       state: string;
       nonce: string;
       purpose: string;
@@ -568,9 +568,8 @@ export class OAuthService {
     googleId: string,
     googleEmail: string,
   ): void {
-    const token = jwt.sign(
+    const token = this.jwtService.signOAuthPendingToken(
       { googleId, googleEmail, purpose: 'oauth_pending' },
-      this.appConfig.oauthPendingJwtSecret,
       { expiresIn: '10m' },
     );
 

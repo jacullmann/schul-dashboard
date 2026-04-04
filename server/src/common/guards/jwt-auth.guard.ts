@@ -5,10 +5,10 @@ import {
   UnauthorizedException,
   ForbiddenException,
 } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Reflector } from '@nestjs/core';
 import { AppConfig } from '../../config/env.config';
+import { JwtService } from '../jwt/jwt.service';
 
 export const COOKIE_NAME = 'auth_token';
 export const IS_PUBLIC_KEY = 'isPublic';
@@ -26,6 +26,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly appConfig: AppConfig,
     private readonly supabaseService: SupabaseService,
     private readonly reflector: Reflector,
+    private readonly jwtService: JwtService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -42,9 +43,8 @@ export class JwtAuthGuard implements CanActivate {
       // handlers can access optional user context without enforcing auth.
       if (token && typeof token === 'string') {
         try {
-          const payload = jwt.verify(
+          const payload = this.jwtService.verifyUserToken(
             token,
-            this.appConfig.jwtSecret,
           ) as AuthTokenPayload;
           if (payload.sub && payload.email) {
             request.user = {
@@ -70,9 +70,8 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = jwt.verify(
+      const payload = this.jwtService.verifyUserToken(
         token,
-        this.appConfig.jwtSecret,
       ) as AuthTokenPayload;
 
       if (!payload.sub || !payload.email) {

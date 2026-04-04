@@ -13,6 +13,7 @@ import { MfaModule } from './mfa/mfa.module';
 import { DocModule } from './doc/doc.module';
 import { EmailModule } from './common/email/email.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
+import { JwtModule } from './common/jwt/jwt.module';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import { AppConfigModule, validate } from './config/env.config';
 import { SystemModule } from './system/system.module';
@@ -34,6 +35,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     ]),
     // AppConfigModule is @Global() — AppConfig is available in all modules.
     AppConfigModule,
+    // JwtModule is imported globally so guards can inject JwtService.
+    JwtModule,
     SystemModule,
     SupabaseModule,
     EmailModule,

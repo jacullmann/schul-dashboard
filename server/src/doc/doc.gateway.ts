@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { DocService } from './doc.service';
 import { AppConfig } from '../config/env.config';
-import * as jwt from 'jsonwebtoken';
+import { JwtService } from '../common/jwt/jwt.service';
 
 interface AuthPayload {
   sub?: string;
@@ -34,6 +34,7 @@ export class DocGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly docService: DocService,
     private readonly appConfig: AppConfig,
     private readonly supabaseService: SupabaseService,
+    private readonly jwtService: JwtService,
   ) {}
 
   private startPersistTimer(): void {
@@ -68,7 +69,7 @@ export class DocGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const authSecret = this.appConfig.jwtSecret;
-      const payload = jwt.verify(userToken, authSecret) as AuthPayload;
+      const payload = this.jwtService.verifyUserToken(userToken) as AuthPayload;
       if (!payload?.sub || !payload?.email) {
         client.disconnect();
         return;

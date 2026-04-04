@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { AppConfig } from '../config/env.config';
+import { JwtService } from '../common/jwt/jwt.service';
 import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
 import { Response } from 'express';
 import { COOKIE_NAME } from '../common/guards/jwt-auth.guard';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
@@ -25,6 +25,7 @@ export class GroupService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly appConfig: AppConfig,
+    private readonly jwtService: JwtService,
   ) {}
 
   private setAuthToken(
@@ -40,7 +41,7 @@ export class GroupService {
       gRole: globalRole || 'user',
       gId: activeGroupId || null,
     };
-    const token = jwt.sign(payload, this.appConfig.jwtSecret, {
+    const token = this.jwtService.signUserToken(payload, {
       expiresIn: '7d',
     });
     res.cookie(COOKIE_NAME, token, {

@@ -4,8 +4,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
 import { AppConfig } from '../../config/env.config';
+import { JwtService } from '../../common/jwt/jwt.service';
 
 export const OAUTH_PENDING_COOKIE = 'oauth_pending_token';
 
@@ -17,7 +17,10 @@ export interface OAuthPendingPayload {
 
 @Injectable()
 export class OAuthPendingGuard implements CanActivate {
-  constructor(private appConfig: AppConfig) {}
+  constructor(
+    private appConfig: AppConfig,
+    private jwtService: JwtService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
@@ -31,9 +34,8 @@ export class OAuthPendingGuard implements CanActivate {
     }
 
     try {
-      const payload = jwt.verify(
+      const payload = this.jwtService.verifyOAuthPendingToken(
         token,
-        this.appConfig.oauthPendingJwtSecret,
       ) as OAuthPendingPayload;
 
       if (

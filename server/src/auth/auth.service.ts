@@ -9,10 +9,10 @@ import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import dayjs from 'dayjs';
 import { authenticator } from '@otplib/preset-v11';
-import * as jwt from 'jsonwebtoken';
 import { SupabaseService } from '../common/supabase/supabase.service';
 import { EmailService } from '../common/email/email.service';
 import { AppConfig } from '../config/env.config';
+import { JwtService } from '../common/jwt/jwt.service';
 import { generateUserName } from '../common/utils/name-generator.util';
 import { decryptData } from '../common/utils/encryption.util';
 import { rotateCsrfToken } from '../common/middleware/csrf.middleware';
@@ -36,6 +36,7 @@ export class AuthService {
     private readonly supabaseService: SupabaseService,
     private readonly emailService: EmailService,
     private readonly appConfig: AppConfig,
+    private readonly jwtService: JwtService,
   ) {
     authenticator.options = { step: 30, window: 1 };
   }
@@ -56,7 +57,7 @@ export class AuthService {
       gId: activeGroupId || null,
     };
 
-    const token = jwt.sign(payload, this.appConfig.jwtSecret, {
+    const token = this.jwtService.signUserToken(payload, {
       expiresIn: '7d',
     });
     res.cookie(COOKIE_NAME, token, {
@@ -71,9 +72,8 @@ export class AuthService {
     userId: string,
     email: string,
   ) {
-    const token = jwt.sign(
+    const token = this.jwtService.signMfaPendingToken(
       { sub: userId, email, purpose: 'mfa_pending' },
-      this.appConfig.mfaPendingJwtSecret,
       { expiresIn: '5m' },
     );
 
@@ -556,9 +556,8 @@ export class AuthService {
       );
     }
 
-    const resetToken = jwt.sign(
+    const resetToken = this.jwtService.signPasswordResetToken(
       { email, purpose: 'password_reset' },
-      this.appConfig.passwordResetJwtSecret,
       { expiresIn: '15m' },
     );
 
@@ -572,7 +571,7 @@ export class AuthService {
 
     let payload: any;
     try {
-      payload = jwt.verify(resetToken, this.appConfig.passwordResetJwtSecret);
+      payload = this.jwtService.verifyPasswordResetToken(resetToken);
     } catch {
       throw new BadRequestException('Invalid or expired reset token.');
     }

@@ -52,3 +52,15 @@ Image editor, mental tests, info dashboard and more.
 | Realtime     | Socket.IO                                                   |
 | Images       | Cloudinary                                                  |
 | Email        | Resend                                                      |
+
+
+## Development
+
+**Linux with SELinux (Fedora/RHEL):**
+```bash
+podman-compose -f docker-compose.yaml -f docker-compose.selinux.yaml up
+```
+
+**Windows / macOS / Ubuntu:**
+```bash
+docker compose up
