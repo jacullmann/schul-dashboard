@@ -1,23 +1,22 @@
 <script setup lang="ts">
-import { useI18n} from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
 const emit = defineEmits<{
-  (e: 'cancel'): void;
+  cancel: [];
 }>();
 
 const props = withDefaults(defineProps<{
-  submit: () => void
-  cancel?: () => void
-  danger?: boolean
-  error?: string
-  loading?: boolean
-  requirement?: boolean
+  submit: () => void;
+  cancel?: () => void;
+  danger?: boolean;
+  error?: string;
+  loading?: boolean;
+  requirement?: boolean;
 }>(), {
   error: '',
   danger: false,
-  cancel: () => { emit('cancel') },
   loading: false,
   requirement: true,
 });

@@ -4,6 +4,11 @@ import { useEventListener } from '@vueuse/core';
 
 const { t } = useI18n();
 
+const emit = defineEmits<{
+  cancel: [];
+  success: [];
+}>();
+
 const props = withDefaults(defineProps<{
   submit?: () => void;
   cancel?: () => void;
@@ -11,21 +16,26 @@ const props = withDefaults(defineProps<{
   error?: string;
   loading?: boolean;
 }>(), {
-  cancel: () => { emit('cancel') },
   danger: false,
   error: '',
   loading: false,
 });
 
-const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
+const handleCancel = () => {
+  if (props.cancel) {
+    props.cancel();
+  } else {
+    emit('cancel');
+  }
+};
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') emit('cancel');
+  if (e.key === 'Escape') handleCancel();
 });
 </script>
 
 <template>
-  <BaseModalCard @cancel="$emit('cancel')">
+  <BaseModalCard @cancel="handleCancel">
     <!-- Header-->
     <BaseRow justify="between" class="mb-4">
       <BaseTitle :level="3">
@@ -36,13 +46,13 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         </template>
       </BaseTitle>
 
-      <BaseButton v-if="cancel" type="button" variant="ghost" @click="cancel">
+      <BaseButton type="button" variant="ghost" @click="handleCancel">
         {{ t('global.buttons.close') }}
       </BaseButton>
     </BaseRow>
 
     <!-- Content -->
-    <BaseForm v-if="submit" :submit="submit" :cancel="cancel" :error="error" :danger="danger" :loading="loading">
+    <BaseForm v-if="submit" :submit="submit" :cancel="handleCancel" :error="error" :danger="danger" :loading="loading">
       <template v-for="(_, name) in $slots" #[name]="slotProps">
         <slot :name="name" v-bind="slotProps || {}"></slot>
       </template>

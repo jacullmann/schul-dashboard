@@ -50,7 +50,7 @@ const emit = defineEmits(['cancel', 'success', 'update:user']);
 
 const submitting = ref(false);
 const skipping = ref(false);
-const error = ref<string | null>(null);
+const error = ref('');
 
 
 const formData = reactive({
@@ -78,7 +78,7 @@ const isValid = computed(() => {
 
 
 async function submitData(dataToSend: Record<string, string | number | null>) {
-  error.value = null;
+  error.value = '';
   try {
     const { data } = await hw.patch('/api/user/setup', dataToSend);
 
@@ -130,13 +130,13 @@ async function skip() {
 </script>
 
 <template>
-  <BaseModal v-if="visible" @cancel="$emit('cancel')" :error="error" :submit="save" :cancel="isSetup ? skip : $emit('cancel')" :loading="submitting || skipping">
+  <BaseModal v-if="visible" @cancel="$emit('cancel')" :error="error" :submit="save" :cancel="isSetup ? skip : () => $emit('cancel')" :loading="submitting || skipping">
     <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
 
     <template #content>
       <p class="text-sub text-on-surface-muted">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
 
-      <BaseFormGroup id="enr" :error="enrError">
+      <BaseFormGroup id="enr">
         <BaseLabel for="enr">{{ t('account.menu.courses.enr') }}</BaseLabel>
         <BaseSelect
             id="enr"
@@ -145,7 +145,7 @@ async function skip() {
         />
       </BaseFormGroup>
 
-      <BaseFormGroup id="wpu1" :error="wpu1Error">
+      <BaseFormGroup id="wpu1">
         <BaseLabel for="wpu1">{{ t('account.menu.courses.wpu1') }}</BaseLabel>
         <BaseSelect
             id="wpu1"
@@ -154,7 +154,7 @@ async function skip() {
         />
       </BaseFormGroup>
 
-      <BaseFormGroup id="wpu2" :error="wpu2Error">
+      <BaseFormGroup id="wpu2">
         <BaseLabel for="wpu2">{{ t('account.menu.courses.wpu2') }}</BaseLabel>
         <BaseSelect
             id="wpu2"
@@ -163,7 +163,7 @@ async function skip() {
         />
       </BaseFormGroup>
 
-      <BaseFormGroup id="theater" :error="theaterError">
+      <BaseFormGroup id="theater">
         <BaseLabel for="theater">{{ t('account.menu.courses.wpu3') }}</BaseLabel>
         <BaseSelect
             id="theater"
