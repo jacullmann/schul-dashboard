@@ -130,81 +130,55 @@ async function skip() {
 </script>
 
 <template>
-  <BaseModal v-if="visible" @cancel="$emit('cancel')">
+  <BaseModal v-if="visible" @cancel="$emit('cancel')" :error="error" :submit="save" :cancel="isSetup ? skip : $emit('cancel')" :loading="submitting || skipping">
     <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
 
     <template #content>
-      <p class="small" style="color: var(--color-on-surface-muted)">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
+      <p class="text-sub text-on-surface-muted">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
 
-      <div class="form-group">
+      <BaseFormGroup id="enr" :error="enrError">
         <BaseLabel for="enr">{{ t('account.menu.courses.enr') }}</BaseLabel>
         <BaseSelect
             id="enr"
             v-model="formData.enrKurs"
             :options="enrichmentOptions"
         />
-      </div>
+      </BaseFormGroup>
 
-      <div class="form-group" style="margin-top: 12px;">
+      <BaseFormGroup id="wpu1" :error="wpu1Error">
         <BaseLabel for="wpu1">{{ t('account.menu.courses.wpu1') }}</BaseLabel>
         <BaseSelect
             id="wpu1"
             v-model="formData.wpuKurs1"
             :options="wpu1Options"
         />
-      </div>
+      </BaseFormGroup>
 
-      <div class="form-group" style="margin-top: 12px;">
+      <BaseFormGroup id="wpu2" :error="wpu2Error">
         <BaseLabel for="wpu2">{{ t('account.menu.courses.wpu2') }}</BaseLabel>
         <BaseSelect
             id="wpu2"
             v-model="formData.wpuKurs2"
             :options="wpu2Options"
         />
-      </div>
+      </BaseFormGroup>
 
-      <div class="form-group" style="margin-top: 12px;">
+      <BaseFormGroup id="theater" :error="theaterError">
         <BaseLabel for="theater">{{ t('account.menu.courses.wpu3') }}</BaseLabel>
         <BaseSelect
             id="theater"
             v-model="formData.theater"
             :options="theaterOptions"
         />
-      </div>
+      </BaseFormGroup>
     </template>
 
-    <template #actions>
-      <div v-if="error" class="field-error" style="color:var(--color-danger); margin-top: 12px;">{{ error }}</div>
+    <template #cancel-text>
+      {{ isSetup ? t('global.buttons.skip') : t('global.buttons.cancel') }}
+    </template>
 
-      <div class="row" style="margin-top: 16px;">
-        <BaseButton v-if="isSetup" @click="skip" :disabled="skipping || submitting" variant="ghost" :loading="skipping">
-        {{ t('global.buttons.skip') }}
-      </BaseButton>
-
-        <BaseButton v-else @click="$emit('cancel')" variant="ghost">
-          {{ t('global.buttons.cancel') }}
-        </BaseButton>
-
-        <BaseButton @click="save" :disabled="submitting || skipping || (isSetup && !isValid)" variant="action" :loading="submitting">
-        {{ t('global.buttons.save') }}
-      </BaseButton>
-      </div>
+    <template #action-text>
+      {{ t('global.buttons.save') }}
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.small {
-  font-size: var(--text-sub);
-  font-family: var(--font-sans), sans-serif;
-}
-
-.form-group {
-  font-family: var(--font-sans), sans-serif;
-}
-
-label {
-  margin-bottom: 6px;
-  display: block;
-}
-</style>

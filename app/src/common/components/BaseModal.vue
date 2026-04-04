@@ -4,6 +4,19 @@ import { useEventListener } from '@vueuse/core';
 
 const { t } = useI18n();
 
+const props = withDefaults(defineProps<{
+  submit?: () => void;
+  cancel?: () => void;
+  danger?: boolean;
+  error?: string;
+  loading?: boolean;
+}>(), {
+  cancel: () => { emit('cancel') },
+  danger: false,
+  error: '',
+  loading: false,
+});
+
 const emit = defineEmits<{ (e: 'cancel'): void; (e: 'success'): void }>();
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
@@ -13,6 +26,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <BaseModalCard @cancel="$emit('cancel')">
+    <!-- Header-->
     <BaseRow justify="between" class="mb-4">
       <BaseTitle :level="3">
         <slot name="title"></slot>
@@ -22,29 +36,19 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         </template>
       </BaseTitle>
 
-      <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
+      <BaseButton v-if="cancel" type="button" variant="ghost" @click="cancel">
         {{ t('global.buttons.close') }}
       </BaseButton>
     </BaseRow>
 
-    <BaseForm :submit="() => $emit('success')" :cancellable="true">
-      <template #content>
-        <slot name="content"></slot>
-      </template>
-
-      <template #actions>
-        <slot name="actions">
-          <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
-            {{ t('global.buttons.cancel') }}
-          </BaseButton>
-
-          <slot name="action-btn">
-            <BaseButton type="submit" variant="action">
-              {{ t('global.buttons.confirm') }}
-            </BaseButton>
-          </slot>
-        </slot>
+    <!-- Content -->
+    <BaseForm v-if="submit" :submit="submit" :cancel="cancel" :error="error" :danger="danger" :loading="loading">
+      <template v-for="(_, name) in $slots" #[name]="slotProps">
+        <slot :name="name" v-bind="slotProps || {}"></slot>
       </template>
     </BaseForm>
+
+    <!-- If there is no submit function, render the content without buttons -->
+    <slot v-else name="content"></slot>
   </BaseModalCard>
 </template>

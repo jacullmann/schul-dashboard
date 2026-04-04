@@ -125,7 +125,7 @@ async function onPrimary() {
 </script>
 
 <template>
-  <BaseModal @cancel="emit('cancel')">
+  <BaseModal @cancel="emit('cancel')" :submit="onPrimary" :loading="submitting" :error="message">
     <template #title>
       {{ t('account.auth.reset.title') }}
     </template>
@@ -143,18 +143,16 @@ async function onPrimary() {
 
       <div v-else-if="step === 2">
         <p>{{ t('account.auth.reset.step2.description') }}</p>
-        <div style="display: flex; gap: 8px;">
+        <div class="flex gap-2 mt-2">
           <BaseInput
             id="reset-code"
             ref="codeInputRef"
             v-model="code"
             :placeholder="t('account.auth.reset.placeholders.code')"
-            style="flex-grow: 1; margin-top: 8px;"
           />
           <BaseButton
             @click="onBack"
             :disabled="submitting"
-            style="margin-top: 8px;"
             variant="ghost"
           >
             {{ t('global.buttons.back') }}
@@ -165,7 +163,7 @@ async function onPrimary() {
       <div v-else-if="step === 3">
         <p>{{ t('account.auth.reset.step3.description') }}</p>
 
-        <div style="position: relative;">
+        <BaseFormGroup id="reset-password">
           <BaseInput
             id="reset-password"
             ref="passwordInputRef"
@@ -173,36 +171,22 @@ async function onPrimary() {
             v-model="password"
             :placeholder="t('account.auth.reset.placeholders.newPassword')"
           />
-        </div>
+        </BaseFormGroup>
 
-        <div style="margin-top: 8px; position: relative;">
+        <BaseFormGroup id="reset-password-confirm">
           <BaseInput
             id="reset-password-confirm"
             type="password"
             v-model="password2"
             :placeholder="t('account.auth.reset.placeholders.confirmPassword')"
           />
-        </div>
+        </BaseFormGroup>
       </div>
 
-      <div
-        v-if="message"
-        class="text-sub"
-        :style="{ color: isError ? 'var(--color-danger)' : 'var(--color-primary)' }"
-        style="margin-top: 8px;"
-      >
-        {{ message }}
-      </div>
+      <div v-if="message && !isError" class="text-sub mt-2">{{ message }}</div>
     </template>
 
-    <template #action-btn>
-      <BaseButton
-        type="submit"
-        @click="onPrimary"
-        :disabled="submitting"
-        variant="action"
-        :loading="submitting"
-      >
+    <template #action-text>
         {{
           step === 1
             ? t('account.auth.reset.actions.requestCode')
@@ -210,7 +194,6 @@ async function onPrimary() {
               ? t('account.auth.reset.actions.verifyCode')
               : t('account.auth.reset.actions.setPassword')
         }}
-      </BaseButton>
     </template>
   </BaseModal>
 </template>

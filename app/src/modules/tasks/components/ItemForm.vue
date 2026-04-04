@@ -343,16 +343,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <form
-    @submit.prevent="submit"
-    novalidate
+  <div
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
     @dragover="handleDragOver"
     @drop="handleDrop"
     class="relative"
   >
-    <BaseModal @cancel="emit('cancel')">
+    <BaseModal @cancel="emit('cancel')" :submit="submit" :error="submitError" :loading="submitting">
       <template #title>
         {{
           initial
@@ -377,158 +375,148 @@ onMounted(() => {
           </div>
         </div>
 
-        <BaseFormContent :error="submitError">
-          <BaseFormGroup v-if="!initial" id="type">
-            <BaseTabs
-              :items="typeTabItems"
-              :active-id="activeType"
-              @change="(id) => (activeType = id as Exclude<ItemType, 'all'>)"
-            />
-          </BaseFormGroup>
+        <!-- Form Content -->
+        <BaseFormGroup v-if="!initial" id="type">
+          <BaseTabs
+            :items="typeTabItems"
+            :active-id="activeType"
+            @change="(id) => (activeType = id as Exclude<ItemType, 'all'>)"
+          />
+        </BaseFormGroup>
 
-          <BaseFormGroup id="title" :error="titleError">
-            <BaseLabel for="title" :required="true">{{
-              t('school.tasks.itemForm.title')
-            }}</BaseLabel>
-            <BaseInput ref="titleInputRef" id="title" v-model="title" :aria-describedby="titleError ? 'title-error' : undefined" />
-          </BaseFormGroup>
+        <BaseFormGroup id="title" :error="titleError">
+          <BaseLabel for="title" :required="true">{{
+            t('school.tasks.itemForm.title')
+          }}</BaseLabel>
+          <BaseInput ref="titleInputRef" id="title" v-model="title" :aria-describedby="titleError ? 'title-error' : undefined" />
+        </BaseFormGroup>
 
-          <BaseFormGroup id="subject" :error="subjectError">
-            <BaseLabel for="subject" :required="true">{{
-              t('school.tasks.itemForm.subject')
-            }}</BaseLabel>
-            <BaseSelect
-              id="subject"
-              v-model="subjectSel"
-              :options="subjectOptions"
-              :aria-describedby="subjectError ? 'subject-error' : undefined"
-            />
-          </BaseFormGroup>
+        <BaseFormGroup id="subject" :error="subjectError">
+          <BaseLabel for="subject" :required="true">{{
+            t('school.tasks.itemForm.subject')
+          }}</BaseLabel>
+          <BaseSelect
+            id="subject"
+            v-model="subjectSel"
+            :options="subjectOptions"
+            :aria-describedby="subjectError ? 'subject-error' : undefined"
+          />
+        </BaseFormGroup>
 
-          <BaseFormGroup v-if="subjectSel === 'enrichment'" id="enrKursSel" :error="enrError">
-            <BaseLabel for="enrKursSel" :required="true">{{
-              t('school.tasks.itemForm.course')
-            }}</BaseLabel>
-            <BaseSelect
-              id="enrKursSel"
-              v-model="enrKursSel"
-              :options="enrOptions"
-              :aria-describedby="enrError ? 'enrKursSel-error' : undefined"
-            />
-          </BaseFormGroup>
+        <BaseFormGroup v-if="subjectSel === 'enrichment'" id="enrKursSel" :error="enrError">
+          <BaseLabel for="enrKursSel" :required="true">{{
+            t('school.tasks.itemForm.course')
+          }}</BaseLabel>
+          <BaseSelect
+            id="enrKursSel"
+            v-model="enrKursSel"
+            :options="enrOptions"
+            :aria-describedby="enrError ? 'enrKursSel-error' : undefined"
+          />
+        </BaseFormGroup>
 
-          <BaseFormGroup v-if="subjectSel === 'wpu1'" id="wpu1KursSel" :error="wpu1Error">
-            <BaseLabel for="wpu1KursSel" :required="true">{{
-              t('school.tasks.itemForm.course')
-            }}</BaseLabel>
-            <BaseSelect
-              id="wpu1KursSel"
-              v-model="wpu1KursSel"
-              :options="wpu1Options"
-              :aria-describedby="wpu1Error ? 'wpu1KursSel-error' : undefined"
-            />
-          </BaseFormGroup>
+        <BaseFormGroup v-if="subjectSel === 'wpu1'" id="wpu1KursSel" :error="wpu1Error">
+          <BaseLabel for="wpu1KursSel" :required="true">{{
+            t('school.tasks.itemForm.course')
+          }}</BaseLabel>
+          <BaseSelect
+            id="wpu1KursSel"
+            v-model="wpu1KursSel"
+            :options="wpu1Options"
+            :aria-describedby="wpu1Error ? 'wpu1KursSel-error' : undefined"
+          />
+        </BaseFormGroup>
 
-          <BaseFormGroup v-if="subjectSel === 'wpu2'" id="wpu2KursSel" :error="wpu2Error">
-            <BaseLabel for="wpu2KursSel" :required="true">{{
-              t('school.tasks.itemForm.course')
-            }}</BaseLabel>
-            <BaseSelect
-              id="wpu2KursSel"
-              v-model="wpu2KursSel"
-              :options="wpu2Options"
-              :aria-describedby="wpu2Error ? 'wpu2KursSel-error' : undefined"
-            />
-          </BaseFormGroup>
+        <BaseFormGroup v-if="subjectSel === 'wpu2'" id="wpu2KursSel" :error="wpu2Error">
+          <BaseLabel for="wpu2KursSel" :required="true">{{
+            t('school.tasks.itemForm.course')
+          }}</BaseLabel>
+          <BaseSelect
+            id="wpu2KursSel"
+            v-model="wpu2KursSel"
+            :options="wpu2Options"
+            :aria-describedby="wpu2Error ? 'wpu2KursSel-error' : undefined"
+          />
+        </BaseFormGroup>
 
-          <BaseFormGroup v-if="subjectSel === '__OTHER__'" id="subjectOther" :error="subjectOtherError">
-            <BaseLabel for="subjectOther" :required="true">{{
-              t('school.tasks.itemForm.customSubject')
-            }}</BaseLabel>
-            <BaseInput id="subjectOther" v-model="subjectOther" :aria-describedby="subjectOtherError ? 'subjectOther-error' : undefined"/>
-          </BaseFormGroup>
+        <BaseFormGroup v-if="subjectSel === '__OTHER__'" id="subjectOther" :error="subjectOtherError">
+          <BaseLabel for="subjectOther" :required="true">{{
+            t('school.tasks.itemForm.customSubject')
+          }}</BaseLabel>
+          <BaseInput id="subjectOther" v-model="subjectOther" :aria-describedby="subjectOtherError ? 'subjectOther-error' : undefined"/>
+        </BaseFormGroup>
 
-          <BaseFormGroup id="description" :error="descriptionError">
-            <BaseLabel for="description">{{
-              t('school.tasks.itemForm.description')
-            }}</BaseLabel>
-            <BaseInput
-              id="description"
-              as="textarea"
-              rows="4"
-              v-model="description"
-              :aria-describedby="descriptionError ? 'description-error' : undefined"
-            ></BaseInput>
-          </BaseFormGroup>
+        <BaseFormGroup id="description" :error="descriptionError">
+          <BaseLabel for="description">{{
+            t('school.tasks.itemForm.description')
+          }}</BaseLabel>
+          <BaseInput
+            id="description"
+            as="textarea"
+            rows="4"
+            v-model="description"
+            :aria-describedby="descriptionError ? 'description-error' : undefined"
+          ></BaseInput>
+        </BaseFormGroup>
 
-          <BaseFormGroup id="dueDate" :error="dueDateError">
-            <BaseLabel for="dueDate" :required="true">{{
-              t('school.tasks.itemForm.dueDate')
-            }}</BaseLabel>
-            <BaseInput id="dueDate" type="date" v-model="dueLocal" :aria-describedby="dueDateError ? 'dueDate-error' : undefined" />
-          </BaseFormGroup>
+        <BaseFormGroup id="dueDate" :error="dueDateError">
+          <BaseLabel for="dueDate" :required="true">{{
+            t('school.tasks.itemForm.dueDate')
+          }}</BaseLabel>
+          <BaseInput id="dueDate" type="date" v-model="dueLocal" :aria-describedby="dueDateError ? 'dueDate-error' : undefined" />
+        </BaseFormGroup>
 
-          <BaseFormGroup id="images" :error="imgUploadError">
-            <BaseLabel for="images">{{
-              t('school.tasks.itemForm.images')
-            }}</BaseLabel>
-            <BaseRow id="images">
-              <div
-                v-for="img in imgImages"
-                :key="img.publicId"
-                class="relative w-30 h-30 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
-              >
-                <BaseLink :to="img.url">
-                  <img
-                    :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
-                    class="block w-full h-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                    alt="Vorschau"
-                  />
-                </BaseLink>
-                <div class="absolute top-1 right-1">
-                  <BaseButton
-                    type="button"
-                    class="px-2 py-1"
-                    @click="removeImg(img, initial?.id)"
-                    variant="danger"
-                    >
-                    <X :size="12"/>
-                  </BaseButton>
-                </div>
+        <BaseFormGroup id="images" :error="imgUploadError">
+          <BaseLabel for="images">{{
+            t('school.tasks.itemForm.images')
+          }}</BaseLabel>
+          <BaseRow id="images">
+            <div
+              v-for="img in imgImages"
+              :key="img.publicId"
+              class="relative w-30 h-30 rounded-md overflow-hidden bg-[rgba(26, 26, 26, 0.5)] backdrop-blur-sm"
+            >
+              <BaseLink :to="img.url">
+                <img
+                  :src="img.thumbUrl || (img.url ? makeThumb(img.url) : '')"
+                  class="block w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Vorschau"
+                />
+              </BaseLink>
+              <div class="absolute top-1 right-1">
+                <BaseButton
+                  type="button"
+                  class="px-2 py-1"
+                  @click="removeImg(img, initial?.id)"
+                  variant="danger"
+                  >
+                  <X :size="12"/>
+                </BaseButton>
               </div>
-
-              <BaseButton
-                type="button"
-                @click="uploadImage(!!initial)"
-                :disabled="imgUploading"
-                variant="ghost"
-                :loading="imgUploading"
-              >
-                {{ t('school.tasks.items.menu.uploadImages') }}
-              </BaseButton>
-            </BaseRow>
-
-            <div v-if="imgUploading" class="text-sub text-on-surface-muted self-center">
-              {{ t('school.tasks.itemForm.uploadingImage') }}
             </div>
-          </BaseFormGroup>
-        </BaseFormContent>
+
+            <BaseButton
+              type="button"
+              @click="uploadImage(!!initial)"
+              :disabled="imgUploading"
+              variant="ghost"
+              :loading="imgUploading"
+            >
+              {{ t('school.tasks.items.menu.uploadImages') }}
+            </BaseButton>
+          </BaseRow>
+
+          <div v-if="imgUploading" class="text-sub text-on-surface-muted self-center">
+            {{ t('school.tasks.itemForm.uploadingImage') }}
+          </div>
+        </BaseFormGroup>
       </template>
 
-      <template #action-btn>
-        <BaseButton
-          type="submit"
-          :disabled="submitting"
-          variant="action"
-          :loading="submitting"
-        >
-          {{
-            initial ? t('global.buttons.save') : t('global.buttons.create')
-          }}
-        </BaseButton>
+      <template #action-text>
+        {{ initial ? t('global.buttons.save') : t('global.buttons.create') }}
       </template>
     </BaseModal>
-  </form>
+  </div>
 </template>

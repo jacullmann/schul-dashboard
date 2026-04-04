@@ -30,13 +30,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')">
+  <BaseModal @cancel="$emit('cancel')" :error="isError ? message : undefined" :loading="submitting">
     <template #title>
       {{ t('account.menu.changePassword.title') }}
     </template>
 
     <template #content>
-      <div class="password-wrapper">
+      <BaseFormGroup id="currentPassword" :error="errors.current">
         <BaseLabel for="currentPassword">
           {{ t('account.menu.changePassword.currentPassword') }}
         </BaseLabel>
@@ -48,11 +48,11 @@ onMounted(() => {
             :placeholder="t('account.menu.changePassword.currentPlaceholder')"
             @input="clearFieldError('current')"
             @keydown.enter="submit"
+            :aria-describedby="errors.current ? 'currentPassword-error' : undefined"
         />
-        <div v-if="errors.current" class="field-error">{{ errors.current }}</div>
-      </div>
+      </BaseFormGroup>
 
-      <div class="password-wrapper">
+      <BaseFormGroup id="newPassword" :error="errors.new">
         <BaseLabel for="newPassword">
           {{ t('account.menu.changePassword.newPassword') }}
         </BaseLabel>
@@ -63,11 +63,11 @@ onMounted(() => {
             :placeholder="t('account.menu.changePassword.newPlaceholder')"
             @input="clearFieldError('new')"
             @keydown.enter="submit"
+            :aria-describedby="errors.new ? 'newPassword-error' : undefined"
         />
-        <div v-if="errors.new" class="field-error">{{ errors.new }}</div>
-      </div>
+      </BaseFormGroup>
 
-      <div class="password-wrapper">
+      <BaseFormGroup id="newPassword2" :error="errors.confirm">
         <BaseLabel for="newPassword2">
           {{ t('account.menu.changePassword.confirmPassword') }}
         </BaseLabel>
@@ -78,34 +78,18 @@ onMounted(() => {
             :placeholder="t('account.menu.changePassword.confirmPlaceholder')"
             @input="clearFieldError('confirm')"
             @keydown.enter="submit"
+            :aria-describedby="errors.confirm ? 'newPassword2-error' : undefined"
         />
-        <div v-if="errors.confirm" class="field-error">{{ errors.confirm }}</div>
-      </div>
+      </BaseFormGroup>
 
-      <!-- Allgemeine Fehlermeldung -->
-      <span v-if="message" :class="{ 'text-danger': isError }">
+      <!-- Allgemeine Nachricht -->
+      <span v-if="message && !isError">
         {{ message }}
       </span>
     </template>
 
-    <template #action-btn>
-      <BaseButton @click="submit" :disabled="submitting" variant="action" :loading="submitting">
-        {{ t('account.menu.changePassword.title') }}
-      </BaseButton>
+    <template #action-text>
+      {{ t('account.menu.changePassword.title') }}
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.password-wrapper {
-  position: relative;
-  margin-bottom: 16px;
-}
-
-.field-error {
-  color: var(--color-danger);
-  font-size: var(--text-sub);
-  font-family: var(--font-sans), sans-serif;
-  margin-top: 6px;
-}
-</style>

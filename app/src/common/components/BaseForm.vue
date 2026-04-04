@@ -3,32 +3,44 @@ import { useI18n} from 'vue-i18n';
 
 const { t } = useI18n();
 
+const emit = defineEmits<{
+  (e: 'cancel'): void;
+}>();
+
 const props = withDefaults(defineProps<{
   submit: () => void
-  cancellable?: boolean
+  cancel?: () => void
+  danger?: boolean
+  error?: string
+  loading?: boolean
+  requirement?: boolean
 }>(), {
-  cancellable: true
+  error: '',
+  danger: false,
+  cancel: () => { emit('cancel') },
+  loading: false,
+  requirement: true,
 });
 </script>
 
 <template>
   <form @submit.prevent="submit" novalidate>
-    <BaseFormContent>
+    <BaseFormContent :error="error">
       <slot name="content"></slot>
     </BaseFormContent>
 
     <BaseRow justify="end" class="mt-4">
-      <slot name="actions">
-        <BaseButton v-if="cancellable" type="button" @click="$emit('cancel')" variant="ghost">
+      <BaseButton v-if="cancel" type="button" variant="ghost" @click="cancel">
+        <slot name="cancel-text">
           {{ t('global.buttons.cancel') }}
-        </BaseButton>
-
-        <slot name="action-btn">
-          <BaseButton type="submit" variant="action" :class="{'w-full': !cancellable}">
-            {{ t('global.buttons.confirm') }}
-          </BaseButton>
         </slot>
-      </slot>
+      </BaseButton>
+
+      <BaseButton type="submit" :variant="danger ? 'danger' : 'action'" :class="{'w-full font-semibold justify-center': !cancel}" :loading="loading" :disabled="loading || !requirement">
+        <slot name="action-text">
+          {{ t('global.buttons.confirm') }}
+        </slot>
+      </BaseButton>
     </BaseRow>
   </form>
 </template>

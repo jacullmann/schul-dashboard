@@ -39,9 +39,9 @@ watch(() => props.show, (newVal) => {
 </script>
 
 <template>
-  <BaseModal v-if="show" @cancel="emit('cancel')">
+  <BaseModal v-if="show" @cancel="emit('cancel')" :submit="emit('confirm', category)" :loading="loading" :danger="true" :requirement="!(category === 'falschinfo' && !reason?.trim())">
     <template #title>
-      <h4 style="margin: 0">Diesen Eintrag melden?</h4>
+      Diesen Eintrag melden?
     </template>
 
     <template #title-infopop>
@@ -54,7 +54,7 @@ watch(() => props.show, (newVal) => {
     </template>
 
     <template #content>
-      <p style="margin: 0">Wähle den Grund aus:</p>
+      <p class="m-0">Wähle den Grund aus:</p>
 
       <!-- TabSwitcher Navigation -->
       <div class="tab-navigation">
@@ -84,10 +84,8 @@ watch(() => props.show, (newVal) => {
       </div>
     </template>
 
-    <template #action-btn>
-      <BaseButton @click="$emit('confirm', category)" :disabled="loading || (category === 'falschinfo' && !reason?.trim())" variant="danger" :loading="loading">
-        Eintrag melden
-      </BaseButton>
+    <template #action-text>
+      Eintrag melden
     </template>
   </BaseModal>
 </template>

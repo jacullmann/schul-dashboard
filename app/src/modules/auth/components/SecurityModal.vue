@@ -67,10 +67,6 @@ onMounted(async () => {
         <ConnectedAccounts />
       </div>
     </template>
-
-    <template #actions>
-      <div></div>
-    </template>
   </BaseModal>
 </template>
 

@@ -32,9 +32,6 @@ const closeModal = () => (isModalOpen.value = false)
             <slot></slot>
           </div>
         </template>
-        <template #actions>
-          <div style="display: none;"></div>
-        </template>
       </BaseModal>
     </Transition>
   </Teleport>

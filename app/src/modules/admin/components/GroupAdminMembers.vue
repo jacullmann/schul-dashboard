@@ -153,7 +153,7 @@ function confirmRemove() {
       </div>
     </div>
 
-    <BaseModal v-if="removeModal.isOpen" @cancel="closeRemoveModal">
+    <BaseModal v-if="removeModal.isOpen" @cancel="closeRemoveModal" :danger="true" :submit="confirmRemove">
       <template #title>Remove Member</template>
 
       <template #content>
@@ -162,8 +162,9 @@ function confirmRemove() {
         
         <BaseCheckbox v-model="removeModal.ban">Ban <strong>{{ removeModal.userName }}</strong> permanently</BaseCheckbox>
       </template>
-      <template #action-btn>
-        <BaseButton variant="danger" @click="confirmRemove">Remove</BaseButton>
+
+      <template #action-text>
+        Remove
       </template>
     </BaseModal>
   </div>

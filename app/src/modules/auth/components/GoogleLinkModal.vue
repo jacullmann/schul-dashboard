@@ -36,7 +36,7 @@ function cancel() {
 </script>
 
 <template>
-  <BaseModal @cancel="cancel">
+  <BaseModal @cancel="cancel" :submit="submit" :loading="submitting" :error="errorMsg" :requirement="password">
     <template #title>
       Google-Konto verknüpfen
     </template>
@@ -53,28 +53,22 @@ function cancel() {
         Gib dein Passwort ein, um Google mit deinem bestehenden Konto zu verknüpfen.
       </p>
 
-      <form id="link-form" @submit.prevent="submit" class="link-form" novalidate>
-        <div class="form-group">
-          <BaseLabel for="link-password">Passwort</BaseLabel>
-          <BaseInput
-              id="link-password"
-              type="password"
-              v-model="password"
-              placeholder="Dein Passwort"
-              autocomplete="current-password"
-              autofocus
-              @input="errorMsg = ''"
-          />
-        </div>
-
-        <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
-      </form>
+      <BaseFormGroup id="link-password">
+        <BaseLabel for="link-password">Passwort</BaseLabel>
+        <BaseInput
+            id="link-password"
+            type="password"
+            v-model="password"
+            placeholder="Dein Passwort"
+            autocomplete="current-password"
+            autofocus
+            @input="errorMsg = ''"
+        />
+      </BaseFormGroup>
     </template>
 
-    <template #action-btn>
-      <BaseButton type="submit" form="link-form" :disabled="!password || submitting" variant="action" :loading="submitting">
-        Verknüpfen
-      </BaseButton>
+    <template #action-text>
+      Verknüpfen
     </template>
   </BaseModal>
 </template>
@@ -105,29 +99,5 @@ function cancel() {
   color: var(--color-on-surface-muted);
   line-height: 1.5;
   text-align: center;
-}
-
-.link-form {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-group label {
-  font-size: var(--text-sub);
-  font-weight: 500;
-  color: var(--color-on-surface);
-}
-
-.error-msg {
-  font-size: var(--text-sub);
-  color: var(--color-danger);
-  margin-top: 4px;
 }
 </style>

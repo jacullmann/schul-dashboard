@@ -64,82 +64,40 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')">
+  <BaseModal @cancel="$emit('cancel')" :submit="submit" :loading="submitting" :error="errorMsg" :cancel="undefined">
     <template #title>
       Gruppe beitreten
     </template>
 
     <template #content>
-      <form id="join-group-form" @submit.prevent="submit" class="form-content" novalidate>
-        <div class="form-group">
-          <BaseLabel for="join-group-name">Gruppenname</BaseLabel>
-          <BaseInput
-              id="join-group-name"
-              ref="groupNameInputRef"
-              v-model="groupName"
-              placeholder="Name der Gruppe"
-              type="text"
-              autocomplete="off"
-              @input="clearError"
-          />
-        </div>
+      <BaseFormGroup id="join-group-name">
+        <BaseLabel for="join-group-name">Gruppenname</BaseLabel>
+        <BaseInput
+            id="join-group-name"
+            ref="groupNameInputRef"
+            v-model="groupName"
+            placeholder="Name der Gruppe"
+            type="text"
+            autocomplete="off"
+            @input="clearError"
+        />
+      </BaseFormGroup>
 
-        <div class="form-group">
-          <BaseLabel for="join-group-password">Zugangscode</BaseLabel>
-          <BaseInput
-              id="join-group-password"
-              type="password"
-              v-model="password"
-              placeholder="Zugangscode"
-              autocomplete="current-password"
-              @input="clearError"
-          />
-        </div>
-
-        <div v-if="errorMsg" class="message error">
-          {{ errorMsg }}
-        </div>
-      </form>
+      <BaseFormGroup id="join-group-password">
+        <BaseLabel for="join-group-password">Zugangscode</BaseLabel>
+        <BaseInput
+            id="join-group-password"
+            type="password"
+            v-model="password"
+            placeholder="Zugangscode"
+            autocomplete="current-password"
+            @input="clearError"
+        />
+      </BaseFormGroup>
     </template>
 
-    <template #actions>
-      <BaseButton form="join-group-form" type="submit" class="submit-btn" :disabled="submitting || !isValid" variant="action" :loading="submitting">
-        Beitreten
-      </BaseButton>
+    <template #action-text>
+      Beitreten
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.form-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 16px;
-}
-
-.message {
-  color: var(--color-on-surface);
-  font-size: var(--text-sub);
-  margin-bottom: 16px;
-}
-
-.message.error {
-  color: var(--color-danger);
-}
-
-.submit-btn {
-  width: 100%;
-  justify-content: center;
-  font-weight: 600;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-</style>

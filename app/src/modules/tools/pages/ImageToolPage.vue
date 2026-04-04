@@ -393,7 +393,7 @@ const updateImageSource = (newSrc: string) => {
       </div>
     </div>
 
-    <BaseModal v-if="isEditorOpen" @cancel="closeEditor">
+    <BaseModal v-if="isEditorOpen" @cancel="closeEditor" :submit="applyEdits">
       <template #title>Bildbearbeitung</template>
       
       <template #content>
@@ -440,8 +440,8 @@ const updateImageSource = (newSrc: string) => {
         </div>
       </template>
 
-      <template #action-btn>
-        <BaseButton @click="applyEdits" type="submit" variant="action">Anwenden</BaseButton>
+      <template #action-text>
+        Anwenden
       </template>
     </BaseModal>
   </div>

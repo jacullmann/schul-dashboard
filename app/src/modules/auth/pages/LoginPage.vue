@@ -67,7 +67,7 @@ onMounted(() => {
         </p>
       </div>
 
-      <BaseForm :submit="handleSubmit" :cancellable="false" class="mb-6">
+      <BaseForm :submit="handleSubmit" :loading="submitting" class="mb-6">
         <template #content>
           <BaseFormGroup id="login-email" :error="errors.email">
             <BaseLabel for="login-email">
@@ -125,15 +125,8 @@ onMounted(() => {
           </transition>
         </template>
 
-        <template #action-btn>
-          <BaseButton
-            type="submit"
-            variant="action"
-            :loading="submitting"
-            class="w-full justify-center"
-          >
-            {{ t('account.auth.login') }}
-          </BaseButton>
+        <template #action-text>
+          {{ t('account.auth.login') }}
         </template>
       </BaseForm>
 

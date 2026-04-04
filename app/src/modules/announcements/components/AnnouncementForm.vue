@@ -54,48 +54,44 @@ async function submit() {
 </script>
 
 <template>
-  <form @submit.prevent="submit" novalidate>
-    <BaseModal @cancel="$emit('cancel')">
-      <template #title>
-        Neue Ankündigung
-      </template>
+  <BaseModal @cancel="$emit('cancel')" :submit="submit" :loading="submitting">
+    <template #title>
+      Neue Ankündigung
+    </template>
 
-      <template #content>
-        <BaseFormContent :error="submitError">
-          <BaseFormGroup id="announcement-content-input" :error="contentError">
-            <BaseLabel for="announcement-content-input" :required="true">Ankündigung</BaseLabel>
-            <BaseInput
-              id="announcement-content-input"
-              as="textarea"
-              ref="contentInputRef"
-              v-model="annContent"
-              placeholder="Verfasse deine Nachricht..."
-              rows="3"
-              maxlength="1000"
-              :aria-describedby="contentError ? 'announcement-content-input-error' : undefined"
-            />
-          </BaseFormGroup>
+    <template #content>
+      <BaseFormContent :error="submitError">
+        <BaseFormGroup id="announcement-content-input" :error="contentError">
+          <BaseLabel for="announcement-content-input" :required="true">Ankündigung</BaseLabel>
+          <BaseInput
+            id="announcement-content-input"
+            as="textarea"
+            ref="contentInputRef"
+            v-model="annContent"
+            placeholder="Verfasse deine Nachricht..."
+            rows="3"
+            maxlength="1000"
+            :aria-describedby="contentError ? 'announcement-content-input-error' : undefined"
+          />
+        </BaseFormGroup>
 
-          <BaseFormGroup id="announcement-importance-input">
-            <BaseLabel for="announcement-importance-input" :required="true">Wichtigkeit</BaseLabel>
-            <BaseSelect
-              id="announcement-importance-input"
-              v-model="annColor"
-              :options="[
-                { label: 'Info', value: 'info' },
-                { label: 'Warnung', value: 'warn' },
-                { label: 'Wichtig', value: 'danger' },
-              ]"
-            />
-          </BaseFormGroup>
-        </BaseFormContent>
-      </template>
+        <BaseFormGroup id="announcement-importance-input">
+          <BaseLabel for="announcement-importance-input" :required="true">Wichtigkeit</BaseLabel>
+          <BaseSelect
+            id="announcement-importance-input"
+            v-model="annColor"
+            :options="[
+              { label: 'Info', value: 'info' },
+              { label: 'Warnung', value: 'warn' },
+              { label: 'Wichtig', value: 'danger' },
+            ]"
+          />
+        </BaseFormGroup>
+      </BaseFormContent>
+    </template>
 
-      <template #action-btn>
-        <BaseButton @click="submit" variant="action" :loading="submitting">
-          {{ t('global.buttons.add') }}
-        </BaseButton>
-      </template>
-    </BaseModal>
-  </form>
+    <template #action-text>
+      {{ t('global.buttons.add') }}
+    </template>
+  </BaseModal>
 </template>

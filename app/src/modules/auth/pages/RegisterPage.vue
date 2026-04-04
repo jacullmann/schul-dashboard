@@ -50,7 +50,7 @@ function navigateToLogin() {
         </p>
       </div>
 
-      <BaseForm :submit="handleSubmit" :cancellable="false" class="mb-6">
+      <BaseForm :submit="handleSubmit" :loading="submitting" class="mb-6">
         <template #content>
           <BaseFormGroup id="register-email" :error="errors.email">
             <BaseLabel for="register-email">
@@ -146,16 +146,8 @@ function navigateToLogin() {
           </transition>
         </template>
 
-        <template #action-btn>
-          <BaseButton
-            type="submit"
-            variant="action"
-            :disabled="submitting"
-            :loading="submitting"
-            class="w-full justify-center"
-          >
-            {{ t('account.auth.register') }}
-          </BaseButton>
+        <template #action-text>
+          {{ t('account.auth.register') }}
         </template>
       </BaseForm>
 

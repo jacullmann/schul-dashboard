@@ -42,55 +42,35 @@ const showUpdated = computed(() => {
     </template>
 
     <template #content>
-      <dl class="info-list">
-        <div class="info-row">
+      <dl class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
           <dt>{{ t('school.tasks.items.menu.infoModal.createdAt') }}</dt>
           <dd>{{ formatDate(item.createdAt) }}</dd>
         </div>
 
-        <div class="info-row">
+        <div class="flex flex-col gap-2">
           <dt>{{ t('school.tasks.items.menu.infoModal.updatedAt') }}</dt>
           <dd>
             <span v-if="showUpdated">{{ formatDate(item.updatedAt) }}</span>
-            <span v-else class="muted">{{ t('school.tasks.items.menu.infoModal.notEdited') }}</span>
+            <span v-else class="text-on-surface-muted">{{ t('school.tasks.items.menu.infoModal.notEdited') }}</span>
           </dd>
         </div>
 
-        <div v-if="isModOrAdmin" class="info-row">
+        <div v-if="isModOrAdmin" class="flex flex-col gap-2">
           <dt>{{ t('school.tasks.items.menu.infoModal.createdBy') }}</dt>
           <dd>
             {{ item.createdByName || 'Unbekannt' }}
-            <span v-if="isSuperAdmin && item.createdByEmail" class="muted email">
+            <span v-if="isSuperAdmin && item.createdByEmail" class="text-on-surface-muted text-sub ml-0.5">
               ({{ item.createdByEmail }})
             </span>
           </dd>
         </div>
       </dl>
     </template>
-
-    <template #actions>
-      <BaseButton type="button" @click="$emit('cancel')" variant="ghost">
-        {{ t('global.buttons.close') }}
-      </BaseButton>
-    </template>
   </BaseModal>
 </template>
 
 <style scoped>
-.info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin: 0;
-  padding: 0;
-}
-
-.info-row {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 dt {
   font-size: var(--text-sub);
   color: var(--color-on-surface-muted);
@@ -102,15 +82,5 @@ dd {
   font-size: var(--text-body);
   color: var(--color-on-surface);
   font-weight: 500;
-}
-
-.muted {
-  color: var(--color-on-surface-muted);
-  font-weight: 400;
-}
-
-.email {
-  font-size: var(--text-sub);
-  margin-left: 2px;
 }
 </style>

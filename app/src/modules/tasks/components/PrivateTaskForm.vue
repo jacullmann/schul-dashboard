@@ -71,31 +71,27 @@ async function submit() {
 </script>
 
 <template>
-  <form @submit.prevent="submit" novalidate>
-    <BaseModal @cancel="$emit('cancel')">
-      <template #title>
-        {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
-      </template>
+  <BaseModal @cancel="$emit('cancel')" :loading="submitting" :submit="submit">
+    <template #title>
+      {{ initial ? 'Edit Private Entry' : 'New Private Entry' }}
+    </template>
 
-      <template #content>
-        <BaseFormContent :error="submitError">
-          <BaseFormGroup id="private-task-title-input" :error="titleError">
-            <BaseLabel for="private-task-title-input" :required="true">Title</BaseLabel>
-            <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
-          </BaseFormGroup>
+    <template #content>
+      <BaseFormContent :error="submitError">
+        <BaseFormGroup id="private-task-title-input" :error="titleError">
+          <BaseLabel for="private-task-title-input" :required="true">Title</BaseLabel>
+          <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
+        </BaseFormGroup>
 
-          <BaseFormGroup id="private-task-description-input" :error="descriptionError">
-            <BaseLabel for="private-task-description-input" :required="false">Description</BaseLabel>
-            <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000" />
-          </BaseFormGroup>
-        </BaseFormContent>
-      </template>
+        <BaseFormGroup id="private-task-description-input" :error="descriptionError">
+          <BaseLabel for="private-task-description-input" :required="false">Description</BaseLabel>
+          <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000" />
+        </BaseFormGroup>
+      </BaseFormContent>
+    </template>
 
-      <template #action-btn>
-        <BaseButton type="submit" :disabled="submitting" variant="action" :loading="submitting">
-        {{ initial ? 'Save' : 'Create' }}
-      </BaseButton>
-      </template>
-    </BaseModal>
-  </form>
+    <template #action-text>
+      {{ initial ? 'Save' : 'Create' }}
+    </template>
+  </BaseModal>
 </template>

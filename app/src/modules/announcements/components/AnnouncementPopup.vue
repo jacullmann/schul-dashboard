@@ -59,12 +59,6 @@ function cancel() {
         {{ announcement.content }}
       </div>
     </template>
-
-    <template #actions>
-      <BaseButton ref="confirmBtnRef" @click="cancel" variant="action">
-        {{ t('global.cookies.banner.action') }}
-      </BaseButton>
-    </template>
   </BaseModal>
 </template>
 

@@ -25,33 +25,28 @@ const {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')">
+  <BaseModal @cancel="$emit('cancel')" :submit="confirmDelete" :loading="submitting" :danger="true" :requirement="understoodChecked" :error="errorMsg">
     <template #title>
       {{ t('account.menu.deleteAccount.title') }}
     </template>
 
     <template #content>
-      <div style="margin-top:16px; font-family: var(--font-sans), sans-serif;">
-        <div class="warning-box">
-          <strong style="font-family: var(--font-sans), sans-serif; font-size: var(--text-title)">{{ t('account.menu.deleteAccount.warnBox.title')}}</strong>
-          <div class="user-email">{{ t('contact.contact.email') }}: {{ email }}</div>
-          <br>
-          <div class="warning-text" v-html="t('account.menu.deleteAccount.warnBox.text')" />
-        </div>
-
-        <BaseCheckbox v-model="understoodChecked">
-          {{ t('account.menu.deleteAccount.confirm') }}
-        </BaseCheckbox>
-
-        <div v-if="errorMsg" class="message error">{{ errorMsg }}</div>
-        <div v-if="successMsg" class="message success">{{ successMsg }}</div>
+      <div class="warning-box">
+        <strong style="font-family: var(--font-sans), sans-serif; font-size: var(--text-title)">{{ t('account.menu.deleteAccount.warnBox.title')}}</strong>
+        <div class="user-email">{{ t('contact.contact.email') }}: {{ email }}</div>
+        <br>
+        <div class="warning-text" v-html="t('account.menu.deleteAccount.warnBox.text')" />
       </div>
+
+      <BaseCheckbox v-model="understoodChecked">
+        {{ t('account.menu.deleteAccount.confirm') }}
+      </BaseCheckbox>
+
+      <div v-if="successMsg" class="message success">{{ successMsg }}</div>
     </template>
 
-    <template #action-btn>
-      <BaseButton @click="confirmDelete" :disabled="submitting || !understoodChecked" variant="danger" :loading="submitting">
-        {{ t('global.buttons.delete') }}
-      </BaseButton>
+    <template #action-text>
+      {{ t('global.buttons.delete') }}
     </template>
   </BaseModal>
 </template>
