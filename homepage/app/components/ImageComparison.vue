@@ -63,90 +63,28 @@ const handleStyle = computed(() => ({ left: `${sliderPosition.value}%` }));
 <template>
   <div
     ref="containerRef"
-    class="compare-container"
+    class="relative w-full overflow-hidden cursor-col-resize select-none"
+    style="touch-action: none;"
     @mousedown="isDragging = true"
     @touchstart="isDragging = true"
   >
-    <img :src="props.afterImage" class="img-layer img-background" alt="After" draggable="false" />
+    <img :src="props.afterImage" class="block w-full h-auto object-cover select-none rounded-md" alt="After" draggable="false" />
     <img
       :src="props.beforeImage"
-      class="img-layer img-foreground"
+      class="absolute top-0 left-0 w-full h-full object-cover select-none"
       alt="Before"
       draggable="false"
       :style="foregroundStyle"
     />
-    <div class="handle" :style="handleStyle">
-      <div class="handle-circle">
-        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+    <div class="absolute top-0 bottom-0 w-0.5 bg-steel z-20 -translate-x-1/2 flex items-center justify-center pointer-events-none" :style="{ ...handleStyle, boxShadow: '0 0 10px rgba(0, 0, 0, 0.5)' }">
+      <div class="w-12 h-12 bg-graphite/70 border border-ash/30 rounded-full flex items-center justify-between px-2 shadow-md backdrop-blur" style="boxShadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="text-ash">
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="transform: rotate(180deg)">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" class="text-ash" style="transform: rotate(180deg)">
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.compare-container {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  cursor: ew-resize;
-  user-select: none;
-  touch-action: none;
-  display: inline-block;
-  vertical-align: top;
-}
-
-.img-layer {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  user-select: none;
-  border-radius: 8px;
-}
-
-.img-background {
-  position: relative;
-  height: auto;
-}
-
-.img-foreground {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.handle {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #666;
-  z-index: 20;
-  transform: translateX(-50%);
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-}
-
-.handle-circle {
-  width: 48px;
-  height: 48px;
-  background: #414141b0;
-  border: 1px solid #aaa5;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  color: #aaa;
-}
-</style>

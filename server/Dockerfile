@@ -1,16 +1,18 @@
-FROM node:24 AS builder
+FROM node:22 AS builder
 WORKDIR /app
 ENV NODE_ENV=development
-COPY package*.json ./
-RUN npm ci
+RUN corepack enable pnpm
+COPY pnpm-lock.yaml package.json ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
-FROM node:24-slim AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN corepack enable pnpm
+COPY pnpm-lock.yaml package.json ./
+RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 CMD ["node", "dist/main.js"]

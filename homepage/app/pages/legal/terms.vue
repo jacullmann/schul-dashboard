@@ -1,5 +1,19 @@
 <script setup lang="ts">
-const { t, tm } = useI18n();
+const { t } = useI18n();
+
+const accountItems = [
+  { key: 'legal.terms.account.item0' },
+  { key: 'legal.terms.account.item1' },
+  { key: 'legal.terms.account.item2' },
+  { key: 'legal.terms.account.item3' }
+];
+
+const conductItems = [
+  { key: 'legal.terms.conduct.item0' },
+  { key: 'legal.terms.conduct.item1' },
+  { key: 'legal.terms.conduct.item2' },
+  { key: 'legal.terms.conduct.item3' }
+];
 
 useSeoMeta({
   title: () => `${t('legal.terms.title')} – schul-dashboard`,
@@ -32,11 +46,11 @@ useSeoMeta({
         <h2 class="section-title">{{ t('legal.terms.account.title') }}</h2>
         <ul class="list">
           <li
-            v-for="(item, i) in (tm('legal.terms.account.items') as string[])"
-            :key="i"
+            v-for="item in accountItems"
+            :key="item.key"
             class="list-item"
           >
-            {{ item }}
+            {{ t(item.key) }}
           </li>
         </ul>
       </section>
@@ -46,11 +60,11 @@ useSeoMeta({
         <p class="body-text">{{ t('legal.terms.conduct.intro') }}</p>
         <ul class="list">
           <li
-            v-for="(item, i) in (tm('legal.terms.conduct.items') as string[])"
-            :key="i"
+            v-for="item in conductItems"
+            :key="item.key"
             class="list-item"
           >
-            {{ item }}
+            {{ t(item.key) }}
           </li>
         </ul>
       </section>

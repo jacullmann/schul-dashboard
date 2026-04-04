@@ -1,109 +1,85 @@
-<script setup lang="ts">
-const { t, tm } = useI18n();
-
-type FeatureItem = { title: string; description: string };
-
-const icons = ['0€', '🚫', '🔒', '👥', '✅', '📅'];
-</script>
-
 <template>
-  <section class="features-section">
-    <div class="features-header">
-      <h2 class="features-title">{{ t('features.title') }}</h2>
-      <p class="features-subtitle">{{ t('features.subtitle') }}</p>
+  <section class="w-full max-w-[1100px] px-4 py-20 md:py-12 mx-auto">
+    <div class="text-center mb-13">
+      <div class="inline-block px-3.5 py-1 rounded-full bg-surface border border-surface-border text-footnote font-semibold text-on-surface-muted uppercase tracking-wider mb-4">{{ t('features.title') }}</div>
+      <h2 class="text-[clamp(1.5rem,3vw,2.25rem)] font-bold text-on-surface mx-auto font-display leading-[1.25] max-w-[520px]">{{ t('features.subtitle') }}</h2>
     </div>
 
-    <div class="features-grid">
+    <div class="grid grid-cols-3 gap-4 lg:grid-cols-2 sm:grid-cols-1">
       <div
-        v-for="(feature, i) in (tm('features.items') as FeatureItem[])"
+        v-for="(feature, i) in features"
         :key="i"
-        class="feature-card"
+        class="bg-surface border border-surface-border rounded-xl p-7 flex flex-col gap-3 transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle hover:-translate-y-0.5"
       >
-        <span class="feature-icon" aria-hidden="true">{{ icons[i] }}</span>
-        <h3 class="feature-title">{{ feature.title }}</h3>
-        <p class="feature-description">{{ feature.description }}</p>
+        <div :class="[
+          'w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0',
+          {
+            'bg-green/12 text-green': feature.accent === 'green',
+            'bg-coral/12 text-coral': feature.accent === 'red',
+            'bg-[rgba(86,0,255,0.12)] text-indigo-400 dark:text-indigo-600': feature.accent === 'indigo',
+            'bg-[rgba(175,0,255,0.12)] text-bismuth-purple dark:text-purple-600': feature.accent === 'purple',
+            'bg-bismuth-yellow/12 text-bismuth-yellow dark:text-amber-700': feature.accent === 'amber',
+            'bg-[rgba(20,184,166,0.12)] text-teal-400 dark:text-teal-600': feature.accent === 'teal',
+          }
+        ]">
+          <component :is="feature.icon" :size="22" aria-hidden="true" />
+        </div>
+        <h3 class="text-title font-semibold text-on-surface m-0 font-display">{{ t(feature.titleKey) }}</h3>
+        <p class="text-sub text-on-surface-muted leading-[1.7] m-0">{{ t(feature.descKey) }}</p>
       </div>
     </div>
   </section>
 </template>
 
-<style scoped>
-.features-section {
-  width: 100%;
-  max-width: 1100px;
-  padding-block: 5rem;
-  margin: 0 auto;
+<script setup lang="ts">
+import { Banknote, EyeOff, ShieldCheck, Users, ClipboardList, Calendar } from '@lucide/vue';
+import type { Component } from 'vue';
+
+const { t } = useI18n();
+
+interface Feature {
+  icon: Component;
+  titleKey: string;
+  descKey: string;
+  accent: 'green' | 'red' | 'indigo' | 'purple' | 'amber' | 'teal';
 }
 
-.features-header {
-  text-align: center;
-  margin-bottom: 48px;
-}
-
-.features-title {
-  font-size: var(--text-h1);
-  font-weight: 700;
-  color: var(--color-on-surface);
-  margin: 0 0 12px;
-  font-family: var(--font-display), sans-serif;
-}
-
-.features-subtitle {
-  font-size: 1.125rem;
-  color: var(--color-on-surface-muted);
-  margin: 0;
-  line-height: 1.6;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.feature-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-xl);
-  padding: 28px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: border-color var(--duration-hover) var(--ease-hover),
-    background-color var(--duration-hover) var(--ease-hover);
-}
-
-.feature-card:hover {
-  border-color: var(--color-surface-hover-border);
-  background-color: var(--color-surface-hover-subtle);
-}
-
-.feature-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
-.feature-title {
-  font-size: var(--text-title);
-  font-weight: 600;
-  color: var(--color-on-surface);
-  margin: 0;
-  font-family: var(--font-display), sans-serif;
-}
-
-.feature-description {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  line-height: 1.65;
-  margin: 0;
-}
-
-@media (max-width: 900px) {
-  .features-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 580px) {
-  .features-grid { grid-template-columns: 1fr; }
-  .features-section { padding-block: 3rem; }
-}
-</style>
+const features: Feature[] = [
+  {
+    icon: Banknote,
+    titleKey: 'features.feature0Title',
+    descKey: 'features.feature0Description',
+    accent: 'green',
+  },
+  {
+    icon: EyeOff,
+    titleKey: 'features.feature1Title',
+    descKey: 'features.feature1Description',
+    accent: 'red',
+  },
+  {
+    icon: ShieldCheck,
+    titleKey: 'features.feature2Title',
+    descKey: 'features.feature2Description',
+    accent: 'indigo',
+  },
+  {
+    icon: Users,
+    titleKey: 'features.feature3Title',
+    descKey: 'features.feature3Description',
+    accent: 'purple',
+  },
+  {
+    icon: ClipboardList,
+    titleKey: 'features.feature4Title',
+    descKey: 'features.feature4Description',
+    accent: 'amber',
+  },
+  {
+    icon: Calendar,
+    titleKey: 'features.feature5Title',
+    descKey: 'features.feature5Description',
+    accent: 'teal',
+  },
+];
+</script>

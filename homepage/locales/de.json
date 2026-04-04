@@ -46,54 +46,30 @@
       "highlight2": "für",
       "suffix": " Schüler, das heißt:"
     },
-    "reasons": [
-      {
-        "number": "0",
-        "text": " Euro"
-      },
-      {
-        "number": "0",
-        "text": " Werbung"
-      },
-      {
-        "number": "0",
-        "text": " Verkaufte Daten"
-      },
-      {
-        "number": "100%",
-        "text": " Liebe zum Detail"
-      }
-    ]
+    "reason0Number": "0",
+    "reason0Text": " Euro",
+    "reason1Number": "0",
+    "reason1Text": " Werbung",
+    "reason2Number": "0",
+    "reason2Text": " Verkaufte Daten",
+    "reason3Number": "100%",
+    "reason3Text": " Liebe zum Detail"
   },
   "features": {
     "title": "Unsere Vorteile",
     "subtitle": "Entwickelt von Schülern, die wissen, was Schüler wirklich brauchen.",
-    "items": [
-      {
-        "title": "Komplett kostenlos",
-        "description": "Kein Premium, keine Kreditkarte nötig. Alle Funktionen für jeden Nutzer – für immer."
-      },
-      {
-        "title": "Keine Werbung",
-        "description": "Deine Lernzeit ist wertvoll. Wir verkaufen keine Aufmerksamkeit – keine Banner, keine Tracker, keine Ablenkung."
-      },
-      {
-        "title": "Datenschutz zuerst",
-        "description": "Deine Daten gehören dir. Wir verkaufen sie nicht, teilen sie nicht und erstellen kein Profil von dir. Sensible Daten werden mit AES-256 verschlüsselt."
-      },
-      {
-        "title": "Kollaborativ",
-        "description": "Tritt Klassen und Gruppen bei. Teile Hausaufgabeneinträge, vergleiche Stundenpläne und bleibe mit deinen Mitschülern synchronisiert."
-      },
-      {
-        "title": "Hausaufgabenverwaltung",
-        "description": "Trage jede Aufgabe mit Fach, Fälligkeitsdatum und Notizen ein. Hake abgeschlossene Aufgaben ab und verpasse keine Abgabe mehr."
-      },
-      {
-        "title": "Stundenplanverwaltung",
-        "description": "Deine persönlichen und Gruppenlagepläne in einer Ansicht. Immer wissen, was als nächstes kommt."
-      }
-    ]
+    "feature0Title": "Komplett kostenlos",
+    "feature0Description": "Kein Premium, keine Kreditkarte nötig. Alle Funktionen für jeden Nutzer – für immer.",
+    "feature1Title": "Keine Werbung",
+    "feature1Description": "Deine Lernzeit ist wertvoll. Wir verkaufen keine Aufmerksamkeit – keine Banner, keine Tracker, keine Ablenkung.",
+    "feature2Title": "Datenschutz zuerst",
+    "feature2Description": "Deine Daten gehören dir. Wir verkaufen sie nicht, teilen sie nicht und erstellen kein Profil von dir. Sensible Daten werden mit AES-256 verschlüsselt.",
+    "feature3Title": "Kollaborativ",
+    "feature3Description": "Tritt Klassen und Gruppen bei. Teile Hausaufgabeneinträge, vergleiche Stundenpläne und bleibe mit deinen Mitschülern synchronisiert.",
+    "feature4Title": "Hausaufgabenverwaltung",
+    "feature4Description": "Trage jede Aufgabe mit Fach, Fälligkeitsdatum und Notizen ein. Hake abgeschlossene Aufgaben ab und verpasse keine Abgabe mehr.",
+    "feature5Title": "Stundenplanverwaltung",
+    "feature5Description": "Deine persönlichen und Gruppenlagepläne in einer Ansicht. Immer wissen, was als nächstes kommt."
   },
   "footer": {
     "disclaimer": {
@@ -142,20 +118,12 @@
     },
     "values": {
       "title": "Wofür wir stehen",
-      "items": [
-        {
-          "title": "Kostenlos für immer",
-          "description": "Kein Geschäftsmodell, das Nutzerzahlungen erfordert. Wir entwickeln das für die Community."
-        },
-        {
-          "title": "Offen & ehrlich",
-          "description": "Wir sind transparent darüber, welche Daten wir erheben und warum. Keine Dark Patterns."
-        },
-        {
-          "title": "Schülerorientiert",
-          "description": "Jede Funktionsanfrage, jede Designentscheidung wird durch eine Linse bewertet: Hilft das Schülern?"
-        }
-      ]
+      "value0Title": "Kostenlos für immer",
+      "value0Description": "Kein Geschäftsmodell, das Nutzerzahlungen erfordert. Wir entwickeln das für die Community.",
+      "value1Title": "Offen & ehrlich",
+      "value1Description": "Wir sind transparent darüber, welche Daten wir erheben und warum. Keine Dark Patterns.",
+      "value2Title": "Schülerorientiert",
+      "value2Description": "Jede Funktionsanfrage, jede Designentscheidung wird durch eine Linse bewertet: Hilft das Schülern?"
     }
   },
   "legal": {
@@ -182,11 +150,9 @@
       },
       "dataCollected": {
         "title": "Erhobene Daten",
-        "items": [
-          "Kontodaten: E-Mail-Adresse und Passwort (verschlüsselt gespeichert)",
-          "Nutzungsdaten: Stundenplaneinträge, Aufgaben und Gruppeninformationen, die du erstellst",
-          "Technische Daten: IP-Adresse und Browserinformationen zu Sicherheitszwecken (Sitzungsverwaltung, CSRF-Schutz)"
-        ]
+        "item0": "Kontodaten: E-Mail-Adresse und Passwort (verschlüsselt gespeichert)",
+        "item1": "Nutzungsdaten: Stundenplaneinträge, Aufgaben und Gruppeninformationen, die du erstellst",
+        "item2": "Technische Daten: IP-Adresse und Browserinformationen zu Sicherheitszwecken (Sitzungsverwaltung, CSRF-Schutz)"
       },
       "purpose": {
         "title": "Zweck der Verarbeitung",
@@ -199,14 +165,12 @@
       "rights": {
         "title": "Deine Rechte",
         "intro": "Gemäß DSGVO hast du das Recht auf:",
-        "items": [
-          "Auskunft über die von uns gespeicherten personenbezogenen Daten",
-          "Berichtigung unrichtiger Daten",
-          "Löschung deiner Daten („Recht auf Vergessenwerden\")",
-          "Einschränkung der Verarbeitung",
-          "Datenübertragbarkeit",
-          "Widerspruch gegen die Verarbeitung"
-        ],
+        "item0": "Auskunft über die von uns gespeicherten personenbezogenen Daten",
+        "item1": "Berichtigung unrichtiger Daten",
+        "item2": "Löschung deiner Daten (\"Recht auf Vergessenwerden\")",
+        "item3": "Einschränkung der Verarbeitung",
+        "item4": "Datenübertragbarkeit",
+        "item5": "Widerspruch gegen die Verarbeitung",
         "contact": "Zur Ausübung dieser Rechte wende dich bitte über die im Impressum angegebenen Kontaktdaten an uns."
       },
       "cookies": {
@@ -235,22 +199,18 @@
       },
       "account": {
         "title": "3. Benutzerkonten",
-        "items": [
-          "Zur Registrierung ist eine gültige E-Mail-Adresse erforderlich.",
-          "Du bist für die Vertraulichkeit deiner Kontodaten verantwortlich.",
-          "Du darfst dein Konto nicht mit anderen teilen.",
-          "Du musst im schulpflichtigen Alter sein oder die Einwilligung der Eltern haben."
-        ]
+        "item0": "Zur Registrierung ist eine gültige E-Mail-Adresse erforderlich.",
+        "item1": "Du bist für die Vertraulichkeit deiner Kontodaten verantwortlich.",
+        "item2": "Du darfst dein Konto nicht mit anderen teilen.",
+        "item3": "Du musst im schulpflichtigen Alter sein oder die Einwilligung der Eltern haben."
       },
       "conduct": {
         "title": "4. Akzeptable Nutzung",
         "intro": "Du stimmst zu, nicht:",
-        "items": [
-          "unbefugten Zugriff auf das System oder Daten anderer Nutzer zu versuchen",
-          "schädliche Inhalte hochzuladen oder den Dienst zu stören",
-          "den Dienst für illegale Zwecke zu nutzen",
-          "andere Nutzer oder Organisationen zu imitieren"
-        ]
+        "item0": "unbefugten Zugriff auf das System oder Daten anderer Nutzer zu versuchen",
+        "item1": "schädliche Inhalte hochzuladen oder den Dienst zu stören",
+        "item2": "den Dienst für illegale Zwecke zu nutzen",
+        "item3": "andere Nutzer oder Organisationen zu imitieren"
       },
       "termination": {
         "title": "5. Kontokündigung",
@@ -270,6 +230,23 @@
       }
     }
   },
+  "stats": {
+    "title": "Aufgebaut auf einem einfachen Versprechen",
+    "stat0Value": "0€",
+    "stat0Label": "Für immer kostenlos",
+    "stat1Value": "0",
+    "stat1Label": "Werbung oder Tracker",
+    "stat2Value": "AES-256",
+    "stat2Label": "Verschlüsselungsstandard",
+    "stat3Value": "100%",
+    "stat3Label": "Von Schülern entwickelt"
+  },
+  "cta": {
+    "title": "Bereit, dein Schulleben zu vereinfachen?",
+    "subtitle": "Schließe dich Schülern an, die bereits gewechselt haben. Kein Abo, kein Haken.",
+    "primary": "Kostenlos starten",
+    "secondary": "Mehr über uns erfahren"
+  },
   "contact": {
     "title": "Kontakt",
     "description": "Hast du Fragen oder Feedback? Wir freuen uns von dir zu hören.",
@@ -280,7 +257,7 @@
       },
       "email": {
         "title": "E-Mail",
-        "value": "contact@schul-dashboard.com"
+        "value": "contact{'@'}schul-dashboard.com"
       },
       "github": {
         "title": "GitHub",

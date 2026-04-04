@@ -6,6 +6,8 @@ build/
 .next/
 .nuxt/
 target/
+.pnpm-store/
+.output/
 
 package-lock.json
 yarn.lock

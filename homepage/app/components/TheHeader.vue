@@ -1,35 +1,47 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Menu, X } from '@lucide/vue';
+import { useWindowScroll } from '@vueuse/core';
 
 const { t } = useI18n();
 const config = useRuntimeConfig();
 const mobileOpen = ref(false);
 
+const { y: scrollY } = useWindowScroll();
+const isScrolled = computed(() => scrollY.value > 20);
+
 const navLinks = [
   { key: 'nav.home', to: '/' },
   { key: 'nav.about', to: '/about' },
   { key: 'nav.contact', to: '/contact' },
-];
+] as const;
 </script>
 
 <template>
-  <header class="header">
-    <div class="header-inner">
+  <header class="w-full transition-all duration-200 ease-out"
+    :class="[
+      'bg-onyx/[0.82] backdrop-blur-[14px] -webkit-backdrop-blur-[14px] border-b border-transparent',
+      isScrolled && 'bg-onyx/[0.96] border-canvas-border shadow-[0_1px_16px_rgba(0,0,0,0.12)]',
+    ]"
+    :style="{
+      '--tw-bg-opacity': isScrolled ? '0.96' : '0.82',
+    }"
+  >
+    <div class="max-w-[1400px] mx-auto px-6 h-14 flex items-center gap-2">
       <!-- Logo -->
-      <NuxtLink to="/" class="logo-link" :aria-label="'schul-dashboard – ' + t('nav.home')">
-        <AppLogo class="logo-img" />
-        <span class="logo-text">schul-dashboard</span>
+      <NuxtLink to="/" class="flex items-center gap-2.5 no-underline flex-shrink-0 mr-2" :aria-label="'schul-dashboard – ' + t('nav.home')">
+        <img src="/favicon.svg" alt="Icon" class="w-full h-[30px]"/>
+        <span class="font-bold text-[1.35rem] leading-none font-display text-on-surface whitespace-nowrap">schul-dashboard</span>
       </NuxtLink>
 
       <!-- Desktop nav -->
-      <nav class="desktop-nav" aria-label="Main navigation">
+      <nav class="hidden sm:flex items-center gap-0.5 flex-1" aria-label="Main navigation">
         <NuxtLink
           v-for="link in navLinks"
           :key="link.key"
           :to="link.to"
-          class="nav-link"
-          active-class="nav-link--active"
+          class="px-3 py-1.5 rounded-md text-btn font-medium text-on-surface-muted no-underline transition-colors hover:text-on-surface hover:bg-surface-hover-subtle whitespace-nowrap"
+          active-class="text-on-surface bg-surface-hover-subtle"
         >
           {{ t(link.key) }}
         </NuxtLink>
@@ -39,15 +51,15 @@ const navLinks = [
       <a
         v-if="config.public.loginUrl"
         :href="config.public.loginUrl"
-        class="login-btn"
+        class="hidden sm:inline-flex items-center px-[18px] py-[7px] rounded-md text-btn font-semibold bg-action text-on-action no-underline whitespace-nowrap flex-shrink-0 transition-all hover:bg-action-hover hover:translate-y-[-1px]"
         rel="noopener"
       >
         {{ t('nav.login') }}
       </a>
 
-      <!-- Mobile menu toggle -->
+      <!-- Mobile toggle -->
       <button
-        class="mobile-toggle"
+        class="sm:hidden flex items-center justify-center p-1.5 ml-auto bg-none border-none cursor-pointer text-on-surface rounded-md transition-colors hover:bg-surface-hover-subtle"
         :aria-label="mobileOpen ? 'Close menu' : 'Open menu'"
         :aria-expanded="mobileOpen"
         @click="mobileOpen = !mobileOpen"
@@ -59,13 +71,13 @@ const navLinks = [
 
     <!-- Mobile drawer -->
     <Transition name="slide-down">
-      <div v-if="mobileOpen" class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+      <div v-if="mobileOpen" class="sm:hidden flex flex-col border-t border-canvas-border px-4 pb-4 gap-0.5 bg-canvas" role="navigation" aria-label="Mobile navigation">
         <NuxtLink
           v-for="link in navLinks"
           :key="link.key"
           :to="link.to"
-          class="mobile-nav-link"
-          active-class="mobile-nav-link--active"
+          class="block px-3 py-2.5 rounded-md text-body font-medium text-on-surface-muted no-underline transition-colors hover:text-on-surface hover:bg-surface-hover-subtle"
+          active-class="text-on-surface bg-surface-hover-subtle"
           @click="mobileOpen = false"
         >
           {{ t(link.key) }}
@@ -73,7 +85,7 @@ const navLinks = [
         <a
           v-if="config.public.loginUrl"
           :href="config.public.loginUrl"
-          class="mobile-nav-link mobile-login"
+          class="block mt-2 px-3 py-2.5 rounded-md text-body font-semibold bg-action text-on-action no-underline text-center transition-colors hover:bg-action-hover"
           rel="noopener"
           @click="mobileOpen = false"
         >
@@ -85,146 +97,7 @@ const navLinks = [
 </template>
 
 <style scoped>
-.header {
-  width: 100%;
-  background-color: var(--color-canvas);
-  border-bottom: 1px solid var(--color-canvas-border);
-  box-sizing: border-box;
-}
-
-.header-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.logo-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  flex-shrink: 0;
-  margin-right: 8px;
-}
-
-.logo-img {
-  height: 30px;
-  width: auto;
-}
-
-.logo-text {
-  font-weight: 700;
-  font-size: 1.35rem;
-  line-height: 1;
-  font-family: var(--font-display), sans-serif;
-  color: var(--color-on-surface);
-  white-space: nowrap;
-}
-
-.desktop-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-}
-
-.nav-link {
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  font-size: var(--text-btn);
-  font-weight: 500;
-  color: var(--color-on-surface-muted);
-  text-decoration: none;
-  transition: var(--transition-hover);
-  white-space: nowrap;
-}
-
-.nav-link:hover,
-.nav-link--active {
-  color: var(--color-on-surface);
-  background-color: var(--color-surface-hover-subtle);
-}
-
-.login-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 18px;
-  border-radius: var(--radius-md);
-  font-size: var(--text-btn);
-  font-weight: 600;
-  background-color: var(--color-action);
-  color: var(--color-on-action);
-  text-decoration: none;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: background-color var(--duration-hover) var(--ease-hover);
-}
-
-.login-btn:hover {
-  background-color: var(--color-action-hover);
-}
-
-.mobile-toggle {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  margin-left: auto;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-on-surface);
-  border-radius: var(--radius-md);
-  transition: var(--transition-hover);
-}
-
-.mobile-toggle:hover {
-  background-color: var(--color-surface-hover-subtle);
-}
-
-.mobile-nav {
-  display: none;
-  flex-direction: column;
-  border-top: 1px solid var(--color-canvas-border);
-  padding: 8px 16px 16px;
-  gap: 2px;
-  background: var(--color-canvas);
-}
-
-.mobile-nav-link {
-  display: block;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  font-size: var(--text-body);
-  font-weight: 500;
-  color: var(--color-on-surface-muted);
-  text-decoration: none;
-  transition: var(--transition-hover);
-}
-
-.mobile-nav-link:hover,
-.mobile-nav-link--active {
-  color: var(--color-on-surface);
-  background-color: var(--color-surface-hover-subtle);
-}
-
-.mobile-login {
-  margin-top: 8px;
-  background-color: var(--color-action);
-  color: var(--color-on-action);
-  font-weight: 600;
-  text-align: center;
-}
-
-.mobile-login:hover {
-  background-color: var(--color-action-hover);
-  color: var(--color-on-action);
-}
-
+/* ── Transition ──────────────────────────────────────────── */
 .slide-down-enter-active,
 .slide-down-leave-active {
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -236,23 +109,13 @@ const navLinks = [
   transform: translateY(-6px);
 }
 
-@media (max-width: 640px) {
-  .desktop-nav,
-  .login-btn {
-    display: none;
-  }
-
-  .mobile-toggle {
-    display: flex;
-  }
-
-  .mobile-nav {
-    display: flex;
-  }
+/* Light mode overrides */
+:global(:root.light) header {
+  background-color: rgba(255, 255, 255, 0.84);
 }
 
-@media (max-width: 368px) {
-  .logo-text { font-size: 1.1rem; }
-  .logo-img { height: 26px; }
+:global(:root.light) header.bg-onyx\/\[0\.96\] {
+  background-color: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.07);
 }
 </style>

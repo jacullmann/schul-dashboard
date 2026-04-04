@@ -1,5 +1,20 @@
 <script setup lang="ts">
-const { t, tm } = useI18n();
+const { t } = useI18n();
+
+const dataCollectedItems = [
+  { key: 'legal.privacy.dataCollected.item0' },
+  { key: 'legal.privacy.dataCollected.item1' },
+  { key: 'legal.privacy.dataCollected.item2' }
+];
+
+const rightsItems = [
+  { key: 'legal.privacy.rights.item0' },
+  { key: 'legal.privacy.rights.item1' },
+  { key: 'legal.privacy.rights.item2' },
+  { key: 'legal.privacy.rights.item3' },
+  { key: 'legal.privacy.rights.item4' },
+  { key: 'legal.privacy.rights.item5' }
+];
 
 useSeoMeta({
   title: () => `${t('legal.privacy.title')} – schul-dashboard`,
@@ -32,11 +47,11 @@ useSeoMeta({
         <h2 class="section-title">{{ t('legal.privacy.dataCollected.title') }}</h2>
         <ul class="list">
           <li
-            v-for="(item, i) in (tm('legal.privacy.dataCollected.items') as string[])"
-            :key="i"
+            v-for="item in dataCollectedItems"
+            :key="item.key"
             class="list-item"
           >
-            {{ item }}
+            {{ t(item.key) }}
           </li>
         </ul>
       </section>
@@ -56,11 +71,11 @@ useSeoMeta({
         <p class="body-text">{{ t('legal.privacy.rights.intro') }}</p>
         <ul class="list">
           <li
-            v-for="(item, i) in (tm('legal.privacy.rights.items') as string[])"
-            :key="i"
+            v-for="item in rightsItems"
+            :key="item.key"
             class="list-item"
           >
-            {{ item }}
+            {{ t(item.key) }}
           </li>
         </ul>
         <p class="body-text body-text--spaced">{{ t('legal.privacy.rights.contact') }}</p>

@@ -6,16 +6,35 @@ export default defineNuxtConfig({
   modules: [
     '@vueuse/nuxt',
     '@nuxtjs/tailwindcss',
+    '@nuxtjs/color-mode',
     '@nuxtjs/sitemap',
     '@nuxtjs/i18n',
   ],
 
+  colorMode: {
+    preference: 'system',
+    fallback: 'dark',
+    classPrefix: '',
+    classSuffix: '',
+    storage: 'cookie',
+    storageKey: 'theme-pref',
+    cookieAttrs: {
+      'max-age': '31536000',
+      path: '/',
+      SameSite: 'Lax',
+    },
+  },
+
   i18n: {
+    lazy: true,
+    langDir: '../locales',
     defaultLocale: 'en',
     locales: [
-      { code: 'de', name: 'Deutsch', file: 'de.json' },
-      { code: 'en', name: 'English', file: 'en.json' },
+      { code: 'en', language: 'en-US', name: 'English', file: 'en.json' },
+      { code: 'de', language: 'de-DE', name: 'Deutsch', file: 'de.json' },
     ],
+    strategy: 'prefix_except_default',
+    vueI18n: './i18n.config.ts',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',

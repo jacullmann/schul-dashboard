@@ -1,7 +1,12 @@
 <script setup lang="ts">
-const { t, tm } = useI18n();
+const { t } = useI18n();
+const config = useRuntimeConfig();
 
-type ValueItem = { title: string; description: string };
+const values = [
+  { titleKey: 'about.value0Title', descKey: 'about.value0Description' },
+  { titleKey: 'about.value1Title', descKey: 'about.value1Description' },
+  { titleKey: 'about.value2Title', descKey: 'about.value2Description' },
+] as const;
 
 useSeoMeta({
   title: () => `${t('about.title')} – schul-dashboard`,
@@ -16,14 +21,14 @@ useSeoMeta({
 
     <!-- Hero -->
     <section class="about-hero">
-      <span class="badge">{{ t('about.hero.badge') }}</span>
+      <span class="about-badge">{{ t('about.hero.badge') }}</span>
       <h1 class="about-heading">{{ t('about.hero.heading') }}</h1>
       <p class="about-subheading">{{ t('about.hero.subheading') }}</p>
     </section>
 
     <div class="content-wrapper">
 
-      <!-- Mission + Story side by side -->
+      <!-- Mission + Story -->
       <div class="two-col">
         <div class="prose-card">
           <h2 class="section-title">{{ t('about.mission.title') }}</h2>
@@ -39,21 +44,25 @@ useSeoMeta({
       <section class="values-section">
         <h2 class="section-title section-title--center">{{ t('about.values.title') }}</h2>
         <div class="values-grid">
-          <div
-            v-for="(val, i) in (tm('about.values.items') as ValueItem[])"
-            :key="i"
-            class="value-card"
-          >
-            <h3 class="value-title">{{ val.title }}</h3>
-            <p class="value-description">{{ val.description }}</p>
+          <div v-for="(val, i) in values" :key="i" class="value-card">
+            <h3 class="value-title">{{ t(val.titleKey) }}</h3>
+            <p class="value-description">{{ t(val.descKey) }}</p>
           </div>
         </div>
       </section>
 
       <!-- CTA -->
-      <section class="cta-section">
-        <p class="cta-text">{{ t('hero.subline') }} <strong>{{ t('hero.sublineHighlight') }}</strong>.</p>
-        <NuxtLink to="/contact" class="cta-secondary">{{ t('nav.contact') }}</NuxtLink>
+      <section class="cta-card">
+        <div class="cta-glow" aria-hidden="true" />
+        <div class="cta-inner">
+          <p class="cta-text">
+            {{ t('hero.subline') }} <strong class="cta-strong">{{ t('hero.sublineHighlight') }}</strong>.
+          </p>
+          <div class="cta-actions">
+            <a :href="config.public.loginUrl || '#'" class="btn-primary">{{ t('hero.cta') }}</a>
+            <NuxtLink to="/contact" class="btn-secondary">{{ t('nav.contact') }}</NuxtLink>
+          </div>
+        </div>
       </section>
 
     </div>
@@ -66,7 +75,7 @@ useSeoMeta({
   padding-bottom: 96px;
 }
 
-/* Hero */
+/* ── Hero ────────────────────────────────────────────────── */
 .about-hero {
   display: flex;
   flex-direction: column;
@@ -77,9 +86,9 @@ useSeoMeta({
   margin: 0 auto;
 }
 
-.badge {
+.about-badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 4px 14px;
   border-radius: var(--radius-full);
   background: var(--color-surface);
   border: 1px solid var(--color-surface-border);
@@ -87,7 +96,7 @@ useSeoMeta({
   font-weight: 600;
   color: var(--color-on-surface-muted);
   margin-bottom: 20px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -105,10 +114,10 @@ useSeoMeta({
   color: var(--color-on-surface-muted);
   line-height: 1.7;
   margin: 0;
-  max-width: 560px;
+  max-width: 540px;
 }
 
-/* Content */
+/* ── Content wrapper ─────────────────────────────────────── */
 .content-wrapper {
   max-width: 1100px;
   margin: 0 auto;
@@ -118,10 +127,11 @@ useSeoMeta({
   gap: 64px;
 }
 
+/* ── Two-column layout ───────────────────────────────────── */
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 
 .prose-card {
@@ -135,7 +145,7 @@ useSeoMeta({
   font-size: var(--text-h2);
   font-weight: 700;
   color: var(--color-on-surface);
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   font-family: var(--font-display), sans-serif;
 }
 
@@ -151,7 +161,7 @@ useSeoMeta({
   margin: 0;
 }
 
-/* Values */
+/* ── Values ──────────────────────────────────────────────── */
 .values-section {
   display: flex;
   flex-direction: column;
@@ -171,6 +181,13 @@ useSeoMeta({
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: border-color var(--duration-hover) var(--ease-hover),
+    transform 150ms ease;
+}
+
+.value-card:hover {
+  border-color: var(--color-surface-hover-border);
+  transform: translateY(-2px);
 }
 
 .value-title {
@@ -187,13 +204,31 @@ useSeoMeta({
   margin: 0;
 }
 
-/* CTA */
-.cta-section {
+/* ── CTA card ────────────────────────────────────────────── */
+.cta-card {
+  position: relative;
   text-align: center;
-  padding: 48px 24px;
+  padding: 56px 32px;
   background: var(--color-surface);
   border: 1px solid var(--color-surface-border);
   border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+.cta-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(175, 0, 255, 0.09) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+:global(:root.light) .cta-glow {
+  background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(175, 0, 255, 0.04) 0%, transparent 65%);
+}
+
+.cta-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -207,35 +242,71 @@ useSeoMeta({
   line-height: 1.6;
 }
 
-.cta-text strong {
+.cta-strong {
   color: var(--color-on-surface);
+  font-weight: 700;
 }
 
-.cta-secondary {
+.cta-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-primary {
   display: inline-flex;
   align-items: center;
-  padding: 10px 24px;
+  padding: 11px 24px;
   border-radius: var(--radius-md);
   background: var(--color-action);
   color: var(--color-on-action);
   font-size: var(--text-body);
   font-weight: 600;
   text-decoration: none;
-  transition: background-color var(--duration-hover) var(--ease-hover);
+  transition: background-color var(--duration-hover) var(--ease-hover),
+    transform 150ms ease;
 }
 
-.cta-secondary:hover {
+.btn-primary:hover {
   background-color: var(--color-action-hover);
+  transform: translateY(-1px);
 }
 
-/* Responsive */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 20px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-on-surface-muted);
+  font-size: var(--text-body);
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid var(--color-surface-border);
+  transition: color var(--duration-hover) var(--ease-hover),
+    border-color var(--duration-hover) var(--ease-hover);
+}
+
+.btn-secondary:hover {
+  color: var(--color-on-surface);
+  border-color: var(--color-surface-hover-border);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 900px) {
   .values-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 700px) {
-  .two-col { grid-template-columns: 1fr; }
+  .two-col     { grid-template-columns: 1fr; }
   .values-grid { grid-template-columns: 1fr; }
-  .about-hero { padding: 48px 16px 40px; }
+  .about-hero  { padding: 48px 16px 40px; }
+}
+
+@media (max-width: 540px) {
+  .cta-actions { flex-direction: column; align-items: stretch; }
+  .btn-primary,
+  .btn-secondary { text-align: center; justify-content: center; }
 }
 </style>

@@ -46,54 +46,30 @@
       "highlight2": "for",
       "suffix": " students, which means:"
     },
-    "reasons": [
-      {
-        "number": "0",
-        "text": " euros"
-      },
-      {
-        "number": "0",
-        "text": " ads"
-      },
-      {
-        "number": "0",
-        "text": " data sold"
-      },
-      {
-        "number": "100%",
-        "text": " attention to detail"
-      }
-    ]
+    "reason0Number": "0",
+    "reason0Text": " euros",
+    "reason1Number": "0",
+    "reason1Text": " ads",
+    "reason2Number": "0",
+    "reason2Text": " data sold",
+    "reason3Number": "100%",
+    "reason3Text": " attention to detail"
   },
   "features": {
     "title": "Our Advantages",
     "subtitle": "Built by students who know what students actually need.",
-    "items": [
-      {
-        "title": "Completely Free",
-        "description": "No premium tier, no credit card required. Every feature is available to every user, forever."
-      },
-      {
-        "title": "Zero Ads",
-        "description": "Your study time is precious. We don't sell attention – no banners, no trackers, no distractions."
-      },
-      {
-        "title": "Privacy-First",
-        "description": "Your data is yours. We don't sell it, share it, or use it for profiling. Sensitive data is encrypted with AES-256."
-      },
-      {
-        "title": "Collaborative",
-        "description": "Join classes and groups. Share homework entries, compare schedules, and stay in sync with your classmates."
-      },
-      {
-        "title": "Homework Tracking",
-        "description": "Log every assignment with subject, due date, and notes. Check off completed tasks and never miss a deadline."
-      },
-      {
-        "title": "Schedule Management",
-        "description": "Your personal and group timetables in one view. Always know what's coming next."
-      }
-    ]
+    "feature0Title": "Completely Free",
+    "feature0Description": "No premium tier, no credit card required. Every feature is available to every user, forever.",
+    "feature1Title": "Zero Ads",
+    "feature1Description": "Your study time is precious. We don't sell attention – no banners, no trackers, no distractions.",
+    "feature2Title": "Privacy-First",
+    "feature2Description": "Your data is yours. We don't sell it, share it, or use it for profiling. Sensitive data is encrypted with AES-256.",
+    "feature3Title": "Collaborative",
+    "feature3Description": "Join classes and groups. Share homework entries, compare schedules, and stay in sync with your classmates.",
+    "feature4Title": "Homework Tracking",
+    "feature4Description": "Log every assignment with subject, due date, and notes. Check off completed tasks and never miss a deadline.",
+    "feature5Title": "Schedule Management",
+    "feature5Description": "Your personal and group timetables in one view. Always know what's coming next."
   },
   "footer": {
     "disclaimer": {
@@ -142,20 +118,12 @@
     },
     "values": {
       "title": "What We Stand For",
-      "items": [
-        {
-          "title": "Free Forever",
-          "description": "No business model that requires users to pay. We build this for the community."
-        },
-        {
-          "title": "Open & Honest",
-          "description": "We are transparent about what data we collect and why. No dark patterns."
-        },
-        {
-          "title": "Student-Centric",
-          "description": "Every feature request, every design decision is evaluated through one lens: does this help students?"
-        }
-      ]
+      "value0Title": "Free Forever",
+      "value0Description": "No business model that requires users to pay. We build this for the community.",
+      "value1Title": "Open & Honest",
+      "value1Description": "We are transparent about what data we collect and why. No dark patterns.",
+      "value2Title": "Student-Centric",
+      "value2Description": "Every feature request, every design decision is evaluated through one lens: does this help students?"
     }
   },
   "legal": {
@@ -182,11 +150,9 @@
       },
       "dataCollected": {
         "title": "Data We Collect",
-        "items": [
-          "Account data: email address and password (stored encrypted)",
-          "Usage data: schedule entries, tasks, and group information you create",
-          "Technical data: IP address and browser information for security purposes (session management, CSRF protection)"
-        ]
+        "item0": "Account data: email address and password (stored encrypted)",
+        "item1": "Usage data: schedule entries, tasks, and group information you create",
+        "item2": "Technical data: IP address and browser information for security purposes (session management, CSRF protection)"
       },
       "purpose": {
         "title": "Purpose of Processing",
@@ -199,14 +165,12 @@
       "rights": {
         "title": "Your Rights",
         "intro": "Under the GDPR you have the right to:",
-        "items": [
-          "Access the personal data we hold about you",
-          "Rectification of inaccurate data",
-          "Erasure of your data (\"right to be forgotten\")",
-          "Restriction of processing",
-          "Data portability",
-          "Object to processing"
-        ],
+        "item0": "Access the personal data we hold about you",
+        "item1": "Rectification of inaccurate data",
+        "item2": "Erasure of your data (\"right to be forgotten\")",
+        "item3": "Restriction of processing",
+        "item4": "Data portability",
+        "item5": "Object to processing",
         "contact": "To exercise these rights, please contact us via the details in the Imprint."
       },
       "cookies": {
@@ -235,22 +199,18 @@
       },
       "account": {
         "title": "3. User Accounts",
-        "items": [
-          "You must provide a valid email address to register.",
-          "You are responsible for maintaining the confidentiality of your account credentials.",
-          "You must not share your account with others.",
-          "You must be of school age or have parental consent to use this service."
-        ]
+        "item0": "You must provide a valid email address to register.",
+        "item1": "You are responsible for maintaining the confidentiality of your account credentials.",
+        "item2": "You must not share your account with others.",
+        "item3": "You must be of school age or have parental consent to use this service."
       },
       "conduct": {
         "title": "4. Acceptable Use",
         "intro": "You agree not to:",
-        "items": [
-          "Attempt to gain unauthorized access to the system or other users' data",
-          "Upload malicious content or attempt to disrupt the service",
-          "Use the service for any illegal purpose",
-          "Impersonate other users or entities"
-        ]
+        "item0": "Attempt to gain unauthorized access to the system or other users' data",
+        "item1": "Upload malicious content or attempt to disrupt the service",
+        "item2": "Use the service for any illegal purpose",
+        "item3": "Impersonate other users or entities"
       },
       "termination": {
         "title": "5. Account Termination",
@@ -270,6 +230,23 @@
       }
     }
   },
+  "stats": {
+    "title": "Built on a simple promise",
+    "stat0Value": "0€",
+    "stat0Label": "Forever free",
+    "stat1Value": "0",
+    "stat1Label": "Ads or trackers",
+    "stat2Value": "AES-256",
+    "stat2Label": "Encryption standard",
+    "stat3Value": "100%",
+    "stat3Label": "Student-built"
+  },
+  "cta": {
+    "title": "Ready to simplify your school life?",
+    "subtitle": "Join students who've already made the switch. No credit card required, no strings attached.",
+    "primary": "Get started — it's free",
+    "secondary": "Learn more about us"
+  },
   "contact": {
     "title": "Contact",
     "description": "Have questions or feedback? We'd love to hear from you.",
@@ -280,7 +257,7 @@
       },
       "email": {
         "title": "Email",
-        "value": "contact@schul-dashboard.com"
+        "value": "contact{'@'}schul-dashboard.com"
       },
       "github": {
         "title": "GitHub",

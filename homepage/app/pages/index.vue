@@ -15,6 +15,8 @@ function scrollToFeatures() {
 
 <template>
   <HeroSection :on-more-info-click="scrollToFeatures" />
+  <StatsSection />
   <FeaturesSection id="features-section" />
   <SocialProofSection />
+  <CTASection />
 </template>
