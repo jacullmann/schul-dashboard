@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, Folder, UsersRound, LogOut } from '@lucide/vue';
+import { UserRoundPlus, Plus, Folder, FolderOpen, UsersRound, LogOut, MoreHorizontal, Star } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import { useI18n } from "vue-i18n";
+import type { UnitOption } from '@/common/components/BaseSelect.vue';
 
 const { t } = useI18n();
 
@@ -19,9 +20,41 @@ const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
 
 const loading = ref(false);
 const navigatingGroupId = ref<string | null>(null);
+const openMenuId = ref<string | null>(null);
+
+const closeMenu = () => {
+  openMenuId.value = null;
+};
+
+onMounted(() => {
+  window.addEventListener('click', closeMenu);
+  window.addEventListener('keydown', handleEscape);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeMenu);
+  window.removeEventListener('keydown', handleEscape);
+});
+
+const handleEscape = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') closeMenu();
+};
+
 
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
-const defaultGroupId = computed(() => user.value?.preferences?.defaultGroupId || null);
+const defaultGroupId = computed({
+  get: () => user.value?.preferences?.defaultGroupId || '',
+  set: (val: string) => {
+    if (val && val !== user.value?.preferences?.defaultGroupId) {
+      setDefaultGroup(val);
+    }
+  }
+});
+
+const groupOptions = computed<UnitOption[]>(() => userGroups.value.map(group => ({
+  label: group.name,
+  value: group.id
+})));
 
 const roleColors: Record<string, string> = {
   admin: 'text-[#6366f1]',
@@ -126,63 +159,66 @@ async function leaveGroup(group: any) {
           <span class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5">{{ userGroups.length }}</span>
         </div>
 
-        <div class="flex items-center gap-2">
-          <label for="defaultGroup" class="text-sm font-medium text-on-surface-muted whitespace-nowrap">Default Group:</label>
-          <select 
+        <div>
+          <BaseLabel for="defaultGroup">Default Group</BaseLabel>
+          <BaseSelect 
             id="defaultGroup" 
-            class="bg-surface border border-surface-border rounded-lg px-3 py-1.5 text-sm text-on-surface focus:outline-none focus:border-action"
-            :value="defaultGroupId || ''"
-            @change="(e) => setDefaultGroup((e.target as HTMLSelectElement).value)"
-          >
-            <option value="" disabled>Select a default group...</option>
-            <option v-for="group in userGroups" :key="group.id" :value="group.id">{{ group.name }}</option>
-          </select>
+            v-model="defaultGroupId"
+            :options="groupOptions"
+          />
         </div>
       </div>
 
       <div class="flex flex-col gap-2">
-        <div
+        <button
             v-for="group in userGroups"
             :key="group.id"
-            class="flex items-center justify-between w-full gap-4 p-4 rounded-xl bg-surface border border-surface-border shadow-sm"
+            class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
+            :class="{ active: group.id === activeGroupId }"
+            @click="navigateToGroup(group.id)"
+            :disabled="navigatingGroupId === group.id"
         >
-          <div class="flex items-center gap-3 overflow-hidden">
-            <span class="text-on-surface-muted flex items-center justify-center size-10 shrink-0 bg-canvas rounded-lg">
-              <Folder :size="20" />
-            </span>
-            <div class="flex flex-col gap-0.5 overflow-hidden">
-              <span class="font-semibold text-body text-on-surface truncate">
+          <span class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface">
+            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
+          </span>
+          <span class="flex flex-col flex-1 gap-0.5">
+            <div class="flex items-center gap-1.5 overflow-hidden">
+              <span class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate">
                 {{ group.name }}
               </span>
-              <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
-                {{ roleLabel(group.role) }}
-              </span>
+              <NotificationDot v-if="group.hasUnreadContent" />
             </div>
-          </div>
+            <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
+              {{ roleLabel(group.role) }}
+            </span>
+            <span v-if="group.generatedName" class="text-footnote text-on-surface-muted group-[.active]:text-on-action-muted whitespace-nowrap overflow-hidden text-ellipsis">{{ group.generatedName }}</span>
+          </span>
 
-          <div class="flex items-center gap-2 shrink-0">
-            <BaseButton
-              @click="navigateToGroup(group.id)"
-              variant="default"
-            >
-              Open
-            </BaseButton>
+          <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" / -->
 
-            <BaseButton
-              @click="leaveGroup(group)"
-              variant="danger"
-              class="max-sm:px-2 max-sm:py-1 max-sm:min-w-0"
-              title="Leave Group"
-            >
-              <span class="sm:hidden"><LogOut :size="16" /></span>
-              <span class="hidden sm:inline">Leave</span>
-            </BaseButton>
-          </div>        </div>
+          <BaseMenuButton @click.stop="openMenuId = openMenuId === group.id ? null : group.id" class="rounded-full">
+            <MoreHorizontal :size="16" />
+          </BaseMenuButton>
+
+          <BaseMenu v-if="openMenuId === group.id" class="right-0 mt-6" @click.stop>
+            <BaseMenuButton v-if="group.id !== defaultGroupId" @click="setDefaultGroup(group.id)">
+              <Star :size="16" />
+              Make default
+            </BaseMenuButton>
+
+            <BaseMenuDivider />
+
+            <BaseMenuButton @click="leaveGroup(group)">
+              <LogOut :size="16" />
+              Leave
+            </BaseMenuButton>
+          </BaseMenu>
+        </button>
       </div>
     </section>
 
     <!-- Empty State -->
-    <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
+    <section v-if="userGroups.length === 0 && !loading">
       <BaseEmptyState :icon="UsersRound" :primary-action="() => modalStore.openJoinGroup()" :secondary-action="() => modalStore.openCreateGroup()">
         <template #title>{{ t('groups.home.noGroups') }}</template>
         <template #message>{{ t('groups.home.joinGroupText') }}</template>
@@ -192,7 +228,7 @@ async function leaveGroup(group: any) {
     </section>
 
     <div v-if="loading" class="flex justify-center p-10">
-      <div class="w-7 h-7 border-2 border-canvas-border border-t-on-surface rounded-full animate-spin"></div>
+      <BaseSpinner size="32px" />
     </div>
   </div>
 </template>
