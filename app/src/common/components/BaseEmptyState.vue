@@ -1,14 +1,21 @@
 <script setup lang="ts">
-const props = defineProps({
-  primaryAction: Function,
-  secondaryAction: Function,
-  icon: Object,
-})
+import type { Component } from 'vue';
+
+defineProps<{
+  primaryAction?: () => void;
+  secondaryAction?: () => void;
+  icon?: Component;
+}>();
 </script>
 
 <template>
   <div class="px-6 py-12 text-center flex flex-col items-center">
-    <component :is="icon" :size="40" class="text-on-surface-muted mb-4" />
+    <component
+      :is="icon"
+      v-if="icon"
+      :size="40"
+      class="text-on-surface-muted mb-4"
+    />
     <BaseHeading level="3">
       <slot name="title"></slot>
     </BaseHeading>
@@ -16,10 +23,18 @@ const props = defineProps({
       <slot name="message"></slot>
     </p>
     <BaseRow justify="center">
-      <BaseButton :@click="primaryAction" variant="action">
+      <BaseButton
+        v-if="primaryAction"
+        @click="primaryAction()"
+        variant="action"
+      >
         <slot name="primary-action-label"></slot>
       </BaseButton>
-      <BaseButton :@click="secondaryAction" variant="ghost">
+      <BaseButton
+        v-if="secondaryAction"
+        @click="secondaryAction()"
+        variant="ghost"
+      >
         <slot name="secondary-action-label"></slot>
       </BaseButton>
     </BaseRow>
