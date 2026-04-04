@@ -102,7 +102,7 @@ async function leaveGroup(group: any) {
     <section class="mb-8">
       <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
         <div>
-          <h1 class="text-2xl sm:text-[1.75rem] font-bold text-on-surface mb-1.5 leading-tight">Groups Management</h1>
+          <BaseHeading :level="2">Groups Management</BaseHeading>
           <p class="text-body text-on-surface-muted m-0 leading-relaxed">Manage your groups, leave or set a default group.</p>
         </div>
 
@@ -161,27 +161,23 @@ async function leaveGroup(group: any) {
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
-            <BaseButton 
-              @click="navigateToGroup(group.id)" 
-              variant="secondary"
-              size="sm"
+            <BaseButton
+              @click="navigateToGroup(group.id)"
+              variant="default"
             >
               Open
             </BaseButton>
-            
-            <BaseButton 
-              v-if="group.ownerId !== user?.id && !isSuperadmin"
+
+            <BaseButton
               @click="leaveGroup(group)"
               variant="danger"
-              size="sm"
               class="max-sm:px-2 max-sm:py-1 max-sm:min-w-0"
               title="Leave Group"
             >
               <span class="sm:hidden"><LogOut :size="16" /></span>
               <span class="hidden sm:inline">Leave</span>
             </BaseButton>
-          </div>
-        </div>
+          </div>        </div>
       </div>
     </section>
 
