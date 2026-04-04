@@ -89,7 +89,8 @@ const getInitialSubjectParts = () => {
   if (parts.length === 2) {
     const main = parts[0]!.trim();
     const course = parts[1]!.trim();
-    if (['enrichment', 'wpu1', 'wpu2'].includes(main)) {
+    const subject = subjectStore.subjects.find((s) => s.name === main);
+    if (subject && subject.courses && subject.courses.length > 0) {
       return { main, course };
     }
   }
@@ -102,30 +103,18 @@ const title = ref(props.initial?.title || '');
 const subjectSel = ref(initialParts.main);
 const subjectOther = ref('');
 const description = ref(props.initial?.description || '');
-const enrKursSel = ref(
-  initialParts.main === 'enrichment' ? initialParts.course : '',
-);
-const wpu1KursSel = ref(
-  initialParts.main === 'wpu1' ? initialParts.course : '',
-);
-const wpu2KursSel = ref(
-  initialParts.main === 'wpu2' ? initialParts.course : '',
-);
+const courseSel = ref(initialParts.course);
 
 // Form Specific Error Refs
 const titleError = ref('');
 const subjectError = ref('');
-const enrError = ref('');
-const wpu1Error = ref('');
-const wpu2Error = ref('');
+const courseError = ref('');
 const subjectOtherError = ref('');
 const descriptionError = ref('');
 const dueDateError = ref('');
 
-watch(subjectSel, (newVal) => {
-  if (newVal !== 'enrichment') enrKursSel.value = '';
-  if (newVal !== 'wpu1') wpu1KursSel.value = '';
-  if (newVal !== 'wpu2') wpu2KursSel.value = '';
+watch(subjectSel, () => {
+  courseSel.value = '';
 });
 
 const now = new Date();
@@ -181,24 +170,19 @@ const getCourseLabel = (courseName: string): string => {
   return courseName.replace(/^Herr\s+/, `${mr} `).replace(/^Frau\s+/, `${ms} `);
 };
 
-const enrOptions = computed(() =>
-  subjectStore.enrCourses.map((k) => ({
-    label: getCourseLabel(k.name),
-    value: k.id,
-  })),
-);
-const wpu1Options = computed(() =>
-  subjectStore.wpu1Courses.map((k) => ({
-    label: getCourseLabel(k.name),
-    value: k.id,
-  })),
-);
-const wpu2Options = computed(() =>
-  subjectStore.wpu2Courses.map((k) => ({
-    label: getCourseLabel(k.name),
-    value: k.id,
-  })),
-);
+const selectedSubjectHasCourses = computed(() => {
+  const match = subjectStore.subjects.find((s) => s.name === subjectSel.value);
+  return match && match.courses && match.courses.length > 0;
+});
+
+const courseOptions = computed(() => {
+  const match = subjectStore.subjects.find((s) => s.name === subjectSel.value);
+  if (!match || !match.courses) return [];
+  return match.courses.map((c) => ({
+    label: getCourseLabel(c.name),
+    value: c.id,
+  }));
+});
 
 async function submit() {
   submitting.value = true;
@@ -207,9 +191,7 @@ async function submit() {
   // Reset all specific form errors
   titleError.value = '';
   subjectError.value = '';
-  enrError.value = '';
-  wpu1Error.value = '';
-  wpu2Error.value = '';
+  courseError.value = '';
   subjectOtherError.value = '';
   descriptionError.value = '';
   dueDateError.value = '';
@@ -231,26 +213,14 @@ async function submit() {
       subjectOtherError.value = t('school.tasks.itemForm.errors.customLong');
       hasValidationErrors = true;
     }
-  } else if (main === 'enrichment') {
-    if (!enrKursSel.value) {
-      enrError.value = t('school.tasks.itemForm.errors.enrichmentMissing');
+  } else if (selectedSubjectHasCourses.value) {
+    if (!courseSel.value) {
+      const translationKey = `global.subjects.${main}`;
+      const courseName = te(translationKey) ? t(translationKey) : main;
+      courseError.value = t('school.tasks.itemForm.errors.courseMissing', { course: courseName });
       hasValidationErrors = true;
     } else {
-      finalSubject = `enrichment - ${enrKursSel.value}`;
-    }
-  } else if (main === 'wpu1') {
-    if (!wpu1KursSel.value) {
-      wpu1Error.value = t('school.tasks.itemForm.errors.wpuMissing');
-      hasValidationErrors = true;
-    } else {
-      finalSubject = `wpu1 - ${wpu1KursSel.value}`;
-    }
-  } else if (main === 'wpu2') {
-    if (!wpu2KursSel.value) {
-      wpu2Error.value = t('school.tasks.itemForm.errors.wpuMissing');
-      hasValidationErrors = true;
-    } else {
-      finalSubject = `wpu2 - ${wpu2KursSel.value}`;
+      finalSubject = `${main} - ${courseSel.value}`;
     }
   } else {
     finalSubject = main;
@@ -403,39 +373,15 @@ onMounted(() => {
           />
         </BaseFormGroup>
 
-        <BaseFormGroup v-if="subjectSel === 'enrichment'" id="enrKursSel" :error="enrError">
-          <BaseLabel for="enrKursSel" :required="true">{{
+        <BaseFormGroup v-if="selectedSubjectHasCourses" id="courseSel" :error="courseError">
+          <BaseLabel for="courseSel" :required="true">{{
             t('school.tasks.itemForm.course')
           }}</BaseLabel>
           <BaseSelect
-            id="enrKursSel"
-            v-model="enrKursSel"
-            :options="enrOptions"
-            :aria-describedby="enrError ? 'enrKursSel-error' : undefined"
-          />
-        </BaseFormGroup>
-
-        <BaseFormGroup v-if="subjectSel === 'wpu1'" id="wpu1KursSel" :error="wpu1Error">
-          <BaseLabel for="wpu1KursSel" :required="true">{{
-            t('school.tasks.itemForm.course')
-          }}</BaseLabel>
-          <BaseSelect
-            id="wpu1KursSel"
-            v-model="wpu1KursSel"
-            :options="wpu1Options"
-            :aria-describedby="wpu1Error ? 'wpu1KursSel-error' : undefined"
-          />
-        </BaseFormGroup>
-
-        <BaseFormGroup v-if="subjectSel === 'wpu2'" id="wpu2KursSel" :error="wpu2Error">
-          <BaseLabel for="wpu2KursSel" :required="true">{{
-            t('school.tasks.itemForm.course')
-          }}</BaseLabel>
-          <BaseSelect
-            id="wpu2KursSel"
-            v-model="wpu2KursSel"
-            :options="wpu2Options"
-            :aria-describedby="wpu2Error ? 'wpu2KursSel-error' : undefined"
+            id="courseSel"
+            v-model="courseSel"
+            :options="courseOptions"
+            :aria-describedby="courseError ? 'courseSel-error' : undefined"
           />
         </BaseFormGroup>
 

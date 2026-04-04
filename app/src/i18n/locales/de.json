@@ -490,8 +490,7 @@
         "successEdit": "Eintrag erfolgreich bearbeitet",
         "successUpload": "Bilder erfolgreich hochgeladen",
         "errors": {
-          "enrichmentMissing": "Wähle einen Enrichment-Kurs aus",
-          "wpuMissing": "Wähle einen WPU-Kurs aus",
+          "courseMissing": "Wähle einen Kurs aus",
           "profanity": "Es wurde ein unangemessener Inhalt erkannt. Falls du denkst, dass dies ein Fehler ist, kontaktiere die Seitenbetreiber.",
           "customMissing": "Trage ein benutzerdefiniertes Fach ein",
           "customLong": "Das benutzerdefinierte Fach ist zu lang (max. 100 Zeichen).",
