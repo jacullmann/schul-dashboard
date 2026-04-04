@@ -56,7 +56,7 @@ function handleLink() {
       <div class="provider-row">
         <div class="provider-info">
           <div class="provider-icon" aria-hidden="true">
-            <GoogleIcon :size="20" />
+            <GoogleIcon :size="24" />
           </div>
           <div class="provider-text">
             <span class="provider-name">Google</span>
@@ -117,7 +117,7 @@ function handleLink() {
   padding: 12px;
   background: var(--color-surface);
   border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .provider-info {
@@ -129,9 +129,6 @@ function handleLink() {
 .provider-icon {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
-  background: var(--color-canvas);
-  border: 1px solid var(--color-canvas-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,7 +166,7 @@ function handleLink() {
 
 .linked-badge {
   font-size: var(--text-footnote);
-  color: var(--special--green);
+  color: var(--color-success);
   background: var(--color-success-surface);
   padding: 2px 8px;
   border-radius: 999px;
@@ -194,7 +191,7 @@ function handleLink() {
 }
 
 .feedback.success {
-  color: var(--special--green);
+  color: var(--color-success);
   background: var(--color-success-surface);
 }
 </style>

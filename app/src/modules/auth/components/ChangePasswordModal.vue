@@ -30,7 +30,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')" :error="isError ? message : undefined" :loading="submitting">
+  <BaseModal @cancel="$emit('cancel')" :submit="submit" :error="isError ? message : undefined" :loading="submitting">
     <template #title>
       {{ t('account.menu.changePassword.title') }}
     </template>
