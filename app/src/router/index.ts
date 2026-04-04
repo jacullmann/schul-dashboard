@@ -69,6 +69,12 @@ const routes = [
         component: () => import('@/core/pages/HomePage.vue'),
         meta: { title: 'navigation.home' },
       },
+      {
+        path: 'groups',
+        name: 'groups',
+        component: () => import('@/core/pages/HomePage.vue'),
+        meta: { title: 'navigation.groups' },
+      },
 
       // ── Group-scoped pages ──────────────────────────────────────
       {

@@ -144,7 +144,7 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.groups'),
     category: 'page',
     icon: UsersRound,
-    action: () => navigate('/home'),
+    action: () => navigate('/groups'),
   },
   {
     id: 'admin',

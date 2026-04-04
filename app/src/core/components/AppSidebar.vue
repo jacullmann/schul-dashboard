@@ -191,7 +191,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.groups')"
           :expanded="isExpanded"
-          @click="handleNavigation('/home')"
+          @click="handleNavigation('/groups')"
         >
           <UsersRound :size="20" />
         </SidebarButton>
