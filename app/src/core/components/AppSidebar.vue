@@ -132,7 +132,7 @@ onUnmounted(() => {
   >
     <div class="flex flex-col gap-4 w-full">
       <SidebarButton
-        :label="t('sidebar.collapse')"
+        :label="isExpanded ? t('sidebar.collapse') : t('sidebar.expand')"
         :shortcut="['ctrl', 'shift', 'd']"
         :expanded="isExpanded"
         @click="toggleExpanded"
@@ -164,6 +164,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.home')"
           :expanded="isExpanded"
+          :active="$route.path.startsWith('/home')"
           @click="handleNavigation('/home')"
         >
           <House :size="20" />
@@ -172,6 +173,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.tasks')"
           :expanded="isExpanded"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/items`)"
           @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/items/all`))"
         >
           <ListTodo :size="20" />
@@ -180,6 +182,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.schedule')"
           :expanded="isExpanded"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/schedule`)"
           @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/schedule`))"
         >
           <CalendarDays :size="20" />
@@ -188,6 +191,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.groups')"
           :expanded="isExpanded"
+          :active="$route.path.startsWith('/groups')"
           @click="handleNavigation('/groups')"
         >
           <UsersRound :size="20" />
@@ -197,6 +201,7 @@ onUnmounted(() => {
           v-if="isAnyGroupAdmin"
           :label="t('sidebar.admin')"
           :expanded="isExpanded"
+          :active="$route.path.startsWith(`/groups/${activeGroupId}/admin`)"
           @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))"
         >
           <SlidersHorizontal :size="20" />
@@ -205,10 +210,22 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.private')"
           :expanded="isExpanded"
+          :active="$route.path.startsWith('/todos')"
           @click="handleNavigation('/todos')"
         >
           <Lock :size="20" />
         </SidebarButton>
+      </div>
+
+      <div class="flex flex-col gap-0 w-full overflow-y-auto">
+        <SidebarButton
+          v-for="(group, index) in userGroups"
+          :key="index"
+          :label="group.name"
+          :expanded="isExpanded"
+          :active="activeGroupId === group.id"
+          @click="handleNavigation(`/groups/${group.id}/items/all`)"
+        />
       </div>
     </div>
 
