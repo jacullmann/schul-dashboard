@@ -22,10 +22,16 @@ const props = withDefaults(defineProps<Props>(), {
 const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const classes = computed(() => {
+  const onClasses: Record<NonNullable<Props['on']>, string> = {
+    canvas: 'text-on-canvas-muted hover:bg-canvas-hover hover:border-canvas-hover hover:text-on-canvas',
+    surface: 'text-on-surface-muted hover:bg-surface-hover hover:border-surface-hover hover:text-on-surface',
+    action: 'text-on-action-muted hover:bg-action-hover hover:border-action-hover hover:text-on-action',
+  };
+
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
     ghost: [
-      `bg-transparent text-on-${props.on}-muted border-transparent`,
-      `hover:bg-${props.on}-hover hover:border-${props.on}-hover hover:text-on-${props.on}`,
+      'bg-transparent border-transparent',
+      onClasses[props.on],
     ].join(' '),
     text: [
       'bg-surface text-on-surface border-surface-border',

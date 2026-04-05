@@ -130,6 +130,7 @@
     --z-toast:                     5000;
     --z-auth-loading:              9000;
     --z-critical:                 10000;
+    --z-tooltip:                  20000;
 
     /* ── Animations ────────────────────────────────────────── */
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
