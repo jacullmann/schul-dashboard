@@ -694,13 +694,13 @@
     "expand": "Erweitern",
     "collapse": "Einklappen",
     "toggle": "Seitenleiste umschalten",
-    "create": "Erstellen",
+    "create": "Neuer Eintrag",
     "search": "Suchen",
     "home": "Start",
     "tasks": "Aufgaben",
     "schedule": "Stundenplan",
     "groups": "Gruppen",
-    "admin": "Admin",
+    "admin": "Admineinstellungen",
     "private": "Private Aufgaben"
   },
   "search": {

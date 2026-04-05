@@ -636,13 +636,13 @@
     "expand": "Expand",
     "collapse": "Collapse",
     "toggle": "Toggle Sidebar",
-    "create": "Create",
+    "create": "New Entry",
     "search": "Search",
     "home": "Home",
     "tasks": "Tasks",
     "schedule": "Schedule",
     "groups": "Groups",
-    "admin": "Admin",
+    "admin": "Admin Settings",
     "private": "Private Tasks"
   },
   "search": {

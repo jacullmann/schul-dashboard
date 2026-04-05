@@ -191,7 +191,7 @@ onUnmounted(() => {
         <SidebarButton
           :label="t('sidebar.groups')"
           :expanded="isExpanded"
-          :active="$route.path.startsWith('/groups')"
+          :active="$route.path === '/groups'"
           @click="handleNavigation('/groups')"
         >
           <UsersRound :size="20" />
