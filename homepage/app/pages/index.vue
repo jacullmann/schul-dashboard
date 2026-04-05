@@ -1,22 +1,29 @@
 <script setup lang="ts">
 const { t } = useI18n();
 
-useSeoMeta({
-  title: () => 'schul-dashboard – ' + t('hero.sublineHighlight'),
-  description: () => t('hero.subline') + ' ' + t('hero.sublineHighlight'),
-  ogTitle: 'schul-dashboard',
-  ogDescription: () => t('hero.subline') + ' ' + t('hero.sublineHighlight'),
+// SEO
+useSeoMetaWithI18n({
+  title: () => t('pages.home.title'),
+  description: () => t('pages.home.description'),
+  keywords: 'school management, dashboard, students',
+  canonicalUrl: 'https://schul-dashboard.com',
+  structuredData: {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'schul-dashboard',
+    description: t('pages.home.description'),
+    url: 'https://schul-dashboard.com',
+    applicationCategory: 'EducationalApplication',
+  },
 });
-
-function scrollToFeatures() {
-  document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 </script>
 
 <template>
-  <HeroSection :on-more-info-click="scrollToFeatures" />
-  <StatsSection />
-  <FeaturesSection id="features-section" />
-  <SocialProofSection />
-  <CTASection />
+  <div class="w-full">
+    <HeroSection />
+    <FeaturesSection />
+    <PricingSection />
+    <CTASection />
+  </div>
 </template>
+

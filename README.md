@@ -12,7 +12,7 @@ Create and track homework, tasks, and exams with due dates, images, and status i
 
 ### Schedule
 
-View your class schedule with live changes. Make it your own and personalize your schedule by selecting the courses you take.
+View your class schedule with live changes. Personalize your schedule by selecting the courses you take.
 
 ### Groups
 
@@ -34,10 +34,6 @@ A powerful command palette with handy keyboard shortcuts lets you reach anything
 
 Email verification, optional TOTP-based two-factor authentication, encrypted personal data, and CSRF protection.
 
-### Additional Tools
-
-Image editor, mental tests, info dashboard and more.
-
 ---
 
 ## Tech Stack
@@ -47,20 +43,26 @@ Image editor, mental tests, info dashboard and more.
 | Frontend     | Vue.js 3, TypeScript, Pinia, Vue Router, Tailwind CSS, Vite |
 | Backend      | Node.js, NestJS                                             |
 | Database     | PostgreSQL via Supabase                                     |
-| Auth         | JWT (HttpOnly cookies), bcrypt, TOTP                        |
-| Encryption   | AES-256-GCM with scrypt                                     |
+| Auth         | JWT (HttpOnly cookies), bcryptjs, TOTP                      |
+| Encryption   | AES-256-GCM                                                 |
 | Realtime     | Socket.IO                                                   |
 | Images       | Cloudinary                                                  |
 | Email        | Resend                                                      |
+| Validation   | Class Validator, Class Transformer                          |
 
+## Quick Start
 
-## Development
+For detailed setup and deployment instructions, see [Getting Started Guide](./docs/GETTING_STARTED.md).
 
+**Development (Docker):**
+```bash
+docker compose up
+```
 **Linux with SELinux (Fedora/RHEL):**
 ```bash
 podman-compose -f docker-compose.yaml -f docker-compose.selinux.yaml up
-```
 
-**Windows / macOS / Ubuntu:**
-```bash
-docker compose up
+Ports:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
+- Homepage: http://localhost:3001

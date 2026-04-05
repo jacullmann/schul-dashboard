@@ -453,7 +453,9 @@ export class GroupService {
         .eq('id', userId)
         .single();
 
-      this.setAuthToken(res, userId, user.email, globalRole, null);
+      if (user) {
+        this.setAuthToken(res, userId, user.email, globalRole, null);
+      }
     }
 
     rotateCsrfToken(res, this.appConfig);

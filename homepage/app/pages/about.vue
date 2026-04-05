@@ -1,312 +1,93 @@
 <script setup lang="ts">
 const { t } = useI18n();
-const config = useRuntimeConfig();
 
-const values = [
-  { titleKey: 'about.value0Title', descKey: 'about.value0Description' },
-  { titleKey: 'about.value1Title', descKey: 'about.value1Description' },
-  { titleKey: 'about.value2Title', descKey: 'about.value2Description' },
-] as const;
-
-useSeoMeta({
-  title: () => `${t('about.title')} – schul-dashboard`,
-  description: () => t('about.description'),
-  ogTitle: () => `${t('about.title')} – schul-dashboard`,
-  ogDescription: () => t('about.description'),
+// SEO
+useSeoMetaWithI18n({
+  title: () => `${t('pages.about.title')} — schul-dashboard`,
+  description: () => t('pages.about.description'),
+  keywords: 'about, mission, team, values',
+  canonicalUrl: 'https://schul-dashboard.com/about',
+  structuredData: {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About schul-dashboard',
+    description: t('pages.about.description'),
+  },
 });
 </script>
 
 <template>
-  <div class="about-page">
-
+  <div class="w-full">
     <!-- Hero -->
-    <section class="about-hero">
-      <span class="about-badge">{{ t('about.hero.badge') }}</span>
-      <h1 class="about-heading">{{ t('about.hero.heading') }}</h1>
-      <p class="about-subheading">{{ t('about.hero.subheading') }}</p>
+    <section class="w-full py-20 md:py-12">
+      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
+        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.2] mb-4">
+          {{ t('pages.about.title') }}
+        </h1>
+        <p class="text-lg text-on-surface-muted max-w-xl mx-auto">
+          {{ t('pages.about.description') }}
+        </p>
+      </div>
     </section>
 
-    <div class="content-wrapper">
+    <!-- Mission Section -->
+    <section class="w-full py-16 md:py-12 border-t border-surface-border">
+      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
+        <div class="grid grid-cols-2 md:grid-cols-1 gap-12">
+          <!-- Left: Copy -->
+          <div class="flex flex-col gap-6">
+            <h2 class="text-2xl font-bold font-display text-on-surface">
+              {{ t('pages.about.mission_title') }}
+            </h2>
+            <p class="text-on-surface-muted leading-[1.6]">
+              {{ t('pages.about.mission_text') }}
+            </p>
+          </div>
 
-      <!-- Mission + Story -->
-      <div class="two-col">
-        <div class="prose-card">
-          <h2 class="section-title">{{ t('about.mission.title') }}</h2>
-          <p class="prose-text">{{ t('about.mission.text') }}</p>
-        </div>
-        <div class="prose-card">
-          <h2 class="section-title">{{ t('about.story.title') }}</h2>
-          <p class="prose-text">{{ t('about.story.text') }}</p>
+          <!-- Right: Values Grid -->
+          <div class="grid grid-cols-2 gap-4">
+            <div v-for="idx in 4" :key="`value-${idx}`" class="bg-surface border border-surface-border rounded-xl p-6">
+              <div class="text-3xl mb-3">💡</div>
+              <h3 class="font-semibold text-on-surface font-display mb-2">
+                {{ t(`pages.about.value${idx}_title`) }}
+              </h3>
+              <p class="text-sm text-on-surface-muted">
+                {{ t(`pages.about.value${idx}_text`) }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <!-- Values -->
-      <section class="values-section">
-        <h2 class="section-title section-title--center">{{ t('about.values.title') }}</h2>
-        <div class="values-grid">
-          <div v-for="(val, i) in values" :key="i" class="value-card">
-            <h3 class="value-title">{{ t(val.titleKey) }}</h3>
-            <p class="value-description">{{ t(val.descKey) }}</p>
+    <!-- Team Section -->
+    <section class="w-full py-16 md:py-12 bg-surface border-t border-surface-border">
+      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
+        <h2 class="text-2xl font-bold font-display text-on-surface mb-12 text-center">
+          {{ t('pages.about.team_title') }}
+        </h2>
+
+        <div class="grid grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-6">
+          <div
+            v-for="idx in 3"
+            :key="`team-${idx}`"
+            class="text-center"
+          >
+            <div class="w-24 h-24 rounded-full bg-canvas border border-canvas-border mx-auto mb-4 flex items-center justify-center">
+              👤
+            </div>
+            <h3 class="font-semibold text-on-surface font-display mb-1">
+              {{ t(`pages.about.team${idx}_name`) }}
+            </h3>
+            <p class="text-sm text-on-surface-muted">
+              {{ t(`pages.about.team${idx}_role`) }}
+            </p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- CTA -->
-      <section class="cta-card">
-        <div class="cta-glow" aria-hidden="true" />
-        <div class="cta-inner">
-          <p class="cta-text">
-            {{ t('hero.subline') }} <strong class="cta-strong">{{ t('hero.sublineHighlight') }}</strong>.
-          </p>
-          <div class="cta-actions">
-            <a :href="config.public.loginUrl || '#'" class="btn-primary">{{ t('hero.cta') }}</a>
-            <NuxtLink to="/contact" class="btn-secondary">{{ t('nav.contact') }}</NuxtLink>
-          </div>
-        </div>
-      </section>
-
-    </div>
+    <!-- CTA -->
+    <CTASection />
   </div>
 </template>
-
-<style scoped>
-.about-page {
-  width: 100%;
-  padding-bottom: 96px;
-}
-
-/* ── Hero ────────────────────────────────────────────────── */
-.about-hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 80px 24px 64px;
-  max-width: 760px;
-  margin: 0 auto;
-}
-
-.about-badge {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  font-size: var(--text-btn);
-  font-weight: 600;
-  color: var(--color-on-surface-muted);
-  margin-bottom: 20px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.about-heading {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
-  color: var(--color-on-surface);
-  line-height: 1.15;
-  margin: 0 0 20px;
-  letter-spacing: -0.02em;
-}
-
-.about-subheading {
-  font-size: 1.2rem;
-  color: var(--color-on-surface-muted);
-  line-height: 1.7;
-  margin: 0;
-  max-width: 540px;
-}
-
-/* ── Content wrapper ─────────────────────────────────────── */
-.content-wrapper {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 64px;
-}
-
-/* ── Two-column layout ───────────────────────────────────── */
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.prose-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-}
-
-.section-title {
-  font-size: var(--text-h2);
-  font-weight: 700;
-  color: var(--color-on-surface);
-  margin: 0 0 14px;
-  font-family: var(--font-display), sans-serif;
-}
-
-.section-title--center {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.prose-text {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
-  line-height: 1.75;
-  margin: 0;
-}
-
-/* ── Values ──────────────────────────────────────────────── */
-.values-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.values-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.value-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-xl);
-  padding: 28px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: border-color var(--duration-hover) var(--ease-hover),
-    transform 150ms ease;
-}
-
-.value-card:hover {
-  border-color: var(--color-surface-hover-border);
-  transform: translateY(-2px);
-}
-
-.value-title {
-  font-size: var(--text-title);
-  font-weight: 600;
-  color: var(--color-on-surface);
-  margin: 0;
-}
-
-.value-description {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  line-height: 1.65;
-  margin: 0;
-}
-
-/* ── CTA card ────────────────────────────────────────────── */
-.cta-card {
-  position: relative;
-  text-align: center;
-  padding: 56px 32px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
-}
-
-.cta-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(175, 0, 255, 0.09) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-:global(:root.light) .cta-glow {
-  background: radial-gradient(ellipse 70% 50% at 50% -5%, rgba(175, 0, 255, 0.04) 0%, transparent 65%);
-}
-
-.cta-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.cta-text {
-  font-size: 1.25rem;
-  color: var(--color-on-surface-muted);
-  margin: 0;
-  line-height: 1.6;
-}
-
-.cta-strong {
-  color: var(--color-on-surface);
-  font-weight: 700;
-}
-
-.cta-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  padding: 11px 24px;
-  border-radius: var(--radius-md);
-  background: var(--color-action);
-  color: var(--color-on-action);
-  font-size: var(--text-body);
-  font-weight: 600;
-  text-decoration: none;
-  transition: background-color var(--duration-hover) var(--ease-hover),
-    transform 150ms ease;
-}
-
-.btn-primary:hover {
-  background-color: var(--color-action-hover);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  padding: 11px 20px;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-  font-weight: 500;
-  text-decoration: none;
-  border: 1px solid var(--color-surface-border);
-  transition: color var(--duration-hover) var(--ease-hover),
-    border-color var(--duration-hover) var(--ease-hover);
-}
-
-.btn-secondary:hover {
-  color: var(--color-on-surface);
-  border-color: var(--color-surface-hover-border);
-}
-
-/* ── Responsive ──────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .values-grid { grid-template-columns: 1fr 1fr; }
-}
-
-@media (max-width: 700px) {
-  .two-col     { grid-template-columns: 1fr; }
-  .values-grid { grid-template-columns: 1fr; }
-  .about-hero  { padding: 48px 16px 40px; }
-}
-
-@media (max-width: 540px) {
-  .cta-actions { flex-direction: column; align-items: stretch; }
-  .btn-primary,
-  .btn-secondary { text-align: center; justify-content: center; }
-}
-</style>

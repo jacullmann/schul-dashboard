@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JoinGroupDto, CreateGroupDto, SwitchGroupDto } from './dto/group.dto';
 import { Public } from '../common/decorators/public.decorator';
 import type { Request, Response } from 'express';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { CurrentUser, ActiveGroupId } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/decorators/current-user.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('groups')
@@ -98,9 +98,10 @@ export class GroupController {
   leaveGroup(
     @CurrentUser() user: AuthUser,
     @Param('id') groupId: string,
+    @ActiveGroupId() activeGroupId: string | null,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.groupService.leaveGroup(user.sub, groupId, user.gId, res);
+    return this.groupService.leaveGroup(user.sub, groupId, activeGroupId, res);
   }
 
   @Post('logout')

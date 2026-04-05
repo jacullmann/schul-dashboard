@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
     --color-black: #000;
@@ -75,24 +76,50 @@
     --duration-hover: 100ms;
     --ease-hover: ease;
     --transition-hover: color var(--duration-hover) var(--ease-hover),
-        background-color var(--duration-hover) var(--ease-hover),
-        border-color var(--duration-hover) var(--ease-hover);
+    background-color var(--duration-hover) var(--ease-hover),
+    border-color var(--duration-hover) var(--ease-hover);
 }
 
 :root {
     --background-image-bismuth: linear-gradient(
-        116deg,
-        var(--color-bismuth-yellow) 2.5%,
-        var(--color-bismuth-red) 39.5%,
-        var(--color-bismuth-purple) 77.2%,
-        var(--color-bismuth-violet) 115.2%
+            116deg,
+            var(--color-bismuth-yellow) 2.5%,
+            var(--color-bismuth-red) 39.5%,
+            var(--color-bismuth-purple) 77.2%,
+            var(--color-bismuth-violet) 115.2%
     );
+}
+
+:root.dark {
+    --color-canvas: var(--color-onyx);
+    --color-canvas-hover: var(--color-charcoal);
+    --color-canvas-border: var(--color-charcoal);
+    --color-on-canvas: var(--color-white);
+    --color-surface: var(--color-charcoal);
+    --color-surface-hover: var(--color-graphite);
+    --color-surface-hover-subtle: var(--color-charcoal-highlight);
+    --color-surface-border: var(--color-graphite);
+    --color-surface-hover-border: var(--color-steel);
+    --color-on-surface: var(--color-white);
+    --color-on-surface-muted: var(--color-ash);
+    --color-on-surface-subtle: var(--color-ghost);
+    --color-action: var(--color-white);
+    --color-action-hover: var(--color-white-highlight);
+    --color-on-action: var(--color-onyx);
+    --color-on-action-muted: var(--color-graphite);
+    --color-danger: var(--color-coral);
+    --color-on-danger: var(--color-white);
+    --color-success: var(--color-green);
+    --color-primary: var(--color-white);
+    --color-focus: var(--color-ash);
+    --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
 }
 
 :root.light {
     --color-canvas: var(--color-white);
     --color-canvas-hover: var(--color-white-highlight);
     --color-canvas-border: var(--color-cloud);
+    --color-on-canvas: var(--color-black);
     --color-surface: var(--color-white);
     --color-surface-hover: var(--color-white-highlight);
     --color-surface-hover-subtle: #f5f5f5;
@@ -101,12 +128,14 @@
     --color-on-surface: var(--color-black);
     --color-on-surface-muted: var(--color-graphite);
     --color-on-surface-subtle: var(--color-ghost);
-    --color-primary: var(--color-black);
     --color-action: var(--color-black);
     --color-action-hover: var(--color-charcoal);
     --color-on-action: var(--color-white);
     --color-on-action-muted: var(--color-ash);
     --color-danger: var(--color-cinnabar);
+    --color-on-danger: var(--color-white);
+    --color-success: var(--color-green);
+    --color-primary: var(--color-black);
     --color-focus: var(--color-ghost);
     --shadow-focus-ring: 0 0 0 3px #ddd;
 }

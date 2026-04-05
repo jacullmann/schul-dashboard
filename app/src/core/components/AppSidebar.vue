@@ -29,12 +29,6 @@ import { computed } from 'vue';
 const { t } = useI18n();
 const { resetMfaState } = useMfa();
 
-const legalLinks = [
-  { to: '/legal/imprint', label: t('legal.imprint.title') },
-  { to: '/legal/privacy-policy', label: t('legal.privacy.title') },
-  { to: '/legal/terms', label: t('legal.terms.title') },
-  { to: '/contact', label: t('contact.contact.title') },
-];
 const userStore = useUserStore();
 const { user, isGroupAdmin, isSuperadmin } = storeToRefs(userStore);
 
@@ -216,20 +210,6 @@ onUnmounted(() => {
     </div>
 
     <div class="flex flex-col w-full gap-1">
-      <!-- Legal links — only visible when sidebar is expanded -->
-      <Transition name="fade-links">
-        <div v-if="isExpanded" class="flex flex-col gap-0.5 px-1 pb-1">
-          <router-link
-            v-for="link in legalLinks"
-            :key="link.to"
-            :to="link.to"
-            class="block px-2 py-1 rounded text-footnote text-on-surface-subtle hover:text-on-surface-muted transition-hover no-underline"
-          >
-            {{ link.label }}
-          </router-link>
-        </div>
-      </Transition>
-
       <div class="flex w-full transition-all duration-200 justify-start ml-[2px] max-[480px]:ml-[5px]">
         <AccountMenu
           v-if="user"

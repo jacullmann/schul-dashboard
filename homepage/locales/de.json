@@ -1,273 +1,185 @@
 {
-  "hero": {
-    "headlineSerif": "Dein Schulleben",
-    "headlineSans": {
-      "before": "In deiner",
-      "highlight": "Tasche"
-    },
-    "subline": "Alle Infos, die du brauchst – jederzeit, überall. Kollaborativ und",
-    "sublineHighlight": "komplett kostenlos",
+  "common": {
+    "theme": "Design",
+    "language": "Sprache",
+    "login": "Anmelden",
+    "signup": "Registrieren",
     "learnMore": "Mehr erfahren",
-    "cta": "Jetzt starten",
-    "items": [
-      {
-        "title": "Kapitel 3 lesen"
-      },
-      {
-        "title": "Notizen für den Test"
-      },
-      {
-        "title": "Buchaufgaben",
-        "text": "S. 137 Aufg. 4b und 5 schriftlich lösen"
-      }
-    ]
+    "getStarted": "Jetzt starten",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "system": "System"
   },
   "nav": {
-    "home": "Startseite",
+    "features": "Funktionen",
+    "pricing": "Preise",
     "about": "Über uns",
-    "contact": "Kontakt",
-    "login": "Anmelden"
+    "contact": "Kontakt"
   },
-  "comparison": {
-    "headline": {
-      "before": "Papier ist so ",
-      "highlight1": "von gestern.",
-      "mid": " Starte heute deine Reise in die ",
-      "highlight2": "Zukunft",
-      "end": ""
+  "pages": {
+    "home": {
+      "title": "schul-dashboard — Kostenlose Schulverwaltung für Schüler",
+      "description": "Das kollaborative Schulverwaltungssystem von Schülern für Schüler. Hausaufgaben, Stundenplan und mehr – alles an einem Ort."
     },
-    "attribution": "Bearbeitetes Original von Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
-  },
-  "reasons": {
-    "why": "Warum schul-dashboard?",
-    "byStudentsForStudents": {
-      "highlight1": "Von",
-      "mid": " Schülern ",
-      "highlight2": "für",
-      "suffix": " Schüler, das heißt:"
+    "features": {
+      "title": "Leistungsstarke Funktionen",
+      "description": "Alles, was du brauchst, um dich in der Schule organisiert zu halten.",
+      "detail1": {
+        "title": "Funktionsname",
+        "description": "Funktionsbeschreibung hier. Aktualisiere diese i18n-Schlüssel mit deinem Inhalt."
+      },
+      "detail2": {
+        "title": "Funktionsname",
+        "description": "Funktionsbeschreibung hier. Aktualisiere diese i18n-Schlüssel mit deinem Inhalt."
+      },
+      "detail3": {
+        "title": "Funktionsname",
+        "description": "Funktionsbeschreibung hier. Aktualisiere diese i18n-Schlüssel mit deinem Inhalt."
+      },
+      "detail4": {
+        "title": "Funktionsname",
+        "description": "Funktionsbeschreibung hier. Aktualisiere diese i18n-Schlüssel mit deinem Inhalt."
+      },
+      "detail5": {
+        "title": "Funktionsname",
+        "description": "Funktionsbeschreibung hier. Aktualisiere diese i18n-Schlüssel mit deinem Inhalt."
+      },
+      "detail6": {
+        "title": "Funktionsname",
+        "description": "Funktionsbeschreibung hier. Aktualisiere diese i18n-Schlüssel mit deinem Inhalt."
+      }
     },
-    "reason0Number": "0",
-    "reason0Text": " Euro",
-    "reason1Number": "0",
-    "reason1Text": " Werbung",
-    "reason2Number": "0",
-    "reason2Text": " Verkaufte Daten",
-    "reason3Number": "100%",
-    "reason3Text": " Liebe zum Detail"
+    "pricing": {
+      "title": "Transparente Preisgestaltung",
+      "description": "Wähle den Plan, der zu dir passt."
+    },
+    "about": {
+      "title": "Über schul-dashboard",
+      "description": "Erfahre mehr über unsere Mission und das Team hinter schul-dashboard.",
+      "mission_title": "Unsere Mission",
+      "mission_text": "Wir glauben, dass jeder Schüler Zugang zu einem einfachen, kostenlosen und datenschutzrechtlichen Schulverwaltungssystem haben sollte. schul-dashboard wird von Schülern für Schüler entwickelt.",
+      "team_title": "Unser Team",
+      "value1_title": "Wert Eins",
+      "value1_text": "TODO: Mit deinem Wert aktualisieren",
+      "value2_title": "Wert Zwei",
+      "value2_text": "TODO: Mit deinem Wert aktualisieren",
+      "value3_title": "Wert Drei",
+      "value3_text": "TODO: Mit deinem Wert aktualisieren",
+      "value4_title": "Wert Vier",
+      "value4_text": "TODO: Mit deinem Wert aktualisieren",
+      "team1_name": "Teammitglied Eins",
+      "team1_role": "Rolle",
+      "team2_name": "Teammitglied Zwei",
+      "team2_role": "Rolle",
+      "team3_name": "Teammitglied Drei",
+      "team3_role": "Rolle"
+    },
+    "contact": {
+      "title": "Kontakt",
+      "description": "Wir würden uns freuen, von dir zu hören. Hast du eine Frage oder ein Feedback? Schreib uns!",
+      "email_title": "E-Mail",
+      "email_description": "Sende uns eine direkte E-Mail",
+      "github_title": "GitHub",
+      "github_description": "Schaue dir unsere Open-Source-Projekte an",
+      "discord_title": "Discord",
+      "discord_description": "Tritt unserer Discord-Community bei",
+      "form_title": "Sende uns eine Nachricht",
+      "form_description": "Oder fülle das Formular aus und wir melden uns bald bei dir.",
+      "form_name": "Name",
+      "form_name_placeholder": "Dein Name",
+      "form_email": "E-Mail",
+      "form_email_placeholder": "deine{'@'}email.com",
+      "form_message": "Nachricht",
+      "form_message_placeholder": "Schreib, was dir im Sinn liegt...",
+      "form_submit": "Nachricht senden"
+    }
   },
-  "features": {
-    "title": "Unsere Vorteile",
-    "subtitle": "Entwickelt von Schülern, die wissen, was Schüler wirklich brauchen.",
-    "feature0Title": "Komplett kostenlos",
-    "feature0Description": "Kein Premium, keine Kreditkarte nötig. Alle Funktionen für jeden Nutzer – für immer.",
-    "feature1Title": "Keine Werbung",
-    "feature1Description": "Deine Lernzeit ist wertvoll. Wir verkaufen keine Aufmerksamkeit – keine Banner, keine Tracker, keine Ablenkung.",
-    "feature2Title": "Datenschutz zuerst",
-    "feature2Description": "Deine Daten gehören dir. Wir verkaufen sie nicht, teilen sie nicht und erstellen kein Profil von dir. Sensible Daten werden mit AES-256 verschlüsselt.",
-    "feature3Title": "Kollaborativ",
-    "feature3Description": "Tritt Klassen und Gruppen bei. Teile Hausaufgabeneinträge, vergleiche Stundenpläne und bleibe mit deinen Mitschülern synchronisiert.",
-    "feature4Title": "Hausaufgabenverwaltung",
-    "feature4Description": "Trage jede Aufgabe mit Fach, Fälligkeitsdatum und Notizen ein. Hake abgeschlossene Aufgaben ab und verpasse keine Abgabe mehr.",
-    "feature5Title": "Stundenplanverwaltung",
-    "feature5Description": "Deine persönlichen und Gruppenlagepläne in einer Ansicht. Immer wissen, was als nächstes kommt."
+  "sections": {
+    "hero": {
+      "badge": "🚀 Jetzt verfügbar",
+      "title": "Schulverwaltung leicht gemacht",
+      "description": "Alle deine Hausaufgaben, Stundenpläne und Noten an einem Ort. Kostenlos, werbefrei und für Schüler gemacht.",
+      "cta_primary": "Kostenlos starten",
+      "cta_secondary": "Demo ansehen",
+      "placeholder": "Hero-Visual-Platzhalter"
+    },
+    "features": {
+      "badge": "Funktionen",
+      "title": "Alles, was du brauchst",
+      "item0": {
+        "title": "Vollständig kostenlos",
+        "description": "Keine versteckten Kosten, keine Premium-Funktionen hinter einer Paywall. Für immer kostenlos."
+      },
+      "item1": {
+        "title": "Deine Privatsphäre zählt",
+        "description": "Wir respektieren deine Daten. Alles ist verschlüsselt und du behältst die Kontrolle."
+      },
+      "item2": {
+        "title": "Von Schülern für Schüler",
+        "description": "Erstellt von Schülern für Schüler. Wir wissen, was du brauchst."
+      },
+      "item3": {
+        "title": "Einfach zusammenarbeiten",
+        "description": "Teile Hausaufgaben, Notizen und Stundenpläne sofort mit deinen Mitschülern."
+      },
+      "item4": {
+        "title": "Bleib organisiert",
+        "description": "Verpasse keine Aufgabe mit intelligenten Erinnerungen und Organisationstools."
+      },
+      "item5": {
+        "title": "Funktioniert überall",
+        "description": "Greife von jedem Gerät aus jederzeit und überall auf dein Dashboard zu."
+      }
+    },
+    "pricing": {
+      "badge": "Preise",
+      "title": "Flexible Pläne",
+      "description": "Wähle den richtigen Plan für deine Bedürfnisse.",
+      "featured": "Am beliebtesten",
+      "plan0": {
+        "name": "Starter",
+        "description": "Perfekt um anzufangen",
+        "price": "Kostenlos"
+      },
+      "plan1": {
+        "name": "Pro",
+        "description": "Für Poweruser",
+        "price": "€9/Mon"
+      },
+      "plan2": {
+        "name": "Team",
+        "description": "Für Schulen und Teams",
+        "price": "Individuell"
+      },
+      "feature1": "Funktion enthalten",
+      "feature2": "Weitere großartige Funktion",
+      "feature3": "Erweiterte Möglichkeiten",
+      "feature4": "Premium-Support",
+      "cta": "Jetzt starten"
+    },
+    "cta": {
+      "title": "Bereit, dein Schulleben zu transformieren?",
+      "description": "Treten Sie tausenden von Schülern bei, die schul-dashboard bereits nutzen.",
+      "primary_cta": "Kostenlos starten",
+      "secondary_cta": "Preise ansehen"
+    }
   },
   "footer": {
-    "disclaimer": {
-      "title": "Hinweis",
-      "text": "Dies ist eine geschützte und private Anwendung. Jeder unbefugte Versuch, Sicherheitsmaßnahmen zu umgehen oder sensible Daten zu erlangen, wird ausnahmslos dokumentiert. Solche Verstöße werden sofort und ausnahmslos zur Anzeige gebracht."
-    },
+    "tagline": "Von Schülern, für Schüler. Kostenloses Schulverwaltungssystem.",
     "navigation": {
-      "landingPage": "Startseite",
-      "about": "Über uns",
+      "title": "Navigation",
+      "home": "Startseite",
+      "features": "Funktionen",
+      "pricing": "Preise",
+      "about": "Über uns"
+    },
+    "legal": {
+      "title": "Rechtliches",
       "imprint": "Impressum",
       "privacy": "Datenschutz",
-      "terms": "Nutzungsbedingungen",
-      "contact": "Kontakt",
-      "status": "Status"
+      "terms": "Nutzungsbedingungen"
     },
-    "byStudentsForStudents": "Ein privates Projekt von Schülern für Schüler",
-    "design": "Design",
-    "language": "Sprache"
-  },
-  "theme": {
-    "system": "System",
-    "dark": "Dunkel",
-    "light": "Hell"
-  },
-  "cookies": {
-    "title": "Cookies",
-    "text": "Wir verwenden Cookies, um Kernfunktionen wie Login, Sicherheit und den Betrieb des schul-dashboard zuverlässig bereitzustellen.",
-    "action": "Verstanden"
-  },
-  "back": "Zurück",
-  "about": {
-    "title": "Über uns",
-    "description": "Wir sind Schüler, die das Schulverwaltungstool entwickeln, das wir uns schon immer gewünscht haben.",
-    "hero": {
-      "badge": "Schülerprojekt",
-      "heading": "Von Schülern gebaut, für Schüler.",
-      "subheading": "schul-dashboard entstand aus der Frustration über Papierpläne, verstreute Gruppenchats und überteuerte Schulapps."
-    },
-    "mission": {
-      "title": "Unsere Mission",
-      "text": "Wir glauben, dass jeder Schüler Zugang zu guten Organisationstools verdient – unabhängig davon, wo er zur Schule geht oder was er sich leisten kann. Deshalb ist schul-dashboard kostenlos, werbefrei und wird es immer bleiben."
-    },
-    "story": {
-      "title": "Unsere Geschichte",
-      "text": "schul-dashboard begann als persönliches Nebenprojekt, um einen Papierhausaufgabenplaner zu ersetzen. Mit der Zeit wuchs es zu einer vollständigen kollaborativen Plattform, die zunächst bei Mitschülern und dann darüber hinaus Anklang fand. Heute hilft es Schülern an mehreren Schulen, ihr Schulleben zu organisieren."
-    },
-    "values": {
-      "title": "Wofür wir stehen",
-      "value0Title": "Kostenlos für immer",
-      "value0Description": "Kein Geschäftsmodell, das Nutzerzahlungen erfordert. Wir entwickeln das für die Community.",
-      "value1Title": "Offen & ehrlich",
-      "value1Description": "Wir sind transparent darüber, welche Daten wir erheben und warum. Keine Dark Patterns.",
-      "value2Title": "Schülerorientiert",
-      "value2Description": "Jede Funktionsanfrage, jede Designentscheidung wird durch eine Linse bewertet: Hilft das Schülern?"
-    }
-  },
-  "legal": {
-    "imprint": {
-      "title": "Impressum",
-      "description": "Angaben gemäß § 5 TMG.",
-      "responsible": "Verantwortliche Person",
-      "contact": "Kontakt",
-      "disclaimer": {
-        "title": "Haftungsausschluss",
-        "text": "Die Inhalte dieser Website wurden mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich."
-      }
-    },
-    "privacy": {
-      "title": "Datenschutzerklärung",
-      "description": "Informationen zum Umgang mit deinen personenbezogenen Daten gemäß DSGVO.",
-      "intro": {
-        "title": "Einleitung",
-        "text": "Der Schutz deiner persönlichen Daten ist uns sehr wichtig. Diese Datenschutzerklärung erklärt, welche Daten wir erheben, wie wir sie verwenden und welche Rechte du hast."
-      },
-      "controller": {
-        "title": "Verantwortlicher",
-        "text": "Verantwortlicher für die Verarbeitung deiner personenbezogenen Daten auf dieser Website ist der Betreiber von schul-dashboard. Die Kontaktdaten findest du im Impressum."
-      },
-      "dataCollected": {
-        "title": "Erhobene Daten",
-        "item0": "Kontodaten: E-Mail-Adresse und Passwort (verschlüsselt gespeichert)",
-        "item1": "Nutzungsdaten: Stundenplaneinträge, Aufgaben und Gruppeninformationen, die du erstellst",
-        "item2": "Technische Daten: IP-Adresse und Browserinformationen zu Sicherheitszwecken (Sitzungsverwaltung, CSRF-Schutz)"
-      },
-      "purpose": {
-        "title": "Zweck der Verarbeitung",
-        "text": "Wir verarbeiten deine Daten ausschließlich zur Bereitstellung des schul-dashboard-Dienstes – zur Verwaltung von Hausaufgaben, Stundenplänen und schulischer Organisation. Wir verkaufen, teilen oder verwenden deine Daten nicht für Werbezwecke."
-      },
-      "retention": {
-        "title": "Datenspeicherung",
-        "text": "Deine Daten werden gespeichert, solange dein Konto aktiv ist. Du kannst jederzeit die Löschung deines Kontos und aller zugehörigen Daten über die Kontoeinstellungen beantragen."
-      },
-      "rights": {
-        "title": "Deine Rechte",
-        "intro": "Gemäß DSGVO hast du das Recht auf:",
-        "item0": "Auskunft über die von uns gespeicherten personenbezogenen Daten",
-        "item1": "Berichtigung unrichtiger Daten",
-        "item2": "Löschung deiner Daten (\"Recht auf Vergessenwerden\")",
-        "item3": "Einschränkung der Verarbeitung",
-        "item4": "Datenübertragbarkeit",
-        "item5": "Widerspruch gegen die Verarbeitung",
-        "contact": "Zur Ausübung dieser Rechte wende dich bitte über die im Impressum angegebenen Kontaktdaten an uns."
-      },
-      "cookies": {
-        "title": "Cookies",
-        "text": "Wir verwenden ausschließlich technisch notwendige Cookies zur Authentifizierung (Session-Token) und Sicherheit (CSRF-Token). Es werden keine Tracking- oder Werbe-Cookies eingesetzt."
-      },
-      "security": {
-        "title": "Sicherheit",
-        "text": "Alle Daten werden über verschlüsselte HTTPS-Verbindungen übertragen. Passwörter werden mit branchenüblichem Hashing (bcrypt) gespeichert. Sensible Daten werden mit AES-256-GCM verschlüsselt."
-      },
-      "changes": {
-        "title": "Änderungen dieser Erklärung",
-        "text": "Wir können diese Datenschutzerklärung von Zeit zu Zeit aktualisieren. Bei wesentlichen Änderungen werden wir die Nutzer durch einen Hinweis in der Anwendung informieren."
-      }
-    },
-    "terms": {
-      "title": "Nutzungsbedingungen",
-      "description": "Regeln und Bedingungen für die Nutzung von schul-dashboard.",
-      "acceptance": {
-        "title": "1. Akzeptanz der Bedingungen",
-        "text": "Mit der Erstellung eines Kontos und der Nutzung von schul-dashboard stimmst du diesen Nutzungsbedingungen zu. Wenn du nicht einverstanden bist, nutze den Dienst bitte nicht."
-      },
-      "service": {
-        "title": "2. Leistungsbeschreibung",
-        "text": "schul-dashboard ist ein kostenloses, kollaboratives Schulverwaltungstool für Schülerinnen und Schüler. Es bietet Funktionen wie Hausaufgabenverwaltung, Stundenplanverwaltung und Gruppenzusammenarbeit."
-      },
-      "account": {
-        "title": "3. Benutzerkonten",
-        "item0": "Zur Registrierung ist eine gültige E-Mail-Adresse erforderlich.",
-        "item1": "Du bist für die Vertraulichkeit deiner Kontodaten verantwortlich.",
-        "item2": "Du darfst dein Konto nicht mit anderen teilen.",
-        "item3": "Du musst im schulpflichtigen Alter sein oder die Einwilligung der Eltern haben."
-      },
-      "conduct": {
-        "title": "4. Akzeptable Nutzung",
-        "intro": "Du stimmst zu, nicht:",
-        "item0": "unbefugten Zugriff auf das System oder Daten anderer Nutzer zu versuchen",
-        "item1": "schädliche Inhalte hochzuladen oder den Dienst zu stören",
-        "item2": "den Dienst für illegale Zwecke zu nutzen",
-        "item3": "andere Nutzer oder Organisationen zu imitieren"
-      },
-      "termination": {
-        "title": "5. Kontokündigung",
-        "text": "Wir behalten uns das Recht vor, Konten, die gegen diese Bedingungen verstoßen, zu sperren oder zu kündigen. Du kannst dein Konto jederzeit über die Kontoeinstellungen löschen."
-      },
-      "liability": {
-        "title": "6. Haftungsbeschränkung",
-        "text": "schul-dashboard wird „wie besehen\" ohne jegliche Gewährleistung bereitgestellt. Wir haften nicht für Datenverluste oder Dienstunterbrechungen. Als kostenloses, nicht-kommerzielles Projekt stellen wir diesen Dienst nach bestem Bemühen bereit."
-      },
-      "changes": {
-        "title": "7. Änderungen der Bedingungen",
-        "text": "Wir können diese Bedingungen von Zeit zu Zeit aktualisieren. Die weitere Nutzung des Dienstes nach Änderungen gilt als Akzeptanz der neuen Bedingungen."
-      },
-      "governing": {
-        "title": "8. Anwendbares Recht",
-        "text": "Diese Bedingungen unterliegen dem Recht der Bundesrepublik Deutschland."
-      }
-    }
-  },
-  "stats": {
-    "title": "Aufgebaut auf einem einfachen Versprechen",
-    "stat0Value": "0€",
-    "stat0Label": "Für immer kostenlos",
-    "stat1Value": "0",
-    "stat1Label": "Werbung oder Tracker",
-    "stat2Value": "AES-256",
-    "stat2Label": "Verschlüsselungsstandard",
-    "stat3Value": "100%",
-    "stat3Label": "Von Schülern entwickelt"
-  },
-  "cta": {
-    "title": "Bereit, dein Schulleben zu vereinfachen?",
-    "subtitle": "Schließe dich Schülern an, die bereits gewechselt haben. Kein Abo, kein Haken.",
-    "primary": "Kostenlos starten",
-    "secondary": "Mehr über uns erfahren"
-  },
-  "contact": {
-    "title": "Kontakt",
-    "description": "Hast du Fragen oder Feedback? Wir freuen uns von dir zu hören.",
-    "sections": {
-      "getInTouch": {
-        "title": "Schreib uns",
-        "text": "schul-dashboard ist ein Schülerprojekt, das mit Sorgfalt entwickelt wurde. Wenn du Fragen, Feedback hast oder ein Problem melden möchtest, melde dich gerne bei uns."
-      },
-      "email": {
-        "title": "E-Mail",
-        "value": "contact{'@'}schul-dashboard.com"
-      },
-      "github": {
-        "title": "GitHub",
-        "text": "Einen Bug gefunden oder eine Funktionsanfrage? Erstelle ein Issue auf GitHub.",
-        "action": "Issue erstellen"
-      },
-      "response": {
-        "title": "Antwortzeit",
-        "text": "Wir bemühen uns, innerhalb weniger Tage zu antworten. Da es sich um ein Schülerprojekt handelt, das in unserer Freizeit gepflegt wird, bitten wir um Geduld."
-      }
-    }
+    "rights": "Alle Rechte vorbehalten.",
+    "status": "Systemstatus"
   }
 }

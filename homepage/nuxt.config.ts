@@ -14,15 +14,17 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'system',
     fallback: 'dark',
+    globalName: '__NUXT_COLOR_MODE__',
+    componentName: 'ColorScheme',
     classPrefix: '',
     classSuffix: '',
     storage: 'cookie',
-    storageKey: 'theme-pref',
+    storageKey: 'nuxt-homepage-color-mode',
     cookieAttrs: {
       'max-age': '31536000',
       path: '/',
-      SameSite: 'Lax',
-    },
+      sameSite: 'lax',
+    }
   },
 
   i18n: {
@@ -35,11 +37,46 @@ export default defineNuxtConfig({
     ],
     strategy: 'prefix_except_default',
     vueI18n: './i18n.config.ts',
+    customRoutes: 'config',
+    pages: {
+      index: {
+        en: '/',
+        de: '/',
+      },
+      features: {
+        en: '/features',
+        de: '/vorteile',
+      },
+      pricing: {
+        en: '/pricing',
+        de: '/preise',
+      },
+      about: {
+        en: '/about',
+        de: '/uber-uns',
+      },
+      contact: {
+        en: '/contact',
+        de: '/kontakt',
+      },
+      'legal-imprint': {
+        en: '/legal/imprint',
+        de: '/legal/impressum',
+      },
+      'legal-privacy-policy': {
+        en: '/legal/privacy-policy',
+        de: '/legal/datenschutz',
+      },
+      'legal-terms': {
+        en: '/legal/terms',
+        de: '/legal/nutzungsbedingungen',
+      },
+    },
     detectBrowserLanguage: {
       useCookie: true,
-      cookieKey: 'i18n_redirected',
+      cookieKey: 'i18n_locale',
       redirectOn: 'root'
-    }
+    },
   },
 
   app: {
@@ -137,11 +174,20 @@ export default defineNuxtConfig({
     enabled: true,
     urls: [
       { loc: 'https://schul-dashboard.com', priority: 1.0, changefreq: 'weekly' },
+      { loc: 'https://schul-dashboard.com/features', priority: 0.9, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/pricing', priority: 0.9, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/about', priority: 0.8, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/contact', priority: 0.7, changefreq: 'monthly' },
       { loc: 'https://schul-dashboard.com/legal/imprint', priority: 0.3, changefreq: 'yearly' },
       { loc: 'https://schul-dashboard.com/legal/privacy-policy', priority: 0.3, changefreq: 'yearly' },
       { loc: 'https://schul-dashboard.com/legal/terms', priority: 0.3, changefreq: 'yearly' },
+      { loc: 'https://schul-dashboard.com/de/vorteile', priority: 0.9, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/de/preise', priority: 0.9, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/de/uber-uns', priority: 0.8, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/de/kontakt', priority: 0.7, changefreq: 'monthly' },
+      { loc: 'https://schul-dashboard.com/de/legal/impressum', priority: 0.3, changefreq: 'yearly' },
+      { loc: 'https://schul-dashboard.com/de/legal/datenschutz', priority: 0.3, changefreq: 'yearly' },
+      { loc: 'https://schul-dashboard.com/de/legal/nutzungsbedingungen', priority: 0.3, changefreq: 'yearly' },
     ],
     sitemaps: true,
   },
