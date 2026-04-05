@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { RefreshCw, Trash2, Settings2, Plus, Minus } from '@lucide/vue';
+import { RefreshCw, Trash2, Plus } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import AdminSchedule from '@/modules/admin/components/AdminSchedule.vue';
 import type { ScheduleSubstitution } from '@/modules/admin/types';
@@ -43,7 +43,11 @@ const configForm = ref({
   startTime: '08:00',
   totalSlots: 9,
   lessonDurationMins: 45,
-  breaks: {} as Record<number, number>
+  breaks: [] as { id: string; slot: number; duration: number }[]
+});
+
+const sortedBreaks = computed(() => {
+  return [...configForm.value.breaks].sort((a, b) => a.slot - b.slot);
 });
 
 watch(activeScheduleConfig, (newConfig) => {
@@ -52,34 +56,47 @@ watch(activeScheduleConfig, (newConfig) => {
       startTime: newConfig.startTime ?? '08:00',
       totalSlots: newConfig.totalSlots ?? 9,
       lessonDurationMins: newConfig.lessonDurationMins ?? 45,
-      breaks: { ...(newConfig.breaks || {}) }
+      breaks: Object.entries(newConfig.breaks || {}).map(([slot, duration]) => ({
+        id: Math.random().toString(36).substring(2, 9),
+        slot: Number(slot),
+        duration: Number(duration)
+      }))
     };
   }
 }, { immediate: true, deep: true });
 
 function addBreak() {
   const maxSlot = configForm.value.totalSlots;
+  const existingSlots = configForm.value.breaks.map(b => b.slot);
   for (let i = 1; i <= maxSlot; i++) {
-    if (!(i in configForm.value.breaks)) {
-      configForm.value.breaks[i] = 10;
+    if (!existingSlots.includes(i)) {
+      configForm.value.breaks.push({
+        id: Math.random().toString(36).substring(2, 9),
+        slot: i,
+        duration: 10
+      });
       break;
     }
   }
 }
 
-function removeBreak(slotStr: string | number) {
-  const slot = Number(slotStr);
-  const newBreaks = { ...configForm.value.breaks };
-  delete newBreaks[slot];
-  configForm.value.breaks = newBreaks;
+function removeBreak(id: string) {
+  configForm.value.breaks = configForm.value.breaks.filter(b => b.id !== id);
 }
 
 function handleSaveConfig() {
+  const breaksObj: Record<number, number> = {};
+  configForm.value.breaks.forEach(b => {
+    if (b.slot) {
+      breaksObj[b.slot] = b.duration || 0;
+    }
+  });
+
   emit('update-schedule-config', {
     startTime: configForm.value.startTime,
     totalSlots: configForm.value.totalSlots,
     lessonDurationMins: configForm.value.lessonDurationMins,
-    breaks: configForm.value.breaks
+    breaks: breaksObj
   });
 }
 
@@ -137,7 +154,7 @@ function handleSaveSub() {
 
       <template #info>
         <InfoModal
-          tooltip="Übersicht des Adminstundenplanmenüs"
+          tooltip="Übersicht des Stundenplanänderungsmenüs"
           title="Stundenplanänderungen"
         >
           <h3>Trage Änderungen Live und anschaulich ein</h3>
@@ -305,13 +322,17 @@ function handleSaveSub() {
 
     <!-- Config section -->
     <div class="mt-8 border-t border-surface-border pt-6">
-      <h3 style="font-size: var(--text-title); display: flex; align-items: center; gap: 8px; margin-top: 0;">
-        <Settings2 :size="20" />
-        Stundenplan Konfiguration
-      </h3>
-      <p style="color: var(--color-on-surface-muted); margin-bottom: 24px; font-size: var(--text-sub);">
-        Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten, Pausen).
-      </p>
+      <PageHeader>
+        Stundenplaneinstellungen
+        <template #info>
+          <InfoModal
+            tooltip="Übersicht der Stundenplaneinstellungen"
+            title="Stundenplaneinstellungen"
+          >
+            <h3>Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten, Pausen).</h3>
+          </InfoModal>
+        </template>        
+      </PageHeader>
 
       <div class="sub-form-grid">
         <div class="form-field">
@@ -349,58 +370,47 @@ function handleSaveSub() {
 
       <div class="mt-6 mb-4">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-          <BaseLabel style="margin: 0; font-size: var(--text-body);">Pausen</BaseLabel>
+          <BaseHeading :level="3" class="m-0">Pausen</BaseHeading>
           <BaseButton v-if="isAdmin" variant="ghost" @click="addBreak" :icon="Plus" size="sm">
             Pause hinzufügen
           </BaseButton>
         </div>
         
-        <div v-if="Object.keys(configForm.breaks).length === 0" class="empty-hint" style="padding: 16px;">
+        <div v-if="configForm.breaks.length === 0" class="empty-hint" style="padding: 16px;">
           Keine Pausen konfiguriert.
         </div>
         
         <div class="flex flex-col gap-2">
-          <div v-for="(duration, slot) in configForm.breaks" :key="slot" class="flex gap-2 items-end">
+          <div v-for="brk in sortedBreaks" :key="brk.id" class="flex gap-2 items-end">
             <div class="form-field flex-1" style="margin: 0;">
-              <BaseLabel :for="`break-slot-${slot}`">Nach Stunde</BaseLabel>
+              <BaseLabel :for="`break-slot-${brk.id}`">Nach Stunde</BaseLabel>
               <BaseInput
-                :id="`break-slot-${slot}`"
+                :id="`break-slot-${brk.id}`"
                 type="number"
                 min="1"
                 :max="configForm.totalSlots"
-                :value="slot"
+                v-model.number="brk.slot"
                 :disabled="!isAdmin"
-                @change="e => {
-                  if (!isAdmin) return;
-                  const newSlot = Number((e.target as HTMLInputElement).value);
-                  const breaks = { ...configForm.breaks };
-                  const val = breaks[Number(slot)];
-                  delete breaks[Number(slot)];
-                  breaks[newSlot] = val;
-                  configForm.breaks = breaks;
-                }"
               />
             </div>
             <div class="form-field flex-1" style="margin: 0;">
-              <BaseLabel :for="`break-dur-${slot}`">Dauer (Minuten)</BaseLabel>
+              <BaseLabel :for="`break-dur-${brk.id}`">Dauer (Minuten)</BaseLabel>
               <BaseInput
-                :id="`break-dur-${slot}`"
+                :id="`break-dur-${brk.id}`"
                 type="number"
                 min="1"
-                v-model.number="configForm.breaks[Number(slot)]"
+                v-model.number="brk.duration"
                 :disabled="!isAdmin"
               />
             </div>
-            <BaseButton v-if="isAdmin" variant="ghost" class="text-danger mb-1" @click="removeBreak(slot)">
-              <Trash2 :size="20" />
-            </BaseButton>
+            <BaseButton v-if="isAdmin" variant="ghost" class="text-danger mb-1" @click="removeBreak(brk.id)" :icon="Trash2" />
           </div>
         </div>
       </div>
 
       <div v-if="isAdmin" class="mt-6">
         <BaseButton @click="handleSaveConfig" :disabled="savingScheduleConfig" variant="action">
-          {{ savingScheduleConfig ? 'Speichert...' : 'Konfiguration Speichern' }}
+          {{ savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern' }}
         </BaseButton>
       </div>
     </div>
