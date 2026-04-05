@@ -42,13 +42,13 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   <BaseModalCard @cancel="handleCancel">
     <!-- Header-->
     <BaseRow justify="between" class="mb-4">
-      <BaseTitle :level="3">
-        <slot name="title"></slot>
-
-        <template #info>
-          <slot name="title-infopop"></slot>
-        </template>
-      </BaseTitle>
+      <BaseInfoRow>
+        <h3>
+          <slot name="title"></slot>
+        </h3>
+        
+        <slot name="title-infopop"></slot>
+      </BaseInfoRow>
 
       <BaseButton
         type="button"

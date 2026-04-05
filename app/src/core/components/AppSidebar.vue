@@ -101,6 +101,18 @@ onMounted(() => {
   }
 });
 
+function handleGroupClick(groupId: string) {
+  const currentPath = router.currentRoute.value.path;
+  if (
+    activeGroupId.value &&
+    currentPath.includes(`/groups/${activeGroupId.value}`)
+  ) {
+    handleNavigation(currentPath.replace(activeGroupId.value, groupId));
+  } else {
+    handleNavigation(`/groups/${groupId}/items/all`);
+  }
+}
+
 onUnmounted(() => {
   document.body.style.overflow = '';
 });
@@ -237,7 +249,7 @@ onUnmounted(() => {
           :label="group.name"
           :expanded="isExpanded"
           :active="activeGroupId === group.id"
-          @click="handleNavigation(`/groups/${group.id}/items/all`)"
+          @click="handleGroupClick(group.id)"
         />
       </div>
     </div>

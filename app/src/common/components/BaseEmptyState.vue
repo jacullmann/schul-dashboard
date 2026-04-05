@@ -16,9 +16,9 @@ defineProps<{
       :size="40"
       class="text-on-surface-muted mb-4"
     />
-    <BaseHeading level="3">
+    <h3>
       <slot name="title"></slot>
-    </BaseHeading>
+    </h3>
     <p class="max-w-96">
       <slot name="message"></slot>
     </p>

@@ -309,29 +309,20 @@ h3,
 h4,
 h5,
 h6 {
+    color: var(--color-on-surface);
     font-family: var(--font-display), sans-serif;
-    font-weight: 700;
-    margin-top: 0;
+    font-weight: bold;
+    text-align: left;
+    margin: 0;
 }
 
-h1 {
-    font-size: var(--text-h1);
-}
+h1 { font-size: var(--text-h1); letter-spacing: -0.03em; }
+h2 { font-size: var(--text-h2); letter-spacing: -0.02em; }
+h3 { font-size: var(--text-h3); letter-spacing: -0.01em; }
+h4 { font-size: var(--text-title); letter-spacing: normal; }
+h5 { font-size: var(--text-body); letter-spacing: 0.02em; }
+h6 { font-size: var(--text-sub); letter-spacing: 0.05em; text-transform: uppercase; }
 
-h2 {
-    font-size: var(--text-h2);
-}
-
-h3 {
-    font-size: var(--text-h3);
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
 strong,
 b {
     color: var(--color-on-surface);

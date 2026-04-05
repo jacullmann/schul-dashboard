@@ -370,7 +370,7 @@ function handleSaveSub() {
 
       <div class="mt-6 mb-4">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-          <BaseHeading :level="3" class="m-0">Pausen</BaseHeading>
+          <h3>Pausen</h3>
           <BaseButton v-if="isAdmin" variant="ghost" @click="addBreak" :icon="Plus" size="sm">
             Pause hinzufügen
           </BaseButton>

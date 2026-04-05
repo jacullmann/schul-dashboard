@@ -103,9 +103,9 @@ onMounted(() => {
     <section class="mb-8">
       <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
         <div>
-          <BaseHeading :level="2">
+          <h2>
             {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="bg-[image:var(--background-image-bismuth)] bg-clip-text text-transparent">{{ displayName }}</span>
-          </BaseHeading>
+          </h2>
           <p class="text-body text-on-surface-muted m-0 leading-relaxed">
             {{ userGroups.length
                   ? 'Wähle eine Gruppe aus, um loszulegen.'

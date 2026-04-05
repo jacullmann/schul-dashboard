@@ -1,15 +1,13 @@
-<script setup lang="ts"></script>
-
 <template>
-  <div class="flex justify-between items-center gap-4 mb-4">
-    <BaseTitle :level="2">
-      <slot></slot>
+  <BaseRow justify="between" class="mb-4">
+    <BaseInfoRow>
+      <h2>
+        <slot></slot>
+      </h2>
 
-      <template #info>
-        <slot name="info"></slot>
-      </template>
-    </BaseTitle>
+      <slot name="info"></slot>
+    </BaseInfoRow>
 
     <slot name="action"></slot>
-  </div>
+  </BaseRow>
 </template>

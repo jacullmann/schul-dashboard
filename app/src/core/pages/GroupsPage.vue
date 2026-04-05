@@ -135,7 +135,7 @@ async function leaveGroup(group: any) {
     <section class="mb-8">
       <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
         <div>
-          <BaseHeading :level="2">Groups Management</BaseHeading>
+          <h2>Groups Management</h2>
           <p class="text-body text-on-surface-muted m-0 leading-relaxed">Manage your groups, leave or set a default group.</p>
         </div>
 
