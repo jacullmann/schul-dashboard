@@ -20,6 +20,7 @@ const userGroups = ref<
     generatedName?: string;
     ownerId?: string;
     hasUnreadContent?: boolean;
+    scheduleConfig?: Record<string, any>;
   }>
 >([]);
 
@@ -63,6 +64,7 @@ function applyStatusData(data: {
     generatedName?: string;
     ownerId?: string;
     hasUnreadContent?: boolean;
+    scheduleConfig?: Record<string, any>;
   }>;
 }): void {
   isLoggedIn.value = data.authenticated;
@@ -236,6 +238,14 @@ export function useAppAuth() {
     }
   }
 
+  const activeScheduleConfig = computed(() => {
+    if (!activeGroupId.value) return null;
+    const activeGroup = userGroups.value.find(
+      (g) => g.id === activeGroupId.value,
+    );
+    return activeGroup?.scheduleConfig ?? null;
+  });
+
   return {
     isAuthenticated,
     isLoggedIn,
@@ -243,6 +253,7 @@ export function useAppAuth() {
     groupName,
     activeGroupId,
     activeGroupOwnerId,
+    activeScheduleConfig,
     userGroups,
     initAuth,
     checkAuthStatus,

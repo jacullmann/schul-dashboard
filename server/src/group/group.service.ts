@@ -209,7 +209,9 @@ export class GroupService {
     try {
       const { data: userRoles } = await sb
         .from('user_roles')
-        .select('tenant_id, groups(id, name, owner_id), roles(name)')
+        .select(
+          'tenant_id, groups(id, name, owner_id, schedule_config), roles(name)',
+        )
         .eq('user_id', userId)
         .not('tenant_id', 'is', null);
 
@@ -222,6 +224,7 @@ export class GroupService {
           role: ur.roles?.name as string,
           generatedName: generateUserName(userId, ur.groups.id),
           hasUnreadContent: false,
+          scheduleConfig: ur.groups.schedule_config,
         }));
 
       // Determine unread status per-user:

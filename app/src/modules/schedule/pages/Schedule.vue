@@ -21,7 +21,7 @@ const {
   getDisplayName,
   getGroupStyle,
   defaultDayIndex,
-  formatDayName
+  formatDayName,
 } = useSchedule();
 
 const scrollContainerRef = ref<HTMLElement | null>(null);
@@ -49,7 +49,10 @@ const scrollToDefaultDay = () => {
   const dayHeaders = scrollContainerRef.value.querySelectorAll('.day-header');
   if (dayHeaders[dayIndex]) {
     const header = dayHeaders[dayIndex] as HTMLElement;
-    scrollContainerRef.value.scrollTo({ left: header.offsetLeft, behavior: 'auto' });
+    scrollContainerRef.value.scrollTo({
+      left: header.offsetLeft,
+      behavior: 'auto',
+    });
   }
 };
 
@@ -73,41 +76,63 @@ onMounted(() => {
   }
 });
 
-/** Flat list of skeleton cell positions: 5 columns × 7 rows. */
-const skeletonCells = computed(() =>
-  days.flatMap((_, dayIdx) =>
-    Array.from({ length: 7 }, (_, rowIdx) => ({
+/** Flat list of skeleton cell positions: 5 columns × dynamic rows. */
+const skeletonCells = computed(() => {
+  const rowCount = timeSlots.value.length || 9;
+  return days.flatMap((_, dayIdx) =>
+    Array.from({ length: rowCount }, (_, rowIdx) => ({
       col: dayIdx + 1,
       row: rowIdx + 1,
-    }))
-  )
-);
+    })),
+  );
+});
 </script>
 
 <template>
   <div class="p-4 md:p-0 overflow-x-auto">
-    <ScheduleHeader 
-      :loading="!!(loadingSubs || loadingLessons)" 
-      :is-personalized="!!isPersonalized" 
+    <ScheduleHeader
+      :loading="!!(loadingSubs || loadingLessons)"
+      :is-personalized="!!isPersonalized"
     />
 
-    <div class="grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[auto_repeat(9,auto)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none">
-      
+    <div
+      class="grid grid-cols-[80px_repeat(5,1fr)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
+      :style="{
+        gridTemplateRows: `auto repeat(${timeSlots.length || 9}, auto)`,
+      }"
+    >
       <div ref="timeColWrapperRef" class="min-[501px]:contents">
         <ScheduleTimeColumn :time-slots="timeSlots" />
       </div>
 
-      <div ref="scrollContainerRef" class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full max-[500px]:[scrollbar-width:none] min-[501px]:contents">
-        <div ref="daysGridWrapperRef" class="max-[500px]:grid max-[500px]:grid-cols-[repeat(5,100%)] max-[500px]:grid-rows-[auto_repeat(9,minmax(35px,auto))] max-[500px]:gap-2 min-[501px]:contents">
-          
+      <div
+        ref="scrollContainerRef"
+        class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full max-[500px]:[scrollbar-width:none] min-[501px]:contents"
+      >
+        <div
+          ref="daysGridWrapperRef"
+          class="max-[500px]:grid max-[500px]:grid-cols-[repeat(5,100%)] max-[500px]:gap-2 min-[501px]:contents"
+          :style="
+            windowWidth < 501
+              ? {
+                  gridTemplateRows: `auto repeat(${timeSlots.length || 9}, minmax(35px, auto))`,
+                }
+              : {}
+          "
+        >
           <div
             v-for="day in days"
             :key="day"
             class="day-header bg-surface text-on-surface p-2 border border-surface-border text-center font-bold rounded-md text-body shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
-            :class="{'bg-surface-hover border-surface-hover-border': day === currentDay}"
+            :class="{
+              'bg-surface-hover border-surface-hover-border':
+                day === currentDay,
+            }"
           >
             <span class="block leading-tight">{{ formatDayName(day) }}</span>
-            <span class="block text-xs font-normal opacity-60 mt-0.5">{{ weekDates[day] }}</span>
+            <span class="block text-xs font-normal opacity-60 mt-0.5">{{
+              weekDates[day]
+            }}</span>
           </div>
 
           <!-- Skeleton: 5 days × 7 rows while lessons are loading -->

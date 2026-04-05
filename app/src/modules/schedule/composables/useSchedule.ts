@@ -1,6 +1,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import hw from '@/api/hwApi';
 import { useUserStore } from '@/stores/userStore';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import type { Lesson, Substitution, TimeSlot } from '@/modules/schedule/types';
 import { useI18n } from 'vue-i18n';
 
@@ -11,6 +12,7 @@ export interface UseScheduleOptions {
 export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   const { t, locale } = useI18n();
   const userStore = useUserStore();
+  const { activeScheduleConfig } = useAppAuth();
 
   const isPersonalized = computed(() => {
     return userStore.user?.personalized && userStore.user?.doneSetup;
@@ -64,17 +66,34 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
       date,
     );
   };
-  const totalSlots = 9;
-  const lessonDurationMins = 45;
-  const startTimeHour = 8;
-  const startTimeMinute = 0;
 
-  const breaks: Record<number, number> = {
-    2: 25,
-    3: 5,
-    5: 40,
-    7: 10,
-  };
+  const totalSlots = computed(
+    () => activeScheduleConfig.value?.totalSlots ?? 9,
+  );
+  const lessonDurationMins = computed(
+    () => activeScheduleConfig.value?.lessonDurationMins ?? 45,
+  );
+
+  const startTimeHour = computed(() => {
+    const time = activeScheduleConfig.value?.startTime ?? '08:00';
+    return parseInt(time.split(':')[0], 10);
+  });
+
+  const startTimeMinute = computed(() => {
+    const time = activeScheduleConfig.value?.startTime ?? '08:00';
+    return parseInt(time.split(':')[1], 10);
+  });
+
+  const breaks = computed<Record<number, number>>(
+    () =>
+      activeScheduleConfig.value?.breaks ?? {
+        2: 25,
+        3: 5,
+        5: 40,
+        7: 10,
+      },
+  );
+
   function getDisplayName(lesson: Lesson): string {
     if (lesson.isSubstitutedSubject && lesson.subject) {
       return lesson.subject;
@@ -191,20 +210,20 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
   const slotStartMinutes = computed(() => {
     const map: Record<number, number> = {};
-    let currentMetrics = startTimeHour * 60 + startTimeMinute;
-    for (let i = 1; i <= totalSlots; i++) {
+    let currentMetrics = startTimeHour.value * 60 + startTimeMinute.value;
+    for (let i = 1; i <= totalSlots.value; i++) {
       map[i] = currentMetrics;
-      const breakTime = breaks[i] || 0;
-      currentMetrics += lessonDurationMins + breakTime;
+      const breakTime = breaks.value[i] || 0;
+      currentMetrics += lessonDurationMins.value + breakTime;
     }
     return map;
   });
 
   const timeSlots = computed<TimeSlot[]>(() => {
     const slots: TimeSlot[] = [];
-    for (let i = 1; i <= totalSlots; i++) {
+    for (let i = 1; i <= totalSlots.value; i++) {
       const startMins = slotStartMinutes.value[i] ?? 0;
-      const endMins = startMins + lessonDurationMins;
+      const endMins = startMins + lessonDurationMins.value;
       slots.push({
         slot: i,
         time: `${formatTime(startMins)} - ${formatTime(endMins)}`,
@@ -255,10 +274,7 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
   });
 
   watch(
-    () => [
-      userStore.user?.personalized,
-      userStore.user?.courses,
-    ],
+    () => [userStore.user?.personalized, userStore.user?.courses],
     (newVal, oldVal) => {
       if (
         options.autoLoad &&
@@ -306,9 +322,9 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
         const startMins = slotStartMinutes.value[l.slot] ?? 0;
         let endMins = startMins;
         for (let d = 0; d < l.duration; d++) {
-          endMins += lessonDurationMins;
+          endMins += lessonDurationMins.value;
           if (d < l.duration - 1) {
-            endMins += breaks[l.slot + d] || 0;
+            endMins += breaks.value[l.slot + d] || 0;
           }
         }
         if (endMins > maxEndMins) {
@@ -341,9 +357,9 @@ export function useSchedule(options: UseScheduleOptions = { autoLoad: true }) {
 
         let endMinsOfDay = startMinsOfDay;
         for (let d = 0; d < maxDuration; d++) {
-          endMinsOfDay += lessonDurationMins;
+          endMinsOfDay += lessonDurationMins.value;
           if (d < maxDuration - 1) {
-            endMinsOfDay += breaks[first.slot + d] || 0;
+            endMinsOfDay += breaks.value[first.slot + d] || 0;
           }
         }
 

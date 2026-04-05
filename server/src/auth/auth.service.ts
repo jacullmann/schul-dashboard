@@ -384,7 +384,7 @@ export class AuthService {
 
     const mappedCourses = (userCourses || []).map((uc: any) => ({
       subjectId: uc.subject_id,
-      courseId: uc.course_id
+      courseId: uc.course_id,
     }));
 
     return {
@@ -692,7 +692,10 @@ export class AuthService {
     const defaultGroupId = prefs.defaultGroupId;
 
     let activeGroupId = null;
-    if (defaultGroupId && userRoles.some((ur) => ur.tenant_id === defaultGroupId)) {
+    if (
+      defaultGroupId &&
+      userRoles.some((ur) => ur.tenant_id === defaultGroupId)
+    ) {
       activeGroupId = defaultGroupId;
     } else {
       const firstGroup = userRoles.find((ur) => ur.tenant_id);
@@ -702,13 +705,7 @@ export class AuthService {
     const globalRole =
       userRoles.find((ur) => !ur.tenant_id)?.roles?.name || 'user';
 
-    this.setAuthToken(
-      res,
-      userId,
-      email,
-      globalRole,
-      activeGroupId,
-    );
+    this.setAuthToken(res, userId, email, globalRole, activeGroupId);
   }
 
   /**
@@ -723,7 +720,9 @@ export class AuthService {
     const sb = this.supabaseService.getClient();
     const { data: userRoles, error } = await sb
       .from('user_roles')
-      .select('tenant_id, groups(id, name, owner_id), roles(name)')
+      .select(
+        'tenant_id, groups(id, name, owner_id, schedule_config), roles(name)',
+      )
       .eq('user_id', userId)
       .not('tenant_id', 'is', null);
 
@@ -737,9 +736,9 @@ export class AuthService {
         ownerId: ur.groups.owner_id,
         role: ur.roles?.name,
         generatedName: generateUserName(userId, ur.groups.id),
+        scheduleConfig: ur.groups.schedule_config,
       }));
 
     return { groups };
   }
 }
-
