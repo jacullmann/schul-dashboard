@@ -39,6 +39,7 @@ declare module 'vue' {
     BaseTabs: typeof import('./src/common/components/BaseTabs.vue')['default']
     BaseTitle: typeof import('./src/common/components/BaseTitle.vue')['default']
     BaseToast: typeof import('./src/common/components/BaseToast.vue')['default']
+    BaseTooltip: typeof import('./src/common/components/BaseTooltip.vue')['default']
     CenteredAuthModal: typeof import('./src/common/components/CenteredAuthModal.vue')['default']
     CookieBanner: typeof import('./src/common/components/CookieBanner.vue')['default']
     InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']

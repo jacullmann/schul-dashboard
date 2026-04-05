@@ -121,18 +121,19 @@ onUnmounted(() => {
   </transition>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-1 bg-surface border-r border-surface-border z-[5000000]"
+    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-3 bg-surface border-r border-surface-border z-[5000000]"
     :class="[
       'md:sticky md:top-0',
-      isExpanded ? 'md:w-52' : 'md:w-11',
+      isExpanded ? 'md:w-64' : 'md:w-15',
 
-      'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-52 max-md:shadow-xl',
+      'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-64 max-md:shadow-xl',
       isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
     ]"
   >
     <div class="flex flex-col gap-4 w-full">
       <SidebarButton
         :label="t('sidebar.collapse')"
+        :shortcut="['ctrl', 'shift', 'd']"
         :expanded="isExpanded"
         @click="toggleExpanded"
       >
@@ -142,6 +143,7 @@ onUnmounted(() => {
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
           :label="t('sidebar.create')"
+          :shortcut="['alt', 'n']"
           :expanded="isExpanded"
           @click="handleCreate"
         >
@@ -150,6 +152,7 @@ onUnmounted(() => {
 
         <SidebarButton
           :label="t('sidebar.search')"
+          :shortcut="['ctrl', 'k']"
           :expanded="isExpanded"
           @click="handleSearch"
         >

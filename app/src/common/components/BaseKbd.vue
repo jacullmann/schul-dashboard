@@ -1,6 +1,14 @@
+<script setup lang="ts">
+withDefaults(defineProps<{
+  inverted?: boolean;
+}>(), {
+  inverted: false
+}) 
+</script>
+
 <template>
-  <kbd>
-    <slot />
+  <kbd :class="{ 'inverted': inverted }">
+    <slot></slot>
   </kbd>
 </template>
 
@@ -23,8 +31,20 @@ kbd {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
+kbd.inverted {
+  background-color: var(--color-kbd-bg-inverted);
+  color: var(--color-kbd-text-inverted);
+  border: 1px solid var(--color-kbd-border-inverted);
+  box-shadow: 0 2px 0 var(--color-kbd-border-bottom-inverted), 0 3px 2px var(--color-kbd-shadow-inverted);
+}
+
 kbd:active {
   transform: translateY(2px);
   box-shadow: 0 0px 0 var(--color-kbd-border-bottom), 0 1px 2px var(--color-kbd-shadow);
+}
+
+kbd.inverted:active {
+  transform: translateY(2px);
+  box-shadow: 0 0px 0 var(--color-kbd-border-bottom-inverted), 0 1px 2px var(--color-kbd-shadow-inverted);
 }
 </style>

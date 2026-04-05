@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import BaseTooltip from '@/common/components/BaseTooltip.vue';
+defineOptions({
+  inheritAttrs: false
+});
 
 defineProps<{
   label?: string;
+  shortcut?: string[];
   expanded?: boolean;
 }>();
 </script>
 
 <template>
-  <BaseTooltip :content="label" :disabled="expanded || !label">
+  <BaseTooltip 
+    :content="label" 
+    :shortcut="shortcut"
+    :disabled="expanded || !label"
+  >
     <button
-      class="group gap-0 items-center flex p-2 text-on-surface rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer border-0 outline-none w-full"
+      v-bind="$attrs"
+      class="group gap-0 items-center flex p-3 md:p-2 text-on-surface rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer border-0 outline-none w-full"
     >
       <span class="shrink-0">
         <slot />

@@ -21,27 +21,29 @@ const props = withDefaults(defineProps<Props>(), {
 
 const buttonEl = ref<HTMLButtonElement | null>(null);
 
-const variantClasses: Record<NonNullable<Props['variant']>, string> = {
-  ghost: [
-    `bg-transparent text-on-${props.on}-muted border-transparent`,
-    `hover:bg-${props.on}-hover hover:border-${props.on}-hover hover:text-on-${props.on}`,
-  ].join(' '),
-  text: [
-    'bg-surface text-on-surface border-surface-border',
-    'shadow-input',
-    'hover:bg-surface-hover-subtle',
-  ].join(' '),
-  action: [
-    'bg-action text-on-action border-action',
-    'hover:bg-action-hover hover:border-action-hover',
-  ].join(' '),
-  danger: [
-    'bg-danger text-on-danger border-danger',
-    'hover:bg-danger-hover',
-  ].join(' '),
-};
+const classes = computed(() => {
+  const variantClasses: Record<NonNullable<Props['variant']>, string> = {
+    ghost: [
+      `bg-transparent text-on-${props.on}-muted border-transparent`,
+      `hover:bg-${props.on}-hover hover:border-${props.on}-hover hover:text-on-${props.on}`,
+    ].join(' '),
+    text: [
+      'bg-surface text-on-surface border-surface-border',
+      'shadow-input',
+      'hover:bg-surface-hover-subtle',
+    ].join(' '),
+    action: [
+      'bg-action text-on-action border-action',
+      'hover:bg-action-hover hover:border-action-hover',
+    ].join(' '),
+    danger: [
+      'bg-danger text-on-danger border-danger',
+      'hover:bg-danger-hover',
+    ].join(' '),
+  };
 
-const classes = computed(() => variantClasses[props.variant ?? 'ghost']);
+  return variantClasses[props.variant ?? 'ghost'];
+});
 
 defineExpose({
   focus: () => buttonEl.value?.focus(),

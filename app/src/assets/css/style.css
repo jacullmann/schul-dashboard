@@ -140,6 +140,12 @@
     --color-kbd-border: #4a4a4a;
     --color-kbd-border-bottom: #242424;
     --color-kbd-shadow: #0006;
+
+    --color-kbd-bg-inverted: #f6f6f6;
+    --color-kbd-text-inverted: #282828;
+    --color-kbd-border-inverted: #d5d5d5;
+    --color-kbd-border-bottom-inverted: #959595;
+    --color-kbd-shadow-inverted: #0003;
 }
 
 @font-face {
@@ -207,6 +213,12 @@
     --color-kbd-border: #d5d5d5;
     --color-kbd-border-bottom: #959595;
     --color-kbd-shadow: #0003;
+
+    --color-kbd-bg-inverted: #353535;
+    --color-kbd-text-inverted: #ccc;
+    --color-kbd-border-inverted: #4a4a4a;
+    --color-kbd-border-bottom-inverted: #242424;
+    --color-kbd-shadow-inverted: #0006;
 }
 
 /*

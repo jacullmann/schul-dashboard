@@ -3,6 +3,7 @@ import { ref, nextTick, onBeforeUnmount } from 'vue';
 
 const props = defineProps<{
   content?: string;
+  shortcut?: string[];
   disabled?: boolean;
 }>();
 
@@ -51,24 +52,25 @@ onBeforeUnmount(hide);
     @focusout="hide"
   >
     <slot />
-  </div>
 
-  <Teleport to="body">
-    <transition
-      enter-active-class="transition duration-150 ease-out"
-      enter-from-class="opacity-0 -translate-x-2"
-      enter-to-class="opacity-100 translate-x-0"
-      leave-active-class="transition duration-100 ease-in"
-      leave-from-class="opacity-100 translate-x-0"
-      leave-to-class="opacity-0 -translate-x-2"
-    >
-      <div
-        v-if="isVisible"
-        class="fixed z-60000 px-2.5 py-1.5 bg-action text-on-action text-xs font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
-        :style="tooltipStyle"
+    <Teleport to="body">
+      <transition
+        enter-active-class="transition duration-150 ease-out"
+        enter-from-class="opacity-0 -translate-x-2"
+        enter-to-class="opacity-100 translate-x-0"
+        leave-active-class="transition duration-100 ease-in"
+        leave-from-class="opacity-100 translate-x-0"
+        leave-to-class="opacity-0 -translate-x-2"
       >
-        {{ content }}
-      </div>
-    </transition>
-  </Teleport>
+        <div
+          v-if="isVisible"
+          class="fixed z-[60000] px-2.5 py-1 bg-surface-inverted text-on-surface-inverted text-xs leading-4 font-medium rounded shadow-lg pointer-events-none whitespace-nowrap"
+          :style="tooltipStyle"
+        >
+          {{ content }}
+          <BaseKbdGroup v-if="shortcut" :keys="shortcut" :inverted="true" />
+        </div>
+      </transition>
+    </Teleport>
+  </div>
 </template>
