@@ -64,7 +64,7 @@ onBeforeUnmount(hide);
       >
         <div
           v-if="isVisible"
-          class="fixed z-[var(--z-tooltip)] px-2.5 py-1 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
+          class="fixed z-(--z-tooltip) px-3 py-1.5 bg-action text-on-action gap-2 text-xs leading-4 font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
           :style="tooltipStyle"
         >
           {{ content }}
