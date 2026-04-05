@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { Component, computed, ref } from 'vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
   variant?: 'action' | 'ghost' | 'text' | 'danger';
+  icon?: Component;
   loading?: boolean;
   disabled?: boolean;
 }
@@ -11,6 +12,7 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   type: 'button',
   variant: 'ghost',
+  icon: undefined,
   loading: false,
   disabled: false,
 });
@@ -50,12 +52,18 @@ defineExpose({
     ref="buttonEl"
     :type="type"
     :disabled="disabled || loading"
-    :class="classes"
-    class="inline-flex items-center gap-2 px-4 py-2 border rounded-full text-btn leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    :class="[
+      classes,
+      loading ? 'px-2' : (icon && $slots.default ? 'pl-2 pr-4' : icon ? 'px-2' : 'px-4'),
+    ]"
+    class="inline-flex items-center gap-2 py-2 border rounded-full text-btn leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
     <BaseSpinner v-if="loading" :on="variant" size="1em" />
-    <slot v-else></slot>
+    <template v-else>
+      <component v-if="icon" :is="icon" />
+      <slot></slot>
+    </template>
   </button>
 </template>

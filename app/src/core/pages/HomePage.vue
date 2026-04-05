@@ -116,12 +116,10 @@ onMounted(() => {
 
         <!-- Regular User: Join/Create Group -->
         <div class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0" v-if="userGroups.length > 0">
-          <BaseButton @click="modalStore.openJoinGroup()" variant="action">
-            <UserRoundPlus :size="16" />
+          <BaseButton @click="modalStore.openJoinGroup()" variant="action" :icon="UserRoundPlus">
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
-          <BaseButton @click="modalStore.openCreateGroup()" variant="ghost">
-            <Plus :size="16" />
+          <BaseButton @click="modalStore.openCreateGroup()" variant="ghost" :icon="Plus">
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
         </div>

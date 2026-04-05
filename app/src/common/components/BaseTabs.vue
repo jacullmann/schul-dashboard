@@ -97,13 +97,13 @@ useResizeObserver(navBarRef, () => {
 
 <template>
   <div class="flex items-center justify-start w-full">
-    <div class="relative bg-surface border border-surface-border p-0 rounded-md flex isolation-isolate max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide shadow-input" ref="navBarRef">
+    <div class="relative bg-surface border border-surface-border p-0 rounded-full flex isolation-isolate max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide shadow-input" ref="navBarRef">
       <div class="flex items-center h-full w-max relative z-1" role="radiogroup">
         <label
             v-for="(item, index) in items"
             :key="item.id"
             :ref="(el) => { if (el) itemRefs[index] = el as HTMLElement }"
-            class="bg-transparent border-0 cursor-pointer px-3 py-2 text-btn leading-4 rounded-md text-on-surface-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-surface"
+            class="bg-transparent border-0 cursor-pointer px-4 py-2 text-btn leading-4 rounded-full text-on-surface-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-surface"
         >
           <input
               type="radio"
@@ -117,12 +117,12 @@ useResizeObserver(navBarRef, () => {
         </label>
       </div>
 
-      <div class="absolute top-0 left-0 bottom-0 bg-action rounded-[calc(var(--radius-md)-1px)] z-2 overflow-hidden pointer-events-none transition-all duration-350 ease-[cubic-bezier(0.075,0.82,0.165,1)]" :style="pillStyle" aria-hidden="true">
+      <div class="absolute top-0 left-0 bottom-0 bg-action rounded-full z-2 overflow-hidden pointer-events-none transition-all duration-350 ease-[cubic-bezier(0.075,0.82,0.165,1)]" :style="pillStyle" aria-hidden="true">
         <div class="flex items-center h-full w-max absolute top-0 left-0 pointer-events-none transition-transform duration-350 ease-[cubic-bezier(0.075,0.82,0.165,1)]" :style="innerListStyle">
           <span
               v-for="item in items"
               :key="`fg-${item.id}`"
-              class="bg-transparent border-0 cursor-pointer px-3 py-2 text-btn leading-4 rounded-md text-on-action whitespace-nowrap shrink-0 transition-hover"
+              class="bg-transparent border-0 cursor-pointer px-4 py-2 text-btn leading-4 rounded-full text-on-action whitespace-nowrap shrink-0 transition-hover"
           >
             {{ item.label }}
           </span>

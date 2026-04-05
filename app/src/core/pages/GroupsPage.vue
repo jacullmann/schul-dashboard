@@ -140,12 +140,10 @@ async function leaveGroup(group: any) {
         </div>
 
         <div class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0" v-if="userGroups.length > 0">
-          <BaseButton @click="modalStore.openJoinGroup" variant="action">
-            <UserRoundPlus :size="16" />
+          <BaseButton @click="modalStore.openJoinGroup" variant="action" :icon="UserRoundPlus">
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
-          <BaseButton @click="modalStore.openCreateGroup" variant="ghost">
-            <Plus :size="16" />
+          <BaseButton @click="modalStore.openCreateGroup" variant="ghost" :icon="Plus">
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
         </div>
@@ -195,9 +193,7 @@ async function leaveGroup(group: any) {
 
           <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" / -->
 
-          <div type="button" @click.stop="openMenuId = openMenuId === group.id ? null : group.id" class="rounded-full p-2 bg-transparent hover:bg-surface-hover transition-hover cursor-pointer">
-            <MoreHorizontal :size="16" />
-          </div>
+          <BaseButton @click.stop="openMenuId = openMenuId === group.id ? null : group.id" variant="ghost" :icon="MoreHorizontal" />
 
           <BaseMenu v-if="openMenuId === group.id" class="right-0 mt-6" @click.stop>
             <BaseMenuButton v-if="group.id !== defaultGroupId" @click="setDefaultGroup(group.id)">
