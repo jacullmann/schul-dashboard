@@ -8,7 +8,6 @@ import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import { useLoadingBar } from '@/common/composables/loadingState';
 import GlobalModalContainer from '@/core/components/GlobalModalContainer.vue';
-import CookieBanner from '@/common/components/CookieBanner.vue';
 import BaseToast from '@/common/components/BaseToast.vue';
 import hw from '@/api/hwApi';
 
@@ -117,8 +116,6 @@ onUnmounted(() => {
       </router-view>
 
       <GlobalModalContainer />
-
-      <CookieBanner />
       <BaseToast />
     </template>
   </div>

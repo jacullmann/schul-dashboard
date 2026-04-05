@@ -41,7 +41,6 @@ declare module 'vue' {
     BaseToast: typeof import('./src/common/components/BaseToast.vue')['default']
     BaseTooltip: typeof import('./src/common/components/BaseTooltip.vue')['default']
     CenteredAuthModal: typeof import('./src/common/components/CenteredAuthModal.vue')['default']
-    CookieBanner: typeof import('./src/common/components/CookieBanner.vue')['default']
     InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']
     LocaleDropdown: typeof import('./src/common/components/LocaleDropdown.vue')['default']
     LocaleMenuDropdown: typeof import('./src/common/components/LocaleMenuDropdown.vue')['default']
