@@ -72,10 +72,15 @@ onMounted(() => {
       Fächer
 
       <template #action>
-        <BaseButton @click="loadSubjects" :disabled="loading" variant="ghost">
-          <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
-          <span>Aktualisieren</span>
-        </BaseButton>
+        <BaseTooltip content="Aktualisieren">
+          <BaseButton
+            @click="loadSubjects"
+            :disabled="loading"
+            variant="ghost"
+            on="canvas"
+            :icon="RefreshCw"
+          />
+        </BaseTooltip>
       </template>
     </PageHeader>
 
@@ -83,53 +88,74 @@ onMounted(() => {
     <div v-if="isAdmin" class="add-form-card">
       <div class="add-form-row">
         <BaseInput
-            id="new-subject-name-input"
-            v-model="newSubjectName"
-            class="add-input"
-            placeholder="Neues Fach hinzufügen..."
-            @keyup.enter="handleCreate"
-            :disabled="saving"
+          id="new-subject-name-input"
+          v-model="newSubjectName"
+          class="add-input"
+          placeholder="Neues Fach hinzufügen..."
+          @keyup.enter="handleCreate"
+          :disabled="saving"
         />
-        <BaseButton @click="handleCreate" :disabled="!newSubjectName.trim() || saving" variant="action">
-          <Plus :size="16" />
-          <span>{{ saving ? 'Erstellt...' : 'Hinzufügen' }}</span>
+        <BaseButton
+          @click="handleCreate"
+          :disabled="!newSubjectName.trim() || saving"
+          variant="action"
+          :icon="Plus"
+        >
+          {{ saving ? 'Erstellt...' : 'Hinzufügen' }}
         </BaseButton>
       </div>
     </div>
 
     <!-- Loading / Empty -->
-    <div v-if="loading && subjects.length === 0" class="empty-hint">Lädt...</div>
-    <div v-else-if="subjects.length === 0" class="empty-hint">Keine Fächer vorhanden.</div>
+    <div v-if="loading && subjects.length === 0" class="empty-hint">
+      Lädt...
+    </div>
+    <div v-else-if="subjects.length === 0" class="empty-hint">
+      Keine Fächer vorhanden.
+    </div>
 
     <!-- Subjects List -->
     <div v-else class="subjects-list">
       <div
-          v-for="subject in subjects"
-          :key="subject.id"
-          class="subject-row"
-          :class="{ inactive: !subject.isActive }"
+        v-for="subject in subjects"
+        :key="subject.id"
+        class="subject-row"
+        :class="{ inactive: !subject.isActive }"
       >
         <!-- Display mode -->
         <template v-if="editingId !== subject.id">
           <div class="subject-info">
             <span class="subject-name">{{ subjectLabel(subject) }}</span>
-            <span class="status-badge" :class="subject.isActive ? 'active' : 'inactive'">
+            <span
+              class="status-badge"
+              :class="subject.isActive ? 'active' : 'inactive'"
+            >
               {{ subject.isActive ? 'Aktiv' : 'Inaktiv' }}
             </span>
           </div>
           <div v-if="isAdmin" class="subject-actions">
             <label class="toggle-label">
               <BaseCheckbox
-                  :model-value="subject.isActive"
-                  @change="handleToggleActive(subject, $event)"
+                :model-value="subject.isActive"
+                @change="handleToggleActive(subject, $event)"
               />
             </label>
-            <button class="btn-icon" @click="startRename(subject)" title="Umbenennen">
-              <Pencil :size="16" />
-            </button>
-            <button class="btn-icon danger" @click="deleteSubject(subject.id)" title="Löschen">
-              <Trash2 :size="16" />
-            </button>
+            <BaseTooltip content="Umbenennen">
+              <BaseButton
+                variant="ghost"
+                on="surface"
+                @click="startRename(subject)"
+                :icon="Pencil"
+              />
+            </BaseTooltip>
+            <BaseTooltip content="Löschen">
+              <BaseButton
+                variant="ghost"
+                on="surface"
+                @click="deleteSubject(subject.id)"
+                :icon="Trash2"
+              />
+            </BaseTooltip>
           </div>
         </template>
 
@@ -137,24 +163,32 @@ onMounted(() => {
         <template v-else>
           <div class="edit-row">
             <BaseInput
-                :id="'edit-subject-' + subject.id"
-                v-model="editingName"
-                class="edit-input"
-                @keyup.enter="saveRename(subject.id)"
-                @keyup.escape="cancelRename"
-                autofocus
+              :id="'edit-subject-' + subject.id"
+              v-model="editingName"
+              class="edit-input"
+              @keyup.enter="saveRename(subject.id)"
+              @keyup.escape="cancelRename"
+              autofocus
             />
-            <button
-                class="btn-icon confirm"
+            <BaseTooltip content="Speichern">
+              <BaseButton
+                variant="ghost"
+                on="surface"
                 @click="saveRename(subject.id)"
                 :disabled="!editingName.trim() || saving"
                 title="Speichern"
-            >
-              <Check :size="16" />
-            </button>
-            <button class="btn-icon" @click="cancelRename" title="Abbrechen">
-              <X :size="16" />
-            </button>
+                :icon="Check"
+              />
+            </BaseTooltip>
+            <BaseTooltip content="Abbrechen">
+              <BaseButton
+                variant="ghost"
+                on="surface"
+                @click="cancelRename"
+                title="Abbrechen"
+                :icon="X"
+              />
+            </BaseTooltip>
           </div>
         </template>
       </div>
@@ -163,11 +197,19 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.tab-panel { animation: fadeUp 0.2s ease; }
+.tab-panel {
+  animation: fadeUp 0.2s ease;
+}
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Add form */
@@ -221,9 +263,8 @@ onMounted(() => {
 }
 
 .subject-row.inactive .subject-name {
-  color: var(--color-on-surface-muted)
+  color: var(--color-on-surface-muted);
 }
-
 
 .status-badge {
   font-size: var(--text-footnote);
@@ -233,8 +274,12 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.status-badge.active { color: var(--color-on-surface); }
-.status-badge.inactive { color: var(--color-on-surface-muted); }
+.status-badge.active {
+  color: var(--color-on-surface);
+}
+.status-badge.inactive {
+  color: var(--color-on-surface-muted);
+}
 
 .subject-actions {
   display: flex;
@@ -275,13 +320,27 @@ onMounted(() => {
   border: none;
   color: var(--color-on-surface-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
-.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
-.btn-icon.danger:hover { background: var(--color-danger-surface); color: var(--color-danger); }
-.btn-icon.confirm:hover { background: rgba(34, 197, 94, 0.1); color: var(--color-success); }
-.btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-icon:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
+}
+.btn-icon.danger:hover {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+.btn-icon.confirm:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--color-success);
+}
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .empty-hint {
   text-align: center;
@@ -290,15 +349,35 @@ onMounted(() => {
   font-size: var(--text-body);
 }
 
-.spin-icon { animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @media (max-width: 300px) {
-  .subject-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .subject-actions { width: 100%; }
-  .add-form-row { flex-wrap: wrap; }
-  .add-input { max-width: 100%; }
-  .edit-row { flex-wrap: wrap; }
-  .edit-input { max-width: 100%; }
+  .subject-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .subject-actions {
+    width: 100%;
+  }
+  .add-form-row {
+    flex-wrap: wrap;
+  }
+  .add-input {
+    max-width: 100%;
+  }
+  .edit-row {
+    flex-wrap: wrap;
+  }
+  .edit-input {
+    max-width: 100%;
+  }
 }
 </style>

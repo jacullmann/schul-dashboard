@@ -23,7 +23,11 @@ const emit = defineEmits<{
 const canDemoteAdmin = computed(() => props.isOwner);
 
 function roleLabel(role: string): string {
-  const map: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'Mitglied' };
+  const map: Record<string, string> = {
+    admin: 'Admin',
+    moderator: 'Moderator',
+    user: 'Mitglied',
+  };
   return map[role] || role;
 }
 
@@ -37,7 +41,7 @@ const removeModal = ref({
   isOpen: false,
   userId: '',
   userName: '',
-  ban: false
+  ban: false,
 });
 
 function openRemoveModal(userId: string, name: string) {
@@ -45,7 +49,7 @@ function openRemoveModal(userId: string, name: string) {
     isOpen: true,
     userId,
     userName: name,
-    ban: false
+    ban: false,
   };
 }
 
@@ -54,7 +58,12 @@ function closeRemoveModal() {
 }
 
 function confirmRemove() {
-  emit('remove', removeModal.value.userId, removeModal.value.userName, removeModal.value.ban);
+  emit(
+    'remove',
+    removeModal.value.userId,
+    removeModal.value.userName,
+    removeModal.value.ban,
+  );
   closeRemoveModal();
 }
 </script>
@@ -65,33 +74,51 @@ function confirmRemove() {
       Mitglieder
 
       <template #info>
-        <InfoModal
-          tooltip="Übersicht des Mitgliedermenüs"
-          title="Mitglieder"
-        >
+        <InfoModal tooltip="Übersicht des Mitgliedermenüs" title="Mitglieder">
           <h3>Verwalte Mitglieder deiner Gruppe</h3>
 
           <h3>Mitgliedsliste</h3>
-          <p>Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten der Nutzer zu schützen wird ein automatisch generierter Alias angezeigt. Über das Dropdown-Menü kannst du die Rolle eines Mitglieds ändern.</p>
-          
+          <p>
+            Hier siehst du eine Liste aller Mitglieder deiner Gruppe zusammen
+            mit ihren Berechtigungen (Mitglied, Moderator, Admin). Um die Daten
+            der Nutzer zu schützen wird ein automatisch generierter Alias
+            angezeigt. Über das Dropdown-Menü kannst du die Rolle eines
+            Mitglieds ändern.
+          </p>
+
           <h3>Rollen ändern</h3>
-          <p>Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen zu erteilen oder zu entziehen, kannst du dies über das Dropdown-Menü, das neben jedem Mitglied steht, tun. </p>
-          
+          <p>
+            Wenn du die Rolle eines Nutzers ändern willst, um ihm Berechtigungen
+            zu erteilen oder zu entziehen, kannst du dies über das
+            Dropdown-Menü, das neben jedem Mitglied steht, tun.
+          </p>
+
           <h3>Mitglieder entfernen</h3>
-          <p>Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht entfernt werden.</p>
+          <p>
+            Um ein Mitglied aus der Gruppe zu entfernen, klicke auf das
+            entsprechende Symbol neben dem Dropdown-Menü. Admins können nicht
+            entfernt werden.
+          </p>
         </InfoModal>
       </template>
 
       <template #action>
-        <BaseButton @click="emit('refresh')" :disabled="loading" variant="ghost">
-          <RefreshCw :size="14" :class="{ 'spin-icon': loading }" />
-          <span>Aktualisieren</span>
-        </BaseButton>
+        <BaseTooltip content="Aktualisieren">
+          <BaseButton
+            @click="emit('refresh')"
+            :disabled="loading"
+            variant="ghost"
+            on="canvas"
+            :icon="RefreshCw"
+          />
+        </BaseTooltip>
       </template>
     </PageHeader>
 
     <div v-if="loading && members.length === 0" class="empty-hint">Lädt...</div>
-    <div v-else-if="members.length === 0" class="empty-hint">Keine Mitglieder gefunden.</div>
+    <div v-else-if="members.length === 0" class="empty-hint">
+      Keine Mitglieder gefunden.
+    </div>
 
     <div v-else class="members-list">
       <div v-for="member in members" :key="member.userId" class="member-row">
@@ -103,29 +130,29 @@ function confirmRemove() {
         </div>
         <div class="member-actions">
           <BaseSelect
-              extraClass="role-select"
-              :modelValue="member.role"
-              @update:modelValue="(val: string) => onRoleChange(member, val)"
-              :disabled="member.role === 'admin' && !canDemoteAdmin"
-              :options="[
-                { label: 'Mitglied', value: 'user' },
-                { label: 'Moderator', value: 'moderator' },
-                { label: 'Admin', value: 'admin' },
-              ]"
+            extraClass="role-select"
+            :modelValue="member.role"
+            @update:modelValue="(val: string) => onRoleChange(member, val)"
+            :disabled="member.role === 'admin' && !canDemoteAdmin"
+            :options="[
+              { label: 'Mitglied', value: 'user' },
+              { label: 'Moderator', value: 'moderator' },
+              { label: 'Admin', value: 'admin' },
+            ]"
           />
           <button
-              class="btn-icon danger"
-              @click="openRemoveModal(member.userId, member.generatedName)"
-              title="Aus Gruppe entfernen"
-              :disabled="member.role === 'admin'"
+            class="btn-icon danger"
+            @click="openRemoveModal(member.userId, member.generatedName)"
+            title="Aus Gruppe entfernen"
+            :disabled="member.role === 'admin'"
           >
             <UserRoundMinus :size="15" />
           </button>
           <button
-              v-if="isOwner && member.role === 'admin'"
-              class="btn-icon transfer-btn"
-              @click="emit('transfer-ownership', member.userId)"
-              title="Eigentümerschaft übertragen"
+            v-if="isOwner && member.role === 'admin'"
+            class="btn-icon transfer-btn"
+            @click="emit('transfer-ownership', member.userId)"
+            title="Eigentümerschaft übertragen"
           >
             <Crown :size="15" />
           </button>
@@ -133,17 +160,28 @@ function confirmRemove() {
       </div>
     </div>
 
-    <PageHeader class="mt-8">
-      Banned Users
-    </PageHeader>
-    
-    <div v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)" class="empty-hint">Loading...</div>
-    <div v-else-if="!bannedUsers || bannedUsers.length === 0" class="empty-hint">No banned users.</div>
+    <PageHeader class="mt-8"> Banned Users </PageHeader>
+
+    <div
+      v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
+      class="empty-hint"
+    >
+      Loading...
+    </div>
+    <div
+      v-else-if="!bannedUsers || bannedUsers.length === 0"
+      class="empty-hint"
+    >
+      No banned users.
+    </div>
     <div v-else class="members-list">
       <div v-for="user in bannedUsers" :key="user.userId" class="member-row">
         <div class="member-info">
           <span class="member-name">{{ user.generatedName }}</span>
-          <span class="member-role-badge role-user">Banned On {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span>
+          <span class="member-role-badge role-user"
+            >Banned On
+            {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
+          >
         </div>
         <div class="member-actions">
           <BaseButton variant="ghost" @click="emit('revert-ban', user.userId)">
@@ -153,29 +191,49 @@ function confirmRemove() {
       </div>
     </div>
 
-    <BaseModal v-if="removeModal.isOpen" @cancel="closeRemoveModal" :danger="true" :submit="confirmRemove">
+    <BaseModal
+      v-if="removeModal.isOpen"
+      @cancel="closeRemoveModal"
+      :danger="true"
+      :submit="confirmRemove"
+    >
       <template #title>Remove Member</template>
 
       <template #content>
-        <p>Are you sure you want to remove <strong>{{ removeModal.userName }}</strong> from the group?</p>
-        <p>Users can rejoin at any time if they have the credentials for your group. To block them from doing so you can ban them.</p>
-        
-        <BaseCheckbox v-model="removeModal.ban">Ban <strong>{{ removeModal.userName }}</strong> permanently</BaseCheckbox>
+        <p>
+          Are you sure you want to remove
+          <strong>{{ removeModal.userName }}</strong> from the group?
+        </p>
+        <p>
+          Users can rejoin at any time if they have the credentials for your
+          group. To block them from doing so you can ban them.
+        </p>
+
+        <BaseCheckbox v-model="removeModal.ban"
+          >Ban
+          <strong>{{ removeModal.userName }}</strong> permanently</BaseCheckbox
+        >
       </template>
 
-      <template #action-text>
-        Remove
-      </template>
+      <template #action-text> Remove </template>
     </BaseModal>
   </div>
 </template>
 
 <style scoped>
-.tab-panel { animation: fadeUp 0.2s ease; }
+.tab-panel {
+  animation: fadeUp 0.2s ease;
+}
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .title-inf {
@@ -224,9 +282,15 @@ function confirmRemove() {
   letter-spacing: 0.04em;
 }
 
-.role-admin { color: #6366f1; }
-.role-moderator { color: #f59e0b; }
-.role-user { color: var(--color-on-surface-muted); }
+.role-admin {
+  color: #6366f1;
+}
+.role-moderator {
+  color: #f59e0b;
+}
+.role-user {
+  color: var(--color-on-surface-muted);
+}
 
 .member-actions {
   display: flex;
@@ -248,8 +312,14 @@ function confirmRemove() {
   font-size: var(--text-body);
 }
 
-.spin-icon { animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.spin-icon {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .btn-icon {
   display: flex;
@@ -262,16 +332,36 @@ function confirmRemove() {
   border: none;
   color: var(--color-on-surface-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
-.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
-.btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.btn-icon.transfer-btn:hover { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
-.btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-icon:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
+}
+.btn-icon.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.btn-icon.transfer-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 @media (max-width: 640px) {
-  .member-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .member-actions { width: 100%; }
+  .member-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .member-actions {
+    width: 100%;
+  }
 }
 </style>

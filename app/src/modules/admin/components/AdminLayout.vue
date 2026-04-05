@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue';
 import { ArrowLeft } from '@lucide/vue';
+import SidebarButton from '@/core/components/SidebarButton.vue';
 
 export interface AdminNavItem {
   id: string;
@@ -53,15 +54,14 @@ const activeTab = computed({
       <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
       <aside class="adm-sidebar">
         <nav class="adm-nav">
-          <button
+          <SidebarButton
             v-for="item in navItems"
             :key="item.id"
-            class="adm-nav-item"
-            :class="{ active: activeTab === item.id }"
+            :label="item.label"
+            :active="activeTab === item.id"
             @click="activeTab = item.id"
           >
-            <component :is="item.icon" :size="18" class="adm-nav-icon" />
-            <span class="adm-nav-label">{{ item.label }}</span>
+            <component :is="item.icon" :size="20" />
             <span
               v-if="item.count && item.count > 0"
               class="adm-nav-badge"
@@ -69,7 +69,7 @@ const activeTab = computed({
             >
               {{ item.count }}
             </span>
-          </button>
+          </SidebarButton>
         </nav>
       </aside>
 
@@ -134,8 +134,10 @@ const activeTab = computed({
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  color: var(--color-sub);
-  transition: background 0.15s, color 0.15s;
+  color: var(--color-on-surface-muted);
+  transition:
+    background 0.15s,
+    color 0.15s;
   flex-shrink: 0;
 }
 
@@ -160,7 +162,7 @@ const activeTab = computed({
 
 .adm-subtitle {
   font-size: var(--text-sub);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -198,11 +200,13 @@ const activeTab = computed({
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
   font-size: var(--text-body);
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition:
+    background 0.12s,
+    color 0.12s;
   text-align: left;
   width: 100%;
 }
@@ -232,7 +236,7 @@ const activeTab = computed({
   padding: 1px 7px;
   border-radius: 8px;
   background: var(--color-surface-hover);
-  color: var(--color-sub);
+  color: var(--color-on-surface-muted);
 }
 
 .adm-nav-badge.danger {

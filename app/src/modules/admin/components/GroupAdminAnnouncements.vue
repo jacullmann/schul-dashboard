@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CirclePlus, Trash2 } from '@lucide/vue';
+import { Plus, Trash2 } from '@lucide/vue';
 import type { AdminAnnouncement } from '@/modules/admin/types';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
 
@@ -21,8 +21,11 @@ onFormSuccess(() => {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('de-DE', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 </script>
@@ -33,22 +36,31 @@ function formatDate(iso: string) {
       Ankündigungen
 
       <template #action>
-        <BaseButton variant="action" @click="openAnnouncementForm">
-          <CirclePlus :size="16" />
+        <BaseButton variant="action" @click="openAnnouncementForm" :icon="Plus">
           Neue Ankündigung
         </BaseButton>
       </template>
     </PageHeader>
 
-    <div v-if="announcements.length === 0" class="empty-hint">Keine Ankündigungen vorhanden.</div>
+    <div v-if="announcements.length === 0" class="empty-hint">
+      Keine Ankündigungen vorhanden.
+    </div>
     <div v-else class="ann-list">
-      <div v-for="ann in announcements" :key="ann.id" class="ann-item" :class="'ann-' + ann.color">
+      <div
+        v-for="ann in announcements"
+        :key="ann.id"
+        class="ann-item"
+        :class="'ann-' + ann.color"
+      >
         <div class="ann-item-body">{{ ann.content }}</div>
         <div class="ann-item-footer">
           <span class="ann-item-date">{{ formatDate(ann.createdAt) }}</span>
-          <button class="btn-icon danger" @click="emit('delete', ann.id)">
-            <Trash2 :size="14" />
-          </button>
+          <BaseButton
+            variant="ghost"
+            on="surface"
+            @click="emit('delete', ann.id)"
+            :icon="Trash2"
+          />
         </div>
       </div>
     </div>
@@ -56,11 +68,19 @@ function formatDate(iso: string) {
 </template>
 
 <style scoped>
-.tab-panel { animation: fadeUp 0.2s ease; }
+.tab-panel {
+  animation: fadeUp 0.2s ease;
+}
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ann-list {
@@ -76,9 +96,15 @@ function formatDate(iso: string) {
   background: var(--color-surface);
 }
 
-.ann-info { border-left-color: var(--color-action); }
-.ann-warn { border-left-color: var(--color-warn); }
-.ann-danger { border-left-color: var(--color-danger); }
+.ann-info {
+  border-left-color: var(--color-action);
+}
+.ann-warn {
+  border-left-color: var(--color-warn);
+}
+.ann-danger {
+  border-left-color: var(--color-danger);
+}
 
 .ann-item-body {
   font-size: var(--text-body);
@@ -115,10 +141,21 @@ function formatDate(iso: string) {
   border: none;
   color: var(--color-on-surface-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
-.btn-icon:hover { background: var(--color-surface-hover); color: var(--color-on-surface); }
-.btn-icon.danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-icon:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-on-surface);
+}
+.btn-icon.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 </style>
