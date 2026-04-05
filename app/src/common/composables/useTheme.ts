@@ -14,10 +14,10 @@ function prefersDarkScheme(): boolean {
 
 function applyThemeClass(mode: 'light' | 'dark') {
   const htmlElement = document.documentElement;
-  if (mode === 'light') {
-    htmlElement.classList.add('light');
+  if (mode === 'dark') {
+    htmlElement.classList.add('dark');
   } else {
-    htmlElement.classList.remove('light');
+    htmlElement.classList.remove('dark');
   }
   appliedThemeClass.value = mode;
 }
