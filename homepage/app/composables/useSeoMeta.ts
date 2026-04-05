@@ -1,7 +1,3 @@
-/**
- * Composable for managing SEO metadata with i18n support
- * Handles meta tags, OG tags, and structured data
- */
 export const useSeoMetaWithI18n = (options: {
   title: string | (() => string);
   description: string | (() => string);
@@ -9,26 +5,23 @@ export const useSeoMetaWithI18n = (options: {
   ogImage?: string;
   ogType?: string;
   canonicalUrl?: string;
-  structuredData?: Record<string, any>;
+  structuredData?: Record<string, unknown>;
 }) => {
-  const { t } = useI18n();
   const route = useRoute();
 
   const title = typeof options.title === 'function' ? options.title() : options.title;
   const description = typeof options.description === 'function' ? options.description() : options.description;
-  const keywords = options.keywords || '';
-  const ogImage = options.ogImage || '/og-image.png';
-  const ogType = options.ogType || 'website';
+  const ogImage = options.ogImage || 'https://schul-dashboard.com/og-image.png';
   const canonicalUrl = options.canonicalUrl || `https://schul-dashboard.com${route.path}`;
 
   useSeoMeta({
     title,
     description,
-    keywords,
+    keywords: options.keywords,
     ogTitle: title,
     ogDescription: description,
     ogImage,
-    ogType,
+    ogType: options.ogType || 'website',
     ogUrl: canonicalUrl,
     twitterCard: 'summary_large_image',
     twitterTitle: title,
@@ -37,23 +30,15 @@ export const useSeoMetaWithI18n = (options: {
   });
 
   useHead({
-    link: [
-      {
-        rel: 'canonical',
-        href: canonicalUrl,
-      },
-    ],
+    link: [{ rel: 'canonical', href: canonicalUrl }],
   });
 
-  // Add structured data if provided
   if (options.structuredData) {
     useHead({
-      script: [
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify(options.structuredData),
-        },
-      ],
+      script: [{
+        type: 'application/ld+json',
+        innerHTML: JSON.stringify(options.structuredData),
+      }],
     });
   }
 };

@@ -1,6 +1,6 @@
 export type ThemePreference = 'light' | 'dark' | 'system';
 
-export const usePerfectTheme = () => {
+export const useHomepageTheme = () => {
   const colorMode = useColorMode();
   const { t } = useI18n();
 
@@ -16,11 +16,10 @@ export const usePerfectTheme = () => {
   };
 
   const themeLabel = computed(() => {
-    const preference = colorMode.preference;
-    if (preference === 'system') {
+    if (colorMode.preference === 'system') {
       return `${t('common.theme')} (${isDark.value ? t('common.dark') : t('common.light')})`;
     }
-    return t(`common.${preference}`);
+    return t(`common.${colorMode.preference}`);
   });
 
   return {

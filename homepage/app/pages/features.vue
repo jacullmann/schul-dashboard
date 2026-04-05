@@ -1,47 +1,81 @@
 <script setup lang="ts">
+import {
+  ClipboardList, CalendarDays, Users, Lock, Shield, Search,
+} from '@lucide/vue';
+
 const { t } = useI18n();
 
-// SEO
 useSeoMetaWithI18n({
   title: () => `${t('pages.features.title')} — schul-dashboard`,
   description: () => t('pages.features.description'),
-  keywords: 'features, capabilities, functionality',
+  keywords: 'features, tasks, schedule, groups, private notes, security, search',
   canonicalUrl: 'https://schul-dashboard.com/features',
 });
+
+const features = [
+  {
+    key: 'tasks',
+    color: 'text-green',
+  },
+  {
+    key: 'schedule',
+    color: 'text-bismuth-purple',
+  },
+  {
+    key: 'groups',
+    color: 'text-bismuth-yellow',
+  },
+  {
+    key: 'private',
+    color: 'text-bismuth-red',
+  },
+  {
+    key: 'security',
+    color: 'text-green',
+  },
+  {
+    key: 'search',
+    color: 'text-bismuth-purple',
+  },
+];
 </script>
 
 <template>
   <div class="w-full">
-    <section class="w-full py-20 md:py-12">
-      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
-        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.2] mb-4 text-center max-w-2xl mx-auto">
+
+    <section class="w-full py-20 md:py-14 border-b border-surface-border">
+      <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
+        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.15] mb-5 max-w-2xl mx-auto">
           {{ t('pages.features.title') }}
         </h1>
-        <p class="text-lg text-on-surface-muted text-center max-w-xl mx-auto">
+        <p class="text-lg text-on-surface-muted leading-[1.65]">
           {{ t('pages.features.description') }}
         </p>
       </div>
     </section>
 
-    <!-- TODO: Add feature details sections -->
-    <section class="w-full py-16 md:py-12">
+    <section class="w-full py-20 md:py-14">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
-        <div class="grid grid-cols-2 md:grid-cols-1 gap-8">
-          <div
-            v-for="idx in 6"
-            :key="`feature-detail-${idx}`"
-            class="bg-surface border border-surface-border rounded-xl p-8"
+        <div class="flex flex-col gap-12">
+          <article
+              v-for="(feature, idx) in features"
+              :key="feature.key"
+              class="flex flex-col md:flex-row gap-10 items-start"
+              :class="idx % 2 === 1 ? 'md:flex-row-reverse' : ''"
           >
-            <div class="text-3xl mb-3">📌</div>
-            <h3 class="text-title font-semibold text-on-surface font-display mb-2">
-              {{ t(`pages.features.detail${idx}.title`) }}
-            </h3>
-            <p class="text-on-surface-muted">
-              {{ t(`pages.features.detail${idx}.description`) }}
-            </p>
-          </div>
+            <div class="flex-1">
+              <h2 class="text-h2 font-bold font-display text-on-surface mb-3">
+                {{ t(`pages.features.${feature.key}.title`) }}
+              </h2>
+              <p class="text-on-surface-muted leading-[1.7] max-w-2xl">
+                {{ t(`pages.features.${feature.key}.description`) }}
+              </p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
+
+    <CTASection />
   </div>
 </template>

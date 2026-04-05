@@ -1,33 +1,35 @@
 <script setup lang="ts">
 import { ExternalLink } from '@lucide/vue';
+
 const { t } = useI18n();
 const localePath = useLocalePath();
-
 </script>
 
 <template>
-  <footer class="w-full bg-canvas border-t border-surface-border text-on-surface-muted">
-    <!-- Main Footer -->
-    <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 py-16 md:py-12">
-      <div class="grid grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-10 lg:gap-8 mb-12">
-        <!-- Brand Column -->
+  <footer class="w-full bg-canvas border-t border-surface-border">
+    <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 py-14 md:py-10">
+      <div class="grid grid-cols-4 md:grid-cols-2 sm:grid-cols-1 gap-10 mb-12">
+
+        <!-- Brand -->
         <div class="flex flex-col gap-3">
           <NuxtLink
             :to="localePath('index')"
             class="inline-flex items-center gap-2 no-underline w-fit group"
             aria-label="schul-dashboard home"
           >
-            <img src="/favicon.svg" alt="" class="w-8 h-8" />
-            <span class="font-bold text-on-surface font-display group-hover:opacity-80 transition-opacity">schul-dashboard</span>
+            <img src="/favicon.svg" alt="" class="w-7 h-7" />
+            <span class="font-bold text-on-surface font-display text-sub group-hover:opacity-80 transition-opacity">
+              schul-dashboard
+            </span>
           </NuxtLink>
-          <p class="text-footnote text-on-surface-muted leading-[1.5] max-w-[200px]">
+          <p class="text-footnote text-on-surface-muted leading-[1.6] max-w-[200px] m-0">
             {{ t('footer.tagline') }}
           </p>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Navigation -->
         <div class="flex flex-col gap-3">
-          <h3 class="text-btn font-semibold text-on-surface m-0 font-sans">{{ t('footer.navigation.title') }}</h3>
+          <p class="text-btn font-semibold text-on-surface m-0">{{ t('footer.navigation.title') }}</p>
           <nav class="flex flex-col gap-2" aria-label="Footer navigation">
             <NuxtLink :to="localePath('index')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
               {{ t('footer.navigation.home') }}
@@ -35,18 +37,21 @@ const localePath = useLocalePath();
             <NuxtLink :to="localePath('features')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
               {{ t('footer.navigation.features') }}
             </NuxtLink>
-            <NuxtLink :to="localePath('pricing')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
-              {{ t('footer.navigation.pricing') }}
+            <NuxtLink :to="localePath('product')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
+              {{ t('footer.navigation.product') }}
             </NuxtLink>
             <NuxtLink :to="localePath('about')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
               {{ t('footer.navigation.about') }}
             </NuxtLink>
+            <NuxtLink :to="localePath('contact')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
+              {{ t('footer.navigation.contact') }}
+            </NuxtLink>
           </nav>
         </div>
 
-        <!-- Legal Links -->
+        <!-- Legal -->
         <div class="flex flex-col gap-3">
-          <h3 class="text-btn font-semibold text-on-surface m-0 font-sans">{{ t('footer.legal.title') }}</h3>
+          <p class="text-btn font-semibold text-on-surface m-0">{{ t('footer.legal.title') }}</p>
           <nav class="flex flex-col gap-2" aria-label="Legal navigation">
             <NuxtLink :to="localePath('legal-imprint')" class="text-footnote text-on-surface-muted no-underline transition-colors hover:text-on-surface">
               {{ t('footer.legal.imprint') }}
@@ -60,32 +65,28 @@ const localePath = useLocalePath();
           </nav>
         </div>
 
-        <!-- Theme & Language -->
-        <div class="flex flex-col gap-6">
+        <!-- Preferences -->
+        <div class="flex flex-col gap-5">
           <ThemeSwitch />
           <LanguageSwitch />
         </div>
+
       </div>
 
-      <!-- Divider -->
-      <div class="border-t border-surface-border my-8" />
-
-      <!-- Bottom Bar -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-footnote">
-        <p class="text-on-surface-muted m-0">
+      <div class="border-t border-surface-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-footnote text-on-surface-muted m-0">
           &copy; {{ new Date().getFullYear() }} schul-dashboard. {{ t('footer.rights') }}
         </p>
         <a
-          href="https://status.schul-dashboard.com"
+          href="https://stats.uptimerobot.com/m8tUrWG3Zz"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1 text-on-surface-muted no-underline hover:text-on-surface transition-colors"
+          class="inline-flex items-center gap-1.5 text-footnote text-on-surface-muted no-underline hover:text-on-surface transition-colors"
         >
           {{ t('footer.status') }}
-          <ExternalLink :size="14" aria-hidden="true" />
+          <ExternalLink :size="12" aria-hidden="true" />
         </a>
       </div>
     </div>
   </footer>
 </template>
-

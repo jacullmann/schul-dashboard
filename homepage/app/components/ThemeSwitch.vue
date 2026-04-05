@@ -1,65 +1,37 @@
 <script setup lang="ts">
-import { Moon, Sun, Laptop } from '@lucide/vue';
+import { Moon, Sun, Monitor } from '@lucide/vue';
 
-const { setTheme, preference } = usePerfectTheme();
-const themes = useAvailableThemes();
+const colorMode = useColorMode();
 
-function setThemeMode(theme: string) {
-  console.log(preference.value, theme);
-  setTheme(theme as any);
-  console.log(preference.value, theme);
+function setTheme(theme: string) {
+  colorMode.preference = theme;
 }
 </script>
 
 <template>
-  <div class="flex flex-col gap-1.5">
-    <h3 class="text-btn font-semibold text-on-surface m-0 font-sans">{{ $t('common.theme') }}</h3>
-    <div class="flex gap-2" role="group" aria-label="Theme selection">
+  <div class="flex flex-col gap-2">
+    <p class="text-btn font-semibold text-on-surface m-0">{{ $t('common.theme') }}</p>
+    <div class="flex gap-1.5" role="group" :aria-label="$t('common.theme')">
       <button
+        v-for="{ value, icon, label } in [
+          { value: 'light', icon: Sun, label: $t('common.light') },
+          { value: 'dark', icon: Moon, label: $t('common.dark') },
+          { value: 'system', icon: Monitor, label: $t('common.system') },
+        ]"
+        :key="value"
         type="button"
-        :aria-pressed="preference === 'light'"
+        :title="label"
+        :aria-pressed="colorMode.preference === value"
         class="p-2 rounded-lg border transition-colors"
-        :class="preference === 'light'
+        :class="colorMode.preference === value
           ? 'bg-surface-hover border-surface-hover-border text-on-surface'
-          : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface'
+          : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface hover:border-surface-hover-border'
         "
-        @click="setThemeMode('light')"
-        title="Light mode"
+        @click="setTheme(value)"
       >
-        <Sun :size="18" aria-hidden="true" />
-        <span class="sr-only">Light</span>
-      </button>
-
-      <button
-        type="button"
-        :aria-pressed="preference === 'dark'"
-        class="p-2 rounded-lg border transition-colors"
-        :class="preference === 'dark'
-          ? 'bg-surface-hover border-surface-hover-border text-on-surface'
-          : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface'
-        "
-        @click="setThemeMode('dark')"
-        title="Dark mode"
-      >
-        <Moon :size="18" aria-hidden="true" />
-        <span class="sr-only">Dark</span>
-      </button>
-
-      <button
-        type="button"
-        :aria-pressed="preference === 'system'"
-        class="p-2 rounded-lg border transition-colors"
-        :class="preference === 'system'
-          ? 'bg-surface-hover border-surface-hover-border text-on-surface'
-          : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface'
-        "
-        @click="setThemeMode('system')"
-        title="System theme"
-      >
-        <Laptop :size="18" aria-hidden="true" />
-        <span class="sr-only">System</span>
+        <component :is="icon" :size="16" aria-hidden="true" />
+        <span class="sr-only">{{ label }}</span>
       </button>
     </div>
   </div>
 </template>
-

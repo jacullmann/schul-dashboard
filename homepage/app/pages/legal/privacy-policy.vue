@@ -1,184 +1,76 @@
 <script setup lang="ts">
 const { t } = useI18n();
 
-const dataCollectedItems = [
-  { key: 'legal.privacy.dataCollected.item0' },
-  { key: 'legal.privacy.dataCollected.item1' },
-  { key: 'legal.privacy.dataCollected.item2' }
+useSeoMeta({
+  title: `${t('legal.privacy.title')} — schul-dashboard`,
+  description: t('legal.privacy.description'),
+  robots: 'noindex, follow',
+});
+
+const dataItems = [
+  'legal.privacy.dataCollected.item0',
+  'legal.privacy.dataCollected.item1',
+  'legal.privacy.dataCollected.item2',
 ];
 
 const rightsItems = [
-  { key: 'legal.privacy.rights.item0' },
-  { key: 'legal.privacy.rights.item1' },
-  { key: 'legal.privacy.rights.item2' },
-  { key: 'legal.privacy.rights.item3' },
-  { key: 'legal.privacy.rights.item4' },
-  { key: 'legal.privacy.rights.item5' }
+  'legal.privacy.rights.item0',
+  'legal.privacy.rights.item1',
+  'legal.privacy.rights.item2',
+  'legal.privacy.rights.item3',
+  'legal.privacy.rights.item4',
+  'legal.privacy.rights.item5',
 ];
-
-useSeoMeta({
-  title: () => `${t('legal.privacy.title')} – schul-dashboard`,
-  description: () => t('legal.privacy.description'),
-  robots: 'noindex, follow',
-});
 </script>
 
 <template>
-  <div class="page-wrapper">
-    <div class="page-inner">
-      <NuxtLink to="/" class="back-link">
-        <span aria-hidden="true">←</span> {{ t('back') }}
-      </NuxtLink>
+  <LegalPage :title="t('legal.privacy.title')" :description="t('legal.privacy.description')">
 
-      <h1 class="page-title">{{ t('legal.privacy.title') }}</h1>
-      <p class="page-description">{{ t('legal.privacy.description') }}</p>
+    <LegalSection :title="t('legal.privacy.intro.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.intro.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.intro.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.intro.text') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.controller.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.controller.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.controller.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.controller.text') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.dataCollected.title')">
+      <ul class="mt-1 flex flex-col gap-2 pl-5 list-disc">
+        <li v-for="key in dataItems" :key="key" class="text-on-surface-muted leading-[1.6]">
+          {{ t(key) }}
+        </li>
+      </ul>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.dataCollected.title') }}</h2>
-        <ul class="list">
-          <li
-            v-for="item in dataCollectedItems"
-            :key="item.key"
-            class="list-item"
-          >
-            {{ t(item.key) }}
-          </li>
-        </ul>
-      </section>
+    <LegalSection :title="t('legal.privacy.purpose.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.purpose.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.purpose.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.purpose.text') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.retention.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.retention.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.retention.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.retention.text') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.rights.title')">
+      <p class="text-on-surface-muted leading-[1.7] mb-3">{{ t('legal.privacy.rights.intro') }}</p>
+      <ul class="flex flex-col gap-2 pl-5 list-disc">
+        <li v-for="key in rightsItems" :key="key" class="text-on-surface-muted leading-[1.6]">
+          {{ t(key) }}
+        </li>
+      </ul>
+      <p class="text-on-surface-muted leading-[1.7] mt-4 mb-0">{{ t('legal.privacy.rights.contact') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.rights.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.rights.intro') }}</p>
-        <ul class="list">
-          <li
-            v-for="item in rightsItems"
-            :key="item.key"
-            class="list-item"
-          >
-            {{ t(item.key) }}
-          </li>
-        </ul>
-        <p class="body-text body-text--spaced">{{ t('legal.privacy.rights.contact') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.cookies.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.cookies.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.cookies.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.cookies.text') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.security.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.security.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.security.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.security.text') }}</p>
-      </section>
+    <LegalSection :title="t('legal.privacy.changes.title')">
+      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.changes.text') }}</p>
+    </LegalSection>
 
-      <section class="section">
-        <h2 class="section-title">{{ t('legal.privacy.changes.title') }}</h2>
-        <p class="body-text">{{ t('legal.privacy.changes.text') }}</p>
-      </section>
-    </div>
-  </div>
+  </LegalPage>
 </template>
-
-<style scoped>
-.page-wrapper {
-  width: 100%;
-  padding: 48px 16px 96px;
-}
-
-.page-inner {
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  text-decoration: none;
-  margin-bottom: 32px;
-  transition: color var(--duration-hover) var(--ease-hover);
-}
-
-.back-link:hover {
-  color: var(--color-on-surface);
-}
-
-.page-title {
-  font-size: var(--text-h1);
-  font-weight: 700;
-  color: var(--color-on-surface);
-  margin: 0 0 8px;
-}
-
-.page-description {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
-  margin: 0 0 40px;
-}
-
-.section {
-  margin-bottom: 36px;
-  padding-bottom: 36px;
-  border-bottom: 1px solid var(--color-canvas-border);
-}
-
-.section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.section-title {
-  font-size: var(--text-h3);
-  font-weight: 600;
-  color: var(--color-on-surface);
-  margin: 0 0 12px;
-}
-
-.body-text {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
-  line-height: 1.7;
-  margin: 0;
-}
-
-.body-text--spaced {
-  margin-top: 12px;
-}
-
-.list {
-  margin: 8px 0 0;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.list-item {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
-  line-height: 1.6;
-}
-</style>

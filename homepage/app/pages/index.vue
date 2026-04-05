@@ -1,11 +1,10 @@
 <script setup lang="ts">
 const { t } = useI18n();
 
-// SEO
 useSeoMetaWithI18n({
   title: () => t('pages.home.title'),
   description: () => t('pages.home.description'),
-  keywords: 'school management, dashboard, students',
+  keywords: 'school management, dashboard, students, free, homework, schedule',
   canonicalUrl: 'https://schul-dashboard.com',
   structuredData: {
     '@context': 'https://schema.org',
@@ -14,6 +13,7 @@ useSeoMetaWithI18n({
     description: t('pages.home.description'),
     url: 'https://schul-dashboard.com',
     applicationCategory: 'EducationalApplication',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
   },
 });
 </script>
@@ -22,8 +22,7 @@ useSeoMetaWithI18n({
   <div class="w-full">
     <HeroSection />
     <FeaturesSection />
-    <PricingSection />
+    <ProductSection />
     <CTASection />
   </div>
 </template>
-

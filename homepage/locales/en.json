@@ -2,176 +2,170 @@
   "common": {
     "theme": "Theme",
     "language": "Language",
-    "login": "Login",
-    "signup": "Sign Up",
-    "learnMore": "Learn More",
+    "login": "Log in",
+    "signup": "Sign up",
     "getStarted": "Get Started",
+    "learnMore": "Learn More",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "back_home": "Back to home"
   },
   "nav": {
     "features": "Features",
-    "pricing": "Pricing",
+    "product": "Product",
     "about": "About",
     "contact": "Contact"
   },
   "pages": {
     "home": {
       "title": "schul-dashboard — Free School Management for Students",
-      "description": "The collaborative school management system by students for students. Homework, timetable, and more – all in one place."
+      "description": "The collaborative school management system by students for students. Tasks, timetable, groups, and more – all in one place."
     },
     "features": {
-      "title": "Powerful Features",
-      "description": "Everything you need to stay organized at school.",
-      "detail1": {
-        "title": "Feature Name",
-        "description": "Feature description goes here. Update these i18n keys with your content."
+      "title": "Everything You Need to Stay on Top",
+      "description": "Six core features designed around how students actually work — from daily tasks to group collaboration and everything in between.",
+      "tasks": {
+        "title": "Task & Homework Management",
+        "description": "Create and track homework, tasks, and exams with due dates, attachments, and status indicators. Pin important items, archive old ones, and check off completed work — so nothing slips through the cracks."
       },
-      "detail2": {
-        "title": "Feature Name",
-        "description": "Feature description goes here. Update these i18n keys with your content."
+      "schedule": {
+        "title": "Live Class Schedule",
+        "description": "View your class schedule with real-time updates. Personalise your timetable by selecting only the courses you actually take, and always know what's coming up next."
       },
-      "detail3": {
-        "title": "Feature Name",
-        "description": "Feature description goes here. Update these i18n keys with your content."
+      "groups": {
+        "title": "Class & Study Groups",
+        "description": "Every class or study group gets its own shared space. Join with a group name and password, or create your own. Switch between multiple groups instantly and keep everything organised."
       },
-      "detail4": {
-        "title": "Feature Name",
-        "description": "Feature description goes here. Update these i18n keys with your content."
+      "private": {
+        "title": "Private Notes & Todos",
+        "description": "Keep personal notes and todos encrypted and visible only to you. Track your own progress and reorder tasks with drag-and-drop — your private space, no one else's."
       },
-      "detail5": {
-        "title": "Feature Name",
-        "description": "Feature description goes here. Update these i18n keys with your content."
+      "security": {
+        "title": "Built-In Security",
+        "description": "Email verification, optional two-factor authentication, AES-256-GCM encrypted personal data, and CSRF protection — security is built in from the ground up, not added as an afterthought."
       },
-      "detail6": {
-        "title": "Feature Name",
-        "description": "Feature description goes here. Update these i18n keys with your content."
+      "search": {
+        "title": "Instant Search & Shortcuts",
+        "description": "A powerful command palette with keyboard shortcuts lets you reach anything in seconds. Stop clicking through menus — just search and jump straight to what you need."
       }
     },
-    "pricing": {
-      "title": "Simple, Transparent Pricing",
-      "description": "Choose the plan that's right for you."
+    "product": {
+      "badge": "The Product",
+      "title": "School Management That Works for You",
+      "description": "schul-dashboard is built around one belief: every student deserves great tools, for free, without compromise. No subscriptions. No ads. No paywalls.",
+      "cta": "Start for Free",
+      "included_title": "Everything Included. Always Free.",
+      "included_description": "No tiers, no feature locks. Every user gets the full product from day one.",
+      "feature0": "Task and homework tracking with due dates and status",
+      "feature1": "Live class schedule with personalised course selection",
+      "feature2": "Shared spaces for classes and study groups",
+      "feature3": "Encrypted private notes and personal todos",
+      "feature4": "Admin tools for group moderation and announcements",
+      "feature5": "Command palette with keyboard shortcuts",
+      "feature6": "Two-factor authentication and AES-256-GCM encryption",
+      "feature7": "Works on any device — no install required",
+      "price_label": "Pricing",
+      "price": "Free",
+      "price_description": "schul-dashboard is and will always be completely free. We believe access to good tools shouldn't depend on your budget."
     },
     "about": {
       "title": "About schul-dashboard",
-      "description": "Learn about our mission and the team behind schul-dashboard.",
+      "description": "We're a group of students who built the tool we wished we had. Here's why.",
       "mission_title": "Our Mission",
-      "mission_text": "We believe every student deserves access to a simple, free, and privacy-respecting school management system. schul-dashboard is built by students for students.",
-      "team_title": "Meet the Team",
-      "value1_title": "Value One",
-      "value1_text": "TODO: Update with your value",
-      "value2_title": "Value Two",
-      "value2_text": "TODO: Update with your value",
-      "value3_title": "Value Three",
-      "value3_text": "TODO: Update with your value",
-      "value4_title": "Value Four",
-      "value4_text": "TODO: Update with your value",
-      "team1_name": "Team Member One",
-      "team1_role": "Role",
-      "team2_name": "Team Member Two",
-      "team2_role": "Role",
-      "team3_name": "Team Member Three",
-      "team3_role": "Role"
+      "mission_text": "We believe every student deserves access to a simple, free, and privacy-respecting school management system. Most tools are either too complex, filled with ads, or locked behind paywalls. We built schul-dashboard to change that — an open, honest platform developed by students, for students.",
+      "values_title": "What We Stand For",
+      "value_free_title": "Free Forever",
+      "value_free_text": "No subscriptions, no premium tiers, no hidden costs. The full product is free, and that will never change.",
+      "value_privacy_title": "Privacy First",
+      "value_privacy_text": "Personal data is encrypted. We don't sell data, we don't run ads, and we don't track you beyond what's necessary to run the service.",
+      "value_open_title": "Built by Students",
+      "value_open_text": "We're students ourselves. We build what we actually need, and we keep it honest and focused — no bloat, no corporate speak.",
+      "value_simple_title": "Simple by Design",
+      "value_simple_text": "Every feature is there because it solves a real problem. We cut everything that doesn't help you focus on school.",
+      "team_title": "The Team",
+      "team_text": "We're a small, motivated group of students who care about building things properly. We work on schul-dashboard because we believe in it — not for profit, but because it makes school life a little easier for everyone."
     },
     "contact": {
       "title": "Get in Touch",
-      "description": "We'd love to hear from you. Have a question or feedback? Reach out!",
+      "description": "Have a question, found a bug, or want to share feedback? We'd love to hear from you.",
       "email_title": "Email",
-      "email_description": "Send us an email directly",
-      "github_title": "GitHub",
-      "github_description": "Check out our open source projects",
+      "email_description": "Send us a message and we'll get back to you as soon as we can.",
       "discord_title": "Discord",
-      "discord_description": "Join our community on Discord",
-      "form_title": "Send us a Message",
-      "form_description": "Or fill out the form below and we'll get back to you soon.",
-      "form_name": "Name",
-      "form_name_placeholder": "Your name",
-      "form_email": "Email",
-      "form_email_placeholder": "your{'@'}email.com",
-      "form_message": "Message",
-      "form_message_placeholder": "Tell us what's on your mind...",
-      "form_submit": "Send Message"
+      "discord_description": "Join the community, ask questions, and connect with other users."
     }
   },
   "sections": {
     "hero": {
-      "badge": "🚀 Now Available",
+      "badge": "Now Available",
       "title": "School Management Made Simple",
-      "description": "All your homework, timetable, and grades in one place. Free, ad-free, and designed for students.",
-      "cta_primary": "Get Started Free",
-      "cta_secondary": "Watch Demo",
-      "placeholder": "Hero Visual Placeholder"
+      "description": "All your tasks, timetable, and study groups in one place. Free, ad-free, and built by students who actually use it.",
+      "cta_primary": "Get Started — It's Free",
+      "cta_secondary": "See How It Works",
+      "social_proof": "Free forever. No account required to explore."
     },
     "features": {
       "badge": "Features",
-      "title": "Everything You Need",
-      "item0": {
-        "title": "Completely Free",
-        "description": "No hidden costs, no premium features locked behind a paywall. Free forever."
+      "title": "The Tools You Actually Need",
+      "subtitle": "Built around how students work — not how administrators want them to work.",
+      "tasks": {
+        "title": "Tasks & Homework",
+        "description": "Track assignments, exams, and todos with due dates, priorities, and statuses. Pin what matters, archive what's done."
       },
-      "item1": {
-        "title": "Your Privacy Matters",
-        "description": "We respect your data. Everything is encrypted and you stay in control."
+      "schedule": {
+        "title": "Class Schedule",
+        "description": "Your personalised timetable with live updates. See only the courses you take, always up to date."
       },
-      "item2": {
-        "title": "Built by Students",
-        "description": "Created by students for students. We know what you need."
+      "groups": {
+        "title": "Groups",
+        "description": "Shared spaces for your class or study group. Join, create, and switch between groups instantly."
       },
-      "item3": {
-        "title": "Collaborate Easily",
-        "description": "Share homework, notes, and schedules with your classmates instantly."
+      "private": {
+        "title": "Private Notes",
+        "description": "Encrypted personal notes visible only to you. Drag-and-drop sorting and progress tracking included."
       },
-      "item4": {
-        "title": "Stay Organized",
-        "description": "Never miss an assignment with smart reminders and organization tools."
+      "security": {
+        "title": "Security",
+        "description": "2FA, AES-256 encryption, email verification, and CSRF protection — built in from day one."
       },
-      "item5": {
-        "title": "Works Everywhere",
-        "description": "Access your dashboard from any device, anytime, anywhere."
+      "search": {
+        "title": "Quick Search",
+        "description": "A command palette with keyboard shortcuts to reach anything in seconds."
       }
     },
-    "pricing": {
-      "badge": "Pricing",
-      "title": "Flexible Plans",
-      "description": "Choose the right plan for your needs.",
-      "featured": "Most Popular",
-      "plan0": {
-        "name": "Starter",
-        "description": "Perfect for getting started",
-        "price": "Free"
-      },
-      "plan1": {
-        "name": "Pro",
-        "description": "For power users",
-        "price": "$9/mo"
-      },
-      "plan2": {
-        "name": "Team",
-        "description": "For schools and teams",
-        "price": "Custom"
-      },
-      "feature1": "Feature included",
-      "feature2": "Another great feature",
-      "feature3": "Advanced capability",
-      "feature4": "Premium support",
-      "cta": "Get Started"
+    "product": {
+      "badge": "Product",
+      "title": "Powerful Tools. Zero Cost.",
+      "description": "schul-dashboard gives you everything you need to stay organised at school — without subscriptions, ads, or paywalls. Built by students, for students.",
+      "cta": "Try It Now — Free",
+      "highlight0": "Completely free — no subscription, no trial period",
+      "highlight1": "No ads, ever",
+      "highlight2": "Encrypted private data",
+      "highlight3": "Works on every device, no install needed",
+      "highlight4": "Built and maintained by students",
+      "price": "€0",
+      "price_subtitle": "per month, forever",
+      "stat_free": "Open Access",
+      "stat_ads": "Ads",
+      "stat_groups": "Groups",
+      "stat_encrypted": "Encrypted"
     },
     "cta": {
-      "title": "Ready to Transform Your School Experience?",
-      "description": "Join thousands of students already using schul-dashboard.",
+      "title": "Ready to Get Organised?",
+      "description": "Join students already using schul-dashboard to take control of their school life.",
       "primary_cta": "Start for Free",
-      "secondary_cta": "See Pricing"
+      "secondary_cta": "Contact Us"
     }
   },
   "footer": {
-    "tagline": "By students, for students. Free school management system.",
+    "tagline": "By students, for students. Free school management.",
     "navigation": {
       "title": "Navigation",
       "home": "Home",
       "features": "Features",
-      "pricing": "Pricing",
-      "about": "About"
+      "product": "Product",
+      "about": "About",
+      "contact": "Contact"
     },
     "legal": {
       "title": "Legal",
@@ -181,5 +175,110 @@
     },
     "rights": "All rights reserved.",
     "status": "System Status"
+  },
+  "legal": {
+    "imprint": {
+      "title": "Imprint",
+      "description": "Legal information about schul-dashboard.",
+      "responsible": "Responsible Party",
+      "contact": "Contact",
+      "contact_label": "Email: ",
+      "disclaimer": {
+        "title": "Disclaimer",
+        "text": "Despite careful review, we accept no liability for the content of external links. The operators of linked pages are solely responsible for their content."
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "description": "How schul-dashboard handles your personal data.",
+      "intro": {
+        "title": "Introduction",
+        "text": "We take your privacy seriously. This policy explains what data we collect, why we collect it, and how we protect it."
+      },
+      "controller": {
+        "title": "Data Controller",
+        "text": "The data controller responsible for this service is schul-dashboard, reachable at contact{'@'}schul-dashboard.com."
+      },
+      "dataCollected": {
+        "title": "Data We Collect",
+        "item0": "Email address (for account creation and verification)",
+        "item1": "Username (randomly generated to protect your identity in groups)",
+        "item2": "Usage data necessary to provide the service (tasks, schedule, group memberships)"
+      },
+      "purpose": {
+        "title": "Purpose of Processing",
+        "text": "We collect and process your data solely to provide and improve the schul-dashboard service. We do not sell data to third parties and do not use it for advertising purposes."
+      },
+      "retention": {
+        "title": "Data Retention",
+        "text": "Your data is stored for as long as your account exists. You can delete your account at any time, after which your data will be permanently removed."
+      },
+      "rights": {
+        "title": "Your Rights",
+        "intro": "Under applicable data protection law, you have the following rights:",
+        "item0": "Right of access to your personal data",
+        "item1": "Right to rectification of inaccurate data",
+        "item2": "Right to erasure of your data",
+        "item3": "Right to restriction of processing",
+        "item4": "Right to data portability",
+        "item5": "Right to object to processing",
+        "contact": "To exercise these rights, please contact us at contact{'@'}schul-dashboard.com."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "text": "We use only technically necessary cookies — for session management, language preference, and color mode. We do not use tracking or advertising cookies."
+      },
+      "security": {
+        "title": "Security",
+        "text": "Personal data is protected using industry-standard encryption (AES-256-GCM). We use HTTPS throughout and employ CSRF protection and two-factor authentication options to secure your account."
+      },
+      "changes": {
+        "title": "Changes to This Policy",
+        "text": "We may update this privacy policy from time to time. We will notify users of significant changes via email or in-app notification."
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "description": "The rules for using schul-dashboard.",
+      "acceptance": {
+        "title": "Acceptance of Terms",
+        "text": "By using schul-dashboard, you agree to these terms. If you do not agree, please discontinue use of the service."
+      },
+      "service": {
+        "title": "The Service",
+        "text": "schul-dashboard provides a free, web-based school management platform. We reserve the right to modify or discontinue features at any time, with notice where possible."
+      },
+      "account": {
+        "title": "Your Account",
+        "item0": "You must provide a valid email address to create an account.",
+        "item1": "You are responsible for keeping your login credentials secure.",
+        "item2": "You must be at least 13 years old to use this service.",
+        "item3": "One account per person. Do not share accounts."
+      },
+      "conduct": {
+        "title": "Acceptable Use",
+        "intro": "You agree not to use schul-dashboard to:",
+        "item0": "Upload or share illegal, harmful, or abusive content.",
+        "item1": "Attempt to gain unauthorised access to other accounts or systems.",
+        "item2": "Interfere with the service or its infrastructure.",
+        "item3": "Use the service for commercial purposes without prior written consent."
+      },
+      "termination": {
+        "title": "Termination",
+        "text": "We reserve the right to suspend or terminate accounts that violate these terms. You may delete your account at any time."
+      },
+      "liability": {
+        "title": "Limitation of Liability",
+        "text": "schul-dashboard is provided as-is. We make no guarantees of uptime or data permanence. We are not liable for any loss or damage arising from use of the service."
+      },
+      "changes": {
+        "title": "Changes to These Terms",
+        "text": "We may update these terms from time to time. Continued use of the service after changes constitutes acceptance of the new terms."
+      },
+      "governing": {
+        "title": "Governing Law",
+        "text": "These terms are governed by the laws of Germany. Any disputes shall be resolved in the competent courts of Germany."
+      }
+    }
   }
 }
