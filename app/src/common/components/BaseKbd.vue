@@ -1,19 +1,21 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-  inverted?: boolean;
+  flat?: boolean;
+  on?: 'canvas' | 'surface' | 'action';
 }>(), {
-  inverted: false
+  flat: false,
+  on: 'surface'
 }) 
 </script>
 
 <template>
-  <kbd :class="{ 'inverted': inverted }">
+  <kbd :class="[flat ? 'flat' : 'full', on]">
     <slot></slot>
   </kbd>
 </template>
 
 <style scoped>
-kbd {
+kbd.full {
   display: inline-flex;
   align-items: center;
   background-color: var(--color-kbd-bg);
@@ -31,20 +33,34 @@ kbd {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-kbd.inverted {
-  background-color: var(--color-kbd-bg-inverted);
-  color: var(--color-kbd-text-inverted);
-  border: 1px solid var(--color-kbd-border-inverted);
-  box-shadow: 0 2px 0 var(--color-kbd-border-bottom-inverted), 0 3px 2px var(--color-kbd-shadow-inverted);
+kbd.full:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 var(--color-kbd-border-bottom), 0 1px 2px var(--color-kbd-shadow);
 }
 
-kbd:active {
-  transform: translateY(2px);
-  box-shadow: 0 0px 0 var(--color-kbd-border-bottom), 0 1px 2px var(--color-kbd-shadow);
+kbd.flat {
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
 }
 
-kbd.inverted:active {
-  transform: translateY(2px);
-  box-shadow: 0 0px 0 var(--color-kbd-border-bottom-inverted), 0 1px 2px var(--color-kbd-shadow-inverted);
+kbd.flat.canvas {
+  background-color: var(--color-canvas-hover);
+  color: var(--color-on-canvas-muted);
+}
+
+kbd.flat.surface {
+  background-color: var(--color-surface-hover);
+  color: var(--color-on-surface-muted);
+}
+
+kbd.flat.action {
+  background-color: var(--color-action-hover);
+  color: var(--color-on-action-muted);
 }
 </style>

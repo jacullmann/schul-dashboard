@@ -51,7 +51,7 @@ onBeforeUnmount(hide);
     @focusin="show"
     @focusout="hide"
   >
-    <slot />
+    <slot></slot>
 
     <Teleport to="body">
       <transition
@@ -64,11 +64,11 @@ onBeforeUnmount(hide);
       >
         <div
           v-if="isVisible"
-          class="fixed z-[60000] px-2.5 py-1 bg-surface-inverted text-on-surface-inverted text-xs leading-4 font-medium rounded shadow-lg pointer-events-none whitespace-nowrap"
+          class="fixed z-60000 px-2.5 py-1 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
           :style="tooltipStyle"
         >
           {{ content }}
-          <BaseKbdGroup v-if="shortcut" :keys="shortcut" :inverted="true" />
+          <BaseKbdGroup v-if="shortcut" :keys="shortcut" :flat="true" on="action" />
         </div>
       </transition>
     </Teleport>
