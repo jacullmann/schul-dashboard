@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount, type CSSProperties } from 'vue';
 
 const props = withDefaults(
   defineProps<{
@@ -15,7 +15,7 @@ const props = withDefaults(
 
 const isVisible = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
-const tooltipStyle = ref({ top: '0px', left: '0px' });
+const tooltipStyle = ref<CSSProperties>({ top: '0px', left: '0px' });
 
 // Timer references for debounce cleanup
 let showTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -86,7 +86,6 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="triggerRef"
-    class="w-full flex"
     @mouseenter="show"
     @mouseleave="hide"
     @focusin="show"
