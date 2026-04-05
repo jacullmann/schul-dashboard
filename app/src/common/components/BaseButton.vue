@@ -64,7 +64,7 @@ defineExpose({
     :disabled="disabled || loading"
     :class="[
       classes,
-      loading ? 'px-2' : (icon && $slots.default ? 'pl-2 pr-4' : icon ? 'px-2' : 'px-4'),
+      loading ? 'px-2' : (icon && $slots.default ? 'pl-2.5 pr-4' : icon ? 'px-2' : 'px-4'),
     ]"
     class="inline-flex items-center gap-2 py-2 border rounded-full text-btn leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"

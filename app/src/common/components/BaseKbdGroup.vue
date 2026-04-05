@@ -5,35 +5,39 @@ const props = withDefaults(
   defineProps<{
     keys: string[];
     separator?: string;
+    on?: 'canvas' | 'surface' | 'action';
+    flat?: boolean;
   }>(),
   {
     separator: '+',
-  }
+    flat: false,
+    on: 'surface',
+  },
 );
 
 const { isMac, shortcutSymbol, optionSymbol, shiftSymbol } = usePlatform();
 
 const getDisplayKey = (key: string): string => {
   const k = key.toLowerCase();
-  
+
   const mapping: Record<string, string> = {
     // Modifiers
-    'control': shortcutSymbol,
-    'ctrl': shortcutSymbol,
-    'meta': isMac ? '⌘' : 'Win',
-    'cmd': '⌘',
-    'command': '⌘',
-    'alt': optionSymbol,
-    'option': optionSymbol,
-    'shift': shiftSymbol,
-    
+    control: shortcutSymbol,
+    ctrl: shortcutSymbol,
+    meta: isMac ? '⌘' : 'Win',
+    cmd: '⌘',
+    command: '⌘',
+    alt: optionSymbol,
+    option: optionSymbol,
+    shift: shiftSymbol,
+
     // Special Keys
-    'enter': '↵',
-    'return': '↵',
-    'backspace': '⌫',
-    'escape': 'Esc',
-    'esc': 'Esc',
-    'tab': '⇥',
+    enter: '↵',
+    return: '↵',
+    backspace: '⌫',
+    escape: 'Esc',
+    esc: 'Esc',
+    tab: '⇥',
   };
 
   const val = mapping[k] || key;
@@ -44,10 +48,11 @@ const getDisplayKey = (key: string): string => {
 <template>
   <span class="inline-flex items-center gap-1">
     <template v-for="(key, index) in keys" :key="index">
-      <BaseKbd>{{ getDisplayKey(key) }}</BaseKbd>
+      <BaseKbd :flat="flat" :on="on">{{ getDisplayKey(key) }}</BaseKbd>
       <span
         v-if="index < keys.length - 1"
-        class="text-on-surface-muted text-sub select-none font-sans"
+        class="text-sub select-none font-sans"
+        :class="'text-on-' + props.on + '-muted'"
       >
         {{ separator }}
       </span>
