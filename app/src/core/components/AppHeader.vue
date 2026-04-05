@@ -6,7 +6,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import AppLogo from '@/common/components/AppLogo.vue';
-import { PanelLeft, ChevronDown, Plus } from '@lucide/vue';
+import { Menu, ChevronDown, Plus } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 
 const userStore = useUserStore();
@@ -75,21 +75,21 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="sticky flex w-full justify-center items-center bg-canvas text-on-surface border-b border-canvas-border font-display p-0 top-0 h-[var(--header-height)] z-[var(--z-header)]"
+    class="sticky flex w-full justify-center items-center bg-canvas text-on-surface border-b border-canvas-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
-    <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-[1300px]">
+    <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
       <!-- Mobile sidebar toggle -->
       <button
-        class="md:hidden relative p-2 m-[-8px] mr-0 text-on-surface bg-transparent rounded-md hover:bg-surface transition-hover"
+        class="md:hidden relative p-2 -m-2 mr-0 text-on-surface bg-transparent rounded-md hover:bg-surface transition-hover"
         @click="toggleExpanded"
         :aria-expanded="isExpanded"
         aria-label="Toggle navigation menu"
       >
-        <PanelLeft :size="20" />
+        <Menu :size="20" />
       </button>
 
       <!-- Brand logo (desktop) -->
-      <router-link :to="logoLink" class="logo-group !hidden !md:flex">
+      <router-link :to="logoLink" class="logo-group hidden! !md:flex">
         <AppLogo class="logo-img" aria-hidden="true" />
       </router-link>
 

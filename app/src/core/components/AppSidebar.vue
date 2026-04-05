@@ -44,7 +44,9 @@ const { withGroup } = useGroupAction();
 const isAnyGroupAdmin = computed(() => {
   if (isSuperadmin?.value) return true;
   if (isGroupAdmin?.value) return true;
-  return userGroups.value?.some(g => g.role === 'admin' || g.role === 'moderator');
+  return userGroups.value?.some(
+    (g) => g.role === 'admin' || g.role === 'moderator',
+  );
 });
 
 function toggleExpanded() {
@@ -64,7 +66,7 @@ async function logout() {
     userStore.clearUser();
     resetMfaState();
     await appAuthLogout();
-    router.push('/');
+    await router.push('/');
     collapseIfMobile();
   }
 }
@@ -115,16 +117,16 @@ onUnmounted(() => {
   >
     <div
       v-if="isExpanded"
-      class="md:hidden fixed inset-0 bg-black/50 z-[var(--z-modal-overlay)]"
+      class="md:hidden fixed inset-0 bg-black/50 z-(--z-modal-overlay)"
       @click="isExpanded = false"
     ></div>
   </transition>
 
   <aside
-    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-3 bg-surface border-r border-surface-border z-[var(--z-modal)]"
+    class="sidebar transition-all duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] flex flex-col justify-between shrink-0 overflow-hidden h-screen p-3 bg-surface border-r border-surface-border z-(--z-modal)"
     :class="[
       'md:sticky md:top-0',
-      isExpanded ? 'md:w-64' : 'md:w-15',
+      isExpanded ? 'md:w-64' : 'md:w-16',
 
       'max-md:fixed max-md:top-0 max-md:left-0 max-md:w-64 max-md:shadow-xl',
       isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
@@ -135,6 +137,7 @@ onUnmounted(() => {
         :label="isExpanded ? t('sidebar.collapse') : t('sidebar.expand')"
         :shortcut="['ctrl', 'shift', 'd']"
         :expanded="isExpanded"
+        class="hidden md:flex"
         @click="toggleExpanded"
       >
         <PanelLeft :size="20" />
@@ -174,7 +177,11 @@ onUnmounted(() => {
           :label="t('sidebar.tasks')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/items`)"
-          @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/items/all`))"
+          @click="
+            withGroup(() =>
+              handleNavigation(`/groups/${activeGroupId}/items/all`),
+            )
+          "
         >
           <ListTodo :size="20" />
         </SidebarButton>
@@ -183,7 +190,11 @@ onUnmounted(() => {
           :label="t('sidebar.schedule')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/schedule`)"
-          @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/schedule`))"
+          @click="
+            withGroup(() =>
+              handleNavigation(`/groups/${activeGroupId}/schedule`),
+            )
+          "
         >
           <CalendarDays :size="20" />
         </SidebarButton>
@@ -202,7 +213,9 @@ onUnmounted(() => {
           :label="t('sidebar.admin')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/admin`)"
-          @click="withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))"
+          @click="
+            withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))
+          "
         >
           <SlidersHorizontal :size="20" />
         </SidebarButton>
@@ -230,7 +243,9 @@ onUnmounted(() => {
     </div>
 
     <div class="flex flex-col w-full gap-1">
-      <div class="flex w-full transition-all duration-200 justify-start ml-[2px] max-[480px]:ml-[5px]">
+      <div
+        class="flex w-full transition-all duration-200 justify-start ml-0.5 max-[480px]:ml-1.25"
+      >
         <AccountMenu
           v-if="user"
           :email="user.email"
