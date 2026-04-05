@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 
 const props = withDefaults(defineProps<{
-  on?: 'action' | 'ghost' | 'danger' | 'default';
+  on?: 'action' | 'ghost' | 'text' | 'danger';
   color?: string;
   size?: string;
   borderThickness?: string;
@@ -16,6 +16,7 @@ const activeColor = computed(() => {
   if (props.color) return props.color;
   if (props.on === 'action') return 'var(--color-on-action)';
   if (props.on === 'danger') return 'var(--color-on-danger)';
+  if (props.on === 'ghost') return 'var(--color-on-surface-muted)';
   return 'var(--color-on-surface)';
 });
 </script>
