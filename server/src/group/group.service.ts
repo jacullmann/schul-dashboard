@@ -299,7 +299,7 @@ export class GroupService {
       if (!activeGroup && activeGroupId && globalRole === 'superadmin') {
         const { data: adminGroup } = await sb
           .from('groups')
-          .select('id, name, owner_id')
+          .select('id, name, owner_id, schedule_config')
           .eq('id', activeGroupId)
           .maybeSingle();
 
@@ -311,6 +311,7 @@ export class GroupService {
             role: 'superadmin',
             generatedName: generateUserName(userId, adminGroup.id as string),
             hasUnreadContent: false,
+            scheduleConfig: adminGroup.schedule_config,
           };
         }
       }

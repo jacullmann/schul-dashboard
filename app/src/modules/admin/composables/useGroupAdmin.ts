@@ -197,6 +197,21 @@ export function useGroupAdmin() {
     }
   }
 
+  const savingScheduleConfig = ref(false);
+
+  async function updateScheduleConfig(scheduleConfig: Record<string, any>) {
+    savingScheduleConfig.value = true;
+    try {
+      await hw.patch('/api/group-admin/schedule-config', { scheduleConfig });
+      await useAppAuth().checkAuthStatus();
+      showMessage('Schedule config updated');
+    } catch {
+      showMessage('Failed to update schedule config', true);
+    } finally {
+      savingScheduleConfig.value = false;
+    }
+  }
+
   async function deleteSub(id: string) {
     if (!confirm('Delete substitution?')) return;
     try {
@@ -393,8 +408,10 @@ export function useGroupAdmin() {
     subs,
     loadingSubs,
     savingSub,
+    savingScheduleConfig,
     loadSubs,
     saveSub,
+    updateScheduleConfig,
     deleteSub,
 
     // Schedule

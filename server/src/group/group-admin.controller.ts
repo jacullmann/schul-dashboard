@@ -24,6 +24,7 @@ import {
   CreateSubjectDto,
   UpdateSubjectDto,
   UpdateGroupPasswordDto,
+  UpdateScheduleConfigDto,
 } from './dto/group-admin.dto';
 
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
@@ -131,6 +132,20 @@ export class GroupAdminController {
       userId,
       body.oldPassword,
       body.newPassword,
+    );
+  }
+
+  @TenantRoles('admin')
+  @Patch('schedule-config')
+  updateScheduleConfig(
+    @ActiveTenantId() tenantId: string,
+    @CurrentUserId() userId: string,
+    @Body() body: UpdateScheduleConfigDto,
+  ) {
+    return this.groupAdminService.updateScheduleConfig(
+      tenantId,
+      userId,
+      body.scheduleConfig,
     );
   }
 

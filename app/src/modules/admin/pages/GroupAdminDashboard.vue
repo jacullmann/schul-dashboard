@@ -29,9 +29,11 @@ const {
   subs,
   loadingSubs,
   savingSub,
+  savingScheduleConfig,
   loadSubs,
   saveSub,
   deleteSub,
+  updateScheduleConfig,
   lessons,
   loadingLessons,
   announcements,
@@ -99,9 +101,11 @@ const navItems: AdminNavItem[] = [
       :lessons="lessons"
       :loading-lessons="loadingLessons"
       :saving-sub="savingSub"
+      :saving-schedule-config="savingScheduleConfig"
       @refresh="loadSubs"
       @save-sub="saveSub"
       @delete-sub="deleteSub"
+      @update-schedule-config="updateScheduleConfig"
     />
 
     <GroupAdminAnnouncements

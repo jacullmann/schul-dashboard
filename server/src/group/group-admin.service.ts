@@ -346,14 +346,57 @@ export class GroupAdminService {
       .from('user_activity')
       .insert({
         user_id: userId,
-        type: 'group-admin:password-update',
+        type: 'group-admin:update-password',
         meta: { tenantId },
       });
     if (activityPasswordError)
       throw new InternalServerErrorException('Failed to save user activity');
 
     return { ok: true };
-  }
+    }
+
+    async updateScheduleConfig(
+    tenantId: string,
+    userId: string,
+    scheduleConfig: Record<string, any>,
+    ) {
+    const sb = this.supabaseService.getClient();
+
+    const { data: userRole } = await sb
+      .from('user_roles')
+      .select('roles(name)')
+      .eq('tenant_id', tenantId)
+      .eq('user_id', userId)
+      .limit(1)
+      .maybeSingle();
+
+    if ((userRole as any)?.roles?.name !== 'admin') {
+      throw new ForbiddenException('Only admins can update the schedule config.');
+    }
+
+    const { error: groupUpdateError } = await sb
+      .from('groups')
+      .update({ schedule_config: scheduleConfig })
+      .eq('id', tenantId);
+
+    if (groupUpdateError) {
+      throw new InternalServerErrorException('Failed to update schedule config');
+    }
+
+    const { error: activityError } = await sb
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        type: 'group-admin:update-schedule-config',
+        meta: { tenantId, scheduleConfig },
+      });
+
+    if (activityError) {
+      throw new InternalServerErrorException('Failed to save user activity');
+    }
+
+    return { ok: true };
+    }
 
   async deleteGroup(tenantId: string, userId: string) {
     const sb = this.supabaseService.getClient();

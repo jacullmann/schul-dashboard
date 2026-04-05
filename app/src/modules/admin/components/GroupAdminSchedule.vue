@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { RefreshCw, Trash2 } from '@lucide/vue';
+import { ref, computed, watch } from 'vue';
+import { RefreshCw, Trash2, Settings2, Plus, Minus } from '@lucide/vue';
 import InfoModal from '@/common/components/InfoModal.vue';
 import AdminSchedule from '@/modules/admin/components/AdminSchedule.vue';
 import type { ScheduleSubstitution } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
+import { useUserStore } from '@/stores/userStore';
 
 const props = defineProps<{
   subs: ScheduleSubstitution[];
@@ -12,13 +14,19 @@ const props = defineProps<{
   lessons: Lesson[];
   loadingLessons: boolean;
   savingSub: boolean;
+  savingScheduleConfig: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'save-sub', payload: Record<string, unknown>): void;
   (e: 'delete-sub', id: string): void;
+  (e: 'update-schedule-config', payload: Record<string, any>): void;
 }>();
+
+const { activeScheduleConfig } = useAppAuth();
+const userStore = useUserStore();
+const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
 
 const subForm = ref({
   lessonId: '',
@@ -30,6 +38,50 @@ const subForm = ref({
   cancelled: false,
   hide: false,
 });
+
+const configForm = ref({
+  startTime: '08:00',
+  totalSlots: 9,
+  lessonDurationMins: 45,
+  breaks: {} as Record<number, number>
+});
+
+watch(activeScheduleConfig, (newConfig) => {
+  if (newConfig) {
+    configForm.value = {
+      startTime: newConfig.startTime ?? '08:00',
+      totalSlots: newConfig.totalSlots ?? 9,
+      lessonDurationMins: newConfig.lessonDurationMins ?? 45,
+      breaks: { ...(newConfig.breaks || {}) }
+    };
+  }
+}, { immediate: true, deep: true });
+
+function addBreak() {
+  const maxSlot = configForm.value.totalSlots;
+  for (let i = 1; i <= maxSlot; i++) {
+    if (!(i in configForm.value.breaks)) {
+      configForm.value.breaks[i] = 10;
+      break;
+    }
+  }
+}
+
+function removeBreak(slotStr: string | number) {
+  const slot = Number(slotStr);
+  const newBreaks = { ...configForm.value.breaks };
+  delete newBreaks[slot];
+  configForm.value.breaks = newBreaks;
+}
+
+function handleSaveConfig() {
+  emit('update-schedule-config', {
+    startTime: configForm.value.startTime,
+    totalSlots: configForm.value.totalSlots,
+    lessonDurationMins: configForm.value.lessonDurationMins,
+    breaks: configForm.value.breaks
+  });
+}
 
 const selectedLesson = ref<Lesson | null>(null);
 
@@ -64,14 +116,6 @@ function handleSaveSub() {
   if (subForm.value.hide) payload.hide = true;
 
   emit('save-sub', payload);
-  // Do not reset right away in case of error,
-  // but if the parent completes it, we can reset.
-  // Assuming parent does it immediately or we just reset opportunistically
-  // (GroupAdminDashboard previously did it without waiting for promise to resolve, actually wait it did wait for `.then()`)
-  // Oh wait, `saveSub` in useGroupAdmin returns a promise, so we can just let parent handle the save, but parent function handles resetting?
-  // Let's rely on parent to pass a wrapper if we want `.then()`, or we can just reset state here
-  // GroupAdminDashboard.vue: `saveSub(payload).then(() => { ... })`
-  // Since emit doesn't return a promise, we can provide a callback or just reset immediately. We'll reset immediately.
   subForm.value = {
     lessonId: '',
     subject: '',
@@ -256,6 +300,108 @@ function handleSaveSub() {
         >
           <Trash2 :size="16" />
         </button>
+      </div>
+    </div>
+
+    <!-- Config section -->
+    <div class="mt-8 border-t border-surface-border pt-6">
+      <h3 style="font-size: var(--text-title); display: flex; align-items: center; gap: 8px; margin-top: 0;">
+        <Settings2 :size="20" />
+        Stundenplan Konfiguration
+      </h3>
+      <p style="color: var(--color-on-surface-muted); margin-bottom: 24px; font-size: var(--text-sub);">
+        Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten, Pausen).
+      </p>
+
+      <div class="sub-form-grid">
+        <div class="form-field">
+          <BaseLabel for="config-start">Startzeit</BaseLabel>
+          <BaseInput
+            id="config-start"
+            type="time"
+            v-model="configForm.startTime"
+            :disabled="!isAdmin"
+          />
+        </div>
+        <div class="form-field">
+          <BaseLabel for="config-slots">Anzahl Stunden (Pro Tag)</BaseLabel>
+          <BaseInput
+            id="config-slots"
+            type="number"
+            min="1"
+            max="15"
+            v-model.number="configForm.totalSlots"
+            :disabled="!isAdmin"
+          />
+        </div>
+        <div class="form-field">
+          <BaseLabel for="config-duration">Stundenlänge (Minuten)</BaseLabel>
+          <BaseInput
+            id="config-duration"
+            type="number"
+            min="10"
+            max="120"
+            v-model.number="configForm.lessonDurationMins"
+            :disabled="!isAdmin"
+          />
+        </div>
+      </div>
+
+      <div class="mt-6 mb-4">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <BaseLabel style="margin: 0; font-size: var(--text-body);">Pausen</BaseLabel>
+          <BaseButton v-if="isAdmin" variant="ghost" @click="addBreak" :icon="Plus" size="sm">
+            Pause hinzufügen
+          </BaseButton>
+        </div>
+        
+        <div v-if="Object.keys(configForm.breaks).length === 0" class="empty-hint" style="padding: 16px;">
+          Keine Pausen konfiguriert.
+        </div>
+        
+        <div class="flex flex-col gap-2">
+          <div v-for="(duration, slot) in configForm.breaks" :key="slot" class="flex gap-2 items-end">
+            <div class="form-field flex-1" style="margin: 0;">
+              <BaseLabel :for="`break-slot-${slot}`">Nach Stunde</BaseLabel>
+              <BaseInput
+                :id="`break-slot-${slot}`"
+                type="number"
+                min="1"
+                :max="configForm.totalSlots"
+                :value="slot"
+                :disabled="!isAdmin"
+                @change="e => {
+                  if (!isAdmin) return;
+                  const newSlot = Number((e.target as HTMLInputElement).value);
+                  const breaks = { ...configForm.breaks };
+                  const val = breaks[Number(slot)];
+                  delete breaks[Number(slot)];
+                  breaks[newSlot] = val;
+                  configForm.breaks = breaks;
+                }"
+              />
+            </div>
+            <div class="form-field flex-1" style="margin: 0;">
+              <BaseLabel :for="`break-dur-${slot}`">Dauer (Minuten)</BaseLabel>
+              <BaseInput
+                :id="`break-dur-${slot}`"
+                type="number"
+                min="1"
+                v-model.number="configForm.breaks[Number(slot)]"
+                :disabled="!isAdmin"
+              />
+            </div>
+            <BaseButton v-if="isAdmin" variant="ghost" class="text-danger mb-1" @click="removeBreak(slot)">
+              <Trash2 :size="20" />
+            </BaseButton>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="isAdmin" class="mt-6">
+        <BaseButton @click="handleSaveConfig" :disabled="savingScheduleConfig" variant="action">
+          {{ savingScheduleConfig ? 'Speichert...' : 'Konfiguration Speichern' }}
+        </BaseButton>
       </div>
     </div>
   </div>

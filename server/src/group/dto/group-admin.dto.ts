@@ -6,7 +6,10 @@ import {
   IsString,
   IsUUID,
   Length,
+  IsObject,
+  ValidateNested
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class ChangeMemberRoleDto {
   @IsIn(['user', 'moderator', 'admin'])
@@ -18,6 +21,30 @@ export class RenameGroupDto {
   @IsString()
   @Length(1, 100)
   name?: string;
+}
+
+export class ScheduleConfigDto {
+  @IsOptional()
+  @IsObject()
+  breaks?: Record<number, number>;
+
+  @IsOptional()
+  @IsString()
+  startTime?: string;
+
+  @IsOptional()
+  @IsInt()
+  totalSlots?: number;
+
+  @IsOptional()
+  @IsInt()
+  lessonDurationMins?: number;
+}
+
+export class UpdateScheduleConfigDto {
+  @ValidateNested()
+  @Type(() => ScheduleConfigDto)
+  scheduleConfig: ScheduleConfigDto;
 }
 
 export class UpdateGroupPasswordDto {
