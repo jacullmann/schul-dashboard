@@ -62,7 +62,7 @@ watch(isAuthReady, (ready) => {
       window.__removeInitialLoadingScreen?.();
     });
   }
-});
+}, { immediate: true });
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 
