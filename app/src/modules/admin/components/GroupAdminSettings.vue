@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
+import { Pencil } from '@lucide/vue';
 
 const { t } = useI18n();
 
