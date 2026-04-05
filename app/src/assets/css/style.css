@@ -40,6 +40,7 @@
     --color-canvas-hover: var(--color-charcoal);
     --color-canvas-border: var(--color-charcoal);
     --color-on-canvas: var(--color-white);
+    --color-on-canvas-muted: var(--color-ash);
     /* Surface */
     --color-surface: var(--color-charcoal);
     --color-surface-hover: var(--color-graphite);
@@ -168,6 +169,9 @@
     --color-canvas: var(--color-white);
     --color-canvas-hover: var(--color-white-highlight);
     --color-canvas-border: var(--color-cloud);
+
+    --color-on-canvas: var(--color-black);
+    --color-on-canvas-muted: var(--color-graphite);
 
     --color-surface: var(--color-white);
     --color-surface-hover: var(--color-white-highlight);
