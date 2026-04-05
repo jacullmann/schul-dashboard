@@ -19,19 +19,55 @@ const activeColor = computed(() => {
   if (props.on === 'ghost') return 'var(--color-on-surface-muted)';
   return 'var(--color-on-surface)';
 });
+
+const sizeNum = computed(() => parseInt(props.size || '16'));
+const strokeNum = computed(() => parseInt(props.borderThickness || '2'));
+const radius = computed(() => (sizeNum.value - strokeNum.value * 2) / 2);
+const center = computed(() => sizeNum.value / 2);
 </script>
 
 <template>
-  <span
-      class="inline-block rounded-full border-solid border-current border-t-transparent animate-spin [animation-duration:750ms] motion-reduce:animate-[spin_3s_linear_infinite]"
-      :style="{
-        width: size,
-        height: size,
-        borderWidth: borderThickness,
-        color: activeColor,
-      }"
+  <svg
+      :width="size"
+      :height="size"
+      :viewBox="`0 0 ${sizeNum} ${sizeNum}`"
+      class="inline-block animate-[spinner-rotate_2.2s_linear_infinite]"
+      style="transform-origin: center center"
       role="status"
       aria-live="polite"
       aria-label="Loading..."
-  ></span>
+  >
+    <circle
+        :cx="center"
+        :cy="center"
+        :r="radius"
+        :stroke="activeColor"
+        :stroke-width="borderThickness"
+        class="fill-none animate-[spinner-element_1.6s_ease-in-out_infinite]"
+        style="stroke-linecap: round; stroke-miterlimit: 10; stroke-dasharray: 1, 200; stroke-dashoffset: 0"
+    />
+  </svg>
 </template>
+
+<style>
+@keyframes spinner-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinner-element {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 89, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+</style>
