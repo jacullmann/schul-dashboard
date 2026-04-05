@@ -9,13 +9,13 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <kbd :class="[flat ? 'flat' : 'full', on]">
+  <kbd :class="[flat ? 'flat' : 'default', on]">
     <slot></slot>
   </kbd>
 </template>
 
 <style scoped>
-kbd.full {
+kbd.default {
   display: inline-flex;
   align-items: center;
   background-color: var(--color-kbd-bg);
@@ -33,7 +33,7 @@ kbd.full {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-kbd.full:active {
+kbd.default:active {
   transform: translateY(2px);
   box-shadow: 0 0 0 var(--color-kbd-border-bottom), 0 1px 2px var(--color-kbd-shadow);
 }
