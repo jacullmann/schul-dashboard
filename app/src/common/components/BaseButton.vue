@@ -23,8 +23,8 @@ const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   ghost: [
-    `bg-transparent text-on-${props.on} border-transparent`,
-    `hover:bg-${props.on}-hover hover:border-${props.on}-hover`,
+    `bg-transparent text-on-${props.on}-muted border-transparent`,
+    `hover:bg-${props.on}-hover hover:border-${props.on}-hover hover:text-on-${props.on}`,
   ].join(' '),
   text: [
     'bg-surface text-on-surface border-surface-border',
