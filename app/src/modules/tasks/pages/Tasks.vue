@@ -534,11 +534,16 @@ async function handleArchiveFromMenu(item: HwItem) {
           v-if="visibleCount < filteredItems.length"
           @click="showMore"
           variant="ghost"
+          on="canvas"
           >{{ t('global.buttons.showMore') }}</BaseButton
         >
-        <BaseButton v-if="visibleCount > 5" variant="ghost" @click="showLess">{{
-          t('global.buttons.showLess')
-        }}</BaseButton>
+        <BaseButton
+          v-if="visibleCount > 5"
+          variant="ghost"
+          on="canvas"
+          @click="showLess"
+          >{{ t('global.buttons.showLess') }}</BaseButton
+        >
       </div>
     </div>
 

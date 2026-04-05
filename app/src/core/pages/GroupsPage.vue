@@ -143,7 +143,7 @@ async function leaveGroup(group: any) {
           <BaseButton @click="modalStore.openJoinGroup" variant="action" :icon="UserRoundPlus">
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
-          <BaseButton @click="modalStore.openCreateGroup" variant="ghost" :icon="Plus">
+          <BaseButton @click="modalStore.openCreateGroup" variant="ghost" on="canvas" :icon="Plus">
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
         </div>
@@ -193,7 +193,7 @@ async function leaveGroup(group: any) {
 
           <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" / -->
 
-          <BaseButton @click.stop="openMenuId = openMenuId === group.id ? null : group.id" variant="ghost" :icon="MoreHorizontal" />
+          <BaseButton @click.stop="openMenuId = openMenuId === group.id ? null : group.id" variant="ghost" :on="group.id === activeGroupId ? 'action' : 'surface'" :icon="MoreHorizontal" />
 
           <BaseMenu v-if="openMenuId === group.id" class="right-0 mt-6" @click.stop>
             <BaseMenuButton v-if="group.id !== defaultGroupId" @click="setDefaultGroup(group.id)">

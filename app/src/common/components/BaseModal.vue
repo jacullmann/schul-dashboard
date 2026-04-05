@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
+import { X } from '@lucide/vue';
 
 const { t } = useI18n();
 
@@ -9,17 +10,20 @@ const emit = defineEmits<{
   success: [];
 }>();
 
-const props = withDefaults(defineProps<{
-  submit?: () => void;
-  cancel?: () => void;
-  danger?: boolean;
-  error?: string;
-  loading?: boolean;
-}>(), {
-  danger: false,
-  error: '',
-  loading: false,
-});
+const props = withDefaults(
+  defineProps<{
+    submit?: () => void;
+    cancel?: () => void;
+    danger?: boolean;
+    error?: string;
+    loading?: boolean;
+  }>(),
+  {
+    danger: false,
+    error: '',
+    loading: false,
+  },
+);
 
 const handleCancel = () => {
   if (props.cancel) {
@@ -46,13 +50,24 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         </template>
       </BaseTitle>
 
-      <BaseButton type="button" variant="ghost" @click="handleCancel">
-        {{ t('global.buttons.close') }}
-      </BaseButton>
+      <BaseButton
+        type="button"
+        variant="ghost"
+        on="canvas"
+        :icon="X"
+        @click="handleCancel"
+      />
     </BaseRow>
 
     <!-- Content -->
-    <BaseForm v-if="submit" :submit="submit" :cancel="handleCancel" :error="error" :danger="danger" :loading="loading">
+    <BaseForm
+      v-if="submit"
+      :submit="submit"
+      :cancel="handleCancel"
+      :error="error"
+      :danger="danger"
+      :loading="loading"
+    >
       <template v-for="(_, name) in $slots" #[name]="slotProps">
         <slot :name="name" v-bind="slotProps || {}"></slot>
       </template>

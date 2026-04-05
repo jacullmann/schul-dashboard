@@ -34,6 +34,7 @@ defineProps<{
         v-if="secondaryAction"
         @click="secondaryAction()"
         variant="ghost"
+        on="canvas"
       >
         <slot name="secondary-action-label"></slot>
       </BaseButton>

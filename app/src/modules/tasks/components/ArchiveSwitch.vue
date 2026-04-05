@@ -30,7 +30,7 @@ function handleChange(value: boolean) {
 </script>
 
 <template>
-  <BaseButton :class="{ 'is-showing-old': props.modelValue }" @click="toggleState" variant="ghost">
+  <BaseButton :class="{ 'is-showing-old': props.modelValue }" @click="toggleState" variant="ghost" on="canvas">
     <span :key="buttonText">
         {{ buttonText }}
       </span>

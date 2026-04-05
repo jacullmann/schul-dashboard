@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<{
     </BaseFormContent>
 
     <BaseRow justify="end" class="mt-4">
-      <BaseButton v-if="cancel" type="button" variant="ghost" @click="cancel">
+      <BaseButton v-if="cancel" type="button" variant="ghost" on="canvas" @click="cancel">
         <slot name="cancel-text">
           {{ t('global.buttons.cancel') }}
         </slot>

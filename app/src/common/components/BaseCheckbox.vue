@@ -73,10 +73,8 @@ function handleLabelClick(event: MouseEvent) {
   color: inherit;
   margin: 0;
   padding: 0;
-}
-
-.collapse-checkbox input {
-  display: none;
+  position: relative;
+  z-index: 0;
 }
 
 .collapse-checkbox .vis-label {
@@ -98,6 +96,24 @@ function handleLabelClick(event: MouseEvent) {
 .collapse-checkbox input:checked + .vis-label {
   background: var(--color-action);
   border-color: var(--color-action);
+}
+
+.collapse-checkbox .vis-label::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 34px; 
+  height: 34px;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+  transition: var(--transition-hover);
+  z-index: -1;
+}
+
+.collapse-checkbox:hover .vis-label::before {
+  background-color: var(--color-surface-hover); 
 }
 
 .check-icon {

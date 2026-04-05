@@ -4,6 +4,7 @@ import { Component, computed, ref } from 'vue';
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
   variant?: 'action' | 'ghost' | 'text' | 'danger';
+  on?: 'canvas' | 'surface' | 'action'
   icon?: Component;
   loading?: boolean;
   disabled?: boolean;
@@ -12,6 +13,7 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   type: 'button',
   variant: 'ghost',
+  on: 'surface',
   icon: undefined,
   loading: false,
   disabled: false,
@@ -21,8 +23,8 @@ const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   ghost: [
-    'bg-transparent text-on-surface-muted border-transparent',
-    'hover:bg-surface-hover hover:border-surface-hover',
+    `bg-transparent text-on-${props.on} border-transparent`,
+    `hover:bg-${props.on}-hover hover:border-${props.on}-hover`,
   ].join(' '),
   text: [
     'bg-surface text-on-surface border-surface-border',
@@ -60,9 +62,9 @@ defineExpose({
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner v-if="loading" :on="variant" size="1em" />
+    <BaseSpinner v-if="loading" :on="variant" size="1rem" />
     <template v-else>
-      <component v-if="icon" :is="icon" />
+      <component v-if="icon" :is="icon" :size="16" />
       <slot></slot>
     </template>
   </button>
