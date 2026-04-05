@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue';
-import { ArrowLeft } from '@lucide/vue';
 import SidebarButton from '@/core/components/SidebarButton.vue';
 
 export interface AdminNavItem {
@@ -14,7 +13,6 @@ export interface AdminNavItem {
 const props = defineProps<{
   title: string;
   subtitle?: string | null;
-  backTo: string;
   navItems: AdminNavItem[];
   activeTab: string;
 }>();
@@ -35,9 +33,6 @@ const activeTab = computed({
     <header class="adm-header">
       <div class="adm-header-inner">
         <div class="adm-header-left">
-          <router-link :to="backTo" class="adm-back" aria-label="Back">
-            <ArrowLeft :size="18" />
-          </router-link>
           <div class="adm-header-titles">
             <h1 class="adm-title">{{ title }}</h1>
             <span v-if="subtitle" class="adm-subtitle">{{ subtitle }}</span>

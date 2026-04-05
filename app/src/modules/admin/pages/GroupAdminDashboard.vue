@@ -4,7 +4,7 @@ import { LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen, Setting
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import AdminLayout, { type AdminNavItem } from '@/modules/admin/components/AdminLayout.vue';
+import AdminLayout, { type AdminNavItem } from '@/layouts/AdminLayout.vue';
 
 import GroupAdminOverview from '@/modules/admin/components/GroupAdminOverview.vue';
 import GroupAdminMembers from '@/modules/admin/components/GroupAdminMembers.vue';
@@ -67,7 +67,6 @@ const navItems: AdminNavItem[] = [
   <AdminLayout
     title="Verwaltung"
     :subtitle="groupName"
-    :back-to="`/groups/${groupId}/items/all`"
     :nav-items="navItems"
     :active-tab="activeTab"
     @update:active-tab="activeTab = $event"

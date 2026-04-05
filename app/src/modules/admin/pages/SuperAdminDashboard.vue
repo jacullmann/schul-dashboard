@@ -16,7 +16,7 @@ import {
   Layers,
 } from '@lucide/vue';
 import hw from '@/api/hwApi';
-import AdminLayout from '@/modules/admin/components/AdminLayout.vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
 import { useToast } from '@/common/composables/useToast';
 
@@ -304,7 +304,6 @@ onMounted(() => {
 <template>
   <AdminLayout
     title="Super Admin"
-    back-to="/home"
     :nav-items="navItems"
     :active-tab="activeTab"
     @update:active-tab="activeTab = $event"

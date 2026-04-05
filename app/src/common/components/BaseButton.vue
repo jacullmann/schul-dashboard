@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Component, computed, ref } from 'vue';
+import type { Component } from 'vue';
+import { computed, ref } from 'vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
