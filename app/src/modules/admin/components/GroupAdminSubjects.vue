@@ -133,13 +133,12 @@ onMounted(() => {
               {{ subject.isActive ? 'Aktiv' : 'Inaktiv' }}
             </span>
           </div>
-          <div v-if="isAdmin" class="subject-actions">
-            <label class="toggle-label">
-              <BaseCheckbox
-                :model-value="subject.isActive"
-                @change="handleToggleActive(subject, $event)"
-              />
-            </label>
+          <BaseRow v-if="isAdmin" class="max-[300px]:w-full">
+            <BaseCheckbox
+              class="mx-2"
+              :model-value="subject.isActive"
+              @change="handleToggleActive(subject, $event)"
+            />
             <BaseTooltip content="Umbenennen">
               <BaseButton
                 variant="ghost"
@@ -156,7 +155,7 @@ onMounted(() => {
                 :icon="Trash2"
               />
             </BaseTooltip>
-          </div>
+          </BaseRow>
         </template>
 
         <!-- Edit mode -->
@@ -281,13 +280,6 @@ onMounted(() => {
   color: var(--color-on-surface-muted);
 }
 
-.subject-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-shrink: 0;
-}
-
 .toggle-label {
   display: flex;
   align-items: center;
@@ -363,9 +355,6 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-  }
-  .subject-actions {
-    width: 100%;
   }
   .add-form-row {
     flex-wrap: wrap;
