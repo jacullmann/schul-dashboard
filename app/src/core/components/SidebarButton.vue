@@ -22,7 +22,7 @@ withDefaults(
     <button
       v-bind="$attrs"
       class="group gap-0 items-center flex p-3 md:p-2 text-on-surface rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer border-0 outline-none w-full"
-      :class="{ 'bg-action! text-on-action!': active }"
+      :class="{ 'bg-action! text-on-action!': active && ($slots.default || expanded) }"
     >
       <span class="shrink-0">
         <slot></slot>
@@ -33,6 +33,7 @@ withDefaults(
         class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] transition-hover text-sub leading-5 font-regular whitespace-nowrap overflow-hidden"
         :class="[
           expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0',
+          !$slots.default ? 'ml-0!' : '',
           active ? 'text-on-action!' : 'text-on-surface-muted group-hover:text-on-surface'
         ]"
       >
