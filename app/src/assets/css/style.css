@@ -171,7 +171,7 @@
     --announcement-height: 0px;
 }
 
-:root.light {
+@theme .light {
     /* COLORS */
     --color-canvas: var(--color-white);
     --color-canvas-hover: var(--color-white-highlight);
