@@ -1,45 +1,86 @@
 <script setup lang="ts">
-import { ref, nextTick, onBeforeUnmount } from 'vue';
+import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue';
 
-const props = defineProps<{
-  content?: string;
-  shortcut?: string[];
-  disabled?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    content?: string;
+    shortcut?: string[];
+    disabled?: boolean;
+    debounce?: 'slow' | 'fast';
+  }>(),
+  {
+    debounce: 'fast',
+  },
+);
 
 const isVisible = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const tooltipStyle = ref({ top: '0px', left: '0px' });
 
-const show = async () => {
-  if (props.disabled || !props.content) return;
-  isVisible.value = true;
+// Timer references for debounce cleanup
+let showTimeout: ReturnType<typeof setTimeout> | null = null;
+let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Wait a tick for the teleported element to mount before calculating position
-  await nextTick();
-  updatePosition();
+const clearTimers = () => {
+  if (showTimeout) clearTimeout(showTimeout);
+  if (hideTimeout) clearTimeout(hideTimeout);
+};
+
+const show = () => {
+  if (props.disabled || !props.content) return;
+
+  clearTimers();
+
+  const delay = props.debounce === 'slow' ? 350 : 50;
+
+  showTimeout = setTimeout(async () => {
+    if (props.disabled || !props.content) return;
+
+    isVisible.value = true;
+    await nextTick();
+    updatePosition();
+  }, delay);
 };
 
 const hide = () => {
+  clearTimers();
+
+  hideTimeout = setTimeout(() => {
+    isVisible.value = false;
+  }, 50);
+};
+
+const immediateHide = () => {
+  clearTimers();
   isVisible.value = false;
 };
 
 const updatePosition = () => {
   if (!triggerRef.value) return;
 
-  // Get exact coordinates of the trigger on the screen
   const rect = triggerRef.value.getBoundingClientRect();
 
-  // Position to the right of the trigger, centered vertically
   tooltipStyle.value = {
     top: `${rect.top + rect.height / 2}px`,
-    left: `${rect.right + 12}px`, // 12px offset from the button
+    left: `${rect.right + 12}px`,
     transform: 'translateY(-50%)',
   };
 };
 
-// Cleanup in case the component is destroyed while hovering
-onBeforeUnmount(hide);
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isVisible.value) {
+    immediateHide();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', handleKeydown);
+  immediateHide();
+});
 </script>
 
 <template>
@@ -64,11 +105,17 @@ onBeforeUnmount(hide);
       >
         <div
           v-if="isVisible"
-          class="fixed z-(--z-tooltip) px-3 py-1.5 bg-action text-on-action gap-2 text-xs leading-4 font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
+          class="fixed z-(--z-tooltip) px-2 py-1.5 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
           :style="tooltipStyle"
         >
           {{ content }}
-          <BaseKbdGroup v-if="shortcut" :keys="shortcut" :flat="true" on="action" />
+          <BaseKbdGroup
+            v-if="shortcut"
+            :keys="shortcut"
+            :flat="true"
+            on="action"
+            class="ml-2"
+          />
         </div>
       </transition>
     </Teleport>

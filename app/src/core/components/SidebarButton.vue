@@ -14,7 +14,7 @@ defineProps<{
   <BaseTooltip 
     :content="label" 
     :shortcut="shortcut"
-    :disabled="expanded || !label"
+    :disabled="!label"
   >
     <button
       v-bind="$attrs"
