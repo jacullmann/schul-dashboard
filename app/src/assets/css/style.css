@@ -174,7 +174,7 @@
 }
 
 @layer base {
-    .dark {
+    html.dark {
         /* Canvas */
         --color-canvas: var(--color-onyx);
         --color-canvas-hover: var(--color-charcoal);

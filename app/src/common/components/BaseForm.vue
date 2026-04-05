@@ -35,7 +35,7 @@ const props = withDefaults(defineProps<{
         </slot>
       </BaseButton>
 
-      <BaseButton type="submit" :variant="danger ? 'danger' : 'action'" :class="{'w-full font-semibold justify-center': !cancel}" :loading="loading" :disabled="loading || !requirement">
+      <BaseButton type="submit" :variant="danger ? 'danger' : 'action'" :full="!cancel" :loading="loading" :disabled="loading || !requirement">
         <slot name="action-text">
           {{ t('global.buttons.confirm') }}
         </slot>

@@ -80,115 +80,114 @@ async function confirmDeleteGroup() {
 
 <template>
   <div class="tab-panel">
-    <div v-if="!isAdmin" class="settings-card readonly">
+    <div v-if="!isAdmin" class="readonly">
       <p class="readonly-text">
         Nur Administratoren können die Einstellungen ändern.
       </p>
     </div>
 
     <!-- Name settings -->
-    <div class="settings-card">
-      <h3>Gruppenname</h3>
-      <div class="setting-row">
-        <BaseLabel for="group-name">Name</BaseLabel>
-        <div v-if="!editingGroupName" class="setting-value">
-          <span>{{ groupName }}</span>
-          <BaseTooltip :content="t('global.buttons.edit')">
-            <BaseButton
-              v-if="isAdmin"
-              class="tiny"
-              @click="emit('start-edit')"
-              variant="ghost"
-              on="canvas"
-              :icon="Pencil"
-            />
-          </BaseTooltip>
-        </div>
-        <div v-else class="setting-edit">
-          <BaseInput
-            id="group-name"
-            :value="newGroupName"
-            @input="
-              emit(
-                'update:newGroupName',
-                ($event.target as HTMLInputElement).value,
-              )
-            "
-            placeholder="Neuer Gruppenname"
-            @keyup.enter="emit('save-edit')"
-            :disabled="!isAdmin"
-          />
+    <div>
+      <PageHeader>Gruppenname</PageHeader>
+      <BaseLabel for="group-name">Name</BaseLabel>
+      <div v-if="!editingGroupName" class="setting-value">
+        <span>{{ groupName }}</span>
+        <BaseTooltip :content="t('global.buttons.edit')">
           <BaseButton
-            @click="emit('save-edit')"
-            :disabled="savingGroupName || !newGroupName.trim() || !isAdmin"
-            variant="action"
-          >
-            {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
-          </BaseButton>
-          <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
-            t('global.buttons.cancel')
-          }}</BaseButton>
-        </div>
+            v-if="isAdmin"
+            class="tiny"
+            @click="emit('start-edit')"
+            variant="ghost"
+            on="canvas"
+            :icon="Pencil"
+          />
+        </BaseTooltip>
+      </div>
+
+      <div v-else class="setting-edit">
+        <BaseInput
+          id="group-name"
+          :value="newGroupName"
+          @input="
+            emit(
+              'update:newGroupName',
+              ($event.target as HTMLInputElement).value,
+            )
+          "
+          placeholder="Neuer Gruppenname"
+          @keyup.enter="emit('save-edit')"
+          :disabled="!isAdmin"
+        />
+        <BaseButton
+          @click="emit('save-edit')"
+          :disabled="savingGroupName || !newGroupName.trim() || !isAdmin"
+          variant="action"
+        >
+          {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
+        </BaseButton>
+        <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
+          t('global.buttons.cancel')
+        }}</BaseButton>
       </div>
     </div>
 
     <!-- Password settings -->
-    <div v-if="isOwner" class="settings-card">
-      <h3>Passwort ändern</h3>
+    <div v-if="isOwner">
+      <PageHeader>Passwort ändern</PageHeader>
 
-      <div class="form-group">
-        <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
-        <BaseInput
-          id="old-password"
-          type="password"
-          v-model="oldPassword"
-          @input="pwdError = ''"
-        />
-      </div>
+      <BaseForm
+        :submit="changePassword"
+        :error="pwdError"
+        :loading="changingPassword"
+        :requirement="
+          !!(
+            oldPassword &&
+            newPassword &&
+            newPassword2 &&
+            newPassword === newPassword2
+          )
+        "
+      >
+        <template #content>
+          <BaseFormGroup id="old-password">
+            <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
+            <BaseInput
+              id="old-password"
+              type="password"
+              v-model="oldPassword"
+              @input="pwdError = ''"
+            />
+          </BaseFormGroup>
 
-      <div class="form-group">
-        <BaseLabel for="new-password">Neues Passwort</BaseLabel>
-        <BaseInput
-          id="new-password"
-          type="password"
-          v-model="newPassword"
-          @input="pwdError = ''"
-        />
-      </div>
+          <BaseFormGroup id="new-password">
+            <BaseLabel for="new-password">Neues Passwort</BaseLabel>
+            <BaseInput
+              id="new-password"
+              type="password"
+              v-model="newPassword"
+              @input="pwdError = ''"
+            />
+          </BaseFormGroup>
 
-      <div class="form-group">
-        <BaseLabel for="new-password-confirm"
-          >Neues Passwort bestätigen</BaseLabel
-        >
-        <BaseInput
-          id="new-password-confirm"
-          type="password"
-          v-model="newPassword2"
-          @input="pwdError = ''"
-        />
-      </div>
+          <BaseFormGroup id="new-password-confirm">
+            <BaseLabel for="new-password-confirm"
+              >Neues Passwort bestätigen</BaseLabel
+            >
+            <BaseInput
+              id="new-password-confirm"
+              type="password"
+              v-model="newPassword2"
+              @input="pwdError = ''"
+            />
+          </BaseFormGroup>
+        </template>
 
-      <p v-if="pwdError" class="error-text">{{ pwdError }}</p>
-
-      <div class="actions">
-        <BaseButton
-          @click="changePassword"
-          :disabled="
-            changingPassword ||
-            !oldPassword ||
-            !newPassword ||
-            newPassword !== newPassword2
-          "
-          variant="action"
-          :loading="changingPassword"
-        >
-          Passwort ändern
-        </BaseButton>
-      </div>
+        <template #action-text> Passwort ändern </template>
+      </BaseForm>
     </div>
 
     <!-- Danger Zone: Delete Group -->
-    <div v-if="isOwner" class="settings-card danger-zone">
+    <div v-if="isOwner">
       <h3 class="danger-title">Danger Zone</h3>
       <p class="danger-desc">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
@@ -196,29 +195,31 @@ async function confirmDeleteGroup() {
         etc.) werden für alle Benutzer gelöscht.
       </p>
 
-      <div class="delete-confirmation">
-        <BaseLabel for="delete-confirm"
-          >Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um
-          fortzufahren:</BaseLabel
-        >
-        <BaseInput
-          id="delete-confirm"
-          v-model="deleteConfirmText"
-          type="text"
-          class="danger-input"
-          :placeholder="'delete ' + groupName"
-        />
-        <BaseButton
-          :disabled="
-            deleteConfirmText !== `delete ${groupName}` || deletingGroup
-          "
-          @click="confirmDeleteGroup"
-          variant="danger"
-          :loading="deletingGroup"
-        >
-          Gruppe unwiderruflich löschen
-        </BaseButton>
-      </div>
+      <BaseForm
+        :submit="confirmDeleteGroup"
+        :loading="deletingGroup"
+        :requirement="deleteConfirmText === `delete ${groupName}`"
+        :danger="true"
+        class="max-w-100"
+      >
+        <template #content>
+          <BaseFormGroup id="delete-confirm">
+            <BaseLabel for="delete-confirm"
+              >Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um
+              fortzufahren:
+            </BaseLabel>
+            <BaseInput
+              id="delete-confirm"
+              v-model="deleteConfirmText"
+              type="text"
+              class="danger-input"
+              :placeholder="'delete ' + groupName"
+            />
+          </BaseFormGroup>
+        </template>
+
+        <template #action-text> Gruppe unwiderruflich löschen </template>
+      </BaseForm>
     </div>
   </div>
 </template>
@@ -247,28 +248,6 @@ async function confirmDeleteGroup() {
   font-size: var(--text-body);
   margin: 0;
   text-align: center;
-}
-
-.settings-card {
-  margin-bottom: 16px;
-}
-
-.settings-card h3 {
-  font-size: var(--text-title);
-  font-weight: 600;
-  margin: 0 0 20px;
-}
-
-.setting-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.setting-row label {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  font-weight: 500;
 }
 
 .setting-value {
@@ -328,27 +307,12 @@ async function confirmDeleteGroup() {
   line-height: 1.5;
 }
 
-.delete-confirmation {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 400px;
-}
-
-.delete-confirmation label {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface);
-}
-
 @media (max-width: 640px) {
   .setting-edit {
     flex-wrap: wrap;
   }
   .setting-edit .input {
     max-width: none;
-  }
-  .settings-card {
-    padding: 16px;
   }
 }
 </style>
