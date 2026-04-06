@@ -5,40 +5,42 @@ import hw, { ensureCsrf } from '@/api/hwApi';
 const STATUS_ENDPOINT = '/api/groups/status';
 
 // ─── Shared reactive state (module singleton) ─────────────────────────────────
-
 const isAuthenticated = ref(false);
 const isLoggedIn = ref(false);
 const isAuthReady = ref(false);
 const groupName = ref<string | null>(null);
 const activeGroupId = ref<string | null>(null);
 const activeGroupOwnerId = ref<string | null>(null);
-const userGroups = ref<
-  Array<{
-    id: string;
-    name: string;
-    role: string;
-    generatedName?: string;
-    ownerId?: string;
-    hasUnreadContent?: boolean;
-    scheduleConfig?: Record<string, any>;
-  }>
->([]);
+type UserGroup = {
+  id: string;
+  name: string;
+  role: string;
+  generatedName?: string;
+  ownerId?: string;
+  hasUnreadContent?: boolean;
+  scheduleConfig?: Record<string, any>;
+};
+
+const userGroups = ref<UserGroup[]>([]);
 
 let initPromise: Promise<void> | null = null;
-
-// ─── Active group-switch guard ────────────────────────────────────────────────
-// Prevents parallel switch calls (e.g. rapid navigation between group routes).
 let switchPromise: Promise<AuthResult> | null = null;
 let switchTarget: string | null = null;
 
 // ─── Result types ─────────────────────────────────────────────────────────────
-
 type OkResult = { ok: true };
 type ErrResult = { ok: false; error: string };
 type AuthResult = OkResult | ErrResult;
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
+type GroupSnapshot = {
+  activeGroupId: string | null;
+  groupName: string | null;
+  userGroups: typeof userGroups.value;
+  isLoggedIn: boolean;
+  isAuthenticated: boolean;
+};
 
+// ─── Internal helpers ─────────────────────────────────────────────────────────
 function clearAuthState(): void {
   isLoggedIn.value = false;
   isAuthenticated.value = false;
@@ -46,7 +48,6 @@ function clearAuthState(): void {
   activeGroupId.value = null;
   activeGroupOwnerId.value = null;
   userGroups.value = [];
-
   try {
     localStorage.removeItem('active_tenant_id');
   } catch {
@@ -57,15 +58,7 @@ function clearAuthState(): void {
 function applyStatusData(data: {
   authenticated: boolean;
   group?: { id: string; name: string; ownerId?: string } | null;
-  groups?: Array<{
-    id: string;
-    name: string;
-    role: string;
-    generatedName?: string;
-    ownerId?: string;
-    hasUnreadContent?: boolean;
-    scheduleConfig?: Record<string, any>;
-  }>;
+  groups?: UserGroup[];
 }): void {
   isLoggedIn.value = data.authenticated;
   isAuthenticated.value = data.authenticated;
@@ -75,8 +68,61 @@ function applyStatusData(data: {
   userGroups.value = data.groups ?? [];
 }
 
-// ─── Composable ───────────────────────────────────────────────────────────────
+async function doInitAuth(): Promise<void> {
+  try {
+    await ensureCsrf();
+    const { data } = await hw.get(STATUS_ENDPOINT);
+    applyStatusData(data);
+  } catch {
+    clearAuthState();
+  } finally {
+    isAuthReady.value = true;
+  }
+}
 
+async function doSwitchGroup(
+    groupId: string,
+    snapshot: GroupSnapshot,
+    checkAuthStatus: () => Promise<boolean>,
+): Promise<AuthResult> {
+  try {
+    const { status, data } = await hw.post('/api/groups/switch', { groupId });
+
+    if ((status === 200 || status === 201) && data.ok) {
+      await checkAuthStatus();
+      window.dispatchEvent(
+          new CustomEvent('tenant-changed', { detail: { groupId } }),
+      );
+      return { ok: true };
+    }
+
+    throw new Error(data?.error ?? 'Group switch failed.');
+  } catch (error: unknown) {
+    activeGroupId.value = snapshot.activeGroupId;
+    groupName.value = snapshot.groupName;
+    userGroups.value = snapshot.userGroups;
+    isLoggedIn.value = snapshot.isLoggedIn;
+    isAuthenticated.value = snapshot.isAuthenticated;
+
+    const err = error as {
+      response?: { data?: { message?: string; error?: string } };
+      message?: string;
+    };
+    return {
+      ok: false,
+      error:
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          err.message ??
+          'Group switch failed.',
+    };
+  } finally {
+    switchPromise = null;
+    switchTarget = null;
+  }
+}
+
+// ─── Composable ───────────────────────────────────────────────────────────────
 export function useAppAuth() {
   async function checkAuthStatus(): Promise<boolean> {
     try {
@@ -89,38 +135,20 @@ export function useAppAuth() {
     }
   }
 
-  async function initAuth() {
+  async function initAuth(): Promise<void> {
     if (isAuthReady.value) return;
     if (initPromise) return initPromise;
-
-    initPromise = (async () => {
-      try {
-        await ensureCsrf();
-        const { data } = await hw.get(STATUS_ENDPOINT);
-        applyStatusData(data);
-      } catch {
-        clearAuthState();
-      } finally {
-        isAuthReady.value = true;
-      }
-    })();
-
+    initPromise = doInitAuth();
     return initPromise;
   }
 
-  // ─── Group actions ────────────────────────────────────────────────────────
-
-  async function joinGroup(
-    name: string,
-    password: string,
-  ): Promise<AuthResult> {
+  async function joinGroup(name: string, password: string): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/api/groups/join', {
         groupName: name,
         password,
       });
       if ((status === 200 || status === 201) && data.ok) {
-        // Server already set the new CSRF cookie via Set-Cookie header.
         await checkAuthStatus();
         return { ok: true };
       }
@@ -132,17 +160,14 @@ export function useAppAuth() {
       return {
         ok: false,
         error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          'Invalid code.',
+            err.response?.data?.message ??
+            err.response?.data?.error ??
+            'Invalid code.',
       };
     }
   }
 
-  async function createGroup(
-    name: string,
-    password: string,
-  ): Promise<AuthResult> {
+  async function createGroup(name: string, password: string): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/api/groups/create', {
         groupName: name,
@@ -160,21 +185,19 @@ export function useAppAuth() {
       return {
         ok: false,
         error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          'An error occurred.',
+            err.response?.data?.message ??
+            err.response?.data?.error ??
+            'An error occurred.',
       };
     }
   }
 
   async function switchActiveGroup(groupId: string): Promise<AuthResult> {
-    // Debounce: if a switch to the SAME group is already in flight, reuse it.
     if (switchPromise && switchTarget === groupId) {
       return switchPromise;
     }
 
-    // Snapshot full state for a complete rollback on failure.
-    const snapshot = {
+    const snapshot: GroupSnapshot = {
       activeGroupId: activeGroupId.value,
       groupName: groupName.value,
       userGroups: userGroups.value,
@@ -183,46 +206,7 @@ export function useAppAuth() {
     };
 
     switchTarget = groupId;
-    switchPromise = (async (): Promise<AuthResult> => {
-      try {
-        const { status, data } = await hw.post('/api/groups/switch', {
-          groupId,
-        });
-
-        if ((status === 200 || status === 201) && data.ok) {
-          // Canonical server sync — refreshes groupName, userGroups, etc.
-          await checkAuthStatus();
-          window.dispatchEvent(
-            new CustomEvent('tenant-changed', { detail: { groupId } }),
-          );
-          return { ok: true };
-        }
-
-        throw new Error(data?.error ?? 'Group switch failed.');
-      } catch (error: unknown) {
-        // Full rollback: restore every piece of state.
-        activeGroupId.value = snapshot.activeGroupId;
-        groupName.value = snapshot.groupName;
-        userGroups.value = snapshot.userGroups;
-        isLoggedIn.value = snapshot.isLoggedIn;
-        isAuthenticated.value = snapshot.isAuthenticated;
-
-        const err = error as {
-          response?: { data?: { message?: string; error?: string } };
-          message?: string;
-        };
-        const message =
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          err.message ??
-          'Group switch failed.';
-        return { ok: false, error: message };
-      } finally {
-        switchPromise = null;
-        switchTarget = null;
-      }
-    })();
-
+    switchPromise = doSwitchGroup(groupId, snapshot, checkAuthStatus);
     return switchPromise;
   }
 

@@ -6,7 +6,7 @@ import {
   useWindowSize,
 } from '@vueuse/core';
 import type { UserData } from '@/stores/userStore';
-import { useAccountModals } from './useAccountModals';
+import { useAccountModals } from '@/modules/auth/composables/useAccountModals';
 
 export function useAccountMenu(
   props: { email: string; userData: UserData | null },
