@@ -26,7 +26,7 @@ const { t } = useI18n();
       isClickable
         ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'
         : '',
-      isSelected ? 'bg-action' : '',
+      isSelected ? 'bg-action!' : '',
     ]"
     @click="isClickable ? $emit('select', lesson) : undefined"
   >

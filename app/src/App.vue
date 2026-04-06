@@ -175,8 +175,8 @@ onUnmounted(() => {
   width: 100px;
   height: 100%;
   box-shadow:
-    0 0 10px #af00ff,
-    0 0 5px #af00ff;
+    0 0 10px var(--color-bismuth-purple),
+    0 0 5px var(--color-bismuth-purple);
   opacity: 1;
   transform: rotate(3deg) translate(0px, -4px);
 }

@@ -215,7 +215,7 @@ const {
 .video-wrapper {
   position: relative;
   width: 100%;
-  background: #000;
+  background: var(--color-black);
   border-radius: 0;
   overflow: hidden;
   aspect-ratio: 16/9;
@@ -261,7 +261,7 @@ const {
 .player-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: var(--color-white);
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -325,7 +325,7 @@ const {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #fff;
+  color: var(--color-white);
   pointer-events: none;
   z-index: 20;
 }
@@ -360,7 +360,7 @@ input[type='range']::-webkit-slider-thumb {
   height: 12px;
   width: 12px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-white);
   cursor: pointer;
   margin-top: -4px;
   transform: scale(0);
@@ -386,7 +386,7 @@ input[type='range']::-moz-range-thumb {
   width: 12px;
   border: none;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-white);
   cursor: pointer;
   transform: scale(0);
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);

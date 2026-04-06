@@ -235,8 +235,8 @@ const activeTab = computed({
 }
 
 .adm-nav-badge.danger {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
 }
 
 /* ─── Main content ──────────────────────────────────────────────────────────── */

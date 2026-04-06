@@ -80,7 +80,7 @@ defineExpose({
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner v-if="loading" :on="variant === 'input' ? 'surface' : variant" size="1rem" />
+    <BaseSpinner v-if="loading" :on="variant" size="1rem" />
     <template v-else>
       <component v-if="icon" :is="icon" :size="16" />
       <slot></slot>
