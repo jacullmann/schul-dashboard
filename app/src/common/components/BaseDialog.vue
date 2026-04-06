@@ -1,0 +1,32 @@
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    title: string;
+    submitText: string;
+    loading?: boolean;
+    danger?: boolean;
+  }>(),
+  {
+    loading: false,
+    danger: false,
+    submitText: 'Confirm',
+  },
+);
+</script>
+
+<template>
+  <BaseModal
+    :loading="loading"
+    :danger="danger"
+    @cancel="$emit('cancel')"
+    @submit="$emit('confirm')"
+  >
+    <template #title>{{ title }}</template>
+
+    <template #content>
+      <p><slot></slot></p>
+    </template>
+
+    <template #action-text>{{ submitText }}</template>
+  </BaseModal>
+</template>

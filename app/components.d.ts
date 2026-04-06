@@ -17,6 +17,7 @@ declare module 'vue' {
     BaseCheckbox: typeof import('./src/common/components/BaseCheckbox.vue')['default']
     BaseCommandPalette: typeof import('./src/common/components/BaseCommandPalette.vue')['default']
     BaseCommandPaletteItem: typeof import('./src/common/components/BaseCommandPaletteItem.vue')['default']
+    BaseDialog: typeof import('./src/common/components/BaseDialog.vue')['default']
     BaseEmptyState: typeof import('./src/common/components/BaseEmptyState.vue')['default']
     BaseForm: typeof import('./src/common/components/BaseForm.vue')['default']
     BaseFormContent: typeof import('./src/common/components/BaseFormContent.vue')['default']

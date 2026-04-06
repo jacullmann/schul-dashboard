@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import { useEventListener } from '@vueuse/core';
 import { X } from '@lucide/vue';
-
-const { t } = useI18n();
 
 const emit = defineEmits<{
   cancel: [];
@@ -43,7 +40,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     <!-- Header-->
     <BaseRow justify="between" class="mb-4">
       <BaseInfoRow>
-        <h3>
+        <h3 id="modal-title">
           <slot name="title"></slot>
         </h3>
 
@@ -55,6 +52,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         variant="ghost"
         on="canvas"
         :icon="X"
+        class="absolute top-2 right-2"
         @click="handleCancel"
       />
     </BaseRow>

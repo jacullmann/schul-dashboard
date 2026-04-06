@@ -20,8 +20,6 @@ import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
 import { useImageViewer } from '@/core/composables/useImageViewer';
 import InfoModal from '@/common/components/InfoModal.vue';
-import DeleteEntryModal from '@/modules/tasks/components/DeleteEntryModal.vue';
-import DeleteImageModal from '@/modules/tasks/components/DeleteImageModal.vue';
 import ItemInfoModal from '@/modules/tasks/components/ItemInfoModal.vue';
 import { useI18n } from 'vue-i18n';
 import { useWindowSize } from '@vueuse/core';
@@ -295,24 +293,21 @@ async function handleArchiveFromMenu(item: HwItem) {
             class="right-0 mt-6"
             @click.stop
           >
-            <BaseMenuButton v-if="user" @click="onMenuAction('images', item)">
-              <Upload :size="16" />
+            <BaseMenuButton @click="onMenuAction('images', item)" :icon="Upload">
               {{ t('school.tasks.items.menu.uploadImages') }}
             </BaseMenuButton>
 
             <BaseMenuButton
               v-if="canEdit(item.createdBy)"
               @click="onMenuAction('edit', item)"
+              :icon="Pencil"
             >
-              <Pencil :size="16" />
               {{ t('global.buttons.edit') }}
             </BaseMenuButton>
 
-            <BaseMenuDivider v-if="canEdit(item.createdBy) || user" />
+            <BaseMenuDivider />
 
-            <BaseMenuButton v-if="user" @click="togglePin(item)">
-              <Pin v-if="!isPinned(item.id)" class="unpinned" :size="16" />
-              <Pin fill="currentColor" v-else class="pinned" :size="16" />
+            <BaseMenuButton @click="togglePin(item)" :icon="isPinned(item.id) ? Pin : Pin">
               {{
                 isPinned(item.id)
                   ? t('school.tasks.items.menu.unpin')
@@ -320,9 +315,7 @@ async function handleArchiveFromMenu(item: HwItem) {
               }}
             </BaseMenuButton>
 
-            <BaseMenuButton v-if="user" @click="handleArchiveFromMenu(item)">
-              <ArchiveRestore v-if="showOldEntries" :size="16" />
-              <Archive v-else :size="16" />
+            <BaseMenuButton @click="handleArchiveFromMenu(item)" :icon="showOldEntries ? ArchiveRestore : Archive">
               {{
                 showOldEntries
                   ? t('school.tasks.items.menu.unarchive')
@@ -330,8 +323,12 @@ async function handleArchiveFromMenu(item: HwItem) {
               }}
             </BaseMenuButton>
 
-            <BaseMenuButton @click="shareItem(item)">
-              <Send :size="16" />
+            <BaseMenuDivider />
+
+            <BaseMenuButton
+              @click="shareItem(item)"
+              :icon="Send"
+            >
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
@@ -340,20 +337,20 @@ async function handleArchiveFromMenu(item: HwItem) {
                 openMenuId = null;
                 showInfoItem = item;
               "
+              :icon="Info"
             >
-              <Info :size="16" />
               {{ t('school.tasks.items.menu.info') }}
             </BaseMenuButton>
+
+            <BaseMenuDivider />
 
             <BaseMenuButton
               title="Melden"
               @click="onMenuAction('report', item)"
+              :icon="Flag"
             >
-              <Flag :size="16" />
               {{ t('school.tasks.items.menu.report.name') }}
             </BaseMenuButton>
-
-            <BaseMenuDivider v-if="canDelete(item.createdBy)" />
 
             <BaseMenuButton
               variant="danger"
@@ -575,20 +572,29 @@ async function handleArchiveFromMenu(item: HwItem) {
       @cancel="cancelReport"
     />
 
-    <DeleteEntryModal
-      :show="showDeleteConfirm"
-      :loading="deletingEntry"
+    <BaseDialog
+      v-if="showDeleteConfirm"
       @confirm="confirmDelete"
       @cancel="cancelDelete"
-    />
+      :loading="deletingEntry"
+      :danger="true"
+      title="Diesen Eintrag löschen?"
+      submit-text="Eintrag löschen"
+    >
+      Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.
+    </BaseDialog>
 
-    <DeleteImageModal
+    <BaseDialog
       v-if="showImageDeleteConfirm"
-      :show="showImageDeleteConfirm"
-      :loading="deletingImage"
       @confirm="confirmImageDelete"
       @cancel="cancelImageDelete"
-    />
+      :loading="deletingImage"
+      :danger="true"
+      title="Dieses Bild löschen?"
+      submit-text="Bild löschen"
+    >
+      Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.
+    </BaseDialog>
 
     <ItemInfoModal
       v-if="showInfoItem"

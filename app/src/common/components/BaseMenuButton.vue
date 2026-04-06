@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Check } from '@lucide/vue';
+import type { Component } from 'vue';
 
 withDefaults(
   defineProps<{
     active?: boolean;
     isSelect?: boolean;
     variant?: 'default' | 'danger';
+    icon?: Component;
   }>(),
   {
     variant: 'default',
@@ -35,7 +37,8 @@ defineExpose({
     :aria-checked="isSelect ? active : undefined"
   >
     <span class="flex items-center gap-2 leading-none">
-      <slot />
+      <component :is="icon" v-if="icon" :size="16" />
+      <slot></slot>
     </span>
 
     <span v-if="isSelect" aria-hidden="true">
