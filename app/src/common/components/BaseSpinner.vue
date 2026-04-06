@@ -3,7 +3,7 @@ import { computed } from 'vue';
 
 const props = withDefaults(
   defineProps<{
-    on?: 'action' | 'ghost' | 'text' | 'danger';
+    on?: 'action' | 'ghost' | 'input' | 'danger';
     color?: string;
     size?: string;
     borderThickness?: string;

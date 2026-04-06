@@ -11,12 +11,17 @@ export interface UnitOption {
   value: string;
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string;
   options: UnitOption[];
   disabled?: boolean;
-  extraClass?: string;
-}>();
+  form?: boolean;
+  on?: 'canvas' | 'surface' | 'action';
+}>(), {
+  disabled: false,
+  form: true,
+  on: 'surface',
+});
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
@@ -75,16 +80,15 @@ onClickOutside(
 </script>
 
 <template>
-  <div class="relative" :class="extraClass" ref="wrapperRef">
+  <div class="relative" ref="wrapperRef">
     <BaseButton
       @click="toggleMenu"
       :disabled="disabled"
-      type="button"
-      class="w-full focus:border-focus focus:shadow-focus-ring outline-none transition-focus"
-      :class="{ 'border-focus shadow-focus-ring': isOpen }"
+      class="outline-none"
+      :class="[form ? 'transition-focus ' + (isOpen ? 'border-focus shadow-focus-ring' : '') : (isOpen ? `bg-${on}-hover` : '')]"
       aria-haspopup="true"
       :aria-expanded="isOpen"
-      variant="ghost"
+      :variant="form ? 'input' : 'ghost'"
     >
       <span class="truncate">
         {{

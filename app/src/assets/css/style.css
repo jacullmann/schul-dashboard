@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 /*
  * @theme — Tailwind CSS v4 design-token bridge.
@@ -63,7 +64,7 @@
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
   --color-danger-hover: var(--color-coral-highlight);
-  --color-danger-surface: var(--color-burgundy);
+  --color-danger-surface: var(--color-cotton-candy);
   /* Success */
   --color-success: var(--color-green);
   --color-on-success: var(--color-white);
@@ -98,6 +99,7 @@
 
   /* ── Shadows ────────────────────────────────────────────── */
   --shadow-input: 0 1px 2px 0 #0000000d;
+  --shadow-card: 0 1px 2px 0 #0000000d;
   --shadow-menu: 0 4px 6px -1px #0000001a;
   --shadow-focus-ring: 0 0 0 3px var(--color-cloud);
 
@@ -225,6 +227,7 @@
 
     /* Shadows */
     --shadow-input: 0 1px 2px 0 #0000000d;
+    --shadow-card: 0 1px 2px 0 #0000000d;
     --shadow-menu: 0 4px 6px -1px #0000001a;
     --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
 

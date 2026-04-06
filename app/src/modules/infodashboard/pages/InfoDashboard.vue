@@ -228,7 +228,7 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
 
             <div
-              class="article-body"
+              class="article-body prose max-w-none"
               v-html="
                 activeArticle.contentKey
                   ? renderMarkdown(activeArticle.contentKey)
@@ -255,6 +255,23 @@ const getSliderStyle = (current: number, max: number) => {
 </template>
 
 <style scoped>
+@font-face {
+  font-family: 'Lora Variable';
+  src: url('/fonts/lora-variable.woff2') format('woff2-variations'),
+       url('/fonts/lora-variable.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora Variable';
+  src: url('/fonts/lora-variable-italic.woff2') format('woff2-variations'),
+       url('/fonts/lora-variable-italic.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: italic;
+  font-display: swap;
+}
 .news-container {
   font-family: var(--font-sans), sans-serif;
   background-color: var(--color-canvas);
@@ -587,7 +604,7 @@ input[type='range']:hover::-moz-range-thumb {
   font-size: var(--text-title);
   line-height: 1.6;
   color: var(--color-on-surface);
-  font-family: 'Merriweather', serif;
+  font-family: 'Lora Variable', serif;
 }
 
 .article-body :deep(p) {

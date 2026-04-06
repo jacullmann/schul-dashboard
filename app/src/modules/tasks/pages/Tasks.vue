@@ -213,7 +213,9 @@ async function handleArchiveFromMenu(item: HwItem) {
       <BaseSelect
         v-model="subjectFilter"
         :options="subjectOptions"
-        extraClass="select-subject"
+        :form="false"
+        on="canvas"
+        class="max-w-36"
       />
 
       <ArchiveSwitch v-model="showOldEntries" />
@@ -604,10 +606,6 @@ async function handleArchiveFromMenu(item: HwItem) {
 </template>
 
 <style scoped>
-.select-subject {
-  min-width: 150px;
-}
-
 .subject-badge {
   color: var(--color-on-surface-muted);
   padding: 0;

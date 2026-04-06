@@ -4,7 +4,7 @@ import { computed, ref } from 'vue';
 
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
-  variant?: 'action' | 'ghost' | 'text' | 'danger';
+  variant?: 'action' | 'ghost' | 'danger' | 'input';
   on?: 'canvas' | 'surface' | 'action';
   full?: boolean;
   icon?: Component;
@@ -36,9 +36,9 @@ const classes = computed(() => {
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
     ghost: ['bg-transparent border-transparent', onClasses[props.on]].join(' '),
-    text: [
+    input: [
       'bg-surface text-on-surface border-surface-border',
-      'shadow-input',
+      'shadow-input rounded-md! w-full',
       'hover:bg-surface-hover-subtle',
     ].join(' '),
     action: [
@@ -80,7 +80,7 @@ defineExpose({
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner v-if="loading" :on="variant" size="1rem" />
+    <BaseSpinner v-if="loading" :on="variant === 'input' ? 'surface' : variant" size="1rem" />
     <template v-else>
       <component v-if="icon" :is="icon" :size="16" />
       <slot></slot>
