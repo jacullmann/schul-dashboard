@@ -74,7 +74,6 @@ onClickOutside(wrapperRef, () => {
         v-for="option in options"
         :key="option.value"
         class="disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-        :class="{ active: modelValue === option.value }"
         @click="selectOption(option.value)"
         type="button"
         :disabled="disabled"

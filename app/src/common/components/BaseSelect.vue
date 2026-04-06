@@ -17,10 +17,12 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
   form?: boolean;
   on?: 'canvas' | 'surface' | 'action';
+  size?: 'md' | 'lg';
 }>(), {
   disabled: false,
   form: true,
   on: 'surface',
+  size: 'md',
 });
 
 const emit = defineEmits<{
@@ -85,10 +87,12 @@ onClickOutside(
       @click="toggleMenu"
       :disabled="disabled"
       class="outline-none"
-      :class="[form ? 'transition-focus ' + (isOpen ? 'border-focus shadow-focus-ring' : '') : (isOpen ? `bg-${on}-hover` : '')]"
+      :class="[form ? 'transition-focus ' + (isOpen ? 'border-focus shadow-focus-ring' : '') : (isOpen ? `bg-${on}-hover! text-on-${on}!` : '')]"
       aria-haspopup="true"
       :aria-expanded="isOpen"
       :variant="form ? 'input' : 'ghost'"
+      :on="props.on"
+      :size="props.size"
     >
       <span class="truncate">
         {{
@@ -98,7 +102,7 @@ onClickOutside(
       </span>
 
       <ChevronDown
-        :size="16"
+        :size="size === 'lg' ? 20 : 16"
         class="ml-auto shrink-0 transition duration-200 ease-in-out"
         :class="{ 'rotate-180': isOpen }"
       />
@@ -114,7 +118,6 @@ onClickOutside(
         <BaseMenuButton
           v-for="option in options"
           :key="option.value"
-          :class="{ 'font-semibold': modelValue === option.value }"
           @click="selectOption(option.value)"
           type="button"
           :isSelect="true"

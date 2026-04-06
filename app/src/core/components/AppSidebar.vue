@@ -242,6 +242,8 @@ onUnmounted(() => {
         </SidebarButton>
       </div>
 
+      <BaseMenuDivider />
+
       <div class="flex flex-col gap-0 w-full overflow-y-auto">
         <SidebarButton
           v-for="(group, index) in userGroups"
@@ -249,6 +251,7 @@ onUnmounted(() => {
           :label="group.name"
           :expanded="isExpanded"
           :active="activeGroupId === group.id"
+          :unread="group.hasUnreadContent"
           @click="handleGroupClick(group.id)"
         />
       </div>

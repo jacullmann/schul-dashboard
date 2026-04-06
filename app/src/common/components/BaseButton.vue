@@ -8,6 +8,7 @@ export interface Props {
   on?: 'canvas' | 'surface' | 'action';
   full?: boolean;
   icon?: Component;
+  size?: 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
 }
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   on: 'surface',
   full: false,
   icon: undefined,
+  size: 'md',
   loading: false,
   disabled: false,
 });
@@ -67,22 +69,39 @@ defineExpose({
     :disabled="disabled || loading"
     :class="[
       classes,
-      full ? 'w-full justify-center font-semibold' : 'w-fit',
+      full
+        ? 'w-full justify-center font-semibold'
+        : 'w-fit' + variant === 'input' ? 'font-normal' : 'font-medium',
+      size === 'lg' ? 'text-sub' : 'text-btn',
+      size === 'lg' ? 'py-2.5' : 'py-2',
+      size === 'lg' ? 'border-0' : 'border',
       loading
-        ? 'px-2'
+        ? size === 'lg'
+          ? 'px-2.5'
+          : 'px-2'
         : icon && $slots.default
-          ? 'pl-2.5 pr-4'
+          ? size === 'lg'
+            ? 'pl-3 pr-5'
+            : 'pl-2.5 pr-4'
           : icon
-            ? 'px-2'
-            : 'px-4',
+            ? size === 'lg'
+              ? 'px-2.5'
+              : 'px-2'
+            : size === 'lg'
+              ? 'px-5'
+              : 'px-4',
     ]"
-    class="inline-flex items-center gap-2 py-2 border rounded-full text-btn leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="inline-flex items-center gap-2 py-2 rounded-full leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner v-if="loading" :on="variant" size="1rem" />
+    <BaseSpinner
+      v-if="loading"
+      :on="variant"
+      :size="size === 'lg' ? '1.25rem' : '1rem'"
+    />
     <template v-else>
-      <component v-if="icon" :is="icon" :size="16" />
+      <component v-if="icon" :is="icon" :size="size === 'lg' ? 20 : 16" />
       <slot></slot>
     </template>
   </button>

@@ -164,6 +164,12 @@ const routes = [
         component: () => import('@/modules/brain/pages/BrainTest.vue'),
         meta: { title: 'navigation.brainTest' },
       },
+      {
+        path: 'natural-intelligence',
+        name: 'natural-intelligence',
+        component: () => import('@/modules/chat/pages/NaturalIntelligence.vue'),
+        meta: { title: 'navigation.naturalIntelligence' },
+      },
     ],
   },
 
@@ -235,13 +241,17 @@ router.beforeEach(async (to, from, next) => {
   if (!isAuthReady.value) await initAuth();
 
   const isPublicRoute =
+    // Authentication
     to.path === '/' ||
     to.path === '/login' ||
     to.path === '/register' ||
     to.path === '/verify-mfa' ||
     to.path === '/reset-password' ||
     to.path === '/forgot-password' ||
-    to.path.startsWith('/verify');
+    to.path.startsWith('/verify') ||
+    // Minigames
+    to.path.startsWith('/natural-intelligence') ||
+    to.path.startsWith('/brain');
 
   // ── Unauthenticated users → login page (internal) ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {

@@ -40,6 +40,7 @@ declare module 'vue' {
     BaseSpinner: typeof import('./src/common/components/BaseSpinner.vue')['default']
     BaseTabs: typeof import('./src/common/components/BaseTabs.vue')['default']
     BaseToast: typeof import('./src/common/components/BaseToast.vue')['default']
+    BaseToggle: typeof import('./src/common/components/BaseToggle.vue')['default']
     BaseTooltip: typeof import('./src/common/components/BaseTooltip.vue')['default']
     CenteredAuthModal: typeof import('./src/common/components/CenteredAuthModal.vue')['default']
     InfoModal: typeof import('./src/common/components/InfoModal.vue')['default']

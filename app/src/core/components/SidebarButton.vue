@@ -9,10 +9,12 @@ withDefaults(
     shortcut?: string[];
     expanded?: boolean;
     active?: boolean;
+    unread?: boolean;
   }>(),
   {
     expanded: true,
     active: false,
+    unread: false,
   },
 );
 </script>
@@ -44,6 +46,7 @@ withDefaults(
       >
         {{ label }}
       </span>
+      <NotificationDot v-if="unread" />
     </button>
   </BaseTooltip>
 </template>

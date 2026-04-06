@@ -9,7 +9,7 @@
   >
     <div
       role="menu"
-      class="absolute flex flex-col items-stretch p-1 bg-surface border border-surface-border rounded-lg min-w-[180px] shadow-menu overflow-y-auto gap-1 z-[1000]"
+      class="absolute flex flex-col items-stretch p-1 bg-surface border border-surface-border rounded-xl min-w-[180px] shadow-menu overflow-y-auto gap-0 z-[1000]"
       aria-orientation="vertical"
       tabindex="-1"
     >
