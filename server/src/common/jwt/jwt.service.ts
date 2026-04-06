@@ -6,7 +6,7 @@ import { AppConfig } from '../../config/env.config';
 /**
  * JWT service wrapper that manages multiple JWT secrets used throughout the app.
  * Each secret is accessed via a named method for clarity and type safety.
- * 
+ *
  * Supports both symmetric (HS256) and asymmetric (RS256) algorithms.
  */
 @Injectable()

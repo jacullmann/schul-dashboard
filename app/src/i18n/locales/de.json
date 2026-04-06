@@ -257,9 +257,15 @@
       "loginCancelled": "Anmeldung abgebrochen.",
       "reset": {
         "title": "Passwort zurücksetzen",
-        "step1": { "description": "Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code." },
-        "step2": { "description": "Gib den Code ein, den du per E-Mail erhalten hast." },
-        "step3": { "description": "Gib dein neues Passwort ein (mind. 8 Zeichen) und bestätige es." },
+        "step1": {
+          "description": "Gib deine registrierte E-Mail ein. Wir senden einen 6-stelligen Code."
+        },
+        "step2": {
+          "description": "Gib den Code ein, den du per E-Mail erhalten hast."
+        },
+        "step3": {
+          "description": "Gib dein neues Passwort ein (mind. 8 Zeichen) und bestätige es."
+        },
         "placeholders": {
           "email": "E-Mail",
           "code": "6-stelliger Code",
@@ -612,8 +618,7 @@
       "title": "Dashboard"
     }
   },
-  "tools": {
-  },
+  "tools": {},
   "info": {
     "dashboard": {
       "title": "Info Dashboard",

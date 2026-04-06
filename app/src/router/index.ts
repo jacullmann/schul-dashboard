@@ -175,14 +175,15 @@ const routes = [
       {
         path: '',
         name: 'super-admin',
-        component: () => import('@/modules/admin/pages/SuperAdminDashboard.vue'),
+        component: () =>
+          import('@/modules/admin/pages/SuperAdminDashboard.vue'),
         meta: {
           title: 'navigation.superAdmin',
           requiresSuperAdmin: true,
           fullWidth: true,
         },
-      }
-    ]
+      },
+    ],
   },
 
   // ── Verify Email ────────────────────────────────────────────────────

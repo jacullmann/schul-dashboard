@@ -36,10 +36,14 @@ function cancel() {
 </script>
 
 <template>
-  <BaseModal @cancel="cancel" :submit="submit" :loading="submitting" :error="errorMsg" :requirement="password">
-    <template #title>
-      Google-Konto verknüpfen
-    </template>
+  <BaseModal
+    @cancel="cancel"
+    :submit="submit"
+    :loading="submitting"
+    :error="errorMsg"
+    :requirement="password"
+  >
+    <template #title> Google-Konto verknüpfen </template>
 
     <template #content>
       <div class="link-header">
@@ -49,27 +53,25 @@ function cancel() {
       </div>
 
       <p class="link-description">
-        Ein Konto mit dieser E-Mail-Adresse existiert bereits.
-        Gib dein Passwort ein, um Google mit deinem bestehenden Konto zu verknüpfen.
+        Ein Konto mit dieser E-Mail-Adresse existiert bereits. Gib dein Passwort
+        ein, um Google mit deinem bestehenden Konto zu verknüpfen.
       </p>
 
       <BaseFormGroup id="link-password">
         <BaseLabel for="link-password">Passwort</BaseLabel>
         <BaseInput
-            id="link-password"
-            type="password"
-            v-model="password"
-            placeholder="Dein Passwort"
-            autocomplete="current-password"
-            autofocus
-            @input="errorMsg = ''"
+          id="link-password"
+          type="password"
+          v-model="password"
+          placeholder="Dein Passwort"
+          autocomplete="current-password"
+          autofocus
+          @input="errorMsg = ''"
         />
       </BaseFormGroup>
     </template>
 
-    <template #action-text>
-      Verknüpfen
-    </template>
+    <template #action-text> Verknüpfen </template>
   </BaseModal>
 </template>
 

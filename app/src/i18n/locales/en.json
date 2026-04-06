@@ -239,9 +239,13 @@
       "loginCancelled": "Login cancelled.",
       "reset": {
         "title": "Reset Password",
-        "step1": { "description": "Enter your registered email. We'll send a 6-digit code." },
+        "step1": {
+          "description": "Enter your registered email. We'll send a 6-digit code."
+        },
         "step2": { "description": "Enter the code you received by email." },
-        "step3": { "description": "Enter your new password (min. 8 characters) and confirm it." },
+        "step3": {
+          "description": "Enter your new password (min. 8 characters) and confirm it."
+        },
         "placeholders": {
           "email": "Email",
           "code": "6-digit code",
@@ -556,8 +560,7 @@
       "title": "Dashboard"
     }
   },
-  "tools": {
-  },
+  "tools": {},
   "info": {
     "dashboard": {
       "title": "Info Dashboard",

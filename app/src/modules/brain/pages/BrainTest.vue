@@ -10,7 +10,7 @@ const { brainTests, getScore, saveScore } = useBrainTests();
 const testId = computed(() => route.params.testId as string);
 
 const currentTest = computed(() => {
-  return brainTests.find(t => t.id === testId.value);
+  return brainTests.find((t) => t.id === testId.value);
 });
 
 const highscore = computed(() => {
@@ -18,12 +18,24 @@ const highscore = computed(() => {
   return getScore(currentTest.value.id);
 });
 
-const ReactionTimeTest = defineAsyncComponent(() => import('../components/ReactionTimeTest.vue'));
-const NumberMemoryTest = defineAsyncComponent(() => import('../components/NumberMemoryTest.vue'));
-const VisualMemoryTest = defineAsyncComponent(() => import('../components/VisualMemoryTest.vue'));
-const AimTrainerTest = defineAsyncComponent(() => import('../components/AimTrainerTest.vue'));
-const SequenceMemoryTest = defineAsyncComponent(() => import('../components/SequenceMemoryTest.vue'));
-const TypingSpeedTest = defineAsyncComponent(() => import('../components/TypingSpeedTest.vue'));
+const ReactionTimeTest = defineAsyncComponent(
+  () => import('../components/ReactionTimeTest.vue'),
+);
+const NumberMemoryTest = defineAsyncComponent(
+  () => import('../components/NumberMemoryTest.vue'),
+);
+const VisualMemoryTest = defineAsyncComponent(
+  () => import('../components/VisualMemoryTest.vue'),
+);
+const AimTrainerTest = defineAsyncComponent(
+  () => import('../components/AimTrainerTest.vue'),
+);
+const SequenceMemoryTest = defineAsyncComponent(
+  () => import('../components/SequenceMemoryTest.vue'),
+);
+const TypingSpeedTest = defineAsyncComponent(
+  () => import('../components/TypingSpeedTest.vue'),
+);
 
 const testComponent = computed(() => {
   if (testId.value === 'reaction-time') return ReactionTimeTest;
@@ -49,7 +61,11 @@ function onTestFinish(score: number) {
       </router-link>
       <div class="test-info" v-if="currentTest">
         <h1 class="test-title">{{ currentTest.title }}</h1>
-        <div class="highscore-badge" v-if="highscore !== null" :style="{ '--badge-color': currentTest.color }">
+        <div
+          class="highscore-badge"
+          v-if="highscore !== null"
+          :style="{ '--badge-color': currentTest.color }"
+        >
           <Trophy :size="16" />
           <span>Highscore: {{ highscore }} {{ currentTest.unit }}</span>
         </div>
@@ -59,13 +75,13 @@ function onTestFinish(score: number) {
     <div class="test-container" v-if="currentTest">
       <transition name="fade" mode="out-in">
         <component
-            :is="testComponent"
-            :key="currentTest.id"
-            @finish="onTestFinish"
+          :is="testComponent"
+          :key="currentTest.id"
+          @finish="onTestFinish"
         />
       </transition>
     </div>
-    
+
     <div class="not-found" v-else>
       <h2>Test nicht gefunden</h2>
       <p>Der angeforderte Test existiert nicht.</p>

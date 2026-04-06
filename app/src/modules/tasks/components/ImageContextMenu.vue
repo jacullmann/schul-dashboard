@@ -2,7 +2,11 @@
 import { ref, computed } from 'vue';
 import { Upload, Trash2 } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
-import { useEventListener, useElementBounding, useWindowSize } from '@vueuse/core';
+import {
+  useEventListener,
+  useElementBounding,
+  useWindowSize,
+} from '@vueuse/core';
 
 const { t } = useI18n();
 
@@ -22,8 +26,14 @@ const { width: winW, height: winH } = useWindowSize();
 const padding = 10;
 
 const styleObject = computed(() => {
-  const x = Math.min(Math.max(padding, props.x), winW.value - menuW.value - padding);
-  const y = Math.min(Math.max(padding, props.y), winH.value - menuH.value - padding);
+  const x = Math.min(
+    Math.max(padding, props.x),
+    winW.value - menuW.value - padding,
+  );
+  const y = Math.min(
+    Math.max(padding, props.y),
+    winH.value - menuH.value - padding,
+  );
   return {
     top: `${y}px`,
     left: `${x}px`,
@@ -38,28 +48,28 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 </script>
 
 <template>
-    <div
-      ref="menuRef"
-      class="fixed z-[10001] min-w-[180px]"
-      :style="styleObject"
-      @click.stop
-    >
-      <BaseMenu class="min-w-[180px]">
-        <BaseMenuButton @click="emit('upload')">
-          <Upload :size="16" />
-          {{ t('school.tasks.items.menu.uploadImages') }}
-        </BaseMenuButton>
+  <div
+    ref="menuRef"
+    class="fixed z-[10001] min-w-[180px]"
+    :style="styleObject"
+    @click.stop
+  >
+    <BaseMenu class="min-w-[180px]">
+      <BaseMenuButton @click="emit('upload')">
+        <Upload :size="16" />
+        {{ t('school.tasks.items.menu.uploadImages') }}
+      </BaseMenuButton>
 
-        <BaseMenuButton variant="danger" v-if="canDelete" @click="emit('delete')">
-          <Trash2 :size="16" />
-          {{ t('global.buttons.delete') }}
-        </BaseMenuButton>
-      </BaseMenu>
-    </div>
+      <BaseMenuButton variant="danger" v-if="canDelete" @click="emit('delete')">
+        <Trash2 :size="16" />
+        {{ t('global.buttons.delete') }}
+      </BaseMenuButton>
+    </BaseMenu>
+  </div>
 
-    <div
-      class="fixed inset-0 z-[10000] cursor-default"
-      @click="emit('cancel')"
-      @contextmenu.prevent="emit('cancel')"
-    ></div>
+  <div
+    class="fixed inset-0 z-[10000] cursor-default"
+    @click="emit('cancel')"
+    @contextmenu.prevent="emit('cancel')"
+  ></div>
 </template>

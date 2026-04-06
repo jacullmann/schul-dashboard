@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {
-  ClipboardList, CalendarDays, Users, Lock, Shield, Search,
-} from '@lucide/vue';
+import { ClipboardList, CalendarDays, Users, Lock, Shield, Search } from '@lucide/vue';
 
 const { t } = useI18n();
 
@@ -42,10 +40,11 @@ const features = [
 
 <template>
   <div class="w-full">
-
     <section class="w-full py-20 md:py-14 border-b border-surface-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
-        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.15] mb-5 max-w-2xl mx-auto">
+        <h1
+          class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.15] mb-5 max-w-2xl mx-auto"
+        >
           {{ t('pages.features.title') }}
         </h1>
         <p class="text-lg text-on-surface-muted leading-[1.65]">
@@ -58,10 +57,10 @@ const features = [
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
         <div class="flex flex-col gap-12">
           <article
-              v-for="(feature, idx) in features"
-              :key="feature.key"
-              class="flex flex-col md:flex-row gap-10 items-start"
-              :class="idx % 2 === 1 ? 'md:flex-row-reverse' : ''"
+            v-for="(feature, idx) in features"
+            :key="feature.key"
+            class="flex flex-col md:flex-row gap-10 items-start"
+            :class="idx % 2 === 1 ? 'md:flex-row-reverse' : ''"
           >
             <div class="flex-1">
               <h2 class="text-h2 font-bold font-display text-on-surface mb-3">

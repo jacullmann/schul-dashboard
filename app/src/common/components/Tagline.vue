@@ -33,7 +33,7 @@ const getDaysToBerlinBreak = (): number | null => {
 const displayQuote = computed(() => {
   if (randomIndex.value === null) return '';
   return t(`global.footer.quotes.${randomIndex.value}`, {
-    daysToHoliday: getDaysToBerlinBreak() ?? '?'
+    daysToHoliday: getDaysToBerlinBreak() ?? '?',
   });
 });
 
@@ -52,8 +52,8 @@ onMounted(() => {
 
 <template>
   <p
-      v-if="isVisible"
-      class="text-on-surface-muted text-body font-sans italic font-medium m-0"
+    v-if="isVisible"
+    class="text-on-surface-muted text-body font-sans italic font-medium m-0"
   >
     {{ displayQuote }}
   </p>

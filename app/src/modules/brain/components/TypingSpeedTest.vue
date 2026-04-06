@@ -7,7 +7,8 @@ const emit = defineEmits<{
   (e: 'finish', score: number): void;
 }>();
 
-const sampleText = "Programmieren ist die Kunst, einem Computer zu erklären, was er tun soll. Es erfordert logisches Denken, Kreativität und viel Geduld. Eine gute Software löst Probleme, anstatt neue zu schaffen. Die besten Entwickler schreiben Code, der nicht nur funktioniert, sondern auch von anderen leicht gelesen und verstanden werden kann.";
+const sampleText =
+  'Programmieren ist die Kunst, einem Computer zu erklären, was er tun soll. Es erfordert logisches Denken, Kreativität und viel Geduld. Eine gute Software löst Probleme, anstatt neue zu schaffen. Die besten Entwickler schreiben Code, der nicht nur funktioniert, sondern auch von anderen leicht gelesen und verstanden werden kann.';
 const characters = sampleText.split('');
 
 type TestState = 'idle' | 'playing' | 'result';
@@ -16,7 +17,6 @@ const state = ref<TestState>('idle');
 const typedText = ref('');
 const startTime = ref(0);
 const endTime = ref(0);
-
 
 const wpm = computed(() => {
   if (typedText.value.length === 0) return 0;
@@ -35,14 +35,15 @@ function handleKeydown(e: KeyboardEvent) {
 
   if (e.key === 'Backspace') {
     typedText.value = typedText.value.slice(0, -1);
-  } else if (e.key.length === 1) { // Normal character
+  } else if (e.key.length === 1) {
+    // Normal character
     if (!startTime.value) startTime.value = Date.now();
-    
+
     // Only allow typing if it matches or if we haven't reached the end
     if (typedText.value.length < characters.length) {
       typedText.value += e.key;
     }
-    
+
     if (typedText.value === sampleText) {
       endTime.value = Date.now();
       state.value = 'result';
@@ -80,19 +81,31 @@ function getCharClass(index: number) {
     <div v-if="state === 'idle'" class="start-screen">
       <Keyboard :size="64" class="icon" />
       <h2>Schreibgeschwindigkeit</h2>
-      <p>Tippe den vorgegebenen Text so schnell und fehlerfrei wie möglich ab.</p>
-      <BaseButton class="test-btn primary" @click="startGame">Starten</BaseButton>
+      <p>
+        Tippe den vorgegebenen Text so schnell und fehlerfrei wie möglich ab.
+      </p>
+      <BaseButton class="test-btn primary" @click="startGame"
+        >Starten</BaseButton
+      >
     </div>
 
     <div v-else-if="state === 'playing'" class="game-screen">
       <div class="text-display">
-        <span 
-          v-for="(char, index) in characters" 
+        <span
+          v-for="(char, index) in characters"
           :key="index"
-          :class="['char', getCharClass(index), { cursor: index === typedText.length }]"
-        >{{ char }}</span>
+          :class="[
+            'char',
+            getCharClass(index),
+            { cursor: index === typedText.length },
+          ]"
+          >{{ char }}</span
+        >
       </div>
-      <p class="hint">Tippe einfach los. Fehler werden rot markiert, drücke Backspace zum Korrigieren.</p>
+      <p class="hint">
+        Tippe einfach los. Fehler werden rot markiert, drücke Backspace zum
+        Korrigieren.
+      </p>
     </div>
 
     <div v-else-if="state === 'result'" class="result-screen">
@@ -100,8 +113,12 @@ function getCharClass(index: number) {
       <h2>Ergebnis</h2>
       <p class="score">{{ wpm }} WPM</p>
       <div class="actions">
-        <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
-        <BaseButton class="test-btn secondary" @click="reset">Nochmal</BaseButton>
+        <BaseButton class="test-btn primary" @click="saveAndExit"
+          >Speichern & Beenden</BaseButton
+        >
+        <BaseButton class="test-btn secondary" @click="reset"
+          >Nochmal</BaseButton
+        >
       </div>
     </div>
   </div>
@@ -120,7 +137,8 @@ function getCharClass(index: number) {
   padding: 40px;
 }
 
-.start-screen, .result-screen {
+.start-screen,
+.result-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -196,8 +214,13 @@ p {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .hint {
@@ -217,7 +240,9 @@ p {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
   text-decoration: none;
 }
 

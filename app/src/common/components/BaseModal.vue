@@ -46,7 +46,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         <h3>
           <slot name="title"></slot>
         </h3>
-        
+
         <slot name="title-infopop"></slot>
       </BaseInfoRow>
 

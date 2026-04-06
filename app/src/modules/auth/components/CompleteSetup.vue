@@ -16,14 +16,12 @@ const getCourseLabel = (courseName: string): string => {
 
   const mr = t('global.titles.abbr.mr');
   const ms = t('global.titles.abbr.ms');
-  return courseName
-    .replace(/^Herr\s+/, `${mr} `)
-    .replace(/^Frau\s+/, `${ms} `);
+  return courseName.replace(/^Herr\s+/, `${mr} `).replace(/^Frau\s+/, `${ms} `);
 };
 
 const props = defineProps<{
   visible: boolean; // Steuert die Anzeige der Komponente
-  initialData: { courses: { subjectId: string; courseId: string; }[] };
+  initialData: { courses: { subjectId: string; courseId: string }[] };
   isSetup: boolean; // true, wenn es das initiale Setup ist (doneSetup=false)
 }>();
 
@@ -37,32 +35,36 @@ const error = ref('');
 const selections = reactive<Record<string, string>>({});
 
 // Watcher, um formData zu aktualisieren, wenn sich initialData ändert (z.B. beim manuellen Öffnen)
-watch(() => props.initialData, (newVal) => {
-  for (const subject of subjectStore.electiveSubjects) {
-     selections[subject.id] = "";
-  }
-  for (const subject of subjectStore.extraSubjects) {
-     selections[subject.id] = "NONE";
-  }
-  if (newVal?.courses) {
-    newVal.courses.forEach(c => {
-      selections[c.subjectId] = c.courseId;
-    });
-  }
-}, { immediate: true });
+watch(
+  () => props.initialData,
+  (newVal) => {
+    for (const subject of subjectStore.electiveSubjects) {
+      selections[subject.id] = '';
+    }
+    for (const subject of subjectStore.extraSubjects) {
+      selections[subject.id] = 'NONE';
+    }
+    if (newVal?.courses) {
+      newVal.courses.forEach((c) => {
+        selections[c.subjectId] = c.courseId;
+      });
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   subjectStore.loadSubjects().then(() => {
     // re-init selections fully once loaded
     for (const subject of subjectStore.electiveSubjects) {
-      if (!selections[subject.id]) selections[subject.id] = "";
+      if (!selections[subject.id]) selections[subject.id] = '';
     }
     for (const subject of subjectStore.extraSubjects) {
-      if (!selections[subject.id]) selections[subject.id] = "NONE";
+      if (!selections[subject.id]) selections[subject.id] = 'NONE';
     }
     // overlay initial data
     if (props.initialData?.courses) {
-      props.initialData.courses.forEach(c => {
+      props.initialData.courses.forEach((c) => {
         selections[c.subjectId] = c.courseId;
       });
     }
@@ -70,13 +72,13 @@ onMounted(() => {
 });
 
 const getOptionsForSubject = (subjectId: string, isExtra: boolean) => {
-  const subject = subjectStore.subjects.find(s => s.id === subjectId);
-  const opts = (subject?.courses || []).map(c => ({
+  const subject = subjectStore.subjects.find((s) => s.id === subjectId);
+  const opts = (subject?.courses || []).map((c) => ({
     label: getCourseLabel(c.name),
-    value: c.id
+    value: c.id,
   }));
   if (isExtra) {
-    opts.unshift({ label: t('global.selection.no'), value: "NONE" });
+    opts.unshift({ label: t('global.selection.no'), value: 'NONE' });
   }
   return opts;
 };
@@ -90,8 +92,9 @@ const isValid = computed(() => {
   return true;
 });
 
-
-async function submitData(dataToSend: { courses: { subjectId: string; courseId: string }[] }) {
+async function submitData(dataToSend: {
+  courses: { subjectId: string; courseId: string }[];
+}) {
   error.value = '';
   try {
     const { data } = await hw.patch('/api/user/setup', dataToSend);
@@ -118,11 +121,11 @@ async function save() {
   }
   submitting.value = true;
 
-  const validCourses: {subjectId: string, courseId: string}[] = [];
+  const validCourses: { subjectId: string; courseId: string }[] = [];
 
   for (const subjectId of Object.keys(selections)) {
     const courseId = selections[subjectId];
-    if (courseId && courseId !== "NONE") {
+    if (courseId && courseId !== 'NONE') {
       validCourses.push({ subjectId, courseId });
     }
   }
@@ -138,35 +141,67 @@ async function skip() {
 </script>
 
 <template>
-  <BaseModal v-if="visible" @cancel="$emit('cancel')" :error="error" :submit="save" :cancel="isSetup ? skip : () => $emit('cancel')" :loading="submitting || skipping">
-    <template #title>{{ isSetup ? t('account.menu.courses.titleCreation') : t('account.menu.courses.title') }}</template>
+  <BaseModal
+    v-if="visible"
+    @cancel="$emit('cancel')"
+    :error="error"
+    :submit="save"
+    :cancel="isSetup ? skip : () => $emit('cancel')"
+    :loading="submitting || skipping"
+  >
+    <template #title>{{
+      isSetup
+        ? t('account.menu.courses.titleCreation')
+        : t('account.menu.courses.title')
+    }}</template>
 
     <template #content>
-      <p class="text-sub text-on-surface-muted mb-6">{{ isSetup ? t('account.menu.courses.descriptionCreation') : t('account.menu.courses.description') }}</p>
+      <p class="text-sub text-on-surface-muted mb-6">
+        {{
+          isSetup
+            ? t('account.menu.courses.descriptionCreation')
+            : t('account.menu.courses.description')
+        }}
+      </p>
 
-      <div v-if="subjectStore.loading" class="text-sub text-on-surface-muted mb-6">
+      <div
+        v-if="subjectStore.loading"
+        class="text-sub text-on-surface-muted mb-6"
+      >
         Loading...
       </div>
       <div v-else class="flex flex-col gap-5">
         <!-- Electives -->
-        <BaseFormGroup v-for="subject in subjectStore.electiveSubjects" :key="subject.id" :id="subject.id">
-          <BaseLabel :for="subject.id">{{ getCourseLabel(subject.name) }}</BaseLabel>
+        <BaseFormGroup
+          v-for="subject in subjectStore.electiveSubjects"
+          :key="subject.id"
+          :id="subject.id"
+        >
+          <BaseLabel :for="subject.id">{{
+            getCourseLabel(subject.name)
+          }}</BaseLabel>
           <BaseSelect
-              :id="subject.id"
-              :model-value="selections[subject.id] ?? ''"
-              @update:model-value="(v) => selections[subject.id] = v"
-              :options="getOptionsForSubject(subject.id, false)"
+            :id="subject.id"
+            :model-value="selections[subject.id] ?? ''"
+            @update:model-value="(v) => (selections[subject.id] = v)"
+            :options="getOptionsForSubject(subject.id, false)"
           />
         </BaseFormGroup>
 
         <!-- Extras -->
-        <BaseFormGroup v-for="subject in subjectStore.extraSubjects" :key="subject.id" :id="subject.id">
-          <BaseLabel :for="subject.id">{{ getCourseLabel(subject.name) }}</BaseLabel>
+        <BaseFormGroup
+          v-for="subject in subjectStore.extraSubjects"
+          :key="subject.id"
+          :id="subject.id"
+        >
+          <BaseLabel :for="subject.id">{{
+            getCourseLabel(subject.name)
+          }}</BaseLabel>
           <BaseSelect
-              :id="subject.id"
-              :model-value="selections[subject.id] ?? ''"
-              @update:model-value="(v) => selections[subject.id] = v"
-              :options="getOptionsForSubject(subject.id, true)"
+            :id="subject.id"
+            :model-value="selections[subject.id] ?? ''"
+            @update:model-value="(v) => (selections[subject.id] = v)"
+            :options="getOptionsForSubject(subject.id, true)"
           />
         </BaseFormGroup>
       </div>

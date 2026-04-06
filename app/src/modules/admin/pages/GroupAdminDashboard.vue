@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { markRaw, computed } from 'vue';
-import { LayoutDashboard, CalendarDays, Megaphone, UsersRound, BookOpen, Settings } from '@lucide/vue';
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Megaphone,
+  UsersRound,
+  BookOpen,
+  Settings,
+} from '@lucide/vue';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { useUserStore } from '@/stores/userStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
@@ -53,15 +60,18 @@ const {
 const { activeGroupOwnerId } = useAppAuth();
 const userStore = useUserStore();
 const isAdmin = computed(() => userStore.user?.tenantRole === 'admin');
-const isOwner = computed(() => !!(userStore.user?.id && activeGroupOwnerId.value === userStore.user.id));
+const isOwner = computed(
+  () =>
+    !!(userStore.user?.id && activeGroupOwnerId.value === userStore.user.id),
+);
 
 const navItems: AdminNavItem[] = [
-  { id: 'overview',      label: 'Overview',     icon: markRaw(LayoutDashboard) },
-  { id: 'members',       label: 'Members',        icon: markRaw(UsersRound) },
-  { id: 'schedule',      label: 'Schedule',     icon: markRaw(CalendarDays) },
-  { id: 'announcements', label: 'Announcements',icon: markRaw(Megaphone) },
-  { id: 'subjects',      label: 'Subjects',     icon: markRaw(BookOpen) },
-  { id: 'settings',      label: 'Settings',     icon: markRaw(Settings) },
+  { id: 'overview', label: 'Overview', icon: markRaw(LayoutDashboard) },
+  { id: 'members', label: 'Members', icon: markRaw(UsersRound) },
+  { id: 'schedule', label: 'Schedule', icon: markRaw(CalendarDays) },
+  { id: 'announcements', label: 'Announcements', icon: markRaw(Megaphone) },
+  { id: 'subjects', label: 'Subjects', icon: markRaw(BookOpen) },
+  { id: 'settings', label: 'Settings', icon: markRaw(Settings) },
 ];
 </script>
 
@@ -115,10 +125,7 @@ const navItems: AdminNavItem[] = [
       @delete="deleteAnnouncement"
     />
 
-    <GroupAdminSubjects
-      v-if="activeTab === 'subjects'"
-      :is-admin="isAdmin"
-    />
+    <GroupAdminSubjects v-if="activeTab === 'subjects'" :is-admin="isAdmin" />
 
     <GroupAdminSettings
       v-if="activeTab === 'settings'"

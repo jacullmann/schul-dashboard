@@ -43,37 +43,43 @@ const configForm = ref({
   startTime: '08:00',
   totalSlots: 9,
   lessonDurationMins: 45,
-  breaks: [] as { id: string; slot: number; duration: number }[]
+  breaks: [] as { id: string; slot: number; duration: number }[],
 });
 
 const sortedBreaks = computed(() => {
   return [...configForm.value.breaks].sort((a, b) => a.slot - b.slot);
 });
 
-watch(activeScheduleConfig, (newConfig) => {
-  if (newConfig) {
-    configForm.value = {
-      startTime: newConfig.startTime ?? '08:00',
-      totalSlots: newConfig.totalSlots ?? 9,
-      lessonDurationMins: newConfig.lessonDurationMins ?? 45,
-      breaks: Object.entries(newConfig.breaks || {}).map(([slot, duration]) => ({
-        id: Math.random().toString(36).substring(2, 9),
-        slot: Number(slot),
-        duration: Number(duration)
-      }))
-    };
-  }
-}, { immediate: true, deep: true });
+watch(
+  activeScheduleConfig,
+  (newConfig) => {
+    if (newConfig) {
+      configForm.value = {
+        startTime: newConfig.startTime ?? '08:00',
+        totalSlots: newConfig.totalSlots ?? 9,
+        lessonDurationMins: newConfig.lessonDurationMins ?? 45,
+        breaks: Object.entries(newConfig.breaks || {}).map(
+          ([slot, duration]) => ({
+            id: Math.random().toString(36).substring(2, 9),
+            slot: Number(slot),
+            duration: Number(duration),
+          }),
+        ),
+      };
+    }
+  },
+  { immediate: true, deep: true },
+);
 
 function addBreak() {
   const maxSlot = configForm.value.totalSlots;
-  const existingSlots = configForm.value.breaks.map(b => b.slot);
+  const existingSlots = configForm.value.breaks.map((b) => b.slot);
   for (let i = 1; i <= maxSlot; i++) {
     if (!existingSlots.includes(i)) {
       configForm.value.breaks.push({
         id: Math.random().toString(36).substring(2, 9),
         slot: i,
-        duration: 10
+        duration: 10,
       });
       break;
     }
@@ -81,12 +87,12 @@ function addBreak() {
 }
 
 function removeBreak(id: string) {
-  configForm.value.breaks = configForm.value.breaks.filter(b => b.id !== id);
+  configForm.value.breaks = configForm.value.breaks.filter((b) => b.id !== id);
 }
 
 function handleSaveConfig() {
   const breaksObj: Record<number, number> = {};
-  configForm.value.breaks.forEach(b => {
+  configForm.value.breaks.forEach((b) => {
     if (b.slot) {
       breaksObj[b.slot] = b.duration || 0;
     }
@@ -96,7 +102,7 @@ function handleSaveConfig() {
     startTime: configForm.value.startTime,
     totalSlots: configForm.value.totalSlots,
     lessonDurationMins: configForm.value.lessonDurationMins,
-    breaks: breaksObj
+    breaks: breaksObj,
   });
 }
 
@@ -329,9 +335,12 @@ function handleSaveSub() {
             tooltip="Übersicht der Stundenplaneinstellungen"
             title="Stundenplaneinstellungen"
           >
-            <h3>Konfiguriere die globalen Einstellungen für den Stundenplan (Zeiten, Pausen).</h3>
+            <h3>
+              Konfiguriere die globalen Einstellungen für den Stundenplan
+              (Zeiten, Pausen).
+            </h3>
           </InfoModal>
-        </template>        
+        </template>
       </PageHeader>
 
       <div class="sub-form-grid">
@@ -369,20 +378,41 @@ function handleSaveSub() {
       </div>
 
       <div class="mt-6 mb-4">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+          "
+        >
           <h3>Pausen</h3>
-          <BaseButton v-if="isAdmin" variant="ghost" @click="addBreak" :icon="Plus" size="sm">
+          <BaseButton
+            v-if="isAdmin"
+            variant="ghost"
+            @click="addBreak"
+            :icon="Plus"
+            size="sm"
+          >
             Pause hinzufügen
           </BaseButton>
         </div>
-        
-        <div v-if="configForm.breaks.length === 0" class="empty-hint" style="padding: 16px;">
+
+        <div
+          v-if="configForm.breaks.length === 0"
+          class="empty-hint"
+          style="padding: 16px"
+        >
           Keine Pausen konfiguriert.
         </div>
-        
+
         <div class="flex flex-col gap-2">
-          <div v-for="brk in sortedBreaks" :key="brk.id" class="flex gap-2 items-end">
-            <div class="form-field flex-1" style="margin: 0;">
+          <div
+            v-for="brk in sortedBreaks"
+            :key="brk.id"
+            class="flex gap-2 items-end"
+          >
+            <div class="form-field flex-1" style="margin: 0">
               <BaseLabel :for="`break-slot-${brk.id}`">Nach Stunde</BaseLabel>
               <BaseInput
                 :id="`break-slot-${brk.id}`"
@@ -393,8 +423,10 @@ function handleSaveSub() {
                 :disabled="!isAdmin"
               />
             </div>
-            <div class="form-field flex-1" style="margin: 0;">
-              <BaseLabel :for="`break-dur-${brk.id}`">Dauer (Minuten)</BaseLabel>
+            <div class="form-field flex-1" style="margin: 0">
+              <BaseLabel :for="`break-dur-${brk.id}`"
+                >Dauer (Minuten)</BaseLabel
+              >
               <BaseInput
                 :id="`break-dur-${brk.id}`"
                 type="number"
@@ -403,14 +435,26 @@ function handleSaveSub() {
                 :disabled="!isAdmin"
               />
             </div>
-            <BaseButton v-if="isAdmin" variant="ghost" class="text-danger mb-1" @click="removeBreak(brk.id)" :icon="Trash2" />
+            <BaseButton
+              v-if="isAdmin"
+              variant="ghost"
+              class="text-danger mb-1"
+              @click="removeBreak(brk.id)"
+              :icon="Trash2"
+            />
           </div>
         </div>
       </div>
 
       <div v-if="isAdmin" class="mt-6">
-        <BaseButton @click="handleSaveConfig" :disabled="savingScheduleConfig" variant="action">
-          {{ savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern' }}
+        <BaseButton
+          @click="handleSaveConfig"
+          :disabled="savingScheduleConfig"
+          variant="action"
+        >
+          {{
+            savingScheduleConfig ? 'Speichert...' : 'Einstellungen speichern'
+          }}
         </BaseButton>
       </div>
     </div>

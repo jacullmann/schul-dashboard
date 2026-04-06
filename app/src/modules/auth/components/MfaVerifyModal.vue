@@ -42,7 +42,8 @@ async function verify() {
   if (result.ok) {
     emit('verified');
   } else {
-    const isExpired = result.error?.includes('expired') || result.error?.includes('abgelaufen');
+    const isExpired =
+      result.error?.includes('expired') || result.error?.includes('abgelaufen');
     if (isExpired) {
       error.value = t('account.mfa.verify.errors.sessionExpired');
       setTimeout(() => emit('cancelled'), 2000);
@@ -51,7 +52,9 @@ async function verify() {
     }
     code.value = '';
     shakeInput.value = true;
-    setTimeout(() => { shakeInput.value = false; }, 500);
+    setTimeout(() => {
+      shakeInput.value = false;
+    }, 500);
     await nextTick();
     codeInputRef.value?.focus();
   }
@@ -92,7 +95,7 @@ onMounted(() => {
           maxlength="6"
           placeholder="000000"
           class="w-[180px] px-4 py-3 text-h3 font-mono text-center bg-surface text-on-surface border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
-          :class="{ 'border-danger': error, 'shake': shakeInput }"
+          :class="{ 'border-danger': error, shake: shakeInput }"
           :disabled="loading"
           @input="handleInput"
           @keyup.enter="verify"
@@ -100,24 +103,35 @@ onMounted(() => {
       </div>
 
       <transition name="fade">
-        <div v-if="error" class="flex items-center justify-center gap-2 text-danger text-sub">
+        <div
+          v-if="error"
+          class="flex items-center justify-center gap-2 text-danger text-sub"
+        >
           <AlertCircle :size="16" />
           {{ error }}
         </div>
       </transition>
 
       <transition name="fade">
-        <div v-if="attemptsRemaining !== null && attemptsRemaining <= 3" class="flex items-center justify-center gap-2 text-danger text-sub">
+        <div
+          v-if="attemptsRemaining !== null && attemptsRemaining <= 3"
+          class="flex items-center justify-center gap-2 text-danger text-sub"
+        >
           <AlertTriangle :size="16" />
           {{ t('account.mfa.verify.attemptsRemaining', attemptsRemaining) }}
         </div>
       </transition>
 
       <div class="pt-4 border-t border-canvas-border">
-        <p class="text-footnote text-on-surface-muted text-center m-0 leading-relaxed">
+        <p
+          class="text-footnote text-on-surface-muted text-center m-0 leading-relaxed"
+        >
           {{ t('account.mfa.verify.support.text') }}
           <br />
-          <a href="mailto:kontakt@schul-dashboard.com" class="text-on-surface underline hover:opacity-75 transition-opacity">
+          <a
+            href="mailto:kontakt@schul-dashboard.com"
+            class="text-on-surface underline hover:opacity-75 transition-opacity"
+          >
             {{ t('account.mfa.verify.support.link') }}
           </a>
         </p>
@@ -143,9 +157,18 @@ onMounted(() => {
 
 <style scoped>
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-8px); }
-  40%, 80% { transform: translateX(8px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
 }
 
 .shake {

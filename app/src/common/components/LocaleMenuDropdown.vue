@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { usePreferences } from '@/common/composables/usePreferences';
 import { Languages } from '@lucide/vue';
-import MenuDropdown, { type MenuOption } from '@/common/components/MenuDropdown.vue';
+import MenuDropdown, {
+  type MenuOption,
+} from '@/common/components/MenuDropdown.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -20,9 +22,9 @@ function updateLocale(loc: string) {
 
 <template>
   <MenuDropdown
-      :model-value="currentLanguage"
-      :options="localeOptions"
-      :prefix="t('global.language') + ':'"
-      @update:model-value="updateLocale"
+    :model-value="currentLanguage"
+    :options="localeOptions"
+    :prefix="t('global.language') + ':'"
+    @update:model-value="updateLocale"
   />
 </template>

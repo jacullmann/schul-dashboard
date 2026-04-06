@@ -50,11 +50,15 @@ export const useSubjectStore = defineStore('subjectStore', () => {
   });
 
   const electiveSubjects = computed(() => {
-    return subjects.value.filter(s => s.category === 'elective' && s.courses && s.courses.length >= 1);
+    return subjects.value.filter(
+      (s) => s.category === 'elective' && s.courses && s.courses.length >= 1,
+    );
   });
 
   const extraSubjects = computed(() => {
-    return subjects.value.filter(s => s.category === 'extra' && s.courses && s.courses.length >= 1);
+    return subjects.value.filter(
+      (s) => s.category === 'extra' && s.courses && s.courses.length >= 1,
+    );
   });
 
   // Listen for tenant changes and reset cached subjects

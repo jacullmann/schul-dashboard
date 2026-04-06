@@ -25,13 +25,14 @@ const rightsItems = [
 
 <template>
   <LegalPage :title="t('legal.privacy.title')" :description="t('legal.privacy.description')">
-
     <LegalSection :title="t('legal.privacy.intro.title')">
       <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.intro.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.privacy.controller.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.controller.text') }}</p>
+      <p class="text-on-surface-muted leading-[1.7] m-0">
+        {{ t('legal.privacy.controller.text') }}
+      </p>
     </LegalSection>
 
     <LegalSection :title="t('legal.privacy.dataCollected.title')">
@@ -57,7 +58,9 @@ const rightsItems = [
           {{ t(key) }}
         </li>
       </ul>
-      <p class="text-on-surface-muted leading-[1.7] mt-4 mb-0">{{ t('legal.privacy.rights.contact') }}</p>
+      <p class="text-on-surface-muted leading-[1.7] mt-4 mb-0">
+        {{ t('legal.privacy.rights.contact') }}
+      </p>
     </LegalSection>
 
     <LegalSection :title="t('legal.privacy.cookies.title')">
@@ -71,6 +74,5 @@ const rightsItems = [
     <LegalSection :title="t('legal.privacy.changes.title')">
       <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.privacy.changes.text') }}</p>
     </LegalSection>
-
   </LegalPage>
 </template>

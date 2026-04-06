@@ -220,7 +220,9 @@ async function submit() {
     if (!courseSel.value) {
       const translationKey = `global.subjects.${main}`;
       const courseName = te(translationKey) ? t(translationKey) : main;
-      courseError.value = t('school.tasks.itemForm.errors.courseMissing', { course: courseName });
+      courseError.value = t('school.tasks.itemForm.errors.courseMissing', {
+        course: courseName,
+      });
       hasValidationErrors = true;
     } else {
       finalSubject = `${main} - ${courseSel.value}`;
@@ -323,7 +325,12 @@ onMounted(() => {
     @drop="handleDrop"
     class="relative"
   >
-    <BaseModal @cancel="emit('cancel')" :submit="submit" :error="submitError" :loading="submitting">
+    <BaseModal
+      @cancel="emit('cancel')"
+      :submit="submit"
+      :error="submitError"
+      :loading="submitting"
+    >
       <template #title>
         {{
           initial
@@ -361,7 +368,12 @@ onMounted(() => {
           <BaseLabel for="title" :required="true">{{
             t('school.tasks.itemForm.title')
           }}</BaseLabel>
-          <BaseInput ref="titleInputRef" id="title" v-model="title" :aria-describedby="titleError ? 'title-error' : undefined" />
+          <BaseInput
+            ref="titleInputRef"
+            id="title"
+            v-model="title"
+            :aria-describedby="titleError ? 'title-error' : undefined"
+          />
         </BaseFormGroup>
 
         <BaseFormGroup id="subject" :error="subjectError">
@@ -376,7 +388,11 @@ onMounted(() => {
           />
         </BaseFormGroup>
 
-        <BaseFormGroup v-if="selectedSubjectHasCourses" id="courseSel" :error="courseError">
+        <BaseFormGroup
+          v-if="selectedSubjectHasCourses"
+          id="courseSel"
+          :error="courseError"
+        >
           <BaseLabel for="courseSel" :required="true">{{
             t('school.tasks.itemForm.course')
           }}</BaseLabel>
@@ -388,11 +404,21 @@ onMounted(() => {
           />
         </BaseFormGroup>
 
-        <BaseFormGroup v-if="subjectSel === '__OTHER__'" id="subjectOther" :error="subjectOtherError">
+        <BaseFormGroup
+          v-if="subjectSel === '__OTHER__'"
+          id="subjectOther"
+          :error="subjectOtherError"
+        >
           <BaseLabel for="subjectOther" :required="true">{{
             t('school.tasks.itemForm.customSubject')
           }}</BaseLabel>
-          <BaseInput id="subjectOther" v-model="subjectOther" :aria-describedby="subjectOtherError ? 'subjectOther-error' : undefined"/>
+          <BaseInput
+            id="subjectOther"
+            v-model="subjectOther"
+            :aria-describedby="
+              subjectOtherError ? 'subjectOther-error' : undefined
+            "
+          />
         </BaseFormGroup>
 
         <BaseFormGroup id="description" :error="descriptionError">
@@ -404,7 +430,9 @@ onMounted(() => {
             as="textarea"
             rows="4"
             v-model="description"
-            :aria-describedby="descriptionError ? 'description-error' : undefined"
+            :aria-describedby="
+              descriptionError ? 'description-error' : undefined
+            "
           ></BaseInput>
         </BaseFormGroup>
 
@@ -412,7 +440,12 @@ onMounted(() => {
           <BaseLabel for="dueDate" :required="true">{{
             t('school.tasks.itemForm.dueDate')
           }}</BaseLabel>
-          <BaseInput id="dueDate" type="date" v-model="dueLocal" :aria-describedby="dueDateError ? 'dueDate-error' : undefined" />
+          <BaseInput
+            id="dueDate"
+            type="date"
+            v-model="dueLocal"
+            :aria-describedby="dueDateError ? 'dueDate-error' : undefined"
+          />
         </BaseFormGroup>
 
         <BaseFormGroup id="images" :error="imgUploadError">
@@ -437,11 +470,11 @@ onMounted(() => {
               <div class="absolute top-1 right-1">
                 <BaseButton
                   type="button"
-                  class="px-2 py-1"
                   @click="removeImg(img, initial?.id)"
                   variant="danger"
-                  >
-                  <X :size="12"/>
+                  :icon="X"
+                >
+                  {{ t('school.tasks.itemForm.removeImage') }}
                 </BaseButton>
               </div>
             </div>
@@ -457,7 +490,10 @@ onMounted(() => {
             </BaseButton>
           </BaseRow>
 
-          <div v-if="imgUploading" class="text-sub text-on-surface-muted self-center">
+          <div
+            v-if="imgUploading"
+            class="text-sub text-on-surface-muted self-center"
+          >
             {{ t('school.tasks.itemForm.uploadingImage') }}
           </div>
         </BaseFormGroup>

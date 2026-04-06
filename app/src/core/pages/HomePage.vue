@@ -5,9 +5,16 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, Folder, FolderOpen, ChevronRight, UsersRound } from '@lucide/vue';
+import {
+  UserRoundPlus,
+  Plus,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  UsersRound,
+} from '@lucide/vue';
 import hw from '@/api/hwApi';
-import { useI18n } from "vue-i18n";
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -19,7 +26,9 @@ const { activeGroupId, userGroups, switchActiveGroup } = useAppAuth();
 
 const loading = ref(false);
 const navigatingGroupId = ref<string | null>(null);
-const allGroups = ref<Array<{ id: string; name: string; memberCount: number; created_at: string }>>([]);
+const allGroups = ref<
+  Array<{ id: string; name: string; memberCount: number; created_at: string }>
+>([]);
 
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
 
@@ -101,25 +110,44 @@ onMounted(() => {
   <div class="p-4 md:p-0">
     <!-- Welcome Banner -->
     <section class="mb-8">
-      <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
+      <div
+        class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col"
+      >
         <div>
           <h2>
-            {{ t(greeting) }}<span v-if="user">, </span><span v-if="user" class="bg-[image:var(--background-image-bismuth)] bg-clip-text text-transparent">{{ displayName }}</span>
+            {{ t(greeting) }}<span v-if="user">, </span
+            ><span
+              v-if="user"
+              class="bg-[image:var(--background-image-bismuth)] bg-clip-text text-transparent"
+              >{{ displayName }}</span
+            >
           </h2>
           <p class="text-body text-on-surface-muted m-0 leading-relaxed">
-            {{ userGroups.length
-                  ? 'Wähle eine Gruppe aus, um loszulegen.'
-                  : 'Tritt einer Gruppe bei oder erstelle eine neue.'
+            {{
+              userGroups.length
+                ? 'Wähle eine Gruppe aus, um loszulegen.'
+                : 'Tritt einer Gruppe bei oder erstelle eine neue.'
             }}
           </p>
         </div>
 
         <!-- Regular User: Join/Create Group -->
-        <div class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0" v-if="userGroups.length > 0">
-          <BaseButton @click="modalStore.openJoinGroup()" variant="action" :icon="UserRoundPlus">
+        <div
+          class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0"
+          v-if="userGroups.length > 0"
+        >
+          <BaseButton
+            @click="modalStore.openJoinGroup()"
+            variant="action"
+            :icon="UserRoundPlus"
+          >
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
-          <BaseButton @click="modalStore.openCreateGroup()" variant="ghost" :icon="Plus">
+          <BaseButton
+            @click="modalStore.openCreateGroup()"
+            variant="ghost"
+            :icon="Plus"
+          >
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
         </div>
@@ -129,51 +157,79 @@ onMounted(() => {
     <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex items-center gap-2.5 mb-4">
-        <h2 class="text-h2 font-bold text-on-surface m-0">{{ t('groups.home.yourGroups') }}</h2>
-        <span class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5">{{ userGroups.length }}</span>
+        <h2 class="text-h2 font-bold text-on-surface m-0">
+          {{ t('groups.home.yourGroups') }}
+        </h2>
+        <span
+          class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5"
+          >{{ userGroups.length }}</span
+        >
       </div>
       <div class="flex flex-col gap-2">
         <button
-            v-for="group in userGroups"
-            :key="group.id"
-            class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
-            :class="{ active: group.id === activeGroupId }"
-            @click="navigateToGroup(group.id)"
-            :disabled="navigatingGroupId === group.id"
+          v-for="group in userGroups"
+          :key="group.id"
+          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
+          :class="{ active: group.id === activeGroupId }"
+          @click="navigateToGroup(group.id)"
+          :disabled="navigatingGroupId === group.id"
         >
-          <span class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface">
-            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
+          <span
+            class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface"
+          >
+            <component
+              :is="group.id === activeGroupId ? FolderOpen : Folder"
+              :size="24"
+            />
           </span>
           <span class="flex flex-col flex-1 gap-0.5">
             <div class="flex items-center gap-1.5 overflow-hidden">
-              <span class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate">
+              <span
+                class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate"
+              >
                 {{ group.name }}
               </span>
               <NotificationDot v-if="group.hasUnreadContent" />
             </div>
-            <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
+            <span
+              class="text-footnote font-semibold uppercase tracking-wider"
+              :class="roleColors[group.role]"
+            >
               {{ roleLabel(group.role) }}
             </span>
           </span>
 
-          <ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" />
+          <ChevronRight
+            :size="16"
+            class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted"
+          />
         </button>
       </div>
     </section>
 
     <!-- Empty State -->
     <section v-if="!isSuperadmin && userGroups.length === 0 && !loading">
-      <BaseEmptyState :icon="UsersRound" :primary-action="() => modalStore.openJoinGroup()" :secondary-action="() => modalStore.openCreateGroup()">
+      <BaseEmptyState
+        :icon="UsersRound"
+        :primary-action="() => modalStore.openJoinGroup()"
+        :secondary-action="() => modalStore.openCreateGroup()"
+      >
         <template #title>{{ t('groups.home.noGroups') }}</template>
         <template #message>{{ t('groups.home.joinGroupText') }}</template>
-        <template #primary-action-label>{{ t('groups.home.joinGroup') }}</template>
-        <template #secondary-action-label>{{ t('groups.home.createGroup') }}</template>
+        <template #primary-action-label>{{
+          t('groups.home.joinGroup')
+        }}</template>
+        <template #secondary-action-label>{{
+          t('groups.home.createGroup')
+        }}</template>
       </BaseEmptyState>
     </section>
 
     <!-- Loading -->
     <div v-if="loading" class="flex justify-center p-10">
-      <div class="w-7 h-7 border-2 border-canvas-border border-t-on-surface rounded-full animate-spin"></div>
+      <div
+        class="w-7 h-7 border-2 border-canvas-border border-t-on-surface rounded-full animate-spin"
+      ></div>
     </div>
   </div>
 </template>

@@ -42,25 +42,20 @@ onMounted(async () => {
 
 <template>
   <BaseModal @cancel="emit('cancel')">
-    <template #title>
-      Sicherheit
-    </template>
+    <template #title> Sicherheit </template>
 
     <template #content>
       <div class="tab-wrapper">
         <BaseTabs
-            :items="tabs"
-            :active-id="activeTab"
-            @change="handleTabChange"
+          :items="tabs"
+          :active-id="activeTab"
+          @change="handleTabChange"
         />
       </div>
 
       <!-- Tab Content -->
       <div v-if="activeTab === 'mfa'" class="mfa-section">
-        <MfaSettings
-            :mfa-enabled="mfaEnabled"
-            @mfa-changed="onMfaChanged"
-        />
+        <MfaSettings :mfa-enabled="mfaEnabled" @mfa-changed="onMfaChanged" />
       </div>
 
       <div v-else-if="activeTab === 'connected'" class="connected-section">

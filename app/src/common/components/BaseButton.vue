@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
   variant?: 'action' | 'ghost' | 'text' | 'danger';
-  on?: 'canvas' | 'surface' | 'action'
+  on?: 'canvas' | 'surface' | 'action';
   full?: boolean;
   icon?: Component;
   loading?: boolean;
@@ -26,16 +26,16 @@ const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
-    canvas: 'text-on-canvas-muted hover:bg-canvas-hover hover:border-canvas-hover hover:text-on-canvas',
-    surface: 'text-on-surface-muted hover:bg-surface-hover hover:border-surface-hover hover:text-on-surface',
-    action: 'text-on-action-muted hover:bg-action-hover hover:border-action-hover hover:text-on-action',
+    canvas:
+      'text-on-canvas-muted hover:bg-canvas-hover hover:border-canvas-hover hover:text-on-canvas',
+    surface:
+      'text-on-surface-muted hover:bg-surface-hover hover:border-surface-hover hover:text-on-surface',
+    action:
+      'text-on-action-muted hover:bg-action-hover hover:border-action-hover hover:text-on-action',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
-    ghost: [
-      'bg-transparent border-transparent',
-      onClasses[props.on],
-    ].join(' '),
+    ghost: ['bg-transparent border-transparent', onClasses[props.on]].join(' '),
     text: [
       'bg-surface text-on-surface border-surface-border',
       'shadow-input',
@@ -68,7 +68,13 @@ defineExpose({
     :class="[
       classes,
       full ? 'w-full justify-center font-semibold' : 'w-fit',
-      loading ? 'px-2' : (icon && $slots.default ? 'pl-2.5 pr-4' : icon ? 'px-2' : 'px-4'),
+      loading
+        ? 'px-2'
+        : icon && $slots.default
+          ? 'pl-2.5 pr-4'
+          : icon
+            ? 'px-2'
+            : 'px-4',
     ]"
     class="inline-flex items-center gap-2 py-2 border rounded-full text-btn leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"

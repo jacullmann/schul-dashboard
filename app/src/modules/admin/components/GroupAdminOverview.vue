@@ -36,9 +36,16 @@ const emit = defineEmits<{
     <div v-if="(stats?.oldItemsCount ?? 0) > 0" class="cleanup-bar">
       <div class="cleanup-info">
         <Trash2 :size="16" />
-        <span>{{ stats?.oldItemsCount }} Einträge älter als 90 Tage können gelöscht werden.</span>
+        <span
+          >{{ stats?.oldItemsCount }} Einträge älter als 90 Tage können gelöscht
+          werden.</span
+        >
       </div>
-      <BaseButton @click="emit('cleanup')" :disabled="cleaningUp" variant="ghost">
+      <BaseButton
+        @click="emit('cleanup')"
+        :disabled="cleaningUp"
+        variant="ghost"
+      >
         {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
       </BaseButton>
     </div>
@@ -46,11 +53,19 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.tab-panel { animation: fadeUp 0.2s ease; }
+.tab-panel {
+  animation: fadeUp 0.2s ease;
+}
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .stats-row {
@@ -71,7 +86,9 @@ const emit = defineEmits<{
   gap: 4px;
 }
 
-.stat-tile.warn { border-color: rgba(245, 158, 11, 0.3); }
+.stat-tile.warn {
+  border-color: rgba(245, 158, 11, 0.3);
+}
 
 .stat-value {
   font-size: 1.5rem;
@@ -105,8 +122,15 @@ const emit = defineEmits<{
 }
 
 @media (max-width: 640px) {
-  .stats-row { grid-template-columns: 1fr 1fr; }
-  .cleanup-bar { flex-direction: column; align-items: flex-start; }
-  .setting-edit { flex-wrap: wrap; }
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .cleanup-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .setting-edit {
+    flex-wrap: wrap;
+  }
 }
 </style>

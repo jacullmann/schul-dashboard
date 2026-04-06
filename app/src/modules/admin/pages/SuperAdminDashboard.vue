@@ -391,8 +391,8 @@ onMounted(() => {
             @click="cleanupOldItems"
             :disabled="isCleaningUp"
             variant="ghost"
+            :icon="Trash2"
           >
-            <Trash2 :size="14" />
             {{ isCleaningUp ? 'Deleting…' : 'Clean up' }}
           </BaseButton>
         </div>
@@ -549,15 +549,17 @@ onMounted(() => {
                   class="tiny"
                   @click="toggleReportProcessed(r.id, false)"
                   variant="ghost"
+                  :icon="Check"
                 >
-                  <Check :size="13" /> Resolve
+                  Resolve
                 </BaseButton>
                 <BaseButton
                   class="tiny"
                   @click="deleteReport(r.id)"
                   variant="ghost"
+                  :icon="Trash2"
                 >
-                  <Trash2 :size="13" /> Delete
+                  Delete
                 </BaseButton>
               </div>
             </div>
@@ -588,15 +590,17 @@ onMounted(() => {
                   class="tiny"
                   @click="toggleReportProcessed(r.id, true)"
                   variant="ghost"
+                  :icon="RotateCcw"
                 >
-                  <RotateCcw :size="13" /> Reopen
+                  Reopen
                 </BaseButton>
                 <BaseButton
                   class="tiny"
                   @click="deleteReport(r.id)"
                   variant="ghost"
+                  :icon="Trash2"
                 >
-                  <Trash2 :size="13" /> Delete
+                  Delete
                 </BaseButton>
               </div>
             </div>

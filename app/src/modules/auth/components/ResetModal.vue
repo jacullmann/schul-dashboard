@@ -72,7 +72,11 @@ async function onPrimary() {
       step.value = 2;
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      setMessage(err?.response?.data?.error || t('account.auth.reset.errors.requestFailed'), true);
+      setMessage(
+        err?.response?.data?.error ||
+          t('account.auth.reset.errors.requestFailed'),
+        true,
+      );
     } finally {
       submitting.value = false;
     }
@@ -83,13 +87,20 @@ async function onPrimary() {
     }
     submitting.value = true;
     try {
-      const { data } = await hw.post('/api/auth/reset/verify', { email: email.value, code: code.value.trim() });
+      const { data } = await hw.post('/api/auth/reset/verify', {
+        email: email.value,
+        code: code.value.trim(),
+      });
       savedResetToken = data.resetToken;
       setMessage(t('account.auth.reset.errors.codeVerified'), false);
       step.value = 3;
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      setMessage(err?.response?.data?.error || t('account.auth.reset.errors.codeExpired'), true);
+      setMessage(
+        err?.response?.data?.error ||
+          t('account.auth.reset.errors.codeExpired'),
+        true,
+      );
     } finally {
       submitting.value = false;
     }
@@ -109,14 +120,21 @@ async function onPrimary() {
     }
     submitting.value = true;
     try {
-      const { data } = await hw.post('/api/auth/reset', { resetToken: savedResetToken, password: password.value });
+      const { data } = await hw.post('/api/auth/reset', {
+        resetToken: savedResetToken,
+        password: password.value,
+      });
       const msg = data.message || t('account.auth.resetSuccess');
       useToast().success(msg);
       emit('success');
       emit('cancel');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      setMessage(err?.response?.data?.error || t('account.auth.reset.errors.resetFailed'), true);
+      setMessage(
+        err?.response?.data?.error ||
+          t('account.auth.reset.errors.resetFailed'),
+        true,
+      );
     } finally {
       submitting.value = false;
     }
@@ -125,7 +143,12 @@ async function onPrimary() {
 </script>
 
 <template>
-  <BaseModal @cancel="emit('cancel')" :submit="onPrimary" :loading="submitting" :error="message">
+  <BaseModal
+    @cancel="emit('cancel')"
+    :submit="onPrimary"
+    :loading="submitting"
+    :error="message"
+  >
     <template #title>
       {{ t('account.auth.reset.title') }}
     </template>
@@ -150,11 +173,7 @@ async function onPrimary() {
             v-model="code"
             :placeholder="t('account.auth.reset.placeholders.code')"
           />
-          <BaseButton
-            @click="onBack"
-            :disabled="submitting"
-            variant="ghost"
-          >
+          <BaseButton @click="onBack" :disabled="submitting" variant="ghost">
             {{ t('global.buttons.back') }}
           </BaseButton>
         </div>
@@ -187,13 +206,13 @@ async function onPrimary() {
     </template>
 
     <template #action-text>
-        {{
-          step === 1
-            ? t('account.auth.reset.actions.requestCode')
-            : step === 2
-              ? t('account.auth.reset.actions.verifyCode')
-              : t('account.auth.reset.actions.setPassword')
-        }}
+      {{
+        step === 1
+          ? t('account.auth.reset.actions.requestCode')
+          : step === 2
+            ? t('account.auth.reset.actions.verifyCode')
+            : t('account.auth.reset.actions.setPassword')
+      }}
     </template>
   </BaseModal>
 </template>

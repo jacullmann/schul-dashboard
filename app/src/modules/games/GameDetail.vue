@@ -2,7 +2,7 @@
 import { ref, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGameById } from '@/modules/games/composables/GameData';
-import type { Game } from '@/modules/games/types'
+import type { Game } from '@/modules/games/types';
 
 const route = useRoute();
 const router = useRouter();
@@ -24,11 +24,15 @@ onMounted(() => {
 });
 
 // Beobachte Änderungen der Route (falls man von einem Spiel zum nächsten navigiert)
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    loadGame(newId as string);
-  }
-}, { immediate: true });
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      loadGame(newId as string);
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -39,25 +43,36 @@ watch(() => route.params.id, (newId) => {
 
     <div v-else class="game-container">
       <router-link to="/games" class="back-link">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M19 12H5" />
+          <path d="m12 19-7-7 7-7" />
+        </svg>
         Zurück zur Spiele-Übersicht
       </router-link>
 
       <div class="game-card">
         <h1 class="game-title">{{ game.name }}</h1>
         <p class="game-description">{{ game.description }}</p>
-        <hr>
+        <hr />
 
         <!-- Hier wird die dynamische Spiel-Komponente gerendert -->
         <component :is="game.component" class="game-component-instance" />
-
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -68,7 +83,7 @@ watch(() => route.params.id, (newId) => {
 }
 
 .back-link:hover {
-  color:var(--color-on-surface);
+  color: var(--color-on-surface);
 }
 
 .back-link svg {

@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { ref, nextTick, onMounted, onBeforeUnmount, type CSSProperties } from 'vue';
+import {
+  ref,
+  nextTick,
+  onMounted,
+  onBeforeUnmount,
+  type CSSProperties,
+} from 'vue';
 
 const props = withDefaults(
   defineProps<{

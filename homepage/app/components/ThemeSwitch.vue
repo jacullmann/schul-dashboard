@@ -23,9 +23,10 @@ function setTheme(theme: string) {
         :title="label"
         :aria-pressed="colorMode.preference === value"
         class="p-2 rounded-lg border transition-colors"
-        :class="colorMode.preference === value
-          ? 'bg-surface-hover border-surface-hover-border text-on-surface'
-          : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface hover:border-surface-hover-border'
+        :class="
+          colorMode.preference === value
+            ? 'bg-surface-hover border-surface-hover-border text-on-surface'
+            : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface hover:border-surface-hover-border'
         "
         @click="setTheme(value)"
       >

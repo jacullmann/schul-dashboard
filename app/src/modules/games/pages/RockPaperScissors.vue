@@ -12,17 +12,17 @@ const gameResult = ref<Result>(null);
 const isGameOver = ref(false);
 
 const choiceEmojis = {
-  'Schere': '✂️',
-  'Stein': '🪨',
-  'Papier': '📄',
+  Schere: '✂️',
+  Stein: '🪨',
+  Papier: '📄',
 };
 
 const determineWinner = (p1: Choice, p2: Choice): Result => {
   if (p1 === p2) return 'Unentschieden';
   if (
-      (p1 === 'Schere' && p2 === 'Papier') ||
-      (p1 === 'Stein' && p2 === 'Schere') ||
-      (p1 === 'Papier' && p2 === 'Stein')
+    (p1 === 'Schere' && p2 === 'Papier') ||
+    (p1 === 'Stein' && p2 === 'Schere') ||
+    (p1 === 'Papier' && p2 === 'Stein')
   ) {
     return 'Gewonnen';
   }
@@ -57,7 +57,10 @@ const makeMove = (choice: Choice) => {
     const randomIdx = Math.floor(Math.random() * 3);
     computerChoice.value = choices[randomIdx];
 
-    gameResult.value = determineWinner(playerChoice.value, computerChoice.value);
+    gameResult.value = determineWinner(
+      playerChoice.value,
+      computerChoice.value,
+    );
     isGameOver.value = true;
   }, 500);
 };
@@ -76,7 +79,9 @@ const resetGame = () => {
       <div class="choice-card player-choice">
         <h3>Du</h3>
         <div class="icon-box">
-          <span v-if="playerChoice" class="icon-emoji">{{ choiceEmojis[playerChoice] }}</span>
+          <span v-if="playerChoice" class="icon-emoji">{{
+            choiceEmojis[playerChoice]
+          }}</span>
           <span v-else class="icon-placeholder">?</span>
         </div>
       </div>
@@ -86,7 +91,9 @@ const resetGame = () => {
       <div class="choice-card computer-choice">
         <h3>Computer</h3>
         <div class="icon-box">
-          <span v-if="computerChoice" class="icon-emoji">{{ choiceEmojis[computerChoice] }}</span>
+          <span v-if="computerChoice" class="icon-emoji">{{
+            choiceEmojis[computerChoice]
+          }}</span>
           <span v-else class="icon-placeholder">?</span>
         </div>
       </div>
@@ -97,7 +104,12 @@ const resetGame = () => {
     </div>
 
     <div class="controls" v-if="!isGameOver">
-      <BaseButton v-for="choice in choices" :key="choice" @click="makeMove(choice)" class="btn-choice">
+      <BaseButton
+        v-for="choice in choices"
+        :key="choice"
+        @click="makeMove(choice)"
+        class="btn-choice"
+      >
         {{ choiceEmojis[choice] }} {{ choice }}
       </BaseButton>
     </div>
@@ -202,7 +214,9 @@ const resetGame = () => {
   font-size: 1.1em;
   background-color: #9b59b6;
   color: var(--color-on-surface);
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .btn-choice:hover {

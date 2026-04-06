@@ -3,20 +3,23 @@ import { ref, computed } from 'vue';
 import { Ellipsis, Archive, ArchiveRestore, UploadCloud } from '@lucide/vue';
 import { useSwipeToDismiss } from '@/modules/tasks/composables/useSwipeToDismiss';
 
-const props = withDefaults(defineProps<{
-  title?: string;
-  isCollapsed?: boolean;
-  highlighted?: boolean;
-  showMenuTrigger?: boolean;
-  swipeable?: boolean;
-  swipeAction?: 'archive' | 'keep';
-}>(), {
-  isCollapsed: false,
-  highlighted: false,
-  showMenuTrigger: true,
-  swipeable: false,
-  swipeAction: 'archive',
-});
+const props = withDefaults(
+  defineProps<{
+    title?: string;
+    isCollapsed?: boolean;
+    highlighted?: boolean;
+    showMenuTrigger?: boolean;
+    swipeable?: boolean;
+    swipeAction?: 'archive' | 'keep';
+  }>(),
+  {
+    isCollapsed: false,
+    highlighted: false,
+    showMenuTrigger: true,
+    swipeable: false,
+    swipeAction: 'archive',
+  },
+);
 
 const emit = defineEmits<{
   (e: 'menu-click', event: MouseEvent): void;
@@ -30,7 +33,10 @@ const containerRef = ref<HTMLElement | null>(null);
 // Smooth height-collapse of the entire row after the card has slid off screen
 function collapseContainer() {
   const el = containerRef.value;
-  if (!el) { emit('swiped'); return; }
+  if (!el) {
+    emit('swiped');
+    return;
+  }
 
   const currentHeight = el.offsetHeight;
 
@@ -50,7 +56,10 @@ function collapseContainer() {
     emit('swiped');
   };
   el.addEventListener('transitionend', onEnd);
-  setTimeout(() => { el.removeEventListener('transitionend', onEnd); emit('swiped'); }, 350);
+  setTimeout(() => {
+    el.removeEventListener('transitionend', onEnd);
+    emit('swiped');
+  }, 350);
 }
 
 // Swipe composable — only instantiated when swipeable is true
@@ -64,7 +73,9 @@ const cardStyle = computed(() => {
   return {
     transform: `translateX(${swipeOffset.value}px)`,
     // Live drag → no transition. Release → spring back or slide-out
-    transition: isSwiping.value ? 'none' : 'transform 360ms cubic-bezier(0.25, 1, 0.5, 1)',
+    transition: isSwiping.value
+      ? 'none'
+      : 'transform 360ms cubic-bezier(0.25, 1, 0.5, 1)',
   };
 });
 
@@ -125,7 +136,9 @@ function onDrop(e: DragEvent) {
   dragCounter = 0;
   isDragOver.value = false;
   if (e.dataTransfer?.files.length) {
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    const files = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith('image/'),
+    );
     if (files.length > 0) {
       emit('files-dropped', files);
     }
@@ -136,21 +149,24 @@ function onDrop(e: DragEvent) {
 <template>
   <!-- Outer wrapper: handles height collapse after dismiss -->
   <div
-      ref="containerRef"
-      class="relative"
-      :class="swipeable && (isSwiping || isDismissing || swipeOffset > 0)
+    ref="containerRef"
+    class="relative"
+    :class="
+      swipeable && (isSwiping || isDismissing || swipeOffset > 0)
         ? 'overflow-x-clip overflow-y-visible rounded-xl z-10'
-        : ''"
+        : ''
+    "
   >
-
     <!-- Background — only rendered + visible while swiping -->
     <div
-        v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
-        class="absolute inset-0 rounded-xl flex items-center pl-3 pointer-events-none"
-        :style="swipeAction === 'keep'
+      v-if="swipeable && (isSwiping || isDismissing || swipeOffset > 0)"
+      class="absolute inset-0 rounded-xl flex items-center pl-3 pointer-events-none"
+      :style="
+        swipeAction === 'keep'
           ? 'background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
-          : 'background: linear-gradient(135deg, #e53935 0%, #c62828 100%)'"
-        aria-hidden="true"
+          : 'background: linear-gradient(135deg, #e53935 0%, #c62828 100%)'
+      "
+      aria-hidden="true"
     >
       <ArchiveRestore v-if="swipeAction === 'keep'" :size="24" color="#fff" />
       <Archive v-else :size="24" color="#fff" />
@@ -158,28 +174,33 @@ function onDrop(e: DragEvent) {
 
     <!-- Card — slides on swipe, otherwise completely unchanged -->
     <div
-        ref="cardRef"
-        class="relative bg-surface border border-surface-border rounded-xl p-3 shadow-input overflow-visible cursor-default touch-pan-y"
-        :class="{
-          'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]': isCollapsed,
-          'border-2 border-transparent': highlighted,
-          'border-primary shadow-[0_0_0_2px_var(--color-primary)]': isDragOver,
-        }"
-        :style="[
-          cardStyle,
-          highlighted
-            ? {
-                background: 'linear-gradient(var(--color-surface), var(--color-surface)) padding-box, var(--background-image-bismuth) border-box',
-                border: '2px solid transparent',
-              }
-            : undefined,
-        ]"
-        @dragenter.prevent="onDragEnter"
-        @dragover.prevent="onDragOver"
-        @dragleave.prevent="onDragLeave"
-        @drop.prevent="onDrop"
+      ref="cardRef"
+      class="relative bg-surface border border-surface-border rounded-xl p-3 shadow-input overflow-visible cursor-default touch-pan-y"
+      :class="{
+        'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]':
+          isCollapsed,
+        'border-2 border-transparent': highlighted,
+        'border-primary shadow-[0_0_0_2px_var(--color-primary)]': isDragOver,
+      }"
+      :style="[
+        cardStyle,
+        highlighted
+          ? {
+              background:
+                'linear-gradient(var(--color-surface), var(--color-surface)) padding-box, var(--background-image-bismuth) border-box',
+              border: '2px solid transparent',
+            }
+          : undefined,
+      ]"
+      @dragenter.prevent="onDragEnter"
+      @dragover.prevent="onDragOver"
+      @dragleave.prevent="onDragLeave"
+      @drop.prevent="onDrop"
     >
-      <div v-if="isDragOver" class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center text-white">
+      <div
+        v-if="isDragOver"
+        class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center text-white"
+      >
         <div class="flex flex-col items-center gap-2 font-medium text-body">
           <UploadCloud :size="32" />
           <span>Bilder ablegen zum Hochladen</span>
@@ -188,15 +209,30 @@ function onDrop(e: DragEvent) {
 
       <div class="relative flex justify-between items-start gap-2 select-none">
         <div class="flex-1 min-w-0">
-          <div style="display:flex; align-items:center; gap:8px;">
+          <div style="display: flex; align-items: center; gap: 8px">
             <slot name="checkbox"></slot>
             <slot name="title">
-              <h3 v-if="title" class="!text-title overflow-hidden text-ellipsis whitespace-nowrap !leading-6 !-my-[3px]" :title="title">{{ title }}</h3>
+              <h3
+                v-if="title"
+                class="!text-title overflow-hidden text-ellipsis whitespace-nowrap !leading-6 !-my-[3px]"
+                :title="title"
+              >
+                {{ title }}
+              </h3>
             </slot>
           </div>
 
-          <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-            <div v-show="!isCollapsed" v-if="$slots.badges" class="row-n mt-1 items-center" style="overflow: hidden;">
+          <transition
+            @enter="onEnter"
+            @after-enter="onAfterEnter"
+            @leave="onLeave"
+          >
+            <div
+              v-show="!isCollapsed"
+              v-if="$slots.badges"
+              class="row-n mt-1 items-center"
+              style="overflow: hidden"
+            >
               <slot name="badges"></slot>
             </div>
           </transition>
@@ -206,10 +242,10 @@ function onDrop(e: DragEvent) {
 
         <slot name="menu-trigger">
           <button
-              v-if="showMenuTrigger"
-              type="button"
-              class="inline-flex items-center justify-center p-2 rounded-lg cursor-pointer text-on-surface-muted transition-hover -m-2 bg-transparent border-none hover:bg-surface-hover hover:text-on-surface"
-              @click.stop="(e) => $emit('menu-click', e)"
+            v-if="showMenuTrigger"
+            type="button"
+            class="inline-flex items-center justify-center p-2 rounded-lg cursor-pointer text-on-surface-muted transition-hover -m-2 bg-transparent border-none hover:bg-surface-hover hover:text-on-surface"
+            @click.stop="(e) => $emit('menu-click', e)"
           >
             <slot name="menu-icon">
               <Ellipsis :size="18" />
@@ -221,8 +257,11 @@ function onDrop(e: DragEvent) {
       </div>
 
       <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-        <div v-show="!isCollapsed" class="opacity-100" style="overflow: hidden;">
-          <div v-if="$slots.body" class="mt-2 text-on-surface break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text">
+        <div v-show="!isCollapsed" class="opacity-100" style="overflow: hidden">
+          <div
+            v-if="$slots.body"
+            class="mt-2 text-on-surface break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+          >
             <slot name="body"></slot>
           </div>
           <slot name="content-after"></slot>

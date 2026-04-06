@@ -17,9 +17,10 @@ function setLocale(code: string) {
         type="button"
         :aria-current="locale === loc.code ? 'true' : undefined"
         class="px-3 py-1.5 rounded-lg border text-footnote font-medium transition-colors"
-        :class="locale === loc.code
-          ? 'bg-surface-hover border-surface-hover-border text-on-surface'
-          : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface hover:border-surface-hover-border'
+        :class="
+          locale === loc.code
+            ? 'bg-surface-hover border-surface-hover-border text-on-surface'
+            : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface hover:border-surface-hover-border'
         "
         @click="setLocale(loc.code)"
       >

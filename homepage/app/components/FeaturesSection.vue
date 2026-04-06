@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  ClipboardList,
-  Shield,
-  Users,
-  Lock,
-  Search,
-  CalendarDays,
-} from '@lucide/vue';
+import { ClipboardList, Shield, Users, Lock, Search, CalendarDays } from '@lucide/vue';
 
 const { t } = useI18n();
 
@@ -24,7 +17,9 @@ const features = [
   <section class="w-full py-24 md:py-16">
     <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
       <div class="text-center mb-16 md:mb-12">
-        <h2 class="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-on-surface font-display leading-[1.2] max-w-xl mx-auto">
+        <h2
+          class="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-on-surface font-display leading-[1.2] max-w-xl mx-auto"
+        >
           {{ t('sections.features.title') }}
         </h2>
         <p class="text-on-surface-muted mt-4 leading-[1.6]">
@@ -39,7 +34,9 @@ const features = [
           :key="feature.key"
           class="group bg-surface border border-surface-border rounded-xl p-7 flex flex-col gap-4"
         >
-          <div class="w-10 h-10 rounded-lg bg-canvas border border-surface-border flex items-center justify-center text-on-surface-muted group-hover:text-on-surface transition-colors flex-shrink-0">
+          <div
+            class="w-10 h-10 rounded-lg bg-canvas border border-surface-border flex items-center justify-center text-on-surface-muted group-hover:text-on-surface transition-colors flex-shrink-0"
+          >
             <component :is="feature.icon" :size="20" aria-hidden="true" />
           </div>
           <div>

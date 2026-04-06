@@ -1,11 +1,14 @@
 <script setup lang="ts">
-withDefaults(defineProps<{
-  flat?: boolean;
-  on?: 'canvas' | 'surface' | 'action';
-}>(), {
-  flat: false,
-  on: 'surface'
-}) 
+withDefaults(
+  defineProps<{
+    flat?: boolean;
+    on?: 'canvas' | 'surface' | 'action';
+  }>(),
+  {
+    flat: false,
+    on: 'surface',
+  },
+);
 </script>
 
 <template>
@@ -21,7 +24,9 @@ kbd.default {
   background-color: var(--color-kbd-bg);
   color: var(--color-kbd-text);
   border: 1px solid var(--color-kbd-border);
-  box-shadow: 0 2px 0 var(--color-kbd-border-bottom), 0 3px 2px var(--color-kbd-shadow);
+  box-shadow:
+    0 2px 0 var(--color-kbd-border-bottom),
+    0 3px 2px var(--color-kbd-shadow);
   border-radius: 6px;
   font-family: monospace;
   font-size: 0.75rem;
@@ -30,12 +35,16 @@ kbd.default {
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease;
 }
 
 kbd.default:active {
   transform: translateY(2px);
-  box-shadow: 0 0 0 var(--color-kbd-border-bottom), 0 1px 2px var(--color-kbd-shadow);
+  box-shadow:
+    0 0 0 var(--color-kbd-border-bottom),
+    0 1px 2px var(--color-kbd-shadow);
 }
 
 kbd.flat {

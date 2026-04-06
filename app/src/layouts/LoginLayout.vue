@@ -3,7 +3,9 @@
     <header class="w-full px-6 py-4">
       <div class="flex items-center gap-4">
         <AppLogo class="h-[50px] w-auto" />
-        <span class="text-[var(--text-h2)] font-bold transition-opacity duration-200 ease-in hover:opacity-80">
+        <span
+          class="text-[var(--text-h2)] font-bold transition-opacity duration-200 ease-in hover:opacity-80"
+        >
           Schul-Dashboard
         </span>
         <!-- TODO: implement theme and language switch -->

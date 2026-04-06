@@ -1,9 +1,12 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-  error?: string;
-}>(), {
-  error: '',
-});
+const props = withDefaults(
+  defineProps<{
+    error?: string;
+  }>(),
+  {
+    error: '',
+  },
+);
 
 const slots = defineSlots<{
   default(): unknown;

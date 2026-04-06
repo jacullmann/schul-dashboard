@@ -28,10 +28,11 @@ const contactMethods = [
 
 <template>
   <div class="w-full">
-
     <section class="w-full py-20 md:py-14 border-b border-surface-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
-        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.15] mb-5">
+        <h1
+          class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.15] mb-5"
+        >
           {{ t('pages.contact.title') }}
         </h1>
         <p class="text-lg text-on-surface-muted leading-[1.65]">
@@ -44,14 +45,16 @@ const contactMethods = [
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
         <div class="grid grid-cols-2 md:grid-cols-1 gap-5 max-w-2xl mx-auto">
           <a
-              v-for="method in contactMethods"
-              :key="method.key"
-              :href="method.href"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group bg-surface border border-surface-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle hover:-translate-y-px"
+            v-for="method in contactMethods"
+            :key="method.key"
+            :href="method.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group bg-surface border border-surface-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle hover:-translate-y-px"
           >
-            <div class="w-12 h-12 rounded-xl bg-canvas border border-surface-border flex items-center justify-center text-on-surface-muted group-hover:text-on-surface transition-colors">
+            <div
+              class="w-12 h-12 rounded-xl bg-canvas border border-surface-border flex items-center justify-center text-on-surface-muted group-hover:text-on-surface transition-colors"
+            >
               <component :is="method.icon" :size="22" aria-hidden="true" />
             </div>
             <div class="flex-1">
@@ -62,9 +65,15 @@ const contactMethods = [
                 {{ t(`pages.contact.${method.key}_description`) }}
               </p>
             </div>
-            <div class="flex items-center gap-2 text-sub font-medium text-on-surface-muted group-hover:text-on-surface transition-colors">
+            <div
+              class="flex items-center gap-2 text-sub font-medium text-on-surface-muted group-hover:text-on-surface transition-colors"
+            >
               {{ method.value }}
-              <ArrowRight :size="14" class="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              <ArrowRight
+                :size="14"
+                class="transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </div>
           </a>
         </div>

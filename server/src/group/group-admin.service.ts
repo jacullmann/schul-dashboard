@@ -60,20 +60,24 @@ export class GroupAdminService {
     return bannedUsers;
   }
 
-  async revertBan(tenantId: string, currentUserId: string, targetUserId: string) {
+  async revertBan(
+    tenantId: string,
+    currentUserId: string,
+    targetUserId: string,
+  ) {
     const sb = this.supabaseService.getClient();
     await sb
       .from('group_bans')
       .delete()
       .eq('user_id', targetUserId)
       .eq('tenant_id', tenantId);
-    
+
     await sb.from('user_activity').insert({
       user_id: currentUserId,
       type: 'group-admin:revert-ban',
       meta: { targetUserId, tenantId },
     });
-      
+
     return { ok: true, message: 'Ban reverted.' };
   }
 
@@ -353,13 +357,13 @@ export class GroupAdminService {
       throw new InternalServerErrorException('Failed to save user activity');
 
     return { ok: true };
-    }
+  }
 
-    async updateScheduleConfig(
+  async updateScheduleConfig(
     tenantId: string,
     userId: string,
     scheduleConfig: Record<string, any>,
-    ) {
+  ) {
     const sb = this.supabaseService.getClient();
 
     const { data: userRole } = await sb
@@ -371,7 +375,9 @@ export class GroupAdminService {
       .maybeSingle();
 
     if ((userRole as any)?.roles?.name !== 'admin') {
-      throw new ForbiddenException('Only admins can update the schedule config.');
+      throw new ForbiddenException(
+        'Only admins can update the schedule config.',
+      );
     }
 
     const { error: groupUpdateError } = await sb
@@ -380,23 +386,23 @@ export class GroupAdminService {
       .eq('id', tenantId);
 
     if (groupUpdateError) {
-      throw new InternalServerErrorException('Failed to update schedule config');
+      throw new InternalServerErrorException(
+        'Failed to update schedule config',
+      );
     }
 
-    const { error: activityError } = await sb
-      .from('user_activity')
-      .insert({
-        user_id: userId,
-        type: 'group-admin:update-schedule-config',
-        meta: { tenantId, scheduleConfig },
-      });
+    const { error: activityError } = await sb.from('user_activity').insert({
+      user_id: userId,
+      type: 'group-admin:update-schedule-config',
+      meta: { tenantId, scheduleConfig },
+    });
 
     if (activityError) {
       throw new InternalServerErrorException('Failed to save user activity');
     }
 
     return { ok: true };
-    }
+  }
 
   async deleteGroup(tenantId: string, userId: string) {
     const sb = this.supabaseService.getClient();

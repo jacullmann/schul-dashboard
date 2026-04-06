@@ -5,9 +5,18 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { UserRoundPlus, Plus, Folder, FolderOpen, UsersRound, LogOut, MoreHorizontal, Star } from '@lucide/vue';
+import {
+  UserRoundPlus,
+  Plus,
+  Folder,
+  FolderOpen,
+  UsersRound,
+  LogOut,
+  MoreHorizontal,
+  Star,
+} from '@lucide/vue';
 import hw from '@/api/hwApi';
-import { useI18n } from "vue-i18n";
+import { useI18n } from 'vue-i18n';
 import type { UnitOption } from '@/common/components/BaseSelect.vue';
 
 const { t } = useI18n();
@@ -40,7 +49,6 @@ const handleEscape = (e: KeyboardEvent) => {
   if (e.key === 'Escape') closeMenu();
 };
 
-
 const isSuperadmin = computed(() => user.value?.role === 'superadmin');
 const defaultGroupId = computed({
   get: () => user.value?.preferences?.defaultGroupId || '',
@@ -48,13 +56,15 @@ const defaultGroupId = computed({
     if (val && val !== user.value?.preferences?.defaultGroupId) {
       setDefaultGroup(val);
     }
-  }
+  },
 });
 
-const groupOptions = computed<UnitOption[]>(() => userGroups.value.map(group => ({
-  label: group.name,
-  value: group.id
-})));
+const groupOptions = computed<UnitOption[]>(() =>
+  userGroups.value.map((group) => ({
+    label: group.name,
+    value: group.id,
+  })),
+);
 
 const roleColors: Record<string, string> = {
   admin: 'text-[#6366f1]',
@@ -111,11 +121,14 @@ async function setDefaultGroup(groupId: string) {
 
 async function leaveGroup(group: any) {
   if (group.ownerId === user.value?.id) {
-    alert('The owner cannot leave the group. Transfer ownership or delete the group instead.');
+    alert(
+      'The owner cannot leave the group. Transfer ownership or delete the group instead.',
+    );
     return;
   }
-  if (!confirm(`Are you sure you want to leave the group "${group.name}"?`)) return;
-  
+  if (!confirm(`Are you sure you want to leave the group "${group.name}"?`))
+    return;
+
   loading.value = true;
   try {
     await hw.delete(`/api/groups/${group.id}/leave`);
@@ -127,23 +140,38 @@ async function leaveGroup(group: any) {
     loading.value = false;
   }
 }
-
 </script>
 
 <template>
   <div class="p-4 md:p-0">
     <section class="mb-8">
-      <div class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col">
+      <div
+        class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col"
+      >
         <div>
           <h2>Groups Management</h2>
-          <p class="text-body text-on-surface-muted m-0 leading-relaxed">Manage your groups, leave or set a default group.</p>
+          <p class="text-body text-on-surface-muted m-0 leading-relaxed">
+            Manage your groups, leave or set a default group.
+          </p>
         </div>
 
-        <div class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0" v-if="userGroups.length > 0">
-          <BaseButton @click="modalStore.openJoinGroup" variant="action" :icon="UserRoundPlus">
+        <div
+          class="flex gap-2 shrink-0 max-sm:w-full max-sm:flex-wrap [&>.btn]:max-sm:flex-1 [&>.btn]:max-sm:justify-center [&>.btn]:max-sm:min-w-0"
+          v-if="userGroups.length > 0"
+        >
+          <BaseButton
+            @click="modalStore.openJoinGroup"
+            variant="action"
+            :icon="UserRoundPlus"
+          >
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
-          <BaseButton @click="modalStore.openCreateGroup" variant="ghost" on="canvas" :icon="Plus">
+          <BaseButton
+            @click="modalStore.openCreateGroup"
+            variant="ghost"
+            on="canvas"
+            :icon="Plus"
+          >
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
         </div>
@@ -153,14 +181,19 @@ async function leaveGroup(group: any) {
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div class="flex items-center gap-2.5">
-          <h2 class="text-h2 font-bold text-on-surface m-0">{{ t('groups.home.yourGroups') }}</h2>
-          <span class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5">{{ userGroups.length }}</span>
+          <h2 class="text-h2 font-bold text-on-surface m-0">
+            {{ t('groups.home.yourGroups') }}
+          </h2>
+          <span
+            class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5"
+            >{{ userGroups.length }}</span
+          >
         </div>
 
         <div>
           <BaseLabel for="defaultGroup">Default Group</BaseLabel>
-          <BaseSelect 
-            id="defaultGroup" 
+          <BaseSelect
+            id="defaultGroup"
             v-model="defaultGroupId"
             :options="groupOptions"
           />
@@ -169,34 +202,56 @@ async function leaveGroup(group: any) {
 
       <div class="flex flex-col gap-2">
         <button
-            v-for="group in userGroups"
-            :key="group.id"
-            class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
-            :class="{ active: group.id === activeGroupId }"
-            @click="navigateToGroup(group.id)"
-            :disabled="navigatingGroupId === group.id"
+          v-for="group in userGroups"
+          :key="group.id"
+          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
+          :class="{ active: group.id === activeGroupId }"
+          @click="navigateToGroup(group.id)"
+          :disabled="navigatingGroupId === group.id"
         >
-          <span class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface">
-            <component :is="group.id === activeGroupId ? FolderOpen : Folder" :size="24" />
+          <span
+            class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface"
+          >
+            <component
+              :is="group.id === activeGroupId ? FolderOpen : Folder"
+              :size="24"
+            />
           </span>
           <span class="flex flex-col flex-1 gap-0.5">
             <div class="flex items-center gap-1.5 overflow-hidden">
-              <span class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate">
+              <span
+                class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate"
+              >
                 {{ group.name }}
               </span>
               <NotificationDot v-if="group.hasUnreadContent" />
             </div>
-            <span class="text-footnote font-semibold uppercase tracking-wider" :class="roleColors[group.role]">
+            <span
+              class="text-footnote font-semibold uppercase tracking-wider"
+              :class="roleColors[group.role]"
+            >
               {{ roleLabel(group.role) }}
             </span>
           </span>
 
           <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" / -->
 
-          <BaseButton @click.stop="openMenuId = openMenuId === group.id ? null : group.id" variant="ghost" :on="group.id === activeGroupId ? 'action' : 'surface'" :icon="MoreHorizontal" />
+          <BaseButton
+            @click.stop="openMenuId = openMenuId === group.id ? null : group.id"
+            variant="ghost"
+            :on="group.id === activeGroupId ? 'action' : 'surface'"
+            :icon="MoreHorizontal"
+          />
 
-          <BaseMenu v-if="openMenuId === group.id" class="right-0 mt-6" @click.stop>
-            <BaseMenuButton v-if="group.id !== defaultGroupId" @click="setDefaultGroup(group.id)">
+          <BaseMenu
+            v-if="openMenuId === group.id"
+            class="right-0 mt-6"
+            @click.stop
+          >
+            <BaseMenuButton
+              v-if="group.id !== defaultGroupId"
+              @click="setDefaultGroup(group.id)"
+            >
               <Star :size="16" />
               Make default
             </BaseMenuButton>
@@ -214,11 +269,19 @@ async function leaveGroup(group: any) {
 
     <!-- Empty State -->
     <section v-if="userGroups.length === 0 && !loading">
-      <BaseEmptyState :icon="UsersRound" :primary-action="() => modalStore.openJoinGroup()" :secondary-action="() => modalStore.openCreateGroup()">
+      <BaseEmptyState
+        :icon="UsersRound"
+        :primary-action="() => modalStore.openJoinGroup()"
+        :secondary-action="() => modalStore.openCreateGroup()"
+      >
         <template #title>{{ t('groups.home.noGroups') }}</template>
         <template #message>{{ t('groups.home.joinGroupText') }}</template>
-        <template #primary-action-label>{{ t('groups.home.joinGroup') }}</template>
-        <template #secondary-action-label>{{ t('groups.home.createGroup') }}</template>
+        <template #primary-action-label>{{
+          t('groups.home.joinGroup')
+        }}</template>
+        <template #secondary-action-label>{{
+          t('groups.home.createGroup')
+        }}</template>
       </BaseEmptyState>
     </section>
 

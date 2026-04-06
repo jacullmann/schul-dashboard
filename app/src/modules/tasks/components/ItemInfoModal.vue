@@ -29,7 +29,8 @@ function formatDate(iso: string | undefined): string {
 const showUpdated = computed(() => {
   if (!props.item.createdAt || !props.item.updatedAt) return false;
   const diff = Math.abs(
-    new Date(props.item.updatedAt).getTime() - new Date(props.item.createdAt).getTime()
+    new Date(props.item.updatedAt).getTime() -
+      new Date(props.item.createdAt).getTime(),
   );
   return diff > 30_000;
 });
@@ -52,7 +53,9 @@ const showUpdated = computed(() => {
           <dt>{{ t('school.tasks.items.menu.infoModal.updatedAt') }}</dt>
           <dd>
             <span v-if="showUpdated">{{ formatDate(item.updatedAt) }}</span>
-            <span v-else class="text-on-surface-muted">{{ t('school.tasks.items.menu.infoModal.notEdited') }}</span>
+            <span v-else class="text-on-surface-muted">{{
+              t('school.tasks.items.menu.infoModal.notEdited')
+            }}</span>
           </dd>
         </div>
 
@@ -60,7 +63,10 @@ const showUpdated = computed(() => {
           <dt>{{ t('school.tasks.items.menu.infoModal.createdBy') }}</dt>
           <dd>
             {{ item.createdByName || 'Unbekannt' }}
-            <span v-if="isSuperAdmin && item.createdByEmail" class="text-on-surface-muted text-sub ml-0.5">
+            <span
+              v-if="isSuperAdmin && item.createdByEmail"
+              class="text-on-surface-muted text-sub ml-0.5"
+            >
               ({{ item.createdByEmail }})
             </span>
           </dd>

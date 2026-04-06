@@ -12,7 +12,12 @@ const currentIndex = ref<number>(0);
 const showMenu = ref<boolean>(false);
 
 const currentAnnouncement = computed(
-  () => announcements.value[currentIndex.value] ?? { id: '', content: '', color: 'info' },
+  () =>
+    announcements.value[currentIndex.value] ?? {
+      id: '',
+      content: '',
+      color: 'info',
+    },
 );
 
 function toggleMenu() {
@@ -31,7 +36,8 @@ function nextAnnouncement() {
 }
 
 function updateAnnouncementHeight() {
-  const height = announcements.value.length && activeGroupId.value ? '45px' : '0px';
+  const height =
+    announcements.value.length && activeGroupId.value ? '45px' : '0px';
   document.documentElement.style.setProperty('--announcement-height', height);
   window.dispatchEvent(new CustomEvent('announcement-height-changed'));
 }
@@ -61,9 +67,7 @@ onMounted(async () => {
 
 <template>
   <BaseModal v-if="showMenu" @cancel="showMenu = false">
-    <template #title>
-      Alle Ankündigungen
-    </template>
+    <template #title> Alle Ankündigungen </template>
 
     <template #content>
       <div class="announcement-list">
@@ -74,7 +78,10 @@ onMounted(async () => {
           :class="{ active: index === currentIndex }"
           @click="selectAnnouncement(index)"
         >
-          <div class="announcement-item-color" :class="colorFor(ann.color)"></div>
+          <div
+            class="announcement-item-color"
+            :class="colorFor(ann.color)"
+          ></div>
           <div class="announcement-item-content">
             <span>{{ ann.content }}</span>
           </div>
@@ -84,10 +91,7 @@ onMounted(async () => {
   </BaseModal>
 
   <div class="global-announcements" v-if="announcements.length">
-    <div
-      class="global-ann"
-      :class="colorFor(currentAnnouncement.color)"
-    >
+    <div class="global-ann" :class="colorFor(currentAnnouncement.color)">
       <div class="global-ann-content" @click="nextAnnouncement">
         <span class="announcement-text">{{ currentAnnouncement.content }}</span>
         <span class="announcement-counter" v-if="announcements.length > 1">
@@ -242,7 +246,8 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 
-.is-info, .is-default {
+.is-info,
+.is-default {
   background-color: var(--color-surface);
   color: var(--color-on-surface);
 }

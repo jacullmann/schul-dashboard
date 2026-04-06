@@ -59,15 +59,19 @@ async function submit() {
     }
 
     emit('success', responseData);
-
   } catch (e: unknown) {
-    const err = e as { response?: { data?: { error?: string } }; message?: string };
-    submitError.value = err.response?.data?.error ?? err.message ?? 'An unexpected error occurred.';
+    const err = e as {
+      response?: { data?: { error?: string } };
+      message?: string;
+    };
+    submitError.value =
+      err.response?.data?.error ??
+      err.message ??
+      'An unexpected error occurred.';
   } finally {
     submitting.value = false;
   }
 }
-
 </script>
 
 <template>
@@ -79,13 +83,33 @@ async function submit() {
     <template #content>
       <BaseFormContent :error="submitError">
         <BaseFormGroup id="private-task-title-input" :error="titleError">
-          <BaseLabel for="private-task-title-input" :required="true">Title</BaseLabel>
-          <BaseInput id="private-task-title-input" ref="titleInputRef" v-model="title" placeholder="Go shopping…" maxlength="100" />
+          <BaseLabel for="private-task-title-input" :required="true"
+            >Title</BaseLabel
+          >
+          <BaseInput
+            id="private-task-title-input"
+            ref="titleInputRef"
+            v-model="title"
+            placeholder="Go shopping…"
+            maxlength="100"
+          />
         </BaseFormGroup>
 
-        <BaseFormGroup id="private-task-description-input" :error="descriptionError">
-          <BaseLabel for="private-task-description-input" :required="false">Description</BaseLabel>
-          <BaseInput id="private-task-description-input" as="textarea" rows="4" v-model="description" placeholder="6 eggs…" maxlength="2000" />
+        <BaseFormGroup
+          id="private-task-description-input"
+          :error="descriptionError"
+        >
+          <BaseLabel for="private-task-description-input" :required="false"
+            >Description</BaseLabel
+          >
+          <BaseInput
+            id="private-task-description-input"
+            as="textarea"
+            rows="4"
+            v-model="description"
+            placeholder="6 eggs…"
+            maxlength="2000"
+          />
         </BaseFormGroup>
       </BaseFormContent>
     </template>

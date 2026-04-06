@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useUserStore } from "@/stores/userStore";
+import { useUserStore } from '@/stores/userStore';
 
 const emit = defineEmits<{
   (e: 'cancel'): void;
@@ -22,9 +22,11 @@ const submitting = ref(false);
 const errorMsg = ref('');
 
 const isValid = computed(() => {
-  return groupName.value.trim().length > 0 &&
-      password.value.length > 0 &&
-      password.value === passwordConfirm.value;
+  return (
+    groupName.value.trim().length > 0 &&
+    password.value.length > 0 &&
+    password.value === passwordConfirm.value
+  );
 });
 
 function clearError() {
@@ -67,52 +69,54 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')" :submit="submit" :loading="submitting" :error="errorMsg" :cancel="undefined">
-    <template #title>
-      Gruppe erstellen
-    </template>
+  <BaseModal
+    @cancel="$emit('cancel')"
+    :submit="submit"
+    :loading="submitting"
+    :error="errorMsg"
+    :cancel="undefined"
+  >
+    <template #title> Gruppe erstellen </template>
 
     <template #content>
       <BaseFormGroup id="group-name">
         <BaseLabel for="group-name">Gruppenname</BaseLabel>
         <BaseInput
-            id="group-name"
-            ref="groupNameInputRef"
-            v-model="groupName"
-            placeholder="Name der Gruppe"
-            type="text"
-            autocomplete="off"
-            @input="clearError"
+          id="group-name"
+          ref="groupNameInputRef"
+          v-model="groupName"
+          placeholder="Name der Gruppe"
+          type="text"
+          autocomplete="off"
+          @input="clearError"
         />
       </BaseFormGroup>
 
       <BaseFormGroup id="group-password">
         <BaseLabel for="group-password">Passwort</BaseLabel>
         <BaseInput
-            id="group-password"
-            type="password"
-            v-model="password"
-            placeholder="Passwort"
-            autocomplete="new-password"
-            @input="clearError"
+          id="group-password"
+          type="password"
+          v-model="password"
+          placeholder="Passwort"
+          autocomplete="new-password"
+          @input="clearError"
         />
       </BaseFormGroup>
 
       <BaseFormGroup id="group-confirm">
         <BaseLabel for="group-confirm">Passwort bestätigen</BaseLabel>
         <BaseInput
-            id="group-confirm"
-            type="password"
-            v-model="passwordConfirm"
-            placeholder="Passwort wiederholen"
-            autocomplete="new-password"
-            @input="clearError"
+          id="group-confirm"
+          type="password"
+          v-model="passwordConfirm"
+          placeholder="Passwort wiederholen"
+          autocomplete="new-password"
+          @input="clearError"
         />
       </BaseFormGroup>
     </template>
 
-    <template #action-text>
-      Erstellen
-    </template>
+    <template #action-text> Erstellen </template>
   </BaseModal>
 </template>

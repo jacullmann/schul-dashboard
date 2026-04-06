@@ -15,21 +15,31 @@ let timeoutId: number | null = null;
 
 const titleText = computed(() => {
   switch (state.value) {
-    case 'idle': return 'Reaktionszeit';
-    case 'waiting': return 'Warten auf Grün...';
-    case 'ready': return 'Klick!';
-    case 'too-early': return 'Zu früh!';
-    case 'result': return `${reactionTime.value} ms`;
+    case 'idle':
+      return 'Reaktionszeit';
+    case 'waiting':
+      return 'Warten auf Grün...';
+    case 'ready':
+      return 'Klick!';
+    case 'too-early':
+      return 'Zu früh!';
+    case 'result':
+      return `${reactionTime.value} ms`;
   }
 });
 
 const descText = computed(() => {
   switch (state.value) {
-    case 'idle': return 'Klicke irgendwo, um zu starten.';
-    case 'waiting': return 'Klicke, sobald der Hintergrund grün wird.';
-    case 'ready': return 'Schnell!';
-    case 'too-early': return 'Du hast zu früh geklickt. Klicke, um es erneut zu versuchen.';
-    case 'result': return 'Das ist deine Reaktionszeit.';
+    case 'idle':
+      return 'Klicke irgendwo, um zu starten.';
+    case 'waiting':
+      return 'Klicke, sobald der Hintergrund grün wird.';
+    case 'ready':
+      return 'Schnell!';
+    case 'too-early':
+      return 'Du hast zu früh geklickt. Klicke, um es erneut zu versuchen.';
+    case 'result':
+      return 'Das ist deine Reaktionszeit.';
   }
 });
 
@@ -67,7 +77,12 @@ function saveAndExit() {
 </script>
 
 <template>
-  <div class="reaction-test" :class="state" @mousedown.prevent="handleClick" @touchstart.prevent="handleClick">
+  <div
+    class="reaction-test"
+    :class="state"
+    @mousedown.prevent="handleClick"
+    @touchstart.prevent="handleClick"
+  >
     <div class="content">
       <div v-if="state === 'idle'" class="icon-container">
         <Zap :size="64" />
@@ -89,8 +104,12 @@ function saveAndExit() {
       <p class="state-desc">{{ descText }}</p>
 
       <div v-if="state === 'result'" class="actions">
-        <BaseButton class="test-btn primary" @click.stop="saveAndExit">Speichern & Beenden</BaseButton>
-        <BaseButton class="test-btn secondary" @click.stop="reset">Nochmal</BaseButton>
+        <BaseButton class="test-btn primary" @click.stop="saveAndExit"
+          >Speichern & Beenden</BaseButton
+        >
+        <BaseButton class="test-btn secondary" @click.stop="reset"
+          >Nochmal</BaseButton
+        >
       </div>
     </div>
   </div>
@@ -110,11 +129,21 @@ function saveAndExit() {
   color: white;
 }
 
-.reaction-test.idle { background-color: #2b87d1; }
-.reaction-test.waiting { background-color: #ce2636; }
-.reaction-test.ready { background-color: #4bdb6a; }
-.reaction-test.too-early { background-color: #ce2636; }
-.reaction-test.result { background-color: #2b87d1; }
+.reaction-test.idle {
+  background-color: #2b87d1;
+}
+.reaction-test.waiting {
+  background-color: #ce2636;
+}
+.reaction-test.ready {
+  background-color: #4bdb6a;
+}
+.reaction-test.too-early {
+  background-color: #ce2636;
+}
+.reaction-test.result {
+  background-color: #2b87d1;
+}
 
 .content {
   display: flex;
@@ -157,7 +186,9 @@ function saveAndExit() {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
   text-decoration: none;
 }
 

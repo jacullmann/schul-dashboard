@@ -2,7 +2,9 @@
 import { ref, onMounted } from 'vue';
 
 const emojis = ['🍎', '🍌', '🍇', '🍉', '🍓', '🍒', '🍍', '🥝'];
-const cards = ref<{ id: number, emoji: string, isFlipped: boolean, isMatched: boolean }[]>([]);
+const cards = ref<
+  { id: number; emoji: string; isFlipped: boolean; isMatched: boolean }[]
+>([]);
 const flippedCards = ref<number[]>([]);
 const moves = ref(0);
 const isGameOver = ref(false);
@@ -13,7 +15,7 @@ const initGame = () => {
     id: index,
     emoji,
     isFlipped: false,
-    isMatched: false
+    isMatched: false,
   }));
   moves.value = 0;
   isGameOver.value = false;
@@ -21,7 +23,12 @@ const initGame = () => {
 };
 
 const flipCard = (index: number) => {
-  if (flippedCards.value.length === 2 || cards.value[index].isFlipped || cards.value[index].isMatched) return;
+  if (
+    flippedCards.value.length === 2 ||
+    cards.value[index].isFlipped ||
+    cards.value[index].isMatched
+  )
+    return;
 
   cards.value[index].isFlipped = true;
   flippedCards.value.push(index);
@@ -38,7 +45,7 @@ const checkMatch = () => {
     cards.value[idx1].isMatched = true;
     cards.value[idx2].isMatched = true;
     flippedCards.value = [];
-    if (cards.value.every(card => card.isMatched)) {
+    if (cards.value.every((card) => card.isMatched)) {
       isGameOver.value = true;
     }
   } else {
@@ -58,11 +65,14 @@ onMounted(initGame);
     <h2>Memory</h2>
     <p>Züge: {{ moves }}</p>
     <div class="grid">
-      <div 
-        v-for="(card, index) in cards" 
-        :key="card.id" 
-        class="card" 
-        :class="{ flipped: card.isFlipped || card.isMatched, matched: card.isMatched }"
+      <div
+        v-for="(card, index) in cards"
+        :key="card.id"
+        class="card"
+        :class="{
+          flipped: card.isFlipped || card.isMatched,
+          matched: card.isMatched,
+        }"
         @click="flipCard(index)"
       >
         <div class="card-inner">
@@ -118,7 +128,8 @@ p {
 .card.flipped .card-inner {
   transform: rotateY(180deg);
 }
-.card-front, .card-back {
+.card-front,
+.card-back {
   width: 100%;
   height: 100%;
   position: absolute;
@@ -128,7 +139,7 @@ p {
   align-items: center;
   font-size: 2rem;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 .card-front {
   background-color: var(--accent, #42b883);

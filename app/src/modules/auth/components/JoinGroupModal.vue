@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
-import { useUserStore } from "@/stores/userStore";
+import { useUserStore } from '@/stores/userStore';
 import { useModalStore } from '@/stores/modalStore';
 
 const emit = defineEmits<{
@@ -67,40 +67,42 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')" :submit="submit" :loading="submitting" :error="errorMsg" :cancel="undefined">
-    <template #title>
-      Gruppe beitreten
-    </template>
+  <BaseModal
+    @cancel="$emit('cancel')"
+    :submit="submit"
+    :loading="submitting"
+    :error="errorMsg"
+    :cancel="undefined"
+  >
+    <template #title> Gruppe beitreten </template>
 
     <template #content>
       <BaseFormGroup id="join-group-name">
         <BaseLabel for="join-group-name">Gruppenname</BaseLabel>
         <BaseInput
-            id="join-group-name"
-            ref="groupNameInputRef"
-            v-model="groupName"
-            placeholder="Name der Gruppe"
-            type="text"
-            autocomplete="off"
-            @input="clearError"
+          id="join-group-name"
+          ref="groupNameInputRef"
+          v-model="groupName"
+          placeholder="Name der Gruppe"
+          type="text"
+          autocomplete="off"
+          @input="clearError"
         />
       </BaseFormGroup>
 
       <BaseFormGroup id="join-group-password">
         <BaseLabel for="join-group-password">Zugangscode</BaseLabel>
         <BaseInput
-            id="join-group-password"
-            type="password"
-            v-model="password"
-            placeholder="Zugangscode"
-            autocomplete="current-password"
-            @input="clearError"
+          id="join-group-password"
+          type="password"
+          v-model="password"
+          placeholder="Zugangscode"
+          autocomplete="current-password"
+          @input="clearError"
         />
       </BaseFormGroup>
     </template>
 
-    <template #action-text>
-      Beitreten
-    </template>
+    <template #action-text> Beitreten </template>
   </BaseModal>
 </template>

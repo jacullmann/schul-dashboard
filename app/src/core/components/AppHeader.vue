@@ -10,12 +10,8 @@ import { Menu, ChevronDown, Plus } from '@lucide/vue';
 import { useModalStore } from '@/stores/modalStore';
 
 const userStore = useUserStore();
-const {
-  groupName,
-  userGroups,
-  activeGroupId,
-  switchActiveGroup,
-} = useAppAuth();
+const { groupName, userGroups, activeGroupId, switchActiveGroup } =
+  useAppAuth();
 const router = useRouter();
 const route = useRoute();
 
@@ -44,7 +40,10 @@ async function onSwitchGroup(id: string) {
       await userStore.fetchUser();
 
       if (oldGroupId && route.path.startsWith(`/groups/${oldGroupId}`)) {
-        const newPath = route.path.replace(`/groups/${oldGroupId}`, `/groups/${id}`);
+        const newPath = route.path.replace(
+          `/groups/${oldGroupId}`,
+          `/groups/${id}`,
+        );
         await router.push(newPath);
         if (route.path === '/home') {
           await router.push(`/groups/${id}/items/all`);
@@ -130,13 +129,18 @@ onUnmounted(() => {
             @click="onSwitchGroup(g.id)"
           >
             <span>{{ g.name }}</span>
-            <NotificationDot v-if="g.hasUnreadContent && g.id !== activeGroupId" />
+            <NotificationDot
+              v-if="g.hasUnreadContent && g.id !== activeGroupId"
+            />
           </BaseMenuButton>
 
           <BaseMenuDivider />
 
           <BaseMenuButton
-            @click="groupMenuOpen = false; router.push('/home')"
+            @click="
+              groupMenuOpen = false;
+              router.push('/home');
+            "
           >
             <Plus :size="16" />
             New group
@@ -170,11 +174,27 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1000px) {
-  .logo-img { height: 26px; }
-  .logo-text { font-size: var(--text-h2); }
+  .logo-img {
+    height: 26px;
+  }
+  .logo-text {
+    font-size: var(--text-h2);
+  }
 }
 
-@media (max-width: 386px) { .logo-text { font-size: var(--text-h3); } }
-@media (max-width: 356px) { .logo-text { font-size: var(--text-title); } }
-@media (max-width: 332px) { .logo-text { font-size: var(--text-body); } }
+@media (max-width: 386px) {
+  .logo-text {
+    font-size: var(--text-h3);
+  }
+}
+@media (max-width: 356px) {
+  .logo-text {
+    font-size: var(--text-title);
+  }
+}
+@media (max-width: 332px) {
+  .logo-text {
+    font-size: var(--text-body);
+  }
+}
 </style>

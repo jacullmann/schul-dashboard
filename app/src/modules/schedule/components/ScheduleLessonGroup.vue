@@ -22,7 +22,8 @@ defineEmits<{
     class="group bg-surface rounded-md border border-surface-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input"
     :class="{
       'highlight-active bg-action !border-on-surface': isActive,
-      'current-day bg-surface-hover border-surface-hover-border': isCurrentDay && !isActive
+      'current-day bg-surface-hover border-surface-hover-border':
+        isCurrentDay && !isActive,
     }"
     :style="getGroupStyle(group)"
   >

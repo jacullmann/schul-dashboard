@@ -42,7 +42,7 @@ function hitTarget() {
 function moveTarget() {
   targetPosition.value = {
     x: 10 + Math.random() * 80,
-    y: 10 + Math.random() * 80
+    y: 10 + Math.random() * 80,
   };
 }
 
@@ -62,16 +62,20 @@ function saveAndExit() {
       <Target :size="64" class="icon" />
       <h2>Aim Trainer</h2>
       <p>Klicke auf 30 Zielscheiben so schnell du kannst.</p>
-      <BaseButton class="test-btn primary" @click="startGame">Starten</BaseButton>
+      <BaseButton class="test-btn primary" @click="startGame"
+        >Starten</BaseButton
+      >
     </div>
 
     <div v-else-if="state === 'playing'" class="game-screen" @mousedown.prevent>
-      <div class="target-counter">Ziele: {{ targetsHit }} / {{ TARGETS_TOTAL }}</div>
+      <div class="target-counter">
+        Ziele: {{ targetsHit }} / {{ TARGETS_TOTAL }}
+      </div>
       <div class="target-area">
         <div
-            class="target"
-            :style="{ left: `${targetPosition.x}%`, top: `${targetPosition.y}%` }"
-            @mousedown="hitTarget"
+          class="target"
+          :style="{ left: `${targetPosition.x}%`, top: `${targetPosition.y}%` }"
+          @mousedown="hitTarget"
         >
           <div class="target-inner"></div>
         </div>
@@ -83,8 +87,12 @@ function saveAndExit() {
       <h2>Durchschnittszeit</h2>
       <p class="score">{{ averageTime }} ms</p>
       <div class="actions">
-        <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
-        <BaseButton class="test-btn secondary" @click="reset">Nochmal</BaseButton>
+        <BaseButton class="test-btn primary" @click="saveAndExit"
+          >Speichern & Beenden</BaseButton
+        >
+        <BaseButton class="test-btn secondary" @click="reset"
+          >Nochmal</BaseButton
+        >
       </div>
     </div>
   </div>
@@ -103,7 +111,8 @@ function saveAndExit() {
   user-select: none;
 }
 
-.start-screen, .result-screen {
+.start-screen,
+.result-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -162,7 +171,7 @@ p {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .target-inner {
@@ -184,7 +193,9 @@ p {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
   text-decoration: none;
 }
 

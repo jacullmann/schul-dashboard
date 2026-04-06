@@ -10,7 +10,8 @@ export const useSeoMetaWithI18n = (options: {
   const route = useRoute();
 
   const title = typeof options.title === 'function' ? options.title() : options.title;
-  const description = typeof options.description === 'function' ? options.description() : options.description;
+  const description =
+    typeof options.description === 'function' ? options.description() : options.description;
   const ogImage = options.ogImage || 'https://schul-dashboard.com/og-image.png';
   const canonicalUrl = options.canonicalUrl || `https://schul-dashboard.com${route.path}`;
 
@@ -35,10 +36,12 @@ export const useSeoMetaWithI18n = (options: {
 
   if (options.structuredData) {
     useHead({
-      script: [{
-        type: 'application/ld+json',
-        innerHTML: JSON.stringify(options.structuredData),
-      }],
+      script: [
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify(options.structuredData),
+        },
+      ],
     });
   }
 };

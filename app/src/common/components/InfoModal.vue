@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Info } from '@lucide/vue'
+import { ref } from 'vue';
+import { Info } from '@lucide/vue';
 
 const props = defineProps<{
-  title?: string
-  tooltip: string
-}>()
+  title?: string;
+  tooltip: string;
+}>();
 
-const isModalOpen = ref(false)
+const isModalOpen = ref(false);
 
-const openModal = () => (isModalOpen.value = true)
-const closeModal = () => (isModalOpen.value = false)
+const openModal = () => (isModalOpen.value = true);
+const closeModal = () => (isModalOpen.value = false);
 </script>
-
 
 <template>
   <div class="info-pop-container" :title="props.tooltip">
@@ -71,13 +70,13 @@ const closeModal = () => (isModalOpen.value = false)
   opacity: 0;
 }
 
-.fade-scale-enter-active :deep([role="dialog"]),
-.fade-scale-leave-active :deep([role="dialog"]) {
+.fade-scale-enter-active :deep([role='dialog']),
+.fade-scale-leave-active :deep([role='dialog']) {
   transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.fade-scale-enter-from :deep([role="dialog"]),
-.fade-scale-leave-to :deep([role="dialog"]) {
+.fade-scale-enter-from :deep([role='dialog']),
+.fade-scale-leave-to :deep([role='dialog']) {
   transform: scale(0);
 }
 </style>

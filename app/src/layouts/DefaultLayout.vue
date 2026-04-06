@@ -12,7 +12,6 @@ const userStore = useUserStore();
 const { user } = storeToRefs(userStore);
 
 useAppShortcuts();
-
 </script>
 
 <template>
@@ -25,9 +24,9 @@ useAppShortcuts();
 
       <main class="full-c flex-1">
         <div
-            :class="{ 'container': !$route.meta.fullWidth }"
-            class="main-content"
-            key="content"
+          :class="{ container: !$route.meta.fullWidth }"
+          class="main-content"
+          key="content"
         >
           <router-view v-slot="{ Component }">
             <component :is="Component" :key="activeGroupId || 'default'" />
@@ -39,7 +38,6 @@ useAppShortcuts();
 </template>
 
 <style scoped>
-
 .main-content {
   width: 100%;
 }

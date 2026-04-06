@@ -45,12 +45,14 @@ const toggleMenu = async () => {
       await nextTick();
 
       if (floatingRef.value) {
-        const selectedElement = floatingRef.value.querySelector('.active') as HTMLElement | null;
+        const selectedElement = floatingRef.value.querySelector(
+          '.active',
+        ) as HTMLElement | null;
 
         if (selectedElement) {
           selectedElement.scrollIntoView({
             block: 'nearest',
-            behavior: 'auto'
+            behavior: 'auto',
           });
         }
       }
@@ -63,45 +65,56 @@ const selectOption = (value: string) => {
   isOpen.value = false;
 };
 
-onClickOutside(wrapperRef, () => {
-  isOpen.value = false;
-}, { ignore: [floatingRef] });
+onClickOutside(
+  wrapperRef,
+  () => {
+    isOpen.value = false;
+  },
+  { ignore: [floatingRef] },
+);
 </script>
 
 <template>
   <div class="relative" :class="extraClass" ref="wrapperRef">
     <BaseButton
-        @click="toggleMenu"
-        :disabled="disabled"
-        type="button"
-        class="w-full focus:border-focus focus:shadow-focus-ring outline-none transition-focus"
-        :class="{ 'border-focus shadow-focus-ring': isOpen }"
-        aria-haspopup="true"
-        :aria-expanded="isOpen"
-        variant="ghost"
+      @click="toggleMenu"
+      :disabled="disabled"
+      type="button"
+      class="w-full focus:border-focus focus:shadow-focus-ring outline-none transition-focus"
+      :class="{ 'border-focus shadow-focus-ring': isOpen }"
+      aria-haspopup="true"
+      :aria-expanded="isOpen"
+      variant="ghost"
     >
       <span class="truncate">
-        {{ options.find(o => o.value === modelValue)?.label || t('global.selection.placeholder') }}
+        {{
+          options.find((o) => o.value === modelValue)?.label ||
+          t('global.selection.placeholder')
+        }}
       </span>
 
-      <ChevronDown :size="16" class="ml-auto shrink-0 transition duration-200 ease-in-out" :class="{ 'rotate-180': isOpen }" />
+      <ChevronDown
+        :size="16"
+        class="ml-auto shrink-0 transition duration-200 ease-in-out"
+        :class="{ 'rotate-180': isOpen }"
+      />
     </BaseButton>
 
     <Teleport to="body">
-      <BaseMenu 
-        v-if="isOpen" 
+      <BaseMenu
+        v-if="isOpen"
         ref="floatingRef"
         :style="floatingStyles"
-        class="max-h-80 z-[9999]" 
+        class="max-h-80 z-[9999]"
       >
         <BaseMenuButton
-            v-for="option in options"
-            :key="option.value"
-            :class="{ 'font-semibold': modelValue === option.value }"
-            @click="selectOption(option.value)"
-            type="button"
-            :isSelect="true"
-            :active="modelValue === option.value"
+          v-for="option in options"
+          :key="option.value"
+          :class="{ 'font-semibold': modelValue === option.value }"
+          @click="selectOption(option.value)"
+          type="button"
+          :isSelect="true"
+          :active="modelValue === option.value"
         >
           {{ option.label }}
         </BaseMenuButton>

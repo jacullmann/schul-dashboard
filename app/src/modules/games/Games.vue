@@ -12,53 +12,54 @@ const filteredGames = computed(() => {
     return games;
   }
 
-  return games.filter(game => {
-    const textMatch = game.name.toLowerCase().includes(query) ||
-        game.description.toLowerCase().includes(query) ||
-        game.id.toLowerCase().includes(query);
+  return games.filter((game) => {
+    const textMatch =
+      game.name.toLowerCase().includes(query) ||
+      game.description.toLowerCase().includes(query) ||
+      game.id.toLowerCase().includes(query);
 
-    const tagMatch = game.tags.some(tag => tag.toLowerCase().includes(query));
+    const tagMatch = game.tags.some((tag) => tag.toLowerCase().includes(query));
 
     return textMatch || tagMatch;
   });
 });
-
 </script>
 
 <template>
   <div class="card rlc">
-      <div>
-        <h2 style="margin-top: 0" class="title-inf" >Spiele</h2>
-
-      </div>
+    <div>
+      <h2 style="margin-top: 0" class="title-inf">Spiele</h2>
+    </div>
     <div class="container-game-grid">
-
       <div class="search-bar">
-        <BaseInput
-            id="search-input"
-            v-model="searchTag"
-            placeholder="Suchen"
-        />
+        <BaseInput id="search-input" v-model="searchTag" placeholder="Suchen" />
       </div>
       <div class="game-grid">
         <router-link
-            v-for="game in filteredGames"
-            :key="game.id"
-            :to="`/games/${game.id}`"
-            class="game-card-link"
+          v-for="game in filteredGames"
+          :key="game.id"
+          :to="`/games/${game.id}`"
+          class="game-card-link"
         >
           <div class="game-card">
-            <img :src="game.previewImage" :alt="`Vorschau von ${game.name}`" class="game-preview-image">
+            <img
+              :src="game.previewImage"
+              :alt="`Vorschau von ${game.name}`"
+              class="game-preview-image"
+            />
             <div class="game-info">
               <h3 class="game-name">{{ game.name }}</h3>
               <p class="game-description">{{ game.description }}</p>
               <div class="game-tags">
-
-               <!-- <span v-for="tag in game.tags" :key="tag" class="badge game-tag">{{ tag }}</span> -->
-                <div v-for="tag in game.tags" :key="tag" class="game-tag"  type="success">
+                <!-- <span v-for="tag in game.tags" :key="tag" class="badge game-tag">{{ tag }}</span> -->
+                <div
+                  v-for="tag in game.tags"
+                  :key="tag"
+                  class="game-tag"
+                  type="success"
+                >
                   {{ tag }}
                 </div>
-
               </div>
             </div>
           </div>
@@ -66,7 +67,7 @@ const filteredGames = computed(() => {
       </div>
 
       <div v-if="filteredGames.length === 0" class="no-results">
-        <LucideFrown :size="20"/>
+        <LucideFrown :size="20" />
         Keine Spiele gefunden
       </div>
     </div>
@@ -89,9 +90,7 @@ const filteredGames = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-
 }
-
 
 .game-grid {
   display: grid;
@@ -155,7 +154,6 @@ const filteredGames = computed(() => {
   border-radius: 4px;
 }
 
-
 @media (max-width: 700px) {
   .game-card-link {
   }
@@ -177,6 +175,5 @@ const filteredGames = computed(() => {
     width: 100%;
     max-width: 100%;
   }
-
 }
 </style>

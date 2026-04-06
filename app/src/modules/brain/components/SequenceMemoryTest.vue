@@ -26,26 +26,26 @@ async function nextLevel() {
   state.value = 'showing';
   playerSequence.value = [];
   sequence.value.push(Math.floor(Math.random() * 9));
-  
-  await new Promise(r => setTimeout(r, 500));
-  
+
+  await new Promise((r) => setTimeout(r, 500));
+
   for (const index of sequence.value) {
     activeSquare.value = index;
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
     activeSquare.value = null;
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 200));
   }
-  
+
   state.value = 'waiting_input';
 }
 
 function handleSquareClick(index: number) {
   if (state.value !== 'waiting_input') return;
-  
+
   playerSequence.value.push(index);
-  
+
   const currentIndex = playerSequence.value.length - 1;
-  
+
   if (playerSequence.value[currentIndex] !== sequence.value[currentIndex]) {
     state.value = 'wrong';
     setTimeout(() => {
@@ -72,22 +72,29 @@ function saveAndExit() {
       <Layers :size="64" class="icon" />
       <h2>Sequenzgedächtnis</h2>
       <p>Merke dir das Muster der aufleuchtenden Felder.</p>
-      <BaseButton class="test-btn primary" @click="startGame">Starten</BaseButton>
+      <BaseButton class="test-btn primary" @click="startGame"
+        >Starten</BaseButton
+      >
     </div>
 
-    <div v-else-if="['showing', 'waiting_input', 'wrong'].includes(state)" class="game-screen">
+    <div
+      v-else-if="['showing', 'waiting_input', 'wrong'].includes(state)"
+      class="game-screen"
+    >
       <div class="level-counter">Level: {{ level }}</div>
-      
+
       <div class="grid">
-        <div 
-          v-for="i in grid" 
+        <div
+          v-for="i in grid"
           :key="i"
           class="square"
-          :class="{ active: activeSquare === i || (state === 'waiting_input' && false) }"
+          :class="{
+            active: activeSquare === i || (state === 'waiting_input' && false),
+          }"
           @click="handleSquareClick(i)"
         ></div>
       </div>
-      
+
       <div v-if="state === 'wrong'" class="wrong-overlay">
         <AlertTriangle :size="64" />
         <h2>Falsch!</h2>
@@ -100,8 +107,12 @@ function saveAndExit() {
       <p>Du hast es bis Level {{ level }} geschafft.</p>
       <p class="score">Level {{ level - 1 }}</p>
       <div class="actions">
-        <BaseButton class="test-btn primary" @click="saveAndExit">Speichern & Beenden</BaseButton>
-        <BaseButton class="test-btn secondary" @click="reset">Nochmal</BaseButton>
+        <BaseButton class="test-btn primary" @click="saveAndExit"
+          >Speichern & Beenden</BaseButton
+        >
+        <BaseButton class="test-btn secondary" @click="reset"
+          >Nochmal</BaseButton
+        >
       </div>
     </div>
   </div>
@@ -120,9 +131,12 @@ function saveAndExit() {
   user-select: none;
 }
 
-.sequence-test.wrong { background-color: #ce2636; }
+.sequence-test.wrong {
+  background-color: #ce2636;
+}
 
-.start-screen, .result-screen {
+.start-screen,
+.result-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -211,7 +225,9 @@ p {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
   text-decoration: none;
 }
 

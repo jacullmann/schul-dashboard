@@ -6,7 +6,7 @@ import {
   Minimize,
   Volume2,
   VolumeX,
-  FastForward
+  FastForward,
 } from '@lucide/vue';
 import { ref } from 'vue';
 import { useVideoPlayer } from '@/modules/infodashboard/composables/useVideoPlayer';
@@ -49,81 +49,161 @@ const {
 </script>
 
 <template>
-  <div ref="wrapperRef" class="video-wrapper" @mousemove="handleMouseMove" @mouseleave="handleMouseLeave">
+  <div
+    ref="wrapperRef"
+    class="video-wrapper"
+    @mousemove="handleMouseMove"
+    @mouseleave="handleMouseLeave"
+  >
     <transition name="fade">
-      <div v-if="isFastForwarding" class="fast-forward-overlay" role="status" aria-live="polite">
+      <div
+        v-if="isFastForwarding"
+        class="fast-forward-overlay"
+        role="status"
+        aria-live="polite"
+      >
         <span>2x</span>
-        <FastForward fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth aria-hidden="true" />
+        <FastForward
+          fill="currentColor"
+          :size="24"
+          :stroke-width="2"
+          absoluteStrokeWidth
+          aria-hidden="true"
+        />
       </div>
     </transition>
 
     <video
-        ref="videoRef"
-        class="main-video"
-        :src="src"
-        :poster="poster"
-        @click="togglePlay"
-        @timeupdate="updateTime"
-        @loadedmetadata="loadMetadata"
-        @mousedown="startFastForward"
-        @mouseup="stopFastForward"
-        @mouseleave="stopFastForward"
-        @touchstart="startFastForward"
-        @touchend="stopFastForward"
-        @play="handleVideoPlay"
-        @pause="handleVideoPause"
-        @ended="handleVideoPause"
+      ref="videoRef"
+      class="main-video"
+      :src="src"
+      :poster="poster"
+      @click="togglePlay"
+      @timeupdate="updateTime"
+      @loadedmetadata="loadMetadata"
+      @mousedown="startFastForward"
+      @mouseup="stopFastForward"
+      @mouseleave="stopFastForward"
+      @touchstart="startFastForward"
+      @touchend="stopFastForward"
+      @play="handleVideoPlay"
+      @pause="handleVideoPause"
+      @ended="handleVideoPause"
     ></video>
 
-    <div class="video-controls" :class="{ 'controls-hidden': (!showControls && isPlaying) || isFastForwarding }">
+    <div
+      class="video-controls"
+      :class="{
+        'controls-hidden': (!showControls && isPlaying) || isFastForwarding,
+      }"
+    >
       <div class="scrub-bar-container">
         <input
-            type="range"
-            min="0"
-            :max="duration"
-            :value="currentTime"
-            step="0.01"
-            @input="seek"
-            class="scrub-bar"
-            :style="getSliderStyle(currentTime, duration)"
-            aria-label="Video spulen"
-        >
+          type="range"
+          min="0"
+          :max="duration"
+          :value="currentTime"
+          step="0.01"
+          @input="seek"
+          class="scrub-bar"
+          :style="getSliderStyle(currentTime, duration)"
+          aria-label="Video spulen"
+        />
       </div>
 
       <div class="controls-row">
         <div class="controls-left">
-          <button type="button" class="player-btn" @click="togglePlay" :aria-label="isPlaying ? 'Pausieren' : 'Abspielen'">
-            <Pause v-if="isPlaying" fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth/>
-            <Play v-else fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth/>
+          <button
+            type="button"
+            class="player-btn"
+            @click="togglePlay"
+            :aria-label="isPlaying ? 'Pausieren' : 'Abspielen'"
+          >
+            <Pause
+              v-if="isPlaying"
+              fill="currentColor"
+              :size="24"
+              :stroke-width="2"
+              absoluteStrokeWidth
+            />
+            <Play
+              v-else
+              fill="currentColor"
+              :size="24"
+              :stroke-width="2"
+              absoluteStrokeWidth
+            />
           </button>
 
-          <div class="volume-control-group" @mouseenter="handleVolumeEnter" @mouseleave="handleVolumeLeave">
-            <button type="button" class="player-btn" @click="toggleMute" :aria-label="volume === 0 ? 'Ton einschalten' : 'Stummschalten'">
-              <VolumeX v-if="volume === 0" fill="currentColor" :size="24" :stroke-width="2" absoluteStrokeWidth aria-hidden="true" />
-              <Volume2 v-else :size="24" fill="currentColor" :stroke-width="2" absoluteStrokeWidth aria-hidden="true" />
+          <div
+            class="volume-control-group"
+            @mouseenter="handleVolumeEnter"
+            @mouseleave="handleVolumeLeave"
+          >
+            <button
+              type="button"
+              class="player-btn"
+              @click="toggleMute"
+              :aria-label="volume === 0 ? 'Ton einschalten' : 'Stummschalten'"
+            >
+              <VolumeX
+                v-if="volume === 0"
+                fill="currentColor"
+                :size="24"
+                :stroke-width="2"
+                absoluteStrokeWidth
+                aria-hidden="true"
+              />
+              <Volume2
+                v-else
+                :size="24"
+                fill="currentColor"
+                :stroke-width="2"
+                absoluteStrokeWidth
+                aria-hidden="true"
+              />
             </button>
-            <div class="volume-slider-wrapper" :class="{ 'visible': showVolumeSlider }">
+            <div
+              class="volume-slider-wrapper"
+              :class="{ visible: showVolumeSlider }"
+            >
               <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.1"
-                  :value="volume"
-                  @input="updateVolume"
-                  class="volume-slider"
-                  :style="getSliderStyle(volume, 1)"
-                  aria-label="Lautstärke"
-              >
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                :value="volume"
+                @input="updateVolume"
+                class="volume-slider"
+                :style="getSliderStyle(volume, 1)"
+                aria-label="Lautstärke"
+              />
             </div>
           </div>
 
-          <span class="time-display">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
+          <span class="time-display"
+            >{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span
+          >
         </div>
 
         <div class="controls-right">
-          <button type="button" class="player-btn" @click="toggleFullscreen" :aria-label="isFullscreen ? 'Vollbildmodus beenden' : 'Vollbildmodus aktivieren'">
-            <Minimize v-if="isFullscreen" :size="24" :stroke-width="2" absoluteStrokeWidth/>
-            <Maximize v-else :size="24" :stroke-width="2" absoluteStrokeWidth/>
+          <button
+            type="button"
+            class="player-btn"
+            @click="toggleFullscreen"
+            :aria-label="
+              isFullscreen
+                ? 'Vollbildmodus beenden'
+                : 'Vollbildmodus aktivieren'
+            "
+          >
+            <Minimize
+              v-if="isFullscreen"
+              :size="24"
+              :stroke-width="2"
+              absoluteStrokeWidth
+            />
+            <Maximize v-else :size="24" :stroke-width="2" absoluteStrokeWidth />
           </button>
         </div>
       </div>
@@ -152,7 +232,7 @@ const {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -171,7 +251,8 @@ const {
   align-items: center;
 }
 
-.controls-left, .controls-right {
+.controls-left,
+.controls-right {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -212,7 +293,9 @@ const {
 
 .volume-slider-wrapper {
   width: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  transition:
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
   opacity: 1;
   display: flex;
   align-items: center;
@@ -248,7 +331,7 @@ const {
 }
 
 /* --- SLIDER STYLING --- */
-input[type="range"] {
+input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -263,7 +346,7 @@ input[type="range"] {
   background-repeat: no-repeat;
 }
 
-input[type="range"]::-webkit-slider-runnable-track {
+input[type='range']::-webkit-slider-runnable-track {
   width: 100%;
   height: 4px;
   cursor: pointer;
@@ -272,7 +355,7 @@ input[type="range"]::-webkit-slider-runnable-track {
   border: none;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 12px;
   width: 12px;
@@ -282,14 +365,14 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: -4px;
   transform: scale(0);
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-input[type="range"]:hover::-webkit-slider-thumb {
+input[type='range']:hover::-webkit-slider-thumb {
   transform: scale(1);
 }
 
-input[type="range"]::-moz-range-track {
+input[type='range']::-moz-range-track {
   width: 100%;
   height: 4px;
   cursor: pointer;
@@ -298,7 +381,7 @@ input[type="range"]::-moz-range-track {
   border: none;
 }
 
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
   height: 12px;
   width: 12px;
   border: none;
@@ -309,14 +392,16 @@ input[type="range"]::-moz-range-thumb {
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-input[type="range"]:hover::-moz-range-thumb {
+input[type='range']:hover::-moz-range-thumb {
   transform: scale(1);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

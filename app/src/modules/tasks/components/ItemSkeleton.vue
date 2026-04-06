@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import BaseSkeleton from '@/common/components/BaseSkeleton.vue';
 
-withDefaults(defineProps<{
-  count?: number;
-  imageCount?: number;
-}>(), {
-  count: 5,
-  imageCount: 2
-});
+withDefaults(
+  defineProps<{
+    count?: number;
+    imageCount?: number;
+  }>(),
+  {
+    count: 5,
+    imageCount: 2,
+  },
+);
 </script>
 
 <template>
   <div class="flex flex-col gap-9 p-3">
-    <div
-        v-for="n in count"
-        :key="n"
-    >
+    <div v-for="n in count" :key="n">
       <BaseSkeleton width="60" height="20px" class="mb-3" />
 
       <BaseSkeleton width="40" height="16px" class="mb-3" />
@@ -26,13 +26,13 @@ withDefaults(defineProps<{
 
       <div class="mt-2 flex gap-2">
         <BaseSkeleton
-            v-for="img in imageCount"
-            :key="img"
-            width="[calc(max(50%-4px, 250px))]"
-            height="[calc(max(50%-4px, 250px))]"
-            radius="lg"
-            class="aspect-square"
-            />
+          v-for="img in imageCount"
+          :key="img"
+          width="[calc(max(50%-4px, 250px))]"
+          height="[calc(max(50%-4px, 250px))]"
+          radius="lg"
+          class="aspect-square"
+        />
       </div>
     </div>
   </div>

@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = withDefaults(defineProps<{
-  radius?: 'full' | 'md' | 'lg' | 'xl';
-  width?: string;
-  height?: string;
-}>(), {
-  radius: 'full',
-  width: 'full',
-  height: '6',
-});
+const props = withDefaults(
+  defineProps<{
+    radius?: 'full' | 'md' | 'lg' | 'xl';
+    width?: string;
+    height?: string;
+  }>(),
+  {
+    radius: 'full',
+    width: 'full',
+    height: '6',
+  },
+);
 
 const skeletonStyle = computed(() => {
   const parseSize = (val: string) => {
@@ -28,8 +31,5 @@ const skeletonStyle = computed(() => {
 </script>
 
 <template>
-  <div
-    class="bg-canvas-hover animate-pulse"
-    :style="skeletonStyle"
-  ></div>
+  <div class="bg-canvas-hover animate-pulse" :style="skeletonStyle"></div>
 </template>

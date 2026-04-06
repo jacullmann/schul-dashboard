@@ -8,7 +8,7 @@ export interface UserData {
   email: string;
   role: string;
   emailVerified: boolean;
-  courses: { subjectId: string; courseId: string; }[];
+  courses: { subjectId: string; courseId: string }[];
   doneSetup: boolean;
   personalized: boolean;
   mfaEnabled: boolean;

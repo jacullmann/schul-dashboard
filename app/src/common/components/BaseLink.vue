@@ -15,25 +15,22 @@ const href = computed(() => {
   return typeof props.to === 'string' ? props.to : undefined;
 });
 
-const sharedClasses = "underline text-on-surface-muted hover:text-on-surface transition-hover cursor-pointer";
+const sharedClasses =
+  'underline text-on-surface-muted hover:text-on-surface transition-hover cursor-pointer';
 </script>
 
 <template>
-  <a 
-    v-if="isExternal" 
-    :href="href" 
-    target="_blank" 
+  <a
+    v-if="isExternal"
+    :href="href"
+    target="_blank"
     rel="noopener noreferrer"
     :class="sharedClasses"
   >
     <slot></slot>
   </a>
-  
-  <router-link 
-    v-else 
-    :to="to" 
-    :class="sharedClasses"
-  >
+
+  <router-link v-else :to="to" :class="sharedClasses">
     <slot></slot>
   </router-link>
 </template>

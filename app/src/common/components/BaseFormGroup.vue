@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = withDefaults(defineProps<{
-  id: string;
-  error?: string;
-}>(), {
-  error: '',
-});
+const props = withDefaults(
+  defineProps<{
+    id: string;
+    error?: string;
+  }>(),
+  {
+    error: '',
+  },
+);
 
 const slots = defineSlots<{
   default(): unknown;

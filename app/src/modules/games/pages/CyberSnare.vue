@@ -6,9 +6,23 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const monitorRef = ref<HTMLElement | null>(null);
 
 const {
-  gameState, score, lives, energy, energyMax, driveSpace, energyBarColor, meta,
-  init, destroy, startGame, restartGame, openUpgrades, closeUpgrades,
-  getUpgradeCost, isUpgradeMaxed, buyUpgrade,
+  gameState,
+  score,
+  lives,
+  energy,
+  energyMax,
+  driveSpace,
+  energyBarColor,
+  meta,
+  init,
+  destroy,
+  startGame,
+  restartGame,
+  openUpgrades,
+  closeUpgrades,
+  getUpgradeCost,
+  isUpgradeMaxed,
+  buyUpgrade,
 } = useCyberSnare();
 
 onMounted(() => init(canvasRef, monitorRef));
@@ -24,18 +38,30 @@ onBeforeUnmount(() => destroy());
     <!-- HUD (visible only while playing) -->
     <div v-if="gameState === 'PLAYING'" id="ui-layer">
       <div id="top-hud">
-        <div class="hud-text">SCORE: <span>{{ score }}</span></div>
-        <div class="hud-text" style="color: var(--neon-yellow); text-shadow: 0 0 5px var(--neon-yellow);">FREE SPACE: <span>{{ driveSpace }}</span> KB</div>
-        <div class="hud-text">INTEGRITY: <span>{{ lives }}</span></div>
+        <div class="hud-text">
+          SCORE: <span>{{ score }}</span>
+        </div>
+        <div
+          class="hud-text"
+          style="
+            color: var(--neon-yellow);
+            text-shadow: 0 0 5px var(--neon-yellow);
+          "
+        >
+          FREE SPACE: <span>{{ driveSpace }}</span> KB
+        </div>
+        <div class="hud-text">
+          INTEGRITY: <span>{{ lives }}</span>
+        </div>
       </div>
       <div id="energy-container">
         <div
-            id="energy-bar"
-            :style="{
-              width: (energy / energyMax * 100) + '%',
-              backgroundColor: energyBarColor,
-              boxShadow: '0 0 10px ' + energyBarColor
-            }"
+          id="energy-bar"
+          :style="{
+            width: (energy / energyMax) * 100 + '%',
+            backgroundColor: energyBarColor,
+            boxShadow: '0 0 10px ' + energyBarColor,
+          }"
         ></div>
       </div>
     </div>
@@ -44,11 +70,13 @@ onBeforeUnmount(() => destroy());
     <div v-if="gameState === 'START'" class="screen">
       <h1>CYBER_SNARE</h1>
       <p>
-        System infiltrated. You are the anti-virus.<br><br>
-        <strong>HOLD LEFT CLICK / TOUCH</strong> to draw an energy tether.<br>
-        <strong>CROSS YOUR OWN TETHER</strong> to close a loop and execute a Snare.<br>
-        Trap viruses inside the Snare to destroy them.<br><br>
-        <em>WARNING:</em> If a virus touches your tether before you close it, your integrity drops.
+        System infiltrated. You are the anti-virus.<br /><br />
+        <strong>HOLD LEFT CLICK / TOUCH</strong> to draw an energy tether.<br />
+        <strong>CROSS YOUR OWN TETHER</strong> to close a loop and execute a
+        Snare.<br />
+        Trap viruses inside the Snare to destroy them.<br /><br />
+        <em>WARNING:</em> If a virus touches your tether before you close it,
+        your integrity drops.
       </p>
       <button class="cs-btn" @click="startGame">INITIALIZE</button>
     </div>
@@ -58,39 +86,62 @@ onBeforeUnmount(() => destroy());
       <h1>SYSTEM FAILURE</h1>
       <h2>FINAL SCORE: {{ score }}</h2>
       <p>Integrity compromised. Sector overrun.</p>
-      <div style="display: flex; gap: 20px;">
-        <button class="cs-btn" style="border-color: var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 0 15px var(--neon-yellow);" @click="openUpgrades">ACCESS UPGRADES</button>
+      <div style="display: flex; gap: 20px">
+        <button
+          class="cs-btn"
+          style="
+            border-color: var(--neon-yellow);
+            color: var(--neon-yellow);
+            box-shadow: 0 0 15px var(--neon-yellow);
+          "
+          @click="openUpgrades"
+        >
+          ACCESS UPGRADES
+        </button>
         <button class="cs-btn" @click="restartGame">REBOOT SYSTEM</button>
       </div>
     </div>
 
     <!-- Upgrade Screen -->
-    <div v-if="gameState === 'UPGRADE'" class="screen" style="padding: 40px;">
-      <h1 style="font-size: 3rem;">TERMINAL ROOT ACCESS</h1>
+    <div v-if="gameState === 'UPGRADE'" class="screen" style="padding: 40px">
+      <h1 style="font-size: 3rem">TERMINAL ROOT ACCESS</h1>
       <div class="stat-header">AVAILABLE FREE SPACE: {{ driveSpace }} KB</div>
       <div class="upgrade-container">
-        <div
-            v-for="(u, key) in meta.upgrades"
-            :key="key"
-            class="upgrade-card"
-        >
+        <div v-for="(u, key) in meta.upgrades" :key="key" class="upgrade-card">
           <div>
-            <h3>{{ u.name }} {{ key === 'heal' ? '' : `(LVL ${u.lvl}/${u.max})` }}</h3>
+            <h3>
+              {{ u.name }} {{ key === 'heal' ? '' : `(LVL ${u.lvl}/${u.max})` }}
+            </h3>
             <p>{{ u.desc }}</p>
           </div>
           <div class="card-footer">
-            <span class="cost">{{ isUpgradeMaxed(key as string) ? '---' : getUpgradeCost(key as string) + ' KB' }}</span>
+            <span class="cost">{{
+              isUpgradeMaxed(key as string)
+                ? '---'
+                : getUpgradeCost(key as string) + ' KB'
+            }}</span>
             <button
-                class="dl-btn"
-                :disabled="isUpgradeMaxed(key as string) || driveSpace < getUpgradeCost(key as string)"
-                @click="buyUpgrade(key as string)"
+              class="dl-btn"
+              :disabled="
+                isUpgradeMaxed(key as string) ||
+                driveSpace < getUpgradeCost(key as string)
+              "
+              @click="buyUpgrade(key as string)"
             >
-              {{ isUpgradeMaxed(key as string) ? (key === 'heal' ? 'FULL' : 'MAXED') : 'DOWNLOAD' }}
+              {{
+                isUpgradeMaxed(key as string)
+                  ? key === 'heal'
+                    ? 'FULL'
+                    : 'MAXED'
+                  : 'DOWNLOAD'
+              }}
             </button>
           </div>
         </div>
       </div>
-      <button class="cs-btn" style="margin-top: 20px;" @click="closeUpgrades">CLOSE TERMINAL</button>
+      <button class="cs-btn" style="margin-top: 20px" @click="closeUpgrades">
+        CLOSE TERMINAL
+      </button>
     </div>
   </div>
 </template>
@@ -139,19 +190,33 @@ onBeforeUnmount(() => destroy());
 /* CRT Effects */
 .crt-overlay {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-  linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  background-size: 100% 4px, 6px 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.06),
+      rgba(0, 255, 0, 0.02),
+      rgba(0, 0, 255, 0.06)
+    );
+  background-size:
+    100% 4px,
+    6px 100%;
   pointer-events: none;
   z-index: 20;
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
 }
 
 .crt-flicker {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(255,255,255,0.02);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.02);
   opacity: 0;
   pointer-events: none;
   z-index: 21;
@@ -159,15 +224,24 @@ onBeforeUnmount(() => destroy());
 }
 
 @keyframes flicker {
-  0% { opacity: 0.01; }
-  50% { opacity: 0.04; }
-  100% { opacity: 0.01; }
+  0% {
+    opacity: 0.01;
+  }
+  50% {
+    opacity: 0.04;
+  }
+  100% {
+    opacity: 0.01;
+  }
 }
 
 /* HUD */
 #ui-layer {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 30;
   pointer-events: none;
   display: flex;
@@ -179,7 +253,9 @@ onBeforeUnmount(() => destroy());
 
 .hud-text {
   color: #0ff;
-  text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+  text-shadow:
+    0 0 5px #0ff,
+    0 0 10px #0ff;
   font-size: 1.5rem;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -215,20 +291,26 @@ onBeforeUnmount(() => destroy());
 /* Screens */
 .screen {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 40;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   pointer-events: auto;
   text-align: center;
 }
 
 h1 {
   color: #f0f;
-  text-shadow: 0 0 10px #f0f, 0 0 20px #f0f, 3px 3px 0px rgba(0,255,255,0.5);
+  text-shadow:
+    0 0 10px #f0f,
+    0 0 20px #f0f,
+    3px 3px 0px rgba(0, 255, 255, 0.5);
   font-size: 4rem;
   margin-bottom: 10px;
   letter-spacing: 5px;
@@ -263,26 +345,43 @@ p {
   cursor: pointer;
   text-transform: uppercase;
   font-weight: bold;
-  box-shadow: 0 0 15px #0ff, inset 0 0 10px #fff;
+  box-shadow:
+    0 0 15px #0ff,
+    inset 0 0 10px #fff;
   transition: all 0.2s;
 }
 
 .cs-btn:hover {
   background-color: #fff;
-  box-shadow: 0 0 25px #0ff, inset 0 0 15px #0ff;
+  box-shadow:
+    0 0 25px #0ff,
+    inset 0 0 15px #0ff;
   transform: scale(1.05);
 }
 
 /* Screen Shake */
 :deep(.shake) {
-  animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+  animation: shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 @keyframes shake {
-  10%, 90% { transform: translate3d(-2px, 2px, 0); }
-  20%, 80% { transform: translate3d(4px, -2px, 0); }
-  30%, 50%, 70% { transform: translate3d(-6px, 4px, 0); }
-  40%, 60% { transform: translate3d(6px, -4px, 0); }
+  10%,
+  90% {
+    transform: translate3d(-2px, 2px, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(4px, -2px, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-6px, 4px, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(6px, -4px, 0);
+  }
 }
 
 /* Upgrade Screen */
@@ -298,9 +397,16 @@ p {
   padding-right: 10px;
 }
 
-.upgrade-container::-webkit-scrollbar { width: 8px; }
-.upgrade-container::-webkit-scrollbar-track { background: #111; border: 1px solid #0ff; }
-.upgrade-container::-webkit-scrollbar-thumb { background: #0ff; }
+.upgrade-container::-webkit-scrollbar {
+  width: 8px;
+}
+.upgrade-container::-webkit-scrollbar-track {
+  background: #111;
+  border: 1px solid #0ff;
+}
+.upgrade-container::-webkit-scrollbar-thumb {
+  background: #0ff;
+}
 
 .upgrade-card {
   border: 1px solid #0ff;

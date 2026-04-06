@@ -2,13 +2,16 @@
 import { ref } from 'vue';
 import { Check } from '@lucide/vue';
 
-withDefaults(defineProps<{
-  active?: boolean;
-  isSelect?: boolean;
-  variant?: 'default' | 'danger';
-}>(), {
-  variant: 'default',
-});
+withDefaults(
+  defineProps<{
+    active?: boolean;
+    isSelect?: boolean;
+    variant?: 'default' | 'danger';
+  }>(),
+  {
+    variant: 'default',
+  },
+);
 
 const buttonEl = ref<HTMLButtonElement | null>(null);
 
@@ -19,15 +22,17 @@ defineExpose({
 
 <template>
   <button
-      ref="buttonEl"
-      type="button"
-      class="flex justify-between items-center w-full text-left bg-transparent border-0 p-2 rounded-md cursor-pointer text-sub transition-hover user-select-none"
-      :class="[
-        variant === 'danger' ? 'text-danger hover:bg-danger-surface' : 'text-on-surface hover:bg-surface-hover',
-        { 'font-semibold': active }
-      ]"
-      :role="isSelect ? 'menuitemradio' : 'menuitem'"
-      :aria-checked="isSelect ? active : undefined"
+    ref="buttonEl"
+    type="button"
+    class="flex justify-between items-center w-full text-left bg-transparent border-0 p-2 rounded-md cursor-pointer text-sub transition-hover user-select-none"
+    :class="[
+      variant === 'danger'
+        ? 'text-danger hover:bg-danger-surface'
+        : 'text-on-surface hover:bg-surface-hover',
+      { 'font-semibold': active },
+    ]"
+    :role="isSelect ? 'menuitemradio' : 'menuitem'"
+    :aria-checked="isSelect ? active : undefined"
   >
     <span class="flex items-center gap-2 leading-none">
       <slot />

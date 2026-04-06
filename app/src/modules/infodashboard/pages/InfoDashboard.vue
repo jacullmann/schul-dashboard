@@ -31,27 +31,26 @@ const topicOptions = computed(() => [
   { value: 'politics', label: t('info.dashboard.categories.politics') },
   { value: 'science', label: t('info.dashboard.categories.science') },
   { value: 'culture', label: t('info.dashboard.categories.culture') },
-  { value: 'economy', label: t('info.dashboard.categories.economy') }
+  { value: 'economy', label: t('info.dashboard.categories.economy') },
 ]);
 
 const sortOptions = computed(() => [
   { value: 'relevance', label: t('info.dashboard.sortMethods.relevance') },
   { value: 'dateDesc', label: t('info.dashboard.sortMethods.newest') },
   { value: 'dateAsc', label: t('info.dashboard.sortMethods.oldest') },
-  { value: 'readTime', label: t('info.dashboard.sortMethods.shortest') }
+  { value: 'readTime', label: t('info.dashboard.sortMethods.shortest') },
 ]);
 
 const getSliderStyle = (current: number, max: number) => {
   const percent = max > 0 ? (current / max) * 100 : 0;
   return {
-    background: `linear-gradient(to right, #fff 0%, #fff ${percent}%, #414141 ${percent}%, #414141 100%)`
+    background: `linear-gradient(to right, #fff 0%, #fff ${percent}%, #414141 ${percent}%, #414141 100%)`,
   };
 };
 </script>
 
 <template>
   <div class="news-container">
-
     <header class="navbar">
       <div class="brand" @click="goHome">
         <span class="brand-text">{{ t('info.dashboard.title') }}</span>
@@ -59,23 +58,18 @@ const getSliderStyle = (current: number, max: number) => {
       </div>
 
       <div class="search-wrapper">
-        <Search
-            class="search-icon"
-            :size="18"
-            @click="triggerSearch"
-        />
+        <Search class="search-icon" :size="18" @click="triggerSearch" />
         <input
-            v-model="searchQuery"
-            @keydown.enter="triggerSearch"
-            type="text"
-            placeholder="Suche"
-            class="search-input"
+          v-model="searchQuery"
+          @keydown.enter="triggerSearch"
+          type="text"
+          placeholder="Suche"
+          class="search-input"
         />
       </div>
     </header>
 
     <main class="content-area">
-
       <div v-if="currentView === 'search'" class="toolbar">
         <div class="toolbar-section">
           <label>{{ t('info.dashboard.topic') }}</label>
@@ -88,53 +82,80 @@ const getSliderStyle = (current: number, max: number) => {
         </div>
 
         <div class="toolbar-section">
-          <label>{{ t('info.dashboard.maxTime') }} {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label>
-          <input
-              type="range"
-              v-model.number="minReadTime"
-              min="0"
-              max="30"
-              step="1"
-              :style="getSliderStyle(minReadTime, 30)"
+          <label
+            >{{ t('info.dashboard.maxTime') }}
+            {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label
           >
+          <input
+            type="range"
+            v-model.number="minReadTime"
+            min="0"
+            max="30"
+            step="1"
+            :style="getSliderStyle(minReadTime, 30)"
+          />
         </div>
       </div>
 
       <transition name="fade" mode="out-in">
         <div v-if="currentView === 'home'" class="view-home">
-          <section class="hero-section" v-if="processedArticles.length > 0" @click="openArticle(processedArticles[0]!)">
+          <section
+            class="hero-section"
+            v-if="processedArticles.length > 0"
+            @click="openArticle(processedArticles[0]!)"
+          >
             <div class="hero-image-wrapper">
-              <img :src="processedArticles[0]!.imageUrl" alt="Featured" class="hero-image">
-              <div v-if="processedArticles[0]!.type === 'video'" class="play-overlay">
-                <Play :size="64" fill="currentColor" class="play-icon-hero"/>
+              <img
+                :src="processedArticles[0]!.imageUrl"
+                alt="Featured"
+                class="hero-image"
+              />
+              <div
+                v-if="processedArticles[0]!.type === 'video'"
+                class="play-overlay"
+              >
+                <Play :size="64" fill="currentColor" class="play-icon-hero" />
               </div>
             </div>
             <div class="hero-content">
-              <span class="badge">{{ t('info.dashboard.categories.' + processedArticles[0]!.topic) }}</span>
-              <h1 class="hero-title">{{ t(processedArticles[0]!.titleKey) }}</h1>
-              <p class="hero-excerpt">{{ t(processedArticles[0]!.excerptKey) }}</p>
+              <span class="badge">{{
+                t('info.dashboard.categories.' + processedArticles[0]!.topic)
+              }}</span>
+              <h1 class="hero-title">
+                {{ t(processedArticles[0]!.titleKey) }}
+              </h1>
+              <p class="hero-excerpt">
+                {{ t(processedArticles[0]!.excerptKey) }}
+              </p>
               <div class="meta">
                 <span>{{ processedArticles[0]!.author }}</span>
                 <span class="separator"> • </span>
                 <span>{{ formatDate(processedArticles[0]!.date) }}</span>
-                <span v-if="processedArticles[0]!.type === 'video'" class="video-duration"> • {{ processedArticles[0]!.duration }}</span>
+                <span
+                  v-if="processedArticles[0]!.type === 'video'"
+                  class="video-duration"
+                >
+                  • {{ processedArticles[0]!.duration }}</span
+                >
               </div>
             </div>
           </section>
 
           <div class="article-grid">
             <ArticleCard
-                v-for="article in processedArticles.slice(1)"
-                :key="article.id"
-                :article="article"
-                @click="openArticle(article)"
+              v-for="article in processedArticles.slice(1)"
+              :key="article.id"
+              :article="article"
+              @click="openArticle(article)"
             />
           </div>
         </div>
 
         <div v-else-if="currentView === 'search'" class="view-search">
           <h2 class="section-heading">
-            {{ processedArticles.length }} Ergebnis{{ processedArticles.length !== 1 ? 'se' : '' }}
+            {{ processedArticles.length }} Ergebnis{{
+              processedArticles.length !== 1 ? 'se' : ''
+            }}
           </h2>
 
           <div v-if="processedArticles.length === 0" class="no-results">
@@ -143,27 +164,36 @@ const getSliderStyle = (current: number, max: number) => {
 
           <div class="article-grid">
             <ArticleCard
-                v-for="article in processedArticles"
-                :key="article.id"
-                :article="article"
-                @click="openArticle(article)"
+              v-for="article in processedArticles"
+              :key="article.id"
+              :article="article"
+              @click="openArticle(article)"
             />
           </div>
         </div>
 
-        <div v-else-if="currentView === 'article' && activeArticle" class="view-article">
-
-          <div v-if="activeArticle.type === 'video'" class="video-player-container">
+        <div
+          v-else-if="currentView === 'article' && activeArticle"
+          class="view-article"
+        >
+          <div
+            v-if="activeArticle.type === 'video'"
+            class="video-player-container"
+          >
             <VideoPlayer
-                :src="activeArticle.videoUrl!"
-                :poster="activeArticle.imageUrl"
+              :src="activeArticle.videoUrl!"
+              :poster="activeArticle.imageUrl"
             />
 
             <header class="article-header video-meta-header">
-              <span class="badge">{{ t('info.dashboard.categories.' + activeArticle.topic) }}</span>
+              <span class="badge">{{
+                t('info.dashboard.categories.' + activeArticle.topic)
+              }}</span>
               <h1 class="article-title">{{ t(activeArticle.titleKey) }}</h1>
               <div class="article-meta">
-                Video von <span class="highlight">{{ activeArticle.author }}</span> am {{ formatDate(activeArticle.date) }}
+                Video von
+                <span class="highlight">{{ activeArticle.author }}</span> am
+                {{ formatDate(activeArticle.date) }}
               </div>
               <p class="video-description">{{ t(activeArticle.excerptKey) }}</p>
             </header>
@@ -171,38 +201,55 @@ const getSliderStyle = (current: number, max: number) => {
 
           <article v-else class="full-article">
             <header class="article-header">
-              <span class="badge">{{ t('info.dashboard.categories.' + activeArticle.topic) }}</span>
+              <span class="badge">{{
+                t('info.dashboard.categories.' + activeArticle.topic)
+              }}</span>
               <h1 class="article-title">{{ t(activeArticle.titleKey) }}</h1>
               <div class="article-meta">
-                Von <span class="highlight">{{ activeArticle.author }}</span> am {{ formatDate(activeArticle.date) }}
-                <span class="separator">|</span> {{ activeArticle.readTime }} Min
+                Von <span class="highlight">{{ activeArticle.author }}</span> am
+                {{ formatDate(activeArticle.date) }}
+                <span class="separator">|</span>
+                {{ activeArticle.readTime }} Min
               </div>
             </header>
 
             <div class="article-hero">
-              <img :src="activeArticle.imageUrl" class="hero-image-full"  alt="" />
-              <div v-if="activeArticle.imageAttribution" class="image-attribution">
+              <img
+                :src="activeArticle.imageUrl"
+                class="hero-image-full"
+                alt=""
+              />
+              <div
+                v-if="activeArticle.imageAttribution"
+                class="image-attribution"
+              >
                 {{ activeArticle.imageAttribution }}
               </div>
             </div>
 
-            <div class="article-body" v-html="activeArticle.contentKey ? renderMarkdown(activeArticle.contentKey) : ''"></div>
+            <div
+              class="article-body"
+              v-html="
+                activeArticle.contentKey
+                  ? renderMarkdown(activeArticle.contentKey)
+                  : ''
+              "
+            ></div>
           </article>
 
           <div class="recommendations">
             <h3>{{ t('info.dashboard.recommendations') }}</h3>
             <div class="rec-grid">
               <ArticleCard
-                  v-for="rec in recommendedArticles"
-                  :key="rec.id"
-                  :article="rec"
-                  @click="openArticle(rec)"
+                v-for="rec in recommendedArticles"
+                :key="rec.id"
+                :article="rec"
+                @click="openArticle(rec)"
               />
             </div>
           </div>
         </div>
       </transition>
-
     </main>
   </div>
 </template>
@@ -218,7 +265,12 @@ const getSliderStyle = (current: number, max: number) => {
   flex-direction: column;
 }
 
-h1, h2, h3, .brand-text, .hero-title, .article-title {
+h1,
+h2,
+h3,
+.brand-text,
+.hero-title,
+.article-title {
   font-family: var(--font-display), sans-serif;
 }
 
@@ -337,7 +389,7 @@ select:hover {
 }
 
 /* --- CUSTOM SLIDER STYLING --- */
-input[type="range"] {
+input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -350,7 +402,7 @@ input[type="range"] {
   background: transparent no-repeat center;
 }
 
-input[type="range"]::-webkit-slider-runnable-track {
+input[type='range']::-webkit-slider-runnable-track {
   width: 100%;
   height: 4px;
   cursor: pointer;
@@ -359,7 +411,7 @@ input[type="range"]::-webkit-slider-runnable-track {
   border: none;
 }
 
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 12px;
   width: 12px;
@@ -369,14 +421,14 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 0;
   transform: scale(0);
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 2px rgba(0,0,0,0.5);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
-input[type="range"]:hover::-webkit-slider-thumb {
+input[type='range']:hover::-webkit-slider-thumb {
   transform: scale(1);
 }
 
-input[type="range"]::-moz-range-track {
+input[type='range']::-moz-range-track {
   width: 100%;
   height: 4px;
   cursor: pointer;
@@ -385,7 +437,7 @@ input[type="range"]::-moz-range-track {
   border: none;
 }
 
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
   height: 12px;
   width: 12px;
   border: none;
@@ -396,7 +448,7 @@ input[type="range"]::-moz-range-thumb {
   transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-input[type="range"]:hover::-moz-range-thumb {
+input[type='range']:hover::-moz-range-thumb {
   transform: scale(1);
 }
 
@@ -405,7 +457,7 @@ input[type="range"]:hover::-moz-range-thumb {
   color: var(--color-on-surface);
   font-size: var(--text-body);
   width: fit-content;
-  margin-bottom:6px;
+  margin-bottom: 6px;
 }
 
 .hero-section {
@@ -436,7 +488,7 @@ input[type="range"]:hover::-moz-range-thumb {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -444,7 +496,7 @@ input[type="range"]:hover::-moz-range-thumb {
 
 .play-icon-hero {
   color: var(--color-on-surface);
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
 }
 
 .hero-section:hover .hero-image {
@@ -476,7 +528,8 @@ input[type="range"]:hover::-moz-range-thumb {
   color: var(--color-on-surface-muted);
 }
 
-.article-grid, .rec-grid {
+.article-grid,
+.rec-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
@@ -495,14 +548,14 @@ input[type="range"]:hover::-moz-range-thumb {
 
 .article-title {
   font-size: 2.5rem;
-  line-height:1;
+  line-height: 1;
   margin: 8px 0 16px 0;
-  font-weight:800;
+  font-weight: 800;
 }
 
 .article-meta {
   color: var(--color-on-surface-muted);
-  margin-top:16px;
+  margin-top: 16px;
 }
 
 .highlight {
@@ -522,7 +575,8 @@ input[type="range"]:hover::-moz-range-thumb {
   display: block;
 }
 
-.image-attribution, .article-body :deep(attr) {
+.image-attribution,
+.article-body :deep(attr) {
   display: block;
   font-size: var(--text-sub);
   color: var(--color-on-surface-muted);
@@ -533,7 +587,7 @@ input[type="range"]:hover::-moz-range-thumb {
   font-size: var(--text-title);
   line-height: 1.6;
   color: var(--color-on-surface);
-  font-family: "Merriweather", serif;
+  font-family: 'Merriweather', serif;
 }
 
 .article-body :deep(p) {
@@ -555,14 +609,16 @@ input[type="range"]:hover::-moz-range-thumb {
   font-size: var(--text-h3);
 }
 
-.article-body :deep(img), .article-body :deep(video) {
+.article-body :deep(img),
+.article-body :deep(video) {
   width: 100%;
   height: auto;
   margin: 2rem 0 0 0;
   display: block;
 }
 
-.article-body :deep(img):not(+ attr), .article-body :deep(video):not(+ attr) {
+.article-body :deep(img):not(+ attr),
+.article-body :deep(video):not(+ attr) {
   margin-bottom: 2rem;
 }
 
@@ -578,7 +634,7 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 .video-meta-header {
-  margin-top:16px;
+  margin-top: 16px;
 }
 
 .video-description {
@@ -595,10 +651,12 @@ input[type="range"]:hover::-moz-range-thumb {
 }
 
 /* --- ANIMATIONS --- */
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -633,7 +691,7 @@ input[type="range"]:hover::-moz-range-thumb {
   }
 
   .article-header {
-    margin: 16px 16px 32px 16px
+    margin: 16px 16px 32px 16px;
   }
 
   .article-body {

@@ -10,9 +10,14 @@ const isGameOver = ref(false);
 const winningCombination = ref<number[]>([]);
 
 const WINNING_COMBOS = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6]
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
 ];
 
 const status = computed(() => {
@@ -28,7 +33,11 @@ const status = computed(() => {
 const checkWinner = (currentBoard: (string | null)[]): boolean => {
   for (const combo of WINNING_COMBOS) {
     const [a, b, c] = combo;
-    if (currentBoard[a] && currentBoard[a] === currentBoard[b] && currentBoard[a] === currentBoard[c]) {
+    if (
+      currentBoard[a] &&
+      currentBoard[a] === currentBoard[b] &&
+      currentBoard[a] === currentBoard[c]
+    ) {
       winningCombination.value = combo;
       return true;
     }
@@ -48,7 +57,7 @@ const makeMove = (index: number) => {
     return;
   }
 
-  if (board.value.every(cell => cell !== null)) {
+  if (board.value.every((cell) => cell !== null)) {
     isGameOver.value = true;
     return;
   }
@@ -66,21 +75,54 @@ const resetGame = () => {
 
 <template>
   <div class="tic-tac-toe-game">
-    <div class="game-status" :class="{ 'won': status.includes('gewonnen') }">
+    <div class="game-status" :class="{ won: status.includes('gewonnen') }">
       {{ status }}
     </div>
 
     <div class="board">
       <div
-          v-for="(cell, index) in board"
-          :key="index"
-          class="cell"
-          @click="makeMove(index)"
-          :class="{ 'x-player': cell === 'X', 'o-player': cell === 'O', 'winning-cell': winningCombination.includes(index) }"
+        v-for="(cell, index) in board"
+        :key="index"
+        class="cell"
+        @click="makeMove(index)"
+        :class="{
+          'x-player': cell === 'X',
+          'o-player': cell === 'O',
+          'winning-cell': winningCombination.includes(index),
+        }"
       >
-        <svg v-if="cell === 'O'" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <svg
+          v-if="cell === 'O'"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-x-icon lucide-x"
+        >
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
 
-        <svg v-else-if="cell === 'X'"  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-icon lucide-circle"><circle cx="12" cy="12" r="10"/></svg>
+        <svg
+          v-else-if="cell === 'X'"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-circle-icon lucide-circle"
+        >
+          <circle cx="12" cy="12" r="10" />
+        </svg>
       </div>
     </div>
 
@@ -133,11 +175,9 @@ const resetGame = () => {
 .cell:hover:not(.x-player):not(.o-player) {
 }
 
-
 .winning-cell {
   background-color: var(--color-on-surface-muted) !important;
 }
-
 
 .btn {
   font-weight: bold;

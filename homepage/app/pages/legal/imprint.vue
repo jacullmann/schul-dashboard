@@ -10,7 +10,6 @@ useSeoMeta({
 
 <template>
   <LegalPage :title="t('legal.imprint.title')" :description="t('legal.imprint.description')">
-
     <LegalSection :title="t('legal.imprint.responsible')">
       <address class="not-italic text-on-surface-muted leading-[1.8] text-body">
         schul-dashboard<br />
@@ -33,8 +32,9 @@ useSeoMeta({
     </LegalSection>
 
     <LegalSection :title="t('legal.imprint.disclaimer.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.imprint.disclaimer.text') }}</p>
+      <p class="text-on-surface-muted leading-[1.7] m-0">
+        {{ t('legal.imprint.disclaimer.text') }}
+      </p>
     </LegalSection>
-
   </LegalPage>
 </template>

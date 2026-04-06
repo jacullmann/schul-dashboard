@@ -44,9 +44,14 @@ async function submit() {
     });
     emit('success');
   } catch (e: unknown) {
-    const err = e as { response?: { data?: { error?: string } }; message?: string };
+    const err = e as {
+      response?: { data?: { error?: string } };
+      message?: string;
+    };
     submitError.value =
-      err.response?.data?.error ?? err.message ?? 'Ein unerwarteter Fehler ist aufgetreten.';
+      err.response?.data?.error ??
+      err.message ??
+      'Ein unerwarteter Fehler ist aufgetreten.';
   } finally {
     submitting.value = false;
   }
@@ -55,14 +60,14 @@ async function submit() {
 
 <template>
   <BaseModal @cancel="$emit('cancel')" :submit="submit" :loading="submitting">
-    <template #title>
-      Neue Ankündigung
-    </template>
+    <template #title> Neue Ankündigung </template>
 
     <template #content>
       <BaseFormContent :error="submitError">
         <BaseFormGroup id="announcement-content-input" :error="contentError">
-          <BaseLabel for="announcement-content-input" :required="true">Ankündigung</BaseLabel>
+          <BaseLabel for="announcement-content-input" :required="true"
+            >Ankündigung</BaseLabel
+          >
           <BaseInput
             id="announcement-content-input"
             as="textarea"
@@ -71,12 +76,16 @@ async function submit() {
             placeholder="Verfasse deine Nachricht..."
             rows="3"
             maxlength="1000"
-            :aria-describedby="contentError ? 'announcement-content-input-error' : undefined"
+            :aria-describedby="
+              contentError ? 'announcement-content-input-error' : undefined
+            "
           />
         </BaseFormGroup>
 
         <BaseFormGroup id="announcement-importance-input">
-          <BaseLabel for="announcement-importance-input" :required="true">Wichtigkeit</BaseLabel>
+          <BaseLabel for="announcement-importance-input" :required="true"
+            >Wichtigkeit</BaseLabel
+          >
           <BaseSelect
             id="announcement-importance-input"
             v-model="annColor"

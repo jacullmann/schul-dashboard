@@ -18,7 +18,11 @@ defineEmits<{
   <button
     :id="id"
     class="command-palette-item w-full flex items-center gap-3 px-4 py-2.5 cursor-pointer border-none text-left transition-colors"
-    :class="active ? 'bg-surface-hover' : 'bg-transparent hover:bg-surface-hover-subtle'"
+    :class="
+      active
+        ? 'bg-surface-hover'
+        : 'bg-transparent hover:bg-surface-hover-subtle'
+    "
     @click="$emit('click')"
     @mouseenter="$emit('mouseenter')"
   >
@@ -32,8 +36,14 @@ defineEmits<{
     </span>
 
     <span class="flex-1 min-w-0">
-      <span class="block text-sub font-medium text-on-surface leading-tight">{{ label }}</span>
-      <span v-if="description" class="block text-footnote text-on-surface-muted truncate mt-0.5">{{ description }}</span>
+      <span class="block text-sub font-medium text-on-surface leading-tight">{{
+        label
+      }}</span>
+      <span
+        v-if="description"
+        class="block text-footnote text-on-surface-muted truncate mt-0.5"
+        >{{ description }}</span
+      >
     </span>
 
     <!-- Slot for unread dot, shortcut keys, or arrows -->

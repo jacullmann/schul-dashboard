@@ -17,9 +17,13 @@ const generateFood = () => {
   while (true) {
     newFood = {
       x: Math.floor(Math.random() * gridSize),
-      y: Math.floor(Math.random() * gridSize)
+      y: Math.floor(Math.random() * gridSize),
     };
-    if (!snake.value.some(segment => segment.x === newFood.x && segment.y === newFood.y)) {
+    if (
+      !snake.value.some(
+        (segment) => segment.x === newFood.x && segment.y === newFood.y,
+      )
+    ) {
       break;
     }
   }
@@ -50,7 +54,9 @@ const update = () => {
   }
 
   // Self collision
-  if (snake.value.some(segment => segment.x === head.x && segment.y === head.y)) {
+  if (
+    snake.value.some((segment) => segment.x === head.x && segment.y === head.y)
+  ) {
     gameOver();
     return;
   }
@@ -107,18 +113,34 @@ onUnmounted(() => {
   <div class="snake-container">
     <h2>Snake</h2>
     <p>Score: {{ score }}</p>
-    
-    <div class="board" :style="{ width: gridSize * cellSize + 'px', height: gridSize * cellSize + 'px' }">
-      <div 
-        v-for="(segment, index) in snake" 
+
+    <div
+      class="board"
+      :style="{
+        width: gridSize * cellSize + 'px',
+        height: gridSize * cellSize + 'px',
+      }"
+    >
+      <div
+        v-for="(segment, index) in snake"
         :key="'snake-' + index"
         class="snake-segment"
         :class="{ head: index === 0 }"
-        :style="{ left: segment.x * cellSize + 'px', top: segment.y * cellSize + 'px', width: cellSize + 'px', height: cellSize + 'px' }"
+        :style="{
+          left: segment.x * cellSize + 'px',
+          top: segment.y * cellSize + 'px',
+          width: cellSize + 'px',
+          height: cellSize + 'px',
+        }"
       ></div>
-      <div 
+      <div
         class="food"
-        :style="{ left: food.x * cellSize + 'px', top: food.y * cellSize + 'px', width: cellSize + 'px', height: cellSize + 'px' }"
+        :style="{
+          left: food.x * cellSize + 'px',
+          top: food.y * cellSize + 'px',
+          width: cellSize + 'px',
+          height: cellSize + 'px',
+        }"
       ></div>
     </div>
 
@@ -160,7 +182,7 @@ p {
 .snake-segment {
   position: absolute;
   background-color: var(--accent, #42b883);
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 2px;
 }
 .snake-segment.head {

@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import { Skull, RefreshCw, Crosshair, Settings, ShieldCheck, Flame, Plus, Minus } from '@lucide/vue';
+import {
+  Skull,
+  RefreshCw,
+  Crosshair,
+  Settings,
+  ShieldCheck,
+  Flame,
+  Plus,
+  Minus,
+} from '@lucide/vue';
 
 // --- State ---
 const chamberSize = ref(6);
@@ -22,7 +31,7 @@ function initGame() {
   status.value = 'playing';
   shotsFired.value = 0;
   shotChambers.value.clear();
-  
+
   const newCylinder = Array(chamberSize.value).fill(false);
   let bulletsPlaced = 0;
   while (bulletsPlaced < bulletCount.value) {
@@ -33,7 +42,7 @@ function initGame() {
     }
   }
   cylinder.value = newCylinder;
-  
+
   // Start on a random chamber
   currentChamberIndex.value = Math.floor(Math.random() * chamberSize.value);
 }
@@ -42,13 +51,15 @@ function initGame() {
 watch(chamberSize, (v) => {
   if (v < 2) chamberSize.value = 2;
   if (v > 12) chamberSize.value = 12; // Max 12 visually makes sense
-  if (bulletCount.value >= chamberSize.value) bulletCount.value = Math.max(1, chamberSize.value - 1);
+  if (bulletCount.value >= chamberSize.value)
+    bulletCount.value = Math.max(1, chamberSize.value - 1);
   initGame();
 });
 
 watch(bulletCount, (v) => {
   if (v < 1) bulletCount.value = 1;
-  if (v >= chamberSize.value) bulletCount.value = Math.max(1, chamberSize.value - 1);
+  if (v >= chamberSize.value)
+    bulletCount.value = Math.max(1, chamberSize.value - 1);
   initGame();
 });
 
@@ -68,8 +79,8 @@ const probabilityPercentage = computed(() => {
 const oddsDisplay = computed(() => {
   if (status.value === 'dead') return 'Gestorben';
   if (status.value === 'won') return 'Überlebt';
-  return spinAfterShot.value 
-    ? `${bulletCount.value} / ${chamberSize.value}` 
+  return spinAfterShot.value
+    ? `${bulletCount.value} / ${chamberSize.value}`
     : `${bulletCount.value} / ${chamberSize.value - shotsFired.value}`;
 });
 
@@ -83,9 +94,9 @@ const gameStatusText = computed(() => {
 const cylinderStyle = computed(() => {
   const anglePerChamber = 360 / chamberSize.value;
   // Combine total full spins with the target angle of the current index
-  const baseAngle = - (currentChamberIndex.value * anglePerChamber);
-  const totalAngle = baseAngle - (visualSpinSpins.value * 360);
-  
+  const baseAngle = -(currentChamberIndex.value * anglePerChamber);
+  const totalAngle = baseAngle - visualSpinSpins.value * 360;
+
   return {
     transform: `rotate(${totalAngle}deg)`,
   };
@@ -93,7 +104,7 @@ const cylinderStyle = computed(() => {
 
 const getChamberStyle = (index: number) => {
   const angle = (360 / chamberSize.value) * index;
-  const radius = Math.max(40, 100 - (chamberSize.value * 3)); // Adjust distance from center
+  const radius = Math.max(40, 100 - chamberSize.value * 3); // Adjust distance from center
   return {
     transform: `rotate(${angle}deg) translateY(-${radius}px)`,
     width: `${Math.max(15, 40 - chamberSize.value)}px`,
@@ -110,19 +121,19 @@ function adjustSetting(type: 'chamber' | 'bullet', delta: number) {
 function pullTrigger() {
   if (status.value !== 'playing' || isProcessing.value) return;
   isProcessing.value = true;
-  
+
   let delay = 400;
 
   if (spinAfterShot.value) {
     // Spin cylinder animation
-    visualSpinSpins.value += 2 + Math.floor(Math.random() * 3); 
+    visualSpinSpins.value += 2 + Math.floor(Math.random() * 3);
     currentChamberIndex.value = Math.floor(Math.random() * chamberSize.value);
     delay = 1200; // Longer delay for spin
   }
 
   setTimeout(() => {
     isProcessing.value = false;
-    
+
     const isBullet = cylinder.value[currentChamberIndex.value];
     shotChambers.value.add(currentChamberIndex.value);
 
@@ -135,7 +146,8 @@ function pullTrigger() {
           status.value = 'won';
         } else {
           // Progress to the next chamber visually
-          currentChamberIndex.value = (currentChamberIndex.value + 1) % chamberSize.value;
+          currentChamberIndex.value =
+            (currentChamberIndex.value + 1) % chamberSize.value;
         }
       }
     }
@@ -149,12 +161,24 @@ onMounted(() => {
 
 <template>
   <div class="rr-container">
-    <div class="rr-game-card" :class="status === 'dead' ? 'rr-dead-state' : status === 'won' ? 'rr-won-state' : ''">
-      
+    <div
+      class="rr-game-card"
+      :class="
+        status === 'dead'
+          ? 'rr-dead-state'
+          : status === 'won'
+            ? 'rr-won-state'
+            : ''
+      "
+    >
       <!-- Top header -->
       <header class="rr-header">
         <h1 class="rr-title">RUSSIAN ROULETTE</h1>
-        <button @click="showSettings = !showSettings" class="rr-icon-btn" :class="{'active': showSettings}">
+        <button
+          @click="showSettings = !showSettings"
+          class="rr-icon-btn"
+          :class="{ active: showSettings }"
+        >
           <Settings class="rr-icon" />
         </button>
       </header>
@@ -164,24 +188,34 @@ onMounted(() => {
         <div class="rr-setting-row">
           <div class="rr-setting-info">
             <span class="rr-setting-label">Trommelgröße</span>
-            <span class="rr-setting-desc">Kammern in der Trommel (Max: 12)</span>
+            <span class="rr-setting-desc"
+              >Kammern in der Trommel (Max: 12)</span
+            >
           </div>
           <div class="rr-control">
-            <button @click="adjustSetting('chamber', -1)" class="rr-ctrl-btn"><Minus :size="16"/></button>
+            <button @click="adjustSetting('chamber', -1)" class="rr-ctrl-btn">
+              <Minus :size="16" />
+            </button>
             <span class="rr-ctrl-val">{{ chamberSize }}</span>
-            <button @click="adjustSetting('chamber', 1)" class="rr-ctrl-btn"><Plus :size="16"/></button>
+            <button @click="adjustSetting('chamber', 1)" class="rr-ctrl-btn">
+              <Plus :size="16" />
+            </button>
           </div>
         </div>
-        
+
         <div class="rr-setting-row">
           <div class="rr-setting-info">
             <span class="rr-setting-label">Patronen</span>
             <span class="rr-setting-desc">Anzahl der geladenen Schüsse</span>
           </div>
           <div class="rr-control">
-            <button @click="adjustSetting('bullet', -1)" class="rr-ctrl-btn"><Minus :size="16"/></button>
+            <button @click="adjustSetting('bullet', -1)" class="rr-ctrl-btn">
+              <Minus :size="16" />
+            </button>
             <span class="rr-ctrl-val">{{ bulletCount }}</span>
-            <button @click="adjustSetting('bullet', 1)" class="rr-ctrl-btn"><Plus :size="16"/></button>
+            <button @click="adjustSetting('bullet', 1)" class="rr-ctrl-btn">
+              <Plus :size="16" />
+            </button>
           </div>
         </div>
 
@@ -192,7 +226,7 @@ onMounted(() => {
           </div>
           <div class="rr-toggle-wrapper">
             <label class="rr-toggle">
-              <input type="checkbox" v-model="spinAfterShot">
+              <input type="checkbox" v-model="spinAfterShot" />
               <span class="rr-slider"></span>
             </label>
           </div>
@@ -201,15 +235,27 @@ onMounted(() => {
 
       <!-- Live Odds & Feedback -->
       <div class="rr-info-board">
-        <div class="rr-main-icon" :class="{'rr-pulse': isProcessing || status === 'dead'}">
+        <div
+          class="rr-main-icon"
+          :class="{ 'rr-pulse': isProcessing || status === 'dead' }"
+        >
           <Skull v-if="status === 'dead'" :size="48" color="#ff4444" />
-          <ShieldCheck v-else-if="status === 'won'" :size="48" color="#44ff88" />
+          <ShieldCheck
+            v-else-if="status === 'won'"
+            :size="48"
+            color="#44ff88"
+          />
           <Flame v-else :size="48" color="#f0b000" />
         </div>
-        
+
         <div class="rr-stats">
           <div class="rr-stat-large">{{ oddsDisplay }}</div>
-          <div class="rr-stat-small" :style="{ color: probabilityPercentage > 50 ? '#ff4444' : '#aaaaaa' }">
+          <div
+            class="rr-stat-small"
+            :style="{
+              color: probabilityPercentage > 50 ? '#ff4444' : '#aaaaaa',
+            }"
+          >
             Mortalität: {{ Math.round(probabilityPercentage) }}%
           </div>
           <div class="rr-message">{{ gameStatusText }}</div>
@@ -219,28 +265,33 @@ onMounted(() => {
       <!-- Cylinder Visualizer -->
       <div class="rr-visual-arena">
         <div class="rr-hammer-indicator"></div>
-        <div 
-          class="rr-cylinder" 
-          :style="cylinderStyle" 
-          :class="{'rr-spinning': isProcessing && spinAfterShot}"
+        <div
+          class="rr-cylinder"
+          :style="cylinderStyle"
+          :class="{ 'rr-spinning': isProcessing && spinAfterShot }"
         >
           <div class="rr-center-pin"></div>
-          
-          <div 
-            v-for="(_, index) in chamberSize" 
+
+          <div
+            v-for="(_, index) in chamberSize"
             :key="index"
             class="rr-chamber"
             :style="getChamberStyle(index)"
             :class="{
               'rr-chamber-shot': shotChambers.has(index) && status !== 'dead',
-              'rr-chamber-fatal': status === 'dead' && index === currentChamberIndex,
-              'rr-chamber-revealed': (status === 'dead' || status === 'won') && cylinder[index],
-              'rr-chamber-safe': status === 'won' && !cylinder[index] && !shotChambers.has(index)
+              'rr-chamber-fatal':
+                status === 'dead' && index === currentChamberIndex,
+              'rr-chamber-revealed':
+                (status === 'dead' || status === 'won') && cylinder[index],
+              'rr-chamber-safe':
+                status === 'won' &&
+                !cylinder[index] &&
+                !shotChambers.has(index),
             }"
           >
             <!-- Show bullet icon only if game ended, to see where bullets were -->
-            <div 
-              v-if="(status === 'dead' || status === 'won') && cylinder[index]" 
+            <div
+              v-if="(status === 'dead' || status === 'won') && cylinder[index]"
               class="rr-bullet"
             ></div>
           </div>
@@ -249,27 +300,29 @@ onMounted(() => {
 
       <!-- Actions -->
       <div class="rr-actions">
-        <button 
+        <button
           v-if="status === 'playing'"
-          class="rr-btn-primary" 
-          @click="pullTrigger" 
+          class="rr-btn-primary"
+          @click="pullTrigger"
           :disabled="isProcessing"
-          :class="{'rr-disabled': isProcessing}"
+          :class="{ 'rr-disabled': isProcessing }"
         >
-          <Crosshair class="rr-btn-icon" :class="{'rr-spin': isProcessing && spinAfterShot}" />
+          <Crosshair
+            class="rr-btn-icon"
+            :class="{ 'rr-spin': isProcessing && spinAfterShot }"
+          />
           <span>{{ isProcessing ? 'Trommel dreht...' : 'Abdrücken' }}</span>
         </button>
 
-        <button 
+        <button
           v-if="status !== 'playing' || shotsFired > 0"
-          class="rr-btn-secondary" 
+          class="rr-btn-secondary"
           @click="initGame"
         >
           <RefreshCw class="rr-btn-icon" />
           <span>Neu Laden</span>
         </button>
       </div>
-
     </div>
   </div>
 </template>
@@ -303,13 +356,17 @@ onMounted(() => {
   padding: 2rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px inset rgba(255,255,255,0.05);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px inset rgba(255, 255, 255, 0.05);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .rr-dead-state {
   border-color: #aa1111;
-  box-shadow: 0 0 40px rgba(170, 17, 17, 0.3), 0 0 0 1px inset rgba(255,0,0,0.1);
+  box-shadow:
+    0 0 40px rgba(170, 17, 17, 0.3),
+    0 0 0 1px inset rgba(255, 0, 0, 0.1);
   background: radial-gradient(ellipse at top, #2a0808 0%, #111111 80%);
 }
 
@@ -335,7 +392,7 @@ onMounted(() => {
   letter-spacing: 0.1em;
   margin: 0;
   color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   line-height: 1;
 }
 
@@ -349,7 +406,8 @@ onMounted(() => {
   transition: all 0.2s;
 }
 
-.rr-icon-btn:hover, .rr-icon-btn.active {
+.rr-icon-btn:hover,
+.rr-icon-btn.active {
   color: #ffffff;
   background: #2a2a2a;
 }
@@ -367,8 +425,14 @@ onMounted(() => {
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .rr-setting-row {
@@ -414,7 +478,7 @@ onMounted(() => {
 
 .rr-ctrl-btn:hover {
   color: #ffffff;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .rr-ctrl-val {
@@ -431,21 +495,39 @@ onMounted(() => {
   width: 44px;
   height: 24px;
 }
-.rr-toggle input { opacity: 0; width: 0; height: 0; }
+.rr-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 .rr-slider {
-  position: absolute; cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #333; transition: .3s;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #333;
+  transition: 0.3s;
   border-radius: 24px;
 }
 .rr-slider:before {
-  position: absolute; content: "";
-  height: 18px; width: 18px; left: 3px; bottom: 3px;
-  background-color: white; transition: .3s;
+  position: absolute;
+  content: '';
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
   border-radius: 50%;
 }
-.rr-toggle input:checked + .rr-slider { background-color: #f0b000; }
-.rr-toggle input:checked + .rr-slider:before { transform: translateX(20px); }
+.rr-toggle input:checked + .rr-slider {
+  background-color: #f0b000;
+}
+.rr-toggle input:checked + .rr-slider:before {
+  transform: translateX(20px);
+}
 
 /* Information Board */
 .rr-info-board {
@@ -471,8 +553,14 @@ onMounted(() => {
 }
 
 @keyframes pulseIcon {
-  from { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255,0,0,0)); }
-  to { transform: scale(1.05); filter: drop-shadow(0 0 10px rgba(255,68,68,0.5)); }
+  from {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(255, 0, 0, 0));
+  }
+  to {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.5));
+  }
 }
 
 .rr-stats {
@@ -510,7 +598,11 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   margin-bottom: 2rem;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 60%);
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 60%
+  );
 }
 
 .rr-hammer-indicator {
@@ -524,7 +616,7 @@ onMounted(() => {
   border-right: 10px solid transparent;
   border-top: 15px solid #ff4444;
   z-index: 10;
-  filter: drop-shadow(0 2px 4px rgba(255,0,0,0.5));
+  filter: drop-shadow(0 2px 4px rgba(255, 0, 0, 0.5));
 }
 
 .rr-cylinder {
@@ -534,7 +626,9 @@ onMounted(() => {
   border-radius: 50%;
   background: linear-gradient(135deg, #222222, #111111);
   border: 4px solid #333333;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,1);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    inset 0 0 20px rgba(0, 0, 0, 1);
   transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -552,7 +646,9 @@ onMounted(() => {
   background: radial-gradient(circle, #444 0%, #111 100%);
   border-radius: 50%;
   border: 2px solid #555;
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.5);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .rr-chamber {
@@ -564,7 +660,7 @@ onMounted(() => {
   border-radius: 50%;
   background: #0a0a0a;
   border: 2px solid #2a2a2a;
-  box-shadow: inset 0 10px 10px rgba(0,0,0,1);
+  box-shadow: inset 0 10px 10px rgba(0, 0, 0, 1);
   transform-origin: center center;
   display: flex;
   justify-content: center;
@@ -575,7 +671,7 @@ onMounted(() => {
 .rr-chamber-shot {
   border-color: #444444;
   background: #1a1a1a;
-  box-shadow: inset 0 0 15px rgba(255,255,255,0.05);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
 .rr-chamber-shot::after {
@@ -589,7 +685,9 @@ onMounted(() => {
 .rr-chamber-fatal {
   border-color: #ff4444;
   background: radial-gradient(circle, #ff0000 0%, #3a0000 100%);
-  box-shadow: 0 0 20px rgba(255,0,0,0.6), inset 0 0 15px rgba(0,0,0,0.8);
+  box-shadow:
+    0 0 20px rgba(255, 0, 0, 0.6),
+    inset 0 0 15px rgba(0, 0, 0, 0.8);
 }
 
 .rr-chamber-revealed {
@@ -605,7 +703,9 @@ onMounted(() => {
   height: 60%;
   background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
   border-radius: 50%;
-  box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow:
+    inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Actions */
@@ -630,14 +730,20 @@ onMounted(() => {
   padding: 0.75rem 2rem;
   border-radius: 1rem;
   cursor: pointer;
-  box-shadow: 0 4px 0 #8a6408, 0 10px 20px rgba(240, 176, 0, 0.3);
-  transition: all 0.1s active, transform 0.2s;
+  box-shadow:
+    0 4px 0 #8a6408,
+    0 10px 20px rgba(240, 176, 0, 0.3);
+  transition:
+    all 0.1s active,
+    transform 0.2s;
   text-transform: uppercase;
 }
 
 .rr-btn-primary:active:not(:disabled) {
   transform: translateY(4px);
-  box-shadow: 0 0 0 #8a6408, 0 5px 10px rgba(240, 176, 0, 0.3);
+  box-shadow:
+    0 0 0 #8a6408,
+    0 5px 10px rgba(240, 176, 0, 0.3);
 }
 
 .rr-btn-primary.rr-disabled {
@@ -682,8 +788,12 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 480px) {

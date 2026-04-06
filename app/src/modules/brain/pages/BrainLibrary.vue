@@ -10,7 +10,7 @@ const iconMap = {
   Eye,
   Target,
   Layers,
-  Keyboard
+  Keyboard,
 };
 
 function getIcon(name: string) {
@@ -22,16 +22,19 @@ function getIcon(name: string) {
   <div class="brain-library">
     <div class="header-section">
       <h1 class="title">Gehirntraining</h1>
-      <p class="subtitle">Teste und verbessere deine mentalen Fähigkeiten mit unseren wissenschaftlich inspirierten Tests.</p>
+      <p class="subtitle">
+        Teste und verbessere deine mentalen Fähigkeiten mit unseren
+        wissenschaftlich inspirierten Tests.
+      </p>
     </div>
 
     <div class="test-grid">
       <router-link
-          v-for="test in brainTests"
-          :key="test.id"
-          :to="`/brain/${test.id}`"
-          class="test-card"
-          :style="{ '--test-color': test.color }"
+        v-for="test in brainTests"
+        :key="test.id"
+        :to="`/brain/${test.id}`"
+        class="test-card"
+        :style="{ '--test-color': test.color }"
       >
         <div class="card-glow"></div>
         <div class="card-content">
@@ -45,7 +48,9 @@ function getIcon(name: string) {
 
           <div class="score-section" v-if="getScore(test.id) !== null">
             <span class="score-label">Highscore</span>
-            <span class="score-value">{{ getScore(test.id) }} {{ test.unit }}</span>
+            <span class="score-value"
+              >{{ getScore(test.id) }} {{ test.unit }}</span
+            >
           </div>
           <div class="score-section no-score" v-else>
             <span class="score-label">Noch nicht gespielt</span>
@@ -74,7 +79,11 @@ function getIcon(name: string) {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--color-on-surface) 0%, rgba(255,255,255,0.7) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-on-surface) 0%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -105,7 +114,9 @@ function getIcon(name: string) {
   text-decoration: none;
   color: var(--color-on-surface);
   overflow: hidden;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.3s ease;
   display: flex;
 }
 
@@ -115,9 +126,13 @@ function getIcon(name: string) {
   inset: 0;
   border-radius: 20px;
   padding: 2px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
@@ -129,7 +144,11 @@ function getIcon(name: string) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at top right, var(--test-color) 0%, transparent 60%);
+  background: radial-gradient(
+    circle at top right,
+    var(--test-color) 0%,
+    transparent 60%
+  );
   opacity: 0.05;
   transition: opacity 0.4s ease;
   z-index: 0;
@@ -224,8 +243,14 @@ function getIcon(name: string) {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 600px) {

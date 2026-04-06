@@ -18,18 +18,23 @@ useEventListener(window, 'keydown', onKeyDown);
 </script>
 
 <template>
-  <BaseModal v-if="show" @cancel="$emit('cancel')" :submit="() => emit('confirm')" :loading="loading" :danger="true">
-    <template #title>
-      Diesen Eintrag löschen?
-    </template>
+  <BaseModal
+    v-if="show"
+    @cancel="$emit('cancel')"
+    :submit="() => emit('confirm')"
+    :loading="loading"
+    :danger="true"
+  >
+    <template #title> Diesen Eintrag löschen? </template>
 
     <template #content>
-      <p>Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.</p>
+      <p>
+        Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen
+        Bilder unwiderruflich gelöscht.
+      </p>
     </template>
 
-    <template #action-text>
-      Eintrag löschen
-    </template>
+    <template #action-text> Eintrag löschen </template>
   </BaseModal>
 </template>
 

@@ -7,7 +7,7 @@ import {
   Check,
   Clock,
   AlertCircle,
-  AlertTriangle
+  AlertTriangle,
 } from '@lucide/vue';
 import { useMfa } from '@/modules/auth/composables/useMfa';
 
@@ -19,7 +19,11 @@ const emit = defineEmits<{
   (e: 'mfaChanged', enabled: boolean): void;
 }>();
 
-const { startMfaSetup, activateMfa: doActivateMfa, deactivateMfa: doDeactivateMfa } = useMfa();
+const {
+  startMfaSetup,
+  activateMfa: doActivateMfa,
+  deactivateMfa: doDeactivateMfa,
+} = useMfa();
 
 // Setup State
 const setupMode = ref(false);
@@ -118,7 +122,9 @@ async function copySecret() {
   try {
     await navigator.clipboard.writeText(manualSecret.value);
     copied.value = true;
-    setTimeout(() => { copied.value = false; }, 2000);
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
   } catch {
     const textArea = document.createElement('textarea');
     textArea.value = manualSecret.value;
@@ -127,7 +133,9 @@ async function copySecret() {
     document.execCommand('copy');
     document.body.removeChild(textArea);
     copied.value = true;
-    setTimeout(() => { copied.value = false; }, 2000);
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
   }
 }
 
@@ -230,7 +238,9 @@ onUnmounted(() => {
       </div>
     </div>
     <p class="description">
-      Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google Authenticator.
+      Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein
+      Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google
+      Authenticator.
     </p>
     <div v-if="!mfaEnabled && !setupMode" class="action-section">
       <BaseButton @click="startSetup" :disabled="loading" variant="action">
@@ -240,7 +250,10 @@ onUnmounted(() => {
 
     <div v-if="setupMode" class="setup-section">
       <div class="setup-steps">
-        <div class="step" :class="{ active: setupStep === 1, completed: setupStep > 1 }">
+        <div
+          class="step"
+          :class="{ active: setupStep === 1, completed: setupStep > 1 }"
+        >
           <span class="step-number">1</span>
           <span class="step-label">QR-Code scannen</span>
         </div>
@@ -254,8 +267,8 @@ onUnmounted(() => {
       <!-- Step 1 -->
       <div v-if="setupStep === 1" class="qr-section">
         <p class="instruction">
-          Bitte scanne den QR-Code mit deiner Authenticator-App
-          (z.B. Google Authenticator).
+          Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
+          Authenticator).
         </p>
 
         <div v-if="qrCodeUrl" class="qr-container">
@@ -267,10 +280,10 @@ onUnmounted(() => {
           <div class="secret-display">
             <code class="secret-code">{{ formattedSecret }}</code>
             <button
-                type="button"
-                class="copy-btn"
-                @click="copySecret"
-                :title="copied ? 'Kopiert!' : 'Kopieren'"
+              type="button"
+              class="copy-btn"
+              @click="copySecret"
+              :title="copied ? 'Kopiert!' : 'Kopieren'"
             >
               <component :is="copied ? Check : Copy" :size="16" />
             </button>
@@ -283,31 +296,35 @@ onUnmounted(() => {
         </div>
 
         <div class="step-actions">
-          <BaseButton @click="cancelSetup" variant="ghost">Abbrechen</BaseButton>
-          <BaseButton @click="setupStep = 2" variant="action">Weiter</BaseButton>
+          <BaseButton @click="cancelSetup" variant="ghost"
+            >Abbrechen</BaseButton
+          >
+          <BaseButton @click="setupStep = 2" variant="action"
+            >Weiter</BaseButton
+          >
         </div>
       </div>
 
       <!-- Step 2 -->
       <div v-if="setupStep === 2" class="verify-section">
         <p class="instruction">
-          Gib den 6-stelligen Code aus deiner Authenticator-App ein,
-          um die Einrichtung abzuschließen.
+          Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
+          Einrichtung abzuschließen.
         </p>
 
         <div class="code-input-wrapper">
           <input
-              ref="codeInput"
-              v-model="verifyCode"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              maxlength="6"
-              placeholder="000000"
-              class="code-input"
-              :class="{ error: verifyError }"
-              @input="handleCodeInput"
-              @keyup.enter="activateMfa"
+            ref="codeInput"
+            v-model="verifyCode"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            placeholder="000000"
+            class="code-input"
+            :class="{ error: verifyError }"
+            @input="handleCodeInput"
+            @keyup.enter="activateMfa"
           />
         </div>
 
@@ -318,17 +335,25 @@ onUnmounted(() => {
 
         <div class="step-actions">
           <BaseButton @click="setupStep = 1" variant="ghost">Zurück</BaseButton>
-          <BaseButton @click="activateMfa" :disabled="verifyCode.length !== 6 || loading" variant="action" :loading="loading">
-        Aktivieren
-      </BaseButton>
+          <BaseButton
+            @click="activateMfa"
+            :disabled="verifyCode.length !== 6 || loading"
+            variant="action"
+            :loading="loading"
+          >
+            Aktivieren
+          </BaseButton>
         </div>
       </div>
     </div>
 
     <!-- Deaktivieren Option -->
     <div v-if="mfaEnabled && !deactivateMode" class="action-section">
-      <BaseButton class="danger-outline" @click="startDeactivate">
-        <ShieldOff :size="18" />
+      <BaseButton
+        class="danger-outline"
+        @click="startDeactivate"
+        :icon="ShieldOff"
+      >
         2FA deaktivieren
       </BaseButton>
     </div>
@@ -338,24 +363,25 @@ onUnmounted(() => {
       <div class="warning-box">
         <AlertTriangle :size="20" />
         <p>
-          Indem du fortfährst verringerst du die Sicherheit deines Kontos.
-          Um die Deaktivierung abzuschließen, must du noch ein letztes Mal den korrekten Code eingeben
+          Indem du fortfährst verringerst du die Sicherheit deines Kontos. Um
+          die Deaktivierung abzuschließen, must du noch ein letztes Mal den
+          korrekten Code eingeben
         </p>
       </div>
 
       <div class="code-input-wrapper">
         <input
-            ref="deactivateCodeInput"
-            v-model="deactivateCode"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="6"
-            placeholder="000000"
-            class="code-input"
-            :class="{ error: deactivateError }"
-            @input="handleDeactivateCodeInput"
-            @keyup.enter="confirmDeactivate"
+          ref="deactivateCodeInput"
+          v-model="deactivateCode"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          placeholder="000000"
+          class="code-input"
+          :class="{ error: deactivateError }"
+          @input="handleDeactivateCodeInput"
+          @keyup.enter="confirmDeactivate"
         />
       </div>
 
@@ -365,10 +391,17 @@ onUnmounted(() => {
       </div>
 
       <div class="step-actions">
-        <BaseButton @click="cancelDeactivate" variant="ghost">Abbrechen</BaseButton>
-        <BaseButton @click="confirmDeactivate" :disabled="deactivateCode.length !== 6 || loading" variant="danger" :loading="loading">
-        Deaktivieren
-      </BaseButton>
+        <BaseButton @click="cancelDeactivate" variant="ghost"
+          >Abbrechen</BaseButton
+        >
+        <BaseButton
+          @click="confirmDeactivate"
+          :disabled="deactivateCode.length !== 6 || loading"
+          variant="danger"
+          :loading="loading"
+        >
+          Deaktivieren
+        </BaseButton>
       </div>
     </div>
   </div>
@@ -530,7 +563,7 @@ onUnmounted(() => {
   line-height: 1.5;
   margin: 0;
   text-align: center;
-  font-family: var(--font-sans), sans-serif;;
+  font-family: var(--font-sans), sans-serif;
 }
 
 .qr-container {

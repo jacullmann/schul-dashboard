@@ -19,7 +19,12 @@ const { user } = storeToRefs(userStore);
     <PageHeader>
       {{ t('school.private.title') }}
       <template #action>
-        <BaseButton v-if="user" @click="openPrivateTaskForm" variant="action" :icon="Plus">
+        <BaseButton
+          v-if="user"
+          @click="openPrivateTaskForm"
+          variant="action"
+          :icon="Plus"
+        >
           <span>{{ t('school.private.newEntry') }}</span>
         </BaseButton>
       </template>

@@ -16,8 +16,8 @@ function updateLocale(loc: string) {
 
 <template>
   <BaseSelect
-      :model-value="currentLanguage"
-      :options="localeOptions"
-      @update:model-value="updateLocale"
+    :model-value="currentLanguage"
+    :options="localeOptions"
+    @update:model-value="updateLocale"
   />
 </template>

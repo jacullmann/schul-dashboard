@@ -3,11 +3,14 @@ import { computed } from 'vue';
 
 type JustifyOption = 'start' | 'end' | 'center' | 'between' | 'around';
 
-const props = withDefaults(defineProps<{
-  justify?: JustifyOption;
-}>(), {
-  justify: 'start',
-});
+const props = withDefaults(
+  defineProps<{
+    justify?: JustifyOption;
+  }>(),
+  {
+    justify: 'start',
+  },
+);
 
 const justifyClasses: Record<JustifyOption, string> = {
   start: 'justify-start',

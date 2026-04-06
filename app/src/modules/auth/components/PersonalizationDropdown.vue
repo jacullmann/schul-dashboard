@@ -23,12 +23,12 @@ const currentPersonalized = computed(() => props.modelValue);
 
 const dropdownValue = computed({
   get: () => (currentPersonalized.value ? 'yes' : 'no'),
-  set: (val: string) => setPersonalization(val === 'yes')
+  set: (val: string) => setPersonalization(val === 'yes'),
 });
 
 const options = computed(() => [
   { value: 'yes', label: t('global.selection.yes'), icon: Filter },
-  { value: 'no', label: t('global.selection.no'), icon: FilterX }
+  { value: 'no', label: t('global.selection.no'), icon: FilterX },
 ]);
 
 async function setPersonalization(value: boolean) {
@@ -40,13 +40,17 @@ async function setPersonalization(value: boolean) {
 
   try {
     const { data } = await hw.patch('/api/user/personalization', {
-      personalized: value
+      personalized: value,
     });
 
     if (data.ok) {
       emit('update:modelValue', data.personalized);
       emit('change', data.personalized);
-      useToast().success(value ? 'Personalisierte Kurse aktiviert' : 'Personalisierte Kurse deaktiviert');
+      useToast().success(
+        value
+          ? 'Personalisierte Kurse aktiviert'
+          : 'Personalisierte Kurse deaktiviert',
+      );
     }
   } catch (e: unknown) {
     const err = e as { response?: { data?: { error?: string } } };
@@ -59,9 +63,9 @@ async function setPersonalization(value: boolean) {
 
 <template>
   <MenuDropdown
-      v-model="dropdownValue"
-      :options="options"
-      :prefix="t('account.menu.personalization') + ':'"
-      :disabled="updating"
+    v-model="dropdownValue"
+    :options="options"
+    :prefix="t('account.menu.personalization') + ':'"
+    :disabled="updating"
   />
 </template>

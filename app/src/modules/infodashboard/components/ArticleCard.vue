@@ -14,25 +14,37 @@ const emit = defineEmits<{
 }>();
 
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
 </script>
 
 <template>
   <article class="card" @click="emit('click', props.article)">
     <div class="card-image-wrapper">
-      <img :src="article.imageUrl" loading="lazy" class="card-image"  alt=""/>
+      <img :src="article.imageUrl" loading="lazy" class="card-image" alt="" />
       <div v-if="article.type === 'video'" class="play-overlay-card">
-        <Play :size="48" fill="currentColor" class="play-icon-card"/>
+        <Play :size="48" fill="currentColor" class="play-icon-card" />
       </div>
     </div>
     <div class="card-content">
-      <span class="badge-small">{{ t('info.dashboard.categories.' + article.topic) }}</span>
+      <span class="badge-small">{{
+        t('info.dashboard.categories.' + article.topic)
+      }}</span>
       <h3 class="card-title">{{ t(article.titleKey) }}</h3>
       <div class="card-top"></div>
       <p class="card-excerpt">{{ t(article.excerptKey) }}</p>
       <div class="card-footer">
-        {{ formatDate(article.date) + ' ' + (article.type === 'video' ? article.duration : article.readTime + ' Min') }}
+        {{
+          formatDate(article.date) +
+          ' ' +
+          (article.type === 'video'
+            ? article.duration
+            : article.readTime + ' Min')
+        }}
       </div>
     </div>
   </article>
@@ -68,7 +80,7 @@ const formatDate = (dateStr: string) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -76,7 +88,7 @@ const formatDate = (dateStr: string) => {
 
 .play-icon-card {
   color: var(--color-on-surface);
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
 }
 
 .card-image-wrapper {

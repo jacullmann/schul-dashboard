@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import {
-  GripVertical, Trash2,
-  ChevronDown, ChevronRight,
-  Bold, Palette
+  GripVertical,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Bold,
+  Palette,
 } from '@lucide/vue';
 
 const props = defineProps<{
@@ -36,10 +39,14 @@ const inputEl = ref<HTMLElement | null>(null);
 const showColors = ref(false);
 
 const COLORS = [
-  '#000000', '#ffffff',
-  '#d32f2f', '#f57c00',
-  '#388e3c', '#1976d2',
-  '#7b1fa2', '#795548',
+  '#000000',
+  '#ffffff',
+  '#d32f2f',
+  '#f57c00',
+  '#388e3c',
+  '#1976d2',
+  '#7b1fa2',
+  '#795548',
 ];
 
 const PLACEHOLDERS: Record<string, string> = {
@@ -47,7 +54,7 @@ const PLACEHOLDERS: Record<string, string> = {
   h2: 'Überschrift 2',
   h3: 'Überschrift 3',
   h4: 'Überschrift 4',
-  p:  'Schreibe etwas…',
+  p: 'Schreibe etwas…',
   ul: 'Listenpunkt',
   cl: 'Aufgabe',
 };
@@ -55,7 +62,7 @@ const PLACEHOLDERS: Record<string, string> = {
 const isFocused = ref(false);
 
 const isHeading = computed(() =>
-    ['h1', 'h2', 'h3', 'h4'].includes(props.block.type)
+  ['h1', 'h2', 'h3', 'h4'].includes(props.block.type),
 );
 
 function onInput(e: Event) {
@@ -81,7 +88,7 @@ function onKeydown(e: KeyboardEvent) {
   } else if (e.key === 'Tab') {
     e.preventDefault();
     if (e.shiftKey) emit('outdent');
-    else            emit('indent');
+    else emit('indent');
   }
 }
 function exec(command: string, value?: string) {
@@ -99,21 +106,24 @@ onMounted(() => {
     inputEl.value.innerHTML = props.block.content;
   }
 });
-watch(() => props.block.content, (newContent) => {
-  if (!inputEl.value) return;
-  if (isFocused.value) return;
-  if (inputEl.value.innerHTML !== newContent) {
-    inputEl.value.innerHTML = newContent;
-  }
-});
+watch(
+  () => props.block.content,
+  (newContent) => {
+    if (!inputEl.value) return;
+    if (isFocused.value) return;
+    if (inputEl.value.innerHTML !== newContent) {
+      inputEl.value.innerHTML = newContent;
+    }
+  },
+);
 </script>
 
 <template>
   <div
-      :id="`block-wrapper-${block.id}`"
-      class="block-wrapper"
-      :class="{ 'is-checked': block.checked && block.type === 'cl' }"
-      :style="{ paddingLeft: `${block.indentLevel * 24}px` }"
+    :id="`block-wrapper-${block.id}`"
+    class="block-wrapper"
+    :class="{ 'is-checked': block.checked && block.type === 'cl' }"
+    :style="{ paddingLeft: `${block.indentLevel * 24}px` }"
   >
     <div class="block-controls">
       <div class="drag-handle" title="Verschieben">
@@ -125,27 +135,28 @@ watch(() => props.block.content, (newContent) => {
     </div>
 
     <div
-        v-if="isHeading"
-        class="collapse-toggle"
-        @click="$emit('toggle-collapse')"
-        :title="block.isCollapsed ? 'Aufklappen' : 'Einklappen'"
+      v-if="isHeading"
+      class="collapse-toggle"
+      @click="$emit('toggle-collapse')"
+      :title="block.isCollapsed ? 'Aufklappen' : 'Einklappen'"
     >
       <ChevronRight v-if="block.isCollapsed" :size="15" />
-      <ChevronDown  v-else                   :size="15" />
+      <ChevronDown v-else :size="15" />
     </div>
 
     <div v-if="block.type === 'ul'" class="marker-bullet">•</div>
 
     <div v-if="block.type === 'cl'" class="marker-checkbox">
       <input
-          type="checkbox"
-          :checked="block.checked"
-          @change="$emit('update:checked', ($event.target as HTMLInputElement).checked)"
+        type="checkbox"
+        :checked="block.checked"
+        @change="
+          $emit('update:checked', ($event.target as HTMLInputElement).checked)
+        "
       />
     </div>
 
     <div class="content-area">
-
       <div v-if="isFocused" class="floating-toolbar" @mousedown.prevent>
         <button @click="exec('bold')" title="Fett">
           <Bold :size="12" />
@@ -153,22 +164,29 @@ watch(() => props.block.content, (newContent) => {
         <div class="tb-divider"></div>
 
         <div class="color-picker-wrapper">
-          <button class="color-btn" title="Textfarbe" @click="showColors = !showColors">
+          <button
+            class="color-btn"
+            title="Textfarbe"
+            @click="showColors = !showColors"
+          >
             <Palette :size="12" />
           </button>
 
           <div v-if="showColors" class="color-dropdown">
             <div
-                v-for="c in COLORS"
-                :key="c"
-                class="color-swatch"
-                :style="{ backgroundColor: c }"
-                :title="c"
-                @click="applyColor(c)"
+              v-for="c in COLORS"
+              :key="c"
+              class="color-swatch"
+              :style="{ backgroundColor: c }"
+              :title="c"
+              @click="applyColor(c)"
             ></div>
             <label class="color-swatch custom-color" title="Eigene Farbe">
               +
-              <input type="color" @input="(e: any) => applyColor(e.target.value)" />
+              <input
+                type="color"
+                @input="(e: any) => applyColor(e.target.value)"
+              />
             </label>
           </div>
         </div>
@@ -176,33 +194,32 @@ watch(() => props.block.content, (newContent) => {
         <div class="tb-divider"></div>
 
         <BaseSelect
-            :modelValue="block.type"
-            @update:modelValue="(val: string) => $emit('change-type', val)"
-            title="Block-Typ"
-            :options="[
-              { label: 'Text', value: 'p' },
-              { label: 'Überschrift 1', value: 'h1' },
-              { label: 'Überschrift 2', value: 'h2' },
-              { label: 'Überschrift 3', value: 'h3' },
-              { label: 'Liste', value: 'ul' },
-              { label: 'Checkliste', value: 'cl' },
-            ]"
+          :modelValue="block.type"
+          @update:modelValue="(val: string) => $emit('change-type', val)"
+          title="Block-Typ"
+          :options="[
+            { label: 'Text', value: 'p' },
+            { label: 'Überschrift 1', value: 'h1' },
+            { label: 'Überschrift 2', value: 'h2' },
+            { label: 'Überschrift 3', value: 'h3' },
+            { label: 'Liste', value: 'ul' },
+            { label: 'Checkliste', value: 'cl' },
+          ]"
         />
       </div>
 
       <div
-          ref="inputEl"
-          :id="`block-input-${block.id}`"
-          contenteditable="true"
-          class="editable-input"
-          :class="block.type"
-          :placeholder="PLACEHOLDERS[block.type] ?? 'Schreibe etwas…'"
-          @input="onInput"
-          @keydown="onKeydown"
-          @focus="onFocus"
-          @blur="onBlur"
+        ref="inputEl"
+        :id="`block-input-${block.id}`"
+        contenteditable="true"
+        class="editable-input"
+        :class="block.type"
+        :placeholder="PLACEHOLDERS[block.type] ?? 'Schreibe etwas…'"
+        @input="onInput"
+        @keydown="onKeydown"
+        @focus="onFocus"
+        @blur="onBlur"
       ></div>
-
     </div>
   </div>
 </template>
@@ -313,7 +330,7 @@ watch(() => props.block.content, (newContent) => {
   margin-top: 5px;
 }
 
-.marker-checkbox input[type="checkbox"] {
+.marker-checkbox input[type='checkbox'] {
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -382,7 +399,8 @@ watch(() => props.block.content, (newContent) => {
   margin: 2px 0;
 }
 
-.ul, .cl {
+.ul,
+.cl {
   font-size: 1em;
   color: var(--color-on-surface, #333);
   margin: 1px 0;
@@ -512,7 +530,7 @@ watch(() => props.block.content, (newContent) => {
   overflow: hidden;
 }
 
-.custom-color input[type="color"] {
+.custom-color input[type='color'] {
   position: absolute;
   inset: 0;
   opacity: 0;

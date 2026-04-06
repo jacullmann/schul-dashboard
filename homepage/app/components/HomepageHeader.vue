@@ -19,18 +19,16 @@ function closeMobileMenu() {
 </script>
 
 <template>
-  <header
-      class="sticky top-0 z-50 w-full bg-canvas"
-  >
+  <header class="sticky top-0 z-50 w-full bg-canvas">
     <nav
-        class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 h-14 flex items-center justify-between"
-        aria-label="Main navigation"
+      class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 h-14 flex items-center justify-between"
+      aria-label="Main navigation"
     >
       <div class="flex items-center gap-8">
         <NuxtLink
-            :to="localePath('index')"
-            class="inline-flex items-center gap-2.5 font-bold text-on-surface font-display no-underline hover:opacity-80 transition-opacity flex-shrink-0"
-            aria-label="schul-dashboard home"
+          :to="localePath('index')"
+          class="inline-flex items-center gap-2.5 font-bold text-on-surface font-display no-underline hover:opacity-80 transition-opacity flex-shrink-0"
+          aria-label="schul-dashboard home"
         >
           <img src="/favicon.svg" alt="" class="w-7 h-7" />
           <span class="hidden sm:inline text-sub">schul-dashboard</span>
@@ -38,11 +36,11 @@ function closeMobileMenu() {
 
         <div class="hidden lg:flex items-center gap-6">
           <NuxtLink
-              v-for="link in navLinks"
-              :key="link.route"
-              :to="localePath(link.route)"
-              class="text-sub text-on-surface-muted font-medium no-underline transition-colors hover:text-on-surface"
-              active-class="text-on-surface"
+            v-for="link in navLinks"
+            :key="link.route"
+            :to="localePath(link.route)"
+            class="text-sub text-on-surface-muted font-medium no-underline transition-colors hover:text-on-surface"
+            active-class="text-on-surface"
           >
             {{ t(link.labelKey) }}
           </NuxtLink>
@@ -51,24 +49,24 @@ function closeMobileMenu() {
 
       <div class="hidden lg:flex items-center gap-3">
         <a
-            :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-            class="text-sub text-on-surface-muted font-medium transition-colors hover:text-on-surface"
+          :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
+          class="text-sub text-on-surface-muted font-medium transition-colors hover:text-on-surface"
         >
           {{ t('common.login') }}
         </a>
         <a
-            :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-            class="px-4 py-2 rounded-lg bg-action text-on-action text-sub font-semibold no-underline transition-all hover:bg-action-hover inline-flex items-center"
+          :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
+          class="px-4 py-2 rounded-lg bg-action text-on-action text-sub font-semibold no-underline transition-all hover:bg-action-hover inline-flex items-center"
         >
           {{ t('common.getStarted') }}
         </a>
       </div>
 
       <button
-          type="button"
-          class="lg:hidden p-2 rounded-lg border border-surface-border text-on-surface-muted hover:text-on-surface hover:bg-surface-hover-subtle transition-colors"
-          :aria-expanded="mobileMenuOpen"
-          @click="mobileMenuOpen = !mobileMenuOpen"
+        type="button"
+        class="lg:hidden p-2 rounded-lg border border-surface-border text-on-surface-muted hover:text-on-surface hover:bg-surface-hover-subtle transition-colors"
+        :aria-expanded="mobileMenuOpen"
+        @click="mobileMenuOpen = !mobileMenuOpen"
       >
         <component :is="mobileMenuOpen ? X : Menu" :size="20" aria-hidden="true" />
       </button>
@@ -78,24 +76,24 @@ function closeMobileMenu() {
       <div v-if="mobileMenuOpen" class="lg:hidden border-t border-surface-border bg-canvas">
         <div class="max-w-[1300px] w-full mx-auto px-4 py-3 flex flex-col gap-1">
           <NuxtLink
-              v-for="link in navLinks"
-              :key="link.route"
-              :to="localePath(link.route)"
-              class="px-3 py-2.5 rounded-lg text-on-surface text-sub font-medium no-underline transition-colors hover:bg-surface-hover-subtle"
-              @click="closeMobileMenu"
+            v-for="link in navLinks"
+            :key="link.route"
+            :to="localePath(link.route)"
+            class="px-3 py-2.5 rounded-lg text-on-surface text-sub font-medium no-underline transition-colors hover:bg-surface-hover-subtle"
+            @click="closeMobileMenu"
           >
             {{ t(link.labelKey) }}
           </NuxtLink>
           <div class="border-t border-surface-border my-2" />
           <a
-              :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-              class="px-3 py-2.5 rounded-lg text-on-surface-muted text-sub font-medium transition-colors hover:bg-surface-hover-subtle"
+            :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
+            class="px-3 py-2.5 rounded-lg text-on-surface-muted text-sub font-medium transition-colors hover:bg-surface-hover-subtle"
           >
             {{ t('common.login') }}
           </a>
           <a
-              :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-              class="px-3 py-2.5 rounded-lg bg-action text-on-action text-sub font-semibold transition-all hover:bg-action-hover text-center"
+            :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
+            class="px-3 py-2.5 rounded-lg bg-action text-on-action text-sub font-semibold transition-all hover:bg-action-hover text-center"
           >
             {{ t('common.getStarted') }}
           </a>

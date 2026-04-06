@@ -30,8 +30,6 @@ function logPageload() {
   });
 }
 
-
-
 async function handleAuthExpired() {
   userStore.clearUser();
   const stillAuthenticated = await checkAuthStatus();
@@ -39,7 +37,12 @@ async function handleAuthExpired() {
     await router.push('/login');
   } else {
     const currentPath = router.currentRoute.value.path;
-    if (currentPath !== '/' && !currentPath.startsWith('/login') && !currentPath.startsWith('/auth') && !currentPath.startsWith('/verify')) {
+    if (
+      currentPath !== '/' &&
+      !currentPath.startsWith('/login') &&
+      !currentPath.startsWith('/auth') &&
+      !currentPath.startsWith('/verify')
+    ) {
       await router.push('/login');
     }
   }
@@ -56,13 +59,21 @@ watch(user, (newUser, oldUser) => {
 });
 
 // Remove initial loading screen once auth state is resolved
-watch(isAuthReady, (ready) => {
-  if (ready && typeof window !== 'undefined' && window.__removeInitialLoadingScreen) {
-    requestAnimationFrame(() => {
-      window.__removeInitialLoadingScreen?.();
-    });
-  }
-}, { immediate: true });
+watch(
+  isAuthReady,
+  (ready) => {
+    if (
+      ready &&
+      typeof window !== 'undefined' &&
+      window.__removeInitialLoadingScreen
+    ) {
+      requestAnimationFrame(() => {
+        window.__removeInitialLoadingScreen?.();
+      });
+    }
+  },
+  { immediate: true },
+);
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -76,16 +87,17 @@ onMounted(() => {
   handleOAuthReturn(async () => {
     await checkAuthStatus();
     await userStore.fetchUser();
-
   });
-
 
   useEventListener(window, 'auth-expired', handleAuthExpired);
   useEventListener(window, 'tenant-changed', handleTenantChanged);
 
-  authCheckInterval = setInterval(() => {
-    if (isAuthenticated.value) checkAuthStatus();
-  }, 5 * 60 * 1000);
+  authCheckInterval = setInterval(
+    () => {
+      if (isAuthenticated.value) checkAuthStatus();
+    },
+    5 * 60 * 1000,
+  );
 });
 
 onUnmounted(() => {
@@ -98,7 +110,11 @@ onUnmounted(() => {
 
 <template>
   <div class="full">
-    <div class="progress-container" v-if="loading" :style="{ opacity: opacity }">
+    <div
+      class="progress-container"
+      v-if="loading"
+      :style="{ opacity: opacity }"
+    >
       <div class="progress-bar" :style="{ width: progress + '%' }">
         <div class="peg"></div>
       </div>
@@ -142,7 +158,7 @@ onUnmounted(() => {
   background: transparent;
   z-index: 9999;
   pointer-events: none;
-  transition: all .2s ease;
+  transition: all 0.2s ease;
 }
 
 .progress-bar {
@@ -158,13 +174,16 @@ onUnmounted(() => {
   right: 0;
   width: 100px;
   height: 100%;
-  box-shadow: 0 0 10px #af00ff, 0 0 5px #af00ff;
+  box-shadow:
+    0 0 10px #af00ff,
+    0 0 5px #af00ff;
   opacity: 1;
   transform: rotate(3deg) translate(0px, -4px);
 }
 
 @keyframes peg-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

@@ -52,7 +52,12 @@ const emit = defineEmits<{ (e: 'cancel'): void }>();
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
-const { activeGroupId, userGroups, switchActiveGroup, logout: appAuthLogout } = useAppAuth();
+const {
+  activeGroupId,
+  userGroups,
+  switchActiveGroup,
+  logout: appAuthLogout,
+} = useAppAuth();
 const { openItemForm } = useItemForm();
 const { openPrivateTaskForm } = usePrivateTaskForm();
 const { openAnnouncementForm } = useAnnouncementForm();
@@ -66,7 +71,9 @@ const { withGroup } = useGroupAction();
 const isAnyGroupAdmin = computed(() => {
   if (userStore.isSuperadmin) return true;
   if (userStore.isGroupAdmin) return true;
-  return userGroups.value?.some(g => g.role === 'admin' || g.role === 'moderator');
+  return userGroups.value?.some(
+    (g) => g.role === 'admin' || g.role === 'moderator',
+  );
 });
 
 const query = ref('');
@@ -120,7 +127,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.tasks'),
     category: 'page',
     icon: ListTodo,
-    action: () => withGroup(() => navigate(`/groups/${activeGroupId.value}/items/all`)),
+    action: () =>
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/items/all`)),
   },
   {
     id: 'schedule',
@@ -128,7 +136,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.schedule'),
     category: 'page',
     icon: CalendarDays,
-    action: () => withGroup(() => navigate(`/groups/${activeGroupId.value}/schedule`)),
+    action: () =>
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/schedule`)),
   },
   {
     id: 'private',
@@ -152,7 +161,8 @@ const defaultResults = computed<SearchResult[]>(() => [
     description: t('search.descriptions.admin'),
     category: 'page',
     icon: SlidersHorizontal,
-    action: () => withGroup(() => navigate(`/groups/${activeGroupId.value}/admin`)),
+    action: () =>
+      withGroup(() => navigate(`/groups/${activeGroupId.value}/admin`)),
     condition: isAnyGroupAdmin.value,
   },
   {
@@ -529,9 +539,16 @@ function handleSelect(index: number) {
       <template #default="{ selectedIndex, setSelectedIndex }">
         <!-- GROUP MODE -->
         <template v-if="mode === 'group'">
-          <div class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1">
-            <button @click="setMode('default')" class="hover:text-on-surface transition-colors inline-flex items-center" aria-label="Zurück">
-              <ArrowLeft :size="14" class="mr-1"/> {{ t('global.back', 'Back') }}
+          <div
+            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1"
+          >
+            <button
+              @click="setMode('default')"
+              class="hover:text-on-surface transition-colors inline-flex items-center"
+              aria-label="Zurück"
+            >
+              <ArrowLeft :size="14" class="mr-1" />
+              {{ t('global.back', 'Back') }}
             </button>
             <span class="opacity-50">/</span>
             <span>{{ t('search.items.switchGroup') }}</span>
@@ -561,9 +578,16 @@ function handleSelect(index: number) {
 
         <!-- THEME MODE -->
         <template v-else-if="mode === 'theme'">
-          <div class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1">
-            <button @click="setMode('default')" class="hover:text-on-surface transition-colors inline-flex items-center" aria-label="Zurück">
-              <ArrowLeft :size="14" class="mr-1"/> {{ t('global.back', 'Back') }}
+          <div
+            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1"
+          >
+            <button
+              @click="setMode('default')"
+              class="hover:text-on-surface transition-colors inline-flex items-center"
+              aria-label="Zurück"
+            >
+              <ArrowLeft :size="14" class="mr-1" />
+              {{ t('global.back', 'Back') }}
             </button>
             <span class="opacity-50">/</span>
             <span>{{ t('account.menu.theme.title') }}</span>
@@ -590,9 +614,16 @@ function handleSelect(index: number) {
 
         <!-- LANGUAGE MODE -->
         <template v-else-if="mode === 'language'">
-          <div class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1">
-            <button @click="setMode('default')" class="hover:text-on-surface transition-colors inline-flex items-center" aria-label="Zurück">
-              <ArrowLeft :size="14" class="mr-1"/> {{ t('global.back', 'Back') }}
+          <div
+            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1"
+          >
+            <button
+              @click="setMode('default')"
+              class="hover:text-on-surface transition-colors inline-flex items-center"
+              aria-label="Zurück"
+            >
+              <ArrowLeft :size="14" class="mr-1" />
+              {{ t('global.back', 'Back') }}
             </button>
             <span class="opacity-50">/</span>
             <span>{{ t('account.menu.language.title') }}</span>
@@ -649,7 +680,10 @@ function handleSelect(index: number) {
 
           <!-- Actions section -->
           <template v-if="defaultActionResults.length">
-            <div class="px-4 py-1.5" :class="defaultPageResults.length ? 'mt-2' : ''">
+            <div
+              class="px-4 py-1.5"
+              :class="defaultPageResults.length ? 'mt-2' : ''"
+            >
               <span
                 class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
               >

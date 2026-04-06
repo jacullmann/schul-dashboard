@@ -529,7 +529,10 @@ async function handleArchiveFromMenu(item: HwItem) {
         }}</template>
       </BaseEmptyState>
 
-      <div v-if="filteredItems.length > 5" class="mt-1 flex justify-center gap-3">
+      <div
+        v-if="filteredItems.length > 5"
+        class="mt-1 flex justify-center gap-3"
+      >
         <BaseButton
           v-if="visibleCount < filteredItems.length"
           @click="showMore"

@@ -40,8 +40,13 @@ const isCropInitialized = ref(false);
 const crop = reactive<CropState>({ x: 0, y: 0, w: 0, h: 0 });
 
 // Reactive element bounds — update via ResizeObserver, return 0 when unmounted
-const { width: imgRenderedWidth, left: imgLeft, top: imgTop } = useElementBounding(editorImageRef);
-const { left: workspaceLeft, top: workspaceTop } = useElementBounding(workspaceRef);
+const {
+  width: imgRenderedWidth,
+  left: imgLeft,
+  top: imgTop,
+} = useElementBounding(editorImageRef);
+const { left: workspaceLeft, top: workspaceTop } =
+  useElementBounding(workspaceRef);
 
 // editorScale reacts to the image's rendered width — no imperative DOM reads needed
 const editorScale = computed(() =>
@@ -73,7 +78,7 @@ const handleDrop = (e: DragEvent) => {
 };
 
 const loadFile = (file: File) => {
-  if (!file.type.startsWith('image/')) return alert("Not an image");
+  if (!file.type.startsWith('image/')) return alert('Not an image');
 
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -120,7 +125,7 @@ const convertAndDownload = () => {
       link.href = dataUrl;
       link.click();
     } catch (e) {
-      alert("Error converting file.");
+      alert('Error converting file.');
     }
   };
   img.src = currentImageSrc.value;
@@ -169,8 +174,8 @@ const cropBoxStyle = computed(() => {
   const relLeft = imgLeft.value - workspaceLeft.value;
   const relTop = imgTop.value - workspaceTop.value;
   return {
-    left: `${(crop.x * editorScale.value) + relLeft}px`,
-    top: `${(crop.y * editorScale.value) + relTop}px`,
+    left: `${crop.x * editorScale.value + relLeft}px`,
+    top: `${crop.y * editorScale.value + relTop}px`,
     width: `${crop.w * editorScale.value}px`,
     height: `${crop.h * editorScale.value}px`,
   };
@@ -266,7 +271,7 @@ const rotateImage = (deg: number) => {
     }
 
     ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate(deg * Math.PI / 180);
+    ctx.rotate((deg * Math.PI) / 180);
     ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
 
     updateImageSource(canvas.toDataURL());
@@ -310,31 +315,38 @@ const updateImageSource = (newSrc: string) => {
   };
   i.src = newSrc;
 };
-
 </script>
 
 <template>
   <div class="card">
     <div class="container">
-      <h2 style="margin-bottom: 16px;">Bildbearbeitung</h2>
+      <h2 style="margin-bottom: 16px">Bildbearbeitung</h2>
 
       <div
-          class="upload-area"
-          :class="{ 'dragging': isDraggingFile }"
-          @click="triggerUpload"
-          @dragover.prevent="isDraggingFile = true"
-          @dragleave.prevent="isDraggingFile = false"
-          @drop.prevent="handleDrop"
+        class="upload-area"
+        :class="{ dragging: isDraggingFile }"
+        @click="triggerUpload"
+        @dragover.prevent="isDraggingFile = true"
+        @dragleave.prevent="isDraggingFile = false"
+        @drop.prevent="handleDrop"
       >
-        <p style="margin-top: 0;"><strong>Klicken zum Hochladen</strong> oder Drag & Drop</p>
-        <span style="font-size: var(--text-sub); color: var(--color-on-surface-muted);">JPG, PNG, WEBP, AVIF, GIF, BMP</span>
-        <input
-            type="file"
-            ref="fileInputRef"
-            accept="image/*"
-            class="hidden"
-            @change="handleFileChange"
+        <p style="margin-top: 0">
+          <strong>Klicken zum Hochladen</strong> oder Drag & Drop
+        </p>
+        <span
+          style="
+            font-size: var(--text-sub);
+            color: var(--color-on-surface-muted);
+          "
+          >JPG, PNG, WEBP, AVIF, GIF, BMP</span
         >
+        <input
+          type="file"
+          ref="fileInputRef"
+          accept="image/*"
+          class="hidden"
+          @change="handleFileChange"
+        />
       </div>
 
       <div class="controls" :class="{ active: hasImage }">
@@ -351,98 +363,180 @@ const updateImageSource = (newSrc: string) => {
           />
         </div>
         <div class="control-group">
-          <BaseLabel for="image-quality-range">Qualität: {{ settings.quality }} %</BaseLabel>
-          <input
-              id="image-quality-range"
-              type="range"
-              min="1"
-              max="100"
-              v-model.number="settings.quality"
+          <BaseLabel for="image-quality-range"
+            >Qualität: {{ settings.quality }} %</BaseLabel
           >
+          <input
+            id="image-quality-range"
+            type="range"
+            min="1"
+            max="100"
+            v-model.number="settings.quality"
+          />
         </div>
         <div class="control-group">
           <BaseLabel for="image-width-input">Breite (px)</BaseLabel>
           <BaseInput
-              id="image-width-input"
-              type="number"
-              v-model.number="settings.width"
-              :placeholder="imageMeta.naturalWidth.toString()"
+            id="image-width-input"
+            type="number"
+            v-model.number="settings.width"
+            :placeholder="imageMeta.naturalWidth.toString()"
           />
         </div>
         <div class="control-group">
           <BaseLabel for="image-height-input">Höhe (px)</BaseLabel>
           <BaseInput
-              id="image-height-input"
-              type="number"
-              v-model.number="settings.height"
-              :placeholder="imageMeta.naturalHeight.toString()"
+            id="image-height-input"
+            type="number"
+            v-model.number="settings.height"
+            :placeholder="imageMeta.naturalHeight.toString()"
           />
         </div>
       </div>
 
       <div class="row button-group" v-if="hasImage">
         <BaseButton @click="openEditor" variant="ghost">Bearbeiten</BaseButton>
-        <BaseButton @click="convertAndDownload" variant="action">Konvertieren</BaseButton>
+        <BaseButton @click="convertAndDownload" variant="action"
+          >Konvertieren</BaseButton
+        >
       </div>
 
       <div class="preview-container" v-show="hasImage">
-        <div style="margin-bottom: 8px; font-size: var(--text-sub); color: var(--color-on-surface-muted);">
+        <div
+          style="
+            margin-bottom: 8px;
+            font-size: var(--text-sub);
+            color: var(--color-on-surface-muted);
+          "
+        >
           Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
         </div>
-        <img :src="currentImageSrc" alt="Preview" class="preview-img">
+        <img :src="currentImageSrc" alt="Preview" class="preview-img" />
       </div>
     </div>
 
     <BaseModal v-if="isEditorOpen" @cancel="closeEditor" :submit="applyEdits">
       <template #title>Bildbearbeitung</template>
-      
+
       <template #content>
         <div class="editor-toolbar">
-          <BaseButton style="flex: 0; padding: 10px;" @click="rotateImage(-90)" variant="ghost">
-            <RotateCcw :size="16"/>
-          </BaseButton>
-          <BaseButton style="flex: 0; padding: 10px;" @click="rotateImage(90)" variant="ghost">
-            <RotateCw :size="16"/>
-          </BaseButton>
+          <BaseButton
+            style="flex: 0; padding: 10px"
+            @click="rotateImage(-90)"
+            variant="ghost"
+            :icon="RotateCcw"
+          />
+          <BaseButton
+            style="flex: 0; padding: 10px"
+            @click="rotateImage(90)"
+            variant="ghost"
+            :icon="RotateCw"
+          />
 
           <div class="editor-input-group">
-            <label for="editor-crop-x-input" style="width: 16px; margin-bottom: 0;">X:</label> <BaseInput id="editor-crop-x-input" type="number" v-model.number="crop.x" @input="updateCropFromInput" />
+            <label
+              for="editor-crop-x-input"
+              style="width: 16px; margin-bottom: 0"
+              >X:</label
+            >
+            <BaseInput
+              id="editor-crop-x-input"
+              type="number"
+              v-model.number="crop.x"
+              @input="updateCropFromInput"
+            />
           </div>
           <div class="editor-input-group">
-            <label for="editor-crop-y-input" style="width: 16px; margin-bottom: 0;">Y:</label> <BaseInput id="editor-crop-y-input" type="number" v-model.number="crop.y" @input="updateCropFromInput" />
+            <label
+              for="editor-crop-y-input"
+              style="width: 16px; margin-bottom: 0"
+              >Y:</label
+            >
+            <BaseInput
+              id="editor-crop-y-input"
+              type="number"
+              v-model.number="crop.y"
+              @input="updateCropFromInput"
+            />
           </div>
           <div class="editor-input-group">
-            <label for="editor-crop-w-input" style="width: 16px; margin-bottom: 0;">W:</label> <BaseInput id="editor-crop-w-input" type="number" v-model.number="crop.w" @input="updateCropFromInput" />
+            <label
+              for="editor-crop-w-input"
+              style="width: 16px; margin-bottom: 0"
+              >W:</label
+            >
+            <BaseInput
+              id="editor-crop-w-input"
+              type="number"
+              v-model.number="crop.w"
+              @input="updateCropFromInput"
+            />
           </div>
           <div class="editor-input-group">
-            <label for="editor-crop-h-input" style="width: 16px; margin-bottom: 0;">H:</label> <BaseInput id="editor-crop-h-input" type="number" v-model.number="crop.h" @input="updateCropFromInput" />
+            <label
+              for="editor-crop-h-input"
+              style="width: 16px; margin-bottom: 0"
+              >H:</label
+            >
+            <BaseInput
+              id="editor-crop-h-input"
+              type="number"
+              v-model.number="crop.h"
+              @input="updateCropFromInput"
+            />
           </div>
         </div>
 
         <div class="crop-workspace" ref="workspaceRef">
-          <img ref="editorImageRef" :src="currentImageSrc" class="editor-image-element">
+          <img
+            ref="editorImageRef"
+            :src="currentImageSrc"
+            class="editor-image-element"
+          />
 
           <div
-              class="crop-box"
-              v-show="isCropInitialized"
-              :style="cropBoxStyle"
-              @mousedown.prevent="startDrag($event, false)"
+            class="crop-box"
+            v-show="isCropInitialized"
+            :style="cropBoxStyle"
+            @mousedown.prevent="startDrag($event, false)"
           >
-            <div class="resize-handle handle-nw" @mousedown.stop.prevent="startDrag($event, 'nw')"></div>
-            <div class="resize-handle handle-n"  @mousedown.stop.prevent="startDrag($event, 'n')"></div>
-            <div class="resize-handle handle-ne" @mousedown.stop.prevent="startDrag($event, 'ne')"></div>
-            <div class="resize-handle handle-e"  @mousedown.stop.prevent="startDrag($event, 'e')"></div>
-            <div class="resize-handle handle-se" @mousedown.stop.prevent="startDrag($event, 'se')"></div>
-            <div class="resize-handle handle-s"  @mousedown.stop.prevent="startDrag($event, 's')"></div>
-            <div class="resize-handle handle-sw" @mousedown.stop.prevent="startDrag($event, 'sw')"></div>
-            <div class="resize-handle handle-w"  @mousedown.stop.prevent="startDrag($event, 'w')"></div>
+            <div
+              class="resize-handle handle-nw"
+              @mousedown.stop.prevent="startDrag($event, 'nw')"
+            ></div>
+            <div
+              class="resize-handle handle-n"
+              @mousedown.stop.prevent="startDrag($event, 'n')"
+            ></div>
+            <div
+              class="resize-handle handle-ne"
+              @mousedown.stop.prevent="startDrag($event, 'ne')"
+            ></div>
+            <div
+              class="resize-handle handle-e"
+              @mousedown.stop.prevent="startDrag($event, 'e')"
+            ></div>
+            <div
+              class="resize-handle handle-se"
+              @mousedown.stop.prevent="startDrag($event, 'se')"
+            ></div>
+            <div
+              class="resize-handle handle-s"
+              @mousedown.stop.prevent="startDrag($event, 's')"
+            ></div>
+            <div
+              class="resize-handle handle-sw"
+              @mousedown.stop.prevent="startDrag($event, 'sw')"
+            ></div>
+            <div
+              class="resize-handle handle-w"
+              @mousedown.stop.prevent="startDrag($event, 'w')"
+            ></div>
           </div>
         </div>
       </template>
 
-      <template #action-text>
-        Anwenden
-      </template>
+      <template #action-text> Anwenden </template>
     </BaseModal>
   </div>
 </template>
@@ -468,7 +562,8 @@ const updateImageSource = (newSrc: string) => {
   transition: 0.2s;
   margin-bottom: 2rem;
 }
-.upload-area:hover, .upload-area.dragging {
+.upload-area:hover,
+.upload-area.dragging {
   border-color: var(--color-surface-border);
 }
 
@@ -499,7 +594,9 @@ label {
   margin-top: 2rem;
 }
 
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
 /* Preview Area */
 .preview-container {
@@ -537,7 +634,8 @@ label {
 }
 
 .editor-image-element {
-  max-width: 100%; max-height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   display: block;
   pointer-events: none; /* Let clicks pass to crop box */
 }
@@ -546,7 +644,8 @@ label {
 .crop-box {
   position: absolute;
   border: 2px solid var(--color-on-surface-muted);
-  box-shadow: 0 0 0 9999px color-mix(in oklab, var(--color-canvas), transparent 40%); /* Dimming effect */
+  box-shadow: 0 0 0 9999px
+    color-mix(in oklab, var(--color-canvas), transparent 40%); /* Dimming effect */
   cursor: move;
 }
 
@@ -559,16 +658,52 @@ label {
   z-index: 10;
 }
 
-.handle-nw { top: -5px; left: -5px; cursor: nw-resize; }
-.handle-n  { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
-.handle-ne { top: -5px; right: -5px; cursor: ne-resize; }
+.handle-nw {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+.handle-n {
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: n-resize;
+}
+.handle-ne {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
 
-.handle-e  { top: 50%; right: -5px; transform: translateY(-50%); cursor: e-resize; }
-.handle-w  { top: 50%; left: -5px; transform: translateY(-50%); cursor: w-resize; }
+.handle-e {
+  top: 50%;
+  right: -5px;
+  transform: translateY(-50%);
+  cursor: e-resize;
+}
+.handle-w {
+  top: 50%;
+  left: -5px;
+  transform: translateY(-50%);
+  cursor: w-resize;
+}
 
-.handle-se { bottom: -5px; right: -5px; cursor: se-resize; }
-.handle-s  { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
-.handle-sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+.handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+.handle-s {
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: s-resize;
+}
+.handle-sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
 
 @media (max-width: 500px) {
   .controls {

@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { LayoutDashboard, ListTodo, CalendarDays, Lock, ArrowLeft } from '@lucide/vue';
+import {
+  LayoutDashboard,
+  ListTodo,
+  CalendarDays,
+  Lock,
+  ArrowLeft,
+} from '@lucide/vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 
 const router = useRouter();
@@ -37,7 +43,10 @@ const goBack = () => {
             </div>
           </router-link>
 
-          <router-link :to="`/groups/${activeGroupId}/items/all`" class="nav-card">
+          <router-link
+            :to="`/groups/${activeGroupId}/items/all`"
+            class="nav-card"
+          >
             <div class="nav-icon">
               <ListTodo :size="24" />
             </div>
@@ -47,7 +56,10 @@ const goBack = () => {
             </div>
           </router-link>
 
-          <router-link :to="`/groups/${activeGroupId}/schedule`" class="nav-card">
+          <router-link
+            :to="`/groups/${activeGroupId}/schedule`"
+            class="nav-card"
+          >
             <div class="nav-icon">
               <CalendarDays :size="24" />
             </div>
@@ -70,8 +82,7 @@ const goBack = () => {
       </div>
 
       <div class="action-section">
-        <BaseButton @click="goBack" variant="ghost">
-          <ArrowLeft :size="18" />
+        <BaseButton @click="goBack" variant="ghost" :icon="ArrowLeft">
           Go back
         </BaseButton>
       </div>

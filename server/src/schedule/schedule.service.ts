@@ -32,9 +32,7 @@ export class ScheduleService {
       if (userId) {
         const { data: user } = await sb
           .from('users')
-          .select(
-            'personalized, done_setup',
-          )
+          .select('personalized, done_setup')
           .eq('id', userId)
           .maybeSingle();
 

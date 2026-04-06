@@ -1,29 +1,32 @@
 <script setup lang="ts">
-import { Check } from '@lucide/vue'
+import { Check } from '@lucide/vue';
 
-const props = withDefaults(defineProps<{
-  modelValue?: boolean
-  checked?: boolean
-}>(), {
-  modelValue: false,
-  checked: false
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: boolean;
+    checked?: boolean;
+  }>(),
+  {
+    modelValue: false,
+    checked: false,
+  },
+);
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'change', event: Event): void
-}>()
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'change', event: Event): void;
+}>();
 
 function handleChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.checked)
-  emit('change', event)
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.checked);
+  emit('change', event);
 }
 
 function handleLabelClick(event: MouseEvent) {
-  const target = event.target as HTMLElement
+  const target = event.target as HTMLElement;
   if (target.closest('a')) {
-    event.stopPropagation()
+    event.stopPropagation();
   }
 }
 </script>
@@ -31,18 +34,18 @@ function handleLabelClick(event: MouseEvent) {
 <template>
   <label class="collapse-checkbox">
     <input
-        type="checkbox"
-        class="sr-only"
-        :checked="modelValue || checked"
-        @change="handleChange"
+      type="checkbox"
+      class="sr-only"
+      :checked="modelValue || checked"
+      @change="handleChange"
     />
     <span class="vis-label" aria-hidden="true">
       <Check class="check-icon" stroke-width="3" />
     </span>
     <span
-        v-if="$slots.default"
-        class="text-sub leading-[18px] flex-1"
-        @click="handleLabelClick"
+      v-if="$slots.default"
+      class="text-sub leading-[18px] flex-1"
+      @click="handleLabelClick"
     >
       <slot></slot>
     </span>
@@ -104,7 +107,7 @@ function handleLabelClick(event: MouseEvent) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 34px; 
+  width: 34px;
   height: 34px;
   border-radius: var(--radius-full);
   background-color: transparent;
@@ -113,7 +116,7 @@ function handleLabelClick(event: MouseEvent) {
 }
 
 .collapse-checkbox:hover .vis-label::before {
-  background-color: var(--color-surface-hover); 
+  background-color: var(--color-surface-hover);
 }
 
 .check-icon {

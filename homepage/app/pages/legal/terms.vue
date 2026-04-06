@@ -24,7 +24,6 @@ const conductItems = [
 
 <template>
   <LegalPage :title="t('legal.terms.title')" :description="t('legal.terms.description')">
-
     <LegalSection :title="t('legal.terms.acceptance.title')">
       <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.acceptance.text') }}</p>
     </LegalSection>
@@ -65,6 +64,5 @@ const conductItems = [
     <LegalSection :title="t('legal.terms.governing.title')">
       <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.governing.text') }}</p>
     </LegalSection>
-
   </LegalPage>
 </template>

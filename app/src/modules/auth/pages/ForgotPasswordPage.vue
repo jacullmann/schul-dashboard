@@ -77,7 +77,11 @@ async function handleNext() {
       step.value = 2;
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      setMessage(err?.response?.data?.error || t('account.auth.reset.errors.requestFailed'), true);
+      setMessage(
+        err?.response?.data?.error ||
+          t('account.auth.reset.errors.requestFailed'),
+        true,
+      );
     } finally {
       submitting.value = false;
     }
@@ -97,7 +101,11 @@ async function handleNext() {
       step.value = 3;
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      setMessage(err?.response?.data?.error || t('account.auth.reset.errors.codeExpired'), true);
+      setMessage(
+        err?.response?.data?.error ||
+          t('account.auth.reset.errors.codeExpired'),
+        true,
+      );
     } finally {
       submitting.value = false;
     }
@@ -126,7 +134,11 @@ async function handleNext() {
       await router.push('/login');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
-      setMessage(err?.response?.data?.error || t('account.auth.reset.errors.resetFailed'), true);
+      setMessage(
+        err?.response?.data?.error ||
+          t('account.auth.reset.errors.resetFailed'),
+        true,
+      );
     } finally {
       submitting.value = false;
     }
@@ -144,7 +156,9 @@ async function handleNext() {
             ? t('account.auth.reset.step2.title', {
                 defaultValue: 'Verify Code',
               })
-            : t('account.auth.reset.step3.title', { defaultValue: 'New Password' })
+            : t('account.auth.reset.step3.title', {
+                defaultValue: 'New Password',
+              })
       "
       :close-on-backdrop="false"
       @close="goBackToLogin"
@@ -154,7 +168,10 @@ async function handleNext() {
           {{ t('account.auth.reset.step1.description') }}
         </p>
         <div>
-          <label for="reset-email" class="block text-body font-medium text-on-surface mb-2">
+          <label
+            for="reset-email"
+            class="block text-body font-medium text-on-surface mb-2"
+          >
             {{ t('account.auth.email') }}
           </label>
           <BaseInput
@@ -172,7 +189,10 @@ async function handleNext() {
           {{ t('account.auth.reset.step2.description') }}
         </p>
         <div>
-          <label for="reset-code" class="block text-body font-medium text-on-surface mb-2">
+          <label
+            for="reset-code"
+            class="block text-body font-medium text-on-surface mb-2"
+          >
             {{ t('account.auth.reset.placeholders.code') }}
           </label>
           <BaseInput
@@ -189,7 +209,10 @@ async function handleNext() {
           {{ t('account.auth.reset.step3.description') }}
         </p>
         <div>
-          <label for="reset-password" class="block text-body font-medium text-on-surface mb-2">
+          <label
+            for="reset-password"
+            class="block text-body font-medium text-on-surface mb-2"
+          >
             {{ t('account.auth.reset.placeholders.newPassword') }}
           </label>
           <BaseInput
@@ -202,7 +225,10 @@ async function handleNext() {
           />
         </div>
         <div>
-          <label for="reset-password-confirm" class="block text-body font-medium text-on-surface mb-2">
+          <label
+            for="reset-password-confirm"
+            class="block text-body font-medium text-on-surface mb-2"
+          >
             {{ t('account.auth.reset.placeholders.confirmPassword') }}
           </label>
           <BaseInput
@@ -218,7 +244,11 @@ async function handleNext() {
         <div
           v-if="message"
           class="text-sub p-3 rounded-md mt-4"
-          :class="isError ? 'bg-danger-surface text-danger' : 'bg-success-surface text-success'"
+          :class="
+            isError
+              ? 'bg-danger-surface text-danger'
+              : 'bg-success-surface text-success'
+          "
         >
           {{ message }}
         </div>

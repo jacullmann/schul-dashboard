@@ -6,15 +6,20 @@ const { toasts, dismiss } = useToast();
 
 const ICONS = {
   success: Check,
-  error:   AlertTriangle,
+  error: AlertTriangle,
   warning: AlertTriangle,
-  info:    Info,
+  info: Info,
 };
 </script>
 
 <template>
   <Teleport to="body">
-    <div class="toast-stack" role="region" aria-label="Notifications" aria-live="polite">
+    <div
+      class="toast-stack"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+    >
       <TransitionGroup name="toast">
         <div
           v-for="toast in toasts"
@@ -82,10 +87,18 @@ const ICONS = {
   justify-content: center;
 }
 
-.toast-success .toast-icon { color: var(--color-success); }
-.toast-error   .toast-icon { color: var(--color-danger); }
-.toast-warning .toast-icon { color: var(--color-warn); }
-.toast-info    .toast-icon { color: var(--color-primary); }
+.toast-success .toast-icon {
+  color: var(--color-success);
+}
+.toast-error .toast-icon {
+  color: var(--color-danger);
+}
+.toast-warning .toast-icon {
+  color: var(--color-warn);
+}
+.toast-info .toast-icon {
+  color: var(--color-primary);
+}
 
 .toast-message {
   flex: 1;
@@ -104,7 +117,9 @@ const ICONS = {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
   margin: -8px -8px -8px 0;
 }
 
@@ -114,10 +129,16 @@ const ICONS = {
 }
 
 .toast-enter-active {
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 .toast-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease, max-height 0.25s ease, margin-bottom 0.25s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    max-height 0.25s ease,
+    margin-bottom 0.25s ease;
 }
 .toast-enter-from {
   opacity: 0;

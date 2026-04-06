@@ -13,7 +13,7 @@ const popMole = () => {
   if (activeMole.value !== null) {
     holes.value[activeMole.value] = false;
   }
-  
+
   if (isGameOver.value) return;
 
   // Chance to not show a mole (brief pause)
@@ -77,12 +77,12 @@ onUnmounted(() => {
       <p>Punkte: {{ score }}</p>
       <p>Zeit: {{ timeLeft }}s</p>
     </div>
-    
+
     <div class="grid">
-      <div 
-        v-for="(isMole, index) in holes" 
-        :key="index" 
-        class="hole" 
+      <div
+        v-for="(isMole, index) in holes"
+        :key="index"
+        class="hole"
         @click="whack(index)"
       >
         <div class="dirt"></div>

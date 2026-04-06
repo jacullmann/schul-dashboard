@@ -2,13 +2,32 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { VueDraggableNext } from 'vue-draggable-next';
 import {
-  ChevronDown, Bold, Palette, Save, AlertTriangle, AlertCircle, RotateCcw,
-  Heading1, Heading2, Type, List, CheckSquare, FileText
+  ChevronDown,
+  Bold,
+  Palette,
+  Save,
+  AlertTriangle,
+  AlertCircle,
+  RotateCcw,
+  Heading1,
+  Heading2,
+  Type,
+  List,
+  CheckSquare,
+  FileText,
 } from '@lucide/vue';
 
 import PlanBlock from '@/modules/admin/components/AdminDocPlanBlock.vue';
 import { useDocEditor } from '@/modules/admin/composables/useDocEditor';
-const TOOLBAR_COLORS = ['#000000','#ffffff','#d32f2f','#f57c00','#388e3c','#1976d2','#7b1fa2'];
+const TOOLBAR_COLORS = [
+  '#000000',
+  '#ffffff',
+  '#d32f2f',
+  '#f57c00',
+  '#388e3c',
+  '#1976d2',
+  '#7b1fa2',
+];
 
 type BlockType = 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'ul' | 'cl';
 
@@ -46,7 +65,7 @@ const {
 
 const currentBlockType = computed(() => {
   if (!currentFocusId.value) return 'p';
-  return blocks.value.find(b => b.id === currentFocusId.value)?.type ?? 'p';
+  return blocks.value.find((b) => b.id === currentFocusId.value)?.type ?? 'p';
 });
 
 function execOnFocused(command: string, value?: string) {
@@ -54,12 +73,15 @@ function execOnFocused(command: string, value?: string) {
   if (!el) return;
   el.focus();
   document.execCommand(command, false, value);
-  const block = blocks.value.find(b => b.id === currentFocusId.value);
-  if (block) { block.content = el.innerHTML; pushBlocksToServer(); }
+  const block = blocks.value.find((b) => b.id === currentFocusId.value);
+  if (block) {
+    block.content = el.innerHTML;
+    pushBlocksToServer();
+  }
 }
 
 function changeCurrentBlockType(type: string) {
-  const block = blocks.value.find(b => b.id === currentFocusId.value);
+  const block = blocks.value.find((b) => b.id === currentFocusId.value);
   if (block) changeBlockType(block, type);
 }
 
@@ -70,25 +92,34 @@ let isSelfUpdate = false;
 
 // --- Serialization/Deserialization (Kept same as provided) ---
 function serializeBlocks(blocks: Block[]): string {
-  return blocks.map(b => {
-    // Standardize attributes
-    const indent = b.indentLevel ? ` data-indent="${b.indentLevel}"` : '';
-    const collapsed = b.isCollapsed ? ` data-collapsed="true"` : '';
-    const checked = b.checked ? ` data-checked="true"` : '';
-    const bid = ` data-bid="${b.id}"`; // The most important part
-    const type = ` data-type="${b.type}"`;
+  return blocks
+    .map((b) => {
+      // Standardize attributes
+      const indent = b.indentLevel ? ` data-indent="${b.indentLevel}"` : '';
+      const collapsed = b.isCollapsed ? ` data-collapsed="true"` : '';
+      const checked = b.checked ? ` data-checked="true"` : '';
+      const bid = ` data-bid="${b.id}"`; // The most important part
+      const type = ` data-type="${b.type}"`;
 
-    // Wrap content in the appropriate tag
-    switch (b.type) {
-      case 'h1': return `<h1${bid}${type}${indent}${collapsed}>${b.content}</h1>`;
-      case 'h2': return `<h2${bid}${type}${indent}${collapsed}>${b.content}</h2>`;
-      case 'h3': return `<h3${bid}${type}${indent}${collapsed}>${b.content}</h3>`;
-      case 'h4': return `<h4${bid}${type}${indent}${collapsed}>${b.content}</h4>`;
-      case 'ul': return `<ul${bid}${type}${indent}><li>${b.content}</li></ul>`;
-      case 'cl': return `<div class="cl-block"${bid}${type}${indent}${checked}>${b.content}</div>`;
-      default:   return `<p${bid}${type}${indent}>${b.content}</p>`;
-    }
-  }).join('\n');
+      // Wrap content in the appropriate tag
+      switch (b.type) {
+        case 'h1':
+          return `<h1${bid}${type}${indent}${collapsed}>${b.content}</h1>`;
+        case 'h2':
+          return `<h2${bid}${type}${indent}${collapsed}>${b.content}</h2>`;
+        case 'h3':
+          return `<h3${bid}${type}${indent}${collapsed}>${b.content}</h3>`;
+        case 'h4':
+          return `<h4${bid}${type}${indent}${collapsed}>${b.content}</h4>`;
+        case 'ul':
+          return `<ul${bid}${type}${indent}><li>${b.content}</li></ul>`;
+        case 'cl':
+          return `<div class="cl-block"${bid}${type}${indent}${checked}>${b.content}</div>`;
+        default:
+          return `<p${bid}${type}${indent}>${b.content}</p>`;
+      }
+    })
+    .join('\n');
 }
 
 function deserializeBlocks(html: string): Block[] {
@@ -110,14 +141,18 @@ function deserializeBlocks(html: string): Block[] {
     const collapsed = el.getAttribute('data-collapsed') === 'true';
 
     let type: BlockType = 'p';
-    if (dataType && ['h1','h2','h3','h4','p','ul','cl'].includes(dataType)) {
+    if (
+      dataType &&
+      ['h1', 'h2', 'h3', 'h4', 'p', 'ul', 'cl'].includes(dataType)
+    ) {
       type = dataType as BlockType;
-    } else if (['h1','h2','h3','h4','p'].includes(tag)) {
+    } else if (['h1', 'h2', 'h3', 'h4', 'p'].includes(tag)) {
       type = tag as BlockType;
     }
 
-    let content = (type === 'ul')
-        ? (el.querySelector('li')?.innerHTML || el.innerHTML)
+    let content =
+      type === 'ul'
+        ? el.querySelector('li')?.innerHTML || el.innerHTML
         : el.innerHTML;
 
     return {
@@ -132,23 +167,27 @@ function deserializeBlocks(html: string): Block[] {
 }
 
 // Replace your existing watcher with this:
-watch(docContent, (newHtml) => {
-  // 1. Compare semantic content to avoid loop if nothing actually changed
-  const currentHtml = serializeBlocks(blocks.value);
-  if (currentHtml === newHtml) return;
+watch(
+  docContent,
+  (newHtml) => {
+    // 1. Compare semantic content to avoid loop if nothing actually changed
+    const currentHtml = serializeBlocks(blocks.value);
+    if (currentHtml === newHtml) return;
 
-  // 2. Only deserialize if it's truly an external update
-  // (Ideally, your backend should send a 'senderId' so you know if IT WAS YOU)
-  if (isSelfUpdate) return;
+    // 2. Only deserialize if it's truly an external update
+    // (Ideally, your backend should send a 'senderId' so you know if IT WAS YOU)
+    if (isSelfUpdate) return;
 
-  const parsed = deserializeBlocks(newHtml);
+    const parsed = deserializeBlocks(newHtml);
 
-  // 3. SMART MERGE (Optional but recommended):
-  // Instead of replacing the whole array (which kills DOM focus),
-  // try to update only changed blocks by ID if possible.
-  // For now, simple replacement:
-  blocks.value = parsed;
-}, { immediate: false });
+    // 3. SMART MERGE (Optional but recommended):
+    // Instead of replacing the whole array (which kills DOM focus),
+    // try to update only changed blocks by ID if possible.
+    // For now, simple replacement:
+    blocks.value = parsed;
+  },
+  { immediate: false },
+);
 
 // Improve the "Lock" mechanism
 // Instead of a timer, use a flag that resets only on the next tick after a save
@@ -174,7 +213,7 @@ function getLevel(type: string): number {
   return { h1: 1, h2: 2, h3: 3, h4: 4 }[type] ?? 10;
 }
 function isHeader(type: string): boolean {
-  return ['h1','h2','h3','h4'].includes(type);
+  return ['h1', 'h2', 'h3', 'h4'].includes(type);
 }
 
 // --- FIX: Visibility Logic moved to function for v-show ---
@@ -213,16 +252,16 @@ function isBlockVisible(id: string) {
 
 const toc = computed<TocItem[]>(() => {
   return blocks.value
-      .filter(b => isHeader(b.type))
-      .map(b => {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = b.content;
-        return {
-          id: b.id,
-          text: tmp.textContent?.trim() || '',
-          level: getLevel(b.type),
-        };
-      });
+    .filter((b) => isHeader(b.type))
+    .map((b) => {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = b.content;
+      return {
+        id: b.id,
+        text: tmp.textContent?.trim() || '',
+        level: getLevel(b.type),
+      };
+    });
 });
 
 function addBlock(type: BlockType = 'p') {
@@ -240,7 +279,7 @@ function addBlock(type: BlockType = 'p') {
 }
 
 function removeBlock(id: string) {
-  const idx = blocks.value.findIndex(b => b.id === id);
+  const idx = blocks.value.findIndex((b) => b.id === id);
   if (idx === -1) return;
   const prev = blocks.value[idx - 1];
   if (prev) focusBlock(prev.id);
@@ -345,7 +384,7 @@ const connectionLabels: Record<string, string> = {
 function emailToInitials(email: string | undefined): string {
   if (!email) return '??';
   const local = email.split('@')[0] || '';
-  const parts = local.split(/[._-]/).filter(p => !!p);
+  const parts = local.split(/[._-]/).filter((p) => !!p);
   if (parts.length >= 2) {
     const p1 = parts[0];
     const p2 = parts[1];
@@ -356,7 +395,14 @@ function emailToInitials(email: string | undefined): string {
   return local.slice(0, 2).toUpperCase();
 }
 function formatTime(iso: string): string {
-  try { return new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); } catch { return ''; }
+  try {
+    return new Intl.DateTimeFormat('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(iso));
+  } catch {
+    return '';
+  }
 }
 
 onMounted(async () => {
@@ -368,7 +414,6 @@ onMounted(async () => {
 
 <template>
   <div class="doc-editor-page">
-
     <div class="doc-statusbar">
       <div class="status-left">
         <div class="connection-badge" :class="connectionState">
@@ -378,13 +423,16 @@ onMounted(async () => {
           </span>
         </div>
 
-        <div v-if="isConnected && onlineAdmins.length > 0" class="online-admins">
+        <div
+          v-if="isConnected && onlineAdmins.length > 0"
+          class="online-admins"
+        >
           <span class="online-label">Online:</span>
           <span
-              v-for="email in onlineAdmins"
-              :key="email"
-              class="admin-chip"
-              :title="email"
+            v-for="email in onlineAdmins"
+            :key="email"
+            class="admin-chip"
+            :title="email"
           >
             {{ emailToInitials(email) }}
           </span>
@@ -404,10 +452,10 @@ onMounted(async () => {
         </span>
 
         <button
-            class="save-btn"
-            @click="saveNow"
-            :disabled="isSaving || !isConnected"
-            :title="isSaving ? 'Wird gespeichert…' : 'Jetzt speichern'"
+          class="save-btn"
+          @click="saveNow"
+          :disabled="isSaving || !isConnected"
+          :title="isSaving ? 'Wird gespeichert…' : 'Jetzt speichern'"
         >
           <Save :size="14" />
           {{ isSaving ? 'Speichern…' : 'Speichern' }}
@@ -418,7 +466,8 @@ onMounted(async () => {
     <Transition name="banner">
       <div v-if="conflictDetected" class="conflict-banner">
         <AlertTriangle :size="14" />
-        Deine Version scheint veraltet zu sein. Wir haben sie mit dem neuen Stand aktualisiert.
+        Deine Version scheint veraltet zu sein. Wir haben sie mit dem neuen
+        Stand aktualisiert.
       </div>
     </Transition>
 
@@ -430,7 +479,6 @@ onMounted(async () => {
     </Transition>
 
     <div class="editor-layout">
-
       <aside class="outline-sidebar">
         <div class="outline-header">
           <h3>Menü</h3>
@@ -443,20 +491,21 @@ onMounted(async () => {
             Füge Überschriften hinzu, um die Gliederung zu sehen.
           </div>
           <div
-              v-for="item in toc"
-              :key="item.id"
-              class="toc-item"
-              :class="`level-${item.level}`"
-              @click="scrollToBlock(item.id)"
+            v-for="item in toc"
+            :key="item.id"
+            class="toc-item"
+            :class="`level-${item.level}`"
+            @click="scrollToBlock(item.id)"
           >
-            <span class="toc-badge">{{ ['H1','H2','H3','H4'][item.level - 1] }}</span>
+            <span class="toc-badge">{{
+              ['H1', 'H2', 'H3', 'H4'][item.level - 1]
+            }}</span>
             <span class="toc-text">{{ item.text || '(Ohne Titel)' }}</span>
           </div>
         </div>
       </aside>
 
       <main class="editor-main">
-
         <div class="editor-toolbar">
           <div class="toolbar-left">
             <span class="toolbar-label">Block hinzufügen</span>
@@ -477,20 +526,37 @@ onMounted(async () => {
             </button>
             <div class="tb-separator"></div>
 
-            <button @click="execOnFocused('bold')" title="Fett (Strg+B)" :disabled="!currentFocusId">
+            <button
+              @click="execOnFocused('bold')"
+              title="Fett (Strg+B)"
+              :disabled="!currentFocusId"
+            >
               <Bold :size="15" />
             </button>
 
-            <div class="color-menu-wrapper" :class="{ disabled: !currentFocusId }">
+            <div
+              class="color-menu-wrapper"
+              :class="{ disabled: !currentFocusId }"
+            >
               <button class="color-menu-btn" title="Textfarbe">
                 <Palette :size="15" />
                 <ChevronDown :size="11" />
               </button>
               <div class="color-menu-dropdown">
-                <div v-for="c in TOOLBAR_COLORS" :key="c" class="color-dot"
-                     :style="{ backgroundColor: c }" @click="execOnFocused('foreColor', c)"></div>
+                <div
+                  v-for="c in TOOLBAR_COLORS"
+                  :key="c"
+                  class="color-dot"
+                  :style="{ backgroundColor: c }"
+                  @click="execOnFocused('foreColor', c)"
+                ></div>
                 <label class="color-dot custom" title="Eigene Farbe">
-                  <input type="color" @input="(e: any) => execOnFocused('foreColor', e.target.value)" />
+                  <input
+                    type="color"
+                    @input="
+                      (e: any) => execOnFocused('foreColor', e.target.value)
+                    "
+                  />
                 </label>
               </div>
             </div>
@@ -511,48 +577,49 @@ onMounted(async () => {
             />
           </div>
           <div class="toolbar-right">
-            <span class="toolbar-hint">Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span>
+            <span class="toolbar-hint"
+              >Tab = Einrücken &nbsp;|&nbsp; Shift+Tab = Ausrücken</span
+            >
           </div>
         </div>
 
         <div class="document-scroll-area" id="doc-scroll-area">
           <div class="document-inner">
-
             <VueDraggableNext
-                v-model="blocks"
-                handle=".drag-handle"
-                animation="180"
-                ghost-class="ghost-block"
-                @start="isDragging = true"
-                @end="onDragEnd"
+              v-model="blocks"
+              handle=".drag-handle"
+              animation="180"
+              ghost-class="ghost-block"
+              @start="isDragging = true"
+              @end="onDragEnd"
             >
               <TransitionGroup name="block-list" tag="div">
                 <div
-                    v-for="(block, index) in blocks"
-                    :key="block.id"
-                    v-show="isBlockVisible(block.id)"
+                  v-for="(block, index) in blocks"
+                  :key="block.id"
+                  v-show="isBlockVisible(block.id)"
                 >
                   <PlanBlock
-                      :block="block"
-                      @update:content="(c) => updateBlockContent(block, c)"
-                      @update:checked="(c) => updateBlockChecked(block, c)"
-                      @toggle-collapse="toggleCollapse(block)"
-                      @keydown-enter="handleEnter(index, $event)"
-                      @keydown-backspace="handleBackspace(index, $event)"
-                      @indent="handleIndent(block, 1)"
-                      @outdent="handleIndent(block, -1)"
-                      @delete="removeBlock(block.id)"
-                      @focus="currentFocusId = block.id"
-                      @change-type="(t) => changeBlockType(block, t)"
+                    :block="block"
+                    @update:content="(c) => updateBlockContent(block, c)"
+                    @update:checked="(c) => updateBlockChecked(block, c)"
+                    @toggle-collapse="toggleCollapse(block)"
+                    @keydown-enter="handleEnter(index, $event)"
+                    @keydown-backspace="handleBackspace(index, $event)"
+                    @indent="handleIndent(block, 1)"
+                    @outdent="handleIndent(block, -1)"
+                    @delete="removeBlock(block.id)"
+                    @focus="currentFocusId = block.id"
+                    @change-type="(t) => changeBlockType(block, t)"
                   />
                 </div>
               </TransitionGroup>
             </VueDraggableNext>
 
             <div
-                v-if="blocks.length === 0"
-                class="empty-doc"
-                @click="addBlock('h1')"
+              v-if="blocks.length === 0"
+              class="empty-doc"
+              @click="addBlock('h1')"
             >
               <FileText :size="32" class="empty-icon" />
               <span>Klicke hier, um mit dem Schreiben zu beginnen</span>
@@ -561,10 +628,8 @@ onMounted(async () => {
             <div class="doc-spacer"></div>
           </div>
         </div>
-
       </main>
     </div>
-
   </div>
 </template>
 
@@ -676,8 +741,13 @@ onMounted(async () => {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Status Bar Components */
@@ -864,10 +934,19 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-.level-1 { padding-left: 8px; font-weight: 600; }
-.level-2 { padding-left: 20px; }
-.level-3 { padding-left: 32px; }
-.level-4 { padding-left: 44px; }
+.level-1 {
+  padding-left: 8px;
+  font-weight: 600;
+}
+.level-2 {
+  padding-left: 20px;
+}
+.level-3 {
+  padding-left: 32px;
+}
+.level-4 {
+  padding-left: 44px;
+}
 
 /* =========================================
    Editor Toolbar
@@ -1024,7 +1103,9 @@ onMounted(async () => {
   border-radius: 50%;
   border: 1px solid rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
   flex-shrink: 0;
 }
 
@@ -1045,7 +1126,7 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.color-dot.custom input[type="color"] {
+.color-dot.custom input[type='color'] {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -1104,7 +1185,9 @@ onMounted(async () => {
   cursor: pointer;
   margin-top: 24px;
   font-size: var(--text-body);
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .empty-doc:hover {

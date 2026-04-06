@@ -18,19 +18,27 @@ const { t, tm } = useI18n();
         :tooltip="t('school.tables.schedule.infopop.tooltip')"
         :title="t('school.tables.schedule.title')"
       >
-      <h3 class="text-h3 font-bold mb-2">{{ t('school.tables.schedule.infopop.description') }}</h3>
-      <div v-for="(section, index) in tm('school.tables.schedule.infopop.sections')" :key="index" class="mb-4">
-        <h3 class="text-h3 font-bold mb-1">{{ section.title }}</h3>
-        <p class="text-body text-on-surface-muted m-0">{{ section.text }}</p>
-      </div>
-      <div class="w-full flex items-center justify-center mt-4">
-        <img
-          alt="Bild"
-          src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474359/Stundenplan_Ausfall_Grafik_b34pcq.webp"
-          class="w-full h-full rounded-lg"
-        />
-      </div>
-    </InfoModal>
+        <h3 class="text-h3 font-bold mb-2">
+          {{ t('school.tables.schedule.infopop.description') }}
+        </h3>
+        <div
+          v-for="(section, index) in tm(
+            'school.tables.schedule.infopop.sections',
+          )"
+          :key="index"
+          class="mb-4"
+        >
+          <h3 class="text-h3 font-bold mb-1">{{ section.title }}</h3>
+          <p class="text-body text-on-surface-muted m-0">{{ section.text }}</p>
+        </div>
+        <div class="w-full flex items-center justify-center mt-4">
+          <img
+            alt="Bild"
+            src="https://res.cloudinary.com/dwysdpvcm/image/upload/v1765474359/Stundenplan_Ausfall_Grafik_b34pcq.webp"
+            class="w-full h-full rounded-lg"
+          />
+        </div>
+      </InfoModal>
     </template>
   </PageHeader>
 

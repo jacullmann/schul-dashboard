@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = withDefaults(defineProps<{
-  on?: 'action' | 'ghost' | 'text' | 'danger';
-  color?: string;
-  size?: string;
-  borderThickness?: string;
-}>(), {
-  on: 'ghost',
-  size: '16px',
-  borderThickness: '2px',
-});
+const props = withDefaults(
+  defineProps<{
+    on?: 'action' | 'ghost' | 'text' | 'danger';
+    color?: string;
+    size?: string;
+    borderThickness?: string;
+  }>(),
+  {
+    on: 'ghost',
+    size: '16px',
+    borderThickness: '2px',
+  },
+);
 
 const activeColor = computed(() => {
   if (props.color) return props.color;
@@ -28,23 +31,28 @@ const center = computed(() => sizeNum.value / 2);
 
 <template>
   <svg
-      :width="size"
-      :height="size"
-      :viewBox="`0 0 ${sizeNum} ${sizeNum}`"
-      class="inline-block animate-[spinner-rotate_2.2s_linear_infinite]"
-      style="transform-origin: center center"
-      role="status"
-      aria-live="polite"
-      aria-label="Loading..."
+    :width="size"
+    :height="size"
+    :viewBox="`0 0 ${sizeNum} ${sizeNum}`"
+    class="inline-block animate-[spinner-rotate_2.2s_linear_infinite]"
+    style="transform-origin: center center"
+    role="status"
+    aria-live="polite"
+    aria-label="Loading..."
   >
     <circle
-        :cx="center"
-        :cy="center"
-        :r="radius"
-        :stroke="activeColor"
-        :stroke-width="borderThickness"
-        class="fill-none animate-[spinner-element_1.6s_ease-in-out_infinite]"
-        style="stroke-linecap: round; stroke-miterlimit: 10; stroke-dasharray: 1, 200; stroke-dashoffset: 0"
+      :cx="center"
+      :cy="center"
+      :r="radius"
+      :stroke="activeColor"
+      :stroke-width="borderThickness"
+      class="fill-none animate-[spinner-element_1.6s_ease-in-out_infinite]"
+      style="
+        stroke-linecap: round;
+        stroke-miterlimit: 10;
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
+      "
     />
   </svg>
 </template>

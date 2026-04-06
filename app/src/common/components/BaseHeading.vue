@@ -21,10 +21,7 @@ const classes = computed(() => {
 </script>
 
 <template>
-  <component
-    :is="tag"
-    :class="classes"
-  >
+  <component :is="tag" :class="classes">
     <slot></slot>
   </component>
 </template>

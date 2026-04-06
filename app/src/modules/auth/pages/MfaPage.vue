@@ -9,8 +9,7 @@ const userStore = useUserStore();
 async function handleMfaVerified() {
   try {
     await userStore.fetchUser();
-  } catch {
-  }
+  } catch {}
   await router.push('/home');
 }
 
@@ -21,6 +20,9 @@ async function handleMfaCancelled() {
 
 <template>
   <div class="flex items-center justify-center px-4 py-6">
-    <MfaVerifyModal @verified="handleMfaVerified" @cancelled="handleMfaCancelled" />
+    <MfaVerifyModal
+      @verified="handleMfaVerified"
+      @cancelled="handleMfaCancelled"
+    />
   </div>
 </template>

@@ -3,7 +3,8 @@ import { ref, onMounted } from 'vue';
 import { useOAuth } from '@/modules/auth/composables/useOAuth';
 import GoogleIcon from '@/modules/auth/components/GoogleIcon.vue';
 
-const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } = useOAuth();
+const { fetchLinkedProviders, unlinkGoogleAccount, initiateGoogleLogin } =
+  useOAuth();
 
 interface Provider {
   provider: string;
@@ -17,7 +18,8 @@ const errorMsg = ref('');
 const successMsg = ref('');
 
 const googleLinked = () => providers.value.some((p) => p.provider === 'google');
-const googleProvider = () => providers.value.find((p) => p.provider === 'google');
+const googleProvider = () =>
+  providers.value.find((p) => p.provider === 'google');
 
 onMounted(async () => {
   providers.value = await fetchLinkedProviders();
@@ -60,7 +62,9 @@ function handleLink() {
           </div>
           <div class="provider-text">
             <span class="provider-name">Google</span>
-            <span v-if="googleLinked()" class="provider-email">{{ googleProvider()?.email }}</span>
+            <span v-if="googleLinked()" class="provider-email">{{
+              googleProvider()?.email
+            }}</span>
             <span v-else class="provider-status">Nicht verknüpft</span>
           </div>
         </div>
@@ -69,21 +73,21 @@ function handleLink() {
           <span v-if="googleLinked()" class="linked-badge">Verknüpft</span>
 
           <BaseButton
-              v-if="googleLinked()"
-              variant="ghost"
-              class="small"
-              :loading="actionLoading"
-              @click="handleUnlink"
+            v-if="googleLinked()"
+            variant="ghost"
+            class="small"
+            :loading="actionLoading"
+            @click="handleUnlink"
           >
             Trennen
           </BaseButton>
 
           <BaseButton
-              v-else
-              variant="action"
-              class="small"
-              :loading="actionLoading"
-              @click="handleLink"
+            v-else
+            variant="action"
+            class="small"
+            :loading="actionLoading"
+            @click="handleLink"
           >
             Verknüpfen
           </BaseButton>

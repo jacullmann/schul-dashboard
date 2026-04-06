@@ -2,16 +2,19 @@
 import { ref, computed } from 'vue';
 import { Eye, EyeOff } from '@lucide/vue';
 
-const props = withDefaults(defineProps<{
-  id: string;
-  as?: 'input' | 'textarea';
-  required?: boolean;
-  type?: string;
-}>(), {
-  as: 'input',
-  required: false,
-  type: 'text',
-});
+const props = withDefaults(
+  defineProps<{
+    id: string;
+    as?: 'input' | 'textarea';
+    required?: boolean;
+    type?: string;
+  }>(),
+  {
+    as: 'input',
+    required: false,
+    type: 'text',
+  },
+);
 
 defineOptions({
   inheritAttrs: false,
@@ -33,7 +36,8 @@ const togglePassword = () => {
   isPasswordVisible.value = !isPasswordVisible.value;
 };
 
-const baseClasses = "w-full px-3 py-2 rounded-md bg-surface text-on-surface border border-surface-border text-btn leading-4 outline-none shadow-input transition-focus focus:border-focus focus:shadow-focus-ring placeholder:text-on-surface-subtle";
+const baseClasses =
+  'w-full px-3 py-2 rounded-md bg-surface text-on-surface border border-surface-border text-btn leading-4 outline-none shadow-input transition-focus focus:border-focus focus:shadow-focus-ring placeholder:text-on-surface-subtle';
 
 defineExpose({
   focus: () => inputRef.value?.focus(),
@@ -64,7 +68,7 @@ defineExpose({
       :aria-required="props.required"
       v-bind="$attrs"
     />
-    
+
     <button
       v-if="props.type === 'password'"
       type="button"

@@ -19,7 +19,7 @@ const {
   isError,
   errors,
   clearFieldError,
-  submit
+  submit,
 } = useChangePassword(emit);
 
 const currentPasswordRef = ref<HTMLInputElement | null>(null);
@@ -30,7 +30,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <BaseModal @cancel="$emit('cancel')" :submit="submit" :error="isError ? message : undefined" :loading="submitting">
+  <BaseModal
+    @cancel="$emit('cancel')"
+    :submit="submit"
+    :error="isError ? message : undefined"
+    :loading="submitting"
+  >
     <template #title>
       {{ t('account.menu.changePassword.title') }}
     </template>
@@ -41,14 +46,16 @@ onMounted(() => {
           {{ t('account.menu.changePassword.currentPassword') }}
         </BaseLabel>
         <BaseInput
-            ref="currentPasswordRef"
-            id="currentPassword"
-            type="password"
-            v-model="currentPassword"
-            :placeholder="t('account.menu.changePassword.currentPlaceholder')"
-            @input="clearFieldError('current')"
-            @keydown.enter="submit"
-            :aria-describedby="errors.current ? 'currentPassword-error' : undefined"
+          ref="currentPasswordRef"
+          id="currentPassword"
+          type="password"
+          v-model="currentPassword"
+          :placeholder="t('account.menu.changePassword.currentPlaceholder')"
+          @input="clearFieldError('current')"
+          @keydown.enter="submit"
+          :aria-describedby="
+            errors.current ? 'currentPassword-error' : undefined
+          "
         />
       </BaseFormGroup>
 
@@ -57,13 +64,13 @@ onMounted(() => {
           {{ t('account.menu.changePassword.newPassword') }}
         </BaseLabel>
         <BaseInput
-            id="newPassword"
-            type="password"
-            v-model="newPassword"
-            :placeholder="t('account.menu.changePassword.newPlaceholder')"
-            @input="clearFieldError('new')"
-            @keydown.enter="submit"
-            :aria-describedby="errors.new ? 'newPassword-error' : undefined"
+          id="newPassword"
+          type="password"
+          v-model="newPassword"
+          :placeholder="t('account.menu.changePassword.newPlaceholder')"
+          @input="clearFieldError('new')"
+          @keydown.enter="submit"
+          :aria-describedby="errors.new ? 'newPassword-error' : undefined"
         />
       </BaseFormGroup>
 
@@ -72,13 +79,13 @@ onMounted(() => {
           {{ t('account.menu.changePassword.confirmPassword') }}
         </BaseLabel>
         <BaseInput
-            id="newPassword2"
-            type="password"
-            v-model="newPassword2"
-            :placeholder="t('account.menu.changePassword.confirmPlaceholder')"
-            @input="clearFieldError('confirm')"
-            @keydown.enter="submit"
-            :aria-describedby="errors.confirm ? 'newPassword2-error' : undefined"
+          id="newPassword2"
+          type="password"
+          v-model="newPassword2"
+          :placeholder="t('account.menu.changePassword.confirmPlaceholder')"
+          @input="clearFieldError('confirm')"
+          @keydown.enter="submit"
+          :aria-describedby="errors.confirm ? 'newPassword2-error' : undefined"
         />
       </BaseFormGroup>
 
