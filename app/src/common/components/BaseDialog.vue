@@ -16,10 +16,10 @@ withDefaults(
 
 <template>
   <BaseModal
+    :submit="() => $emit('confirm')"
     :loading="loading"
     :danger="danger"
     @cancel="$emit('cancel')"
-    @submit="$emit('confirm')"
   >
     <template #title>{{ title }}</template>
 
