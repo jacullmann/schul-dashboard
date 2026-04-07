@@ -69,6 +69,11 @@ const mockMessages = computed(() => {
 });
 
 const userInput = ref('');
+
+watch(userInput, () => {
+  autoResize();
+});
+
 const selectedModel = ref('ultra');
 const isThinking = computed(
   () => isSearching.value || (chat.value?.isOpponentTyping ?? false),
@@ -198,9 +203,6 @@ const toggleSpeechRecognition = () => {
 
     // Update your existing userInput ref
     userInput.value = transcript;
-
-    // Trigger your existing autoResize to make sure the textarea grows
-    autoResize();
   };
 
   recognition.onerror = (event: any) => {

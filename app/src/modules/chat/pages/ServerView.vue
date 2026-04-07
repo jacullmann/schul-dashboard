@@ -78,6 +78,11 @@ const mockMessages = computed(() => {
 });
 
 const userInput = ref('');
+
+watch(userInput, () => {
+  handleInput();
+});
+
 const selectedModel = ref('ultra');
 const isThinking = computed(
   () => isSearching.value || (chat.value?.isOpponentTyping ?? false),
@@ -201,7 +206,6 @@ const toggleSpeechRecognition = () => {
       .join('');
 
     userInput.value = transcript;
-    handleInput();
   };
 
   recognition.onerror = (event: any) => {
