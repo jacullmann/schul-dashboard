@@ -178,6 +178,24 @@ const routes = [
         component: () => import('@/modules/chat/pages/NaturalIntelligence.vue'),
         meta: { title: 'navigation.naturalIntelligence' },
       },
+      {
+        path: 'chat',
+        name: 'natural-intelligence-chat',
+        component: () => import('@/modules/chat/pages/ChatView.vue'),
+        meta: { title: 'navigation.naturalIntelligenceChat' },
+      },
+      {
+        path: 'server',
+        name: 'natural-intelligence-server',
+        component: () => import('@/modules/chat/pages/ServerView.vue'),
+        meta: { title: 'navigation.naturalIntelligenceServer' },
+      },
+      {
+        path: 'admin',
+        name: 'natural-intelligence-admin',
+        component: () => import('@/modules/chat/pages/AdminView.vue'),
+        meta: { title: 'navigation.naturalIntelligenceAdmin' },
+      },
     ],
   },
 

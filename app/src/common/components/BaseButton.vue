@@ -84,6 +84,7 @@ defineExpose({
       size === 'lg' ? 'text-sub' : 'text-btn',
       size === 'lg' ? 'py-2.5' : 'py-2',
       size === 'lg' ? 'border-0' : 'border',
+      size === 'lg' ? 'h-10' : '',
       chip
         ? size === 'lg'
           ? 'px-2.5'

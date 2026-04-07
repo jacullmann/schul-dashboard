@@ -141,8 +141,8 @@ onUnmounted(() => {
               groupMenuOpen = false;
               router.push('/home');
             "
+            :icon="Plus"
           >
-            <Plus :size="16" />
             New group
           </BaseMenuButton>
         </BaseMenu>

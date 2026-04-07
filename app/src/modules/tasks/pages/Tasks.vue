@@ -356,8 +356,8 @@ async function handleArchiveFromMenu(item: HwItem) {
               variant="danger"
               v-if="canDelete(item.createdBy)"
               @click="onMenuAction('delete', item)"
+              :icon="Trash2"
             >
-              <Trash2 :size="16" />
               {{ t('global.buttons.delete') }}
             </BaseMenuButton>
           </BaseMenu>
