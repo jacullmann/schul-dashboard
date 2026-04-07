@@ -3,6 +3,7 @@ import { ref, nextTick } from 'vue';
 import {
   AudioLines,
   ArrowUp,
+  Square,
   ChevronRight,
   Globe,
   Image,
@@ -200,13 +201,13 @@ const toggleSpeechRecognition = () => {
         >
           <div
             v-if="message.role === 'human'"
-            class="bg-surface border border-surface-border py-3 px-4 rounded-2xl max-w-[80%] break-words text-left"
+            class="bg-surface border border-surface-border py-3 px-4 rounded-2xl max-w-[75%] break-words text-left"
           >
             {{ message.content }}
           </div>
           <div
             v-else
-            class="bg-transparent py-3 px-2 max-w-[80%] break-words text-left"
+            class="bg-transparent py-3 px-2 break-words text-left"
           >
             <span
               v-for="(word, index) in message.content.split(' ')"
@@ -361,11 +362,12 @@ const toggleSpeechRecognition = () => {
                   <BaseTooltip
                     v-else
                     key="submit"
-                    content="Submit"
+                    :content="isThinking ? 'Cancel' : 'Submit'"
                     placement="bottom"
                   >
                     <BaseButton
-                      :icon="ArrowUp"
+                      :icon="isThinking ? Square : ArrowUp"
+                      :fill="isThinking"
                       variant="action"
                       type="submit"
                       size="lg"

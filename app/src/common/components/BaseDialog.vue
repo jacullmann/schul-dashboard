@@ -24,7 +24,7 @@ withDefaults(
     <template #title>{{ title }}</template>
 
     <template #content>
-      <p><slot></slot></p>
+      <p class="m-0!"><slot></slot></p>
     </template>
 
     <template #action-text>{{ submitText }}</template>

@@ -10,6 +10,7 @@ export interface Props {
   full?: boolean;
   icon?: Component;
   iconPlacement?: 'leading' | 'trailing';
+  fill?: boolean;
   size?: 'md' | 'lg';
   chip?: boolean;
   loading?: boolean;
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   full: false,
   icon: undefined,
   iconPlacement: 'leading',
+  fill: false,
   size: 'md',
   chip: false,
   loading: false,
@@ -120,12 +122,14 @@ defineExpose({
         v-if="icon && iconPlacement === 'leading'"
         :is="icon"
         :size="size === 'lg' ? 20 : 16"
+        :fill="fill ? 'currentColor' : 'none'"
       />
       <slot></slot>
       <component
         v-if="icon && iconPlacement === 'trailing'"
         :is="icon"
         :size="size === 'lg' ? 20 : 16"
+        :fill="fill ? 'currentColor' : 'none'"
       />
     </template>
 
