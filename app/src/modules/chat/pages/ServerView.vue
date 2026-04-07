@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, computed, watch, onMounted } from 'vue';
 import {
   AudioLines,
   ArrowUp,
@@ -17,25 +17,62 @@ import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
+import { useAuth } from '@/modules/chat/composables/useAuth';
+import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
+import { useChatSession } from '@/modules/chat/composables/useChatSession';
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
 
-interface ChatMessage {
-  id: number;
-  role: 'human' | 'assistant';
-  content: string;
-}
+const { user, profile, joinGame, initializeAuth } = useAuth();
+const { startSearching, session, isSearching } = useMatchmaking();
+
+const currentSessionId = ref<string | null>(null);
+const chat = ref<ReturnType<typeof useChatSession> | null>(null);
+const pendingMessage = ref('');
+
+onMounted(() => {
+  initializeAuth();
+});
+
+watch(session, (newSession) => {
+  if (
+    newSession?.status === 'active' &&
+    newSession.id !== currentSessionId.value
+  ) {
+    currentSessionId.value = newSession.id;
+    const sessionChat = useChatSession(newSession.id);
+    chat.value = sessionChat;
+    sessionChat.initializeChat();
+
+    // Send pending message if any
+    if (pendingMessage.value) {
+      sessionChat.sendMessage(pendingMessage.value);
+      pendingMessage.value = '';
+    }
+  }
+});
 
 const webSearch = ref(true);
 const createImage = ref(false);
 const ponder = ref(false);
 const answerLeisurely = ref(false);
 
-const mockMessages = ref<ChatMessage[]>([]);
+const mockMessages = computed(() => {
+  const currentChat = chat.value;
+  if (!currentChat) return [];
+  return currentChat.messages.map((m) => ({
+    id: m.id,
+    role: m.sender_id === user.value?.id ? 'assistant' : 'human',
+    content: m.content,
+  }));
+});
+
 const userInput = ref('');
 const selectedModel = ref('ultra');
-const isThinking = ref(false);
+const isThinking = computed(
+  () => isSearching.value || (chat.value?.isOpponentTyping ?? false),
+);
 
 // 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -77,58 +114,50 @@ const scrollToBottom = () => {
   }
 };
 
-function send() {
-  if (!userInput.value.trim() || isThinking.value) return;
+async function send() {
+  const content = userInput.value.trim();
+  if (!content && !pendingMessage.value) return;
 
-  mockMessages.value.push({
-    id: Date.now(),
-    role: 'assistant',
-    content: userInput.value,
-  });
+  if (!profile.value) {
+    pendingMessage.value = content;
+    userInput.value = '';
+    await joinGame('ai');
+    await startSearching();
+    return;
+  }
 
-  useToast().success('Message sent.');
-  userInput.value = '';
-
-  nextTick(() => {
-    if (textareaRef.value) {
-      // Re-enable transition for the shrinking animation
-      textareaRef.value.style.transition =
-        'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
-      textareaRef.value.style.height = '40px'; // Your default 1-row height
+  if (session.value?.status !== 'active') {
+    if (content) {
+      pendingMessage.value = content;
+      userInput.value = '';
     }
+    return;
+  }
 
-    scrollToBottom();
-  });
-
-  // Model-dependent delays
-  const delays: Record<string, number> = {
-    instant: 600,
-    pro: 4000,
-    ultra: 15000,
-  };
-  const delay = delays[selectedModel.value] || 600;
-
-  isThinking.value = true;
-  nextTick(scrollToBottom);
-
-  // Simulated AI response after the selected delay
-  setTimeout(() => {
-    isThinking.value = false;
-    mockMessages.value.push({
-      id: Date.now(),
-      role: 'human',
-      content:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-    });
+  if (chat.value) {
+    await chat.value.sendMessage(content);
+    userInput.value = '';
 
     nextTick(() => {
       scrollToBottom();
     });
-  }, delay);
+  }
 }
 
+// Watch for new messages to scroll
+watch(
+  () => mockMessages.value.length,
+  () => {
+    nextTick(scrollToBottom);
+  },
+);
+
 function clearChat() {
-  mockMessages.value = [];
+  if (chat.value) {
+    chat.value.leaveChat();
+    chat.value = null;
+    currentSessionId.value = null;
+  }
 }
 
 // Voice Recognition
@@ -191,9 +220,17 @@ const toggleSpeechRecognition = () => {
 
 <template>
   <div class="h-[100dvh] w-full flex flex-col overflow-hidden bg-background">
-    <div class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1">
+    <div
+      class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1"
+    >
       <BaseTooltip content="New Chat" placement="bottom">
-        <BaseButton :variant="'ghost'" size="lg" class="z-10" :icon="SquarePen" @click="clearChat" />
+        <BaseButton
+          :variant="'ghost'"
+          size="lg"
+          class="z-10"
+          :icon="SquarePen"
+          @click="clearChat"
+        />
       </BaseTooltip>
     </div>
 
@@ -218,10 +255,7 @@ const toggleSpeechRecognition = () => {
           >
             {{ message.content }}
           </div>
-          <div
-            v-else
-            class="bg-transparent py-3 px-2 break-words text-right"
-          >
+          <div v-else class="bg-transparent py-3 px-2 break-words text-right">
             <span
               v-for="(word, index) in message.content.split(' ')"
               :key="index"
