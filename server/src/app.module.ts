@@ -10,7 +10,6 @@ import { ItemsModule } from './items/items.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { MfaModule } from './mfa/mfa.module';
-import { DocModule } from './doc/doc.module';
 import { EmailModule } from './common/email/email.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
 import { JwtModule } from './common/jwt/jwt.module';
@@ -48,7 +47,6 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     ScheduleModule,
     SuperAdminModule,
     MfaModule,
-    DocModule,
     OAuthModule,
   ],
   controllers: [],

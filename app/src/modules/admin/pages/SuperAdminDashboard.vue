@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Users,
   Flag,
-  FileText as FileTextIcon,
   Lock,
   Unlock,
   Trash2,
@@ -17,7 +16,6 @@ import {
 } from '@lucide/vue';
 import hw from '@/api/hwApi';
 import AdminLayout from '@/layouts/AdminLayout.vue';
-import AdminDocEditor from '@/modules/admin/components/AdminDocEditor.vue';
 import { useToast } from '@/common/composables/useToast';
 
 const { success: toastSuccess, error: toastError } = useToast();
@@ -40,7 +38,6 @@ const navItems = computed(() => [
     danger: true,
   },
   { id: 'groups', label: 'Groups', icon: markRaw(Layers), count: 0 },
-  { id: 'doc', label: 'Doc', icon: markRaw(FileTextIcon), count: 0 },
 ]);
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -659,13 +656,6 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
-      </div>
-    </template>
-
-    <!-- ═══ DOC ═══ -->
-    <template v-if="activeTab === 'doc'">
-      <div class="doc-wrapper">
-        <AdminDocEditor />
       </div>
     </template>
   </AdminLayout>
