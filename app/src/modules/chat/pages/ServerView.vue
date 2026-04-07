@@ -460,7 +460,7 @@ const toggleSpeechRecognition = () => {
                 :icon="ChevronRight"
                 icon-placement="trailing"
                 class="mt-4"
-                @click="router.push('/natural-intelligence/server')"
+                @click="router.push('/natural-intelligence/chat')"
               >
                 Talk to an "AI"
               </BaseButton>
