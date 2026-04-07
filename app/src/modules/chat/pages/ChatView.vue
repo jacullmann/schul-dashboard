@@ -25,7 +25,7 @@ const router = useRouter();
 const windowWidth = useWindowSize().width;
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, session, isSearching } = useMatchmaking();
+const { startSearching, cancelSearch, session, isSearching } = useMatchmaking();
 
 const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
@@ -75,9 +75,22 @@ watch(userInput, () => {
 });
 
 const selectedModel = ref('ultra');
+
+const isWaitingForResponse = computed(() => {
+  if (session.value?.status !== 'active') return false;
+  if (mockMessages.value.length === 0) return false;
+  return mockMessages.value[mockMessages.value.length - 1].role === 'human';
+});
+
 const isThinking = computed(
-  () => isSearching.value || (chat.value?.isOpponentTyping ?? false),
+  () => isSearching.value || isWaitingForResponse.value || (chat.value?.isOpponentTyping ?? false),
 );
+
+const handleCancel = async () => {
+  if (isSearching.value) {
+    await cancelSearch();
+  }
+};
 
 // 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -120,6 +133,7 @@ const scrollToBottom = () => {
 };
 
 async function send() {
+  if (isThinking.value) return;
   const content = userInput.value.trim();
   if (!content && !pendingMessage.value) return;
 
@@ -407,7 +421,8 @@ const toggleSpeechRecognition = () => {
                       :icon="Square"
                       :fill="true"
                       variant="action"
-                      type="submit"
+                      type="button"
+                      @click="handleCancel"
                       size="lg"
                     />
                   </BaseTooltip>

@@ -84,9 +84,22 @@ watch(userInput, () => {
 });
 
 const selectedModel = ref('ultra');
+
+const isWaitingForResponse = computed(() => {
+  if (session.value?.status !== 'active') return false;
+  if (mockMessages.value.length === 0) return true;
+  return mockMessages.value[mockMessages.value.length - 1].role === 'assistant';
+});
+
 const isThinking = computed(
-  () => isSearching.value || (chat.value?.isOpponentTyping ?? false),
+  () => isSearching.value || isWaitingForResponse.value || (chat.value?.isOpponentTyping ?? false),
 );
+
+const handleCancel = async () => {
+  if (isSearching.value) {
+    await cancelSearch();
+  }
+};
 
 // 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
@@ -135,6 +148,7 @@ async function handleFindUser() {
 
 // 4. Send function updated to ONLY handle sending messages
 async function send() {
+  if (isThinking.value) return;
   const content = userInput.value.trim();
   if (!content && !pendingMessage.value) return;
 
@@ -400,7 +414,7 @@ const toggleSpeechRecognition = () => {
                   leave-to-class="opacity-0"
                 >
                   <BaseButton
-                    v-if="mockMessages.length === 0 && !isSearching"
+                    v-if="mockMessages.length === 0 && !isSearching && session?.status !== 'active'"
                     :icon="Search"
                     variant="action"
                     type="button"
@@ -411,7 +425,7 @@ const toggleSpeechRecognition = () => {
                     Find User
                   </BaseButton>
                   <BaseTooltip
-                    v-else-if="isSearching || isThinking"
+                    v-else-if="isThinking"
                     key="cancel"
                     content="Cancel"
                     placement="bottom"
@@ -419,7 +433,7 @@ const toggleSpeechRecognition = () => {
                     <BaseButton
                       :icon="Square"
                       size="lg"
-                      @click="toggleSpeechRecognition"
+                      @click="handleCancel"
                       variant="action"
                       :fill="true"
                     />
