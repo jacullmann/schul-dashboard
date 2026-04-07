@@ -3,13 +3,14 @@ import { ref, nextTick, computed, watch, onMounted } from 'vue';
 import {
   AudioLines,
   ArrowUp,
+  Search,
   Square,
   ChevronRight,
   SquarePen,
   Globe,
   Image,
   Brain,
-  CalendarFold,
+  CalendarFold
 } from '@lucide/vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
 import ToolMenu from '@/modules/chat/components/ToolMenu.vue';
@@ -23,9 +24,10 @@ import { useChatSession } from '@/modules/chat/composables/useChatSession';
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
+const toast = useToast();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, session, isSearching } = useMatchmaking();
+const { startSearching, cancelSearch, session, isSearching } = useMatchmaking();
 
 const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
@@ -50,6 +52,13 @@ watch(session, (newSession) => {
       sessionChat.sendMessage(pendingMessage.value);
       pendingMessage.value = '';
     }
+  }
+});
+
+// Optional: Notify when the opponent leaves
+watch(() => chat.value?.isOpponentConnected, (isConnected) => {
+  if (isConnected === false && session.value?.status === 'active') {
+    toast.info('The user has disconnected from the chat.');
   }
 });
 
@@ -78,29 +87,24 @@ const isThinking = computed(
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const chatContainer = ref<HTMLElement | null>(null);
 
-// 2. The magic resize function
-const autoResize = async () => {
-  await nextTick(); // Wait for Vue to update the v-model
+// 2. The magic resize function + Typing indicator trigger
+const handleInput = async () => {
+  // Trigger typing indicator
+  if (chat.value && userInput.value.trim().length > 0) {
+    chat.value.setTyping(true);
+  }
+
+  await nextTick();
 
   const textarea = textareaRef.value;
   if (!textarea) return;
 
-  // 1. Capture the current height before we mess with it
   const currentHeight = textarea.style.height || `${textarea.clientHeight}px`;
-
-  // 2. Disable transitions temporarily to calculate the new height instantly
   textarea.style.transition = 'none';
   textarea.style.height = 'auto';
   const targetHeight = textarea.scrollHeight;
-
-  // 3. Revert back to the exact starting height
   textarea.style.height = currentHeight;
-
-  // 4. Force a browser reflow (This is the magic line that makes the transition work)
   void textarea.offsetHeight;
-
-  // 5. Re-enable the transition and set the new target height
-  // You can adjust the timing (0.2s) and easing curve here
   textarea.style.transition = 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)';
   textarea.style.height = `${targetHeight}px`;
 };
@@ -114,23 +118,23 @@ const scrollToBottom = () => {
   }
 };
 
+// 3. New specific handler for the Find User button
+async function handleFindUser() {
+  if (isSearching.value) return; 
+
+  if (!profile.value) {
+    await joinGame('ai');
+  }
+  await startSearching();
+}
+
+// 4. Send function updated to ONLY handle sending messages
 async function send() {
   const content = userInput.value.trim();
   if (!content && !pendingMessage.value) return;
 
-  if (!profile.value) {
-    pendingMessage.value = content;
-    userInput.value = '';
-    await joinGame('ai');
-    await startSearching();
-    return;
-  }
-
   if (session.value?.status !== 'active') {
-    if (content) {
-      pendingMessage.value = content;
-      userInput.value = '';
-    }
+    toast.error("You must find a user before sending a message.");
     return;
   }
 
@@ -144,7 +148,6 @@ async function send() {
   }
 }
 
-// Watch for new messages to scroll
 watch(
   () => mockMessages.value.length,
   () => {
@@ -152,12 +155,15 @@ watch(
   },
 );
 
-function clearChat() {
+// 5. Fully clears the chat AND resets the matchmaking state
+async function clearChat() {
   if (chat.value) {
-    chat.value.leaveChat();
+    await chat.value.leaveChat();
     chat.value = null;
     currentSessionId.value = null;
   }
+  await cancelSearch(); // Critical: Resets the queue so you can search again
+  userInput.value = '';
 }
 
 // Voice Recognition
@@ -170,7 +176,7 @@ const toggleSpeechRecognition = () => {
     (window as any).webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    useToast().error('Speech recognition is not supported in this browser.');
+    toast.error('Speech recognition is not supported in this browser.');
     return;
   }
 
@@ -181,32 +187,28 @@ const toggleSpeechRecognition = () => {
 
   recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.interimResults = true; // Shows text as you speak
-  recognition.continuous = false; // Stops when you stop speaking
+  recognition.interimResults = true; 
+  recognition.continuous = false; 
 
   recognition.onstart = () => {
     isListening.value = true;
   };
 
   recognition.onresult = (event: any) => {
-    // Get the latest transcript
     const transcript = Array.from(event.results)
       .map((result: any) => result[0])
       .map((result) => result.transcript)
       .join('');
 
-    // Update your existing userInput ref
     userInput.value = transcript;
-
-    // Trigger your existing autoResize to make sure the textarea grows
-    autoResize();
+    handleInput();
   };
 
   recognition.onerror = (event: any) => {
     console.error('Speech recognition error', event.error);
     isListening.value = false;
     if (event.error === 'not-allowed') {
-      useToast().error('Microphone access denied.');
+      toast.error('Microphone access denied.');
     }
   };
 
@@ -267,10 +269,10 @@ const toggleSpeechRecognition = () => {
           </div>
         </div>
 
-        <!-- Thinking Indicator -->
         <div v-if="isThinking" key="thinking" class="flex justify-start">
-          <div class="p-2 flex items-center">
+          <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
+            <span class="text-body text-on-surface-muted">{{ isSearching ? 'Searching for user...' : 'Waiting for request...' }}</span>
           </div>
         </div>
       </TransitionGroup>
@@ -316,7 +318,7 @@ const toggleSpeechRecognition = () => {
               id="user-input"
               ref="textareaRef"
               v-model="userInput"
-              @input="autoResize"
+              @input="handleInput"
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Respond to the user"
@@ -393,8 +395,33 @@ const toggleSpeechRecognition = () => {
                   leave-active-class="transition-opacity duration-150 ease-in-out"
                   leave-to-class="opacity-0"
                 >
+                  <BaseButton
+                    v-if="mockMessages.length === 0 && !isSearching"
+                    :icon="Search"
+                    variant="action"
+                    type="button"
+                    size="lg"
+                    @click.prevent="handleFindUser"
+                    :disabled="isSearching"
+                  >
+                    Find User
+                  </BaseButton>
                   <BaseTooltip
-                    v-if="!userInput"
+                    v-else-if="isSearching || isThinking"
+                    key="cancel"
+                    content="Cancel"
+                    placement="bottom"
+                  >
+                    <BaseButton
+                      :icon="Square"
+                      size="lg"
+                      @click="toggleSpeechRecognition"
+                      variant="action"
+                      :fill="true"
+                    />
+                  </BaseTooltip>
+                  <BaseTooltip
+                    v-else-if="!userInput"
                     key="voice"
                     content="Use voice"
                     placement="bottom"
@@ -409,12 +436,11 @@ const toggleSpeechRecognition = () => {
                   <BaseTooltip
                     v-else
                     key="submit"
-                    :content="isThinking ? 'Cancel' : 'Submit'"
+                    content="Submit"
                     placement="bottom"
                   >
                     <BaseButton
-                      :icon="isThinking ? Square : ArrowUp"
-                      :fill="isThinking"
+                      :icon="ArrowUp"
                       variant="action"
                       type="submit"
                       size="lg"

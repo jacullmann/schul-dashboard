@@ -270,8 +270,9 @@ const toggleSpeechRecognition = () => {
 
         <!-- Thinking Indicator -->
         <div v-if="isThinking" key="thinking" class="flex justify-start">
-          <div class="p-2 flex items-center">
+          <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
+            <span class="text-body text-on-surface-muted">{{ isSearching ? 'Connecting...' : 'Thinking...' }}</span>
           </div>
         </div>
       </TransitionGroup>
@@ -395,7 +396,21 @@ const toggleSpeechRecognition = () => {
                   leave-to-class="opacity-0"
                 >
                   <BaseTooltip
-                    v-if="!userInput"
+                    v-if="isThinking"
+                    key="cancel"
+                    content="Cancel"
+                    placement="bottom"
+                  >
+                    <BaseButton
+                      :icon="Square"
+                      :fill="true"
+                      variant="action"
+                      type="submit"
+                      size="lg"
+                    />
+                  </BaseTooltip>
+                  <BaseTooltip
+                    v-else-if="!userInput"
                     key="voice"
                     content="Use voice"
                     placement="bottom"
@@ -410,12 +425,11 @@ const toggleSpeechRecognition = () => {
                   <BaseTooltip
                     v-else
                     key="submit"
-                    :content="isThinking ? 'Cancel' : 'Submit'"
+                    content="Submit"
                     placement="bottom"
                   >
                     <BaseButton
-                      :icon="isThinking ? Square : ArrowUp"
-                      :fill="isThinking"
+                      :icon="ArrowUp"
                       variant="action"
                       type="submit"
                       size="lg"

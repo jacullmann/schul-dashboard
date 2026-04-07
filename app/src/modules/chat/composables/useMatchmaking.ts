@@ -53,25 +53,7 @@ export function useMatchmaking() {
 
       if (rpcError) throw rpcError;
 
-      // 3. Fetch the initial state of the matched/created session
-      const { data: sessionData, error: fetchErr } = await supabase
-        .from('intelligence_sessions')
-        .select('*')
-        .eq('id', sessionId)
-        .single();
-
-      if (fetchErr) throw fetchErr;
-
-      // 4. Evaluate state. If active, we are ready.
-      if (sessionData.status === 'active') {
-        activeSession.value = sessionData;
-        isSearching.value = false;
-        return;
-      }
-
-      // 5. If waiting, subscribe to this specific row to wait for the opponent
-      activeSession.value = sessionData;
-
+      // 3. Setup the subscription BEFORE evaluating the state to prevent race conditions
       matchSubscription = supabase
         .channel(`session_wait_${sessionId}`)
         .on(
@@ -93,7 +75,28 @@ export function useMatchmaking() {
           },
         )
         .subscribe();
+
+      // 4. Fetch the initial state of the matched/created session
+      const { data: sessionData, error: fetchErr } = await supabase
+        .from('intelligence_sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      // 5. Evaluate state. If active, we are ready.
+      if (sessionData.status === 'active') {
+        activeSession.value = sessionData;
+        isSearching.value = false;
+        cleanupSubscription();
+        return;
+      }
+
+      // 6. If waiting, just update the active session (subscription is already active)
+      activeSession.value = sessionData;
     } catch (err: any) {
+      cleanupSubscription();
       matchError.value = err.message;
       isSearching.value = false;
       console.error('Matchmaking Error:', err);
