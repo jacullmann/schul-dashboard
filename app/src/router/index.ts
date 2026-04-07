@@ -164,8 +164,16 @@ const routes = [
         component: () => import('@/modules/brain/pages/BrainTest.vue'),
         meta: { title: 'navigation.brainTest' },
       },
+    ],
+  },
+
+  // ── Intelligence-scoped pages ───────────────────────────────────────
+  {
+    path: '/natural-intelligence',
+    component: () => import('@/layouts/IntelligenceLayout.vue'),
+    children: [
       {
-        path: 'natural-intelligence',
+        path: '',
         name: 'natural-intelligence',
         component: () => import('@/modules/chat/pages/NaturalIntelligence.vue'),
         meta: { title: 'navigation.naturalIntelligence' },

@@ -5,7 +5,6 @@ import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { width: windowWidth } = useWindowSize();
 
 const modelValue = defineModel<string>({ required: true });
 
@@ -19,17 +18,22 @@ const isOpen = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
 const floatingRef = ref<HTMLElement | null>(null);
 
-const { left, right, bottom, width: buttonWidth } = useElementBounding(wrapperRef);
+const { left, right, bottom, top: triggerTop, width: buttonWidth } = useElementBounding(wrapperRef);
+const { width: windowWidth, height: windowHeight } = useWindowSize();
+const { height: menuActualHeight } = useElementBounding(floatingRef);
 
 const floatingStyles = computed(() => {
   const menuMinWidth = 256; // 64 * 4px = 256px from min-w-64
   const menuWidth = Math.max(buttonWidth.value, menuMinWidth);
-  const shouldFlip = left.value + menuWidth > windowWidth.value;
+  const h = menuActualHeight.value || 280; // Use actual height or fallback
+
+  const shouldFlipHorizontally = left.value + menuWidth > windowWidth.value;
+  const shouldFlipVertically = bottom.value + h > windowHeight.value;
 
   return {
     position: 'fixed' as const,
-    top: `${bottom.value + 4}px`,
-    left: shouldFlip ? `${right.value - menuWidth}px` : `${left.value}px`,
+    top: shouldFlipVertically ? `${triggerTop.value - h - 4}px` : `${bottom.value + 4}px`,
+    left: shouldFlipHorizontally ? `${right.value - menuWidth}px` : `${left.value}px`,
     width: `${buttonWidth.value}px`,
     zIndex: 100002,
   };
@@ -105,16 +109,12 @@ onClickOutside(
         <BaseMenuButton
           v-for="option in options"
           :key="option.value"
-          class="px-3!"
           @click="selectOption(option.value)"
-          type="button"
           :isSelect="true"
           :active="modelValue === option.value"
         >
-          <div class="flex flex-col">
-            <span class="text-sm leading-5 text-on-surface font-medium">{{ option.label }}</span>
-            <span class="text-xs leading-4 text-on-surface-muted font-normal">{{ option.description }}</span>
-          </div>
+          {{ option.label }}
+          <template #description>{{ option.description }}</template>
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

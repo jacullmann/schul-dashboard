@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   ref,
-  nextTick,
   onMounted,
   onBeforeUnmount,
   computed,
@@ -38,35 +37,38 @@ const updatePosition = () => {
   if (!triggerRef.value) return;
 
   const rect = triggerRef.value.getBoundingClientRect();
-  const offset = 8; // Distance between trigger and tooltip
+  const offset = 8;
 
+  // We calculate the anchor point. 
+  // Notice we don't need the tooltip to be visible to get the trigger's rect.
   const pos: Record<string, CSSProperties> = {
     top: {
       top: `${rect.top - offset}px`,
       left: `${rect.left + rect.width / 2}px`,
-      transform: 'translate(-50%, -100%)',
+      // We use a CSS variable to pass the centering transform 
+      // so it doesn't conflict with our transition transforms.
+      '--translate-base': 'translate(-50%, -100%)',
     },
     bottom: {
       top: `${rect.bottom + offset}px`,
       left: `${rect.left + rect.width / 2}px`,
-      transform: 'translateX(-50%)',
+      '--translate-base': 'translateX(-50%)',
     },
     left: {
       top: `${rect.top + rect.height / 2}px`,
       left: `${rect.left - offset}px`,
-      transform: 'translate(-100%, -50%)',
+      '--translate-base': 'translate(-100%, -50%)',
     },
     right: {
       top: `${rect.top + rect.height / 2}px`,
       left: `${rect.right + offset}px`,
-      transform: 'translateY(-50%)',
+      '--translate-base': 'translateY(-50%)',
     },
   };
 
   tooltipStyle.value = pos[props.placement];
 };
 
-// Dynamic transition classes based on placement
 const transitionClasses = computed(() => {
   const directions = {
     top: 'translate-y-1',
@@ -75,12 +77,10 @@ const transitionClasses = computed(() => {
     right: '-translate-x-1',
   };
   
-  const fromClass = `opacity-0 ${directions[props.placement]}`;
-  
   return {
     enter: 'transition duration-150 ease-out',
     leave: 'transition duration-100 ease-in',
-    from: fromClass,
+    from: `opacity-0 ${directions[props.placement]}`,
     to: 'opacity-100 translate-0',
   };
 });
@@ -90,10 +90,11 @@ const show = () => {
   clearTimers();
   const delay = props.debounce === 'slow' ? 350 : 50;
 
-  showTimeout = setTimeout(async () => {
-    isVisible.value = true;
-    await nextTick();
+  showTimeout = setTimeout(() => {
+    // 1. Calculate position FIRST
     updatePosition();
+    // 2. Then reveal, so it enters the DOM with the correct style already applied
+    isVisible.value = true;
   }, delay);
 };
 
@@ -115,14 +116,13 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown);
-  // Optional: Update position on scroll/resize to keep tooltip attached
-  window.addEventListener('scroll', updatePosition, true);
+  window.addEventListener('scroll', updatePosition, { passive: true });
   window.addEventListener('resize', updatePosition);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown);
-  window.removeEventListener('scroll', updatePosition, true);
+  window.removeEventListener('scroll', updatePosition);
   window.removeEventListener('resize', updatePosition);
   immediateHide();
 });
@@ -131,6 +131,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="triggerRef"
+    class="inline-block"
     @mouseenter="show"
     @mouseleave="hide"
     @focusin="show"
@@ -149,17 +150,22 @@ onBeforeUnmount(() => {
       >
         <div
           v-if="isVisible"
-          class="fixed z-(--z-tooltip) px-2 py-1.5 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg pointer-events-none whitespace-nowrap"
+          class="fixed z-(--z-tooltip) pointer-events-none"
           :style="tooltipStyle"
         >
-          {{ content }}
-          <BaseKbdGroup
-            v-if="shortcut"
-            :keys="shortcut"
-            :flat="true"
-            on="action"
-            class="ml-2"
-          />
+          <div 
+            class="px-2 py-1.5 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg whitespace-nowrap"
+            style="transform: var(--translate-base)"
+          >
+            {{ content }}
+            <BaseKbdGroup
+              v-if="shortcut"
+              :keys="shortcut"
+              :flat="true"
+              on="action"
+              class="ml-2"
+            />
+          </div>
         </div>
       </transition>
     </Teleport>

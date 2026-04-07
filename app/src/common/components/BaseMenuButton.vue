@@ -29,19 +29,42 @@ defineExpose({
   <button
     ref="buttonEl"
     type="button"
-    class="flex justify-between items-center w-full text-left bg-transparent border-0 p-2 gap-4 rounded-lg cursor-pointer text-sub transition-hover user-select-none"
+    class="flex justify-between items-center w-full text-left bg-transparent border-0 py-2 gap-4 rounded-lg cursor-pointer text-sub transition-hover user-select-none"
     :class="[
       variant === 'danger'
         ? 'text-danger hover:bg-danger-surface'
         : 'text-on-surface hover:bg-surface-hover',
+      $slots.description ? 'px-3' : 'px-2',
       { 'font-semibold': active },
     ]"
     :role="isSelect ? 'menuitemradio' : 'menuitem'"
     :aria-checked="isSelect ? active : undefined"
   >
-    <span class="flex items-center gap-2 leading-none">
-      <component :is="icon" v-if="icon" :size="16" class="shrink-0" />
-      <slot></slot>
+    <span
+      class="flex items-center"
+      :class="$slots.description ? 'gap-3' : 'gap-2'"
+    >
+      <component
+        :is="icon"
+        v-if="icon"
+        :size="$slots.description ? 20 : 16"
+        class="shrink-0"
+      />
+      <div class="flex flex-col">
+        <span
+          class="text-sm"
+          :class="[
+            active && !$slots.description ? 'font-bold' : 'font-medium',
+            $slots.description ? 'leading-5' : 'leading-4',
+          ]"
+          ><slot></slot
+        ></span>
+        <span
+          v-if="$slots.description"
+          class="text-xs leading-4 text-on-surface-muted font-normal"
+          ><slot name="description"></slot
+        ></span>
+      </div>
     </span>
 
     <span v-if="isSelect" aria-hidden="true">

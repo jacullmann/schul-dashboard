@@ -8,26 +8,30 @@ import {
   useEventListener,
 } from '@vueuse/core';
 
-const webSearch = ref(true);
-const createImage = ref(true);
-const ponder = ref(false);
-const answerLeisurely = ref(false);
+const webSearch = defineModel<boolean>('webSearch', { default: true });
+const createImage = defineModel<boolean>('createImage', { default: false });
+const ponder = defineModel<boolean>('ponder', { default: false });
+const answerLeisurely = defineModel<boolean>('answerLeisurely', { default: false });
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
 
-const { bottom, left, right } = useElementBounding(triggerRef);
-const { width: windowWidth } = useWindowSize();
+const { bottom, left, right, top: triggerTop } = useElementBounding(triggerRef);
+const { width: windowWidth, height: windowHeight } = useWindowSize();
+const { height: actualMenuHeight } = useElementBounding(menuRef);
 
 const menuStyles = computed(() => {
-  const menuMinWidth = 192; // min-w-48 = 12rem = 192px
-  const shouldFlip = left.value + menuMinWidth > windowWidth.value;
+  const menuMinWidth = 224; // min-w-56 = 14rem = 224px
+  const h = actualMenuHeight.value || 280; // Use actual height or fallback estimate
+
+  const shouldFlipHorizontally = left.value + menuMinWidth > windowWidth.value;
+  const shouldFlipVertically = bottom.value + h > windowHeight.value;
 
   return {
     position: 'fixed' as const,
-    top: `${bottom.value + 8}px`,
-    left: shouldFlip ? `${right.value - menuMinWidth}px` : `${left.value}px`,
+    top: shouldFlipVertically ? `${triggerTop.value - h - 8}px` : `${bottom.value + 8}px`,
+    left: shouldFlipHorizontally ? `${right.value - menuMinWidth}px` : `${left.value}px`,
     zIndex: 1000,
   };
 });
@@ -56,6 +60,7 @@ useEventListener(document, 'keydown', (e) => {
 <template>
   <div class="relative inline-block" ref="triggerRef">
     <BaseButton
+      v-if="windowWidth > 480"
       :icon="Settings2"
       size="lg"
       @click="toggle"
@@ -66,6 +71,17 @@ useEventListener(document, 'keydown', (e) => {
       Tools
     </BaseButton>
 
+    <BaseTooltip v-else content="Tools" placement="bottom">
+      <BaseButton
+        :icon="Settings2"
+        size="lg"
+        @click="toggle"
+        :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+        aria-haspopup="true"
+        :aria-expanded="isOpen"
+      />
+    </BaseTooltip>
+
     <Teleport to="body">
       <BaseMenu
         v-if="isOpen"
@@ -74,63 +90,41 @@ useEventListener(document, 'keydown', (e) => {
         class="min-w-56!"
       >
         <BaseMenuButton
-          class="px-3!"
           :icon="Globe"
-          isToggle
+          isSelect
           :active="webSearch"
-          @click="webSearch = !webSearch"
+          @click="webSearch = !webSearch, close()"
         >
-          <div class="flex flex-col ml-1">
-            <span class="text-sm leading-5 text-on-surface font-medium">Web search</span>
-            <span class="text-xs leading-4 text-on-surface-muted font-normal"
-              >Search the Internet for additional information</span
-            >
-          </div>
+          Web search
+          <template #description>Search the Internet for additional information</template>
         </BaseMenuButton>
         <BaseMenuButton
-          class="px-3!"
           :icon="Image"
-          isToggle
+          isSelect
           :active="createImage"
-          @click="createImage = !createImage"
+          @click="createImage = !createImage, close()"
         >
-          <div class="flex flex-col ml-1">
-            <span class="text-sm leading-5 text-on-surface font-medium">Create Image</span>
-            <span class="text-xs leading-4 text-on-surface-muted font-normal"
-              >Design anything you can imagine</span
-            >
-          </div>
+          Create Image
+          <template #description>Design anything you can imagine</template>
         </BaseMenuButton>
         <BaseMenuButton
-          class="px-3!"
           :icon="Brain"
-          isToggle
+          isSelect
           :active="ponder"
-          @click="ponder = !ponder"
+          @click="ponder = !ponder, close()"
         >
-          <div class="flex flex-col ml-1">
-            <span class="text-sm leading-5 text-on-surface font-medium">Ponder</span>
-            <span class="text-xs leading-4 text-on-surface-muted font-normal"
-              >Think for extended periods to give more profound answers</span
-            >
-          </div>
+          Ponder
+          <template #description>Think longer for more profound answers</template>
         </BaseMenuButton>
         <!-- TODO: Choose Icon: CalendarFold or Coffee -->
         <BaseMenuButton
-          class="px-3!"
           :icon="CalendarFold"
-          isToggle
+          isSelect
           :active="answerLeisurely"
-          @click="answerLeisurely = !answerLeisurely"
+          @click="answerLeisurely = !answerLeisurely, close()"
         >
-          <div class="flex flex-col ml-1">
-            <span class="text-sm leading-5 text-on-surface font-medium"
-              >Answer leisurely</span
-            >
-            <span class="text-xs leading-4 text-on-surface-muted font-normal"
-              >Queue your requests, if you aren't in a hurry</span
-            >
-          </div>
+          Answer leisurely
+          <template #description>Queue your requests, if you aren't in a hurry</template>
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>
