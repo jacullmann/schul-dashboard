@@ -43,17 +43,35 @@ export function useMatchmaking() {
         .update({ status: 'searching' })
         .eq('id', profile.value.id);
 
-      // 2. Call the Atomic Matchmaking RPC
-      const { data: sessionId, error: rpcError } = await supabase.rpc(
-        'find_match',
-        {
-          user_role: profile.value.role,
-        },
-      );
+      // 2. Check if the user already has an active or waiting session
+      const { data: existingSessions, error: existingErr } = await supabase
+        .from('intelligence_sessions')
+        .select('*')
+        .in('status', ['waiting', 'active'])
+        .or(`human_id.eq.${profile.value.id},ai_id.eq.${profile.value.id}`)
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (rpcError) throw rpcError;
+      if (existingErr) throw existingErr;
 
-      // 3. Setup the subscription BEFORE evaluating the state to prevent race conditions
+      let sessionId: string;
+
+      if (existingSessions && existingSessions.length > 0) {
+        sessionId = existingSessions[0].id;
+      } else {
+        // 3. Call the Atomic Matchmaking RPC if no existing session
+        const { data: rpcSessionId, error: rpcError } = await supabase.rpc(
+          'find_match',
+          {
+            user_role: profile.value.role,
+          },
+        );
+
+        if (rpcError) throw rpcError;
+        sessionId = rpcSessionId;
+      }
+
+      // 4. Setup the subscription BEFORE evaluating the state to prevent race conditions
       matchSubscription = supabase
         .channel(`session_wait_${sessionId}`)
         .on(
@@ -106,6 +124,14 @@ export function useMatchmaking() {
   const cancelSearch = async () => {
     cleanupSubscription();
     isSearching.value = false;
+
+    if (activeSession.value) {
+      await supabase
+        .from('intelligence_sessions')
+        .update({ status: 'ended' })
+        .eq('id', activeSession.value.id);
+    }
+
     activeSession.value = null;
 
     if (profile.value) {

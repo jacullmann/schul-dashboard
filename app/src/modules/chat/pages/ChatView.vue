@@ -171,13 +171,14 @@ watch(
   },
 );
 
-function clearChat() {
+async function clearChat() {
   if (chat.value) {
-    chat.value.leaveChat();
+    await chat.value.leaveChat();
     chat.value = null;
     currentSessionId.value = null;
   }
-  // The session and profile are managed by the composables
+  await cancelSearch();
+  userInput.value = '';
 }
 
 // Voice Recognition
