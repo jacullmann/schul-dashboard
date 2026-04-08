@@ -83,14 +83,27 @@ interface UIMessage {
 }
 
 const mockMessages = computed<UIMessage[]>(() => {
-  const currentChat = chat.value;
-  if (!currentChat) return [];
-  return currentChat.messages.map((m) => ({
-    id: m.id,
-    role: m.sender_id === user.value?.id ? 'human' : 'assistant',
-    content: m.content,
-    sender_id: m.sender_id,
-  }));
+  const messages: UIMessage[] = [];
+
+  if (chat.value) {
+    messages.push(...chat.value.messages.map((m) => ({
+      id: m.id,
+      role: m.sender_id === user.value?.id ? 'human' : 'assistant',
+      content: m.content,
+      sender_id: m.sender_id,
+    })));
+  }
+
+  if (pendingMessage.value) {
+    messages.push({
+      id: 'pending',
+      role: 'human',
+      content: pendingMessage.value,
+      sender_id: user.value?.id,
+    });
+  }
+
+  return messages;
 });
 
 const userInput = ref('');
