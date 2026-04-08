@@ -55,7 +55,7 @@ onUnmounted(() => {
   }
 });
 
-watch(session, (newSession) => {
+watch(session, async (newSession) => {
   if (
     newSession?.status === 'active' &&
     newSession.id !== currentSessionId.value
@@ -63,7 +63,7 @@ watch(session, (newSession) => {
     currentSessionId.value = newSession.id;
     const sessionChat = useChatSession(newSession.id);
     chat.value = sessionChat;
-    sessionChat.initializeChat();
+    await sessionChat.initializeChat();
 
     // Send pending message if any
     if (pendingMessage.value) {
@@ -71,7 +71,7 @@ watch(session, (newSession) => {
       pendingMessage.value = '';
     }
   }
-});
+}, { immediate: true });
 
 // Optional: Notify when the opponent leaves
 watch(

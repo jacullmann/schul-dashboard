@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch, onMounted } from 'vue';
+import { ref, nextTick, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   AudioLines,
   ArrowUp,
@@ -39,11 +39,20 @@ const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
 const pendingMessage = ref('');
 
-onMounted(() => {
-  initializeAuth();
+onMounted(async () => {
+  await initializeAuth();
+  if (profile.value) {
+    await recoverSession();
+  }
 });
 
-watch(session, (newSession) => {
+onUnmounted(() => {
+  if (chat.value) {
+    chat.value.destroy();
+  }
+});
+
+watch(session, async (newSession) => {
   if (
     newSession?.status === 'active' &&
     newSession.id !== currentSessionId.value
@@ -51,7 +60,7 @@ watch(session, (newSession) => {
     currentSessionId.value = newSession.id;
     const sessionChat = useChatSession(newSession.id);
     chat.value = sessionChat;
-    sessionChat.initializeChat();
+    await sessionChat.initializeChat();
 
     // Send pending message if any
     if (pendingMessage.value) {
@@ -59,7 +68,7 @@ watch(session, (newSession) => {
       pendingMessage.value = '';
     }
   }
-});
+}, { immediate: true });
 
 const webSearch = ref(true);
 const createImage = ref(false);
