@@ -74,7 +74,7 @@ watch(userInput, () => {
   autoResize();
 });
 
-const selectedModel = ref('ultra');
+const selectedModel = ref('pro');
 
 const isWaitingForResponse = computed(() => {
   if (session.value?.status !== 'active') return false;
