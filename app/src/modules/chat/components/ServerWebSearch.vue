@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue';
-import { Search, ChevronLeft } from '@lucide/vue';
+import { Search, ChevronLeft, X } from '@lucide/vue';
+import { useEventListener } from '@vueuse/core';
 
 const inputRef = ref<HTMLInputElement | null>(null);
 const searchQuery = ref('');
@@ -11,6 +12,14 @@ const currentView = ref<'results' | 'article'>('results');
 const articleContent = ref('');
 const articleTitle = ref('');
 const articleLoading = ref(false);
+
+const emit = defineEmits(['cancel']);
+
+useEventListener(window, 'keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    emit('cancel');
+  }
+});
 
 async function search() {
   if (!searchQuery.value.trim()) return;
@@ -59,11 +68,11 @@ onMounted(() => {
 
 <template>
   <form @submit.prevent="search" novalidate>
-    <BaseBackdrop>
+    <BaseBackdrop @cancel="emit('cancel')">
       <div class="fixed w-full h-full md:p-4 md:h-fit md:w-160 z-20000">
-        <!-- Search Bar -->
+        <!-- Header: Search Bar -->
         <div class="w-full h-full bg-canvas md:border border-canvas-border md:rounded-2xl overflow-hidden flex flex-col">
-          <div class="flex items-center gap-3 p-4 border-b border-surface-border">
+          <div class="flex items-center gap-3 p-4 border-b border-canvas-border">
             <Search :size="20" class="text-on-surface-subtle shrink-0" />
             <input
               id="search-input"
@@ -75,10 +84,18 @@ onMounted(() => {
               spellcheck="false"
               class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle"
             />
-            <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
+            <BaseButton
+              type="button"
+              variant="ghost"
+              on="canvas"
+              :icon="X"
+              class="-m-2"
+              @click="emit('cancel')"
+            />
           </div>
 
-          <div class="flex-1 overflow-y-auto max-h-160">
+          <!-- Body: Search Results / Article Content -->
+          <div class="flex-1 overflow-y-auto max-h-160 custom-scrollbar">
             <template v-if="currentView === 'results'">
               <div v-if="loading" class="p-8 text-center text-on-surface-subtle">
                 <BaseSpinner on="ghost" size="24" />
@@ -132,6 +149,25 @@ onMounted(() => {
                 </div>
               </div>
             </template>
+          </div>
+
+          <!-- Footer: Navigation Hint -->
+          <div
+            class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-footnote text-on-surface-muted"
+          >
+            <BaseRow>
+              <BaseKbd>↑</BaseKbd>
+              <BaseKbd>↓</BaseKbd>
+              to navigate
+            </BaseRow>
+            <BaseRow>
+              <BaseKbd>↵</BaseKbd>
+              to open
+            </BaseRow>
+            <BaseRow>
+              <BaseKbd>Esc</BaseKbd>
+              to close
+            </BaseRow>
           </div>
         </div>
       </div>

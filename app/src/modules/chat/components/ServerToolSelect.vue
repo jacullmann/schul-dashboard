@@ -10,10 +10,8 @@ import {
 
 const webSearch = defineModel<boolean>('webSearch', { default: true });
 const createImage = defineModel<boolean>('createImage', { default: false });
-const ponder = defineModel<boolean>('ponder', { default: false });
-const answerLeisurely = defineModel<boolean>('answerLeisurely', {
-  default: false,
-});
+const terminal = defineModel<boolean>('terminal', { default: false });
+const reasoning = defineModel<boolean>('reasoning', { default: false });
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
@@ -97,8 +95,6 @@ useEventListener(document, 'keydown', (e) => {
       >
         <BaseMenuButton
           :icon="Globe"
-          isSelect
-          :active="webSearch"
           @click="((webSearch = !webSearch), close())"
         >
           Web search
@@ -108,8 +104,6 @@ useEventListener(document, 'keydown', (e) => {
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Image"
-          isSelect
-          :active="createImage"
           @click="((createImage = !createImage), close())"
         >
           Create Image
@@ -117,9 +111,7 @@ useEventListener(document, 'keydown', (e) => {
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Terminal"
-          isSelect
-          :active="ponder"
-          @click="((ponder = !ponder), close())"
+          @click="((terminal = !terminal), close())"
         >
           Terminal
           <template #description>Perform basic commands</template>
@@ -127,9 +119,7 @@ useEventListener(document, 'keydown', (e) => {
         <!-- TODO: Choose Icon: CalendarFold or Coffee -->
         <BaseMenuButton
           :icon="Lightbulb"
-          isSelect
-          :active="answerLeisurely"
-          @click="((answerLeisurely = !answerLeisurely), close())"
+          @click="((reasoning = !reasoning), close())"
         >
           Give Reasoning
           <template #description>Show your chain of thought</template>

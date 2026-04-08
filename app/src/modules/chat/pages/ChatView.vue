@@ -25,14 +25,14 @@ import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
 import { useClipboard } from '@vueuse/core';
 
-const { copy, copied } = useClipboard();
+const { copy } = useClipboard();
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
 const { startSearching, cancelSearch, session, isSearching, recoverSession } = useMatchmaking();
-const { submitReport, isSubmitting, error, success, resetReportState } =
+const { submitReport, error } =
   useReports();
 
 const currentSessionId = ref<string | null>(null);
@@ -86,7 +86,7 @@ const displayMessages = computed<UIMessage[]>(() => {
   const messages: UIMessage[] = [];
 
   if (chat.value) {
-    messages.push(...chat.value.messages.map((m) => ({
+    messages.push(...chat.value.messages.map((m): UIMessage => ({
       id: m.id,
       role: m.sender_id === user.value?.id ? 'human' : 'assistant',
       content: m.content,

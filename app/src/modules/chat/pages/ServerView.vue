@@ -9,8 +9,6 @@ import {
   SquarePen,
   Globe,
   Image,
-  Brain,
-  CalendarFold,
   Flag,
   Copy,
 } from '@lucide/vue';
@@ -35,7 +33,7 @@ const toast = useToast();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
 const { startSearching, cancelSearch, session, isSearching, recoverSession } = useMatchmaking();
-const { submitReport, isSubmitting, error, success, resetReportState } =
+const { submitReport, error } =
   useReports();
 
 const currentSessionId = ref<string | null>(null);
@@ -84,9 +82,17 @@ watch(
 );
 
 const webSearch = ref(false);
+const webSearchEnabled = ref(true);
+
 const createImage = ref(false);
+const createImageEnabled = ref(false);
+
 const ponder = ref(false);
-const answerLeisurely = ref(false);
+const ponderEnabled = ref(false);
+
+const terminal = ref(false);
+
+const reasoning = ref(false);
 
 interface UIMessage {
   id: string;
@@ -98,7 +104,7 @@ interface UIMessage {
 const displayMessages = computed<UIMessage[]>(() => {
   const currentChat = chat.value;
   if (!currentChat) return [];
-  return currentChat.messages.map((m) => ({
+  return currentChat.messages.map((m): UIMessage => ({
     id: m.id,
     role: m.sender_id === user.value?.id ? 'assistant' : 'human',
     content: m.content,
@@ -337,11 +343,13 @@ const toggleSpeechRecognition = () => {
           class="flex"
           :class="message.role === 'human' ? 'justify-start' : 'justify-end'"
         >
-          <div v-if="message.role === 'human'" class="group">
-            <div
-              class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] break-words text-left"
-            >
-              {{ message.content }}
+          <div v-if="message.role === 'human'" class="w-full group">
+            <div class="flex">
+              <div
+                class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] break-words text-left"
+              >
+                {{ message.content }}
+              </div>
             </div>
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
               <BaseTooltip content="Report" placement="bottom">
@@ -440,7 +448,7 @@ const toggleSpeechRecognition = () => {
           </div>
         </Transition>
 
-        <BaseLabel for="tools" v-if="webSearch || createImage"
+        <BaseLabel for="tools" v-if="webSearchEnabled || createImageEnabled"
           >Available Tools:</BaseLabel
         >
         <BaseRow id="tools" class="mb-2">
@@ -449,19 +457,19 @@ const toggleSpeechRecognition = () => {
             placement="top"
           >
             <BaseButton
-              v-if="webSearch"
+              v-if="webSearchEnabled"
               :icon="Globe"
               variant="ghost"
-              @click="webSearch"
+              @click="webSearch = !webSearch"
               >Web search</BaseButton
             >
           </BaseTooltip>
           <BaseTooltip content="Draw a picture" placement="top">
             <BaseButton
-              v-if="createImage"
+              v-if="createImageEnabled"
               :icon="Image"
               variant="ghost"
-              @click="createImage"
+              @click="createImage = !createImage"
               >Create image</BaseButton
             >
           </BaseTooltip>
@@ -488,59 +496,9 @@ const toggleSpeechRecognition = () => {
                 <ServerToolSelect
                   v-model:webSearch="webSearch"
                   v-model:createImage="createImage"
-                  v-model:ponder="ponder"
-                  v-model:answerLeisurely="answerLeisurely"
+                  v-model:terminal="terminal"
+                  v-model:reasoning="reasoning"
                 />
-
-                <BaseTooltip
-                  v-if="webSearch && windowWidth > 660"
-                  content="Web search"
-                  placement="bottom"
-                  class=""
-                >
-                  <BaseButton
-                    size="lg"
-                    :chip="true"
-                    :icon="Globe"
-                    @click="webSearch = false"
-                  />
-                </BaseTooltip>
-                <BaseTooltip
-                  v-if="createImage && windowWidth > 660"
-                  content="Create image"
-                  placement="bottom"
-                >
-                  <BaseButton
-                    size="lg"
-                    :chip="true"
-                    :icon="Image"
-                    @click="createImage = false"
-                  />
-                </BaseTooltip>
-                <BaseTooltip
-                  v-if="ponder && windowWidth > 660"
-                  content="Ponder"
-                  placement="bottom"
-                >
-                  <BaseButton
-                    size="lg"
-                    :chip="true"
-                    :icon="Brain"
-                    @click="ponder = false"
-                  />
-                </BaseTooltip>
-                <BaseTooltip
-                  v-if="answerLeisurely && windowWidth > 660"
-                  content="Answer leisurely"
-                  placement="bottom"
-                >
-                  <BaseButton
-                    size="lg"
-                    :chip="true"
-                    :icon="CalendarFold"
-                    @click="answerLeisurely = false"
-                  />
-                </BaseTooltip>
               </BaseRow>
 
               <BaseRow>
@@ -662,7 +620,7 @@ const toggleSpeechRecognition = () => {
     </div>
 
     <teleport to="body">
-      <ServerWebSearch v-if="webSearch" />
+      <ServerWebSearch v-if="webSearch" @cancel="webSearch = false" />
     </teleport>
   </div>
 </template>
