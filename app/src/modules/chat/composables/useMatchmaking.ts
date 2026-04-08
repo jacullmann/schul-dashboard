@@ -39,13 +39,13 @@ export function useMatchmaking() {
     try {
       // 1. Update profile status
       await supabase
-        .from('intelligence_profiles')
+        .from('profiles')
         .update({ status: 'searching' })
         .eq('id', profile.value.id);
 
       // 2. Check if the user already has an active or waiting session
       const { data: existingSessions, error: existingErr } = await supabase
-        .from('intelligence_sessions')
+        .from('sessions')
         .select('*')
         .in('status', ['waiting', 'active'])
         .or(`human_id.eq.${profile.value.id},ai_id.eq.${profile.value.id}`)
@@ -79,7 +79,7 @@ export function useMatchmaking() {
           {
             event: 'UPDATE',
             schema: 'public',
-            table: 'intelligence_sessions',
+            table: 'sessions',
             filter: `id=eq.${sessionId}`,
           },
           (payload) => {
@@ -96,7 +96,7 @@ export function useMatchmaking() {
 
       // 4. Fetch the initial state of the matched/created session
       const { data: sessionData, error: fetchErr } = await supabase
-        .from('intelligence_sessions')
+        .from('sessions')
         .select('*')
         .eq('id', sessionId)
         .single();
@@ -127,7 +127,7 @@ export function useMatchmaking() {
 
     if (activeSession.value) {
       await supabase
-        .from('intelligence_sessions')
+        .from('sessions')
         .update({ status: 'ended' })
         .eq('id', activeSession.value.id);
     }
@@ -136,7 +136,7 @@ export function useMatchmaking() {
 
     if (profile.value) {
       await supabase
-        .from('intelligence_profiles')
+        .from('profiles')
         .update({ status: 'idle' })
         .eq('id', profile.value.id);
     }

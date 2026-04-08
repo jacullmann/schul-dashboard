@@ -30,7 +30,7 @@ export function useChatSession(sessionId: string) {
 
     // 1. Fetch historical messages
     const { data: initialMessages, error: fetchErr } = await supabase
-        .from('intelligence_messages')
+        .from('messages')
         .select('*')
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true })
@@ -47,7 +47,7 @@ export function useChatSession(sessionId: string) {
     chatChannel
         .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'intelligence_messages', filter: `session_id=eq.${sessionId}` },
+            { event: 'INSERT', schema: 'public', table: 'messages', filter: `session_id=eq.${sessionId}` },
             (payload) => {
               const newMessage = payload.new as ChatMessage
               // OPTIMISTIC UI CHECK: Only push the message if it's from the OPPONENT.
@@ -91,7 +91,7 @@ export function useChatSession(sessionId: string) {
 
     // Fire it to the database silently in the background
     const { error } = await supabase
-        .from('intelligence_messages')
+        .from('messages')
         .insert({
           session_id: sessionId,
           sender_id: user.value.id,
@@ -126,7 +126,7 @@ export function useChatSession(sessionId: string) {
       await supabase.removeChannel(chatChannel)
       chatChannel = null
     }
-    await supabase.from('intelligence_sessions').update({ status: 'ended' }).eq('id', sessionId)
+    await supabase.from('sessions').update({ status: 'ended' }).eq('id', sessionId)
   }
 
   onUnmounted(() => {

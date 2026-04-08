@@ -36,7 +36,7 @@ export function useAuth() {
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
-      .from('intelligence_profiles')
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
@@ -65,7 +65,7 @@ export function useAuth() {
 
       // Upsert the profile (creates or updates status/role)
       const { data: profileData, error: profileErr } = await supabase
-        .from('intelligence_profiles')
+        .from('profiles')
         .upsert({ id: userId, role, status: 'idle' }, { onConflict: 'id' })
         .select();
 
