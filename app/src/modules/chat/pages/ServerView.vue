@@ -140,10 +140,14 @@ const scrollToBottom = () => {
 async function handleFindUser() {
   if (isSearching.value) return; 
 
-  if (!profile.value) {
-    await joinGame('ai');
+  try {
+    if (!profile.value) {
+      await joinGame('ai');
+    }
+    await startSearching();
+  } catch (e: any) {
+    toast.error(e.message || 'Failed to find user');
   }
-  await startSearching();
 }
 
 // 4. Send function updated to ONLY handle sending messages

@@ -140,8 +140,13 @@ async function send() {
   if (!profile.value) {
     pendingMessage.value = content;
     userInput.value = '';
-    await joinGame('human');
-    await startSearching();
+    try {
+      await joinGame('human');
+      await startSearching();
+    } catch (e: any) {
+      pendingMessage.value = '';
+      useToast().error(e.message || 'Failed to join game');
+    }
     return;
   }
 
@@ -149,6 +154,14 @@ async function send() {
     if (content) {
       pendingMessage.value = content;
       userInput.value = '';
+    }
+    if (!isSearching.value) {
+      try {
+        await startSearching();
+      } catch (e: any) {
+        pendingMessage.value = '';
+        useToast().error(e.message || 'Failed to start searching');
+      }
     }
     return;
   }

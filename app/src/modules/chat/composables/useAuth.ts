@@ -66,15 +66,15 @@ export function useAuth() {
       // Upsert the profile (creates or updates status/role)
       const { data: profileData, error: profileErr } = await supabase
         .from('intelligence_profiles')
-        .upsert({ id: userId, role, status: 'idle' })
-        .select()
-        .single();
+        .upsert({ id: userId, role, status: 'idle' }, { onConflict: 'id' })
+        .select();
 
       if (profileErr) throw profileErr;
-      currentProfile.value = profileData;
+      currentProfile.value = profileData && profileData.length > 0 ? profileData[0] : null;
     } catch (err: any) {
       authError.value = err.message;
-      console.error('Join Game Error:', err);
+      console.error('Join Game Error:', JSON.stringify(err, null, 2), err);
+      throw err;
     } finally {
       isAuthLoading.value = false;
     }
