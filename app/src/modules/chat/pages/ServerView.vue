@@ -11,17 +11,23 @@ import {
   Image,
   Brain,
   CalendarFold,
+  Flag,
+  Copy,
 } from '@lucide/vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
-import ToolMenu from '@/modules/chat/components/ToolMenu.vue';
+import ServerToolSelect from '@/modules/chat/components/ServerToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
-import ModelSelectionCards from '@/modules/chat/components/ModelSelectionCards.vue';
+import ServerWebSearch from '@/modules/chat/components/ServerWebSearch.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
 import { useChatSession } from '@/modules/chat/composables/useChatSession';
+import { useReports } from '@/modules/chat/composables/useReports';
+import { useClipboard } from '@vueuse/core';
+
+const { copy, copied } = useClipboard();
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
@@ -29,6 +35,8 @@ const toast = useToast();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
 const { startSearching, cancelSearch, session, isSearching } = useMatchmaking();
+const { submitReport, isSubmitting, error, success, resetReportState } =
+  useReports();
 
 const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
@@ -66,18 +74,26 @@ watch(
   },
 );
 
-const webSearch = ref(true);
+const webSearch = ref(false);
 const createImage = ref(false);
 const ponder = ref(false);
 const answerLeisurely = ref(false);
 
-const mockMessages = computed(() => {
+interface UIMessage {
+  id: string;
+  role: 'human' | 'assistant';
+  content: string;
+  sender_id?: string;
+}
+
+const mockMessages = computed<UIMessage[]>(() => {
   const currentChat = chat.value;
   if (!currentChat) return [];
   return currentChat.messages.map((m) => ({
     id: m.id,
     role: m.sender_id === user.value?.id ? 'assistant' : 'human',
     content: m.content,
+    sender_id: m.sender_id,
   }));
 });
 
@@ -206,8 +222,24 @@ async function clearChat() {
     chat.value = null;
     currentSessionId.value = null;
   }
-  await cancelSearch(); // Critical: Resets the queue so you can search again
+  await cancelSearch();
   userInput.value = '';
+}
+
+async function handleReport(message: UIMessage, reason: string) {
+  const isSuccessful = await submitReport(
+    message.sender_id || '',
+    message.id,
+    message.content,
+    reason,
+  );
+
+  if (isSuccessful) {
+    toast.success('Report submitted successfully. Our team will review it.');
+    // Close modal, etc.
+  } else {
+    toast.error(error.value || 'Failed to submit report.');
+  }
 }
 
 // Voice Recognition
@@ -264,7 +296,7 @@ const toggleSpeechRecognition = () => {
 </script>
 
 <template>
-  <div class="h-[100dvh] w-full flex flex-col overflow-hidden bg-background">
+  <div class="h-[100dvh] w-full flex flex-col overflow-hidden bg-canvas">
     <div
       class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1"
     >
@@ -281,12 +313,12 @@ const toggleSpeechRecognition = () => {
 
     <main
       ref="chatContainer"
-      class="flex-1 overflow-y-auto w-full relative custom-scrollbar"
+      class="flex-1 overflow-y-auto w-full relative custom-scrollbar min-h-200"
     >
       <TransitionGroup
         tag="div"
         name="message"
-        class="w-full max-w-[800px] mx-auto px-4 pt-12 pb-8 flex flex-col gap-2 min-h-full"
+        class="w-full max-w-[800px] mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
       >
         <div
           v-for="message in mockMessages"
@@ -294,13 +326,38 @@ const toggleSpeechRecognition = () => {
           class="flex"
           :class="message.role === 'human' ? 'justify-start' : 'justify-end'"
         >
-          <div
-            v-if="message.role === 'human'"
-            class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] break-words text-left"
-          >
-            {{ message.content }}
+          <div v-if="message.role === 'human'" class="group">
+            <div
+              class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] break-words text-left"
+            >
+              {{ message.content }}
+            </div>
+            <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
+              <BaseTooltip content="Report" placement="bottom">
+                <BaseButton
+                  :variant="'ghost'"
+                  size="md"
+                  :icon="Flag"
+                  @click="handleReport(message, 'Inappropriate content')"
+                />
+              </BaseTooltip>
+              <BaseTooltip content="Copy" placement="bottom">
+                <BaseButton
+                  :variant="'ghost'"
+                  size="md"
+                  :icon="Copy"
+                  @click="
+                    (copy(message.content),
+                    toast.success('Copied to clipboard'))
+                  "
+                />
+              </BaseTooltip>
+            </BaseRow>
           </div>
-          <div v-else class="bg-transparent py-3 px-2 break-words text-right">
+          <div
+            v-else
+            class="bg-transparent pt-3 pb-12 px-2 break-words text-right"
+          >
             <span
               v-for="(word, index) in message.content.split(' ')"
               :key="index"
@@ -349,20 +406,55 @@ const toggleSpeechRecognition = () => {
             v-if="mockMessages.length === 0"
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
-            <div class="text-4xl font-normal text-on-surface mb-2">
-              Want to try being an <b>LLM</b>?
-            </div>
+            <div
+              class="text-4xl font-normal text-on-surface mb-2"
+              v-html="
+                isLockedIn
+                  ? 'Want to try being an <b>LLM</b>?'
+                  : 'Choose what <b>model</b> to play as'
+              "
+            ></div>
 
-            <Transition
+            <!--Transition
               enter-active-class="transition-opacity duration-300 delay-150"
               enter-from-class="opacity-0"
               leave-active-class="transition-opacity duration-300"
               leave-to-class="opacity-0"
             >
-              <ModelSelectionCards v-if="!isLockedIn" v-model="selectedModel" />
-            </Transition>
+              <div v-if="!isLockedIn" class="flex flex-col justify-center items-center px-4">
+                <ModelSelectionCards v-model="selectedModel" />
+                <BaseButton variant="action" :full="true" size="lg" class="mt-4 max-w-120" @click="handleFindUser">Queue for incoming requests</BaseButton>
+              </div>
+            </Transition -->
           </div>
         </Transition>
+
+        <BaseLabel for="tools" v-if="webSearch || createImage"
+          >Available Tools:</BaseLabel
+        >
+        <BaseRow id="tools" class="mb-2">
+          <BaseTooltip
+            content="Search Wikipedia for additional information"
+            placement="top"
+          >
+            <BaseButton
+              v-if="webSearch"
+              :icon="Globe"
+              variant="ghost"
+              @click="webSearch"
+              >Web search</BaseButton
+            >
+          </BaseTooltip>
+          <BaseTooltip content="Draw a picture" placement="top">
+            <BaseButton
+              v-if="createImage"
+              :icon="Image"
+              variant="ghost"
+              @click="createImage"
+              >Create image</BaseButton
+            >
+          </BaseTooltip>
+        </BaseRow>
 
         <form @submit.prevent="send" novalidate class="relative w-full z-20">
           <div
@@ -382,7 +474,7 @@ const toggleSpeechRecognition = () => {
             <BaseRow justify="between">
               <BaseRow>
                 <FileMenu />
-                <ToolMenu
+                <ServerToolSelect
                   v-model:webSearch="webSearch"
                   v-model:createImage="createImage"
                   v-model:ponder="ponder"
@@ -529,7 +621,7 @@ const toggleSpeechRecognition = () => {
             >
               Natural Intelligence makes mistakes. Don't share personal data
             </div>
-            <BaseRow v-else>
+            <BaseRow v-else justify="center">
               <BaseButton
                 key="button"
                 type="button"
@@ -557,6 +649,10 @@ const toggleSpeechRecognition = () => {
         </div>
       </div>
     </div>
+
+    <teleport to="body">
+      <ServerWebSearch v-if="webSearch" />
+    </teleport>
   </div>
 </template>
 

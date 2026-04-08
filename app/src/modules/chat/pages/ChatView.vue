@@ -10,9 +10,11 @@ import {
   Image,
   Brain,
   CalendarFold,
+  Flag,
+  Copy,
 } from '@lucide/vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
-import ToolMenu from '@/modules/chat/components/ToolMenu.vue';
+import ChatToolSelect from '@/modules/chat/components/ChatToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useWindowSize } from '@vueuse/core';
@@ -20,12 +22,18 @@ import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
 import { useChatSession } from '@/modules/chat/composables/useChatSession';
+import { useReports } from '@/modules/chat/composables/useReports';
+import { useClipboard } from '@vueuse/core';
+
+const { copy, copied } = useClipboard();
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
 const { startSearching, cancelSearch, session, isSearching } = useMatchmaking();
+const { submitReport, isSubmitting, error, success, resetReportState } =
+  useReports();
 
 const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
@@ -58,13 +66,21 @@ const createImage = ref(false);
 const ponder = ref(false);
 const answerLeisurely = ref(false);
 
-const mockMessages = computed(() => {
+interface UIMessage {
+  id: string;
+  role: 'human' | 'assistant';
+  content: string;
+  sender_id?: string;
+}
+
+const mockMessages = computed<UIMessage[]>(() => {
   const currentChat = chat.value;
   if (!currentChat) return [];
   return currentChat.messages.map((m) => ({
     id: m.id,
-    role: m.sender_id === user.value?.id ? 'human' : 'assistant',
+    role: m.sender_id === user.value?.id ? 'assistant' : 'human',
     content: m.content,
+    sender_id: m.sender_id,
   }));
 });
 
@@ -209,6 +225,24 @@ async function clearChat() {
   userInput.value = '';
 }
 
+async function handleReport(message: UIMessage, reason: string) {
+  const isSuccessful = await submitReport(
+    message.sender_id || '',
+    message.id,
+    message.content,
+    reason,
+  );
+
+  if (isSuccessful) {
+    useToast().success(
+      'Report submitted successfully. Our team will review it.',
+    );
+    // Close modal, etc.
+  } else {
+    useToast().error(error.value || 'Failed to submit report.');
+  }
+}
+
 // Voice Recognition
 const isListening = ref(false);
 let recognition: any = null;
@@ -265,7 +299,7 @@ const toggleSpeechRecognition = () => {
 </script>
 
 <template>
-  <div class="h-[100dvh] w-full flex flex-col overflow-hidden bg-background">
+  <div class="h-[100dvh] w-full flex flex-col overflow-hidden bg-canvas">
     <div
       class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1"
     >
@@ -287,7 +321,7 @@ const toggleSpeechRecognition = () => {
       <TransitionGroup
         tag="div"
         name="message"
-        class="w-full max-w-[800px] mx-auto px-4 pt-12 pb-8 flex flex-col gap-2 min-h-full"
+        class="w-full max-w-[800px] mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
       >
         <div
           v-for="message in mockMessages"
@@ -297,11 +331,14 @@ const toggleSpeechRecognition = () => {
         >
           <div
             v-if="message.role === 'human'"
-            class="bg-surface border border-surface-border py-3 px-4 rounded-2xl max-w-[75%] break-words text-left"
+            class="bg-surface border border-surface-border py-3 px-4 mb-12 rounded-2xl max-w-[75%] break-words text-left"
           >
             {{ message.content }}
           </div>
-          <div v-else class="bg-transparent py-3 px-2 break-words text-left">
+          <div
+            v-else
+            class="bg-transparent py-3 px-2 break-words text-left group"
+          >
             <span
               v-for="(word, index) in message.content.split(' ')"
               :key="index"
@@ -310,6 +347,27 @@ const toggleSpeechRecognition = () => {
             >
               {{ word }}&nbsp;
             </span>
+            <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
+              <BaseTooltip content="Report" placement="bottom">
+                <BaseButton
+                  :variant="'ghost'"
+                  size="md"
+                  :icon="Flag"
+                  @click="handleReport(message, 'Inappropriate content')"
+                />
+              </BaseTooltip>
+              <BaseTooltip content="Copy" placement="bottom">
+                <BaseButton
+                  :variant="'ghost'"
+                  size="md"
+                  :icon="Copy"
+                  @click="
+                    (copy(message.content),
+                    useToast().success('Copied to clipboard'))
+                  "
+                />
+              </BaseTooltip>
+            </BaseRow>
           </div>
         </div>
 
@@ -375,7 +433,7 @@ const toggleSpeechRecognition = () => {
             <BaseRow justify="between">
               <BaseRow>
                 <FileMenu />
-                <ToolMenu
+                <ChatToolSelect
                   v-model:webSearch="webSearch"
                   v-model:createImage="createImage"
                   v-model:ponder="ponder"

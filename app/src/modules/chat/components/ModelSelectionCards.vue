@@ -20,24 +20,24 @@ const options = [
 
 <template>
   <div
-    class="w-full max-w-3xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 px-4"
+    class="w-full mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 px-0"
   >
     <button
       v-for="option in options"
       :key="option.value"
       type="button"
       @click="modelValue = option.value"
-      class="text-left p-5 rounded-2xl border transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      class="flex flex-col justify-start text-left px-4 py-3 rounded-2xl border border-surface-border cursor-pointer transition-hover outline-none focus-visible:ring-2 focus-visible:ring-primary"
       :class="[
         modelValue === option.value
-          ? 'bg-surface-hover border-on-surface/30 shadow-sm'
-          : 'bg-surface border-surface-border hover:border-surface-border-hover',
+          ? 'bg-action'
+          : 'bg-surface hover:bg-surface-hover-subtle',
       ]"
     >
-      <div class="font-medium text-lg text-on-surface mb-1">
+      <h3 class="mb-1" :class="modelValue === option.value ? 'text-on-action!' : 'text-on-surface!'">
         {{ option.label }}
-      </div>
-      <div class="text-sm text-on-surface-subtle">{{ option.description }}</div>
+      </h3>
+      <div class="text-sm leading-4" :class="modelValue === option.value ? 'text-on-action-muted' : 'text-on-surface-muted'">{{ option.description }}</div>
     </button>
   </div>
 </template>
