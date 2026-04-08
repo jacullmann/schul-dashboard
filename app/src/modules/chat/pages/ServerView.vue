@@ -313,7 +313,7 @@ const toggleSpeechRecognition = () => {
 
     <main
       ref="chatContainer"
-      class="flex-1 overflow-y-auto w-full relative custom-scrollbar min-h-200"
+      class="flex-1 overflow-y-auto w-full relative custom-scrollbar min-h-100"
     >
       <TransitionGroup
         tag="div"
