@@ -246,6 +246,8 @@ async function handleReport(message: UIMessage, reason: string) {
   if (isSuccessful) {
     toast.success('Report submitted successfully. Our team will review it.');
     // Close modal, etc.
+  } else if (error.value === 'already_reported') {
+    toast.info('This message has already been reported. Thank you for your vigilance!');
   } else {
     toast.error(error.value || 'Failed to submit report.');
   }

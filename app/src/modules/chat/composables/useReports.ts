@@ -52,6 +52,10 @@ export function useReports() {
       return true;
 
     } catch (err: any) {
+      if (err.code === '23505') {
+        reportError.value = 'already_reported';
+        return false;
+      }
       reportError.value = err.message || 'An error occurred while submitting the report.';
       console.error('Report Error:', err);
       return false;
