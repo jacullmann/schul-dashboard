@@ -46,6 +46,12 @@ onMounted(() => {
   initializeAuth();
 });
 
+onUnmounted(() => {
+  if (chat.value) {
+    chat.value.destroy();
+  }
+});
+
 watch(session, (newSession) => {
   if (
     newSession?.status === 'active' &&

@@ -72,9 +72,10 @@ export function useMatchmaking() {
       }
 
       // 4. Setup the subscription BEFORE evaluating the state to prevent race conditions
-      matchSubscription = supabase
-        .channel(`session_wait_${sessionId}`)
-        .on(
+      const channel = supabase.channel(`session_wait_${sessionId}`);
+      matchSubscription = channel;
+
+      channel.on(
           'postgres_changes',
           {
             event: 'UPDATE',
@@ -91,10 +92,28 @@ export function useMatchmaking() {
               cleanupSubscription(); // We found a match, stop listening to matchmaking changes
             }
           },
-        )
-        .subscribe();
+        );
 
-      // 4. Fetch the initial state of the matched/created session
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Matchmaking subscription timeout'));
+        }, 10000);
+
+        channel.subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            clearTimeout(timeout);
+            resolve();
+          } else if (status === 'CHANNEL_ERROR') {
+            clearTimeout(timeout);
+            reject(new Error(err?.message || 'Channel error'));
+          } else if (status === 'TIMED_OUT') {
+            clearTimeout(timeout);
+            reject(new Error('Subscription timed out'));
+          }
+        });
+      });
+
+      // 5. Fetch the initial state of the matched/created session
       const { data: sessionData, error: fetchErr } = await supabase
         .from('sessions')
         .select('*')
@@ -103,7 +122,7 @@ export function useMatchmaking() {
 
       if (fetchErr) throw fetchErr;
 
-      // 5. Evaluate state. If active, we are ready.
+      // 6. Evaluate state. If active, we are ready.
       if (sessionData.status === 'active') {
         activeSession.value = sessionData;
         isSearching.value = false;
@@ -111,7 +130,7 @@ export function useMatchmaking() {
         return;
       }
 
-      // 6. If waiting, just update the active session (subscription is already active)
+      // 7. If waiting, just update the active session (subscription is already active)
       activeSession.value = sessionData;
     } catch (err: any) {
       cleanupSubscription();

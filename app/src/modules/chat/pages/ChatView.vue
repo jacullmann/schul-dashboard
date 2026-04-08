@@ -78,7 +78,7 @@ const mockMessages = computed<UIMessage[]>(() => {
   if (!currentChat) return [];
   return currentChat.messages.map((m) => ({
     id: m.id,
-    role: m.sender_id === user.value?.id ? 'assistant' : 'human',
+    role: m.sender_id === user.value?.id ? 'human' : 'assistant',
     content: m.content,
     sender_id: m.sender_id,
   }));

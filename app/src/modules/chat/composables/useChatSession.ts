@@ -1,4 +1,4 @@
-import { ref, readonly, onUnmounted } from 'vue'
+import { ref, readonly } from 'vue'
 import { supabase } from '@/lib/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useAuth } from './useAuth'
@@ -21,12 +21,15 @@ export function useChatSession(sessionId: string) {
 
   let chatChannel: RealtimeChannel | null = null
   let typingTimeout: ReturnType<typeof setTimeout> | null = null
+  let hasOpponentJoinedOnce = false;
 
   const initializeChat = async () => {
     if (!sessionId || !user.value) return
 
     chatError.value = null
     messages.value = []
+    isOpponentConnected.value = true
+    hasOpponentJoinedOnce = false
 
     // 1. Fetch historical messages
     const { data: initialMessages, error: fetchErr } = await supabase
@@ -64,7 +67,12 @@ export function useChatSession(sessionId: string) {
         })
         .on('presence', { event: 'sync' }, () => {
           const presenceState = chatChannel?.presenceState() || {}
-          isOpponentConnected.value = Object.keys(presenceState).length > 1
+          const isConnected = Object.keys(presenceState).length > 1
+          if (isConnected) hasOpponentJoinedOnce = true
+          
+          if (hasOpponentJoinedOnce) {
+            isOpponentConnected.value = isConnected
+          }
         })
         .subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
@@ -122,17 +130,17 @@ export function useChatSession(sessionId: string) {
   }
 
   const leaveChat = async () => {
-    if (chatChannel) {
-      await supabase.removeChannel(chatChannel)
-      chatChannel = null
-    }
+    destroy()
     await supabase.from('sessions').update({ status: 'ended' }).eq('id', sessionId)
   }
 
-  onUnmounted(() => {
+  const destroy = () => {
     if (typingTimeout) clearTimeout(typingTimeout)
-    if (chatChannel) supabase.removeChannel(chatChannel)
-  })
+    if (chatChannel) {
+      supabase.removeChannel(chatChannel)
+      chatChannel = null
+    }
+  }
 
   return {
     messages: readonly(messages),
@@ -142,6 +150,7 @@ export function useChatSession(sessionId: string) {
     initializeChat,
     sendMessage,
     setTyping,
-    leaveChat
+    leaveChat,
+    destroy
   }
 }
