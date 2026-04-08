@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch, onMounted } from 'vue';
+import { ref, nextTick, computed, watch, onMounted, onUnmounted } from 'vue';
 import {
   AudioLines,
   ArrowUp,
@@ -27,7 +27,7 @@ import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
 import { useClipboard } from '@vueuse/core';
 
-const { copy, copied } = useClipboard();
+const { copy } = useClipboard();
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
