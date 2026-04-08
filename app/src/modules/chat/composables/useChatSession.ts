@@ -55,6 +55,7 @@ export function useChatSession(sessionId: string) {
           if (newMessage.sender_id !== user.value?.id) {
             if (!messages.value.find(m => m.id === newMessage.id)) {
               messages.value.push(newMessage)
+              messages.value.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
             }
           }
         })
@@ -63,21 +64,50 @@ export function useChatSession(sessionId: string) {
             isOpponentTyping.value = payload.payload.isTyping
           }
         })
-        .on('presence', { event: 'sync' }, () => {
+        .on('presence', { event: 'sync' }, async () => {
           const presenceState = chatChannel?.presenceState() || {}
           const isConnected = Object.keys(presenceState).length > 1
+          
+          if (isConnected && !hasOpponentJoinedOnce) {
+            // Opponent just joined! Fetch any messages missed during the connection gap
+            const { data, error } = await supabase
+              .from('messages')
+              .select('*')
+              .eq('session_id', sessionId)
+              .order('created_at', { ascending: true })
+            
+            if (!error && data) {
+              data.forEach(dbMsg => {
+                if (!messages.value.find(m => m.id === dbMsg.id)) {
+                  messages.value.push(dbMsg)
+                }
+              })
+              messages.value.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+            }
+          }
+
           if (isConnected) hasOpponentJoinedOnce = true
           
           if (hasOpponentJoinedOnce) {
             isOpponentConnected.value = isConnected
           }
         })
-        .subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
-            isSubscribed = true;
-            await chatChannel?.track({ online_at: new Date().toISOString() })
-          }
-        })
+        
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        isSubscribed = true; // prevent hanging if socket is slow
+        resolve();
+      }, 3000);
+
+      chatChannel!.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(timeout);
+          isSubscribed = true;
+          await chatChannel?.track({ online_at: new Date().toISOString() })
+          resolve();
+        }
+      })
+    })
   }
 
   const sendMessage = async (content: string) => {
@@ -95,16 +125,7 @@ export function useChatSession(sessionId: string) {
 
     setTyping(false)
 
-    // Broadcast the message immediately for zero-latency UI
-    if (chatChannel && isSubscribed) {
-      chatChannel.send({
-        type: 'broadcast',
-        event: 'message',
-        payload: temporaryMessage
-      }).catch(err => console.warn('Message broadcast failed:', err));
-    }
-
-    // Persist to DB
+    // Persist to DB FIRST to ensure recipient can fetch it if they miss the broadcast
     const { error } = await supabase
         .from('messages')
         .insert({
@@ -117,6 +138,16 @@ export function useChatSession(sessionId: string) {
     if (error) {
       chatError.value = "Failed to send message."
       console.error(error)
+      return;
+    }
+
+    // Broadcast the message immediately after DB commit
+    if (chatChannel && isSubscribed) {
+      chatChannel.send({
+        type: 'broadcast',
+        event: 'message',
+        payload: temporaryMessage
+      }).catch(err => console.warn('Message broadcast failed:', err));
     }
   }
 
