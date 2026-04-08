@@ -172,5 +172,6 @@ export function useMatchmaking() {
     error: readonly(matchError),
     startSearching,
     cancelSearch,
+    recoverSession,
   };
 }

@@ -42,8 +42,11 @@ const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
 const pendingMessage = ref('');
 
-onMounted(() => {
-  initializeAuth();
+onMounted(async () => {
+  await initializeAuth();
+  if (profile.value) {
+    await recoverSession();
+  }
 });
 
 onUnmounted(() => {

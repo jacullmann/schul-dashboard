@@ -31,7 +31,7 @@ const router = useRouter();
 const windowWidth = useWindowSize().width;
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, cancelSearch, session, isSearching } = useMatchmaking();
+const { startSearching, cancelSearch, session, isSearching, recoverSession } = useMatchmaking();
 const { submitReport, isSubmitting, error, success, resetReportState } =
   useReports();
 
@@ -621,5 +621,8 @@ const toggleSpeechRecognition = () => {
   display: inline-block;
   opacity: 0;
   animation: word-reveal 0.3s ease forwards;
+}
+</style>
+mation: word-reveal 0.3s ease forwards;
 }
 </style>
