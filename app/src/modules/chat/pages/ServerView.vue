@@ -10,11 +10,12 @@ import {
   Globe,
   Image,
   Brain,
-  CalendarFold
+  CalendarFold,
 } from '@lucide/vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
 import ToolMenu from '@/modules/chat/components/ToolMenu.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
+import ModelSelectionCards from '@/modules/chat/components/ModelSelectionCards.vue';
 import { useToast } from '@/common/composables/useToast';
 import { useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
@@ -56,11 +57,14 @@ watch(session, (newSession) => {
 });
 
 // Optional: Notify when the opponent leaves
-watch(() => chat.value?.isOpponentConnected, (isConnected) => {
-  if (isConnected === false && session.value?.status === 'active') {
-    toast.info('The user has disconnected from the chat.');
-  }
-});
+watch(
+  () => chat.value?.isOpponentConnected,
+  (isConnected) => {
+    if (isConnected === false && session.value?.status === 'active') {
+      toast.info('The user has disconnected from the chat.');
+    }
+  },
+);
 
 const webSearch = ref(true);
 const createImage = ref(false);
@@ -83,21 +87,38 @@ watch(userInput, () => {
   handleInput();
 });
 
-const selectedModel = ref('ultra');
+const selectedModel = ref('pro');
+
+const isLockedIn = computed(
+  () => isSearching.value || session.value?.status === 'active',
+);
+
+const handleModelChangeRequest = async (newModel: string) => {
+  await clearChat();
+  selectedModel.value = newModel;
+  toast.info(`Switched to the ${newModel} model. Started a new chat.`);
+};
 
 const isWaitingForResponse = computed(() => {
   if (session.value?.status !== 'active') return false;
   if (mockMessages.value.length === 0) return true;
-  return mockMessages.value[mockMessages.value.length - 1].role === 'assistant';
+  return (
+    mockMessages.value[mockMessages.value.length - 1]?.role === 'assistant'
+  );
 });
 
 const isThinking = computed(
-  () => isSearching.value || isWaitingForResponse.value || (chat.value?.isOpponentTyping ?? false),
+  () =>
+    isSearching.value ||
+    isWaitingForResponse.value ||
+    (chat.value?.isOpponentTyping ?? false),
 );
 
 const handleCancel = async () => {
   if (isSearching.value) {
     await cancelSearch();
+  } else if (isThinking.value) {
+    await clearChat();
   }
 };
 
@@ -138,7 +159,7 @@ const scrollToBottom = () => {
 
 // 3. New specific handler for the Find User button
 async function handleFindUser() {
-  if (isSearching.value) return; 
+  if (isSearching.value) return;
 
   try {
     if (!profile.value) {
@@ -157,7 +178,7 @@ async function send() {
   if (!content && !pendingMessage.value) return;
 
   if (session.value?.status !== 'active') {
-    toast.error("You must find a user before sending a message.");
+    toast.error('You must find a user before sending a message.');
     return;
   }
 
@@ -210,8 +231,8 @@ const toggleSpeechRecognition = () => {
 
   recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
-  recognition.interimResults = true; 
-  recognition.continuous = false; 
+  recognition.interimResults = true;
+  recognition.continuous = false;
 
   recognition.onstart = () => {
     isListening.value = true;
@@ -294,7 +315,9 @@ const toggleSpeechRecognition = () => {
         <div v-if="isThinking" key="thinking" class="flex justify-start">
           <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
-            <span class="text-body text-on-surface-muted">{{ isSearching ? 'Searching for user...' : 'Waiting for request...' }}</span>
+            <span class="text-body text-on-surface-muted">{{
+              isSearching ? 'Searching for user...' : 'Waiting for request...'
+            }}</span>
           </div>
         </div>
       </TransitionGroup>
@@ -326,9 +349,18 @@ const toggleSpeechRecognition = () => {
             v-if="mockMessages.length === 0"
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
-            <div class="text-4xl font-normal text-on-surface">
+            <div class="text-4xl font-normal text-on-surface mb-2">
               Want to try being an <b>LLM</b>?
             </div>
+
+            <Transition
+              enter-active-class="transition-opacity duration-300 delay-150"
+              enter-from-class="opacity-0"
+              leave-active-class="transition-opacity duration-300"
+              leave-to-class="opacity-0"
+            >
+              <ModelSelectionCards v-if="!isLockedIn" v-model="selectedModel" />
+            </Transition>
           </div>
         </Transition>
 
@@ -409,7 +441,11 @@ const toggleSpeechRecognition = () => {
               </BaseRow>
 
               <BaseRow>
-                <ModelSelect v-model="selectedModel" />
+                <ModelSelect
+                  v-model="selectedModel"
+                  :isLocked="isLockedIn"
+                  @require-reset="handleModelChangeRequest"
+                />
                 <Transition
                   mode="out-in"
                   enter-active-class="transition-opacity duration-150 ease-in-out"
@@ -418,7 +454,11 @@ const toggleSpeechRecognition = () => {
                   leave-to-class="opacity-0"
                 >
                   <BaseButton
-                    v-if="mockMessages.length === 0 && !isSearching && session?.status !== 'active'"
+                    v-if="
+                      mockMessages.length === 0 &&
+                      !isSearching &&
+                      session?.status !== 'active'
+                    "
                     :icon="Search"
                     variant="action"
                     type="button"

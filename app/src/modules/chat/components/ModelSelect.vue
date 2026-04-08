@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, nextTick, computed } from 'vue';
-import { useWindowSize, onClickOutside, useElementBounding } from '@vueuse/core';
+import {
+  useWindowSize,
+  onClickOutside,
+  useElementBounding,
+} from '@vueuse/core';
 import { ChevronDown } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
@@ -8,32 +12,57 @@ const { t } = useI18n();
 
 const modelValue = defineModel<string>({ required: true });
 
+// --- NEW: Added Props and Emits for Lock-in functionality ---
+const props = defineProps<{
+  isLocked?: boolean;
+}>();
+
+const emit = defineEmits(['require-reset']);
+
 const options = [
-  { value: 'instant', label: 'Instant', description: 'Swift answers for simple tasks' },
+  {
+    value: 'instant',
+    label: 'Instant',
+    description: 'Swift answers for simple tasks',
+  },
   { value: 'pro', label: 'Pro', description: 'Thinking for everyday tasks' },
-  { value: 'ultra', label: 'Ultra', description: 'Deep reasoning for complex tasks' },
+  {
+    value: 'ultra',
+    label: 'Ultra',
+    description: 'Deep reasoning for complex tasks',
+  },
 ];
 
 const isOpen = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
 const floatingRef = ref<HTMLElement | null>(null);
 
-const { left, right, bottom, top: triggerTop, width: buttonWidth } = useElementBounding(wrapperRef);
+const {
+  left,
+  right,
+  bottom,
+  top: triggerTop,
+  width: buttonWidth,
+} = useElementBounding(wrapperRef);
 const { width: windowWidth, height: windowHeight } = useWindowSize();
 const { height: menuActualHeight } = useElementBounding(floatingRef);
 
 const floatingStyles = computed(() => {
-  const menuMinWidth = 256; // 64 * 4px = 256px from min-w-64
+  const menuMinWidth = 256;
   const menuWidth = Math.max(buttonWidth.value, menuMinWidth);
-  const h = menuActualHeight.value || 280; // Use actual height or fallback
+  const h = menuActualHeight.value || 280;
 
   const shouldFlipHorizontally = left.value + menuWidth > windowWidth.value;
   const shouldFlipVertically = bottom.value + h > windowHeight.value;
 
   return {
     position: 'fixed' as const,
-    top: shouldFlipVertically ? `${triggerTop.value - h - 4}px` : `${bottom.value + 4}px`,
-    left: shouldFlipHorizontally ? `${right.value - menuWidth}px` : `${left.value}px`,
+    top: shouldFlipVertically
+      ? `${triggerTop.value - h - 4}px`
+      : `${bottom.value + 4}px`,
+    left: shouldFlipHorizontally
+      ? `${right.value - menuWidth}px`
+      : `${left.value}px`,
     width: `${buttonWidth.value}px`,
     zIndex: 100002,
   };
@@ -61,7 +90,18 @@ const toggleMenu = async () => {
 };
 
 const selectOption = (value: string) => {
-  modelValue.value = value;
+  if (value === modelValue.value) {
+    isOpen.value = false;
+    return;
+  }
+
+  // --- NEW: Intercept lock logic ---
+  if (props.isLocked) {
+    emit('require-reset', value);
+  } else {
+    modelValue.value = value;
+  }
+
   isOpen.value = false;
 };
 

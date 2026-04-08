@@ -76,19 +76,34 @@ watch(userInput, () => {
 
 const selectedModel = ref('pro');
 
+const isLockedIn = computed(
+  () => isSearching.value || session.value?.status === 'active',
+);
+
+const handleModelChangeRequest = async (newModel: string) => {
+  await clearChat();
+  selectedModel.value = newModel;
+  useToast().info(`Switched to the ${newModel} model. Started a new chat.`);
+};
+
 const isWaitingForResponse = computed(() => {
   if (session.value?.status !== 'active') return false;
   if (mockMessages.value.length === 0) return false;
-  return mockMessages.value[mockMessages.value.length - 1].role === 'human';
+  return mockMessages.value[mockMessages.value.length - 1]?.role === 'human';
 });
 
 const isThinking = computed(
-  () => isSearching.value || isWaitingForResponse.value || (chat.value?.isOpponentTyping ?? false),
+  () =>
+    isSearching.value ||
+    isWaitingForResponse.value ||
+    (chat.value?.isOpponentTyping ?? false),
 );
 
 const handleCancel = async () => {
   if (isSearching.value) {
     await cancelSearch();
+  } else if (isThinking.value) {
+    await clearChat();
   }
 };
 
@@ -302,7 +317,9 @@ const toggleSpeechRecognition = () => {
         <div v-if="isThinking" key="thinking" class="flex justify-start">
           <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
-            <span class="text-body text-on-surface-muted">{{ isSearching ? 'Connecting...' : 'Thinking...' }}</span>
+            <span class="text-body text-on-surface-muted">{{
+              isSearching ? 'Connecting...' : 'Thinking...'
+            }}</span>
           </div>
         </div>
       </TransitionGroup>
@@ -417,7 +434,11 @@ const toggleSpeechRecognition = () => {
               </BaseRow>
 
               <BaseRow>
-                <ModelSelect v-model="selectedModel" />
+                <ModelSelect
+                  v-model="selectedModel"
+                  :isLocked="isLockedIn"
+                  @require-reset="handleModelChangeRequest"
+                />
                 <Transition
                   mode="out-in"
                   enter-active-class="transition-opacity duration-150 ease-in-out"
