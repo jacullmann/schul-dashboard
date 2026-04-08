@@ -623,6 +623,3 @@ const toggleSpeechRecognition = () => {
   animation: word-reveal 0.3s ease forwards;
 }
 </style>
-mation: word-reveal 0.3s ease forwards;
-}
-</style>
