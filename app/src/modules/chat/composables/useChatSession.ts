@@ -120,14 +120,14 @@ export function useChatSession(sessionId: string) {
     if (!content.trim() || !user.value) return
 
     const messageId = crypto.randomUUID();
-    const temporaryMessage: ChatMessage = {
+    const optimisticMessage: ChatMessage = {
       id: messageId,
       created_at: new Date().toISOString(),
       session_id: sessionId,
       sender_id: user.value.id,
       content: content.trim()
     }
-    messages.value.push(temporaryMessage)
+    messages.value.push(optimisticMessage)
 
     setTyping(false)
 
@@ -152,7 +152,7 @@ export function useChatSession(sessionId: string) {
       chatChannel.send({
         type: 'broadcast',
         event: 'message',
-        payload: temporaryMessage
+        payload: optimisticMessage
       }).catch(err => console.warn('Message broadcast failed:', err));
     }
   }

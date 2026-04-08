@@ -82,7 +82,7 @@ interface UIMessage {
   sender_id?: string;
 }
 
-const mockMessages = computed<UIMessage[]>(() => {
+const displayMessages = computed<UIMessage[]>(() => {
   const messages: UIMessage[] = [];
 
   if (chat.value) {
@@ -126,8 +126,8 @@ const handleModelChangeRequest = async (newModel: string) => {
 
 const isWaitingForResponse = computed(() => {
   if (session.value?.status !== 'active') return false;
-  if (mockMessages.value.length === 0) return false;
-  return mockMessages.value[mockMessages.value.length - 1]?.role === 'human';
+  if (displayMessages.value.length === 0) return false;
+  return displayMessages.value[displayMessages.value.length - 1]?.role === 'human';
 });
 
 const isThinking = computed(
@@ -231,7 +231,7 @@ async function send() {
 
 // Watch for new messages to scroll
 watch(
-  () => mockMessages.value.length,
+  () => displayMessages.value.length,
   () => {
     nextTick(scrollToBottom);
   },
@@ -346,7 +346,7 @@ const toggleSpeechRecognition = () => {
         class="w-full max-w-[800px] mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
       >
         <div
-          v-for="message in mockMessages"
+          v-for="message in displayMessages"
           :key="message.id"
           class="flex"
           :class="message.role === 'human' ? 'justify-end' : 'justify-start'"
@@ -408,17 +408,17 @@ const toggleSpeechRecognition = () => {
     <div class="w-full relative shrink-0 z-10 flex flex-col items-center pb-2">
       <div
         class="absolute bottom-full left-0 w-full h-16 bg-gradient-to-t from-background to-transparent pointer-events-none transition-opacity duration-500"
-        :class="mockMessages.length === 0 ? 'opacity-0' : 'opacity-100'"
+        :class="displayMessages.length === 0 ? 'opacity-0' : 'opacity-100'"
       ></div>
       <div
         class="absolute inset-0 w-full h-full bg-background pointer-events-none transition-opacity duration-500"
-        :class="mockMessages.length === 0 ? 'opacity-0' : 'opacity-100'"
+        :class="displayMessages.length === 0 ? 'opacity-0' : 'opacity-100'"
       ></div>
 
       <div
         class="w-full max-w-[800px] px-4 pointer-events-auto relative transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
         :class="
-          mockMessages.length === 0 ? '-translate-y-[35vh]' : 'translate-y-0'
+          displayMessages.length === 0 ? '-translate-y-[35vh]' : 'translate-y-0'
         "
       >
         <Transition
@@ -428,7 +428,7 @@ const toggleSpeechRecognition = () => {
           leave-to-class="opacity-0"
         >
           <div
-            v-if="mockMessages.length === 0"
+            v-if="displayMessages.length === 0"
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
             <div class="text-4xl font-normal text-on-surface">
@@ -582,7 +582,7 @@ const toggleSpeechRecognition = () => {
             leave-to-class="opacity-0"
           >
             <div
-              v-if="mockMessages.length > 0"
+              v-if="displayMessages.length > 0"
               key="disclaimer"
               class="text-xs text-center text-on-surface-subtle m-4 mb-2"
             >
