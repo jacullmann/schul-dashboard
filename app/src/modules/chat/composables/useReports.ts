@@ -71,9 +71,9 @@ export function useReports() {
   };
 
   return {
-    isSubmitting: readonly(isSubmitting),
-    error: readonly(reportError),
-    success: readonly(reportSuccess),
+    isSubmitting,
+    error: reportError,
+    success: reportSuccess,
     submitReport,
     resetReportState,
   };

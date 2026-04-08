@@ -81,10 +81,10 @@ export function useAuth() {
   };
 
   return {
-    user: readonly(currentUser),
-    profile: readonly(currentProfile),
-    isLoading: readonly(isAuthLoading),
-    error: readonly(authError),
+    user: currentUser,
+    profile: currentProfile,
+    isLoading: isAuthLoading,
+    error: authError,
     initializeAuth,
     joinGame,
   };

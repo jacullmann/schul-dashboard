@@ -143,10 +143,10 @@ export function useChatSession(sessionId: string) {
   }
 
   return {
-    messages: readonly(messages),
-    isOpponentTyping: readonly(isOpponentTyping),
-    isOpponentConnected: readonly(isOpponentConnected),
-    error: readonly(chatError),
+    messages,
+    isOpponentTyping,
+    isOpponentConnected,
+    error: chatError,
     initializeChat,
     sendMessage,
     setTyping,

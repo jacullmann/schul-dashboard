@@ -140,6 +140,46 @@ export function useMatchmaking() {
     }
   };
 
+  const recoverSession = async () => {
+    if (!profile.value) return;
+
+    try {
+      const { data: existingSessions, error: fetchErr } = await supabase
+        .from('sessions')
+        .select('*')
+        .in('status', ['waiting', 'active'])
+        .or(`human_id.eq.${profile.value.id},ai_id.eq.${profile.value.id}`)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (fetchErr) throw fetchErr;
+
+      if (existingSessions && existingSessions.length > 0) {
+        const sessionId = existingSessions[0].id;
+        activeSession.value = existingSessions[0];
+
+        // Re-attach subscription for existing session
+        const channel = supabase.channel(`session_wait_${sessionId}`);
+        matchSubscription = channel;
+
+        channel.on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'sessions',
+            filter: `id=eq.${sessionId}`,
+          },
+          (payload) => {
+            activeSession.value = payload.new as GameSession;
+          }
+        ).subscribe();
+      }
+    } catch (err: any) {
+      console.error('Session recovery failed:', err);
+    }
+  };
+
   const cancelSearch = async () => {
     cleanupSubscription();
     isSearching.value = false;
@@ -167,9 +207,9 @@ export function useMatchmaking() {
   });
 
   return {
-    isSearching: readonly(isSearching),
-    session: readonly(activeSession),
-    error: readonly(matchError),
+    isSearching,
+    session: activeSession,
+    error: matchError,
     startSearching,
     cancelSearch,
     recoverSession,

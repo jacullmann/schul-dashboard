@@ -34,7 +34,7 @@ const windowWidth = useWindowSize().width;
 const toast = useToast();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, cancelSearch, session, isSearching } = useMatchmaking();
+const { startSearching, cancelSearch, session, isSearching, recoverSession } = useMatchmaking();
 const { submitReport, isSubmitting, error, success, resetReportState } =
   useReports();
 
