@@ -33,23 +33,25 @@ export function useChatSession(sessionId: string) {
     hasOpponentJoinedOnce = false
     isSubscribed = false;
 
-    // 1. Fetch historical messages
-    const { data: initialMessages, error: fetchErr } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true })
-
-    if (!fetchErr && initialMessages) {
-      messages.value = initialMessages
-    }
-
-    // 2. Setup the master channel
+    // 1. Setup the master channel first to start connection early
     chatChannel = supabase.channel(`chat_${sessionId}`, {
       config: { presence: { key: user.value.id } }
     })
 
     chatChannel
+        .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'messages', filter: `session_id=eq.${sessionId}` },
+            (payload) => {
+              const newMessage = payload.new as ChatMessage
+              if (newMessage.sender_id !== user.value?.id) {
+                if (!messages.value.find(m => m.id === newMessage.id)) {
+                  messages.value.push(newMessage)
+                  messages.value.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                }
+              }
+            }
+        )
         .on('broadcast', { event: 'message' }, (payload) => {
           const newMessage = payload.payload as ChatMessage
           if (newMessage.sender_id !== user.value?.id) {
@@ -64,47 +66,51 @@ export function useChatSession(sessionId: string) {
             isOpponentTyping.value = payload.payload.isTyping
           }
         })
-        .on('presence', { event: 'sync' }, async () => {
+        .on('presence', { event: 'sync' }, () => {
           const presenceState = chatChannel?.presenceState() || {}
           const isConnected = Object.keys(presenceState).length > 1
           
-          if (isConnected && !hasOpponentJoinedOnce) {
-            // Opponent just joined! Fetch any messages missed during the connection gap
-            const { data, error } = await supabase
-              .from('messages')
-              .select('*')
-              .eq('session_id', sessionId)
-              .order('created_at', { ascending: true })
-            
-            if (!error && data) {
-              data.forEach(dbMsg => {
-                if (!messages.value.find(m => m.id === dbMsg.id)) {
-                  messages.value.push(dbMsg)
-                }
-              })
-              messages.value.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-            }
-          }
-
           if (isConnected) hasOpponentJoinedOnce = true
           
           if (hasOpponentJoinedOnce) {
             isOpponentConnected.value = isConnected
           }
         })
-        
-    await new Promise<void>((resolve) => {
-      const timeout = setTimeout(() => {
-        isSubscribed = true; // prevent hanging if socket is slow
-        resolve();
-      }, 3000);
 
-      chatChannel!.subscribe(async (status) => {
+    // 2. Fetch historical messages BEFORE awaiting subscription
+    const fetchHistory = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true })
+      
+      if (!error && data) {
+        data.forEach(dbMsg => {
+          if (!messages.value.find(m => m.id === dbMsg.id)) {
+            messages.value.push(dbMsg)
+          }
+        })
+        messages.value.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      }
+    }
+
+    await fetchHistory()
+
+    // 3. Await subscription without false timeouts
+    await new Promise<void>((resolve) => {
+      chatChannel!.subscribe(async (status, err) => {
         if (status === 'SUBSCRIBED') {
-          clearTimeout(timeout);
           isSubscribed = true;
           await chatChannel?.track({ online_at: new Date().toISOString() })
+          
+          // Safety net: fetch history one more time to catch anything inserted during our connection gap
+          await fetchHistory()
           resolve();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.error(`Channel subscription failed: ${status}`, err);
+          isSubscribed = false;
+          resolve(); // Resolve to avoid hanging UI, but broadcast will be disabled
         }
       })
     })

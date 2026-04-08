@@ -156,6 +156,11 @@ export function useMatchmaking() {
 
       if (existingSessions && existingSessions.length > 0) {
         const sessionId = existingSessions[0].id;
+        
+        if (existingSessions[0].status === 'waiting') {
+          isSearching.value = true;
+        }
+
         activeSession.value = existingSessions[0];
 
         // Re-attach subscription for existing session
@@ -172,6 +177,10 @@ export function useMatchmaking() {
           },
           (payload) => {
             activeSession.value = payload.new as GameSession;
+            if (payload.new.status === 'active') {
+               isSearching.value = false;
+               cleanupSubscription();
+            }
           }
         ).subscribe();
       }
