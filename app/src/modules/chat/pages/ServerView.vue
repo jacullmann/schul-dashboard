@@ -159,9 +159,14 @@ const chatContainer = ref<HTMLElement | null>(null);
 
 // 2. The magic resize function + Typing indicator trigger
 const handleInput = async () => {
-  // Trigger typing indicator
-  if (chat.value && userInput.value.trim().length > 0) {
-    chat.value.setTyping(true);
+  // Trigger typing indicator and status
+  if (chat.value) {
+    if (userInput.value.trim().length > 0) {
+      chat.value.setTyping(true);
+      chat.value.setAiStatus('generating (writing)');
+    } else {
+      chat.value.setAiStatus('thinking (doing nothing)');
+    }
   }
 
   await nextTick();
@@ -214,7 +219,9 @@ async function send() {
   }
 
   if (chat.value) {
-    await chat.value.sendMessage(content);
+    await chat.value.sendMessage(content, {
+      model: selectedModel.value,
+    });
     userInput.value = '';
 
     nextTick(() => {
@@ -222,6 +229,31 @@ async function send() {
     });
   }
 }
+
+// Watchers for status updates
+watch(webSearch, (isOpen) => {
+  if (isOpen && chat.value) {
+    chat.value.setAiStatus('searching the web', 'web_search');
+  } else if (!isOpen && chat.value) {
+    chat.value.setAiStatus('thinking (doing nothing)');
+  }
+});
+
+watch(createImage, (isOpen) => {
+  if (isOpen && chat.value) {
+    chat.value.setAiStatus('creating an image', 'image_generation');
+  } else if (!isOpen && chat.value) {
+    chat.value.setAiStatus('thinking (doing nothing)');
+  }
+});
+
+watch(ponder, (active) => {
+  if (active && chat.value) {
+    chat.value.setAiStatus('pondering', 'ponder');
+  } else if (!active && chat.value) {
+    chat.value.setAiStatus('thinking (doing nothing)');
+  }
+});
 
 watch(
   () => displayMessages.value.length,

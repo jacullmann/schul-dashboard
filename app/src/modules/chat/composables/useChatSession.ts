@@ -9,6 +9,18 @@ export interface ChatMessage {
   session_id: string
   sender_id: string
   content: string
+  metadata?: {
+    model?: string
+    steps?: AiStep[]
+    [key: string]: any
+  }
+}
+
+export interface AiStep {
+  status: string
+  tool?: string
+  duration_ms?: number
+  timestamp: number
 }
 
 export function useChatSession(sessionId: string) {
@@ -16,8 +28,13 @@ export function useChatSession(sessionId: string) {
 
   const messages = ref<ChatMessage[]>([])
   const isOpponentTyping = ref(false)
+  const currentAiStatus = ref<string | null>(null)
   const isOpponentConnected = ref(true)
   const chatError = ref<string | null>(null)
+
+  // Local state for AI player's steps
+  const aiSteps = ref<AiStep[]>([])
+  let stepStartTime: number | null = null
 
   let chatChannel: RealtimeChannel | null = null
   let typingTimeout: ReturnType<typeof setTimeout> | null = null
@@ -30,6 +47,8 @@ export function useChatSession(sessionId: string) {
     chatError.value = null
     messages.value = []
     isOpponentConnected.value = true
+    currentAiStatus.value = null
+    aiSteps.value = []
     hasOpponentJoinedOnce = false
     isSubscribed = false;
 
@@ -64,6 +83,11 @@ export function useChatSession(sessionId: string) {
         .on('broadcast', { event: 'typing' }, (payload) => {
           if (payload.payload.userId !== user.value?.id) {
             isOpponentTyping.value = payload.payload.isTyping
+          }
+        })
+        .on('broadcast', { event: 'ai_status' }, (payload) => {
+          if (payload.payload.userId !== user.value?.id) {
+            currentAiStatus.value = payload.payload.status
           }
         })
         .on('presence', { event: 'sync' }, () => {
@@ -116,20 +140,67 @@ export function useChatSession(sessionId: string) {
     })
   }
 
-  const sendMessage = async (content: string) => {
+  const setAiStatus = async (status: string | null, tool?: string) => {
+    if (!chatChannel || !user.value || !isSubscribed) return
+
+    // Don't add duplicate consecutive identical statuses to the log
+    const lastStep = aiSteps.value.length > 0 ? aiSteps.value[aiSteps.value.length - 1] : null
+    const isDuplicate = lastStep && lastStep.status === status && lastStep.tool === tool
+
+    // Calculate duration for the previous step if it exists and we're changing status
+    if (aiSteps.value.length > 0 && stepStartTime !== null && !isDuplicate) {
+      lastStep!.duration_ms = Date.now() - stepStartTime
+    }
+
+    if (status && !isDuplicate) {
+      stepStartTime = Date.now()
+      aiSteps.value.push({
+        status,
+        tool,
+        timestamp: stepStartTime
+      })
+    } else if (!status) {
+      stepStartTime = null
+    }
+
+    // Always broadcast the current status even if it's a "duplicate" in the log 
+    // (to keep the live UI updated/refreshed)
+    await chatChannel.send({
+      type: 'broadcast',
+      event: 'ai_status',
+      payload: { userId: user.value.id, status }
+    }).catch(err => console.warn('AI status broadcast failed:', err));
+  }
+
+  const sendMessage = async (content: string, metadata?: Record<string, any>) => {
     if (!content.trim() || !user.value) return
 
+    // Finalize the last step if any
+    if (aiSteps.value.length > 0 && stepStartTime !== null) {
+      const lastStep = aiSteps.value[aiSteps.value.length - 1]
+      lastStep.duration_ms = Date.now() - stepStartTime
+      stepStartTime = null
+    }
+
     const messageId = crypto.randomUUID();
+    const finalMetadata = {
+      ...metadata,
+      steps: aiSteps.value.length > 0 ? [...aiSteps.value] : undefined
+    }
+
     const optimisticMessage: ChatMessage = {
       id: messageId,
       created_at: new Date().toISOString(),
       session_id: sessionId,
       sender_id: user.value.id,
-      content: content.trim()
+      content: content.trim(),
+      metadata: finalMetadata
     }
     messages.value.push(optimisticMessage)
 
     setTyping(false)
+    setAiStatus(null) // Clear status on send
+    aiSteps.value = [] // Reset steps for next message
 
     // Persist to DB FIRST to ensure recipient can fetch it if they miss the broadcast
     const { error } = await supabase
@@ -138,7 +209,8 @@ export function useChatSession(sessionId: string) {
           id: messageId,
           session_id: sessionId,
           sender_id: user.value.id,
-          content: content.trim()
+          content: content.trim(),
+          metadata: finalMetadata
         })
 
     if (error) {
@@ -189,10 +261,12 @@ export function useChatSession(sessionId: string) {
   return {
     messages,
     isOpponentTyping,
+    currentAiStatus,
     isOpponentConnected,
     error: chatError,
     initializeChat,
     sendMessage,
+    setAiStatus,
     setTyping,
     leaveChat,
     destroy

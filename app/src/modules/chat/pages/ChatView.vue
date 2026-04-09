@@ -400,7 +400,9 @@ const toggleSpeechRecognition = () => {
           <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
             <span class="text-body text-on-surface-muted">{{
-              isSearching ? 'Connecting...' : 'Thinking...'
+              isSearching 
+                ? 'Connecting...' 
+                : (chat?.currentAiStatus || (chat?.isOpponentTyping ? 'Generating...' : 'Thinking...'))
             }}</span>
           </div>
         </div>
