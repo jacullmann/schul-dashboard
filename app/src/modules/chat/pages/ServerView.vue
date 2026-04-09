@@ -163,9 +163,9 @@ const handleInput = async () => {
   if (chat.value) {
     if (userInput.value.trim().length > 0) {
       chat.value.setTyping(true);
-      chat.value.setAiStatus('generating (writing)');
+      chat.value.setAiStatus('generating');
     } else {
-      chat.value.setAiStatus('thinking (doing nothing)');
+      chat.value.setAiStatus('thinking');
     }
   }
 
@@ -235,7 +235,7 @@ watch(webSearch, (isOpen) => {
   if (isOpen && chat.value) {
     chat.value.setAiStatus('searching the web', 'web_search');
   } else if (!isOpen && chat.value) {
-    chat.value.setAiStatus('thinking (doing nothing)');
+    chat.value.setAiStatus('thinking');
   }
 });
 
@@ -243,7 +243,7 @@ watch(createImage, (isOpen) => {
   if (isOpen && chat.value) {
     chat.value.setAiStatus('creating an image', 'image_generation');
   } else if (!isOpen && chat.value) {
-    chat.value.setAiStatus('thinking (doing nothing)');
+    chat.value.setAiStatus('thinking');
   }
 });
 
@@ -251,7 +251,7 @@ watch(ponder, (active) => {
   if (active && chat.value) {
     chat.value.setAiStatus('pondering', 'ponder');
   } else if (!active && chat.value) {
-    chat.value.setAiStatus('thinking (doing nothing)');
+    chat.value.setAiStatus('thinking');
   }
 });
 
