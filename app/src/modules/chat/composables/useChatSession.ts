@@ -100,7 +100,37 @@ export function useChatSession(sessionId: string) {
       })
       .on('broadcast', { event: 'ai_status' }, (payload) => {
         if (payload.payload.userId !== user.value?.id) {
-          currentAiStatus.value = payload.payload.status;
+          const newStatus: string | null = payload.payload.status;
+          currentAiStatus.value = newStatus;
+
+          // Mirror the sender-side step accumulation so we have a full live history
+          if (newStatus) {
+            const lastReceivedStep = aiSteps.value[aiSteps.value.length - 1];
+            const isDuplicate =
+              lastReceivedStep &&
+              lastReceivedStep.status === newStatus &&
+              lastReceivedStep.tool === payload.payload.tool;
+
+            if (!isDuplicate) {
+              // Finalize duration of the previous step
+              if (lastReceivedStep && stepStartTime !== null) {
+                lastReceivedStep.duration_ms = Date.now() - stepStartTime;
+              }
+              stepStartTime = Date.now();
+              aiSteps.value.push({
+                status: newStatus,
+                tool: payload.payload.tool,
+                timestamp: stepStartTime,
+              });
+            }
+          } else {
+            // Status cleared – finalize last step
+            const lastReceivedStep = aiSteps.value[aiSteps.value.length - 1];
+            if (lastReceivedStep && stepStartTime !== null) {
+              lastReceivedStep.duration_ms = Date.now() - stepStartTime;
+            }
+            stepStartTime = null;
+          }
         }
       })
       .on('presence', { event: 'sync' }, () => {
@@ -190,7 +220,7 @@ export function useChatSession(sessionId: string) {
       .send({
         type: 'broadcast',
         event: 'ai_status',
-        payload: { userId: user.value.id, status },
+        payload: { userId: user.value.id, status, tool },
       })
       .catch((err) => console.warn('AI status broadcast failed:', err));
   };
@@ -293,6 +323,7 @@ export function useChatSession(sessionId: string) {
     messages,
     isOpponentTyping,
     currentAiStatus,
+    aiSteps,
     isOpponentConnected,
     error: chatError,
     initializeChat,

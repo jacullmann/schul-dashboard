@@ -5,6 +5,7 @@ import {
   ArrowUp,
   Square,
   ChevronRight,
+  ChevronDown,
   SquarePen,
   Globe,
   Image,
@@ -12,6 +13,11 @@ import {
   CalendarFold,
   Flag,
   Copy,
+  Search,
+  Sparkles,
+  Terminal,
+  Lightbulb,
+  Zap,
 } from '@lucide/vue';
 import ChatLogo from '@/modules/chat/components/ChatLogo.vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
@@ -23,6 +29,7 @@ import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
 import { useChatSession } from '@/modules/chat/composables/useChatSession';
+import type { AiStep } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
 import { useClipboard } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
@@ -90,6 +97,7 @@ interface UIMessage {
   role: 'human' | 'assistant';
   content: string;
   sender_id?: string;
+  steps?: AiStep[];
 }
 
 const displayMessages = computed<UIMessage[]>(() => {
@@ -103,6 +111,7 @@ const displayMessages = computed<UIMessage[]>(() => {
           role: m.sender_id === user.value?.id ? 'human' : 'assistant',
           content: m.content,
           sender_id: m.sender_id,
+          steps: m.metadata?.steps,
         }),
       ),
     );
@@ -338,6 +347,61 @@ const toggleSpeechRecognition = () => {
 
   recognition.start();
 };
+
+// ─── Step History ─────────────────────────────────────────────────────────────
+
+/** Whether the step history panel is expanded */
+const isStepHistoryExpanded = ref(false);
+
+/** Per-message expanded state keyed by message id */
+const expandedMessageSteps = ref<Record<string, boolean>>({});
+
+function toggleMessageSteps(messageId: string) {
+  expandedMessageSteps.value[messageId] =
+    !expandedMessageSteps.value[messageId];
+}
+
+function isMessageStepsExpanded(messageId: string) {
+  return !!expandedMessageSteps.value[messageId];
+}
+
+/**
+ * The live steps being accumulated for the currently-in-progress response.
+ * Reads from the chat composable's reactive `aiSteps` ref.
+ */
+const liveSteps = computed<AiStep[]>(() => chat.value?.aiSteps ?? []);
+
+/** Mapping from status key to a Lucide icon component */
+const stepIconMap: Record<string, any> = {
+  thinking: Lightbulb,
+  generating: Sparkles,
+  searching: Search,
+  creating_image: Image,
+  pondering: Brain,
+  executing_terminal: Terminal,
+};
+
+function getStepIcon(status: string): any {
+  return stepIconMap[status] ?? Zap;
+}
+
+/**
+ * Generate a human-readable label for a step.
+ * Falls back to the i18n translation for the status key.
+ */
+function getStepLabel(step: AiStep): string {
+  const base = t(`chat.status.${step.status}`, step.status);
+  return step.tool ? `${base}` : base;
+}
+
+/**
+ * Format a duration in milliseconds to a compact human-readable string.
+ */
+function formatDuration(ms?: number): string {
+  if (ms === undefined || ms === null) return '';
+  if (ms < 1000) return `${ms}ms`;
+  return `${(ms / 1000).toFixed(1)}s`;
+}
 </script>
 
 <template>
@@ -368,9 +432,55 @@ const toggleSpeechRecognition = () => {
         <div
           v-for="message in displayMessages"
           :key="message.id"
-          class="flex"
-          :class="message.role === 'human' ? 'justify-end' : 'justify-start'"
+          class="flex flex-col"
+          :class="message.role === 'human' ? 'items-end' : 'items-start'"
         >
+          <!-- Persisted step history for completed assistant messages -->
+          <div
+            v-if="message.role === 'assistant' && message.steps && message.steps.length > 0"
+            class="step-history-container mb-2 w-full"
+          >
+            <button
+              class="step-history-trigger"
+              @click="toggleMessageSteps(message.id)"
+              :aria-expanded="isMessageStepsExpanded(message.id)"
+            >
+              <component
+                :is="isMessageStepsExpanded(message.id) ? ChevronDown : ChevronRight"
+                class="step-chevron"
+                :size="14"
+              />
+              <span class="step-history-summary">
+                {{ message.steps.length }} step{{ message.steps.length === 1 ? '' : 's' }}
+              </span>
+              <span v-if="!isMessageStepsExpanded(message.id)" class="step-history-preview">
+                · {{ getStepLabel(message.steps[message.steps.length - 1]) }}
+              </span>
+            </button>
+
+            <Transition
+              enter-active-class="step-list-enter-active"
+              leave-active-class="step-list-leave-active"
+              enter-from-class="step-list-enter-from"
+              leave-to-class="step-list-leave-to"
+            >
+              <div v-if="isMessageStepsExpanded(message.id)" class="step-list">
+                <div
+                  v-for="(step, idx) in message.steps"
+                  :key="idx"
+                  class="step-item step-item--done"
+                >
+                  <component :is="getStepIcon(step.status)" class="step-icon" :size="13" />
+                  <span class="step-label">{{ getStepLabel(step) }}</span>
+                  <span v-if="step.duration_ms" class="step-duration">
+                    {{ formatDuration(step.duration_ms) }}
+                  </span>
+                </div>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- Message bubble -->
           <div
             v-if="message.role === 'human'"
             class="bg-surface border border-surface-border py-3 px-4 mb-12 rounded-2xl max-w-[75%] wrap-break-word text-left"
@@ -379,7 +489,7 @@ const toggleSpeechRecognition = () => {
           </div>
           <div
             v-else
-            class="bg-transparent py-3 px-2 wrap-break-word text-left group"
+            class="bg-transparent py-3 px-2 wrap-break-word text-left group w-full"
           >
             <span
               v-for="(word, index) in message.content.split(' ')"
@@ -413,18 +523,62 @@ const toggleSpeechRecognition = () => {
           </div>
         </div>
 
-        <!-- Thinking Indicator -->
-        <div v-if="isThinking" key="thinking" class="flex justify-start">
-          <div class="p-2 flex items-center gap-2">
-            <!--BaseSpinner on="ghost" size="20" /-->
-            <ChatLogo size="md" :loading="true" variant="gradient" />
-            <span class="text-body text-on-surface-muted">{{
-              isSearching
-                ? t('chat.status.connecting') + dots
-                : t(
-                    `chat.status.${chat?.currentAiStatus || (chat?.isOpponentTyping ? 'generating' : 'thinking')}`,
-                  ) + dots
-            }}</span>
+        <!-- Live Thinking Indicator with collapsible step history -->
+        <div v-if="isThinking" key="thinking" class="flex justify-start w-full">
+          <div class="flex flex-col gap-1 py-2 px-2 w-full">
+
+            <!-- Live step history (collapsible) — only shown when there are accumulated steps -->
+            <div v-if="!isSearching && liveSteps.length > 0" class="step-history-container mb-1">
+              <button
+                class="step-history-trigger"
+                @click="isStepHistoryExpanded = !isStepHistoryExpanded"
+                :aria-expanded="isStepHistoryExpanded"
+              >
+                <component
+                  :is="isStepHistoryExpanded ? ChevronDown : ChevronRight"
+                  class="step-chevron"
+                  :size="14"
+                />
+                <span class="step-history-summary">
+                  {{ liveSteps.length }} step{{ liveSteps.length === 1 ? '' : 's' }}
+                </span>
+              </button>
+
+              <Transition
+                enter-active-class="step-list-enter-active"
+                leave-active-class="step-list-leave-active"
+                enter-from-class="step-list-enter-from"
+                leave-to-class="step-list-leave-to"
+              >
+                <div v-if="isStepHistoryExpanded" class="step-list">
+                  <div
+                    v-for="(step, idx) in liveSteps"
+                    :key="idx"
+                    class="step-item"
+                    :class="idx === liveSteps.length - 1 ? 'step-item--active' : 'step-item--done'"
+                  >
+                    <component :is="getStepIcon(step.status)" class="step-icon" :size="13" />
+                    <span class="step-label">{{ getStepLabel(step) }}</span>
+                    <span v-if="step.duration_ms" class="step-duration">
+                      {{ formatDuration(step.duration_ms) }}
+                    </span>
+                    <span v-else-if="idx === liveSteps.length - 1" class="step-live-dot" />
+                  </div>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Current status row -->
+            <div class="flex items-center gap-2">
+              <ChatLogo size="md" :loading="true" variant="gradient" />
+              <span class="text-body text-on-surface-muted">{{
+                isSearching
+                  ? t('chat.status.connecting') + dots
+                  : t(
+                      `chat.status.${chat?.currentAiStatus || (chat?.isOpponentTyping ? 'generating' : 'thinking')}`,
+                    ) + dots
+              }}</span>
+            </div>
           </div>
         </div>
       </TransitionGroup>
@@ -668,5 +822,139 @@ const toggleSpeechRecognition = () => {
   display: inline-block;
   opacity: 0;
   animation: word-reveal 0.3s ease forwards;
+}
+
+/* ─── Step History ──────────────────────────────────────────────────────── */
+
+.step-history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.step-history-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 4px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-on-surface-subtle, #888);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  transition: background 0.15s ease, color 0.15s ease;
+  user-select: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.step-history-trigger:hover {
+  background: var(--color-surface-border, rgba(128,128,128,0.12));
+  color: var(--color-on-surface-muted, #aaa);
+}
+
+.step-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  color: var(--color-on-surface-subtle, #888);
+}
+
+.step-history-summary {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.step-history-preview {
+  color: var(--color-on-surface-subtle, #888);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* Step list animations */
+.step-list-enter-active {
+  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.step-list-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.step-list-enter-from,
+.step-list-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0 4px 20px;
+  border-left: 1.5px solid var(--color-surface-border, rgba(128,128,128,0.18));
+  margin-left: 10px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.12s ease;
+}
+
+.step-item--done {
+  color: var(--color-on-surface-subtle, #888);
+}
+
+.step-item--active {
+  color: var(--color-on-surface-muted, #ccc);
+}
+
+.step-icon {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.step-item--active .step-icon {
+  opacity: 1;
+}
+
+.step-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-duration {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-on-surface-subtle, #666);
+  opacity: 0.7;
+  margin-left: auto;
+}
+
+/* Pulsing live dot for the currently active step */
+.step-live-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+  animation: live-pulse 1s ease-in-out infinite;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
 }
 </style>
