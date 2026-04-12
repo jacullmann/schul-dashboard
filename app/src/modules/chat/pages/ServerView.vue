@@ -91,7 +91,13 @@ watch(
 );
 
 const webSearch = ref(false);
+const webSearchActive = ref(false);
 const webSearchEnabled = ref(true);
+
+// Reset searching state when modal closes
+watch(webSearch, (isOpen) => {
+  if (!isOpen) webSearchActive.value = false;
+});
 
 const createImage = ref(false);
 const createImageEnabled = ref(false);
@@ -132,7 +138,7 @@ watch(userInput, () => {
 const selectedModel = ref('pro');
 
 useServerStatusBroadcaster(chat, {
-  webSearch,
+  webSearch: webSearchActive,
   createImage,
   reasoning,
   terminal,
@@ -639,7 +645,11 @@ const toggleSpeechRecognition = () => {
     </div>
 
     <teleport to="body">
-      <ServerWebSearch v-if="webSearch" @cancel="webSearch = false" />
+      <ServerWebSearch
+        v-if="webSearch"
+        @cancel="webSearch = false"
+        @searching="webSearchActive = true"
+      />
     </teleport>
   </div>
 </template>

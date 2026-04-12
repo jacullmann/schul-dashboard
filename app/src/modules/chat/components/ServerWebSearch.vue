@@ -13,7 +13,7 @@ const articleContent = ref('');
 const articleTitle = ref('');
 const articleLoading = ref(false);
 
-const emit = defineEmits(['cancel']);
+const emit = defineEmits(['cancel', 'searching']);
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -23,14 +23,15 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 
 async function search() {
   if (!searchQuery.value.trim()) return;
-  
+
+  emit('searching');
   currentView.value = 'results';
   loading.value = true;
   try {
     const response = await fetch(
       `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
-        searchQuery.value
-      )}&format=json&origin=*`
+        searchQuery.value,
+      )}&format=json&origin=*`,
     );
     const data = await response.json();
     searchResults.value = data.query?.search || [];
@@ -46,13 +47,14 @@ async function viewArticle(pageid: number, title: string) {
   articleTitle.value = title;
   articleLoading.value = true;
   articleContent.value = '';
-  
+
   try {
     const response = await fetch(
-      `https://en.wikipedia.org/w/api.php?action=parse&pageid=${pageid}&prop=text&format=json&origin=*&disableeditsections=1&mobileformat=1`
+      `https://en.wikipedia.org/w/api.php?action=parse&pageid=${pageid}&prop=text&format=json&origin=*&disableeditsections=1&mobileformat=1`,
     );
     const data = await response.json();
-    articleContent.value = data.parse?.text['*'] || 'Could not load article content.';
+    articleContent.value =
+      data.parse?.text['*'] || 'Could not load article content.';
   } catch (error) {
     console.error('Error fetching article:', error);
     articleContent.value = 'Failed to load article content.';
@@ -71,8 +73,12 @@ onMounted(() => {
     <BaseBackdrop @cancel="emit('cancel')">
       <div class="fixed w-full h-full md:p-4 md:h-fit md:w-160 z-20000">
         <!-- Header: Search Bar -->
-        <div class="w-full h-full bg-canvas md:border border-canvas-border md:rounded-2xl overflow-hidden flex flex-col">
-          <div class="flex items-center gap-3 p-4 border-b border-canvas-border">
+        <div
+          class="w-full h-full bg-canvas md:border border-canvas-border md:rounded-2xl overflow-hidden flex flex-col"
+        >
+          <div
+            class="flex items-center gap-3 p-4 border-b border-canvas-border"
+          >
             <Search :size="20" class="text-on-surface-subtle shrink-0" />
             <input
               id="search-input"
@@ -97,28 +103,45 @@ onMounted(() => {
           <!-- Body: Search Results / Article Content -->
           <div class="flex-1 overflow-y-auto max-h-160 custom-scrollbar">
             <template v-if="currentView === 'results'">
-              <div v-if="loading" class="p-8 text-center text-on-surface-subtle">
+              <div
+                v-if="loading"
+                class="p-8 text-center text-on-surface-subtle"
+              >
                 <BaseSpinner on="ghost" size="24" />
                 <p>Searching Wikipedia...</p>
               </div>
-              
-              <div v-else-if="searchResults.length === 0 && searchQuery" class="p-8 text-center text-on-surface-subtle">
+
+              <div
+                v-else-if="searchResults.length === 0 && searchQuery"
+                class="p-8 text-center text-on-surface-subtle"
+              >
                 No results found for "{{ searchQuery }}"
               </div>
 
-              <div v-else-if="searchResults.length > 0" class="p-2 flex flex-col gap-1">
-                <button 
-                  v-for="result in searchResults" 
+              <div
+                v-else-if="searchResults.length > 0"
+                class="p-2 flex flex-col gap-1"
+              >
+                <button
+                  v-for="result in searchResults"
                   :key="result.pageid"
                   type="button"
                   @click="viewArticle(result.pageid, result.title)"
                   class="p-3 rounded-lg hover:bg-surface-hover transition-colors group text-left"
                 >
-                  <div class="text-on-surface font-medium mb-1 group-hover:text-primary transition-colors flex items-center justify-between">
+                  <div
+                    class="text-on-surface font-medium mb-1 group-hover:text-primary transition-colors flex items-center justify-between"
+                  >
                     <span>{{ result.title }}</span>
-                    <span class="text-xs text-on-surface-muted italic font-normal">{{ result.wordcount }} words</span>
+                    <span
+                      class="text-xs text-on-surface-muted italic font-normal"
+                      >{{ result.wordcount }} words</span
+                    >
                   </div>
-                  <div class="text-on-surface-muted text-sm line-clamp-2" v-html="result.snippet"></div>
+                  <div
+                    class="text-on-surface-muted text-sm line-clamp-2"
+                    v-html="result.snippet"
+                  ></div>
                 </button>
               </div>
 
@@ -129,23 +152,31 @@ onMounted(() => {
 
             <template v-else-if="currentView === 'article'">
               <div class="p-4 relative">
-                <button 
-                  @click="currentView = 'results'" 
+                <button
+                  @click="currentView = 'results'"
                   class="mb-4 text-primary hover:text-primary-hover flex items-center gap-1 text-sm font-medium transition-colors"
                 >
                   <ChevronLeft :size="16" /> Back to results
                 </button>
-                
-                <div v-if="articleLoading" class="p-8 text-center text-on-surface-subtle">
+
+                <div
+                  v-if="articleLoading"
+                  class="p-8 text-center text-on-surface-subtle"
+                >
                   <BaseSpinner on="ghost" size="24" />
                   <p>Loading article...</p>
                 </div>
-                
+
                 <div v-else class="article-content">
-                  <h1 class="text-2xl font-bold mb-6 text-on-surface px-2 border-l-4 border-primary leading-tight">
+                  <h1
+                    class="text-2xl font-bold mb-6 text-on-surface px-2 border-l-4 border-primary leading-tight"
+                  >
                     {{ articleTitle }}
                   </h1>
-                  <div class="wikipedia-body text-on-surface leading-relaxed" v-html="articleContent"></div>
+                  <div
+                    class="wikipedia-body text-on-surface leading-relaxed"
+                    v-html="articleContent"
+                  ></div>
                 </div>
               </div>
             </template>
