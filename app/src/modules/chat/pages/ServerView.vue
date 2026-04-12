@@ -1,29 +1,28 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch, onMounted, onUnmounted } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import {
-  AudioLines,
   ArrowUp,
-  Search,
-  Square,
+  AudioLines,
   ChevronRight,
-  SquarePen,
+  Copy,
+  Flag,
   Globe,
   Image,
-  Flag,
-  Copy,
+  Search,
+  Square,
+  SquarePen,
 } from '@lucide/vue';
 import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
 import ServerToolSelect from '@/modules/chat/components/ServerToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import ServerWebSearch from '@/modules/chat/components/ServerWebSearch.vue';
 import { useToast } from '@/common/composables/useToast';
-import { useWindowSize } from '@vueuse/core';
+import { useClipboard, useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
 import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
-import { useClipboard } from '@vueuse/core';
 
 const { copy } = useClipboard();
 
@@ -32,9 +31,9 @@ const windowWidth = useWindowSize().width;
 const toast = useToast();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, cancelSearch, session, isSearching, recoverSession } = useMatchmaking();
-const { submitReport, error } =
-  useReports();
+const { startSearching, cancelSearch, session, isSearching, recoverSession } =
+  useMatchmaking();
+const { submitReport, error } = useReports();
 
 const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
@@ -53,23 +52,27 @@ onUnmounted(() => {
   }
 });
 
-watch(session, async (newSession) => {
-  if (
-    newSession?.status === 'active' &&
-    newSession.id !== currentSessionId.value
-  ) {
-    currentSessionId.value = newSession.id;
-    const sessionChat = useChatSession(newSession.id);
-    chat.value = sessionChat;
-    await sessionChat.initializeChat();
+watch(
+  session,
+  async (newSession) => {
+    if (
+      newSession?.status === 'active' &&
+      newSession.id !== currentSessionId.value
+    ) {
+      currentSessionId.value = newSession.id;
+      const sessionChat = useChatSession(newSession.id);
+      chat.value = sessionChat;
+      await sessionChat.initializeChat();
 
-    // Send pending message if any
-    if (pendingMessage.value) {
-      sessionChat.sendMessage(pendingMessage.value);
-      pendingMessage.value = '';
+      // Send pending message if any
+      if (pendingMessage.value) {
+        sessionChat.sendMessage(pendingMessage.value);
+        pendingMessage.value = '';
+      }
     }
-  }
-}, { immediate: true });
+  },
+  { immediate: true },
+);
 
 // Optional: Notify when the opponent leaves
 watch(
@@ -104,12 +107,14 @@ interface UIMessage {
 const displayMessages = computed<UIMessage[]>(() => {
   const currentChat = chat.value;
   if (!currentChat) return [];
-  return currentChat.messages.map((m): UIMessage => ({
-    id: m.id,
-    role: m.sender_id === user.value?.id ? 'assistant' : 'human',
-    content: m.content,
-    sender_id: m.sender_id,
-  }));
+  return currentChat.messages.map(
+    (m): UIMessage => ({
+      id: m.id,
+      role: m.sender_id === user.value?.id ? 'assistant' : 'human',
+      content: m.content,
+      sender_id: m.sender_id,
+    }),
+  );
 });
 
 const userInput = ref('');
@@ -134,7 +139,8 @@ const isWaitingForResponse = computed(() => {
   if (session.value?.status !== 'active') return false;
   if (displayMessages.value.length === 0) return true;
   return (
-    displayMessages.value[displayMessages.value.length - 1]?.role === 'assistant'
+    displayMessages.value[displayMessages.value.length - 1]?.role ===
+    'assistant'
   );
 });
 
@@ -285,7 +291,9 @@ async function handleReport(message: UIMessage, reason: string) {
     toast.success('Report submitted successfully. Our team will review it.');
     // Close modal, etc.
   } else if (error.value === 'already_reported') {
-    toast.info('This message has already been reported. Thank you for your vigilance!');
+    toast.info(
+      'This message has already been reported. Thank you for your vigilance!',
+    );
   } else {
     toast.error(error.value || 'Failed to submit report.');
   }
@@ -320,12 +328,10 @@ const toggleSpeechRecognition = () => {
   };
 
   recognition.onresult = (event: any) => {
-    const transcript = Array.from(event.results)
+    userInput.value = Array.from(event.results)
       .map((result: any) => result[0])
       .map((result) => result.transcript)
       .join('');
-
-    userInput.value = transcript;
   };
 
   recognition.onerror = (event: any) => {
@@ -345,7 +351,7 @@ const toggleSpeechRecognition = () => {
 </script>
 
 <template>
-  <div class="h-[100dvh] w-full flex flex-col overflow-hidden bg-canvas">
+  <div class="h-dvh w-full flex flex-col overflow-hidden bg-canvas">
     <div
       class="absolute top-2 left-2 bg-surface border border-surface-border z-1 rounded-full p-1"
     >
@@ -367,7 +373,7 @@ const toggleSpeechRecognition = () => {
       <TransitionGroup
         tag="div"
         name="message"
-        class="w-full max-w-[800px] mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
+        class="w-full max-w-200 mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
       >
         <div
           v-for="message in displayMessages"
@@ -378,7 +384,7 @@ const toggleSpeechRecognition = () => {
           <div v-if="message.role === 'human'" class="w-full group">
             <div class="flex">
               <div
-                class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] break-words text-left"
+                class="bg-surface border border-surface-border py-3 px-4 rounded-2xl rounded-tl-md max-w-[75%] wrap-break-word text-left"
               >
                 {{ message.content }}
               </div>
@@ -407,7 +413,7 @@ const toggleSpeechRecognition = () => {
           </div>
           <div
             v-else
-            class="bg-transparent pt-3 pb-12 px-2 break-words text-right"
+            class="bg-transparent pt-3 pb-12 px-2 wrap-break-word text-right"
           >
             <span
               v-for="(word, index) in message.content.split(' ')"
@@ -433,7 +439,7 @@ const toggleSpeechRecognition = () => {
 
     <div class="w-full relative shrink-0 z-10 flex flex-col items-center pb-2">
       <div
-        class="absolute bottom-full left-0 w-full h-16 bg-gradient-to-t from-background to-transparent pointer-events-none transition-opacity duration-500"
+        class="absolute bottom-full left-0 w-full h-16 bg-linear-to-t from-background to-transparent pointer-events-none transition-opacity duration-500"
         :class="displayMessages.length === 0 ? 'opacity-0' : 'opacity-100'"
       ></div>
       <div
@@ -442,7 +448,7 @@ const toggleSpeechRecognition = () => {
       ></div>
 
       <div
-        class="w-full max-w-[800px] px-4 pointer-events-auto relative transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
+        class="w-full max-w-200 px-4 pointer-events-auto relative transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
         :class="
           displayMessages.length === 0 ? '-translate-y-[35vh]' : 'translate-y-0'
         "
@@ -509,7 +515,7 @@ const toggleSpeechRecognition = () => {
 
         <form @submit.prevent="send" novalidate class="relative w-full z-20">
           <div
-            class="p-3 rounded-[32px] flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
+            class="p-3 rounded-4xl flex flex-col gap-2 bg-surface border border-surface-border w-full shadow-sm"
           >
             <textarea
               id="user-input"
@@ -519,7 +525,7 @@ const toggleSpeechRecognition = () => {
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Respond to the user"
-              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle resize-none overflow-y-auto max-h-[240px] block box-border m-0 custom-scrollbar"
+              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
             ></textarea>
 
             <BaseRow justify="between">
