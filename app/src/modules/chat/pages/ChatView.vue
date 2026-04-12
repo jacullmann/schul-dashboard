@@ -25,16 +25,21 @@ import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
 import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
 import { useClipboard } from '@vueuse/core';
+import { useI18n } from 'vue-i18n';
+import { useAnimatedEllipsis } from '@/modules/chat/composables/useAnimatedEllipsis';
 
 const { copy } = useClipboard();
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
 
+const { t } = useI18n();
+const dots = useAnimatedEllipsis();
+
 const { user, profile, joinGame, initializeAuth } = useAuth();
-const { startSearching, cancelSearch, session, isSearching, recoverSession } = useMatchmaking();
-const { submitReport, error } =
-  useReports();
+const { startSearching, cancelSearch, session, isSearching, recoverSession } =
+  useMatchmaking();
+const { submitReport, error } = useReports();
 
 const currentSessionId = ref<string | null>(null);
 const chat = ref<ReturnType<typeof useChatSession> | null>(null);
@@ -53,23 +58,27 @@ onUnmounted(() => {
   }
 });
 
-watch(session, async (newSession) => {
-  if (
-    newSession?.status === 'active' &&
-    newSession.id !== currentSessionId.value
-  ) {
-    currentSessionId.value = newSession.id;
-    const sessionChat = useChatSession(newSession.id);
-    chat.value = sessionChat;
-    await sessionChat.initializeChat();
+watch(
+  session,
+  async (newSession) => {
+    if (
+      newSession?.status === 'active' &&
+      newSession.id !== currentSessionId.value
+    ) {
+      currentSessionId.value = newSession.id;
+      const sessionChat = useChatSession(newSession.id);
+      chat.value = sessionChat;
+      await sessionChat.initializeChat();
 
-    // Send pending message if any
-    if (pendingMessage.value) {
-      sessionChat.sendMessage(pendingMessage.value);
-      pendingMessage.value = '';
+      // Send pending message if any
+      if (pendingMessage.value) {
+        sessionChat.sendMessage(pendingMessage.value);
+        pendingMessage.value = '';
+      }
     }
-  }
-}, { immediate: true });
+  },
+  { immediate: true },
+);
 
 const webSearch = ref(true);
 const createImage = ref(false);
@@ -87,12 +96,16 @@ const displayMessages = computed<UIMessage[]>(() => {
   const messages: UIMessage[] = [];
 
   if (chat.value) {
-    messages.push(...chat.value.messages.map((m): UIMessage => ({
-      id: m.id,
-      role: m.sender_id === user.value?.id ? 'human' : 'assistant',
-      content: m.content,
-      sender_id: m.sender_id,
-    })));
+    messages.push(
+      ...chat.value.messages.map(
+        (m): UIMessage => ({
+          id: m.id,
+          role: m.sender_id === user.value?.id ? 'human' : 'assistant',
+          content: m.content,
+          sender_id: m.sender_id,
+        }),
+      ),
+    );
   }
 
   if (pendingMessage.value) {
@@ -128,7 +141,9 @@ const handleModelChangeRequest = async (newModel: string) => {
 const isWaitingForResponse = computed(() => {
   if (session.value?.status !== 'active') return false;
   if (displayMessages.value.length === 0) return false;
-  return displayMessages.value[displayMessages.value.length - 1]?.role === 'human';
+  return (
+    displayMessages.value[displayMessages.value.length - 1]?.role === 'human'
+  );
 });
 
 const isThinking = computed(
@@ -262,7 +277,9 @@ async function handleReport(message: UIMessage, reason: string) {
     );
     // Close modal, etc.
   } else if (error.value === 'already_reported') {
-    useToast().info('This message has already been reported. Thank you for your vigilance!');
+    useToast().info(
+      'This message has already been reported. Thank you for your vigilance!',
+    );
   } else {
     useToast().error(error.value || 'Failed to submit report.');
   }
@@ -402,9 +419,10 @@ const toggleSpeechRecognition = () => {
             <!--BaseSpinner on="ghost" size="20" /-->
             <ChatLogo size="md" :loading="true" variant="gradient" />
             <span class="text-body text-on-surface-muted">{{
-              isSearching 
-                ? 'Connecting...' 
-                : (chat?.currentAiStatus || (chat?.isOpponentTyping ? 'Generating...' : 'Thinking...'))
+              isSearching
+                ? 'Connecting...'
+                : chat?.currentAiStatus ||
+                  (chat?.isOpponentTyping ? 'Generating...' : 'Thinking...')
             }}</span>
           </div>
         </div>

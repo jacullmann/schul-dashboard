@@ -753,5 +753,18 @@
       "logout": "Sicher von deinem Konto abmelden"
     }
   },
-  "about": {}
+  "about": {},
+  "chat": {
+    "status": {
+      "thinking": "Denkt nach",
+      "generating": "Generiert",
+      "searching": "Durchsucht das Internet",
+      "creating_image": "Erstellt ein Bild",
+      "pondering": "Grübelt",
+      "executing_terminal": "Führt Befehl aus",
+      "searching_user": "Sucht nach Nutzer",
+      "waiting": "Wartet auf Anfrage",
+      "connecting": "Verbindet"
+    }
+  }
 }

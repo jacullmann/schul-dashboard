@@ -693,5 +693,18 @@
       "logout": "Securely sign out of your account"
     }
   },
-  "about": {}
+  "about": {},
+  "chat": {
+    "status": {
+      "thinking": "Thinking",
+      "generating": "Generating",
+      "searching": "Searching the web",
+      "creating_image": "Creating an image",
+      "pondering": "Pondering",
+      "executing_terminal": "Executing command",
+      "searching_user": "Searching for user",
+      "waiting": "Waiting for request",
+      "connecting": "Connecting"
+    }
+  }
 }

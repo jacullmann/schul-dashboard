@@ -23,12 +23,18 @@ import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
 import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
+import { useI18n } from 'vue-i18n';
+import { useAnimatedEllipsis } from '@/modules/chat/composables/useAnimatedEllipsis';
+import { useServerStatusBroadcaster } from '@/modules/chat/composables/useServerStatusBroadcaster';
 
 const { copy } = useClipboard();
 
 const router = useRouter();
 const windowWidth = useWindowSize().width;
 const toast = useToast();
+
+const { t } = useI18n();
+const dots = useAnimatedEllipsis();
 
 const { user, profile, joinGame, initializeAuth } = useAuth();
 const { startSearching, cancelSearch, session, isSearching, recoverSession } =
@@ -125,6 +131,14 @@ watch(userInput, () => {
 
 const selectedModel = ref('pro');
 
+useServerStatusBroadcaster(chat, {
+  webSearch,
+  createImage,
+  reasoning,
+  terminal,
+  userInput,
+});
+
 const isLockedIn = computed(
   () => isSearching.value || session.value?.status === 'active',
 );
@@ -165,16 +179,6 @@ const chatContainer = ref<HTMLElement | null>(null);
 
 // 2. The magic resize function + Typing indicator trigger
 const handleInput = async () => {
-  // Trigger typing indicator and status
-  if (chat.value) {
-    if (userInput.value.trim().length > 0) {
-      chat.value.setTyping(true);
-      chat.value.setAiStatus('generating');
-    } else {
-      chat.value.setAiStatus('thinking');
-    }
-  }
-
   await nextTick();
 
   const textarea = textareaRef.value;
@@ -235,31 +239,6 @@ async function send() {
     });
   }
 }
-
-// Watchers for status updates
-watch(webSearch, (isOpen) => {
-  if (isOpen && chat.value) {
-    chat.value.setAiStatus('searching the web', 'web_search');
-  } else if (!isOpen && chat.value) {
-    chat.value.setAiStatus('thinking');
-  }
-});
-
-watch(createImage, (isOpen) => {
-  if (isOpen && chat.value) {
-    chat.value.setAiStatus('creating an image', 'image_generation');
-  } else if (!isOpen && chat.value) {
-    chat.value.setAiStatus('thinking');
-  }
-});
-
-watch(ponder, (active) => {
-  if (active && chat.value) {
-    chat.value.setAiStatus('pondering', 'ponder');
-  } else if (!active && chat.value) {
-    chat.value.setAiStatus('thinking');
-  }
-});
 
 watch(
   () => displayMessages.value.length,
@@ -430,7 +409,9 @@ const toggleSpeechRecognition = () => {
           <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
             <span class="text-body text-on-surface-muted">{{
-              isSearching ? 'Searching for user...' : 'Waiting for request...'
+              isSearching
+                ? t('chat.status.searching_user') + dots
+                : t('chat.status.waiting') + dots
             }}</span>
           </div>
         </div>
