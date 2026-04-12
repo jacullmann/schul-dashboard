@@ -108,12 +108,12 @@ const fillStyle = computed(() => {
 @keyframes ai-fluid {
   0%,
   100% {
-    transform: scale(0.88) rotate(-5deg);
-    filter: brightness(0.9) blur(0px);
+    transform: scale(0.5);
+    filter: blur(0px);
   }
   50% {
-    transform: scale(1.08) rotate(5deg);
-    filter: brightness(1.1) blur(0.5px);
+    transform: scale(1);
+    filter: blur(2px);
   }
 }
 
