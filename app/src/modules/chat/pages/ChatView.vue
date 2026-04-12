@@ -420,9 +420,10 @@ const toggleSpeechRecognition = () => {
             <ChatLogo size="md" :loading="true" variant="gradient" />
             <span class="text-body text-on-surface-muted">{{
               isSearching
-                ? 'Connecting...'
-                : chat?.currentAiStatus ||
-                  (chat?.isOpponentTyping ? 'Generating...' : 'Thinking...')
+                ? t('chat.status.connecting') + dots
+                : t(
+                    `chat.status.${chat?.currentAiStatus || (chat?.isOpponentTyping ? 'generating' : 'thinking')}`,
+                  ) + dots
             }}</span>
           </div>
         </div>
