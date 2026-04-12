@@ -4,19 +4,19 @@ import { computed } from 'vue';
 interface Props {
   /**
    * The size of the logo.
-   * Pass string presets ('sm', 'md', 'lg', 'xl') or a numeric pixel value.
+   * Pass string presets ('sm', 'md', 'lg', etc.) or a numeric pixel value.
    */
   size?: number | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 
   /**
-   * Triggers a continuous, elegant spin loading animation state
+   * Triggers a continuous, elegant loading animation state
    */
   loading?: boolean;
 
   /**
    * Aesthetic variant:
-   *  - solid: standard minimal monochrome silhouette (Claude-like)
-   *  - gradient: dynamic multi-color magic gradient (Gemini-like)
+   *  - solid: standard minimal monochrome silhouette
+   *  - gradient: dynamic multi-color magic gradient
    *  - outline: clean outlined minimal variant
    */
   variant?: 'solid' | 'gradient' | 'outline';
@@ -108,17 +108,17 @@ const fillStyle = computed(() => {
 @keyframes ai-fluid {
   0%,
   100% {
-    transform: scale(0.5);
+    transform: scale(0.75);
     filter: blur(0px);
   }
   50% {
-    transform: scale(1);
-    filter: blur(2px);
+    transform: scale(1.25);
+    filter: blur(1px);
   }
 }
 
 .animate-ai-fluid {
-  animation: ai-fluid 3s ease-in-out infinite;
+  animation: ai-fluid 2s ease-in-out infinite;
   transform-origin: center;
   will-change: transform, filter;
 }
