@@ -452,10 +452,10 @@ function formatDuration(ms?: number): string {
               message.steps &&
               message.steps.length > 0
             "
-            class="step-history-container mb-2 w-full"
+            class="flex flex-col gap-0 mb-2 w-full"
           >
             <button
-              class="step-history-trigger"
+              class="inline-flex items-center gap-1.25 py-0.75 pr-2 pl-1 rounded-full bg-transparent cursor-pointer text-on-surface-subtle text-xs/1.4 transition-colors duration-150 select-none outline-none whitespace-nowrap hover:bg-surface-border/20 hover:text-on-surface-muted"
               @click="toggleMessageSteps(message.id)"
               :aria-expanded="isMessageStepsExpanded(message.id)"
             >
@@ -465,10 +465,10 @@ function formatDuration(ms?: number): string {
                     ? ChevronDown
                     : ChevronRight
                 "
-                class="step-chevron"
+                class="shrink-0 transition-transform duration-200 text-on-surface-subtle"
                 :size="14"
               />
-              <span class="step-history-summary">
+              <span class="font-medium tracking-tight">
                 {{ message.steps.length }} step{{
                   message.steps.length === 1 ? '' : 's'
                 }}
@@ -476,24 +476,24 @@ function formatDuration(ms?: number): string {
             </button>
 
             <Transition
-              enter-active-class="step-list-enter-active"
-              leave-active-class="step-list-leave-active"
-              enter-from-class="step-list-enter-from"
-              leave-to-class="step-list-leave-to"
+              enter-active-class="transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]"
+              leave-active-class="transition-[opacity,transform] duration-150 ease-in-out"
+              enter-from-class="opacity-0 -translate-y-1"
+              leave-to-class="opacity-0 -translate-y-1"
             >
-              <div v-if="isMessageStepsExpanded(message.id)" class="step-list">
+              <div v-if="isMessageStepsExpanded(message.id)" class="flex flex-col gap-0.5 py-1 pl-5 border-l-[1.5px] border-surface-border/20 ml-2.5">
                 <div
                   v-for="(step, idx) in message.steps"
                   :key="idx"
-                  class="step-item step-item--done"
+                  class="group/step-item flex items-center gap-1.75 text-xs/1.5 px-1 py-0.5 rounded-md transition-colors duration-120 text-on-surface-subtle"
                 >
                   <component
                     :is="getStepIcon(step.status)"
-                    class="step-icon"
+                    class="shrink-0 opacity-75 group-hover/step-item:opacity-100 transition-opacity"
                     :size="13"
                   />
-                  <span class="step-label">{{ getStepLabel(step) }}</span>
-                  <span v-if="step.duration_ms" class="step-duration">
+                  <span class="flex-1 overflow-hidden truncate whitespace-nowrap">{{ getStepLabel(step) }}</span>
+                  <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle opacity-70 ml-auto">
                     {{ formatDuration(step.duration_ms) }}
                   </span>
                 </div>
@@ -548,11 +548,11 @@ function formatDuration(ms?: number): string {
         <div v-if="isThinking" key="thinking" class="flex justify-start w-full">
           <div class="flex flex-col gap-1 py-2 px-2 w-full">
             <!-- Live step history (collapsible) — always visible while the AI is responding -->
-            <div v-if="!isSearching" class="step-history-container mb-1">
+            <div v-if="!isSearching" class="flex flex-col gap-0 mb-1">
               <button
-                class="step-history-trigger"
+                class="inline-flex items-center gap-1.25 py-0.75 pr-2 pl-1 rounded-full bg-transparent cursor-pointer text-on-surface-subtle text-xs/1.4 transition-colors duration-150 select-none outline-none whitespace-nowrap hover:bg-surface-border/20 hover:text-on-surface-muted"
                 :class="{
-                  'step-history-trigger--empty': liveSteps.length === 0,
+                  'cursor-default! opacity-50! hover:bg-transparent! hover:text-on-surface-subtle!': liveSteps.length === 0,
                 }"
                 :disabled="liveSteps.length === 0"
                 @click="
@@ -564,10 +564,10 @@ function formatDuration(ms?: number): string {
               >
                 <component
                   :is="isStepHistoryExpanded ? ChevronDown : ChevronRight"
-                  class="step-chevron"
+                  class="shrink-0 transition-transform duration-200 text-on-surface-subtle"
                   :size="14"
                 />
-                <span class="step-history-summary">
+                <span class="font-medium tracking-tight">
                   {{ liveSteps.length }} step{{
                     liveSteps.length === 1 ? '' : 's'
                   }}
@@ -575,34 +575,35 @@ function formatDuration(ms?: number): string {
               </button>
 
               <Transition
-                enter-active-class="step-list-enter-active"
-                leave-active-class="step-list-leave-active"
-                enter-from-class="step-list-enter-from"
-                leave-to-class="step-list-leave-to"
+                enter-active-class="transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                leave-active-class="transition-[opacity,transform] duration-150 ease-in-out"
+                enter-from-class="opacity-0 -translate-y-1"
+                leave-to-class="opacity-0 -translate-y-1"
               >
-                <div v-if="isStepHistoryExpanded" class="step-list">
+                <div v-if="isStepHistoryExpanded" class="flex flex-col gap-0.5 py-1 pl-5 border-l-[1.5px] border-surface-border/20 ml-2.5">
                   <div
                     v-for="(step, idx) in liveSteps"
                     :key="idx"
-                    class="step-item"
+                    class="group/step-item flex items-center gap-1.75 text-xs/1.5 px-1 py-0.5 rounded-md transition-colors duration-120"
                     :class="
                       idx === liveSteps.length - 1
-                        ? 'step-item--active'
-                        : 'step-item--done'
+                        ? 'text-on-surface-muted'
+                        : 'text-on-surface-subtle'
                     "
                   >
                     <component
                       :is="getStepIcon(step.status)"
-                      class="step-icon"
+                      class="shrink-0 opacity-75 group-hover/step-item:opacity-100 transition-opacity"
+                      :class="{ 'opacity-100!': idx === liveSteps.length - 1 }"
                       :size="13"
                     />
-                    <span class="step-label">{{ getStepLabel(step) }}</span>
-                    <span v-if="step.duration_ms" class="step-duration">
+                    <span class="flex-1 overflow-hidden truncate whitespace-nowrap">{{ getStepLabel(step) }}</span>
+                    <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle opacity-70 ml-auto">
                       {{ formatDuration(step.duration_ms) }}
                     </span>
                     <span
                       v-else-if="idx === liveSteps.length - 1"
-                      class="step-live-dot"
+                      class="inline-block size-1.25 rounded-full bg-current opacity-80 animate-live-pulse ml-auto shrink-0"
                     />
                   </div>
                 </div>
@@ -867,149 +868,8 @@ function formatDuration(ms?: number): string {
 
 /* ─── Step History ──────────────────────────────────────────────────────── */
 
-.step-history-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.step-history-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px 3px 4px;
-  border-radius: 99px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: var(--color-on-surface-subtle, #888);
-  font-size: 0.75rem;
-  line-height: 1.4;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-  user-select: none;
-  outline: none;
-  white-space: nowrap;
-}
-
-.step-history-trigger:hover {
-  background: var(--color-surface-border, rgba(128, 128, 128, 0.12));
-  color: var(--color-on-surface-muted, #aaa);
-}
-
-/* Non-interactive state before any steps have accumulated */
-.step-history-trigger--empty {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.step-history-trigger--empty:hover {
-  background: transparent;
-  color: var(--color-on-surface-subtle, #888);
-}
-
-.step-chevron {
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-  color: var(--color-on-surface-subtle, #888);
-}
-
-.step-history-summary {
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-.step-history-preview {
-  color: var(--color-on-surface-subtle, #888);
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
-}
-
-/* Step list animations */
-.step-list-enter-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
-}
-.step-list-leave-active {
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-.step-list-enter-from,
-.step-list-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
-.step-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px 0 4px 20px;
-  border-left: 1.5px solid
-    var(--color-surface-border, rgba(128, 128, 128, 0.18));
-  margin-left: 10px;
-}
-
-.step-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  padding: 2px 4px;
-  border-radius: 6px;
-  transition: background 0.12s ease;
-}
-
-.step-item--done {
-  color: var(--color-on-surface-subtle, #888);
-}
-
-.step-item--active {
-  color: var(--color-on-surface-muted, #ccc);
-}
-
-.step-icon {
-  flex-shrink: 0;
-  opacity: 0.75;
-}
-
-.step-item--active .step-icon {
-  opacity: 1;
-}
-
-.step-label {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.step-duration {
-  flex-shrink: 0;
-  font-size: 0.68rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-on-surface-subtle, #666);
-  opacity: 0.7;
-  margin-left: auto;
-}
-
-/* Pulsing live dot for the currently active step */
-.step-live-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.8;
+.animate-live-pulse {
   animation: live-pulse 1s ease-in-out infinite;
-  margin-left: auto;
-  flex-shrink: 0;
 }
 
 @keyframes live-pulse {
