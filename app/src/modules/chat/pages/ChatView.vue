@@ -371,6 +371,16 @@ function isMessageStepsExpanded(messageId: string) {
  */
 const liveSteps = computed<AiStep[]>(() => chat.value?.aiSteps ?? []);
 
+// Collapse the live panel whenever a new response cycle begins (steps reset to 0).
+watch(
+  () => liveSteps.value.length,
+  (len, prevLen) => {
+    if (prevLen > 0 && len === 0) {
+      isStepHistoryExpanded.value = false;
+    }
+  },
+);
+
 /** Mapping from status key to a Lucide icon component */
 const stepIconMap: Record<string, any> = {
   thinking: Lightbulb,
@@ -437,7 +447,11 @@ function formatDuration(ms?: number): string {
         >
           <!-- Persisted step history for completed assistant messages -->
           <div
-            v-if="message.role === 'assistant' && message.steps && message.steps.length > 0"
+            v-if="
+              message.role === 'assistant' &&
+              message.steps &&
+              message.steps.length > 0
+            "
             class="step-history-container mb-2 w-full"
           >
             <button
@@ -446,15 +460,18 @@ function formatDuration(ms?: number): string {
               :aria-expanded="isMessageStepsExpanded(message.id)"
             >
               <component
-                :is="isMessageStepsExpanded(message.id) ? ChevronDown : ChevronRight"
+                :is="
+                  isMessageStepsExpanded(message.id)
+                    ? ChevronDown
+                    : ChevronRight
+                "
                 class="step-chevron"
                 :size="14"
               />
               <span class="step-history-summary">
-                {{ message.steps.length }} step{{ message.steps.length === 1 ? '' : 's' }}
-              </span>
-              <span v-if="!isMessageStepsExpanded(message.id)" class="step-history-preview">
-                · {{ getStepLabel(message.steps[message.steps.length - 1]) }}
+                {{ message.steps.length }} step{{
+                  message.steps.length === 1 ? '' : 's'
+                }}
               </span>
             </button>
 
@@ -470,7 +487,11 @@ function formatDuration(ms?: number): string {
                   :key="idx"
                   class="step-item step-item--done"
                 >
-                  <component :is="getStepIcon(step.status)" class="step-icon" :size="13" />
+                  <component
+                    :is="getStepIcon(step.status)"
+                    class="step-icon"
+                    :size="13"
+                  />
                   <span class="step-label">{{ getStepLabel(step) }}</span>
                   <span v-if="step.duration_ms" class="step-duration">
                     {{ formatDuration(step.duration_ms) }}
@@ -526,13 +547,20 @@ function formatDuration(ms?: number): string {
         <!-- Live Thinking Indicator with collapsible step history -->
         <div v-if="isThinking" key="thinking" class="flex justify-start w-full">
           <div class="flex flex-col gap-1 py-2 px-2 w-full">
-
-            <!-- Live step history (collapsible) — only shown when there are accumulated steps -->
-            <div v-if="!isSearching && liveSteps.length > 0" class="step-history-container mb-1">
+            <!-- Live step history (collapsible) — always visible while the AI is responding -->
+            <div v-if="!isSearching" class="step-history-container mb-1">
               <button
                 class="step-history-trigger"
-                @click="isStepHistoryExpanded = !isStepHistoryExpanded"
+                :class="{
+                  'step-history-trigger--empty': liveSteps.length === 0,
+                }"
+                :disabled="liveSteps.length === 0"
+                @click="
+                  liveSteps.length > 0 &&
+                  (isStepHistoryExpanded = !isStepHistoryExpanded)
+                "
                 :aria-expanded="isStepHistoryExpanded"
+                :aria-disabled="liveSteps.length === 0"
               >
                 <component
                   :is="isStepHistoryExpanded ? ChevronDown : ChevronRight"
@@ -540,7 +568,9 @@ function formatDuration(ms?: number): string {
                   :size="14"
                 />
                 <span class="step-history-summary">
-                  {{ liveSteps.length }} step{{ liveSteps.length === 1 ? '' : 's' }}
+                  {{ liveSteps.length }} step{{
+                    liveSteps.length === 1 ? '' : 's'
+                  }}
                 </span>
               </button>
 
@@ -555,14 +585,25 @@ function formatDuration(ms?: number): string {
                     v-for="(step, idx) in liveSteps"
                     :key="idx"
                     class="step-item"
-                    :class="idx === liveSteps.length - 1 ? 'step-item--active' : 'step-item--done'"
+                    :class="
+                      idx === liveSteps.length - 1
+                        ? 'step-item--active'
+                        : 'step-item--done'
+                    "
                   >
-                    <component :is="getStepIcon(step.status)" class="step-icon" :size="13" />
+                    <component
+                      :is="getStepIcon(step.status)"
+                      class="step-icon"
+                      :size="13"
+                    />
                     <span class="step-label">{{ getStepLabel(step) }}</span>
                     <span v-if="step.duration_ms" class="step-duration">
                       {{ formatDuration(step.duration_ms) }}
                     </span>
-                    <span v-else-if="idx === liveSteps.length - 1" class="step-live-dot" />
+                    <span
+                      v-else-if="idx === liveSteps.length - 1"
+                      class="step-live-dot"
+                    />
                   </div>
                 </div>
               </Transition>
@@ -844,15 +885,28 @@ function formatDuration(ms?: number): string {
   color: var(--color-on-surface-subtle, #888);
   font-size: 0.75rem;
   line-height: 1.4;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   user-select: none;
   outline: none;
   white-space: nowrap;
 }
 
 .step-history-trigger:hover {
-  background: var(--color-surface-border, rgba(128,128,128,0.12));
+  background: var(--color-surface-border, rgba(128, 128, 128, 0.12));
   color: var(--color-on-surface-muted, #aaa);
+}
+
+/* Non-interactive state before any steps have accumulated */
+.step-history-trigger--empty {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.step-history-trigger--empty:hover {
+  background: transparent;
+  color: var(--color-on-surface-subtle, #888);
 }
 
 .step-chevron {
@@ -876,10 +930,14 @@ function formatDuration(ms?: number): string {
 
 /* Step list animations */
 .step-list-enter-active {
-  transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  transition:
+    opacity 0.2s ease,
+    transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .step-list-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 .step-list-enter-from,
 .step-list-leave-to {
@@ -892,7 +950,8 @@ function formatDuration(ms?: number): string {
   flex-direction: column;
   gap: 2px;
   padding: 4px 0 4px 20px;
-  border-left: 1.5px solid var(--color-surface-border, rgba(128,128,128,0.18));
+  border-left: 1.5px solid
+    var(--color-surface-border, rgba(128, 128, 128, 0.18));
   margin-left: 10px;
 }
 
@@ -954,7 +1013,14 @@ function formatDuration(ms?: number): string {
 }
 
 @keyframes live-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
 </style>
