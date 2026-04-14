@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch, onMounted, onUnmounted } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import {
-  AudioLines,
   ArrowUp,
-  Square,
-  ChevronRight,
-  ChevronDown,
-  SquarePen,
-  Globe,
-  Image,
+  AudioLines,
   Brain,
   CalendarFold,
-  Flag,
+  ChevronDown,
+  ChevronRight,
   Copy,
+  Flag,
+  Globe,
+  Image,
+  Lightbulb,
   Search,
   Sparkles,
+  Square,
+  SquarePen,
   Terminal,
-  Lightbulb,
   Zap,
 } from '@lucide/vue';
 import ChatLogo from '@/modules/chat/components/ChatLogo.vue';
@@ -24,14 +24,13 @@ import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
 import ChatToolSelect from '@/modules/chat/components/ChatToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import { useToast } from '@/common/composables/useToast';
-import { useWindowSize } from '@vueuse/core';
+import { useClipboard, useWindowSize } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
-import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import type { AiStep } from '@/modules/chat/composables/useChatSession';
+import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
-import { useClipboard } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 import { useAnimatedEllipsis } from '@/modules/chat/composables/useAnimatedEllipsis';
 
@@ -324,13 +323,11 @@ const toggleSpeechRecognition = () => {
 
   recognition.onresult = (event: any) => {
     // Get the latest transcript
-    const transcript = Array.from(event.results)
+    // Update your existing userInput ref
+    userInput.value = Array.from(event.results)
       .map((result: any) => result[0])
       .map((result) => result.transcript)
       .join('');
-
-    // Update your existing userInput ref
-    userInput.value = transcript;
   };
 
   recognition.onerror = (event: any) => {
