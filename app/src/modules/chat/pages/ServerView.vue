@@ -17,7 +17,7 @@ import ServerToolSelect from '@/modules/chat/components/ServerToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import ServerWebSearch from '@/modules/chat/components/ServerWebSearch.vue';
 import { useToast } from '@/common/composables/useToast';
-import { useClipboard, useWindowSize } from '@vueuse/core';
+import { useClipboard, useWindowSize, useResizeObserver } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
@@ -182,6 +182,36 @@ const handleCancel = async () => {
 // 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const chatContainer = ref<HTMLElement | null>(null);
+const innerContainerRef = ref<any>(null);
+const innerContainerEl = computed(() => innerContainerRef.value?.$el || innerContainerRef.value as HTMLElement);
+const dynamicSpacerHeight = ref(0);
+
+const calculateSpacer = () => {
+  if (!chatContainer.value) return;
+  const innerEl = innerContainerEl.value as HTMLElement;
+  if (!innerEl) return;
+
+  const humanMessages = innerEl.querySelectorAll('.is-human');
+  if (humanMessages.length === 0) {
+    dynamicSpacerHeight.value = 0;
+    return;
+  }
+  const lastHumanMsg = humanMessages[humanMessages.length - 1] as HTMLElement;
+  const spacerEl = innerEl.querySelector('.chat-spacer') as HTMLElement;
+  if (!spacerEl) return;
+
+  const viewportHeight = chatContainer.value.clientHeight;
+  const contentHeightBelowHuman = spacerEl.offsetTop - lastHumanMsg.offsetTop;
+
+  const newHeight = Math.max(0, viewportHeight - contentHeightBelowHuman);
+
+  if (Math.abs(dynamicSpacerHeight.value - newHeight) > 1) {
+    dynamicSpacerHeight.value = newHeight;
+  }
+};
+
+useResizeObserver(chatContainer, calculateSpacer);
+useResizeObserver(innerContainerEl, calculateSpacer);
 
 // 2. The magic resize function + Typing indicator trigger
 const handleInput = async () => {
@@ -249,7 +279,10 @@ async function send() {
 watch(
   () => displayMessages.value.length,
   () => {
-    nextTick(scrollToBottom);
+    nextTick(() => {
+      calculateSpacer();
+      scrollToBottom();
+    });
   },
 );
 
@@ -356,6 +389,7 @@ const toggleSpeechRecognition = () => {
       class="flex-1 overflow-y-auto w-full relative custom-scrollbar min-h-100"
     >
       <TransitionGroup
+        ref="innerContainerRef"
         tag="div"
         name="message"
         class="w-full max-w-200 mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
@@ -364,7 +398,7 @@ const toggleSpeechRecognition = () => {
           v-for="message in displayMessages"
           :key="message.id"
           class="flex"
-          :class="message.role === 'human' ? 'justify-start' : 'justify-end'"
+          :class="[message.role === 'human' ? 'justify-start is-human' : 'justify-end is-ai']"
         >
           <div v-if="message.role === 'human'" class="w-full group">
             <div class="flex">
@@ -421,6 +455,7 @@ const toggleSpeechRecognition = () => {
             }}</span>
           </div>
         </div>
+        <div key="dynamic-spacer" class="chat-spacer shrink-0 w-full pointer-events-none" :style="{ height: dynamicSpacerHeight + 'px', transition: 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)' }"></div>
       </TransitionGroup>
     </main>
 

@@ -7,6 +7,7 @@ import {
   CalendarFold,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Copy,
   Flag,
   Globe,
@@ -24,7 +25,7 @@ import ModelSelect from '@/modules/chat/components/ModelSelect.vue';
 import ChatToolSelect from '@/modules/chat/components/ChatToolSelect.vue';
 import FileMenu from '@/modules/chat/components/FileMenu.vue';
 import { useToast } from '@/common/composables/useToast';
-import { useClipboard, useWindowSize } from '@vueuse/core';
+import { useClipboard, useWindowSize, useResizeObserver } from '@vueuse/core';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/modules/chat/composables/useAuth';
 import { useMatchmaking } from '@/modules/chat/composables/useMatchmaking';
@@ -33,6 +34,9 @@ import { useChatSession } from '@/modules/chat/composables/useChatSession';
 import { useReports } from '@/modules/chat/composables/useReports';
 import { useI18n } from 'vue-i18n';
 import { useAnimatedEllipsis } from '@/modules/chat/composables/useAnimatedEllipsis';
+import { developmentMockMessages, developmentMockLiveSteps } from '@/modules/chat/mockData';
+
+const USE_MOCK_DATA = import.meta.env.DEV;
 
 const { copy } = useClipboard();
 
@@ -102,6 +106,10 @@ interface UIMessage {
 const displayMessages = computed<UIMessage[]>(() => {
   const messages: UIMessage[] = [];
 
+  if (USE_MOCK_DATA) {
+    messages.push(...(developmentMockMessages as UIMessage[]));
+  }
+
   if (chat.value) {
     messages.push(
       ...chat.value.messages.map(
@@ -147,6 +155,7 @@ const handleModelChangeRequest = async (newModel: string) => {
 };
 
 const isWaitingForResponse = computed(() => {
+  if (USE_MOCK_DATA) return true;
   if (session.value?.status !== 'active') return false;
   if (displayMessages.value.length === 0) return false;
   return (
@@ -172,6 +181,36 @@ const handleCancel = async () => {
 // 1. Template refs mapping to your HTML elements
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const chatContainer = ref<HTMLElement | null>(null);
+const innerContainerRef = ref<any>(null);
+const innerContainerEl = computed(() => innerContainerRef.value?.$el || innerContainerRef.value as HTMLElement);
+const dynamicSpacerHeight = ref(0);
+
+const calculateSpacer = () => {
+  if (!chatContainer.value) return;
+  const innerEl = innerContainerEl.value as HTMLElement;
+  if (!innerEl) return;
+
+  const humanMessages = innerEl.querySelectorAll('.is-human');
+  if (humanMessages.length === 0) {
+    dynamicSpacerHeight.value = 0;
+    return;
+  }
+  const lastHumanMsg = humanMessages[humanMessages.length - 1] as HTMLElement;
+  const spacerEl = innerEl.querySelector('.chat-spacer') as HTMLElement;
+  if (!spacerEl) return;
+
+  const viewportHeight = chatContainer.value.clientHeight;
+  const contentHeightBelowHuman = spacerEl.offsetTop - lastHumanMsg.offsetTop;
+
+  const newHeight = Math.max(0, viewportHeight - contentHeightBelowHuman);
+
+  if (Math.abs(dynamicSpacerHeight.value - newHeight) > 1) {
+    dynamicSpacerHeight.value = newHeight;
+  }
+};
+
+useResizeObserver(chatContainer, calculateSpacer);
+useResizeObserver(innerContainerEl, calculateSpacer);
 
 // 2. The magic resize function
 const autoResize = async () => {
@@ -257,7 +296,10 @@ async function send() {
 watch(
   () => displayMessages.value.length,
   () => {
-    nextTick(scrollToBottom);
+    nextTick(() => {
+      calculateSpacer();
+      scrollToBottom();
+    });
   },
 );
 
@@ -345,6 +387,29 @@ const toggleSpeechRecognition = () => {
   recognition.start();
 };
 
+// ─── Human Message Collapsing ──────────────────────────────────────────────────
+
+const overflowingHumanMessages = ref<Record<string, boolean>>({});
+const expandedHumanMessages = ref<Record<string, boolean>>({});
+
+function toggleHumanMessage(id: string) {
+  expandedHumanMessages.value[id] = !expandedHumanMessages.value[id];
+}
+
+const checkHumanMessageOverflow = (el: Element | ComponentPublicInstance | null, id: string) => {
+  if (!el) return;
+  const htmlEl = el as HTMLElement;
+  
+  window.requestAnimationFrame(() => {
+    if (!expandedHumanMessages.value[id]) {
+      const isOverflowing = htmlEl.scrollHeight > htmlEl.clientHeight;
+      if (overflowingHumanMessages.value[id] !== isOverflowing) {
+        overflowingHumanMessages.value[id] = isOverflowing;
+      }
+    }
+  });
+};
+
 // ─── Step History ─────────────────────────────────────────────────────────────
 
 /** Whether the step history panel is expanded */
@@ -366,7 +431,10 @@ function isMessageStepsExpanded(messageId: string) {
  * The live steps being accumulated for the currently-in-progress response.
  * Reads from the chat composable's reactive `aiSteps` ref.
  */
-const liveSteps = computed<AiStep[]>(() => chat.value?.aiSteps ?? []);
+const liveSteps = computed<AiStep[]>(() => {
+  if (USE_MOCK_DATA) return developmentMockLiveSteps;
+  return chat.value?.aiSteps ?? [];
+});
 
 // Collapse the live panel whenever a new response cycle begins (steps reset to 0).
 watch(
@@ -432,6 +500,7 @@ function formatDuration(ms?: number): string {
       class="flex-1 overflow-y-auto w-full relative custom-scrollbar min-h-100"
     >
       <TransitionGroup
+        ref="innerContainerRef"
         tag="div"
         name="message"
         class="w-full max-w-200 mx-auto px-4 pt-12 pb-8 flex flex-col min-h-full"
@@ -440,7 +509,7 @@ function formatDuration(ms?: number): string {
           v-for="message in displayMessages"
           :key="message.id"
           class="flex flex-col"
-          :class="message.role === 'human' ? 'items-end' : 'items-start'"
+          :class="[message.role === 'human' ? 'items-end is-human' : 'items-start is-ai']"
         >
           <!-- Persisted step history for completed assistant messages -->
           <div
@@ -451,26 +520,20 @@ function formatDuration(ms?: number): string {
             "
             class="flex flex-col gap-0 mb-2 w-full"
           >
-            <button
-              class="inline-flex items-center gap-1.25 py-0.75 pr-2 pl-1 rounded-full bg-transparent cursor-pointer text-on-surface-subtle text-xs/1.4 transition-colors duration-150 select-none outline-none whitespace-nowrap hover:bg-surface-border/20 hover:text-on-surface-muted"
+            <BaseButton
+              variant="ghost"
+              on="canvas"
+              size="md"
               @click="toggleMessageSteps(message.id)"
               :aria-expanded="isMessageStepsExpanded(message.id)"
+              :icon="isMessageStepsExpanded(message.id) ? ChevronDown : ChevronRight"
             >
-              <component
-                :is="
-                  isMessageStepsExpanded(message.id)
-                    ? ChevronDown
-                    : ChevronRight
-                "
-                class="shrink-0 transition-transform duration-200 text-on-surface-subtle"
-                :size="14"
-              />
               <span class="font-medium tracking-tight">
                 {{ message.steps.length }} step{{
                   message.steps.length === 1 ? '' : 's'
                 }}
               </span>
-            </button>
+            </BaseButton>
 
             <Transition
               enter-active-class="transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]"
@@ -478,16 +541,16 @@ function formatDuration(ms?: number): string {
               enter-from-class="opacity-0 -translate-y-1"
               leave-to-class="opacity-0 -translate-y-1"
             >
-              <div v-if="isMessageStepsExpanded(message.id)" class="flex flex-col gap-0.5 py-1 pl-5 border-l-[1.5px] border-surface-border/20 ml-2.5">
+              <div v-if="isMessageStepsExpanded(message.id)" class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-4.5">
                 <div
                   v-for="(step, idx) in message.steps"
                   :key="idx"
-                  class="group/step-item flex items-center gap-1.75 text-xs/1.5 px-1 py-0.5 rounded-md transition-colors duration-120 text-on-surface-subtle"
+                  class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120 text-on-surface-subtle"
                 >
                   <component
                     :is="getStepIcon(step.status)"
-                    class="shrink-0 opacity-75 group-hover/step-item:opacity-100 transition-opacity"
-                    :size="13"
+                    class="shrink-0"
+                    :size="16"
                   />
                   <span class="flex-1 overflow-hidden truncate whitespace-nowrap">{{ getStepLabel(step) }}</span>
                   <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle opacity-70 ml-auto">
@@ -499,11 +562,38 @@ function formatDuration(ms?: number): string {
           </div>
 
           <!-- Message bubble -->
-          <div
-            v-if="message.role === 'human'"
-            class="bg-surface border border-surface-border py-3 px-4 mb-12 rounded-2xl max-w-[75%] wrap-break-word text-left"
-          >
-            {{ message.content }}
+          <div v-if="message.role === 'human'" class="flex flex-col items-end max-w-[75%] mb-2">
+            <div
+              class="bg-surface border border-surface-border flex px-4 rounded-2xl wrap-break-word text-left relative overflow-hidden transition-all duration-300"
+              :class="overflowingHumanMessages[message.id] ? 'py-3 pr-1' : 'py-3'"
+            >
+              <div 
+                :ref="(el) => checkHumanMessageOverflow(el, message.id)"
+                class="whitespace-pre-wrap transition-colors relative z-0"
+                :class="!expandedHumanMessages[message.id] ? 'line-clamp-5' : ''"
+              >{{ message.content }}</div>
+              
+              <!-- Gradient fade for unexpanded overflowing text -->
+              <div
+                v-if="!expandedHumanMessages[message.id] && overflowingHumanMessages[message.id]"
+                class="absolute bottom-0 left-0 w-full h-8 bg-linear-to-t from-surface to-transparent pointer-events-none z-10"
+              ></div>
+
+              <!-- Expand / Collapse Button -->
+              <div
+                 v-if="overflowingHumanMessages[message.id]"
+                 class="flex justify-end -mt-2 z-20 relative"
+              >
+                 <BaseTooltip :content="expandedHumanMessages[message.id] ? 'Show less' : 'Show more'" placement="top">
+                    <BaseButton
+                      :variant="'ghost'"
+                      size="lg"
+                      :icon="expandedHumanMessages[message.id] ? ChevronUp : ChevronDown"
+                      @click="toggleHumanMessage(message.id)"
+                    />
+                 </BaseTooltip>
+              </div>
+            </div>
           </div>
           <div
             v-else
@@ -543,11 +633,10 @@ function formatDuration(ms?: number): string {
 
         <!-- Live Thinking Indicator with collapsible step history -->
         <div v-if="isThinking" key="thinking" class="flex justify-start w-full">
-          <div class="flex flex-col gap-1 py-2 px-2 w-full">
+          <div class="flex flex-col gap-2 py-2 px-2 w-full">
             <!-- Live step history (collapsible) — always visible while the AI is responding -->
             <div v-if="!isSearching" class="flex flex-col gap-0 mb-1">
-              <button
-                class="inline-flex items-center gap-1.25 py-0.75 pr-2 pl-1 rounded-full bg-transparent cursor-pointer text-on-surface-subtle text-xs/1.4 transition-colors duration-150 select-none outline-none whitespace-nowrap hover:bg-surface-border/20 hover:text-on-surface-muted"
+              <BaseButton
                 :class="{
                   'cursor-default! opacity-50! hover:bg-transparent! hover:text-on-surface-subtle!': liveSteps.length === 0,
                 }"
@@ -558,18 +647,16 @@ function formatDuration(ms?: number): string {
                 "
                 :aria-expanded="isStepHistoryExpanded"
                 :aria-disabled="liveSteps.length === 0"
+                :icon="isStepHistoryExpanded ? ChevronDown : ChevronRight"
+                variant="ghost"
+                on="canvas"
               >
-                <component
-                  :is="isStepHistoryExpanded ? ChevronDown : ChevronRight"
-                  class="shrink-0 transition-transform duration-200 text-on-surface-subtle"
-                  :size="14"
-                />
                 <span class="font-medium tracking-tight">
                   {{ liveSteps.length }} step{{
                     liveSteps.length === 1 ? '' : 's'
                   }}
                 </span>
-              </button>
+              </BaseButton>
 
               <Transition
                 enter-active-class="transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)]"
@@ -577,11 +664,11 @@ function formatDuration(ms?: number): string {
                 enter-from-class="opacity-0 -translate-y-1"
                 leave-to-class="opacity-0 -translate-y-1"
               >
-                <div v-if="isStepHistoryExpanded" class="flex flex-col gap-0.5 py-1 pl-5 border-l-[1.5px] border-surface-border/20 ml-2.5">
+                <div v-if="isStepHistoryExpanded" class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-4.5">
                   <div
                     v-for="(step, idx) in liveSteps"
                     :key="idx"
-                    class="group/step-item flex items-center gap-1.75 text-xs/1.5 px-1 py-0.5 rounded-md transition-colors duration-120"
+                    class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120"
                     :class="
                       idx === liveSteps.length - 1
                         ? 'text-on-surface-muted'
@@ -590,9 +677,9 @@ function formatDuration(ms?: number): string {
                   >
                     <component
                       :is="getStepIcon(step.status)"
-                      class="shrink-0 opacity-75 group-hover/step-item:opacity-100 transition-opacity"
+                      class="shrink-0"
                       :class="{ 'opacity-100!': idx === liveSteps.length - 1 }"
-                      :size="13"
+                      :size="16"
                     />
                     <span class="flex-1 overflow-hidden truncate whitespace-nowrap">{{ getStepLabel(step) }}</span>
                     <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle opacity-70 ml-auto">
@@ -601,7 +688,7 @@ function formatDuration(ms?: number): string {
                     <span
                       v-else-if="idx === liveSteps.length - 1"
                       class="inline-block size-1.25 rounded-full bg-current opacity-80 animate-live-pulse ml-auto shrink-0"
-                    />
+                    ></span>
                   </div>
                 </div>
               </Transition>
@@ -620,6 +707,7 @@ function formatDuration(ms?: number): string {
             </div>
           </div>
         </div>
+        <div key="dynamic-spacer" class="chat-spacer shrink-0 w-full pointer-events-none" :style="{ height: dynamicSpacerHeight + 'px', transition: 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)' }"></div>
       </TransitionGroup>
     </main>
 
