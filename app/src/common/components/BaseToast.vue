@@ -56,26 +56,3 @@ const ICON_COLORS: Record<string, string> = {
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-.toast-enter-active {
-  transition:
-    opacity 0.22s ease,
-    transform 0.22s ease;
-}
-.toast-leave-active {
-  transition:
-    opacity 0.18s ease,
-    transform 0.18s ease,
-    max-height 0.25s ease,
-    margin-bottom 0.25s ease;
-}
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(24px);
-}
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(64px);
-}
-</style>

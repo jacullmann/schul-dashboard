@@ -14,8 +14,11 @@ const closeModal = () => (isModalOpen.value = false);
 </script>
 
 <template>
-  <div class="info-pop-container" :title="props.tooltip">
-    <div class="info-icon-wrapper" @click="openModal">
+  <div class="flex items-center" :title="props.tooltip">
+    <div
+      class="flex items-center justify-center cursor-pointer text-on-surface-muted transition-colors duration-150 hover:text-on-surface"
+      @click="openModal"
+    >
       <Info :size="16" />
     </div>
   </div>
@@ -27,7 +30,7 @@ const closeModal = () => (isModalOpen.value = false);
           <template v-if="props.title">{{ props.title }}</template>
         </template>
         <template #content>
-          <div class="popover-content">
+          <div class="leading-[1.6]">
             <slot></slot>
           </div>
         </template>
@@ -35,48 +38,3 @@ const closeModal = () => (isModalOpen.value = false);
     </Transition>
   </Teleport>
 </template>
-
-<style scoped>
-.info-pop-container {
-  display: flex;
-  align-items: center;
-}
-
-.info-icon-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--color-on-surface-muted);
-  transition: color 0.15s ease;
-}
-
-.info-icon-wrapper:hover {
-  color: var(--color-on-surface);
-}
-
-.popover-content {
-  line-height: 1.6;
-}
-
-.fade-scale-enter-active,
-.fade-scale-leave-active {
-  transition: 0.2s;
-  opacity: 1;
-}
-
-.fade-scale-enter-from,
-.fade-scale-leave-to {
-  opacity: 0;
-}
-
-.fade-scale-enter-active :deep([role='dialog']),
-.fade-scale-leave-active :deep([role='dialog']) {
-  transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.fade-scale-enter-from :deep([role='dialog']),
-.fade-scale-leave-to :deep([role='dialog']) {
-  transform: scale(0);
-}
-</style>

@@ -87,18 +87,12 @@ function setSelectedIndex(idx: number) {
 </script>
 
 <template>
-  <BaseBackdrop class="z-100002" @cancel="$emit('cancel')">
+  <BaseBackdrop class="z-(--z-modal-overlay)" @cancel="$emit('cancel')">
     <div
       role="dialog"
       aria-modal="true"
       :aria-label="title"
-      class="command-palette-modal bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left"
-      style="
-        z-index: 100003;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      "
+      class="search-in bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-(--z-modal)"
       @keydown="handleKeydown"
     >
       <!-- Search input -->
@@ -119,7 +113,7 @@ function setSelectedIndex(idx: number) {
       </div>
 
       <!-- Results -->
-      <div class="max-h-105 overflow-y-auto py-2">
+      <div class="max-h-105 overflow-y-auto py-2 custom-scrollbar">
         <slot
           :selected-index="selectedIndex"
           :set-selected-index="setSelectedIndex"
@@ -143,35 +137,3 @@ function setSelectedIndex(idx: number) {
     </div>
   </BaseBackdrop>
 </template>
-
-<style scoped>
-.command-palette-modal {
-  /* Smooth appear animation */
-  animation: search-in 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes search-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% - 8px)) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* Custom scrollbar */
-.max-h-\[420px\]::-webkit-scrollbar {
-  width: 4px;
-}
-
-.max-h-\[420px\]::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.max-h-\[420px\]::-webkit-scrollbar-thumb {
-  background: var(--color-surface-border);
-  border-radius: 999px;
-}
-</style>
