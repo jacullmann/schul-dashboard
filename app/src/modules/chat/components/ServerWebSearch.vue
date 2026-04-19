@@ -71,7 +71,7 @@ onMounted(() => {
 <template>
   <form @submit.prevent="search" novalidate>
     <BaseBackdrop @cancel="emit('cancel')">
-      <div class="fixed w-full h-full md:p-4 md:h-fit md:w-160 z-20000">
+      <div class="fixed w-full h-full md:p-4 md:h-fit md:w-[640px] z-[20000]">
         <!-- Header: Search Bar -->
         <div
           class="w-full h-full bg-canvas md:border border-canvas-border md:rounded-2xl overflow-hidden flex flex-col"
@@ -79,7 +79,7 @@ onMounted(() => {
           <div
             class="flex items-center gap-3 p-4 border-b border-canvas-border"
           >
-            <Search :size="20" class="text-on-surface-subtle shrink-0" />
+            <Search :size="20" class="text-on-surface-subtle flex-shrink-0" />
             <input
               id="search-input"
               ref="inputRef"
@@ -101,7 +101,7 @@ onMounted(() => {
           </div>
 
           <!-- Body: Search Results / Article Content -->
-          <div class="flex-1 overflow-y-auto max-h-160 custom-scrollbar">
+          <div class="flex-1 overflow-y-auto max-h-[640px] custom-scrollbar">
             <template v-if="currentView === 'results'">
               <div
                 v-if="loading"
@@ -174,7 +174,7 @@ onMounted(() => {
                     {{ articleTitle }}
                   </h1>
                   <div
-                    class="wikipedia-body text-on-surface leading-relaxed"
+                    class="text-on-surface leading-relaxed [&_p]:mb-4 [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-3 [&_h2]:text-[1.25rem] [&_h2]:border-b [&_h2]:border-surface-border [&_h2]:pb-2 [&_h3]:text-[1.125rem] [&_ul]:mb-4 [&_ul]:pl-6 [&_ol]:mb-4 [&_ol]:pl-6 [&_li]:mb-1 [&_a]:text-primary [&_a]:no-underline hover:[&_a]:underline [&_.mw-editsection]:hidden [&_.navbox]:hidden [&_.ambox]:hidden [&_.infobox]:hidden [&_.metadata]:hidden [&_.searchmatch]:font-bold [&_.searchmatch]:text-on-surface"
                     v-html="articleContent"
                   ></div>
                 </div>
@@ -205,61 +205,3 @@ onMounted(() => {
     </BaseBackdrop>
   </form>
 </template>
-
-<style scoped>
-.wikipedia-body :deep(p) {
-  margin-bottom: 1rem;
-}
-
-.wikipedia-body :deep(h1),
-.wikipedia-body :deep(h2),
-.wikipedia-body :deep(h3) {
-  font-weight: 700;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  color: var(--on-surface);
-}
-
-.wikipedia-body :deep(h2) {
-  font-size: 1.25rem;
-  border-bottom: 1px solid var(--surface-border);
-  padding-bottom: 0.5rem;
-}
-
-.wikipedia-body :deep(h3) {
-  font-size: 1.125rem;
-}
-
-.wikipedia-body :deep(ul),
-.wikipedia-body :deep(ol) {
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
-.wikipedia-body :deep(li) {
-  margin-bottom: 0.25rem;
-}
-
-.wikipedia-body :deep(a) {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.wikipedia-body :deep(a:hover) {
-  text-decoration: underline;
-}
-
-/* Hide unwanted Wikipedia elements */
-.wikipedia-body :deep(.mw-editsection),
-.wikipedia-body :deep(.navbox),
-.wikipedia-body :deep(.ambox),
-.wikipedia-body :deep(.infobox),
-.wikipedia-body :deep(.metadata) {
-  display: none !important;
-}
-
-.wikipedia-body :deep(.searchmatch) {
-  font-weight: 700;
-  color: var(--on-surface);
-}
-</style>

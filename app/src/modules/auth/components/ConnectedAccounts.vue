@@ -48,34 +48,34 @@ function handleLink() {
 </script>
 
 <template>
-  <div class="connected-accounts">
-    <div v-if="loading" class="loading-row">
+  <div class="flex flex-col gap-3">
+    <div v-if="loading" class="flex justify-center p-4">
       <BaseSpinner on="ghost" size="1.2em" />
     </div>
 
     <template v-else>
       <!-- Google provider row -->
-      <div class="provider-row">
-        <div class="provider-info">
-          <div class="provider-icon" aria-hidden="true">
+      <div class="flex items-center justify-between gap-3 p-3 bg-surface border border-surface-border rounded-xl">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 flex items-center justify-center flex-shrink-0" aria-hidden="true">
             <GoogleIcon :size="24" />
           </div>
-          <div class="provider-text">
-            <span class="provider-name">Google</span>
-            <span v-if="googleLinked()" class="provider-email">{{
+          <div class="flex flex-col gap-0.5">
+            <span class="text-sub font-semibold text-on-surface">Google</span>
+            <span v-if="googleLinked()" class="text-[0.75rem] text-on-surface-muted">{{
               googleProvider()?.email
             }}</span>
-            <span v-else class="provider-status">Nicht verknüpft</span>
+            <span v-else class="text-[0.75rem] text-on-surface-muted">Nicht verknüpft</span>
           </div>
         </div>
 
-        <div class="provider-action">
-          <span v-if="googleLinked()" class="linked-badge">Verknüpft</span>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span v-if="googleLinked()" class="text-[0.75rem] text-success bg-success-surface px-2 py-0.5 rounded-full font-medium">Verknüpft</span>
 
           <BaseButton
             v-if="googleLinked()"
             variant="ghost"
-            class="small"
+            class="px-3 py-1 text-[0.75rem] min-h-[28px]"
             :loading="actionLoading"
             @click="handleUnlink"
           >
@@ -85,7 +85,7 @@ function handleLink() {
           <BaseButton
             v-else
             variant="action"
-            class="small"
+            class="px-3 py-1 text-[0.75rem] min-h-[28px]"
             :loading="actionLoading"
             @click="handleLink"
           >
@@ -94,108 +94,8 @@ function handleLink() {
         </div>
       </div>
 
-      <div v-if="errorMsg" class="feedback error">{{ errorMsg }}</div>
-      <div v-if="successMsg" class="feedback success">{{ successMsg }}</div>
+      <div v-if="errorMsg" class="text-sub p-2 px-3 rounded-lg text-danger bg-danger-surface">{{ errorMsg }}</div>
+      <div v-if="successMsg" class="text-sub p-2 px-3 rounded-lg text-success bg-success-surface">{{ successMsg }}</div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.connected-accounts {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.loading-row {
-  display: flex;
-  justify-content: center;
-  padding: 16px 0;
-}
-
-.provider-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  border-radius: var(--radius-xl);
-}
-
-.provider-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.provider-icon {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.provider-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.provider-name {
-  font-size: var(--text-sub);
-  font-weight: 600;
-  color: var(--color-on-surface);
-}
-
-.provider-email {
-  font-size: var(--text-footnote);
-  color: var(--color-on-surface-muted);
-}
-
-.provider-status {
-  font-size: var(--text-footnote);
-  color: var(--color-on-surface-muted);
-}
-
-.provider-action {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.linked-badge {
-  font-size: var(--text-footnote);
-  color: var(--color-success);
-  background: var(--color-success-surface);
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 500;
-}
-
-.btn.small {
-  padding: 4px 12px;
-  font-size: var(--text-footnote);
-  min-height: 28px;
-}
-
-.feedback {
-  font-size: var(--text-sub);
-  padding: 8px 12px;
-  border-radius: var(--radius-lg);
-}
-
-.feedback.error {
-  color: var(--color-danger);
-  background: var(--color-danger-surface);
-}
-
-.feedback.success {
-  color: var(--color-success);
-  background: var(--color-success-surface);
-}
-</style>

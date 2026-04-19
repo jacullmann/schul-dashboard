@@ -46,13 +46,13 @@ function cancel() {
     <template #title> Google-Konto verknüpfen </template>
 
     <template #content>
-      <div class="link-header">
-        <div class="google-icon" aria-hidden="true">
+      <div class="flex flex-col items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-xl bg-surface border border-surface-border flex items-center justify-center" aria-hidden="true">
           <GoogleIcon :size="24" />
         </div>
       </div>
 
-      <p class="link-description">
+      <p class="m-0 mb-4 text-sub text-on-surface-muted leading-[1.5] text-center">
         Ein Konto mit dieser E-Mail-Adresse existiert bereits. Gib dein Passwort
         ein, um Google mit deinem bestehenden Konto zu verknüpfen.
       </p>
@@ -74,32 +74,3 @@ function cancel() {
     <template #action-text> Verknüpfen </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.link-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.google-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.link-description {
-  margin: 0 0 16px 0;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  line-height: 1.5;
-  text-align: center;
-}
-</style>

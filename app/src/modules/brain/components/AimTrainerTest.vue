@@ -57,159 +57,43 @@ function saveAndExit() {
 </script>
 
 <template>
-  <div class="aim-test" :class="state">
-    <div v-if="state === 'idle'" class="start-screen">
-      <Target :size="64" class="icon" />
-      <h2>Aim Trainer</h2>
-      <p>Klicke auf 30 Zielscheiben so schnell du kannst.</p>
-      <BaseButton class="test-btn primary" @click="startGame"
+  <div class="absolute inset-0 flex items-center justify-center bg-[#2b87d1] text-white text-center select-none" :class="state">
+    <div v-if="state === 'idle'" class="flex flex-col items-center">
+      <Target :size="64" class="mb-5" />
+      <h2 class="text-[3rem] font-extrabold mb-3">Aim Trainer</h2>
+      <p class="text-[1.5rem] opacity-90 mb-[30px]">Klicke auf 30 Zielscheiben so schnell du kannst.</p>
+      <BaseButton class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-white text-[#2b87d1]" @click="startGame"
         >Starten</BaseButton
       >
     </div>
 
-    <div v-else-if="state === 'playing'" class="game-screen" @mousedown.prevent>
-      <div class="target-counter">
+    <div v-else-if="state === 'playing'" class="absolute inset-0 flex flex-col" @mousedown.prevent>
+      <div class="p-5 text-[1.5rem] font-bold text-center">
         Ziele: {{ targetsHit }} / {{ TARGETS_TOTAL }}
       </div>
-      <div class="target-area">
+      <div class="flex-1 relative overflow-hidden">
         <div
-          class="target"
+          class="absolute w-[60px] h-[60px] rounded-full bg-white -translate-x-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
           :style="{ left: `${targetPosition.x}%`, top: `${targetPosition.y}%` }"
           @mousedown="hitTarget"
         >
-          <div class="target-inner"></div>
+          <div class="w-5 h-5 rounded-full bg-[#ffaa00]"></div>
         </div>
       </div>
     </div>
 
-    <div v-else-if="state === 'result'" class="result-screen">
-      <Clock :size="64" class="icon" />
-      <h2>Durchschnittszeit</h2>
-      <p class="score">{{ averageTime }} ms</p>
-      <div class="actions">
-        <BaseButton class="test-btn primary" @click="saveAndExit"
+    <div v-else-if="state === 'result'" class="flex flex-col items-center">
+      <Clock :size="64" class="mb-5" />
+      <h2 class="text-[3rem] font-extrabold mb-3">Durchschnittszeit</h2>
+      <p class="text-[4rem] font-extrabold mb-10">{{ averageTime }} ms</p>
+      <div class="flex gap-4">
+        <BaseButton class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-white text-[#2b87d1]" @click="saveAndExit"
           >Speichern & Beenden</BaseButton
         >
-        <BaseButton class="test-btn secondary" @click="reset"
+        <BaseButton class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-[rgba(255,255,255,0.2)] text-white" @click="reset"
           >Nochmal</BaseButton
         >
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.aim-test {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #2b87d1;
-  color: white;
-  text-align: center;
-  user-select: none;
-}
-
-.start-screen,
-.result-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.icon {
-  margin-bottom: 20px;
-}
-
-h2 {
-  font-size: 3rem;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-p {
-  font-size: 1.5rem;
-  opacity: 0.9;
-  margin-bottom: 30px;
-}
-
-.score {
-  font-size: 4rem;
-  font-weight: 800;
-  margin-bottom: 40px;
-}
-
-.game-screen {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.target-counter {
-  padding: 20px;
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.target-area {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-.target {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: white;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.target-inner {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #ffaa00;
-}
-
-.actions {
-  display: flex;
-  gap: 16px;
-}
-
-.test-btn {
-  padding: 14px 28px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    background-color 0.2s;
-  text-decoration: none;
-}
-
-.test-btn:hover {
-  transform: scale(1.05);
-}
-
-.test-btn.primary {
-  background: white;
-  color: #2b87d1;
-}
-
-.test-btn.secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-</style>

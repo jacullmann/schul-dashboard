@@ -57,13 +57,12 @@ const fillStyle = computed(() => {
       viewBox="0 0 24 24"
       class="w-full h-full transition-all duration-700 ease-in-out text-current"
       :class="[
-        loading ? 'animate-ai-fluid opacity-90' : 'animate-none scale-100',
+        loading ? 'animate-[ai-fluid_2s_ease-in-out_infinite] opacity-90' : 'animate-none scale-100',
         { 'hover:scale-110 active:scale-95': !loading },
       ]"
       aria-hidden="true"
     >
       <defs>
-        <!-- A vibrant, high-quality gradient evoking AI & Magic -->
         <linearGradient
           id="ai-logo-gradient"
           x1="20%"
@@ -81,7 +80,6 @@ const fillStyle = computed(() => {
         </linearGradient>
       </defs>
 
-      <!-- Primary Intelligence Star -->
       <path
         d="M12 0C12 6.627 6.627 12 0 12C6.627 12 12 17.373 12 24C12 17.373 17.373 12 24 12C17.373 12 12 6.627 12 0Z"
         :fill="fillStyle"
@@ -90,7 +88,6 @@ const fillStyle = computed(() => {
         stroke-linejoin="round"
       />
 
-      <!-- Secondary Accent Sparkle -->
       <path
         d="M19 2C19 3.657 17.657 5 16 5C17.657 5 19 6.343 19 8C19 6.343 20.343 5 22 5C20.343 5 19 3.657 19 2Z"
         :fill="fillStyle"
@@ -104,22 +101,9 @@ const fillStyle = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 @keyframes ai-fluid {
-  0%,
-  100% {
-    transform: scale(0.75);
-    filter: blur(0px);
-  }
-  50% {
-    transform: scale(1.25);
-    filter: blur(1px);
-  }
-}
-
-.animate-ai-fluid {
-  animation: ai-fluid 2s ease-in-out infinite;
-  transform-origin: center;
-  will-change: transform, filter;
+  0%, 100% { transform: scale(0.75); filter: blur(0px); }
+  50% { transform: scale(1.25); filter: blur(1px); }
 }
 </style>

@@ -225,63 +225,63 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="mfa-settings">
-    <div class="status-card" :class="{ enabled: mfaEnabled }">
-      <div class="status-icon">
+  <div class="flex flex-col gap-5">
+    <div class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl" :class="{ '!border-[var(--special--green)] !bg-success-surface': mfaEnabled }">
+      <div class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-hover text-on-surface-muted" :class="{ '!bg-success-surface !text-[var(--special--green)]': mfaEnabled }">
         <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
       </div>
-      <div class="status-info">
-        <span class="status-label">Zwei-Faktor-Authentifizierung</span>
-        <span class="status-value" :class="{ enabled: mfaEnabled }">
+      <div class="flex flex-col gap-0.5">
+        <span class="text-sub text-on-surface-muted">Zwei-Faktor-Authentifizierung</span>
+        <span class="text-body font-semibold text-on-surface-muted" :class="{ '!text-[var(--special--green)]': mfaEnabled }">
           {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
         </span>
       </div>
     </div>
-    <p class="description">
+    <p class="text-sub text-on-surface-muted leading-[1.5] m-0 font-sans">
       Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein
       Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google
       Authenticator.
     </p>
-    <div v-if="!mfaEnabled && !setupMode" class="action-section">
+    <div v-if="!mfaEnabled && !setupMode" class="flex justify-start">
       <BaseButton @click="startSetup" :disabled="loading" variant="action">
         2FA aktivieren
       </BaseButton>
     </div>
 
-    <div v-if="setupMode" class="setup-section">
-      <div class="setup-steps">
+    <div v-if="setupMode" class="flex flex-col gap-5">
+      <div class="flex items-center justify-center gap-3">
         <div
-          class="step"
-          :class="{ active: setupStep === 1, completed: setupStep > 1 }"
+          class="flex items-center gap-2 opacity-50"
+          :class="{ '!opacity-100': setupStep === 1 || setupStep > 1 }"
         >
-          <span class="step-number">1</span>
-          <span class="step-label">QR-Code scannen</span>
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted" :class="{ '!bg-action !text-on-action': setupStep === 1, '!bg-[var(--special--green)] !text-white': setupStep > 1 }">1</span>
+          <span class="text-sub text-on-surface-muted" :class="{ '!text-on-surface': setupStep === 1 }">QR-Code scannen</span>
         </div>
-        <div class="step-divider"></div>
-        <div class="step" :class="{ active: setupStep === 2 }">
-          <span class="step-number">2</span>
-          <span class="step-label">Code eingeben</span>
+        <div class="w-10 h-0.5 bg-surface-border"></div>
+        <div class="flex items-center gap-2 opacity-50" :class="{ '!opacity-100': setupStep === 2 }">
+          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted" :class="{ '!bg-action !text-on-action': setupStep === 2 }">2</span>
+          <span class="text-sub text-on-surface-muted" :class="{ '!text-on-surface': setupStep === 2 }">Code eingeben</span>
         </div>
       </div>
 
       <!-- Step 1 -->
-      <div v-if="setupStep === 1" class="qr-section">
-        <p class="instruction">
+      <div v-if="setupStep === 1" class="flex flex-col gap-4">
+        <p class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans">
           Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
           Authenticator).
         </p>
 
-        <div v-if="qrCodeUrl" class="qr-container">
-          <img :src="qrCodeUrl" alt="MFA QR-Code" class="qr-image" />
+        <div v-if="qrCodeUrl" class="flex justify-center p-2 bg-white rounded-xl mx-auto">
+          <img :src="qrCodeUrl" alt="MFA QR-Code" class="w-[200px] h-[200px]" />
         </div>
 
-        <div v-if="manualSecret" class="manual-entry">
-          <p class="manual-label">Oder gib diesen Code manuell ein:</p>
-          <div class="secret-display">
-            <code class="secret-code">{{ formattedSecret }}</code>
+        <div v-if="manualSecret" class="flex flex-col gap-2 items-center">
+          <p class="text-sub text-on-surface-muted m-0">Oder gib diesen Code manuell ein:</p>
+          <div class="flex items-center gap-2 p-1 bg-surface border border-surface-border shadow-input rounded-lg">
+            <code class="font-mono text-sub text-on-surface tracking-[4px] pl-2 py-1.5">{{ formattedSecret }}</code>
             <button
               type="button"
-              class="copy-btn"
+              class="flex items-center justify-center p-2 bg-none border-none text-on-surface-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-surface"
               @click="copySecret"
               :title="copied ? 'Kopiert!' : 'Kopieren'"
             >
@@ -290,12 +290,12 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="timer-info" v-if="expiresAt">
+        <div class="flex items-center justify-center gap-1.5 text-sub text-on-surface-muted font-sans" v-if="expiresAt">
           <Clock :size="16" />
           <span>Gültig für {{ remainingTime }}</span>
         </div>
 
-        <div class="step-actions">
+        <div class="flex justify-end gap-3 mt-2">
           <BaseButton @click="cancelSetup" variant="ghost"
             >Abbrechen</BaseButton
           >
@@ -306,13 +306,13 @@ onUnmounted(() => {
       </div>
 
       <!-- Step 2 -->
-      <div v-if="setupStep === 2" class="verify-section">
-        <p class="instruction">
+      <div v-if="setupStep === 2" class="flex flex-col gap-4">
+        <p class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans">
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
           Einrichtung abzuschließen.
         </p>
 
-        <div class="code-input-wrapper">
+        <div class="flex justify-center">
           <input
             ref="codeInput"
             v-model="verifyCode"
@@ -321,19 +321,19 @@ onUnmounted(() => {
             pattern="[0-9]*"
             maxlength="6"
             placeholder="000000"
-            class="code-input"
-            :class="{ error: verifyError }"
+            class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-surface transition-colors focus:outline-none focus:border-on-surface"
+            :class="{ '!border-danger': verifyError }"
             @input="handleCodeInput"
             @keyup.enter="activateMfa"
           />
         </div>
 
-        <div v-if="verifyError" class="error-message">
+        <div v-if="verifyError" class="flex items-center justify-center gap-1.5 text-sub text-danger">
           <AlertCircle :size="14" />
           {{ verifyError }}
         </div>
 
-        <div class="step-actions">
+        <div class="flex justify-end gap-3 mt-2">
           <BaseButton @click="setupStep = 1" variant="ghost">Zurück</BaseButton>
           <BaseButton
             @click="activateMfa"
@@ -348,9 +348,9 @@ onUnmounted(() => {
     </div>
 
     <!-- Deaktivieren Option -->
-    <div v-if="mfaEnabled && !deactivateMode" class="action-section">
+    <div v-if="mfaEnabled && !deactivateMode" class="flex justify-start">
       <BaseButton
-        class="danger-outline"
+        class="border border-danger text-danger hover:bg-danger-surface"
         @click="startDeactivate"
         :icon="ShieldOff"
       >
@@ -359,17 +359,17 @@ onUnmounted(() => {
     </div>
 
     <!-- Deaktivieren Mode -->
-    <div v-if="deactivateMode" class="deactivate-section">
-      <div class="warning-box">
-        <AlertTriangle :size="20" />
-        <p>
+    <div v-if="deactivateMode" class="flex flex-col gap-4">
+      <div class="flex gap-3 p-3 px-4 bg-danger-surface border border-danger rounded-lg text-danger">
+        <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
+        <p class="m-0 text-sub leading-[1.4]">
           Indem du fortfährst verringerst du die Sicherheit deines Kontos. Um
           die Deaktivierung abzuschließen, must du noch ein letztes Mal den
           korrekten Code eingeben
         </p>
       </div>
 
-      <div class="code-input-wrapper">
+      <div class="flex justify-center">
         <input
           ref="deactivateCodeInput"
           v-model="deactivateCode"
@@ -378,19 +378,19 @@ onUnmounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="code-input"
-          :class="{ error: deactivateError }"
+          class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-surface transition-colors focus:outline-none focus:border-on-surface"
+          :class="{ '!border-danger': deactivateError }"
           @input="handleDeactivateCodeInput"
           @keyup.enter="confirmDeactivate"
         />
       </div>
 
-      <div v-if="deactivateError" class="error-message">
+      <div v-if="deactivateError" class="flex items-center justify-center gap-1.5 text-sub text-danger">
         <AlertCircle :size="14" />
         {{ deactivateError }}
       </div>
 
-      <div class="step-actions">
+      <div class="flex justify-end gap-3 mt-2">
         <BaseButton @click="cancelDeactivate" variant="ghost"
           >Abbrechen</BaseButton
         >
@@ -406,350 +406,3 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.mfa-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.status-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: 12px;
-}
-
-.status-card.enabled {
-  border-color: var(--special--green);
-  background: var(--color-success-surface);
-}
-
-.status-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface-muted);
-}
-
-.status-card.enabled .status-icon {
-  background: var(--color-success-surface);
-  color: var(--special--green);
-}
-
-.status-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.status-label {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-}
-
-.status-value {
-  font-size: var(--text-body);
-  font-weight: 600;
-  color: var(--color-on-surface-muted);
-}
-
-.status-value.enabled {
-  color: var(--special--green);
-}
-
-.description {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  line-height: 1.5;
-  margin: 0;
-  font-family: var(--font-sans), sans-serif;
-}
-
-.action-section {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.action-section .btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Setup Section */
-.setup-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.setup-steps {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: 0.5;
-}
-
-.step.active,
-.step.completed {
-  opacity: 1;
-}
-
-.step-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--color-surface-hover);
-  font-size: var(--text-sub);
-  font-weight: 600;
-  color: var(--color-on-surface-muted);
-}
-
-.step.active .step-number {
-  background: var(--color-action);
-  color: var(--color-on-action);
-}
-
-.step.completed .step-number {
-  background: var(--special--green);
-  color: white;
-}
-
-.step-label {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-}
-
-.step.active .step-label {
-  color: var(--color-on-surface);
-}
-
-.step-divider {
-  width: 40px;
-  height: 2px;
-  background: var(--color-surface-border);
-}
-
-.qr-section,
-.verify-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.instruction {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  line-height: 1.5;
-  margin: 0;
-  text-align: center;
-  font-family: var(--font-sans), sans-serif;
-}
-
-.qr-container {
-  display: flex;
-  justify-content: center;
-  padding: 8px;
-  background: #fff;
-  border-radius: 12px;
-  margin: 0 auto;
-}
-
-.qr-image {
-  width: 200px;
-  height: 200px;
-}
-
-.manual-entry {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-}
-
-.manual-label {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  margin: 0;
-}
-
-.secret-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: 8px;
-}
-
-.secret-code {
-  font-family: 'SF Mono', Monaco, monospace;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface);
-  letter-spacing: 4px;
-  padding-left: 8px;
-  padding-block: 6px;
-}
-
-.copy-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  background: none;
-  border: none;
-  color: var(--color-on-surface-muted);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.copy-btn:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface);
-}
-
-.timer-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  font-family: var(--font-sans), sans-serif;
-}
-
-.step-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.code-input-wrapper {
-  display: flex;
-  justify-content: center;
-}
-
-.code-input {
-  width: 180px;
-  padding: 12px;
-  font-size: 24px;
-  font-family: 'SF Mono', Monaco, monospace;
-  letter-spacing: 8px;
-  text-align: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: 12px;
-  color: var(--color-on-surface);
-  transition: border-color 0.2s;
-}
-
-.code-input:focus {
-  outline: none;
-  border-color: var(--color-on-surface);
-}
-
-.code-input.error {
-  border-color: var(--color-danger);
-}
-
-.code-input::placeholder {
-  color: var(--color-surface-border);
-  letter-spacing: 8px;
-}
-
-.error-message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: var(--text-sub);
-  color: var(--color-danger);
-}
-
-.deactivate-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.warning-box {
-  display: flex;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--color-danger-surface);
-  border: 1px solid var(--color-danger);
-  border-radius: 10px;
-  color: var(--color-danger);
-}
-
-.warning-box p {
-  margin: 0;
-  font-size: var(--text-sub);
-  line-height: 1.4;
-}
-
-.warning-box svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.btn.danger-outline {
-  background: transparent;
-  border: 1px solid var(--color-danger);
-  color: var(--color-danger);
-}
-
-.btn.danger-outline:hover {
-  background: var(--color-danger-surface);
-}
-
-.btn.danger {
-  background: var(--color-danger);
-  border-color: var(--color-danger);
-  color: #fff;
-}
-
-.btn.danger:hover {
-  opacity: 0.9;
-}
-
-@media (max-width: 480px) {
-  .setup-steps {
-    flex-wrap: wrap;
-  }
-
-  .step-divider {
-    display: none;
-  }
-
-  .code-input {
-    width: 100%;
-    max-width: 200px;
-  }
-}
-</style>

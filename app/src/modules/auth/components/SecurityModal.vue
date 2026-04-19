@@ -45,7 +45,7 @@ onMounted(async () => {
     <template #title> Sicherheit </template>
 
     <template #content>
-      <div class="tab-wrapper">
+      <div class="mb-4">
         <BaseTabs
           :items="tabs"
           :active-id="activeTab"
@@ -54,31 +54,13 @@ onMounted(async () => {
       </div>
 
       <!-- Tab Content -->
-      <div v-if="activeTab === 'mfa'" class="mfa-section">
+      <div v-if="activeTab === 'mfa'" class="flex flex-col gap-4">
         <MfaSettings :mfa-enabled="mfaEnabled" @mfa-changed="onMfaChanged" />
       </div>
 
-      <div v-else-if="activeTab === 'connected'" class="connected-section">
+      <div v-else-if="activeTab === 'connected'" class="flex flex-col gap-4">
         <ConnectedAccounts />
       </div>
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.tab-wrapper {
-  margin-bottom: 16px;
-}
-
-.mfa-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.connected-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-</style>

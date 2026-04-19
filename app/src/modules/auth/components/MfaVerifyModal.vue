@@ -95,7 +95,7 @@ onMounted(() => {
           maxlength="6"
           placeholder="000000"
           class="w-[180px] px-4 py-3 text-h3 font-mono text-center bg-surface text-on-surface border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
-          :class="{ 'border-danger': error, shake: shakeInput }"
+          :class="[{ '!border-danger': error }, shakeInput ? 'animate-[shake_0.4s_ease-in-out]' : '']"
           :disabled="loading"
           @input="handleInput"
           @keyup.enter="verify"
@@ -155,33 +155,12 @@ onMounted(() => {
   </CenteredAuthModal>
 </template>
 
-<style scoped>
+<style>
 @keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  20%,
-  60% {
-    transform: translateX(-8px);
-  }
-  40%,
-  80% {
-    transform: translateX(8px);
-  }
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
 }
-
-.shake {
-  animation: shake 0.4s ease-in-out;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
