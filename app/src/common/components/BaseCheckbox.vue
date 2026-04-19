@@ -33,21 +33,21 @@ function handleLabelClick(event: MouseEvent) {
 
 <template>
   <label
-    class="inline-flex items-start gap-2 cursor-pointer select-none relative z-0"
+    class="group inline-flex items-start gap-2 cursor-pointer select-none relative z-0"
     :class="{ 'checkbox-checked': modelValue || checked }"
   >
     <input
       type="checkbox"
-      class="sr-only"
+      class="peer sr-only"
       :checked="modelValue || checked"
       @change="handleChange"
     />
     <span
-      class="w-[18px] h-[18px] rounded-sm border-2 border-on-surface-muted inline-flex items-center justify-center bg-transparent relative hover:border-action has-[:checked]:bg-action has-[:checked]:border-action"
+      class="w-[18px] h-[18px] rounded-sm border-2 border-on-surface-muted inline-flex items-center justify-center bg-transparent relative group-hover:border-action peer-checked:bg-action peer-checked:border-action"
       aria-hidden="true"
     >
       <span
-        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[34px] h-[34px] rounded-full bg-transparent transition-hover z-[-1] peer-hover:bg-surface-hover"
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[34px] h-[34px] rounded-full bg-transparent transition-hover z-[-1] group-hover:bg-surface-hover"
       ></span>
       <Check class="w-4 h-4 text-on-action check-animate" stroke-width="3" />
     </span>
