@@ -79,9 +79,9 @@ async function confirmDeleteGroup() {
 </script>
 
 <template>
-  <div class="tab-panel">
-    <div v-if="!isAdmin" class="readonly">
-      <p class="readonly-text">
+  <div class="animate-fade-up flex flex-col gap-4">
+    <div v-if="!isAdmin" class="text-center text-body text-on-surface-muted">
+      <p class="m-0">
         Nur Administratoren können die Einstellungen ändern.
       </p>
     </div>
@@ -90,12 +90,12 @@ async function confirmDeleteGroup() {
     <div>
       <PageHeader>Gruppenname</PageHeader>
       <BaseLabel for="group-name">Name</BaseLabel>
-      <div v-if="!editingGroupName" class="setting-value">
-        <span>{{ groupName }}</span>
+      <div v-if="!editingGroupName" class="flex items-center gap-3">
+        <span class="font-semibold text-body">{{ groupName }}</span>
         <BaseTooltip :content="t('global.buttons.edit')">
           <BaseButton
             v-if="isAdmin"
-            class="tiny"
+            class="w-8 h-8 p-0"
             @click="emit('start-edit')"
             variant="ghost"
             on="canvas"
@@ -104,9 +104,10 @@ async function confirmDeleteGroup() {
         </BaseTooltip>
       </div>
 
-      <div v-else class="setting-edit">
+      <div v-else class="flex gap-2 items-center sm:flex-wrap">
         <BaseInput
           id="group-name"
+          class="flex-1 max-w-[300px] sm:max-w-none"
           :value="newGroupName"
           @input="
             emit(
@@ -149,7 +150,7 @@ async function confirmDeleteGroup() {
         "
       >
         <template #content>
-          <BaseFormGroup id="old-password">
+          <BaseFormGroup id="old-password" class="mb-4 max-w-[400px]">
             <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
             <BaseInput
               id="old-password"
@@ -159,7 +160,7 @@ async function confirmDeleteGroup() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="new-password">
+          <BaseFormGroup id="new-password" class="mb-4 max-w-[400px]">
             <BaseLabel for="new-password">Neues Passwort</BaseLabel>
             <BaseInput
               id="new-password"
@@ -169,7 +170,7 @@ async function confirmDeleteGroup() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="new-password-confirm">
+          <BaseFormGroup id="new-password-confirm" class="mb-4 max-w-[400px]">
             <BaseLabel for="new-password-confirm"
               >Neues Passwort bestätigen</BaseLabel
             >
@@ -188,8 +189,8 @@ async function confirmDeleteGroup() {
 
     <!-- Danger Zone: Delete Group -->
     <div v-if="isOwner">
-      <h3 class="danger-title">Danger Zone</h3>
-      <p class="danger-desc">
+      <h3 class="text-danger">Danger Zone</h3>
+      <p class="text-body text-on-surface-muted m-0 mb-5 leading-[1.5]">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
         werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen
         etc.) werden für alle Benutzer gelöscht.
@@ -200,10 +201,10 @@ async function confirmDeleteGroup() {
         :loading="deletingGroup"
         :requirement="deleteConfirmText === `delete ${groupName}`"
         :danger="true"
-        class="max-w-100"
+        class="max-w-[400px]"
       >
         <template #content>
-          <BaseFormGroup id="delete-confirm">
+          <BaseFormGroup id="delete-confirm" class="mb-4">
             <BaseLabel for="delete-confirm"
               >Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um
               fortzufahren:
@@ -212,7 +213,7 @@ async function confirmDeleteGroup() {
               id="delete-confirm"
               v-model="deleteConfirmText"
               type="text"
-              class="danger-input"
+              class="border-danger"
               :placeholder="'delete ' + groupName"
             />
           </BaseFormGroup>
@@ -224,95 +225,10 @@ async function confirmDeleteGroup() {
   </div>
 </template>
 
-<style scoped>
-.tab-panel {
-  animation: fadeUp 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
+<style>
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.readonly-text {
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-  margin: 0;
-  text-align: center;
-}
-
-.setting-value {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.setting-value span {
-  font-weight: 600;
-  font-size: var(--text-body);
-}
-
-.setting-edit {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.setting-edit .input {
-  flex: 1;
-  max-width: 300px;
-}
-
-/* Password Form */
-.form-group {
-  margin-bottom: 16px;
-  max-width: 400px;
-}
-
-.form-group label {
-  display: block;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.error-text {
-  color: var(--color-danger);
-  font-size: var(--text-sub);
-  margin: 0 0 16px;
-}
-
-.actions {
-  margin-top: 24px;
-}
-
-.danger-title {
-  color: var(--color-danger);
-}
-
-.danger-desc {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
-  margin: 0 0 20px;
-  line-height: 1.5;
-}
-
-@media (max-width: 640px) {
-  .setting-edit {
-    flex-wrap: wrap;
-  }
-  .setting-edit .input {
-    max-width: none;
-  }
-}
+.animate-fade-up { animation: fadeUp 0.2s ease; }
 </style>

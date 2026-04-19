@@ -245,23 +245,30 @@
     --color-kbd-shadow-inverted: oklch(0 0 0 / 20%);
   }
 }
-/*
-:root.dark-glass {
-    --color-canvas: #0f0f0faa;
-    --color-surface: #282828aa;
-    --color-on-surface: #fff;
-    --color-canvas-border: #414141aa;
-    --color-surface-border: #555555aa;
-    --color-surface-hover: #414141aa;
-    --color-on-surface-muted: #bbb;
-    --color-surface-hover-subtle: #323232aa;
-    --blur: blur(32px) saturate(120%);
+.ghost-drag .item-card {
+  background: white;
+  will-change: transform, filter;
 }
 
-:root.light-glass {
-    --blur: blur(32px) saturate(120%);
+.ghost-drag .item-card::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  z-index: -1;
+  background: var(--background-image-bismuth);
+  filter: blur(12px);
+  opacity: 0.9;
+  display: block !important;
 }
-*/
+
+.hidden-drag,
+.sortable-drag,
+.sortable-fallback {
+  opacity: 0 !important;
+}
 
 ::selection {
   color: var(--color-on-action);

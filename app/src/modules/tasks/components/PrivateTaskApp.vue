@@ -64,8 +64,6 @@ function onDragEnd(event: { newIndex: number; oldIndex: number }) {
   const movedItem = displayPrivateTasks.value[newIndex];
   if (!movedItem) return;
 
-  // Read neighbours from displayPrivateTasks for the layout, but look up real positions
-  // from the authoritative privateTasks array to avoid sending optimistic pseudo-positions.
   const prevDisplay =
     newIndex > 0 ? displayPrivateTasks.value[newIndex - 1] : null;
   const nextDisplay =
@@ -92,7 +90,6 @@ function moveItemUp(index: number) {
   const itemAbove = displayPrivateTasks.value[index - 1];
   if (!item || !itemAbove) return;
 
-  // Use authoritative positions from privateTasks array, not displayPrivateTasks (may have pseudo-positions)
   const realPos = (id: string) =>
     privateTasks.value.find((t) => t.id === id)?.position || null;
 
@@ -110,7 +107,6 @@ function moveItemDown(index: number) {
   const itemBelow = displayPrivateTasks.value[index + 1];
   if (!item || !itemBelow) return;
 
-  // Use authoritative positions from privateTasks array, not displayPrivateTasks (may have pseudo-positions)
   const realPos = (id: string) =>
     privateTasks.value.find((t) => t.id === id)?.position || null;
 
@@ -132,8 +128,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   <div class="private-task-app-integrated">
     <div class="private-task-header">
       <div class="flex gap-2 items-center text-on-surface mb-4">
-        <Lock style="color: var(--color-on-surface)" :size="24" />
-        <h2 style="margin: 0; font-size: var(--text-h2); line-height: 24px">
+        <Lock class="text-on-surface" :size="24" />
+        <h2 class="m-0 text-h2 leading-6">
           {{ t('school.private.onlyVisibleToYou') }}
         </h2>
         <InfoModal
@@ -151,7 +147,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     <div v-if="user" class="private-task-list">
       <div v-if="loading" class="flex flex-col items-center gap-3 p-8">
         <BaseSpinner on="ghost" size="24px" />
-        <div style="color: var(--color-on-surface-muted)">
+        <div class="text-on-surface-muted">
           {{ t('school.private.loading') }}
         </div>
       </div>
@@ -172,7 +168,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
           @end="onDragEnd"
           :animation="200"
           easing="cubic-bezier(0.3, 0, 0.14, 1)"
-          ghost-class="ghost"
+          ghost-class="ghost-drag"
           drag-class="hidden-drag"
           fallback-class="hidden-drag"
           :set-data="setDragImage"
@@ -273,43 +269,3 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
   </div>
 </template>
 
-<style scoped>
-.private-task-filters {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.private-task-filters .btn.active {
-  background-color: var(--color-action);
-  color: var(--color-on-action);
-}
-
-.ghost .item-card {
-  background: white;
-  will-change: transform, filter;
-}
-
-.ghost .item-card::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
-  z-index: -1;
-  background: var(--background-image-bismuth);
-  filter: blur(12px);
-  opacity: 0.9;
-  display: block !important;
-}
-</style>
-
-<style>
-.hidden-drag,
-.sortable-drag,
-.sortable-fallback {
-  opacity: 0 !important;
-}
-</style>

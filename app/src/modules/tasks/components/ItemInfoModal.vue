@@ -25,7 +25,6 @@ function formatDate(iso: string | undefined): string {
   });
 }
 
-// Only show "last edited" if it differs meaningfully from created (> 30 seconds)
 const showUpdated = computed(() => {
   if (!props.item.createdAt || !props.item.updatedAt) return false;
   const diff = Math.abs(
@@ -45,13 +44,19 @@ const showUpdated = computed(() => {
     <template #content>
       <dl class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <dt>{{ t('school.tasks.items.menu.infoModal.createdAt') }}</dt>
-          <dd>{{ formatDate(item.createdAt) }}</dd>
+          <dt class="text-sub text-on-surface-muted font-medium">
+            {{ t('school.tasks.items.menu.infoModal.createdAt') }}
+          </dt>
+          <dd class="m-0 text-body text-on-surface font-medium">
+            {{ formatDate(item.createdAt) }}
+          </dd>
         </div>
 
         <div class="flex flex-col gap-2">
-          <dt>{{ t('school.tasks.items.menu.infoModal.updatedAt') }}</dt>
-          <dd>
+          <dt class="text-sub text-on-surface-muted font-medium">
+            {{ t('school.tasks.items.menu.infoModal.updatedAt') }}
+          </dt>
+          <dd class="m-0 text-body text-on-surface font-medium">
             <span v-if="showUpdated">{{ formatDate(item.updatedAt) }}</span>
             <span v-else class="text-on-surface-muted">{{
               t('school.tasks.items.menu.infoModal.notEdited')
@@ -60,8 +65,10 @@ const showUpdated = computed(() => {
         </div>
 
         <div v-if="isModOrAdmin" class="flex flex-col gap-2">
-          <dt>{{ t('school.tasks.items.menu.infoModal.createdBy') }}</dt>
-          <dd>
+          <dt class="text-sub text-on-surface-muted font-medium">
+            {{ t('school.tasks.items.menu.infoModal.createdBy') }}
+          </dt>
+          <dd class="m-0 text-body text-on-surface font-medium">
             {{ item.createdByName || 'Unbekannt' }}
             <span
               v-if="isSuperAdmin && item.createdByEmail"
@@ -75,18 +82,3 @@ const showUpdated = computed(() => {
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-dt {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  font-weight: 500;
-}
-
-dd {
-  margin: 0;
-  font-size: var(--text-body);
-  color: var(--color-on-surface);
-  font-weight: 500;
-}
-</style>

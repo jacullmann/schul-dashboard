@@ -95,7 +95,7 @@ onMounted(() => {
 
       <div
         ref="scrollContainerRef"
-        class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full max-[500px]:[scrollbar-width:none] min-[501px]:contents"
+        class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full max-[500px]:[scrollbar-width:none] min-[501px]:contents [&::-webkit-scrollbar]:hidden"
       >
         <div
           ref="daysGridWrapperRef"
@@ -126,8 +126,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-.max-\[500px\]\:\[scrollbar-width\:none\]::-webkit-scrollbar {
-  display: none;
-}
-</style>
+

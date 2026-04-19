@@ -8,7 +8,7 @@ const MAX_LENGTH = 5000;
 const reasonLength = computed(() => {
   return props.reason?.length || 0;
 });
-// Überprüfen: Wird loading wirklich korrekt übergeben? auch in anderen dateien prüfen.
+
 const props = defineProps<{
   show: boolean;
   message: string;
@@ -21,7 +21,6 @@ const emit = defineEmits(['confirm', 'cancel', 'update:reason']);
 
 const category = ref<'illegal' | 'falschinfo'>('illegal');
 
-// TabSwitcher Items
 const tabItems = [
   { id: 'illegal', label: 'Unangebrachte/Illegale Inhalte' },
   { id: 'falschinfo', label: 'Falschinformation' },
@@ -54,8 +53,8 @@ watch(
 
     <template #title-infopop>
       <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
-        <h3>Falschinformationen</h3>
-        <p>
+        <h3 class="text-h3 font-display font-bold mb-2">Falschinformationen</h3>
+        <p class="text-on-surface-muted text-body mb-4">
           Die Informationen, welche in dem Eintrag genannt werden, oder die
           hochgeladenen Bilder enthalten falsche oder irreführende Inhalte?
           Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden,
@@ -64,8 +63,8 @@ watch(
           kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie
           geprüft wurde, dem gemeldeten Eintrag angehängt.
         </p>
-        <h3>Unangebrachte/Illegale Inhalte</h3>
-        <p>
+        <h3 class="text-h3 font-display font-bold mb-2">Unangebrachte/Illegale Inhalte</h3>
+        <p class="text-on-surface-muted text-body mb-4">
           Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen
           oder geltendes Recht verstoßen, werden umgehend entfernt. Falls
           genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig
@@ -78,10 +77,9 @@ watch(
     </template>
 
     <template #content>
-      <p class="m-0">Wähle den Grund aus:</p>
+      <p class="text-on-surface font-semibold text-sm mb-4">Wähle den Grund aus:</p>
 
-      <!-- TabSwitcher Navigation -->
-      <div class="tab-navigation">
+      <div class="w-full mb-0">
         <BaseTabs
           :items="tabItems"
           :active-id="category"
@@ -89,8 +87,8 @@ watch(
         />
       </div>
 
-      <div class="reason-input">
-        <BaseLabel for="reportReason">
+      <div class="mb-6 relative">
+        <BaseLabel for="reportReason" class="block text-sm font-medium mb-2 text-on-surface">
           {{
             category === 'falschinfo'
               ? 'Begründung (erforderlich)'
@@ -100,7 +98,7 @@ watch(
         <BaseInput
           as="textarea"
           id="reportReason"
-          class="min-h-[120px] resize-vertical"
+          class="w-full min-h-[120px] resize-vertical"
           :model-value="reason"
           @update:model-value="$emit('update:reason', $event)"
           :placeholder="
@@ -109,8 +107,10 @@ watch(
           :required="category === 'falschinfo'"
           :maxlength="MAX_LENGTH"
         ></BaseInput>
-        <div class="counter">
-          <p class="count-small">{{ reasonLength }} / {{ MAX_LENGTH }}</p>
+        <div class="absolute bottom-[-5px] right-3 z-1 pointer-events-none">
+          <p class="text-footnote text-on-surface-muted opacity-80 px-2 py-0.5 rounded m-0">
+            {{ reasonLength }} / {{ MAX_LENGTH }}
+          </p>
         </div>
       </div>
     </template>
@@ -119,67 +119,3 @@ watch(
   </BaseModal>
 </template>
 
-<style scoped>
-.confirm-box {
-  background: var(--color-canvas);
-  padding: 16px;
-  border-radius: 16px;
-  max-width: 480px;
-  width: 90%;
-  text-align: left;
-  border: 1px solid var(--color-canvas-border);
-  box-shadow: var(--shadow-menu);
-}
-
-.tab-navigation {
-  width: 100%;
-  margin: 0;
-}
-
-.confirm-box p {
-  text-align: left;
-  margin-bottom: 16px;
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--color-on-surface);
-}
-
-.reason-input {
-  margin-bottom: 24px;
-  position: relative;
-}
-
-.reason-input label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: var(--color-on-surface);
-}
-
-.btn.danger:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn.danger:disabled:hover {
-  background: var(--color-danger);
-}
-
-.counter {
-  position: absolute;
-  bottom: -5px;
-  right: 12px;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.count-small {
-  font-size: var(--text-footnote);
-  color: var(--color-on-surface-muted);
-  opacity: 0.8;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin: 0;
-}
-</style>

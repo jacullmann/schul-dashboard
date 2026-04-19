@@ -197,31 +197,23 @@ function handleSaveSub() {
     <!-- Create Form -->
     <h3
       v-if="!selectedLesson"
-      style="color: var(--color-on-surface-muted); margin-bottom: 24px"
+      class="text-on-surface-muted mb-6"
     >
       Bitte wählen Sie eine Stunde aus dem Stundenplan.
     </h3>
 
     <div v-if="selectedLesson">
-      <h3
-        style="margin-top: 0; margin-bottom: 8px; font-size: var(--text-title)"
-      >
+      <h3 class="mt-0 mb-2 text-title">
         Ausgewählte Stunde
       </h3>
-      <p
-        style="
-          margin: 0 0 16px 0;
-          color: var(--color-on-surface-muted);
-          font-size: var(--text-body);
-        "
-      >
+      <p class="m-0 mb-4 text-on-surface-muted text-body">
         Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> (Stunde:
         {{ selectedLesson.slot }}, Letzte Stunde:
         {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum:
         {{ selectedLesson.room || '-' }}, Tag: {{ selectedLesson.day }})
       </p>
 
-      <div class="sub-form-grid">
+      <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
         <input type="hidden" v-model="subForm.lessonId" />
         <div class="form-field">
           <BaseLabel for="sub-subject">Neues Fach</BaseLabel>
@@ -285,39 +277,39 @@ function handleSaveSub() {
       </BaseButton>
     </div>
 
-    <h3 style="padding: 20px 20px 0 20px; font-size: var(--text-title)">
+    <h3 class="p-5 pb-0 text-title">
       Stunde auswählen
     </h3>
-    <div v-if="loadingLessons" class="empty-hint">Lade Stundenplan...</div>
+    <div v-if="loadingLessons" class="text-center p-8 text-on-surface-muted text-body">Lade Stundenplan...</div>
     <AdminSchedule
       v-else
       :lessons="lessons"
       :selectedLessonId="subForm.lessonId"
       @select-lesson="onLessonSelected"
-      style="padding: 20px"
+      class="p-5"
     />
 
     <!-- Existing Subs -->
-    <div v-if="subs.length === 0 && !loadingSubs" class="empty-hint">
+    <div v-if="subs.length === 0 && !loadingSubs" class="text-center p-8 text-on-surface-muted text-body">
       Keine Substitutions vorhanden.
     </div>
-    <div v-else class="subs-list">
-      <div v-for="sub in subs" :key="sub.id" class="sub-row">
-        <div class="sub-row-info">
-          <span v-if="sub.subject" class="sub-row-tag">{{ sub.subject }}</span>
-          <span v-else class="sub-row-tag">Unbekannt</span>
-          <span class="sub-row-detail" v-if="sub.slot"
+    <div v-else class="flex flex-col gap-1.5">
+      <div v-for="sub in subs" :key="sub.id" class="flex items-center justify-between p-2 px-3.5 bg-surface border border-surface-border shadow-input rounded-[10px] gap-2">
+        <div class="flex items-center gap-2 flex-wrap min-w-0">
+          <span v-if="sub.subject" class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface">{{ sub.subject }}</span>
+          <span v-else class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface">Unbekannt</span>
+          <span class="text-sub text-on-surface-muted" v-if="sub.slot"
             >Stunde: {{ sub.slot }}</span
           >
-          <span class="sub-row-detail" v-if="sub.day">Tag: {{ sub.day }}</span>
-          <span v-if="sub.cancelled" class="sub-row-tag danger">Ausfall</span>
-          <span v-if="sub.hide" class="sub-row-tag muted">Versteckt</span>
-          <span v-if="sub.room" class="sub-row-detail"
+          <span class="text-sub text-on-surface-muted" v-if="sub.day">Tag: {{ sub.day }}</span>
+          <span v-if="sub.cancelled" class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-[rgba(239,68,68,0.15)] text-[#ef4444]">Ausfall</span>
+          <span v-if="sub.hide" class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface-muted">Versteckt</span>
+          <span v-if="sub.room" class="text-sub text-on-surface-muted"
             >Raum: {{ sub.room }}</span
           >
         </div>
         <button
-          class="btn-icon danger"
+          class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-surface-muted hover:bg-surface-hover hover:text-[#ef4444] transition-colors"
           @click="emit('delete-sub', sub.id)"
           title="Löschen"
         >
@@ -343,7 +335,7 @@ function handleSaveSub() {
         </template>
       </PageHeader>
 
-      <div class="sub-form-grid">
+      <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
         <div class="form-field">
           <BaseLabel for="config-start">Startzeit</BaseLabel>
           <BaseInput
@@ -379,12 +371,7 @@ function handleSaveSub() {
 
       <div class="mt-6 mb-4">
         <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-          "
+          class="flex items-center justify-between mb-3"
         >
           <h3>Pausen</h3>
           <BaseButton
@@ -400,8 +387,7 @@ function handleSaveSub() {
 
         <div
           v-if="configForm.breaks.length === 0"
-          class="empty-hint"
-          style="padding: 16px"
+          class="text-center p-4 text-on-surface-muted text-body"
         >
           Keine Pausen konfiguriert.
         </div>
@@ -412,7 +398,7 @@ function handleSaveSub() {
             :key="brk.id"
             class="flex gap-2 items-end"
           >
-            <div class="form-field flex-1" style="margin: 0">
+            <div class="form-field flex-1 m-0">
               <BaseLabel :for="`break-slot-${brk.id}`">Nach Stunde</BaseLabel>
               <BaseInput
                 :id="`break-slot-${brk.id}`"
@@ -423,7 +409,7 @@ function handleSaveSub() {
                 :disabled="!isAdmin"
               />
             </div>
-            <div class="form-field flex-1" style="margin: 0">
+            <div class="form-field flex-1 m-0">
               <BaseLabel :for="`break-dur-${brk.id}`"
                 >Dauer (Minuten)</BaseLabel
               >
@@ -477,133 +463,7 @@ function handleSaveSub() {
   }
 }
 
-.title-inf {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sub-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.form-field {
   margin-bottom: 16px;
-}
-
-.form-field label {
-  display: block;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  margin-bottom: 4px;
-  font-weight: 500;
-}
-
-.checkbox-field label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--text-body);
-  cursor: pointer;
-  padding-top: 20px;
-}
-
-.subs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sub-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: 10px;
-  gap: 8px;
-}
-
-.sub-row-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.sub-row-tag {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface);
-}
-
-.sub-row-tag.danger {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-.sub-row-tag.muted {
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface-muted);
-}
-
-.sub-row-detail {
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-}
-
-.empty-hint {
-  text-align: center;
-  padding: 32px;
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-}
-
-.spin-icon {
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  color: var(--color-on-surface-muted);
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.btn-icon:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface);
-}
-.btn-icon.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-.btn-icon:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
-  .sub-form-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

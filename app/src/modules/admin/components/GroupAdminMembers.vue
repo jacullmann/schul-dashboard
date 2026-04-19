@@ -68,8 +68,7 @@ function confirmRemove() {
 }
 </script>
 
-<template>
-  <div class="tab-panel">
+<div class="animate-fade-up">
     <PageHeader>
       Mitglieder
 
@@ -115,22 +114,22 @@ function confirmRemove() {
       </template>
     </PageHeader>
 
-    <div v-if="loading && members.length === 0" class="empty-hint">Lädt...</div>
-    <div v-else-if="members.length === 0" class="empty-hint">
+    <div v-if="loading && members.length === 0" class="text-center p-8 text-on-surface-muted text-body">Lädt...</div>
+    <div v-else-if="members.length === 0" class="text-center p-8 text-on-surface-muted text-body">
       Keine Mitglieder gefunden.
     </div>
 
-    <div v-else class="members-list">
-      <div v-for="member in members" :key="member.userId" class="member-row">
-        <div class="member-info">
-          <span class="member-name">{{ member.generatedName }}</span>
-          <span class="member-role-badge" :class="'role-' + member.role">
+    <div v-else class="flex flex-col gap-1.5">
+      <div v-for="member in members" :key="member.userId" class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 sm:flex-col sm:items-start sm:gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis">{{ member.generatedName }}</span>
+          <span class="text-[0.7rem] font-semibold uppercase tracking-[0.04em]" :class="{'text-[#6366f1]': member.role === 'admin', 'text-[#f59e0b]': member.role === 'moderator', 'text-on-surface-muted': member.role === 'user'}">
             {{ roleLabel(member.role) }}
           </span>
         </div>
-        <div class="member-actions">
+        <div class="flex items-center gap-2 flex-shrink-0 sm:w-full">
           <BaseSelect
-            extraClass="role-select"
+            class="w-[130px] text-sub p-1.5 px-2"
             :modelValue="member.role"
             @update:modelValue="(val: string) => onRoleChange(member, val)"
             :disabled="member.role === 'admin' && !canDemoteAdmin"
@@ -141,7 +140,7 @@ function confirmRemove() {
             ]"
           />
           <button
-            class="btn-icon danger"
+            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-surface-muted hover:bg-surface-hover hover:text-[#ef4444] transition-colors"
             @click="openRemoveModal(member.userId, member.generatedName)"
             title="Aus Gruppe entfernen"
             :disabled="member.role === 'admin'"
@@ -150,7 +149,7 @@ function confirmRemove() {
           </button>
           <button
             v-if="isOwner && member.role === 'admin'"
-            class="btn-icon transfer-btn"
+            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-surface-muted hover:bg-surface-hover hover:text-[#6366f1] transition-colors"
             @click="emit('transfer-ownership', member.userId)"
             title="Eigentümerschaft übertragen"
           >
@@ -164,26 +163,26 @@ function confirmRemove() {
 
     <div
       v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
-      class="empty-hint"
+      class="text-center p-8 text-on-surface-muted text-body"
     >
       Loading...
     </div>
     <div
       v-else-if="!bannedUsers || bannedUsers.length === 0"
-      class="empty-hint"
+      class="text-center p-8 text-on-surface-muted text-body"
     >
       No banned users.
     </div>
-    <div v-else class="members-list">
-      <div v-for="user in bannedUsers" :key="user.userId" class="member-row">
-        <div class="member-info">
-          <span class="member-name">{{ user.generatedName }}</span>
-          <span class="member-role-badge role-user"
+    <div v-else class="flex flex-col gap-1.5">
+      <div v-for="user in bannedUsers" :key="user.userId" class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis">{{ user.generatedName }}</span>
+          <span class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-surface-muted"
             >Banned On
             {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >
         </div>
-        <div class="member-actions">
+        <div class="flex items-center gap-2 flex-shrink-0">
           <BaseButton variant="ghost" @click="emit('revert-ban', user.userId)">
             Unban
           </BaseButton>
@@ -218,150 +217,3 @@ function confirmRemove() {
       <template #action-text> Remove </template>
     </BaseModal>
   </div>
-</template>
-
-<style scoped>
-.tab-panel {
-  animation: fadeUp 0.2s ease;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.title-inf {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.members-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.member-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  border-radius: var(--radius-lg);
-  gap: 12px;
-}
-
-.member-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.member-name {
-  font-weight: 600;
-  font-size: var(--text-body);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.member-role-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.role-admin {
-  color: #6366f1;
-}
-.role-moderator {
-  color: #f59e0b;
-}
-.role-user {
-  color: var(--color-on-surface-muted);
-}
-
-.member-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.role-select {
-  width: 130px;
-  font-size: var(--text-sub);
-  padding: 6px 8px;
-}
-
-.empty-hint {
-  text-align: center;
-  padding: 32px;
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-body);
-}
-
-.spin-icon {
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  color: var(--color-on-surface-muted);
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.btn-icon:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface);
-}
-.btn-icon.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-.btn-icon.transfer-btn:hover {
-  background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-}
-.btn-icon:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
-  .member-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .member-actions {
-    width: 100%;
-  }
-}
-</style>
