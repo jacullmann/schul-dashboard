@@ -12,66 +12,17 @@ withDefaults(
 </script>
 
 <template>
-  <kbd :class="[flat ? 'flat' : 'default', on]">
+  <kbd
+    class="inline-flex items-center font-mono text-[0.75rem] leading-[0.875rem] select-none cursor-default"
+    :class="[
+      !flat
+        ? 'bg-kbd-bg text-kbd-text border border-kbd-border rounded-md shadow-[0_2px_0_var(--color-kbd-border-bottom),0_3px_2px_var(--color-kbd-shadow)] transition-[transform,box-shadow] duration-100 ease active:translate-y-[2px] active:shadow-[0_0_0_var(--color-kbd-border-bottom),0_1px_2px_var(--color-kbd-shadow)]'
+        : 'px-[6px] rounded-sm',
+      flat && on === 'canvas' ? 'bg-canvas-hover text-on-canvas-muted' : '',
+      flat && on === 'surface' ? 'bg-surface-hover text-on-surface-muted' : '',
+      flat && on === 'action' ? 'bg-action-hover text-on-action-muted' : '',
+    ]"
+  >
     <slot></slot>
   </kbd>
 </template>
-
-<style scoped>
-kbd.default {
-  display: inline-flex;
-  align-items: center;
-  background-color: var(--color-kbd-bg);
-  color: var(--color-kbd-text);
-  border: 1px solid var(--color-kbd-border);
-  box-shadow:
-    0 2px 0 var(--color-kbd-border-bottom),
-    0 3px 2px var(--color-kbd-shadow);
-  border-radius: 6px;
-  font-family: monospace;
-  font-size: 0.75rem;
-  line-height: 0.875rem;
-  padding: 2px 6px;
-  user-select: none;
-  -webkit-user-select: none;
-  cursor: default;
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease;
-}
-
-kbd.default:active {
-  transform: translateY(2px);
-  box-shadow:
-    0 0 0 var(--color-kbd-border-bottom),
-    0 1px 2px var(--color-kbd-shadow);
-}
-
-kbd.flat {
-  display: inline-flex;
-  align-items: center;
-  font-family: monospace;
-  font-size: 0.75rem;
-  line-height: 1rem;
-  padding: 0 6px;
-  border-radius: var(--radius-sm);
-  user-select: none;
-  -webkit-user-select: none;
-  cursor: default;
-}
-
-kbd.flat.canvas {
-  background-color: var(--color-canvas-hover);
-  color: var(--color-on-canvas-muted);
-}
-
-kbd.flat.surface {
-  background-color: var(--color-surface-hover);
-  color: var(--color-on-surface-muted);
-}
-
-kbd.flat.action {
-  background-color: var(--color-action-hover);
-  color: var(--color-on-action-muted);
-}
-</style>
