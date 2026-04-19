@@ -61,7 +61,7 @@ onMounted(() => {
   <div class="flex w-full items-center justify-center">
     <div class="w-full max-w-[420px]">
       <div class="text-center mb-8">
-        <h1 class="text-center">
+        <h1 class="text-center!">
           {{ t('account.auth.login') }}
         </h1>
         <p class="text-sub text-on-surface-muted mt-2">

@@ -6,7 +6,7 @@ import { X } from '@lucide/vue';
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
   variant?: 'action' | 'ghost' | 'danger' | 'input';
-  on?: 'canvas' | 'surface' | 'action';
+  on?: 'canvas' | 'surface' | 'action' | 'danger';
   full?: boolean;
   icon?: Component;
   iconPlacement?: 'leading' | 'trailing';
@@ -35,29 +35,22 @@ const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
-    canvas:
-      'text-on-canvas-muted hover:bg-canvas-hover hover:border-canvas-hover hover:text-on-canvas',
+    canvas: 'text-on-canvas-muted hover:bg-canvas-hover hover:text-on-canvas',
     surface:
-      'text-on-surface-muted hover:bg-surface-hover hover:border-surface-hover hover:text-on-surface',
-    action:
-      'text-on-action-muted hover:bg-action-hover hover:border-action-hover hover:text-on-action',
+      'text-on-surface-muted hover:bg-surface-hover hover:text-on-surface',
+    action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
+    danger: 'text-on-danger hover:bg-danger-hover hover:text-on-danger',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
-    ghost: ['bg-transparent border-transparent', onClasses[props.on]].join(' '),
+    ghost: ['bg-transparent', onClasses[props.on]].join(' '),
     input: [
-      'bg-surface text-on-surface border-surface-border',
+      'bg-surface text-on-surface border border-surface-border',
       'shadow-input rounded-md! w-full',
       'hover:bg-surface-hover-subtle',
     ].join(' '),
-    action: [
-      'bg-action text-on-action border-action',
-      'hover:bg-action-hover hover:border-action-hover',
-    ].join(' '),
-    danger: [
-      'bg-danger text-on-danger border-danger',
-      'hover:bg-danger-hover',
-    ].join(' '),
+    action: ['bg-action text-on-action', 'hover:bg-action-hover'].join(' '),
+    danger: ['bg-danger text-on-danger', 'hover:bg-danger-hover'].join(' '),
   };
 
   return variantClasses[props.variant ?? 'ghost'];
@@ -81,9 +74,8 @@ defineExpose({
         : variant === 'input'
           ? 'font-normal w-fit'
           : 'font-medium w-fit',
-      size === 'lg' ? 'text-sub' : 'text-btn',
       size === 'lg' ? 'py-2.5' : 'py-2',
-      size === 'lg' ? 'border-0' : 'border',
+      size === 'lg' ? 'border-0' : '',
       size === 'lg' ? 'h-10' : '',
       chip
         ? size === 'lg'
@@ -109,7 +101,7 @@ defineExpose({
                 ? 'px-5'
                 : 'px-4',
     ]"
-    class="inline-flex items-center gap-2 py-2 rounded-full leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="relative inline-flex items-center justify-center gap-2 py-2 min-h-10 min-w-10 touch-target rounded-full text-sub leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >

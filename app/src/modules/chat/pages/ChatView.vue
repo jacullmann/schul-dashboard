@@ -518,7 +518,7 @@ function formatDuration(ms?: number): string {
               message.steps &&
               message.steps.length > 0
             "
-            class="flex flex-col gap-0 mb-2 w-full"
+            class="flex flex-col gap-0 w-full"
           >
             <BaseButton
               variant="ghost"
@@ -545,7 +545,7 @@ function formatDuration(ms?: number): string {
                 <div
                   v-for="(step, idx) in message.steps"
                   :key="idx"
-                  class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120 text-on-surface-subtle"
+                  class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120 text-on-surface-muted"
                 >
                   <component
                     :is="getStepIcon(step.status)"
@@ -553,7 +553,7 @@ function formatDuration(ms?: number): string {
                     :size="16"
                   />
                   <span class="flex-1 overflow-hidden truncate whitespace-nowrap">{{ getStepLabel(step) }}</span>
-                  <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle opacity-70 ml-auto">
+                  <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle ml-auto">
                     {{ formatDuration(step.duration_ms) }}
                   </span>
                 </div>
@@ -671,8 +671,8 @@ function formatDuration(ms?: number): string {
                     class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120"
                     :class="
                       idx === liveSteps.length - 1
-                        ? 'text-on-surface-muted'
-                        : 'text-on-surface-subtle'
+                        ? 'text-on-surface'
+                        : 'text-on-surface-muted'
                     "
                   >
                     <component
@@ -682,7 +682,7 @@ function formatDuration(ms?: number): string {
                       :size="16"
                     />
                     <span class="flex-1 overflow-hidden truncate whitespace-nowrap">{{ getStepLabel(step) }}</span>
-                    <span v-if="step.duration_ms" class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle opacity-70 ml-auto">
+                    <span v-if="step.duration_ms" class="shrink-0 text-footnote tabular-nums text-on-surface-subtle ml-auto">
                       {{ formatDuration(step.duration_ms) }}
                     </span>
                     <span

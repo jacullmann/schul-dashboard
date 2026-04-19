@@ -1,21 +1,28 @@
 <script setup lang="ts">
 import { useToast } from '@/common/composables/useToast';
-import { Check, AlertTriangle, Info, X } from '@lucide/vue';
+import { Check, AlertTriangle, CircleX, Info, X } from '@lucide/vue';
 
 const { toasts, dismiss } = useToast();
 
 const ICONS = {
   success: Check,
-  error: AlertTriangle,
+  error: CircleX,
   warning: AlertTriangle,
   info: Info,
+};
+
+const ICON_COLORS: Record<string, string> = {
+  success: 'text-on-action bg-action',
+  error: 'text-on-danger bg-danger',
+  warning: 'text-on-warn bg-warn',
+  info: 'text-on-surface bg-surface border border-surface-border',
 };
 </script>
 
 <template>
   <Teleport to="body">
     <div
-      class="toast-stack"
+      class="fixed top-6 right-6 z-(--z-toast) flex flex-col-reverse gap-2 pointer-events-none max-w-[min(400px,calc(100vw-48px))] max-sm:top-4 max-sm:right-0 max-sm:left-0 max-sm:max-w-[calc(100vw-32px)] max-sm:mx-auto"
       role="region"
       aria-label="Notifications"
       aria-live="polite"
@@ -24,26 +31,26 @@ const ICONS = {
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="toast"
-          :class="`toast-${toast.type}`"
+          class="relative flex items-start gap-2 p-1 rounded-full text-body leading-none overflow-hidden pointer-events-auto shadow-menu"
           role="alert"
+          :class="ICON_COLORS[toast.type]"
           :aria-atomic="true"
         >
-          <span class="toast-icon">
-            <component :is="ICONS[toast.type]" :size="16" />
+          <span
+            class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center"
+          >
+            <component :is="ICONS[toast.type]" :size="20" />
           </span>
 
-          <span class="toast-message">{{ toast.message }}</span>
+          <span class="my-2.5 flex-1 min-w-0 break-words text-body leading-5">{{ toast.message }}</span>
 
-          <button
+          <BaseButton
             v-if="toast.dismissible"
-            type="button"
-            class="toast-close"
-            :aria-label="'Dismiss notification'"
+            :icon="X"
+            size="lg"
+            :on="toast.type === 'success' ? 'action' : toast.type === 'error' ? 'danger' : 'surface'"
             @click="dismiss(toast.id)"
-          >
-            <X :size="16" />
-          </button>
+          />
         </div>
       </TransitionGroup>
     </div>
@@ -51,83 +58,6 @@ const ICONS = {
 </template>
 
 <style scoped>
-.toast-stack {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: var(--z-toast);
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 8px;
-  pointer-events: none;
-  max-width: min(400px, calc(100vw - 48px));
-}
-
-.toast {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-surface-border);
-  background: var(--color-surface);
-  color: var(--color-on-surface);
-  font-size: var(--text-body);
-  line-height: 1;
-  overflow: hidden;
-  pointer-events: all;
-  box-shadow: var(--shadow-menu);
-}
-
-.toast-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.toast-success .toast-icon {
-  color: var(--color-success);
-}
-.toast-error .toast-icon {
-  color: var(--color-danger);
-}
-.toast-warning .toast-icon {
-  color: var(--color-warn);
-}
-.toast-info .toast-icon {
-  color: var(--color-primary);
-}
-
-.toast-message {
-  flex: 1;
-  min-width: 0;
-  word-break: break-word;
-}
-
-.toast-close {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  color: var(--color-on-surface-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  transition:
-    color 0.15s ease,
-    background 0.15s ease;
-  margin: -8px -8px -8px 0;
-}
-
-.toast-close:hover {
-  color: var(--color-on-surface);
-  background: var(--color-surface-hover);
-}
-
 .toast-enter-active {
   transition:
     opacity 0.22s ease,
@@ -146,16 +76,6 @@ const ICONS = {
 }
 .toast-leave-to {
   opacity: 0;
-  transform: translateX(16px);
-}
-
-@media (max-width: 500px) {
-  .toast-stack {
-    top: 16px;
-    right: 0;
-    left: 0;
-    max-width: calc(100vw - 32px);
-    margin: 0 auto;
-  }
+  transform: translateX(64px);
 }
 </style>
