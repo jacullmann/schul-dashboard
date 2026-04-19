@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Check } from '@lucide/vue';
+import { Check, ChevronDown } from '@lucide/vue';
 import type { Component } from 'vue';
 
 withDefaults(
