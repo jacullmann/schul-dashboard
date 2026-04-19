@@ -51,22 +51,13 @@ onClickOutside(wrapperRef, () => {
       type="button"
       aria-haspopup="true"
       :aria-expanded="isOpen"
+      :icon="selectedOption?.icon"
+      :isDropdown="true"
+      :active="isOpen"
     >
-      <component
-        v-if="selectedOption?.icon"
-        :is="selectedOption.icon"
-        :size="16"
-      />
-
       <span>
         {{ prefix ? prefix + ' ' : '' }}{{ selectedOption?.label || '' }}
       </span>
-
-      <ChevronDown
-        :size="16"
-        class="ml-auto shrink-0 transition duration-200 ease-in-out"
-        :class="{ 'rotate-180': isOpen }"
-      />
     </BaseMenuButton>
 
     <BaseMenu v-if="isOpen" class="top-full min-w-full max-h-80 mt-1">
@@ -74,13 +65,13 @@ onClickOutside(wrapperRef, () => {
         v-for="option in options"
         :key="option.value"
         class="disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+        :icon="option.icon"
         @click="selectOption(option.value)"
         type="button"
         :disabled="disabled"
         :isSelect="true"
         :active="modelValue === option.value"
       >
-        <component v-if="option.icon" :is="option.icon" :size="16" />
         {{ option.label }}
       </BaseMenuButton>
     </BaseMenu>

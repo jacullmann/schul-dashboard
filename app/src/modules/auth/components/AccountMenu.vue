@@ -79,8 +79,7 @@ const {
 
       <LocaleMenuDropdown />
 
-      <BaseMenuButton ref="firstMenuBtnRef" @click="openSetup">
-        <LucideGraduationCap :size="16" />
+      <BaseMenuButton ref="firstMenuBtnRef" :icon="LucideGraduationCap" @click="openSetup">
         {{ t('account.menu.courses.title') }}
       </BaseMenuButton>
 
@@ -91,25 +90,21 @@ const {
 
       <BaseMenuDivider />
 
-      <BaseMenuButton @click="openSecurity">
-        <Shield :size="16" />
+      <BaseMenuButton :icon="Shield" @click="openSecurity">
         {{ t('account.menu.security.title') }}
       </BaseMenuButton>
 
-      <BaseMenuButton @click="openChangePassword">
-        <LucideKeyRound :size="16" />
+      <BaseMenuButton :icon="LucideKeyRound" @click="openChangePassword">
         {{ t('account.menu.changePassword.title') }}
       </BaseMenuButton>
 
-      <BaseMenuButton @click="handleLogout">
-        <LogOut :size="16" />
+      <BaseMenuButton :icon="LogOut" @click="handleLogout">
         {{ t('account.menu.logout') }}
       </BaseMenuButton>
 
       <BaseMenuDivider />
 
-      <BaseMenuButton variant="danger" @click="startDelete">
-        <Trash2 :size="16" />
+      <BaseMenuButton :icon="Trash2" variant="danger" @click="startDelete">
         {{ t('account.menu.deleteAccount.title') }}
       </BaseMenuButton>
     </BaseMenu>

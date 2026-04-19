@@ -8,6 +8,7 @@ withDefaults(
     active?: boolean;
     isSelect?: boolean;
     isToggle?: boolean;
+    isDropdown?: boolean;
     variant?: 'default' | 'danger';
     icon?: Component;
   }>(),
@@ -15,6 +16,7 @@ withDefaults(
     variant: 'default',
     isSelect: false,
     isToggle: false,
+    isDropdown: false,
   },
 );
 
@@ -54,7 +56,7 @@ defineExpose({
         <span
           class="text-sm"
           :class="[
-            active && !$slots.description ? 'font-bold' : 'font-medium',
+            active && !$slots.description && !isDropdown ? 'font-bold' : 'font-medium',
             $slots.description ? 'leading-5' : 'leading-4',
           ]"
           ><slot></slot
@@ -65,6 +67,12 @@ defineExpose({
           ><slot name="description"></slot
         ></span>
       </div>
+      <ChevronDown
+        v-if="isDropdown"
+        :size="16"
+        class="ml-auto shrink-0 transition duration-200 ease-in-out"
+        :class="{ 'rotate-180': active }"
+      />
     </span>
 
     <span v-if="isSelect" aria-hidden="true">
