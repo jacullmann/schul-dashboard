@@ -52,7 +52,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
         variant="ghost"
         on="canvas"
         :icon="X"
-        class="absolute top-2 right-2"
+        class="absolute -top-3 -right-3"
         @click="handleCancel"
       />
     </BaseRow>

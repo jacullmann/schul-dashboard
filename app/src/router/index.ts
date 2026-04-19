@@ -277,8 +277,7 @@ router.beforeEach(async (to, from, next) => {
     to.path.startsWith('/verify') ||
     // Minigames
     to.path.startsWith('/natural-intelligence') ||
-    to.path.startsWith('/brain') ||
-    to.path.startsWith('/home');
+    to.path.startsWith('/brain');
 
   // ── Unauthenticated users → login page (internal) ────────────────────────────────
   if (!isPublicRoute && !isLoggedIn.value) {
