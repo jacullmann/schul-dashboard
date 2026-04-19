@@ -50,39 +50,39 @@ const getSliderStyle = (current: number, max: number) => {
 </script>
 
 <template>
-  <div class="news-container">
-    <header class="navbar">
-      <div class="brand" @click="goHome">
-        <span class="brand-text">{{ t('info.dashboard.title') }}</span>
-        <span class="brand-sub">{{ t('info.dashboard.description') }}</span>
+  <div class="font-sans bg-canvas text-on-surface min-h-screen w-full flex flex-col">
+    <header class="flex justify-between items-center p-4 border-b border-canvas-border bg-canvas sticky top-0 z-[100]">
+      <div class="cursor-pointer flex flex-col" @click="goHome">
+        <span class="font-black text-[1.5rem] tracking-[-1px] font-display">{{ t('info.dashboard.title') }}</span>
+        <span class="text-[0.8rem] text-on-surface-muted uppercase tracking-[2px]">{{ t('info.dashboard.description') }}</span>
       </div>
 
-      <div class="search-wrapper">
-        <Search class="search-icon" :size="18" @click="triggerSearch" />
+      <div class="relative w-full max-w-[400px]">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-subtle cursor-pointer transition-[0.2s] hover:text-on-surface" :size="18" @click="triggerSearch" />
         <input
           v-model="searchQuery"
           @keydown.enter="triggerSearch"
           type="text"
           placeholder="Suche"
-          class="search-input"
+          class="w-full bg-surface border border-surface-border shadow-input text-on-surface p-2 px-3 pl-[42px] text-[0.95rem] transition-all focus:outline-none focus:border-on-surface"
         />
       </div>
     </header>
 
-    <main class="content-area">
-      <div v-if="currentView === 'search'" class="toolbar">
-        <div class="toolbar-section">
-          <label>{{ t('info.dashboard.topic') }}</label>
+    <main class="flex-1 max-w-[1200px] w-full mx-auto p-4">
+      <div v-if="currentView === 'search'" class="flex gap-4 pb-4 border-b border-canvas-border mb-4 flex-wrap">
+        <div class="flex flex-col gap-2">
+          <label class="text-[0.8rem] text-on-surface">{{ t('info.dashboard.topic') }}</label>
           <BaseSelect v-model="activeTopicFilter" :options="topicOptions" />
         </div>
 
-        <div class="toolbar-section">
-          <label>{{ t('info.dashboard.sortBy') }}</label>
+        <div class="flex flex-col gap-2">
+          <label class="text-[0.8rem] text-on-surface">{{ t('info.dashboard.sortBy') }}</label>
           <BaseSelect v-model="sortOption" :options="sortOptions" />
         </div>
 
-        <div class="toolbar-section">
-          <label
+        <div class="flex flex-col gap-2">
+          <label class="text-[0.8rem] text-on-surface"
             >{{ t('info.dashboard.maxTime') }}
             {{ minReadTime === 0 ? 'Any' : minReadTime + 'm' }}</label
           >
@@ -92,6 +92,7 @@ const getSliderStyle = (current: number, max: number) => {
             min="0"
             max="30"
             step="1"
+            class="appearance-none w-full cursor-pointer rounded-full h-[4px] border-none bg-transparent bg-center"
             :style="getSliderStyle(minReadTime, 30)"
           />
         </div>
@@ -100,40 +101,40 @@ const getSliderStyle = (current: number, max: number) => {
       <transition name="fade" mode="out-in">
         <div v-if="currentView === 'home'" class="view-home">
           <section
-            class="hero-section"
+            class="grid grid-cols-1 gap-4 mb-16 cursor-pointer"
             v-if="processedArticles.length > 0"
             @click="openArticle(processedArticles[0]!)"
           >
-            <div class="hero-image-wrapper">
+            <div class="aspect-video overflow-hidden rounded-none relative">
               <img
                 :src="processedArticles[0]!.imageUrl"
                 alt="Featured"
-                class="hero-image"
+                class="w-full h-full object-cover transition-[0.5s]"
               />
               <div
                 v-if="processedArticles[0]!.type === 'video'"
-                class="play-overlay"
+                class="absolute inset-0 bg-[rgba(0,0,0,0.1)] flex justify-center items-center"
               >
-                <Play :size="64" fill="currentColor" class="play-icon-hero" />
+                <Play :size="64" fill="currentColor" class="text-on-surface drop-shadow-md" />
               </div>
             </div>
-            <div class="hero-content">
-              <span class="badge">{{
+            <div class="flex flex-col justify-center">
+              <span class="text-body text-on-surface mb-1.5">{{
                 t('info.dashboard.categories.' + processedArticles[0]!.topic)
               }}</span>
-              <h1 class="hero-title">
+              <h1 class="text-[3rem] leading-[1] m-0 font-extrabold font-display">
                 {{ t(processedArticles[0]!.titleKey) }}
               </h1>
-              <p class="hero-excerpt">
+              <p class="text-[1.25rem] text-on-surface-muted leading-[1.6] my-4">
                 {{ t(processedArticles[0]!.excerptKey) }}
               </p>
-              <div class="meta">
+              <div class="text-body text-on-surface-muted">
                 <span>{{ processedArticles[0]!.author }}</span>
-                <span class="separator"> • </span>
+                <span class="mx-2">•</span>
                 <span>{{ formatDate(processedArticles[0]!.date) }}</span>
                 <span
                   v-if="processedArticles[0]!.type === 'video'"
-                  class="video-duration"
+                  class="text-on-surface-muted"
                 >
                   • {{ processedArticles[0]!.duration }}</span
                 >
@@ -141,7 +142,7 @@ const getSliderStyle = (current: number, max: number) => {
             </div>
           </section>
 
-          <div class="article-grid">
+          <div class="grid grid-cols-1 gap-8">
             <ArticleCard
               v-for="article in processedArticles.slice(1)"
               :key="article.id"
@@ -152,17 +153,17 @@ const getSliderStyle = (current: number, max: number) => {
         </div>
 
         <div v-else-if="currentView === 'search'" class="view-search">
-          <h2 class="section-heading">
+          <h2 class="m-0 mb-4 font-display">
             {{ processedArticles.length }} Ergebnis{{
               processedArticles.length !== 1 ? 'se' : ''
             }}
           </h2>
 
-          <div v-if="processedArticles.length === 0" class="no-results">
+          <div v-if="processedArticles.length === 0" class="text-center text-on-surface-muted p-10">
             <p>{{ t('global.search.noResults') }} »{{ activeSearchQuery }}«</p>
           </div>
 
-          <div class="article-grid">
+          <div class="grid grid-cols-1 gap-8">
             <ArticleCard
               v-for="article in processedArticles"
               :key="article.id"
@@ -174,61 +175,61 @@ const getSliderStyle = (current: number, max: number) => {
 
         <div
           v-else-if="currentView === 'article' && activeArticle"
-          class="view-article"
+          class="max-w-[800px] mx-auto"
         >
           <div
             v-if="activeArticle.type === 'video'"
-            class="video-player-container"
+            class="w-full mb-8"
           >
             <VideoPlayer
               :src="activeArticle.videoUrl!"
               :poster="activeArticle.imageUrl"
             />
 
-            <header class="article-header video-meta-header">
-              <span class="badge">{{
+            <header class="text-left mb-8 mt-4">
+              <span class="text-body text-on-surface mb-1.5">{{
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
-              <h1 class="article-title">{{ t(activeArticle.titleKey) }}</h1>
-              <div class="article-meta">
+              <h1 class="text-[2.5rem] leading-[1] my-2 font-extrabold font-display">{{ t(activeArticle.titleKey) }}</h1>
+              <div class="text-[0.9rem] text-on-surface-muted mt-4">
                 Video von
-                <span class="highlight">{{ activeArticle.author }}</span> am
+                <span class="text-on-surface underline">{{ activeArticle.author }}</span> am
                 {{ formatDate(activeArticle.date) }}
               </div>
-              <p class="video-description">{{ t(activeArticle.excerptKey) }}</p>
+              <p class="text-[1.25rem] text-on-surface-muted mt-4 leading-[1.5]">{{ t(activeArticle.excerptKey) }}</p>
             </header>
           </div>
 
           <article v-else class="full-article">
-            <header class="article-header">
-              <span class="badge">{{
+            <header class="text-left mb-8">
+              <span class="text-body text-on-surface mb-1.5">{{
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
-              <h1 class="article-title">{{ t(activeArticle.titleKey) }}</h1>
-              <div class="article-meta">
-                Von <span class="highlight">{{ activeArticle.author }}</span> am
+              <h1 class="text-[2.5rem] leading-[1] my-2 font-extrabold font-display">{{ t(activeArticle.titleKey) }}</h1>
+              <div class="text-[0.9rem] text-on-surface-muted mt-4">
+                Von <span class="text-on-surface underline">{{ activeArticle.author }}</span> am
                 {{ formatDate(activeArticle.date) }}
-                <span class="separator">|</span>
+                <span class="mx-2">|</span>
                 {{ activeArticle.readTime }} Min
               </div>
             </header>
 
-            <div class="article-hero">
+            <div class="w-full mb-8 rounded-none overflow-hidden">
               <img
                 :src="activeArticle.imageUrl"
-                class="hero-image-full"
+                class="w-full block"
                 alt=""
               />
               <div
                 v-if="activeArticle.imageAttribution"
-                class="image-attribution"
+                class="text-[0.75rem] text-on-surface-muted mt-2"
               >
                 {{ activeArticle.imageAttribution }}
               </div>
             </div>
 
             <div
-              class="article-body prose max-w-none"
+              class="text-[1.25rem] leading-[1.6] text-on-surface font-serif [&_p]:mb-6 [&_h2]:text-[1.8rem] [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:text-on-surface [&_blockquote]:border-l-4 [&_blockquote]:border-canvas-border [&_blockquote]:my-8 [&_blockquote]:pl-6 [&_blockquote]:italic [&_blockquote]:text-[1.5rem] [&_img]:w-full [&_img]:h-auto [&_img]:my-8 [&_img]:block [&_video]:w-full [&_video]:h-auto [&_video]:my-8 [&_video]:block [&_strong]:text-on-surface [&_strong]:font-bold"
               v-html="
                 activeArticle.contentKey
                   ? renderMarkdown(activeArticle.contentKey)
@@ -237,9 +238,9 @@ const getSliderStyle = (current: number, max: number) => {
             ></div>
           </article>
 
-          <div class="recommendations">
-            <h3>{{ t('info.dashboard.recommendations') }}</h3>
-            <div class="rec-grid">
+          <div class="mt-16 pt-8 border-t border-surface-border">
+            <h3 class="font-display">{{ t('info.dashboard.recommendations') }}</h3>
+            <div class="grid grid-cols-1 gap-8">
               <ArticleCard
                 v-for="rec in recommendedArticles"
                 :key="rec.id"
@@ -254,7 +255,7 @@ const getSliderStyle = (current: number, max: number) => {
   </div>
 </template>
 
-<style scoped>
+<style>
 @font-face {
   font-family: 'Lora Variable';
   src: url('/fonts/lora-variable.woff2') format('woff2-variations'),
@@ -272,459 +273,6 @@ const getSliderStyle = (current: number, max: number) => {
   font-style: italic;
   font-display: swap;
 }
-.news-container {
-  font-family: var(--font-sans), sans-serif;
-  background-color: var(--color-canvas);
-  color: var(--color-on-surface);
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-h1,
-h2,
-h3,
-.brand-text,
-.hero-title,
-.article-title {
-  font-family: var(--font-display), sans-serif;
-}
-
-/* --- HEADER --- */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--color-canvas-border);
-  background: var(--color-canvas);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.brand {
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-text {
-  font-weight: 900;
-  font-size: var(--text-h2);
-  letter-spacing: -1px;
-}
-
-.brand-sub {
-  font-size: 0.8rem;
-  color: var(--color-on-surface-muted);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.search-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-on-surface-muted);
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.search-icon:hover {
-  color: var(--color-on-surface);
-}
-
-.search-input {
-  width: 100%;
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  color: var(--color-on-surface);
-  padding: 8px 12px 8px 42px;
-  font-size: 0.95rem;
-  transition: all 0.1s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--color-on-surface);
-}
-
-/* --- MAIN LAYOUT --- */
-.content-area {
-  flex: 1;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-/* --- TOOLBAR --- */
-.toolbar {
-  display: flex;
-  gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-canvas-border);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.toolbar-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.toolbar label {
-  font-size: 0.8rem;
-  color: var(--color-on-surface);
-}
-
-select {
-  background: var(--color-surface);
-  color: var(--color-on-surface);
-  border: 1px solid var(--color-surface-border);
-  box-shadow: var(--shadow-input);
-  padding: 8px 12px;
-}
-
-select:hover {
-  background: var(--color-surface-hover-subtle);
-}
-
-.section-heading {
-  margin: 0 0 16px 0;
-}
-
-/* --- CUSTOM SLIDER STYLING --- */
-input[type='range'] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  cursor: pointer;
-  border-radius: var(--radius-full);
-  height: 4px;
-  margin: 0;
-  border: none;
-  background-size: 100% 4px;
-  background: transparent no-repeat center;
-}
-
-input[type='range']::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-  background: transparent;
-  border-radius: var(--radius-full);
-  border: none;
-}
-
-input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 12px;
-  width: 12px;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  margin-top: 0;
-  transform: scale(0);
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-input[type='range']:hover::-webkit-slider-thumb {
-  transform: scale(1);
-}
-
-input[type='range']::-moz-range-track {
-  width: 100%;
-  height: 4px;
-  cursor: pointer;
-  background: transparent;
-  border-radius: var(--radius-full);
-  border: none;
-}
-
-input[type='range']::-moz-range-thumb {
-  height: 12px;
-  width: 12px;
-  border: none;
-  border-radius: 50%;
-  background: #fff;
-  cursor: pointer;
-  transform: scale(0);
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-input[type='range']:hover::-moz-range-thumb {
-  transform: scale(1);
-}
-
-/* --- HOME VIEW --- */
-.badge {
-  color: var(--color-on-surface);
-  font-size: var(--text-body);
-  width: fit-content;
-  margin-bottom: 6px;
-}
-
-.hero-section {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-bottom: 64px;
-  cursor: pointer;
-}
-
-.hero-image-wrapper {
-  aspect-ratio: 16/9;
-  overflow: hidden;
-  border-radius: 0;
-  position: relative;
-}
-
-.hero-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s;
-}
-
-.play-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.play-icon-hero {
-  color: var(--color-on-surface);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-}
-
-.hero-section:hover .hero-image {
-  transform: scale(1.02);
-}
-
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.hero-title {
-  font-size: 3rem;
-  line-height: 1;
-  margin: 0;
-  font-weight: 800;
-}
-
-.hero-excerpt {
-  color: var(--color-on-surface-muted);
-  font-size: var(--text-title);
-  line-height: 1.6;
-  margin: 16px 0;
-}
-
-.meta {
-  font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
-}
-
-.article-grid,
-.rec-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 32px;
-}
-
-/* --- ARTICLE VIEW --- */
-.view-article {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.article-header {
-  text-align: left;
-  margin-bottom: 32px;
-}
-
-.article-title {
-  font-size: 2.5rem;
-  line-height: 1;
-  margin: 8px 0 16px 0;
-  font-weight: 800;
-}
-
-.article-meta {
-  color: var(--color-on-surface-muted);
-  margin-top: 16px;
-}
-
-.highlight {
-  color: var(--color-on-surface);
-  text-decoration: underline;
-}
-
-.article-hero {
-  width: 100%;
-  margin-bottom: 2rem;
-  border-radius: 0;
-  overflow: hidden;
-}
-
-.hero-image-full {
-  width: 100%;
-  display: block;
-}
-
-.image-attribution,
-.article-body :deep(attr) {
-  display: block;
-  font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
-  margin-top: 8px;
-}
-
-.article-body {
-  font-size: var(--text-title);
-  line-height: 1.6;
-  color: var(--color-on-surface);
-  font-family: 'Lora Variable', serif;
-}
-
-.article-body :deep(p) {
-  margin-bottom: 1.5rem;
-}
-
-.article-body :deep(h2) {
-  font-size: 1.8rem;
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
-  color: var(--color-on-surface);
-}
-
-.article-body :deep(blockquote) {
-  border-left: 4px solid var(--color-canvas-border);
-  margin: 2rem 0;
-  padding-left: 1.5rem;
-  font-style: italic;
-  font-size: var(--text-h3);
-}
-
-.article-body :deep(img),
-.article-body :deep(video) {
-  width: 100%;
-  height: auto;
-  margin: 2rem 0 0 0;
-  display: block;
-}
-
-.article-body :deep(img):not(+ attr),
-.article-body :deep(video):not(+ attr) {
-  margin-bottom: 2rem;
-}
-
-.article-body :deep(strong) {
-  color: var(--color-on-surface);
-  font-weight: 700;
-}
-
-/* --- VIDEO PLAYER STYLES --- */
-.video-player-container {
-  width: 100%;
-  margin-bottom: 2rem;
-}
-
-.video-meta-header {
-  margin-top: 16px;
-}
-
-.video-description {
-  font-size: var(--text-title);
-  color: var(--color-on-surface-muted);
-  margin-top: 1rem;
-  line-height: 1.5;
-}
-
-.recommendations {
-  margin-top: 4rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--color-surface-border);
-}
-
-/* --- ANIMATIONS --- */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-/* --- MOBILE LAYOUT --- */
-@media (max-width: 1000px) {
-  .navbar {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .search-wrapper {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: var(--text-h1);
-  }
-
-  .content-area {
-    padding: 0;
-  }
-
-  .article-grid {
-    margin-inline: 16px;
-  }
-
-  .hero-content {
-    margin-inline: 16px;
-  }
-
-  .article-header {
-    margin: 16px 16px 32px 16px;
-  }
-
-  .article-body {
-    margin-inline: 16px;
-  }
-
-  .recommendations {
-    margin-inline: 16px;
-  }
-
-  .toolbar {
-    margin: 16px;
-  }
-
-  .section-heading {
-    margin-inline: 16px;
-  }
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

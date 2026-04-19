@@ -41,8 +41,8 @@ watch(
       <h3 class="text-center">Spiel wird geladen...</h3>
     </div>
 
-    <div v-else class="game-container">
-      <router-link to="/games" class="back-link">
+    <div v-else class="p-5">
+      <router-link to="/games" class="inline-flex items-center gap-2 mb-5 text-on-surface-muted transition-colors hover:text-on-surface">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -60,65 +60,13 @@ watch(
         Zurück zur Spiele-Übersicht
       </router-link>
 
-      <div class="game-card">
-        <h1 class="game-title">{{ game.name }}</h1>
-        <p class="game-description">{{ game.description }}</p>
-        <hr />
+      <div class="p-[30px] rounded-xl">
+        <h1 class="mt-0 mb-2.5 text-on-surface text-[2em]">{{ game.name }}</h1>
+        <p class="text-on-surface-muted text-[1.1em] mb-5">{{ game.description }}</p>
+        <hr class="border-t border-surface" />
 
-        <!-- Hier wird die dynamische Spiel-Komponente gerendert -->
-        <component :is="game.component" class="game-component-instance" />
+        <component :is="game.component" class="pt-5" />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  color: var(--color-on-surface-muted);
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: var(--color-on-surface);
-}
-
-.back-link svg {
-  width: 20px;
-  height: 20px;
-}
-
-.game-card {
-  padding: 30px;
-  border-radius: 12px;
-}
-
-.game-title {
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: var(--color-on-surface);
-  font-size: 2em;
-}
-
-.game-description {
-  color: var(--color-on-surface-muted);
-  font-size: 1.1em;
-  margin-bottom: 20px;
-}
-
-hr {
-  border-top: 1px solid var(--color-surface);
-}
-
-.game-component-instance {
-  padding-top: 20px;
-}
-
-.text-center {
-  text-align: center;
-  color: var(--color-on-surface-muted);
-}
-</style>

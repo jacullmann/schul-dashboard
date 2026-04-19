@@ -107,7 +107,7 @@ const skeletonCells = computed(() => {
 
       <div
         ref="scrollContainerRef"
-        class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full max-[500px]:[scrollbar-width:none] min-[501px]:contents"
+        class="max-[500px]:block max-[500px]:relative max-[500px]:overflow-x-auto max-[500px]:overflow-y-hidden max-[500px]:snap-x max-[500px]:snap-mandatory max-[500px]:flex-1 max-[500px]:overscroll-x-none max-[500px]:h-full [&::-webkit-scrollbar]:hidden min-[501px]:contents"
       >
         <div
           ref="daysGridWrapperRef"
@@ -130,7 +130,7 @@ const skeletonCells = computed(() => {
             }"
           >
             <span class="block leading-tight">{{ formatDayName(day) }}</span>
-            <span class="block text-xs font-normal opacity-60 mt-0.5">{{
+            <span class="block text-[0.75rem] font-normal opacity-60 mt-0.5">{{
               weekDates[day]
             }}</span>
           </div>
@@ -162,9 +162,3 @@ const skeletonCells = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.max-\[500px\]\:\[scrollbar-width\:none\]::-webkit-scrollbar {
-  display: none;
-}
-</style>
