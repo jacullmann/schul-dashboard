@@ -13,7 +13,7 @@ const { t } = useI18n();
     class="max-[500px]:grid max-[500px]:grid-rows-[auto_repeat(9,auto)] max-[500px]:w-[85px] max-[500px]:shrink-0 max-[500px]:gap-2 max-[500px]:z-10 max-[500px]:bg-transparent min-[501px]:contents"
   >
     <div
-      class="bg-surface color-on-surface px-3 py-2 border border-surface-border text-center font-bold rounded-md text-body shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1]"
+      class="bg-surface text-on-surface px-3 py-2 border border-surface-border text-center font-bold rounded-md text-body shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1]"
     >
       {{ t('school.tables.schedule.lesson') }}
     </div>

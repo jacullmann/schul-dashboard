@@ -95,7 +95,7 @@ watch(
   <transition name="fade">
     <BaseBackdrop
       v-if="visible"
-      class="z-100002"
+      class="z-[100002]"
       @mousemove="onActivity"
       @cancel="cancel"
       @touchstart="onActivity"
@@ -103,11 +103,11 @@ watch(
       @keydown="handleKeydown"
       ref="overlayRef"
     >
-      <div class="image-wrapper" @click.self="cancel">
+      <div class="w-full h-full flex items-center justify-center" @click.self="cancel">
         <img
           v-if="currentImage"
           :src="currentImage.url"
-          class="viewer-img"
+          class="max-w-full max-h-full object-contain shadow-menu transition-transform duration-200 ease-out"
           draggable="false"
           @click.stop
           alt=""
@@ -115,14 +115,14 @@ watch(
       </div>
 
       <transition name="fade-controls">
-        <div v-show="controlsVisible" class="controls-ui">
-          <button class="control-btn close-btn" @click.stop="cancel">
+        <div v-show="controlsVisible" class="fixed inset-0 pointer-events-none">
+          <button class="absolute top-4 right-4 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]" @click.stop="cancel">
             <X />
           </button>
 
           <button
             v-if="hasPrev"
-            class="control-btn nav-btn prev"
+            class="absolute top-1/2 left-4 -translate-y-1/2 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
             @click.stop="prev"
           >
             <ChevronLeft />
@@ -130,13 +130,13 @@ watch(
 
           <button
             v-if="hasNext"
-            class="control-btn nav-btn next"
+            class="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
             @click.stop="next"
           >
             <ChevronRight />
           </button>
 
-          <div class="counter" @click.stop>
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full text-sub backdrop-blur-[4px] pointer-events-auto" @click.stop>
             {{ currentIndex + 1 }} / {{ images.length }}
           </div>
         </div>
@@ -145,105 +145,9 @@ watch(
   </transition>
 </template>
 
-<style scoped>
-.image-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.viewer-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  box-shadow: var(--shadow-menu);
-  transition: transform 0.2s ease;
-}
-
-.controls-ui {
-  position: absolute;
-  inset: 0;
-  pointer-events: none; /* Let clicks pass through to background/image */
-}
-
-/* Button Reset & Base Styles */
-.control-btn {
-  pointer-events: auto; /* Re-enable clicks for buttons */
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.control-btn:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-/* Removed the transform/scale animation on active */
-
-/* Positioning */
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-}
-
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.prev {
-  left: 16px;
-}
-
-.next {
-  right: 16px;
-}
-
-.counter {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #fff;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  font-size: var(--text-sub);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-/* Transitions */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.fade-controls-enter-active,
-.fade-controls-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-controls-enter-from,
-.fade-controls-leave-to {
-  opacity: 0;
-}
+<style>
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-controls-enter-active, .fade-controls-leave-active { transition: opacity 0.3s ease; }
+.fade-controls-enter-from, .fade-controls-leave-to { opacity: 0; }
 </style>

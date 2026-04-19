@@ -20,12 +20,8 @@ const { t } = useI18n();
   <div
     class="shrink-0 flex flex-col justify-center px-2 py-1"
     :class="[
-      hasBorder
-        ? 'border-b border-surface-border group-[.current-day]:border-surface-hover-border group-[.highlight-active]:border-on-surface-muted'
-        : '',
-      isClickable
-        ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover'
-        : '',
+      hasBorder ? 'border-b border-surface-border group-[.current-day]:border-surface-hover-border group-[.highlight-active]:border-on-surface-muted' : '',
+      isClickable ? 'cursor-pointer transition-colors duration-150 hover:bg-surface-hover' : '',
       isSelected ? 'bg-action!' : '',
     ]"
     @click="isClickable ? $emit('select', lesson) : undefined"

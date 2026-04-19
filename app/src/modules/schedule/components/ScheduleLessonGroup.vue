@@ -19,12 +19,13 @@ defineEmits<{
 
 <template>
   <div
-    class="group bg-surface rounded-md border border-surface-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input"
-    :class="{
-      'highlight-active bg-action !border-on-surface': isActive,
-      'current-day bg-surface-hover border-surface-hover-border':
-        isCurrentDay && !isActive,
-    }"
+    class="bg-surface rounded-md border border-surface-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input"
+    :class="[
+      isActive ? 'highlight-active bg-action !border-on-surface' : '',
+      isCurrentDay && !isActive ? 'current-day bg-surface-hover border-surface-hover-border' : '',
+      'min-[501px]:[grid-column:var(--col-desktop)]',
+      'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]'
+    ]"
     :style="getGroupStyle(group)"
   >
     <ScheduleLessonItem
@@ -39,16 +40,3 @@ defineEmits<{
     />
   </div>
 </template>
-
-<style scoped>
-.group {
-  grid-column: var(--col-desktop);
-}
-@media (max-width: 500px) {
-  .group {
-    grid-column: var(--col-mobile) !important;
-    scroll-snap-align: start;
-    scroll-margin-left: 0;
-  }
-}
-</style>

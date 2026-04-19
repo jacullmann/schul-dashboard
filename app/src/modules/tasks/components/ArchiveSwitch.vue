@@ -31,7 +31,9 @@ function handleChange(value: boolean) {
 
 <template>
   <BaseButton
-    :class="{ 'is-showing-old': props.modelValue }"
+    :class="[
+      props.modelValue ? 'bg-surface-hover' : ''
+    ]"
     @click="toggleState"
     variant="ghost"
     on="canvas"
@@ -41,5 +43,3 @@ function handleChange(value: boolean) {
     </span>
   </BaseButton>
 </template>
-
-<style scoped></style>
