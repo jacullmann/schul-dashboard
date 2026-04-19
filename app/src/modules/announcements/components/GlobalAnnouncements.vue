@@ -70,205 +70,38 @@ onMounted(async () => {
     <template #title> Alle Ankündigungen </template>
 
     <template #content>
-      <div class="announcement-list">
+      <div class="max-h-[60vh] overflow-y-auto flex flex-col gap-2">
         <div
           v-for="(ann, index) in announcements"
           :key="ann.id"
-          class="announcement-item"
-          :class="{ active: index === currentIndex }"
+          class="bg-surface border border-surface-border flex items-center p-3 rounded-md cursor-pointer transition-colors hover:bg-surface-hover gap-3 shadow-input"
+          :class="{ '!bg-action !border-action !text-on-action': index === currentIndex }"
           @click="selectAnnouncement(index)"
         >
           <div
-            class="announcement-item-color"
-            :class="colorFor(ann.color)"
+            class="w-2 h-2 rounded-full flex-shrink-0"
+            :class="colorFor(ann.color).replace('is-', 'bg-')"
           ></div>
-          <div class="announcement-item-content">
-            <span>{{ ann.content }}</span>
+          <div class="flex-1 flex flex-col gap-1 overflow-hidden">
+            <span class="text-[12px] opacity-80 whitespace-nowrap overflow-hidden text-ellipsis">{{ ann.content }}</span>
           </div>
         </div>
       </div>
     </template>
   </BaseModal>
 
-  <div class="global-announcements" v-if="announcements.length">
-    <div class="global-ann" :class="colorFor(currentAnnouncement.color)">
-      <div class="global-ann-content" @click="nextAnnouncement">
-        <span class="announcement-text">{{ currentAnnouncement.content }}</span>
-        <span class="announcement-counter" v-if="announcements.length > 1">
+  <div class="sticky top-[var(--header-height)] z-[100]" v-if="announcements.length">
+    <div class="p-2 px-3 text-on-surface text-sub flex items-center justify-center shadow-menu border-b border-surface-border" :class="colorFor(currentAnnouncement.color).replace('is-', 'bg-')">
+      <div class="flex-1 flex items-center justify-center gap-2 cursor-pointer overflow-hidden" @click="nextAnnouncement">
+        <span class="whitespace-normal flex-1 text-center">{{ currentAnnouncement.content }}</span>
+        <span class="text-[12px] opacity-80 flex-shrink-0" v-if="announcements.length > 1">
           ({{ currentIndex + 1 }}/{{ announcements.length }})
         </span>
       </div>
 
-      <button class="announcement-menu-btn" @click.stop="toggleMenu">
+      <button class="bg-none border-none text-on-surface-muted cursor-pointer flex items-center justify-center flex-shrink-0 ml-3 hover:text-on-surface" @click.stop="toggleMenu">
         <EllipsisVertical :size="16" />
       </button>
     </div>
   </div>
 </template>
-
-<style scoped>
-.global-announcements {
-  position: sticky;
-  top: var(--header-height);
-  z-index: 100;
-}
-
-.global-ann {
-  padding: 8px 12px;
-  color: var(--color-on-surface);
-  font-size: var(--text-sub);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-menu);
-  border-bottom: 1px solid var(--color-surface-border);
-}
-
-.global-ann-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.announcement-text {
-  white-space: normal;
-  flex: 1;
-  text-align: center;
-}
-
-.announcement-counter {
-  font-size: 12px;
-  opacity: 0.8;
-  flex-shrink: 0;
-}
-
-.announcement-menu-btn {
-  background: none;
-  border: none;
-  color: var(--color-on-surface-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-left: 12px;
-}
-
-.announcement-menu-btn:hover {
-  color: var(--color-on-surface);
-}
-
-.announcement-menu-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 16px;
-}
-
-.announcement-menu-header h3 {
-  margin: 0;
-  font-size: var(--text-h3);
-  color: var(--color-on-surface);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--color-on-surface);
-  cursor: pointer;
-  padding: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  margin: -6px;
-}
-
-.close-btn:hover {
-  background: var(--color-surface);
-}
-
-.announcement-list {
-  max-height: 60vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.announcement-item {
-  background: var(--color-surface);
-  border: 1px solid var(--color-surface-border);
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: background-color 0.2s;
-  gap: 12px;
-  box-shadow: var(--shadow-input);
-}
-
-.announcement-item:hover {
-  background: var(--color-surface-hover);
-}
-
-.announcement-item.active {
-  background: var(--color-action);
-  border-color: var(--color-action);
-  color: var(--color-on-action);
-}
-
-.announcement-item-color {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.announcement-item-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  overflow: hidden;
-}
-
-.announcement-item-content span {
-  font-size: 12px;
-  opacity: 0.8;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.is-info,
-.is-default {
-  background-color: var(--color-surface);
-  color: var(--color-on-surface);
-}
-
-.is-warn {
-  background-color: var(--color-warn);
-  color: var(--color-on-warn);
-}
-
-.is-danger {
-  background-color: var(--color-danger);
-  color: var(--color-on-danger);
-}
-
-@media (max-width: 500px) {
-  .global-ann-content {
-    gap: 4px;
-  }
-
-  .announcement-text {
-    font-size: 13px;
-  }
-}
-</style>

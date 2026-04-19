@@ -66,7 +66,8 @@ onMounted(() => {
 });
 </script>
 
-<div class="animate-fade-up">
+<template>
+  <div class="animate-fade-up">
     <PageHeader>
       Fächer
 
@@ -106,10 +107,16 @@ onMounted(() => {
     </div>
 
     <!-- Loading / Empty -->
-    <div v-if="loading && subjects.length === 0" class="text-center p-8 text-on-surface-muted text-body">
+    <div
+      v-if="loading && subjects.length === 0"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
       Lädt...
     </div>
-    <div v-else-if="subjects.length === 0" class="text-center p-8 text-on-surface-muted text-body">
+    <div
+      v-else-if="subjects.length === 0"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
       Keine Fächer vorhanden.
     </div>
 
@@ -124,10 +131,15 @@ onMounted(() => {
         <!-- Display mode -->
         <template v-if="editingId !== subject.id">
           <div class="flex items-center gap-2 min-w-0">
-            <span class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis">{{ subjectLabel(subject) }}</span>
+            <span
+              class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis"
+              >{{ subjectLabel(subject) }}</span
+            >
             <span
               class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] flex-shrink-0"
-              :class="subject.isActive ? 'text-on-surface' : 'text-on-surface-muted'"
+              :class="
+                subject.isActive ? 'text-on-surface' : 'text-on-surface-muted'
+              "
             >
               {{ subject.isActive ? 'Aktiv' : 'Inaktiv' }}
             </span>
@@ -192,3 +204,4 @@ onMounted(() => {
       </div>
     </div>
   </div>
+</template>

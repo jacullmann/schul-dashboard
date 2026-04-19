@@ -30,7 +30,8 @@ function formatDate(iso: string) {
 }
 </script>
 
-<div class="animate-fade-up">
+<template>
+  <div class="animate-fade-up">
     <PageHeader>
       Ankündigungen
 
@@ -41,7 +42,10 @@ function formatDate(iso: string) {
       </template>
     </PageHeader>
 
-    <div v-if="announcements.length === 0" class="text-center p-8 text-on-surface-muted text-body">
+    <div
+      v-if="announcements.length === 0"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
       Keine Ankündigungen vorhanden.
     </div>
     <div v-else class="flex flex-col gap-2">
@@ -50,14 +54,20 @@ function formatDate(iso: string) {
         :key="ann.id"
         class="p-3.5 px-4 rounded-[10px] bg-surface border-l-[3px]"
         :class="[
-          ann.color === 'info' ? 'border-action' : 
-          ann.color === 'warn' ? 'border-warn' : 
-          ann.color === 'danger' ? 'border-danger' : 'border-canvas-border'
+          ann.color === 'info'
+            ? 'border-action'
+            : ann.color === 'warn'
+              ? 'border-warn'
+              : ann.color === 'danger'
+                ? 'border-danger'
+                : 'border-canvas-border',
         ]"
       >
         <div class="text-body leading-[1.5] mb-2">{{ ann.content }}</div>
         <div class="flex justify-between items-center">
-          <span class="text-sub text-on-surface-muted">{{ formatDate(ann.createdAt) }}</span>
+          <span class="text-sub text-on-surface-muted">{{
+            formatDate(ann.createdAt)
+          }}</span>
           <BaseButton
             variant="ghost"
             on="surface"
@@ -69,3 +79,4 @@ function formatDate(iso: string) {
       </div>
     </div>
   </div>
+</template>

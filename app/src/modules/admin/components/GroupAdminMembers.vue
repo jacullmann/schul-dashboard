@@ -68,7 +68,8 @@ function confirmRemove() {
 }
 </script>
 
-<div class="animate-fade-up">
+<template>
+  <div class="animate-fade-up">
     <PageHeader>
       Mitglieder
 
@@ -114,16 +115,38 @@ function confirmRemove() {
       </template>
     </PageHeader>
 
-    <div v-if="loading && members.length === 0" class="text-center p-8 text-on-surface-muted text-body">Lädt...</div>
-    <div v-else-if="members.length === 0" class="text-center p-8 text-on-surface-muted text-body">
+    <div
+      v-if="loading && members.length === 0"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
+      Lädt...
+    </div>
+    <div
+      v-else-if="members.length === 0"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
       Keine Mitglieder gefunden.
     </div>
 
     <div v-else class="flex flex-col gap-1.5">
-      <div v-for="member in members" :key="member.userId" class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 sm:flex-col sm:items-start sm:gap-2">
+      <div
+        v-for="member in members"
+        :key="member.userId"
+        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3 sm:flex-col sm:items-start sm:gap-2"
+      >
         <div class="flex items-center gap-2.5 min-w-0">
-          <span class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis">{{ member.generatedName }}</span>
-          <span class="text-[0.7rem] font-semibold uppercase tracking-[0.04em]" :class="{'text-[#6366f1]': member.role === 'admin', 'text-[#f59e0b]': member.role === 'moderator', 'text-on-surface-muted': member.role === 'user'}">
+          <span
+            class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis"
+            >{{ member.generatedName }}</span
+          >
+          <span
+            class="text-[0.7rem] font-semibold uppercase tracking-[0.04em]"
+            :class="{
+              'text-[#6366f1]': member.role === 'admin',
+              'text-[#f59e0b]': member.role === 'moderator',
+              'text-on-surface-muted': member.role === 'user',
+            }"
+          >
             {{ roleLabel(member.role) }}
           </span>
         </div>
@@ -174,10 +197,18 @@ function confirmRemove() {
       No banned users.
     </div>
     <div v-else class="flex flex-col gap-1.5">
-      <div v-for="user in bannedUsers" :key="user.userId" class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3">
+      <div
+        v-for="user in bannedUsers"
+        :key="user.userId"
+        class="flex items-center justify-between p-2 px-3 bg-surface border border-surface-border shadow-input rounded-lg gap-3"
+      >
         <div class="flex items-center gap-2.5 min-w-0">
-          <span class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis">{{ user.generatedName }}</span>
-          <span class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-surface-muted"
+          <span
+            class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis"
+            >{{ user.generatedName }}</span
+          >
+          <span
+            class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-surface-muted"
             >Banned On
             {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >
@@ -217,3 +248,4 @@ function confirmRemove() {
       <template #action-text> Remove </template>
     </BaseModal>
   </div>
+</template>

@@ -48,9 +48,9 @@ function cancel() {
 <template>
   <BaseModal @cancel="cancel">
     <template #title>
-      <span class="popup-title">
+      <span class="flex items-center gap-3">
         <span
-          class="popup-color-indicator"
+          class="w-3 h-3 rounded-full flex-shrink-0"
           :style="{ backgroundColor: color }"
         ></span>
         Announcement
@@ -58,31 +58,9 @@ function cancel() {
     </template>
 
     <template #content>
-      <div class="popup-content">
+      <div class="py-2.5 text-on-surface leading-[1.5] text-[14px]">
         {{ announcement.content }}
       </div>
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.popup-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.popup-color-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-}
-
-.popup-content {
-  padding-block: 10px;
-  color: var(--color-on-surface);
-  line-height: 1.5;
-  font-size: 14px;
-}
-</style>
