@@ -131,6 +131,7 @@ onUnmounted(() => {
             <span>{{ g.name }}</span>
             <NotificationDot
               v-if="g.hasUnreadContent && g.id !== activeGroupId"
+              class="ml-2"
             />
           </BaseMenuButton>
 

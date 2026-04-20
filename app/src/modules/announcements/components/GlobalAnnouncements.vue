@@ -3,6 +3,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
 import { EllipsisVertical } from '@lucide/vue';
+import SidebarButton from '@/core/components/SidebarButton.vue';
 
 const { activeGroupId } = useAppAuth();
 
@@ -70,22 +71,14 @@ onMounted(async () => {
     <template #title> Alle Ankündigungen </template>
 
     <template #content>
-      <div class="max-h-[60vh] overflow-y-auto flex flex-col gap-2">
-        <div
-          v-for="(ann, index) in announcements"
-          :key="ann.id"
-          class="bg-surface border border-surface-border flex items-center p-3 rounded-md cursor-pointer transition-colors hover:bg-surface-hover gap-3 shadow-input"
-          :class="{ '!bg-action !border-action !text-on-action': index === currentIndex }"
-          @click="selectAnnouncement(index)"
-        >
+      <div class="max-h-[60vh] overflow-y-auto flex flex-col">
+        <BaseButton v-for="(ann, index) in announcements" :key="ann.id" @click="selectAnnouncement(index)" :active="index === currentIndex" :class="index === currentIndex ? 'bg-surface!' : ''" class="w-full" on="canvas" :touch="false">
           <div
             class="w-2 h-2 rounded-full flex-shrink-0"
             :class="colorFor(ann.color).replace('is-', 'bg-')"
           ></div>
-          <div class="flex-1 flex flex-col gap-1 overflow-hidden">
-            <span class="text-[12px] opacity-80 whitespace-nowrap overflow-hidden text-ellipsis">{{ ann.content }}</span>
-          </div>
-        </div>
+          <span class="truncate">{{ ann.content }}</span>
+        </BaseButton>
       </div>
     </template>
   </BaseModal>

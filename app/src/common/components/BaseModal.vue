@@ -38,7 +38,7 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
 <template>
   <BaseModalCard @cancel="handleCancel">
     <!-- Header-->
-    <BaseRow justify="between" class="mb-4">
+    <BaseRow justify="between" class="items-start mb-4">
       <BaseInfoRow>
         <h3 id="modal-title">
           <slot name="title"></slot>

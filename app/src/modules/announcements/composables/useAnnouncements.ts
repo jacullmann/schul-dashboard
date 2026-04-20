@@ -112,7 +112,8 @@ export function useAnnouncements() {
   }
 
   function colorFor(color: string): string {
-    const list = ['info', 'warn', 'danger'];
+    if (color === 'info') return 'is-surface';
+    const list = ['warn', 'danger'];
     return list.includes(color) ? `is-${color}` : 'is-default';
   }
 

@@ -93,6 +93,9 @@ onClickOutside(
       :variant="form ? 'input' : 'ghost'"
       :on="props.on"
       :size="props.size"
+      :icon="ChevronDown"
+      iconPlacement="trailing"
+      :iconClasses="'ml-auto shrink-0 transition duration-200 ease-in-out' + (isOpen ? ' rotate-180' : '')"
     >
       <span class="truncate">
         {{
@@ -100,12 +103,6 @@ onClickOutside(
           t('global.selection.placeholder')
         }}
       </span>
-
-      <ChevronDown
-        :size="size === 'lg' ? 20 : 16"
-        class="ml-auto shrink-0 transition duration-200 ease-in-out"
-        :class="{ 'rotate-180': isOpen }"
-      />
     </BaseButton>
 
     <Teleport to="body">
