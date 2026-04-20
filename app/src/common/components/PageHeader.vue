@@ -1,12 +1,12 @@
 <template>
   <BaseRow justify="between" class="mb-4">
-    <BaseInfoRow>
+    <BaseRow>
       <h2>
         <slot></slot>
       </h2>
 
       <slot name="info"></slot>
-    </BaseInfoRow>
+    </BaseRow>
 
     <slot name="action"></slot>
   </BaseRow>

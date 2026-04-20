@@ -92,7 +92,13 @@ function setSelectedIndex(idx: number) {
       role="dialog"
       aria-modal="true"
       :aria-label="title"
-      class="search-in bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-(--z-modal)"
+      class="search-in bg-surface border border-surface-border rounded-2xl w-[calc(100%-32px)] max-w-140 overflow-hidden fixed text-left"
+      style="
+        z-index: 100003;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      "
       @keydown="handleKeydown"
     >
       <!-- Search input -->

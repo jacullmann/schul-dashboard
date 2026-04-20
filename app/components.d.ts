@@ -23,7 +23,6 @@ declare module 'vue' {
     BaseFormContent: typeof import('./src/common/components/BaseFormContent.vue')['default']
     BaseFormGroup: typeof import('./src/common/components/BaseFormGroup.vue')['default']
     BaseHeading: typeof import('./src/common/components/BaseHeading.vue')['default']
-    BaseInfoRow: typeof import('./src/common/components/BaseInfoRow.vue')['default']
     BaseInput: typeof import('./src/common/components/BaseInput.vue')['default']
     BaseKbd: typeof import('./src/common/components/BaseKbd.vue')['default']
     BaseKbdGroup: typeof import('./src/common/components/BaseKbdGroup.vue')['default']

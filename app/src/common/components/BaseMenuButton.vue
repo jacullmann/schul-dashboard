@@ -31,12 +31,11 @@ defineExpose({
   <button
     ref="buttonEl"
     type="button"
-    class="flex justify-between items-center w-full text-left bg-transparent border-0 py-2 gap-4 rounded-lg cursor-pointer text-sub transition-hover user-select-none"
+    class="flex justify-between items-center w-full text-left bg-transparent border-0 px-3 py-2 min-h-9 gap-4 rounded-lg cursor-pointer text-sub transition-hover user-select-none"
     :class="[
       variant === 'danger'
         ? 'text-danger hover:bg-danger-surface'
         : 'text-on-surface hover:bg-surface-hover',
-      $slots.description ? 'px-3' : 'px-2',
       { 'font-semibold': active },
     ]"
     :role="isSelect ? 'menuitemradio' : 'menuitem'"
@@ -49,14 +48,16 @@ defineExpose({
       <component
         :is="icon"
         v-if="icon"
-        :size="$slots.description ? 20 : 16"
+        :size="$slots.description ? 20 : 18"
         class="shrink-0"
       />
-      <div class="flex flex-col">
+      <span class="flex flex-col">
         <span
           class="text-sm"
           :class="[
-            active && !$slots.description && !isDropdown ? 'font-bold' : 'font-medium',
+            active && !$slots.description && !isDropdown
+              ? 'font-bold'
+              : 'font-medium',
             $slots.description ? 'leading-5' : 'leading-4',
           ]"
           ><slot></slot
@@ -66,7 +67,7 @@ defineExpose({
           class="text-xs leading-4 text-on-surface-muted font-normal"
           ><slot name="description"></slot
         ></span>
-      </div>
+      </span>
     </span>
 
     <ChevronDown

@@ -39,13 +39,13 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
   <BaseModalCard @cancel="handleCancel">
     <!-- Header-->
     <BaseRow justify="between" class="items-start mb-4">
-      <BaseInfoRow>
+      <BaseRow>
         <h3 id="modal-title">
           <slot name="title"></slot>
         </h3>
 
         <slot name="title-infopop"></slot>
-      </BaseInfoRow>
+      </BaseRow>
 
       <BaseButton
         type="button"

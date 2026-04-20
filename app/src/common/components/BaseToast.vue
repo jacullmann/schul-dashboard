@@ -47,7 +47,6 @@ const ICON_COLORS: Record<string, string> = {
           <BaseButton
             v-if="toast.dismissible"
             :icon="X"
-            size="lg"
             :on="toast.type === 'success' ? 'action' : toast.type === 'error' ? 'danger' : 'surface'"
             @click="dismiss(toast.id)"
           />
