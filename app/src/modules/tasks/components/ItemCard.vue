@@ -241,16 +241,14 @@ function onDrop(e: DragEvent) {
         <slot name="actions-pre"></slot>
 
         <slot name="menu-trigger">
-          <button
-            v-if="showMenuTrigger"
-            type="button"
-            class="inline-flex items-center justify-center p-2 rounded-lg cursor-pointer text-on-surface-muted transition-hover -m-2 bg-transparent border-none hover:bg-surface-hover hover:text-on-surface"
-            @click.stop="(e) => $emit('menu-click', e)"
-          >
-            <slot name="menu-icon">
-              <Ellipsis :size="18" />
-            </slot>
-          </button>
+          <BaseTooltip content="More" placement="bottom">
+            <button
+              v-if="showMenuTrigger"
+              type="button"
+              class="relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target -m-2"
+              @click.stop="(e: MouseEvent) => $emit('menu-click', e)"
+            ><Ellipsis :size="18"/></button>
+          </BaseTooltip>
         </slot>
 
         <slot name="menu"></slot>

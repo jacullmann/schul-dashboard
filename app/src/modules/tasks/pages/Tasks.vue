@@ -15,6 +15,7 @@ import {
   ArchiveRestore,
   Info,
   Plus,
+  Ellipsis,
 } from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -277,14 +278,16 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #actions-pre>
-          <button
-            type="button"
-            v-if="isPinned(item.id)"
-            class="unpin-trigger"
-            @click.stop="togglePin(item)"
-          >
-            <Pin :size="18" fill="currentColor" class="pinned" />
-          </button>
+          <BaseTooltip content="More" placement="bottom">
+            <button
+              v-if="isPinned(item.id)"
+              type="button"
+              class="unpin-trigger relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target -m-2"
+              @click.stop="togglePin(item)"
+            >
+              <Pin :size="18" fill="currentColor" class="pinned" />
+            </button>
+          </BaseTooltip>
         </template>
 
         <template #menu>
@@ -293,7 +296,10 @@ async function handleArchiveFromMenu(item: HwItem) {
             class="right-0 mt-6"
             @click.stop
           >
-            <BaseMenuButton @click="onMenuAction('images', item)" :icon="Upload">
+            <BaseMenuButton
+              @click="onMenuAction('images', item)"
+              :icon="Upload"
+            >
               {{ t('school.tasks.items.menu.uploadImages') }}
             </BaseMenuButton>
 
@@ -307,7 +313,10 @@ async function handleArchiveFromMenu(item: HwItem) {
 
             <BaseMenuDivider />
 
-            <BaseMenuButton @click="togglePin(item)" :icon="isPinned(item.id) ? Pin : Pin">
+            <BaseMenuButton
+              @click="togglePin(item)"
+              :icon="isPinned(item.id) ? Pin : Pin"
+            >
               {{
                 isPinned(item.id)
                   ? t('school.tasks.items.menu.unpin')
@@ -315,7 +324,10 @@ async function handleArchiveFromMenu(item: HwItem) {
               }}
             </BaseMenuButton>
 
-            <BaseMenuButton @click="handleArchiveFromMenu(item)" :icon="showOldEntries ? ArchiveRestore : Archive">
+            <BaseMenuButton
+              @click="handleArchiveFromMenu(item)"
+              :icon="showOldEntries ? ArchiveRestore : Archive"
+            >
               {{
                 showOldEntries
                   ? t('school.tasks.items.menu.unarchive')
@@ -325,10 +337,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
             <BaseMenuDivider />
 
-            <BaseMenuButton
-              @click="shareItem(item)"
-              :icon="Send"
-            >
+            <BaseMenuButton @click="shareItem(item)" :icon="Send">
               {{ t('school.tasks.items.menu.share') }}
             </BaseMenuButton>
 
@@ -581,7 +590,8 @@ async function handleArchiveFromMenu(item: HwItem) {
       title="Diesen Eintrag löschen?"
       submit-text="Eintrag löschen"
     >
-      Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.
+      Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen
+      Bilder unwiderruflich gelöscht.
     </BaseDialog>
 
     <BaseDialog
@@ -739,24 +749,6 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .message.error {
   color: var(--color-danger);
-}
-
-.unpin-trigger {
-  background: transparent;
-  color: var(--color-on-surface-muted);
-  padding: 8px;
-  border-radius: var(--radius-lg);
-  display: inline-flex;
-  margin: -8px;
-  margin-right: 4px;
-  transition: 0.15s ease;
-  border: none;
-  cursor: pointer;
-}
-
-.unpin-trigger:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-on-surface);
 }
 
 .admin-creator-info {
