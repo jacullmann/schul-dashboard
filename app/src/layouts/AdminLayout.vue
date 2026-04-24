@@ -47,8 +47,8 @@ const activeTab = computed({
 
     <div class="adm-body">
       <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
-      <aside class="adm-sidebar">
-        <nav class="adm-nav">
+      <aside class="p-3 w-56 shrink-0 bg-surface border-r border-surface-border overflow-y-auto">
+        <nav class="flex flex-col">
           <SidebarButton
             v-for="item in navItems"
             :key="item.id"
@@ -172,21 +172,6 @@ const activeTab = computed({
 }
 
 /* ─── Sidebar ───────────────────────────────────────────────────────────────── */
-.adm-sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  border-right: 1px solid var(--color-canvas-border);
-  background: var(--color-canvas);
-  padding: 12px 8px;
-  overflow-y: auto;
-}
-
-.adm-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .adm-nav-item {
   display: flex;
   align-items: center;

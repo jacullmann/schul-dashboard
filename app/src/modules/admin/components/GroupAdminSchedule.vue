@@ -7,6 +7,9 @@ import type { ScheduleSubstitution } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useUserStore } from '@/stores/userStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   subs: ScheduleSubstitution[];
@@ -195,17 +198,12 @@ function handleSaveSub() {
     </PageHeader>
 
     <!-- Create Form -->
-    <h3
-      v-if="!selectedLesson"
-      class="text-on-surface-muted mb-6"
-    >
+    <h3 v-if="!selectedLesson" class="text-on-surface-muted mb-6">
       Bitte wählen Sie eine Stunde aus dem Stundenplan.
     </h3>
 
     <div v-if="selectedLesson">
-      <h3 class="mt-0 mb-2 text-title">
-        Ausgewählte Stunde
-      </h3>
+      <h3 class="mt-0 mb-2 text-title">Ausgewählte Stunde</h3>
       <p class="m-0 mb-4 text-on-surface-muted text-body">
         Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> (Stunde:
         {{ selectedLesson.slot }}, Letzte Stunde:
@@ -277,10 +275,13 @@ function handleSaveSub() {
       </BaseButton>
     </div>
 
-    <h3 class="p-5 pb-0 text-title">
-      Stunde auswählen
-    </h3>
-    <div v-if="loadingLessons" class="text-center p-8 text-on-surface-muted text-body">Lade Stundenplan...</div>
+    <h3 class="p-5 pb-0 text-title">Stunde auswählen</h3>
+    <div
+      v-if="loadingLessons"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
+      Lade Stundenplan...
+    </div>
     <AdminSchedule
       v-else
       :lessons="lessons"
@@ -290,31 +291,52 @@ function handleSaveSub() {
     />
 
     <!-- Existing Subs -->
-    <div v-if="subs.length === 0 && !loadingSubs" class="text-center p-8 text-on-surface-muted text-body">
+    <div
+      v-if="subs.length === 0 && !loadingSubs"
+      class="text-center p-8 text-on-surface-muted text-body"
+    >
       Keine Substitutions vorhanden.
     </div>
     <div v-else class="flex flex-col gap-1.5">
-      <div v-for="sub in subs" :key="sub.id" class="flex items-center justify-between p-2 px-3.5 bg-surface border border-surface-border shadow-input rounded-[10px] gap-2">
+      <div
+        v-for="sub in subs"
+        :key="sub.id"
+        class="flex items-center justify-between p-2 px-3.5 bg-surface border border-surface-border shadow-input rounded-[10px] gap-2"
+      >
         <div class="flex items-center gap-2 flex-wrap min-w-0">
-          <span v-if="sub.subject" class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface">{{ sub.subject }}</span>
-          <span v-else class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface">Unbekannt</span>
+          <span
+            v-if="sub.subject"
+            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface"
+            >{{ sub.subject }}</span
+          >
+          <span
+            v-else
+            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface"
+            >Unbekannt</span
+          >
           <span class="text-sub text-on-surface-muted" v-if="sub.slot"
             >Stunde: {{ sub.slot }}</span
           >
-          <span class="text-sub text-on-surface-muted" v-if="sub.day">Tag: {{ sub.day }}</span>
-          <span v-if="sub.cancelled" class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-[rgba(239,68,68,0.15)] text-[#ef4444]">Ausfall</span>
-          <span v-if="sub.hide" class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface-muted">Versteckt</span>
+          <span class="text-sub text-on-surface-muted" v-if="sub.day"
+            >Tag: {{ sub.day }}</span
+          >
+          <span
+            v-if="sub.cancelled"
+            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-[rgba(239,68,68,0.15)] text-[#ef4444]"
+            >Ausfall</span
+          >
+          <span
+            v-if="sub.hide"
+            class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-surface-muted"
+            >Versteckt</span
+          >
           <span v-if="sub.room" class="text-sub text-on-surface-muted"
             >Raum: {{ sub.room }}</span
           >
         </div>
-        <button
-          class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-surface-muted hover:bg-surface-hover hover:text-[#ef4444] transition-colors"
-          @click="emit('delete-sub', sub.id)"
-          title="Löschen"
-        >
-          <Trash2 :size="16" />
-        </button>
+        <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+          <BaseButton @click="emit('delete-sub', sub.id)" variant="ghost" on="surface" :icon="Trash2" />
+        </BaseTooltip>
       </div>
     </div>
 
@@ -370,9 +392,7 @@ function handleSaveSub() {
       </div>
 
       <div class="mt-6 mb-4">
-        <div
-          class="flex items-center justify-between mb-3"
-        >
+        <div class="flex items-center justify-between mb-3">
           <h3>Pausen</h3>
           <BaseButton
             v-if="isAdmin"

@@ -219,14 +219,15 @@ async function handleArchiveFromMenu(item: HwItem) {
 
       <ArchiveSwitch v-model="showOldEntries" />
 
-      <BaseButton
-        class="aspect-square p-1!"
-        variant="action"
-        :aria-label="t('school.tasks.itemForm.newEntry')"
-        @click="openItemForm()"
-      >
-        <Plus :size="24" />
-      </BaseButton>
+      <BaseTooltip content="New Entry" placement="bottom">
+        <BaseButton
+          variant="action"
+          :aria-label="t('school.tasks.itemForm.newEntry')"
+          @click="openItemForm()"
+          :icon="Plus"
+          icon-classes="size-6"
+        />
+      </BaseTooltip>
     </BaseRow>
 
     <div class="flex flex-col gap-3 mt-4">
