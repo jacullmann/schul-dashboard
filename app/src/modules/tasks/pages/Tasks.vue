@@ -278,11 +278,14 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #actions-pre>
-          <BaseTooltip content="More" placement="bottom">
+          <BaseTooltip
+            :content="t('school.tasks.items.menu.unpin')"
+            placement="bottom"
+          >
             <button
               v-if="isPinned(item.id)"
               type="button"
-              class="unpin-trigger relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target -m-2"
+              class="unpin-trigger relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target"
               @click.stop="togglePin(item)"
             >
               <Pin :size="18" fill="currentColor" class="pinned" />
@@ -392,7 +395,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #content-after>
-          <div v-if="item.images && item.images.length" class="item-images">
+          <div v-if="item.images && item.images.length" class="mb-2">
             <div class="images-row">
               <template v-if="!isRevealed(item.id)">
                 <div
@@ -640,10 +643,6 @@ async function handleArchiveFromMenu(item: HwItem) {
   color: var(--color-on-surface);
   border: none;
   padding: 0;
-}
-
-.item-images {
-  margin-top: 8px;
 }
 
 .images-row {

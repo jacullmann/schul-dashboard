@@ -175,7 +175,7 @@ function onDrop(e: DragEvent) {
     <!-- Card — slides on swipe, otherwise completely unchanged -->
     <div
       ref="cardRef"
-      class="relative bg-surface border border-surface-border rounded-xl p-3 shadow-input overflow-visible cursor-default touch-pan-y"
+      class="relative bg-surface border border-surface-border rounded-xl p-1 shadow-input overflow-visible cursor-default touch-pan-y"
       :class="{
         'transition-[padding,max-height] duration-[300ms] ease-[cubic-bezier(0.78,0,0.22,1)]':
           isCollapsed,
@@ -208,8 +208,8 @@ function onDrop(e: DragEvent) {
       </div>
 
       <div class="relative flex justify-between items-start gap-2 select-none">
-        <div class="flex-1 min-w-0">
-          <div style="display: flex; align-items: center; gap: 8px">
+        <div class="flex-1 min-w-0 my-2 ml-2">
+          <div class="flex items-center gap-2">
             <slot name="checkbox"></slot>
             <slot name="title">
               <h3
@@ -245,7 +245,7 @@ function onDrop(e: DragEvent) {
             <button
               v-if="showMenuTrigger"
               type="button"
-              class="relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target -m-2"
+              class="relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target"
               @click.stop="(e: MouseEvent) => $emit('menu-click', e)"
             ><Ellipsis :size="18"/></button>
           </BaseTooltip>
@@ -255,10 +255,10 @@ function onDrop(e: DragEvent) {
       </div>
 
       <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-        <div v-show="!isCollapsed" class="opacity-100" style="overflow: hidden">
+        <div v-show="!isCollapsed" class="mx-2 mb-2 opacity-100 overflow-hidden">
           <div
             v-if="$slots.body"
-            class="mt-2 text-on-surface break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+            class="text-on-surface break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
           >
             <slot name="body"></slot>
           </div>
