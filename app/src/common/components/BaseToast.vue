@@ -42,7 +42,7 @@ const ICON_COLORS: Record<string, string> = {
             <component :is="ICONS[toast.type]" :size="20" />
           </span>
 
-          <span class="my-2.5 flex-1 min-w-0 break-words text-body leading-5">{{ toast.message }}</span>
+          <span class="my-2.5 flex-1 min-w-0 break-words text-body leading-5 truncate">{{ toast.message }}</span>
 
           <BaseButton
             v-if="toast.dismissible"

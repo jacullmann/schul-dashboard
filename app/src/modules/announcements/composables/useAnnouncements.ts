@@ -78,7 +78,7 @@ export function useAnnouncements() {
     const msg =
       count === 1
         ? `Neue Ankündigung: ${preview}`
-        : `${count} neue Ankündigungen – ${preview}`;
+        : `${count} neue Ankündigungen: ${preview}`;
 
     // Use the highest severity of all unread items
     const hasDanger = unread.some((a) => a.color === 'danger');

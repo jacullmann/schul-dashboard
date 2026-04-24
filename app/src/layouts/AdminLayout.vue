@@ -54,9 +54,9 @@ const activeTab = computed({
             :key="item.id"
             :label="item.label"
             :active="activeTab === item.id"
+            :icon="item.icon"
             @click="activeTab = item.id"
           >
-            <component :is="item.icon" :size="20" />
             <span
               v-if="item.count && item.count > 0"
               class="adm-nav-badge"

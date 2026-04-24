@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import type { Component } from 'vue';
+
 defineOptions({
   inheritAttrs: false,
 });
 
 withDefaults(
   defineProps<{
+    icon?: Component;
     label?: string;
     shortcut?: string[];
     expanded?: boolean;
@@ -26,19 +29,24 @@ withDefaults(
       class="group gap-0 items-center flex px-3 py-2.5 md:p-2! text-on-surface rounded-full bg-transparent border border-transparent hover:bg-surface-hover hover:border-surface-hover transition-hover cursor-pointer outline-none w-full"
       :class="{
         'bg-surface-hover! border-surface-hover! text-on-surface!':
-          active && ($slots.default || expanded),
+          active && (icon || expanded),
       }"
     >
-      <span class="shrink-0">
-        <slot></slot>
+      <span v-if="icon" class="shrink-0">
+        <component
+          :is="icon"
+          :size="20"
+          class="transition-all duration-150"
+          :class="active ? 'stroke-3' : ''"
+        />
       </span>
 
       <span
         v-if="label"
-        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] transition-hover text-sub leading-5 font-regular whitespace-nowrap overflow-hidden"
+        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] transition-hover text-sub leading-5 font-medium whitespace-nowrap overflow-hidden"
         :class="[
           expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0',
-          !$slots.default ? 'ml-1!' : '',
+          !icon ? 'ml-1!' : '',
           active
             ? 'text-on-surface!'
             : 'text-on-surface-muted group-hover:text-on-surface',
@@ -46,7 +54,11 @@ withDefaults(
       >
         {{ label }}
       </span>
-      <NotificationDot v-if="unread" />
+      <NotificationDot
+        v-if="unread"
+        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)]"
+        :class="expanded ? 'opacity-100 ml-2' : 'max-w-0 opacity-0 ml-0'"
+      />
     </button>
   </BaseTooltip>
 </template>

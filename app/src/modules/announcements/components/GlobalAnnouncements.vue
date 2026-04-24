@@ -3,7 +3,6 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
 import { EllipsisVertical } from '@lucide/vue';
-import SidebarButton from '@/core/components/SidebarButton.vue';
 
 const { activeGroupId } = useAppAuth();
 

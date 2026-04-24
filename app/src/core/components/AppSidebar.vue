@@ -150,29 +150,26 @@ onUnmounted(() => {
         :shortcut="['ctrl', 'shift', 'd']"
         :expanded="isExpanded"
         class="hidden md:flex"
+        :icon="PanelLeft"
         @click="toggleExpanded"
-      >
-        <PanelLeft :size="20" />
-      </SidebarButton>
+      />
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
           :label="t('sidebar.create')"
           :shortcut="['alt', 'n']"
           :expanded="isExpanded"
+          :icon="CirclePlus"
           @click="handleCreate"
-        >
-          <CirclePlus :size="20" />
-        </SidebarButton>
+        />
 
         <SidebarButton
           :label="t('sidebar.search')"
           :shortcut="['ctrl', 'k']"
           :expanded="isExpanded"
+          :icon="Search"
           @click="handleSearch"
-        >
-          <Search :size="20" />
-        </SidebarButton>
+        />
       </div>
 
       <div class="flex flex-col gap-0 w-full">
@@ -180,66 +177,60 @@ onUnmounted(() => {
           :label="t('sidebar.home')"
           :expanded="isExpanded"
           :active="$route.path.startsWith('/home')"
+          :icon="House"
           @click="handleNavigation('/home')"
-        >
-          <House :size="20" />
-        </SidebarButton>
+        />
 
         <SidebarButton
           :label="t('sidebar.tasks')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/items`)"
+          :icon="ListTodo"
           @click="
             withGroup(() =>
               handleNavigation(`/groups/${activeGroupId}/items/all`),
             )
           "
-        >
-          <ListTodo :size="20" />
-        </SidebarButton>
+        />
 
         <SidebarButton
           :label="t('sidebar.schedule')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/schedule`)"
+          :icon="CalendarDays"
           @click="
             withGroup(() =>
               handleNavigation(`/groups/${activeGroupId}/schedule`),
             )
           "
-        >
-          <CalendarDays :size="20" />
-        </SidebarButton>
+        />
 
         <SidebarButton
           :label="t('sidebar.groups')"
           :expanded="isExpanded"
           :active="$route.path === '/groups'"
+          :icon="UsersRound"
           @click="handleNavigation('/groups')"
-        >
-          <UsersRound :size="20" />
-        </SidebarButton>
+        />
 
         <SidebarButton
           v-if="isAnyGroupAdmin"
           :label="t('sidebar.admin')"
           :expanded="isExpanded"
           :active="$route.path.startsWith(`/groups/${activeGroupId}/admin`)"
+          :icon="SlidersHorizontal"
           @click="
             withGroup(() => handleNavigation(`/groups/${activeGroupId}/admin`))
           "
-        >
-          <SlidersHorizontal :size="20" />
-        </SidebarButton>
+        />
 
         <SidebarButton
           :label="t('sidebar.private')"
           :expanded="isExpanded"
           :active="$route.path.startsWith('/todos')"
+          :icon="Lock"
           @click="handleNavigation('/todos')"
-        >
-          <Lock :size="20" />
-        </SidebarButton>
+        />
       </div>
 
       <BaseMenuDivider />
