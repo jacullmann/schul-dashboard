@@ -45,7 +45,7 @@
   --color-on-danger: var(--color-white);
   --color-success: var(--color-green);
   --color-primary: var(--color-white);
-  --color-focus: var(--color-ash);
+  --color-focus: var(--color-ghost);
 
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Inter', sans-serif;
@@ -68,7 +68,7 @@
 
   --shadow-input: 0 1px 2px 0 #0000000d;
   --shadow-menu: 0 4px 6px -1px #0000001a;
-  --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
+  --shadow-focus-ring: 0 0 0 3px var(--focus-ring-color, #ddd);
 
   --duration-hover: 100ms;
   --ease-hover: ease;
@@ -109,7 +109,8 @@
   --color-on-danger: var(--color-white);
   --color-success: var(--color-green);
   --color-primary: var(--color-white);
-  --color-focus: var(--color-ash);
+  --color-focus: var(--color-ghost);
+  --focus-ring-color: var(--color-graphite);
   --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
 }
 
@@ -135,6 +136,7 @@
   --color-success: var(--color-green);
   --color-primary: var(--color-black);
   --color-focus: var(--color-ghost);
+  --focus-ring-color: #ddd;
   --shadow-focus-ring: 0 0 0 3px #ddd;
 }
 
