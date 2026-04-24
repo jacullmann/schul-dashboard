@@ -285,7 +285,7 @@ async function handleArchiveFromMenu(item: HwItem) {
             <button
               v-if="isPinned(item.id)"
               type="button"
-              class="unpin-trigger relative min-h-8 min-w-8 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target"
+              class="unpin-trigger relative p-2 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target"
               @click.stop="togglePin(item)"
             >
               <Pin :size="18" fill="currentColor" class="pinned" />

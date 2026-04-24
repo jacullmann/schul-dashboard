@@ -164,6 +164,7 @@ function navigateToLogin() {
       <BaseButton
         type="button"
         variant="ghost"
+        on="canvas"
         @click="initiateGoogleLogin"
         class="w-full justify-center"
       >
