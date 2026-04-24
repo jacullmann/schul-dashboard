@@ -146,6 +146,7 @@ onMounted(() => {
           <BaseButton
             @click="modalStore.openCreateGroup()"
             variant="ghost"
+            on="canvas"
             :icon="Plus"
           >
             <span>{{ t('groups.home.createGroup') }}</span>
