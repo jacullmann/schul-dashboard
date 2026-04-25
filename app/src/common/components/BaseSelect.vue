@@ -11,19 +11,22 @@ export interface UnitOption {
   value: string;
 }
 
-const props = withDefaults(defineProps<{
-  modelValue: string;
-  options: UnitOption[];
-  disabled?: boolean;
-  form?: boolean;
-  on?: 'canvas' | 'surface' | 'action';
-  size?: 'md' | 'lg';
-}>(), {
-  disabled: false,
-  form: true,
-  on: 'surface',
-  size: 'md',
-});
+const props = withDefaults(
+  defineProps<{
+    modelValue: string;
+    options: UnitOption[];
+    disabled?: boolean;
+    form?: boolean;
+    on?: 'ghost' | 'action';
+    size?: 'md' | 'lg';
+  }>(),
+  {
+    disabled: false,
+    form: true,
+    on: 'ghost',
+    size: 'md',
+  },
+);
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
@@ -87,7 +90,14 @@ onClickOutside(
       @click="toggleMenu"
       :disabled="disabled"
       class="outline-none"
-      :class="[form ? 'transition-focus ' + (isOpen ? 'border-focus shadow-focus-ring' : '') : (isOpen ? `bg-${on}-hover! text-on-${on}!` : '')]"
+      :class="[
+        form
+          ? 'transition-focus ' +
+            (isOpen ? 'border-focus shadow-focus-ring' : '')
+          : isOpen
+            ? `bg-${on}-hover! text-on-${on}!`
+            : '',
+      ]"
       aria-haspopup="true"
       :aria-expanded="isOpen"
       :variant="form ? 'input' : 'ghost'"
@@ -95,7 +105,10 @@ onClickOutside(
       :size="props.size"
       :icon="ChevronDown"
       iconPlacement="trailing"
-      :iconClasses="'ml-auto shrink-0 transition duration-200 ease-in-out' + (isOpen ? ' rotate-180' : '')"
+      :iconClasses="
+        'ml-auto shrink-0 transition duration-200 ease-in-out' +
+        (isOpen ? ' rotate-180' : '')
+      "
     >
       <span class="truncate">
         {{

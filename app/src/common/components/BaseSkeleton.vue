@@ -31,5 +31,5 @@ const skeletonStyle = computed(() => {
 </script>
 
 <template>
-  <div class="bg-canvas-hover animate-pulse" :style="skeletonStyle"></div>
+  <div class="bg-ghost-hover animate-pulse" :style="skeletonStyle"></div>
 </template>

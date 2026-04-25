@@ -226,13 +226,28 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col gap-5">
-    <div class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl" :class="{ '!border-[var(--special--green)] !bg-success-surface': mfaEnabled }">
-      <div class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-hover text-on-surface-muted" :class="{ '!bg-success-surface !text-[var(--special--green)]': mfaEnabled }">
+    <div
+      class="flex items-center gap-3 p-3 bg-surface border border-surface-border shadow-input rounded-xl"
+      :class="{
+        '!border-[var(--special--green)] !bg-success-surface': mfaEnabled,
+      }"
+    >
+      <div
+        class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-hover text-on-surface-muted"
+        :class="{
+          '!bg-success-surface !text-[var(--special--green)]': mfaEnabled,
+        }"
+      >
         <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
       </div>
       <div class="flex flex-col gap-0.5">
-        <span class="text-sub text-on-surface-muted">Zwei-Faktor-Authentifizierung</span>
-        <span class="text-body font-semibold text-on-surface-muted" :class="{ '!text-[var(--special--green)]': mfaEnabled }">
+        <span class="text-sub text-on-surface-muted"
+          >Zwei-Faktor-Authentifizierung</span
+        >
+        <span
+          class="text-body font-semibold text-on-surface-muted"
+          :class="{ '!text-[var(--special--green)]': mfaEnabled }"
+        >
           {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
         </span>
       </div>
@@ -254,31 +269,65 @@ onUnmounted(() => {
           class="flex items-center gap-2 opacity-50"
           :class="{ '!opacity-100': setupStep === 1 || setupStep > 1 }"
         >
-          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted" :class="{ '!bg-action !text-on-action': setupStep === 1, '!bg-[var(--special--green)] !text-white': setupStep > 1 }">1</span>
-          <span class="text-sub text-on-surface-muted" :class="{ '!text-on-surface': setupStep === 1 }">QR-Code scannen</span>
+          <span
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted"
+            :class="{
+              '!bg-action !text-on-action': setupStep === 1,
+              '!bg-[var(--special--green)] !text-white': setupStep > 1,
+            }"
+            >1</span
+          >
+          <span
+            class="text-sub text-on-surface-muted"
+            :class="{ '!text-on-surface': setupStep === 1 }"
+            >QR-Code scannen</span
+          >
         </div>
         <div class="w-10 h-0.5 bg-surface-border"></div>
-        <div class="flex items-center gap-2 opacity-50" :class="{ '!opacity-100': setupStep === 2 }">
-          <span class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted" :class="{ '!bg-action !text-on-action': setupStep === 2 }">2</span>
-          <span class="text-sub text-on-surface-muted" :class="{ '!text-on-surface': setupStep === 2 }">Code eingeben</span>
+        <div
+          class="flex items-center gap-2 opacity-50"
+          :class="{ '!opacity-100': setupStep === 2 }"
+        >
+          <span
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted"
+            :class="{ '!bg-action !text-on-action': setupStep === 2 }"
+            >2</span
+          >
+          <span
+            class="text-sub text-on-surface-muted"
+            :class="{ '!text-on-surface': setupStep === 2 }"
+            >Code eingeben</span
+          >
         </div>
       </div>
 
       <!-- Step 1 -->
       <div v-if="setupStep === 1" class="flex flex-col gap-4">
-        <p class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans">
+        <p
+          class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans"
+        >
           Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
           Authenticator).
         </p>
 
-        <div v-if="qrCodeUrl" class="flex justify-center p-2 bg-white rounded-xl mx-auto">
+        <div
+          v-if="qrCodeUrl"
+          class="flex justify-center p-2 bg-white rounded-xl mx-auto"
+        >
           <img :src="qrCodeUrl" alt="MFA QR-Code" class="w-[200px] h-[200px]" />
         </div>
 
         <div v-if="manualSecret" class="flex flex-col gap-2 items-center">
-          <p class="text-sub text-on-surface-muted m-0">Oder gib diesen Code manuell ein:</p>
-          <div class="flex items-center gap-2 p-1 bg-surface border border-surface-border shadow-input rounded-lg">
-            <code class="font-mono text-sub text-on-surface tracking-[4px] pl-2 py-1.5">{{ formattedSecret }}</code>
+          <p class="text-sub text-on-surface-muted m-0">
+            Oder gib diesen Code manuell ein:
+          </p>
+          <div
+            class="flex items-center gap-2 p-1 bg-surface border border-surface-border shadow-input rounded-lg"
+          >
+            <code
+              class="font-mono text-sub text-on-surface tracking-[4px] pl-2 py-1.5"
+              >{{ formattedSecret }}</code
+            >
             <button
               type="button"
               class="flex items-center justify-center p-2 bg-none border-none text-on-surface-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-surface"
@@ -290,7 +339,10 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="flex items-center justify-center gap-1.5 text-sub text-on-surface-muted font-sans" v-if="expiresAt">
+        <div
+          class="flex items-center justify-center gap-1.5 text-sub text-on-surface-muted font-sans"
+          v-if="expiresAt"
+        >
           <Clock :size="16" />
           <span>Gültig für {{ remainingTime }}</span>
         </div>
@@ -307,7 +359,9 @@ onUnmounted(() => {
 
       <!-- Step 2 -->
       <div v-if="setupStep === 2" class="flex flex-col gap-4">
-        <p class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans">
+        <p
+          class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans"
+        >
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
           Einrichtung abzuschließen.
         </p>
@@ -328,7 +382,10 @@ onUnmounted(() => {
           />
         </div>
 
-        <div v-if="verifyError" class="flex items-center justify-center gap-1.5 text-sub text-danger">
+        <div
+          v-if="verifyError"
+          class="flex items-center justify-center gap-1.5 text-sub text-danger"
+        >
           <AlertCircle :size="14" />
           {{ verifyError }}
         </div>
@@ -350,7 +407,7 @@ onUnmounted(() => {
     <!-- Deaktivieren Option -->
     <div v-if="mfaEnabled && !deactivateMode" class="flex justify-start">
       <BaseButton
-        class="border border-danger text-danger hover:bg-danger-surface"
+        class="border border-danger text-danger hover:bg-surface-danger"
         @click="startDeactivate"
         :icon="ShieldOff"
       >
@@ -360,7 +417,9 @@ onUnmounted(() => {
 
     <!-- Deaktivieren Mode -->
     <div v-if="deactivateMode" class="flex flex-col gap-4">
-      <div class="flex gap-3 p-3 px-4 bg-danger-surface border border-danger rounded-lg text-danger">
+      <div
+        class="flex gap-3 p-3 px-4 bg-surface-danger border border-danger rounded-lg text-danger"
+      >
         <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
         <p class="m-0 text-sub leading-[1.4]">
           Indem du fortfährst verringerst du die Sicherheit deines Kontos. Um
@@ -385,7 +444,10 @@ onUnmounted(() => {
         />
       </div>
 
-      <div v-if="deactivateError" class="flex items-center justify-center gap-1.5 text-sub text-danger">
+      <div
+        v-if="deactivateError"
+        class="flex items-center justify-center gap-1.5 text-sub text-danger"
+      >
         <AlertCircle :size="14" />
         {{ deactivateError }}
       </div>

@@ -120,8 +120,8 @@ onMounted(() => {
               class="text-sub p-3 rounded-md"
               :class="
                 isError
-                  ? 'bg-danger-surface text-danger'
-                  : 'bg-success-surface text-success'
+                  ? 'bg-surface-danger text-danger'
+                  : 'bg-surface-success text-success'
               "
             >
               {{ message }}
@@ -144,7 +144,6 @@ onMounted(() => {
       <BaseButton
         type="button"
         variant="ghost"
-        on="canvas"
         @click="initiateGoogleLogin"
         class="w-full justify-center"
       >

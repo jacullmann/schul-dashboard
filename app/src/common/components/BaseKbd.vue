@@ -2,11 +2,11 @@
 withDefaults(
   defineProps<{
     flat?: boolean;
-    on?: 'canvas' | 'surface' | 'action';
+    on?: 'ghost' | 'action';
   }>(),
   {
     flat: false,
-    on: 'surface',
+    on: 'ghost',
   },
 );
 </script>
@@ -60,14 +60,9 @@ kbd.flat {
   cursor: default;
 }
 
-kbd.flat.canvas {
-  background-color: var(--color-canvas-hover);
-  color: var(--color-on-canvas-muted);
-}
-
-kbd.flat.surface {
-  background-color: var(--color-surface-hover);
-  color: var(--color-on-surface-muted);
+kbd.flat.ghost {
+  background-color: var(--color-ghost-hover);
+  color: var(--color-on-ghost-muted);
 }
 
 kbd.flat.action {

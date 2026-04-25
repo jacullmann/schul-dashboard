@@ -190,7 +190,6 @@ function handleSaveSub() {
             @click="emit('refresh')"
             :disabled="loadingSubs"
             variant="ghost"
-            on="canvas"
             :icon="RefreshCw"
           />
         </BaseTooltip>
@@ -335,7 +334,11 @@ function handleSaveSub() {
           >
         </div>
         <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
-          <BaseButton @click="emit('delete-sub', sub.id)" variant="ghost" on="surface" :icon="Trash2" />
+          <BaseButton
+            @click="emit('delete-sub', sub.id)"
+            variant="ghost"
+            :icon="Trash2"
+          />
         </BaseTooltip>
       </div>
     </div>

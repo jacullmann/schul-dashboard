@@ -31,12 +31,9 @@ function handleChange(value: boolean) {
 
 <template>
   <BaseButton
-    :class="[
-      props.modelValue ? 'bg-surface-hover' : ''
-    ]"
+    :class="[props.modelValue ? 'bg-surface-hover' : '']"
     @click="toggleState"
     variant="ghost"
-    on="canvas"
   >
     <span :key="buttonText">
       {{ buttonText }}

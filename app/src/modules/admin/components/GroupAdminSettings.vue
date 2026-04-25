@@ -81,9 +81,7 @@ async function confirmDeleteGroup() {
 <template>
   <div class="animate-fade-up flex flex-col gap-4">
     <div v-if="!isAdmin" class="text-center text-body text-on-surface-muted">
-      <p class="m-0">
-        Nur Administratoren können die Einstellungen ändern.
-      </p>
+      <p class="m-0">Nur Administratoren können die Einstellungen ändern.</p>
     </div>
 
     <!-- Name settings -->
@@ -98,7 +96,6 @@ async function confirmDeleteGroup() {
             class="w-8 h-8 p-0"
             @click="emit('start-edit')"
             variant="ghost"
-            on="canvas"
             :icon="Pencil"
           />
         </BaseTooltip>
@@ -227,8 +224,16 @@ async function confirmDeleteGroup() {
 
 <style>
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.animate-fade-up { animation: fadeUp 0.2s ease; }
+.animate-fade-up {
+  animation: fadeUp 0.2s ease;
+}
 </style>

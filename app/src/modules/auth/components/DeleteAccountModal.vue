@@ -32,11 +32,10 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
     </template>
 
     <template #content>
-      <div class="bg-[rgba(246,82,82,0.08)] border border-[rgba(246,82,82,0.3)] rounded-xl p-3">
-        <strong
-          class="font-sans text-title text-danger block mb-2"
-          >{{ t('account.menu.deleteAccount.warnBox.title') }}</strong
-        >
+      <div class="bg-surface-danger border border-danger rounded-xl px-3 py-2">
+        <strong class="font-sans text-title text-danger block mb-2">{{
+          t('account.menu.deleteAccount.warnBox.title')
+        }}</strong>
         <div class="text-sub text-on-surface font-bold">
           {{ t('contact.contact.email') }}: {{ email }}
         </div>
@@ -51,7 +50,12 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
         {{ t('account.menu.deleteAccount.confirm') }}
       </BaseCheckbox>
 
-      <div v-if="successMsg" class="text-sub p-2 px-3 rounded-md text-center mt-4 text-[var(--special--green)] bg-success-surface">{{ successMsg }}</div>
+      <div
+        v-if="successMsg"
+        class="text-sub p-2 px-3 rounded-md text-center mt-4 text-[var(--special--green)] bg-success-surface"
+      >
+        {{ successMsg }}
+      </div>
     </template>
 
     <template #action-text>

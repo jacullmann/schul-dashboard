@@ -288,7 +288,7 @@ async function onAuthSuccess() {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--color-danger-surface);
+  background: var(--color-surface-danger);
   color: var(--color-danger);
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-lg);

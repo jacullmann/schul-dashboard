@@ -26,7 +26,7 @@ withDefaults(
   <BaseTooltip :content="label" :shortcut="shortcut" :disabled="!label">
     <button
       v-bind="$attrs"
-      class="group gap-0 items-center flex px-3 py-2.5 md:p-2! text-on-surface rounded-full bg-transparent border border-transparent hover:bg-surface-hover hover:border-surface-hover transition-hover cursor-pointer outline-none w-full"
+      class="group gap-0 items-center flex px-3 py-2.5 md:p-2! min-h-9 min-w-9 text-on-surface rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full"
       :class="{
         'bg-surface-hover! border-surface-hover! text-on-surface!':
           active && (icon || expanded),

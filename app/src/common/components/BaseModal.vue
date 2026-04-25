@@ -50,7 +50,6 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
       <BaseButton
         type="button"
         variant="ghost"
-        on="canvas"
         :icon="X"
         class="absolute -top-3 -right-3"
         @click="handleCancel"

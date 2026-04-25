@@ -246,8 +246,8 @@ async function handleNext() {
           class="text-sub p-3 rounded-md mt-4"
           :class="
             isError
-              ? 'bg-danger-surface text-danger'
-              : 'bg-success-surface text-success'
+              ? 'bg-surface-danger text-danger'
+              : 'bg-surface-success text-success'
           "
         >
           {{ message }}

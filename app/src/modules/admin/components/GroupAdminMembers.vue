@@ -108,7 +108,6 @@ function confirmRemove() {
             @click="emit('refresh')"
             :disabled="loading"
             variant="ghost"
-            on="canvas"
             :icon="RefreshCw"
           />
         </BaseTooltip>

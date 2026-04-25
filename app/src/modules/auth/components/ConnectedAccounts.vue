@@ -55,22 +55,35 @@ function handleLink() {
 
     <template v-else>
       <!-- Google provider row -->
-      <div class="flex items-center justify-between gap-3 p-3 bg-surface border border-surface-border rounded-xl">
+      <div
+        class="flex items-center justify-between gap-3 p-3 bg-surface border border-surface-border rounded-xl"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+          <div
+            class="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            aria-hidden="true"
+          >
             <GoogleIcon :size="24" />
           </div>
           <div class="flex flex-col gap-0.5">
             <span class="text-sub font-semibold text-on-surface">Google</span>
-            <span v-if="googleLinked()" class="text-[0.75rem] text-on-surface-muted">{{
-              googleProvider()?.email
-            }}</span>
-            <span v-else class="text-[0.75rem] text-on-surface-muted">Nicht verknüpft</span>
+            <span
+              v-if="googleLinked()"
+              class="text-[0.75rem] text-on-surface-muted"
+              >{{ googleProvider()?.email }}</span
+            >
+            <span v-else class="text-[0.75rem] text-on-surface-muted"
+              >Nicht verknüpft</span
+            >
           </div>
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
-          <span v-if="googleLinked()" class="text-[0.75rem] text-success bg-success-surface px-2 py-0.5 rounded-full font-medium">Verknüpft</span>
+          <span
+            v-if="googleLinked()"
+            class="text-[0.75rem] text-success bg-success-surface px-2 py-0.5 rounded-full font-medium"
+            >Verknüpft</span
+          >
 
           <BaseButton
             v-if="googleLinked()"
@@ -94,8 +107,18 @@ function handleLink() {
         </div>
       </div>
 
-      <div v-if="errorMsg" class="text-sub p-2 px-3 rounded-lg text-danger bg-danger-surface">{{ errorMsg }}</div>
-      <div v-if="successMsg" class="text-sub p-2 px-3 rounded-lg text-success bg-success-surface">{{ successMsg }}</div>
+      <div
+        v-if="errorMsg"
+        class="text-sub p-2 px-3 rounded-lg text-danger bg-surface-danger"
+      >
+        {{ errorMsg }}
+      </div>
+      <div
+        v-if="successMsg"
+        class="text-sub p-2 px-3 rounded-lg text-success bg-surface-success"
+      >
+        {{ successMsg }}
+      </div>
     </template>
   </div>
 </template>

@@ -70,7 +70,6 @@ function formatDate(iso: string) {
           }}</span>
           <BaseButton
             variant="ghost"
-            on="surface"
             @click="emit('delete', ann.id)"
             :icon="Trash2"
             class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-hover hover:text-on-surface transition-colors"

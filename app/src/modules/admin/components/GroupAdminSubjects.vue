@@ -77,7 +77,6 @@ onMounted(() => {
             @click="loadSubjects"
             :disabled="loading"
             variant="ghost"
-            on="canvas"
             :icon="RefreshCw"
           />
         </BaseTooltip>
@@ -153,7 +152,6 @@ onMounted(() => {
             <BaseTooltip content="Umbenennen">
               <BaseButton
                 variant="ghost"
-                on="surface"
                 @click="startRename(subject)"
                 :icon="Pencil"
               />
@@ -161,7 +159,6 @@ onMounted(() => {
             <BaseTooltip content="Löschen">
               <BaseButton
                 variant="ghost"
-                on="surface"
                 @click="deleteSubject(subject.id)"
                 :icon="Trash2"
               />
@@ -183,7 +180,6 @@ onMounted(() => {
             <BaseTooltip content="Speichern">
               <BaseButton
                 variant="ghost"
-                on="surface"
                 @click="saveRename(subject.id)"
                 :disabled="!editingName.trim() || saving"
                 title="Speichern"
@@ -193,7 +189,6 @@ onMounted(() => {
             <BaseTooltip content="Abbrechen">
               <BaseButton
                 variant="ghost"
-                on="surface"
                 @click="cancelRename"
                 title="Abbrechen"
                 :icon="X"

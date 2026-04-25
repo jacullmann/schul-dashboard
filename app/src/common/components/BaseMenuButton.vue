@@ -34,8 +34,8 @@ defineExpose({
     class="flex justify-between items-center w-full text-left bg-transparent border-0 pr-3 py-2 min-h-9 gap-4 rounded-lg cursor-pointer text-sub transition-hover user-select-none"
     :class="[
       variant === 'danger'
-        ? 'text-danger hover:bg-danger-surface'
-        : 'text-on-surface hover:bg-surface-hover',
+        ? 'text-danger hover:bg-surface-danger'
+        : 'text-on-ghost hover:bg-ghost-hover',
       icon ? 'pl-2.5' : 'pl-3',
       { 'font-semibold': active },
     ]"
@@ -65,7 +65,7 @@ defineExpose({
         ></span>
         <span
           v-if="$slots.description"
-          class="text-xs leading-4 text-on-surface-muted font-normal"
+          class="text-xs leading-4 text-on-ghost-muted font-normal"
           ><slot name="description"></slot
         ></span>
       </span>
@@ -79,7 +79,7 @@ defineExpose({
     />
 
     <span v-if="isSelect" aria-hidden="true">
-      <Check v-if="active" :size="16" class="text-on-surface shrink-0" />
+      <Check v-if="active" :size="16" class="text-on-ghost shrink-0" />
       <span v-else class="w-4 shrink-0 h-4"></span>
     </span>
 

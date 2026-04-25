@@ -6,7 +6,7 @@ import { X } from '@lucide/vue';
 export interface Props {
   type?: 'button' | 'submit' | 'reset';
   variant?: 'action' | 'ghost' | 'danger' | 'input';
-  on?: 'canvas' | 'surface' | 'action' | 'danger';
+  on?: 'ghost' | 'action' | 'danger';
   full?: boolean;
   icon?: Component;
   iconPlacement?: 'leading' | 'trailing';
@@ -22,7 +22,7 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   type: 'button',
   variant: 'ghost',
-  on: 'surface',
+  on: 'ghost',
   full: false,
   icon: undefined,
   iconPlacement: 'leading',
@@ -39,9 +39,7 @@ const buttonEl = ref<HTMLButtonElement | null>(null);
 
 const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
-    canvas: 'text-on-canvas-muted hover:bg-canvas-hover hover:text-on-canvas',
-    surface:
-      'text-on-surface-muted hover:bg-surface-hover hover:text-on-surface',
+    ghost: 'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost',
     action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
     danger: 'text-on-danger hover:bg-danger-hover hover:text-on-danger',
   };

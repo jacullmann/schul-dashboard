@@ -93,7 +93,6 @@ onMounted(() => {
             <BaseButton
               type="button"
               variant="ghost"
-              on="canvas"
               :icon="X"
               class="-m-2"
               @click="emit('cancel')"

@@ -47,7 +47,9 @@ const activeTab = computed({
 
     <div class="adm-body">
       <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
-      <aside class="p-3 w-56 shrink-0 bg-surface border-r border-surface-border overflow-y-auto">
+      <aside
+        class="p-3 w-56 shrink-0 bg-surface border-r border-surface-border overflow-y-auto"
+      >
         <nav class="flex flex-col">
           <SidebarButton
             v-for="item in navItems"
@@ -220,7 +222,7 @@ const activeTab = computed({
 }
 
 .adm-nav-badge.danger {
-  background: var(--color-danger-surface);
+  background: var(--color-surface-danger);
   color: var(--color-danger);
 }
 

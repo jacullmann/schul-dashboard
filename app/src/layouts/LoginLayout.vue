@@ -1,10 +1,10 @@
 <template>
-  <div class="flex min-h-screen w-full flex-col bg-[var(--color-canvas)]">
+  <div class="flex min-h-screen w-full flex-col bg-canvas">
     <header class="w-full px-6 py-4">
       <div class="flex items-center gap-4">
         <AppLogo class="h-[50px] w-auto" />
         <span
-          class="text-[var(--text-h2)] font-bold transition-opacity duration-200 ease-in hover:opacity-80"
+          class="text-h2 font-bold transition-opacity duration-200 ease-in hover:opacity-80"
         >
           Schul-Dashboard
         </span>
