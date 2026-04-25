@@ -1,57 +1,196 @@
 {
+  "account": {
+    "auth": {
+      "confirmPassword": "Confirm Password",
+      "confirmPlaceholder": "repeat your password",
+      "email": "Email",
+      "emailPlaceholder": "name{'@'}example.com",
+      "errors": {
+        "confirmMissing": "Confirm your password",
+        "confirmWrong": "The passwords do not match",
+        "emailMissing": "Enter your email",
+        "emailWrong": "The entered email is invalid",
+        "newShort": "Your new password must be at least 8 characters long",
+        "passwordMissing": "Enter your password",
+        "passwordShort": "A password has at least 8 characters",
+        "termsMissing": "Please accept the privacy policy and terms to continue"
+      },
+      "forgot": "Forgot password?",
+      "login": "Sign In",
+      "loginCancelled": "Login cancelled.",
+      "loginGoogle": "Sign in with Google",
+      "orContinueWith": "or",
+      "password": "Password",
+      "passwordPlaceholder": "min. 8 characters",
+      "register": "Register",
+      "registerGoogle": "Sign up with Google",
+      "reset": {
+        "actions": {
+          "requestCode": "Request Code",
+          "setPassword": "Set Password",
+          "verifyCode": "Verify Code"
+        },
+        "errors": {
+          "codeExpired": "Invalid or expired code.",
+          "codeSent": "If the email exists, a code has been sent.",
+          "codeVerified": "Code confirmed. Please enter your new password.",
+          "invalidCode": "Please enter a 6-digit code.",
+          "invalidEmail": "Please enter a valid email address.",
+          "noToken": "No valid reset token. Please request a new code.",
+          "passwordMismatch": "Passwords do not match.",
+          "passwordShort": "Password must be at least 8 characters long.",
+          "requestFailed": "Error requesting code.",
+          "resetFailed": "Error resetting password."
+        },
+        "placeholders": {
+          "code": "6-digit code",
+          "confirmPassword": "Repeat new password",
+          "email": "Email",
+          "newPassword": "New password"
+        },
+        "step1": {
+          "description": "Enter your registered email. We'll send a 6-digit code."
+        },
+        "step2": {
+          "description": "Enter the code you received by email."
+        },
+        "step3": {
+          "description": "Enter your new password (min. 8 characters) and confirm it."
+        },
+        "title": "Reset Password"
+      },
+      "resetSuccess": "Password successfully reset. Please log in.",
+      "revealLabel": "Reveal/hide password",
+      "successRegister": "Almost there! We've send a verification link to your email",
+      "terms": "I agree to the {privacy} and {terms}"
+    },
+    "menu": {
+      "changePassword": {
+        "confirmPassword": "Confirm New Password",
+        "confirmPlaceholder": "Repeat your new password",
+        "currentPassword": "Current Password",
+        "currentPlaceholder": "Enter your current password",
+        "description": "Please enter your current password.",
+        "errors": {
+          "confirmMissing": "Confirm your new password",
+          "confirmWrong": "The passwords do not match",
+          "currentMissing": "Enter your current password",
+          "currentShort": "Your password has at least 8 characters",
+          "currentWrong": "The entered password is incorrect",
+          "equal": "Your new password must differ from your current one",
+          "failed": "An error occurred",
+          "newMissing": "Enter your new password"
+        },
+        "newPassword": "New Password (min. 8 characters)",
+        "newPlaceholder": "at least 8 characters",
+        "success": "Password successfully changed",
+        "title": "Change Password"
+      },
+      "courses": {
+        "description": "Select which subjects you are enrolled in to get better results.",
+        "descriptionCreation": "Select which subjects you are enrolled in to get better results. You can change your selection in your account settings at any time",
+        "enr": "Enrichment",
+        "title": "Edit Courses",
+        "titleCreation": "Welcome! Complete your profile",
+        "wpu1": "Elective on Tuesday",
+        "wpu2": "Elective on Thursday",
+        "wpu3": "Theater"
+      },
+      "deleteAccount": {
+        "confirm": "I understand that I am permanently deleting my account.",
+        "success": "Account successfully deleted",
+        "title": "Delete Account",
+        "warnBox": {
+          "text": "If you delete your account, it will be permanently removed along with all your settings. However, uploaded entries, images, or announcements will be retained. If you also want to remove these, you must delete them manually before closing your account.<br><br>You can create a new account at any time, but previously added content will no longer be linked to your account, so you will no longer be able to access it.",
+          "title": "Delete Account permanently?"
+        }
+      },
+      "language": {
+        "title": "Language"
+      },
+      "logout": "Sign Out",
+      "personalization": "Personalized Courses",
+      "security": {
+        "2fa": "Two-Factor Authentication",
+        "activated": "Activated",
+        "deactivated": "Deactivated",
+        "description": "Two-factor authentication provides additional protection for your account. You will need any 2FA app, such as Google Authenticator.",
+        "title": "Security"
+      },
+      "theme": {
+        "title": "Theme"
+      }
+    },
+    "mfa": {
+      "verify": {
+        "attemptsRemaining": "No attempts remaining | {n} attempt remaining | {n} attempts remaining",
+        "errors": {
+          "failed": "Authentication failed",
+          "sessionExpired": "Session expired. Please log in again."
+        },
+        "instruction": "Enter the 6-digit code from your authenticator app to continue.",
+        "support": {
+          "link": "Contact us via support",
+          "text": "Having trouble completing two-factor authentication?"
+        },
+        "title": "Two-Factor Authentication"
+      }
+    }
+  },
+  "chat": {
+    "status": {
+      "connecting": "Connecting",
+      "creating_image": "Creating an image",
+      "executing_terminal": "Executing command",
+      "generating": "Generating",
+      "pondering": "Pondering",
+      "searching": "Searching the web",
+      "searching_user": "Searching for user",
+      "thinking": "Thinking",
+      "waiting": "Waiting for request"
+    }
+  },
+  "contact": {
+    "contact": {
+      "email": "Email",
+      "feedback": "Feedback",
+      "location": "Location",
+      "title": "Contact"
+    }
+  },
   "global": {
-    "title": "schul-dashboard",
-    "fullTitle": "schul-dashboard | Free Management Tool For Students",
     "buttons": {
-      "save": "Save",
-      "confirm": "Confirm",
       "add": "Add",
+      "back": "Back",
       "cancel": "Cancel",
       "close": "Close",
+      "confirm": "Confirm",
+      "create": "Create",
       "delete": "Delete",
-      "back": "Back"
-    },
-    "selection": {
-      "placeholder": "Please select",
-      "yes": "Yes",
-      "no": "No",
-      "other": "Other..."
-    },
-    "search": {
-      "placeholder": "Search",
-      "result": "Result",
-      "resultPlural": "Results"
-    },
-    "weekdays": {
-      "full": {
-        "monday": "Monday",
-        "tuesday": "Tuesday",
-        "wednesday": "Wednesday",
-        "thursday": "Thursday",
-        "friday": "Friday",
-        "saturday": "Saturday",
-        "sunday": "Sunday"
-      },
-      "abbr": {
-        "monday": "Mon",
-        "tuesday": "Tue",
-        "wednesday": "Wed",
-        "thursday": "Thu",
-        "friday": "Fri",
-        "saturday": "Sat",
-        "sunday": "Sun"
-      }
+      "duplicate": "Duplicate",
+      "edit": "Edit",
+      "save": "Save",
+      "showLess": "Show less",
+      "showMore": "Show more",
+      "skip": "Skip"
     },
     "cookies": {
       "banner": {
-        "title": "Cookies",
+        "action": "Got it",
         "text": "We use cookies to reliably provide core functions such as login, security, and the operation of the schul-dashboard. Additionally, we use the privacy-friendly analytics tool Umami (cloud service) to understand how our site is used and to improve it further. Umami works without tracking cookies and does not store any personal data. You can find more information in our privacy policy.",
-        "action": "Got it"
+        "title": "Cookies"
       }
     },
-    "header": {},
+    "design": "Design",
+    "errors": {
+      "delete": "Failed to delete",
+      "save": "Failed to save",
+      "unknown": "Unknown error",
+      "update": "Failed to update",
+      "validationFailed": "Please check your input."
+    },
     "footer": {
-      "removeDevice": "Sign out this device",
+      "home": "Home",
       "quotes": [
         "I miss the old Kanye",
         "Keep your head up. Only {daysToHoliday} days left until the holidays",
@@ -117,278 +256,221 @@
         "Just remember ALL CAPS when you spell the man name",
         "Death gotta be easy, cause life is hard",
         "People never get the flowers, while they can still smell em"
-      ]
+      ],
+      "removeDevice": "Sign out this device"
+    },
+    "fullTitle": "schul-dashboard | Free Management Tool For Students",
+    "language": "Language",
+    "search": {
+      "noResults": "No search results for",
+      "placeholder": "Search",
+      "result": "Result",
+      "resultPlural": "Results"
+    },
+    "selection": {
+      "no": "No",
+      "other": "Other...",
+      "placeholder": "Please select",
+      "yes": "Yes"
+    },
+    "subjects": {
+      "art": "Art",
+      "biology": "Biology",
+      "chemistry": "Chemistry",
+      "classHour": "Class Hour",
+      "cs": "Computer Science",
+      "dalton": "Dalton",
+      "english": "English",
+      "enrichment": "Enrichment",
+      "ethics": "Ethics",
+      "french": "French",
+      "geography": "Geography",
+      "german": "German",
+      "history": "History",
+      "latin": "Latin",
+      "math": "Math",
+      "music": "Music",
+      "pe": "PE",
+      "philosophy": "Philosophy",
+      "physics": "Physics",
+      "politics": "Politics",
+      "religion": "Religion",
+      "theater": "Theater",
+      "wpu1": "Elective 1",
+      "wpu2": "Elective 2"
     },
     "theme": {
-      "theme": "Theme",
-      "system": "System",
       "dark": "Dark",
-      "light": "Light"
+      "light": "Light",
+      "system": "System",
+      "theme": "Theme"
     },
-    "design": "Design",
-    "language": "Language",
-    "errors": {
-      "unknown": "Unknown error",
-      "delete": "Failed to delete",
-      "save": "Failed to save",
-      "update": "Failed to update",
-      "validationFailed": "Please check your input."
-    },
+    "title": "schul-dashboard",
     "titles": {
-      "mr": "Mr.",
-      "ms": "Ms.",
       "abbr": {
         "mr": "Mr.",
         "ms": "Ms."
-      }
-    },
-    "subjects": {
-      "german": "German",
-      "french": "French",
-      "math": "Math",
-      "english": "English",
-      "enrichment": "Enrichment",
-      "wpu1": "Elective 1",
-      "wpu2": "Elective 2",
-      "theater": "Theater",
-      "cs": "Computer Science",
-      "latin": "Latin",
-      "chemistry": "Chemistry",
-      "politics": "Politics",
-      "history": "History",
-      "art": "Art",
-      "pe": "PE",
-      "classHour": "Class Hour",
-      "ethics": "Ethics",
-      "geography": "Geography",
-      "physics": "Physics",
-      "music": "Music",
-      "biology": "Biology",
-      "philosophy": "Philosophy",
-      "religion": "Religion"
-    }
-  },
-  "account": {
-    "menu": {
-      "courses": {
-        "title": "Edit Courses",
-        "description": "Select which subjects you are enrolled in to get better results.",
-        "enr": "Enrichment",
-        "wpu1": "Elective on Tuesday",
-        "wpu2": "Elective on Thursday",
-        "wpu3": "Theater"
       },
-      "personalization": "Personalized Courses",
-      "theme": {
-        "title": "Theme"
-      },
-      "language": {
-        "title": "Language"
-      },
-      "security": {
-        "title": "Security",
-        "2fa": "Two-Factor Authentication",
-        "activated": "Activated",
-        "deactivated": "Deactivated",
-        "description": "Two-factor authentication provides additional protection for your account. You will need any 2FA app, such as Google Authenticator."
-      },
-      "changePassword": {
-        "title": "Change Password",
-        "description": "Please enter your current password.",
-        "currentPassword": "Current Password",
-        "newPassword": "New Password (min. 8 characters)",
-        "confirmPasswort": "Confirm New Password"
-      },
-      "logout": "Sign Out",
-      "deleteAccount": {
-        "title": "Delete Account",
-        "warnbox": {
-          "title": "Permanently delete account?",
-          "text": "If you delete your account, it will be permanently removed along with all your settings. However, uploaded entries, images, or announcements will be retained. If you also want to remove these, you must delete them manually before closing your account.<br><br>You can create a new account at any time, but previously added content will no longer be linked to your account, so you will no longer be able to access it."
-        },
-        "confirm": "I understand that I am permanently deleting my account."
-      }
-    },
-    "auth": {
-      "login": "Sign In",
-      "register": "Register",
-      "loginGoogle": "Sign in with Google",
-      "registerGoogle": "Sign up with Google",
-      "email": "Email",
-      "emailPlaceholder": "name{'@'}example.com",
-      "password": "Password",
-      "passwordPlaceholder": "min. 8 characters",
-      "confirmPassword": "Confirm Password",
-      "confirmPlaceholder": "repeat your password",
-      "revealLabel": "Reveal/hide password",
-      "forgot": "Forgot password?",
-      "terms": "I agree to the {privacy} and {terms}",
-      "successRegister": "Almost there! We've send a verification link to your email",
-      "errors": {
-        "emailMissing": "Enter your email",
-        "emailWrong": "The entered email is invalid",
-        "passwordMissing": "Enter your password",
-        "passwordShort": "A password has at least 8 characters",
-        "newShort": "Your password must be at least 8 characters",
-        "confirmMissing": "Confirm your password",
-        "confirmWrong": "The passwords do not match",
-        "termsMissing": "Please accept the privacy policy and terms to continue"
-      },
-      "orContinueWith": "or",
-      "resetSuccess": "Password successfully reset. Please log in.",
-      "loginCancelled": "Login cancelled.",
-      "reset": {
-        "title": "Reset Password",
-        "step1": {
-          "description": "Enter your registered email. We'll send a 6-digit code."
-        },
-        "step2": { "description": "Enter the code you received by email." },
-        "step3": {
-          "description": "Enter your new password (min. 8 characters) and confirm it."
-        },
-        "placeholders": {
-          "email": "Email",
-          "code": "6-digit code",
-          "newPassword": "New password",
-          "confirmPassword": "Repeat new password"
-        },
-        "actions": {
-          "requestCode": "Request Code",
-          "verifyCode": "Verify Code",
-          "setPassword": "Set Password"
-        },
-        "errors": {
-          "invalidEmail": "Please enter a valid email address.",
-          "codeSent": "If the email exists, a code has been sent.",
-          "requestFailed": "Error requesting code.",
-          "invalidCode": "Please enter a 6-digit code.",
-          "codeVerified": "Code confirmed. Please enter your new password.",
-          "codeExpired": "Invalid or expired code.",
-          "passwordShort": "Password must be at least 8 characters long.",
-          "passwordMismatch": "Passwords do not match.",
-          "noToken": "No valid reset token. Please request a new code.",
-          "resetFailed": "Error resetting password."
-        }
-      }
-    },
-    "mfa": {
-      "verify": {
-        "title": "Two-Factor Authentication",
-        "instruction": "Enter the 6-digit code from your authenticator app to continue.",
-        "attemptsRemaining": "No attempts remaining | {n} attempt remaining | {n} attempts remaining",
-        "support": {
-          "text": "Having trouble completing two-factor authentication?",
-          "link": "Contact us via support"
-        },
-        "errors": {
-          "sessionExpired": "Session expired. Please log in again.",
-          "failed": "Authentication failed"
-        }
-      }
+      "mr": "Mr.",
+      "ms": "Ms."
     }
   },
   "groups": {
     "home": {
-      "title": "Home",
-      "goodNight": "Good night",
-      "goodMorning": "Good morning",
+      "createGroup": "Create group",
       "goodDay": "Good day",
       "goodEvening": "Good evening",
+      "goodMorning": "Good morning",
+      "goodNight": "Good night",
       "joinGroup": "Join group",
-      "createGroup": "Create group",
-      "yourGroups": "Your groups",
-      "noGroups": "No groups yet",
       "joinGroupText": "Join an existing group or create a new one to get started.",
-      "members": "members"
+      "members": "members",
+      "noGroups": "No groups yet",
+      "title": "Home",
+      "yourGroups": "Your groups"
     },
     "roles": {
+      "admin": "Admin",
       "member": "Member",
       "moderator": "Moderator",
-      "admin": "Admin",
       "owner": "Owner",
       "superadmin": "Superadmin"
     }
   },
-  "welcome": {
-    "hero": {
-      "headlineSerif": "Your School Life",
-      "headlineSans": "In Your <b>Pocket<b/>",
-      "subline": "All the info you need, at any time, right in your pocket. Collaborative and ",
-      "sublineHighlight": "completely free",
-      "visual": {
-        "items": [
-          {
-            "title": "Read Chapter 3"
-          },
-          {
-            "title": "Notes for the test"
-          },
-          {
-            "title": "Book exercises",
-            "text": "Complete p. 137 exercises 4b and 5 in writing"
-          }
-        ]
-      },
-      "learnMore": "Learn more",
-      "cta": "Get started"
+  "info": {
+    "articles": {
+      "1": {
+        "content": "Trotz der Behauptung, dass sich die Christdemokraten um die Armen, Zugewanderten und Opfer scheren, beweisen sie immer wieder: Was uns ein Dorn im Auge ist, soll weg.\n\nIn New York wurde das Prinzip längst perfektioniert – Bänke mit Kurven, Abtrennungen und Stacheln sind der Trend des Jahres. Denn wenn man sich nicht hinlegen kann, geht man weg und „aus den Augen, aus dem Sinn“, oder? Leider ertönten keine feierlichen Trompeten, gefolgt von genug bezahlbaren Wohnungen und die Obdachlosen legten sich neben die Bänke. Aber die Berliner CDU glaubt, in Kreuzberg herrschen andere Gesetze. Wenn sie das ganze Geld, das für die Versorgung und Unterstützung der Suchtkranken eingeplant war, für einen riesigen Zaun um den Görlitzer Park ausgeben, dann müssten sie auf magische Weise verschwinden und keine zusätzlichen Investitionen wären nötig, so die These. Allerdings muss sich ein Denkfehler eingeschlichen haben – das einzige Problem, das verschwindet, ist die Entscheidung, wofür man 2 Mio. Euro Steuergelder ausgeben soll.\n\nEin befragter Anwohner findet, der Park brauche definitiv Hilfe, aber in Form von Hilfe für die Abhängigen – nur schlecht, dass das im Haushalt nicht vorgesehen ist. In den letzten Monaten gab es Aufschreie im Minutentakt, eine gesunde Prise zivilen Ungehorsam und zwei Klagen vom Bezirk, die schneller abgewiesen wurden, als man sie durchlesen kann. Aber was wissen die Menschen, um die es geht, schon über das Thema? Die christlichen „Demokraten“ hören auf das Volk – allerdings nur auf die reicheren 20 % in den Randbezirken. Der Zaun ist ein Geschenk an ihre Wähler, die den Park als Schande sehen, und kommt gleich mit einer Glückwunschkarte, auf der „Wir machen alles, was ihr wollt“ steht.\n\nSolange Kai Wegner seine Symbolpolitik betreibt und jegliche Aufrufe der Bevölkerung ignoriert, scheint Geld für echte Lösungen fernzubleiben. Uns bleibt also nur noch eins zu hoffen – jeder freischaffende Pharmahändler denkt sich um 22 Uhr bei Schließung der Tore: Jetzt ist Feierabend.",
+        "excerpt": "\"No one has the intention of building a wall.\" That's what they said 60 years ago. Then a wall was built. Today it's a fence, and instead of the socialists, the CDU wants to build it.",
+        "title": "No one has the intention of building a fence"
+      }
     },
-    "comparison": {
-      "headline": "Paper is so <span class=\"highlight\">yesterday.</span> Start your journey into the <span class=\"highlight\">future</span> today",
-      "attribution": "Edited original by Alarichall, CC BY-SA 4.0, via Wikimedia Commons"
-    },
-    "reasons": {
-      "why": "Why schul-dashboard?",
-      "byStudentsForStudents": "<span class=\"highlight\">By </span> students <span class=\"highlight\">for </span> students, which means:",
-      "reasons": [
-        {
-          "number": "0",
-          "text": " euros"
-        },
-        {
-          "number": "0",
-          "text": " ads"
-        },
-        {
-          "number": "0",
-          "text": " data sold"
-        },
-        {
-          "number": "100%",
-          "text": " attention to detail"
-        }
-      ]
-    },
-    "footer": {
-      "disclaimer": {
-        "title": "Notice",
-        "text": "This is a protected and private application. Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be documented without exception. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained."
+    "dashboard": {
+      "allTopics": "All Topics",
+      "categories": {
+        "culture": "Culture",
+        "economy": "Economy",
+        "politics": "Politics",
+        "science": "Science",
+        "technology": "Technology"
       },
-      "navigation": {
-        "landingPage": "Home",
-        "status": "Status"
+      "description": "Exciting stories from around the globe",
+      "maxTime": "Max. read time:",
+      "recommendations": "You might also be interested in",
+      "sortBy": "Sort by:",
+      "sortMethods": {
+        "newest": "Newest",
+        "oldest": "Oldest",
+        "relevance": "Relevance",
+        "shortest": "Shortest read time"
       },
-      "byStudentsForStudents": "This is a private project by students for students"
+      "title": "Info Dashboard",
+      "topic": "Topic:"
     },
-    "auth": {
-      "title": "Authentication",
-      "name": "Name",
-      "passcode": "Access Code",
-      "terms": "Accept Terms of Use and Privacy Policy",
-      "serverStatus": {
-        "good": "Server reachable",
-        "ok": "Unexpected server response",
-        "notOk": "Server connection interrupted",
-        "error": "Server unreachable"
-      },
-      "disclaimerTitle": "Important Legal Notice!",
-      "disclaimer": "Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be fully documented. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained."
+    "kanye": {
+      "footnote": "The album cover images are used solely for identification purposes. The copyright belongs to the respective owners, labels, and artists."
     }
   },
+  "legal": {
+    "imprint": {
+      "disclaimer": "This application is a purely private, non-commercial student project.",
+      "info": {
+        "address": "12045 Berlin",
+        "name": "Deniz Keskin"
+      },
+      "title": "Imprint"
+    },
+    "privacy": {
+      "title": "Privacy Policy"
+    },
+    "terms": {
+      "title": "Terms of Use"
+    },
+    "title": "Legal"
+  },
+  "navigation": {
+    "auth": "Authentication",
+    "brainLibrary": "Brain Training",
+    "brainTest": "Brain Test",
+    "gameDetail": "Game",
+    "games": "Game Overview",
+    "groupAdmin": "Group Administration",
+    "home": "Home",
+    "imageTool": "Image Tool",
+    "legal": "Legal",
+    "notFound": "404",
+    "privateTodos": "Private Entries",
+    "superAdmin": "Super Admin",
+    "updateHistory": "Update History",
+    "verifyEmail": "Email Verification"
+  },
   "school": {
-    "tasks": {
-      "title": "Tasks",
+    "dashboard": {
+      "title": "Dashboard"
+    },
+    "private": {
+      "deleteConfirm": "Do you really want to delete this private entry?",
+      "entry": "Private Entry",
+      "entryDeleteConfirm": "Private entry successfully deleted",
+      "errorDuplicate": "Failed to duplicate entry",
+      "errorLoad": "Failed to load private entries",
       "infopop": {
-        "tooltip": "Overview and features for tasks",
+        "text": "Unlike regular entries, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>. Thanks to <strong>AES-256 encryption</strong> you don't need to worry about security: only <strong>your password</strong> can be used to access your private entries.",
+        "tooltip": "Overview and features for private entries"
+      },
+      "loading": "Loading private entries...",
+      "menu": {
+        "down": "Move down",
+        "up": "Move up"
+      },
+      "newEntry": "New Entry",
+      "noEntriesFound": "No private entries found.",
+      "onlyVisibleToYou": "Only visible to you",
+      "requiresAccount": "You must be logged in to use private entries.",
+      "successCreate": "Private entry created",
+      "successDelete": "Private entry deleted successfully",
+      "successDuplicate": "Private entry duplicated successfully",
+      "successUpdate": "Private entry updated",
+      "title": "Private Tasks",
+      "todoForm": {
+        "descriptionPlaceholder": "6 eggs...",
+        "title": "New Private Entry",
+        "titlePlaceholder": "Go grocery shopping..."
+      }
+    },
+    "tables": {
+      "schedule": {
+        "cancelled": "Cancelled",
+        "disclaimer": "schul-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
+        "infopop": {
+          "description": "The digital version of the schedule.",
+          "sections": [
+            {
+              "title": "Personalized courses",
+              "text": "If you've saved which courses/electives you're enrolled in on your account, you can automatically hide all lessons that don't apply to you. You can adjust your selection in your account settings. If you still want to see all lessons, you can also disable this option in your account settings."
+            },
+            {
+              "title": "Live updates",
+              "text": "Substitutions, cancellations, room changes, etc. are promptly transferred by the admin team and immediately shown in the digital schedule."
+            }
+          ],
+          "tooltip": "Overview and features for the schedule"
+        },
+        "lesson": "Lesson",
+        "loading": "Loading schedule...",
+        "personalized": "Personalized",
+        "title": "Schedule"
+      }
+    },
+    "tasks": {
+      "allsubjects": "All Subjects",
+      "archive": {
+        "archive": "Archive",
+        "archiveNote": "You are currently viewing old entries",
+        "closeArchive": "Close Archive"
+      },
+      "createEntry": "Create entry",
+      "infopop": {
         "description": "Work collaboratively with others and keep track of everything.",
         "sections": [
           {
@@ -419,64 +501,60 @@
             "title": "Archive",
             "text": "Entries older than <strong>24 hours</strong> are automatically hidden to keep the view tidy. If you're looking for an older entry, you can click the <strong>Archive</strong> button and view entries up to <strong>30 days</strong> old."
           }
-        ]
-      },
-      "types": {
-        "homework": "Homework",
-        "dalton": "Dalton",
-        "exam": "Exam"
-      },
-      "tabs": {
-        "all": "All",
-        "homework": "Homework",
-        "dalton": "Dalton",
-        "exams": "Exams",
-        "private": "Private"
-      },
-      "allsubjects": "All Subjects",
-      "archive": {
-        "archive": "Archive",
-        "closeArchive": "Close Archive",
-        "archiveNote": "You are currently viewing old entries"
+        ],
+        "tooltip": "Overview and features for tasks"
       },
       "itemForm": {
-        "newEntry": "New Entry",
-        "editEntry": "Edit Entry",
-        "title": "Title",
-        "subject": "Subject",
-        "customSubject": "Custom Subject",
         "course": "Course",
+        "customSubject": "Custom Subject",
         "description": "Description",
-        "duedate": "Date",
-        "images": "Images",
-        "uploadImages": "Upload Images",
         "dropToUpload": "Drop images here",
-        "successUpload": "Images successfully uploaded"
+        "dueDate": "Due date",
+        "editEntry": "Edit Entry",
+        "errors": {
+          "courseMissing": "Select a course",
+          "customLong": "The custom subject is too long (max. 100 characters)",
+          "customMissing": "Enter a custom subject",
+          "dateNew": "The due date is too far in the future",
+          "dateOld": "The due date is too far in the past",
+          "descriptionLong": "The description is too long (max. 1000 characters)",
+          "titleLong": "The title is too long (max. 60 characters)",
+          "titleMissing": "Add a title"
+        },
+        "images": "Images",
+        "newEntry": "New Entry",
+        "subject": "Subject",
+        "successCreate": "Entry successfully created",
+        "successEdit": "Entry successfully edited",
+        "successUpload": "Images successfully uploaded",
+        "title": "Title",
+        "uploadImages": "Upload Images",
+        "uploadingImage": "Uploading image..."
       },
       "items": {
         "menu": {
-          "uploadImages": "Upload Images",
-          "edit": "Edit",
-          "pin": "Pin",
-          "unpin": "Unpin",
           "archive": "Archive",
-          "unarchive": "Unarchive",
-          "share": "Share",
-          "shareConfirm": "Link copied to clipboard!",
+          "delete": {
+            "action": "Delete Entry",
+            "description": "If you delete this entry, it and all associated images will be permanently deleted.",
+            "title": "Delete this entry?"
+          },
           "info": "Info",
           "infoModal": {
-            "title": "Entry Info",
             "createdAt": "Created on",
-            "updatedAt": "Last edited",
             "createdBy": "Created by",
-            "notEdited": "–"
+            "notEdited": "–",
+            "title": "Entry Info",
+            "updatedAt": "Last edited"
           },
+          "pin": "Pin",
           "report": {
-            "title": "Report this entry?",
-            "name": "Report",
+            "action": "Report Entry",
+            "falseLabel": "Correction (required)",
+            "falsePlaceholder": "Correction...",
+            "illegalLabel": "What exactly is the problem? (optional)",
+            "illegalPlaceholder": "Description...",
             "infopop": {
-              "title": "Reporting entries",
-              "tooltip": "Information about reporting entries",
               "sections": [
                 {
                   "title": "Misinformation",
@@ -486,225 +564,192 @@
                   "title": "Inappropriate/Illegal Content",
                   "text": "Entries and uploaded images that violate our terms of use or applicable law will be removed immediately. If more detailed knowledge about the background of a statement/image is needed, please describe it as precisely as possible so we can take action. Even if the violation is obvious, you can still help us by describing what is wrong – but we always review the entire entry, even if you don't provide a specific reason."
                 }
-              ]
+              ],
+              "title": "Reporting entries",
+              "tooltip": "Information about reporting entries"
             },
+            "name": "Report",
             "selectReason": "Select the reason:",
-            "illegalLabel": "What exactly is the problem? (optional)",
-            "illegalPlaceholder": "Description...",
-            "falseLabel": "Correction (required)",
-            "falsePlaceholder": "Correction...",
-            "action": "Report Entry"
+            "title": "Report this entry?"
           },
-          "delete": {
-            "title": "Delete this entry?",
-            "description": "If you delete this entry, it and all associated images will be permanently deleted.",
-            "action": "Delete Entry"
-          }
-        }
-      }
-    },
-    "tables": {
-      "schedule": {
-        "title": "Schedule",
-        "infopop": {
-          "tooltip": "Overview and features for the schedule",
-          "description": "The digital version of the schedule.",
-          "sections": [
-            {
-              "title": "Personalized courses",
-              "text": "If you've saved which courses/electives you're enrolled in on your account, you can automatically hide all lessons that don't apply to you. You can adjust your selection in your account settings. If you still want to see all lessons, you can also disable this option in your account settings."
-            },
-            {
-              "title": "Live updates",
-              "text": "Substitutions, cancellations, room changes, etc. are promptly transferred by the admin team and immediately shown in the digital schedule."
-            }
-          ]
+          "share": "Share",
+          "shareConfirm": "Link copied to clipboard!",
+          "unarchive": "Unarchive",
+          "unpin": "Unpin",
+          "uploadImages": "Upload Images"
         },
-        "disclaimer": "schul-dashboard and the admin team accept no liability for the accuracy, completeness, or timeliness of the information provided.",
-        "personalized": "Personalized",
-        "lesson": "Lesson",
-        "cancelled": "Cancelled"
+        "view": {
+          "noEntries": "No entries found",
+          "noEntriesInViewMessage": "No entries in the current view. Change your filters or add a new entry",
+          "noEntriesMessage": "Add a new entry or"
+        }
+      },
+      "notes": {
+        "noNotes": "No notes",
+        "note": "Note"
+      },
+      "resetFilters": "Reset filters",
+      "tabs": {
+        "all": "All",
+        "dalton": "Dalton",
+        "exams": "Exams",
+        "homework": "Homework",
+        "private": "Private"
+      },
+      "title": "Tasks",
+      "types": {
+        "dalton": "Dalton",
+        "exam": "Exam",
+        "homework": "Homework"
       }
-    },
-    "private": {
-      "title": "Private Tasks",
-      "entry": "Private Entry",
-      "onlyVisibleToYou": "Only visible to you",
-      "infopop": {
-        "tooltip": "Overview and features for private entries",
-        "text": "Unlike regular entries, these are <strong>encrypted</strong> and only visible to you. This way you can also track personal tasks and to-dos – all within <strong>one app</strong>. Thanks to <strong>AES-256 encryption</strong> you don't need to worry about security: only <strong>your password</strong> can be used to access your private entries."
-      },
-      "menu": {
-        "up": "Move up",
-        "down": "Move down"
-      },
-      "requiresAccount": "You must be logged in to use private entries.",
-      "loading": "Loading private entries...",
-      "noEntriesFound": "No private entries found.",
-      "errorLoad": "Failed to load private entries",
-      "successCreate": "Private entry created",
-      "successUpdate": "Private entry updated",
-      "successDuplicate": "Private entry duplicated successfully",
-      "errorDuplicate": "Failed to duplicate entry",
-      "deleteConfirm": "Do you really want to delete this private entry?",
-      "successDelete": "Private entry deleted successfully",
-      "newEntry": "New Entry",
-      "entryDeleteConfirm": "Private entry successfully deleted",
-      "todoForm": {
-        "title": "New Private Entry",
-        "titlePlaceholder": "Go grocery shopping...",
-        "descriptionPlaceholder": "6 eggs..."
-      }
-    },
-    "dashboard": {
-      "title": "Dashboard"
     }
-  },
-  "tools": {},
-  "info": {
-    "dashboard": {
-      "title": "Info Dashboard",
-      "description": "Exciting stories from around the globe",
-      "categories": {
-        "politics": "Politics",
-        "science": "Science",
-        "technology": "Technology",
-        "culture": "Culture",
-        "economy": "Economy"
-      },
-      "recommendations": "You might also be interested in",
-      "topic": "Topic:",
-      "allTopics": "All Topics",
-      "sortBy": "Sort by:",
-      "sortMethods": {
-        "relevance": "Relevance",
-        "newest": "Newest",
-        "oldest": "Oldest",
-        "shortest": "Shortest read time"
-      },
-      "maxTime": "Max. read time:"
-    },
-    "articles": {
-      "1": {
-        "title": "No one has the intention of building a fence",
-        "excerpt": "\"No one has the intention of building a wall.\" That's what they said 60 years ago. Then a wall was built. Today it's a fence, and instead of the socialists, the CDU wants to build it."
-      }
-    },
-    "kanye": {
-      "footnote": "The album cover images are used solely for identification purposes. The copyright belongs to the respective owners, labels, and artists."
-    }
-  },
-  "legal": {
-    "title": "Legal",
-    "imprint": {
-      "title": "Imprint",
-      "info": {
-        "name": "Deniz Keskin",
-        "address": "12045 Berlin"
-      },
-      "disclaimer": "This application is a purely private, non-commercial student project."
-    },
-    "privacy": {
-      "title": "Privacy Policy"
-    },
-    "terms": {
-      "title": "Terms of Use"
-    }
-  },
-  "contact": {
-    "contact": {
-      "title": "Contact",
-      "email": "Email",
-      "location": "Location",
-      "feedback": "Feedback"
-    }
-  },
-  "navigation": {
-    "home": "Home",
-    "updateHistory": "Update History",
-    "games": "Game Overview",
-    "gameDetail": "Game",
-    "imageTool": "Image Tool",
-    "brainLibrary": "Brain Training",
-    "brainTest": "Brain Test",
-    "superAdmin": "Super Admin",
-    "verifyEmail": "Email Verification",
-    "notFound": "404",
-    "groupAdmin": "Group Administration",
-    "legal": "Legal",
-    "auth": "Authentication",
-    "privateTodos": "Private Entries"
-  },
-  "sidebar": {
-    "expand": "Expand",
-    "collapse": "Collapse",
-    "toggle": "Toggle Sidebar",
-    "create": "New Entry",
-    "search": "Search",
-    "home": "Home",
-    "tasks": "Tasks",
-    "schedule": "Schedule",
-    "groups": "Groups",
-    "admin": "Admin Settings",
-    "private": "Private Tasks"
   },
   "search": {
-    "modal": {
-      "title": "Quick Search",
-      "placeholder": "Search pages and actions…",
-      "categoryPages": "Pages",
-      "categoryActions": "Actions",
-      "hintNavigate": "to navigate",
-      "hintConfirm": "to open"
+    "descriptions": {
+      "admin": "Administrator Settings",
+      "brainTests": "Cognitive tests and exercises",
+      "changeLanguage": "Change the app's language",
+      "changePassword": "Update your account password",
+      "changeTheme": "Change the app's appearance",
+      "createEntry": "Add a new entry to the task list",
+      "createGroup": "Create a new group",
+      "createPrivateEntry": "Add a new private entry to your tasks",
+      "editCourses": "Customize your course selection",
+      "games": "Games and entertainment",
+      "groups": "Manage your groups",
+      "home": "Go to the start page",
+      "imageTool": "Crop and edit images",
+      "infoDashboard": "Exciting stories and facts",
+      "joinGroup": "Join an existing group",
+      "logout": "Securely sign out of your account",
+      "private": "Manage your private tasks",
+      "schedule": "View class schedule",
+      "security": "Two-factor authentication and security settings",
+      "switchGroup": "Switch between your groups",
+      "tasks": "Tasks, homework & exams",
+      "toggleSidebar": "Expand/collapse the sidebar"
     },
     "items": {
       "brainTests": "Brain Tests",
-      "games": "Games",
       "createEntry": "Create new entry",
-      "createPrivateEntry": "Create new private entry",
-      "joinGroup": "Join group",
       "createGroup": "Create group",
-      "infoDashboard": "Info Dashboard",
+      "createPrivateEntry": "Create new private entry",
+      "games": "Games",
       "imageTool": "Image Tool",
+      "infoDashboard": "Info Dashboard",
+      "joinGroup": "Join group",
       "switchGroup": "Switch group"
     },
-    "descriptions": {
-      "home": "Go to the start page",
-      "tasks": "Tasks, homework & exams",
-      "schedule": "View class schedule",
-      "groups": "Manage your groups",
-      "admin": "Administrator Settings",
-      "private": "Manage your private tasks",
-      "brainTests": "Cognitive tests and exercises",
-      "games": "Games and entertainment",
-      "infoDashboard": "Exciting stories and facts",
-      "imageTool": "Crop and edit images",
-      "createEntry": "Add a new entry to the task list",
-      "createPrivateEntry": "Add a new private entry to your tasks",
-      "switchGroup": "Switch between your groups",
-      "joinGroup": "Join an existing group",
-      "createGroup": "Create a new group",
-      "toggleSidebar": "Expand/collapse the sidebar",
-      "editCourses": "Customize your course selection",
-      "changeTheme": "Change the app's appearance",
-      "changeLanguage": "Change the app's language",
-      "security": "Two-factor authentication and security settings",
-      "changePassword": "Update your account password",
-      "logout": "Securely sign out of your account"
+    "modal": {
+      "categoryActions": "Actions",
+      "categoryPages": "Pages",
+      "hintConfirm": "to open",
+      "hintNavigate": "to navigate",
+      "placeholder": "Search pages and actions…",
+      "title": "Quick Search"
     }
   },
-  "about": {},
-  "chat": {
-    "status": {
-      "thinking": "Thinking",
-      "generating": "Generating",
-      "searching": "Searching the web",
-      "creating_image": "Creating an image",
-      "pondering": "Pondering",
-      "executing_terminal": "Executing command",
-      "searching_user": "Searching for user",
-      "waiting": "Waiting for request",
-      "connecting": "Connecting"
+  "sidebar": {
+    "admin": "Admin Settings",
+    "collapse": "Collapse",
+    "create": "New Entry",
+    "expand": "Expand",
+    "groups": "Groups",
+    "home": "Home",
+    "private": "Private Tasks",
+    "schedule": "Schedule",
+    "search": "Search",
+    "tasks": "Tasks",
+    "toggle": "Toggle Sidebar"
+  },
+  "welcome": {
+    "auth": {
+      "disclaimer": "Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be fully documented. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained.",
+      "disclaimerTitle": "Important Legal Notice!",
+      "name": "Name",
+      "passcode": "Access Code",
+      "serverStatus": {
+        "error": "Server unreachable",
+        "good": "Server reachable",
+        "notOk": "Server connection interrupted",
+        "ok": "Unexpected server response"
+      },
+      "terms": "Accept Terms of Use and Privacy Policy",
+      "title": "Authentication"
+    },
+    "comparison": {
+      "attribution": "Edited original by Alarichall, CC BY-SA 4.0, via Wikimedia Commons",
+      "headline": "Paper is so <span class=\"highlight\">yesterday.</span> Start your journey into the <span class=\"highlight\">future</span> today"
+    },
+    "footer": {
+      "byStudentsForStudents": "This is a private project by students for students",
+      "disclaimer": {
+        "text": "This is a protected and private application. Any unauthorized attempt to circumvent security measures or to obtain or compromise sensitive data (including personal data) will be documented without exception. Such violations will be reported to law enforcement immediately and without exception, regardless of whether the attempt was successful or whether data was actually obtained.",
+        "title": "Notice"
+      },
+      "navigation": {
+        "landingPage": "Home",
+        "status": "Status"
+      }
+    },
+    "hero": {
+      "cta": "Get started",
+      "headlineSans": "In Your <b>Pocket<b/>",
+      "headlineSerif": "Your School Life",
+      "learnMore": "Learn more",
+      "subline": "All the info you need, at any time, right in your pocket. Collaborative and ",
+      "sublineHighlight": "completely free",
+      "visual": {
+        "items": [
+          {
+            "title": "Read Chapter 3"
+          },
+          {
+            "title": "Notes for the test"
+          },
+          {
+            "title": "Book exercises",
+            "text": "Complete p. 137 exercises 4b and 5 in writing"
+          }
+        ]
+      }
+    },
+    "reasons": {
+      "byStudentsForStudents": "<span class=\"highlight\">By </span> students <span class=\"highlight\">for </span> students, which means:",
+      "reasons": [
+        {
+          "number": "0",
+          "text": " euros"
+        },
+        {
+          "number": "0",
+          "text": " ads"
+        },
+        {
+          "number": "0",
+          "text": " data sold"
+        },
+        {
+          "number": "100%",
+          "text": " attention to detail"
+        }
+      ],
+      "why": "Why schul-dashboard?"
+    },
+    "verify": {
+      "causes": {
+        "expiredLink": "The link is expired",
+        "usedLink": "The link was already used",
+        "wrongLink": "The link was copied incorrectly"
+      },
+      "closeTab": "You can now close this tab and sign in with your account",
+      "error": "Verification failed",
+      "errorDescription": "Your verification link is invalid or expired. Try again or contact support",
+      "possibleCauses": "Possible causes",
+      "success": "Successfully verified!",
+      "successDescription": "Your email was successfully verified. You can now sign in",
+      "verifying": "Verifying email",
+      "wait": "Please wait, we're verifying your email..."
     }
   }
 }
