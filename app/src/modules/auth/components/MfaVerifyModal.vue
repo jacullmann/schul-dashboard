@@ -81,7 +81,7 @@ onMounted(() => {
     @close="cancel"
   >
     <div class="space-y-4">
-      <p class="text-sub text-on-surface-muted text-center">
+      <p class="text-sub text-on-ghost-muted text-center">
         {{ t('account.mfa.verify.instruction') }}
       </p>
 
@@ -94,8 +94,11 @@ onMounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="w-[180px] px-4 py-3 text-h3 font-mono text-center bg-surface text-on-surface border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
-          :class="[{ '!border-danger': error }, shakeInput ? 'animate-[shake_0.4s_ease-in-out]' : '']"
+          class="w-[180px] px-4 py-3 text-h3 font-mono text-center bg-surface text-on-ghost border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
+          :class="[
+            { '!border-danger': error },
+            shakeInput ? 'animate-[shake_0.4s_ease-in-out]' : '',
+          ]"
           :disabled="loading"
           @input="handleInput"
           @keyup.enter="verify"
@@ -124,13 +127,13 @@ onMounted(() => {
 
       <div class="pt-4 border-t border-canvas-border">
         <p
-          class="text-footnote text-on-surface-muted text-center m-0 leading-relaxed"
+          class="text-footnote text-on-ghost-muted text-center m-0 leading-relaxed"
         >
           {{ t('account.mfa.verify.support.text') }}
           <br />
           <a
             href="mailto:kontakt@schul-dashboard.com"
-            class="text-on-surface underline hover:opacity-75 transition-opacity"
+            class="text-on-ghost underline hover:opacity-75 transition-opacity"
           >
             {{ t('account.mfa.verify.support.link') }}
           </a>
@@ -157,10 +160,25 @@ onMounted(() => {
 
 <style>
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-8px); }
-  40%, 80% { transform: translateX(8px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
 }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

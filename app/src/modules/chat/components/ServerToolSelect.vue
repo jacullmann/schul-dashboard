@@ -68,7 +68,7 @@ useEventListener(document, 'keydown', (e) => {
       :icon="Settings2"
       size="lg"
       @click="toggle"
-      :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+      :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
       :aria-expanded="isOpen"
     >
@@ -80,7 +80,7 @@ useEventListener(document, 'keydown', (e) => {
         :icon="Settings2"
         size="lg"
         @click="toggle"
-        :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+        :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
         aria-haspopup="true"
         :aria-expanded="isOpen"
       />

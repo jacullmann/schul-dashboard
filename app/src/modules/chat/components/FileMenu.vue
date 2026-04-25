@@ -55,7 +55,7 @@ useEventListener(document, 'keydown', (e) => {
         :icon="Plus"
         size="lg"
         @click="toggle"
-        :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+        :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
         aria-haspopup="true"
         :aria-expanded="isOpen"
       />
@@ -68,10 +68,7 @@ useEventListener(document, 'keydown', (e) => {
         :style="menuStyles"
         class="min-w-56!"
       >
-        <BaseMenuButton
-          :icon="Brush"
-          @click="drawImage, close()"
-        >
+        <BaseMenuButton :icon="Brush" @click="(drawImage, close())">
           Draw Image
         </BaseMenuButton>
       </BaseMenu>

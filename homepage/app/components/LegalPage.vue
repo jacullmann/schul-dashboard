@@ -10,14 +10,14 @@ defineProps<{
     <div class="max-w-[720px] mx-auto">
       <NuxtLink
         :to="useLocalePath()('index')"
-        class="inline-flex items-center gap-1.5 text-sub text-on-surface-muted no-underline hover:text-on-surface transition-colors mb-10"
+        class="inline-flex items-center gap-1.5 text-sub text-on-ghost-muted no-underline hover:text-on-ghost transition-colors mb-10"
       >
         <span aria-hidden="true">←</span>
         {{ $t('common.back_home') }}
       </NuxtLink>
 
-      <h1 class="text-h1 font-bold font-display text-on-surface mb-3">{{ title }}</h1>
-      <p v-if="description" class="text-on-surface-muted leading-[1.65] mb-12">{{ description }}</p>
+      <h1 class="text-h1 font-bold font-display text-on-ghost mb-3">{{ title }}</h1>
+      <p v-if="description" class="text-on-ghost-muted leading-[1.65] mb-12">{{ description }}</p>
 
       <div class="flex flex-col divide-y divide-surface-border">
         <slot />
@@ -25,3 +25,4 @@ defineProps<{
     </div>
   </div>
 </template>
+

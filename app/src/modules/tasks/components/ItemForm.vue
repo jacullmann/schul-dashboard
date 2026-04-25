@@ -492,7 +492,7 @@ onMounted(() => {
 
           <div
             v-if="imgUploading"
-            class="text-sub text-on-surface-muted self-center"
+            class="text-sub text-on-ghost-muted self-center"
           >
             {{ t('school.tasks.itemForm.uploadingImage') }}
           </div>

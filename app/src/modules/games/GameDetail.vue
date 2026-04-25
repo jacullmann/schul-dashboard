@@ -42,7 +42,10 @@ watch(
     </div>
 
     <div v-else class="p-5">
-      <router-link to="/games" class="inline-flex items-center gap-2 mb-5 text-on-surface-muted transition-colors hover:text-on-surface">
+      <router-link
+        to="/games"
+        class="inline-flex items-center gap-2 mb-5 text-on-ghost-muted transition-colors hover:text-on-ghost"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -61,8 +64,10 @@ watch(
       </router-link>
 
       <div class="p-[30px] rounded-xl">
-        <h1 class="mt-0 mb-2.5 text-on-surface text-[2em]">{{ game.name }}</h1>
-        <p class="text-on-surface-muted text-[1.1em] mb-5">{{ game.description }}</p>
+        <h1 class="mt-0 mb-2.5 text-on-ghost text-[2em]">{{ game.name }}</h1>
+        <p class="text-on-ghost-muted text-[1.1em] mb-5">
+          {{ game.description }}
+        </p>
         <hr class="border-t border-surface" />
 
         <component :is="game.component" class="pt-5" />

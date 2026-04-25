@@ -10,11 +10,11 @@ const config = useRuntimeConfig();
     <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6">
       <div class="rounded-2xl border border-surface-border px-8 py-16 md:py-12 text-center">
         <h2
-          class="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-on-surface font-display leading-[1.2] mb-4 max-w-2xl mx-auto"
+          class="text-[clamp(1.75rem,4vw,2.75rem)] font-bold text-on-ghost font-display leading-[1.2] mb-4 max-w-2xl mx-auto"
         >
           {{ t('sections.cta.title') }}
         </h2>
-        <p class="text-lg text-on-surface-muted mb-8 leading-[1.6]">
+        <p class="text-lg text-on-ghost-muted mb-8 leading-[1.6]">
           {{ t('sections.cta.description') }}
         </p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
@@ -31,7 +31,7 @@ const config = useRuntimeConfig();
           </a>
           <a
             href="mailto:contact@schul-dashboard.com"
-            class="px-8 py-3.5 rounded-lg border border-surface-border text-on-surface font-semibold transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle inline-flex items-center justify-center"
+            class="px-8 py-3.5 rounded-lg border border-surface-border text-on-ghost font-semibold transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle inline-flex items-center justify-center"
           >
             {{ t('sections.cta.secondary_cta') }}
           </a>
@@ -40,3 +40,4 @@ const config = useRuntimeConfig();
     </div>
   </section>
 </template>
+

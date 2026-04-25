@@ -43,7 +43,7 @@ function handleLabelClick(event: MouseEvent) {
       @change="handleChange"
     />
     <span
-      class="w-[18px] h-[18px] rounded-sm border-2 border-on-surface-muted inline-flex items-center justify-center bg-transparent relative group-hover:border-action peer-checked:bg-action peer-checked:border-action"
+      class="w-[18px] h-[18px] rounded-sm border-2 border-on-ghost-muted inline-flex items-center justify-center bg-transparent relative group-hover:border-action peer-checked:bg-action peer-checked:border-action"
       aria-hidden="true"
     >
       <span

@@ -540,11 +540,11 @@ function handleSelect(index: number) {
         <!-- GROUP MODE -->
         <template v-if="mode === 'group'">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
           >
             <button
               @click="setMode('default')"
-              class="hover:text-on-surface transition-colors inline-flex items-center"
+              class="hover:text-on-ghost transition-colors inline-flex items-center"
               aria-label="Zurück"
             >
               <ArrowLeft :size="14" class="mr-1" />
@@ -570,7 +570,7 @@ function handleSelect(index: number) {
               <ArrowUpRight
                 v-if="selectedIndex === index"
                 :size="14"
-                class="shrink-0 text-on-surface-subtle"
+                class="shrink-0 text-on-ghost-subtle"
               />
             </BaseCommandPaletteItem>
           </template>
@@ -579,11 +579,11 @@ function handleSelect(index: number) {
         <!-- THEME MODE -->
         <template v-else-if="mode === 'theme'">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
           >
             <button
               @click="setMode('default')"
-              class="hover:text-on-surface transition-colors inline-flex items-center"
+              class="hover:text-on-ghost transition-colors inline-flex items-center"
               aria-label="Zurück"
             >
               <ArrowLeft :size="14" class="mr-1" />
@@ -606,7 +606,7 @@ function handleSelect(index: number) {
               <Check
                 v-if="currentTheme === opt.id"
                 :size="16"
-                class="shrink-0 text-on-surface"
+                class="shrink-0 text-on-ghost"
               />
             </BaseCommandPaletteItem>
           </template>
@@ -615,11 +615,11 @@ function handleSelect(index: number) {
         <!-- LANGUAGE MODE -->
         <template v-else-if="mode === 'language'">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-surface-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
           >
             <button
               @click="setMode('default')"
-              class="hover:text-on-surface transition-colors inline-flex items-center"
+              class="hover:text-on-ghost transition-colors inline-flex items-center"
               aria-label="Zurück"
             >
               <ArrowLeft :size="14" class="mr-1" />
@@ -642,7 +642,7 @@ function handleSelect(index: number) {
               <Check
                 v-if="currentLanguage === opt.id"
                 :size="16"
-                class="shrink-0 text-on-surface"
+                class="shrink-0 text-on-ghost"
               />
             </BaseCommandPaletteItem>
           </template>
@@ -654,7 +654,7 @@ function handleSelect(index: number) {
           <template v-if="defaultPageResults.length">
             <div class="px-4 py-1.5">
               <span
-                class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
+                class="text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider"
               >
                 {{ t('search.modal.categoryPages') }}
               </span>
@@ -673,7 +673,7 @@ function handleSelect(index: number) {
               <ArrowUpRight
                 v-if="selectedIndex === globalIndex(item)"
                 :size="14"
-                class="shrink-0 text-on-surface-subtle"
+                class="shrink-0 text-on-ghost-subtle"
               />
             </BaseCommandPaletteItem>
           </template>
@@ -685,7 +685,7 @@ function handleSelect(index: number) {
               :class="defaultPageResults.length ? 'mt-2' : ''"
             >
               <span
-                class="text-footnote text-on-surface-muted font-semibold uppercase tracking-wider"
+                class="text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider"
               >
                 {{ t('search.modal.categoryActions') }}
               </span>
@@ -709,7 +709,7 @@ function handleSelect(index: number) {
                 <ChevronRight
                   v-if="selectedIndex === globalIndex(item)"
                   :size="14"
-                  class="text-on-surface-subtle"
+                  class="text-on-ghost-subtle"
                 />
               </span>
             </BaseCommandPaletteItem>
@@ -721,10 +721,10 @@ function handleSelect(index: number) {
           v-if="paletteProps.itemCount === 0"
           class="px-4 py-10 flex flex-col items-center gap-2 text-center"
         >
-          <Search :size="28" class="text-on-surface-subtle mb-1" />
-          <p class="text-sub text-on-surface-muted m-0">
+          <Search :size="28" class="text-on-ghost-subtle mb-1" />
+          <p class="text-sub text-on-ghost-muted m-0">
             {{ t('global.search.noResults') }}
-            <strong class="text-on-surface">„{{ query }}"</strong>
+            <strong class="text-on-ghost">„{{ query }}"</strong>
           </p>
         </div>
       </template>

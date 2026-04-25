@@ -70,7 +70,8 @@ export function useAuth() {
         .select();
 
       if (profileErr) throw profileErr;
-      currentProfile.value = profileData && profileData.length > 0 ? profileData[0] : null;
+      currentProfile.value =
+        profileData && profileData.length > 0 ? profileData[0] : null;
     } catch (err: any) {
       authError.value = err.message;
       console.error('Join Game Error:', JSON.stringify(err, null, 2), err);

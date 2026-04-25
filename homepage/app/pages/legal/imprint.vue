@@ -11,7 +11,7 @@ useSeoMeta({
 <template>
   <LegalPage :title="t('legal.imprint.title')" :description="t('legal.imprint.description')">
     <LegalSection :title="t('legal.imprint.responsible')">
-      <address class="not-italic text-on-surface-muted leading-[1.8] text-body">
+      <address class="not-italic text-on-ghost-muted leading-[1.8] text-body">
         schul-dashboard<br />
         Deniz Keskin<br />
         Berlin<br />
@@ -20,11 +20,11 @@ useSeoMeta({
     </LegalSection>
 
     <LegalSection :title="t('legal.imprint.contact')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">
+      <p class="text-on-ghost-muted leading-[1.7] m-0">
         {{ t('legal.imprint.contact_label') }}
         <a
           href="mailto:contact@schul-dashboard.com"
-          class="text-on-surface underline hover:no-underline transition-all"
+          class="text-on-ghost underline hover:no-underline transition-all"
         >
           contact@schul-dashboard.com
         </a>
@@ -32,9 +32,10 @@ useSeoMeta({
     </LegalSection>
 
     <LegalSection :title="t('legal.imprint.disclaimer.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">
+      <p class="text-on-ghost-muted leading-[1.7] m-0">
         {{ t('legal.imprint.disclaimer.text') }}
       </p>
     </LegalSection>
   </LegalPage>
 </template>
+

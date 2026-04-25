@@ -156,7 +156,7 @@ async function skip() {
     }}</template>
 
     <template #content>
-      <p class="text-sub text-on-surface-muted mb-6">
+      <p class="text-sub text-on-ghost-muted mb-6">
         {{
           isSetup
             ? t('account.menu.courses.descriptionCreation')
@@ -166,7 +166,7 @@ async function skip() {
 
       <div
         v-if="subjectStore.loading"
-        class="text-sub text-on-surface-muted mb-6"
+        class="text-sub text-on-ghost-muted mb-6"
       >
         Loading...
       </div>

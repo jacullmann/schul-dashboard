@@ -9,15 +9,12 @@
       :class="buttonClasses"
     >
       <span class="sr-only" v-if="label">{{ label }}</span>
-      
-      <span
-        aria-hidden="true"
-        :class="dotClasses"
-      ></span>
+
+      <span aria-hidden="true" :class="dotClasses"></span>
     </button>
 
-    <span 
-      v-if="label" 
+    <span
+      v-if="label"
       class="cursor-pointer select-none text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
       :class="{ 'opacity-50 cursor-not-allowed': disabled }"
       @click="toggle"
@@ -62,4 +59,4 @@ const dotClasses = computed(() => {
     model.value ? 'translate-x-5 bg-canvas' : 'translate-x-0 bg-action',
   ];
 });
-</script>
+</script>

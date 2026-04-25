@@ -66,7 +66,7 @@ const {
     >
       <div class="flex px-2 py-1">
         <div
-          class="font-semibold text-sub text-on-surface overflow-hidden text-ellipsis whitespace-nowrap flex-1"
+          class="font-semibold text-sub text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap flex-1"
           :title="email"
         >
           {{ email }}
@@ -79,7 +79,11 @@ const {
 
       <LocaleMenuDropdown />
 
-      <BaseMenuButton ref="firstMenuBtnRef" :icon="LucideGraduationCap" @click="openSetup">
+      <BaseMenuButton
+        ref="firstMenuBtnRef"
+        :icon="LucideGraduationCap"
+        @click="openSetup"
+      >
         {{ t('account.menu.courses.title') }}
       </BaseMenuButton>
 

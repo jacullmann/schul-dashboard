@@ -334,10 +334,7 @@ const updateImageSource = (newSrc: string) => {
           <strong>Klicken zum Hochladen</strong> oder Drag & Drop
         </p>
         <span
-          style="
-            font-size: var(--text-sub);
-            color: var(--color-on-surface-muted);
-          "
+          style="font-size: var(--text-sub); color: var(--color-on-ghost-muted)"
           >JPG, PNG, WEBP, AVIF, GIF, BMP</span
         >
         <input
@@ -406,7 +403,7 @@ const updateImageSource = (newSrc: string) => {
           style="
             margin-bottom: 8px;
             font-size: var(--text-sub);
-            color: var(--color-on-surface-muted);
+            color: var(--color-on-ghost-muted);
           "
         >
           Größe: {{ imageMeta.naturalWidth }} x {{ imageMeta.naturalHeight }}
@@ -643,7 +640,7 @@ label {
 /* The Visual Crop Box */
 .crop-box {
   position: absolute;
-  border: 2px solid var(--color-on-surface-muted);
+  border: 2px solid var(--color-on-ghost-muted);
   box-shadow: 0 0 0 9999px
     color-mix(in oklab, var(--color-canvas), transparent 40%); /* Dimming effect */
   cursor: move;

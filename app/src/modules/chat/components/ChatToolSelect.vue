@@ -11,7 +11,9 @@ import {
 const webSearch = defineModel<boolean>('webSearch', { default: true });
 const createImage = defineModel<boolean>('createImage', { default: false });
 const ponder = defineModel<boolean>('ponder', { default: false });
-const answerLeisurely = defineModel<boolean>('answerLeisurely', { default: false });
+const answerLeisurely = defineModel<boolean>('answerLeisurely', {
+  default: false,
+});
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
@@ -30,8 +32,12 @@ const menuStyles = computed(() => {
 
   return {
     position: 'fixed' as const,
-    top: shouldFlipVertically ? `${triggerTop.value - h - 8}px` : `${bottom.value + 8}px`,
-    left: shouldFlipHorizontally ? `${right.value - menuMinWidth}px` : `${left.value}px`,
+    top: shouldFlipVertically
+      ? `${triggerTop.value - h - 8}px`
+      : `${bottom.value + 8}px`,
+    left: shouldFlipHorizontally
+      ? `${right.value - menuMinWidth}px`
+      : `${left.value}px`,
     zIndex: 1000,
   };
 });
@@ -64,7 +70,7 @@ useEventListener(document, 'keydown', (e) => {
       :icon="Settings2"
       size="lg"
       @click="toggle"
-      :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+      :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
       :aria-expanded="isOpen"
     >
@@ -76,7 +82,7 @@ useEventListener(document, 'keydown', (e) => {
         :icon="Settings2"
         size="lg"
         @click="toggle"
-        :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+        :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
         aria-haspopup="true"
         :aria-expanded="isOpen"
       />
@@ -93,16 +99,18 @@ useEventListener(document, 'keydown', (e) => {
           :icon="Globe"
           isSelect
           :active="webSearch"
-          @click="webSearch = !webSearch, close()"
+          @click="((webSearch = !webSearch), close())"
         >
           Web search
-          <template #description>Search the Internet for additional information</template>
+          <template #description
+            >Search the Internet for additional information</template
+          >
         </BaseMenuButton>
         <BaseMenuButton
           :icon="Image"
           isSelect
           :active="createImage"
-          @click="createImage = !createImage, close()"
+          @click="((createImage = !createImage), close())"
         >
           Create Image
           <template #description>Design anything you can imagine</template>
@@ -111,20 +119,24 @@ useEventListener(document, 'keydown', (e) => {
           :icon="Brain"
           isSelect
           :active="ponder"
-          @click="ponder = !ponder, close()"
+          @click="((ponder = !ponder), close())"
         >
           Ponder
-          <template #description>Think longer for more profound answers</template>
+          <template #description
+            >Think longer for more profound answers</template
+          >
         </BaseMenuButton>
         <!-- TODO: Choose Icon: CalendarFold or Coffee -->
         <BaseMenuButton
           :icon="CalendarFold"
           isSelect
           :active="answerLeisurely"
-          @click="answerLeisurely = !answerLeisurely, close()"
+          @click="((answerLeisurely = !answerLeisurely), close())"
         >
           Answer leisurely
-          <template #description>Queue your requests, if you aren't in a hurry</template>
+          <template #description
+            >Queue your requests, if you aren't in a hurry</template
+          >
         </BaseMenuButton>
       </BaseMenu>
     </Teleport>

@@ -25,44 +25,44 @@ const conductItems = [
 <template>
   <LegalPage :title="t('legal.terms.title')" :description="t('legal.terms.description')">
     <LegalSection :title="t('legal.terms.acceptance.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.acceptance.text') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.acceptance.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.service.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.service.text') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.service.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.account.title')">
       <ul class="mt-1 flex flex-col gap-2 pl-5 list-disc">
-        <li v-for="key in accountItems" :key="key" class="text-on-surface-muted leading-[1.6]">
+        <li v-for="key in accountItems" :key="key" class="text-on-ghost-muted leading-[1.6]">
           {{ t(key) }}
         </li>
       </ul>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.conduct.title')">
-      <p class="text-on-surface-muted leading-[1.7] mb-3">{{ t('legal.terms.conduct.intro') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] mb-3">{{ t('legal.terms.conduct.intro') }}</p>
       <ul class="flex flex-col gap-2 pl-5 list-disc">
-        <li v-for="key in conductItems" :key="key" class="text-on-surface-muted leading-[1.6]">
+        <li v-for="key in conductItems" :key="key" class="text-on-ghost-muted leading-[1.6]">
           {{ t(key) }}
         </li>
       </ul>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.termination.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.termination.text') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.termination.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.liability.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.liability.text') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.liability.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.changes.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.changes.text') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.changes.text') }}</p>
     </LegalSection>
 
     <LegalSection :title="t('legal.terms.governing.title')">
-      <p class="text-on-surface-muted leading-[1.7] m-0">{{ t('legal.terms.governing.text') }}</p>
+      <p class="text-on-ghost-muted leading-[1.7] m-0">{{ t('legal.terms.governing.text') }}</p>
     </LegalSection>
   </LegalPage>
 </template>

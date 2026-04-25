@@ -36,12 +36,12 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
         <strong class="font-sans text-title text-danger block mb-2">{{
           t('account.menu.deleteAccount.warnBox.title')
         }}</strong>
-        <div class="text-sub text-on-surface font-bold">
+        <div class="text-sub text-on-ghost font-bold">
           {{ t('contact.contact.email') }}: {{ email }}
         </div>
         <br />
         <div
-          class="text-sub text-on-surface leading-[1.5]"
+          class="text-sub text-on-ghost leading-[1.5]"
           v-html="t('account.menu.deleteAccount.warnBox.text')"
         />
       </div>

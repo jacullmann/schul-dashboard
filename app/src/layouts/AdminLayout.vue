@@ -85,7 +85,7 @@ const activeTab = computed({
   flex-direction: column;
   min-height: 100vh;
   background: var(--color-canvas);
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 /* ─── Header ────────────────────────────────────────────────────────────────── */
@@ -131,7 +131,7 @@ const activeTab = computed({
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   transition:
     background 0.15s,
     color 0.15s;
@@ -140,7 +140,7 @@ const activeTab = computed({
 
 .adm-back:hover {
   background: var(--color-surface-hover);
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 .adm-header-titles {
@@ -159,7 +159,7 @@ const activeTab = computed({
 
 .adm-subtitle {
   font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -182,7 +182,7 @@ const activeTab = computed({
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-size: var(--text-body);
   font-weight: 500;
   cursor: pointer;
@@ -195,12 +195,12 @@ const activeTab = computed({
 
 .adm-nav-item:hover {
   background: var(--color-surface-hover);
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 .adm-nav-item.active {
   background: var(--color-surface-hover-subtle);
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   font-weight: 600;
 }
 
@@ -218,7 +218,7 @@ const activeTab = computed({
   padding: 1px 7px;
   border-radius: 8px;
   background: var(--color-surface-hover);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .adm-nav-badge.danger {

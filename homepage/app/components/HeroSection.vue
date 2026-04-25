@@ -14,12 +14,12 @@ const config = useRuntimeConfig();
           class="flex-1 flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0"
         >
           <h1
-            class="text-[clamp(2.25rem,5vw,3.75rem)] font-bold font-display text-on-surface leading-[1.15] mb-5"
+            class="text-[clamp(2.25rem,5vw,3.75rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5"
           >
             {{ t('sections.hero.title') }}
           </h1>
 
-          <p class="text-lg text-on-surface-muted leading-[1.65] mb-8 max-w-md">
+          <p class="text-lg text-on-ghost-muted leading-[1.65] mb-8 max-w-md">
             {{ t('sections.hero.description') }}
           </p>
 
@@ -32,13 +32,13 @@ const config = useRuntimeConfig();
             </a>
             <a
               :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-              class="px-3 py-1.5 rounded-lg border border-surface-border text-on-surface font-medium inline-flex items-center justify-center"
+              class="px-3 py-1.5 rounded-lg border border-surface-border text-on-ghost font-medium inline-flex items-center justify-center"
             >
               {{ t('sections.hero.cta_secondary') }}
             </a>
           </div>
 
-          <p class="text-footnote text-on-surface-subtle mt-6">
+          <p class="text-footnote text-on-ghost-subtle mt-6">
             {{ t('sections.hero.social_proof') }}
           </p>
         </div>
@@ -46,3 +46,4 @@ const config = useRuntimeConfig();
     </div>
   </section>
 </template>
+

@@ -10,7 +10,7 @@ function setTheme(theme: string) {
 
 <template>
   <div class="flex flex-col gap-2">
-    <p class="text-btn font-semibold text-on-surface m-0">{{ $t('common.theme') }}</p>
+    <p class="text-btn font-semibold text-on-ghost m-0">{{ $t('common.theme') }}</p>
     <div class="flex gap-1.5" role="group" :aria-label="$t('common.theme')">
       <button
         v-for="{ value, icon, label } in [
@@ -25,8 +25,8 @@ function setTheme(theme: string) {
         class="p-2 rounded-lg border transition-colors"
         :class="
           colorMode.preference === value
-            ? 'bg-surface-hover border-surface-hover-border text-on-surface'
-            : 'bg-surface border-surface-border text-on-surface-muted hover:text-on-surface hover:border-surface-hover-border'
+            ? 'bg-surface-hover border-surface-hover-border text-on-ghost'
+            : 'bg-surface border-surface-border text-on-ghost-muted hover:text-on-ghost hover:border-surface-hover-border'
         "
         @click="setTheme(value)"
       >
@@ -36,3 +36,4 @@ function setTheme(theme: string) {
     </div>
   </div>
 </template>
+

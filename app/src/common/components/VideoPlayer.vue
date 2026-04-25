@@ -94,7 +94,8 @@ const {
     <div
       class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[rgba(0,0,0,0.8)] to-transparent p-4 flex flex-col gap-4 transition-opacity duration-300"
       :class="{
-        'opacity-0 pointer-events-none': (!showControls && isPlaying) || isFastForwarding,
+        'opacity-0 pointer-events-none':
+          (!showControls && isPlaying) || isFastForwarding,
       }"
     >
       <div class="w-full flex items-center">
@@ -181,7 +182,7 @@ const {
             </div>
           </div>
 
-          <span class="text-xs font-mono text-on-surface"
+          <span class="text-xs font-mono text-on-ghost"
             >{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span
           >
         </div>

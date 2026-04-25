@@ -14,7 +14,7 @@ defineProps<{
       :is="icon"
       v-if="icon"
       :size="40"
-      class="text-on-surface-muted mb-4"
+      class="text-on-ghost-muted mb-4"
     />
     <h3>
       <slot name="title"></slot>

@@ -6,7 +6,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <label class="block text-on-surface-muted text-sub mb-1.5" :for="props.for">
+  <label class="block text-on-ghost-muted text-sub mb-1.5" :for="props.for">
     <slot />
 
     <span v-if="props.required" class="text-danger ml-1" aria-hidden="true"

@@ -80,7 +80,7 @@ async function confirmDeleteGroup() {
 
 <template>
   <div class="animate-fade-up flex flex-col gap-4">
-    <div v-if="!isAdmin" class="text-center text-body text-on-surface-muted">
+    <div v-if="!isAdmin" class="text-center text-body text-on-ghost-muted">
       <p class="m-0">Nur Administratoren können die Einstellungen ändern.</p>
     </div>
 
@@ -187,7 +187,7 @@ async function confirmDeleteGroup() {
     <!-- Danger Zone: Delete Group -->
     <div v-if="isOwner">
       <h3 class="text-danger">Danger Zone</h3>
-      <p class="text-body text-on-surface-muted m-0 mb-5 leading-[1.5]">
+      <p class="text-body text-on-ghost-muted m-0 mb-5 leading-[1.5]">
         Das Löschen der Gruppe ist endgültig und kann nicht rückgängig gemacht
         werden. Alle damit verbundenen Daten (Aufgaben, Klausuren, Ankündigungen
         etc.) werden für alle Benutzer gelöscht.

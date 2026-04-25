@@ -19,8 +19,8 @@ const activeColor = computed(() => {
   if (props.color) return props.color;
   if (props.on === 'action') return 'var(--color-on-action)';
   if (props.on === 'danger') return 'var(--color-on-danger)';
-  if (props.on === 'ghost') return 'var(--color-on-surface-muted)';
-  return 'var(--color-on-surface)';
+  if (props.on === 'ghost') return 'var(--color-on-ghost-muted)';
+  return 'var(--color-on-ghost)';
 });
 
 const sizeNum = computed(() => parseInt(props.size || '16'));

@@ -103,7 +103,10 @@ watch(
       @keydown="handleKeydown"
       ref="overlayRef"
     >
-      <div class="w-full h-full flex items-center justify-center" @click.self="cancel">
+      <div
+        class="w-full h-full flex items-center justify-center"
+        @click.self="cancel"
+      >
         <img
           v-if="currentImage"
           :src="currentImage.url"
@@ -116,7 +119,10 @@ watch(
 
       <transition name="fade-controls">
         <div v-show="controlsVisible" class="fixed inset-0 pointer-events-none">
-          <button class="absolute top-4 right-4 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]" @click.stop="cancel">
+          <button
+            class="absolute top-4 right-4 pointer-events-auto bg-[rgba(0,0,0,0.6)] border-none text-white cursor-pointer p-2 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(0,0,0,0.4)] backdrop-blur-[4px]"
+            @click.stop="cancel"
+          >
             <X />
           </button>
 
@@ -136,7 +142,10 @@ watch(
             <ChevronRight />
           </button>
 
-          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full text-sub backdrop-blur-[4px] pointer-events-auto" @click.stop>
+          <div
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full text-sub backdrop-blur-[4px] pointer-events-auto"
+            @click.stop
+          >
             {{ currentIndex + 1 }} / {{ images.length }}
           </div>
         </div>
@@ -146,8 +155,20 @@ watch(
 </template>
 
 <style>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-.fade-controls-enter-active, .fade-controls-leave-active { transition: opacity 0.3s ease; }
-.fade-controls-enter-from, .fade-controls-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+.fade-controls-enter-active,
+.fade-controls-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-controls-enter-from,
+.fade-controls-leave-to {
+  opacity: 0;
+}
 </style>

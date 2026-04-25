@@ -247,7 +247,9 @@ function onDrop(e: DragEvent) {
               type="button"
               class="relative p-2 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target"
               @click.stop="(e: MouseEvent) => $emit('menu-click', e)"
-            ><Ellipsis :size="18"/></button>
+            >
+              <Ellipsis :size="18" />
+            </button>
           </BaseTooltip>
         </slot>
 
@@ -255,10 +257,13 @@ function onDrop(e: DragEvent) {
       </div>
 
       <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
-        <div v-show="!isCollapsed" class="mx-2 mb-2 opacity-100 overflow-hidden">
+        <div
+          v-show="!isCollapsed"
+          class="mx-2 mb-2 opacity-100 overflow-hidden"
+        >
           <div
             v-if="$slots.body"
-            class="text-on-surface break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
+            class="text-on-ghost break-words [overflow-wrap:anywhere] hyphens-auto whitespace-pre-wrap select-text cursor-text"
           >
             <slot name="body"></slot>
           </div>

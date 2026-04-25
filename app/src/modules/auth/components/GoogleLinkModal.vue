@@ -47,12 +47,17 @@ function cancel() {
 
     <template #content>
       <div class="flex flex-col items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-xl bg-surface border border-surface-border flex items-center justify-center" aria-hidden="true">
+        <div
+          class="w-12 h-12 rounded-xl bg-surface border border-surface-border flex items-center justify-center"
+          aria-hidden="true"
+        >
           <GoogleIcon :size="24" />
         </div>
       </div>
 
-      <p class="m-0 mb-4 text-sub text-on-surface-muted leading-[1.5] text-center">
+      <p
+        class="m-0 mb-4 text-sub text-on-ghost-muted leading-[1.5] text-center"
+      >
         Ein Konto mit dieser E-Mail-Adresse existiert bereits. Gib dein Passwort
         ein, um Google mit deinem bestehenden Konto zu verknüpfen.
       </p>

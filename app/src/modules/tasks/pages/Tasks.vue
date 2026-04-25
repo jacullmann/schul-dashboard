@@ -621,7 +621,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 <style scoped>
 .subject-badge {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   padding: 0;
   font-size: var(--text-body);
 }
@@ -629,13 +629,13 @@ async function handleArchiveFromMenu(item: HwItem) {
   padding: 0;
   font-size: var(--text-body);
   font-weight: 700;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   background: transparent;
   border: none;
 }
 .tiny:hover {
   background: transparent;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   border: none;
   padding: 0;
 }
@@ -704,7 +704,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .img-overlay .overlay-content {
   position: relative;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   font-weight: 400;
   font-size: var(--text-h1);
   z-index: 11;
@@ -729,7 +729,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 
 .empty {
   text-align: center;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   padding: 24px;
   border: none;
 }
@@ -746,7 +746,7 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 .admin-creator-info {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-size: var(--text-sub);
 }
 
@@ -774,19 +774,19 @@ async function handleArchiveFromMenu(item: HwItem) {
 .editor-note-label {
   font-size: var(--text-sub);
   font-weight: 600;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .editor-note-content {
   font-size: var(--text-sub);
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   white-space: pre-wrap;
   word-break: break-word;
   background: var(--color-surface-hover);
 }
 
 .note-placeholder {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-style: italic;
 }
 

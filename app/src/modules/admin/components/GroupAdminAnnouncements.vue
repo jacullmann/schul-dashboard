@@ -44,7 +44,7 @@ function formatDate(iso: string) {
 
     <div
       v-if="announcements.length === 0"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       Keine Ankündigungen vorhanden.
     </div>
@@ -65,14 +65,14 @@ function formatDate(iso: string) {
       >
         <div class="text-body leading-[1.5] mb-2">{{ ann.content }}</div>
         <div class="flex justify-between items-center">
-          <span class="text-sub text-on-surface-muted">{{
+          <span class="text-sub text-on-ghost-muted">{{
             formatDate(ann.createdAt)
           }}</span>
           <BaseButton
             variant="ghost"
             @click="emit('delete', ann.id)"
             :icon="Trash2"
-            class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-hover hover:text-on-surface transition-colors"
+            class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-hover hover:text-on-ghost transition-colors"
           />
         </div>
       </div>

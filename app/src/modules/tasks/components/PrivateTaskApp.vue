@@ -127,8 +127,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 <template>
   <div class="private-task-app-integrated">
     <div class="private-task-header">
-      <div class="flex gap-2 items-center text-on-surface mb-4">
-        <Lock class="text-on-surface" :size="24" />
+      <div class="flex gap-2 items-center text-on-ghost mb-4">
+        <Lock class="text-on-ghost" :size="24" />
         <h2 class="m-0 text-h2 leading-6">
           {{ t('school.private.onlyVisibleToYou') }}
         </h2>
@@ -147,14 +147,14 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     <div v-if="user" class="private-task-list">
       <div v-if="loading" class="flex flex-col items-center gap-3 p-8">
         <BaseSpinner on="ghost" size="24px" />
-        <div class="text-on-surface-muted">
+        <div class="text-on-ghost-muted">
           {{ t('school.private.loading') }}
         </div>
       </div>
 
       <div
         v-else-if="privateTasks.length === 0"
-        class="p-12 text-center text-on-surface-muted"
+        class="p-12 text-center text-on-ghost-muted"
       >
         <p>{{ t('school.private.noEntriesFound') }}</p>
       </div>
@@ -268,4 +268,3 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     </div>
   </div>
 </template>
-

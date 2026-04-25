@@ -108,14 +108,14 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 h2 {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   margin-bottom: 5px;
 }
 .stats {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   font-weight: bold;
 }
 .grid {
@@ -165,7 +165,7 @@ h2 {
 .game-over {
   margin-top: 20px;
   text-align: center;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 .btn {
   margin-top: 10px;

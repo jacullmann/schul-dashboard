@@ -233,7 +233,7 @@ onUnmounted(() => {
       }"
     >
       <div
-        class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-hover text-on-surface-muted"
+        class="flex items-center justify-center w-11 h-11 rounded-lg bg-surface-hover text-on-ghost-muted"
         :class="{
           '!bg-success-surface !text-[var(--special--green)]': mfaEnabled,
         }"
@@ -241,18 +241,18 @@ onUnmounted(() => {
         <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
       </div>
       <div class="flex flex-col gap-0.5">
-        <span class="text-sub text-on-surface-muted"
+        <span class="text-sub text-on-ghost-muted"
           >Zwei-Faktor-Authentifizierung</span
         >
         <span
-          class="text-body font-semibold text-on-surface-muted"
+          class="text-body font-semibold text-on-ghost-muted"
           :class="{ '!text-[var(--special--green)]': mfaEnabled }"
         >
           {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
         </span>
       </div>
     </div>
-    <p class="text-sub text-on-surface-muted leading-[1.5] m-0 font-sans">
+    <p class="text-sub text-on-ghost-muted leading-[1.5] m-0 font-sans">
       Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein
       Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google
       Authenticator.
@@ -270,7 +270,7 @@ onUnmounted(() => {
           :class="{ '!opacity-100': setupStep === 1 || setupStep > 1 }"
         >
           <span
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-ghost-muted"
             :class="{
               '!bg-action !text-on-action': setupStep === 1,
               '!bg-[var(--special--green)] !text-white': setupStep > 1,
@@ -278,8 +278,8 @@ onUnmounted(() => {
             >1</span
           >
           <span
-            class="text-sub text-on-surface-muted"
-            :class="{ '!text-on-surface': setupStep === 1 }"
+            class="text-sub text-on-ghost-muted"
+            :class="{ '!text-on-ghost': setupStep === 1 }"
             >QR-Code scannen</span
           >
         </div>
@@ -289,13 +289,13 @@ onUnmounted(() => {
           :class="{ '!opacity-100': setupStep === 2 }"
         >
           <span
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-surface-muted"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-ghost-muted"
             :class="{ '!bg-action !text-on-action': setupStep === 2 }"
             >2</span
           >
           <span
-            class="text-sub text-on-surface-muted"
-            :class="{ '!text-on-surface': setupStep === 2 }"
+            class="text-sub text-on-ghost-muted"
+            :class="{ '!text-on-ghost': setupStep === 2 }"
             >Code eingeben</span
           >
         </div>
@@ -304,7 +304,7 @@ onUnmounted(() => {
       <!-- Step 1 -->
       <div v-if="setupStep === 1" class="flex flex-col gap-4">
         <p
-          class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans"
+          class="text-sub text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
         >
           Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
           Authenticator).
@@ -318,19 +318,19 @@ onUnmounted(() => {
         </div>
 
         <div v-if="manualSecret" class="flex flex-col gap-2 items-center">
-          <p class="text-sub text-on-surface-muted m-0">
+          <p class="text-sub text-on-ghost-muted m-0">
             Oder gib diesen Code manuell ein:
           </p>
           <div
             class="flex items-center gap-2 p-1 bg-surface border border-surface-border shadow-input rounded-lg"
           >
             <code
-              class="font-mono text-sub text-on-surface tracking-[4px] pl-2 py-1.5"
+              class="font-mono text-sub text-on-ghost tracking-[4px] pl-2 py-1.5"
               >{{ formattedSecret }}</code
             >
             <button
               type="button"
-              class="flex items-center justify-center p-2 bg-none border-none text-on-surface-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-surface"
+              class="flex items-center justify-center p-2 bg-none border-none text-on-ghost-muted cursor-pointer rounded-lg transition-all hover:bg-surface-hover hover:text-on-ghost"
               @click="copySecret"
               :title="copied ? 'Kopiert!' : 'Kopieren'"
             >
@@ -340,7 +340,7 @@ onUnmounted(() => {
         </div>
 
         <div
-          class="flex items-center justify-center gap-1.5 text-sub text-on-surface-muted font-sans"
+          class="flex items-center justify-center gap-1.5 text-sub text-on-ghost-muted font-sans"
           v-if="expiresAt"
         >
           <Clock :size="16" />
@@ -360,7 +360,7 @@ onUnmounted(() => {
       <!-- Step 2 -->
       <div v-if="setupStep === 2" class="flex flex-col gap-4">
         <p
-          class="text-sub text-on-surface-muted leading-[1.5] m-0 text-center font-sans"
+          class="text-sub text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
         >
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
           Einrichtung abzuschließen.
@@ -375,7 +375,7 @@ onUnmounted(() => {
             pattern="[0-9]*"
             maxlength="6"
             placeholder="000000"
-            class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-surface transition-colors focus:outline-none focus:border-on-surface"
+            class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
             :class="{ '!border-danger': verifyError }"
             @input="handleCodeInput"
             @keyup.enter="activateMfa"
@@ -437,7 +437,7 @@ onUnmounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-surface transition-colors focus:outline-none focus:border-on-surface"
+          class="w-[180px] p-3 text-3xl font-mono text-center bg-surface border border-surface-border shadow-input rounded-xl text-on-ghost transition-colors focus:outline-none focus:border-on-ghost"
           :class="{ '!border-danger': deactivateError }"
           @input="handleDeactivateCodeInput"
           @keyup.enter="confirmDeactivate"

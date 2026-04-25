@@ -57,7 +57,9 @@ const fillStyle = computed(() => {
       viewBox="0 0 24 24"
       class="w-full h-full transition-all duration-700 ease-in-out text-current"
       :class="[
-        loading ? 'animate-[ai-fluid_2s_ease-in-out_infinite] opacity-90' : 'animate-none scale-100',
+        loading
+          ? 'animate-[ai-fluid_2s_ease-in-out_infinite] opacity-90'
+          : 'animate-none scale-100',
         { 'hover:scale-110 active:scale-95': !loading },
       ]"
       aria-hidden="true"
@@ -103,7 +105,14 @@ const fillStyle = computed(() => {
 
 <style>
 @keyframes ai-fluid {
-  0%, 100% { transform: scale(0.75); filter: blur(0px); }
-  50% { transform: scale(1.25); filter: blur(1px); }
+  0%,
+  100% {
+    transform: scale(0.75);
+    filter: blur(0px);
+  }
+  50% {
+    transform: scale(1.25);
+    filter: blur(1px);
+  }
 }
 </style>

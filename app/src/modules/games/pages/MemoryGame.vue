@@ -99,11 +99,11 @@ onMounted(initGame);
   border-radius: 8px;
 }
 h2 {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   margin-bottom: 5px;
 }
 p {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin-bottom: 20px;
 }
 .grid {
@@ -156,7 +156,7 @@ p {
 .game-over {
   margin-top: 20px;
   text-align: center;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 .btn {
   margin-top: 10px;

@@ -81,19 +81,19 @@ function getIcon(name: string) {
   margin-bottom: 12px;
   background: linear-gradient(
     135deg,
-    var(--color-on-surface) 0%,
+    var(--color-on-ghost) 0%,
     rgba(255, 255, 255, 0.7) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   letter-spacing: -0.02em;
 }
 
 .subtitle {
   font-size: 1.1rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
@@ -112,7 +112,7 @@ function getIcon(name: string) {
   border-radius: 20px;
   padding: 2px;
   text-decoration: none;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   overflow: hidden;
   transition:
     transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
@@ -209,7 +209,7 @@ function getIcon(name: string) {
 
 .test-desc {
   font-size: 0.95rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   line-height: 1.5;
   margin-bottom: 24px;
 }
@@ -228,17 +228,17 @@ function getIcon(name: string) {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .score-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 .no-score .score-value {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-weight: 500;
 }
 

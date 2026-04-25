@@ -111,7 +111,7 @@ function onTestFinish(score: number) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -120,7 +120,7 @@ function onTestFinish(score: number) {
 }
 
 .back-btn:hover {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 .test-info {
@@ -174,7 +174,7 @@ function onTestFinish(score: number) {
 }
 
 .not-found p {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin-bottom: 24px;
 }
 

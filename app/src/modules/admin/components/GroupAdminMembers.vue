@@ -116,13 +116,13 @@ function confirmRemove() {
 
     <div
       v-if="loading && members.length === 0"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       Lädt...
     </div>
     <div
       v-else-if="members.length === 0"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       Keine Mitglieder gefunden.
     </div>
@@ -143,7 +143,7 @@ function confirmRemove() {
             :class="{
               'text-[#6366f1]': member.role === 'admin',
               'text-[#f59e0b]': member.role === 'moderator',
-              'text-on-surface-muted': member.role === 'user',
+              'text-on-ghost-muted': member.role === 'user',
             }"
           >
             {{ roleLabel(member.role) }}
@@ -162,7 +162,7 @@ function confirmRemove() {
             ]"
           />
           <button
-            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-surface-muted hover:bg-surface-hover hover:text-[#ef4444] transition-colors"
+            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-ghost-muted hover:bg-surface-hover hover:text-[#ef4444] transition-colors"
             @click="openRemoveModal(member.userId, member.generatedName)"
             title="Aus Gruppe entfernen"
             :disabled="member.role === 'admin'"
@@ -171,7 +171,7 @@ function confirmRemove() {
           </button>
           <button
             v-if="isOwner && member.role === 'admin'"
-            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-surface-muted hover:bg-surface-hover hover:text-[#6366f1] transition-colors"
+            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-ghost-muted hover:bg-surface-hover hover:text-[#6366f1] transition-colors"
             @click="emit('transfer-ownership', member.userId)"
             title="Eigentümerschaft übertragen"
           >
@@ -185,13 +185,13 @@ function confirmRemove() {
 
     <div
       v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       Loading...
     </div>
     <div
       v-else-if="!bannedUsers || bannedUsers.length === 0"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       No banned users.
     </div>
@@ -207,7 +207,7 @@ function confirmRemove() {
             >{{ user.generatedName }}</span
           >
           <span
-            class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-surface-muted"
+            class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] text-on-ghost-muted"
             >Banned On
             {{ new Date(user.bannedAt).toLocaleDateString('de-DE') }}</span
           >

@@ -183,7 +183,10 @@ const handleCancel = async () => {
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const chatContainer = ref<HTMLElement | null>(null);
 const innerContainerRef = ref<any>(null);
-const innerContainerEl = computed(() => innerContainerRef.value?.$el || innerContainerRef.value as HTMLElement);
+const innerContainerEl = computed(
+  () =>
+    innerContainerRef.value?.$el || (innerContainerRef.value as HTMLElement),
+);
 const dynamicSpacerHeight = ref(0);
 
 const calculateSpacer = () => {
@@ -398,7 +401,11 @@ const toggleSpeechRecognition = () => {
           v-for="message in displayMessages"
           :key="message.id"
           class="flex"
-          :class="[message.role === 'human' ? 'justify-start is-human' : 'justify-end is-ai']"
+          :class="[
+            message.role === 'human'
+              ? 'justify-start is-human'
+              : 'justify-end is-ai',
+          ]"
         >
           <div v-if="message.role === 'human'" class="w-full group">
             <div class="flex">
@@ -448,14 +455,21 @@ const toggleSpeechRecognition = () => {
         <div v-if="isThinking" key="thinking" class="flex justify-start">
           <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
-            <span class="text-body text-on-surface-muted">{{
+            <span class="text-body text-on-ghost-muted">{{
               isSearching
                 ? t('chat.status.searching_user') + dots
                 : t('chat.status.waiting') + dots
             }}</span>
           </div>
         </div>
-        <div key="dynamic-spacer" class="chat-spacer shrink-0 w-full pointer-events-none" :style="{ height: dynamicSpacerHeight + 'px', transition: 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)' }"></div>
+        <div
+          key="dynamic-spacer"
+          class="chat-spacer shrink-0 w-full pointer-events-none"
+          :style="{
+            height: dynamicSpacerHeight + 'px',
+            transition: 'height 0.2s cubic-bezier(0.25, 1, 0.5, 1)',
+          }"
+        ></div>
       </TransitionGroup>
     </main>
 
@@ -486,7 +500,7 @@ const toggleSpeechRecognition = () => {
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
             <div
-              class="text-4xl font-normal text-on-surface mb-2"
+              class="text-4xl font-normal text-on-ghost mb-2"
               v-html="
                 isLockedIn
                   ? 'Want to try being an <b>LLM</b>?'
@@ -547,7 +561,7 @@ const toggleSpeechRecognition = () => {
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Respond to the user"
-              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
             ></textarea>
 
             <BaseRow justify="between">
@@ -646,7 +660,7 @@ const toggleSpeechRecognition = () => {
             <div
               v-if="displayMessages.length > 0"
               key="disclaimer"
-              class="text-xs text-center text-on-surface-subtle m-4 mb-2"
+              class="text-xs text-center text-on-ghost-subtle m-4 mb-2"
             >
               Natural Intelligence makes mistakes. Don't share personal data
             </div>

@@ -26,9 +26,9 @@ withDefaults(
   <BaseTooltip :content="label" :shortcut="shortcut" :disabled="!label">
     <button
       v-bind="$attrs"
-      class="group gap-0 items-center flex px-3 py-2.5 md:p-2! min-h-9 min-w-9 text-on-surface rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full"
+      class="group gap-0 items-center flex px-3 py-2.5 md:p-2! min-h-9 min-w-9 text-on-ghost rounded-full bg-transparent hover:bg-surface-hover transition-hover cursor-pointer outline-none w-full"
       :class="{
-        'bg-surface-hover! border-surface-hover! text-on-surface!':
+        'bg-surface-hover! border-surface-hover! text-on-ghost!':
           active && (icon || expanded),
       }"
     >
@@ -48,8 +48,8 @@ withDefaults(
           expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0',
           !icon ? 'ml-1!' : '',
           active
-            ? 'text-on-surface!'
-            : 'text-on-surface-muted group-hover:text-on-surface',
+            ? 'text-on-ghost!'
+            : 'text-on-ghost-muted group-hover:text-on-ghost',
         ]"
       >
         {{ label }}

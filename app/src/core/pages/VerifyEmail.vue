@@ -144,14 +144,14 @@ onMounted(async () => {
   font-family: var(--font-display), sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   margin: 0 0 16px 0;
   line-height: 1.2;
 }
 
 .verify-description {
   font-size: 16px;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin: 0 0 32px 0;
   max-width: 480px;
   line-height: 1.5;
@@ -178,7 +178,7 @@ onMounted(async () => {
 
 .info-card-text {
   font-size: 14px;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   line-height: 1.5;
 }
 
@@ -206,7 +206,7 @@ onMounted(async () => {
 .error-reasons {
   margin: 0;
   padding-left: 24px;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-size: 14px;
   line-height: 1.8;
 }
@@ -223,7 +223,7 @@ onMounted(async () => {
   margin-top: 8px;
 }
 .white-text {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 @media (max-width: 768px) {

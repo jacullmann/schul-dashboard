@@ -76,23 +76,23 @@ export function useMatchmaking() {
       matchSubscription = channel;
 
       channel.on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'sessions',
-            filter: `id=eq.${sessionId}`,
-          },
-          (payload) => {
-            const updatedSession = payload.new as GameSession;
-            activeSession.value = updatedSession;
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'sessions',
+          filter: `id=eq.${sessionId}`,
+        },
+        (payload) => {
+          const updatedSession = payload.new as GameSession;
+          activeSession.value = updatedSession;
 
-            if (updatedSession.status === 'active') {
-              isSearching.value = false;
-              cleanupSubscription(); // We found a match, stop listening to matchmaking changes
-            }
-          },
-        );
+          if (updatedSession.status === 'active') {
+            isSearching.value = false;
+            cleanupSubscription(); // We found a match, stop listening to matchmaking changes
+          }
+        },
+      );
 
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -156,7 +156,7 @@ export function useMatchmaking() {
 
       if (existingSessions && existingSessions.length > 0) {
         const sessionId = existingSessions[0].id;
-        
+
         if (existingSessions[0].status === 'waiting') {
           isSearching.value = true;
         }
@@ -167,22 +167,24 @@ export function useMatchmaking() {
         const channel = supabase.channel(`session_wait_${sessionId}`);
         matchSubscription = channel;
 
-        channel.on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'sessions',
-            filter: `id=eq.${sessionId}`,
-          },
-          (payload) => {
-            activeSession.value = payload.new as GameSession;
-            if (payload.new.status === 'active') {
-               isSearching.value = false;
-               cleanupSubscription();
-            }
-          }
-        ).subscribe();
+        channel
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'sessions',
+              filter: `id=eq.${sessionId}`,
+            },
+            (payload) => {
+              activeSession.value = payload.new as GameSession;
+              if (payload.new.status === 'active') {
+                isSearching.value = false;
+                cleanupSubscription();
+              }
+            },
+          )
+          .subscribe();
       }
     } catch (err: any) {
       console.error('Session recovery failed:', err);

@@ -57,17 +57,28 @@ function saveAndExit() {
 </script>
 
 <template>
-  <div class="absolute inset-0 flex items-center justify-center bg-[#2b87d1] text-white text-center select-none" :class="state">
+  <div
+    class="absolute inset-0 flex items-center justify-center bg-[#2b87d1] text-white text-center select-none"
+    :class="state"
+  >
     <div v-if="state === 'idle'" class="flex flex-col items-center">
       <Target :size="64" class="mb-5" />
       <h2 class="text-[3rem] font-extrabold mb-3">Aim Trainer</h2>
-      <p class="text-[1.5rem] opacity-90 mb-[30px]">Klicke auf 30 Zielscheiben so schnell du kannst.</p>
-      <BaseButton class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-white text-[#2b87d1]" @click="startGame"
+      <p class="text-[1.5rem] opacity-90 mb-[30px]">
+        Klicke auf 30 Zielscheiben so schnell du kannst.
+      </p>
+      <BaseButton
+        class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-white text-[#2b87d1]"
+        @click="startGame"
         >Starten</BaseButton
       >
     </div>
 
-    <div v-else-if="state === 'playing'" class="absolute inset-0 flex flex-col" @mousedown.prevent>
+    <div
+      v-else-if="state === 'playing'"
+      class="absolute inset-0 flex flex-col"
+      @mousedown.prevent
+    >
       <div class="p-5 text-[1.5rem] font-bold text-center">
         Ziele: {{ targetsHit }} / {{ TARGETS_TOTAL }}
       </div>
@@ -87,10 +98,14 @@ function saveAndExit() {
       <h2 class="text-[3rem] font-extrabold mb-3">Durchschnittszeit</h2>
       <p class="text-[4rem] font-extrabold mb-10">{{ averageTime }} ms</p>
       <div class="flex gap-4">
-        <BaseButton class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-white text-[#2b87d1]" @click="saveAndExit"
+        <BaseButton
+          class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-white text-[#2b87d1]"
+          @click="saveAndExit"
           >Speichern & Beenden</BaseButton
         >
-        <BaseButton class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-[rgba(255,255,255,0.2)] text-white" @click="reset"
+        <BaseButton
+          class="p-3.5 px-7 rounded-xl text-[1.1rem] font-semibold border-none cursor-pointer transition-transform hover:scale-105 bg-[rgba(255,255,255,0.2)] text-white"
+          @click="reset"
           >Nochmal</BaseButton
         >
       </div>

@@ -562,7 +562,7 @@ function formatDuration(ms?: number): string {
                 <div
                   v-for="(step, idx) in message.steps"
                   :key="idx"
-                  class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120 text-on-surface-muted"
+                  class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120 text-on-ghost-muted"
                 >
                   <component
                     :is="getStepIcon(step.status)"
@@ -575,7 +575,7 @@ function formatDuration(ms?: number): string {
                   >
                   <span
                     v-if="step.duration_ms"
-                    class="shrink-0 text-[0.68rem] tabular-nums text-on-surface-subtle ml-auto"
+                    class="shrink-0 text-[0.68rem] tabular-nums text-on-ghost-subtle ml-auto"
                   >
                     {{ formatDuration(step.duration_ms) }}
                   </span>
@@ -684,7 +684,7 @@ function formatDuration(ms?: number): string {
             <div v-if="!isSearching" class="flex flex-col gap-0 mb-1">
               <BaseButton
                 :class="{
-                  'cursor-default! opacity-50! hover:bg-transparent! hover:text-on-surface-subtle!':
+                  'cursor-default! opacity-50! hover:bg-transparent! hover:text-on-ghost-subtle!':
                     liveSteps.length === 0,
                 }"
                 :disabled="liveSteps.length === 0"
@@ -720,8 +720,8 @@ function formatDuration(ms?: number): string {
                     class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120"
                     :class="
                       idx === liveSteps.length - 1
-                        ? 'text-on-surface'
-                        : 'text-on-surface-muted'
+                        ? 'text-on-ghost'
+                        : 'text-on-ghost-muted'
                     "
                   >
                     <component
@@ -736,7 +736,7 @@ function formatDuration(ms?: number): string {
                     >
                     <span
                       v-if="step.duration_ms"
-                      class="shrink-0 text-footnote tabular-nums text-on-surface-subtle ml-auto"
+                      class="shrink-0 text-footnote tabular-nums text-on-ghost-subtle ml-auto"
                     >
                       {{ formatDuration(step.duration_ms) }}
                     </span>
@@ -752,7 +752,7 @@ function formatDuration(ms?: number): string {
             <!-- Current status row -->
             <div class="flex items-center gap-2">
               <ChatLogo size="md" :loading="true" variant="gradient" />
-              <span class="text-body text-on-surface-muted">{{
+              <span class="text-body text-on-ghost-muted">{{
                 isSearching
                   ? t('chat.status.connecting') + dots
                   : t(
@@ -799,7 +799,7 @@ function formatDuration(ms?: number): string {
             v-if="displayMessages.length === 0"
             class="absolute bottom-[calc(100%+3rem)] left-0 w-full text-center"
           >
-            <div class="text-4xl font-normal text-on-surface">
+            <div class="text-4xl font-normal text-on-ghost">
               Tired of talking to <b>artificial</b> intelligence?
             </div>
           </div>
@@ -817,7 +817,7 @@ function formatDuration(ms?: number): string {
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Ask Natural Intelligence"
-              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
             ></textarea>
 
             <BaseRow justify="between">
@@ -952,7 +952,7 @@ function formatDuration(ms?: number): string {
             <div
               v-if="displayMessages.length > 0"
               key="disclaimer"
-              class="text-xs text-center text-on-surface-subtle m-4 mb-2"
+              class="text-xs text-center text-on-ghost-subtle m-4 mb-2"
             >
               Natural Intelligence makes mistakes. Don't share personal data
             </div>

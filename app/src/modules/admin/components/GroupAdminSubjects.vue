@@ -108,13 +108,13 @@ onMounted(() => {
     <!-- Loading / Empty -->
     <div
       v-if="loading && subjects.length === 0"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       Lädt...
     </div>
     <div
       v-else-if="subjects.length === 0"
-      class="text-center p-8 text-on-surface-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-body"
     >
       Keine Fächer vorhanden.
     </div>
@@ -137,7 +137,7 @@ onMounted(() => {
             <span
               class="text-[0.7rem] font-semibold uppercase tracking-[0.04em] flex-shrink-0"
               :class="
-                subject.isActive ? 'text-on-surface' : 'text-on-surface-muted'
+                subject.isActive ? 'text-on-ghost' : 'text-on-ghost-muted'
               "
             >
               {{ subject.isActive ? 'Aktiv' : 'Inaktiv' }}

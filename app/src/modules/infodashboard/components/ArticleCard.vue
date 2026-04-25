@@ -67,7 +67,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .badge-small {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   font-size: 14px;
   display: inline-block;
   font-weight: normal;
@@ -87,7 +87,7 @@ const formatDate = (dateStr: string) => {
 }
 
 .play-icon-card {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
 }
 
@@ -131,7 +131,7 @@ const formatDate = (dateStr: string) => {
 
 .card-excerpt {
   font-size: 1rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -143,7 +143,7 @@ const formatDate = (dateStr: string) => {
 
 .card-footer {
   font-size: 0.75rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin-top: 8px;
 }
 

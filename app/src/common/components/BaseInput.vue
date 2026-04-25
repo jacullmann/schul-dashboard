@@ -37,7 +37,7 @@ const togglePassword = () => {
 };
 
 const baseClasses =
-  'relative w-full px-3 py-2 min-h-10 touch-target rounded-lg bg-surface text-on-surface border border-surface-border text-body leading-5 outline-none shadow-input transition-focus focus:border-focus focus:shadow-focus-ring placeholder:text-on-surface-subtle';
+  'relative w-full px-3 py-2 min-h-10 touch-target rounded-lg bg-surface text-on-ghost border border-surface-border text-body leading-5 outline-none shadow-input transition-focus focus:border-focus focus:shadow-focus-ring placeholder:text-on-ghost-subtle';
 
 defineExpose({
   focus: () => inputRef.value?.focus(),
@@ -73,7 +73,7 @@ defineExpose({
       v-if="props.type === 'password'"
       type="button"
       @click="togglePassword"
-      class="absolute right-3 p-0 touch-target bg-transparent border-none cursor-pointer text-on-surface-muted flex items-center justify-center hover:text-on-surface transition-colors outline-none rounded-sm focus-visible:ring-2 focus-visible:ring-focus"
+      class="absolute right-3 p-0 touch-target bg-transparent border-none cursor-pointer text-on-ghost-muted flex items-center justify-center hover:text-on-ghost transition-colors outline-none rounded-sm focus-visible:ring-2 focus-visible:ring-focus"
       :aria-label="isPasswordVisible ? 'Hide password' : 'Show password'"
     >
       <EyeOff v-if="isPasswordVisible" :size="20" />

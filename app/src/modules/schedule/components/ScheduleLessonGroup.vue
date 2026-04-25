@@ -21,10 +21,10 @@ defineEmits<{
   <div
     class="bg-surface rounded-md border border-surface-border flex flex-col overflow-hidden z-[2] transition-colors duration-300 shadow-input"
     :class="[
-      isActive ? 'highlight-active bg-action !border-on-surface' : '',
+      isActive ? 'highlight-active bg-action !border-on-ghost' : '',
       isCurrentDay && !isActive ? 'current-day bg-graphite border-steel' : '',
       'min-[501px]:[grid-column:var(--col-desktop)]',
-      'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]'
+      'max-[500px]:![grid-column:var(--col-mobile)] max-[500px]:[scroll-snap-align:start] max-[500px]:[scroll-margin-left:0]',
     ]"
     :style="getGroupStyle(group)"
   >

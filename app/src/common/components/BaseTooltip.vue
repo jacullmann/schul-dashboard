@@ -39,13 +39,13 @@ const updatePosition = () => {
   const rect = triggerRef.value.getBoundingClientRect();
   const offset = 8;
 
-  // We calculate the anchor point. 
+  // We calculate the anchor point.
   // Notice we don't need the tooltip to be visible to get the trigger's rect.
   const pos: Record<string, CSSProperties> = {
     top: {
       top: `${rect.top - offset}px`,
       left: `${rect.left + rect.width / 2}px`,
-      // We use a CSS variable to pass the centering transform 
+      // We use a CSS variable to pass the centering transform
       // so it doesn't conflict with our transition transforms.
       '--translate-base': 'translate(-50%, -100%)',
     },
@@ -76,7 +76,7 @@ const transitionClasses = computed(() => {
     left: 'translate-x-1',
     right: '-translate-x-1',
   };
-  
+
   return {
     enter: 'transition duration-150 ease-out',
     leave: 'transition duration-100 ease-in',
@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
           class="fixed z-(--z-tooltip) pointer-events-none"
           :style="tooltipStyle"
         >
-          <div 
+          <div
             class="px-2 py-1.5 bg-action text-on-action text-xs leading-4 font-medium rounded-md shadow-lg whitespace-nowrap"
             style="transform: var(--translate-base)"
           >

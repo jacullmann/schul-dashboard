@@ -176,7 +176,7 @@ const resetGame = () => {
 }
 
 .winning-cell {
-  background-color: var(--color-on-surface-muted) !important;
+  background-color: var(--color-on-ghost-muted) !important;
 }
 
 .btn {

@@ -28,7 +28,7 @@ defineEmits<{
   >
     <span
       v-if="icon || avatarText"
-      class="shrink-0 flex items-center justify-center w-8 h-8 text-on-surface-muted"
+      class="shrink-0 flex items-center justify-center w-8 h-8 text-on-ghost-muted"
       :class="{ 'rounded-full bg-surface-hover': avatarText }"
     >
       <component v-if="icon" :is="icon" :size="20" />
@@ -36,12 +36,12 @@ defineEmits<{
     </span>
 
     <span class="flex-1 min-w-0">
-      <span class="block text-sub font-medium text-on-surface leading-tight">{{
+      <span class="block text-sub font-medium text-on-ghost leading-tight">{{
         label
       }}</span>
       <span
         v-if="description"
-        class="block text-footnote text-on-surface-muted truncate mt-0.5"
+        class="block text-footnote text-on-ghost-muted truncate mt-0.5"
         >{{ description }}</span
       >
     </span>

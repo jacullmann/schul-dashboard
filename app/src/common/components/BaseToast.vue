@@ -15,7 +15,7 @@ const ICON_COLORS: Record<string, string> = {
   success: 'text-on-action bg-action',
   error: 'text-on-danger bg-danger',
   warning: 'text-on-warn bg-warn',
-  info: 'text-on-surface bg-surface border border-surface-border',
+  info: 'text-on-ghost bg-surface border border-surface-border',
 };
 </script>
 
@@ -36,18 +36,25 @@ const ICON_COLORS: Record<string, string> = {
           :class="ICON_COLORS[toast.type]"
           :aria-atomic="true"
         >
-          <span
-            class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center"
-          >
+          <span class="ml-2.5 my-2.5 shrink-0 flex items-center justify-center">
             <component :is="ICONS[toast.type]" :size="20" />
           </span>
 
-          <span class="my-2.5 flex-1 min-w-0 break-words text-body leading-5 truncate">{{ toast.message }}</span>
+          <span
+            class="my-2.5 flex-1 min-w-0 break-words text-body leading-5 truncate"
+            >{{ toast.message }}</span
+          >
 
           <BaseButton
             v-if="toast.dismissible"
             :icon="X"
-            :on="toast.type === 'success' ? 'action' : toast.type === 'error' ? 'danger' : 'surface'"
+            :on="
+              toast.type === 'success'
+                ? 'action'
+                : toast.type === 'error'
+                  ? 'danger'
+                  : 'surface'
+            "
             @click="dismiss(toast.id)"
           />
         </div>

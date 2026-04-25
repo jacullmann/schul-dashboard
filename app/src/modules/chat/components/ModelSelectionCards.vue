@@ -19,9 +19,7 @@ const options = [
 </script>
 
 <template>
-  <div
-    class="w-full mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 px-0"
-  >
+  <div class="w-full mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 px-0">
     <button
       v-for="option in options"
       :key="option.value"
@@ -34,10 +32,24 @@ const options = [
           : 'bg-surface hover:bg-surface-hover-subtle',
       ]"
     >
-      <h3 class="mb-1" :class="modelValue === option.value ? 'text-on-action!' : 'text-on-surface!'">
+      <h3
+        class="mb-1"
+        :class="
+          modelValue === option.value ? 'text-on-action!' : 'text-on-ghost!'
+        "
+      >
         {{ option.label }}
       </h3>
-      <div class="text-sm leading-4" :class="modelValue === option.value ? 'text-on-action-muted' : 'text-on-surface-muted'">{{ option.description }}</div>
+      <div
+        class="text-sm leading-4"
+        :class="
+          modelValue === option.value
+            ? 'text-on-action-muted'
+            : 'text-on-ghost-muted'
+        "
+      >
+        {{ option.description }}
+      </div>
     </button>
   </div>
 </template>

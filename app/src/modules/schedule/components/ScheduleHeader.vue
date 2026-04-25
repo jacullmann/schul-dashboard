@@ -29,7 +29,7 @@ const { t, tm } = useI18n();
           class="mb-4"
         >
           <h3 class="text-h3 font-bold mb-1">{{ section.title }}</h3>
-          <p class="text-body text-on-surface-muted m-0">{{ section.text }}</p>
+          <p class="text-body text-on-ghost-muted m-0">{{ section.text }}</p>
         </div>
         <div class="w-full flex items-center justify-center mt-4">
           <img
@@ -42,10 +42,10 @@ const { t, tm } = useI18n();
     </template>
   </PageHeader>
 
-  <div v-if="loading" class="text-[12px] text-on-surface-muted my-2">
+  <div v-if="loading" class="text-[12px] text-on-ghost-muted my-2">
     {{ t('school.tables.schedule.loading') }}
   </div>
-  <!-- <div v-else-if="isPersonalized" class="inline-flex items-center px-2 py-1 bg-surface border border-surface-border rounded-md text-body text-on-surface shadow-input">
+  <!-- <div v-else-if="isPersonalized" class="inline-flex items-center px-2 py-1 bg-surface border border-surface-border rounded-md text-body text-on-ghost shadow-input">
     {{ t('school.tables.schedule.personalized') }}
   </div> -->
 </template>

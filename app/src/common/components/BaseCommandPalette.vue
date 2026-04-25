@@ -103,7 +103,7 @@ function setSelectedIndex(idx: number) {
     >
       <!-- Search input -->
       <div class="flex items-center gap-3 p-4 border-b border-surface-border">
-        <Search :size="20" class="text-on-surface-subtle shrink-0" />
+        <Search :size="20" class="text-on-ghost-subtle shrink-0" />
         <input
           :id="`${idPrefix}input`"
           ref="inputRef"
@@ -113,7 +113,7 @@ function setSelectedIndex(idx: number) {
           :placeholder="placeholder"
           autocomplete="off"
           spellcheck="false"
-          class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-surface text-body placeholder:text-on-surface-subtle"
+          class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle"
         />
         <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
       </div>
@@ -128,7 +128,7 @@ function setSelectedIndex(idx: number) {
 
       <!-- Footer hint -->
       <div
-        class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-surface-muted"
+        class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-ghost-muted"
       >
         <span class="flex items-center gap-1">
           <BaseKbd>↑</BaseKbd>

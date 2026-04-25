@@ -119,7 +119,7 @@ onClickOutside(
     <BaseButton
       @click="toggleMenu"
       class="outline-none"
-      :class="{ 'bg-surface-hover! text-on-surface!': isOpen }"
+      :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
       :aria-expanded="isOpen"
       :variant="'ghost'"

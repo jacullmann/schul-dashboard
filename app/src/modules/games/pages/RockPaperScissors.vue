@@ -151,7 +151,7 @@ const resetGame = () => {
 
 .choice-card h3 {
   margin-top: 0;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .icon-box {
@@ -213,7 +213,7 @@ const resetGame = () => {
   font-weight: bold;
   font-size: 1.1em;
   background-color: #9b59b6;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   transition:
     background-color 0.2s,
     transform 0.1s;
@@ -226,7 +226,7 @@ const resetGame = () => {
 
 .btn-reset {
   background-color: #e91e63;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   padding: 10px 20px;
   border: none;
   border-radius: 8px;

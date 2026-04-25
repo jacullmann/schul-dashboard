@@ -37,7 +37,7 @@ function handleBackdropClick() {
       class="w-full max-w-[420px] bg-canvas border border-canvas-border rounded-lg p-6 shadow-lg"
     >
       <div class="mb-6">
-        <h2 :id="title" class="text-h3 font-semibold text-on-surface m-0">
+        <h2 :id="title" class="text-h3 font-semibold text-on-ghost m-0">
           {{ title }}
         </h2>
       </div>

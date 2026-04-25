@@ -95,7 +95,7 @@ onMounted(async () => {
     v-if="announcements.length"
   >
     <div
-      class="p-2 px-3 text-on-surface text-sub flex items-center justify-center shadow-menu border-b border-surface-border"
+      class="p-2 px-3 text-on-ghost text-sub flex items-center justify-center shadow-menu border-b border-surface-border"
       :class="colorFor(currentAnnouncement.color).replace('is-', 'bg-')"
     >
       <div
@@ -114,7 +114,7 @@ onMounted(async () => {
       </div>
 
       <button
-        class="bg-none border-none text-on-surface-muted cursor-pointer flex items-center justify-center flex-shrink-0 ml-3 hover:text-on-surface"
+        class="bg-none border-none text-on-ghost-muted cursor-pointer flex items-center justify-center flex-shrink-0 ml-3 hover:text-on-ghost"
         @click.stop="toggleMenu"
       >
         <EllipsisVertical :size="16" />

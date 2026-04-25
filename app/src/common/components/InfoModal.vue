@@ -16,7 +16,7 @@ const closeModal = () => (isModalOpen.value = false);
 <template>
   <div class="flex items-center" :title="props.tooltip">
     <div
-      class="relative flex items-center justify-center cursor-pointer text-on-surface-muted transition-colors duration-100 hover:text-on-surface touch-target"
+      class="relative flex items-center justify-center cursor-pointer text-on-ghost-muted transition-colors duration-100 hover:text-on-ghost touch-target"
       @click="openModal"
     >
       <Info :size="20" />

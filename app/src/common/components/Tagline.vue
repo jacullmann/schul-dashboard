@@ -53,7 +53,7 @@ onMounted(() => {
 <template>
   <p
     v-if="isVisible"
-    class="text-on-surface-muted text-body font-sans italic font-medium m-0"
+    class="text-on-ghost-muted text-body font-sans italic font-medium m-0"
   >
     {{ displayQuote }}
   </p>

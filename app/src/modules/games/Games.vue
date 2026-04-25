@@ -30,7 +30,9 @@ const filteredGames = computed(() => {
     <div>
       <h2 class="mt-0 flex items-center gap-2">Spiele</h2>
     </div>
-    <div class="flex flex-col items-center justify-center content-center overflow-hidden p-5">
+    <div
+      class="flex flex-col items-center justify-center content-center overflow-hidden p-5"
+    >
       <div class="w-full max-w-[380px] mb-[30px] left-0">
         <BaseInput id="search-input" v-model="searchTag" placeholder="Suchen" />
       </div>
@@ -41,15 +43,21 @@ const filteredGames = computed(() => {
           :to="`/games/${game.id}`"
           class="no-underline color-inherit"
         >
-          <div class="bg-canvas rounded-lg overflow-hidden h-full flex flex-col border border-canvas-border m-[35px] sm:m-0">
+          <div
+            class="bg-canvas rounded-lg overflow-hidden h-full flex flex-col border border-canvas-border m-[35px] sm:m-0"
+          >
             <img
               :src="game.previewImage"
               :alt="`Vorschau von ${game.name}`"
               class="w-full h-[200px] object-cover"
             />
             <div class="p-4 flex-grow flex flex-col">
-              <h3 class="text-on-surface mt-0 mb-2 text-[1.5em]">{{ game.name }}</h3>
-              <p class="text-on-surface-muted text-[0.9em] mb-4 flex-grow">{{ game.description }}</p>
+              <h3 class="text-on-ghost mt-0 mb-2 text-[1.5em]">
+                {{ game.name }}
+              </h3>
+              <p class="text-on-ghost-muted text-[0.9em] mb-4 flex-grow">
+                {{ game.description }}
+              </p>
               <div class="mt-2.5">
                 <div
                   v-for="tag in game.tags"
@@ -64,7 +72,10 @@ const filteredGames = computed(() => {
         </router-link>
       </div>
 
-      <div v-if="filteredGames.length === 0" class="text-on-surface-muted text-center text-[1.2em] mt-10 flex items-center justify-center gap-2">
+      <div
+        v-if="filteredGames.length === 0"
+        class="text-on-ghost-muted text-center text-[1.2em] mt-10 flex items-center justify-center gap-2"
+      >
         <LucideFrown :size="20" />
         Keine Spiele gefunden
       </div>

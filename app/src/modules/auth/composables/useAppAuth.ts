@@ -81,9 +81,9 @@ async function doInitAuth(): Promise<void> {
 }
 
 async function doSwitchGroup(
-    groupId: string,
-    snapshot: GroupSnapshot,
-    checkAuthStatus: () => Promise<boolean>,
+  groupId: string,
+  snapshot: GroupSnapshot,
+  checkAuthStatus: () => Promise<boolean>,
 ): Promise<AuthResult> {
   try {
     const { status, data } = await hw.post('/api/groups/switch', { groupId });
@@ -91,7 +91,7 @@ async function doSwitchGroup(
     if ((status === 200 || status === 201) && data.ok) {
       await checkAuthStatus();
       window.dispatchEvent(
-          new CustomEvent('tenant-changed', { detail: { groupId } }),
+        new CustomEvent('tenant-changed', { detail: { groupId } }),
       );
       return { ok: true };
     }
@@ -111,10 +111,10 @@ async function doSwitchGroup(
     return {
       ok: false,
       error:
-          err.response?.data?.message ??
-          err.response?.data?.error ??
-          err.message ??
-          'Group switch failed.',
+        err.response?.data?.message ??
+        err.response?.data?.error ??
+        err.message ??
+        'Group switch failed.',
     };
   } finally {
     switchPromise = null;
@@ -142,7 +142,10 @@ export function useAppAuth() {
     return initPromise;
   }
 
-  async function joinGroup(name: string, password: string): Promise<AuthResult> {
+  async function joinGroup(
+    name: string,
+    password: string,
+  ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/api/groups/join', {
         groupName: name,
@@ -160,14 +163,17 @@ export function useAppAuth() {
       return {
         ok: false,
         error:
-            err.response?.data?.message ??
-            err.response?.data?.error ??
-            'Invalid code.',
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'Invalid code.',
       };
     }
   }
 
-  async function createGroup(name: string, password: string): Promise<AuthResult> {
+  async function createGroup(
+    name: string,
+    password: string,
+  ): Promise<AuthResult> {
     try {
       const { status, data } = await hw.post('/api/groups/create', {
         groupName: name,
@@ -185,9 +191,9 @@ export function useAppAuth() {
       return {
         ok: false,
         error:
-            err.response?.data?.message ??
-            err.response?.data?.error ??
-            'An error occurred.',
+          err.response?.data?.message ??
+          err.response?.data?.error ??
+          'An error occurred.',
       };
     }
   }

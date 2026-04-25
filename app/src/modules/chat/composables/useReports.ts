@@ -20,7 +20,7 @@ export function useReports() {
     reportedId: string,
     messageId: string | null,
     messageContentSnapshot: string,
-    reason: string
+    reason: string,
   ): Promise<boolean> => {
     if (!user.value) {
       reportError.value = 'You must be authenticated to submit a report.';
@@ -43,20 +43,20 @@ export function useReports() {
         message_id: messageId,
         message_content_snapshot: messageContentSnapshot,
         reason: reason,
-        status: 'pending' // Defaults to pending, but explicitly declaring is good practice
+        status: 'pending', // Defaults to pending, but explicitly declaring is good practice
       });
 
       if (error) throw error;
 
       reportSuccess.value = true;
       return true;
-
     } catch (err: any) {
       if (err.code === '23505') {
         reportError.value = 'already_reported';
         return false;
       }
-      reportError.value = err.message || 'An error occurred while submitting the report.';
+      reportError.value =
+        err.message || 'An error occurred while submitting the report.';
       console.error('Report Error:', err);
       return false;
     } finally {
@@ -65,7 +65,7 @@ export function useReports() {
   };
 
   /**
-   * Resets the report state, useful for closing a report modal 
+   * Resets the report state, useful for closing a report modal
    * and ensuring it's clean the next time it opens.
    */
   const resetReportState = () => {

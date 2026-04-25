@@ -69,7 +69,7 @@ const groupOptions = computed<UnitOption[]>(() =>
 const roleColors: Record<string, string> = {
   admin: 'text-[#6366f1]',
   moderator: 'text-[#f59e0b]',
-  user: 'text-on-surface-muted',
+  user: 'text-on-ghost-muted',
   superadmin: 'text-danger',
 };
 
@@ -150,7 +150,7 @@ async function leaveGroup(group: any) {
       >
         <div>
           <h2>Groups Management</h2>
-          <p class="text-body text-on-surface-muted m-0 leading-relaxed">
+          <p class="text-body text-on-ghost-muted m-0 leading-relaxed">
             Manage your groups, leave or set a default group.
           </p>
         </div>
@@ -180,11 +180,11 @@ async function leaveGroup(group: any) {
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div class="flex items-center gap-2.5">
-          <h2 class="text-h2 font-bold text-on-surface m-0">
+          <h2 class="text-h2 font-bold text-on-ghost m-0">
             {{ t('groups.home.yourGroups') }}
           </h2>
           <span
-            class="text-on-surface-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5"
+            class="text-on-ghost-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5"
             >{{ userGroups.length }}</span
           >
         </div>
@@ -209,7 +209,7 @@ async function leaveGroup(group: any) {
           :disabled="navigatingGroupId === group.id"
         >
           <span
-            class="text-on-surface-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-surface"
+            class="text-on-ghost-muted group-[.active]:text-on-action flex items-center justify-center size-9 sm:size-10 shrink-0 transition-hover group-hover:text-on-ghost"
           >
             <component
               :is="group.id === activeGroupId ? FolderOpen : Folder"
@@ -219,7 +219,7 @@ async function leaveGroup(group: any) {
           <span class="flex flex-col flex-1 gap-0.5">
             <div class="flex items-center gap-1.5 overflow-hidden">
               <span
-                class="font-semibold text-body text-on-surface group-[.active]:text-on-action truncate"
+                class="font-semibold text-body text-on-ghost group-[.active]:text-on-action truncate"
               >
                 {{ group.name }}
               </span>
@@ -233,7 +233,7 @@ async function leaveGroup(group: any) {
             </span>
           </span>
 
-          <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-surface-muted group-[.active]:text-on-action-muted" / -->
+          <!-- ChevronRight :size="16" class="transition duration-150 ease-in-out opacity-0 group-hover:translate-x-0.5 group-hover:opacity-100 text-on-ghost-muted group-[.active]:text-on-action-muted" / -->
 
           <BaseButton
             @click.stop="openMenuId = openMenuId === group.id ? null : group.id"

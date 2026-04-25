@@ -66,13 +66,13 @@ function handleLink() {
             <GoogleIcon :size="24" />
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-sub font-semibold text-on-surface">Google</span>
+            <span class="text-sub font-semibold text-on-ghost">Google</span>
             <span
               v-if="googleLinked()"
-              class="text-[0.75rem] text-on-surface-muted"
+              class="text-[0.75rem] text-on-ghost-muted"
               >{{ googleProvider()?.email }}</span
             >
-            <span v-else class="text-[0.75rem] text-on-surface-muted"
+            <span v-else class="text-[0.75rem] text-on-ghost-muted"
               >Nicht verknüpft</span
             >
           </div>

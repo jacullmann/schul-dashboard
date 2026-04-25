@@ -43,11 +43,11 @@ const features = [
     <section class="w-full py-20 md:py-14 border-b border-surface-border">
       <div class="max-w-[1300px] w-full mx-auto px-4 lg:px-6 text-center">
         <h1
-          class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-surface leading-[1.15] mb-5 max-w-2xl mx-auto"
+          class="text-[clamp(2rem,5vw,3.5rem)] font-bold font-display text-on-ghost leading-[1.15] mb-5 max-w-2xl mx-auto"
         >
           {{ t('pages.features.title') }}
         </h1>
-        <p class="text-lg text-on-surface-muted leading-[1.65]">
+        <p class="text-lg text-on-ghost-muted leading-[1.65]">
           {{ t('pages.features.description') }}
         </p>
       </div>
@@ -63,10 +63,10 @@ const features = [
             :class="idx % 2 === 1 ? 'md:flex-row-reverse' : ''"
           >
             <div class="flex-1">
-              <h2 class="text-h2 font-bold font-display text-on-surface mb-3">
+              <h2 class="text-h2 font-bold font-display text-on-ghost mb-3">
                 {{ t(`pages.features.${feature.key}.title`) }}
               </h2>
-              <p class="text-on-surface-muted leading-[1.7] max-w-2xl">
+              <p class="text-on-ghost-muted leading-[1.7] max-w-2xl">
                 {{ t(`pages.features.${feature.key}.description`) }}
               </p>
             </div>
@@ -78,3 +78,4 @@ const features = [
     <CTASection />
   </div>
 </template>
+

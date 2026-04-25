@@ -710,7 +710,7 @@ onMounted(() => {
 }
 .stat-lbl {
   font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin-top: 4px;
 }
 
@@ -747,7 +747,7 @@ onMounted(() => {
 }
 .sub-lbl {
   font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .cleanup-card {
@@ -782,7 +782,7 @@ onMounted(() => {
 }
 .data-table th {
   background: var(--color-surface);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-weight: 500;
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -800,12 +800,12 @@ onMounted(() => {
 }
 .cell-id {
   font-size: 0.65rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-family: monospace;
 }
 .cell-date {
   font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   white-space: nowrap;
 }
 .cell-actions {
@@ -849,14 +849,14 @@ onMounted(() => {
   border-radius: 6px;
   background: transparent;
   border: none;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   cursor: pointer;
   transition: all 0.12s;
 }
 
 .btn-icon:hover {
   background: var(--color-surface-hover);
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 .btn-icon.danger:hover {
   background: rgba(239, 68, 68, 0.1);
@@ -909,14 +909,14 @@ onMounted(() => {
   margin-bottom: 8px;
 }
 .report-reason {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-size: var(--text-body);
   line-height: 1.4;
   margin-bottom: 8px;
 }
 .report-meta {
   font-size: var(--text-sub);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin-bottom: 10px;
 }
 .report-actions {
@@ -990,7 +990,7 @@ onMounted(() => {
 }
 .log-time {
   font-size: 0.75rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   display: block;
 }
 .log-type {
@@ -1001,7 +1001,7 @@ onMounted(() => {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin-top: 4px;
   overflow-x: auto;
 }
@@ -1022,7 +1022,7 @@ onMounted(() => {
 }
 .empty-msg {
   text-align: center;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   padding: 40px;
 }
 .sub-heading {
@@ -1031,7 +1031,7 @@ onMounted(() => {
   margin: 0 0 12px;
 }
 .sub-heading.muted {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 .tiny {
   display: inline-flex;

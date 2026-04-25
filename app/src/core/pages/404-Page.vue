@@ -108,7 +108,7 @@ const goBack = () => {
   font-family: var(--font-display), sans-serif;
   font-size: 96px;
   font-weight: 700;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   line-height: 1;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
@@ -118,13 +118,13 @@ const goBack = () => {
   font-family: var(--font-display), sans-serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   margin: 0 0 12px 0;
 }
 
 .error-description {
   font-size: var(--text-body);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   margin: 0 0 48px 0;
   max-width: 500px;
 }
@@ -138,7 +138,7 @@ const goBack = () => {
   font-family: var(--font-display), sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   margin: 0 0 16px 0;
   text-align: left;
 }
@@ -175,7 +175,7 @@ const goBack = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .nav-info {
@@ -186,13 +186,13 @@ const goBack = () => {
 .nav-title {
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   margin-bottom: 2px;
 }
 
 .nav-desc {
   font-size: 13px;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .action-section {

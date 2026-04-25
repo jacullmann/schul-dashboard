@@ -27,7 +27,7 @@ function closeMobileMenu() {
       <div class="flex items-center gap-8">
         <NuxtLink
           :to="localePath('index')"
-          class="inline-flex items-center gap-2.5 font-bold text-on-surface font-display no-underline hover:opacity-80 transition-opacity flex-shrink-0"
+          class="inline-flex items-center gap-2.5 font-bold text-on-ghost font-display no-underline hover:opacity-80 transition-opacity flex-shrink-0"
           aria-label="schul-dashboard home"
         >
           <img src="/favicon.svg" alt="" class="w-7 h-7" />
@@ -39,8 +39,8 @@ function closeMobileMenu() {
             v-for="link in navLinks"
             :key="link.route"
             :to="localePath(link.route)"
-            class="text-sub text-on-surface-muted font-medium no-underline transition-colors hover:text-on-surface"
-            active-class="text-on-surface"
+            class="text-sub text-on-ghost-muted font-medium no-underline transition-colors hover:text-on-ghost"
+            active-class="text-on-ghost"
           >
             {{ t(link.labelKey) }}
           </NuxtLink>
@@ -50,7 +50,7 @@ function closeMobileMenu() {
       <div class="hidden lg:flex items-center gap-3">
         <a
           :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-          class="text-sub text-on-surface-muted font-medium transition-colors hover:text-on-surface"
+          class="text-sub text-on-ghost-muted font-medium transition-colors hover:text-on-ghost"
         >
           {{ t('common.login') }}
         </a>
@@ -64,7 +64,7 @@ function closeMobileMenu() {
 
       <button
         type="button"
-        class="lg:hidden p-2 rounded-lg border border-surface-border text-on-surface-muted hover:text-on-surface hover:bg-surface-hover-subtle transition-colors"
+        class="lg:hidden p-2 rounded-lg border border-surface-border text-on-ghost-muted hover:text-on-ghost hover:bg-surface-hover-subtle transition-colors"
         :aria-expanded="mobileMenuOpen"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
@@ -79,7 +79,7 @@ function closeMobileMenu() {
             v-for="link in navLinks"
             :key="link.route"
             :to="localePath(link.route)"
-            class="px-3 py-2.5 rounded-lg text-on-surface text-sub font-medium no-underline transition-colors hover:bg-surface-hover-subtle"
+            class="px-3 py-2.5 rounded-lg text-on-ghost text-sub font-medium no-underline transition-colors hover:bg-surface-hover-subtle"
             @click="closeMobileMenu"
           >
             {{ t(link.labelKey) }}
@@ -87,7 +87,7 @@ function closeMobileMenu() {
           <div class="border-t border-surface-border my-2" />
           <a
             :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-            class="px-3 py-2.5 rounded-lg text-on-surface-muted text-sub font-medium transition-colors hover:bg-surface-hover-subtle"
+            class="px-3 py-2.5 rounded-lg text-on-ghost-muted text-sub font-medium transition-colors hover:bg-surface-hover-subtle"
           >
             {{ t('common.login') }}
           </a>
@@ -114,3 +114,4 @@ function closeMobileMenu() {
   transform: translateY(-8px);
 }
 </style>
+

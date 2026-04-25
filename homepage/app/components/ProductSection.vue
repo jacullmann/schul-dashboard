@@ -19,12 +19,12 @@ const highlights = [
       <div class="flex flex-col lg:flex-row items-center gap-16">
         <div class="flex-1 max-w-xl">
           <h2
-            class="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-on-surface font-display leading-[1.2] mb-5"
+            class="text-[clamp(1.75rem,3.5vw,2.5rem)] font-bold text-on-ghost font-display leading-[1.2] mb-5"
           >
             {{ t('sections.product.title') }}
           </h2>
 
-          <p class="text-on-surface-muted leading-[1.65] mb-8">
+          <p class="text-on-ghost-muted leading-[1.65] mb-8">
             {{ t('sections.product.description') }}
           </p>
 
@@ -32,7 +32,7 @@ const highlights = [
             <li
               v-for="key in highlights"
               :key="key"
-              class="flex items-start gap-3 text-on-surface-muted text-sub"
+              class="flex items-start gap-3 text-on-ghost-muted text-sub"
             >
               •
               <span>{{ t(key) }}</span>
@@ -54,3 +54,4 @@ const highlights = [
     </div>
   </section>
 </template>
+

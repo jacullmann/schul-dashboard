@@ -74,12 +74,12 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="sticky flex w-full justify-center items-center bg-canvas text-on-surface border-b border-canvas-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
+    class="sticky flex w-full justify-center items-center bg-canvas text-on-ghost border-b border-canvas-border font-display p-0 top-0 h-(--header-height) z-(--z-header)"
   >
     <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
       <!-- Mobile sidebar toggle -->
       <button
-        class="md:hidden relative p-2 -m-2 mr-0 text-on-surface bg-transparent rounded-md hover:bg-surface transition-hover"
+        class="md:hidden relative p-2 -m-2 mr-0 text-on-ghost bg-transparent rounded-md hover:bg-surface transition-hover"
         @click="toggleExpanded"
         :aria-expanded="isExpanded"
         aria-label="Toggle navigation menu"
@@ -115,7 +115,7 @@ onUnmounted(() => {
           <span class="logo-text">{{ groupName }}</span>
           <ChevronDown
             :size="16"
-            class="transition-transform duration-200 ease-in-out text-on-surface-muted group-hover:text-on-surface transition-hover"
+            class="transition-transform duration-200 ease-in-out text-on-ghost-muted group-hover:text-on-ghost transition-hover"
             :class="{ 'rotate-180': groupMenuOpen }"
           />
         </button>
@@ -158,7 +158,7 @@ onUnmounted(() => {
   align-items: center;
   text-decoration: none;
   gap: 0.6rem;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   flex: 0 1 auto;
   line-height: 1;
 }

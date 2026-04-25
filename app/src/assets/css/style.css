@@ -41,8 +41,6 @@
   /* Canvas */
   --color-canvas: var(--color-white);
   --color-canvas-border: var(--color-cloud);
-  --color-on-canvas: var(--color-black);
-  --color-on-canvas-muted: var(--color-graphite);
 
   /* Surface */
   --color-surface: var(--color-white);
@@ -50,9 +48,6 @@
   --color-surface-hover-subtle: oklch(0.9702 0 0);
   --color-surface-border: var(--color-cloud);
   --color-surface-hover-border: oklch(0.7921 0 0);
-  --color-on-surface: var(--color-black);
-  --color-on-surface-muted: var(--color-graphite);
-  --color-on-surface-subtle: var(--color-ghost);
 
   /* Ghost */
   --color-ghost-hover: var(--color-smoke);
@@ -202,8 +197,8 @@
     /* Canvas */
     --color-canvas: var(--color-onyx);
     --color-canvas-border: var(--color-charcoal);
-    --color-on-canvas: var(--color-white);
-    --color-on-canvas-muted: var(--color-ash);
+    --color-on-ghost: var(--color-white);
+    --color-on-ghost-muted: var(--color-ash);
 
     /* Surface */
     --color-surface: var(--color-charcoal);
@@ -211,9 +206,9 @@
     --color-surface-hover-subtle: var(--color-charcoal-highlight);
     --color-surface-border: var(--color-graphite);
     --color-surface-hover-border: var(--color-steel);
-    --color-on-surface: var(--color-white);
-    --color-on-surface-muted: var(--color-ash);
-    --color-on-surface-subtle: var(--color-ghost);
+    --color-on-ghost: var(--color-on-ghost);
+    --color-on-ghost-muted: var(--color-on-ghost-muted);
+    --color-on-ghost-subtle: var(--color-on-ghost-subtle);
 
     /* Ghost */
     --color-ghost-hover: var(--color-mist);
@@ -333,7 +328,7 @@ body,
 
 body {
   margin: 0;
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   font-family: var(--font-sans), sans-serif;
   position: relative;
 }
@@ -357,7 +352,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
   font-family: var(--font-display), sans-serif;
   font-weight: bold;
   text-align: left;
@@ -392,11 +387,11 @@ h6 {
 
 strong,
 b {
-  color: var(--color-on-surface);
+  color: var(--color-on-ghost);
 }
 
 p {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-size: var(--text-body);
   margin: 1em 0;
 }
@@ -419,18 +414,18 @@ p {
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: var(--color-on-surface-subtle);
+    background-color: var(--color-on-ghost-subtle);
     border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-on-surface-muted);
+    background-color: var(--color-on-ghost-muted);
   }
 
   /* For Firefox */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-on-surface-subtle) transparent;
+    scrollbar-color: var(--color-on-ghost-subtle) transparent;
   }
 
   .toast-enter-active {
@@ -577,7 +572,7 @@ p {
     padding: 8px 12px;
     border-radius: var(--radius-md);
     background: var(--color-surface);
-    color: var(--color-on-surface);
+    color: var(--color-on-ghost);
     border: 1px solid var(--color-surface-border);
     font-size: var(--text-btn);
     line-height: 1rem;
@@ -598,7 +593,7 @@ p {
 
   .input::placeholder,
   textarea::placeholder {
-    color: var(--color-on-surface-subtle);
+    color: var(--color-on-ghost-subtle);
   }
 
   .btn {
@@ -620,7 +615,7 @@ p {
   .btn.ghost {
     background: var(--color-surface);
     border-color: var(--color-surface-border);
-    color: var(--color-on-surface);
+    color: var(--color-on-ghost);
     box-shadow: var(--shadow-input);
   }
 
@@ -689,13 +684,13 @@ hr {
 
 .small {
   font-size: 12px;
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .badge {
   padding: 4px 8px;
   border-radius: var(--radius-md);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
 }
 
 .badge:hover {
@@ -722,7 +717,7 @@ hr {
 }
 
 footer {
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-ghost-muted);
   font-size: var(--text-sub);
 }
 
@@ -819,7 +814,7 @@ footer {
   .btn.ghost:hover {
     background: var(--color-surface);
     border: 1px solid var(--color-surface-border);
-    color: var(--color-on-surface);
+    color: var(--color-on-ghost);
   }
 
   .btn.danger:hover {
@@ -838,3 +833,5 @@ footer {
     opacity: 0.5;
   }
 }
+
+

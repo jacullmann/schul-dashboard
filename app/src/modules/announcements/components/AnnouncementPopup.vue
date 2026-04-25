@@ -58,7 +58,7 @@ function cancel() {
     </template>
 
     <template #content>
-      <div class="py-2.5 text-on-surface leading-[1.5] text-[14px]">
+      <div class="py-2.5 text-on-ghost leading-[1.5] text-[14px]">
         {{ announcement.content }}
       </div>
     </template>

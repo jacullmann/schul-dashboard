@@ -24,18 +24,18 @@ onMounted(() => {
     <div
       class="flex flex-col gap-3 px-4 py-3.5 rounded-xl border border-surface-border bg-canvas shadow-menu"
     >
-      <p class="text-footnote text-on-surface-muted leading-[1.6] m-0">
+      <p class="text-footnote text-on-ghost-muted leading-[1.6] m-0">
         We use only essential cookies to keep the site running.
         <NuxtLink
           to="/legal/privacy-policy"
-          class="text-on-surface underline hover:no-underline transition-colors"
+          class="text-on-ghost underline hover:no-underline transition-colors"
         >
           Privacy Policy
         </NuxtLink>
       </p>
       <button
         type="button"
-        class="self-end px-3.5 py-1.5 rounded-lg border border-surface-border text-footnote font-medium text-on-surface-muted transition-colors hover:border-surface-hover-border hover:text-on-surface"
+        class="self-end px-3.5 py-1.5 rounded-lg border border-surface-border text-footnote font-medium text-on-ghost-muted transition-colors hover:border-surface-hover-border hover:text-on-ghost"
         @click="dismiss"
       >
         Got it
@@ -43,3 +43,4 @@ onMounted(() => {
     </div>
   </div>
 </template>
+

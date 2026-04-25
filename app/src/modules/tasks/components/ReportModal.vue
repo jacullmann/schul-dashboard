@@ -54,7 +54,7 @@ watch(
     <template #title-infopop>
       <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
         <h3 class="text-h3 font-display font-bold mb-2">Falschinformationen</h3>
-        <p class="text-on-surface-muted text-body mb-4">
+        <p class="text-on-ghost-muted text-body mb-4">
           Die Informationen, welche in dem Eintrag genannt werden, oder die
           hochgeladenen Bilder enthalten falsche oder irreführende Inhalte?
           Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden,
@@ -63,8 +63,10 @@ watch(
           kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie
           geprüft wurde, dem gemeldeten Eintrag angehängt.
         </p>
-        <h3 class="text-h3 font-display font-bold mb-2">Unangebrachte/Illegale Inhalte</h3>
-        <p class="text-on-surface-muted text-body mb-4">
+        <h3 class="text-h3 font-display font-bold mb-2">
+          Unangebrachte/Illegale Inhalte
+        </h3>
+        <p class="text-on-ghost-muted text-body mb-4">
           Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen
           oder geltendes Recht verstoßen, werden umgehend entfernt. Falls
           genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig
@@ -77,7 +79,9 @@ watch(
     </template>
 
     <template #content>
-      <p class="text-on-surface font-semibold text-sm mb-4">Wähle den Grund aus:</p>
+      <p class="text-on-ghost font-semibold text-sm mb-4">
+        Wähle den Grund aus:
+      </p>
 
       <div class="w-full mb-0">
         <BaseTabs
@@ -88,7 +92,10 @@ watch(
       </div>
 
       <div class="mb-6 relative">
-        <BaseLabel for="reportReason" class="block text-sm font-medium mb-2 text-on-surface">
+        <BaseLabel
+          for="reportReason"
+          class="block text-sm font-medium mb-2 text-on-ghost"
+        >
           {{
             category === 'falschinfo'
               ? 'Begründung (erforderlich)'
@@ -108,7 +115,9 @@ watch(
           :maxlength="MAX_LENGTH"
         ></BaseInput>
         <div class="absolute bottom-[-5px] right-3 z-1 pointer-events-none">
-          <p class="text-footnote text-on-surface-muted opacity-80 px-2 py-0.5 rounded m-0">
+          <p
+            class="text-footnote text-on-ghost-muted opacity-80 px-2 py-0.5 rounded m-0"
+          >
             {{ reasonLength }} / {{ MAX_LENGTH }}
           </p>
         </div>
@@ -118,4 +127,3 @@ watch(
     <template #action-text> Eintrag melden </template>
   </BaseModal>
 </template>
-
