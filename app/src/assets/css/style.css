@@ -197,8 +197,6 @@
     /* Canvas */
     --color-canvas: var(--color-onyx);
     --color-canvas-border: var(--color-charcoal);
-    --color-on-ghost: var(--color-white);
-    --color-on-ghost-muted: var(--color-ash);
 
     /* Surface */
     --color-surface: var(--color-charcoal);
@@ -206,9 +204,6 @@
     --color-surface-hover-subtle: var(--color-charcoal-highlight);
     --color-surface-border: var(--color-graphite);
     --color-surface-hover-border: var(--color-steel);
-    --color-on-ghost: var(--color-on-ghost);
-    --color-on-ghost-muted: var(--color-on-ghost-muted);
-    --color-on-ghost-subtle: var(--color-on-ghost-subtle);
 
     /* Ghost */
     --color-ghost-hover: var(--color-mist);
