@@ -41,7 +41,7 @@ const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
     ghost: 'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost',
     action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
-    danger: 'text-on-danger hover:bg-danger-hover hover:text-on-danger',
+    danger: 'text-on-danger hover:bg-danger-highlight hover:text-on-danger',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
@@ -49,10 +49,10 @@ const classes = computed(() => {
     input: [
       'bg-surface text-on-ghost border border-surface-border',
       'shadow-input rounded-lg! px-3! py-2! w-full',
-      'hover:bg-surface-hover-subtle',
+      'hover:bg-surface-highlight',
     ].join(' '),
     action: ['bg-action text-on-action', 'hover:bg-action-hover'].join(' '),
-    danger: ['bg-danger text-on-danger', 'hover:bg-danger-hover'].join(' '),
+    danger: ['bg-danger text-on-danger', 'hover:bg-danger-highlight'].join(' '),
   };
 
   return variantClasses[props.variant ?? 'ghost'];

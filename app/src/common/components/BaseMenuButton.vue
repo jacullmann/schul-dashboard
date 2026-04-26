@@ -34,7 +34,7 @@ defineExpose({
     class="flex justify-between items-center w-full text-left bg-transparent border-0 pr-3 py-2 min-h-9 gap-4 rounded-lg cursor-pointer text-sub transition-hover user-select-none"
     :class="[
       variant === 'danger'
-        ? 'text-danger hover:bg-surface-danger'
+        ? 'text-danger hover:bg-danger-hover'
         : 'text-on-ghost hover:bg-ghost-hover',
       icon ? 'pl-2.5' : 'pl-3',
       { 'font-semibold': active },

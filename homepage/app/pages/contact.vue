@@ -50,7 +50,7 @@ const contactMethods = [
             :href="method.href"
             target="_blank"
             rel="noopener noreferrer"
-            class="group bg-surface border border-surface-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle hover:-translate-y-px"
+            class="group bg-surface border border-surface-border rounded-xl p-8 flex flex-col gap-5 no-underline transition-all hover:border-surface-hover-border hover:bg-surface-highlight hover:-translate-y-px"
           >
             <div
               class="w-12 h-12 rounded-xl bg-canvas border border-surface-border flex items-center justify-center text-on-ghost-muted group-hover:text-on-ghost transition-colors"
@@ -81,4 +81,3 @@ const contactMethods = [
     </section>
   </div>
 </template>
-

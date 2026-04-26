@@ -199,7 +199,7 @@ const activeTab = computed({
 }
 
 .adm-nav-item.active {
-  background: var(--color-surface-hover-subtle);
+  background: var(--color-surface-highlight);
   color: var(--color-on-ghost);
   font-weight: 600;
 }
@@ -222,7 +222,7 @@ const activeTab = computed({
 }
 
 .adm-nav-badge.danger {
-  background: var(--color-surface-danger);
+  background: var(--color-danger-hover);
   color: var(--color-danger);
 }
 

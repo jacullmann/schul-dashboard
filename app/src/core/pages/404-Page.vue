@@ -165,7 +165,7 @@ const goBack = () => {
 }
 
 .nav-card:hover {
-  background-color: var(--color-surface-hover-subtle);
+  background-color: var(--color-surface-highlight);
 }
 
 .nav-icon {

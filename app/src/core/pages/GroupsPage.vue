@@ -203,7 +203,7 @@ async function leaveGroup(group: any) {
         <button
           v-for="group in userGroups"
           :key="group.id"
-          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-hover-subtle disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
+          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
           :class="{ active: group.id === activeGroupId }"
           @click="navigateToGroup(group.id)"
           :disabled="navigatingGroupId === group.id"

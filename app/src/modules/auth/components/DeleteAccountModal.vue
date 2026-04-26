@@ -32,7 +32,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
     </template>
 
     <template #content>
-      <div class="bg-surface-danger border border-danger rounded-xl px-3 py-2">
+      <div class="bg-danger-hover border border-danger rounded-xl px-3 py-2">
         <strong class="font-sans text-title text-danger block mb-2">{{
           t('account.menu.deleteAccount.warnBox.title')
         }}</strong>

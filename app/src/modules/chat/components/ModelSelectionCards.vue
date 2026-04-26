@@ -29,7 +29,7 @@ const options = [
       :class="[
         modelValue === option.value
           ? 'bg-action'
-          : 'bg-surface hover:bg-surface-hover-subtle',
+          : 'bg-surface hover:bg-surface-highlight',
       ]"
     >
       <h3

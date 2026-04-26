@@ -109,13 +109,13 @@ function handleLink() {
 
       <div
         v-if="errorMsg"
-        class="text-sub p-2 px-3 rounded-lg text-danger bg-surface-danger"
+        class="text-sub p-2 px-3 rounded-lg text-danger bg-danger-hover"
       >
         {{ errorMsg }}
       </div>
       <div
         v-if="successMsg"
-        class="text-sub p-2 px-3 rounded-lg text-success bg-surface-success"
+        class="text-sub p-2 px-3 rounded-lg text-success bg-success-hover"
       >
         {{ successMsg }}
       </div>

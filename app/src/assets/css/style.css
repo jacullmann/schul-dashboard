@@ -46,7 +46,7 @@
   /* Surface */
   --color-surface: var(--color-white);
   --color-surface-hover: var(--color-smoke);
-  --color-surface-hover-subtle: oklch(0.9702 0 0);
+  --color-surface-highlight: oklch(0.9702 0 0);
   --color-surface-border: var(--color-cloud);
   --color-surface-hover-border: oklch(0.7921 0 0);
 
@@ -67,8 +67,8 @@
   /* Danger */
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
-  --color-danger-hover: var(--color-coral-highlight);
-  --color-surface-danger: color-mix(
+  --color-danger-highlight: var(--color-coral-highlight);
+  --color-danger-hover: color-mix(
     in oklab,
     var(--color-danger) 12%,
     transparent
@@ -76,7 +76,7 @@
   /* Success */
   --color-success: var(--color-basil);
   --color-on-success: var(--color-white);
-  --color-surface-success: color-mix(
+  --color-success-hover: color-mix(
     in oklab,
     var(--color-success) 15%,
     transparent
@@ -206,7 +206,7 @@
     /* Surface */
     --color-surface: var(--color-charcoal);
     --color-surface-hover: var(--color-mist);
-    --color-surface-hover-subtle: var(--color-charcoal-highlight);
+    --color-surface-highlight: var(--color-charcoal-highlight);
     --color-surface-border: var(--color-graphite);
     --color-surface-hover-border: var(--color-steel);
 
@@ -227,8 +227,8 @@
     /* Danger */
     --color-danger: var(--color-coral);
     --color-on-danger: var(--color-white);
-    --color-danger-hover: var(--color-coral-highlight);
-    --color-surface-danger: color-mix(
+    --color-danger-highlight: var(--color-coral-highlight);
+    --color-danger-hover: color-mix(
       in oklab,
       var(--color-danger) 15%,
       transparent
@@ -237,7 +237,7 @@
     /* Success */
     --color-success: var(--color-pistachio);
     --color-on-success: var(--color-white);
-    --color-surface-success: color-mix(
+    --color-success-hover: color-mix(
       in oklab,
       var(--color-success) 15%,
       transparent
@@ -624,7 +624,7 @@ p {
   }
 
   .btn.ghost:hover {
-    background-color: var(--color-surface-hover-subtle);
+    background-color: var(--color-surface-highlight);
   }
 
   .btn.action {
@@ -644,7 +644,7 @@ p {
   }
 
   .btn.danger:hover {
-    background: var(--color-danger-hover);
+    background: var(--color-danger-highlight);
   }
 }
 

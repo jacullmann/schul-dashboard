@@ -31,7 +31,7 @@ const config = useRuntimeConfig();
           </a>
           <a
             href="mailto:contact@schul-dashboard.com"
-            class="px-8 py-3.5 rounded-lg border border-surface-border text-on-ghost font-semibold transition-all hover:border-surface-hover-border hover:bg-surface-hover-subtle inline-flex items-center justify-center"
+            class="px-8 py-3.5 rounded-lg border border-surface-border text-on-ghost font-semibold transition-all hover:border-surface-hover-border hover:bg-surface-highlight inline-flex items-center justify-center"
           >
             {{ t('sections.cta.secondary_cta') }}
           </a>
@@ -40,4 +40,3 @@ const config = useRuntimeConfig();
     </div>
   </section>
 </template>
-

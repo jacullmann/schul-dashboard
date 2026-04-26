@@ -407,7 +407,7 @@ onUnmounted(() => {
     <!-- Deaktivieren Option -->
     <div v-if="mfaEnabled && !deactivateMode" class="flex justify-start">
       <BaseButton
-        class="border border-danger text-danger hover:bg-surface-danger"
+        class="border border-danger text-danger hover:bg-danger-hover"
         @click="startDeactivate"
         :icon="ShieldOff"
       >
@@ -418,7 +418,7 @@ onUnmounted(() => {
     <!-- Deaktivieren Mode -->
     <div v-if="deactivateMode" class="flex flex-col gap-4">
       <div
-        class="flex gap-3 p-3 px-4 bg-surface-danger border border-danger rounded-lg text-danger"
+        class="flex gap-3 p-3 px-4 bg-danger-hover border border-danger rounded-lg text-danger"
       >
         <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
         <p class="m-0 text-sub leading-[1.4]">

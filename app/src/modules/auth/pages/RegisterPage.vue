@@ -137,8 +137,8 @@ function navigateToLogin() {
               class="text-sub p-3 rounded-md"
               :class="
                 isError
-                  ? 'bg-surface-danger text-danger'
-                  : 'bg-surface-success text-success'
+                  ? 'bg-danger-hover text-danger'
+                  : 'bg-success-hover text-success'
               "
             >
               {{ message }}
