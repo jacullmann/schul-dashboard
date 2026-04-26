@@ -50,7 +50,7 @@ function handleLink() {
 <template>
   <div class="flex flex-col gap-3">
     <div v-if="loading" class="flex justify-center p-4">
-      <BaseSpinner on="ghost" size="1.2em" />
+      <BaseSpinner on="ghost" size="20" />
     </div>
 
     <template v-else>

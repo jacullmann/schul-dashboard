@@ -106,11 +106,7 @@ defineExpose({
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner
-      v-if="loading"
-      :on="variant"
-      :size="size === 'lg' ? '1.25rem' : '1rem'"
-    />
+    <BaseSpinner v-if="loading" :on="variant" size="20" />
     <template v-else-if="!chip">
       <component
         v-if="icon && iconPlacement === 'leading'"
