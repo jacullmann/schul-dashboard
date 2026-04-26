@@ -1,7 +1,7 @@
 import { ref, reactive } from 'vue';
 import type { Ref } from 'vue';
 import type { HwItem, ImageItem } from '@/modules/tasks/types';
-
+import { useModalStore } from '@/stores/modalStore';
 import { useToast } from '@/common/composables/useToast';
 
 export function useHwImages(
@@ -26,7 +26,7 @@ export function useHwImages(
     image: null as ImageItem | null,
   });
 
-  const showImageDeleteConfirm = ref(false);
+  const modalStore = useModalStore();
   const deletingImage = ref(false);
   const currentUploadItemId = ref<string | null>(null);
 
@@ -86,14 +86,19 @@ export function useHwImages(
     imageUpload.uploadFiles(files, true, item.id);
   }
 
-  function triggerImageDelete() {
-    showImageDeleteConfirm.value = true;
-    imageMenu.visible = false;
-  }
-
-  async function confirmImageDelete() {
+  async function triggerImageDelete() {
     if (!imageMenu.image || !imageMenu.item || deletingImage.value) return;
 
+    const isConfirmed = await modalStore.confirm({
+      title: 'Dieses Bild löschen?',
+      content: 'Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.',
+      submitText: 'Bild löschen',
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
+
+    imageMenu.visible = false;
     deletingImage.value = true;
     try {
       await imageUpload.removeImg(imageMenu.image, imageMenu.item.id);
@@ -103,7 +108,6 @@ export function useHwImages(
         }
       });
       useToast().success('Bild gelöscht.', 3000);
-      showImageDeleteConfirm.value = false;
       imageMenu.image = null;
       imageMenu.item = null;
     } catch {
@@ -111,12 +115,6 @@ export function useHwImages(
     } finally {
       deletingImage.value = false;
     }
-  }
-
-  function cancelImageDelete() {
-    showImageDeleteConfirm.value = false;
-    imageMenu.image = null;
-    imageMenu.item = null;
   }
 
   function makeThumb(url: string) {
@@ -128,7 +126,6 @@ export function useHwImages(
     viewerImages,
     viewerStartIndex,
     imageMenu,
-    showImageDeleteConfirm,
     deletingImage,
     currentUploadItemId,
     openImageViewer,
@@ -139,8 +136,6 @@ export function useHwImages(
     triggerImageUpload,
     triggerImageDrop,
     triggerImageDelete,
-    confirmImageDelete,
-    cancelImageDelete,
     makeThumb,
   };
 }

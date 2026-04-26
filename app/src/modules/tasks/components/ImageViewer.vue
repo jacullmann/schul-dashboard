@@ -110,7 +110,7 @@ watch(
         <img
           v-if="currentImage"
           :src="currentImage.url"
-          class="max-w-full max-h-full object-contain shadow-menu transition-transform duration-200 ease-out"
+          class="max-w-full max-h-full rounded-xl object-contain shadow-menu transition-transform duration-200 ease-out"
           draggable="false"
           @click.stop
           alt=""

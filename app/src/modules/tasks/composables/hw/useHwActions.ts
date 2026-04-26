@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import type { Ref } from 'vue';
+import { useModalStore } from '@/stores/modalStore';
 import type { HwItem } from '@/modules/tasks/types';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
@@ -13,8 +14,7 @@ export function useHwActions(
   activeGroupId: Ref<string | null>,
   handleSuccessAction: (msg: string) => void,
 ) {
-  const showDeleteConfirm = ref(false);
-  const itemToDelete = ref<string | null>(null);
+  const modalStore = useModalStore();
   const deletingEntry = ref(false);
 
   const showReportConfirm = ref(false);
@@ -216,26 +216,19 @@ export function useHwActions(
     );
   }
 
-  function deleteItem(id: string) {
-    itemToDelete.value = id;
-    showDeleteConfirm.value = true;
-  }
+  async function deleteItem(id: string) {
+    const isConfirmed = await modalStore.confirm({
+      title: 'Diesen Eintrag löschen?',
+      content: 'Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen Bilder unwiderruflich gelöscht.',
+      submitText: 'Eintrag löschen',
+      danger: true,
+    });
 
-  function cancelDelete() {
-    showDeleteConfirm.value = false;
-    itemToDelete.value = null;
-  }
-
-  async function confirmDelete() {
-    if (!itemToDelete.value || deletingEntry.value) return;
+    if (!isConfirmed) return;
 
     deletingEntry.value = true;
-    const id = itemToDelete.value;
-
     try {
       await hw.delete(`/api/items/${id}`);
-      showDeleteConfirm.value = false;
-      itemToDelete.value = null;
       handleSuccessAction('Eintrag gelöscht.');
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
@@ -308,8 +301,6 @@ export function useHwActions(
   }
 
   return {
-    showDeleteConfirm,
-    itemToDelete,
     deletingEntry,
     showReportConfirm,
     reportReason,
@@ -327,8 +318,6 @@ export function useHwActions(
     canDelete,
     canDeleteImage,
     deleteItem,
-    cancelDelete,
-    confirmDelete,
     reportItem,
     doReport,
     cancelReport,

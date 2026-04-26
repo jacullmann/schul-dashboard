@@ -76,6 +76,8 @@ const {
   imageViewerOpen,
   imageViewerImages,
   imageViewerInitialIndex,
+  confirmOpen,
+  confirmOptions,
 } = storeToRefs(modalStore);
 
 // ── Item form callbacks ────────────────────────────────────────────────────
@@ -181,6 +183,19 @@ async function onAuthSuccess() {
         </button>
       </div>
     </Transition>
+  </Teleport>
+
+  <Teleport to="body">
+    <BaseDialog
+      v-if="confirmOpen"
+      :title="confirmOptions.title"
+      :submit-text="confirmOptions.submitText ?? 'Confirm'"
+      :danger="confirmOptions.danger"
+      @confirm="modalStore.resolveConfirm(true)"
+      @cancel="modalStore.resolveConfirm(false)"
+    >
+      {{ confirmOptions.content }}
+    </BaseDialog>
   </Teleport>
 
   <!-- Global search modal (Ctrl/Cmd+K or sidebar button) -->

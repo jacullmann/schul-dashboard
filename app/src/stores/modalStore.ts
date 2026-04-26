@@ -11,6 +11,13 @@ import type { ImageItem } from '@/modules/tasks/types';
 // than importing the store directly in most cases.
 // ---------------------------------------------------------------------------
 
+export interface ConfirmOptions {
+  title: string;
+  content: string;
+  submitText?: string;
+  danger?: boolean;
+}
+
 export const useModalStore = defineStore('modals', () => {
   // ── Search modal ──────────────────────────────────────────────────────────
   const searchOpen = ref(false);
@@ -191,6 +198,40 @@ export const useModalStore = defineStore('modals', () => {
     showDeleteAccount.value = true;
   }
 
+  // ── Global Confirm Dialog ─────────────────────────────────────────────────
+  const confirmOpen = ref(false);
+  const confirmOptions = ref<ConfirmOptions>({
+    title: '',
+    content: '',
+    submitText: 'Confirm',
+    danger: false,
+  });
+
+  // We don't need this to be reactive, just a reference in the closure
+  let confirmResolve: ((value: boolean) => void) | null = null;
+
+  function confirm(options: ConfirmOptions): Promise<boolean> {
+    confirmOptions.value = {
+      title: options.title,
+      content: options.content,
+      submitText: options.submitText ?? 'Confirm',
+      danger: options.danger ?? false,
+    };
+    confirmOpen.value = true;
+
+    return new Promise((resolve) => {
+      confirmResolve = resolve;
+    });
+  }
+
+  function resolveConfirm(value: boolean) {
+    confirmOpen.value = false;
+    if (confirmResolve) {
+      confirmResolve(value);
+      confirmResolve = null;
+    }
+  }
+
   // ── Sidebar ───────────────────────────────────────────────────────────────
   const sidebarExpanded = ref(false);
 
@@ -275,5 +316,10 @@ export const useModalStore = defineStore('modals', () => {
     sidebarExpanded,
     toggleSidebar,
     setSidebarExpanded,
+    // Confirm Dialog
+    confirmOpen,
+    confirmOptions,
+    confirm,
+    resolveConfirm,
   };
 });

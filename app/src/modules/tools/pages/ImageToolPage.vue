@@ -391,12 +391,12 @@ const updateImageSource = (newSrc: string) => {
         </div>
       </div>
 
-      <div class="row button-group" v-if="hasImage">
+      <BaseRow justify="end" class="mt-8" v-if="hasImage">
         <BaseButton @click="openEditor" variant="ghost">Bearbeiten</BaseButton>
         <BaseButton @click="convertAndDownload" variant="action"
           >Konvertieren</BaseButton
         >
-      </div>
+      </BaseRow>
 
       <div class="preview-container" v-show="hasImage">
         <div
@@ -585,10 +585,6 @@ const updateImageSource = (newSrc: string) => {
 label {
   font-size: var(--text-sub);
   margin-bottom: 6px;
-}
-
-.button-group {
-  margin-top: 2rem;
 }
 
 .hidden {

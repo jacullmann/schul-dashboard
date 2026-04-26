@@ -64,7 +64,7 @@ const emit = defineEmits<{
           werden.</span
         >
       </div>
-      <BaseRow justify="end">
+      <BaseRow justify="end" class="w-full">
         <BaseButton
           @click="emit('cleanup')"
           :disabled="cleaningUp"

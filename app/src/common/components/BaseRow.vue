@@ -24,7 +24,7 @@ const alignmentClass = computed(() => justifyClasses[props.justify]);
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2 items-center w-full" :class="alignmentClass">
+  <div class="flex flex-wrap gap-2 items-center" :class="alignmentClass">
     <slot></slot>
   </div>
 </template>

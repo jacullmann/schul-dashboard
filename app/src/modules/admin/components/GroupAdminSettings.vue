@@ -4,7 +4,9 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useGroupAdmin } from '@/modules/admin/composables/useGroupAdmin';
 import { Pencil } from '@lucide/vue';
+import { useModalStore } from '@/stores/modalStore';
 
+const modalStore = useModalStore();
 const { t } = useI18n();
 
 const props = defineProps<{
@@ -61,18 +63,22 @@ async function confirmDeleteGroup() {
   const expectedConfirmation = `delete ${props.groupName}`;
   if (deleteConfirmText.value !== expectedConfirmation) return;
 
-  if (
-    !confirm(
+  const isConfirmed = await modalStore.confirm({
+    title: 'Gruppe löschen',
+    content:
       'Sind Sie sicher, dass Sie diese Gruppe unwiderruflich löschen möchten?',
-    )
-  )
-    return;
+    submitText: t('global.buttons.delete'),
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
 
   deletingGroup.value = true;
   try {
     await deleteGroup();
     router.push('/home');
-  } catch {
+  } catch (err) {
+    // TODO: Add toast
     deletingGroup.value = false;
   }
 }
@@ -116,7 +122,7 @@ async function confirmDeleteGroup() {
           @keyup.enter="emit('save-edit')"
           :disabled="!isAdmin"
         />
-        <BaseRow justify="end" class="mt-2">
+        <BaseRow justify="end" class="w-full mt-2">
           <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
             t('global.buttons.cancel')
           }}</BaseButton>
@@ -150,7 +156,7 @@ async function confirmDeleteGroup() {
         class="max-w-160"
       >
         <template #content>
-          <BaseFormGroup id="old-password" class="mb-4">
+          <BaseFormGroup id="old-password">
             <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
             <BaseInput
               id="old-password"
@@ -160,7 +166,7 @@ async function confirmDeleteGroup() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="new-password" class="mb-4">
+          <BaseFormGroup id="new-password">
             <BaseLabel for="new-password">Neues Passwort</BaseLabel>
             <BaseInput
               id="new-password"
@@ -170,7 +176,7 @@ async function confirmDeleteGroup() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="new-password-confirm" class="mb-4">
+          <BaseFormGroup id="new-password-confirm">
             <BaseLabel for="new-password-confirm"
               >Neues Passwort bestätigen</BaseLabel
             >
@@ -204,7 +210,7 @@ async function confirmDeleteGroup() {
         class="max-w-160"
       >
         <template #content>
-          <BaseFormGroup id="delete-confirm" class="mb-4">
+          <BaseFormGroup id="delete-confirm">
             <BaseLabel for="delete-confirm"
               >Bitte geben Sie <strong>delete {{ groupName }}</strong> ein, um
               fortzufahren:

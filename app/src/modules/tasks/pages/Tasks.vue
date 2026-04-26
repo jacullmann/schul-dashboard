@@ -15,7 +15,6 @@ import {
   ArchiveRestore,
   Info,
   Plus,
-  Ellipsis,
 } from '@lucide/vue';
 import { useTasks } from '@/modules/tasks/composables/useTasks';
 import { useItemForm } from '@/core/composables/useItemForm';
@@ -110,22 +109,14 @@ const {
   revealImages,
   doReport,
   cancelReport,
-  showDeleteConfirm,
-  confirmDelete,
-  cancelDelete,
   imageMenu,
   closeImageMenu,
   triggerImageUpload,
   triggerImageDrop,
   triggerImageDelete,
-  showImageDeleteConfirm,
-  confirmImageDelete,
-  cancelImageDelete,
   openImageViewer: openImageViewerLocal,
   shareItem,
   highlightedItemId,
-  deletingImage,
-  deletingEntry,
   handleImageContextMenu,
   subjectOptions,
   getSubjectName,
@@ -256,7 +247,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #badges>
-          <div class="badge subject-badge">
+          <div class="text-on-ghost-muted text-body">
             <template v-if="tab === 'all'"
               >{{ getTypeLabel(item.type) }} • </template
             >{{ getSubjectName(item.subject) }} •
@@ -395,8 +386,8 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #content-after>
-          <div v-if="item.images && item.images.length" class="mb-2">
-            <div class="images-row">
+          <div v-if="item.images && item.images.length">
+            <div class="images-row mt-2">
               <template v-if="!isRevealed(item.id)">
                 <div
                   v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
@@ -579,31 +570,6 @@ async function handleArchiveFromMenu(item: HwItem) {
       @cancel="cancelReport"
     />
 
-    <BaseDialog
-      v-if="showDeleteConfirm"
-      @confirm="confirmDelete"
-      @cancel="cancelDelete"
-      :loading="deletingEntry"
-      :danger="true"
-      title="Diesen Eintrag löschen?"
-      submit-text="Eintrag löschen"
-    >
-      Wenn du diesen Eintrag löschst, werden dieser und alle dazugehörigen
-      Bilder unwiderruflich gelöscht.
-    </BaseDialog>
-
-    <BaseDialog
-      v-if="showImageDeleteConfirm"
-      @confirm="confirmImageDelete"
-      @cancel="cancelImageDelete"
-      :loading="deletingImage"
-      :danger="true"
-      title="Dieses Bild löschen?"
-      submit-text="Bild löschen"
-    >
-      Wenn du dieses Bild löschst, wird es unwiderruflich entfernt.
-    </BaseDialog>
-
     <ItemInfoModal
       v-if="showInfoItem"
       :show="!!showInfoItem"
@@ -620,11 +586,6 @@ async function handleArchiveFromMenu(item: HwItem) {
 </template>
 
 <style scoped>
-.subject-badge {
-  color: var(--color-on-ghost-muted);
-  padding: 0;
-  font-size: var(--text-body);
-}
 .tiny {
   padding: 0;
   font-size: var(--text-body);
