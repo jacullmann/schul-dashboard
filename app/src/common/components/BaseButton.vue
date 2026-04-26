@@ -12,7 +12,7 @@ export interface Props {
   iconPlacement?: 'leading' | 'trailing';
   iconClasses?: string;
   fill?: boolean;
-  size?: 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
   chip?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -77,41 +77,40 @@ defineExpose({
           ? 'font-normal w-fit'
           : 'font-medium w-fit',
       size === 'lg' ? 'py-2.5' : 'py-2',
+      size === 'sm' ? '' : ' min-h-10 min-w-10',
       touch ? 'touch-target' : '',
-      chip
-        ? size === 'lg'
-          ? 'px-2.5'
-          : 'px-2'
-        : loading
-          ? size === 'lg'
-            ? 'px-2.5'
-            : 'px-2'
-          : icon && $slots.default
+      size === 'sm'
+        ? 'px-2'
+        : !chip && !loading && icon && $slots.default
+          ? iconPlacement === 'leading'
             ? size === 'lg'
-              ? iconPlacement === 'leading'
-                ? 'pl-3 pr-5'
-                : 'pl-5 pr-3'
-              : iconPlacement === 'leading'
-                ? 'pl-4 pr-6'
-                : 'pl-6 pr-4'
-            : icon
-              ? size === 'lg'
-                ? 'px-2.5'
-                : 'px-2'
-              : size === 'lg'
-                ? 'px-5'
-                : 'px-6',
+              ? 'pl-3 pr-5'
+              : 'pl-4 pr-6'
+            : size === 'lg'
+              ? 'pl-5 pr-3'
+              : 'pl-6 pr-4'
+          : chip || loading || icon
+            ? size === 'lg'
+              ? 'px-2.5'
+              : 'px-2'
+            : size === 'lg'
+              ? 'px-5'
+              : 'px-6',
     ]"
-    class="relative inline-flex items-center justify-center gap-2 py-2 min-h-10 min-w-10 rounded-full text-sub leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sub leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >
-    <BaseSpinner v-if="loading" :on="variant" size="20" />
+    <BaseSpinner
+      v-if="loading"
+      :on="variant"
+      :size="size === 'sm' ? '18' : '20'"
+    />
     <template v-else-if="!chip">
       <component
         v-if="icon && iconPlacement === 'leading'"
         :is="icon"
-        :size="20"
+        :size="size === 'sm' ? 18 : 20"
         :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
@@ -119,16 +118,21 @@ defineExpose({
       <component
         v-if="icon && iconPlacement === 'trailing'"
         :is="icon"
-        :size="20"
+        :size="size === 'sm' ? 18 : 20"
         :fill="fill ? 'currentColor' : 'none'"
         :class="iconClasses"
       />
     </template>
 
     <template v-else>
-      <component v-if="icon" :is="icon" :size="20" :class="iconClasses" />
+      <component
+        v-if="icon"
+        :is="icon"
+        :size="size === 'sm' ? 18 : 20"
+        :class="iconClasses"
+      />
       <slot></slot>
-      <X :size="20" />
+      <X :size="size === 'sm' ? 18 : 20" />
     </template>
   </button>
 </template>

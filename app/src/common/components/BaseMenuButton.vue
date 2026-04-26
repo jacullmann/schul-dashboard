@@ -73,13 +73,13 @@ defineExpose({
 
     <ChevronDown
       v-if="isDropdown"
-      :size="16"
+      :size="18"
       class="ml-auto shrink-0 transition duration-200 ease-in-out"
       :class="{ 'rotate-180': active }"
     />
 
     <span v-if="isSelect" aria-hidden="true">
-      <Check v-if="active" :size="16" class="text-on-ghost shrink-0" />
+      <Check v-if="active" :size="18" class="text-on-ghost shrink-0" />
       <span v-else class="w-4 shrink-0 h-4"></span>
     </span>
 

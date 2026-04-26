@@ -273,14 +273,14 @@ async function handleArchiveFromMenu(item: HwItem) {
             :content="t('school.tasks.items.menu.unpin')"
             placement="bottom"
           >
-            <button
+            <BaseButton
               v-if="isPinned(item.id)"
-              type="button"
-              class="unpin-trigger relative p-2 bg-transparent hover:bg-surface-hover flex justify-center items-center rounded-full transition-hover cursor-pointer touch-target"
+              variant="ghost"
+              size="sm"
+              :icon="Pin"
+              icon-classes="fill-current"
               @click.stop="togglePin(item)"
-            >
-              <Pin :size="18" fill="currentColor" class="pinned" />
-            </button>
+            />
           </BaseTooltip>
         </template>
 
