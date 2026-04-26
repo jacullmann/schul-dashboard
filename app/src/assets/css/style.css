@@ -498,15 +498,13 @@ p {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    background: transparent;
     cursor: pointer;
     border-radius: var(--radius-full);
     height: 4px;
     margin: 0;
     border: none;
     background-size: 100% 4px;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: transparent no-repeat center;
   }
   .player-range::-webkit-slider-runnable-track {
     width: 100%;
@@ -598,53 +596,6 @@ p {
   .input::placeholder,
   textarea::placeholder {
     color: var(--color-on-ghost-subtle);
-  }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid;
-    border-radius: var(--radius-md);
-    font-size: var(--text-btn);
-    line-height: 1rem;
-    cursor: pointer;
-    transition: var(--duration-hover) var(--ease-hover);
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  .btn.ghost {
-    background: var(--color-surface);
-    border-color: var(--color-surface-border);
-    color: var(--color-on-ghost);
-    box-shadow: var(--shadow-input);
-  }
-
-  .btn.ghost:hover {
-    background-color: var(--color-surface-highlight);
-  }
-
-  .btn.action {
-    background: var(--color-action);
-    border-color: var(--color-action);
-    color: var(--color-on-action);
-  }
-
-  .btn.action:hover {
-    background: var(--color-action-hover);
-    border-color: var(--color-action-hover);
-  }
-
-  .btn.danger {
-    background: var(--color-danger);
-    color: var(--color-on-danger);
-  }
-
-  .btn.danger:hover {
-    background: var(--color-danger-highlight);
   }
 }
 
@@ -754,16 +705,6 @@ hr {
     padding: 0;
     background: var(--color-canvas);
   }
-
-  .btn.ghost:hover {
-    background: var(--color-surface);
-    border: 1px solid var(--color-surface-border);
-    color: var(--color-on-ghost);
-  }
-
-  .btn.danger:hover {
-    background: var(--color-danger);
-  }
 }
 
 @media (max-width: 500px) {
@@ -777,5 +718,3 @@ hr {
     opacity: 0.5;
   }
 }
-
-

@@ -85,7 +85,9 @@ function onTestFinish(score: number) {
     <div class="not-found" v-else>
       <h2>Test nicht gefunden</h2>
       <p>Der angeforderte Test existiert nicht.</p>
-      <router-link to="/brain" class="btn action">Zurück</router-link>
+      <BaseButton variant="action" @click="$router.push('/brain')"
+        >Zurück</BaseButton
+      >
     </div>
   </div>
 </template>

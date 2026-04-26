@@ -158,16 +158,4 @@ p {
   text-align: center;
   color: var(--color-on-ghost);
 }
-.btn {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background-color: var(--accent, #42b883);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.btn:hover {
-  opacity: 0.9;
-}
 </style>

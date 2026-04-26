@@ -164,14 +164,17 @@ onUnmounted(() => {
   background: var(--color-canvas);
   border-radius: 8px;
 }
+
 h2 {
   color: var(--color-on-ghost);
   margin-bottom: 5px;
 }
+
 p {
   color: var(--color-on-ghost-muted);
   margin-bottom: 20px;
 }
+
 .board {
   position: relative;
   background-color: var(--color-surface);
@@ -179,37 +182,30 @@ p {
   border-radius: 4px;
   overflow: hidden;
 }
+
 .snake-segment {
   position: absolute;
   background-color: var(--accent, #42b883);
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 2px;
 }
+
 .snake-segment.head {
   background-color: #28a745;
 }
+
 .food {
   position: absolute;
   background-color: #dc3545;
   border-radius: 50%;
 }
+
 .game-over {
   margin-top: 20px;
   text-align: center;
   color: var(--color-on-ghost);
 }
-.btn {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background-color: var(--accent, #42b883);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.btn:hover {
-  opacity: 0.9;
-}
+
 .controls {
   margin-top: 20px;
   font-size: 0.9rem;

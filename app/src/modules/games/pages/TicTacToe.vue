@@ -178,9 +178,4 @@ const resetGame = () => {
 .winning-cell {
   background-color: var(--color-on-ghost-muted) !important;
 }
-
-.btn {
-  font-weight: bold;
-  font-size: 1.1rem;
-}
 </style>

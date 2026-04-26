@@ -862,16 +862,6 @@ onMounted(() => {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }
-.btn.tiny {
-  padding: 4px 10px;
-  font-size: 0.78rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-.btn.tiny.danger {
-  color: #ef4444;
-}
 
 /* ─── Reports ───────────────────────────────── */
 .report-section {

@@ -81,10 +81,13 @@ onMounted(async () => {
         </div>
 
         <div class="action-section">
-          <router-link to="/" class="btn ghost white-text">
-            <ArrowLeft :size="18" />
+          <BaseButton
+            @click="$router.push('/')"
+            variant="ghost"
+            :icon="ArrowLeft"
+          >
             {{ t('global.buttons.back') }}
-          </router-link>
+          </BaseButton>
         </div>
       </template>
     </div>
@@ -221,9 +224,6 @@ onMounted(async () => {
 
 .action-section {
   margin-top: 8px;
-}
-.white-text {
-  color: var(--color-on-ghost);
 }
 
 @media (max-width: 768px) {
