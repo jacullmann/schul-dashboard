@@ -55,23 +55,24 @@ const emit = defineEmits<{
     </div>
 
     <div
-      v-if="(stats?.oldItemsCount ?? 0) > 0"
-      class="flex items-center justify-between bg-surface border border-[rgba(245,158,11,0.3)] rounded-[10px] p-3 px-4 gap-3 mb-6 sm:flex-col sm:items-start"
+      v-if="(stats?.oldItemsCount ?? 0) === 0"
+      class="flex items-center justify-between bg-surface border border-surface-border rounded-2xl p-4 gap-4 mb-6 sm:flex-col sm:items-start"
     >
       <div class="flex items-center gap-2 text-body text-on-ghost-muted">
-        <Trash2 :size="16" />
         <span
           >{{ stats?.oldItemsCount }} Einträge älter als 90 Tage können gelöscht
           werden.</span
         >
       </div>
-      <BaseButton
-        @click="emit('cleanup')"
-        :disabled="cleaningUp"
-        variant="ghost"
-      >
-        {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
-      </BaseButton>
+      <BaseRow justify="end">
+        <BaseButton
+          @click="emit('cleanup')"
+          :disabled="cleaningUp"
+          variant="danger"
+        >
+          {{ cleaningUp ? 'Löscht...' : 'Bereinigen' }}
+        </BaseButton>
+      </BaseRow>
     </div>
   </div>
 </template>

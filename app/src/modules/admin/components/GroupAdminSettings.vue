@@ -101,7 +101,7 @@ async function confirmDeleteGroup() {
         </BaseTooltip>
       </div>
 
-      <div v-else class="flex gap-2 items-center sm:flex-wrap">
+      <template v-else>
         <BaseInput
           id="group-name"
           class="flex-1 max-w-[300px] sm:max-w-none"
@@ -116,17 +116,19 @@ async function confirmDeleteGroup() {
           @keyup.enter="emit('save-edit')"
           :disabled="!isAdmin"
         />
-        <BaseButton
-          @click="emit('save-edit')"
-          :disabled="savingGroupName || !newGroupName.trim() || !isAdmin"
-          variant="action"
-        >
-          {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
-        </BaseButton>
-        <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
-          t('global.buttons.cancel')
-        }}</BaseButton>
-      </div>
+        <BaseRow justify="end" class="mt-2">
+          <BaseButton @click="emit('cancel-edit')" variant="ghost">{{
+            t('global.buttons.cancel')
+          }}</BaseButton>
+          <BaseButton
+            @click="emit('save-edit')"
+            :disabled="savingGroupName || !newGroupName.trim() || !isAdmin"
+            variant="action"
+          >
+            {{ savingGroupName ? 'Speichert...' : t('global.buttons.save') }}
+          </BaseButton>
+        </BaseRow>
+      </template>
     </div>
 
     <!-- Password settings -->
@@ -145,9 +147,10 @@ async function confirmDeleteGroup() {
             newPassword === newPassword2
           )
         "
+        class="max-w-160"
       >
         <template #content>
-          <BaseFormGroup id="old-password" class="mb-4 max-w-[400px]">
+          <BaseFormGroup id="old-password" class="mb-4">
             <BaseLabel for="old-password">Aktuelles Passwort</BaseLabel>
             <BaseInput
               id="old-password"
@@ -157,7 +160,7 @@ async function confirmDeleteGroup() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="new-password" class="mb-4 max-w-[400px]">
+          <BaseFormGroup id="new-password" class="mb-4">
             <BaseLabel for="new-password">Neues Passwort</BaseLabel>
             <BaseInput
               id="new-password"
@@ -167,7 +170,7 @@ async function confirmDeleteGroup() {
             />
           </BaseFormGroup>
 
-          <BaseFormGroup id="new-password-confirm" class="mb-4 max-w-[400px]">
+          <BaseFormGroup id="new-password-confirm" class="mb-4">
             <BaseLabel for="new-password-confirm"
               >Neues Passwort bestätigen</BaseLabel
             >
@@ -198,7 +201,7 @@ async function confirmDeleteGroup() {
         :loading="deletingGroup"
         :requirement="deleteConfirmText === `delete ${groupName}`"
         :danger="true"
-        class="max-w-[400px]"
+        class="max-w-160"
       >
         <template #content>
           <BaseFormGroup id="delete-confirm" class="mb-4">
