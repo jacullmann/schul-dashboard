@@ -31,7 +31,8 @@
   --color-cotton-candy: oklch(0.9618 0.0174 17.46);
   --color-burgundy: oklch(0.3312 0.037 19.22);
   --color-yellow: oklch(0.7952 0.1617 86.05);
-  --color-green: oklch(0.849 0.1786 149.39);
+  --color-basil: oklch(0.68 0.2 145);
+  --color-pistachio: oklch(0.82 0.18 145);
   --color-bismuth-yellow: oklch(0.8003 0.1668 71.67);
   --color-bismuth-red: oklch(0.6541 0.2345 17.07);
   --color-bismuth-purple: oklch(0.5878 0.29968 308.4769);
@@ -73,9 +74,13 @@
     transparent
   );
   /* Success */
-  --color-success: var(--color-green);
+  --color-success: var(--color-basil);
   --color-on-success: var(--color-white);
-  --color-surface-success: oklch(0.6731 0.1624 144.21 / 10%);
+  --color-surface-success: color-mix(
+    in oklab,
+    var(--color-success) 15%,
+    transparent
+  );
   /* Warn */
   --color-warn: var(--color-yellow);
   --color-on-warn: var(--color-onyx);
@@ -230,9 +235,13 @@
     );
 
     /* Success */
-    --color-success: var(--color-green);
+    --color-success: var(--color-pistachio);
     --color-on-success: var(--color-white);
-    --color-surface-success: rgba(76, 175, 80, 0.1);
+    --color-surface-success: color-mix(
+      in oklab,
+      var(--color-success) 15%,
+      transparent
+    );
 
     /* Warn */
     --color-warn: var(--color-yellow);
