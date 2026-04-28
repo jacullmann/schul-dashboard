@@ -199,22 +199,22 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 @click.stop
               >
                 <BaseMenuButton
+                  :icon="Pencil"
                   @click="
                     openEditPrivateTaskForm(privateTask);
                     openMenuId = null;
                   "
                 >
-                  <Pencil :size="16" />
                   {{ t('global.buttons.edit') }}
                 </BaseMenuButton>
 
                 <BaseMenuButton
+                  :icon="Copy"
                   @click="
                     duplicatePrivateTask(privateTask);
                     openMenuId = null;
                   "
                 >
-                  <Copy :size="16" />
                   {{ t('global.buttons.duplicate') }}
                 </BaseMenuButton>
 
@@ -222,23 +222,23 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
 
                 <BaseMenuButton
                   v-if="index > 0"
+                  :icon="ChevronUp"
                   @click="
                     moveItemUp(index);
                     openMenuId = null;
                   "
                 >
-                  <ChevronUp :size="16" />
                   {{ t('school.private.menu.up') }}
                 </BaseMenuButton>
 
                 <BaseMenuButton
                   v-if="index < displayPrivateTasks.length - 1"
+                  :icon="ChevronDown"
                   @click="
                     moveItemDown(index);
                     openMenuId = null;
                   "
                 >
-                  <ChevronDown :size="16" />
                   {{ t('school.private.menu.down') }}
                 </BaseMenuButton>
 
@@ -247,13 +247,13 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
                 />
 
                 <BaseMenuButton
+                  :icon="Trash2"
                   variant="danger"
                   @click="
                     deletePrivateTask(privateTask.id);
                     openMenuId = null;
                   "
                 >
-                  <Trash2 :size="16" />
                   {{ t('global.buttons.delete') }}
                 </BaseMenuButton>
               </BaseMenu>

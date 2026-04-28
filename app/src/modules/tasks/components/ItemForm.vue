@@ -8,7 +8,7 @@ import { useImageUpload } from '@/modules/tasks/composables/useImageUpload';
 import { useI18n } from 'vue-i18n';
 import { getSubjectKey } from '@/types/subjects';
 import { useSubjectStore } from '@/stores/subjectStore';
-import { X } from '@lucide/vue';
+import { X, Upload } from '@lucide/vue';
 import BaseInput from '@/common/components/BaseInput.vue';
 
 const { t, te } = useI18n();
@@ -479,23 +479,17 @@ onMounted(() => {
               </div>
             </div>
 
-            <BaseButton
-              type="button"
-              @click="uploadImage(!!initial)"
-              :disabled="imgUploading"
-              variant="ghost"
-              :loading="imgUploading"
-            >
-              {{ t('school.tasks.items.menu.uploadImages') }}
-            </BaseButton>
+            <BaseTooltip :content="t('school.tasks.items.menu.uploadImages')" placement="right">
+              <BaseButton
+                type="button"
+                @click="uploadImage(!!initial)"
+                :disabled="imgUploading"
+                variant="ghost"
+                :loading="imgUploading"
+                :icon="Upload"
+              />
+            </BaseTooltip>
           </BaseRow>
-
-          <div
-            v-if="imgUploading"
-            class="text-sub text-on-ghost-muted self-center"
-          >
-            {{ t('school.tasks.itemForm.uploadingImage') }}
-          </div>
         </BaseFormGroup>
       </template>
 

@@ -19,6 +19,7 @@ const props = withDefaults(
     form?: boolean;
     on?: 'ghost' | 'action';
     size?: 'md' | 'lg';
+    classes?: string;
   }>(),
   {
     disabled: false,
@@ -97,6 +98,7 @@ onClickOutside(
           : isOpen
             ? `bg-${on}-hover! text-on-${on}!`
             : '',
+        classes,
       ]"
       aria-haspopup="true"
       :aria-expanded="isOpen"

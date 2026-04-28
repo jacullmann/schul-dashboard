@@ -3,6 +3,7 @@ import { useEventListener } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
 import hw from '@/api/hwApi';
+import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 import type { PrivateTask } from '@/modules/tasks/types';
 import { useToast } from '@/common/composables/useToast';
@@ -10,6 +11,7 @@ import { useToast } from '@/common/composables/useToast';
 export function usePrivateTasks() {
   const { t } = useI18n();
   const userStore = useUserStore();
+  const modalStore = useModalStore();
   const { user } = storeToRefs(userStore);
 
   const privateTasks = ref<PrivateTask[]>([]);
@@ -132,7 +134,14 @@ export function usePrivateTasks() {
   }
 
   async function deletePrivateTask(id: string) {
-    if (!confirm(t('school.private.deleteConfirm'))) return;
+    const isConfirmed = await modalStore.confirm({
+      title: t('school.tasks.items.menu.delete.title'),
+      content: t('school.private.deleteConfirm'),
+      submitText: t('global.buttons.delete'),
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     const privateTaskIndex = privateTasks.value.findIndex((t) => t.id === id);
     if (privateTaskIndex === -1) return;
     const deletedPrivateTask = privateTasks.value[privateTaskIndex]!;

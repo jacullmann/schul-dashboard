@@ -2,6 +2,7 @@
 import { Plus, Trash2 } from '@lucide/vue';
 import type { AdminAnnouncement } from '@/modules/admin/types';
 import { useAnnouncementForm } from '@/core/composables/useAnnouncementForm';
+import { useI18n } from 'vue-i18n';
 
 defineProps<{
   announcements: AdminAnnouncement[];
@@ -11,6 +12,8 @@ const emit = defineEmits<{
   (e: 'delete', id: string): void;
   (e: 'refresh'): void;
 }>();
+
+const { t } = useI18n();
 
 const { openAnnouncementForm, onFormSuccess } = useAnnouncementForm();
 
@@ -68,12 +71,13 @@ function formatDate(iso: string) {
           <span class="text-sub text-on-ghost-muted">{{
             formatDate(ann.createdAt)
           }}</span>
-          <BaseButton
-            variant="ghost"
-            @click="emit('delete', ann.id)"
-            :icon="Trash2"
-            class="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-hover hover:text-on-ghost transition-colors"
-          />
+          <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">
+            <BaseButton
+              variant="ghost"
+              @click="emit('delete', ann.id)"
+              :icon="Trash2"
+            />
+          </BaseTooltip>
         </div>
       </div>
     </div>

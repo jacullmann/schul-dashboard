@@ -145,7 +145,7 @@ function handleItemDoubleClick(item: HwItem, event: MouseEvent) {
     'input',
     'textarea',
     '.item-menu-trigger',
-    '.editor-note-section',
+    '.note-section',
     '.img-clickable',
     '.img-overlay',
     '.unpin-trigger',
@@ -309,7 +309,8 @@ async function handleArchiveFromMenu(item: HwItem) {
 
             <BaseMenuButton
               @click="togglePin(item)"
-              :icon="isPinned(item.id) ? Pin : Pin"
+              :icon="Pin"
+              :iconClasses="isPinned(item.id) ? 'fill-current' : ''"
             >
               {{
                 isPinned(item.id)
@@ -374,20 +375,19 @@ async function handleArchiveFromMenu(item: HwItem) {
           <span v-else-if="item.description.length">{{
             item.description
           }}</span>
-          <BaseButton
+          <button
             v-if="item.description.length > 200"
-            class="tiny"
-            variant="ghost"
+            type="button"
+            class="relative text-body font-bold text-on-ghost-muted hover:text-on-ghost cursor-pointer touch-target ml-2"
             @click="toggleDescription(item.id)"
-            style="margin-left: 8px"
           >
             {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
-          </BaseButton>
+          </button>
         </template>
 
-        <template #content-after>
+        <template #content-after v-if="(item.images && item.images.length) || item.editorNote || user?.role === 'superadmin'">
           <div v-if="item.images && item.images.length">
-            <div class="images-row mt-2">
+            <div class="images-row mt-2 mb-1">
               <template v-if="!isRevealed(item.id)">
                 <div
                   v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
@@ -455,59 +455,61 @@ async function handleArchiveFromMenu(item: HwItem) {
 
           <div
             v-if="item.editorNote || user?.role === 'superadmin'"
-            class="editor-note-section"
+            class="note-section mt-2 pt-2 border-t border-surface-border flex justify-between"
           >
-            <div class="editor-note-header">
-              <span class="editor-note-label">{{
+            <div class="w-full">
+              <div class="text-on-ghost text-body font-bold mb-1">{{
                 t('school.tasks.notes.note')
-              }}</span>
-              <BaseButton
-                v-if="canEditNote()"
-                class="tiny"
-                @click.stop="startEditNote(item)"
-                variant="ghost"
+              }}</div>
+
+              <div
+                v-if="editingNoteForId !== item.id"
+                class="text-on-ghost text-body whitespace-pre-wrap break-words"
               >
-                {{ t('global.buttons.edit') }}
-              </BaseButton>
-            </div>
+                <span v-if="item.editorNote">{{ item.editorNote }}</span>
+                <span v-else class="note-placeholder">{{
+                  t('school.tasks.notes.noNotes')
+                }}</span>
+              </div>
 
-            <div
-              v-if="editingNoteForId !== item.id"
-              class="editor-note-content"
-            >
-              <span v-if="item.editorNote">{{ item.editorNote }}</span>
-              <span v-else class="note-placeholder">{{
-                t('school.tasks.notes.noNotes')
-              }}</span>
-            </div>
-
-            <div v-else class="editor-note-edit">
-              <BaseInput
-                id="editor-note-input"
-                as="textarea"
-                v-model="noteEditContent"
-                rows="3"
-                placeholder="Anmerkung eingeben..."
-                maxlength="2000"
-              ></BaseInput>
-              <div class="editor-note-actions">
-                <BaseButton
-                  @click.stop="saveNote(item.id)"
-                  :disabled="savingNote"
-                  variant="action"
-                  :loading="savingNote"
-                >
-                  {{ t('global.buttons.save') }}
-                </BaseButton>
-                <BaseButton
-                  @click.stop="cancelEditNote()"
-                  :disabled="savingNote"
-                  variant="ghost"
-                >
-                  {{ t('global.buttons.cancel') }}
-                </BaseButton>
+              <div v-else>
+                <BaseInput
+                  id="editor-note-input"
+                  as="textarea"
+                  v-model="noteEditContent"
+                  rows="3"
+                  placeholder="Anmerkung eingeben..."
+                  maxlength="2000"
+                ></BaseInput>
+                <BaseRow justify="end" class="mt-2 mb-1">
+                  <BaseButton
+                    @click.stop="cancelEditNote()"
+                    :disabled="savingNote"
+                    variant="ghost"
+                  >
+                    {{ t('global.buttons.cancel') }}
+                  </BaseButton>
+                  <BaseButton
+                    @click.stop="saveNote(item.id)"
+                    :disabled="savingNote"
+                    variant="action"
+                    :loading="savingNote"
+                  >
+                    {{ t('global.buttons.save') }}
+                  </BaseButton>
+                </BaseRow>
               </div>
             </div>
+
+            <BaseTooltip v-if="editingNoteForId !== item.id" :content="t('global.buttons.edit')" placement="bottom">
+              <BaseButton
+                v-if="!canEditNote()"
+                @click.stop="startEditNote(item)"
+                variant="ghost"
+                :icon="Pencil"
+                size="sm"
+              />
+            </BaseTooltip>
           </div>
         </template>
       </ItemCard>
@@ -716,47 +718,14 @@ async function handleArchiveFromMenu(item: HwItem) {
 }
 
 /* Anmerkungen */
-.editor-note-section {
-  margin-top: 8px;
-  padding: 8px 12px;
-  background: var(--color-surface-hover);
-  border: 1px solid var(--color-canvas-border);
-  border-radius: var(--radius-md);
-  user-select: none;
-  -webkit-user-select: none;
-}
-
 .editor-note-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.editor-note-label {
-  font-size: var(--text-sub);
-  font-weight: 600;
-  color: var(--color-on-ghost-muted);
-}
-
-.editor-note-content {
-  font-size: var(--text-sub);
-  color: var(--color-on-ghost);
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: var(--color-surface-hover);
-}
-
 .note-placeholder {
   color: var(--color-on-ghost-muted);
   font-style: italic;
-}
-
-.editor-note-edit textarea {
-  margin-bottom: 8px;
-}
-
-.editor-note-actions {
-  display: flex;
-  gap: 8px;
 }
 </style>

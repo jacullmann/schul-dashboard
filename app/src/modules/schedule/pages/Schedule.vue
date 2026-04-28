@@ -129,10 +129,10 @@ const skeletonCells = computed(() => {
                 day === currentDay,
             }"
           >
-            <span class="block leading-tight">{{ formatDayName(day) }}</span>
-            <span class="block text-[0.75rem] font-normal opacity-60 mt-0.5">{{
+            <span class="block">{{ formatDayName(day) }}</span>
+            <!--span class="block text-[0.75rem] font-normal text-on-ghost-muted mt-0.5">{{
               weekDates[day]
-            }}</span>
+            }}</span-->
           </div>
 
           <!-- Skeleton: 5 days × 7 rows while lessons are loading -->

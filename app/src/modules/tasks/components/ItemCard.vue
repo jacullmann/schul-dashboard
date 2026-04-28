@@ -256,8 +256,8 @@ function onDrop(e: DragEvent) {
 
       <transition @enter="onEnter" @after-enter="onAfterEnter" @leave="onLeave">
         <div
-          v-show="!isCollapsed"
-          class="mx-2 mb-2 opacity-100 overflow-hidden"
+          v-show="!isCollapsed && ($slots.body || $slots['content-after'])"
+          class="mx-2 mb-1 opacity-100 overflow-hidden"
         >
           <div
             v-if="$slots.body"

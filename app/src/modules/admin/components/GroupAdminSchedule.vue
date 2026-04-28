@@ -402,7 +402,6 @@ function handleSaveSub() {
             variant="ghost"
             @click="addBreak"
             :icon="Plus"
-            size="sm"
           >
             Pause hinzufügen
           </BaseButton>

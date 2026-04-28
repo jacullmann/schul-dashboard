@@ -151,32 +151,36 @@ function confirmRemove() {
         </div>
         <div class="flex items-center gap-2 flex-shrink-0 sm:w-full">
           <BaseSelect
-            class="w-[130px] text-sub p-1.5 px-2"
             :modelValue="member.role"
             @update:modelValue="(val: string) => onRoleChange(member, val)"
             :disabled="member.role === 'admin' && !canDemoteAdmin"
+            :form="false"
+            classes="min-w-48"
             :options="[
               { label: 'Mitglied', value: 'user' },
               { label: 'Moderator', value: 'moderator' },
               { label: 'Admin', value: 'admin' },
             ]"
           />
-          <button
-            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-ghost-muted hover:bg-surface-hover hover:text-[#ef4444] transition-colors"
-            @click="openRemoveModal(member.userId, member.generatedName)"
-            title="Aus Gruppe entfernen"
-            :disabled="member.role === 'admin'"
-          >
-            <UserRoundMinus :size="15" />
-          </button>
-          <button
+          <BaseTooltip content="Aus Gruppe entfernen" placement="bottom">
+            <BaseButton
+              variant="ghost"
+              @click="openRemoveModal(member.userId, member.generatedName)"
+              :disabled="member.role === 'admin'"
+              :icon="UserRoundMinus"
+            />
+          </BaseTooltip>
+          <BaseTooltip
             v-if="isOwner && member.role === 'admin'"
-            class="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent border-none text-on-ghost-muted hover:bg-surface-hover hover:text-[#6366f1] transition-colors"
-            @click="emit('transfer-ownership', member.userId)"
-            title="Eigentümerschaft übertragen"
+            content="Eigentümerschaft übertragen"
+            placement="bottom"
           >
-            <Crown :size="15" />
-          </button>
+            <BaseButton
+              variant="ghost"
+              @click="emit('transfer-ownership', member.userId)"
+              :icon="Crown"
+            />
+          </BaseTooltip>
         </div>
       </div>
     </div>
@@ -229,11 +233,11 @@ function confirmRemove() {
       <template #title>Remove Member</template>
 
       <template #content>
-        <p>
+        <p class="m-0!">
           Are you sure you want to remove
           <strong>{{ removeModal.userName }}</strong> from the group?
         </p>
-        <p>
+        <p class="m-0!">
           Users can rejoin at any time if they have the credentials for your
           group. To block them from doing so you can ban them.
         </p>

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
-import { EllipsisVertical } from '@lucide/vue';
+import { Ellipsis, EllipsisVertical } from '@lucide/vue';
 
 const { activeGroupId } = useAppAuth();
 
@@ -95,30 +95,30 @@ onMounted(async () => {
     v-if="announcements.length"
   >
     <div
-      class="p-2 px-3 text-on-ghost text-sub flex items-center justify-center shadow-menu border-b border-surface-border"
+      class="p-1 text-on-ghost text-sub flex items-center justify-center shadow-menu border-b border-surface-border cursor-pointer"
       :class="colorFor(currentAnnouncement.color).replace('is-', 'bg-')"
+      @click="nextAnnouncement"
     >
-      <div
-        class="flex-1 flex items-center justify-center gap-2 cursor-pointer overflow-hidden"
-        @click="nextAnnouncement"
-      >
-        <span class="whitespace-normal flex-1 text-center">{{
-          currentAnnouncement.content
-        }}</span>
-        <span
-          class="text-[12px] opacity-80 flex-shrink-0"
-          v-if="announcements.length > 1"
-        >
-          ({{ currentIndex + 1 }}/{{ announcements.length }})
-        </span>
-      </div>
+      <span class="whitespace-normal mx-2 flex-1 text-center">{{
+        currentAnnouncement.content
+      }}</span>
 
-      <button
-        class="bg-none border-none text-on-ghost-muted cursor-pointer flex items-center justify-center flex-shrink-0 ml-3 hover:text-on-ghost"
-        @click.stop="toggleMenu"
+      <span
+        class="text-xs text-on-ghost-muted flex-shrink-0"
+        v-if="announcements.length > 1"
       >
-        <EllipsisVertical :size="16" />
-      </button>
+        ({{ currentIndex + 1 }}/{{ announcements.length }})
+      </span>
+
+      <BaseTooltip content="More" placement="bottom">
+        <BaseButton
+          @click.stop="toggleMenu"
+          variant="ghost"
+          size="sm"
+          :icon="EllipsisVertical"
+          :touch="false"
+        />
+      </BaseTooltip>
     </div>
   </div>
 </template>

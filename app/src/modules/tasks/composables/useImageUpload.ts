@@ -149,7 +149,7 @@ export function useImageUpload() {
           }
         } else {
           console.error('Cloudinary Upload failed', json);
-          uploadError.value = 'Upload zu Cloudinary fehlgeschlagen.';
+          uploadError.value = 'Upload in die Cloud fehlgeschlagen.';
         }
       } catch (e: unknown) {
         console.error('uploadFiles error', e);
