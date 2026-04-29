@@ -208,7 +208,10 @@ function onDrop(e: DragEvent) {
       </div>
 
       <div class="relative flex justify-between items-start gap-2 select-none">
-        <div class="flex-1 min-w-0 my-2 ml-2">
+        <div
+          class="flex-1 min-w-0 mt-2 ml-2"
+          :class="$slots.body || $slots['content-after'] ? 'mb-2' : 'mb-1'"
+        >
           <div class="flex items-center gap-2">
             <slot name="checkbox"></slot>
             <slot name="title">
@@ -227,11 +230,7 @@ function onDrop(e: DragEvent) {
             @after-enter="onAfterEnter"
             @leave="onLeave"
           >
-            <BaseRow
-              v-show="!isCollapsed"
-              v-if="$slots.badges"
-              class="mt-1"
-            >
+            <BaseRow v-show="!isCollapsed" v-if="$slots.badges" class="mt-1">
               <slot name="badges"></slot>
             </BaseRow>
           </transition>

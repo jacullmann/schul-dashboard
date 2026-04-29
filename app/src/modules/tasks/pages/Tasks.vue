@@ -515,12 +515,11 @@ async function handleArchiveFromMenu(item: HwItem) {
             </div>
 
             <BaseTooltip
-              v-if="editingNoteForId !== item.id"
+              v-if="editingNoteForId !== item.id && canEditNote()"
               :content="t('global.buttons.edit')"
               placement="bottom"
             >
               <BaseButton
-                v-if="!canEditNote()"
                 @click.stop="startEditNote(item)"
                 variant="ghost"
                 :icon="Pencil"
