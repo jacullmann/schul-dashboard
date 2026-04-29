@@ -17,7 +17,7 @@ import {
 import hw from '@/api/hwApi';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore.ts';
+import { useModalStore } from '@/stores/modalStore';
 
 const { success: toastSuccess, error: toastError } = useToast();
 const modalStore = useModalStore();

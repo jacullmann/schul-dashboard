@@ -114,7 +114,7 @@ onMounted(() => {
         class="flex justify-between items-start gap-4 sm:gap-6 max-sm:flex-col"
       >
         <div>
-          <h2>
+          <h2 class="animate-fade-up">
             {{ t(greeting) }}<span v-if="user">, </span
             ><span
               v-if="user"
@@ -122,7 +122,9 @@ onMounted(() => {
               >{{ displayName }}</span
             >
           </h2>
-          <p class="text-body text-on-ghost-muted m-0 leading-relaxed">
+          <p
+            class="text-body text-on-ghost-muted m-0 leading-relaxed animate-fade-up"
+          >
             {{
               userGroups.length
                 ? 'Wähle eine Gruppe aus, um loszulegen.'
@@ -140,6 +142,7 @@ onMounted(() => {
             @click="modalStore.openJoinGroup()"
             variant="action"
             :icon="UserRoundPlus"
+            class="animate-fade-up"
           >
             <span>{{ t('groups.home.joinGroup') }}</span>
           </BaseButton>
@@ -147,6 +150,7 @@ onMounted(() => {
             @click="modalStore.openCreateGroup()"
             variant="ghost"
             :icon="Plus"
+            class="animate-fade-up"
           >
             <span>{{ t('groups.home.createGroup') }}</span>
           </BaseButton>
@@ -157,11 +161,11 @@ onMounted(() => {
     <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex items-center gap-2.5 mb-4">
-        <h2 class="text-h2 font-bold text-on-ghost m-0">
+        <h2 class="text-h2 font-bold text-on-ghost m-0 animate-fade-up">
           {{ t('groups.home.yourGroups') }}
         </h2>
         <span
-          class="text-on-ghost-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5"
+          class="text-on-ghost-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5 animate-fade-up"
           >{{ userGroups.length }}</span
         >
       </div>
@@ -169,7 +173,7 @@ onMounted(() => {
         <button
           v-for="group in userGroups"
           :key="group.id"
-          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover"
+          class="group flex items-center w-full gap-2 p-3 sm:px-3.5 sm:py-3 rounded-xl bg-surface border border-surface-border shadow-input cursor-pointer text-left transition-hover hover:bg-surface-highlight disabled:opacity-50 [.active]:bg-action [.active]:border-action [.active]:hover:bg-action-hover animate-fade-up"
           :class="{ active: group.id === activeGroupId }"
           @click="navigateToGroup(group.id)"
           :disabled="navigatingGroupId === group.id"

@@ -24,6 +24,7 @@ type UserGroup = {
 const userGroups = ref<UserGroup[]>([]);
 
 let initPromise: Promise<void> | null = null;
+let statusPromise: Promise<boolean> | null = null;
 let switchPromise: Promise<AuthResult> | null = null;
 let switchTarget: string | null = null;
 
@@ -48,6 +49,7 @@ function clearAuthState(): void {
   activeGroupId.value = null;
   activeGroupOwnerId.value = null;
   userGroups.value = [];
+  statusPromise = null;
   try {
     localStorage.removeItem('active_tenant_id');
   } catch {
@@ -77,6 +79,7 @@ async function doInitAuth(): Promise<void> {
     clearAuthState();
   } finally {
     isAuthReady.value = true;
+    initPromise = null;
   }
 }
 
@@ -125,14 +128,22 @@ async function doSwitchGroup(
 // ─── Composable ───────────────────────────────────────────────────────────────
 export function useAppAuth() {
   async function checkAuthStatus(): Promise<boolean> {
-    try {
-      const { data } = await hw.get(STATUS_ENDPOINT);
-      applyStatusData(data);
-      return data.authenticated === true;
-    } catch {
-      clearAuthState();
-      return false;
-    }
+    if (statusPromise) return statusPromise;
+
+    statusPromise = (async () => {
+      try {
+        const { data } = await hw.get(STATUS_ENDPOINT);
+        applyStatusData(data);
+        return data.authenticated === true;
+      } catch {
+        clearAuthState();
+        return false;
+      } finally {
+        statusPromise = null;
+      }
+    })();
+
+    return statusPromise;
   }
 
   async function initAuth(): Promise<void> {

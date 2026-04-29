@@ -2,11 +2,10 @@ import { ref } from 'vue';
 import hw from '@/api/hwApi';
 import type { AdminSubject } from '@/modules/admin/types';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore.ts';
-
-const modalStore = useModalStore();
+import { useModalStore } from '@/stores/modalStore';
 
 export function useSubjectAdmin() {
+  const modalStore = useModalStore();
   const { success, error: toastError } = useToast();
 
   const subjects = ref<AdminSubject[]>([]);

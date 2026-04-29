@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Trash2 } from '@lucide/vue';
 import type { GroupStats } from '@/modules/admin/types';
 
 const props = defineProps<{

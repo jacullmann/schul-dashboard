@@ -10,13 +10,13 @@ import type {
 } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useToast } from '@/common/composables/useToast';
-import { useModalStore } from '@/stores/modalStore.ts';
+import { useModalStore } from '@/stores/modalStore';
 import { useI18n } from 'vue-i18n';
 
-const modalStore = useModalStore();
-const { t } = useI18n();
-
 export function useGroupAdmin() {
+  const modalStore = useModalStore();
+  const { t } = useI18n();
+
   const route = useRoute();
   const { groupName: authGroupName, checkAuthStatus } = useAppAuth();
   const { success, error: toastError } = useToast();

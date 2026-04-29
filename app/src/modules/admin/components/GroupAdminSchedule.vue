@@ -157,7 +157,7 @@ function handleSaveSub() {
 </script>
 
 <template>
-  <div class="tab-panel">
+  <div class="animate-fade-up">
     <PageHeader>
       Stundenplanänderungen
 
@@ -360,8 +360,8 @@ function handleSaveSub() {
         </template>
       </PageHeader>
 
-      <div class="grid grid-cols-2 gap-3 mb-4 sm:grid-cols-1">
-        <div class="form-field">
+      <div class="grid grid-cols-2 gap-4 mb-4 sm:grid-cols-1">
+        <div>
           <BaseLabel for="config-start">Startzeit</BaseLabel>
           <BaseInput
             id="config-start"
@@ -370,7 +370,7 @@ function handleSaveSub() {
             :disabled="!isAdmin"
           />
         </div>
-        <div class="form-field">
+        <div>
           <BaseLabel for="config-slots">Anzahl Stunden (Pro Tag)</BaseLabel>
           <BaseInput
             id="config-slots"
@@ -381,7 +381,7 @@ function handleSaveSub() {
             :disabled="!isAdmin"
           />
         </div>
-        <div class="form-field">
+        <div>
           <BaseLabel for="config-duration">Stundenlänge (Minuten)</BaseLabel>
           <BaseInput
             id="config-duration"
@@ -468,24 +468,3 @@ function handleSaveSub() {
     </div>
   </div>
 </template>
-
-<style scoped>
-.tab-panel {
-  animation: fadeUp 0.2s ease;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.form-field {
-  margin-bottom: 16px;
-}
-</style>

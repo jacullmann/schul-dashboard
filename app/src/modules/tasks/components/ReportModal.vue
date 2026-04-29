@@ -79,23 +79,18 @@ watch(
     </template>
 
     <template #content>
-      <p class="text-on-ghost font-semibold text-sm mb-4">
-        Wähle den Grund aus:
-      </p>
-
-      <div class="w-full mb-0">
+      <BaseFormGroup id="reportReason">
+        <BaseLabel for="reportReason">Wähle den Grund aus:</BaseLabel>
         <BaseTabs
+          id="reportReason"
           :items="tabItems"
           :active-id="category"
           @change="handleTabChange"
         />
-      </div>
+      </BaseFormGroup>
 
-      <div class="mb-6 relative">
-        <BaseLabel
-          for="reportReason"
-          class="block text-sm font-medium mb-2 text-on-ghost"
-        >
+      <BaseFormGroup id="reportDescription">
+        <BaseLabel for="reportDescription">
           {{
             category === 'falschinfo'
               ? 'Begründung (erforderlich)'
@@ -104,7 +99,7 @@ watch(
         </BaseLabel>
         <BaseInput
           as="textarea"
-          id="reportReason"
+          id="reportDescription"
           class="w-full min-h-[120px] resize-vertical"
           :model-value="reason"
           @update:model-value="$emit('update:reason', $event)"
@@ -114,16 +109,9 @@ watch(
           :required="category === 'falschinfo'"
           :maxlength="MAX_LENGTH"
         ></BaseInput>
-        <div class="absolute bottom-[-5px] right-3 z-1 pointer-events-none">
-          <p
-            class="text-footnote text-on-ghost-muted opacity-80 px-2 py-0.5 rounded m-0"
-          >
-            {{ reasonLength }} / {{ MAX_LENGTH }}
-          </p>
-        </div>
-      </div>
+      </BaseFormGroup>
     </template>
 
-    <template #action-text> Eintrag melden </template>
+    <template #action-text>Eintrag melden</template>
   </BaseModal>
 </template>

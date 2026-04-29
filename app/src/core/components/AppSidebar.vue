@@ -16,11 +16,11 @@ import { useSearchModal } from '@/core/composables/useSearchModal';
 import { useItemForm } from '@/core/composables/useItemForm';
 import { useModalStore } from '@/stores/modalStore';
 import { storeToRefs } from 'pinia';
-import hw from '@/api/hwApi.ts';
+import hw from '@/api/hwApi';
 import { onMounted, onUnmounted } from 'vue';
-import { useAppAuth } from '@/modules/auth/composables/useAppAuth.ts';
+import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useRouter } from 'vue-router';
-import { useMfa } from '@/modules/auth/composables/useMfa.ts';
+import { useMfa } from '@/modules/auth/composables/useMfa';
 import SidebarButton from '@/core/components/SidebarButton.vue';
 import { useI18n } from 'vue-i18n';
 import { useGroupAction } from '@/core/composables/useGroupAction';
@@ -144,15 +144,16 @@ onUnmounted(() => {
       isExpanded ? 'max-md:translate-x-0' : 'max-md:-translate-x-full',
     ]"
   >
-    <div class="flex flex-col gap-4 w-full">
-      <SidebarButton
-        :label="isExpanded ? t('sidebar.collapse') : t('sidebar.expand')"
-        :shortcut="['ctrl', 'shift', 'd']"
-        :expanded="isExpanded"
-        class="hidden md:flex"
-        :icon="PanelLeft"
-        @click="toggleExpanded"
-      />
+    <div class="flex flex-col gap-4 w-full flex-1 min-h-0">
+      <div class="hidden md:flex">
+        <SidebarButton
+          :label="isExpanded ? t('sidebar.collapse') : t('sidebar.expand')"
+          :shortcut="['ctrl', 'shift', 'd']"
+          :expanded="isExpanded"
+          :icon="PanelLeft"
+          @click="toggleExpanded"
+        />
+      </div>
 
       <div class="flex flex-col gap-0 w-full">
         <SidebarButton
@@ -235,7 +236,7 @@ onUnmounted(() => {
 
       <BaseMenuDivider />
 
-      <div class="flex flex-col gap-0 w-full overflow-y-auto">
+      <div class="flex flex-col gap-0 w-full overflow-y-auto flex-1 list-fade custom-scrollbar">
         <SidebarButton
           v-for="(group, index) in userGroups"
           :key="index"
@@ -272,5 +273,19 @@ onUnmounted(() => {
 .fade-links-enter-from,
 .fade-links-leave-to {
   opacity: 0;
+}
+
+.list-fade {
+  /* Fades out the bottom 32px of the container */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 32px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 32px),
+    transparent 100%
+  );
 }
 </style>

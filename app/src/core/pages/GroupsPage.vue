@@ -255,16 +255,15 @@ async function leaveGroup(group: any) {
           >
             <BaseMenuButton
               v-if="group.id !== defaultGroupId"
+              :icon="Star"
               @click="setDefaultGroup(group.id)"
             >
-              <Star :size="16" />
               Make default
             </BaseMenuButton>
 
-            <BaseMenuDivider />
+            <BaseMenuDivider v-if="group.id !== defaultGroupId" />
 
-            <BaseMenuButton @click="leaveGroup(group)">
-              <LogOut :size="16" />
+            <BaseMenuButton :icon="LogOut" @click="leaveGroup(group)">
               Leave
             </BaseMenuButton>
           </BaseMenu>
