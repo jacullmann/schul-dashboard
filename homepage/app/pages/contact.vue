@@ -58,15 +58,15 @@ const contactMethods = [
               <component :is="method.icon" :size="22" aria-hidden="true" />
             </div>
             <div class="flex-1">
-              <h2 class="text-title font-semibold text-on-ghost font-display mb-1.5">
+              <h2 class="text-lg font-semibold text-on-ghost font-display mb-1.5">
                 {{ t(`pages.contact.${method.key}_title`) }}
               </h2>
-              <p class="text-sub text-on-ghost-muted m-0 leading-[1.6]">
+              <p class="text-sm text-on-ghost-muted m-0 leading-[1.6]">
                 {{ t(`pages.contact.${method.key}_description`) }}
               </p>
             </div>
             <div
-              class="flex items-center gap-2 text-sub font-medium text-on-ghost-muted group-hover:text-on-ghost transition-colors"
+              class="flex items-center gap-2 text-sm font-medium text-on-ghost-muted group-hover:text-on-ghost transition-colors"
             >
               {{ method.value }}
               <ArrowRight

@@ -129,7 +129,7 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
     <div class="private-task-header">
       <div class="flex gap-2 items-center text-on-ghost mb-4">
         <Lock class="text-on-ghost" :size="24" />
-        <h2 class="m-0 text-h2 leading-6">
+        <h2 class="m-0 text-2xl leading-6">
           {{ t('school.private.onlyVisibleToYou') }}
         </h2>
         <InfoModal

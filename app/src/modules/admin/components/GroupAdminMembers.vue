@@ -116,13 +116,13 @@ function confirmRemove() {
 
     <div
       v-if="loading && members.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Lädt...
     </div>
     <div
       v-else-if="members.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Keine Mitglieder gefunden.
     </div>
@@ -136,7 +136,7 @@ function confirmRemove() {
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span
-            class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis"
+            class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
             >{{ member.generatedName }}</span
           >
           <span
@@ -190,13 +190,13 @@ function confirmRemove() {
 
     <div
       v-if="loadingBanned && (!bannedUsers || bannedUsers.length === 0)"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Loading...
     </div>
     <div
       v-else-if="!bannedUsers || bannedUsers.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       No banned users.
     </div>
@@ -209,7 +209,7 @@ function confirmRemove() {
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <span
-            class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis"
+            class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
             >{{ user.generatedName }}</span
           >
           <span

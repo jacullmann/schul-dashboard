@@ -346,8 +346,8 @@ onMounted(() => {
           class="absolute inset-0 z-50 flex items-center justify-center bg-canvas/80 backdrop-blur-sm border-2 border-dashed border-primary rounded-2xl pointer-events-none"
         >
           <div class="text-center p-6">
-            <div class="text-h2 mb-2">📸</div>
-            <div class="text-h3 font-bold text-primary">
+            <div class="text-2xl mb-2">📸</div>
+            <div class="text-xl font-bold text-primary">
               {{
                 t('school.tasks.itemForm.dropToUpload') || 'Bilder hier ablegen'
               }}

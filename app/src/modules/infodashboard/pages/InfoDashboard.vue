@@ -143,7 +143,7 @@ const getSliderStyle = (current: number, max: number) => {
               </div>
             </div>
             <div class="flex flex-col justify-center">
-              <span class="text-body text-on-ghost mb-1.5">{{
+              <span class="text-base text-on-ghost mb-1.5">{{
                 t('info.dashboard.categories.' + processedArticles[0]!.topic)
               }}</span>
               <h1
@@ -154,7 +154,7 @@ const getSliderStyle = (current: number, max: number) => {
               <p class="text-[1.25rem] text-on-ghost-muted leading-[1.6] my-4">
                 {{ t(processedArticles[0]!.excerptKey) }}
               </p>
-              <div class="text-body text-on-ghost-muted">
+              <div class="text-base text-on-ghost-muted">
                 <span>{{ processedArticles[0]!.author }}</span>
                 <span class="mx-2">•</span>
                 <span>{{ formatDate(processedArticles[0]!.date) }}</span>
@@ -213,7 +213,7 @@ const getSliderStyle = (current: number, max: number) => {
             />
 
             <header class="text-left mb-8 mt-4">
-              <span class="text-body text-on-ghost mb-1.5">{{
+              <span class="text-base text-on-ghost mb-1.5">{{
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
               <h1
@@ -237,7 +237,7 @@ const getSliderStyle = (current: number, max: number) => {
 
           <article v-else class="full-article">
             <header class="text-left mb-8">
-              <span class="text-body text-on-ghost mb-1.5">{{
+              <span class="text-base text-on-ghost mb-1.5">{{
                 t('info.dashboard.categories.' + activeArticle.topic)
               }}</span>
               <h1

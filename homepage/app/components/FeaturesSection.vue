@@ -40,10 +40,10 @@ const features = [
             <component :is="feature.icon" :size="20" aria-hidden="true" />
           </div>
           <div>
-            <h3 class="text-title font-semibold text-on-ghost font-display mb-2">
+            <h3 class="text-lg font-semibold text-on-ghost font-display mb-2">
               {{ t(`sections.features.${feature.key}.title`) }}
             </h3>
-            <p class="text-sub text-on-ghost-muted leading-[1.7] m-0">
+            <p class="text-sm text-on-ghost-muted leading-[1.7] m-0">
               {{ t(`sections.features.${feature.key}.description`) }}
             </p>
           </div>

@@ -202,8 +202,8 @@ function handleSaveSub() {
     </h3>
 
     <div v-if="selectedLesson">
-      <h3 class="mt-0 mb-2 text-title">Ausgewählte Stunde</h3>
-      <p class="m-0 mb-4 text-on-ghost-muted text-body">
+      <h3 class="mt-0 mb-2 text-lg">Ausgewählte Stunde</h3>
+      <p class="m-0 mb-4 text-on-ghost-muted text-base">
         Ersetzt: <strong>{{ getDisplayName(selectedLesson) }}</strong> (Stunde:
         {{ selectedLesson.slot }}, Letzte Stunde:
         {{ selectedLesson.slot + selectedLesson.duration - 1 }}, Raum:
@@ -274,10 +274,10 @@ function handleSaveSub() {
       </BaseButton>
     </div>
 
-    <h3 class="p-5 pb-0 text-title">Stunde auswählen</h3>
+    <h3 class="p-5 pb-0 text-lg">Stunde auswählen</h3>
     <div
       v-if="loadingLessons"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Lade Stundenplan...
     </div>
@@ -292,7 +292,7 @@ function handleSaveSub() {
     <!-- Existing Subs -->
     <div
       v-if="subs.length === 0 && !loadingSubs"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Keine Substitutions vorhanden.
     </div>
@@ -313,10 +313,10 @@ function handleSaveSub() {
             class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost"
             >Unbekannt</span
           >
-          <span class="text-sub text-on-ghost-muted" v-if="sub.slot"
+          <span class="text-sm text-on-ghost-muted" v-if="sub.slot"
             >Stunde: {{ sub.slot }}</span
           >
-          <span class="text-sub text-on-ghost-muted" v-if="sub.day"
+          <span class="text-sm text-on-ghost-muted" v-if="sub.day"
             >Tag: {{ sub.day }}</span
           >
           <span
@@ -329,7 +329,7 @@ function handleSaveSub() {
             class="text-[0.7rem] font-semibold px-2 py-0.5 rounded bg-surface-hover text-on-ghost-muted"
             >Versteckt</span
           >
-          <span v-if="sub.room" class="text-sub text-on-ghost-muted"
+          <span v-if="sub.room" class="text-sm text-on-ghost-muted"
             >Raum: {{ sub.room }}</span
           >
         </div>
@@ -409,7 +409,7 @@ function handleSaveSub() {
 
         <div
           v-if="configForm.breaks.length === 0"
-          class="text-center p-4 text-on-ghost-muted text-body"
+          class="text-center p-4 text-on-ghost-muted text-base"
         >
           Keine Pausen konfiguriert.
         </div>

@@ -123,7 +123,7 @@ onMounted(() => {
             >
           </h2>
           <p
-            class="text-body text-on-ghost-muted m-0 leading-relaxed animate-fade-up"
+            class="text-base text-on-ghost-muted m-0 leading-relaxed animate-fade-up"
           >
             {{
               userGroups.length
@@ -161,11 +161,11 @@ onMounted(() => {
     <!-- Regular User: My Groups -->
     <section v-if="userGroups.length > 0" class="mb-9">
       <div class="flex items-center gap-2.5 mb-4">
-        <h2 class="text-h2 font-bold text-on-ghost m-0 animate-fade-up">
+        <h2 class="text-2xl font-bold text-on-ghost m-0 animate-fade-up">
           {{ t('groups.home.yourGroups') }}
         </h2>
         <span
-          class="text-on-ghost-muted bg-surface rounded-full text-sub font-semibold px-2.5 py-0.5 animate-fade-up"
+          class="text-on-ghost-muted bg-surface rounded-full text-sm font-semibold px-2.5 py-0.5 animate-fade-up"
           >{{ userGroups.length }}</span
         >
       </div>
@@ -188,16 +188,16 @@ onMounted(() => {
             />
           </span>
           <span class="flex flex-col flex-1 gap-0.5">
-            <div class="flex items-center gap-1.5 overflow-hidden">
+            <span class="flex items-center gap-1.5 overflow-hidden">
               <span
-                class="font-semibold text-body text-on-ghost group-[.active]:text-on-action truncate"
+                class="font-semibold text-base text-on-ghost group-[.active]:text-on-action truncate"
               >
                 {{ group.name }}
               </span>
               <NotificationDot v-if="group.hasUnreadContent" />
-            </div>
+            </span>
             <span
-              class="text-footnote font-semibold uppercase tracking-wider"
+              class="text-xs font-semibold uppercase tracking-wider"
               :class="roleColors[group.role]"
             >
               {{ roleLabel(group.role) }}

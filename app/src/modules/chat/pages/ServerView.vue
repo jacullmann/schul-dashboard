@@ -455,7 +455,7 @@ const toggleSpeechRecognition = () => {
         <div v-if="isThinking" key="thinking" class="flex justify-start">
           <div class="p-2 flex items-center gap-2">
             <BaseSpinner on="ghost" size="20" />
-            <span class="text-body text-on-ghost-muted">{{
+            <span class="text-base text-on-ghost-muted">{{
               isSearching
                 ? t('chat.status.searching_user') + dots
                 : t('chat.status.waiting') + dots
@@ -561,7 +561,7 @@ const toggleSpeechRecognition = () => {
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Respond to the user"
-              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
             ></textarea>
 
             <BaseRow justify="between">

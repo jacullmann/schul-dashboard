@@ -51,7 +51,7 @@ const getDisplayKey = (key: string): string => {
       <BaseKbd :flat="flat" :on="on">{{ getDisplayKey(key) }}</BaseKbd>
       <span
         v-if="index < keys.length - 1"
-        class="text-sub select-none font-sans"
+        class="text-sm select-none font-sans"
         :class="'text-on-' + props.on + '-muted'"
       >
         {{ separator }}

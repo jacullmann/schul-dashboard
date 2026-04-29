@@ -18,7 +18,7 @@ const { t, tm } = useI18n();
         :tooltip="t('school.tables.schedule.infopop.tooltip')"
         :title="t('school.tables.schedule.title')"
       >
-        <h3 class="text-h3 font-bold mb-2">
+        <h3 class="text-xl font-bold mb-2">
           {{ t('school.tables.schedule.infopop.description') }}
         </h3>
         <div
@@ -28,8 +28,8 @@ const { t, tm } = useI18n();
           :key="index"
           class="mb-4"
         >
-          <h3 class="text-h3 font-bold mb-1">{{ section.title }}</h3>
-          <p class="text-body text-on-ghost-muted m-0">{{ section.text }}</p>
+          <h3 class="text-xl font-bold mb-1">{{ section.title }}</h3>
+          <p class="text-base text-on-ghost-muted m-0">{{ section.text }}</p>
         </div>
         <div class="w-full flex items-center justify-center mt-4">
           <img
@@ -45,7 +45,7 @@ const { t, tm } = useI18n();
   <div v-if="loading" class="text-[12px] text-on-ghost-muted my-2">
     {{ t('school.tables.schedule.loading') }}
   </div>
-  <!-- <div v-else-if="isPersonalized" class="inline-flex items-center px-2 py-1 bg-surface border border-surface-border rounded-md text-body text-on-ghost shadow-input">
+  <!-- <div v-else-if="isPersonalized" class="inline-flex items-center px-2 py-1 bg-surface border border-surface-border rounded-md text-base text-on-ghost shadow-input">
     {{ t('school.tables.schedule.personalized') }}
   </div> -->
 </template>

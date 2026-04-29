@@ -43,7 +43,7 @@ withDefaults(
 
       <span
         v-if="label"
-        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] transition-hover text-sub leading-5 font-medium whitespace-nowrap overflow-hidden"
+        class="transition-[max-width,opacity,margin-left] duration-200 ease-[cubic-bezier(0.4, 0, 0.2, 1)] transition-hover text-sm leading-5 font-medium whitespace-nowrap overflow-hidden"
         :class="[
           expanded ? 'max-w-40 opacity-100 ml-3' : 'max-w-0 opacity-0 ml-0',
           !icon ? 'ml-1!' : '',

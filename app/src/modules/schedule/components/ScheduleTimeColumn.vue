@@ -13,7 +13,7 @@ const { t } = useI18n();
     class="max-[500px]:grid max-[500px]:grid-rows-[auto_repeat(9,auto)] max-[500px]:w-[85px] max-[500px]:shrink-0 max-[500px]:gap-2 max-[500px]:z-10 max-[500px]:bg-transparent min-[501px]:contents"
   >
     <div
-      class="bg-surface text-on-ghost px-3 py-2 border border-surface-border text-center font-bold rounded-md text-body shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1]"
+      class="bg-surface text-on-ghost px-3 py-2 border border-surface-border text-center font-bold rounded-md text-base shadow-input max-[500px]:static min-[501px]:[grid-column:1] min-[501px]:[grid-row:1]"
     >
       {{ t('school.tables.schedule.lesson') }}
     </div>
@@ -21,11 +21,11 @@ const { t } = useI18n();
     <div
       v-for="ts in timeSlots"
       :key="ts.slot"
-      class="flex flex-col justify-center items-center bg-transparent text-sub text-on-ghost-muted whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1]"
+      class="flex flex-col justify-center items-center bg-transparent text-sm text-on-ghost-muted whitespace-nowrap max-[500px]:static min-[501px]:[grid-column:1]"
       :style="{ gridRow: ts.slot + 1 }"
     >
-      <span class="font-bold text-title text-on-ghost">{{ ts.slot }}</span>
-      <span class="text-footnote">{{ ts.time }}</span>
+      <span class="font-bold text-lg text-on-ghost">{{ ts.slot }}</span>
+      <span class="text-xs">{{ ts.time }}</span>
     </div>
   </div>
 </template>

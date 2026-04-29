@@ -202,7 +202,7 @@ async function onPrimary() {
         </BaseFormGroup>
       </div>
 
-      <div v-if="message && !isError" class="text-sub mt-2">{{ message }}</div>
+      <div v-if="message && !isError" class="text-sm mt-2">{{ message }}</div>
     </template>
 
     <template #action-text>

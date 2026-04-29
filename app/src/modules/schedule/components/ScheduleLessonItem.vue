@@ -32,17 +32,17 @@ const { t } = useI18n();
   >
     <div v-if="lesson.cancelled">
       <div
-        class="font-bold text-body text-on-ghost whitespace-nowrap overflow-hidden text-ellipsis line-through text-on-ghost-muted group-[.highlight-active]:text-on-action/70"
+        class="font-bold text-base text-on-ghost whitespace-nowrap overflow-hidden text-ellipsis line-through text-on-ghost-muted group-[.highlight-active]:text-on-action/70"
       >
         {{ getDisplayName(lesson) }}
       </div>
       <div
-        class="text-danger font-bold text-body group-[.highlight-active]:text-danger"
+        class="text-danger font-bold text-base group-[.highlight-active]:text-danger"
       >
         {{ t('school.tables.schedule.cancelled') }}
       </div>
       <div
-        class="flex justify-between text-sub text-on-ghost-muted mt-0.5 group-[.highlight-active]:text-surface-hover"
+        class="flex justify-between text-sm text-on-ghost-muted mt-0.5 group-[.highlight-active]:text-surface-hover"
       >
         <span class="line-through">{{ lesson.room }}</span>
       </div>
@@ -50,7 +50,7 @@ const { t } = useI18n();
 
     <div v-else>
       <div
-        class="font-bold text-body whitespace-nowrap overflow-hidden text-ellipsis group-[.highlight-active]:text-on-action"
+        class="font-bold text-base whitespace-nowrap overflow-hidden text-ellipsis group-[.highlight-active]:text-on-action"
         :class="isSelected ? 'text-on-action' : 'text-on-ghost'"
       >
         <template
@@ -78,7 +78,7 @@ const { t } = useI18n();
       </div>
 
       <div
-        class="flex justify-between text-sub mt-0.5 group-[.highlight-active]:text-surface-hover"
+        class="flex justify-between text-sm mt-0.5 group-[.highlight-active]:text-surface-hover"
         :class="isSelected ? 'text-surface-hover' : 'text-on-ghost-muted'"
       >
         <span class="inline-flex gap-1 items-center">

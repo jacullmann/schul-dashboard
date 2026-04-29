@@ -143,7 +143,7 @@ watch(
           </button>
 
           <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full text-sub backdrop-blur-[4px] pointer-events-auto"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-[rgba(0,0,0,0.6)] px-3 py-1 rounded-full text-sm backdrop-blur-[4px] pointer-events-auto"
             @click.stop
           >
             {{ currentIndex + 1 }} / {{ images.length }}

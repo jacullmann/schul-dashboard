@@ -113,7 +113,7 @@ function setSelectedIndex(idx: number) {
           :placeholder="placeholder"
           autocomplete="off"
           spellcheck="false"
-          class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle"
+          class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base placeholder:text-on-ghost-subtle"
         />
         <BaseKbd class="hidden sm:inline-flex">Esc</BaseKbd>
       </div>
@@ -128,17 +128,17 @@ function setSelectedIndex(idx: number) {
 
       <!-- Footer hint -->
       <div
-        class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-footnote text-on-ghost-muted"
+        class="px-4 py-2.5 border-t border-surface-border flex items-center gap-4 text-xs text-on-ghost-muted"
       >
-        <span class="flex items-center gap-1">
+        <BaseRow>
           <BaseKbd>↑</BaseKbd>
           <BaseKbd>↓</BaseKbd>
           {{ t('search.modal.hintNavigate') }}
-        </span>
-        <span class="flex items-center gap-1">
+        </BaseRow>
+        <BaseRow>
           <BaseKbd>↵</BaseKbd>
           {{ t('search.modal.hintConfirm') }}
-        </span>
+        </BaseRow>
       </div>
     </div>
   </BaseBackdrop>

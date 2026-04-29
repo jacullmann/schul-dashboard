@@ -249,7 +249,7 @@ async function handleArchiveFromMenu(item: HwItem) {
         </template>
 
         <template #badges>
-          <div class="text-on-ghost-muted text-body">
+          <div class="text-on-ghost-muted text-base">
             <template v-if="tab === 'all'"
               >{{ getTypeLabel(item.type) }} • </template
             >{{ getSubjectName(item.subject) }} •
@@ -266,7 +266,7 @@ async function handleArchiveFromMenu(item: HwItem) {
           </div>
           <div
             v-if="user?.role === 'superadmin'"
-            class="text-on-ghost-subtle text-body"
+            class="text-on-ghost-subtle text-base"
           >
             ({{ item.createdByEmail }})
           </div>
@@ -382,7 +382,7 @@ async function handleArchiveFromMenu(item: HwItem) {
           <button
             v-if="item.description.length > 200"
             type="button"
-            class="relative text-body font-bold text-on-ghost-muted hover:text-on-ghost cursor-pointer touch-target ml-2"
+            class="relative text-base font-bold text-on-ghost-muted hover:text-on-ghost cursor-pointer touch-target ml-2"
             @click="toggleDescription(item.id)"
           >
             {{ isExpanded(item.id) ? 'Weniger anzeigen' : 'mehr' }}
@@ -471,13 +471,13 @@ async function handleArchiveFromMenu(item: HwItem) {
             class="note-section mt-2 pt-2 border-t border-surface-border flex justify-between"
           >
             <div class="w-full">
-              <div class="text-on-ghost text-body font-bold mb-1">
+              <div class="text-on-ghost text-base font-bold mb-1">
                 {{ t('school.tasks.notes.note') }}
               </div>
 
               <div
                 v-if="editingNoteForId !== item.id"
-                class="text-on-ghost text-body whitespace-pre-wrap break-words"
+                class="text-on-ghost text-base whitespace-pre-wrap break-words"
               >
                 <span v-if="item.editorNote">{{ item.editorNote }}</span>
                 <span

@@ -201,7 +201,7 @@ function onDrop(e: DragEvent) {
         v-if="isDragOver"
         class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center text-white"
       >
-        <div class="flex flex-col items-center gap-2 font-medium text-body">
+        <div class="flex flex-col items-center gap-2 font-medium text-base">
           <UploadCloud :size="32" />
           <span>Bilder ablegen zum Hochladen</span>
         </div>
@@ -217,7 +217,7 @@ function onDrop(e: DragEvent) {
             <slot name="title">
               <h3
                 v-if="title"
-                class="!text-title overflow-hidden text-ellipsis whitespace-nowrap !leading-6 !-my-[3px]"
+                class="!text-lg overflow-hidden text-ellipsis whitespace-nowrap !leading-6 !-my-[3px]"
                 :title="title"
               >
                 {{ title }}

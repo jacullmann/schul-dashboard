@@ -95,7 +95,7 @@ onMounted(async () => {
     v-if="announcements.length"
   >
     <div
-      class="p-1 text-on-ghost text-sub flex items-center justify-center shadow-menu border-b cursor-pointer"
+      class="p-1 text-on-ghost text-sm flex items-center justify-center shadow-menu border-b cursor-pointer"
       :class="[colorFor(currentAnnouncement.color).replace('is-', 'bg-'), currentAnnouncement.color === 'danger' ? 'border-danger-highlight' : 'border-surface-border']"
       @click="nextAnnouncement"
     >

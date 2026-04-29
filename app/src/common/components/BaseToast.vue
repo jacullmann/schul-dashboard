@@ -31,7 +31,7 @@ const ICON_COLORS: Record<string, string> = {
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="relative flex items-start gap-2 p-1 rounded-full text-body leading-none overflow-hidden pointer-events-auto shadow-menu"
+          class="relative flex items-start gap-2 p-1 rounded-full text-base leading-none overflow-hidden pointer-events-auto shadow-menu"
           role="alert"
           :class="ICON_COLORS[toast.type]"
           :aria-atomic="true"
@@ -41,7 +41,7 @@ const ICON_COLORS: Record<string, string> = {
           </span>
 
           <span
-            class="my-2.5 flex-1 min-w-0 break-words text-body leading-5 truncate"
+            class="my-2.5 flex-1 min-w-0 break-words text-base leading-5 truncate"
             >{{ toast.message }}</span
           >
 

@@ -66,7 +66,7 @@ function handleLink() {
             <GoogleIcon :size="24" />
           </div>
           <div class="flex flex-col gap-0.5">
-            <span class="text-sub font-semibold text-on-ghost">Google</span>
+            <span class="text-sm font-semibold text-on-ghost">Google</span>
             <span
               v-if="googleLinked()"
               class="text-[0.75rem] text-on-ghost-muted"
@@ -109,13 +109,13 @@ function handleLink() {
 
       <div
         v-if="errorMsg"
-        class="text-sub p-2 px-3 rounded-lg text-danger bg-danger-hover"
+        class="text-sm p-2 px-3 rounded-lg text-danger bg-danger-hover"
       >
         {{ errorMsg }}
       </div>
       <div
         v-if="successMsg"
-        class="text-sub p-2 px-3 rounded-lg text-success bg-success-hover"
+        class="text-sm p-2 px-3 rounded-lg text-success bg-success-hover"
       >
         {{ successMsg }}
       </div>

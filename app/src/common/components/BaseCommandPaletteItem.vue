@@ -34,12 +34,12 @@ defineEmits<{
     </span>
 
     <span class="flex-1 min-w-0">
-      <span class="block text-sub font-medium text-on-ghost leading-tight">{{
+      <span class="block text-sm font-medium text-on-ghost leading-tight">{{
         label
       }}</span>
       <span
         v-if="description"
-        class="block text-footnote text-on-ghost-muted truncate mt-0.5"
+        class="block text-xs text-on-ghost-muted truncate mt-1"
         >{{ description }}</span
       >
     </span>

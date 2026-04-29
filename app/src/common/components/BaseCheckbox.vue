@@ -53,7 +53,7 @@ function handleLabelClick(event: MouseEvent) {
     </span>
     <span
       v-if="$slots.default"
-      class="text-sub leading-[18px] flex-1"
+      class="text-sm leading-[18px] flex-1"
       @click="handleLabelClick"
     >
       <slot></slot>

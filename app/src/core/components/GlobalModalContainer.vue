@@ -308,7 +308,7 @@ async function onAuthSuccess() {
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-lg);
   padding: 10px 16px;
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   box-shadow: var(--shadow-menu);
   white-space: nowrap;
 }

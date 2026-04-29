@@ -4,7 +4,7 @@
       <div class="flex items-center gap-4">
         <AppLogo class="h-[50px] w-auto" />
         <span
-          class="text-h2 font-bold transition-opacity duration-200 ease-in hover:opacity-80"
+          class="text-2xl font-bold transition-opacity duration-200 ease-in hover:opacity-80"
         >
           Schul-Dashboard
         </span>

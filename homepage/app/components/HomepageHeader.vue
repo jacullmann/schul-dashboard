@@ -31,7 +31,7 @@ function closeMobileMenu() {
           aria-label="schul-dashboard home"
         >
           <img src="/favicon.svg" alt="" class="w-7 h-7" />
-          <span class="hidden sm:inline text-sub">schul-dashboard</span>
+          <span class="hidden sm:inline text-sm">schul-dashboard</span>
         </NuxtLink>
 
         <div class="hidden lg:flex items-center gap-6">
@@ -39,7 +39,7 @@ function closeMobileMenu() {
             v-for="link in navLinks"
             :key="link.route"
             :to="localePath(link.route)"
-            class="text-sub text-on-ghost-muted font-medium no-underline transition-colors hover:text-on-ghost"
+            class="text-sm text-on-ghost-muted font-medium no-underline transition-colors hover:text-on-ghost"
             active-class="text-on-ghost"
           >
             {{ t(link.labelKey) }}
@@ -50,13 +50,13 @@ function closeMobileMenu() {
       <div class="hidden lg:flex items-center gap-3">
         <a
           :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-          class="text-sub text-on-ghost-muted font-medium transition-colors hover:text-on-ghost"
+          class="text-sm text-on-ghost-muted font-medium transition-colors hover:text-on-ghost"
         >
           {{ t('common.login') }}
         </a>
         <a
           :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-          class="px-4 py-2 rounded-lg bg-action text-on-action text-sub font-semibold no-underline transition-all hover:bg-action-hover inline-flex items-center"
+          class="px-4 py-2 rounded-lg bg-action text-on-action text-sm font-semibold no-underline transition-all hover:bg-action-hover inline-flex items-center"
         >
           {{ t('common.getStarted') }}
         </a>
@@ -79,7 +79,7 @@ function closeMobileMenu() {
             v-for="link in navLinks"
             :key="link.route"
             :to="localePath(link.route)"
-            class="px-3 py-2.5 rounded-lg text-on-ghost text-sub font-medium no-underline transition-colors hover:bg-surface-highlight"
+            class="px-3 py-2.5 rounded-lg text-on-ghost text-sm font-medium no-underline transition-colors hover:bg-surface-highlight"
             @click="closeMobileMenu"
           >
             {{ t(link.labelKey) }}
@@ -87,13 +87,13 @@ function closeMobileMenu() {
           <div class="border-t border-surface-border my-2" />
           <a
             :href="config.public.loginUrl || 'https://app.schul-dashboard.com'"
-            class="px-3 py-2.5 rounded-lg text-on-ghost-muted text-sub font-medium transition-colors hover:bg-surface-highlight"
+            class="px-3 py-2.5 rounded-lg text-on-ghost-muted text-sm font-medium transition-colors hover:bg-surface-highlight"
           >
             {{ t('common.login') }}
           </a>
           <a
             :href="config.public.appUrl || 'https://app.schul-dashboard.com'"
-            class="px-3 py-2.5 rounded-lg bg-action text-on-action text-sub font-semibold transition-all hover:bg-action-hover text-center"
+            class="px-3 py-2.5 rounded-lg bg-action text-on-action text-sm font-semibold transition-all hover:bg-action-hover text-center"
           >
             {{ t('common.getStarted') }}
           </a>

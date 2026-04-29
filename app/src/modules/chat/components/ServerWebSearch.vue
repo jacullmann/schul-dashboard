@@ -88,7 +88,7 @@ onMounted(() => {
               placeholder="Search Wikipedia..."
               autocomplete="off"
               spellcheck="false"
-              class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle"
+              class="flex-1 w-full p-0 leading-4 rounded-none bg-transparent border-none outline-none shadow-none text-on-ghost text-base placeholder:text-on-ghost-subtle"
             />
             <BaseButton
               type="button"
@@ -179,7 +179,7 @@ onMounted(() => {
 
           <!-- Footer: Navigation Hint -->
           <div
-            class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-footnote text-on-ghost-muted"
+            class="px-4 py-2.5 border-t border-canvas-border flex items-center gap-4 text-xs text-on-ghost-muted"
           >
             <BaseRow>
               <BaseKbd>↑</BaseKbd>

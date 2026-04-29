@@ -13,9 +13,9 @@ const tag = computed(() => `h${props.level}`);
 
 const classes = computed(() => {
   return {
-    4: 'text-title tracking-normal',
-    5: 'text-body tracking-[0.02em]',
-    6: 'text-sub tracking-[0.05em] uppercase',
+    4: 'text-lg tracking-normal',
+    5: 'text-base tracking-[0.02em]',
+    6: 'text-sm tracking-[0.05em] uppercase',
   }[props.level];
 });
 </script>

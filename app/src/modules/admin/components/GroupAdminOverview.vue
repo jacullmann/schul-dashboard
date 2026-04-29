@@ -20,7 +20,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem] font-bold leading-4">{{
           stats?.itemCount ?? '–'
         }}</span>
-        <span class="text-sub text-on-ghost-muted">Aktive Einträge</span>
+        <span class="text-sm text-on-ghost-muted">Aktive Einträge</span>
       </div>
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
@@ -28,7 +28,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem] font-bold leading-4">{{
           stats?.memberCount ?? '–'
         }}</span>
-        <span class="text-sub text-on-ghost-muted">Mitglieder</span>
+        <span class="text-sm text-on-ghost-muted">Mitglieder</span>
       </div>
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
@@ -36,7 +36,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem] font-bold leading-4">{{
           stats?.subsCount ?? '–'
         }}</span>
-        <span class="text-sub text-on-ghost-muted">Stundenplanänderungen</span>
+        <span class="text-sm text-on-ghost-muted">Stundenplanänderungen</span>
       </div>
       <div
         class="bg-surface border border-surface-border shadow-input rounded-xl p-4.5 flex flex-col gap-1"
@@ -47,7 +47,7 @@ const emit = defineEmits<{
         <span class="text-[1.5rem] font-bold leading-4">{{
           stats?.oldItemsCount ?? '–'
         }}</span>
-        <span class="text-sub text-on-ghost-muted"
+        <span class="text-sm text-on-ghost-muted"
           >Alte Einträge (90+ Tage)</span
         >
       </div>
@@ -57,7 +57,7 @@ const emit = defineEmits<{
       v-if="(stats?.oldItemsCount ?? 0) === 0"
       class="flex items-center justify-between bg-surface border border-surface-border rounded-2xl p-4 gap-4 mb-6 sm:flex-col sm:items-start"
     >
-      <div class="flex items-center gap-2 text-body text-on-ghost-muted">
+      <div class="flex items-center gap-2 text-base text-on-ghost-muted">
         <span
           >{{ stats?.oldItemsCount }} Einträge älter als 90 Tage können gelöscht
           werden.</span

@@ -56,7 +56,7 @@ function cancel() {
       </div>
 
       <p
-        class="m-0 mb-4 text-sub text-on-ghost-muted leading-[1.5] text-center"
+        class="m-0 mb-4 text-sm text-on-ghost-muted leading-[1.5] text-center"
       >
         Ein Konto mit dieser E-Mail-Adresse existiert bereits. Gib dein Passwort
         ein, um Google mit deinem bestehenden Konto zu verknüpfen.

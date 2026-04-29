@@ -44,19 +44,19 @@ const showUpdated = computed(() => {
     <template #content>
       <dl class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <dt class="text-sub text-on-ghost-muted font-medium">
+          <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('school.tasks.items.menu.infoModal.createdAt') }}
           </dt>
-          <dd class="m-0 text-body text-on-ghost font-medium">
+          <dd class="m-0 text-base text-on-ghost font-medium">
             {{ formatDate(item.createdAt) }}
           </dd>
         </div>
 
         <div class="flex flex-col gap-2">
-          <dt class="text-sub text-on-ghost-muted font-medium">
+          <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('school.tasks.items.menu.infoModal.updatedAt') }}
           </dt>
-          <dd class="m-0 text-body text-on-ghost font-medium">
+          <dd class="m-0 text-base text-on-ghost font-medium">
             <span v-if="showUpdated">{{ formatDate(item.updatedAt) }}</span>
             <span v-else class="text-on-ghost-muted">{{
               t('school.tasks.items.menu.infoModal.notEdited')
@@ -65,14 +65,14 @@ const showUpdated = computed(() => {
         </div>
 
         <div v-if="isModOrAdmin" class="flex flex-col gap-2">
-          <dt class="text-sub text-on-ghost-muted font-medium">
+          <dt class="text-sm text-on-ghost-muted font-medium">
             {{ t('school.tasks.items.menu.infoModal.createdBy') }}
           </dt>
-          <dd class="m-0 text-body text-on-ghost font-medium">
+          <dd class="m-0 text-base text-on-ghost font-medium">
             {{ item.createdByName || 'Unbekannt' }}
             <span
               v-if="isSuperAdmin && item.createdByEmail"
-              class="text-on-ghost-muted text-sub ml-0.5"
+              class="text-on-ghost-muted text-sm ml-0.5"
             >
               ({{ item.createdByEmail }})
             </span>

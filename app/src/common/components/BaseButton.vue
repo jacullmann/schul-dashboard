@@ -97,7 +97,7 @@ defineExpose({
               ? 'px-5'
               : 'px-6',
     ]"
-    class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sub leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
+    class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sm leading-4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
     :aria-busy="loading"
     :aria-disabled="disabled"
   >

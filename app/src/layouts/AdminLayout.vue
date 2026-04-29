@@ -158,7 +158,7 @@ const activeTab = computed({
 }
 
 .adm-subtitle {
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   color: var(--color-on-ghost-muted);
   font-weight: 500;
   overflow: hidden;
@@ -183,7 +183,7 @@ const activeTab = computed({
   background: transparent;
   border: none;
   color: var(--color-on-ghost-muted);
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   font-weight: 500;
   cursor: pointer;
   transition:

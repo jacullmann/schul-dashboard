@@ -11,7 +11,7 @@ useSeoMeta({
 <template>
   <LegalPage :title="t('legal.imprint.title')" :description="t('legal.imprint.description')">
     <LegalSection :title="t('legal.imprint.responsible')">
-      <address class="not-italic text-on-ghost-muted leading-[1.8] text-body">
+      <address class="not-italic text-on-ghost-muted leading-[1.8] text-base">
         schul-dashboard<br />
         Deniz Keskin<br />
         Berlin<br />

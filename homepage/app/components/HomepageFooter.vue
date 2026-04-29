@@ -18,7 +18,7 @@ const localePath = useLocalePath();
           >
             <img src="/favicon.svg" alt="" class="w-7 h-7" />
             <span
-              class="font-bold text-on-ghost font-display text-sub group-hover:opacity-80 transition-opacity"
+              class="font-bold text-on-ghost font-display text-sm group-hover:opacity-80 transition-opacity"
             >
               schul-dashboard
             </span>

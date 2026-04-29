@@ -41,7 +41,7 @@ function navigateToLogin() {
         <h1 class="text-center!">
           {{ t('account.auth.register') }}
         </h1>
-        <p class="text-sub text-on-ghost-muted mt-2">
+        <p class="text-sm text-on-ghost-muted mt-2">
           {{
             t('account.auth.registerDescription', {
               defaultValue: 'Create your account',
@@ -134,7 +134,7 @@ function navigateToLogin() {
           <transition name="fade">
             <div
               v-if="message"
-              class="text-sub p-3 rounded-md"
+              class="text-sm p-3 rounded-md"
               :class="
                 isError
                   ? 'bg-danger-hover text-danger'
@@ -154,7 +154,7 @@ function navigateToLogin() {
       <!-- OAuth Divider -->
       <div class="flex items-center gap-3 mb-6">
         <div class="flex-1 h-px bg-canvas-border" />
-        <span class="text-footnote text-on-ghost-muted">
+        <span class="text-xs text-on-ghost-muted">
           {{ t('account.auth.orContinueWith') }}
         </span>
         <div class="flex-1 h-px bg-canvas-border" />
@@ -173,7 +173,7 @@ function navigateToLogin() {
 
       <!-- Switch to Login -->
       <div class="text-center mt-8">
-        <p class="text-sub text-on-ghost-muted">
+        <p class="text-sm text-on-ghost-muted">
           {{
             t('account.auth.haveAccount', {
               defaultValue: 'Already have an account?',

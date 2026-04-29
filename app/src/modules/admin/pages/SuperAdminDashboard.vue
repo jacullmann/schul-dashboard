@@ -740,7 +740,7 @@ onMounted(() => {
   line-height: 1;
 }
 .stat-lbl {
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   color: var(--color-on-ghost-muted);
   margin-top: 4px;
 }
@@ -752,7 +752,7 @@ onMounted(() => {
   margin-bottom: 28px;
 }
 .sub-stat-group h3 {
-  font-size: var(--text-title);
+  font-size: var(--text-lg);
   font-weight: 600;
   margin: 0 0 12px;
 }
@@ -777,7 +777,7 @@ onMounted(() => {
   display: block;
 }
 .sub-lbl {
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   color: var(--color-on-ghost-muted);
 }
 
@@ -789,7 +789,7 @@ onMounted(() => {
   background: var(--color-surface);
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: 10px;
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   gap: 12px;
 }
 
@@ -835,7 +835,7 @@ onMounted(() => {
   font-family: monospace;
 }
 .cell-date {
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   color: var(--color-on-ghost-muted);
   white-space: nowrap;
 }
@@ -931,12 +931,12 @@ onMounted(() => {
 }
 .report-reason {
   color: var(--color-on-ghost-muted);
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   line-height: 1.4;
   margin-bottom: 8px;
 }
 .report-meta {
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   color: var(--color-on-ghost-muted);
   margin-bottom: 10px;
 }

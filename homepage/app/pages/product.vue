@@ -69,7 +69,7 @@ const allFeatures = [
             class="flex items-start gap-3 p-5 rounded-xl bg-surface border border-surface-border"
           >
             •
-            <span class="text-on-ghost-muted text-sub leading-[1.6]">{{ t(key) }}</span>
+            <span class="text-on-ghost-muted text-sm leading-[1.6]">{{ t(key) }}</span>
           </div>
         </div>
       </div>

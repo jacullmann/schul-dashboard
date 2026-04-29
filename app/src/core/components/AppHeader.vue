@@ -169,7 +169,7 @@ onUnmounted(() => {
 }
 
 .logo-text {
-  font-size: var(--text-h2);
+  font-size: var(--text-2xl);
   font-weight: 700;
   transition: opacity 0.2s ease;
 }
@@ -179,23 +179,23 @@ onUnmounted(() => {
     height: 26px;
   }
   .logo-text {
-    font-size: var(--text-h2);
+    font-size: var(--text-2xl);
   }
 }
 
 @media (max-width: 386px) {
   .logo-text {
-    font-size: var(--text-h3);
+    font-size: var(--text-xl);
   }
 }
 @media (max-width: 356px) {
   .logo-text {
-    font-size: var(--text-title);
+    font-size: var(--text-lg);
   }
 }
 @media (max-width: 332px) {
   .logo-text {
-    font-size: var(--text-body);
+    font-size: var(--text-base);
   }
 }
 </style>

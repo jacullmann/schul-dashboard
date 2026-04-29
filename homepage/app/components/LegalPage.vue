@@ -10,7 +10,7 @@ defineProps<{
     <div class="max-w-[720px] mx-auto">
       <NuxtLink
         :to="useLocalePath()('index')"
-        class="inline-flex items-center gap-1.5 text-sub text-on-ghost-muted no-underline hover:text-on-ghost transition-colors mb-10"
+        class="inline-flex items-center gap-1.5 text-sm text-on-ghost-muted no-underline hover:text-on-ghost transition-colors mb-10"
       >
         <span aria-hidden="true">←</span>
         {{ $t('common.back_home') }}

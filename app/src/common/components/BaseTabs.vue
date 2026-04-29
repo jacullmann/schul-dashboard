@@ -124,7 +124,7 @@ useResizeObserver(navBarRef, () => {
               if (el) itemRefs[index] = el as HTMLElement;
             }
           "
-          class="relative bg-transparent min-h-10 min-w-10 touch-target items-center flex border-0 cursor-pointer px-6 py-2 text-sub font-medium leading-4 text-on-ghost-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-ghost"
+          class="relative bg-transparent min-h-10 min-w-10 touch-target items-center flex border-0 cursor-pointer px-6 py-2 text-sm font-medium leading-4 text-on-ghost-muted whitespace-nowrap shrink-0 transition-hover hover:text-on-ghost"
         >
           <input
             type="radio"
@@ -150,7 +150,7 @@ useResizeObserver(navBarRef, () => {
           <span
             v-for="item in items"
             :key="`fg-${item.id}`"
-            class="bg-transparent border-0 cursor-pointer px-6 py-2 text-sub font-medium leading-4 rounded-full text-on-action whitespace-nowrap shrink-0 transition-hover"
+            class="bg-transparent border-0 cursor-pointer px-6 py-2 text-sm font-medium leading-4 rounded-full text-on-action whitespace-nowrap shrink-0 transition-hover"
           >
             {{ item.label }}
           </span>

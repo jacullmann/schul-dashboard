@@ -53,8 +53,8 @@ watch(
 
     <template #title-infopop>
       <InfoModal tooltip="Melden Info" title="Infos zum Melden von Einträgen">
-        <h3 class="text-h3 font-display font-bold mb-2">Falschinformationen</h3>
-        <p class="text-on-ghost-muted text-body mb-4">
+        <h3 class="text-xl font-display font-bold mb-2">Falschinformationen</h3>
+        <p class="text-on-ghost-muted text-base mb-4">
           Die Informationen, welche in dem Eintrag genannt werden, oder die
           hochgeladenen Bilder enthalten falsche oder irreführende Inhalte?
           Solchen Einträgen können Anmerkungen mit Korrekturen beigefügt werden,
@@ -63,10 +63,10 @@ watch(
           kurz und verständlich zu fassen. Deine Nachricht wird, sobald sie
           geprüft wurde, dem gemeldeten Eintrag angehängt.
         </p>
-        <h3 class="text-h3 font-display font-bold mb-2">
+        <h3 class="text-xl font-display font-bold mb-2">
           Unangebrachte/Illegale Inhalte
         </h3>
-        <p class="text-on-ghost-muted text-body mb-4">
+        <p class="text-on-ghost-muted text-base mb-4">
           Einträge und hochgeladene Bilder, die gegen unsere Nutzungsbedingungen
           oder geltendes Recht verstoßen, werden umgehend entfernt. Falls
           genaueres Wissen über den Hintergrund einer Aussage/eines Bildes nötig

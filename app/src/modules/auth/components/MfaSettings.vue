@@ -241,18 +241,18 @@ onUnmounted(() => {
         <component :is="mfaEnabled ? ShieldCheck : ShieldOff" :size="24" />
       </div>
       <div class="flex flex-col gap-0.5">
-        <span class="text-sub text-on-ghost-muted"
+        <span class="text-sm text-on-ghost-muted"
           >Zwei-Faktor-Authentifizierung</span
         >
         <span
-          class="text-body font-semibold text-on-ghost-muted"
+          class="text-base font-semibold text-on-ghost-muted"
           :class="{ '!text-[var(--special--green)]': mfaEnabled }"
         >
           {{ mfaEnabled ? 'Aktiviert' : 'Deaktiviert' }}
         </span>
       </div>
     </div>
-    <p class="text-sub text-on-ghost-muted leading-[1.5] m-0 font-sans">
+    <p class="text-sm text-on-ghost-muted leading-[1.5] m-0 font-sans">
       Die Zwei-Faktor-Authentifizierung bietet zusätzlichen Schutz für dein
       Konto. Du benötigst dafür eine beliebige 2FA-App, wie bspw. Google
       Authenticator.
@@ -270,7 +270,7 @@ onUnmounted(() => {
           :class="{ '!opacity-100': setupStep === 1 || setupStep > 1 }"
         >
           <span
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-ghost-muted"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sm font-semibold text-on-ghost-muted"
             :class="{
               '!bg-action !text-on-action': setupStep === 1,
               '!bg-[var(--special--green)] !text-white': setupStep > 1,
@@ -278,7 +278,7 @@ onUnmounted(() => {
             >1</span
           >
           <span
-            class="text-sub text-on-ghost-muted"
+            class="text-sm text-on-ghost-muted"
             :class="{ '!text-on-ghost': setupStep === 1 }"
             >QR-Code scannen</span
           >
@@ -289,12 +289,12 @@ onUnmounted(() => {
           :class="{ '!opacity-100': setupStep === 2 }"
         >
           <span
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sub font-semibold text-on-ghost-muted"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-hover text-sm font-semibold text-on-ghost-muted"
             :class="{ '!bg-action !text-on-action': setupStep === 2 }"
             >2</span
           >
           <span
-            class="text-sub text-on-ghost-muted"
+            class="text-sm text-on-ghost-muted"
             :class="{ '!text-on-ghost': setupStep === 2 }"
             >Code eingeben</span
           >
@@ -304,7 +304,7 @@ onUnmounted(() => {
       <!-- Step 1 -->
       <div v-if="setupStep === 1" class="flex flex-col gap-4">
         <p
-          class="text-sub text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
+          class="text-sm text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
         >
           Bitte scanne den QR-Code mit deiner Authenticator-App (z.B. Google
           Authenticator).
@@ -318,14 +318,14 @@ onUnmounted(() => {
         </div>
 
         <div v-if="manualSecret" class="flex flex-col gap-2 items-center">
-          <p class="text-sub text-on-ghost-muted m-0">
+          <p class="text-sm text-on-ghost-muted m-0">
             Oder gib diesen Code manuell ein:
           </p>
           <div
             class="flex items-center gap-2 p-1 bg-surface border border-surface-border shadow-input rounded-lg"
           >
             <code
-              class="font-mono text-sub text-on-ghost tracking-[4px] pl-2 py-1.5"
+              class="font-mono text-sm text-on-ghost tracking-[4px] pl-2 py-1.5"
               >{{ formattedSecret }}</code
             >
             <button
@@ -340,7 +340,7 @@ onUnmounted(() => {
         </div>
 
         <div
-          class="flex items-center justify-center gap-1.5 text-sub text-on-ghost-muted font-sans"
+          class="flex items-center justify-center gap-1.5 text-sm text-on-ghost-muted font-sans"
           v-if="expiresAt"
         >
           <Clock :size="16" />
@@ -360,7 +360,7 @@ onUnmounted(() => {
       <!-- Step 2 -->
       <div v-if="setupStep === 2" class="flex flex-col gap-4">
         <p
-          class="text-sub text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
+          class="text-sm text-on-ghost-muted leading-[1.5] m-0 text-center font-sans"
         >
           Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die
           Einrichtung abzuschließen.
@@ -384,7 +384,7 @@ onUnmounted(() => {
 
         <div
           v-if="verifyError"
-          class="flex items-center justify-center gap-1.5 text-sub text-danger"
+          class="flex items-center justify-center gap-1.5 text-sm text-danger"
         >
           <AlertCircle :size="14" />
           {{ verifyError }}
@@ -421,7 +421,7 @@ onUnmounted(() => {
         class="flex gap-3 p-3 px-4 bg-danger-hover border border-danger rounded-lg text-danger"
       >
         <AlertTriangle :size="20" class="flex-shrink-0 mt-0.5" />
-        <p class="m-0 text-sub leading-[1.4]">
+        <p class="m-0 text-sm leading-[1.4]">
           Indem du fortfährst verringerst du die Sicherheit deines Kontos. Um
           die Deaktivierung abzuschließen, must du noch ein letztes Mal den
           korrekten Code eingeben
@@ -446,7 +446,7 @@ onUnmounted(() => {
 
       <div
         v-if="deactivateError"
-        class="flex items-center justify-center gap-1.5 text-sub text-danger"
+        class="flex items-center justify-center gap-1.5 text-sm text-danger"
       >
         <AlertCircle :size="14" />
         {{ deactivateError }}

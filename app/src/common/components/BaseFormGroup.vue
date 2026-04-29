@@ -35,7 +35,7 @@ const errorId = computed(() => `${props.id}-error`);
       <span
         v-if="error"
         :id="errorId"
-        class="text-danger text-sub font-sans leading-[1.4] m-0"
+        class="text-danger text-sm font-sans leading-[1.4] m-0"
         role="alert"
         aria-live="polite"
       >

@@ -14,7 +14,7 @@ const router = useRouter();
         <div class="text-center text-5xl! my-8 text-on-ghost">
           Tired of <b>artifical</b> intelligence?
         </div>
-        <div class="text-title mb-8 text-on-ghost-muted">
+        <div class="text-lg mb-8 text-on-ghost-muted">
           Can machines replace humans? Experience natural intelligence or try
           working as an AI model and compete against artificial intelligence.
         </div>

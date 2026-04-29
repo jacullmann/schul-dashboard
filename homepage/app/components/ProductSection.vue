@@ -32,7 +32,7 @@ const highlights = [
             <li
               v-for="key in highlights"
               :key="key"
-              class="flex items-start gap-3 text-on-ghost-muted text-sub"
+              class="flex items-start gap-3 text-on-ghost-muted text-sm"
             >
               •
               <span>{{ t(key) }}</span>

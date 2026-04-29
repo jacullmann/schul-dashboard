@@ -540,7 +540,7 @@ function handleSelect(index: number) {
         <!-- GROUP MODE -->
         <template v-if="mode === 'group'">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
           >
             <button
               @click="setMode('default')"
@@ -579,7 +579,7 @@ function handleSelect(index: number) {
         <!-- THEME MODE -->
         <template v-else-if="mode === 'theme'">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
           >
             <button
               @click="setMode('default')"
@@ -615,7 +615,7 @@ function handleSelect(index: number) {
         <!-- LANGUAGE MODE -->
         <template v-else-if="mode === 'language'">
           <div
-            class="px-4 py-1.5 flex items-center gap-2 text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
+            class="px-4 py-1.5 flex items-center gap-2 text-xs text-on-ghost-muted font-semibold uppercase tracking-wider mb-1"
           >
             <button
               @click="setMode('default')"
@@ -654,7 +654,7 @@ function handleSelect(index: number) {
           <template v-if="defaultPageResults.length">
             <div class="px-4 py-1.5">
               <span
-                class="text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider"
+                class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
               >
                 {{ t('search.modal.categoryPages') }}
               </span>
@@ -685,7 +685,7 @@ function handleSelect(index: number) {
               :class="defaultPageResults.length ? 'mt-2' : ''"
             >
               <span
-                class="text-footnote text-on-ghost-muted font-semibold uppercase tracking-wider"
+                class="text-xs text-on-ghost-muted font-semibold uppercase tracking-wider"
               >
                 {{ t('search.modal.categoryActions') }}
               </span>
@@ -722,7 +722,7 @@ function handleSelect(index: number) {
           class="px-4 py-10 flex flex-col items-center gap-2 text-center"
         >
           <Search :size="28" class="text-on-ghost-subtle mb-1" />
-          <p class="text-sub text-on-ghost-muted m-0">
+          <p class="text-sm text-on-ghost-muted m-0">
             {{ t('global.search.noResults') }}
             <strong class="text-on-ghost">„{{ query }}"</strong>
           </p>

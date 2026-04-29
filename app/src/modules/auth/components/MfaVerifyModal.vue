@@ -81,7 +81,7 @@ onMounted(() => {
     @close="cancel"
   >
     <div class="space-y-4">
-      <p class="text-sub text-on-ghost-muted text-center">
+      <p class="text-sm text-on-ghost-muted text-center">
         {{ t('account.mfa.verify.instruction') }}
       </p>
 
@@ -94,7 +94,7 @@ onMounted(() => {
           pattern="[0-9]*"
           maxlength="6"
           placeholder="000000"
-          class="w-[180px] px-4 py-3 text-h3 font-mono text-center bg-surface text-on-ghost border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
+          class="w-[180px] px-4 py-3 text-xl font-mono text-center bg-surface text-on-ghost border-2 border-surface-border rounded-lg outline-none shadow-input transition-all focus:border-focus focus:shadow-focus-ring disabled:opacity-60 disabled:cursor-not-allowed"
           :class="[
             { '!border-danger': error },
             shakeInput ? 'animate-[shake_0.4s_ease-in-out]' : '',
@@ -108,7 +108,7 @@ onMounted(() => {
       <transition name="fade">
         <div
           v-if="error"
-          class="flex items-center justify-center gap-2 text-danger text-sub"
+          class="flex items-center justify-center gap-2 text-danger text-sm"
         >
           <AlertCircle :size="16" />
           {{ error }}
@@ -118,7 +118,7 @@ onMounted(() => {
       <transition name="fade">
         <div
           v-if="attemptsRemaining !== null && attemptsRemaining <= 3"
-          class="flex items-center justify-center gap-2 text-danger text-sub"
+          class="flex items-center justify-center gap-2 text-danger text-sm"
         >
           <AlertTriangle :size="16" />
           {{ t('account.mfa.verify.attemptsRemaining', attemptsRemaining) }}
@@ -127,7 +127,7 @@ onMounted(() => {
 
       <div class="pt-4 border-t border-canvas-border">
         <p
-          class="text-footnote text-on-ghost-muted text-center m-0 leading-relaxed"
+          class="text-xs text-on-ghost-muted text-center m-0 leading-relaxed"
         >
           {{ t('account.mfa.verify.support.text') }}
           <br />

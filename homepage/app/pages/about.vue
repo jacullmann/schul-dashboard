@@ -76,7 +76,7 @@ const values = [
               <h3 class="font-semibold text-on-ghost font-display mb-2">
                 {{ t(`pages.about.value_${value.key}_title`) }}
               </h3>
-              <p class="text-sub text-on-ghost-muted leading-[1.65] m-0">
+              <p class="text-sm text-on-ghost-muted leading-[1.65] m-0">
                 {{ t(`pages.about.value_${value.key}_text`) }}
               </p>
             </div>

@@ -164,13 +164,13 @@ async function handleNext() {
       @close="goBackToLogin"
     >
       <div v-if="step === 1" class="space-y-4">
-        <p class="text-sub text-on-ghost-muted">
+        <p class="text-sm text-on-ghost-muted">
           {{ t('account.auth.reset.step1.description') }}
         </p>
         <div>
           <label
             for="reset-email"
-            class="block text-body font-medium text-on-ghost mb-2"
+            class="block text-base font-medium text-on-ghost mb-2"
           >
             {{ t('account.auth.email') }}
           </label>
@@ -185,13 +185,13 @@ async function handleNext() {
         </div>
       </div>
       <div v-else-if="step === 2" class="space-y-4">
-        <p class="text-sub text-on-ghost-muted">
+        <p class="text-sm text-on-ghost-muted">
           {{ t('account.auth.reset.step2.description') }}
         </p>
         <div>
           <label
             for="reset-code"
-            class="block text-body font-medium text-on-ghost mb-2"
+            class="block text-base font-medium text-on-ghost mb-2"
           >
             {{ t('account.auth.reset.placeholders.code') }}
           </label>
@@ -205,13 +205,13 @@ async function handleNext() {
         </div>
       </div>
       <div v-else-if="step === 3" class="space-y-4">
-        <p class="text-sub text-on-ghost-muted">
+        <p class="text-sm text-on-ghost-muted">
           {{ t('account.auth.reset.step3.description') }}
         </p>
         <div>
           <label
             for="reset-password"
-            class="block text-body font-medium text-on-ghost mb-2"
+            class="block text-base font-medium text-on-ghost mb-2"
           >
             {{ t('account.auth.reset.placeholders.newPassword') }}
           </label>
@@ -227,7 +227,7 @@ async function handleNext() {
         <div>
           <label
             for="reset-password-confirm"
-            class="block text-body font-medium text-on-ghost mb-2"
+            class="block text-base font-medium text-on-ghost mb-2"
           >
             {{ t('account.auth.reset.placeholders.confirmPassword') }}
           </label>
@@ -243,7 +243,7 @@ async function handleNext() {
       <transition name="fade">
         <div
           v-if="message"
-          class="text-sub p-3 rounded-md mt-4"
+          class="text-sm p-3 rounded-md mt-4"
           :class="
             isError
               ? 'bg-danger-hover text-danger'

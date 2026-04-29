@@ -562,7 +562,7 @@ function formatDuration(ms?: number): string {
                 <div
                   v-for="(step, idx) in message.steps"
                   :key="idx"
-                  class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120 text-on-ghost-muted"
+                  class="flex items-center gap-1.75 text-sm px-1 py-0.5 rounded-md transition-colors duration-120 text-on-ghost-muted"
                 >
                   <component
                     :is="getStepIcon(step.status)"
@@ -717,7 +717,7 @@ function formatDuration(ms?: number): string {
                   <div
                     v-for="(step, idx) in liveSteps"
                     :key="idx"
-                    class="flex items-center gap-1.75 text-sub px-1 py-0.5 rounded-md transition-colors duration-120"
+                    class="flex items-center gap-1.75 text-sm px-1 py-0.5 rounded-md transition-colors duration-120"
                     :class="
                       idx === liveSteps.length - 1
                         ? 'text-on-ghost'
@@ -736,7 +736,7 @@ function formatDuration(ms?: number): string {
                     >
                     <span
                       v-if="step.duration_ms"
-                      class="shrink-0 text-footnote tabular-nums text-on-ghost-subtle ml-auto"
+                      class="shrink-0 text-xs tabular-nums text-on-ghost-subtle ml-auto"
                     >
                       {{ formatDuration(step.duration_ms) }}
                     </span>
@@ -752,7 +752,7 @@ function formatDuration(ms?: number): string {
             <!-- Current status row -->
             <div class="flex items-center gap-2">
               <ChatLogo size="md" :loading="true" variant="gradient" />
-              <span class="text-body text-on-ghost-muted">{{
+              <span class="text-base text-on-ghost-muted">{{
                 isSearching
                   ? t('chat.status.connecting') + dots
                   : t(
@@ -817,7 +817,7 @@ function formatDuration(ms?: number): string {
               @keydown.enter.exact.prevent="send"
               rows="1"
               placeholder="Ask Natural Intelligence"
-              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-body placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
+              class="w-full py-2 px-3 leading-6 bg-transparent rounded-none border-none outline-none shadow-none text-on-ghost text-base placeholder:text-on-ghost-subtle resize-none overflow-y-auto max-h-60 block box-border m-0 custom-scrollbar"
             ></textarea>
 
             <BaseRow justify="between">

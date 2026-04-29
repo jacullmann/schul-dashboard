@@ -33,15 +33,15 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
 
     <template #content>
       <div class="bg-danger-hover border border-danger rounded-xl px-3 py-2">
-        <strong class="font-sans text-title text-danger block mb-2">{{
+        <strong class="font-sans text-lg text-danger block mb-2">{{
           t('account.menu.deleteAccount.warnBox.title')
         }}</strong>
-        <div class="text-sub text-on-ghost font-bold">
+        <div class="text-sm text-on-ghost font-bold">
           {{ t('contact.contact.email') }}: {{ email }}
         </div>
         <br />
         <div
-          class="text-sub text-on-ghost leading-[1.5]"
+          class="text-sm text-on-ghost leading-[1.5]"
           v-html="t('account.menu.deleteAccount.warnBox.text')"
         />
       </div>
@@ -52,7 +52,7 @@ const { understoodChecked, submitting, errorMsg, successMsg, confirmDelete } =
 
       <div
         v-if="successMsg"
-        class="text-sub p-2 px-3 rounded-md text-center mt-4 text-[var(--special--green)] bg-success-surface"
+        class="text-sm p-2 px-3 rounded-md text-center mt-4 text-[var(--special--green)] bg-success-surface"
       >
         {{ successMsg }}
       </div>

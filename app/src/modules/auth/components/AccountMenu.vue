@@ -66,7 +66,7 @@ const {
     >
       <div class="flex px-2 py-1">
         <div
-          class="font-semibold text-sub text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap flex-1"
+          class="font-semibold text-sm text-on-ghost overflow-hidden text-ellipsis whitespace-nowrap flex-1"
           :title="email"
         >
           {{ email }}

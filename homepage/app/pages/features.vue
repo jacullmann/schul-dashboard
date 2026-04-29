@@ -63,7 +63,7 @@ const features = [
             :class="idx % 2 === 1 ? 'md:flex-row-reverse' : ''"
           >
             <div class="flex-1">
-              <h2 class="text-h2 font-bold font-display text-on-ghost mb-3">
+              <h2 class="text-2xl font-bold font-display text-on-ghost mb-3">
                 {{ t(`pages.features.${feature.key}.title`) }}
               </h2>
               <p class="text-on-ghost-muted leading-[1.7] max-w-2xl">

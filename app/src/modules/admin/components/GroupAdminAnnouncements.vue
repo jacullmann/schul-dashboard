@@ -47,7 +47,7 @@ function formatDate(iso: string) {
 
     <div
       v-if="announcements.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Keine Ankündigungen vorhanden.
     </div>
@@ -67,9 +67,9 @@ function formatDate(iso: string) {
                 : 'border-canvas-border',
         ]"
       >
-        <div class="text-body leading-[1.5] mb-2">{{ ann.content }}</div>
+        <div class="text-base leading-[1.5] mb-2">{{ ann.content }}</div>
         <div class="flex justify-between items-center">
-          <span class="text-sub text-on-ghost-muted">{{
+          <span class="text-sm text-on-ghost-muted">{{
             formatDate(ann.createdAt)
           }}</span>
           <BaseTooltip :content="t('global.buttons.delete')" placement="bottom">

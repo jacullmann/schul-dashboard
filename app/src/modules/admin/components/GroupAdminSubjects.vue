@@ -108,13 +108,13 @@ onMounted(() => {
     <!-- Loading / Empty -->
     <div
       v-if="loading && subjects.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Lädt...
     </div>
     <div
       v-else-if="subjects.length === 0"
-      class="text-center p-8 text-on-ghost-muted text-body"
+      class="text-center p-8 text-on-ghost-muted text-base"
     >
       Keine Fächer vorhanden.
     </div>
@@ -132,7 +132,7 @@ onMounted(() => {
         <template v-if="editingId !== subject.id">
           <div class="flex items-center gap-2 min-w-0">
             <span
-              class="font-semibold text-body whitespace-nowrap overflow-hidden text-ellipsis"
+              class="font-semibold text-base whitespace-nowrap overflow-hidden text-ellipsis"
               >{{ subjectLabel(subject) }}</span
             >
             <span

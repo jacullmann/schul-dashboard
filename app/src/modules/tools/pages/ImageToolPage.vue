@@ -334,7 +334,7 @@ const updateImageSource = (newSrc: string) => {
           <strong>Klicken zum Hochladen</strong> oder Drag & Drop
         </p>
         <span
-          style="font-size: var(--text-sub); color: var(--color-on-ghost-muted)"
+          style="font-size: var(--text-sm); color: var(--color-on-ghost-muted)"
           >JPG, PNG, WEBP, AVIF, GIF, BMP</span
         >
         <input
@@ -402,7 +402,7 @@ const updateImageSource = (newSrc: string) => {
         <div
           style="
             margin-bottom: 8px;
-            font-size: var(--text-sub);
+            font-size: var(--text-sm);
             color: var(--color-on-ghost-muted);
           "
         >
@@ -583,7 +583,7 @@ const updateImageSource = (newSrc: string) => {
 }
 
 label {
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
   margin-bottom: 6px;
 }
 
@@ -611,7 +611,7 @@ label {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--text-sub);
+  font-size: var(--text-sm);
 }
 
 /* Canvas Container for Cropping */

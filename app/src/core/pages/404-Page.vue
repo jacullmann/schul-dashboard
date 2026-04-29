@@ -123,7 +123,7 @@ const goBack = () => {
 }
 
 .error-description {
-  font-size: var(--text-body);
+  font-size: var(--text-base);
   color: var(--color-on-ghost-muted);
   margin: 0 0 48px 0;
   max-width: 500px;
