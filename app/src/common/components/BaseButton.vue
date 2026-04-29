@@ -41,7 +41,7 @@ const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
     ghost: 'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost',
     action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
-    danger: 'text-on-danger hover:bg-danger-highlight hover:text-on-danger',
+    danger: 'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {

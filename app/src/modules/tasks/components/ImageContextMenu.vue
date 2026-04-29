@@ -55,13 +55,11 @@ useEventListener(window, 'keydown', (e: KeyboardEvent) => {
     @click.stop
   >
     <BaseMenu class="min-w-[180px]">
-      <BaseMenuButton @click="emit('upload')">
-        <Upload :size="16" />
+      <BaseMenuButton :icon="Upload" @click="emit('upload')">
         {{ t('school.tasks.items.menu.uploadImages') }}
       </BaseMenuButton>
 
-      <BaseMenuButton variant="danger" v-if="canDelete" @click="emit('delete')">
-        <Trash2 :size="16" />
+      <BaseMenuButton v-if="canDelete" variant="danger" :icon="Trash2" @click="emit('delete')">
         {{ t('global.buttons.delete') }}
       </BaseMenuButton>
     </BaseMenu>

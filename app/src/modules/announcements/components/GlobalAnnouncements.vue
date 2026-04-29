@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAppAuth } from '@/modules/auth/composables/useAppAuth';
 import { useAnnouncements } from '@/modules/announcements/composables/useAnnouncements';
-import { Ellipsis, EllipsisVertical } from '@lucide/vue';
+import { EllipsisVertical } from '@lucide/vue';
 
 const { activeGroupId } = useAppAuth();
 
@@ -95,16 +95,17 @@ onMounted(async () => {
     v-if="announcements.length"
   >
     <div
-      class="p-1 text-on-ghost text-sub flex items-center justify-center shadow-menu border-b border-surface-border cursor-pointer"
-      :class="colorFor(currentAnnouncement.color).replace('is-', 'bg-')"
+      class="p-1 text-on-ghost text-sub flex items-center justify-center shadow-menu border-b cursor-pointer"
+      :class="[colorFor(currentAnnouncement.color).replace('is-', 'bg-'), currentAnnouncement.color === 'danger' ? 'border-danger-highlight' : 'border-surface-border']"
       @click="nextAnnouncement"
     >
-      <span class="whitespace-normal mx-2 flex-1 text-center">{{
+      <span class="whitespace-normal mx-2 flex-1 text-center" :class="currentAnnouncement.color === 'danger' ? 'text-on-danger' : 'text-on-ghost'">{{
         currentAnnouncement.content
       }}</span>
 
       <span
-        class="text-xs text-on-ghost-muted flex-shrink-0"
+        class="text-xs flex-shrink-0"
+        :class="currentAnnouncement.color === 'danger' ? 'text-on-danger-muted' : 'text-on-ghost-muted'"
         v-if="announcements.length > 1"
       >
         ({{ currentIndex + 1 }}/{{ announcements.length }})
@@ -114,6 +115,7 @@ onMounted(async () => {
         <BaseButton
           @click.stop="toggleMenu"
           variant="ghost"
+          :on="currentAnnouncement.color === 'danger' ? 'danger' : 'ghost'"
           size="sm"
           :icon="EllipsisVertical"
           :touch="false"

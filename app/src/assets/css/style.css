@@ -28,7 +28,7 @@
   --color-cinnabar: oklch(0.6368 0.2078 25.33);
   --color-coral: oklch(0.6643 0.2005 24.41);
   --color-coral-highlight: oklch(0.7044 0.1872 23.19);
-  --color-cotton-candy: oklch(0.9618 0.0174 17.46);
+  --color-cotton-candy: oklch(0.9 0.04 20);
   --color-burgundy: oklch(0.3312 0.037 19.22);
   --color-yellow: oklch(0.7952 0.1617 86.05);
   --color-basil: oklch(0.68 0.2 145);
@@ -67,6 +67,7 @@
   /* Danger */
   --color-danger: var(--color-cinnabar);
   --color-on-danger: var(--color-white);
+  --color-on-danger-muted: var(--color-cotton-candy);
   --color-danger-highlight: var(--color-coral-highlight);
   --color-danger-hover: color-mix(
     in oklab,
@@ -239,6 +240,7 @@
     /* Danger */
     --color-danger: var(--color-coral);
     --color-on-danger: var(--color-white);
+    --color-on-danger-muted: var(--color-cotton-candy);
     --color-danger-highlight: var(--color-coral-highlight);
     --color-danger-hover: color-mix(
       in oklab,
