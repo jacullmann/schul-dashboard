@@ -225,9 +225,11 @@ async function handleArchiveFromMenu(item: HwItem) {
 
       <ItemCard
         v-else
-        v-for="item in visibleItems"
+        v-for="(item, index) in visibleItems"
         :key="item.id"
         :id="'item-' + item.id"
+        class="animate-fade-up"
+        :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
         :is-collapsed="isChecked(item.id)"
         :highlighted="highlightedItemId === item.id"
         :title="item.title"

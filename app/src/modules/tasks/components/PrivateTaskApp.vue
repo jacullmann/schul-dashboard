@@ -180,6 +180,8 @@ defineExpose({ loadPrivateTasks, addPrivateTask, updatePrivateTask });
           <ItemCard
             v-for="(privateTask, index) in displayPrivateTasks"
             :key="privateTask.id"
+            class="animate-fade-up"
+            :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
             :is-collapsed="privateTask.completed"
             :title="privateTask.title"
             @dblclick="user ? togglePrivateTaskCompletion(privateTask) : null"

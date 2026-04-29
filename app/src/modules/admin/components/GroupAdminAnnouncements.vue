@@ -53,9 +53,10 @@ function formatDate(iso: string) {
     </div>
     <div v-else class="flex flex-col gap-2">
       <div
-        v-for="ann in announcements"
+        v-for="(ann, index) in announcements"
         :key="ann.id"
-        class="p-3.5 px-4 rounded-[10px] bg-surface border-l-[3px]"
+        class="p-3.5 px-4 rounded-[10px] bg-surface border-l-[3px] animate-fade-up"
+        :style="{ animationDelay: `${index * 0.075}s`, animationFillMode: 'both' }"
         :class="[
           ann.color === 'info'
             ? 'border-action'
