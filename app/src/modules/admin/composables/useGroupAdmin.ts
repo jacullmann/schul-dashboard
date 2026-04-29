@@ -10,6 +10,11 @@ import type {
 } from '@/modules/admin/types';
 import type { Lesson } from '@/modules/schedule/types';
 import { useToast } from '@/common/composables/useToast';
+import { useModalStore } from '@/stores/modalStore.ts';
+import { useI18n } from 'vue-i18n';
+
+const modalStore = useModalStore();
+const { t } = useI18n();
 
 export function useGroupAdmin() {
   const route = useRoute();
@@ -120,13 +125,13 @@ export function useGroupAdmin() {
     }
   }
 
-  async function removeMember(userId: string, name: string, ban = false) {
+  async function removeMember(userId: string, _name: string, ban = false) {
     try {
       await hw.delete(`/api/group-admin/members/${userId}?ban=${ban}`);
       members.value = members.value.filter((m) => m.userId !== userId);
       showMessage(ban ? 'Member removed and banned' : 'Member removed');
-      loadStats();
-      if (ban) loadBannedUsers();
+      await loadStats();
+      if (ban) await loadBannedUsers();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { error?: string } } };
       showMessage(err.response?.data?.error || 'Failed to remove member', true);
@@ -213,7 +218,14 @@ export function useGroupAdmin() {
   }
 
   async function deleteSub(id: string) {
-    if (!confirm('Delete substitution?')) return;
+    const isConfirmed = await modalStore.confirm({
+      title: 'Delete Schedule Change?',
+      content: 'If you delete this change, it will be removed permanently',
+      submitText: t('global.buttons.delete'),
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     try {
       await hw.delete(`/api/group-admin/schedule/subs/${id}`);
       subs.value = subs.value.filter((s) => s.id !== id);
@@ -252,7 +264,14 @@ export function useGroupAdmin() {
   }
 
   async function deleteAnnouncement(id: string) {
-    if (!confirm('Delete announcement?')) return;
+    const isConfirmed = await modalStore.confirm({
+      title: 'Delete Announcement?',
+      content: 'Are you sure you want to delete this announcement?',
+      submitText: t('global.buttons.delete'),
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     try {
       await hw.delete(`/api/group-admin/announcements/${id}`);
       announcements.value = announcements.value.filter((a) => a.id !== id);
@@ -265,7 +284,14 @@ export function useGroupAdmin() {
   // ─── Cleanup ────────────────────────────────────────
 
   async function cleanupOldItems() {
-    if (!confirm('Delete all entries older than 90 days?')) return;
+    const isConfirmed = await modalStore.confirm({
+      title: 'Cleanup old items?',
+      content: 'Delete all entries older than 90 days?',
+      submitText: 'Confirm',
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     cleaningUp.value = true;
     try {
       const { data } = await hw.delete('/api/group-admin/cleanup/old-items');
@@ -348,12 +374,15 @@ export function useGroupAdmin() {
   }
 
   async function transferOwnership(targetUserId: string) {
-    if (
-      !confirm(
+    const isConfirmed = await modalStore.confirm({
+      title: 'Transfer Ownership?',
+      content:
         'Are you sure you want to transfer ownership? You will lose your owner rights.',
-      )
-    )
-      return;
+      submitText: 'Transfer',
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     try {
       await hw.post('/api/group-admin/transfer-ownership', { targetUserId });
       showMessage('Ownership transferred successfully');
@@ -373,12 +402,12 @@ export function useGroupAdmin() {
   // ─── Init ───────────────────────────────────────────
 
   onMounted(() => {
-    loadStats();
-    loadMembers();
-    loadBannedUsers();
-    loadSubs();
-    loadAnnouncements();
-    loadSchedule();
+    void loadStats();
+    void loadMembers();
+    void loadBannedUsers();
+    void loadSubs();
+    void loadAnnouncements();
+    void loadSchedule();
   });
 
   return {

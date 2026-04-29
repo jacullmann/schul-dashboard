@@ -2,6 +2,9 @@ import { ref } from 'vue';
 import hw from '@/api/hwApi';
 import type { AdminSubject } from '@/modules/admin/types';
 import { useToast } from '@/common/composables/useToast';
+import { useModalStore } from '@/stores/modalStore.ts';
+
+const modalStore = useModalStore();
 
 export function useSubjectAdmin() {
   const { success, error: toastError } = useToast();
@@ -71,12 +74,15 @@ export function useSubjectAdmin() {
   }
 
   async function deleteSubject(id: string) {
-    if (
-      !confirm(
+    const isConfirmed = await modalStore.confirm({
+      title: 'Dieses Fach löschen?',
+      content:
         'Fach wirklich löschen? Falls es noch referenziert wird, schlage stattdessen eine Deaktivierung vor.',
-      )
-    )
-      return;
+      submitText: 'Löschen',
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     try {
       await hw.delete(`/api/group-admin/subjects/${id}`);
       subjects.value = subjects.value.filter((s) => s.id !== id);

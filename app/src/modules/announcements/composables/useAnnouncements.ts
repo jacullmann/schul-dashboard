@@ -1,9 +1,12 @@
 import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/userStore';
+import { useModalStore } from '@/stores/modalStore';
 import hw from '@/api/hwApi';
 import { useToast } from '@/common/composables/useToast';
 import type { Announcement } from '@/modules/announcements/types';
+
+const modalStore = useModalStore();
 
 export type { Announcement };
 
@@ -98,7 +101,15 @@ export function useAnnouncements() {
   }
 
   async function deleteAnnouncement(id: string): Promise<void> {
-    if (!confirm('Ankündigung löschen?')) return;
+    const isConfirmed = await modalStore.confirm({
+      title: 'Diese Ankündigung löschen?',
+      content:
+        'Wenn du diese Ankündigung löschst, wird sie unwiderruflich entfernt.',
+      submitText: 'Löschen',
+      danger: true,
+    });
+
+    if (!isConfirmed) return;
     try {
       await hw.delete(`/api/group-admin/announcements/${id}`);
       announcements.value = announcements.value.filter((a) => a.id !== id);

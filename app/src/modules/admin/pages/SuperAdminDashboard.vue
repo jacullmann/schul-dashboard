@@ -17,8 +17,10 @@ import {
 import hw from '@/api/hwApi';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { useToast } from '@/common/composables/useToast';
+import { useModalStore } from '@/stores/modalStore.ts';
 
 const { success: toastSuccess, error: toastError } = useToast();
+const modalStore = useModalStore();
 
 const activeTab = ref('overview');
 
@@ -203,7 +205,14 @@ async function toggleBan(u: User) {
 }
 
 async function deleteUser(id: string) {
-  if (!confirm('Delete this user?')) return;
+  const isConfirmed = await modalStore.confirm({
+    title: 'Delete User?',
+    content: 'Are you sure you want to delete this user?',
+    submitText: 'Delete',
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
   try {
     await hw.delete(`/api/admin/users/${id}`);
     allUsers.value = allUsers.value.filter((u) => u.id !== id);
@@ -215,8 +224,14 @@ async function deleteUser(id: string) {
 }
 
 async function pruneOldLogs(u: User) {
-  if (!confirm(`Delete activity logs older than 30 days for ${u.email}?`))
-    return;
+  const isConfirmed = await modalStore.confirm({
+    title: 'Prune logs?',
+    content: `Delete activity logs older than 30 days for ${u.email}?`,
+    submitText: 'Prune',
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
   try {
     await hw.delete(`/api/admin/users/${u.id}/activity/prune`);
     toastSuccess('Logs pruned.');
@@ -245,7 +260,14 @@ async function toggleReportProcessed(id: string, currentProcessed: boolean) {
 }
 
 async function deleteReport(id: string) {
-  if (!confirm('Delete this report?')) return;
+  const isConfirmed = await modalStore.confirm({
+    title: 'Delete Report?',
+    content: 'Are you sure you want to delete this report?',
+    submitText: 'Delete',
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
   try {
     await hw.delete(`/api/admin/reports/${id}`);
     reports.value = reports.value.filter((r) => r.id !== id);
@@ -259,7 +281,14 @@ async function deleteReport(id: string) {
 // ─── Cleanup ─────────────────────────────────────────────────────────────────
 
 async function cleanupOldItems() {
-  if (!confirm('Delete all entries older than 90 days?')) return;
+  const isConfirmed = await modalStore.confirm({
+    title: 'Cleanup?',
+    content: 'Delete all entries older than 90 days?',
+    submitText: 'Confirm',
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
   isCleaningUp.value = true;
   try {
     const { data } = await hw.delete('/api/admin/cleanup/old-items');
@@ -275,12 +304,14 @@ async function cleanupOldItems() {
 // ─── Group actions ────────────────────────────────────────────────────────────
 
 async function deleteGroup(g: Group) {
-  if (
-    !confirm(
-      `Delete group "${g.name}"?\n\nThis will permanently delete the group and all associated data. This cannot be undone.`,
-    )
-  )
-    return;
+  const isConfirmed = await modalStore.confirm({
+    title: 'Delete Group?',
+    content: `Delete group "${g.name}"?\n\nThis will permanently delete the group and all associated data. This cannot be undone.`,
+    submitText: 'Delete',
+    danger: true,
+  });
+
+  if (!isConfirmed) return;
   try {
     await hw.delete(`/api/admin/groups/${g.id}`);
     groups.value = groups.value.filter((x) => x.id !== g.id);

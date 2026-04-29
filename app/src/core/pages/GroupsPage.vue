@@ -120,14 +120,20 @@ async function setDefaultGroup(groupId: string) {
 }
 
 async function leaveGroup(group: any) {
+  const isConfirmed = await modalStore.confirm({
+    title: 'Leave Group?',
+    content: `Are you sure you want to leave the group "${group.name}"?`,
+    submitText: 'Leave',
+    danger: true,
+  });
+
   if (group.ownerId === user.value?.id) {
     alert(
       'The owner cannot leave the group. Transfer ownership or delete the group instead.',
     );
     return;
   }
-  if (!confirm(`Are you sure you want to leave the group "${group.name}"?`))
-    return;
+  if (!isConfirmed) return;
 
   loading.value = true;
   try {
