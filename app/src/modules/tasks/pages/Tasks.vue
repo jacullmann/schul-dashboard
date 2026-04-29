@@ -251,20 +251,22 @@ async function handleArchiveFromMenu(item: HwItem) {
             <template v-if="tab === 'all'"
               >{{ getTypeLabel(item.type) }} • </template
             >{{ getSubjectName(item.subject) }} •
-            {{ new Date(item.dueDate).toLocaleDateString() }}
+            {{ new Date(item.dueDate).toLocaleDateString()
+            }}<template
+              v-if="
+                user?.role === 'superadmin' ||
+                user?.tenantRole === 'admin' ||
+                user?.tenantRole === 'moderator'
+              "
+            >
+              • {{ item.createdByName || 'Unbekannt' }}</template
+            >
           </div>
           <div
-            v-if="
-              user?.role === 'superadmin' ||
-              user?.tenantRole === 'admin' ||
-              user?.tenantRole === 'moderator'
-            "
-            class="admin-creator-info"
+            v-if="user?.role === 'superadmin'"
+            class="text-on-ghost-subtle text-body"
           >
-            {{ item.createdByName || 'Unbekannt'
-            }}<span v-if="user?.role === 'superadmin'" class="creator-email">
-              ({{ item.createdByEmail }})</span
-            >
+            ({{ item.createdByEmail }})
           </div>
         </template>
 
@@ -385,25 +387,33 @@ async function handleArchiveFromMenu(item: HwItem) {
           </button>
         </template>
 
-        <template #content-after v-if="(item.images && item.images.length) || item.editorNote || user?.role === 'superadmin'">
+        <template
+          #content-after
+          v-if="
+            (item.images && item.images.length) ||
+            item.editorNote ||
+            user?.role === 'superadmin'
+          "
+        >
           <div v-if="item.images && item.images.length">
             <div class="images-row mt-2 mb-1">
               <template v-if="!isRevealed(item.id)">
                 <div
                   v-for="(img, idx) in item.images.slice(0, imagesPerRow)"
                   :key="img.publicId"
-                  class="thumb thumb-with-overlay-wrapper"
+                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
                   @contextmenu.prevent="
                     handleImageContextMenu($event, item, img)
                   "
                 >
                   <button
                     type="button"
-                    class="img-clickable"
+                    class="img-clickable w-full h-full cursor-pointer bg-transparent block"
                     @click.stop="openImageViewerForItem(item, idx)"
                   >
                     <img
                       :src="img.thumbUrl || makeThumb(img.url || '')"
+                      class="block h-full w-full object-cover [pointer-events:none]"
                       loading="lazy"
                       draggable="false"
                       alt="Vorschau"
@@ -415,11 +425,11 @@ async function handleArchiveFromMenu(item: HwItem) {
                       idx === imagesPerRow - 1 &&
                       item.images.length > imagesPerRow
                     "
-                    class="img-overlay"
+                    class="img-overlay absolute flex inset-0 items-center justify-center rounded-md cursor-pointer z-10"
                     @click.stop.prevent="revealImages(item.id)"
                     @contextmenu.stop.prevent
                   >
-                    <span class="overlay-blur"></span>
+                    <span class="overlay-blur  inset-0 bg-[#8883] rounded-md backdrop-blur-sm"></span>
                     <span class="overlay-content"
                       >+{{ item.images.length - (imagesPerRow - 1) }}</span
                     >
@@ -431,18 +441,19 @@ async function handleArchiveFromMenu(item: HwItem) {
                 <div
                   v-for="(img, idx) in item.images"
                   :key="img.publicId"
-                  class="thumb"
+                  class="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md border-none bg-black/[0.12] select-none"
                   @contextmenu.prevent="
                     handleImageContextMenu($event, item, img)
                   "
                 >
                   <button
                     type="button"
-                    class="img-clickable"
+                    class="img-clickable w-full h-full cursor-pointer bg-transparent block"
                     @click.stop="openImageViewerForItem(item, idx)"
                   >
                     <img
                       :src="img.thumbUrl || makeThumb(img.url || '')"
+                      class="block h-full w-full object-cover [pointer-events:none]"
                       loading="lazy"
                       draggable="false"
                       alt=""
@@ -458,18 +469,20 @@ async function handleArchiveFromMenu(item: HwItem) {
             class="note-section mt-2 pt-2 border-t border-surface-border flex justify-between"
           >
             <div class="w-full">
-              <div class="text-on-ghost text-body font-bold mb-1">{{
-                t('school.tasks.notes.note')
-              }}</div>
+              <div class="text-on-ghost text-body font-bold mb-1">
+                {{ t('school.tasks.notes.note') }}
+              </div>
 
               <div
                 v-if="editingNoteForId !== item.id"
                 class="text-on-ghost text-body whitespace-pre-wrap break-words"
               >
                 <span v-if="item.editorNote">{{ item.editorNote }}</span>
-                <span v-else class="note-placeholder">{{
-                  t('school.tasks.notes.noNotes')
-                }}</span>
+                <span
+                  v-else
+                  class="note-placeholder text-on-ghost-muted italic"
+                  >{{ t('school.tasks.notes.noNotes') }}</span
+                >
               </div>
 
               <div v-else>
@@ -501,7 +514,11 @@ async function handleArchiveFromMenu(item: HwItem) {
               </div>
             </div>
 
-            <BaseTooltip v-if="editingNoteForId !== item.id" :content="t('global.buttons.edit')" placement="bottom">
+            <BaseTooltip
+              v-if="editingNoteForId !== item.id"
+              :content="t('global.buttons.edit')"
+              placement="bottom"
+            >
               <BaseButton
                 v-if="!canEditNote()"
                 @click.stop="startEditNote(item)"
@@ -588,144 +605,10 @@ async function handleArchiveFromMenu(item: HwItem) {
 </template>
 
 <style scoped>
-.tiny {
-  padding: 0;
-  font-size: var(--text-body);
-  font-weight: 700;
-  color: var(--color-on-ghost-muted);
-  background: transparent;
-  border: none;
-}
-.tiny:hover {
-  background: transparent;
-  color: var(--color-on-ghost);
-  border: none;
-  padding: 0;
-}
-
 .images-row {
   display: grid;
   grid-template-columns: repeat(v-bind(imagesPerRow), 1fr);
   gap: 8px;
   position: relative;
-}
-
-.thumb {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 8px;
-  overflow: hidden;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.12);
-  position: relative;
-  -webkit-touch-callout: none; /* Disables iOS system menu */
-  -webkit-user-select: none; /* Safari / Chrome */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE/Edge */
-  user-select: none; /* Standard */
-}
-
-.thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  -webkit-user-drag: none;
-}
-
-.thumb-with-overlay-wrapper {
-  position: relative;
-}
-
-.img-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  background: transparent;
-  z-index: 10;
-}
-
-.img-overlay .overlay-blur {
-  position: absolute;
-  inset: 0;
-  background: #8883;
-  opacity: 1;
-  border-radius: var(--radius-md);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.img-overlay .overlay-content {
-  position: relative;
-  color: var(--color-on-ghost);
-  font-weight: 400;
-  font-size: var(--text-h1);
-  z-index: 11;
-  pointer-events: none;
-}
-
-.img-clickable {
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  padding: 0;
-  display: block;
-}
-
-.img-clickable img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.empty {
-  text-align: center;
-  color: var(--color-on-ghost-muted);
-  padding: 24px;
-  border: none;
-}
-
-.message {
-  font-weight: 600;
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-all;
-}
-
-.message.error {
-  color: var(--color-danger);
-}
-
-.admin-creator-info {
-  color: var(--color-on-ghost-muted);
-  font-size: var(--text-sub);
-}
-
-.creator-email {
-  opacity: 0.7;
-}
-
-/* Anmerkungen */
-.editor-note-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.note-placeholder {
-  color: var(--color-on-ghost-muted);
-  font-style: italic;
 }
 </style>
