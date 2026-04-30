@@ -26,12 +26,12 @@ export function useSwipeToDismiss(
   const { width: elementWidth } = useElementBounding(target);
 
   const { distanceX, distanceY } = usePointerSwipe(target, {
-    threshold: 0,
+    threshold: 10,
     onSwipeStart() {
       if (isDismissing.value) return;
       gestureLockedHorizontal = false;
       gestureDecided = false;
-      isSwiping.value = true;
+      isSwiping.value = false;
     },
     onSwipe() {
       if (isDismissing.value) return;
@@ -41,9 +41,12 @@ export function useSwipeToDismiss(
       const dx = -distanceX.value;
       const dy = Math.abs(distanceY.value);
 
-      if (!gestureDecided && (Math.abs(dx) > 5 || dy > 5)) {
+      if (!gestureDecided) {
         gestureDecided = true;
-        gestureLockedHorizontal = Math.abs(dx) > dy * 1.3;
+        gestureLockedHorizontal = Math.abs(dx) > dy * 1.2;
+        if (gestureLockedHorizontal) {
+          isSwiping.value = true;
+        }
       }
 
       if (!gestureLockedHorizontal) {

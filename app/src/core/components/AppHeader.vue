@@ -78,14 +78,15 @@ onUnmounted(() => {
   >
     <div class="relative h-full w-full flex items-center gap-4 px-4 max-w-325">
       <!-- Mobile sidebar toggle -->
-      <button
-        class="md:hidden relative p-2 -m-2 mr-0 text-on-ghost bg-transparent rounded-md hover:bg-surface transition-hover"
+      <BaseButton
+        class="md:hidden -ml-1"
+        variant="ghost"
+        on="ghost"
         @click="toggleExpanded"
         :aria-expanded="isExpanded"
         aria-label="Toggle navigation menu"
-      >
-        <Menu :size="20" />
-      </button>
+        :icon="Menu"
+      />
 
       <!-- Brand logo (desktop) -->
       <router-link :to="logoLink" class="logo-group hidden! !md:flex">

@@ -431,8 +431,8 @@ async function handleArchiveFromMenu(item: HwItem) {
                     @click.stop.prevent="revealImages(item.id)"
                     @contextmenu.stop.prevent
                   >
-                    <span class="overlay-blur  inset-0 bg-[#8883] rounded-md backdrop-blur-sm"></span>
-                    <span class="overlay-content"
+                    <span class="overlay-blur absolute inset-0 bg-[#8886] rounded-md backdrop-blur-sm"></span>
+                    <span class="text-4xl font-medium text-white z-10"
                       >+{{ item.images.length - (imagesPerRow - 1) }}</span
                     >
                   </button>

@@ -1,15 +1,6 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
-/*
- * @theme — Tailwind CSS v4 design-token bridge.
- * All tokens defined here become native Tailwind utilities:
- *   --color-*      → bg-*, text-*, border-*, fill-*, …
- *   --text-*       → text-*
- *   --radius-*     → rounded-*
- *   --shadow-*     → shadow-*
- *   --transition-* → duration-*, ease-*
- */
 @theme {
   /* ── Primitive palette ─────────────────────────────────── */
   --color-black: oklch(0 0 0);
@@ -74,6 +65,7 @@
     var(--color-danger) 12%,
     transparent
   );
+
   /* Success */
   --color-success: var(--color-basil);
   --color-on-success: var(--color-white);
@@ -82,9 +74,11 @@
     var(--color-success) 15%,
     transparent
   );
+
   /* Warn */
   --color-warn: var(--color-yellow);
   --color-on-warn: var(--color-onyx);
+
   /* Misc */
   --color-primary: var(--color-black);
   --color-focus: var(--color-ghost);
@@ -104,7 +98,7 @@
   /* ── Shadows ────────────────────────────────────────────── */
   --shadow-input: 0 1px 2px 0 oklch(0 0 0 / 5%);
   --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 5%);
-  --shadow-menu: 0 4px 6px -1px oklch(0 0 0 / 10%);
+  --shadow-menu: 0 12px 24px -2px oklch(0 0 0 / 10%);
   --shadow-focus-ring: 0 0 0 3px var(--focus-ring-color, var(--color-cloud));
 
   /* ── Transitions ────────────────────────────────────────── */
@@ -259,7 +253,7 @@
     /* Shadows */
     --shadow-input: 0 1px 2px 0 oklch(0 0 0 / 5%);
     --shadow-card: 0 1px 2px 0 oklch(0 0 0 / 5%);
-    --shadow-menu: 0 4px 6px -1px oklch(0 0 0 / 10%);
+    --shadow-menu: 0 12px 24px -2px oklch(0 0 0 / 40%);
     --shadow-focus-ring: 0 0 0 3px var(--color-graphite);
     --focus-ring-color: var(--color-graphite);
 
