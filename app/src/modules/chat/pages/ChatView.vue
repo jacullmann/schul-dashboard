@@ -495,8 +495,7 @@ function formatDuration(ms?: number): string {
     >
       <BaseTooltip content="New Chat" placement="bottom">
         <BaseButton
-          :variant="'ghost'"
-          size="lg"
+          variant="ghost"
           class="z-10"
           :icon="SquarePen"
           @click="clearChat"
@@ -557,7 +556,7 @@ function formatDuration(ms?: number): string {
             >
               <div
                 v-if="isMessageStepsExpanded(message.id)"
-                class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-4.5"
+                class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-6"
               >
                 <div
                   v-for="(step, idx) in message.steps"
@@ -628,8 +627,7 @@ function formatDuration(ms?: number): string {
                   placement="top"
                 >
                   <BaseButton
-                    :variant="'ghost'"
-                    size="lg"
+                    variant="ghost"
                     :icon="
                       expandedHumanMessages[message.id]
                         ? ChevronUp
@@ -656,16 +654,16 @@ function formatDuration(ms?: number): string {
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
               <BaseTooltip content="Report" placement="bottom">
                 <BaseButton
-                  :variant="'ghost'"
-                  size="md"
+                  variant="ghost"
+                  size="sm"
                   :icon="Flag"
                   @click="handleReport(message, 'Inappropriate content')"
                 />
               </BaseTooltip>
               <BaseTooltip content="Copy" placement="bottom">
                 <BaseButton
-                  :variant="'ghost'"
-                  size="md"
+                  variant="ghost"
+                  size="sm"
                   :icon="Copy"
                   @click="
                     (copy(message.content),
@@ -712,7 +710,7 @@ function formatDuration(ms?: number): string {
               >
                 <div
                   v-if="isStepHistoryExpanded"
-                  class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-4.5"
+                  class="flex flex-col gap-1 py-1 pl-4 border-l-[1.5px] border-canvas-border ml-6"
                 >
                   <div
                     v-for="(step, idx) in liveSteps"
@@ -834,10 +832,8 @@ function formatDuration(ms?: number): string {
                   v-if="webSearch && windowWidth > 660"
                   content="Web search"
                   placement="bottom"
-                  class=""
                 >
                   <BaseButton
-                    size="lg"
                     :chip="true"
                     :icon="Globe"
                     @click="webSearch = false"
@@ -849,7 +845,6 @@ function formatDuration(ms?: number): string {
                   placement="bottom"
                 >
                   <BaseButton
-                    size="lg"
                     :chip="true"
                     :icon="Image"
                     @click="createImage = false"
@@ -861,7 +856,6 @@ function formatDuration(ms?: number): string {
                   placement="bottom"
                 >
                   <BaseButton
-                    size="lg"
                     :chip="true"
                     :icon="Brain"
                     @click="ponder = false"
@@ -873,7 +867,6 @@ function formatDuration(ms?: number): string {
                   placement="bottom"
                 >
                   <BaseButton
-                    size="lg"
                     :chip="true"
                     :icon="CalendarFold"
                     @click="answerLeisurely = false"
@@ -906,7 +899,6 @@ function formatDuration(ms?: number): string {
                       variant="action"
                       type="button"
                       @click="handleCancel"
-                      size="lg"
                     />
                   </BaseTooltip>
                   <BaseTooltip
@@ -917,7 +909,6 @@ function formatDuration(ms?: number): string {
                   >
                     <BaseButton
                       :icon="AudioLines"
-                      size="lg"
                       @click="toggleSpeechRecognition"
                       :variant="isListening ? 'action' : 'ghost'"
                     />
@@ -932,7 +923,6 @@ function formatDuration(ms?: number): string {
                       :icon="ArrowUp"
                       variant="action"
                       type="submit"
-                      size="lg"
                     />
                   </BaseTooltip>
                 </Transition>
@@ -961,7 +951,6 @@ function formatDuration(ms?: number): string {
                 key="button"
                 type="button"
                 variant="ghost"
-                size="lg"
                 class="mt-4"
                 @click="router.push('/natural-intelligence')"
               >
@@ -971,7 +960,6 @@ function formatDuration(ms?: number): string {
                 key="button"
                 type="button"
                 variant="action"
-                size="lg"
                 :icon="ChevronRight"
                 icon-placement="trailing"
                 class="mt-4"

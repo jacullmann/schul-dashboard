@@ -378,8 +378,7 @@ const toggleSpeechRecognition = () => {
     >
       <BaseTooltip content="New Chat" placement="bottom">
         <BaseButton
-          :variant="'ghost'"
-          size="lg"
+          variant="ghost"
           class="z-10"
           :icon="SquarePen"
           @click="clearChat"
@@ -418,16 +417,16 @@ const toggleSpeechRecognition = () => {
             <BaseRow class="mt-2 z-10 opacity-0 group-hover:opacity-100 gap-0!">
               <BaseTooltip content="Report" placement="bottom">
                 <BaseButton
-                  :variant="'ghost'"
-                  size="md"
+                  variant="ghost"
+                  size="sm"
                   :icon="Flag"
                   @click="handleReport(message, 'Inappropriate content')"
                 />
               </BaseTooltip>
               <BaseTooltip content="Copy" placement="bottom">
                 <BaseButton
-                  :variant="'ghost'"
-                  size="md"
+                  variant="ghost"
+                  size="sm"
                   :icon="Copy"
                   @click="
                     (copy(message.content),
@@ -516,7 +515,7 @@ const toggleSpeechRecognition = () => {
             >
               <div v-if="!isLockedIn" class="flex flex-col justify-center items-center px-4">
                 <ModelSelectionCards v-model="selectedModel" />
-                <BaseButton variant="action" :full="true" size="lg" class="mt-4 max-w-120" @click="handleFindUser">Queue for incoming requests</BaseButton>
+                <BaseButton variant="action" :full="true" class="mt-4 max-w-120" @click="handleFindUser">Queue for incoming requests</BaseButton>
               </div>
             </Transition -->
           </div>
@@ -597,7 +596,6 @@ const toggleSpeechRecognition = () => {
                     :icon="Search"
                     variant="action"
                     type="button"
-                    size="lg"
                     @click.prevent="handleFindUser"
                     :disabled="isSearching"
                   >
@@ -611,7 +609,6 @@ const toggleSpeechRecognition = () => {
                   >
                     <BaseButton
                       :icon="Square"
-                      size="lg"
                       @click="handleCancel"
                       variant="action"
                       :fill="true"
@@ -625,7 +622,6 @@ const toggleSpeechRecognition = () => {
                   >
                     <BaseButton
                       :icon="AudioLines"
-                      size="lg"
                       @click="toggleSpeechRecognition"
                       :variant="isListening ? 'action' : 'ghost'"
                     />
@@ -640,7 +636,6 @@ const toggleSpeechRecognition = () => {
                       :icon="ArrowUp"
                       variant="action"
                       type="submit"
-                      size="lg"
                     />
                   </BaseTooltip>
                 </Transition>
@@ -669,7 +664,6 @@ const toggleSpeechRecognition = () => {
                 key="button"
                 type="button"
                 variant="ghost"
-                size="lg"
                 class="mt-4"
                 @click="router.push('/natural-intelligence')"
               >
@@ -679,7 +673,6 @@ const toggleSpeechRecognition = () => {
                 key="button"
                 type="button"
                 variant="action"
-                size="lg"
                 :icon="ChevronRight"
                 icon-placement="trailing"
                 class="mt-4"

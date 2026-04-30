@@ -122,8 +122,7 @@ onClickOutside(
       :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
       :aria-expanded="isOpen"
-      :variant="'ghost'"
-      size="lg"
+      variant="ghost"
     >
       <span class="truncate">
         {{

@@ -53,7 +53,6 @@ useEventListener(document, 'keydown', (e) => {
     <BaseTooltip content="Add files" placement="bottom">
       <BaseButton
         :icon="Plus"
-        size="lg"
         @click="toggle"
         :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
         aria-haspopup="true"

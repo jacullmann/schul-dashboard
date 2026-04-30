@@ -146,7 +146,7 @@
 
   /* ── Animations ────────────────────────────────────────── */
   --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-fade-up: fade-up 0.5s ease-out forwards;
+  --animate-fade-up: fade-up 0.35s ease-out forwards;
 
   @keyframes fade-up {
     0% {
@@ -618,11 +618,6 @@ hr {
   margin: 16px 0;
 }
 
-.col {
-  flex: 1;
-  min-width: 240px;
-}
-
 .full {
   display: flex;
   flex-direction: column;
@@ -634,54 +629,6 @@ hr {
   position: relative;
 }
 
-.bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--color-canvas);
-  z-index: -2;
-  pointer-events: none;
-}
-
-#animated-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-}
-
-.svg-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -2;
-  object-fit: cover;
-}
-
-.global-announcements {
-  user-select: none;
-}
-
-.announcement-content-text {
-  cursor: grab;
-}
-
-.announcement-content-text:active {
-  cursor: grabbing;
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .announcement-content-text {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
 @media (max-width: 1000px) {
   :root {
     --header-height: 50px;
@@ -689,13 +636,9 @@ hr {
 }
 
 @media (max-width: 768px) {
-  .svg-background {
-    background: var(--color-canvas);
-  }
-
   .card {
-    margin: 0 0 0 0;
-    padding: 16px 16px 16px 16px;
+    margin: 0;
+    padding: 16px;
     border: none;
     border-radius: 0;
   }

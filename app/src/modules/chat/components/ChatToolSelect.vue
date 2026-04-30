@@ -68,7 +68,6 @@ useEventListener(document, 'keydown', (e) => {
     <BaseButton
       v-if="windowWidth > 480"
       :icon="Settings2"
-      size="lg"
       @click="toggle"
       :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
       aria-haspopup="true"
@@ -80,7 +79,6 @@ useEventListener(document, 'keydown', (e) => {
     <BaseTooltip v-else content="Tools" placement="bottom">
       <BaseButton
         :icon="Settings2"
-        size="lg"
         @click="toggle"
         :class="{ 'bg-surface-hover! text-on-ghost!': isOpen }"
         aria-haspopup="true"

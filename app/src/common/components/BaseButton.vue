@@ -12,7 +12,7 @@ export interface Props {
   iconPlacement?: 'leading' | 'trailing';
   iconClasses?: string;
   fill?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md';
   chip?: boolean;
   loading?: boolean;
   disabled?: boolean;
@@ -41,7 +41,8 @@ const classes = computed(() => {
   const onClasses: Record<NonNullable<Props['on']>, string> = {
     ghost: 'text-on-ghost-muted hover:bg-ghost-hover hover:text-on-ghost',
     action: 'text-on-action-muted hover:bg-action-hover hover:text-on-action',
-    danger: 'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger',
+    danger:
+      'text-on-danger-muted hover:bg-danger-highlight hover:text-on-danger',
   };
 
   const variantClasses: Record<NonNullable<Props['variant']>, string> = {
@@ -76,25 +77,18 @@ defineExpose({
         : variant === 'input'
           ? 'font-normal w-fit'
           : 'font-medium w-fit',
-      size === 'lg' ? 'py-2.5' : 'py-2',
       size === 'sm' ? '' : ' min-h-10 min-w-10',
       touch ? 'touch-target' : '',
       size === 'sm'
         ? 'px-2'
         : !chip && !loading && icon && $slots.default
           ? iconPlacement === 'leading'
-            ? size === 'lg'
-              ? 'pl-3 pr-5'
-              : 'pl-4 pr-6'
-            : size === 'lg'
-              ? 'pl-5 pr-3'
-              : 'pl-6 pr-4'
-          : chip || loading || icon
-            ? size === 'lg'
-              ? 'px-2.5'
-              : 'px-2'
-            : size === 'lg'
-              ? 'px-5'
+            ? 'pl-4 pr-6'
+            : 'pl-6 pr-4'
+          : chip
+            ? 'px-2.5'
+            : loading || icon
+              ? 'px-2'
               : 'px-6',
     ]"
     class="relative inline-flex items-center justify-center gap-2 py-2 rounded-full text-sm/4 cursor-pointer select-none whitespace-nowrap transition-hover disabled:opacity-50 disabled:cursor-not-allowed"
