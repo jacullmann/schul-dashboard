@@ -89,11 +89,13 @@ const skeletonCells = computed(() => {
 </script>
 
 <template>
-  <div class="p-4 md:p-0 overflow-x-auto">
-    <ScheduleHeader
-      :loading="!!(loadingSubs || loadingLessons)"
-      :is-personalized="!!isPersonalized"
-    />
+  <div class="p-4 md:p-0 overflow-x-auto overflow-y-clip">
+    <div class="animate-fade-up">
+      <ScheduleHeader
+        :loading="!!(loadingSubs || loadingLessons)"
+        :is-personalized="!!isPersonalized"
+      />
+    </div>
 
     <div
       class="grid grid-cols-[80px_repeat(5,1fr)] gap-2 items-stretch max-[500px]:flex max-[500px]:overflow-hidden max-[500px]:grid-cols-none max-[500px]:grid-rows-none"
@@ -121,13 +123,14 @@ const skeletonCells = computed(() => {
           "
         >
           <div
-            v-for="day in days"
+            v-for="(day, index) in days"
             :key="day"
-            class="day-header bg-surface text-on-ghost p-2 border border-surface-border text-center font-bold rounded-md text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0"
+            class="day-header bg-surface text-on-ghost p-2 border border-surface-border text-center font-bold rounded-md text-base shadow-input min-w-[150px] min-[501px]:[grid-row:1] max-[500px]:snap-start max-[500px]:scroll-ml-0 animate-fade-up"
             :class="{
               'bg-surface-hover border-surface-hover-border':
                 day === currentDay,
             }"
+            :style="{ animationDelay: `${(index + 1) * 0.05}s`, animationFillMode: 'both' }"
           >
             <span class="block">{{ formatDayName(day) }}</span>
             <!--span class="block text-[0.75rem] font-normal text-on-ghost-muted mt-0.5">{{
@@ -153,6 +156,7 @@ const skeletonCells = computed(() => {
               :group-key="String(key)"
               :is-active="key === activeOrNextGroupKey"
               :is-current-day="group[0]?.day === currentDay"
+              :day-index="days.indexOf(group[0]?.day)"
               :get-display-name="getDisplayName"
               :get-group-style="getGroupStyle"
             />
